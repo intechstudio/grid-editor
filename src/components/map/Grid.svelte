@@ -1,5 +1,5 @@
 <script>
-  import {onMount} from 'svelte';
+
   export let size = 0;
   import PO16 from '../modules/PO16.svelte';
   import PBF4 from '../modules/PBF4.svelte';
@@ -12,8 +12,11 @@
   $: cellSize = size * 106.6 + 'px';
   $: marginsize = size * 106.6 * 2 + 'px';
 
-  function allowDrop(e) {
+  let current;
+
+  function handleDrop(e){
     e.preventDefault();
+    current = e.detail
   }
 
 </script>
@@ -30,40 +33,40 @@
     color:white;
   }
 
-
+  .active{
+    background-color: #ff3e00;
+		color: white;
+  }
 
 </style>
 
 
-<div id="0" 
-draggable="true" 
-use:dragndrop 
->
-  <PO16 {size} />
-</div>
+<div class="relative flex flex-row text-white" use:dragndrop on:dnd-dragover={handleDrop} >
+  <div id="0" draggable="true">
+    <PO16 {size} />
+  </div>
 
-<div id="2" 
-draggable="true" 
-use:dragndrop 
->
-  <PBF4 {size} />
-</div>
+  <div id="2" draggable="true">
+    <PBF4 {size} />
+  </div>
 
-
-<div class="flex flex-row text-white">
-{#each columns as column}
-    
+  {#each columns as column} 
     <div class="flex flex-col">
       {#each rows as row}
       <div 
-        class="cell" 
+        id={'grid-cell-'+column+''+row}
+        class="cell " 
         style="--cell-size: {cellSize}" 
-        on:dragover={allowDrop}
+        class:active={current === (column+''+row)}
       >
-        {column} {row}      
+        
       </div>
       {/each}
     </div>
-  
 {/each}
+</div>
+
+<div id="grid" class="w-1/2 h-48 bg-white" >
+
+
 </div>

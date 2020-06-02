@@ -27,6 +27,6 @@
 <div id="map" class="w-full items-center justify-center">
   <Grid {size}/>
   <!--<svelte:component this={PBF4} {size}/>-->
-  </div>
+</div>
 
   

@@ -35,7 +35,7 @@
 <div class="relative">
 	<Map size={$appSettings.size}/>
 
-	<DevTool />
+	<!--<DevTool />-->
 
 </div>
 
