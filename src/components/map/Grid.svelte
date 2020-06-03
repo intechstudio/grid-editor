@@ -1,6 +1,6 @@
 <script>
 
-  export let size = 0;
+  export let size = 2;
 
   import PO16 from '../modules/PO16.svelte';
   import PBF4 from '../modules/PBF4.svelte';
@@ -21,7 +21,7 @@
   $: rows = [0];
   $: columns = [0];
 
-  $: cellSize = size * 106.6 +'px';
+  $: cellSize = (size * 106.6) + 10;
 
   let current;
 
@@ -83,6 +83,8 @@
       usedCells.push(cell);
     }
     console.log('registered cell', usedCells)
+
+    console.log(cell.coords.x * 106.6 * size)
   }
 
   function handleDragStart(e){
@@ -147,7 +149,6 @@
   .controller{
     z-index: 10;
     position: relative;
-    display: block;
   }
 
 
@@ -175,9 +176,11 @@
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
       class="cell" 
-      style="--cell-size: {cellSize};margin-top:{cell.coords.x*106*size*2+'px'};margin-left:{cell.coords.y*-106*size*2+'px'};"
+      style="--cell-size: {cellSize + 'px'};margin-top:{cell.coords.x*106.6*size*2.085 +'px'};margin-left:{-1*(cell.coords.y*106.6*size*2.085)+'px'};"
       class:active={current === 'x:'+cell.coords.x+';y:'+cell.coords.y}  
-      ></div>
+      >
+      
+      </div>
     {/each}
   </div>
 </div>
