@@ -46,7 +46,7 @@
 
 </style>
 
-<div class="module-dimensions" style="--module-size: {moduleWidth}">
+<div class="module-dimensions pointer-events-none" style="--module-size: {moduleWidth}">
 
   <div class="control-row" style="--control-row-mt: {size * 3.235 +'px'}; --control-row-mx: {size * 6.835 + 'px'}" >
 
