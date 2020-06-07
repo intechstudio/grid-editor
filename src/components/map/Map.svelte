@@ -8,7 +8,7 @@
 
   import Grid from './Grid.svelte';
 
-  export let size = 1;
+  export let size = 1.25;
 
   let map;
 
@@ -24,7 +24,7 @@
 
 </style>
 
-<div id="map" class="w-full items-center justify-center">
+<div class="w-full h-full items-center justify-center">
   <Grid {size}/>
   <!--<svelte:component this={PBF4} {size}/>-->
 </div>

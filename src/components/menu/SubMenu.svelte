@@ -1,15 +1,11 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
-
   import { appSettings } from './app-settings.store';
-
-  $appSettings.size = 2;
-
 </script>
 
-<div class="w-full h-16 flex text-white items-center primary ">
-  <div class="text-xlbold p-4 uppercase">Editor</div>
-
+<div class="w-full h-12 flex text-white items-center justify-around primary">
+  <div>Layout</div>
+  <div>Settings</div>
+  <div>Profiles</div>
   <!--
   <label class="">
   Size
