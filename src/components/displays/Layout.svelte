@@ -15,7 +15,7 @@
   $: rows = [0];
   $: columns = [0];
 
-  $: cellSize = size * 106.6;
+  $: cellSize = size * 106.6 + 10;
 
   let current;
   let centerDrag = false;
@@ -194,7 +194,7 @@
     {#each $cells as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
-      style="--cell-size: {cellSize + 'px'}; margin-top:{(cell.coords.x*106.6*size) + 20 +'px'};margin-left:{-1*(cell.coords.y*106.6*size) + 10 +'px'};"
+      style="--cell-size: {cellSize + 'px'}; margin-top:{(cell.coords.x*106.6*size*1.28) + 20 +'px'};margin-left:{-1*(cell.coords.y*106.6*size*1.28) + 10 +'px'};"
       class="cell"
       class:active={current === 'x:'+cell.coords.x+';y:'+cell.coords.y}
       class:restricted-action={centerDrag && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
