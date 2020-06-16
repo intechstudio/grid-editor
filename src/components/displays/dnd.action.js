@@ -4,12 +4,15 @@ export function dragndrop(node) {
 
   let centerCanBeRemoved = false;
 
+  let modul = 'none';
+
   let dragValidity = true;
 
   function handleDragStart(e) {
 
-    let modul = e.target.id;
+    modul = e.target.id;
     let cell = e.target.offsetParent.id.substr(10,);
+
     if(cell !== 'x:0;y:0'){
       if(!(modul == 'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16')){ 
         e.target.style.opacity = '0.4';
@@ -26,19 +29,25 @@ export function dragndrop(node) {
       cells.subscribe((array)=>{ 
         (array.length <= 5 ) ? centerCanBeRemoved = true : centerCanBeRemoved = false 
       });
-
-      console.log('center can be removed', centerCanBeRemoved)
     
       if(centerCanBeRemoved){
         e.dataTransfer.setData("text", e.target.id);
         node.dispatchEvent(new CustomEvent('dnd-dragstart', {detail: e.target.id}));
-        node.addEventListener('dragover', handleDragOver)
+        node.addEventListener('dragover', handleCenterDragOver)
       } else {
         node.dispatchEvent(new CustomEvent('dnd-centerdrag', {
           detail: e.target.id
         }));
       }
       
+    }
+  }
+
+  function handleCenterDragOver(e){
+    var target = e.target.id;
+    if(target == 'bin'){
+      e.preventDefault();
+      window.addEventListener('drop', handleDrop);
     }
   }
 
@@ -53,9 +62,9 @@ export function dragndrop(node) {
         }));
         window.addEventListener('drop', handleDrop);
       }
-      if(e.target.id == 'bin'){
+      if(e.target.id == 'bin' && !modul.startsWith('drg')){
         e.preventDefault();
-        console.log('it\'s the trash area')
+        console.log('it\'s the trash area', modul)
       } 
     } else{
       dragValidity = false;
@@ -70,6 +79,8 @@ export function dragndrop(node) {
 			detail: {target: e.target, module: e.dataTransfer.getData("text")}
     }));
     window.removeEventListener('dragstart', handleDragStart);
+
+    node.removeEventListener('dragover', handleCenterDragOver)
     node.removeEventListener('dragover', handleDragOver);
   }
 

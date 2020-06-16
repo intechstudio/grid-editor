@@ -28,6 +28,7 @@
   function handleDragOver(e){
     e.preventDefault();
     current = e.detail;
+    console.log('handleDragOver')
   }
 
   function handleCenterDrag(e){
@@ -39,10 +40,8 @@
 
   function handleDrop(e){
 
-    const id = e.detail.target.id.substr(10,)
+    let id = e.detail.target.id;
     let modul = e.detail.module;
-
-    console.log('target id',e.detail.module);
 
     if(e.detail.target.id !== 'bin'){
       if(modul == 'drg-po16' || modul ==  'bu16' || modul ==  'drg-pbf4' || modul ==  'en16'){
@@ -56,9 +55,12 @@
     } else {
       document.getElementById(modul).remove();
     }
+
+    console.log('handleDrop', modul, e.detail.target.id)
     
     addToUsedCells(modul, id);
     expandGrid(id);
+    
   }
 
   function handleDelete(e){
@@ -67,44 +69,78 @@
   }
 
   function addToUsedCells(modul, id){
-    var cell = {id: modul,coords:{x: +id.split(';')[0].split(':').pop(),y: +id.split(';')[1].split(':').pop()}}
-    if(usedCells.length == 0){ usedCells.push(cell);}
-    let flag = true;
-    usedCells.forEach(c => { if(c.id == cell.id){ c.coords = cell.coords;flag = false; } });
-    if(flag){ usedCells.push(cell); }
+
+    if(id != 'bin'){
+
+      console.log('addToUsedCells',modul, id)
+
+      var cell = {
+        id: modul,
+        coords:{ 
+          x: +id.split(';')[0].split(':').pop(),
+          y: +id.split(';')[1].split(':').pop()
+        }
+      }
+
+      console.log('used cells...', usedCells.length, usedCells);
+
+      if(usedCells.length == 0){ 
+        usedCells.push(cell);
+      }
+
+      let flag = true;
+
+      usedCells.forEach(c => { 
+        if(c.id == cell.id){ 
+          c.coords = cell.coords;
+          flag = false; 
+        } 
+      });
+
+      if(flag){ 
+        usedCells.push(cell); 
+      }
+    }
   }
 
   function handleDragEnd(e){
-    if(!e.detail.dragValidity){ 
+    if(e.detail.dragValidity){ 
       if(movedCell){
-        usedCells.push(movedCell); 
+        console.log('ARE WE GOING', movedCell)
+        //usedCells.push(movedCell); 
         expandGrid(e.detail.id);
       } 
     }
     current = '';
+    console.log('handleDragEnd')
+
   }
 
   function handleDragStart(e){
-    if(usedCells.length > 1){
-      movedCell = usedCells.find(cell => cell.id == e.detail);
-      usedCells = usedCells.filter(cell => cell.id !== e.detail);
-      expandGrid(e.detail);
-    }
+    movedCell = usedCells.find(cell => cell.id == e.detail);
+    usedCells = usedCells.filter(cell => cell.id !== e.detail);
+    expandGrid(e.detail);
+
+    console.log('handleDragStart')
   }
 
   function expandGrid(id){   
 
     let cellGen = [];
 
-    if(usedCells.length == 0){ usedCells.push({id: id, coords: { x: 0, y: 0}})}
+    console.log('expandGrid', usedCells);
 
-    usedCells.forEach((cell,i) => {
-      cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
-      cellGen.push({id: cell.id,coords:{x: cell.coords.x - 1, y: cell.coords.y}});
-      cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y + 1}});
-      cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y - 1}});
-      cellGen.push({id: cell.id,coords:{x: cell.coords.x + 1, y: cell.coords.y}});
-    });    
+    if(usedCells.length == 0){ 
+      cellGen.push({id: id, coords: { x: 0, y: 0}})
+    } else {
+      usedCells.forEach((cell,i) => {
+        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
+        cellGen.push({id: cell.id,coords:{x: cell.coords.x - 1, y: cell.coords.y}});
+        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y + 1}});
+        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y - 1}});
+        cellGen.push({id: cell.id,coords:{x: cell.coords.x + 1, y: cell.coords.y}});
+      });    
+    }
 
     let cellGenCoords = [];
 
@@ -194,7 +230,7 @@
     {#each $cells as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
-      style="--cell-size: {cellSize + 'px'}; margin-top:{(cell.coords.x*106.6*size*1.28) + 20 +'px'};margin-left:{-1*(cell.coords.y*106.6*size*1.28) + 10 +'px'};"
+      style="--cell-size: {cellSize + 'px'}; margin-top:{(cell.coords.x*106.6*size*1.1) +'px'};margin-left:{-1*(cell.coords.y*106.6*size*1.1) +'px'};"
       class="cell"
       class:active={current === 'x:'+cell.coords.x+';y:'+cell.coords.y}
       class:restricted-action={centerDrag && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
