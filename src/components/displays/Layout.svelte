@@ -12,26 +12,15 @@
 
   let usedCells = [];
 
-  $: rows = [0];
-  $: columns = [0];
+  let layout = 7;
 
   $: cellSize = size * 106.6 + 10;
-
-  $: TESTCELLS = [{
-  //init cell
-  id: 'none',
-  coords: { 
-    x: 0, 
-    y:0
-  } 
-}];
 
   let current;
   let centerDrag = false;
   let centerDragHighlight = false;
   let movedCell;
 
-  let TESTARRAY;
 
   const genModulId = (id) => {
     return id + '_' + Math.random().toString(36).substr(2,9);
@@ -71,7 +60,6 @@
     }
     
     addToUsedCells(modul, id);
-    expandGrid(id)
   }
 
   function handleDelete(e){
@@ -84,11 +72,20 @@
 
     if(id != 'bin'){
 
+      const x = +id.split(';')[0].split(':').pop();
+      const y = +id.split(';')[1].split(':').pop()
+
       var cell = {
         id: modul,
         coords:{ 
-          x: +id.split(';')[0].split(':').pop(),
-          y: +id.split(';')[1].split(':').pop()
+          x: x,
+          y: y
+        },
+        map: {
+          top: {x: x, y: y+1},
+          rigth: {x: x+1, y: y},
+          bot: {x: x, y: y-1},
+          left: {x: x-1, y: y},
         }
       }
 
@@ -108,17 +105,19 @@
       if(flag){ 
         usedCells.push(cell); 
       }
+
+      $cells.used = [...usedCells]
     }
   }
 
   function handleDragEnd(e){
 
     if(e.detail.dragValidity && movedCell){ 
-      expandGrid(movedCell.id);
+      //expandGrid(movedCell.id);
     } else {
       if(!centerDrag && movedCell) {
         usedCells.push(movedCell)
-        expandGrid(movedCell.id)
+        //expandGrid(movedCell.id)
       };
     }
     current = '';
@@ -127,24 +126,31 @@
 
   function handleDragStart(e){
     movedCell = usedCells.find(cell => cell.id == e.detail);
-    usedCells.forEach((cell) => {
-      //console.log(cell.id, e.detail, 'cell: ', cell);
-    })
-    usedCells = usedCells.filter(cell => cell.id !== e.detail);
-    console.log('handleDragStart', usedCells)
-    expandGrid(e.detail);
-
+    $cells.used = [...usedCells.filter(cell => cell.id !== e.detail)];
+    //expandGrid(e.detail);
   }
 
+  function createLayoutGrid(){
+    const L = (-1*((layout-1)/2))
+    let cellGen = [];
+    for (let i = 0; i < layout; i++) {
+      for (let j = 0; j < layout; j++) {
+        cellGen.push({id: 'none', coords: { x: i+L, y: j+L}})
+      }
+    }
+    $cells.layout = [...cellGen]
+  }
+
+  createLayoutGrid()
+
+/*
   function expandGrid(id){   
     let cellGen = [];
-    //console.log('Used Cells: ', usedCells)
-    console.log('BEFORE FUNCTION ', $cells)
 
+    let array = [];
     if(usedCells.length == 0){ 
       cellGen.push({id: id, coords: { x: 0, y: 0}})
     } else {
-      
       usedCells.forEach((cell,i) => {
         cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
         cellGen.push({id: 'none',coords:{x: cell.coords.x - 1, y: cell.coords.y}});
@@ -159,34 +165,22 @@
         cellGen.forEach(gen => {
           if(gen.coords.x == usedCells[i].coords.x && gen.coords.y == usedCells[i].coords.y){
             gen.id = usedCells[i].id;  
-            gen.map = {
-              top: {x: gen.coords.x, y: gen.coords.y + 1},
-              right: {x: gen.coords.x + 1, y: gen.coords.y},
-              bot: {x: gen.coords.x, y: gen.coords.y - 1},
-              left: {x: gen.coords.x - 1, y: gen.coords.y}}
-            }
+          }
         })
       })
-
-      //console.log('stg-2',cellGen);
     }
-
-    const uniqueArray = cellGen.filter((cell, index) => {
-      const _coords = JSON.stringify(cell.coords);
-      return index === cellGen.findIndex(obj => {
-        return JSON.stringify(obj.coords) === _coords;
+      const uniqueArray = cellGen.filter((cell, index) => {
+        const _coords = JSON.stringify(cell.coords);
+        return index === cellGen.findIndex(obj => {
+          return JSON.stringify(obj.coords) === _coords;
+        });
       });
-    });
 
-    //console.log('stg-3',uniqueArray);
+      console.log(uniqueArray);
 
-    $cells = [...uniqueArray];
-    console.log('AFTER FUNCTION CELLS', $cells)
+      $cells = uniqueArray;
   }
-
-  function renderButton(){
-    $cells = TESTARRAY;
-  }
+*/
 
 </script>
 
@@ -242,10 +236,9 @@
     </div>
   </div>
 
-  <button class="bg-gray-600 text-white w-32 z-50" on:click={renderButton}>Render</button>
 
   <div style="top:40%; left:50%;" class="w-full h-full flex relative justify-center items-center">
-    {#each $cells as cell}
+    {#each $cells.layout as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
       style="--cell-size: {cellSize + 'px'}; top:{-1*(cell.coords.y*106.6*size*1.1) +'px'};left:{(cell.coords.x*106.6*size*1.1) +'px'};"
