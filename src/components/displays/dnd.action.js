@@ -96,7 +96,9 @@ export function dragndrop(node) {
       }
       if(e.target.id == 'bin' && !modul.startsWith('drg')){
         e.preventDefault();
-        console.log('it\'s the trash area', modul)
+        console.log('it\'s the trash area', modul);
+        window.addEventListener('drop', handleDrop);
+        //node.dispatchEvent(new CustomEvent('dnd-delete', {detail: {modul: modul}}))
       } 
     } else{
       dragValidity = false;

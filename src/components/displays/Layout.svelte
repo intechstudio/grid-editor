@@ -17,6 +17,15 @@
 
   $: cellSize = size * 106.6 + 10;
 
+  $: TESTCELLS = [{
+  //init cell
+  id: 'none',
+  coords: { 
+    x: 0, 
+    y:0
+  } 
+}];
+
   let current;
   let centerDrag = false;
   let centerDragHighlight = false;
@@ -62,11 +71,12 @@
     }
     
     addToUsedCells(modul, id);
-    
+    expandGrid(id)
   }
 
   function handleDelete(e){
-    let modul = e.detail.module;
+    let modul = e.detail.modul;
+    console.log('delete',modul)
     document.getElementById(modul).remove();
   }
 
@@ -102,11 +112,6 @@
   }
 
   function handleDragEnd(e){
-    console.log('dragend',e.detail, movedCell)
-
-    if(e.detail.dragValidity){
-      expandGrid(e.detail.id);
-    }
 
     if(e.detail.dragValidity && movedCell){ 
       expandGrid(movedCell.id);
@@ -128,13 +133,12 @@
     usedCells = usedCells.filter(cell => cell.id !== e.detail);
     console.log('handleDragStart', usedCells)
     expandGrid(e.detail);
-    
+
   }
 
   function expandGrid(id){   
-
     let cellGen = [];
-
+    //console.log('Used Cells: ', usedCells)
     console.log('BEFORE FUNCTION ', $cells)
 
     if(usedCells.length == 0){ 
@@ -155,7 +159,12 @@
         cellGen.forEach(gen => {
           if(gen.coords.x == usedCells[i].coords.x && gen.coords.y == usedCells[i].coords.y){
             gen.id = usedCells[i].id;  
-          }
+            gen.map = {
+              top: {x: gen.coords.x, y: gen.coords.y + 1},
+              right: {x: gen.coords.x + 1, y: gen.coords.y},
+              bot: {x: gen.coords.x, y: gen.coords.y - 1},
+              left: {x: gen.coords.x - 1, y: gen.coords.y}}
+            }
         })
       })
 
@@ -176,7 +185,6 @@
   }
 
   function renderButton(){
-    console.log(TESTARRAY);
     $cells = TESTARRAY;
   }
 
