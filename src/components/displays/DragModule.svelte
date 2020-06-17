@@ -1,3 +1,21 @@
+<script>
+
+  export let size = 1.25;
+
+  import PO16 from '../modules/PO16.svelte';
+  import PBF4 from '../modules/PBF4.svelte';
+
+</script>
+
+<div class="absolute invisible">
+  <div id="po16" class="controller cursor-pointer" draggable="true">
+    <PO16 {size}/> 
+  </div>
+  <div id="pbf4" class="controller cursor-pointer" draggable="true">
+    <PBF4 {size}/> 
+  </div>
+</div>
+
 <div class="text-white pb-4">Drag Module</div>
 <div class="secondary flex rounded-lg">
 

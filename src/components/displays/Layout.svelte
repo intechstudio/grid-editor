@@ -19,7 +19,10 @@
 
   let current;
   let centerDrag = false;
+  let centerDragHighlight = false;
   let movedCell;
+
+  let TESTARRAY;
 
   const genModulId = (id) => {
     return id + '_' + Math.random().toString(36).substr(2,9);
@@ -28,14 +31,16 @@
   function handleDragOver(e){
     e.preventDefault();
     current = e.detail;
-    console.log('handleDragOver')
   }
 
   function handleCenterDrag(e){
-    centerDrag = true;
-    setTimeout(()=>{
-      centerDrag = false;
-    },750)
+    centerDrag = e.detail.center;
+    if(centerDrag){
+      centerDragHighlight = true;
+      setTimeout(()=>{
+        centerDragHighlight = false;
+      },750)
+    }
   }
 
   function handleDrop(e){
@@ -55,11 +60,8 @@
     } else {
       document.getElementById(modul).remove();
     }
-
-    console.log('handleDrop', modul, e.detail.target.id)
     
     addToUsedCells(modul, id);
-    expandGrid(id);
     
   }
 
@@ -72,8 +74,6 @@
 
     if(id != 'bin'){
 
-      console.log('addToUsedCells',modul, id)
-
       var cell = {
         id: modul,
         coords:{ 
@@ -81,8 +81,6 @@
           y: +id.split(';')[1].split(':').pop()
         }
       }
-
-      console.log('used cells...', usedCells.length, usedCells);
 
       if(usedCells.length == 0){ 
         usedCells.push(cell);
@@ -104,45 +102,65 @@
   }
 
   function handleDragEnd(e){
-    if(e.detail.dragValidity){ 
-      if(movedCell){
-        console.log('ARE WE GOING', movedCell)
-        //usedCells.push(movedCell); 
-        expandGrid(e.detail.id);
-      } 
+    console.log('dragend',e.detail, movedCell)
+
+    if(e.detail.dragValidity){
+      expandGrid(e.detail.id);
+    }
+
+    if(e.detail.dragValidity && movedCell){ 
+      expandGrid(movedCell.id);
+    } else {
+      if(!centerDrag && movedCell) {
+        usedCells.push(movedCell)
+        expandGrid(movedCell.id)
+      };
     }
     current = '';
-    console.log('handleDragEnd')
-
-  }
+ }
+    
 
   function handleDragStart(e){
     movedCell = usedCells.find(cell => cell.id == e.detail);
+    usedCells.forEach((cell) => {
+      //console.log(cell.id, e.detail, 'cell: ', cell);
+    })
     usedCells = usedCells.filter(cell => cell.id !== e.detail);
+    console.log('handleDragStart', usedCells)
     expandGrid(e.detail);
-
-    console.log('handleDragStart')
+    
   }
 
   function expandGrid(id){   
 
     let cellGen = [];
 
-    console.log('expandGrid', usedCells);
+    console.log('BEFORE FUNCTION ', $cells)
 
     if(usedCells.length == 0){ 
       cellGen.push({id: id, coords: { x: 0, y: 0}})
     } else {
+      
       usedCells.forEach((cell,i) => {
-        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
-        cellGen.push({id: cell.id,coords:{x: cell.coords.x - 1, y: cell.coords.y}});
-        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y + 1}});
-        cellGen.push({id: cell.id,coords:{x: cell.coords.x, y: cell.coords.y - 1}});
-        cellGen.push({id: cell.id,coords:{x: cell.coords.x + 1, y: cell.coords.y}});
+        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
+        cellGen.push({id: 'none',coords:{x: cell.coords.x - 1, y: cell.coords.y}});
+        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y + 1}});
+        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y - 1}});
+        cellGen.push({id: 'none',coords:{x: cell.coords.x + 1, y: cell.coords.y}});
       });    
-    }
 
-    let cellGenCoords = [];
+      //console.log('stg-1',cellGen);
+
+      usedCells.forEach((used, i)=>{
+        cellGen.forEach(gen => {
+          if(gen.coords.x == usedCells[i].coords.x && gen.coords.y == usedCells[i].coords.y){
+            gen.id = usedCells[i].id;  
+          }
+        })
+      })
+
+      //console.log('stg-2',cellGen);
+    }
 
     const uniqueArray = cellGen.filter((cell, index) => {
       const _coords = JSON.stringify(cell.coords);
@@ -151,7 +169,15 @@
       });
     });
 
+    //console.log('stg-3',uniqueArray);
+
     $cells = [...uniqueArray];
+    console.log('AFTER FUNCTION CELLS', $cells)
+  }
+
+  function renderButton(){
+    console.log(TESTARRAY);
+    $cells = TESTARRAY;
   }
 
 </script>
@@ -166,12 +192,6 @@
     justify-content: center;
     align-items: center;
     border: 1px dashed black;
-  }
-
-  .controller{
-    z-index: 10;
-    position: relative;
-    color:white;
   }
 
   .active{
@@ -198,7 +218,7 @@
 
 </style>
 
-<div class="relative w-full flex flex-col h-full"
+<div class="relative overflow-hidden w-full flex flex-col h-full"
   use:dragndrop 
   on:dnd-dragover={handleDragOver}
   on:dnd-drop={handleDrop}
@@ -209,34 +229,25 @@
   >
 
   <div class="w-full flex flex-col absolute justify-start items-start">
-    <div class="primary p-4 m-4 rounded-lg">
-
-      <div class="absolute invisible">
-        <div id="po16" class="controller cursor-pointer" draggable="true">
-          <PO16 {size}/> 
-        </div>
-        <div id="pbf4" class="controller cursor-pointer" draggable="true">
-          <PBF4 {size}/> 
-        </div>
-      </div>
-
-      <DragModule/>
-
-      
+    <div class="primary p-4 m-4 rounded-lg">   
+      <DragModule/>     
     </div>
   </div>
 
-  <div class="w-full h-full flex justify-center items-center">
+  <button class="bg-gray-600 text-white w-32 z-50" on:click={renderButton}>Render</button>
+
+  <div style="top:40%; left:50%;" class="w-full h-full flex relative justify-center items-center">
     {#each $cells as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
-      style="--cell-size: {cellSize + 'px'}; margin-top:{(cell.coords.x*106.6*size*1.1) +'px'};margin-left:{-1*(cell.coords.y*106.6*size*1.1) +'px'};"
+      style="--cell-size: {cellSize + 'px'}; top:{-1*(cell.coords.y*106.6*size*1.1) +'px'};left:{(cell.coords.x*106.6*size*1.1) +'px'};"
       class="cell"
       class:active={current === 'x:'+cell.coords.x+';y:'+cell.coords.y}
-      class:restricted-action={centerDrag && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
+      class:restricted-action={centerDragHighlight && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
       >
       </div>
     {/each}
+    
   </div>
 
   <div class="w-full absolute bottom-0 right-0 flex justify-end items-center">
