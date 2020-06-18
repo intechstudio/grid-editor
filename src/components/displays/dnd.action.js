@@ -17,11 +17,8 @@ export function dragndrop(node) {
 
   function handleDragStart(e) {
 
-    
-
     usedCells = get(cells).used;
     layoutCells = get(cells).layout;
-    
 
     let movedCell; // NEED THIS BAD BOY, TO REBUILD AVAILABLE CELL IS DRAG IS INVALID
     movedCell = usedCells.find(cell => cell.id === e.target.id);
@@ -133,7 +130,6 @@ export function dragndrop(node) {
         window.addEventListener('drop', handleDrop);
       } 
     } else{
-      console.log('SUPPP'); 
       dragValidity = false;
     }
     window.addEventListener('dragend',handleDragEnd);

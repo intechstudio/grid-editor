@@ -1,5 +1,7 @@
 <script>
 
+  import { islanding } from './islanding.js';
+
   export let size = 1.25;
 
   import PO16 from '../modules/PO16.svelte';
@@ -27,7 +29,7 @@
   }
 
   function handleDragStart(e){
-    console.log('dragstart...',e.detail.movedCell)
+    // console.log('dragstart...',e.detail.movedCell)
     movedCell = e.detail.movedCell; // USED FOR handleDragEnd!!!
     drawPossiblePlacementOutlines()
   }
@@ -42,7 +44,7 @@
     //console.log('handleCenterDrag',centerDrag)
     if(centerDrag){
       movedCell = e.detail.movedCell;
-      console.log('centerdrag', movedCell);
+      // console.log('centerdrag', movedCell);
       centerDragHighlight = true;
       setTimeout(()=>{
         centerDragHighlight = false;
@@ -90,7 +92,9 @@
           right: {x: x+1, y: y},
           bot: {x: x, y: y-1},
           left: {x: x-1, y: y},
-        }
+        },
+        islanding: -1,
+        islandSearchStatus: -1,
       }
 
       if($cells.used.length == 0){ 
@@ -122,13 +126,16 @@
 
   function handleDragEnd(e){
     // PUT BACK THE MODUL IF INVALID DRAG HAPPEND7
-    console.log('drag end!',e.detail, movedCell)
+    // console.log('drag end!',e.detail, movedCell)
     if(!e.detail.dragValidity && movedCell){
       $cells.used.push(movedCell);
       $cells = $cells;
     } 
     drawPossiblePlacementOutlines() 
     current = '';
+
+    let islandingArray = islanding.testAllIslanding($cells.used);
+    console.log(islandingArray);
   }
 
   function createLayoutGrid(){
