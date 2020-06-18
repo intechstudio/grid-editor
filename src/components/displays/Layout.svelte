@@ -10,11 +10,11 @@
   import { dragndrop } from './dnd.action.js';
   import { cells } from './cells.store.js';
 
-  let usedCells = [];
-
   let layout = 7;
 
   $: cellSize = size * 106.6 + 10;
+
+  let usedCells = []
 
   let current;
   let centerDrag = false;
@@ -26,6 +26,12 @@
     return id + '_' + Math.random().toString(36).substr(2,9);
   }
 
+  function handleDragStart(e){
+    console.log('dragstart...',e.detail.movedCell)
+    movedCell = e.detail.movedCell; // USED FOR handleDragEnd!!!
+    drawPossiblePlacementOutlines()
+  }
+
   function handleDragOver(e){
     e.preventDefault();
     current = e.detail;
@@ -33,7 +39,10 @@
 
   function handleCenterDrag(e){
     centerDrag = e.detail.center;
+    //console.log('handleCenterDrag',centerDrag)
     if(centerDrag){
+      movedCell = e.detail.movedCell;
+      console.log('centerdrag', movedCell);
       centerDragHighlight = true;
       setTimeout(()=>{
         centerDragHighlight = false;
@@ -58,14 +67,9 @@
     } else {
       document.getElementById(modul).remove();
     }
-    
-    addToUsedCells(modul, id);
-  }
 
-  function handleDelete(e){
-    let modul = e.detail.modul;
-    console.log('delete',modul)
-    document.getElementById(modul).remove();
+    addToUsedCells(modul, id);
+    
   }
 
   function addToUsedCells(modul, id){
@@ -83,51 +87,48 @@
         },
         map: {
           top: {x: x, y: y+1},
-          rigth: {x: x+1, y: y},
+          right: {x: x+1, y: y},
           bot: {x: x, y: y-1},
           left: {x: x-1, y: y},
         }
       }
 
-      if(usedCells.length == 0){ 
-        usedCells.push(cell);
+      if($cells.used.length == 0){ 
+        $cells.used.push(cell);
       }
 
       let flag = true;
 
-      usedCells.forEach(c => { 
+      $cells.used.forEach(c => { 
         if(c.id == cell.id){ 
           c.coords = cell.coords;
+          c.map = cell.map;
           flag = false; 
         } 
       });
 
       if(flag){ 
-        usedCells.push(cell); 
+        $cells.used.push(cell); 
       }
 
-      $cells.used = [...usedCells]
+      $cells.used = $cells.used;
     }
   }
 
+  function handleDelete(e){
+    let modul = e.detail.modul;
+    document.getElementById(modul).remove();
+  }
+
   function handleDragEnd(e){
-
-    if(e.detail.dragValidity && movedCell){ 
-      //expandGrid(movedCell.id);
-    } else {
-      if(!centerDrag && movedCell) {
-        usedCells.push(movedCell)
-        //expandGrid(movedCell.id)
-      };
-    }
+    // PUT BACK THE MODUL IF INVALID DRAG HAPPEND7
+    console.log('drag end!',e.detail, movedCell)
+    if(!e.detail.dragValidity && movedCell){
+      $cells.used.push(movedCell);
+      $cells = $cells;
+    } 
+    drawPossiblePlacementOutlines() 
     current = '';
- }
-    
-
-  function handleDragStart(e){
-    movedCell = usedCells.find(cell => cell.id == e.detail);
-    $cells.used = [...usedCells.filter(cell => cell.id !== e.detail)];
-    //expandGrid(e.detail);
   }
 
   function createLayoutGrid(){
@@ -135,52 +136,44 @@
     let cellGen = [];
     for (let i = 0; i < layout; i++) {
       for (let j = 0; j < layout; j++) {
-        cellGen.push({id: 'none', coords: { x: i+L, y: j+L}})
+        cellGen.push({id: 'none', canBeUsed: false, coords: { x: i+L, y: j+L}})
       }
     }
     $cells.layout = [...cellGen]
   }
 
-  createLayoutGrid()
+  function drawPossiblePlacementOutlines(){
+    
+    let mapCoords = [];
 
-/*
-  function expandGrid(id){   
-    let cellGen = [];
+    $cells.layout.forEach(layoutCell => {layoutCell.canBeUsed = false})
 
-    let array = [];
-    if(usedCells.length == 0){ 
-      cellGen.push({id: id, coords: { x: 0, y: 0}})
-    } else {
-      usedCells.forEach((cell,i) => {
-        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y}}); // init values
-        cellGen.push({id: 'none',coords:{x: cell.coords.x - 1, y: cell.coords.y}});
-        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y + 1}});
-        cellGen.push({id: 'none',coords:{x: cell.coords.x, y: cell.coords.y - 1}});
-        cellGen.push({id: 'none',coords:{x: cell.coords.x + 1, y: cell.coords.y}});
-      });    
+    $cells.used.forEach(usedCell => {
+      mapCoords.push(usedCell.coords);
+      for (const key in usedCell.map) {
+        mapCoords.push(usedCell.map[key])
+      }
+    });
 
-      //console.log('stg-1',cellGen);
-
-      usedCells.forEach((used, i)=>{
-        cellGen.forEach(gen => {
-          if(gen.coords.x == usedCells[i].coords.x && gen.coords.y == usedCells[i].coords.y){
-            gen.id = usedCells[i].id;  
-          }
-        })
-      })
-    }
-      const uniqueArray = cellGen.filter((cell, index) => {
-        const _coords = JSON.stringify(cell.coords);
-        return index === cellGen.findIndex(obj => {
-          return JSON.stringify(obj.coords) === _coords;
-        });
+    const uniqueMapCoords = mapCoords.filter((cell, index) => {
+      const _cell = JSON.stringify(cell);
+      return index === mapCoords.findIndex(obj => {
+        return JSON.stringify(obj) === _cell;
       });
+    });
 
-      console.log(uniqueArray);
+    $cells.layout.forEach(layoutCell => {
+      uniqueMapCoords.forEach(map => {
+        if(layoutCell.coords.x == map.x && layoutCell.coords.y == map.y){
+          layoutCell.canBeUsed = true;
+        }
+      });
+    });
 
-      $cells = uniqueArray;
+    $cells.layout = $cells.layout;
   }
-*/
+
+  createLayoutGrid()
 
 </script>
 
@@ -193,23 +186,26 @@
     position: absolute;
     justify-content: center;
     align-items: center;
-    border: 1px dashed black;
+    
   }
 
   .active{
-    border: 2px dashed green;
-    /*animation: fadein .5s ease-in-out forwards; */
+    border: 2px dashed green !important;
   }
 
   .restricted-action{
-    border:10px solid rgba(255, 0, 0, 0);
+    background-color:rgba(255, 0, 0, 0);
     border-radius: 10px;
     animation: restricedFade .5s ease-out forwards; 
   }
 
+  .availableForPlacement{
+    border: 1px solid black;
+  }
+
   @keyframes restricedFade {
-    0%,100% { border-color: rgba(255, 0, 0, 0); }
-    50% { border-color: rgba(255, 0, 0, 1); }
+    0%,100% { background-color: rgba(255, 0, 0, 0);}
+    50% { background-color: rgba(255, 0, 0, 1); }
   }
 
   @keyframes fadein {
@@ -237,13 +233,14 @@
   </div>
 
 
-  <div style="top:40%; left:50%;" class="w-full h-full flex relative justify-center items-center">
+  <div style="top:40%; left:50%;z-index:9999;" class="w-full h-full flex relative justify-center items-center">
     {#each $cells.layout as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
       style="--cell-size: {cellSize + 'px'}; top:{-1*(cell.coords.y*106.6*size*1.1) +'px'};left:{(cell.coords.x*106.6*size*1.1) +'px'};"
       class="cell"
-      class:active={current === 'x:'+cell.coords.x+';y:'+cell.coords.y}
+      class:active={current == 'x:'+cell.coords.x+';y:'+cell.coords.y}
+      class:availableForPlacement={cell.canBeUsed}
       class:restricted-action={centerDragHighlight && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
       >
       </div>
