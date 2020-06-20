@@ -4,7 +4,6 @@ function testAllIslanding(modulesArray){
     testModuleIslanding(modulesArray,f);
   }  
 
-  console.log(modulesArray);
   return modulesArray;
 }
 
@@ -58,7 +57,6 @@ function testModuleIslanding(modulesArray,testModuleIndex){
 
   }  
   //console.log("notFoundCount: "+notFoundCount);
-  console.log(modulesArray);
 }
 
 

@@ -4,6 +4,9 @@
 
   export let size = 1.25;
 
+  import { layoutMenu } from './menu.action.js';
+  let isMenuOpen = false;
+
   import PO16 from '../modules/PO16.svelte';
   import PBF4 from '../modules/PBF4.svelte';
 
@@ -23,13 +26,14 @@
   let centerDragHighlight = false;
   let movedCell;
 
+  let menuOnModuleWithId;
+
 
   const genModulId = (id) => {
     return id + '_' + Math.random().toString(36).substr(2,9);
   }
 
   function handleDragStart(e){
-    // console.log('dragstart...',e.detail.movedCell)
     movedCell = e.detail.movedCell; // USED FOR handleDragEnd!!!
     drawPossiblePlacementOutlines()
   }
@@ -39,12 +43,10 @@
     current = e.detail;
   }
 
-  function handleCenterDrag(e){
+  function handleInvalidDrag(e){
     centerDrag = e.detail.center;
-    //console.log('handleCenterDrag',centerDrag)
     if(centerDrag){
       movedCell = e.detail.movedCell;
-      // console.log('centerdrag', movedCell);
       centerDragHighlight = true;
       setTimeout(()=>{
         centerDragHighlight = false;
@@ -95,9 +97,11 @@
         },
         islanding: -1,
         islandSearchStatus: -1,
+        isConnectedByUsb: false
       }
 
-      if($cells.used.length == 0){ 
+      if($cells.used.length == 0){
+        cell.isConnectedByUsb = true;
         $cells.used.push(cell);
       }
 
@@ -125,17 +129,17 @@
   }
 
   function handleDragEnd(e){
-    // PUT BACK THE MODUL IF INVALID DRAG HAPPEND7
-    // console.log('drag end!',e.detail, movedCell)
+    // PUT BACK THE MODUL IF INVALID DRAG HAPPEND
+
     if(!e.detail.dragValidity && movedCell){
       $cells.used.push(movedCell);
       $cells = $cells;
     } 
+
     drawPossiblePlacementOutlines() 
     current = '';
 
-    let islandingArray = islanding.testAllIslanding($cells.used);
-    console.log(islandingArray);
+    
   }
 
   function createLayoutGrid(){
@@ -146,20 +150,31 @@
         cellGen.push({id: 'none', canBeUsed: false, coords: { x: i+L, y: j+L}})
       }
     }
-    $cells.layout = [...cellGen]
+    return cellGen
   }
 
   function drawPossiblePlacementOutlines(){
+
+    let layoutCells = createLayoutGrid();
     
     let mapCoords = [];
 
-    $cells.layout.forEach(layoutCell => {layoutCell.canBeUsed = false})
+    layoutCells.forEach(layoutCell => {layoutCell.canBeUsed = false})
 
     $cells.used.forEach(usedCell => {
       mapCoords.push(usedCell.coords);
       for (const key in usedCell.map) {
         mapCoords.push(usedCell.map[key])
       }
+    });
+
+    $cells.used.forEach(usedCell => {
+      layoutCells.forEach(layoutCell => {
+        if(layoutCell.coords.x == usedCell.coords.x && layoutCell.coords.y == usedCell.coords.y){
+          layoutCell.id = usedCell.id;
+          layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
+        }
+      });
     });
 
     const uniqueMapCoords = mapCoords.filter((cell, index) => {
@@ -169,7 +184,7 @@
       });
     });
 
-    $cells.layout.forEach(layoutCell => {
+    layoutCells.forEach(layoutCell => {
       uniqueMapCoords.forEach(map => {
         if(layoutCell.coords.x == map.x && layoutCell.coords.y == map.y){
           layoutCell.canBeUsed = true;
@@ -177,14 +192,72 @@
       });
     });
 
-    $cells.layout = $cells.layout;
+    $cells.layout = [...layoutCells];
   }
 
-  createLayoutGrid()
+  function setUsbConnectedModule(){
+
+    // reset all.
+    $cells.used.forEach(usedCell => { usedCell.isConnectedByUsb = false });
+    $cells.layout.forEach(layoutCell => { layoutCell.isConnectedByUsb = false });
+
+    // set the usb connected module in used cells.
+    $cells.used.forEach(usedCell => {
+      if(usedCell.id == menuOnModuleWithId){
+        usedCell.isConnectedByUsb = true;
+      }
+    });
+
+    // update the layout with the new change on usb connected module.
+    $cells.layout.forEach(layoutCell => {
+      $cells.used.forEach(usedCell => {
+        if(layoutCell.id == usedCell.id){
+          layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
+        }
+      });
+    });
+
+    $cells = $cells;
+  }
+
+  $cells.layout = [...createLayoutGrid()];
 
 </script>
 
 <style>
+
+  #context-menu{
+    position:fixed;
+    z-index:9999;
+    width:200px;
+    transform:scale(0);
+    transform-origin:top left;
+  }
+  
+  #context-menu .item {
+    padding: 8px 10px;
+    font-size:15px;
+    cursor: pointer;
+    color:#eee;
+  }
+
+  #context-menu .item:hover{
+    background-color: black;
+  }
+
+  #context-menu .item:first-child:hover {
+    border-top-left-radius: 0.5rem;
+    border-top-right-radius: 0.5rem;
+  }
+
+  #context-menu .item:last-child:hover {
+    border-bottom-left-radius: 0.5rem;
+    border-bottom-right-radius: 0.5rem;
+  }
+
+  #context-menu.active{
+    transform:scale(1);
+  }
 
   .cell{
     width: var(--cell-size);
@@ -196,7 +269,7 @@
     
   }
 
-  .active{
+  .freeToDrop{
     border: 2px dashed green !important;
   }
 
@@ -206,8 +279,12 @@
     animation: restricedFade .5s ease-out forwards; 
   }
 
-  .availableForPlacement{
-    border: 1px solid black;
+  .canBeUsed{
+    border: 1px solid rgba(0,0,0,0.25);
+  }
+
+  .isConnectedByUsb{
+    background-color: rgba(0, 75, 225, 0.25);
   }
 
   @keyframes restricedFade {
@@ -223,32 +300,47 @@
 
 </style>
 
+<div 
+  id="context-menu"
+  class:active={isMenuOpen}
+  class="rounded-lg primary border border-gray-700 shadow-lg"
+  >
+  <div class="item" on:click={setUsbConnectedModule}>USB Connected Module</div>
+  <div class="item">Module Information</div>
+</div>
+
 <div class="relative overflow-hidden w-full flex flex-col h-full"
   use:dragndrop 
   on:dnd-dragover={handleDragOver}
   on:dnd-drop={handleDrop}
   on:dnd-delete={handleDelete}
   on:dnd-dragstart={handleDragStart}
-  on:dnd-centerdrag={handleCenterDrag}
+  on:dnd-invalid={handleInvalidDrag}
   on:dnd-dragend={handleDragEnd}
   >
 
   <div class="w-full flex flex-col absolute justify-start items-start">
-    <div class="primary p-4 m-4 rounded-lg">   
+    <div class="primary p-4 m-4 rounded-lg z-20">   
       <DragModule/>     
     </div>
   </div>
 
 
-  <div style="top:40%; left:50%;z-index:9999;" class="w-full h-full flex relative justify-center items-center">
+
+  <div style="top:40%; left:50%;" class="w-full h-full flex relative justify-center items-center z-10"
+    use:layoutMenu 
+    on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
+    on:menu-close={()=>{isMenuOpen = false}}
+    >
     {#each $cells.layout as cell}
       <div 
       id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
       style="--cell-size: {cellSize + 'px'}; top:{-1*(cell.coords.y*106.6*size*1.1) +'px'};left:{(cell.coords.x*106.6*size*1.1) +'px'};"
       class="cell"
-      class:active={current == 'x:'+cell.coords.x+';y:'+cell.coords.y}
-      class:availableForPlacement={cell.canBeUsed}
-      class:restricted-action={centerDragHighlight && 'x:0;y:0' === 'x:'+cell.coords.x+';y:'+cell.coords.y}
+      class:freeToDrop={current == 'x:'+cell.coords.x+';y:'+cell.coords.y}
+      class:canBeUsed={cell.canBeUsed}
+      class:isConnectedByUsb={cell.isConnectedByUsb}
+      class:restricted-action={centerDragHighlight && (movedCell.coords.x === cell.coords.x) && (movedCell.coords.y === cell.coords.y)}
       >
       </div>
     {/each}
@@ -256,7 +348,7 @@
   </div>
 
   <div class="w-full absolute bottom-0 right-0 flex justify-end items-center">
-    <div class="m-4 relative primary text-gray-500 rounded-lg">
+    <div class="m-4 relative z-20 primary text-gray-500 rounded-lg">
     <div id="bin" class="flex absolute h-full w-full"></div>
       <div class="flex flex-col justify-center items-center border border-dashed border-gray-800 p-4 h-40 w-40 m-2">
         <div class="p-2">Remove</div>

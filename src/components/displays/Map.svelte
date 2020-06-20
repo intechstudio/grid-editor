@@ -16,17 +16,11 @@
 
 <style>
 
-  #map{
-    position: absolute;
-    display: flex;
-    z-index: 9999;
-  }
 
 </style>
 
 <div class="w-full h-full items-center justify-center">
   <Grid {size}/>
-  <!--<svelte:component this={PBF4} {size}/>-->
 </div>
 
   
