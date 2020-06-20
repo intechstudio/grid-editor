@@ -52,8 +52,6 @@ export function dragndrop(node) {
       }
     }
 
-   
-
     // ON DRAG START, REMOVE THE ELEMENT FROM THE USED CELLS.
     if(usedCells.length > 0){ 
       usedCells = usedCells.filter(cell => cell.id !== modul)
