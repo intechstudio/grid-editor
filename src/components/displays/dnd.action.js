@@ -63,6 +63,8 @@ export function dragndrop(node) {
       })
     } 
 
+    console.log('dnd', get(cells).used)
+
     if(movable && !_islanding){
       if(!(modul == 'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16')){ 
         e.target.style.opacity = '0.4';
@@ -146,7 +148,7 @@ export function dragndrop(node) {
       if(e.target.id == 'bin' && !modul.startsWith('drg')){
         e.preventDefault();
         console.log('it\'s the trash area', modul);
-        dragEvent = 'delete';
+        dragEvent = 'remove';
         window.addEventListener('drop', handleDrop);
       } 
     } else{
@@ -163,12 +165,11 @@ export function dragndrop(node) {
         detail: {target: e.target, module: e.dataTransfer.getData("text")}
       }));
     }
-    if(dragEvent == 'delete'){
-      node.dispatchEvent(new CustomEvent('dnd-delete', {
+    if(dragEvent == 'remove'){
+      node.dispatchEvent(new CustomEvent('dnd-remove', {
         detail: {modul: modul}
       }));
     }
-    //console.log('dragEvent', dragEvent);
     window.removeEventListener('dragstart', handleDragStart);
     node.removeEventListener('dragover', handleDragOver);
     
@@ -180,7 +181,6 @@ export function dragndrop(node) {
     }));
     e.target.style.opacity = 1.0;
     window.removeEventListener('drop', handleDrop);
-    //console.log('end')
   }
 
   node.addEventListener('dragstart', handleDragStart);

@@ -3,7 +3,7 @@
   import Potentiometer from './elements/Potentiometer.svelte';
   import Led from './elements/Led.svelte';
 
-  export let size = 1;
+  export let size = 1.5;
 
   $: moduleWidth = size * 106.6 + 'px';
 

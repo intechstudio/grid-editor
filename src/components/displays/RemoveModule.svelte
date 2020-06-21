@@ -1,0 +1,12 @@
+<div class="w-full absolute bottom-0 right-0 flex justify-end items-center">
+  <div class="m-4 relative z-20 primary text-gray-500 rounded-lg">
+  <div id="bin" class="flex absolute h-full w-full"></div>
+    <div class="flex flex-col justify-center items-center border border-dashed border-gray-800 p-4 h-40 w-40 m-2">
+      <div class="p-2">Remove</div>
+      <svg class="w-8 h-8" viewBox="0 0 22 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 15V20H21V15" stroke="#a0aec0"/>
+        <path fill="#a0aec0" d="M10.6464 13.3536C10.8417 13.5488 11.1583 13.5488 11.3536 13.3536L14.5355 10.1716C14.7308 9.97631 14.7308 9.65973 14.5355 9.46447C14.3403 9.2692 14.0237 9.2692 13.8284 9.46447L11 12.2929L8.17157 9.46447C7.97631 9.2692 7.65973 9.2692 7.46447 9.46447C7.2692 9.65973 7.2692 9.97631 7.46447 10.1716L10.6464 13.3536ZM10.5 0V13H11.5V0L10.5 0Z" />
+      </svg> 
+    </div>
+  </div>
+</div>

@@ -2,8 +2,9 @@
 	import Tailwindcss from './Tailwindcss.svelte';
 
 	import Layout from './components/displays/Layout.svelte';
+	import Settings from './components/displays/Settings.svelte';
+
 	import Menu from './components/menu/Menu.svelte';
-	import SubMenu from './components/menu/SubMenu.svelte';
 	import DevTool from './components/tools/devTool/DevTool.svelte';
 	import ModuleSettings from './components/settings/module-settings/ModuleSettings.svelte';
 	import ElementSettings from './components/settings/element-settings/ElementSettings.svelte';
@@ -32,9 +33,15 @@
 
 
 <div style="height: calc(100vh - 1 * 48px);" class="relative">
+
+{#if $appSettings.selectedDisplay == 'layout'}
 	<Layout size={$appSettings.size}/>
+{:else if $appSettings.selectedDisplay == 'settings'}
+	<Settings size={$appSettings.size}/>
+{/if}
+	
 </div>
 
-<SubMenu/>
+<Menu/>
 
 

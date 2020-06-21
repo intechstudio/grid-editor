@@ -124,37 +124,8 @@ function drawModules(modulesArray){
 
 }
 
-/**
- * 
- * $(document).ready(function(){
-
-    console.log("Ready!");
-
-
-    var modules = [];
-
-    modules.push({x: 0, y: 0,  islanding: -1, islandSearchStatus: -1, type: "PO16"});
-    modules.push({x: 1, y: 0,  islanding: -1, islandSearchStatus: -1, type: "BU16"});
-    modules.push({x: 1, y: 1,  islanding: -1, islandSearchStatus: -1, type: "EN16"});
-    modules.push({x: 1, y: -1, islanding: -1, islandSearchStatus: -1, type: "PBF4"});
-    modules.push({x: 1, y: 2,  islanding: -1, islandSearchStatus: -1, type: "PO16"});
-    
-
-
-
-    drawModules(modules);
-
-    $("#test").on("click",function(){
-
-      testAllIslanding(modules);
-
-      drawModules(modules);
-    });
-
-}); 
-*/
 exports.islanding = {
-  testAllIslanding: testAllIslanding
+  testAllIslanding
 }
 
 

@@ -4,7 +4,7 @@
   import Led from './elements/Led.svelte';
   import Fader from './elements/Fader.svelte';
 
-  export let size = 1;
+  export let size = 1.5;
 
   $: moduleWidth = size * 106.6 + 'px';
 
