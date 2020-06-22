@@ -1,21 +1,21 @@
 <script>
- 
-  export let size = 1.5;
 
-  import PO16 from '../modules/PO16.svelte';
-  import PBF4 from '../modules/PBF4.svelte';
+  import PO16 from '../../modules/PO16.svelte';
+  import PBF4 from '../../modules/PBF4.svelte';
+  import BU16 from '../../modules/BU16.svelte';
 
 </script>
 
 <div class="w-full flex flex-col absolute justify-start items-start">
   <div class="primary p-4 m-4 rounded-lg z-20">   
     <div class="absolute invisible">
-      <div id="po16" class="controller cursor-pointer" draggable="true" >
-        <PO16 {size} /> 
-      </div>
-      <div id="pbf4" class="controller cursor-pointer" draggable="true">
-        <PBF4 {size}/> 
-      </div>
+      
+        <PO16/> 
+
+        <PBF4/> 
+
+        <BU16/> 
+
     </div>
 
     <div class="text-white pb-4">Drag Module</div>
@@ -39,6 +39,17 @@
           </div>
           <div class="p-2 text-primary-900">
             PBF4
+          </div>
+        </div>
+      </div>
+
+      <div id="drg-bu16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+        <div class="pointer-events-none flex justify-between items-center">
+          <div class="h-10 w-10 rounded-full ">
+            <img class="h-10 w-10 rounded-full object-cover" src="../assets/imgs/sm_bu16.jpg" alt="bu16">
+          </div>
+          <div class="p-2 text-primary-900">
+            BU16
           </div>
         </div>
       </div>

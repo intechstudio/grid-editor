@@ -1,12 +1,11 @@
 <script>
-  import { appSettings } from './app-settings.store';
+  import { appSettings } from '../stores/app-settings.store';
 
   let selectedDisplay = 'layout';
 
   function changeSelectedDisplay(display){
     selectedDisplay = display;
     $appSettings.selectedDisplay = selectedDisplay;
-    //console.log()
   }
 
 </script>
@@ -20,6 +19,11 @@
 </style>
 
 <div class="w-full flex justify-center text-xs text-white primary">
+  
+  <div>
+    <div>change size</div>
+    <input bind:value={$appSettings.size} type="number">
+  </div>
   <div class="w-1/2 h-12 flex justify-around items-center ">
     <div 
       on:click="{()=>{ changeSelectedDisplay('layout') }}" 

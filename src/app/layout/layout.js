@@ -98,6 +98,12 @@ function drawPossiblePlacementOutlines(cells, grid){
   return layoutCells;
 }
 
+function removePossiblePlacementOutlines(grid){
+  let layoutCells = createLayoutGrid(grid);
+  layoutCells.forEach(layoutCell => {layoutCell.canBeUsed = false})
+  return layoutCells;
+}
+
 function setUsbConnectedModule(cells, menuOnModuleWithId){
 
   // reset all.
@@ -128,5 +134,6 @@ exports.layout = {
   addToUsedCells,
   createLayoutGrid,
   drawPossiblePlacementOutlines,
+  removePossiblePlacementOutlines,
   setUsbConnectedModule
 }

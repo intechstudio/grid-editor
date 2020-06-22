@@ -1,8 +1,4 @@
-import { cells } from './cells.store.js';
-
-
 export function layoutMenu(node) {
-
 
   function handleMenuOpen(e) {
 

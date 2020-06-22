@@ -1,0 +1,150 @@
+<script>
+
+  import { appSettings } from '../stores/app-settings.store.js';
+
+  import Button from './elements/Button.svelte';
+  import Led from './elements/Led.svelte';
+
+  $: moduleWidth = $appSettings.size * 106.6 + 'px';
+
+</script>
+
+<style>
+	.module-dimensions {
+    width: var(--module-size);
+    height: var(--module-size);
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		align-items: center;
+		background-color: #1E2628;
+		border-radius: 0.75rem;
+
+  }
+  
+  .knob-and-led {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .control-row{
+    display: flex;
+    flex-direction: row;
+    width:100%;
+    display: flex;
+    justify-content: space-around;
+    margin-top: var(--control-row-mt);
+    margin-left: var(--control-row-mx);
+    margin-right: var(--control-row-mx);
+  }
+
+  .control-row:last-child{
+    margin-bottom: var(--control-row-mb);
+  }
+
+</style>
+
+<div id="bu16" draggable={$appSettings.selectedDisplay == 'layout'}>
+
+  <div 
+    class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
+    class="module-dimensions " 
+    style="--module-size: {moduleWidth}" 
+    >
+
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+    </div>
+
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+    </div>
+
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
+      <div class="knob-and-led">
+        <div style="margin-bottom:{$appSettings.size*0.4 + 'px'}">
+        <Led size={$appSettings.size}/>
+        </div>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+    </div>
+
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
+      </div>
+    </div>
+  </div>
+
+</div>

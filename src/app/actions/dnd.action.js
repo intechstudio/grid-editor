@@ -1,6 +1,6 @@
-import { cells } from './cells.store.js';
+import { cells } from '../../displays/cells.store.js';
 
-import { islanding } from './islanding.js';
+import { islanding } from '../islanding.js';
 
 import { get } from 'svelte/store';
 
