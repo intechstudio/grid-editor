@@ -7,6 +7,8 @@
 
   $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
+  export let id = 'po16';
+
 </script>
 
 <style>
@@ -50,7 +52,7 @@
 
 </style>
 
-<div id="po16" draggable={$appSettings.selectedDisplay == 'layout'}>
+<div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
 
   <div 
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}

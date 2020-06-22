@@ -9,20 +9,9 @@
   import Fader from './elements/Fader.svelte';
   import Button from './elements/Button.svelte';
 
-  $: moduleWidth = size * 106.6 + 'px';
+  $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
-  let selectedDisplay = '';
-  let size;
-
-  let disp;  
-
-  onMount(()=>{
-    appSettings.subscribe((settings)=>{
-      selectedDisplay = settings.selectedDisplay;
-      size = settings.size;
-      console.log(selectedDisplay);
-    });   
-  })
+  export let id = 'pbf4';
 
 </script>
 
@@ -66,81 +55,81 @@
 
 </style>
 
-<div id="pbf4" draggable={selectedDisplay == 'layout' ? true : false}>
+<div id={id} draggable={$appSettings.selectedDisplay == 'layout' ? true : false}>
 
   <div 
-    class:disable-pointer-events={selectedDisplay == 'layout'}
+    class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions " 
     style="--module-size: {moduleWidth}" 
     >
 
-    <div class="text-white">{selectedDisplay}</div>
+    <div class="text-white">{$appSettings.selectedDisplay}</div>
 
-    <div class="control-row" style="--control-row-mt: {size * 3.235 +'px'}; --control-row-mx: {size * 6.835 + 'px'}" >
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Potentiometer {size}/>
+        <Led size={$appSettings.size}/>
+        <Potentiometer size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Potentiometer {size}/>
+        <Led size={$appSettings.size}/>
+        <Potentiometer size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Potentiometer {size}/>
+        <Led size={$appSettings.size}/>
+        <Potentiometer size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Potentiometer {size}/>
+        <Led size={$appSettings.size}/>
+        <Potentiometer size={$appSettings.size}/>
       </div>
 
     </div>
 
-    <div class="control-row" style="--control-row-mt: {size * 3.235 +'px'}; --control-row-mx: {size * 6.835 + 'px'}">
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
       <div class="knob-and-led">
-        <Led {size}/>
-        <Fader {size}/>
+        <Led size={$appSettings.size}/>
+        <Fader size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Fader {size}/>
+        <Led size={$appSettings.size}/>
+        <Fader size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Fader {size}/>
+        <Led size={$appSettings.size}/>
+        <Fader size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Fader {size}/>
+        <Led size={$appSettings.size}/>
+        <Fader size={$appSettings.size}/>
       </div>
     </div>
 
-    <div class="control-row" style="--control-row-mt: {size * 3.235 +'px'}; --control-row-mx: {size * 6.835 + 'px'}; --control-row-mb: {size * 6.835 + 'px'}">
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       <div class="knob-and-led">
-        <Led {size}/>
-        <Button {size}/>
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Button {size}/>
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Button {size}/>
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
-        <Led {size}/>
-        <Button {size}/>
+        <Led size={$appSettings.size}/>
+        <Button size={$appSettings.size}/>
       </div>
     </div>
   </div>

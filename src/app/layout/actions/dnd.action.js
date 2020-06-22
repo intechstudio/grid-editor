@@ -55,12 +55,14 @@ export function dragndrop(node, selectedDisplay) {
     }
 
     // ON DRAG START, REMOVE THE ELEMENT FROM THE USED CELLS.
+
+    // AFTER RENDERING THE COMPONENTS DINAMICALLY, THIS IS NOT NEEDED
     if(usedCells.length > 0){ 
       usedCells = usedCells.filter(cell => cell.id !== modul)
       let _usedCells = usedCells.filter(cell => cell !== undefined);
       cells.update(cell => {
-        cell.used = _usedCells;
-        cell.layout = layoutCells;
+        //cell.used = _usedCells;
+        //cell.layout = layoutCells;
         return cell;
       })
     } 

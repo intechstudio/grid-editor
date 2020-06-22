@@ -24,6 +24,11 @@
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
 
+  import PO16 from './app/modules/PO16.svelte';
+  import PBF4 from './app/modules/PBF4.svelte';
+  import BU16 from './app/modules/BU16.svelte';
+
+
   /*
   *   layout helper functions
   */
@@ -82,7 +87,7 @@
       if(store.selectedDisplay == 'layout'){
         $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid);
       } else if(store.selectedDisplay == 'settings'){
-        $cells.layout = layout.removePossiblePlacementOutlines(grid)
+        //$cells.layout = layout.removePossiblePlacementOutlines(grid)
       }
     });
 
@@ -235,6 +240,14 @@
         class:isConnectedByUsb={cell.isConnectedByUsb}
         class:restricted-action={invalidDragHighlight && (movedCell.coords.x === cell.coords.x) && (movedCell.coords.y === cell.coords.y)}
         >
+
+        {#if cell.id.startsWith('pbf4')}
+          <svelte:component this={PBF4} id={cell.id}/>
+        {:else if cell.id.startsWith('po16')}
+          <svelte:component this={PO16} id={cell.id}/>
+        {:else if cell.id.startsWith('bu16')}
+          <svelte:component this={BU16} id={cell.id}/>
+        {/if}
 
         </div>
       {/each}    

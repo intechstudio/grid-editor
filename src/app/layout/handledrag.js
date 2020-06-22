@@ -36,9 +36,9 @@ function drop(e){
       var nodeCopy = document.getElementById(modul.substr(4,)).cloneNode(true);
       nodeCopy.id = genModulId(modul.substr(4,));
       modul = nodeCopy.id; // overwrite modul id if its a copy;
-      e.detail.target.appendChild(nodeCopy);
+      //e.detail.target.appendChild(nodeCopy);
     }else{
-      e.detail.target.appendChild(document.getElementById(modul));
+      //e.detail.target.appendChild(document.getElementById(modul));
     }
   } else {
     document.getElementById(modul).remove();
