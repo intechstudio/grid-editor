@@ -5,6 +5,9 @@ const path = require('path')
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
+// To avoid context aware flag.
+app.allowRendererProcessReuse = false;
+
 let watcher;
 if (process.env.NODE_ENV === 'development') {
  watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
@@ -19,6 +22,9 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 900,
         height: 680,
+        webPreferences: {
+          nodeIntegration: true
+        }
     });
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
