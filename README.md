@@ -1,6 +1,13 @@
 two main arrays in the work: layoutcells and usedcells.
 
+# steps to add new module
 
+add control elements to modules/elements
+add module as >modulename.svelte< to modules. 
+set module default id to module name (only lowercase)
+add to App.svelte the module, in the {#each $cells as cell}{/each} segment for rendering.
+add to DragModule.svelte the draggable preview image and div
+add in DragModule.svelte to the invisible modules ? // this may be not necessary, as the rendering changed from direct dom manipulation to dynamic component rendering...
 
 # svelte-tailwindcss-template
 

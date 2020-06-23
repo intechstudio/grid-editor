@@ -3,6 +3,7 @@
   import PO16 from '../../modules/PO16.svelte';
   import PBF4 from '../../modules/PBF4.svelte';
   import BU16 from '../../modules/BU16.svelte';
+  import EN16 from '../../modules/EN16.svelte';
 
 </script>
 
@@ -15,6 +16,8 @@
         <PBF4/> 
 
         <BU16/> 
+
+        <EN16/>
 
     </div>
 
@@ -50,6 +53,17 @@
           </div>
           <div class="p-2 text-primary-900">
             BU16
+          </div>
+        </div>
+      </div>
+
+      <div id="drg-en16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+        <div class="pointer-events-none flex justify-between items-center">
+          <div class="h-10 w-10 rounded-full ">
+            <img class="h-10 w-10 rounded-full object-cover" src="../assets/imgs/sm_en16.jpg" alt="en16">
+          </div>
+          <div class="p-2 text-primary-900">
+            EN16
           </div>
         </div>
       </div>

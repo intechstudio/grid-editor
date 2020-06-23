@@ -70,7 +70,7 @@ export function dragndrop(node, selectedDisplay) {
     console.log('dnd', get(cells).used)
 
     if(movable && !_islanding){
-      if(!(modul == 'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16' || modul ==  'drg-po16')){ 
+      if(!(modul == 'drg-po16' || modul ==  'drg-bu16' || modul ==  'drg-en16' || modul ==  'drg-pbf4')){ 
         e.target.style.opacity = '0.4';
       }   
       e.dataTransfer.setData("text", e.target.id);

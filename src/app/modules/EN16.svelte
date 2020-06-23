@@ -2,16 +2,12 @@
 
   import { appSettings } from '../stores/app-settings.store.js';
 
-  import { onMount } from 'svelte';
-
-  import Potentiometer from './elements/Potentiometer.svelte';
+  import Encoder from './elements/Encoder.svelte';
   import Led from './elements/Led.svelte';
-  import Fader from './elements/Fader.svelte';
-  import Button from './elements/Button.svelte';
 
   $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
-  export let id = 'pbf4';
+  export let id = 'en16';
 
 </script>
 
@@ -25,6 +21,7 @@
 		align-items: center;
 		background-color: #1E2628;
 		border-radius: 0.75rem;
+
   }
   
   .knob-and-led {
@@ -55,7 +52,7 @@
 
 </style>
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout' ? true : false}>
+<div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
 
   <div 
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
@@ -67,22 +64,22 @@
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
     </div>
@@ -90,46 +87,67 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
+      </div>
+    </div>
+
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
+      </div>
+
+      <div class="knob-and-led">
+        <Led size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
 
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Encoder size={$appSettings.size}/>
       </div>
     </div>
   </div>
-
 </div>

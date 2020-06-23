@@ -22,7 +22,7 @@
   
   <div>
     <div>change size</div>
-    <input bind:value={$appSettings.size} type="number">
+    <input class="text-black" bind:value={$appSettings.size} type="number">
   </div>
   <div class="w-1/2 h-12 flex justify-around items-center ">
     <div 

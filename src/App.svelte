@@ -27,6 +27,7 @@
   import PO16 from './app/modules/PO16.svelte';
   import PBF4 from './app/modules/PBF4.svelte';
   import BU16 from './app/modules/BU16.svelte';
+  import EN16 from './app/modules/EN16.svelte';
 
 
   /*
@@ -247,6 +248,8 @@
           <svelte:component this={PO16} id={cell.id}/>
         {:else if cell.id.startsWith('bu16')}
           <svelte:component this={BU16} id={cell.id}/>
+        {:else if cell.id.startsWith('en16')}
+          <svelte:component this={EN16} id={cell.id}/>
         {/if}
 
         </div>
