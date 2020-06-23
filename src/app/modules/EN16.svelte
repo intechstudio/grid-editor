@@ -53,11 +53,10 @@
 </style>
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
-
   <div 
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
-    class="module-dimensions " 
-    style="--module-size: {moduleWidth}" 
+    class="module-dimensions" 
+    style="--module-size: {moduleWidth}"
     >
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >

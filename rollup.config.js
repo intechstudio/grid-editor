@@ -10,7 +10,7 @@ import rollup_start_dev from './rollup_start_dev';
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
-	input: 'src/main.js',
+	input: 'src/svelte.js',
 	output: {
 		sourcemap: true,
 		format: 'iife',
@@ -53,6 +53,9 @@ export default {
 		production && terser()
 	],
 	watch: {
-		clearScreen: false
+		clearScreen: false,
+
+		// Option for electron hot-reload.
+		chokidar: false
 	}
 };

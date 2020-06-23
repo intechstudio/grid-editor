@@ -54,6 +54,7 @@
   *   variables
   */ 
 
+
   export let size = 1.5;
 
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
