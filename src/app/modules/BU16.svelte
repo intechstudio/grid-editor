@@ -2,12 +2,22 @@
 
   import { appSettings } from '../stores/app-settings.store.js';
 
+  import { select } from './event-handlers/select.js';
+
   import Button from './elements/Button.svelte';
   import Led from './elements/Led.svelte';
 
   $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
   export let id = 'bu16';
+
+  const control_block = (number) => {
+    let array = [];
+    for (let i = 0; i < number; i++) {
+      array.push(i);
+    }
+    return array;
+  }
 
 </script>
 
@@ -46,107 +56,32 @@
     margin-bottom: var(--control-row-mb);
   }
 
+  .disable-pointer-events{
+    pointer-events: none;
+  }
+
 </style>
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
+<div id={id} draggable={$appSettings.selectedDisplay == 'layout'} >
 
-  <div 
+  <div
+    use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
-    class="module-dimensions " 
+    class="module-dimensions" 
     style="--module-size: {moduleWidth}" 
     >
 
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+    {#each control_block(4) as block }
+      <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
+        {#each control_block(4) as element}
+          <div class="knob-and-led">
+            <Led size={$appSettings.size}/>
+            <Button elementNumber={block * 4 + element} size={$appSettings.size}/>
+          </div>
+        {/each}
       </div>
+    {/each}
 
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
 
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <div style="margin-bottom:{$appSettings.size*0.4 + 'px'}">
-        <Led size={$appSettings.size}/>
-        </div>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
-      </div>
-    </div>
   </div>
-
 </div>

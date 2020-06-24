@@ -6,7 +6,7 @@
 
 </script>
 
-<div class="inline-block primary rounded-lg p-4 m-4">
+<div class="inline-block primary rounded-lg p-4 m-4 z-20">
 
   <div class="text-xl font-bold text-white mx-2">
     Module Settings

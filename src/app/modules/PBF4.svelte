@@ -1,8 +1,7 @@
 <script>
 
   import { appSettings } from '../stores/app-settings.store.js';
-
-  import { onMount } from 'svelte';
+  import { select } from './event-handlers/select.js';
 
   import Potentiometer from './elements/Potentiometer.svelte';
   import Led from './elements/Led.svelte';
@@ -58,6 +57,7 @@
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout' ? true : false}>
 
   <div 
+    use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions " 
     style="--module-size: {moduleWidth}" 

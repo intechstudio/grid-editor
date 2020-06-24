@@ -119,9 +119,12 @@ function removeSurroundingPlacementOutlines(cells, movedCell){
 
 }
 
-function removePossiblePlacementOutlines(grid){
-  let layoutCells = createLayoutGrid(grid);
-  layoutCells.forEach(layoutCell => {layoutCell.canBeUsed = false})
+function removePossiblePlacementOutlines(cells){
+  let layoutCells = cells.layout.map(
+    (layoutCell) => {
+      layoutCell.canBeUsed = false; 
+      return layoutCell;
+    })
   return layoutCells;
 }
 

@@ -1,6 +1,6 @@
 <script>
 
-  export let size;
+  export let size = 1;
   const encoderSize = 13;
 
 </script>

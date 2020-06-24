@@ -1,6 +1,7 @@
 <script>
 
   import { appSettings } from '../stores/app-settings.store.js';
+  import { select } from './event-handlers/select.js';  
 
   import Potentiometer from './elements/Potentiometer.svelte';
   import Led from './elements/Led.svelte';
@@ -8,6 +9,14 @@
   $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
   export let id = 'po16';
+
+  const control_block = (number) => {
+    let array = [];
+    for (let i = 0; i < number; i++) {
+      array.push(i);
+    }
+    return array;
+  }
 
 </script>
 
@@ -54,100 +63,25 @@
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
 
-  <div 
+  <div
+    use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions " 
     style="--module-size: {moduleWidth}" 
     >
 
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+    {#each control_block(4) as block }
+      <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
+        {#each control_block(4) as element}
+          <div data-element-number={block * 4 + element} class="knob-and-led">
+            <Led size={$appSettings.size}/>
+            <Potentiometer size={$appSettings.size}/>
+          </div>
+        {/each}
       </div>
+    {/each}
 
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-    </div>
-
-    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
-      </div>
-    </div>
   </div>
 </div>
+
+    

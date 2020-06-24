@@ -1,9 +1,11 @@
-export function layoutMenu(node) {
+export function layoutMenu(node, selectedDisplay) {
 
+  
   function handleMenuOpen(e) {
-
     const id = e.target.id;
 
+    console.log('context menu', e.target)
+    
     // pbf4 + 10 chars long ids.
     if(id.length == 14){
       node.dispatchEvent(new CustomEvent('menu-open', {
@@ -27,10 +29,18 @@ export function layoutMenu(node) {
   document.addEventListener('click', handleMenuClose);
   
   return {
+    update(selectedDisplay){
+      if(selectedDisplay == 'settings'){
+        document.removeEventListener('contextmenu', handleMenuOpen);
+      document.removeEventListener('click', handleMenuClose);
+      } else if(selectedDisplay == 'layout'){
+        document.addEventListener('contextmenu', handleMenuOpen);
+        document.addEventListener('click', handleMenuClose);
+      }
+    },
     destroy() {
       document.removeEventListener('contextmenu', handleMenuOpen);
       document.removeEventListener('click', handleMenuClose);
-
     }
   }
 }

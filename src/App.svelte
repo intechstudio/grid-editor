@@ -95,7 +95,7 @@
       if(store.selectedDisplay == 'layout'){
         $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid);
       } else if(store.selectedDisplay == 'settings'){
-        //$cells.layout = layout.removePossiblePlacementOutlines(grid)
+        $cells.layout = layout.removePossiblePlacementOutlines($cells)
       }
     });
 
@@ -250,7 +250,7 @@
     {/if}
 
     <div style="top:40%; left:40%;" class="w-full h-full flex relative justify-center items-center z-10"
-      use:layoutMenu 
+      use:layoutMenu={$appSettings.selectedDisplay}
       on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
       on:menu-close={()=>{isMenuOpen = false}}
       >
