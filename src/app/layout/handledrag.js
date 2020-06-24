@@ -7,7 +7,8 @@ const genModulId = (id) => {
 
 function start(e){
   // Save moved cell data for drag end.
-  movedCell = e.detail.movedCell; 
+  movedCell = e.detail.movedCell || ''; 
+  return movedCell;
 }
 
 function over(e){
@@ -53,21 +54,13 @@ function drop(e){
 
 function remove(e){
   let modul = e.detail.modul;
-  document.getElementById(modul).remove();
+  return {modul: modul}
 }
 
-function end(e, cells){
-  // PUT BACK THE MODUL IF INVALID DRAG HAPPEND
-
-  if(!e.detail.dragValidity && movedCell){
-    cells.used.push(movedCell);
-  }
-
-  //drawPossiblePlacementOutlines() 
+function end(e){
   current = '';
-
-  // Current is set back to default and cells are returned.
-  return {current: current, cells: cells};
+  // Current is set back to default.
+  return {current: current};
 }
 
 exports.handledrag = {

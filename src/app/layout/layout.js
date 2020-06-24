@@ -29,12 +29,13 @@ function addToUsedCells(cells, modul, id){
 
     let flag = true;
 
-    cells.used.forEach(c => { 
+    cells.used.map(c => { 
       if(c.id == cell.id){ 
         c.coords = cell.coords;
         c.map = cell.map;
         flag = false; 
       } 
+      return c;
     });
 
     if(flag){ 
@@ -98,6 +99,26 @@ function drawPossiblePlacementOutlines(cells, grid){
   return layoutCells;
 }
 
+function removeSurroundingPlacementOutlines(cells, movedCell){
+
+  let mapCoords = [];
+
+  for (const key in movedCell.map) {
+    mapCoords.push(movedCell.map[key])
+  }
+
+  cells.forEach((cell)=>{
+    mapCoords.forEach((map)=>{
+      if(cell.coords.x == map.x && cell.coords.y == map.y){
+        cell.canBeUsed = false;
+      }
+    })
+  })
+  
+  return cells;
+
+}
+
 function removePossiblePlacementOutlines(grid){
   let layoutCells = createLayoutGrid(grid);
   layoutCells.forEach(layoutCell => {layoutCell.canBeUsed = false})
@@ -135,5 +156,6 @@ exports.layout = {
   createLayoutGrid,
   drawPossiblePlacementOutlines,
   removePossiblePlacementOutlines,
+  removeSurroundingPlacementOutlines,
   setUsbConnectedModule
 }

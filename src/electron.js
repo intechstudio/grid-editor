@@ -10,6 +10,7 @@ app.allowRendererProcessReuse = false;
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
+
  watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
  watcher.on('change', () => {
     mainWindow.reload();
@@ -34,6 +35,8 @@ function createWindow() {
           watcher.close();
         }         
     });
+
+    mainWindow.webContents.openDevTools()
 }
 
 // This method will be called when Electron has finished

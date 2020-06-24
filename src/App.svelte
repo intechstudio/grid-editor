@@ -13,6 +13,8 @@
   import { appSettings } from './app/stores/app-settings.store';
   import { cells } from './app/stores/cells.store.js';
 
+  
+
   /*
   *   svelte components
   */
@@ -78,6 +80,10 @@
   /* 
   *   Render modules which are in the $cells.used array. 
   */
+
+ 
+
+
   
   onMount(()=>{
 
@@ -197,13 +203,30 @@
       // here we get back the dropped module id and drop target
       let data = handledrag.drop(e);
       layout.addToUsedCells($cells, data.modul, data.id);
+      console.log('addToUsedCells', $cells);
     }}
 
-    on:dnd-remove={handledrag.remove}
+    on:dnd-remove={(e)=>{
+      let data = handledrag.remove(e)
+      let _usedCells = $cells.used.filter(cell => cell.id !== data.modul);
+      cells.update(cell => {
+        cell.used = _usedCells;
+        cell.layout = cell.layout.map( _cell =>{
+          if(_cell.id == data.modul){
+            _cell.id = 'none';
+            _cell.isConnectedByUsb = false;
+          }
+          return _cell;
+        });
+        return cell;
+      });
+    }}
 
     on:dnd-dragstart={(e)=>{
-      handledrag.start(e);
-      $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid)
+      let moved = handledrag.start(e);
+      if(moved !== '' || undefined){
+        $cells.layout = layout.removeSurroundingPlacementOutlines($cells.layout, moved);
+      }
     }}
 
     on:dnd-invalid={(e)=>{
@@ -216,9 +239,8 @@
     }}
 
     on:dnd-dragend={(e)=>{
-      const dragend = handledrag.end(e, $cells); 
+      const dragend = handledrag.end(e); 
       current = dragend.current;
-      (dragend.cells.used !== undefined) ? $cells.used = dragend.cells.used : null;
       $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid);
     }}
     >

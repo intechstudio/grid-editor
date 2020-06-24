@@ -2,6 +2,8 @@ import { cells } from '../../stores/cells.store.js';
 
 import { islanding } from '../islanding.js';
 
+import { layout } from '../layout.js';
+
 import { get } from 'svelte/store';
 
 export let selectedDisplay;
@@ -18,15 +20,18 @@ export function dragndrop(node, selectedDisplay) {
   let usedCells = [];
   let layoutCells = [];
 
-  function handleDragStart(e) {
+  let movedCell;
 
-    usedCells = get(cells).used;
-    layoutCells = get(cells).layout;
+  cells.subscribe((cells)=>{
+    usedCells = cells.used;
+    layoutCells = cells.layout;
+  });
+
+  function handleDragStart(e) {
 
     modul = e.target.id;
 
     // NEED THIS BAD BOY, TO REBUILD AVAILABLE CELL IS DRAG IS INVALID
-    let movedCell; 
     movedCell = usedCells.find(cell => cell.id === modul);
 
     // ISLANDING CHECK BEFORE GETTING FORWARD...
@@ -57,17 +62,6 @@ export function dragndrop(node, selectedDisplay) {
     // ON DRAG START, REMOVE THE ELEMENT FROM THE USED CELLS.
 
     // AFTER RENDERING THE COMPONENTS DINAMICALLY, THIS IS NOT NEEDED
-    if(usedCells.length > 0){ 
-      usedCells = usedCells.filter(cell => cell.id !== modul)
-      let _usedCells = usedCells.filter(cell => cell !== undefined);
-      cells.update(cell => {
-        //cell.used = _usedCells;
-        //cell.layout = layoutCells;
-        return cell;
-      })
-    } 
-
-    console.log('dnd', get(cells).used)
 
     if(movable && !_islanding){
       if(!(modul == 'drg-po16' || modul ==  'drg-bu16' || modul ==  'drg-en16' || modul ==  'drg-pbf4')){ 
@@ -86,9 +80,8 @@ export function dragndrop(node, selectedDisplay) {
       dragValidity = false;
 
       cells.subscribe((cells)=>{ 
-        (cells.used.length == 0 ) ? centerCanBeRemoved = true : centerCanBeRemoved = false 
+        (cells.used.length == 1 ) ? centerCanBeRemoved = true : centerCanBeRemoved = false 
       });
-
 
       if(centerCanBeRemoved){
         e.dataTransfer.setData("text", e.target.id);
@@ -99,7 +92,7 @@ export function dragndrop(node, selectedDisplay) {
         node.removeEventListener('dragover', handleDragOver);
       }
       
-      console.log('YADA not good + ', 'dragvalidity: ', dragValidity,'movable: ', movable)
+      console.log('YADA not good + ', 'dragvalidity: ', dragValidity, 'movable: ', movable)
     }
   }
 
@@ -107,7 +100,6 @@ export function dragndrop(node, selectedDisplay) {
         
     // DON'T ENABLE TO DROP ON AN OTHER MODULE
     if(e.target.children.length == 0){
-     console.log("here is the shit")
       var data = e.target.id;
       if(data.startsWith('grid-cell-')){
 
@@ -117,25 +109,25 @@ export function dragndrop(node, selectedDisplay) {
         const y = +id.split(';')[1].split(':').pop()
 
         // THERE ARE MODULES ON THE GRID, LET MODULE ONLY IF IT IS OK
+
         if(usedCells.length > 0){
-          usedCells.forEach((cell)=>{
-          for (const key in cell.map) {
-            const coords = cell.map[key];
-            if(coords.x == x && coords.y == y){
+          layoutCells.forEach((cell)=>{
+            if(cell.canBeUsed && cell.coords.x == x && cell.coords.y == y){
               //REFACTOR
               e.preventDefault();
-              let cell = data.substr(10,);
+              let _cell = data.substr(10,);
+              
               node.dispatchEvent(new CustomEvent('dnd-dragover', {
-                detail: cell
+                detail: _cell
               }));
+
               window.addEventListener('drop', handleDrop);
             }
-          }
-        })} else {
+          })
+        } else {
           // NO USEDCELL YET, SO THERE IS NO MODUL IN THE LAYOUT! ADD ONE!
-
           if(x == 0 && y == 0){
-            
+            console.log('not used cell yet')
              //REFACTOR
             e.preventDefault();
             let cell = data.substr(10,);
@@ -143,7 +135,6 @@ export function dragndrop(node, selectedDisplay) {
               detail: cell
             }));
             window.addEventListener('drop', handleDrop);
-
           }
         }  
         dragEvent = 'drop';
