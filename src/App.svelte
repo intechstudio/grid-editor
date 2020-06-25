@@ -13,7 +13,11 @@
   import { appSettings } from './app/stores/app-settings.store';
   import { cells } from './app/stores/cells.store.js';
 
-  
+  /*
+  *   serialport and nodejs
+  */
+
+  import SerialPort from './app/serialport/SerialPort.svelte'
 
   /*
   *   svelte components
@@ -99,6 +103,10 @@
       }
     });
 
+    cells.subscribe((c)=>{
+     // console.log(c);
+    })
+
   })
 
   function initLayout(){
@@ -169,6 +177,7 @@
 </style>
 
 <Tailwindcss />
+<SerialPort />
 
 
 <div style="height: calc(100vh - 1 * 48px);" class="relative">
@@ -203,7 +212,6 @@
       // here we get back the dropped module id and drop target
       let data = handledrag.drop(e);
       layout.addToUsedCells($cells, data.modul, data.id);
-      console.log('addToUsedCells', $cells);
     }}
 
     on:dnd-remove={(e)=>{
@@ -266,13 +274,13 @@
         >
 
         {#if cell.id.startsWith('pbf4')}
-          <svelte:component this={PBF4} id={cell.id}/>
+          <svelte:component this={PBF4} id={cell.id} rotation={cell.rotation}/>
         {:else if cell.id.startsWith('po16')}
-          <svelte:component this={PO16} id={cell.id}/>
+          <svelte:component this={PO16} id={cell.id} rotation={cell.rotation}/>
         {:else if cell.id.startsWith('bu16')}
-          <svelte:component this={BU16} id={cell.id}/>
+          <svelte:component this={BU16} id={cell.id} rotation={cell.rotation}/>
         {:else if cell.id.startsWith('en16')}
-          <svelte:component this={EN16} id={cell.id}/>
+          <svelte:component this={EN16} id={cell.id} rotation={cell.rotation}/>
         {/if}
 
         </div>

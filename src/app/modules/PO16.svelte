@@ -10,6 +10,8 @@
 
   export let id = 'po16';
 
+  export let rotation = 0;
+
   const control_block = (number) => {
     let array = [];
     for (let i = 0; i < number; i++) {
@@ -61,7 +63,7 @@
 
 </style>
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout'}>
+<div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
 
   <div
     use:select={[id, $appSettings.selectedDisplay]}

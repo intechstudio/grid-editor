@@ -52,6 +52,14 @@
   class:active={isMenuOpen}
   class="rounded-lg primary border border-gray-700 shadow-lg"
   >
+
   <div class="item" on:click={()=> cells = layout.setUsbConnectedModule(cells,menuOnModuleWithId)}>USB Connected Module</div>
-  <div class="item">Module Information</div>
+
+  <hr>
+
+  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 0)}> Rotation: 0°</div>
+  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 90)}> Rotation: 90°</div>
+  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 180)}> Rotation: 180°</div>
+  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 270)}> Rotation: 270°</div>
+
 </div>

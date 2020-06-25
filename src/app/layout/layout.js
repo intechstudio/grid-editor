@@ -77,6 +77,7 @@ function drawPossiblePlacementOutlines(cells, grid){
       if(layoutCell.coords.x == usedCell.coords.x && layoutCell.coords.y == usedCell.coords.y){
         layoutCell.id = usedCell.id;
         layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
+        layoutCell.rotation = usedCell.rotation;
       }
     });
   });
@@ -153,6 +154,28 @@ function setUsbConnectedModule(cells, menuOnModuleWithId){
   return cells;
 }
 
+function setModuleRotation(cells, menuOnModuleWithId, rotation){
+
+  // update rotation in both arrays.
+
+  cells.used.map((used)=>{
+    if(used.id == menuOnModuleWithId){
+      used.rotation = rotation;
+    }
+    return used;
+  })
+
+  cells.layout.map((layout)=>{
+    if(layout.id == menuOnModuleWithId){
+      layout.rotation = rotation;
+    }
+    return layout;
+  })
+  console.log(cells.layout)
+
+  return cells;
+}
+
 
 exports.layout = {
   addToUsedCells,
@@ -160,5 +183,6 @@ exports.layout = {
   drawPossiblePlacementOutlines,
   removePossiblePlacementOutlines,
   removeSurroundingPlacementOutlines,
-  setUsbConnectedModule
+  setUsbConnectedModule,
+  setModuleRotation
 }

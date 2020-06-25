@@ -2,10 +2,12 @@
   import { grab } from '../event-handlers/grab.js';
 
   export let size = 1;
+  export let rotation = 0;
+
   const faderWidth = 25.5;
   const faderHeight = 37;
 
-  let move;
+  let move = 0;
   let startValue;
   let initMove = 0;
 
@@ -13,16 +15,31 @@
   let endSVG = 0;
   let svgMove;
 
-  $:range = faderHeight*size;
+  $: range = faderHeight*size;
+
+  $: rotMode = (rotation) => {
+    rotation == undefined ? rotation = 0 : null;
+    let rot;
+    (rotation == 90 || rotation == 270) ? rot = 'X' : rot = 'Y'; 
+    return rot;
+  }
 
   function handleGrabStart(event){
     var coord = getMousePosition(event);
-    startValue = coord.y;
+    const rot = rotMode(rotation).toLowerCase();
+    startValue = coord[rot];
   }
 
+  // with all these functions, this could be much more performant.
   function handleGrabMove(event){
     var coord = getMousePosition(event);
-    let value = (startValue - (initMove +coord.y)) * -1;
+    const rot = rotMode(rotation).toLowerCase();
+    const inverse = () => {
+      let _inverse = -1;
+      (rotation == 90 || rotation == 180) ? _inverse = 1 : _inverse = -1;
+      return _inverse;
+    }
+    let value = (startValue - (initMove + coord[rot])) * inverse();
     if(-22 <= value && value <= 22){
       move = value;
     }
@@ -33,12 +50,22 @@
   }
 
   function getMousePosition(evt) {
-    var CTM = evt.srcElement.getScreenCTM();
+    var BCR = evt.srcElement.getBoundingClientRect();
+    return {
+      x: evt.detail.x - BCR.x,
+      y: evt.detail.y - BCR.y
+    }
+  }
+    
+
+    /*
+    // CTM does not work on rotated svgs.
+    var CTM = evt.srcElement.getScreenCTM(); 
     return {
       x: (evt.detail.x - CTM.e) / CTM.a,
       y: (evt.detail.y - CTM.f) / CTM.d
-    };
-  }
+    };  
+    */
 
 </script>
 
@@ -59,8 +86,7 @@
       <rect x="9" width="6" height="60" rx="3" fill="white"/>
     </g>
     <g 
-    
-    style="transform:translateY({move}px)">
+    style="transform: {'translateY('+ move +'px)'}; transform-origin:center;">
       <g id="bottom" filter="url(#filter1_i)">
         <rect y="22" width="24" height="16" rx="1" fill="#323232"/>
       </g>
@@ -107,4 +133,6 @@
     </linearGradient>
   </defs>
 </svg>
+
+
 

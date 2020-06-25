@@ -54,7 +54,6 @@ export default {
 	],
 	watch: {
 		clearScreen: false,
-
 		// Option for electron hot-reload.
 		chokidar: false
 	}
