@@ -7,6 +7,8 @@ import sveltePreprocess from 'svelte-preprocess';
 
 import rollup_start_dev from './rollup_start_dev';
 
+import json from '@rollup/plugin-json';
+
 const production = !process.env.ROLLUP_WATCH;
 
 export default {
@@ -18,6 +20,7 @@ export default {
 		file: 'public/bundle.js'
 	},
 	plugins: [
+		json(),
 		svelte({
 			preprocess: sveltePreprocess({ postcss: true }),
 			// enable run-time checks when not in production
