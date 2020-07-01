@@ -64,7 +64,7 @@
   export let size = 1.5;
 
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
-  let grid = 5;
+  let grid_layout = 5;
 
   $: cellSize = size * 106.6 + 10;
 
@@ -91,13 +91,13 @@
   
   onMount(()=>{
 
-    $cells.layout = layout.createLayoutGrid(grid);
+    $cells.layout = layout.createLayoutGrid(grid_layout);
 
     initLayout();
 
     appSettings.subscribe((store)=>{
       if(store.selectedDisplay == 'layout'){
-        $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid);
+        $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid_layout);
       } else if(store.selectedDisplay == 'settings'){
         $cells.layout = layout.removePossiblePlacementOutlines($cells)
       }
@@ -177,7 +177,8 @@
 </style>
 
 <Tailwindcss />
-<SerialPort />
+
+<SerialPort  />
 
 
 <div style="height: calc(100vh - 1 * 48px);" class="relative">
@@ -249,7 +250,7 @@
     on:dnd-dragend={(e)=>{
       const dragend = handledrag.end(e); 
       current = dragend.current;
-      $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid);
+      $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid_layout);
     }}
     >
     

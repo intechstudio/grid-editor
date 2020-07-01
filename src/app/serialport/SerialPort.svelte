@@ -2,7 +2,7 @@
 
   import { onMount, onDestroy } from 'svelte';
 
-  import { GRID } from './GridProtocol';
+  import { GRID_PROTOCOL } from './GridProtocol';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -13,18 +13,30 @@
 
   let currentPorts = [];
 
-  $: DATA = GRID.create();
+  let GRID = GRID_PROTOCOL.initialize();
 
-  $: serialpaths, createSerialPort(), readSerialPort();
+  export let grid = {};
+
+  $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
 
   function discoverPorts(){
+
+    /**
+     * Need to implement multiple port watch, if modules are connected on different usb ports.
+    */
+
     setInterval(() => {
       SerialPort.list()
         .then(ports => {
           let _serialpaths = [];
+          ports.length == 0 ? serialpaths = [] : null;
           ports.forEach((port, i) => {
             if(port.productId == 'ECAD' || port.productId == 'ECAC'){        
+              if(serialports.find(p => p.path == port.path)){
+                // Already initialized.
+              }else {
                 serialpaths[i] = port.path;
+              }
             }                        
           });
         })
@@ -41,17 +53,21 @@
   }
 
   function closeSerialPort() {
-    serialports.forEach((port, i)=>{
-      port.close(function(err){
-        console.warn('port closed', i, err)
+    if(serialpaths.length == 0){
+      serialports = [];
+      currentPorts = [];
+      serialports.forEach((port, i)=>{
+        port.close(function(err){
+          console.warn('port closed', i, err)
+        })
       })
-    })
+    }
   }
 
   function readSerialPort() {
-
+    
     serialports.forEach((port, i) => {
-
+    
       if(currentPorts.indexOf(port.path) == -1){
 
         console.log('We are proceeding with reading the port.')
@@ -72,7 +88,7 @@
           
         }); 
 
-        runSerialParser(port) 
+        runSerialParser(port, i) 
 
       } else {
           console.log('Do nothing.')
@@ -82,7 +98,7 @@
    
   }
 
-  function runSerialParser(port){
+  function runSerialParser(port, i){
 
     const parser = port.pipe(new Readline({ delimiter: "\n"}))
 
@@ -92,8 +108,18 @@
       array.forEach((element, i) => {
         _array[i] = element.charCodeAt(0);
       });
-      console.log(_array);
-      DATA.heartbeat(_array);
+
+
+      let header = GRID.header(_array);
+      let heartbeat = GRID.heartbeat(_array);
+      let moduleType = GRID.moduleLookup(heartbeat.HWCFG);
+
+      let grid_module_id = moduleType + '-' + 'dx:' + header.DX + ';dy:' + header.DY;
+
+      grid[grid_module_id] = {...header, ...heartbeat};  
+
+      console.info(grid);
+
     })
 
   }
