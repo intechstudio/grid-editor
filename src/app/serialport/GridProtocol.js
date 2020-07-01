@@ -6,8 +6,6 @@ export var GRID = {
 
   create: function() {
 
-    
-
     let GRID_CONST = [];
     let GRID_OTHER = [];
     let GRID_BROADCAST_HEADER_PARAMETERS = [];
@@ -68,13 +66,21 @@ export var GRID = {
     var heartbeat = {}
 
     for (const param in table) {
-      heartbeat[param] = serialData.slice(
+
+      let _value = serialData.slice(
         table[param].offset, table[param].length + table[param].offset
-      );      
+      );    
+
+      let value = parseInt("0x"+String.fromCharCode(..._value));
+      
+      if(param == 'DX' || param == 'DY'){
+        heartbeat[param] = value - 127;
+      } else {
+        heartbeat[param] = value;
+      }
     }
 
     console.log(heartbeat);
-
 
   },
 
