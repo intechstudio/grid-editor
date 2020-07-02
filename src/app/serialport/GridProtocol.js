@@ -10,6 +10,7 @@ export var GRID_PROTOCOL = {
     let GRID_OTHER = [];
     let GRID_SOH_BRC_PARAMETERS = [];
     let GRID_STX_SYS_HEARTBEAT_PARAMETER = [];
+    let GRID_CLASSES = {};
     let GRID_MODULE_TYPES = {};
 
     for (const key in grid_protocol) {
@@ -39,6 +40,11 @@ export var GRID_PROTOCOL = {
         // heartbeat hwcfg
         else if(key.startsWith('GRID_STX_SYS_HEARTBEAT_PARAMETERS')){
           GRID_STX_SYS_HEARTBEAT_PARAMETER['HWCFG'] = {length: 0, offset: 0};
+        }
+
+        // stx classes
+        else if(key.startsWith('GRID_CLASS')){
+          GRID_CLASSES[key] =  +grid_protocol[key];
         }
 
         else {
@@ -73,6 +79,7 @@ export var GRID_PROTOCOL = {
 
     this.LOOKUP_TABLE.GRID_CONST = GRID_CONST;
     this.LOOKUP_TABLE.GRID_OTHER = GRID_OTHER;
+    this.LOOKUP_TABLE.GRID_CLASSES = GRID_CLASSES;
     this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS = GRID_SOH_BRC_PARAMETERS;
     this.LOOKUP_TABLE.GRID_STX_SYS_HEARTBEAT_PARAMETER = GRID_STX_SYS_HEARTBEAT_PARAMETER;
     this.LOOKUP_TABLE.GRID_MODULE_TYPES = GRID_MODULE_TYPES;
@@ -104,14 +111,57 @@ export var GRID_PROTOCOL = {
 
     }
 
+
     return header;
 
+  },
+
+  decode: function(serialData){
+
+    var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_CLASSES;
+
+    let _decoded = [];
+    let class_name = '';
+    let id = 0;
+    
+    serialData.forEach((element,i) => {  
+
+      // GRID_CONST_STX
+      if(element == 2){ 
+        class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2]));
+        id = ""+ i +"";
+        for (const param in LOOKUP_TABLE){
+          if(LOOKUP_TABLE[param] == class_name){
+            _decoded.push({id: id, class: param, offset: i + 3});     
+          }
+        }
+      }
+
+      // GRID_CONST_ETX
+      if(element == 3){
+        let obj = _decoded.find(o => o.id === id);
+        obj.length = i - obj.offset - 1;
+      }
+
+    });
+
+    return _decoded;
+
+  },
+
+  midi_decoder: function(serialData){
+    console.log('midi_decoder',serialData);
+  },
+
+  sys_decoder: function(serialData){
+    //return this.heartbeat(serialData);
+    //console.log('sys_decoder',serialData)
   },
 
   heartbeat: function(serialData){
 
     let STX_OFFSET = serialData.indexOf(2);
-    
+      
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_STX_SYS_HEARTBEAT_PARAMETER;
 
     var heartbeat = {}
@@ -128,10 +178,11 @@ export var GRID_PROTOCOL = {
 
     }
 
-    return heartbeat;
+    return heartbeat
   },
 
   moduleLookup: function(hwcfg){
+    
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_MODULE_TYPES;
 
     let type = '';
@@ -140,6 +191,7 @@ export var GRID_PROTOCOL = {
       if(LOOKUP_TABLE[key] == hwcfg)
         return type = key;
       }
-    }
+  }
+  
 
 }

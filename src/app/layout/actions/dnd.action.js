@@ -1,4 +1,4 @@
-import { cells } from '../../stores/cells.store.js';
+import { grid } from '../../stores/grid.store.js';
 
 import { islanding } from '../islanding.js';
 
@@ -17,14 +17,14 @@ export function dragndrop(node, selectedDisplay) {
   let dragValidity = true;
   let dragEvent = 'drop';
 
-  let usedCells = [];
-  let layoutCells = [];
+  let usedgrid = [];
+  let layoutgrid = [];
 
   let movedCell;
 
-  cells.subscribe((cells)=>{
-    usedCells = cells.used;
-    layoutCells = cells.layout;
+  grid.subscribe((grid)=>{
+    usedgrid = grid.used;
+    layoutgrid = grid.layout;
   });
 
   function handleDragStart(e) {
@@ -32,12 +32,12 @@ export function dragndrop(node, selectedDisplay) {
     modul = e.target.id;
 
     // NEED THIS BAD BOY, TO REBUILD AVAILABLE CELL IS DRAG IS INVALID
-    movedCell = usedCells.find(cell => cell.id === modul);
+    movedCell = usedgrid.find(cell => cell.id === modul);
 
     // ISLANDING CHECK BEFORE GETTING FORWARD...
     let _islanding = false;
     if(movedCell != undefined){ 
-      let islandingArray = islanding.testAllIslanding(usedCells);
+      let islandingArray = islanding.testAllIslanding(usedgrid);
       if(islandingArray.length > 0){ 
         islandingArray.forEach(c =>{
           if(c.id == movedCell.id){
@@ -52,14 +52,14 @@ export function dragndrop(node, selectedDisplay) {
     // PART TO TELL IF IT'S "CENTER" OR CONNECTED BY USB
     let movable = true;
     let movedLayoutCell;
-    movedLayoutCell = layoutCells.find((cell) => cell.id === modul);   
+    movedLayoutCell = layoutgrid.find((cell) => cell.id === modul);   
     if(movedLayoutCell != undefined){
       if(movedLayoutCell.isConnectedByUsb){
         movable = false;
       }
     }
 
-    // ON DRAG START, REMOVE THE ELEMENT FROM THE USED CELLS.
+    // ON DRAG START, REMOVE THE ELEMENT FROM THE USED grid.
 
     // AFTER RENDERING THE COMPONENTS DINAMICALLY, THIS IS NOT NEEDED
 
@@ -79,8 +79,8 @@ export function dragndrop(node, selectedDisplay) {
 
       dragValidity = false;
 
-      cells.subscribe((cells)=>{ 
-        (cells.used.length == 1 ) ? centerCanBeRemoved = true : centerCanBeRemoved = false 
+      grid.subscribe((grid)=>{ 
+        (grid.used.length == 1 ) ? centerCanBeRemoved = true : centerCanBeRemoved = false 
       });
 
       if(centerCanBeRemoved){
@@ -105,18 +105,19 @@ export function dragndrop(node, selectedDisplay) {
 
         const id = e.target.id.substr(10,);
 
-        const x = +id.split(';')[0].split(':').pop();
-        const y = +id.split(';')[1].split(':').pop()
+        const dx = +id.split(';')[0].split(':').pop();
+        const dy = +id.split(';')[1].split(':').pop()
 
         // THERE ARE MODULES ON THE GRID, LET MODULE ONLY IF IT IS OK
 
-        if(usedCells.length > 0){
-          layoutCells.forEach((cell)=>{
-            if(cell.canBeUsed && cell.coords.x == x && cell.coords.y == y){
+        if(usedgrid.length > 0){
+
+          layoutgrid.forEach((cell)=>{
+
+            if(cell.canBeUsed && cell.dx == dx && cell.dy == dy){
               //REFACTOR
               e.preventDefault();
               let _cell = data.substr(10,);
-              
               node.dispatchEvent(new CustomEvent('dnd-dragover', {
                 detail: _cell
               }));
@@ -126,7 +127,7 @@ export function dragndrop(node, selectedDisplay) {
           })
         } else {
           // NO USEDCELL YET, SO THERE IS NO MODUL IN THE LAYOUT! ADD ONE!
-          if(x == 0 && y == 0){
+          if(dx == 0 && dy == 0){
             console.log('not used cell yet')
              //REFACTOR
             e.preventDefault();

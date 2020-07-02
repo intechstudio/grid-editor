@@ -6,7 +6,7 @@
 
   export let menuOnModuleWithId = '';
 
-  export let cells = [];
+  export let grid = [];
 
 </script>
 
@@ -53,13 +53,13 @@
   class="rounded-lg primary border border-gray-700 shadow-lg"
   >
 
-  <div class="item" on:click={()=> cells = layout.setUsbConnectedModule(cells,menuOnModuleWithId)}>USB Connected Module</div>
+  <div class="item" on:click={()=> grid = layout.setUsbConnectedModule(grid,menuOnModuleWithId)}>USB Connected Module</div>
 
   <hr>
 
-  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 0)}> Rotation: 0°</div>
-  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 90)}> Rotation: 90°</div>
-  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 180)}> Rotation: 180°</div>
-  <div class="item" on:click={()=> cells = layout.setModuleRotation(cells,menuOnModuleWithId, 270)}> Rotation: 270°</div>
+  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 0)}> Rotation: 0°</div>
+  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 90)}> Rotation: 90°</div>
+  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 180)}> Rotation: 180°</div>
+  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 270)}> Rotation: 270°</div>
 
 </div>

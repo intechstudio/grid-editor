@@ -33,7 +33,7 @@ function drop(e){
   let modul = e.detail.module;
 
   if(e.detail.target.id !== 'bin'){
-    if(modul == 'drg-po16' || modul ==  'drg-bu16' || modul ==  'drg-pbf4' || modul ==  'drg-en16'){
+    if(modul == 'drg-PO16' || modul ==  'drg-BU16' || modul ==  'drg-PBF4' || modul ==  'drg-EN16'){
       var nodeCopy = document.getElementById(modul.substr(4,)).cloneNode(true);
       nodeCopy.id = genModulId(modul.substr(4,));
       modul = nodeCopy.id; // overwrite modul id if its a copy;

@@ -8,7 +8,7 @@
 
   $: moduleWidth = $appSettings.size * 106.6 + 'px';
 
-  export let id = 'po16';
+  export let id = 'PO16';
 
   export let rotation = 0;
 

@@ -1,37 +1,36 @@
-function addToUsedCells(cells, modul, id){
+function addToUsedgrid(grid, modul, id){
 
   if(id != 'bin'){
 
-    const x = +id.split(';')[0].split(':').pop();
-    const y = +id.split(';')[1].split(':').pop()
+    const dx = +id.split(';')[0].split(':').pop();
+    const dy = +id.split(';')[1].split(':').pop()
 
     var cell = {
       id: modul,
-      coords:{ 
-        x: x,
-        y: y
-      },
+      dx: dx,
+      dy: dy,
       map: {
-        top: {x: x, y: y+1},
-        right: {x: x+1, y: y},
-        bot: {x: x, y: y-1},
-        left: {x: x-1, y: y},
+        top: {dx: dx, dy: dy+1},
+        right: {dx: dx+1, dy: dy},
+        bot: {dx: dx, dy: dy-1},
+        left: {dx: dx-1, dy: dy},
       },
       islanding: -1,
       islandSearchStatus: -1,
       isConnectedByUsb: false
     }
 
-    if(cells.used.length == 0){
+    if(grid.used.length == 0){
       cell.isConnectedByUsb = true;
-      cells.used.push(cell);
+      grid.used.push(cell);
     }
 
     let flag = true;
 
-    cells.used.map(c => { 
+    grid.used.map(c => { 
       if(c.id == cell.id){ 
-        c.coords = cell.coords;
+        c.dx = cell.dx;
+        c.dy = cell.dy;
         c.map = cell.map;
         flag = false; 
       } 
@@ -39,42 +38,42 @@ function addToUsedCells(cells, modul, id){
     });
 
     if(flag){ 
-      cells.used.push(cell); 
+      grid.used.push(cell); 
     }
 
-    return cells.used;
+    //return grid.used;
   }
 }
 
-function createLayoutGrid(grid){
-  const L = (-1*((grid-1)/2))
+function createLayoutGrid(layout_grid){
+  const L = (-1*((layout_grid-1)/2))
   let cellGen = [];
-  for (let i = 0; i < grid; i++) {
-    for (let j = 0; j < grid; j++) {
-      cellGen.push({id: 'none', canBeUsed: false, coords: { x: i+L, y: j+L}})
+  for (let i = 0; i < layout_grid; i++) {
+    for (let j = 0; j < layout_grid; j++) {
+      cellGen.push({id: 'none', canBeUsed: false, dx: i+L, dy: j+L})
     }
   }
   return cellGen;
 }
 
-function drawPossiblePlacementOutlines(cells, grid){
+function drawPossiblePlacementOutlines(grid, layout_grid){
 
-  let layoutCells = createLayoutGrid(grid);
+  let layoutgrid = createLayoutGrid(layout_grid);
   
   let mapCoords = [];
 
-  layoutCells.forEach(layoutCell => {layoutCell.canBeUsed = false})
+  layoutgrid.forEach(layoutCell => {layoutCell.canBeUsed = false})
 
-  cells.used.forEach(usedCell => {
-    mapCoords.push(usedCell.coords);
+  grid.used.forEach(usedCell => {
+    mapCoords.push({dx: usedCell.dx, dy: usedCell.dy});
     for (const key in usedCell.map) {
       mapCoords.push(usedCell.map[key])
     }
   });
 
-  cells.used.forEach(usedCell => {
-    layoutCells.forEach(layoutCell => {
-      if(layoutCell.coords.x == usedCell.coords.x && layoutCell.coords.y == usedCell.coords.y){
+  grid.used.forEach(usedCell => {
+    layoutgrid.forEach(layoutCell => {
+      if(layoutCell.dx == usedCell.dx && layoutCell.dy == usedCell.dy){
         layoutCell.id = usedCell.id;
         layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
         layoutCell.rotation = usedCell.rotation;
@@ -89,18 +88,18 @@ function drawPossiblePlacementOutlines(cells, grid){
     });
   });
 
-  layoutCells.forEach(layoutCell => {
+  layoutgrid.forEach(layoutCell => {
     uniqueMapCoords.forEach(map => {
-      if(layoutCell.coords.x == map.x && layoutCell.coords.y == map.y){
+      if(layoutCell.dx == map.dx && layoutCell.dy == map.dy){
         layoutCell.canBeUsed = true;
       }
     });
   });
 
-  return layoutCells;
+  return layoutgrid;
 }
 
-function removeSurroundingPlacementOutlines(cells, movedCell){
+function removeSurroundingPlacementOutlines(grid, movedCell){
 
   let mapCoords = [];
 
@@ -108,77 +107,77 @@ function removeSurroundingPlacementOutlines(cells, movedCell){
     mapCoords.push(movedCell.map[key])
   }
 
-  cells.forEach((cell)=>{
+  grid.forEach((cell)=>{
     mapCoords.forEach((map)=>{
-      if(cell.coords.x == map.x && cell.coords.y == map.y){
+      if(cell.dx == map.dx && cell.dy == map.dy){
         cell.canBeUsed = false;
       }
     })
   })
   
-  return cells;
+  return grid;
 
 }
 
-function removePossiblePlacementOutlines(cells){
-  let layoutCells = cells.layout.map(
+function removePossiblePlacementOutlines(grid){
+  let layoutgrid = grid.layout.map(
     (layoutCell) => {
       layoutCell.canBeUsed = false; 
       return layoutCell;
     })
-  return layoutCells;
+  return layoutgrid;
 }
 
-function setUsbConnectedModule(cells, menuOnModuleWithId){
+function setUsbConnectedModule(grid, menuOnModuleWithId){
 
   // reset all.
-  cells.used.forEach(usedCell => { usedCell.isConnectedByUsb = false });
-  cells.layout.forEach(layoutCell => { layoutCell.isConnectedByUsb = false });
+  grid.used.forEach(usedCell => { usedCell.isConnectedByUsb = false });
+  grid.layout.forEach(layoutCell => { layoutCell.isConnectedByUsb = false });
 
-  // set the usb connected module in used cells.
-  cells.used.forEach(usedCell => {
+  // set the usb connected module in used grid.
+  grid.used.forEach(usedCell => {
     if(usedCell.id == menuOnModuleWithId){
       usedCell.isConnectedByUsb = true;
     }
   });
 
   // update the layout with the new change on usb connected module.
-  cells.layout.forEach(layoutCell => {
-    cells.used.forEach(usedCell => {
+  grid.layout.forEach(layoutCell => {
+    grid.used.forEach(usedCell => {
       if(layoutCell.id == usedCell.id){
         layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
       }
     });
   });
 
-  return cells;
+  return grid;
 }
 
-function setModuleRotation(cells, menuOnModuleWithId, rotation){
+function setModuleRotation(grid, menuOnModuleWithId, rotation){
 
   // update rotation in both arrays.
 
-  cells.used.map((used)=>{
+  grid.used.map((used)=>{
     if(used.id == menuOnModuleWithId){
       used.rotation = rotation;
     }
     return used;
   })
 
-  cells.layout.map((layout)=>{
+  grid.layout.map((layout)=>{
     if(layout.id == menuOnModuleWithId){
       layout.rotation = rotation;
     }
     return layout;
   })
-  console.log(cells.layout)
+  console.log(grid.layout)
 
-  return cells;
+  return grid;
 }
 
 
 exports.layout = {
-  addToUsedCells,
+  addToUsedgrid,
   createLayoutGrid,
   drawPossiblePlacementOutlines,
   removePossiblePlacementOutlines,

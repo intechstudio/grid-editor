@@ -6,6 +6,10 @@
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
+
+	import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
   
   let serialpaths = [];
 
@@ -15,9 +19,31 @@
 
   let GRID = GRID_PROTOCOL.initialize();
 
-  export let grid = {};
+  export let grid = [];
+
 
   $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
+
+  function coroner(){
+
+    setInterval(()=>{
+
+      let _removed = grid.used.find(g => Date.now() - g.alive > 1000);
+
+      let _usedgrid = grid.used.filter(g => (Date.now() - g.alive > 1000) === false);
+
+      if(_removed !== undefined && _usedgrid.length !== 0){
+
+        dispatch('coroner', {
+          usedgrid: _usedgrid, 
+          removed: _removed
+        })
+        
+      }
+        
+    }, 1000)
+
+  }
 
   function discoverPorts(){
 
@@ -103,23 +129,82 @@
     const parser = port.pipe(new Readline({ delimiter: "\n"}))
 
     parser.on('data', function(data) {
+
       let array = Array.from(data);
+
       let _array = [];
+
       array.forEach((element, i) => {
         _array[i] = element.charCodeAt(0);
       });
 
+      let decoded = GRID.decode(_array);
 
-      let header = GRID.header(_array);
-      let heartbeat = GRID.heartbeat(_array);
-      let moduleType = GRID.moduleLookup(heartbeat.HWCFG);
+      decoded.forEach((obj)=>{
 
-      let grid_module_id = moduleType + '-' + 'dx:' + header.DX + ';dy:' + header.DY;
+        let array = _array.slice(obj.offset, obj.length + obj.offset);
 
-      grid[grid_module_id] = {...header, ...heartbeat};  
+        if(obj.class == "GRID_CLASS_MIDI"){
+          let header = GRID.header(_array);
+          // to do...
+        }
 
-      console.info(grid);
+        if(obj.class == "GRID_CLASS_SYS"){
+          console.log('GRID_CLASS_SYS', _array);
+          let header = GRID.header(_array);
+          let heartbeat = GRID.heartbeat(_array);
+          let moduleType = GRID.moduleLookup(heartbeat.HWCFG);
 
+          let grid_module_id = moduleType + '_' + 'dx:' + header.DX + ';dy:' + header.DY;
+      
+          let controller = {
+            id: grid_module_id,
+            dx: header.DX,
+            dy: header.DY,
+            alive: Date.now(),
+            map: {
+              top: {dx: header.DX, dy: header.DY+1},
+              right: {dx: header.DX+1, dy: header.DY},
+              bot: {dx: header.DX, dy: header.DY-1},
+              left: {dx: header.DX-1, dy: header.DY},
+            },
+            rotation: header.ROT * -90,
+            isConnectedByUsb: (header.DX == 0 && header.DX == 0) ? true : false,
+          };  
+      
+          if(moduleType !== undefined){
+
+            let exists = false;
+
+            grid.used.forEach(g => {
+              if(g.id == controller.id){
+                exists = true;
+              }
+            });
+        
+            if(!exists){
+              grid.used.push(controller);
+              dispatch('change');
+            }
+
+            if(exists){
+              grid.used.map(c => {
+                if(c.id === controller.id){
+                  c.alive = Date.now();
+                }
+                return c;
+              });
+            }
+
+            grid = grid;
+          } 
+        }
+
+      })
+
+      
+
+          
     })
 
   }
@@ -127,12 +212,15 @@
 
   onDestroy(()=>{
     clearInterval(discoverPorts);
+    clearInterval(coroner)
     closeSerialPort();
   })
 
   onMount(() => {
     discoverPorts();
+    coroner();
   })
+    
 
 </script>
 

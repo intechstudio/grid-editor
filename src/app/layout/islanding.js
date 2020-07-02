@@ -23,10 +23,10 @@ function testModuleIslanding(modulesArray,testModuleIndex){
   // Find USB module and mark its neighbours
   for(var i=0; i<modulesArray.length; i++){
 
-    if (modulesArray[i].coords.x == 0 && modulesArray[i].coords.y == 0){
+    if (modulesArray[i].dx == 0 && modulesArray[i].dy == 0){
       modulesArray[i].islandSearchStatus=0;  //USBMODULE
 
-      markNeighbours(modulesArray, modulesArray[i].coords.x, modulesArray[i].coords.y);
+      markNeighbours(modulesArray, modulesArray[i].dx, modulesArray[i].dy);
             
     }
 
@@ -39,7 +39,7 @@ function testModuleIslanding(modulesArray,testModuleIndex){
 
       if (modulesArray[i].islandSearchStatus == 1){
         modulesArray[i].islandSearchStatus = 2;
-        markNeighbours(modulesArray, modulesArray[i].coords.x, modulesArray[i].coords.y);
+        markNeighbours(modulesArray, modulesArray[i].dx, modulesArray[i].dy);
       }
 
     }   
@@ -66,23 +66,23 @@ function markNeighbours(modulesArray,x,y){
 
     if (modulesArray[i].islandSearchStatus == -1){ // IF NOT PROCESSED YET
 
-      if(modulesArray[i].coords.x == x && modulesArray[i].coords.y == y+1){ //bottom neighbor
+      if(modulesArray[i].dx == x && modulesArray[i].dy == y+1){ //bottom neighbor
         if (modulesArray[i].islandSearchStatus == -1){
           modulesArray[i].islandSearchStatus=1; // FOUND
         }
         
       }
-      if(modulesArray[i].coords.x == x && modulesArray[i].coords.y == y-1){ //top neighbor
+      if(modulesArray[i].dx == x && modulesArray[i].dy == y-1){ //top neighbor
         if (modulesArray[i].islandSearchStatus == -1){
           modulesArray[i].islandSearchStatus=1; // FOUND
         }
       }
-      if(modulesArray[i].coords.x == x+1 && modulesArray[i].coords.y == y){ //left neighbor
+      if(modulesArray[i].dx == x+1 && modulesArray[i].dy == y){ //left neighbor
         if (modulesArray[i].islandSearchStatus == -1){
           modulesArray[i].islandSearchStatus=1; // FOUND
         }
       }
-      if(modulesArray[i].coords.x == x-1 && modulesArray[i].coords.y == y){ //right neighbor
+      if(modulesArray[i].dx == x-1 && modulesArray[i].dy == y){ //right neighbor
         if (modulesArray[i].islandSearchStatus == -1){
           modulesArray[i].islandSearchStatus=1; // FOUND
         }

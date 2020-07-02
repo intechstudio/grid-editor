@@ -24,7 +24,7 @@
     <div class="text-white pb-4">Drag Module</div>
     <div class="secondary flex rounded-lg">
 
-      <div id="drg-po16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+      <div id="drg-PO16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
         <div class="pointer-events-none flex justify-between items-center">
           <div class="h-10 w-10 rounded-full">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_bu16.jpg" alt="po16">
@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div id="drg-pbf4" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+      <div id="drg-PBF4" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
         <div class="pointer-events-none flex justify-between items-center">
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_pbf4.jpg" alt="pbf4">
@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <div id="drg-bu16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+      <div id="drg-BU16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
         <div class="pointer-events-none flex justify-between items-center">
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_bu16.jpg" alt="bu16">
@@ -57,7 +57,7 @@
         </div>
       </div>
 
-      <div id="drg-en16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
+      <div id="drg-EN16" class="cursor-pointer text-white p-2  hover:bg-purple-600 rounded-lg" draggable="true">
         <div class="pointer-events-none flex justify-between items-center">
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_en16.jpg" alt="en16">

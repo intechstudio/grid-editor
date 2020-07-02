@@ -11,7 +11,7 @@
   */
 
   import { appSettings } from './app/stores/app-settings.store';
-  import { cells } from './app/stores/cells.store.js';
+  import { grid } from './app/stores/grid.store.js';
 
   /*
   *   serialport and nodejs
@@ -66,11 +66,11 @@
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
   let grid_layout = 5;
 
-  $: cellSize = size * 106.6 + 10;
+  $: gridize = size * 106.6 + 10;
 
   //
 
-  // The green highlight around cells for valid drop area.
+  // The green highlight around grid for valid drop area.
   let current = ''; 
   // Red borders on cell if it's an invalid drag due to dnd-invalid.
   let invalidDragHighlight = false;
@@ -82,38 +82,30 @@
 	let menuOnModuleWithId;
 	
   /* 
-  *   Render modules which are in the $cells.used array. 
+  *   Render modules which are in the $grid.used array. 
   */
-
- 
-
-
   
   onMount(()=>{
 
-    $cells.layout = layout.createLayoutGrid(grid_layout);
+    $grid.layout = layout.createLayoutGrid(grid_layout);
 
     initLayout();
 
     appSettings.subscribe((store)=>{
       if(store.selectedDisplay == 'layout'){
-        $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid_layout);
+        $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout);
       } else if(store.selectedDisplay == 'settings'){
-        $cells.layout = layout.removePossiblePlacementOutlines($cells)
+        $grid.layout = layout.removePossiblePlacementOutlines($grid)
       }
     });
-
-    cells.subscribe((c)=>{
-     // console.log(c);
-    })
 
   })
 
   function initLayout(){
 
-    if($cells.used.length > 0){
-      $cells.used.forEach(usedCell => {
-        let renderCoords = document.getElementById('grid-cell-x:'+usedCell.coords.x+';y:'+usedCell.coords.y);
+    if($grid.used.length > 0){
+      $grid.used.forEach(usedCell => {
+        let renderCoords = document.getElementById('grid-cell-x:'+usedCell.dx+';y:'+usedCell.dy);
         var nodeCopy = document.getElementById(usedCell.id.substr(0,4)).cloneNode(true);
         nodeCopy.id = genModulId(usedCell.id.substr(0,4));
         renderCoords.appendChild(nodeCopy);
@@ -178,15 +170,35 @@
 
 <Tailwindcss />
 
-<SerialPort  />
+<SerialPort 
+  bind:grid={$grid} 
+  on:change={
+    $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout)
+  }
+  on:coroner={(e)=>{
+      grid.update(cell => {
+        cell.used = e.detail.usedgrid;
+        cell.layout = cell.layout.map( _cell =>{
+          if(_cell.id == e.detail.removed.id){
+            _cell.id = 'none';
+            _cell.isConnectedByUsb = false;
+          }
+          return _cell; 
+        });
+        return cell;
+      })
+      $grid.layout = layout.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
+    }
+  }
+  />
 
 
 <div style="height: calc(100vh - 1 * 48px);" class="relative">
 
-<!-- Context menu overwrite. Cells is bound to $cells, for instant refresh of layout. -->
+<!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
 {#if $appSettings.selectedDisplay == 'layout'}
-  <LayoutMenu bind:cells={$cells} {isMenuOpen} {menuOnModuleWithId} />
+  <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
 {/if}
 
 
@@ -205,6 +217,13 @@
   
     use:dragndrop={$appSettings.selectedDisplay} 
 
+    on:dnd-dragstart={(e)=>{
+      let moved = handledrag.start(e);
+      if(moved !== '' || undefined){
+        $grid.layout = layout.removeSurroundingPlacementOutlines($grid.layout, moved);
+      }
+    }}
+
     on:dnd-dragover={(e)=>{
       current = handledrag.over(e);
     }}
@@ -212,14 +231,14 @@
     on:dnd-drop={(e)=>{
       // here we get back the dropped module id and drop target
       let data = handledrag.drop(e);
-      layout.addToUsedCells($cells, data.modul, data.id);
+      layout.addToUsedgrid($grid, data.modul, data.id);
     }}
 
     on:dnd-remove={(e)=>{
       let data = handledrag.remove(e)
-      let _usedCells = $cells.used.filter(cell => cell.id !== data.modul);
-      cells.update(cell => {
-        cell.used = _usedCells;
+      let _usedgrid = $grid.used.filter(cell => cell.id !== data.modul);
+      grid.update(cell => {
+        cell.used = _usedgrid;
         cell.layout = cell.layout.map( _cell =>{
           if(_cell.id == data.modul){
             _cell.id = 'none';
@@ -229,13 +248,6 @@
         });
         return cell;
       });
-    }}
-
-    on:dnd-dragstart={(e)=>{
-      let moved = handledrag.start(e);
-      if(moved !== '' || undefined){
-        $cells.layout = layout.removeSurroundingPlacementOutlines($cells.layout, moved);
-      }
     }}
 
     on:dnd-invalid={(e)=>{
@@ -250,7 +262,7 @@
     on:dnd-dragend={(e)=>{
       const dragend = handledrag.end(e); 
       current = dragend.current;
-      $cells.layout = layout.drawPossiblePlacementOutlines($cells, grid_layout);
+      $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout);
     }}
     >
     
@@ -263,24 +275,24 @@
       on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
       on:menu-close={()=>{isMenuOpen = false}}
       >
-      {#each $cells.layout as cell}
+      {#each $grid.layout as cell}
         <div 
-        id="grid-cell-{'x:'+cell.coords.x+';y:'+cell.coords.y}" 
-        style="--cell-size: {cellSize + 'px'}; top:{-1*(cell.coords.y*106.6*size*1.1) +'px'};left:{(cell.coords.x*106.6*size*1.1) +'px'};"
+        id="grid-cell-{'x:'+cell.dx+';y:'+cell.dy}" 
+        style="--cell-size: {gridize + 'px'}; top:{-1*(cell.dy*106.6*size*1.1) +'px'};left:{(cell.dx*106.6*size*1.1) +'px'};"
         class="cell"
-        class:freeToDrop={current == 'x:'+cell.coords.x+';y:'+cell.coords.y}
+        class:freeToDrop={current == 'x:'+cell.dx+';y:'+cell.dy}
         class:canBeUsed={cell.canBeUsed}
         class:isConnectedByUsb={cell.isConnectedByUsb}
-        class:restricted-action={invalidDragHighlight && (movedCell.coords.x === cell.coords.x) && (movedCell.coords.y === cell.coords.y)}
+        class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
         >
 
-        {#if cell.id.startsWith('pbf4')}
+        {#if cell.id.startsWith('PBF4')}
           <svelte:component this={PBF4} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('po16')}
+        {:else if cell.id.startsWith('PO16')}
           <svelte:component this={PO16} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('bu16')}
+        {:else if cell.id.startsWith('BU16')}
           <svelte:component this={BU16} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('en16')}
+        {:else if cell.id.startsWith('EN16')}
           <svelte:component this={EN16} id={cell.id} rotation={cell.rotation}/>
         {/if}
 
