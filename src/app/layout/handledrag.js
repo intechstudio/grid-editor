@@ -35,7 +35,8 @@ function drop(e){
   if(e.detail.target.id !== 'bin'){
     if(modul == 'drg-PO16' || modul ==  'drg-BU16' || modul ==  'drg-PBF4' || modul ==  'drg-EN16'){
       var nodeCopy = document.getElementById(modul.substr(4,)).cloneNode(true);
-      nodeCopy.id = genModulId(modul.substr(4,));
+      nodeCopy.id = modul.substr(4,) + '_' + id.substr(10,);
+      //console.log(nodeCopy.id);
       modul = nodeCopy.id; // overwrite modul id if its a copy;
       //e.detail.target.appendChild(nodeCopy);
     }else{

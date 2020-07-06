@@ -1,8 +1,28 @@
+import { elementSettings } from '../../settings/elementSettings.store.js'
+
 export function select(node, [moduleId, selectedDisplay]){
 
   function handleMousedown(e) {
     //e.preventDefault();
-    console.log('mousedown!', moduleId, e.target.parentElement.dataset)
+    
+    if(e.target.ownerSVGElement){
+      
+      const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
+      
+      if(controlNumber !== undefined){
+
+        elementSettings.set({
+          moduleId: moduleId,
+          controlNumber: controlNumber
+        })
+  
+        node.dispatchEvent(new CustomEvent('selected-element', {
+          detail: { controlNumber:  e.target.parentElement.dataset.controlNumber}
+        }));
+  
+      }
+    }
+    
   }
   
 	return {

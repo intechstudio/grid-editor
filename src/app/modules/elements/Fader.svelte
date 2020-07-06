@@ -1,6 +1,7 @@
 <script>
   import { grab } from '../event-handlers/grab.js';
 
+  export let elementNumber;
   export let size = 1;
   export let rotation = 0;
 
@@ -74,6 +75,7 @@
     on:grabstart={handleGrabStart}
     on:grabmove={handleGrabMove}
     on:grabend={handleGrabEnd}
+    data-control-number={elementNumber}
     id="fader-cap" 
     width={size * faderWidth + 'px'} 
     height={size * faderHeight + 'px'} 

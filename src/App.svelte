@@ -42,7 +42,7 @@
 
 	import { islanding } from './app/layout/islanding.js';
   import { handledrag } from './app/layout/handledrag.js';
-  import { layout } from './app/layout/layout.js';
+  import { LAYOUT } from './app/layout/layout.js';
 
   /*
   *   svelte functions
@@ -60,13 +60,10 @@
   *   variables
   */ 
 
-
-  export let size = 1.5;
-
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
   let grid_layout = 5;
 
-  $: gridize = size * 106.6 + 10;
+  $: gridsize = $appSettings.size * 106.6 + 10;
 
   //
 
@@ -87,15 +84,15 @@
   
   onMount(()=>{
 
-    $grid.layout = layout.createLayoutGrid(grid_layout);
+    $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
 
     initLayout();
 
     appSettings.subscribe((store)=>{
       if(store.selectedDisplay == 'layout'){
-        $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout);
+        $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
       } else if(store.selectedDisplay == 'settings'){
-        $grid.layout = layout.removePossiblePlacementOutlines($grid)
+        $grid.layout = LAYOUT.removePossiblePlacementOutlines($grid)
       }
     });
 
@@ -173,7 +170,7 @@
 <SerialPort 
   bind:grid={$grid} 
   on:change={
-    $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout)
+    $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
   }
   on:coroner={(e)=>{
       grid.update(cell => {
@@ -186,8 +183,8 @@
           return _cell; 
         });
         return cell;
-      })
-      $grid.layout = layout.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
+      });
+      $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
     }
   }
   />
@@ -220,7 +217,7 @@
     on:dnd-dragstart={(e)=>{
       let moved = handledrag.start(e);
       if(moved !== '' || undefined){
-        $grid.layout = layout.removeSurroundingPlacementOutlines($grid.layout, moved);
+        $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, moved);   
       }
     }}
 
@@ -231,7 +228,7 @@
     on:dnd-drop={(e)=>{
       // here we get back the dropped module id and drop target
       let data = handledrag.drop(e);
-      layout.addToUsedgrid($grid, data.modul, data.id);
+      LAYOUT.addToUsedgrid($grid, data.modul, data.id, true);
     }}
 
     on:dnd-remove={(e)=>{
@@ -262,7 +259,7 @@
     on:dnd-dragend={(e)=>{
       const dragend = handledrag.end(e); 
       current = dragend.current;
-      $grid.layout = layout.drawPossiblePlacementOutlines($grid, grid_layout);
+      $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
     }}
     >
     
@@ -277,10 +274,10 @@
       >
       {#each $grid.layout as cell}
         <div 
-        id="grid-cell-{'x:'+cell.dx+';y:'+cell.dy}" 
-        style="--cell-size: {gridize + 'px'}; top:{-1*(cell.dy*106.6*size*1.1) +'px'};left:{(cell.dx*106.6*size*1.1) +'px'};"
+        id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
+        style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
         class="cell"
-        class:freeToDrop={current == 'x:'+cell.dx+';y:'+cell.dy}
+        class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
         class:canBeUsed={cell.canBeUsed}
         class:isConnectedByUsb={cell.isConnectedByUsb}
         class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}

@@ -1,6 +1,6 @@
 <script>
 
-  import { layout } from '../layout.js';
+  import { LAYOUT } from '../layout.js';
 
   export let isMenuOpen = false;
 
@@ -53,13 +53,13 @@
   class="rounded-lg primary border border-gray-700 shadow-lg"
   >
 
-  <div class="item" on:click={()=> grid = layout.setUsbConnectedModule(grid,menuOnModuleWithId)}>USB Connected Module</div>
+  <div class="item" on:click={()=> grid = LAYOUT.setUsbConnectedModule(grid,menuOnModuleWithId)}>USB Connected Module</div>
 
   <hr>
 
-  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 0)}> Rotation: 0°</div>
-  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 90)}> Rotation: 90°</div>
-  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 180)}> Rotation: 180°</div>
-  <div class="item" on:click={()=> grid = layout.setModuleRotation(grid,menuOnModuleWithId, 270)}> Rotation: 270°</div>
+  <div class="item" on:click={()=> grid = LAYOUT.setModuleRotation(grid,menuOnModuleWithId, 0)}> Rotation: 0°</div>
+  <div class="item" on:click={()=> grid = LAYOUT.setModuleRotation(grid,menuOnModuleWithId, 90)}> Rotation: 90°</div>
+  <div class="item" on:click={()=> grid = LAYOUT.setModuleRotation(grid,menuOnModuleWithId, 180)}> Rotation: 180°</div>
+  <div class="item" on:click={()=> grid = LAYOUT.setModuleRotation(grid,menuOnModuleWithId, 270)}> Rotation: 270°</div>
 
 </div>

@@ -67,69 +67,69 @@
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
 
-      <div data-element-number={12} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Potentiometer elementNumber={12} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={13} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Potentiometer elementNumber={13} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={14} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Potentiometer elementNumber={14} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={15} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Potentiometer size={$appSettings.size}/>
+        <Potentiometer elementNumber={15} size={$appSettings.size}/>
       </div>
 
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div data-element-number={4} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size} {rotation}/>
+        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
       </div>
 
-      <div data-element-number={5} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size} {rotation}/>
+        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
       </div>
 
-      <div data-element-number={6} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size} {rotation}/>
+        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
       </div>
 
-      <div data-element-number={7} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Fader size={$appSettings.size} {rotation}/>
+        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
       </div>
     </div>
 
-    <div data-element-number={0} class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
+    <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Button elementNumber={0} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={1} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Button elementNumber={1} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={2} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Button elementNumber={2} size={$appSettings.size}/>
       </div>
 
-      <div data-element-number={3} class="knob-and-led">
+      <div class="knob-and-led">
         <Led size={$appSettings.size}/>
-        <Button size={$appSettings.size}/>
+        <Button elementNumber={3} size={$appSettings.size}/>
       </div>
     </div>
   </div>

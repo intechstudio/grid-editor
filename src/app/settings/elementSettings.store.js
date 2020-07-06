@@ -1,3 +1,3 @@
 import { writable } from 'svelte/store';
 
-export let elementSettings = writable({})
+export let elementSettings = writable({moduleId: '', controlNumber: ''})

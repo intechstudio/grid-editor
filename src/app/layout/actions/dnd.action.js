@@ -2,8 +2,6 @@ import { grid } from '../../stores/grid.store.js';
 
 import { islanding } from '../islanding.js';
 
-import { layout } from '../layout.js';
-
 import { get } from 'svelte/store';
 
 export let selectedDisplay;
@@ -64,7 +62,7 @@ export function dragndrop(node, selectedDisplay) {
     // AFTER RENDERING THE COMPONENTS DINAMICALLY, THIS IS NOT NEEDED
 
     if(movable && !_islanding){
-      if(!(modul == 'drg-po16' || modul ==  'drg-bu16' || modul ==  'drg-en16' || modul ==  'drg-pbf4')){ 
+      if(!(modul == 'drg-PO16' || modul ==  'drg-BU16' || modul ==  'drg-EN16' || modul ==  'drg-PBF4')){ 
         e.target.style.opacity = '0.4';
       }   
       e.dataTransfer.setData("text", e.target.id);

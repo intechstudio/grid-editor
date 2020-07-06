@@ -21,16 +21,23 @@
 
   export let grid = [];
 
-
   $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
 
   function coroner(){
 
     setInterval(()=>{
 
-      let _removed = grid.used.find(g => Date.now() - g.alive > 1000);
+      // Don't interfere with virtual modules.
+      let _removed = grid.used.find(g => (Date.now() - g.alive > 1000) && !g.virtual);
 
-      let _usedgrid = grid.used.filter(g => (Date.now() - g.alive > 1000) === false);
+      let _processgrid = grid.used.map(g => {
+        if(Date.now() - g.alive > 1000 && !g.virtual){
+          g.alive = 'dead';
+        }
+        return g;
+      })
+      
+      let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
 
       if(_removed !== undefined && _usedgrid.length !== 0){
 
@@ -41,7 +48,7 @@
         
       }
         
-    }, 1000)
+    }, 500)
 
   }
 
@@ -69,7 +76,7 @@
         .catch(err => {
           console.error(err)
         });
-    }, 1000 )
+    }, 500 )
   }
   
   function createSerialPort() {
@@ -117,7 +124,7 @@
         runSerialParser(port, i) 
 
       } else {
-          console.log('Do nothing.')
+        console.log('Do nothing.')
       }
 
     }) 
@@ -140,73 +147,58 @@
 
       let decoded = GRID.decode(_array);
 
+      let DATA = {};
+      
       decoded.forEach((obj)=>{
 
         let array = _array.slice(obj.offset, obj.length + obj.offset);
 
         if(obj.class == "GRID_CLASS_MIDI"){
-          let header = GRID.header(_array);
+
+          DATA.HEADER = GRID.header(_array);
+          // nem mindegy milyen array.
+          DATA.MIDI = {...GRID.midi_decoder(array), ...{HEADER: DATA.HEADER}};
+
           // to do...
         }
 
         if(obj.class == "GRID_CLASS_SYS"){
-          console.log('GRID_CLASS_SYS', _array);
-          let header = GRID.header(_array);
-          let heartbeat = GRID.heartbeat(_array);
-          let moduleType = GRID.moduleLookup(heartbeat.HWCFG);
 
-          let grid_module_id = moduleType + '_' + 'dx:' + header.DX + ';dy:' + header.DY;
-      
-          let controller = {
-            id: grid_module_id,
-            dx: header.DX,
-            dy: header.DY,
-            alive: Date.now(),
-            map: {
-              top: {dx: header.DX, dy: header.DY+1},
-              right: {dx: header.DX+1, dy: header.DY},
-              bot: {dx: header.DX, dy: header.DY-1},
-              left: {dx: header.DX-1, dy: header.DY},
-            },
-            rotation: header.ROT * -90,
-            isConnectedByUsb: (header.DX == 0 && header.DX == 0) ? true : false,
-          };  
-      
-          if(moduleType !== undefined){
+          DATA.CONTROLLER = GRID.sys_decoder(_array);
 
-            let exists = false;
+          updateGridUsedAndAlive(DATA.CONTROLLER);
 
-            grid.used.forEach(g => {
-              if(g.id == controller.id){
-                exists = true;
-              }
-            });
-        
-            if(!exists){
-              grid.used.push(controller);
-              dispatch('change');
-            }
-
-            if(exists){
-              grid.used.map(c => {
-                if(c.id === controller.id){
-                  c.alive = Date.now();
-                }
-                return c;
-              });
-            }
-
-            grid = grid;
-          } 
         }
+      });
 
-      })
+      //console.log(DATA)
 
-      
-
-          
     })
 
+  }
+
+  function updateGridUsedAndAlive(controller){
+    if(controller !== undefined){
+      let exists = false;
+      grid.used.forEach(g => {
+        if(g.id == controller.id && g.virtual == false){
+          exists = true;
+        }
+      });   
+      if(!exists){
+        grid.used.push(controller);
+        dispatch('change');
+      }
+      if(exists){
+        grid.used.map(c => {
+          if(c.id === controller.id && c.virtual == false){
+            c.alive = Date.now();
+          }
+          return c;
+        });
+      }
+      grid = grid;
+    }
   }
 
 

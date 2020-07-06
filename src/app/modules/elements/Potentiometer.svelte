@@ -2,6 +2,7 @@
   import { grab } from '../event-handlers/grab.js';
 
   export let size = 1;
+  export let elementNumber;
   const knobSize = 13;
 
   let startValue = 0;
@@ -37,6 +38,7 @@
   on:grabstart={handleGrabStart}
   on:grabmove={handleGrabMove}
   on:grabend={handleGrabEnd} 
+  data-control-number={elementNumber}
   width="{size*knobSize+'px'}" 
   height="{size*knobSize+'px'}"  
   viewBox="0 0 30 30" 
