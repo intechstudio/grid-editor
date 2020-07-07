@@ -8,11 +8,18 @@ export function select(node, [moduleId, selectedDisplay]){
     if(e.target.ownerSVGElement){
       
       const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
-      
+
+      console.log(moduleId, controlNumber)
+
       if(controlNumber !== undefined){
+
+        const dx = moduleId.split(';')[0].split(':').pop();
+        const dy = moduleId.split(';')[1].split(':').pop();
+        const position = 'dx:'+dx+';dy:'+dy;
 
         elementSettings.set({
           moduleId: moduleId,
+          position: position,
           controlNumber: controlNumber
         })
   

@@ -164,6 +164,7 @@
           // nem mindegy milyen array.
           DATA.MIDI = {...GRID.midi_decoder(array), ...{HEADER: DATA.HEADER}};
 
+
           elementSettings.update((setting)=>{
             setting.position = 'dx:'+DATA.CONTROLLER.dx+';dy:'+DATA.CONTROLLER.dy;
             setting.controlNumber = DATA.MIDI[2];
@@ -180,8 +181,6 @@
 
         }
       });
-
-      console.log(DATA)
 
     })
 
@@ -214,7 +213,8 @@
   function writeSerialPort(message){
     console.log('attempt writing serialport');
     const port = serialports[0];
-    port.write(`${message}\n`, function(err, result){
+    const MSG = GRID.ENCODE_HEADER(message);
+    port.write(`${MSG}\n`, function(err, result){
       if(err){
         console.log('Error while sending message : ' + err)
       }

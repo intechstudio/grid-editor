@@ -27,7 +27,6 @@
     })
 
     if(id !== undefined && (id.length > 4)){
-      console.log(id);
       const dx = id.split(';')[0].split(':').pop();
       const dy = id.split(';')[1].split(':').pop();
       moduleId = 'dx:'+dx+';dy:'+dy;

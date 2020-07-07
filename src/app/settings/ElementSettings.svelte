@@ -7,11 +7,17 @@
 
   import Action from './Action.svelte';
 
+  let originalActions = ['Control Change', 'Note On', 'Note Off', 'LED Color', 'LED Intensity'];
+  $: availableActions = originalActions;
+  $: selectedActions = [];
+
   let selectedEvent = '';
 
   let element_color;
 
   let moduleId = '';
+
+  let selectedAction = '';
 
   $: events = [];
 
@@ -24,7 +30,19 @@
         }
       });
     })
+  }
 
+  function manageActions(action){
+    console.log('selectedAction...',action)
+    selectedActions = [...selectedActions, action];
+    availableActions = availableActions.filter(a => a !== action);
+  }
+
+  function handleRemoveAction(e){
+    console.log('removedAction...',e)
+    let removedAction = e.detail.action;
+    availableActions = [...availableActions, removedAction];
+    selectedActions = selectedActions.filter(a => a !== removedAction);
   }
 
   onMount(()=>{
@@ -105,26 +123,19 @@
     </div>
 
     <div class="flex">
-      <select class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
-        {#each ['Control Change', 'Note On', 'Note Off'] as action}
-          <option class="secondary text-white">{action}</option>
+      <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
+        {#each availableActions as action}
+          <option value={action} class="secondary text-white">{action}</option>
         {/each}
       </select>
-
-      <button class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none">Add Action</button>
+      <button on:click={()=>manageActions(selectedAction)} class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none">Add Action</button>
     </div>
 
+
     <div class="flex flex-col">
-      <div class="text-white py-2">Control Change</div>
-      <div class="flex">
-        <input type="number" class="secondary text-white p-1 rounded-none focus:outline-none mr-2">
-        <input type="number" class="secondary text-white p-1 rounded-none focus:outline-none mr-2">
-        <div class="p-2 w-8 h-8 bg-secondary hover:bg-black cursor-pointer">
-          <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M13 1.00001L1.01053 13M12.9895 13L1 1" stroke="#BBBBBB" stroke-width="2"/>
-          </svg>
-        </div>
-      </div>
+      {#each selectedActions as action}
+        <Action on:remove={handleRemoveAction} {action}/>
+      {/each}
     </div>
 
     </div>

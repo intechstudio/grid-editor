@@ -1,19 +1,22 @@
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json';
 import {GRID_CONTROLLER} from './GridController.js';
 
+var global_id = 0;
+
 export var GRID_PROTOCOL = {
 
   LOOKUP_TABLE: {},
 
   initialize: function() {
 
-    let GRID_CONST = [];
+    let GRID_CONST = {};
     let GRID_OTHER = [];
     let GRID_SOH_BRC_PARAMETERS = [];
     let GRID_STX_SYS_HEARTBEAT_PARAMETER = [];
     let GRID_MIDI_PARAMETERS = {}
     let GRID_CLASSES = {};
     let GRID_MODULE_TYPES = {};
+    let GRID_PROTOCOL_VERSION = {};
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
@@ -21,14 +24,20 @@ export var GRID_PROTOCOL = {
         let _key = {};
 
         // GRID CONSTS
-        if(grid_protocol[key].startsWith('0x')){
+        if(key.startsWith('GRID_CONST')){
+          let paramName = key.slice(11);
           let dec = parseInt(grid_protocol[key], 16); 
-          _key[key] = dec;
-          GRID_CONST.push(_key)
+          //_key[key] = dec;
+          GRID_CONST[paramName] = dec;
         } 
 
+        else if(key.startsWith('GRID_PROTOCOL_VERSION')){
+          let paramName = key.slice(22);
+          GRID_PROTOCOL_VERSION[paramName] = +grid_protocol[key];
+        }
+
         // GRID SOH BROADCAST 
-        else if(key.startsWith('GRID_SOH_BRC')){    
+        else if(key.startsWith('GRID_SOH_BRC_PARAMETER_')){    
           let paramName = key.substr(30,);
           GRID_SOH_BRC_PARAMETERS[paramName] = {length: 0,offset: 0};
         } 
@@ -77,6 +86,7 @@ export var GRID_PROTOCOL = {
     }
 
     this.LOOKUP_TABLE.GRID_CONST = GRID_CONST;
+    this.LOOKUP_TABLE.GRID_PROTOCOL_VERSION = GRID_PROTOCOL_VERSION;
     this.LOOKUP_TABLE.GRID_OTHER = GRID_OTHER;
     this.LOOKUP_TABLE.GRID_CLASSES = GRID_CLASSES;
     this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS = GRID_SOH_BRC_PARAMETERS;
@@ -178,6 +188,62 @@ export var GRID_PROTOCOL = {
       if(LOOKUP_TABLE[key] == hwcfg)
         return type = key;
       }
-  } 
+  },
 
+  ENCODE_HEADER: function (msg){
+      const TABLE = this.LOOKUP_TABLE;
+
+      const GRID_BRC = this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS;
+
+      let LENGTH = 0;
+      for (const key in GRID_BRC) {
+        LENGTH += GRID_BRC[key].length;       
+      }
+
+      const prepend = String.fromCharCode(TABLE.GRID_CONST.SOH) + String.fromCharCode(TABLE.GRID_CONST.BRC);
+
+      let BRC_PARAMETERS = [
+        this.genId(), 0, 0, 255, 0, TABLE.GRID_PROTOCOL_VERSION.MAJOR, TABLE.GRID_PROTOCOL_VERSION.MINOR, TABLE.GRID_PROTOCOL_VERSION.PATCH
+      ];
+
+      let params = '';
+      BRC_PARAMETERS.forEach(param => {
+        params += param.toString(16).padStart(2, '0');
+      })
+
+      /**
+       * 
+       * APPEND THE MSG HERE!!!! DOWN SMALL msg
+       */
+      
+      const append = 
+        String.fromCharCode(TABLE.GRID_CONST.EOB) + 
+        //String.fromCharCode(TABLE.GRID_CONST.STX) + 
+        msg + 
+        //String.fromCharCode(TABLE.GRID_CONST.ETX) + 
+        String.fromCharCode(TABLE.GRID_CONST.EOT);
+
+      let message = prepend + params + append;
+
+      console.log('len: ',message.length + 2);
+
+      message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
+
+      let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16);
+
+      console.log(checksum);
+
+      message = message + checksum;
+
+      return message;
+  },
+
+  genId: function() {
+    if((global_id / 255) == 1){
+      global_id = 0;
+    }
+    return global_id += 1;
+  }
 }
+
+
