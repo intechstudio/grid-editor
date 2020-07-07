@@ -1,5 +1,8 @@
 <script>
 
+  import { onMount } from 'svelte';
+
+  import { elementSettings } from '../settings/elementSettings.store.js';
   import { appSettings } from '../stores/app-settings.store.js';
   import { select } from './event-handlers/select.js';
 
@@ -8,11 +11,29 @@
   import Fader from './elements/Fader.svelte';
   import Button from './elements/Button.svelte';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 'px';
+  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
 
   export let id = 'PBF4';
 
   export let rotation = 0;
+
+  $: moduleId = '';
+
+  let selectedElement = {};
+
+  onMount(()=>{
+    elementSettings.subscribe((values)=>{
+      selectedElement = values;
+    })
+
+    if(id !== undefined && (id.length > 4)){
+      console.log(id);
+      const dx = id.split(';')[0].split(':').pop();
+      const dy = id.split(';')[1].split(':').pop();
+      moduleId = 'dx:'+dx+';dy:'+dy;
+    }
+
+  });
 
 </script>
 
@@ -30,6 +51,7 @@
   
   .knob-and-led {
     display: flex;
+    padding: 2px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -52,6 +74,12 @@
 
   .disable-pointer-events{
     pointer-events: none;
+  }
+
+  .active-element{
+    background-color: #cc5b5b;
+    padding: 2px;
+    border-radius: 0.25rem;
   }
 
 </style>

@@ -90,41 +90,28 @@ export var GRID_PROTOCOL = {
   },
 
   header: function(serialData){
-
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS;
-
     var header = {}
-
     for (const param in LOOKUP_TABLE) {
-
       let _value = serialData.slice(
         LOOKUP_TABLE[param].offset, LOOKUP_TABLE[param].length + LOOKUP_TABLE[param].offset
       );    
-
-      let value = parseInt("0x"+String.fromCharCode(..._value));
-      
+      let value = parseInt("0x"+String.fromCharCode(..._value));   
       if(param == 'DX' || param == 'DY'){
         header[param] = value - 127;
       } else {
         header[param] = value;
       }
-
     }
-
     return header;
-
   },
 
   decode: function(serialData){
-
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_CLASSES;
-
     let _decoded = [];
     let class_name = '';
-    let id = 0;
-    
+    let id = 0; 
     serialData.forEach((element,i) => {  
-
       // GRID_CONST_STX
       if(element == 2){ 
         class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2]));
@@ -135,7 +122,6 @@ export var GRID_PROTOCOL = {
           }
         }
       }
-
       // GRID_CONST_ETX
       if(element == 3){
         let obj = _decoded.find(o => o.id === id);
@@ -143,33 +129,24 @@ export var GRID_PROTOCOL = {
       }
 
     });
-
     return _decoded;
-
   },
 
   getCommand: function(serialData){
-
     let value = parseInt("0x"+String.fromCharCode(serialData[0], serialData[1]));
-
     return value
   },
 
   midi_decoder: function(serialData){
-   
     // GRID_COMMAND_MIDI_EVENTPACKET = 100
-
     let COMMAND = parseInt("0x"+String.fromCharCode(serialData[0], serialData[1]));
-
     let MIDI = [];
-
     if(COMMAND == 100){
       let key = {};
       for (let i = 2; i < (serialData.length); i += 2) {
         MIDI.push(parseInt("0x"+String.fromCharCode(serialData[i], serialData[i+1])));
       }
     }
-
     return MIDI;
   },
 
@@ -177,44 +154,30 @@ export var GRID_PROTOCOL = {
     let header = this.header(serialData);
     let heartbeat = this.heartbeat(serialData);
     let moduleType = this.moduleLookup(heartbeat.HWCFG);
-
     return GRID_CONTROLLER.create(header, moduleType, false)   
   },
 
   heartbeat: function(serialData){
-
-    let STX_OFFSET = serialData.indexOf(2);
-      
+    let STX_OFFSET = serialData.indexOf(2);  
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_STX_SYS_HEARTBEAT_PARAMETER;
-
     var heartbeat = {}
-
     for (const param in LOOKUP_TABLE) {
-
       let _value = serialData.slice(
         LOOKUP_TABLE[param].offset + STX_OFFSET, LOOKUP_TABLE[param].length + LOOKUP_TABLE[param].offset + STX_OFFSET
       );    
-
       let value = parseInt("0x"+String.fromCharCode(..._value));
-
       heartbeat[param] = value
-
     }
-
     return heartbeat
   },
 
   moduleLookup: function(hwcfg){
-
     var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_MODULE_TYPES;
-
     let type = '';
-
     for (const key in LOOKUP_TABLE) {
       if(LOOKUP_TABLE[key] == hwcfg)
         return type = key;
       }
-  }
-  
+  } 
 
 }

@@ -1,16 +1,23 @@
 <script>
 
+  import { onMount } from 'svelte';
+
+  import { elementSettings } from '../settings/elementSettings.store.js';
   import { appSettings } from '../stores/app-settings.store.js';
   import { select } from './event-handlers/select.js';
 
   import Encoder from './elements/Encoder.svelte';
   import Led from './elements/Led.svelte';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 'px';
+  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
 
   export let id = 'EN16';
 
   export let rotation = 0;
+
+  let selectedElement = {};
+
+  $: moduleId = '';
 
   const control_block = (number) => {
     let array = [];
@@ -19,6 +26,19 @@
     }
     return array;
   }
+
+  onMount(()=>{
+    elementSettings.subscribe((values)=>{
+      selectedElement = values;
+    })
+
+    if(id !== undefined && (id.length > 4)){
+      const dx = id.split(';')[0].split(':').pop();
+      const dy = id.split(';')[1].split(':').pop();
+      moduleId = 'dx:'+dx+';dy:'+dy;
+    }
+    
+  });
 
 </script>
 
@@ -37,6 +57,7 @@
   
   .knob-and-led {
     display: flex;
+    padding: 2px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -61,6 +82,12 @@
     pointer-events: none;
   }
 
+  .active-element{
+    background-color: #cc5b5b;
+    padding: 2px;
+    border-radius: 0.25rem;
+  }
+
 </style>
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
@@ -75,7 +102,7 @@
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
-          <div data-element-number={block * 4 + element} class="knob-and-led">
+          <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber ==(16 - (block * 4) + element - 4)} data-element-number={block * 4 + element} class="knob-and-led">
             <Led size={$appSettings.size}/>
             <Encoder elementNumber={16 - (block * 4) + element - 4} size={$appSettings.size}/>
           </div>

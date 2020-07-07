@@ -4,6 +4,8 @@
 
   import { GRID_PROTOCOL } from './GridProtocol';
 
+  import { elementSettings } from '../settings/elementSettings.store.js';
+
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
 
@@ -16,6 +18,8 @@
   let serialports = [];
 
   let currentPorts = [];
+
+  let message = '';
 
   let GRID = GRID_PROTOCOL.initialize();
 
@@ -128,7 +132,7 @@
       }
 
     }) 
-   
+
   }
 
   function runSerialParser(port, i){
@@ -155,11 +159,17 @@
 
         if(obj.class == "GRID_CLASS_MIDI"){
 
-          DATA.HEADER = GRID.header(_array);
+          DATA.CONTROLLER = GRID.sys_decoder(_array);
+
           // nem mindegy milyen array.
           DATA.MIDI = {...GRID.midi_decoder(array), ...{HEADER: DATA.HEADER}};
 
-          // to do...
+          elementSettings.update((setting)=>{
+            setting.position = 'dx:'+DATA.CONTROLLER.dx+';dy:'+DATA.CONTROLLER.dy;
+            setting.controlNumber = DATA.MIDI[2];
+            return setting;
+          });
+          
         }
 
         if(obj.class == "GRID_CLASS_SYS"){
@@ -171,7 +181,7 @@
         }
       });
 
-      //console.log(DATA)
+      console.log(DATA)
 
     })
 
@@ -201,6 +211,19 @@
     }
   }
 
+  function writeSerialPort(message){
+    console.log('attempt writing serialport');
+    const port = serialports[0];
+    port.write(`${message}\n`, function(err, result){
+      if(err){
+        console.log('Error while sending message : ' + err)
+      }
+      if (result) {
+        console.log('Response received after sending message : ' + result); 
+      }  
+    });
+  }
+
 
   onDestroy(()=>{
     clearInterval(discoverPorts);
@@ -216,8 +239,9 @@
 
 </script>
 
-<div>
-
+<div style="left:40%;z-index:9999;" class="absolute p-2 flex bg-primary bottom-0 mb-20">
+  <input type="text" class="secondary  text-xs text-white p-1 w-64 rounded-none focus:outline-none mr-2" bind:value={message}>
+  <button on:click={()=>writeSerialPort(message)} class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none cursor-pointer">Serial Write</button>
 </div>
 
 <!--

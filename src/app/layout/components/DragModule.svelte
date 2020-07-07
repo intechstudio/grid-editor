@@ -29,7 +29,7 @@
           <div class="h-10 w-10 rounded-full">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_bu16.jpg" alt="po16">
           </div>
-          <div class="p-2 text-primary-900">
+          <div class="p-2">
             PO16
           </div>
         </div>
@@ -40,7 +40,7 @@
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_pbf4.jpg" alt="pbf4">
           </div>
-          <div class="p-2 text-primary-900">
+          <div class="p-2">
             PBF4
           </div>
         </div>
@@ -51,7 +51,7 @@
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_bu16.jpg" alt="bu16">
           </div>
-          <div class="p-2 text-primary-900">
+          <div class="p-2">
             BU16
           </div>
         </div>
@@ -62,7 +62,7 @@
           <div class="h-10 w-10 rounded-full ">
             <img class="h-10 w-10 rounded-full object-cover" src="./assets/imgs/sm_en16.jpg" alt="en16">
           </div>
-          <div class="p-2 text-primary-900">
+          <div class="p-2">
             EN16
           </div>
         </div>

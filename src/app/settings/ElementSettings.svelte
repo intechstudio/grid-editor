@@ -11,17 +11,20 @@
 
   let element_color;
 
+  let moduleId = '';
+
   $: events = [];
 
   function loadSelectedModuleSettings(){
     elementSettings.subscribe((values)=>{
       $grid.used.forEach(_controller => {
-        if(_controller.id == values.moduleId){;
+        if(('dx:'+_controller.dx+';dy:'+_controller.dy) == values.position){
+          moduleId = _controller.id;
           events = _controller.elementSettings[values.controlNumber];
-          console.log(events);
         }
       });
     })
+
   }
 
   onMount(()=>{
@@ -34,7 +37,7 @@
 
   <div class="flex flex-col relative justify-between font-bold text-white mx-2">
     <div class="text-xl">Element Settings</div>
-    <div class="text-orange-500 py-1">Module: {$elementSettings.moduleId.substr(0,4)}</div>
+    <div class="text-orange-500 py-1">Module: {moduleId.substr(0,4)}</div>
     <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber}</div>
   </div>
 
