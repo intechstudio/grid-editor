@@ -24,8 +24,9 @@
   */
 
 	import Menu from './app/menu/Menu.svelte';
-	import ModuleSettings from './app/settings/ModuleSettings.svelte';
+  import GlobalSettings from './app/settings/GlobalSettings.svelte';
   import ElementSettings from './app/settings/ElementSettings.svelte';
+  import MapMode from './app/settings/MapMode.svelte'
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
@@ -202,8 +203,11 @@
 <!-- This is the Settings part of the code-->
 
 {#if $appSettings.selectedDisplay == 'settings'}
-  <div class="absolute w-full h-full flex justify-between items-center">
-    <ModuleSettings/>
+  <div class="absolute w-full h-full flex justify-between items-start">
+    <div class="flex flex-col">
+      <MapMode/>
+      <GlobalSettings/>
+    </div>
     <ElementSettings/>
   </div>
 {/if}

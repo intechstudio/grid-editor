@@ -6,19 +6,48 @@
 
   let bank_color;
 
-  let enabled = 'off';
+  let enabled = false;
 
 </script>
+
+<style>
+
+
+  .transitions{
+    -moz-transition: all .2s ease-in;
+    -o-transition: all .2s ease-in;
+    -webkit-transition: all .2s ease-in;
+    transition: all .2s ease-in;
+    background: #f5f5f5;  
+  }
+ 
+  .circle{
+    animation: scaleIn .75s cubic-bezier(.36, .11, .89, .32);
+  }
+
+  @keyframes scaleIn {
+  from {
+    transform: scale(.5, .5);
+    opacity: .5;
+  }
+  to {
+    transform: scale(1, 1);
+    opacity: 0;
+  }
+}
+
+
+</style>
 
 {#if tab === selected}
 
   <div class="flex flex-col">
 
     <div class="flex secondary justify-between text-white p-2 m-1 items-center">
-      <div>Enabled</div>
-      <div>
-        <button class:primary={enabled === 'off'} on:click={()=>{enabled = 'off'}} class="px-1 rounded outline-none border-0 focus:outline-none" >OFF</button>
-        <button class:bg-highlight={enabled === 'on'} on:click={()=>{enabled = 'on'}} class="px-1 rounded outline-none border-0 focus:outline-none">ON</button>
+      <div>Enabled: <span class="text-blue-500">{enabled}</span></div>
+      <div class="relative flex items-center justify-center">
+        <div on:click={()=>{enabled = !enabled}} style="background: {enabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner transitions w-6 h-6 rounded-full"></div>
+        <div class:circle={enabled} class="w-12 h-12 rounded-full opacity-0 bg-red-400 absolute"></div>
       </div>
     </div>
 

@@ -104,7 +104,7 @@
         {#each control_block(4) as element}
           <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
             <Led size={$appSettings.size}/>
-            <Encoder elementNumber={16 - (block * 4) + element - 4} size={$appSettings.size}/>
+            <Encoder elementNumber={(block * 4) + element} size={$appSettings.size}/>
           </div>
         {/each}
       </div>

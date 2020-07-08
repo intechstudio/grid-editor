@@ -1,6 +1,7 @@
 <script>
 
-  import BankTab from './BankTab.svelte';
+  import BankTab from './BankTab.svelte';  
+
 
   let bank_color = 'relative';
   let bank_number = 'standard';
@@ -21,7 +22,7 @@
 
 <div class="inline-block primary rounded-lg p-4 m-4 z-20">
 
-  <div class="text-xl font-bold text-white mx-2">
+  <div class="text-xl font-bold text-white m-2">
     Global Settings
   </div>
 
@@ -37,7 +38,7 @@
             on:click={()=>{selected = tab}} 
             class:shadow-md={selected === tab}
             class:bg-highlight={selected === tab}
-            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-pink-500 focus:outline-none">
+            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300 focus:outline-none">
             {tab}
           </button>
         {/each}
