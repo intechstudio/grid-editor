@@ -21,7 +21,9 @@
 
   let message = '';
 
-  let GRID = GRID_PROTOCOL.initialize();
+  let GRID = GRID_PROTOCOL;
+  GRID.initialize();
+  console.log(GRID);
 
   export let grid = [];
 
@@ -149,38 +151,17 @@
         _array[i] = element.charCodeAt(0);
       });
 
-      let decoded = GRID.decode(_array);
+      let DATA = GRID.decode(_array)
 
-      let DATA = {};
-      
-      decoded.forEach((obj)=>{
+      updateGridUsedAndAlive(DATA.CONTROLLER)
 
-        let array = _array.slice(obj.offset, obj.length + obj.offset);
-
-        if(obj.class == "GRID_CLASS_MIDI"){
-
-          DATA.CONTROLLER = GRID.sys_decoder(_array);
-
-          // nem mindegy milyen array.
-          DATA.MIDI = {...GRID.midi_decoder(array), ...{HEADER: DATA.HEADER}};
-
-
-          elementSettings.update((setting)=>{
-            setting.position = 'dx:'+DATA.CONTROLLER.dx+';dy:'+DATA.CONTROLLER.dy;
-            setting.controlNumber = DATA.MIDI[2];
-            return setting;
-          });
-          
-        }
-
-        if(obj.class == "GRID_CLASS_SYS"){
-
-          DATA.CONTROLLER = GRID.sys_decoder(_array);
-
-          updateGridUsedAndAlive(DATA.CONTROLLER);
-
-        }
-      });
+      if(DATA.MIDI){      
+        elementSettings.update((setting)=>{
+          setting.position = 'dx:'+DATA.HEADER.DX+';dy:'+DATA.HEADER.DY;
+          setting.controlNumber = DATA.MIDI.PARAM1;
+          return setting;
+        });
+      }
 
     })
 

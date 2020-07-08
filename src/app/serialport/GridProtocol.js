@@ -3,108 +3,164 @@ import {GRID_CONTROLLER} from './GridController.js';
 
 var global_id = 0;
 
+var PROTOCOL = {};
+
 export var GRID_PROTOCOL = {
+  
+  initialize: function(){
 
-  LOOKUP_TABLE: {},
-
-  initialize: function() {
-
-    let GRID_CONST = {};
-    let GRID_OTHER = [];
-    let GRID_SOH_BRC_PARAMETERS = [];
-    let GRID_STX_SYS_HEARTBEAT_PARAMETER = [];
-    let GRID_MIDI_PARAMETERS = {}
-    let GRID_CLASSES = {};
-    let GRID_MODULE_TYPES = {};
-    let GRID_PROTOCOL_VERSION = {};
+    let CONTROLLER = {};
+    let CONST = {};
+    let CLASSES = {};
+    let BRC = {};
+    let HEARTBEAT = {};
+    let MIDIRELATIVE = {};
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
 
-        let _key = {};
+        // GRID MODULE HWCFGS
+        if(key.startsWith('GRID_MODULE_')){
+          let paramName = key.substr('GRID_MODULE_'.length);
+          CONTROLLER[paramName] = +grid_protocol[key];
+        }
 
         // GRID CONSTS
         if(key.startsWith('GRID_CONST')){
           let paramName = key.slice(11);
           let dec = parseInt(grid_protocol[key], 16); 
-          //_key[key] = dec;
-          GRID_CONST[paramName] = dec;
+          CONST[paramName] = dec;
         } 
 
-        else if(key.startsWith('GRID_PROTOCOL_VERSION')){
-          let paramName = key.slice(22);
-          GRID_PROTOCOL_VERSION[paramName] = +grid_protocol[key];
-        }
-
-        // GRID SOH BROADCAST 
-        else if(key.startsWith('GRID_SOH_BRC_PARAMETER_')){    
-          let paramName = key.substr(30,);
-          GRID_SOH_BRC_PARAMETERS[paramName] = {length: 0,offset: 0};
+        // GRID BROADCAST 
+        else if(key.startsWith('GRID_BRC_') && key['GRID_BRC_'.length] == key['GRID_BRC_'.length].toUpperCase()){    
+          const param = key.substr('GRID_BRC_'.length).split('_');
+          BRC[param[0]] = {offset: 0, length: 0};
         } 
 
-        else if(key.startsWith('GRID_PARAMETER_MIDI')){
-          let paramName = key.substr(20,);
-          GRID_MIDI_PARAMETERS[paramName] = grid_protocol[key]
+        // GRID CLASS XXX CODES
+        else if(key.startsWith('GRID_CLASS_') && key.slice(-4) == 'code'){
+          CLASSES[key.slice('GRID_CLASS_'.length)] = +grid_protocol[key];
         }
 
-        // MODULE LOOKUP
-        else if(key.startsWith('GRID_MODULE')){
-          let paramName = key.substr(12,);
-          _key[paramName] = +grid_protocol[key]
-          GRID_MODULE_TYPES[paramName] = +grid_protocol[key];
+        // GRID CLASS HEARTBEAT
+        else if(key.startsWith('GRID_CLASS_HEARTBEAT_') && key['GRID_CLASS_HEARTBEAT_'.length] == key['GRID_CLASS_HEARTBEAT_'.length].toUpperCase()){
+          const param = key.substr('GRID_CLASS_HEARTBEAT_'.length).split('_');
+          HEARTBEAT[param[0]] = {offset: 0, length: 0};
         }
 
-        // heartbeat hwcfg
-        else if(key.startsWith('GRID_STX_SYS_HEARTBEAT_PARAMETERS')){
-          GRID_STX_SYS_HEARTBEAT_PARAMETER['HWCFG'] = {length: 0, offset: 0};
+        // GRID CLASS MIDIRELATIVE
+        else if(key.startsWith('GRID_CLASS_MIDIRELATIVE_') && key['GRID_CLASS_MIDIRELATIVE_'.length] == key['GRID_CLASS_MIDIRELATIVE_'.length].toUpperCase()){
+          const param = key.substr('GRID_CLASS_MIDIRELATIVE_'.length).split('_');
+          MIDIRELATIVE[param[0]] = {offset: 0, length: 0};
         }
 
-        // stx classes
-        else if(key.startsWith('GRID_CLASS')){
-          GRID_CLASSES[key] =  +grid_protocol[key];
-        }
       }
     } 
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
-        if(key.startsWith('GRID_SOH_BRC_PARAMETER_OFFSET')){
-          let paramName = key.substr(30,);
-          GRID_SOH_BRC_PARAMETERS[paramName].offset = +grid_protocol[key];
+        if(key.startsWith('GRID_BRC_') && key['GRID_BRC_'.length] == key['GRID_BRC_'.length].toUpperCase()){
+          const param = key.substr('GRID_BRC_'.length).split('_');
+          BRC[param[0]][param[1]] = +grid_protocol[key];
         }
-        if(key.startsWith('GRID_SOH_BRC_PARAMETER_LENGTH')){
-          let paramName = key.substr(30,);
-          GRID_SOH_BRC_PARAMETERS[paramName].length = +grid_protocol[key];
+        if(key.startsWith('GRID_CLASS_HEARTBEAT_') && key['GRID_CLASS_HEARTBEAT_'.length] == key['GRID_CLASS_HEARTBEAT_'.length].toUpperCase()){
+          const param = key.substr('GRID_CLASS_HEARTBEAT_'.length).split('_');
+          HEARTBEAT[param[0]][param[1]] = +grid_protocol[key];
         }
-        if(key.startsWith('GRID_STX_SYS_HEARTBEAT_PARAMETER_OFFSET_HWCFG')){
-          GRID_STX_SYS_HEARTBEAT_PARAMETER.HWCFG.offset = +grid_protocol[key];
-        }
-        if(key.startsWith('GRID_STX_SYS_HEARTBEAT_PARAMETER_LENGTH_HWCFG')){
-          GRID_STX_SYS_HEARTBEAT_PARAMETER.HWCFG.length = +grid_protocol[key];
+        if(key.startsWith('GRID_CLASS_MIDIRELATIVE_') && key['GRID_CLASS_MIDIRELATIVE_'.length] == key['GRID_CLASS_MIDIRELATIVE_'.length].toUpperCase()){
+          const param = key.substr('GRID_CLASS_MIDIRELATIVE_'.length).split('_');
+          MIDIRELATIVE[param[0]][param[1]] = +grid_protocol[key];
         }
       }
     }
 
-    this.LOOKUP_TABLE.GRID_CONST = GRID_CONST;
-    this.LOOKUP_TABLE.GRID_PROTOCOL_VERSION = GRID_PROTOCOL_VERSION;
-    this.LOOKUP_TABLE.GRID_OTHER = GRID_OTHER;
-    this.LOOKUP_TABLE.GRID_CLASSES = GRID_CLASSES;
-    this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS = GRID_SOH_BRC_PARAMETERS;
-    this.LOOKUP_TABLE.GRID_STX_SYS_HEARTBEAT_PARAMETER = GRID_STX_SYS_HEARTBEAT_PARAMETER;
-    this.LOOKUP_TABLE.GRID_MODULE_TYPES = GRID_MODULE_TYPES;
-    this.LOOKUP_TABLE.GRID_MIDI_PARAMETERS = GRID_MIDI_PARAMETERS;
-
-    console.log(this.LOOKUP_TABLE);
-
-    return GRID_PROTOCOL;
+    this.PROTOCOL = {CONST: CONST, BRC: BRC , CLASSES: CLASSES, HEARTBEAT: HEARTBEAT, MIDIRELATIVE: MIDIRELATIVE, CONTROLLER: CONTROLLER}
+    
   },
 
-  header: function(serialData){
-    var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_SOH_BRC_PARAMETERS;
-    var header = {}
-    for (const param in LOOKUP_TABLE) {
+  decode: function(serialData){
+    /**
+     * 
+     * Slices serial data between STX 0x02 and ETX 0x03 for further processing by GRID_CLASS_XXX_code's.
+     * 
+     */
+    var CLASSES = this.PROTOCOL.CLASSES;
+    let _decoded = [];
+    let class_name = '';
+    let id = 0; 
+    serialData.forEach((element,i) => {  
+      // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
+      if(element == 2){ 
+        class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2], serialData[i+3]));
+        id = ""+ i +"";
+        for (const param in CLASSES){
+          if(CLASSES[param] == class_name){ 
+            _decoded.push({id: id, class: param, offset: i});     
+          }
+        }
+      }
+      // GRID_CONST_ETX
+      if(element == 3){
+        let obj = _decoded.find(o => o.id === id);
+        obj.length = i - obj.offset;
+      }
+    });
+    
+    return this.decode_by_class(serialData, _decoded);
+
+  },
+
+  decode_by_class: function(serialData, decoded){
+
+    let DATA = {};
+
+    DATA.HEADER = this.decode_header(serialData);
+
+    decoded.forEach((obj)=>{
+
+      let array = serialData.slice(obj.offset, obj.length + obj.offset);
+
+      if(obj.class == "HEARTBEAT_code"){
+
+        DATA.HEARTBEAT = this.decode_heartbeat(array);
+        let moduleType = this.moduleLookup(DATA.HEARTBEAT.HWCFG);
+        DATA.CONTROLLER = GRID_CONTROLLER.create(DATA.HEADER, moduleType, false)
+
+      }
+
+      if(obj.class == "MIDIRELATIVE_code"){
+
+        DATA.MIDI = this.decode_midi(array);
+       
+      }
+
+      
+    });
+
+    return DATA;
+
+  },
+
+  decode_heartbeat: function(serialData){
+    var HEARTBEAT = this.PROTOCOL.HEARTBEAT;
+    var heartbeat = {}
+    for (const param in HEARTBEAT) {
       let _value = serialData.slice(
-        LOOKUP_TABLE[param].offset, LOOKUP_TABLE[param].length + LOOKUP_TABLE[param].offset
+        HEARTBEAT[param].offset, HEARTBEAT[param].length + HEARTBEAT[param].offset
+      );    
+      let value = parseInt("0x"+String.fromCharCode(..._value));
+      heartbeat[param] = value
+    }
+    return heartbeat
+  },
+
+  decode_header: function(serialData){
+    var BRC = this.PROTOCOL.BRC;
+    var header = {}
+    for (const param in BRC) {
+      let _value = serialData.slice(
+        BRC[param].offset, BRC[param].length + BRC[param].offset
       );    
       let value = parseInt("0x"+String.fromCharCode(..._value));   
       if(param == 'DX' || param == 'DY'){
@@ -116,49 +172,34 @@ export var GRID_PROTOCOL = {
     return header;
   },
 
-  decode: function(serialData){
-    var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_CLASSES;
-    let _decoded = [];
-    let class_name = '';
-    let id = 0; 
-    serialData.forEach((element,i) => {  
-      // GRID_CONST_STX
-      if(element == 2){ 
-        class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2]));
-        id = ""+ i +"";
-        for (const param in LOOKUP_TABLE){
-          if(LOOKUP_TABLE[param] == class_name){
-            _decoded.push({id: id, class: param, offset: i + 3});     
-          }
-        }
-      }
-      // GRID_CONST_ETX
-      if(element == 3){
-        let obj = _decoded.find(o => o.id === id);
-        obj.length = i - obj.offset;
-      }
+  decode_midi: function(serialData){
 
-    });
-    return _decoded;
-  },
-
-  getCommand: function(serialData){
-    let value = parseInt("0x"+String.fromCharCode(serialData[0], serialData[1]));
-    return value
-  },
-
-  midi_decoder: function(serialData){
-    // GRID_COMMAND_MIDI_EVENTPACKET = 100
-    let COMMAND = parseInt("0x"+String.fromCharCode(serialData[0], serialData[1]));
-    let MIDI = [];
-    if(COMMAND == 100){
-      let key = {};
-      for (let i = 2; i < (serialData.length); i += 2) {
-        MIDI.push(parseInt("0x"+String.fromCharCode(serialData[i], serialData[i+1])));
-      }
+    var MIDIRELATIVE = this.PROTOCOL.MIDIRELATIVE;
+    var midi = {}
+    for (const param in MIDIRELATIVE) {
+      let _value = serialData.slice(
+        MIDIRELATIVE[param].offset, MIDIRELATIVE[param].length + MIDIRELATIVE[param].offset
+      );    
+      let value = parseInt("0x"+String.fromCharCode(..._value));   
+      midi[param] = value;
     }
-    return MIDI;
+
+    return midi;
   },
+
+  moduleLookup: function(hwcfg){
+    var CONTROLLER = this.PROTOCOL.CONTROLLER;
+    let type = '';
+    for (const key in CONTROLLER) {
+      if(CONTROLLER[key] == hwcfg)
+        return type = key;
+      }
+  },
+}
+
+  /*
+
+  
 
   sys_decoder: function(serialData){
     let header = this.header(serialData);
@@ -166,29 +207,9 @@ export var GRID_PROTOCOL = {
     let moduleType = this.moduleLookup(heartbeat.HWCFG);
     return GRID_CONTROLLER.create(header, moduleType, false)   
   },
+  
 
-  heartbeat: function(serialData){
-    let STX_OFFSET = serialData.indexOf(2);  
-    var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_STX_SYS_HEARTBEAT_PARAMETER;
-    var heartbeat = {}
-    for (const param in LOOKUP_TABLE) {
-      let _value = serialData.slice(
-        LOOKUP_TABLE[param].offset + STX_OFFSET, LOOKUP_TABLE[param].length + LOOKUP_TABLE[param].offset + STX_OFFSET
-      );    
-      let value = parseInt("0x"+String.fromCharCode(..._value));
-      heartbeat[param] = value
-    }
-    return heartbeat
-  },
-
-  moduleLookup: function(hwcfg){
-    var LOOKUP_TABLE = this.LOOKUP_TABLE.GRID_MODULE_TYPES;
-    let type = '';
-    for (const key in LOOKUP_TABLE) {
-      if(LOOKUP_TABLE[key] == hwcfg)
-        return type = key;
-      }
-  },
+  
 
   ENCODE_HEADER: function (msg){
       const TABLE = this.LOOKUP_TABLE;
@@ -210,11 +231,6 @@ export var GRID_PROTOCOL = {
       BRC_PARAMETERS.forEach(param => {
         params += param.toString(16).padStart(2, '0');
       })
-
-      /**
-       * 
-       * APPEND THE MSG HERE!!!! DOWN SMALL msg
-       */
       
       const append = 
         String.fromCharCode(TABLE.GRID_CONST.EOB) + 
@@ -244,6 +260,7 @@ export var GRID_PROTOCOL = {
     }
     return global_id += 1;
   }
-}
 
 
+
+*/
