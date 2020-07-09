@@ -2,6 +2,20 @@
 
   import { globalSettings } from './globalSettings.store.js';
 
+  import { createEventDispatcher } from 'svelte';
+  
+  const dispatch = createEventDispatcher();
+
+  let colors = {
+    red: [245, 0, 0],
+    green: [0, 250, 0],
+    blue: [0, 0, 250],
+    pink: [200, 50, 70],
+    indigo: [30, 75, 200],
+    yellow: [160, 160, 20],
+    orange: [200, 100, 20]
+  }
+
   export let tab;
 
   export let selected;
@@ -12,9 +26,17 @@
 
   function bankSettings(state){
     globalSettings.update((array)=>{
-      array[selected-1] = state;
+      array[selected] = state;
       return array;
     })
+  }
+
+  function selectColor(color){
+    bank_color = color;
+    let rgb = colors[color];
+    dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
+      {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
+    ]})
   }
 
 </script>
@@ -65,37 +87,37 @@
     <div class="flex p-2">
       <div 
         class:border-2="{bank_color === 'red'}" 
-        on:click="{() => bank_color = 'red'}"
+        on:click="{() => selectColor('red')}"
         class="shadow bg-red-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'green'}" 
-        on:click="{() => bank_color = 'green'}"
+        on:click="{() => selectColor('green')}"
         class="shadow bg-green-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'blue'}" 
-        on:click="{() => bank_color = 'blue'}"
+        on:click="{() => selectColor('blue')}"
         class="shadow bg-blue-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'pink'}" 
-        on:click="{() => bank_color = 'pink'}"
+        on:click="{() => selectColor('pink')}"
         class="shadow bg-pink-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'indigo'}" 
-        on:click="{() => bank_color = 'indigo'}"
+        on:click="{() => selectColor('indigo')}"
         class="shadow bg-indigo-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'yellow'}" 
-        on:click="{() => bank_color = 'yellow'}"
+        on:click="{() => selectColor('yellow')}"
         class="shadow bg-yellow-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
       <div 
         class:border-2="{bank_color === 'orange'}" 
-        on:click="{() => bank_color = 'orange'}"
+        on:click="{() => selectColor('orange')}"
         class="shadow bg-orange-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
       ></div>
     </div>

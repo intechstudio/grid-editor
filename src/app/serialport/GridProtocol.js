@@ -9,14 +9,13 @@ export var GRID_PROTOCOL = {
   
   initialize: function(){
 
-    let CONTROLLER = {};
+    let HWCFG = {};
     let CONST = {};
     let CLASSES = {};
     let BRC = {};
-    let HEARTBEAT = {};
-    let MIDIRELATIVE = {};
-    let BANKACTIVE = {};
     let VERSION = {};
+
+    let PROTOCOL = {};
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
@@ -24,7 +23,7 @@ export var GRID_PROTOCOL = {
         // GRID MODULE HWCFGS
         if(key.startsWith('GRID_MODULE_')){
           let paramName = key.substr('GRID_MODULE_'.length);
-          CONTROLLER[paramName] = +grid_protocol[key];
+          HWCFG[paramName] = +grid_protocol[key];
         }
 
         // GRID CONSTS
@@ -51,26 +50,40 @@ export var GRID_PROTOCOL = {
           CLASSES[key.slice('GRID_CLASS_'.length).slice(0,-5)] = +grid_protocol[key];
         }
 
-        // GRID CLASS HEARTBEAT
-        else if(key.startsWith('GRID_CLASS_HEARTBEAT_') && key['GRID_CLASS_HEARTBEAT_'.length] == key['GRID_CLASS_HEARTBEAT_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_HEARTBEAT_'.length).split('_');
-          HEARTBEAT[param[0]] = {offset: 0, length: 0};
-        }
+        let param = '';
 
-        // GRID CLASS MIDIRELATIVE
-        else if(key.startsWith('GRID_CLASS_MIDIRELATIVE_') && key['GRID_CLASS_MIDIRELATIVE_'.length] == key['GRID_CLASS_MIDIRELATIVE_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_MIDIRELATIVE_'.length).split('_');
-          MIDIRELATIVE[param[0]] = {offset: 0, length: 0};
-        }
-
-        // GRID CLASS BANKACTICE
-        else if(key.startsWith('GRID_CLASS_BANKACTIVE_') && key['GRID_CLASS_BANKACTIVE_'.length] == key['GRID_CLASS_BANKACTIVE_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_BANKACTIVE_'.length).split('_');
-          BANKACTIVE[param[0]] = {offset: 0, length: 0};
+        if(key.startsWith('GRID_CLASS_')){
+          param = key.split('_')[2];
+          if(param[0] == param[0].toUpperCase()){
+            if (!PROTOCOL.hasOwnProperty(param)) {
+              PROTOCOL[param] = {};
+            }
+          }
         }
 
       }
-    } 
+    }
+
+    for(const key in grid_protocol){
+      if(typeof grid_protocol[key] !== 'object'){
+        let paramName = '';
+        let className = '';
+        if(key.startsWith('GRID_CLASS_')){
+          className = key.split('_')[2]
+          if(className[0] == className[0].toUpperCase()){
+            paramName = key.split('_')[3];
+            if(paramName[0] == paramName[0].toUpperCase()){
+              if(key.slice(-6) == 'offset'){
+                PROTOCOL[className][paramName] = {...PROTOCOL[className][paramName], offset: 0};
+              }else{
+                PROTOCOL[className][paramName] = {...PROTOCOL[className][paramName], length: 0};
+              }
+              PROTOCOL[className][paramName][key.slice(-6)] = +grid_protocol[key];
+            }
+          }
+        }
+      }
+    }
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
@@ -78,30 +91,16 @@ export var GRID_PROTOCOL = {
           const param = key.substr('GRID_BRC_'.length).split('_');
           BRC[param[0]][param[1]] = +grid_protocol[key];
         }
-        if(key.startsWith('GRID_CLASS_HEARTBEAT_') && key['GRID_CLASS_HEARTBEAT_'.length] == key['GRID_CLASS_HEARTBEAT_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_HEARTBEAT_'.length).split('_');
-          HEARTBEAT[param[0]][param[1]] = +grid_protocol[key];
-        }
-        if(key.startsWith('GRID_CLASS_MIDIRELATIVE_') && key['GRID_CLASS_MIDIRELATIVE_'.length] == key['GRID_CLASS_MIDIRELATIVE_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_MIDIRELATIVE_'.length).split('_');
-          MIDIRELATIVE[param[0]][param[1]] = +grid_protocol[key];
-        }
-        if(key.startsWith('GRID_CLASS_BANKACTIVE_') && key['GRID_CLASS_BANKACTIVE_'.length] == key['GRID_CLASS_BANKACTIVE_'.length].toUpperCase()){
-          const param = key.substr('GRID_CLASS_BANKACTIVE_'.length).split('_');
-          BANKACTIVE[param[0]][param[1]] = +grid_protocol[key];
-        }
       }
     }
 
     this.PROTOCOL = {
-      CONST: CONST, 
+      ...PROTOCOL,
       BRC: BRC , 
       CLASSES: CLASSES, 
-      HEARTBEAT: HEARTBEAT, 
-      MIDIRELATIVE: MIDIRELATIVE, 
-      CONTROLLER: CONTROLLER, 
-      BANKACTIVE: BANKACTIVE,
-      VERSION: VERSION
+      HWCFG: HWCFG, 
+      CONST: CONST,
+      VERSION: VERSION,
     }
     
   },
@@ -182,7 +181,8 @@ export var GRID_PROTOCOL = {
     return object;
   },
 
-  encode: function (msg){
+  encode: function (CLASS_NAME, PARAMETERS){
+
     const PROTOCOL = this.PROTOCOL;
 
     const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
@@ -191,33 +191,39 @@ export var GRID_PROTOCOL = {
       this.utility_genId(), 127, 127, 255, 0
     ];
 
+    let command = '';
+    PARAMETERS.forEach(CLASS => {
+      let param = '';
+      for (const key in CLASS) {
+       param += CLASS[key].toString(16).padStart(2, '0');
+      }
+      command += 
+        String.fromCharCode(PROTOCOL.CONST.STX) +
+        PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
+        String.fromCharCode(102) + // REP_CODE
+        param + 
+        String.fromCharCode(PROTOCOL.CONST.ETX);
+    })
+
+    console.log(command);
+
     let params = '';
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');
     })
-
-    console.log(PROTOCOL.CLASSES['BANKACTIVE'].toString(16).padStart(2, '0'), String.fromCharCode(101), msg.detail.selectedBank.toString(16).padStart(2, '0') )
     
     const append = 
       String.fromCharCode(PROTOCOL.CONST.EOB) + 
-      String.fromCharCode(PROTOCOL.CONST.STX) +
-      PROTOCOL.CLASSES['BANKACTIVE'].toString(16).padStart(3, '0') +
-      String.fromCharCode(102) +
-      msg.detail.selectedBank.toString(16).padStart(2, '0') + 
-      String.fromCharCode(PROTOCOL.CONST.ETX) + 
+      command +
       String.fromCharCode(PROTOCOL.CONST.EOT);
 
     let message = prepend + params + append;
-
-    console.log('len: ',message.length + 2);
 
     message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
 
     let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
 
     message = message + checksum;
-
-    console.log(message);
 
     return message;
   },
@@ -230,10 +236,10 @@ export var GRID_PROTOCOL = {
   },
   
   utility_moduleLookup: function(hwcfg){
-    var CONTROLLER = this.PROTOCOL.CONTROLLER;
+    var HWCFG = this.PROTOCOL.HWCFG;
     let type = '';
-    for (const key in CONTROLLER) {
-      if(CONTROLLER[key] == hwcfg)
+    for (const key in HWCFG) {
+      if(HWCFG[key] == hwcfg)
         return type = key;
       }
   },

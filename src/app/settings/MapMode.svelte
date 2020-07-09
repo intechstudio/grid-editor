@@ -3,6 +3,8 @@
   import {elementSettings} from './elementSettings.store.js';
   import {globalSettings} from './globalSettings.store.js';
 
+  import { get } from 'svelte/store';
+
   import { createEventDispatcher } from 'svelte';
   
   const dispatch = createEventDispatcher();
@@ -11,7 +13,13 @@
 
   let selectedBank = 0;
 
-  let banks = $globalSettings;
+  /**
+   * 
+   * handleSwitch() does not react correctly to changes on "switch bank" and using the real mapmode button. 
+   * 
+   */
+
+  $: banks = $globalSettings;
 
   function handleSwitch(){
 
@@ -23,16 +31,20 @@
       }
     });
 
+    selectedBank = selectedBank % switchableBanks.length;  
+    
+    // to do: prompt error!
+    if(switchableBanks[selectedBank] !== undefined){
+
+      elementSettings.update((setting)=>{
+        setting.bank = switchableBanks[selectedBank];
+        return setting;
+      })
+
+      dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': switchableBanks[selectedBank]}]})
+    }
+
     selectedBank += 1;
-
-    selectedBank = selectedBank % switchableBanks.length;   
-
-    elementSettings.update((setting)=>{
-      setting.bank = switchableBanks[selectedBank];
-      return setting;
-    })
-
-    dispatch('mapModeSwitch', {selectedBank})
 
   }
 
@@ -51,7 +63,7 @@
       'Utility button or as often referred the map mode button is a small button on the side of the modules. It changes the selected bank globally on Grid.'
     }/>
   </div>
-  <div class="m-2">Configuration is saved for bank <span class="text-important">{$elementSettings.bank}</span>.</div>
-  <div class="m-2">Currently enabled number of banks: <span class="text-important">2</span>.</div>
+  <div class="m-2">Configuration is saved for bank <span class="text-important">{$elementSettings.bank + 1}</span>.</div>
+  <div class="m-2">Currently enabled number of banks: <span class="text-important">X</span>.</div>
   <button on:click={handleSwitch} class="m-2 block bg-highlight w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none">Switch Bank</button>
 </div>

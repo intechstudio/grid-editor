@@ -197,26 +197,30 @@
 
 <div style="height: calc(100vh - 1 * 48px);" class="relative">
 
-<!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
+  <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
-{#if $appSettings.selectedDisplay == 'layout'}
-  <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
-{/if}
+  {#if $appSettings.selectedDisplay == 'layout'}
+    <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
+  {/if}
 
 
-<!-- This is the Settings part of the code-->
+  <!-- This is the Settings part of the code-->
 
-{#if $appSettings.selectedDisplay == 'settings'}
-  <div class="absolute w-full h-full flex justify-between items-start">
-    <div class="flex flex-col">
-      <MapMode on:mapModeSwitch={(e)=>serialPortComponent.writeSerialPort(e)}/>
-      <GlobalSettings/>
+  {#if $appSettings.selectedDisplay == 'settings'}
+    <div class="absolute w-full h-full flex justify-between items-start">
+      <div class="flex flex-col">
+        <MapMode on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}/>
+        <GlobalSettings 
+          on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
+          on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
+          on:BANKCOLOR={(e)=>serialPortComponent.writeSerialPort(e)}
+        />
+      </div>
+      <ElementSettings/>
     </div>
-    <ElementSettings/>
-  </div>
-{/if}
+  {/if}
 
-<!-- This is the (mostly) Layout part of the code. -->
+  <!-- This is the (mostly) Layout part of the code. -->
 
   <div class="absolute overflow-hidden w-full flex flex-col h-full"
   

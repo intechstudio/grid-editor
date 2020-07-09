@@ -166,6 +166,7 @@
       }
 
       if(DATA.BANKACTIVE){
+        console.log(DATA.BANKACTIVE)
         elementSettings.update((setting)=>{
           setting.bank = DATA.BANKACTIVE.BANKNUMBER;
           return setting;
@@ -200,10 +201,10 @@
     }
   }
 
-  export function writeSerialPort(message){
-    console.log('attempt writing serialport' ,message);
+  export function writeSerialPort(data){
+    //console.log('attempt writing serialport' ,data.detail);
     const port = serialports[0];
-    const MSG = GRID.encode(message);
+    const MSG = GRID.encode(data.detail.className, data.detail.parameters);
     port.write(`${MSG}\n`, function(err, result){
       if(err){
         console.log('Error while sending message : ' + err)
