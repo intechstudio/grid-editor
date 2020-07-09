@@ -2,7 +2,6 @@
 
   import BankTab from './BankTab.svelte';  
 
-
   let bank_color = 'relative';
   let bank_number = 'standard';
 

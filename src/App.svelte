@@ -77,7 +77,10 @@
   // Boolean state for right click context-menu override.
   let isMenuOpen = false;
   // Variable for context menu actions (set usb module).
-	let menuOnModuleWithId;
+  let menuOnModuleWithId;
+  
+  // Communicate with exported serialport function.
+  let serialPortComponent;
 	
   /* 
   *   Render modules which are in the $grid.used array. 
@@ -170,6 +173,7 @@
 
 <SerialPort 
   bind:grid={$grid} 
+  bind:this={serialPortComponent}
   on:change={
     $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
   }
@@ -205,7 +209,7 @@
 {#if $appSettings.selectedDisplay == 'settings'}
   <div class="absolute w-full h-full flex justify-between items-start">
     <div class="flex flex-col">
-      <MapMode/>
+      <MapMode on:mapModeSwitch={(e)=>serialPortComponent.writeSerialPort(e)}/>
       <GlobalSettings/>
     </div>
     <ElementSettings/>

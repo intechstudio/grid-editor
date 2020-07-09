@@ -27,7 +27,6 @@
         if(('dx:'+_controller.dx+';dy:'+_controller.dy) == values.position){
           moduleId = _controller.id;
           events = _controller.elementSettings[values.controlNumber];
-          console.log('controll_events: ',events)
         }
       });
     })

@@ -155,12 +155,21 @@
 
       updateGridUsedAndAlive(DATA.CONTROLLER)
 
-      if(DATA.MIDI){      
+      //console.log(DATA);
+
+      if(DATA.MIDIRELATIVE){      
         elementSettings.update((setting)=>{
-          setting.position = 'dx:'+DATA.HEADER.DX+';dy:'+DATA.HEADER.DY;
-          setting.controlNumber = DATA.MIDI.PARAM1;
+          setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
+          setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;
           return setting;
         });
+      }
+
+      if(DATA.BANKACTIVE){
+        elementSettings.update((setting)=>{
+          setting.bank = DATA.BANKACTIVE.BANKNUMBER;
+          return setting;
+        })
       }
 
     })
@@ -191,10 +200,10 @@
     }
   }
 
-  function writeSerialPort(message){
-    console.log('attempt writing serialport');
+  export function writeSerialPort(message){
+    console.log('attempt writing serialport' ,message);
     const port = serialports[0];
-    const MSG = GRID.ENCODE_HEADER(message);
+    const MSG = GRID.encode(message);
     port.write(`${MSG}\n`, function(err, result){
       if(err){
         console.log('Error while sending message : ' + err)
