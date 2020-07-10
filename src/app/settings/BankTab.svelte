@@ -1,6 +1,7 @@
 <script>
 
   import { globalSettings } from './globalSettings.store.js';
+  import { elementSettings } from './elementSettings.store.js';
 
   import { createEventDispatcher } from 'svelte';
   
@@ -22,7 +23,11 @@
 
   let bank_color;
 
+  let rgb = [];
+
   let enabled = true;
+
+  let numberOfModules;
 
   function bankSettings(state){
     globalSettings.update((array)=>{
@@ -33,11 +38,20 @@
 
   function selectColor(color){
     bank_color = color;
-    let rgb = colors[color];
+    rgb = colors[color];
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
     ]})
+    console.log('selectColor')
   }
+
+  globalSettings.subscribe((setting)=>{
+    if(rgb.length > 0){
+      dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
+        {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
+      ]})
+    }
+  })
 
 </script>
 

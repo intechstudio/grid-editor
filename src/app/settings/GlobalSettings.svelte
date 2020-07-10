@@ -15,7 +15,7 @@
 
   let tabs = [0,1,2,3];
 
-  $: selected = $elementSettings.bank;
+  $: selected = $globalSettings.bank;
 
   globalSettings.subscribe(banks => {
     let parameters = banks.map((b,i)=>{

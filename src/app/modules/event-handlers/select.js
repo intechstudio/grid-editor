@@ -17,10 +17,11 @@ export function select(node, [moduleId, selectedDisplay]){
         const dy = moduleId.split(';')[1].split(':').pop();
         const position = 'dx:'+dx+';dy:'+dy;
 
-        elementSettings.set({
-          moduleId: moduleId,
-          position: position,
-          controlNumber: controlNumber
+        elementSettings.update((settings)=>{
+          settings.moduleId = moduleId,
+          settings.position = position,
+          settings.controlNumber = controlNumber
+          return settings;
         })
   
         node.dispatchEvent(new CustomEvent('selected-element', {

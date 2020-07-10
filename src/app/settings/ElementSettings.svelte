@@ -62,7 +62,7 @@
 
 </style>
 
-<div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/4">
+<div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/3">
 
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>

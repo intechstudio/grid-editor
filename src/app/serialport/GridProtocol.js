@@ -205,7 +205,7 @@ export var GRID_PROTOCOL = {
         String.fromCharCode(PROTOCOL.CONST.ETX);
     })
 
-    console.log(command);
+    //console.log(command);
 
     let params = '';
     BRC_PARAMETERS.forEach(param => {

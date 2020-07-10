@@ -5,6 +5,7 @@
   import { GRID_PROTOCOL } from './GridProtocol';
 
   import { elementSettings } from '../settings/elementSettings.store.js';
+  import { globalSettings } from '../settings/globalSettings.store.js';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -156,25 +157,25 @@
       updateGridUsedAndAlive(DATA.CONTROLLER)
 
       //console.log(DATA);
-
-      if(DATA.MIDIRELATIVE){      
-        elementSettings.update((setting)=>{
-          setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-          setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;
+     
+      elementSettings.update((setting)=>{
+          if(DATA.MIDIRELATIVE){ 
+            setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
+            setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;
+            
+          }
           return setting;
-        });
-      }
+      })
 
       if(DATA.BANKACTIVE){
-        console.log(DATA.BANKACTIVE)
-        elementSettings.update((setting)=>{
+        globalSettings.update(setting => {
           setting.bank = DATA.BANKACTIVE.BANKNUMBER;
-          return setting;
+          return setting
         })
       }
-
+      
+      
     })
-
   }
 
   function updateGridUsedAndAlive(controller){
@@ -197,6 +198,14 @@
           return c;
         });
       }
+
+      if(!exists){
+        globalSettings.update((setting)=>{
+          setting.numberOfModules = grid.used.length;
+          return setting;
+        })
+      }
+      
       grid = grid;
     }
   }

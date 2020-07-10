@@ -209,7 +209,6 @@
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
       <div class="flex flex-col">
-        <MapMode on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}/>
         <GlobalSettings 
           on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
           on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
