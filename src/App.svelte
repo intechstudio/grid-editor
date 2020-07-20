@@ -26,7 +26,8 @@
 	import Menu from './app/menu/Menu.svelte';
   import GlobalSettings from './app/settings/GlobalSettings.svelte';
   import ElementSettings from './app/settings/ElementSettings.svelte';
-  import MapMode from './app/settings/MapMode.svelte'
+  import MapMode from './app/settings/MapMode.svelte';
+  import Form from './app/form/Form.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
@@ -119,7 +120,9 @@
 <style>
 
 	:global(body) {
-		background-color: #2A3439;
+    background-color: #2A3439;
+    display: flex;
+    flex-direction: column;
 	}
 
 	:global(.primary){
@@ -192,10 +195,11 @@
       $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
     }
   }
-  />
+/>
 
+<Form />
 
-<div style="height: calc(100vh - 1 * 48px);" class="relative">
+<div style="" class="relative h-full">
 
   <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
@@ -209,7 +213,7 @@
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
       <div class="flex flex-col">
-        <GlobalSettings 
+        <GlobalSettings
           on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
           on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
           on:BANKCOLOR={(e)=>serialPortComponent.writeSerialPort(e)}
@@ -222,7 +226,7 @@
   <!-- This is the (mostly) Layout part of the code. -->
 
   <div class="absolute overflow-hidden w-full flex flex-col h-full"
-  
+
     use:dragndrop={$appSettings.selectedDisplay} 
 
     on:dnd-dragstart={(e)=>{
@@ -317,5 +321,7 @@
 </div>
 
 <Menu/>
+
+
 
 

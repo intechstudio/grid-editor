@@ -63,9 +63,9 @@
     -o-transition: all .2s ease-in;
     -webkit-transition: all .2s ease-in;
     transition: all .2s ease-in;
-    background: #f5f5f5;  
+    background: #f5f5f5;
   }
- 
+
   .circle{
     animation: scaleIn .75s cubic-bezier(.36, .11, .89, .32);
   }
@@ -87,6 +87,11 @@
 {#if tab === selected}
 
   <div class="flex flex-col">
+
+    <div class="flex justify-between text-white p-2 m-1 items-center">
+      <div>Name: </div>
+      <input type="text" class="secondary text-white p-1 rounded-none focus:outline-none">
+    </div>
 
     <div class="flex secondary justify-between text-white p-2 m-1 items-center">
       <div>Enabled: <span class="text-blue-500">{enabled}</span></div>

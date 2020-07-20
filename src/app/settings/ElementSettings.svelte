@@ -88,48 +88,6 @@
     </div>
 
     <div class="text-gray-700 py-1">
-      LED
-    </div>
-
-    <div class="flex p-2">
-      <div 
-        class:border-2="{element_color === 'red'}" 
-        on:click="{() => element_color = 'red'}"
-        class="shadow bg-red-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'green'}" 
-        on:click="{() => element_color = 'green'}"
-        class="shadow bg-green-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'blue'}" 
-        on:click="{() => element_color = 'blue'}"
-        class="shadow bg-blue-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'pink'}" 
-        on:click="{() => element_color = 'pink'}"
-        class="shadow bg-pink-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'indigo'}" 
-        on:click="{() => element_color = 'indigo'}"
-        class="shadow bg-indigo-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'yellow'}" 
-        on:click="{() => element_color = 'yellow'}"
-        class="shadow bg-yellow-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{element_color === 'orange'}" 
-        on:click="{() => element_color = 'orange'}"
-        class="shadow bg-orange-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-    </div>
-
-    <div class="text-gray-700 py-1">
       Actions
     </div>
 
