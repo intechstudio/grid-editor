@@ -5,11 +5,16 @@
   import { elementSettings } from './elementSettings.store.js';
   import { grid } from '../stores/grid.store.js';
 
+  import SortableList from './SortableList.svelte';
+
   import Action from './Action.svelte';
 
-  let originalActions = ['Control Change', 'Note On', 'Note Off', 'LED Color', 'LED Intensity'];
+
+  let originalActions = ['Control Change','Note On','Note Off','LED Color','LED Intensity' ]
   $: availableActions = originalActions;
   $: selectedActions = [];
+
+  const sortList = ev => {selectedActions = ev.detail};
 
   let selectedEvent = '';
 
@@ -32,20 +37,6 @@
     })
   }
 
-  function manageActions(action){
-    selectedActions = [...selectedActions, action];
-    availableActions = availableActions.filter(a => a !== action);
-    if(availableActions[0] !== '' || availableActions[0] !== undefined){
-      return availableActions[0];
-    }
-  }
-
-  function handleRemoveAction(e){
-    let removedAction = e.detail.action;
-    availableActions = [...availableActions, removedAction];
-    selectedActions = selectedActions.filter(a => a !== removedAction);
-    // should re-enable the add acion button here...
-  }
 
   onMount(()=>{
     loadSelectedModuleSettings();
@@ -91,28 +82,7 @@
       Actions
     </div>
 
-    <div class="flex w-full pr-4">
-      <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
-        {#each availableActions as action}
-          <option class="secondary text-white">{action}</option>
-        {/each}
-      </select>
-      <button 
-        disabled={selectedAction === undefined} 
-        class:disabled={selectedAction === undefined} 
-        on:click={()=>{selectedAction = manageActions(selectedAction); }} 
-        class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none"
-        >
-          Add Action
-        </button>
-    </div>
-
-
-    <div class="flex flex-col w-full pt-4">
-      {#each selectedActions as action}
-        <Action on:remove={handleRemoveAction} {action}/>
-      {/each}
-    </div>
+    <SortableList/>
 
     </div>
   </div>

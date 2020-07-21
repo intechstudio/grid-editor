@@ -88,10 +88,6 @@
 
   <div class="flex flex-col">
 
-    <div class="flex justify-between text-white p-2 m-1 items-center">
-      <div>Name: </div>
-      <input type="text" class="secondary text-white p-1 rounded-none focus:outline-none">
-    </div>
 
     <div class="flex secondary justify-between text-white p-2 m-1 items-center">
       <div>Enabled: <span class="text-blue-500">{enabled}</span></div>
