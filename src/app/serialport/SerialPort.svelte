@@ -161,8 +161,7 @@
       elementSettings.update((setting)=>{
           if(DATA.MIDIRELATIVE){ 
             setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-            setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;
-            
+            setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;   
           }
           return setting;
       })

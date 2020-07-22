@@ -1,13 +1,8 @@
 <script>
     import {flip} from "svelte/animate";
 
-    import Action from './Action.svelte';
-    
-    let originalActions = ['Control Change','Note On','Note Off','LED Color','LED Intensity' ]
-    $: availableActions = originalActions;
-    $: selectedActions = [];
-
-    let selectedAction = originalActions[0];
+    export let selectedActions = [];
+    export let selectedEvent;
 
     let ghost;
     let grabbed;
@@ -18,7 +13,10 @@
     let offsetY = 0; // y distance from top of grabbed element to pointer
     let layerY = 0; // distance from top of list to top of client
 
+    let flag;
+
     function grab(clientY, element) {
+    
         // modify grabbed element
         grabbed = element;
         grabbed.dataset.grabY = clientY;
@@ -29,6 +27,7 @@
         // record offset from cursor to top of element
         // (used for positioning ghost)
         offsetY = grabbed.getBoundingClientRect().y - clientY;
+
         drag(clientY);
     }
 
@@ -42,7 +41,7 @@
 
     // touchEnter handler emulates the mouseenter event for touch input
     // (more or less)
-    function touchEnter(ev) {       
+    function touchEnter(ev) {   
         drag(ev.clientY);
         // trigger dragEnter the first time the cursor moves over a list item
         let target = document.elementFromPoint(ev.clientX, ev.clientY).closest(".item");
@@ -68,22 +67,6 @@
 
     function release(ev) {
         grabbed = null;
-    }
-
-    function manageActions(action){
-      selectedActions = [...selectedActions, action];
-      availableActions = availableActions.filter(a => a !== action);
-      if(availableActions[0] !== '' || availableActions[0] !== undefined){
-        return availableActions[0];
-      }
-    }
-
-    function handleRemoveAction(e){
-      let removedAction = e.detail.action;
-      console.log(removedAction)
-      availableActions = [...availableActions, removedAction];
-      selectedActions = selectedActions.filter(a => a !== removedAction);
-      // should re-enable the add acion button here...
     }
 
 </script>
@@ -183,62 +166,42 @@
      
 <main class="dragdroplist">
 
-    <div class="flex w-full pr-4 py-4">
-      <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
-        {#each availableActions as action}
-          <option value={action} class="secondary text-white">{action}</option>
-        {/each}
-      </select>
-      <button 
-        disabled={selectedAction === undefined} 
-        class:disabled={selectedAction === undefined} 
-        on:click={()=>{selectedAction = manageActions(selectedAction); }} 
-        class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none"
-        >
-          Add Action
-        </button>
-    </div>
-
     <div 
         bind:this={ghost}
         id="ghost"
         class={grabbed ? "item haunting" : "item"}
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
-    <div 
-        class="list"
-        on:mousemove={function(ev) {ev.stopPropagation(); drag(ev.clientY);}}
-        on:touchmove={function(ev) {ev.stopPropagation(); drag(ev.touches[0].clientY);}}
-        on:mouseup={function(ev) {ev.stopPropagation(); release(ev);}}
-        on:touchend={function(ev) {ev.stopPropagation(); release(ev.touches[0]);}}>
-        {#each selectedActions as datum, i (datum.id ? datum.id : JSON.stringify(datum))}
+    <div class="list">
+        {#each selectedActions as data, i (data.id ? data.id : JSON.stringify(data))}
             <div 
-                id={(grabbed && (datum.id ? datum.id : JSON.stringify(datum)) == grabbed.dataset.id) ? "grabbed" : ""}
+                id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
                 data-index={i}
-                data-id={(datum.id ? datum.id : JSON.stringify(datum))}
-                data-grabY="0"
-                on:mousedown={function(ev) {grab(ev.clientY, this);}}
-                on:touchstart={function(ev) {grab(ev.touches[0].clientY, this);}}
-                on:mouseenter={function(ev) {ev.stopPropagation(); dragEnter(ev, ev.target);}}
-                on:touchmove={function(ev) {ev.stopPropagation(); ev.preventDefault(); touchEnter(ev.touches[0]);}}
+                data-id={(data.id ? data.id : JSON.stringify(data))}
+                data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <div class="text-white pb-2">{datum}</div>
+                <div class="text-white pb-2">{data.name}</div>
                 <div class="wrapper">
-                    <div class="buttons bg-secondary">
+                    <div 
+                        on:mousedown={function(ev) {grab(ev.clientY, this);}}
+                        on:touchstart={function(ev) {grab(ev.touches[0].clientY, this);}}
+                        on:mouseenter={function(ev) {ev.stopPropagation(); dragEnter(ev, ev.target);}}
+                        on:touchmove={function(ev) {ev.stopPropagation(); ev.preventDefault(); touchEnter(ev.touches[0]);}} 
+                        class="buttons bg-secondary">
                         <button 
-                            class="up " 
+                            class="up focus:outline-none  border-none" 
                             style={"display: " + (i > 0 ? "" : "none") + ";"}
                             on:click={function(ev) {moveDatum(i, i - 1)}}>
                             <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                             </button>
                         <button 
-                            class="down" 
+                            class="down focus:outline-none border-none" 
                             style={"display: " + (i < selectedActions.length - 1 ? "" : "none") + ";"}
                             on:click={function(ev) {moveDatum(i, i + 1)}}>
                             <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                             </button>
-                    </div>                
-                    <Action on:remove={handleRemoveAction} item={datum}></Action>   
+                    </div>    
+                    <slot {data} {selectedEvent}></slot>            
                 </div>         
             </div>
             

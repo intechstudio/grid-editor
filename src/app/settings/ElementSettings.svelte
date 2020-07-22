@@ -5,26 +5,29 @@
   import { elementSettings } from './elementSettings.store.js';
   import { grid } from '../stores/grid.store.js';
 
-  import SortableList from './SortableList.svelte';
+  import SortableActions from './SortableActions.svelte';
 
   import Action from './Action.svelte';
-
-
-  let originalActions = ['Control Change','Note On','Note Off','LED Color','LED Intensity' ]
+  
+  let originalActions = [
+    { id: 0, name: 'MIDI Relative' },
+    { id: 1, name: 'LED Color' },
+    { id: 2, name: 'LED Intensity'}
+  ];
   $: availableActions = originalActions;
   $: selectedActions = [];
 
-  const sortList = ev => {selectedActions = ev.detail};
+  let selectedAction = originalActions[0];
 
-  let selectedEvent = '';
+  const sortList = ev => {selectedActions = ev.detail};
 
   let element_color;
 
   let moduleId = '';
 
-  let selectedAction = originalActions[0];
-
   $: events = [];
+
+  let selectedEvent = '';
 
   function loadSelectedModuleSettings(){
     elementSettings.subscribe((values)=>{
@@ -32,14 +35,45 @@
         if(('dx:'+_controller.dx+';dy:'+_controller.dy) == values.position){
           moduleId = _controller.id;
           events = _controller.elementSettings[values.controlNumber];
+          selectedEvent = values.selectedEvent;
         }
       });
     })
   }
 
+  function manageActions(action){
+    let id;
+    selectedActions.length > 0 ? id = selectedActions.length : id = 0;
+    selectedActions = [...selectedActions, {id: id, name: action.name}];
+    if(availableActions[0] !== '' || availableActions[0] !== undefined){
+      return availableActions[0];
+    }   
+  }
+
+  function handleRemoveAction(e){
+    let removedAction = e.detail.action;
+    selectedActions = selectedActions.filter(a => a.id !== removedAction.id);
+  }
+
+  function handleFocus(e){
+    focus = true;
+  }
+
+  function handleSelectEvent(event){
+    elementSettings.update((values)=>{
+      values.selectedEvent = event;
+      return values;
+    })
+  }
+
+  function handleActionChange(e){
+    const valueChange = e.detail.change;
+    console.log(valueChange);
+  }
 
   onMount(()=>{
     loadSelectedModuleSettings();
+
   })
 
 </script>
@@ -69,9 +103,9 @@
     <div class="flex mx-1 secondary rounded-lg shadow overflow-x-auto">
       {#each events as event}
         <button 
-          on:click={()=>{selectedEvent = event}} 
-          class:shadow-md={selectedEvent === event}
-          class:bg-highlight={selectedEvent === event}
+          on:click={()=>{handleSelectEvent(event)}} 
+          class:shadow-md={selectedEvent.name === event.name}
+          class:bg-highlight={selectedEvent.name === event.name}
           class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300  focus:outline-none">
           {event.name}
         </button>
@@ -82,9 +116,40 @@
       Actions
     </div>
 
-    <SortableList/>
+    <div>
+
+      <div class="flex w-full pr-4 py-4">
+        <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
+          {#each availableActions as action}
+            <option value={action} class="secondary text-white">{action.name}</option>
+          {/each}
+        </select>
+        <button 
+          disabled={selectedAction === undefined} 
+          class:disabled={selectedAction === undefined} 
+          on:click={()=>{selectedAction = manageActions(selectedAction); }} 
+          class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none"
+          >
+            Add Action
+          </button>
+      </div>
+
+      <SortableActions
+        {selectedActions} 
+        {selectedEvent} 
+        let:data 
+        let:selectedEvent>
+          <Action 
+            on:remove={handleRemoveAction} 
+            on:change={handleActionChange}
+            {data} 
+            {selectedEvent}
+          />
+      </SortableActions>
 
     </div>
+    </div>
+
   </div>
 
 

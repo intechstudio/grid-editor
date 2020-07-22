@@ -8,6 +8,10 @@ export var GRID_CONTROLLER = {
     encoder: ['down', 'up', 'single', 'double', 'long', 'value change']
   },
 
+  elementActions: {
+    button: ['DVC7'],
+  },
+
   moduleElements: {
     PO16: [
       'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
@@ -74,6 +78,7 @@ export var GRID_CONTROLLER = {
       for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
         events.push({
           enabled: false,
+          controlElementType: this.moduleElements[moduleType][i],
           name: this.elementEvents[this.moduleElements[moduleType][i]][j],
           actions: [{
             type: 'Test-1',
