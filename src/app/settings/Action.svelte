@@ -2,31 +2,19 @@
 
   import { createEventDispatcher, onMount } from 'svelte';
 
-
   import DropDownInput from './DropDownInput.svelte';
-  
+
+  import { ACTIONS } from './actions.js';
+
   const dispatch = createEventDispatcher();
 
   export let data;
-  export let selectedEvent;
+  export let index;
+  export let array = [];
 
-  let array = [];
-
-  $: view = array;
+  $: array, onChange();
 
   let numberOfParameters = [];
-
-  const makeList = (num) => {
-    let array = [];
-    for (let i = 0; i < num; i++) {
-      array[i] = {id: i, info: 'important'};
-    }
-    console.log(array);
-    return array;
-  }
-
-  function MIDIRelativeParameters(){
-  }
 
   function handleRemove(){
     dispatch('remove', {
@@ -34,22 +22,27 @@
     })
   }
 
+  function onChange(){
+    dispatch('change', {
+      index: index,
+      action: data.name,
+      array: array
+    })
+  }
+
   onMount(()=>{
 
-    console.log('Action: ', selectedEvent, data);
-
     switch(data.name){
-      case 'MIDI Relative': {
-        numberOfParameters = makeList(3);
-
+      case 'MIDI Relative': {  
+        numberOfParameters = ACTIONS.MIDIRELATIVE;
         break;
       }
       case 'LED Intensity': {
-
+        numberOfParameters = ACTIONS.LED_INTENSITY;
         break;
       }
       case 'LED Color': {
-
+        numberOfParameters = ACTIONS.LED_COLOR;
         break;
       }
     }
@@ -78,7 +71,7 @@
   <div class="flex">
     {#each numberOfParameters as parameters, index}
       <div class={'w-1/'+numberOfParameters.length + ' dropDownInput'}>
-        <DropDownInput optionList={numberOfParameters} bind:dropDownInput={array[index]}/>
+        <DropDownInput parameterType={data.name} optionList={numberOfParameters[index]} bind:dropDownValue={array[index]}/>
       </div>
     {/each}
   </div>
@@ -89,5 +82,3 @@
     </svg>
   </div>
 </main>
-
-<span class="text-white">{view}</span>

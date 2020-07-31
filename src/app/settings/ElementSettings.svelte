@@ -8,6 +8,8 @@
   import SortableActions from './SortableActions.svelte';
 
   import Action from './Action.svelte';
+
+  let elementSettingsValues;
   
   let originalActions = [
     { id: 0, name: 'MIDI Relative' },
@@ -29,25 +31,36 @@
 
   let selectedEvent = '';
 
+  // ElementSettings store subscription
+
+  elementSettings.subscribe((values)=>{
+    elementSettingsValues = values;
+    loadSelectedModuleSettings();
+  });
+
+
+  // main
+
   function loadSelectedModuleSettings(){
-    elementSettings.subscribe((values)=>{
-      $grid.used.forEach(_controller => {
-        if(('dx:'+_controller.dx+';dy:'+_controller.dy) == values.position){
-          moduleId = _controller.id;
-          events = _controller.elementSettings[values.controlNumber];
-          selectedEvent = values.selectedEvent;
-        }
-      });
-    })
+    $grid.used.forEach(_controller => {
+      if(('dx:'+_controller.dx+';dy:'+_controller.dy) == elementSettingsValues.position){
+        moduleId = _controller.id;
+        events = _controller.elementSettings[elementSettingsValues.controlNumber];
+        selectedEvent = elementSettingsValues.selectedEvent || events[0];
+        let elementEvent = _controller.elementSettings[elementSettingsValues.controlNumber].find(event => event.name == selectedEvent.name);
+        selectedActions = elementEvent.actions;
+      }
+    });
   }
 
   function manageActions(action){
     let id;
     selectedActions.length > 0 ? id = selectedActions.length : id = 0;
-    selectedActions = [...selectedActions, {id: id, name: action.name}];
+    selectedActions = [...selectedActions, {name: action.name, parameters: action.parameters}];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
     }   
+
   }
 
   function handleRemoveAction(e){
@@ -67,14 +80,20 @@
   }
 
   function handleActionChange(e){
-    const valueChange = e.detail.change;
-    console.log(valueChange);
+    const array = e.detail.array;
+    const index = e.detail.index;
+    const action = e.detail.action;
+    grid.update((grid)=>{
+      grid.used.map((controller)=>{
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == elementSettingsValues.position){
+          let elementEvent = controller.elementSettings[elementSettingsValues.controlNumber].find(event => event.name == selectedEvent.name)
+          elementEvent.actions[index] = {name: action, parameters: array}; 
+        }
+        return controller;
+      })
+      return grid;
+    })
   }
-
-  onMount(()=>{
-    loadSelectedModuleSettings();
-
-  })
 
 </script>
 
@@ -138,11 +157,13 @@
         {selectedActions} 
         {selectedEvent} 
         let:data 
+        let:index
         let:selectedEvent>
           <Action 
             on:remove={handleRemoveAction} 
             on:change={handleActionChange}
             {data} 
+            {index}
             {selectedEvent}
           />
       </SortableActions>

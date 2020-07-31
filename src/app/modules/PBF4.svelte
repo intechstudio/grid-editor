@@ -93,71 +93,36 @@
     >
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer elementNumber={12} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer elementNumber={13} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer elementNumber={14} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Potentiometer elementNumber={15} size={$appSettings.size}/>
-      </div>
-
+      {#each [12,13,14,15] as elementNumber}
+        <div 
+          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
+          class="knob-and-led">
+          <Led size={$appSettings.size}/>
+          <Potentiometer {elementNumber} size={$appSettings.size}/>
+        </div>
+      {/each}
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Fader elementNumber={4} size={$appSettings.size} {rotation}/>
-      </div>
+      {#each [8,9,10,11] as elementNumber}
+        <div 
+          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
+          class="knob-and-led">
+          <Led size={$appSettings.size}/>
+          <Fader {elementNumber} size={$appSettings.size} {rotation}/>
+        </div>
+      {/each}
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button elementNumber={0} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button elementNumber={1} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button elementNumber={2} size={$appSettings.size}/>
-      </div>
-
-      <div class="knob-and-led">
-        <Led size={$appSettings.size}/>
-        <Button elementNumber={3} size={$appSettings.size}/>
-      </div>
+      {#each [0,1,2,3] as elementNumber}
+        <div 
+          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber}  
+          class="knob-and-led">
+          <Led size={$appSettings.size}/>
+          <Button {elementNumber} size={$appSettings.size}/>
+        </div>
+      {/each}
     </div>
   </div>
 

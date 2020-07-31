@@ -172,11 +172,11 @@
         class={grabbed ? "item haunting" : "item"}
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
     <div class="list">
-        {#each selectedActions as data, i (data.id ? data.id : JSON.stringify(data))}
+        {#each selectedActions as data, index (data.id ? data.id : JSON.stringify(data))}
             <div 
                 id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
-                data-index={i}
+                data-index={index}
                 data-id={(data.id ? data.id : JSON.stringify(data))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
@@ -190,18 +190,18 @@
                         class="buttons bg-secondary">
                         <button 
                             class="up focus:outline-none  border-none" 
-                            style={"display: " + (i > 0 ? "" : "none") + ";"}
-                            on:click={function(ev) {moveDatum(i, i - 1)}}>
+                            style={"display: " + (index > 0 ? "" : "none") + ";"}
+                            on:click={function(ev) {moveDatum(index, index - 1)}}>
                             <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                             </button>
                         <button 
                             class="down focus:outline-none border-none" 
-                            style={"display: " + (i < selectedActions.length - 1 ? "" : "none") + ";"}
-                            on:click={function(ev) {moveDatum(i, i + 1)}}>
+                            style={"display: " + (index < selectedActions.length - 1 ? "" : "none") + ";"}
+                            on:click={function(ev) {moveDatum(index, index + 1)}}>
                             <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                             </button>
                     </div>    
-                    <slot {data} {selectedEvent}></slot>            
+                    <slot {data} {selectedEvent} {index} array={data.parameters}></slot>            
                 </div>         
             </div>
             

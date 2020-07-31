@@ -1,15 +1,11 @@
 export var GRID_CONTROLLER = {
 
   elementEvents: {
-    button: ['down', 'up', 'single', 'double', 'long'],
+    button: ['down', 'up'],
     potentiometer: ['value change'],
     fader: ['value change'],
     blank: [],
-    encoder: ['down', 'up', 'single', 'double', 'long', 'value change']
-  },
-
-  elementActions: {
-    button: ['DVC7'],
+    encoder: ['down', 'up', 'value change']
   },
 
   moduleElements: {
@@ -81,9 +77,8 @@ export var GRID_CONTROLLER = {
           controlElementType: this.moduleElements[moduleType][i],
           name: this.elementEvents[this.moduleElements[moduleType][i]][j],
           actions: [{
-            type: 'Test-1',
-            length: 2,
-            parameters: ['000', '111']
+            name: '',
+            parameters: []
           }]    
         })
       }
