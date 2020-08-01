@@ -76,10 +76,7 @@ export var GRID_CONTROLLER = {
           enabled: false,
           controlElementType: this.moduleElements[moduleType][i],
           name: this.elementEvents[this.moduleElements[moduleType][i]][j],
-          actions: [{
-            name: '',
-            parameters: []
-          }]    
+          actions: []    
         })
       }
       array[i] = events;

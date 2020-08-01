@@ -1,11 +1,13 @@
 <script>
 
-  import { onMount } from 'svelte';
+  import { onMount, createEventDispatcher } from 'svelte';
 
   import { clickOutside } from './clickOutside.js'
+
+  const dispatch = createEventDispatcher();
   
   export let dropDownValue;
-  export let dropDownInfo;
+  let dropDownInfo;
   export let optionList = [];
   export let parameterType;
   

@@ -9,7 +9,7 @@
 
   import Action from './Action.svelte';
 
-  let elementSettingsValues;
+  let selectedElementSettings;
   
   let originalActions = [
     { id: 0, name: 'MIDI Relative' },
@@ -34,7 +34,7 @@
   // ElementSettings store subscription
 
   elementSettings.subscribe((values)=>{
-    elementSettingsValues = values;
+    selectedElementSettings = values;
     loadSelectedModuleSettings();
   });
 
@@ -43,11 +43,11 @@
 
   function loadSelectedModuleSettings(){
     $grid.used.forEach(_controller => {
-      if(('dx:'+_controller.dx+';dy:'+_controller.dy) == elementSettingsValues.position){
+      if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        events = _controller.elementSettings[elementSettingsValues.controlNumber];
-        selectedEvent = elementSettingsValues.selectedEvent || events[0];
-        let elementEvent = _controller.elementSettings[elementSettingsValues.controlNumber].find(event => event.name == selectedEvent.name);
+        events = _controller.elementSettings[selectedElementSettings.controlNumber];
+        selectedEvent = selectedElementSettings.selectedEvent || events[0];
+        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);
         selectedActions = elementEvent.actions;
       }
     });
@@ -56,7 +56,7 @@
   function manageActions(action){
     let id;
     selectedActions.length > 0 ? id = selectedActions.length : id = 0;
-    selectedActions = [...selectedActions, {name: action.name, parameters: action.parameters}];
+    selectedActions = [...selectedActions, {name: action.name, parameters: ['', '', '']}];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
     }   
@@ -79,21 +79,21 @@
     })
   }
 
-  function handleActionChange(e){
-    const array = e.detail.array;
+  function handleOnChange(e){
+    const data = e.detail.data;
     const index = e.detail.index;
-    const action = e.detail.action;
     grid.update((grid)=>{
       grid.used.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == elementSettingsValues.position){
-          let elementEvent = controller.elementSettings[elementSettingsValues.controlNumber].find(event => event.name == selectedEvent.name)
-          elementEvent.actions[index] = {name: action, parameters: array}; 
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);
+          elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
         }
         return controller;
       })
       return grid;
     })
   }
+
 
 </script>
 
@@ -155,17 +155,17 @@
 
       <SortableActions
         {selectedActions} 
-        {selectedEvent} 
         let:data 
-        let:index
-        let:selectedEvent>
+        let:index>
+        {#if selectedActions[0].parameters.length > 0}
           <Action 
-            on:remove={handleRemoveAction} 
-            on:change={handleActionChange}
+            on:remove={handleRemoveAction}
+            on:change={handleOnChange}
             {data} 
             {index}
-            {selectedEvent}
+            {selectedElementSettings}
           />
+        {/if}
       </SortableActions>
 
     </div>
