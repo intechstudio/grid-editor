@@ -21,7 +21,8 @@
 
   function handleRemove(){
     dispatch('remove', {
-      action: data
+      action: data,
+      index: index
     })
   }
 
@@ -74,7 +75,7 @@
   <div class="flex">
     {#each numberOfParameters as parameters, index}
       <div class={'w-1/'+numberOfParameters.length + ' dropDownInput'}>
-        <DropDownInput parameterType={data.name} optionList={numberOfParameters[index]} bind:dropDownValue={data.parameters[index]}/>
+        <DropDownInput optionList={numberOfParameters[index]} bind:dropDownValue={data.parameters[index]}/>
       </div>
     {/each}
   </div>

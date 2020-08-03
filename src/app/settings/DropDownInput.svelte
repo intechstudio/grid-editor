@@ -9,12 +9,10 @@
   export let dropDownValue;
   let dropDownInfo;
   export let optionList = [];
-  export let parameterType;
   
   let focus;
 
   onMount(()=>{
-    console.log(parameterType);
   })
 
 </script>

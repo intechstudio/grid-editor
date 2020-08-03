@@ -54,18 +54,31 @@
   }
 
   function manageActions(action){
-    let id;
-    selectedActions.length > 0 ? id = selectedActions.length : id = 0;
     selectedActions = [...selectedActions, {name: action.name, parameters: ['', '', '']}];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
     }   
-
   }
 
   function handleRemoveAction(e){
-    let removedAction = e.detail.action;
-    selectedActions = selectedActions.filter(a => a.id !== removedAction.id);
+    const data = e.detail.data;
+    const index = e.detail.index;
+    grid.update((grid)=>{
+      grid.used.map((controller)=>{
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);   
+          elementEvent.actions.splice(index,1);       
+          selectedActions = elementEvent.actions;
+        }
+        return controller;
+      })
+      return grid;
+    })
+    //console.log('before',selectedActions, JSON.stringify(data))
+    // should be prettier, but works for now
+    //selectedActions.splice(index,1);
+    //selectedActions = selectedActions;
+    console.log('after',selectedActions)
   }
 
   function handleFocus(e){
@@ -91,7 +104,7 @@
         return controller;
       })
       return grid;
-    })
+    });
   }
 
 
@@ -163,7 +176,6 @@
             on:change={handleOnChange}
             {data} 
             {index}
-            {selectedElementSettings}
           />
         {/if}
       </SortableActions>

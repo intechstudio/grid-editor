@@ -171,7 +171,7 @@
         class={grabbed ? "item haunting" : "item"}
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
     <div class="list">
-        {#each selectedActions as data, index (data.id ? data.id : JSON.stringify(data))}
+        {#each selectedActions as data, index (data)}
             <div 
                 id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
