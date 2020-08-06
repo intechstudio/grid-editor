@@ -13,13 +13,23 @@
   export let data;
   export let index;
 
-  $: if(data.parameters){
+  $: if(data){
     let encoded = ACTIONS.encode(data);
-    console.log(encoded);
+    console.log('encoded', encoded);
     sendData();
   }
 
-  $: data.name == 'MIDI Relative' ? optionList = ACTIONS.MIDIRELATIVE.optionList(data.parameters[0]) : null;
+  $: switch(data.name){
+      case 'MIDI Relative':
+        optionList = ACTIONS.MIDIRELATIVE.optionList(data.parameters[0].value);
+        break;
+      case 'LED Intensity':
+        optionList = ACTIONS.optionList(data.name);
+        break;
+      case 'LED Color':
+        optionList = ACTIONS.optionList(data.name);
+        break;
+  }
 
   let optionList = [];
 
@@ -38,8 +48,6 @@
   }
 
   onMount(()=>{
-
-      console.log('Action onMount...', data)
 
       switch(data.name){
         case 'MIDI Relative': {  

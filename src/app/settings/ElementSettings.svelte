@@ -46,6 +46,7 @@
   }
 
   function manageActions(action){
+    //console.log(action);
     selectedActions = [...selectedActions, {name: action.name, parameters: [{value: '', info: ''}, {value: '', info: ''}, {value: '', info: ''}]}];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];

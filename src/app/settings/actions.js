@@ -25,19 +25,6 @@ export const ACTIONS = {
 
   MIDIRELATIVE : {
     CC: [
-          [
-            {value: '0xb0', info: 'Control Change'}, 
-            {value: '0x90', info: 'Note On'}, 
-            {value: '0x80', info: 'Note Off'}
-          ],
-          [
-            {value: 'A0', info: 'This control element'}, 
-            {value: 'A1', info: 'Reversed control element'}
-          ],[
-            {value: 'A2', info: '7-bit value'}
-          ]
-    ],
-    NOTE: [
       [
         {value: '0xb0', info: 'Control Change'}, 
         {value: '0x90', info: 'Note On'}, 
@@ -46,9 +33,22 @@ export const ACTIONS = {
       [
         {value: 'A0', info: 'This control element'}, 
         {value: 'A1', info: 'Reversed control element'}
+      ],[
+        {value: 'A2', info: '7-bit value'}
+      ]
+    ],
+    NOTE: [
+      [
+        {value: '0xb0', info: 'CC'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
       ],
       [
-        {value: 'A2', info: '7-bit value'}
+        {value: 'A0', info: 'This // Pitch'}, 
+        {value: 'A1', info: 'REV This // Pitch'}
+      ],
+      [
+        {value: 'A2', info: '7-bit // Velocity'}
       ],
     ],
 
@@ -63,15 +63,24 @@ export const ACTIONS = {
     }
   },
 
-  LED_COLOR : [
-    [{}],
-    [{}]
+  LED_INTENSITY: [
+    [
+      {value: '?', info: 'Layer Number'}, 
+    ],
+    [
+      {value: '?', info: 'LED Number'}, 
+    ],
+    [
+      {value: '?', info: 'Phase'}
+    ]
   ],
 
-  LED_INTENSITY: [
-    [{}],
-    [{}]
-  ],
+
+  optionList: function(name){
+    if(name == 'LED Intensity'){
+      return this.LED_INTENSITY;
+    }
+  },
 
   encode: function(data){
     let endodedParameters;
@@ -82,23 +91,20 @@ export const ACTIONS = {
   },
 
   MIDIRELATIVE_encoder: function(parameters){
-    console.log(TEMPLATE_PARAMETERS);
     //0xb0//controlchange -> [0,b,b,0]; [cable, command, command, channel]
     //0x90//noteon -> [0,9,9,0]
     //0x80//noteoff -> [0,8,8,0]
 
-    console.log(parameters);
-
-
     let encodedParameters = [];
-    const COMMAND = parameters[0][2];
+    const COMMAND = parameters[0].value[2];
     
     encodedParameters = [
       {'CABLECOMMAND': [0,COMMAND] },
       {'COMMANDCHANNEL': [COMMAND,0] },
-      {'PARAM1': parameters[1]},
-      {'PARAM1': parameters[2]}
+      {'PARAM1': parameters[1].value},
+      {'PARAM1': parameters[2].value}
     ];
+
     return encodedParameters;
   },
 }
