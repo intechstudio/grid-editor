@@ -14,10 +14,14 @@
   export let index;
 
   $: if(data.parameters){
+    let encoded = ACTIONS.encode(data);
+    console.log(encoded);
     sendData();
   }
 
-  let numberOfParameters = [];
+  $: data.name == 'MIDI Relative' ? optionList = ACTIONS.MIDIRELATIVE.optionList(data.parameters[0]) : null;
+
+  let optionList = [];
 
   function handleRemove(){
     dispatch('remove', {
@@ -35,17 +39,19 @@
 
   onMount(()=>{
 
+      console.log('Action onMount...', data)
+
       switch(data.name){
         case 'MIDI Relative': {  
-          numberOfParameters = ACTIONS.MIDIRELATIVE;
+          optionList = ACTIONS.MIDIRELATIVE;
           break;
         }
         case 'LED Intensity': {
-          numberOfParameters = ACTIONS.LED_INTENSITY;
+          optionList = ACTIONS.LED_INTENSITY;
           break;
         }
         case 'LED Color': {
-          numberOfParameters = ACTIONS.LED_COLOR;
+          optionList = ACTIONS.LED_COLOR;
           break;
         }
       }
@@ -73,14 +79,12 @@
 
 <main class="w-full flex p-0 m-0 pr-4 mx-2 justify-start"> 
   <div class="flex">
-    {#each numberOfParameters as parameters, index}
-      <div class={'w-1/'+numberOfParameters.length + ' dropDownInput'}>
-        <DropDownInput optionList={numberOfParameters[index]} bind:dropDownValue={data.parameters[index]}/>
+    {#each optionList as parameters, index}
+      <div class={'w-1/'+optionList.length + ' dropDownInput'}>
+        <DropDownInput optionList={optionList[index]} bind:dropDownValue={data.parameters[index]}/>
       </div>
     {/each}
   </div>
-
-  <button on:click={sendData} class="text-white p-2 outline-none">SEND</button>
 
   <div on:click={handleRemove} class="block p-2 w-8 h-8  bg-secondary hover:bg-black cursor-pointer">
     <svg viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">

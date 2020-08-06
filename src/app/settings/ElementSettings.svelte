@@ -10,34 +10,26 @@
   import Action from './Action.svelte';
 
   let selectedElementSettings;
+
   
   let originalActions = [
     { id: 0, name: 'MIDI Relative' },
     { id: 1, name: 'LED Color' },
     { id: 2, name: 'LED Intensity'}
   ];
+  let selectedAction = originalActions[0];
   $: availableActions = originalActions;
   $: selectedActions = [];
-
-  let selectedAction = originalActions[0];
-
-  const sortList = ev => {selectedActions = ev.detail};
-
+  
   let element_color;
 
   let moduleId = '';
 
-  $: events = [];
+  let events = [];
 
   let selectedEvent = '';
 
   // ElementSettings store subscription
-
-  elementSettings.subscribe((values)=>{
-    selectedElementSettings = values;
-    loadSelectedModuleSettings();
-  });
-
 
   // main
 
@@ -45,16 +37,16 @@
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        events = _controller.elementSettings[selectedElementSettings.controlNumber];
+        events = _controller.elementSettings[selectedElementSettings.controlNumber].map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
-        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);
+        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
         selectedActions = elementEvent.actions;
       }
     });
   }
 
   function manageActions(action){
-    selectedActions = [...selectedActions, {name: action.name, parameters: ['', '', '']}];
+    selectedActions = [...selectedActions, {name: action.name, parameters: [{value: '', info: ''}, {value: '', info: ''}, {value: '', info: ''}]}];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
     }   
@@ -66,19 +58,14 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);   
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);       
-          selectedActions = elementEvent.actions;
+          selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
         }
         return controller;
       })
       return grid;
     })
-    //console.log('before',selectedActions, JSON.stringify(data))
-    // should be prettier, but works for now
-    //selectedActions.splice(index,1);
-    //selectedActions = selectedActions;
-    console.log('after',selectedActions)
   }
 
   function handleFocus(e){
@@ -98,7 +85,7 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(event => event.name == selectedEvent.name);
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
           elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
         }
         return controller;
@@ -106,6 +93,13 @@
       return grid;
     });
   }
+
+  onMount(()=>{
+    elementSettings.subscribe((values)=>{
+      selectedElementSettings = values;
+      loadSelectedModuleSettings();
+    });
+  })
 
 
 </script>
@@ -136,10 +130,10 @@
       {#each events as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
-          class:shadow-md={selectedEvent.name === event.name}
-          class:bg-highlight={selectedEvent.name === event.name}
+          class:shadow-md={selectedEvent === event}
+          class:bg-highlight={selectedEvent === event}
           class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300  focus:outline-none">
-          {event.name}
+          {event}
         </button>
       {/each}
     </div>

@@ -9,9 +9,11 @@ export function select(node, [moduleId, selectedDisplay]){
       
       const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
 
-      console.log(moduleId, controlNumber)
+      
 
       if(controlNumber !== undefined){
+        
+        console.log('select element',moduleId, controlNumber);
 
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();

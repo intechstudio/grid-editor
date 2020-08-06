@@ -152,21 +152,31 @@
         _array[i] = element.charCodeAt(0);
       });
 
-      let DATA = GRID.decode(_array)
 
-      updateGridUsedAndAlive(DATA.CONTROLLER)
+      let DATA = GRID.decode(_array);
 
-      //console.log(DATA);
-     
-      elementSettings.update((setting)=>{
-          if(DATA.MIDIRELATIVE){ 
-            setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-            setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;   
-          }
+      updateGridUsedAndAlive(DATA.CONTROLLER);
+
+      if(DATA.LEDPHASE){
+        //console.log(DATA.LEDPHASE);
+      }
+
+      if(DATA.EVENT){
+        //console.log(DATA.EVENT);
+      }
+
+      if(DATA.MIDIRELATIVE){ 
+        console.log(DATA.MIDIRELATIVE);
+        console.log('UPDATE-ASDASdaSD');
+        elementSettings.update((setting)=>{
+          setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
+          setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;   
           return setting;
-      })
+        })
+      }
 
       if(DATA.BANKACTIVE){
+        console.log('bank active message', DATA.BANKACTIVE)
         globalSettings.update(setting => {
           setting.bank = DATA.BANKACTIVE.BANKNUMBER;
           return setting
@@ -210,7 +220,7 @@
   }
 
   export function writeSerialPort(data){
-    //console.log('attempt writing serialport' ,data.detail);
+    console.log('attempt writing serialport' ,data.detail);
     const port = serialports[0];
     const MSG = GRID.encode(data.detail.className, data.detail.parameters);
     port.write(`${MSG}\n`, function(err, result){

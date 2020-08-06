@@ -14,6 +14,7 @@ export var GRID_PROTOCOL = {
     let CLASSES = {};
     let BRC = {};
     let VERSION = {};
+    let PARAMETERS = {};
 
     let PROTOCOL = {};
 
@@ -32,6 +33,12 @@ export var GRID_PROTOCOL = {
           let dec = parseInt(grid_protocol[key], 16); 
           CONST[paramName] = dec;
         } 
+
+        // GRID TEMPLATE PARAMETERS
+        if(key.startsWith('GRID_PARAMETER_TEMPLATEINDEX_')){
+          const param = key.substr('GRID_PARAMETER_TEMPLATEINDEX_'.length).slice(0,-5);
+          PARAMETERS[param] = grid_protocol[key];
+        }
 
         // GRID VERSION
         if(key.startsWith('GRID_PROTOCOL_VERSION_')){
@@ -101,6 +108,7 @@ export var GRID_PROTOCOL = {
       HWCFG: HWCFG, 
       CONST: CONST,
       VERSION: VERSION,
+      PARAMETERS: PARAMETERS
     }
     
   },
@@ -120,6 +128,7 @@ export var GRID_PROTOCOL = {
       if(element == 2){ 
         class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2], serialData[i+3]));
         id = ""+ i +"";
+        
         for (const param in CLASSES){
           if(CLASSES[param] == class_name){ 
             _decoded.push({id: id, class: param, offset: i});     
@@ -147,6 +156,8 @@ export var GRID_PROTOCOL = {
 
       let array = serialData.slice(obj.offset, obj.length + obj.offset);
 
+      //console.log(obj.class);
+
       if(obj.class == "HEARTBEAT"){
         DATA.HEARTBEAT = this.decode_by_code(array, obj.class);
         let moduleType = this.utility_moduleLookup(DATA.HEARTBEAT.HWCFG);
@@ -158,6 +169,13 @@ export var GRID_PROTOCOL = {
       if(obj.class == "BANKACTIVE"){
         DATA.BANKACTIVE = this.decode_by_code(array, obj.class)
       }
+      if(obj.class == "EVENT"){
+        DATA.EVENT = this.decode_by_code(array, obj.class)
+      }
+      if(obj.class == "LEDPHASE"){
+        DATA.LEDPHASE = this.decode_by_code(array, obj.class)
+      }
+
     });
 
     return DATA;
@@ -191,12 +209,15 @@ export var GRID_PROTOCOL = {
       this.utility_genId(), 127, 127, 255, 0
     ];
 
+    
+
     let command = '';
     PARAMETERS.forEach(CLASS => {
       let param = '';
       for (const key in CLASS) {
        param += CLASS[key].toString(16).padStart(2, '0');
       }
+      console.log(param);
       command += 
         String.fromCharCode(PROTOCOL.CONST.STX) +
         PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +

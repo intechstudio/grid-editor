@@ -15,14 +15,14 @@
 
   let tabs = [0,1,2,3];
 
-  $: selected = $elementSettings.bank;
+  //$: selected = $elementSettings.bank;
 
   globalSettings.subscribe(banks => {
     let parameters = banks.map((b,i)=>{
       b ? b = 1 : b = 0; 
       return {'BANKNUMBER': i,'ISENABLED': b}
     });
-    console.log('bank change', banks)
+    selected =  banks.bank;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})
   })
 

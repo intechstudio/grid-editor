@@ -1,11 +1,30 @@
+// Template Parameter Event Assignment table.
+const TPEA = {
+  down: {
+    desc: 'down',
+    midi: 'DV7', 
+    led: 'DV8'
+  },
+  up: {
+    desc: 'up',
+    midi: 'DV7',
+    led: 'DV8'
+  },
+  value_change: {
+    desc: 'value change',
+    midi: 'AV7',
+    led: 'AV8'
+  }
+}
+
 export var GRID_CONTROLLER = {
 
   elementEvents: {
-    button: ['down', 'up'],
-    potentiometer: ['value change'],
-    fader: ['value change'],
+    button: [ TPEA.down, TPEA.up ],
+    potentiometer: [ TPEA.value_change ],
+    fader: [ TPEA.value_change ],
     blank: [],
-    encoder: ['down', 'up', 'value change']
+    encoder: [ TPEA.down, TPEA.up, TPEA.value_change ]
   },
 
   moduleElements: {
@@ -73,9 +92,8 @@ export var GRID_CONTROLLER = {
       events = [];
       for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
         events.push({
-          enabled: false,
           controlElementType: this.moduleElements[moduleType][i],
-          name: this.elementEvents[this.moduleElements[moduleType][i]][j],
+          event: this.elementEvents[this.moduleElements[moduleType][i]][j],
           actions: []    
         })
       }

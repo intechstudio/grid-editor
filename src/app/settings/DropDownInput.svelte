@@ -1,28 +1,24 @@
 <script>
 
-  import { onMount, createEventDispatcher } from 'svelte';
-
   import { clickOutside } from './clickOutside.js'
-
-  const dispatch = createEventDispatcher();
   
-  export let dropDownValue;
-  let dropDownInfo;
+  export let dropDownValue = {value:'', info: ''};
   export let optionList = [];
   
   let focus;
 
-  onMount(()=>{
-  })
+  $:{
+    console.log(dropDownValue);
+  }
 
 </script>
 
 <main class="relative w-full" use:clickOutside on:click-outside={()=>{focus = false}}>
-  <input class:shadow={focus} on:focus={()=>{focus = true}} bind:value={dropDownValue}  type="text" class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+  <input class:shadow={focus} on:focus={()=>{focus = true}} bind:value={dropDownValue.info} type="text" class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
   {#if focus}
     <ul class:shadow={focus} style="z-index:9999" class="block border-t border-important text-white cursor-pointer absolute bg-secondary w-full">
       {#each optionList as option}
-        <li on:click={(e)=>{dropDownValue = option.value; dropDownInfo = option.info_1; focus = false;}} class="hover:bg-black p-1 pl-2 ">{option.value + ' ' + option.info_1 + ' ' + option.info_2}</li>
+        <li on:click={(e)=>{dropDownValue = option; focus = false;}} class="hover:bg-black p-1 pl-2 ">{option.value + ' | ' + option.info}</li>
       {/each}
     </ul>
   {/if}

@@ -149,6 +149,7 @@
         z-index: 20;
         opacity: 1.0;
     }
+    
 </style>
 
 <!-- All the documentation has to go up here, sorry.
