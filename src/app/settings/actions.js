@@ -2,7 +2,6 @@ import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
 
 const GRID = GRID_PROTOCOL;
 GRID.initialize();
-const TEMPLATE_PARAMETERS = GRID.PROTOCOL.PARAMETERS;
 
 export const ACTIONS = {
 
@@ -65,13 +64,13 @@ export const ACTIONS = {
 
   LED_INTENSITY: [
     [
-      {value: '?', info: 'Layer Number'}, 
+      {value: '?', info: 'Layer Number', gridProtocolName: 'LAYERNUMBER'}, 
     ],
     [
-      {value: '?', info: 'LED Number'}, 
+      {value: '?', info: 'LED Number', gridProtocolName: 'LEDNUMBER'}, 
     ],
     [
-      {value: '?', info: 'Phase'}
+      {value: '?', info: 'Phase',  gridProtocolName: 'PHASE'}
     ]
   ],
 
@@ -87,7 +86,19 @@ export const ACTIONS = {
     if(data.name == 'MIDI Relative'){
       endodedParameters = this.MIDIRELATIVE_encoder(data.parameters);
     }
+    if(data.name == 'LED Intensity'){
+      endodedParameters = this.LEDINTENSITY_encoder(data.parameters);
+    }
     return endodedParameters;
+  },
+
+  LEDINTENSITY_encoder: function(parameters){
+    let encodedParameters = [];
+    for (let i = 0; i < parameters.length; i++) {
+      const key = parameters[i].gridProtocolName;
+      encodedParameters.push({key: parameters[i].value});
+    }
+    return encodedParameters;
   },
 
   MIDIRELATIVE_encoder: function(parameters){

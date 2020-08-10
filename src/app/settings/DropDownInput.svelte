@@ -2,8 +2,12 @@
 
   import { clickOutside } from './clickOutside.js'
   
-  export let dropDownValue = {value:'', info: ''};
+  export let dropDownValue = {value:'', info: '', gridProtocolname: ''};
   export let optionList = [];
+
+  $: {
+    dropDownValue.gridProtocolName =  optionList[0].gridProtocolName;
+  }
   
   let focus;
 

@@ -68,6 +68,10 @@
         grabbed = null;
     }
 
+    function handleCalls(data){
+        console.log('CALLED', data)
+    }
+
 </script>
 
 <style>
@@ -173,6 +177,7 @@
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
     <div class="list">
         {#each selectedActions as data, index (data)}
+
             <div 
                 id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
@@ -182,6 +187,7 @@
                 animate:flip|local={{duration: 200}}>
                 <div class="text-white pb-2">{data.name}</div>
                 <div class="wrapper">
+                        {handleCalls(data)}
                     <div 
                         on:mousedown={function(ev) {grab(ev.clientY, this);}}
                         on:touchstart={function(ev) {grab(ev.touches[0].clientY, this);}}

@@ -13,12 +13,14 @@
   export let data;
   export let index;
 
-  $: if(data){
+  $: if(data.parameters){
     let encoded = ACTIONS.encode(data);
-    console.log('encoded', encoded);
+    //console.log('ENCODED', encoded);
+    //should be working in serial out / serial write
     sendData();
   }
 
+/*
   $: switch(data.name){
       case 'MIDI Relative':
         optionList = ACTIONS.MIDIRELATIVE.optionList(data.parameters[0].value);
@@ -26,11 +28,8 @@
       case 'LED Intensity':
         optionList = ACTIONS.optionList(data.name);
         break;
-      case 'LED Color':
-        optionList = ACTIONS.optionList(data.name);
-        break;
   }
-
+*/
   let optionList = [];
 
   function handleRemove(){
@@ -40,7 +39,7 @@
     })
   }
 
-  function sendData(){
+  function sendData(encoded){
     dispatch('change', {
       data: data,
       index: index
@@ -51,15 +50,11 @@
 
       switch(data.name){
         case 'MIDI Relative': {  
-          optionList = ACTIONS.MIDIRELATIVE;
+          optionList = ACTIONS.MIDIRELATIVE.optionList(data.parameters[0].value);
           break;
         }
         case 'LED Intensity': {
-          optionList = ACTIONS.LED_INTENSITY;
-          break;
-        }
-        case 'LED Color': {
-          optionList = ACTIONS.LED_COLOR;
+          optionList = ACTIONS.optionList(data.name);
           break;
         }
       }

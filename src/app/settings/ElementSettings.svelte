@@ -47,10 +47,19 @@
 
   function manageActions(action){
     //console.log(action);
-    selectedActions = [...selectedActions, {name: action.name, parameters: [{value: '', info: ''}, {value: '', info: ''}, {value: '', info: ''}]}];
+    selectedActions = [...selectedActions, initActionParameters(action.name)];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
     }   
+  }
+
+  function initActionParameters(actionName){
+    let action = {name: actionName}
+    let parameters = [];
+    for (let i = 0; i < 3; i++) {
+      parameters[i] = {value: '', info: '', gridProtocolName: ''}
+    }
+    return {...action, parameters}
   }
 
   function handleRemoveAction(e){
@@ -88,10 +97,13 @@
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
           let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
           elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
+          console.log(controller.elementSettings[selectedElementSettings.controlNumber])
         }
+        
         return controller;
       })
       return grid;
+      
     });
   }
 

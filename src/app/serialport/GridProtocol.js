@@ -209,8 +209,6 @@ export var GRID_PROTOCOL = {
       this.utility_genId(), 127, 127, 255, 0
     ];
 
-    
-
     let command = '';
     PARAMETERS.forEach(CLASS => {
       let param = '';
