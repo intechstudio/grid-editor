@@ -247,7 +247,7 @@
 
 </script>
 
-<div style="left:40%;z-index:9999;" class="absolute p-2 flex bg-primary bottom-0 mb-20">
+<div style="left:40%" class="absolute p-2 flex bg-primary bottom-0 mb-20 z-20">
   <input type="text" class="secondary  text-xs text-white p-1 w-64 rounded-none focus:outline-none mr-2" bind:value={message}>
   <button on:click={()=>writeSerialPort(message)} class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none cursor-pointer">Serial Write</button>
 </div>

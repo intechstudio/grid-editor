@@ -11,5 +11,5 @@ export const appSettings = writable({
     minor: +GRID.GRID_PROTOCOL_VERSION_MINOR,
     patch: +GRID.GRID_PROTOCOL_VERSION_PATCH
   },
-  selectedDisplay: 'settings'
+  selectedDisplay: 'profiles'
 });

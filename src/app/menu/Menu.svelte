@@ -20,15 +20,18 @@
 
 <div class="w-full flex justify-center text-xs text-white primary">
   
+  <!--
   <div>
     <div>change size</div>
     <input class="text-black" bind:value={$appSettings.size} type="number">
   </div>
+  -->
+
   <div class="w-1/2 h-12 flex justify-around items-center ">
     <div 
       on:click="{()=>{ changeSelectedDisplay('layout') }}" 
-      class:active={selectedDisplay === 'layout'}
-      class="w-1/3 mx-2 flex items-center justify-center hover:bg-indigo-700 cursor-pointer rounded-lg"
+      class:bg-highlight={$appSettings.selectedDisplay === 'layout'}
+      class="w-1/3 mx-2 flex items-center justify-center hover:bg-highlight-400 cursor-pointer rounded-lg"
       >
         <svg class="w-6 h-6 stroke-2" viewBox="0 0 92 92" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path stroke="gray" fill="gray" d="M91.5 30.5V30H91H62V1V0.5H61.5H60.5H60V1V30H32V1V0.5H31.5H30.5H30V1V30H1H0.5V30.5V31.5V32H1H30V60H1H0.5V60.5V61.5V62H1H30V91V91.5H30.5H31.5H32V91V62H60V91V91.5H60.5H61.5H62V91V62H91H91.5V61.5V60.5V60H91H62V32H91H91.5V31.5V30.5ZM32 32H60V60H32V32Z" />
@@ -37,8 +40,8 @@
     </div>
     <div 
       on:click="{()=>{changeSelectedDisplay('settings')}}" 
-      class:active={selectedDisplay === 'settings'}
-      class="w-1/3 mx-2 flex items-center justify-center hover:bg-indigo-700 cursor-pointer rounded-lg"
+      class:bg-highlight={$appSettings.selectedDisplay === 'settings'}
+      class="w-1/3 mx-2 flex items-center justify-center hover:bg-highlight-400 cursor-pointer rounded-lg"
       >
         <svg class="w-6 h-6"  viewBox="0 0 86 90" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M0 0H47V15H0V0Z" fill="gray"/>
@@ -55,8 +58,8 @@
     </div>
     <div 
       on:click="{()=>{ changeSelectedDisplay('profiles') }}" 
-      class:active={selectedDisplay === 'profiles'}
-      class="w-1/3 mx-2 flex items-center justify-center hover:bg-indigo-700 cursor-pointer rounded-lg"
+      class:bg-highlight={$appSettings.selectedDisplay === 'profiles'}
+      class="w-1/3 mx-2 flex items-center justify-center hover:bg-highlight-400 cursor-pointer rounded-lg"
       >
       <svg class="w-6 h-6" viewBox="0 0 85 90" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M0 0H20V90H0V0Z" fill="#C4C4C4"/>

@@ -92,15 +92,27 @@
   *   Render modules which are in the $grid.used array. 
   */
 
-  async function getStoreValues(){
+  async function loadRecentSession(){
     const result = await ipcRenderer.invoke('getStoreValue', 'grid');
     $grid = result;
+    startAutoSave();
     return result;
+  }
+
+  function startFresh(){
+    $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
+
+    initLayout();
+    startAutoSave();
+  }
+
+  function startAutoSave(){
+    grid.subscribe((grid)=>{
+      ipcRenderer.send('setStoreValue-message', grid)
+    });
   }
   
   onMount(()=>{
-
-    getStoreValues();
 
     $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
 
@@ -114,10 +126,6 @@
         $grid.layout = LAYOUT.removePossiblePlacementOutlines($grid)
       }
     });
-
-    grid.subscribe((grid)=>{
-      ipcRenderer.send('setStoreValue-message', grid)
-    })
 
     ipcRenderer.on('setStoreValue-reply', (event, arg) => {
       console.log(arg) // prints "pong"
@@ -252,15 +260,27 @@
 
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
-      <div class="flex flex-col">
-        <GlobalSettings
-          on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
-          on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
-          on:BANKCOLOR={(e)=>serialPortComponent.writeSerialPort(e)}
-        />
-      </div>
+      <GlobalSettings
+        on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
+        on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
+        on:BANKCOLOR={(e)=>serialPortComponent.writeSerialPort(e)}
+      />
       <ElementSettings/>
     </div>
+  {/if}
+
+  {#if $appSettings.selectedDisplay == 'profiles'}
+  <div class="w-full absolute text-white h-full flex justify-between items-start">
+    <div class="w-1/2 bg-gray-700 flex flex-row h-full justify-center items-center z-30">
+      <div on:click={()=>{ startFresh(); $appSettings.selectedDisplay = 'layout'}} class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Start fresh...</div>
+      <div on:click={()=>{ loadRecentSession(); $appSettings.selectedDisplay = 'settings'}} class="h-full w-full flex items-center justify-center bg-gray-700 hover:bg-highlight-400 cursor-pointer">Load recent session...</div>
+    </div>
+    
+    <div class="w-1/2 flex flex-col h-full justify-center items-center z-30">
+      <div class="h-full w-full flex items-center justify-center bg-gray-600 hover:bg-highlight-400 cursor-pointer">Load profile...</div>
+      <div class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Save profile...</div>
+    </div>
+  </div>
   {/if}
 
   <!-- This is the (mostly) Layout part of the code. -->

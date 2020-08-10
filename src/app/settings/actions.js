@@ -64,13 +64,13 @@ export const ACTIONS = {
 
   LED_INTENSITY: [
     [
-      {value: '?', info: 'Layer Number', gridProtocolName: 'LAYERNUMBER'}, 
+      {value: '?', info: 'Layer Number'}, 
     ],
     [
-      {value: '?', info: 'LED Number', gridProtocolName: 'LEDNUMBER'}, 
+      {value: '?', info: 'LED Number'}, 
     ],
     [
-      {value: '?', info: 'Phase',  gridProtocolName: 'PHASE'}
+      {value: '?', info: 'Phase'}
     ]
   ],
 

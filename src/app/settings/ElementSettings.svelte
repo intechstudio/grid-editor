@@ -57,7 +57,7 @@
     let action = {name: actionName}
     let parameters = [];
     for (let i = 0; i < 3; i++) {
-      parameters[i] = {value: '', info: '', gridProtocolName: ''}
+      parameters[i] = {value: '', info: ''}
     }
     return {...action, parameters}
   }
@@ -97,13 +97,10 @@
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
           let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
           elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
-          console.log(controller.elementSettings[selectedElementSettings.controlNumber])
         }
-        
         return controller;
       })
-      return grid;
-      
+      return grid;   
     });
   }
 
