@@ -24,6 +24,7 @@
     "tailwindcss": "^1.1.3"
   },
   "dependencies": {
+    "electron-store": "^6.0.0",
     "panzoom": "^9.2.4",
     "serialport": "^9.0.0",
     "sirv-cli": "^0.4.4"

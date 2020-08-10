@@ -1,4 +1,16 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
+
+const Store = require('electron-store');
+
+const store = new Store({
+    defaults: { 
+        windowBounds: { 
+            width: 800, 
+            height: 600
+        }
+    }
+});
+
 const path = require('path')
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -10,25 +22,30 @@ app.allowRendererProcessReuse = false;
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
-
  watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
  watcher.on('change', () => {
     mainWindow.reload();
  });
 }
 
-
 function createWindow() {
     const mode = process.env.NODE_ENV;
+
+    // First we'll get our height and width. This will be the defaults if there wasn't anything saved
+    let { width, height } = store.get('windowBounds');
+
+    console.log('createwindow',width, height);
+
     mainWindow = new BrowserWindow({
-        width: 900,
-        height: 680,
+        width,
+        height,
         webPreferences: {
           nodeIntegration: true
         }
     });
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
+
     mainWindow.on('closed', () => {
         mainWindow = null;
         if (watcher) {
@@ -36,13 +53,33 @@ function createWindow() {
         }         
     });
 
-    mainWindow.webContents.openDevTools()
+    mainWindow.on('resize', () => {
+      let { width, height } = mainWindow.getBounds();
+      store.set('windowBounds', { width, height });
+    })
+
+    mainWindow.webContents.openDevTools();
+
+    
 }
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+
+ipcMain.on('setStoreValue-message', (event, arg) => {
+  store.set({
+    grid: arg
+  })
+  event.reply('setStoreValue-reply', 'saved');
+})
+
+ipcMain.handle('getStoreValue', (event, key) => {
+  const result = store.get(key);
+  return result
+})
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

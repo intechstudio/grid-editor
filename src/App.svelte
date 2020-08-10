@@ -1,5 +1,7 @@
 <script>
 
+  const { ipcRenderer } = require('electron')
+
   /*
   *   tailwindcss
   */
@@ -89,8 +91,16 @@
   /* 
   *   Render modules which are in the $grid.used array. 
   */
+
+  async function getStoreValues(){
+    const result = await ipcRenderer.invoke('getStoreValue', 'grid');
+    $grid = result;
+    return result;
+  }
   
   onMount(()=>{
+
+    getStoreValues();
 
     $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
 
@@ -105,7 +115,18 @@
       }
     });
 
-  })
+    grid.subscribe((grid)=>{
+      ipcRenderer.send('setStoreValue-message', grid)
+    })
+
+    ipcRenderer.on('setStoreValue-reply', (event, arg) => {
+      console.log(arg) // prints "pong"
+    });
+
+
+  });
+
+
 
   function initLayout(){
 
@@ -118,6 +139,7 @@
       });
     }
   }
+
 
 </script>
 
@@ -185,6 +207,8 @@
   }
 	
 </style>
+
+<!--<button class="text-white w-32 p-2 bg-red-500">Get store</button>-->
 
 <Tailwindcss />
 
