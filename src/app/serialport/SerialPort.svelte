@@ -162,12 +162,12 @@
       }
 
       if(DATA.EVENT){
-        //console.log(DATA.EVENT);
+      }
+
+      if(DATA.HEARTBEAT){
       }
 
       if(DATA.MIDIRELATIVE){ 
-        console.log(DATA.MIDIRELATIVE);
-        console.log('UPDATE-ASDASdaSD');
         elementSettings.update((setting)=>{
           setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
           setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;   
@@ -176,7 +176,6 @@
       }
 
       if(DATA.BANKACTIVE){
-        console.log('bank active message', DATA.BANKACTIVE)
         globalSettings.update(setting => {
           setting.bank = DATA.BANKACTIVE.BANKNUMBER;
           return setting
@@ -252,17 +251,3 @@
   <input type="text" class="secondary  text-xs text-white p-1 w-64 rounded-none focus:outline-none mr-2" bind:value={message}>
   <button on:click={()=>writeSerialPort(message)} class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none cursor-pointer">Serial Write</button>
 </div>
-
-<!--
-<div class="absolute bottom-0 mb-40 ml-40 z-50 text-white">
-  Serialports
-  <select bind:value={selectedPort} class="text-black">
-    {#each serialports as port}
-      <option value={port}>{port.path}</option>
-    {/each}
-  </select>
-  <div class="block w-1/2 break-words">
-    {JSON.stringify(selectedPort)}
-  </div>
-</div>
--->

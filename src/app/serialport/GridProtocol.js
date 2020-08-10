@@ -161,7 +161,7 @@ export var GRID_PROTOCOL = {
       if(obj.class == "HEARTBEAT"){
         DATA.HEARTBEAT = this.decode_by_code(array, obj.class);
         let moduleType = this.utility_moduleLookup(DATA.HEARTBEAT.HWCFG);
-        DATA.CONTROLLER = GRID_CONTROLLER.create(DATA.BRC, moduleType, false)
+        DATA.CONTROLLER = GRID_CONTROLLER.create(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
       }
       if(obj.class == "MIDIRELATIVE"){
         DATA.MIDIRELATIVE = this.decode_by_code(array, obj.class);

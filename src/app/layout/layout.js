@@ -1,4 +1,9 @@
 import {GRID_CONTROLLER} from '../serialport/GridController.js';
+import {appSettings} from '../stores/app-settings.store.js';
+
+import { get } from 'svelte/store';
+
+const version = get(appSettings).version;
 
 export var LAYOUT = {
 
@@ -19,7 +24,7 @@ export var LAYOUT = {
 
       const newModul = modul.substr(0,4);
 
-      var cell = GRID_CONTROLLER.create(header, newModul, virtual)
+      var cell = GRID_CONTROLLER.create(header, {VMAJOR: version.major, VMINOR: version.minor, VPATCH: version.patch}, newModul, virtual)
 
       if(grid.used.length == 0){
         cell.isConnectedByUsb = true;
@@ -49,7 +54,7 @@ export var LAYOUT = {
     let cellGen = [];
     for (let i = 0; i < layout_grid; i++) {
       for (let j = 0; j < layout_grid; j++) {
-        cellGen.push({id: 'none', canBeUsed: false, dx: i+L, dy: j+L})
+        cellGen.push({id: 'none', canBeUsed: false, fwVersion: version, dx: i+L, dy: j+L})
       }
     }
     return cellGen;
@@ -75,6 +80,7 @@ export var LAYOUT = {
         if(layoutCell.dx == usedCell.dx && layoutCell.dy == usedCell.dy){
           layoutCell.id = usedCell.id;
           layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
+          layoutCell.fwVersion = usedCell.fwVersion;
           layoutCell.rotation = usedCell.rotation;
         }
       });

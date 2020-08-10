@@ -28,6 +28,7 @@
   import ElementSettings from './app/settings/ElementSettings.svelte';
   import MapMode from './app/settings/MapMode.svelte';
   import Form from './app/form/Form.svelte';
+  import FirmwareCheck from './app/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
@@ -65,6 +66,8 @@
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
   let grid_layout = 5;
 
+  let fwVersion;
+
   $: gridsize = $appSettings.size * 106.6 + 10;
 
   //
@@ -94,6 +97,7 @@
     initLayout();
 
     appSettings.subscribe((store)=>{
+      fwVersion = store.version;
       if(store.selectedDisplay == 'layout'){
         $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
       } else if(store.selectedDisplay == 'settings'){
@@ -169,6 +173,16 @@
     0%,100% { border-color: rgba(0, 255, 0, 0); }
     50% { border-color:rgba(0, 255, 0, 1); }
   }
+
+  .fwMismatch{
+    animation: blinker 1s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% { 
+      background-color: rgba(255, 0, 0, 1); 
+    }
+  }
 	
 </style>
 
@@ -196,6 +210,8 @@
     }
   }
 />
+
+<FirmwareCheck />
 
 <Form />
 
@@ -294,6 +310,7 @@
         class="cell"
         class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
         class:canBeUsed={cell.canBeUsed}
+        class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
         class:isConnectedByUsb={cell.isConnectedByUsb}
         class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
         >

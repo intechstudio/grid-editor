@@ -54,7 +54,7 @@ export var GRID_CONTROLLER = {
     ]
   },
 
-  create: function(header, moduleType, virtual){
+  create: function(header, heartbeat, moduleType, virtual){
 
     if(moduleType !== undefined){
 
@@ -62,6 +62,11 @@ export var GRID_CONTROLLER = {
         id: moduleType + '_' + 'dx:' + header.DX + ';dy:' + header.DY,
         dx: header.DX,
         dy: header.DY,
+        fwVersion: {
+          major: heartbeat.VMAJOR,
+          minor: heartbeat.VMINOR,
+          patch: heartbeat.VPATCH
+        },
         alive: Date.now(),
         virtual: virtual,
         map: {
