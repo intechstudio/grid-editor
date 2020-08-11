@@ -30,6 +30,8 @@
   import ElementSettings from './app/settings/ElementSettings.svelte';
   import MapMode from './app/settings/MapMode.svelte';
   import Form from './app/form/Form.svelte';
+  import Debug from './app/debug/Debug.svelte';
+  import Polygon from './app/debug/Polygon.svelte';
   import FirmwareCheck from './app/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
@@ -69,6 +71,8 @@
   let grid_layout = 5;
 
   let fwVersion;
+
+  let serial; // debug purposes
 
   $: gridsize = $appSettings.size * 106.6 + 10;
 
@@ -220,11 +224,16 @@
 
 <Tailwindcss />
 
+<Debug {serial} />
+
 <SerialPort 
   bind:grid={$grid} 
   bind:this={serialPortComponent}
   on:change={
     $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
+  }
+  on:debug={
+    (e)=>{serial = e.detail.data}
   }
   on:coroner={(e)=>{
       grid.update(cell => {
