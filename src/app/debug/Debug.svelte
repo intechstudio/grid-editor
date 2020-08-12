@@ -9,13 +9,13 @@
 
   let tick = 0;
 
-  let limit = 20;
+  let limit = 100;
 
   setInterval(()=>{
     tick += 1;
     if(serial) {
       if(serialMessageLengthArray.length >= limit) {
-        console.log(limit);
+
         serialMessageLengthArray = serialMessageLengthArray.slice(1);
         serialMessageLengthArray[serialMessageLengthArray.length] = serial.length;
       } else {
@@ -25,7 +25,7 @@
   },100);
   
 	const x_min = 0
-  const x_max = 50
+  const x_max = 100
   const y_min = 0
 	const y_max = 100
 
@@ -55,31 +55,18 @@
   $: $x2 = auto ? x_max : 1000;
   $: $x1 = auto ? x_min : 0;
 
-  $: limit = auto ? 20 : 1000;
+
 </script>
 
-<div class="controls">
-		<label>
-			<input type="radio" bind:group={auto} value={true}> Individual scales
-		</label>
 
-		<label>
-			<input type="radio" bind:group={auto} value={false}> Shared scales
-		</label>
-	</div>
- 
-<div class="chart" bind:this={el}>
-		<Pancake.Chart x1="{$x1}" x2="{$x2}" y1={y_min} y2={y_max} clip>
+	<div class="chart" bind:this={el}>
+		<Pancake.Chart x1="{$x1+10}" x2="{$x2-2.5}" y1={y_min} y2={y_max} clip>
 
       <Pancake.Grid horizontal count={5} let:value let:first>
         <div class="grid-line horizontal" class:first><span>{value}</span></div>
       </Pancake.Grid>
 
-      <Pancake.Grid vertical count={10} let:value>
-				<span class="x label">{value}</span>
-			</Pancake.Grid>
-
-			<Pancake.Columns data={msgLen} width={0.75}>
+			<Pancake.Columns data={msgLen} width={2}>
 				<div class="column serial"></div>
 			</Pancake.Columns>
 
@@ -97,7 +84,7 @@
 <style>
 
 .data{
-    stroke: black;
+    stroke: #fff;
 		stroke-width: 2px;
 		fill: none;
   }
@@ -105,7 +92,9 @@
 	.chart {
 		position: relative;
 		height: 300px;
+		width: 300px;
 		margin: 0 0 36px 0;
+		overflow: hidden;
     padding: 3em 2em 2em 3em;
 	}
 
@@ -118,7 +107,7 @@
 	.grid-line.horizontal {
 		width: calc(100% + 2em);
 		left: -2em;
-		border-bottom: 1px dashed #ccc;
+		border-bottom: 1px dashed rgb(115, 113, 113);
 	}
 
 	.grid-line.first {
@@ -131,31 +120,7 @@
 		bottom: 2px;
 		font-family: sans-serif;
 		font-size: 14px;
-		color: #999;
-	}
-
-	.label {
-		position: absolute;
-		font-size: 14px;
-		color: #666;
-		line-height: 1;
-		white-space: nowrap;
-	}
-
-	.x.label {
-		width: 4em;
-		left: -2em;
-		bottom: 5px;
-		text-align: center;
-	}
-
-	.background .x.label {
-		color: white;
-		font-size: 10px;
-	}
-
-	.foreground .x.label {
-		bottom: -22px;
+		color: rgb(81, 81, 81);
 	}
 
 	.column {
@@ -164,13 +129,11 @@
 		width: calc(100% - 2px); 
     */
 		left: 0;
+		padding:0;
+		margin:0;
 		width: 100%;
-	  border-left: 1px solid rgba(255,255,255,0.4);
-		border-right: 1px solid rgba(255,255,255,0.4);
-		box-sizing: border-box;
 		height: 100%;
 		opacity: 0.6;
-		border-radius: 2px 2px 0 0;
 	}
 
 	.column.serial {

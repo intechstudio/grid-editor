@@ -224,7 +224,9 @@
 
 <Tailwindcss />
 
+<!--
 <Debug {serial} />
+-->
 
 <SerialPort 
   bind:grid={$grid} 
