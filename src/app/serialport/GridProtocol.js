@@ -215,7 +215,6 @@ export var GRID_PROTOCOL = {
       for (const key in CLASS) {
        param += CLASS[key].toString(16).padStart(2, '0');
       }
-      console.log(param);
       command += 
         String.fromCharCode(PROTOCOL.CONST.STX) +
         PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +

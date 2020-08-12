@@ -5,7 +5,7 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json'
 const GRID = grid_protocol;
 
 export const appSettings = writable({
-  size: 1.5,
+  size: 2,
   version: {
     major: +GRID.GRID_PROTOCOL_VERSION_MAJOR,
     minor: +GRID.GRID_PROTOCOL_VERSION_MINOR,
