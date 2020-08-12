@@ -165,17 +165,24 @@
       }
 
       if(DATA.EVENT){
+      
+        if(DATA.EVENT.ELEMENTTYPE !== 0){
+          elementSettings.update((setting)=>{
+            setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
+            setting.controlNumber = DATA.EVENT.ELEMENTNUMBER;   
+            setting.eventparam = DATA.EVENT.EVENTPARAM;
+            return setting;
+          })
+        }
       }
 
-      if(DATA.HEARTBEAT){
+      // rep req not implemented as needed
+      if(DATA.BANKCOLOR){
+       
       }
 
       if(DATA.MIDIRELATIVE){ 
-        elementSettings.update((setting)=>{
-          setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-          setting.controlNumber = DATA.MIDIRELATIVE.PARAM1;   
-          return setting;
-        })
+        
       }
 
       if(DATA.BANKACTIVE){

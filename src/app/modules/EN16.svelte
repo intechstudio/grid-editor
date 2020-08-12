@@ -27,6 +27,14 @@
     return array;
   }
 
+  function handleEventParamChange(elementNumber, controlNumber){
+    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
+      if(elementNumber == controlNumber && moduleId == selectedElement.position){
+        return selectedElement.eventparam;  
+      }
+    }
+  }
+
   onMount(()=>{
     elementSettings.subscribe((values)=>{
       selectedElement = values;
@@ -37,6 +45,8 @@
       const dy = id.split(';')[1].split(':').pop();
       moduleId = 'dx:'+dx+';dy:'+dy;
     }
+
+    console.log('id:',id);
 
   });
 
@@ -103,7 +113,7 @@
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
           <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
-            <Led size={$appSettings.size}/>
+            <Led value={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} size={$appSettings.size}/>
             <Encoder elementNumber={(block * 4) + element} size={$appSettings.size}/>
           </div>
         {/each}

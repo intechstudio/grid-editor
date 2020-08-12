@@ -3,11 +3,15 @@
 
   export let size = 1;
   export let elementNumber;
+  export let value;
+  
   const knobSize = 13;
 
   let startValue = 0;
   let rotation = 0;
   let initRotation = 0;
+
+  $: rotation = Math.round(value*midiToDeg);
 
   const midiToDeg = 280/127;
 
