@@ -35,13 +35,11 @@
     
     // to do: prompt error!
     if(switchableBanks[selectedBank] !== undefined){
-      console.log('UPDATE-2');
       elementSettings.update((setting)=>{
-        console.log('UPDATE-2');
         setting.bank = switchableBanks[selectedBank];
         return setting;
       })
-
+      console.log('DISPATCH BANKACTIVE')
       dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': switchableBanks[selectedBank]}]})
     }
 

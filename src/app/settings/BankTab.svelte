@@ -42,17 +42,18 @@
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
     ]})
-    console.log('selectColor')
   }
 
+/*
   globalSettings.subscribe((setting)=>{
     if(rgb.length > 0){
+      console.log('DISPATCH BANKCOLOR')
       dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
         {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
       ]})
     }
   })
-
+*/
 </script>
 
 <style>

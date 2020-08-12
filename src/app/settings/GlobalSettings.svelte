@@ -23,6 +23,7 @@
       return {'BANKNUMBER': i,'ISENABLED': b}
     });
     selected =  banks.bank;
+    console.log('BANKENABLED')
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})
   })
 
