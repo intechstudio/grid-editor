@@ -38,7 +38,7 @@ export const ACTIONS = {
     ],
     NOTE: [
       [
-        {value: '0xb0', info: 'CC'}, 
+        {value: '0xb0', info: 'Control Change'}, 
         {value: '0x90', info: 'Note On'}, 
         {value: '0x80', info: 'Note Off'}
       ],

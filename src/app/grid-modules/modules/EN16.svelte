@@ -2,14 +2,15 @@
 
   import { onMount } from 'svelte';
 
-  import { elementSettings } from '../settings/elementSettings.store.js';
-  import { appSettings } from '../stores/app-settings.store.js';
-  import { select } from './event-handlers/select.js';
+  import { elementSettings } from '../../settings/elementSettings.store.js';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
-  import Encoder from './elements/Encoder.svelte';
-  import Led from './elements/Led.svelte';
+  import { select } from '../event-handlers/select.js';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
+  import Encoder from '../elements/Encoder.svelte';
+  import Led from '../elements/Led.svelte';
+
+  export let moduleWidth;
 
   export let id = 'EN16';
 
@@ -45,8 +46,6 @@
       const dy = id.split(';')[1].split(':').pop();
       moduleId = 'dx:'+dx+';dy:'+dy;
     }
-
-    console.log('id:',id);
 
   });
 
@@ -98,22 +97,34 @@
     border-radius: 0.25rem;
   }
 
+  .overlay{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color:black;
+    z-index: 100;
+  }
+
 </style>
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
+
+  <slot></slot>
 
   <div 
     use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions" 
-    style="--module-size: {moduleWidth}"
+    style="--module-size: {moduleWidth+'px'}"
     >
 
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
           <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
-            <Led value={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} size={$appSettings.size}/>
+            <Led 
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} 
+              size={$appSettings.size}/>
             <Encoder elementNumber={(block * 4) + element} size={$appSettings.size}/>
           </div>
         {/each}

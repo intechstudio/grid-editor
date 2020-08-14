@@ -167,6 +167,9 @@
       if(DATA.EVENT){
       
         if(DATA.EVENT.ELEMENTTYPE !== 0){
+
+          //console.log(DATA.EVENT)
+
           elementSettings.update((setting)=>{
             setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
             setting.controlNumber = DATA.EVENT.ELEMENTNUMBER;   

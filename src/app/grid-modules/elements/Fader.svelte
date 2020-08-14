@@ -1,15 +1,20 @@
 <script>
   import { grab } from '../event-handlers/grab.js';
 
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
+
   export let elementNumber;
   export let size = 1;
   export let rotation = 0;
+  export let value;
 
-  const faderWidth = 25.5;
+  const faderWidth = 16;
   const faderHeight = 37;
 
   let move = 0;
-  let startValue;
+  let startValue = 0;
   let initMove = 0;
 
   let startSVG;
@@ -18,11 +23,22 @@
 
   $: range = faderHeight*size;
 
-  $: rotMode = (rotation) => {
+  $: if(value){
+    let faderPosition = (Math.round(value / 2.887) - 22) * -1;
+    move = faderPosition;
+  }
+
+  const rotMode = (rotation) => {
     rotation == undefined ? rotation = 0 : null;
     let rot;
     (rotation == 90 || rotation == 270) ? rot = 'X' : rot = 'Y'; 
     return rot;
+  }
+
+  const inverse = () => {
+    let _inverse = -1;
+    (rotation == 90 || rotation == 180) ? _inverse = 1 : _inverse = -1;
+    return _inverse;
   }
 
   function handleGrabStart(event){
@@ -35,14 +51,10 @@
   function handleGrabMove(event){
     var coord = getMousePosition(event);
     const rot = rotMode(rotation).toLowerCase();
-    const inverse = () => {
-      let _inverse = -1;
-      (rotation == 90 || rotation == 180) ? _inverse = 1 : _inverse = -1;
-      return _inverse;
-    }
     let value = (startValue - (initMove + coord[rot])) * inverse();
     if(-22 <= value && value <= 22){
       move = value;
+      dispatch('user-interaction',move)
     }
   }
 
@@ -70,6 +82,17 @@
 
 </script>
 
+<style>
+
+  .fader-transform {
+    transform: var(--translate-move);
+    transform-origin:center;
+  }
+
+</style>
+
+
+
 <svg 
     use:grab
     on:grabstart={handleGrabStart}
@@ -88,7 +111,8 @@
       <rect x="9" width="6" height="60" rx="3" fill="white"/>
     </g>
     <g 
-    style="transform: {'translateY('+ move +'px)'}; transform-origin:center;">
+    class="fader-transform"
+    style="--translate-move: {'translateY('+ move +'px)'};">
       <g id="bottom" filter="url(#filter1_i)">
         <rect y="22" width="24" height="16" rx="1" fill="#323232"/>
       </g>

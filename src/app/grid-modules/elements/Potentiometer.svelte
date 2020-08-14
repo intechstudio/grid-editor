@@ -1,6 +1,10 @@
 <script>
   import { grab } from '../event-handlers/grab.js';
 
+  import { createEventDispatcher } from 'svelte';
+
+  const dispatch = createEventDispatcher();
+
   export let size = 1;
   export let elementNumber;
   export let value;
@@ -23,6 +27,7 @@
     let value = startValue + (initRotation/midiToDeg -  event.detail.y);
     if(0 <= value && value <= 127){ 
       rotation = Math.round(value*midiToDeg);
+      dispatch('user-interaction',value)
     }
   }
 

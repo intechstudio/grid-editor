@@ -2,21 +2,23 @@
 
   import { onMount } from 'svelte';
 
-  import { elementSettings } from '../settings/elementSettings.store.js';
-  import { appSettings } from '../stores/app-settings.store.js';
+  import { elementSettings } from '../../settings/elementSettings.store.js';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
-  import { select } from './event-handlers/select.js';
+  import { select } from '../event-handlers/select.js';
 
-  import Button from './elements/Button.svelte';
-  import Led from './elements/Led.svelte';
+  import Button from '../elements/Button.svelte';
+  import Led from '../elements/Led.svelte';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
+  export let moduleWidth;
 
   export let id = 'BU16';
 
   export let rotation = 0;
 
   let selectedElement = {};
+
+  let valueChange = [];
 
   $: moduleId = '';
 
@@ -26,6 +28,14 @@
       array.push(i);
     }
     return array;
+  }
+
+  function handleEventParamChange(elementNumber, controlNumber){
+    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
+      if(elementNumber == controlNumber && moduleId == selectedElement.position){
+        return selectedElement.eventparam;  
+      }
+    }
   }
 
   onMount(()=>{
@@ -92,19 +102,26 @@
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})" >
 
+  <slot></slot>
+
   <div
     use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions" 
-    style="--module-size: {moduleWidth}" 
+    style="--module-size: {moduleWidth+'px'}" 
     >
 
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
-          <div class:active-element={ moduleId == selectedElement.position && selectedElement.controlNumber ==(16 - (block * 4) + element - 4)} class="knob-and-led">
-            <Led size={$appSettings.size}/>
-            <Button elementNumber={16 - (block * 4) + element - 4} size={$appSettings.size}/>
+          <div class:active-element={ moduleId == selectedElement.position && selectedElement.controlNumber ==((block * 4) + element)} class="knob-and-led">
+            <Led 
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} 
+              userInput={valueChange[(block * 4 + element)]}
+              size={$appSettings.size}/>
+            <Button 
+              on:click={valueChange[(block * 4 + element)] = ! true}
+              elementNumber={(block * 4) + element} size={$appSettings.size}/>
           </div>
         {/each}
       </div>

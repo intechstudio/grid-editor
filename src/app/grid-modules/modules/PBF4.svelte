@@ -2,24 +2,35 @@
 
   import { onMount } from 'svelte';
 
-  import { elementSettings } from '../settings/elementSettings.store.js';
-  import { appSettings } from '../stores/app-settings.store.js';
-  import { select } from './event-handlers/select.js';
+  import { elementSettings } from '../../settings/elementSettings.store.js';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
-  import Potentiometer from './elements/Potentiometer.svelte';
-  import Led from './elements/Led.svelte';
-  import Fader from './elements/Fader.svelte';
-  import Button from './elements/Button.svelte';
+  import { select } from '../event-handlers/select.js';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
+  import Potentiometer from '../elements/Potentiometer.svelte';
+  import Led from '../elements/Led.svelte';
+  import Fader from '../elements/Fader.svelte';
+  import Button from '../elements/Button.svelte';
 
   export let id = 'PBF4';
 
   export let rotation = 0;
 
+  export let moduleWidth;
+
   $: moduleId = '';
 
   let selectedElement = {};
+
+  let valueChange = [];
+
+  function handleEventParamChange(elementNumber, controlNumber){
+    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
+      if(elementNumber == controlNumber && moduleId == selectedElement.position){
+        return selectedElement.eventparam;  
+      }
+    }
+  }
 
   onMount(()=>{
     elementSettings.subscribe((values)=>{
@@ -85,41 +96,61 @@
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
 
+  <slot></slot>
+
   <div 
     use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions " 
-    style="--module-size: {moduleWidth}" 
+    style="--module-size: {moduleWidth+'px'}" 
     >
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
-      {#each [12,13,14,15] as elementNumber}
+      {#each [0,1,2,3] as elementNumber}
         <div 
           class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
           class="knob-and-led">
-          <Led size={$appSettings.size}/>
-          <Potentiometer {elementNumber} size={$appSettings.size}/>
+          <Led 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            userInput={valueChange[elementNumber]} 
+            size={$appSettings.size}/>
+          <Potentiometer 
+            value={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
+            {elementNumber} 
+            size={$appSettings.size}/>
         </div>
       {/each}
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
-      {#each [8,9,10,11] as elementNumber}
+      {#each [4,5,6,7] as elementNumber}
         <div 
           class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
           class="knob-and-led">
-          <Led size={$appSettings.size}/>
-          <Fader {elementNumber} size={$appSettings.size} {rotation}/>
+          <Led 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            userInput={valueChange[elementNumber]} 
+            size={$appSettings.size}/>
+          <Fader 
+            value={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            on:user-interaction={(e)=>{valueChange[elementNumber] = (Math.round(((e.detail + 22) * 2.886) - 127)*-1)}}
+            {elementNumber} 
+            size={$appSettings.size} 
+            {rotation}/>
         </div>
       {/each}
     </div>
 
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
-      {#each [0,1,2,3] as elementNumber}
+      {#each [8,9,10,11] as elementNumber}
         <div 
           class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber}  
           class="knob-and-led">
-          <Led size={$appSettings.size}/>
+          <Led 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            userInput={valueChange[elementNumber]} 
+            size={$appSettings.size}/>
           <Button {elementNumber} size={$appSettings.size}/>
         </div>
       {/each}

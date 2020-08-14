@@ -11,6 +11,7 @@ module.exports = {
         '-10':'-10',
       },
       fontFamily: {
+        'mono' : 'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
         'aldo' : 'Aldo-SemiBold',
         'roboto-sans' : 'Roboto Sans',
         'roboto' : 'Roboto',

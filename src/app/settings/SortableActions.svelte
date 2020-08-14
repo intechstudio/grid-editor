@@ -77,8 +77,7 @@
     }
 
     .list {
-        cursor: grab;
-        z-index: 5;
+        /*z-index: 5;*/
         display: flex;
         flex-direction: column;
     }
@@ -99,7 +98,7 @@
     }
 
     .item:not(#grabbed):not(#ghost) {
-        z-index: 10;
+        /*z-index: 10;*/
     }
 
     .item > * {
@@ -108,6 +107,7 @@
 
     .buttons {
         width: 32px;
+        height: 32px;
         min-width: 32px;
         display: flex;
         flex-direction: column;
@@ -116,8 +116,8 @@
 
     .buttons button {
         cursor: pointer;
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         margin: 0 auto;
         padding: 0;
         color: white;
@@ -188,13 +188,13 @@
                             class="up focus:outline-none  border-none" 
                             style={"display: " + (index > 0 ? "" : "none") + ";"}
                             on:click={function(ev) {moveDatum(index, index - 1);console.log(index, index-1)}}>
-                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
+                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14px" height="14px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                             </button>
                         <button 
                             class="down focus:outline-none border-none" 
                             style={"display: " + (index < selectedActions.length - 1 ? "" : "none") + ";"}
                             on:click={function(ev) {moveDatum(index, index + 1);console.log(index, index+1)}}>
-                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14px" height="14px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                             </button>
                     </div>    
                     <slot {data} {index}></slot>            

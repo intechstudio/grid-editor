@@ -1,9 +1,9 @@
 <script>
 
-  import PO16 from '../../modules/PO16.svelte';
-  import PBF4 from '../../modules/PBF4.svelte';
-  import BU16 from '../../modules/BU16.svelte';
-  import EN16 from '../../modules/EN16.svelte';
+  import PO16 from '../../grid-modules/modules/PO16.svelte';
+  import PBF4 from '../../grid-modules/modules/PBF4.svelte';
+  import BU16 from '../../grid-modules/modules/BU16.svelte';
+  import EN16 from '../../grid-modules/modules/EN16.svelte';
 
 </script>
 

@@ -7,6 +7,8 @@
 
   import SortableActions from './SortableActions.svelte';
 
+  import OverlayToggle from '../grid-modules/overlays/OverlayToggle.svelte';
+
   import Action from './Action.svelte';
 
   let selectedElementSettings;
@@ -29,6 +31,8 @@
 
   let selectedEvent = '';
 
+  let controlElementName = '';
+
   // ElementSettings store subscription
 
   // main
@@ -37,16 +41,16 @@
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        events = _controller.elementSettings[selectedElementSettings.controlNumber].map((cntrl)=>{return cntrl.event.desc});
+        events = _controller.elementSettings[selectedElementSettings.controlNumber].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
-        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
+        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);
         selectedActions = elementEvent.actions;
+        controlElementName = _controller.elementSettings[selectedElementSettings.controlNumber].controlElementName || '';
       }
     });
   }
 
   function manageActions(action){
-    //console.log(action);
     selectedActions = [...selectedActions, initActionParameters(action.name)];
     if(availableActions[0] !== '' || availableActions[0] !== undefined){
       return availableActions[0];
@@ -57,7 +61,9 @@
     let action = {name: actionName}
     let parameters = [];
     for (let i = 0; i < 3; i++) {
-      parameters[i] = {value: '', info: ''}
+      parameters[i] = ''
+      // this is an older approach, where dropdowninput handled objects.. was buggy. 
+      // parameters[i] = {value: '', info: ''}
     }
     return {...action, parameters}
   }
@@ -68,7 +74,7 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);   
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);       
           selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
         }
@@ -95,13 +101,26 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].find(cntrl => cntrl.event.desc == selectedEvent);
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);
           elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
         }
         return controller;
       })
       return grid;   
     });
+  }
+
+  function handleControlElementNaming(name){
+    // PROBABLY RUNS TOO MANY TIMES, TRY ONBLUR AND OTHER DEBOUNCING METHODS
+    grid.update((grid)=>{
+      grid.used.map((controller)=>{
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
+          controller.elementSettings[selectedElementSettings.controlNumber].controlElementName = name;
+        }
+        return controller;
+      })
+      return grid; 
+    })
   }
 
   onMount(()=>{
@@ -129,6 +148,22 @@
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId.substr(0,4)}</div>
     <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber}</div>
+  </div>
+
+  <div class="mx-2 my-4 w-full">
+  
+    <div class="text-gray-700 flex py-1">
+      <div>Name</div>
+      <OverlayToggle type={'controlName'}/>
+    </div>
+    
+    <input 
+      bind:value={controlElementName}
+      on:input={e => handleControlElementNaming(controlElementName)}
+      type="text" 
+      class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none" 
+      placeholder="Your name for this control element...">
+    
   </div>
 
   <div class="mx-2 my-4 w-full">

@@ -36,9 +36,9 @@ export var GRID_CONTROLLER = {
     ],
     PBF4: [
       'button', 'button', 'button', 'button', 
-      'blank', 'blank', 'blank', 'blank', 
       'fader', 'fader', 'fader', 'fader', 
-      'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer'
+      'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+      'blank', 'blank', 'blank', 'blank'
     ],
     BU16: [
       'button','button','button','button',
@@ -95,14 +95,17 @@ export var GRID_CONTROLLER = {
     let events = [];
     for (let i = 0; i < 16; i++) {
       events = [];
+      let obj = {
+        controlElementType: this.moduleElements[moduleType][i],
+        controlElementName: '',
+      }
       for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
-        events.push({
-          controlElementType: this.moduleElements[moduleType][i],
-          event: this.elementEvents[this.moduleElements[moduleType][i]][j],
+        events.push({        
+          event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
           actions: []    
         })
       }
-      array[i] = events;
+      array[i] = {events: events, ...obj};
     }
     return array;
   }

@@ -1,14 +1,19 @@
 <script>
 
   export let size = 1;
-  export let value = 0;
+  export let eventInput = 0;
+  export let userInput;
   
   let ledSize = 6;
 
   let alpha;
 
-  $: if(value !== undefined){
-    alpha = value / 127;
+  $: if(userInput !== undefined){
+    alpha = userInput / 127;
+  }
+
+  $: if(eventInput !== undefined){
+    alpha = eventInput / 127;
   }
 
 </script>

@@ -2,18 +2,21 @@
 
   import { onMount } from 'svelte';
 
-  import { elementSettings } from '../settings/elementSettings.store.js';
-  import { appSettings } from '../stores/app-settings.store.js';
-  import { select } from './event-handlers/select.js';  
+  import { elementSettings } from '../../settings/elementSettings.store.js';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
-  import Potentiometer from './elements/Potentiometer.svelte';
-  import Led from './elements/Led.svelte';
+  import { select } from '../event-handlers/select.js';  
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2 + 'px';
+  import Potentiometer from '../elements/Potentiometer.svelte';
+  import Led from '../elements/Led.svelte';
 
   export let id = 'PO16';
 
   export let rotation = 0;
+
+  export let moduleWidth;
+
+  let valueChange = [];
 
   $: moduleId = '';
 
@@ -100,19 +103,29 @@
 
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
 
+  <slot></slot>
+
   <div
     use:select={[id, $appSettings.selectedDisplay]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions " 
-    style="--module-size: {moduleWidth}" 
+    style="--module-size: {moduleWidth+'px'}" 
     >
 
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
           <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == (block * 4) + element} class="knob-and-led">
-            <Led value={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} size={$appSettings.size}/>
-            <Potentiometer value={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} elementNumber={(block * 4) + element} size={$appSettings.size}/>
+            <Led 
+              eventInput={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} 
+              userInput={valueChange[((block * 4) + element)]} 
+              size={$appSettings.size}/>
+            <Potentiometer 
+              value={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} 
+              elementNumber={(block * 4) + element} 
+              size={$appSettings.size}
+              on:user-interaction={(e)=>{valueChange[((block * 4) + element)] = e.detail}}
+            />
           </div>
         {/each}
       </div>

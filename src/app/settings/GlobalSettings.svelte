@@ -4,6 +4,8 @@
   import {globalSettings} from './globalSettings.store.js';
   import {elementSettings} from './elementSettings.store.js';
 
+  import Tooltip from '../helpers/Tooltip.svelte';
+
   import { createEventDispatcher } from 'svelte';
   
   const dispatch = createEventDispatcher();
@@ -47,6 +49,9 @@
   <div class="text-xl font-bold text-white m-2">
     Global Settings
   </div>
+
+  <Tooltip text={'This is very important danit le kell nyűgözni ugyhogy most ez hosszabb lesz!'}></Tooltip>
+
 
   <div class="flex flex-col my-4">
     <div class="text-gray-700 py-1 ml-2">

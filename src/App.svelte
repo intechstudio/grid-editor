@@ -37,10 +37,7 @@
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
 
-  import PO16 from './app/modules/PO16.svelte';
-  import PBF4 from './app/modules/PBF4.svelte';
-  import BU16 from './app/modules/BU16.svelte';
-  import EN16 from './app/modules/EN16.svelte';
+  import MODULE from './app/grid-modules/MODULE.svelte';
 
 
   /*
@@ -104,8 +101,8 @@
   }
 
   function startFresh(){
+    grid.set({used: [], layout: []})
     $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
-
     initLayout();
     startAutoSave();
   }
@@ -118,9 +115,7 @@
   
   onMount(()=>{
 
-    $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
-
-    initLayout();
+    //startFresh();
 
     appSettings.subscribe((store)=>{
       fwVersion = store.version;
@@ -132,7 +127,7 @@
     });
 
     ipcRenderer.on('setStoreValue-reply', (event, arg) => {
-      console.log(arg) // prints "pong"
+      //console.log(arg) // prints "pong"
     });
 
 
@@ -141,9 +136,9 @@
 
 
   function initLayout(){
-
     if($grid.used.length > 0){
       $grid.used.forEach(usedCell => {
+        
         let renderCoords = document.getElementById('grid-cell-x:'+usedCell.dx+';y:'+usedCell.dy);
         var nodeCopy = document.getElementById(usedCell.id.substr(0,4)).cloneNode(true);
         nodeCopy.id = genModulId(usedCell.id.substr(0,4));
@@ -353,11 +348,14 @@
       <DragModule />     
     {/if}
 
+
+
     <div style="top:40%; left:40%;" class="w-full h-full flex relative justify-center items-center z-10"
       use:layoutMenu={$appSettings.selectedDisplay}
       on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
       on:menu-close={()=>{isMenuOpen = false}}
       >
+
       {#each $grid.layout as cell}
         <div 
         id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
@@ -370,15 +368,8 @@
         class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
         >
 
-        {#if cell.id.startsWith('PBF4')}
-          <svelte:component this={PBF4} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('PO16')}
-          <svelte:component this={PO16} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('BU16')}
-          <svelte:component this={BU16} id={cell.id} rotation={cell.rotation}/>
-        {:else if cell.id.startsWith('EN16')}
-          <svelte:component this={EN16} id={cell.id} rotation={cell.rotation}/>
-        {/if}
+        <MODULE type={cell.id.substr(0,4)} id={cell.id} rotation={cell.rotation} />
+
 
         </div>
       {/each}    
