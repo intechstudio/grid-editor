@@ -23,7 +23,8 @@
   }
 
   grid.subscribe(grid => {
-    elementSettings = grid.used.find(controller => controller.id == id).elementSettings;
+    const settings = grid.used.find(controller => controller.id == id);
+    if(settings !== undefined) elementSettings = settings.elementSettings;
   })
 
 </script>

@@ -20,12 +20,11 @@
   //$: selected = $elementSettings.bank;
 
   globalSettings.subscribe(banks => {
-    let parameters = banks.map((b,i)=>{
+    let parameters = banks.bankEnabled.map((b,i)=>{
       b ? b = 1 : b = 0; 
       return {'BANKNUMBER': i,'ISENABLED': b}
     });
-    selected =  banks.bank;
-    console.log('BANKENABLED')
+    selected =  banks.active;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})
   })
 

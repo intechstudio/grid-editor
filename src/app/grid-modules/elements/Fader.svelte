@@ -8,7 +8,7 @@
   export let elementNumber;
   export let size = 1;
   export let rotation = 0;
-  export let value;
+  export let eventInput;
 
   const faderWidth = 16;
   const faderHeight = 37;
@@ -23,8 +23,8 @@
 
   $: range = faderHeight*size;
 
-  $: if(value){
-    let faderPosition = (Math.round(value / 2.887) - 22) * -1;
+  $: if(eventInput){
+    let faderPosition = (Math.round(eventInput / 2.887) - 22) * -1;
     move = faderPosition;
   }
 

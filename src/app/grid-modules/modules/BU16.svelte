@@ -11,10 +11,9 @@
   import Led from '../elements/Led.svelte';
 
   export let moduleWidth;
-
   export let id = 'BU16';
-
   export let rotation = 0;
+  export let color;
 
   let selectedElement = {};
 
@@ -32,8 +31,9 @@
 
   function handleEventParamChange(elementNumber, controlNumber){
     if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(elementNumber == controlNumber && moduleId == selectedElement.position){
-        return selectedElement.eventparam;  
+      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
+        const index = controlNumber.indexOf(elementNumber);
+        return selectedElement.eventparam[index]
       }
     }
   }
@@ -118,7 +118,8 @@
             <Led 
               eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} 
               userInput={valueChange[(block * 4 + element)]}
-              size={$appSettings.size}/>
+              size={$appSettings.size}
+              {color}/>
             <Button 
               on:click={valueChange[(block * 4 + element)] = ! true}
               elementNumber={(block * 4) + element} size={$appSettings.size}/>

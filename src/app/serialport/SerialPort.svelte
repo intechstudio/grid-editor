@@ -164,16 +164,12 @@
         //console.log(DATA.LEDPHASE);
       }
 
-      if(DATA.EVENT){
-      
-        if(DATA.EVENT.ELEMENTTYPE !== 0){
-
-          //console.log(DATA.EVENT)
-
+      if(DATA.EVENT && DATA.EVENT.length > 0){
+        if(DATA.EVENT[0].ELEMENTTYPE !== 0){
           elementSettings.update((setting)=>{
             setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-            setting.controlNumber = DATA.EVENT.ELEMENTNUMBER;   
-            setting.eventparam = DATA.EVENT.EVENTPARAM;
+            setting.controlNumber = DATA.EVENT.map(event => {return event.ELEMENTNUMBER});   
+            setting.eventparam = DATA.EVENT.map(event => {return event.EVENTPARAM});   
             return setting;
           })
         }
@@ -190,7 +186,7 @@
 
       if(DATA.BANKACTIVE){
         globalSettings.update(setting => {
-          setting.bank = DATA.BANKACTIVE.BANKNUMBER;
+          setting.active = DATA.BANKACTIVE.BANKNUMBER;
           return setting
         })
       }

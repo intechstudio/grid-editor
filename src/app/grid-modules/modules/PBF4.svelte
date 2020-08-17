@@ -13,10 +13,9 @@
   import Button from '../elements/Button.svelte';
 
   export let id = 'PBF4';
-
   export let rotation = 0;
-
   export let moduleWidth;
+  export let color;
 
   $: moduleId = '';
 
@@ -26,8 +25,9 @@
 
   function handleEventParamChange(elementNumber, controlNumber){
     if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(elementNumber == controlNumber && moduleId == selectedElement.position){
-        return selectedElement.eventparam;  
+      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
+        const index = controlNumber.indexOf(elementNumber);
+        return selectedElement.eventparam[index];
       }
     }
   }
@@ -35,7 +35,7 @@
   onMount(()=>{
     elementSettings.subscribe((values)=>{
       selectedElement = values;
-    })
+    });
 
     if(id !== undefined && (id.length > 4)){
       const dx = id.split(';')[0].split(':').pop();
@@ -113,9 +113,10 @@
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
             userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}/>
+            size={$appSettings.size}
+            {color}/>
           <Potentiometer 
-            value={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
             on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
             {elementNumber} 
             size={$appSettings.size}/>
@@ -131,10 +132,11 @@
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
             userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}/>
+            size={$appSettings.size}
+            {color}/>
           <Fader 
-            value={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
-            on:user-interaction={(e)=>{valueChange[elementNumber] = (Math.round(((e.detail + 22) * 2.886) - 127)*-1)}}
+            eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
+            on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
             {rotation}/>
@@ -150,7 +152,8 @@
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
             userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}/>
+            size={$appSettings.size}
+            {color}/>
           <Button {elementNumber} size={$appSettings.size}/>
         </div>
       {/each}

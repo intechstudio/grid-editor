@@ -39,7 +39,6 @@
         setting.bank = switchableBanks[selectedBank];
         return setting;
       })
-      console.log('DISPATCH BANKACTIVE')
       dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': switchableBanks[selectedBank]}]})
     }
 

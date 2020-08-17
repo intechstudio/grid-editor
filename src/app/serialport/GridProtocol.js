@@ -119,16 +119,21 @@ export var GRID_PROTOCOL = {
      * Slices serial data between STX 0x02 and ETX 0x03 for further processing by GRID_CLASS_XXX_code's.
      * 
      */
+
     var CLASSES = this.PROTOCOL.CLASSES;
+
     let _decoded = [];
     let class_name = '';
     let id = 0; 
+
+    //console.log(serialData);
+
     serialData.forEach((element,i) => {  
+
       // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
       if(element == 2){ 
         class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2], serialData[i+3]));
         id = ""+ i +"";
-        
         for (const param in CLASSES){
           if(CLASSES[param] == class_name){ 
             _decoded.push({id: id, class: param, offset: i});     
@@ -141,6 +146,8 @@ export var GRID_PROTOCOL = {
         obj.length = i - obj.offset;
       }
     });
+
+    //console.log(_decoded);
     
     return this.decode_by_class(serialData, _decoded);
 
@@ -148,7 +155,9 @@ export var GRID_PROTOCOL = {
 
   decode_by_class: function(serialData, decoded){
 
-    let DATA = {};
+    let DATA = {
+     EVENT: []
+    };
 
     DATA.BRC = this.decode_by_code(serialData, 'BRC');
 
@@ -170,7 +179,7 @@ export var GRID_PROTOCOL = {
         DATA.BANKACTIVE = this.decode_by_code(array, obj.class)
       }
       if(obj.class == "EVENT"){
-        DATA.EVENT = this.decode_by_code(array, obj.class)
+        DATA.EVENT.push(this.decode_by_code(array, obj.class))
       }
       if(obj.class == "LEDPHASE"){
         DATA.LEDPHASE = this.decode_by_code(array, obj.class)

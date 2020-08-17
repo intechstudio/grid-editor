@@ -7,7 +7,7 @@
 
   export let size = 1;
   export let elementNumber;
-  export let value;
+  export let eventInput;
   
   const knobSize = 13;
 
@@ -15,7 +15,7 @@
   let rotation = 0;
   let initRotation = 0;
 
-  $: rotation = Math.round(value*midiToDeg);
+  $: if(eventInput){ rotation = Math.round(eventInput*midiToDeg); }
 
   const midiToDeg = 280/127;
 

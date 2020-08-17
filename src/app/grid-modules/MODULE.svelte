@@ -1,5 +1,7 @@
 <script>
 
+  import { onMount } from 'svelte';
+
   import BU16 from './modules/BU16.svelte';
   import PO16 from './modules/PO16.svelte';
   import PBF4 from './modules/PBF4.svelte';
@@ -9,7 +11,7 @@
 
   import { appSettings } from '../stores/app-settings.store.js';
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2;
+  import { globalSettings } from '../settings/globalSettings.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -23,15 +25,23 @@
   export let rotation;
 
   let selected;
+  let color;
+  let bankSettings;
+
+  $: moduleWidth = $appSettings.size * 106.6 + 2;
 
   $: selected = components.find(component => component.type === type);
 
-  $: console.log(rotation);
+  onMount(()=>{
+    globalSettings.subscribe(banks =>{
+      color = banks.colors[banks.active];
+    })
+  })
 
 </script>
 
 {#if selected}
-  <svelte:component this={selected.component} {moduleWidth} {id} {rotation}>
+  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
 
     {#if $appSettings.overlays.controlName}
       <ControlNameOverlay {id} {moduleWidth} {rotation}></ControlNameOverlay>

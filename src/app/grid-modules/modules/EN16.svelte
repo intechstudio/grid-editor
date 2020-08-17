@@ -11,10 +11,9 @@
   import Led from '../elements/Led.svelte';
 
   export let moduleWidth;
-
   export let id = 'EN16';
-
   export let rotation = 0;
+  export let color;
 
   let selectedElement = {};
 
@@ -30,10 +29,15 @@
 
   function handleEventParamChange(elementNumber, controlNumber){
     if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(elementNumber == controlNumber && moduleId == selectedElement.position){
-        return selectedElement.eventparam;  
+      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
+        const index = controlNumber.indexOf(elementNumber);
+        return selectedElement.eventparam[index]
       }
     }
+  }
+
+  function handleColorChange(bank){
+    //console.log(colors, bank)
   }
 
   onMount(()=>{
@@ -52,6 +56,7 @@
 </script>
 
 <style>
+
 	.module-dimensions {
     width: var(--module-size);
     height: var(--module-size);
@@ -61,7 +66,6 @@
 		align-items: center;
 		background-color: #1E2628;
 		border-radius: 0.75rem;
-
   }
   
   .knob-and-led {
@@ -123,8 +127,10 @@
         {#each control_block(4) as element}
           <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)} 
-              size={$appSettings.size}/>
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)}
+              userInput={0} 
+              size={$appSettings.size}
+              {color}/>
             <Encoder elementNumber={(block * 4) + element} size={$appSettings.size}/>
           </div>
         {/each}

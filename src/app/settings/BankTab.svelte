@@ -30,9 +30,9 @@
   let numberOfModules;
 
   function bankSettings(state){
-    globalSettings.update((array)=>{
-      array[selected] = state;
-      return array;
+    globalSettings.update((banks)=>{
+      banks.bankEnabled[selected] = state;
+      return banks;
     })
   }
 
@@ -42,6 +42,10 @@
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
     ]})
+    globalSettings.update(banks => {
+      banks.colors[selected] = rgb;
+      return banks
+    })
   }
 
 /*

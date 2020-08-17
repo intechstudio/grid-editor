@@ -41,11 +41,11 @@
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        events = _controller.elementSettings[selectedElementSettings.controlNumber].events.map((cntrl)=>{return cntrl.event.desc});
+        events = _controller.elementSettings[selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
-        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
         selectedActions = elementEvent.actions;
-        controlElementName = _controller.elementSettings[selectedElementSettings.controlNumber].controlElementName || '';
+        controlElementName = _controller.elementSettings[selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
   }
@@ -74,7 +74,7 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);   
+          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);       
           selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
         }
