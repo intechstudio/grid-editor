@@ -11,7 +11,7 @@ const store = new Store({
     }
 });
 
-const path = require('path')
+const path = require('path');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -80,6 +80,8 @@ ipcMain.handle('getStoreValue', (event, key) => {
   return result
 })
 
+// Start the back-end micorservice on localport 3000.
+const polka = require('./polka')
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

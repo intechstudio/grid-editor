@@ -1,11 +1,24 @@
 <script>
 
-  import { createEventDispatcher } from 'svelte';0
+  import { createEventDispatcher } from 'svelte';
   
   const dispatch = createEventDispatcher();
 
+  let formText = '';
 
-  function handleSubmit(){
+  let result = null;
+
+  async function handleSubmit(){
+
+    const res = await fetch('http://localhost:3000/form-submission', {
+			method: 'POST',
+      body: JSON.stringify({msg: formText}),
+      headers: { 'Content-Type': 'application/json' }
+    })
+    
+    const json = await res.json()
+    result = JSON.stringify(json)
+
     dispatch('submit', {
 
     })
@@ -24,14 +37,10 @@
     <div class="p-4 m-4 w-1/3 bg-primary rounded border border-gray-700 shadow">
     
     <div class="m-2 text-xl font-bold py-2">Feedback form</div>
-
+{formText}
+{result}
     <div class="m-2 py-2">
-      {#each [0,1,2,3,4] as question}
-      <div class="py-2">
-        <div>Question {question}</div>
-        <input type="text" class="secondary w-full text-white p-1 rounded-none focus:outline-none">
-      </div>
-      {/each}
+      <textarea class="text-black" bind:value={formText}></textarea>
     </div>
 
     <div class="m-2 flex justify-between py-2">
