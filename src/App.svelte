@@ -39,6 +39,8 @@
 
   import MODULE from './app/grid-modules/MODULE.svelte';
 
+  import Filesave from './app/Filesave.svelte';
+
 
   /*
   *   layout helper functions
@@ -222,6 +224,8 @@
 <!--
 <Debug {serial} />
 -->
+
+<Filesave></Filesave>
 
 <SerialPort 
   bind:grid={$grid} 
