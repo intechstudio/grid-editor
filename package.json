@@ -39,7 +39,7 @@
   },
   "scripts": {
     "pack": "electron-builder --dir",
-    "dist": "electron-builder",
+    "export": "electron-builder",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
