@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.16'
-          
+
       - name: Install dependencies
         run: npm i
 
@@ -37,4 +37,4 @@ jobs:
           files: dist/*.*
           draft: true
         env:
-          GITHUB_TOKEN: ${{ secrets.EDITOR_SECRET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
