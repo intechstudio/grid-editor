@@ -74,8 +74,10 @@
     height: 100%;
     display: flex;
     flex-direction: row;
+    background-color: rgba(30 ,30,30,0.8);
+    border-radius: 0.75rem;
     justify-content: space-around;
-    backdrop-filter: blur(2px);
+    backdrop-filter: blur(1px);
     z-index: 50;
   }
 

@@ -225,8 +225,9 @@
 <Debug {serial} />
 -->
 
+<!--
 <Filesave></Filesave>
-
+-->
 <SerialPort 
   bind:grid={$grid} 
   bind:this={serialPortComponent}

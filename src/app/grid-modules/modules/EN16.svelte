@@ -55,62 +55,6 @@
 
 </script>
 
-<style>
-
-	.module-dimensions {
-    width: var(--module-size);
-    height: var(--module-size);
-		display: flex;
-		flex-direction: column;
-		justify-content: space-around;
-		align-items: center;
-		background-color: #1E2628;
-		border-radius: 0.75rem;
-  }
-  
-  .knob-and-led {
-    display: flex;
-    padding: 2px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .control-row{
-    display: flex;
-    flex-direction: row;
-    width:100%;
-    display: flex;
-    justify-content: space-around;
-    margin-top: var(--control-row-mt);
-    margin-left: var(--control-row-mx);
-    margin-right: var(--control-row-mx);
-  }
-
-  .control-row:last-child{
-    margin-bottom: var(--control-row-mb);
-  }
-
-  .disable-pointer-events{
-    pointer-events: none;
-  }
-
-  .active-element{
-    background-color: #cc5b5b;
-    padding: 2px;
-    border-radius: 0.25rem;
-  }
-
-  .overlay{
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color:black;
-    z-index: 100;
-  }
-
-</style>
-
 <div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
 
   <slot></slot>

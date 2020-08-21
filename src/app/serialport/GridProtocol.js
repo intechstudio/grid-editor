@@ -15,6 +15,7 @@ export var GRID_PROTOCOL = {
     let BRC = {};
     let VERSION = {};
     let PARAMETERS = {};
+    let HEARTBEAT_INTERVAL = 0;
 
     let PROTOCOL = {};
 
@@ -25,6 +26,10 @@ export var GRID_PROTOCOL = {
         if(key.startsWith('GRID_MODULE_')){
           let paramName = key.substr('GRID_MODULE_'.length);
           HWCFG[paramName] = +grid_protocol[key];
+        }
+
+        if(key == 'GRID_PARAMETER_HEARTBEAT_interval'){
+          HEARTBEAT_INTERVAL = +grid_protocol[key] + 10;
         }
 
         // GRID CONSTS
@@ -108,7 +113,8 @@ export var GRID_PROTOCOL = {
       HWCFG: HWCFG, 
       CONST: CONST,
       VERSION: VERSION,
-      PARAMETERS: PARAMETERS
+      PARAMETERS: PARAMETERS,
+      HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL
     }
     
   },

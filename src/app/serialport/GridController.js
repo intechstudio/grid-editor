@@ -35,9 +35,9 @@ export var GRID_CONTROLLER = {
       'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer'
     ],
     PBF4: [
-      'button', 'button', 'button', 'button', 
-      'fader', 'fader', 'fader', 'fader', 
       'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+      'fader', 'fader', 'fader', 'fader', 
+      'button', 'button', 'button', 'button', 
       'blank', 'blank', 'blank', 'blank'
     ],
     BU16: [
