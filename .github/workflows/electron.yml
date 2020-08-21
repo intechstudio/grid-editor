@@ -19,11 +19,11 @@ jobs:
     - name: see directory
       run: ls
   build_on_win:
-    runs-on: windows-latest
+    runs-on: windows-2016
     steps:
     - uses: actions/checkout@master
       with:
-        ref: feature/github-actions        
+        ref: electron       
     - uses: actions/setup-node@master
       with:
         node-version: 10.16
