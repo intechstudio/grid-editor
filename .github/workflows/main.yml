@@ -28,7 +28,7 @@ jobs:
         run: npm i
 
       - name: Build
-        run: npm run export
+        run: npm run pack
 
       - name: See directory
         run: ls
