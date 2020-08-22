@@ -28,7 +28,7 @@ jobs:
         run: npm i
 
       - name: Build
-        run: npm run pack
+        run: npm run export
 
       - name: See directory
         run: ls dist/*
