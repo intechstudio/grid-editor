@@ -2,8 +2,8 @@ name: Build Editor
 
 on:
   push:
-    branches:
-      - electron
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build:
@@ -31,12 +31,13 @@ jobs:
         run: npm run export
 
       - name: See directory
-        run: ls dist/*
+        run: ls ./dist/*
       
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          files: dist/*
+          tag_name: ${{ github.ref }}
+          files: ./dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
