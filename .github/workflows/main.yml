@@ -32,13 +32,16 @@ jobs:
 
       - name: See directory
         run: ls ./dist/*
+
+      - name: Echo tag version
+        run: echo ${{ github.event.release.tag_name }}
       
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref }}
-          files: ./dist/*
+          files: dist/
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
