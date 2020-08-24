@@ -20,12 +20,10 @@ jobs:
           ref: electron
 
       - name: Set env
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/*/}
-        
+        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+
       - name: Test
-        run: |
-          echo $RELEASE_VERSION
-          echo ${{ env.RELEASE_VERSION }}
+        run: echo ${{ env.RELEASE_VERSION }}         
 
       - name: Setup NodeJs
         uses: actions/setup-node@v1
