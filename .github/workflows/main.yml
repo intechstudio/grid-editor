@@ -34,7 +34,8 @@ jobs:
         run: ls ./dist/*
 
       - name: Echo tag version
-        run: echo ${{ github.event.release.tag_name }}
+        id: get_version 
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//} 
       
       - name: Release
         uses: softprops/action-gh-release@v1
