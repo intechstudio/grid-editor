@@ -19,6 +19,17 @@ jobs:
         with:
           ref: electron
 
+      - name: Set output
+        id: vars
+        run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+        
+      - name: Check output
+        env:
+          RELEASE_VERSION: ${{ steps.vars.outputs.tag }}
+        run: |
+          echo $RELEASE_VERSION
+          echo ${{ steps.vars.outputs.tag }}
+
       - name: Setup NodeJs
         uses: actions/setup-node@v1
         with:
