@@ -47,7 +47,8 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref }}
-          files: dist/
+          files: dist/*.*
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
