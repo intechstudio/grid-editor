@@ -40,7 +40,8 @@ jobs:
         run: |
           echo "The event name is ${{ github.event_name }}"
           echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//} 
-          echo "$GITHUB_CONTEXT"
+          echo ${{github_ref}}
+          echo ${{github.event.release.tag_name}}
         
       - name: Release
         uses: softprops/action-gh-release@v1
