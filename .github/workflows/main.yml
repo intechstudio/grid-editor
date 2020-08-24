@@ -39,7 +39,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
         run: |
           echo "The event name is ${{ github.event_name }}"
-          run echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//} 
+          echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//} 
           echo "$GITHUB_CONTEXT"
         
       - name: Release
