@@ -24,7 +24,6 @@ jobs:
         run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
 
       - name: See env
-        shell: bash
         run: echo "${{ env.RELEASE_VERSION }}"
 
       - name: Setup NodeJs
@@ -44,8 +43,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          name: Release ${{ github.event.release.tag_name }}
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
           files: dist/*.*
           draft: true
         env:
