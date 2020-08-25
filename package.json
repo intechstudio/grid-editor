@@ -54,7 +54,7 @@
   },
   "scripts": {
     "pack": "electron-builder --dir",
-    "export": "electron-builder",
+    "export": "electron-builder --publish onTagOrDraft",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
