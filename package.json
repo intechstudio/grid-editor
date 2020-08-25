@@ -45,8 +45,7 @@
       "publish":[{
         "provider": "github",
         "owner": "IntechStudioDev",
-        "repo": "grid-editor",
-        "token": "f839b026949c44ef55ea6a407b1b69cfb9369689"
+        "repo": "grid-editor"
       }],
       "target": [
         "nsis"
@@ -55,7 +54,7 @@
   },
   "scripts": {
     "pack": "electron-builder --dir",
-    "export": "electron-builder --publish onTagOrDraft",
+    "export": "electron-builder",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
