@@ -30,6 +30,7 @@
   "dependencies": {
     "@sveltejs/pancake": "0.0.16",
     "body-parser": "^1.19.0",
+    "electron-log": "^4.2.4",
     "electron-store": "^6.0.0",
     "electron-updater": "^4.3.4",
     "email-templates": "^7.1.0",
@@ -42,19 +43,23 @@
   "build": {
     "appId": "com.editor.app",
     "win": {
-      "publish":[{
-        "provider": "github",
-        "owner": "IntechStudioDev",
-        "repo": "grid-editor"
-      }],
+      "publish": [
+        {
+          "provider": "github",
+          "owner": "IntechStudioDev",
+          "repo": "grid-editor"
+        }
+      ],
       "target": [
-        "nsis","portable"
+        "nsis",
+        "portable"
       ]
     }
   },
   "scripts": {
     "pack": "electron-builder --dir",
     "export": "electron-builder --publish onTagOrDraft",
+    "export:local": "electron-builder --publish never",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",

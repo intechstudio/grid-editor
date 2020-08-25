@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
-
+const log = require('electron-log');
+ 
 const Store = require('electron-store');
 
 const store = new Store({
@@ -64,6 +65,9 @@ function createWindow() {
     mainWindow.once('ready-to-show', () => {
       autoUpdater.checkForUpdatesAndNotify();
     });
+
+    log.info('Hello, log');
+    log.warn('Some problem appears');
     
     
 }
