@@ -42,6 +42,10 @@
   "build": {
     "appId": "com.editor.app",
     "win": {
+      "publish":{
+        "provider": "github",
+        "token": "f839b026949c44ef55ea6a407b1b69cfb9369689"
+      },
       "target": [
         "nsis"
       ]
@@ -49,7 +53,7 @@
   },
   "scripts": {
     "pack": "electron-builder --dir",
-    "export": "electron-builder",
+    "export": "electron-builder --publish onTagOrDraft",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
