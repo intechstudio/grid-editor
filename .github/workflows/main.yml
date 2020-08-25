@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: electron
+          submodules: true
 
       - name: Set env
         shell: bash
