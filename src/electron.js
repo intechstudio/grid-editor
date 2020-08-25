@@ -68,6 +68,9 @@ function createWindow() {
 
     log.info('Hello, log');
     log.warn('Some problem appears');
+
+    autoUpdater.logger = log
+    autoUpdater.checkForUpdatesAndNotify()
     
     
 }
