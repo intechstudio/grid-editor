@@ -43,9 +43,10 @@
   "build": {
     "appId": "com.editor.app",
     "directories": { 
-      "output": "release/" 
+      "output": "release/",
+      "app": "public",
+      "buildResources": "public"
     },
-    "asarUnpack": ["**/*.node"],
     "win": {
       "publish": [
         {
