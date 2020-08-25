@@ -280,7 +280,7 @@
 <div id="notification">    
   {#if updateReady}
     <p id="message">Update Downloaded. It will be installed on restart. Restart now?</p>
-    <button id="restart-button" on:click={restartApp} class="hidden">
+    <button id="restart-button" on:click={restartApp}>
       Restart
     </button>
   {:else}
