@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.52",
+  "version": "0.0.53",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -43,8 +43,9 @@
   "build": {
     "appId": "com.editor.app",
     "directories": { 
-      "output": "dist/" 
+      "output": "release/" 
     },
+    "asarUnpack": ["**/*.node"],
     "win": {
       "publish": [
         {
