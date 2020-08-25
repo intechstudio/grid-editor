@@ -3,8 +3,8 @@
   "version": "0.0.50",
   "main": "./src/electron.js",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/IntechStudioDev/grid-editor.git"
+    "type": "git",
+    "url": "https://github.com/IntechStudioDev/grid-editor.git"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^1.3.0",
@@ -31,6 +31,7 @@
     "@sveltejs/pancake": "0.0.16",
     "body-parser": "^1.19.0",
     "electron-store": "^6.0.0",
+    "electron-updater": "^4.3.4",
     "email-templates": "^7.1.0",
     "panzoom": "^9.2.4",
     "polka": "^0.5.2",
@@ -40,8 +41,10 @@
   },
   "build": {
     "appId": "com.editor.app",
-    "win":{
-      "target": ["nsis"]
+    "win": {
+      "target": [
+        "nsis"
+      ]
     }
   },
   "scripts": {
