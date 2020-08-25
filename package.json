@@ -42,7 +42,7 @@
   },
   "build": {
     "appId": "com.editor.app",
-    "asar": true,
+    "asar": false,
     "win": {
       "publish": [
         {
