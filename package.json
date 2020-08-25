@@ -42,10 +42,12 @@
   "build": {
     "appId": "com.editor.app",
     "win": {
-      "publish":{
+      "publish":[{
         "provider": "github",
+        "owner": "IntechStudioDev",
+        "repo": "grid-editor",
         "token": "f839b026949c44ef55ea6a407b1b69cfb9369689"
-      },
+      }],
       "target": [
         "nsis"
       ]

@@ -39,6 +39,11 @@ jobs:
 
       - name: See directory
         run: ls dist/*.*
+
+      - name: Secrets
+        run: |
+          echo "Secret: " ${{ secrets.GITHUB_TOKEN }}
+          echo "Secret: " ${{ secrets.EDITOR_SECRET }}
         
       - name: Release
         uses: softprops/action-gh-release@v1
