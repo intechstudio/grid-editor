@@ -30,12 +30,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.16'
-      
-      - name: Secrets
-        run: |
-          echo "Secret: " ${{ secrets.GITHUB_TOKEN }}
-          echo "Secret: " ${{ secrets.EDITOR_SECRET }}
-        
 
       - name: Install dependencies
         run: npm i

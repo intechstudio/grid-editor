@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.50",
+  "version": "0.0.51",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
         "repo": "grid-editor"
       }],
       "target": [
-        "nsis"
+        "nsis","portable"
       ]
     }
   },
