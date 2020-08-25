@@ -1,7 +1,11 @@
 {
   "name": "editor",
-  "version": "0.0.49",
+  "version": "0.0.50",
   "main": "./src/electron.js",
+  "repository": {
+    "type" : "git",
+    "url" : "https://github.com/IntechStudioDev/grid-editor.git"
+  },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^1.3.0",
     "@rollup/plugin-json": "^4.1.0",
@@ -42,7 +46,7 @@
   },
   "scripts": {
     "pack": "electron-builder --dir",
-    "export": "electron-builder",
+    "export": "electron-builder --publish onTagOrDraft",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",

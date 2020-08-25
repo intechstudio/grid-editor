@@ -69,7 +69,13 @@
   // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
   let grid_layout = 5;
 
+  // code base versions
   let fwVersion;
+  let appVersion;
+
+  // self update
+  let updateNotification = false;
+  let updateReady = false;
 
   let serial; // debug purposes
 
@@ -114,6 +120,10 @@
       ipcRenderer.send('setStoreValue-message', grid)
     });
   }
+
+  function restartApp(){
+    ipcRenderer.send('restart_app');
+  }
   
   onMount(()=>{
 
@@ -130,6 +140,22 @@
 
     ipcRenderer.on('setStoreValue-reply', (event, arg) => {
       //console.log(arg) // prints "pong"
+    });
+
+    ipcRenderer.send('app_version');
+    ipcRenderer.on('app_version', (event, arg) => {
+      ipcRenderer.removeAllListeners('app_version');
+      appVersion = arg.version;
+    });
+
+    ipcRenderer.on('update_available', () => {
+      ipcRenderer.removeAllListeners('update_available');
+      updateNotification = true;
+    });
+    
+    ipcRenderer.on('update_downloaded', () => {
+      ipcRenderer.removeAllListeners('update_downloaded');
+      updateReady = true;
     });
 
 
@@ -214,6 +240,21 @@
       background-color: rgba(255, 0, 0, 1); 
     }
   }
+
+  #notification {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    width: 200px;
+    padding: 20px;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  }
+
+  .hidden {
+    display: none;
+  }
 	
 </style>
 
@@ -228,6 +269,27 @@
 <!--
 <Filesave></Filesave>
 -->
+
+<div class="w-full p-4 text-white">Version: {appVersion}</div>
+
+{#if updateNotification}
+<div id="notification">    
+  {#if updateReady}
+    <p id="message">Update Downloaded. It will be installed on restart. Restart now?</p>
+    <button id="restart-button" on:click={restartApp} class="hidden">
+      Restart
+    </button>
+  {:else}
+    <p id="message">A new update is available. Downloading now...</p>
+  {/if}
+  
+  <button id="close-button" on:click={updateNotification = false}>
+    Close
+  </button>
+  
+</div>
+{/if}
+
 <SerialPort 
   bind:grid={$grid} 
   bind:this={serialPortComponent}

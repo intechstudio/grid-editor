@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
+const { autoUpdater } = require('electron-updater');
 
 const Store = require('electron-store');
 
@@ -60,6 +61,10 @@ function createWindow() {
 
     mainWindow.webContents.openDevTools();
 
+    mainWindow.once('ready-to-show', () => {
+      autoUpdater.checkForUpdatesAndNotify();
+    });
+    
     
 }
 
@@ -80,8 +85,28 @@ ipcMain.handle('getStoreValue', (event, key) => {
   return result
 })
 
+
 // Start the back-end micorservice on localport 3000.
 const polka = require('./polka')
+
+// auto-update features
+
+ipcMain.on('app_version', (event) => {
+  event.sender.send('app_version', { version: app.getVersion() });
+});
+
+autoUpdater.on('update-available', () => {
+  mainWindow.webContents.send('update_available');
+});
+
+autoUpdater.on('update-downloaded', () => {
+  mainWindow.webContents.send('update_downloaded');
+});
+
+ipcMain.on('restart_app', () => {
+  autoUpdater.quitAndInstall();
+});
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
