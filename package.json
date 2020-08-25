@@ -42,7 +42,9 @@
   },
   "build": {
     "appId": "com.editor.app",
-    "asar": false,
+    "directories": { 
+      "output": "dist/" 
+    },
     "win": {
       "publish": [
         {
