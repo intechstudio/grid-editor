@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.53",
+  "version": "0.0.54",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -43,9 +43,7 @@
   "build": {
     "appId": "com.editor.app",
     "directories": { 
-      "output": "release/",
-      "app": "public",
-      "buildResources": "public"
+      "output": "dist/"
     },
     "win": {
       "publish": [
@@ -62,10 +60,11 @@
     }
   },
   "scripts": {
-    "pack": "electron-builder --dir",
-    "export": "electron-builder --publish onTagOrDraft",
-    "export:local": "electron-builder --publish never",
-    "build": "rollup -c",
+    "e:builder": "electron-builder --publish onTagOrDraft",
+    "e:builder:local": "electron-builder --publish never",
+    "export": "run-s s:build e:builder",
+    "export:local": "run-s s:build e:builder:local",
+    "s:build": "rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
     "start:dev": "sirv public --single --dev --host 0.0.0.0",
