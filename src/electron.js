@@ -102,11 +102,12 @@ ipcMain.on('app_version', (event) => {
 });
 
 autoUpdater.on('update-available', () => {
+  console.log('update-available... in main!')
   mainWindow.webContents.send('update_available');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  console.log('update downloaded.. in main!')
+  console.log('update downloaded... in main!')
   mainWindow.webContents.send('update_downloaded');
 });
 
