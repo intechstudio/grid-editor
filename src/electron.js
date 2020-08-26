@@ -4,6 +4,10 @@ const log = require('electron-log');
  
 const Store = require('electron-store');
 
+autoUpdater.logger = log;
+autoUpdater.logger.transports.file.level = 'info';
+log.info('App starting...');
+
 const store = new Store({
     defaults: { 
         windowBounds: { 
@@ -63,14 +67,9 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
     mainWindow.once('ready-to-show', () => {
+      console.log('check fo update and notify...')
       autoUpdater.checkForUpdatesAndNotify();
     });
-
-    log.info('Hello, log');
-    log.warn('Some problem appears');
-
-    autoUpdater.logger = log
-    autoUpdater.checkForUpdatesAndNotify()
     
     
 }
@@ -107,6 +106,7 @@ autoUpdater.on('update-available', () => {
 });
 
 autoUpdater.on('update-downloaded', () => {
+  console.log('update downloaded.. in main!')
   mainWindow.webContents.send('update_downloaded');
 });
 
