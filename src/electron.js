@@ -67,7 +67,7 @@ function createWindow() {
     mainWindow.webContents.openDevTools();
 
     mainWindow.once('ready-to-show', () => {
-      console.log('check fo update and notify...')
+      log('check fo update and notify...')
       autoUpdater.checkForUpdatesAndNotify();
     });
     
@@ -78,6 +78,7 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+
 
 ipcMain.on('setStoreValue-message', (event, arg) => {
   store.set({
@@ -102,12 +103,12 @@ ipcMain.on('app_version', (event) => {
 });
 
 autoUpdater.on('update-available', () => {
-  console.log('update-available... in main!')
+  log('update-available... in main!')
   mainWindow.webContents.send('update_available');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  console.log('update downloaded... in main!')
+  log('update downloaded... in main!')
   mainWindow.webContents.send('update_downloaded');
 });
 
