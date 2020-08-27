@@ -53,16 +53,11 @@
           "repo": "grid-editor"
         }
       ],
+      "artifactName": "${name}-Setup-${version}.${ext}",
       "target": [
         "nsis",
         "portable"
-      ],
-      "nsis": {
-        "artifactName": "${name}-Setup-${version}.${ext}"
-      },
-      "portable": {
-        "artifactName": "${name}-${version}.${ext}"
-      }
+      ]
     }
   },
   "scripts": {
