@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.624",
+  "version": "0.0.625",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
