@@ -65,11 +65,6 @@ function createWindow() {
     })
 
     mainWindow.webContents.openDevTools();
-
-    mainWindow.once('ready-to-show', () => {
-      log('check fo update and notify...')
-      autoUpdater.checkForUpdatesAndNotify();
-    });
     
     
 }
@@ -78,6 +73,10 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
+
+log('check fo update and notify...')
+console.log('check for updates...')
+autoUpdater.checkForUpdatesAndNotify();
 
 
 ipcMain.on('setStoreValue-message', (event, arg) => {
@@ -101,6 +100,11 @@ const polka = require('./polka')
 ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
+
+autoUpdater.on('error', (event) => {
+  log('Error..', event);
+  console.log('updater error')
+})
 
 autoUpdater.on('update-available', () => {
   log('update-available... in main!')
