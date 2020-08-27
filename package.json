@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.621",
+  "version": "0.0.622",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -50,14 +50,19 @@
         {
           "provider": "github",
           "owner": "IntechStudioDev",
-          "repo": "grid-editor",
-          "url":"https://github.com/IntechStudioDev/grid-editor/releases/tag"
+          "repo": "grid-editor"
         }
       ],
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "nsis": {
+        "artifactName": "${name}-Setup-${version}.${ext}"
+      },
+      "portable": {
+        "artifactName": "${name}-${version}.${ext}"
+      }
     }
   },
   "scripts": {
