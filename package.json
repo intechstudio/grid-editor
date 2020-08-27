@@ -1,6 +1,6 @@
 {
   "name": "editor",
-  "version": "0.0.62",
+  "version": "0.0.620",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -50,7 +50,8 @@
         {
           "provider": "github",
           "owner": "IntechStudioDev",
-          "repo": "grid-editor"
+          "repo": "grid-editor",
+          "url":"https://github.com/IntechStudioDev/grid-editor/releases/tag"
         }
       ],
       "target": [
