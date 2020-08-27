@@ -74,7 +74,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-log('check fo update and notify...')
+log.info('check fo update and notify...')
 console.log('check for updates...')
 autoUpdater.checkForUpdatesAndNotify();
 
@@ -102,17 +102,17 @@ ipcMain.on('app_version', (event) => {
 });
 
 autoUpdater.on('error', (event) => {
-  log('Error..', event);
+  log.info('Error..', event);
   console.log('updater error')
 })
 
 autoUpdater.on('update-available', () => {
-  log('update-available... in main!')
+  log.info('update-available... in main!')
   mainWindow.webContents.send('update_available');
 });
 
 autoUpdater.on('update-downloaded', () => {
-  log('update downloaded... in main!')
+  log.info('update downloaded... in main!')
   mainWindow.webContents.send('update_downloaded');
 });
 
