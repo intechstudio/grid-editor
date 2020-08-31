@@ -1,25 +1,39 @@
 <script>
+  const { ipcRenderer } = require('electron');
+
+  import { onMount } from 'svelte';
+
   import { appSettings } from '../stores/app-settings.store';
 
   let selectedDisplay = 'layout';
+
+  let appVersion = '';
 
   function changeSelectedDisplay(display){
     selectedDisplay = display;
     $appSettings.selectedDisplay = selectedDisplay;
   }
 
+  onMount(()=>{
+    ipcRenderer.send('app_version');
+
+    ipcRenderer.on('app_version', (event, arg) => {
+      ipcRenderer.removeAllListeners('app_version');
+      console.log(arg.version)
+      appVersion = arg.version;
+    });
+  })
+
+  
 </script>
 
 <style>
-
-  .active{
-    background-color: orange;
-  }
 
 </style>
 
 <div class="w-full flex justify-center text-xs text-white primary">
   
+<div class="w-1/4"></div>
   <!--
   <div>
     <div>change size</div>
@@ -68,6 +82,11 @@
       </svg>
       <div class="p-2">Profiles</div>
     </div>
+  </div>
+
+  
+  <div class="w-1/4 flex justify-end">
+    <div class="p-4 text-white">Version: {appVersion}</div>
   </div>
 </div>
 

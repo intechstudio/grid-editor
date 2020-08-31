@@ -19,14 +19,13 @@
     newsletter.checkOptIn('editor'),
     (req, res) => {
         const email = new Email({
-          preview: true,
+          preview: false,
           message: {
-            from: `kertikristof@gmail.com`,
-            subject: `${req.body.msg} feedback`,
+            from: `${req.body.email}`,
+            subject: `Editor Feedback Submission`,
           },
-          //send: true,
+          send: true,
           transport: {
-            jsonTransport: true,
             host: "mail.intech.studio",
             port: 465,
             secure: true, // true for 465, false for other ports
@@ -40,18 +39,21 @@
         email.send({
           template: 'feedback',
           message: {
-            to: 'kertikristof@intech.studio'
+            to: 'support@intech.studio'
           },
           locals: {
-            name: `hello`,
-            email: `szia`,
-            info: `${'szevasz'}`,
+            name: `${req.body.name}`,
+            email: `${req.body.email}`,
+            info: `${req.body.msg}`,
           }
         })
         .then(()=>{
-          res.end(JSON.stringify({ msg: 'Feedback email sent.' }))
+          res.end(JSON.stringify({ sent: true }))
         })
-        .catch(console.error)
+        .catch((error)=>{
+          console.error(error);
+          res.end(JSON.stringify({ sent: false }))
+        })
       }
   );
 

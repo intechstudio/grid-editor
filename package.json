@@ -73,6 +73,6 @@
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
-    "pure-electron-dev": "cross-env NODE_ENV=development electron ."
+    "pure-electron-dev": "cross-env DEBUG=email-templates NODE_ENV=development electron ."
   }
 }

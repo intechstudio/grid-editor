@@ -1,6 +1,6 @@
 <script>
 
-  const { ipcRenderer } = require('electron')
+  const { ipcRenderer } = require('electron');
 
   /*
   *   tailwindcss
@@ -142,13 +142,7 @@
       //console.log(arg) // prints "pong"
     });
 
-    ipcRenderer.send('app_version');
-
-    ipcRenderer.on('app_version', (event, arg) => {
-      ipcRenderer.removeAllListeners('app_version');
-      console.log(arg.version)
-      appVersion = arg.version;
-    });
+    
 
     ipcRenderer.on('update_available', () => {
       ipcRenderer.removeAllListeners('update_available');
@@ -273,8 +267,6 @@
 <!--
 <Filesave></Filesave>
 -->
-
-<div class="w-full p-4 text-white">Version: {appVersion}</div>
 
 {#if updateNotification}
 <div id="notification">    
