@@ -7,42 +7,53 @@
 
   const app = polka();
 
-  app.post('/form-submission', (req, res) => {
-    const email = new Email({
-      preview: true,
-      message: {
-        from: `kertikristof@gmail.com`,
-        subject: `${req.body.msg} feedback`,
-      },
-      //send: true,
-      transport: {
-        jsonTransport: true,
-        host: "mail.intech.studio",
-        port: 465,
-        secure: true, // true for 465, false for other ports
-        auth: {
-          user: 'shop@intech.studio', // generated ethereal user
-          pass: 'macgyver' // generated ethereal password
-        }
+  const newsletter = require('./backend/newsletter.js');
+
+  app.post('/form-submission',
+    (req,res,next) => {
+      res.locals = {};
+      res.locals.name = req.body.name;
+      res.locals.email = req.body.email;
+      next();
+    },
+    newsletter.checkOptIn('editor'),
+    (req, res) => {
+        const email = new Email({
+          preview: true,
+          message: {
+            from: `kertikristof@gmail.com`,
+            subject: `${req.body.msg} feedback`,
+          },
+          //send: true,
+          transport: {
+            jsonTransport: true,
+            host: "mail.intech.studio",
+            port: 465,
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: 'shop@intech.studio', // generated ethereal user
+              pass: 'macgyver' // generated ethereal password
+            }
+          }
+        });
+        
+        email.send({
+          template: 'feedback',
+          message: {
+            to: 'kertikristof@intech.studio'
+          },
+          locals: {
+            name: `hello`,
+            email: `szia`,
+            info: `${'szevasz'}`,
+          }
+        })
+        .then(()=>{
+          res.end(JSON.stringify({ msg: 'Feedback email sent.' }))
+        })
+        .catch(console.error)
       }
-    });
-    
-    email.send({
-      template: 'feedback',
-      message: {
-        to: 'kertikristof@intech.studio'
-      },
-      locals: {
-        name: `hello`,
-        email: `szia`,
-        info: `${'szevasz'}`,
-      }
-    })
-    .then(()=>{
-      res.end(JSON.stringify({ msg: 'Feedback email sent.' }))
-    })
-    .catch(console.error)
-  });
+  );
 
   app
     .use(json())

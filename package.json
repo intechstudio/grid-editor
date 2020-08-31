@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "@sveltejs/pancake": "0.0.16",
+    "axios": "^0.20.0",
     "body-parser": "^1.19.0",
     "electron-log": "^4.2.4",
     "electron-store": "^6.0.0",
@@ -42,7 +43,7 @@
   },
   "build": {
     "appId": "com.editor.app",
-    "directories": { 
+    "directories": {
       "output": "dist/"
     },
     "win": {
@@ -72,6 +73,6 @@
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
-    "pure-electron-dev": "cross-env DEBUG=email-templates NODE_ENV=development electron ."
+    "pure-electron-dev": "cross-env NODE_ENV=development electron ."
   }
 }
