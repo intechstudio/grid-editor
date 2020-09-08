@@ -62,6 +62,25 @@ export const ACTIONS = {
     }
   },
 
+  LED_COLOR: [
+    [
+      {value: 'A0', info: 'A0 - LED on this control element.'},
+    ],
+    [
+      {value: 'A', info: 'A - layer'},
+      {value: 'B', info: 'B - layer'}
+    ],
+    [
+      {value: '255', info: 'R'}
+    ],
+    [
+      {value: '255', info: 'G'}
+    ],
+    [
+      {value: '255', info: 'B'}
+    ]
+  ],
+
   LED_INTENSITY: [
     [
       {value: '?', info: 'Layer Number'}, 
@@ -78,6 +97,9 @@ export const ACTIONS = {
   optionList: function(name){
     if(name == 'LED Intensity'){
       return this.LED_INTENSITY;
+    }
+    else if(name == 'LED Color'){
+      return this.LED_COLOR;
     }
   },
 

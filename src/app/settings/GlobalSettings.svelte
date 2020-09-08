@@ -30,6 +30,10 @@
 
   function changeSelected(bank){
     selected = bank;
+    elementSettings.update(settings => {
+      settings.bank = selected;
+      return settings;
+    })
     dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': selected}]})
   }
 

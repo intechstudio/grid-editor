@@ -193,10 +193,16 @@
       }
 
       if(DATA.BANKACTIVE){
-        globalSettings.update(setting => {
-          setting.active = DATA.BANKACTIVE.BANKNUMBER;
-          return setting
+        globalSettings.update(settings => {
+          settings.active = DATA.BANKACTIVE.BANKNUMBER;
+          return settings
+        });
+  
+        elementSettings.update(settings => {
+          settings.bank = DATA.BANKACTIVE.BANKNUMBER;
+          return settings;
         })
+      
       }
       
       

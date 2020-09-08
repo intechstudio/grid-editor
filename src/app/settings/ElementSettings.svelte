@@ -10,6 +10,8 @@
   import OverlayToggle from '../grid-modules/overlays/OverlayToggle.svelte';
 
   import Action from './Action.svelte';
+  import { get } from 'svelte/store';
+import { element } from 'svelte/internal';
 
   let selectedElementSettings;
 
@@ -41,11 +43,13 @@
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        events = _controller.elementSettings[selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
+        
+        events = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
-        let elementEvent = _controller.elementSettings[selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        let elementEvent = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        console.log(elementEvent.actions, 'bank_'+selectedElementSettings.bank);
         selectedActions = elementEvent.actions;
-        controlElementName = _controller.elementSettings[selectedElementSettings.controlNumber[0]].controlElementName || '';
+        controlElementName = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
   }
@@ -74,8 +78,8 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
-          elementEvent.actions.splice(index,1);       
+          let elementEvent = controller.control_elements['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
+          elementEvent.actions.splice(index,1);
           selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
         }
         return controller;
@@ -98,16 +102,21 @@
   function handleOnChange(e){
     const data = e.detail.data;
     const index = e.detail.index;
+    console.log('on change handler',data, index, selectedElementSettings.bank);
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.elementSettings[selectedElementSettings.controlNumber].events.find(cntrl => cntrl.event.desc == selectedEvent);
-          elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
+          let elementEvent = controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          if(elementEvent !== undefined){
+            elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
+          }
         }
         return controller;
       })
       return grid;   
     });
+
+    console.log(get(grid).used)
   }
 
   function handleControlElementNaming(name){
@@ -115,7 +124,7 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          controller.elementSettings[selectedElementSettings.controlNumber].controlElementName = name;
+          controller.control_elements.bank_1[selectedElementSettings.controlNumber[0]].controlElementName = name;
         }
         return controller;
       })
@@ -128,6 +137,7 @@
       selectedElementSettings = values;
       loadSelectedModuleSettings();
     });
+
   })
 
 
@@ -142,8 +152,9 @@
 
 </style>
 
-<div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/3">
 
+
+<div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/3">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId.substr(0,4)}</div>

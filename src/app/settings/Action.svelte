@@ -33,6 +33,7 @@
   }
 
   function sendData(encoded){
+    console.log('action changed')
     dispatch('change', {
       data: data,
       index: index
@@ -182,7 +183,10 @@
         }
         case 'LED Intensity': {
           optionList = ACTIONS.optionList(data.name);
-          console.log(optionList);
+          break;
+        }
+        case 'LED Color': {
+          optionList = ACTIONS.optionList(data.name);
           break;
         }
       }
