@@ -83,13 +83,7 @@ export var GRID_CONTROLLER = {
         rotation: header.ROT * -90,
         isConnectedByUsb: (header.DX == 0 && header.DX == 0) ? true : false,
         isLanding: false,
-        // this is a fkin big questionmark, as due to dynamic for loop moduleSettings buildup (4 banks) svelte said no.
-        moduleSettings: {
-          bank_0: this.createElementSettings(moduleType),
-          bank_1: this.createElementSettings(moduleType),
-          bank_2: this.createElementSettings(moduleType),
-          bank_3: this.createElementSettings(moduleType),
-        }
+        banks: this.createElementSettings(moduleType),
       }
 
       return controller;
@@ -102,16 +96,16 @@ export var GRID_CONTROLLER = {
 
     moduleType = moduleType.substr(0,4);
 
-    let banks = {};
-    let control_elements = [];
-    let events = [];
+    let banks = [];
 
     //banks
-    //for (let b = 0; b < 4; b++) {   
-    
+    for (let b = 0; b < 4; b++) {  
+
+      let control_elements = [];
+
       // control elements
       for (let i = 0; i < 16; i++) {
-        events = [];
+        let events = [];
         let obj = {
           controlElementType: this.moduleElements[moduleType][i],
           controlElementName: '',
@@ -127,11 +121,12 @@ export var GRID_CONTROLLER = {
         control_elements[i] = {events: events, ...obj};
       }
 
-      //banks['bank_'+b] = control_elements;
+      banks[b] = control_elements;
 
-    //}
+    }
+
+    return banks;
     
-    return control_elements;
   }
     
 }

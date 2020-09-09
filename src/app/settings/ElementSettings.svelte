@@ -10,12 +10,9 @@
   import OverlayToggle from '../grid-modules/overlays/OverlayToggle.svelte';
 
   import Action from './Action.svelte';
-  import { get } from 'svelte/store';
-import { element } from 'svelte/internal';
 
   let selectedElementSettings;
 
-  
   let originalActions = [
     { id: 0, name: 'MIDI Relative' },
     { id: 1, name: 'LED Color' },
@@ -43,13 +40,11 @@ import { element } from 'svelte/internal';
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleId = _controller.id;
-        
-        events = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
+        events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
-        let elementEvent = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-        console.log(elementEvent.actions, 'bank_'+selectedElementSettings.bank);
+        let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
         selectedActions = elementEvent.actions;
-        controlElementName = _controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
+        controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
   }
@@ -65,9 +60,7 @@ import { element } from 'svelte/internal';
     let action = {name: actionName}
     let parameters = [];
     for (let i = 0; i < 3; i++) {
-      parameters[i] = ''
-      // this is an older approach, where dropdowninput handled objects.. was buggy. 
-      // parameters[i] = {value: '', info: ''}
+      parameters[i] = '';
     }
     return {...action, parameters}
   }
@@ -78,7 +71,7 @@ import { element } from 'svelte/internal';
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.control_elements['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
+          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);
           selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
         }
@@ -102,21 +95,21 @@ import { element } from 'svelte/internal';
   function handleOnChange(e){
     const data = e.detail.data;
     const index = e.detail.index;
-    console.log('on change handler',data, index, selectedElementSettings.bank);
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.moduleSettings['bank_'+selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
           if(elementEvent !== undefined){
             elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
+            //console.log(elementEvent.actions[index])
           }
+          
         }
         return controller;
       })
       return grid;   
     });
 
-    console.log(get(grid).used)
   }
 
   function handleControlElementNaming(name){
