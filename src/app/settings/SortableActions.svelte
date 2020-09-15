@@ -106,9 +106,9 @@
     }
 
     .buttons {
-        width: 32px;
-        height: 32px;
-        min-width: 32px;
+        width: 28px;
+        height: 28px;
+        min-width: 28px;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -116,8 +116,8 @@
 
     .buttons button {
         cursor: pointer;
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
         margin: 0 auto;
         padding: 0;
         color: white;
@@ -181,22 +181,25 @@
                 data-id={(data.id ? data.id : JSON.stringify(data))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <div class="text-white pb-2">{data.name}</div>
+                <div class=" pb-2 text-white">{data.name}</div>
                 <div class="wrapper">
-                    <div class="buttons bg-secondary">
-                        <button 
-                            class="up focus:outline-none  border-none" 
-                            style={"display: " + (index > 0 ? "" : "none") + ";"}
-                            on:click={function(ev) {moveDatum(index, index - 1);console.log(index, index-1)}}>
-                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14px" height="14px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
-                            </button>
-                        <button 
-                            class="down focus:outline-none border-none" 
-                            style={"display: " + (index < selectedActions.length - 1 ? "" : "none") + ";"}
-                            on:click={function(ev) {moveDatum(index, index + 1);console.log(index, index+1)}}>
-                            <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14px" height="14px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
-                            </button>
-                    </div>    
+                    <div>
+                        <div class="invisible text-xs">Order</div>
+                        <div class="buttons bg-secondary">
+                            <button 
+                                class="up focus:outline-none  border-none" 
+                                style={"display: " + (index > 0 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(index, index - 1);console.log(index, index-1)}}>
+                                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
+                                </button>
+                            <button 
+                                class="down focus:outline-none border-none" 
+                                style={"display: " + (index < selectedActions.length - 1 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(index, index + 1);console.log(index, index+1)}}>
+                                <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
+                                </button>
+                        </div>    
+                    </div>
                     <slot {data} {index}></slot>            
                 </div>         
             </div>

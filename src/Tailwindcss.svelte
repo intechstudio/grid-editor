@@ -2,6 +2,10 @@
   @tailwind base;
   @tailwind components;
 
+  html {
+    font-size: 14px;
+  }
+
   body {
     @apply p-0;
   }

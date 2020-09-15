@@ -6,6 +6,7 @@
 
   import { elementSettings } from '../settings/elementSettings.store.js';
   import { globalSettings } from '../settings/globalSettings.store.js';
+  import { serialStore } from './serialport.store.js';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -89,6 +90,11 @@
   function createSerialPort() {
     serialpaths.forEach((path, i) => {
       serialports[i] = new SerialPort(path, { autoOpen: false });
+    });
+
+    serialStore.update(ports => {
+      ports = serialports;
+      return ports;
     });
   }
 
@@ -197,12 +203,12 @@
           settings.active = DATA.BANKACTIVE.BANKNUMBER;
           return settings
         });
-  
+
         elementSettings.update(settings => {
           settings.bank = DATA.BANKACTIVE.BANKNUMBER;
           return settings;
         })
-      
+
       }
       
       

@@ -101,9 +101,8 @@
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
           if(elementEvent !== undefined){
             elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
-            //console.log(elementEvent.actions[index])
+            console.log('this is saved:', data.parameters);
           }
-          
         }
         return controller;
       })
@@ -117,7 +116,7 @@
     grid.update((grid)=>{
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          controller.control_elements.bank_1[selectedElementSettings.controlNumber[0]].controlElementName = name;
+          controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName = name;
         }
         return controller;
       })
@@ -151,7 +150,7 @@
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId.substr(0,4)}</div>
-    <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber}</div>
+    <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber[0]}</div>
   </div>
 
   <div class="mx-2 my-4 w-full">
@@ -219,6 +218,7 @@
             on:change={handleOnChange}
             {data} 
             {index}
+            selectedControlNumber={selectedElementSettings.controlNumber[0]}
           />
         {/if}
       </SortableActions>

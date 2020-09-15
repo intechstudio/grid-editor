@@ -226,10 +226,12 @@ export var GRID_PROTOCOL = {
 
     let command = '';
     PARAMETERS.forEach(CLASS => {
+      console.log('class:',CLASS)
       let param = '';
       for (const key in CLASS) {
        param += CLASS[key].toString(16).padStart(2, '0');
       }
+      console.log('param:',param);
       command += 
         String.fromCharCode(PROTOCOL.CONST.STX) +
         PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
@@ -238,7 +240,58 @@ export var GRID_PROTOCOL = {
         String.fromCharCode(PROTOCOL.CONST.ETX);
     })
 
-    //console.log(command);
+    console.log('COMMAND',command);
+
+    let params = '';
+    BRC_PARAMETERS.forEach(param => {
+      params += param.toString(16).padStart(2, '0');
+    })
+    
+    const append = 
+      String.fromCharCode(PROTOCOL.CONST.EOB) + 
+      command +
+      String.fromCharCode(PROTOCOL.CONST.EOT);
+
+    let message = prepend + params + append;
+
+    message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
+
+    let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
+
+    message = message + checksum;
+
+    return message;
+  },
+
+
+  encode_two: function (CLASS_NAME, PARAMETERS){
+
+    console.log('input params',PARAMETERS);
+
+    const PROTOCOL = this.PROTOCOL;
+
+    const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
+
+    let BRC_PARAMETERS = [
+      this.utility_genId(), 127, 127, 255, 0
+    ];
+
+    let command = '';
+    let param = '';
+    PARAMETERS.forEach(CLASS => {     
+      for (const key in CLASS) {
+       param += CLASS[key].toString(16).padStart(2, '0');
+      }
+    })
+
+    command =
+      String.fromCharCode(PROTOCOL.CONST.STX) +
+      PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
+      String.fromCharCode(102) + // REP_CODE
+      param +
+      String.fromCharCode(PROTOCOL.CONST.ETX);
+    
+    console.log('command',command);
 
     let params = '';
     BRC_PARAMETERS.forEach(param => {

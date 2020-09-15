@@ -5,8 +5,13 @@
   import DropDownInput from '../DropDownInput.svelte';
 
   export let data;
+  export let index;
   
   const MIDIRELATIVE = {
+
+    CC_PARAMS: ['Control Change', 'Control Number', 'Control Value'],
+    NOTE_PARAMS: ['Note On/Off', 'Pitch', 'Velocity'],
+
     CC: [
       [
         {value: '0xb0', info: 'Control Change'}, 
@@ -14,10 +19,10 @@
         {value: '0x80', info: 'Note Off'}
       ],
       [
-        {value: 'A0', info: 'This control element'}, 
+        {value: 'A0', info: 'Control Number'}, 
         {value: 'A1', info: 'Reversed control element'}
       ],[
-        {value: 'A2', info: '7-bit value'}
+        {value: 'A2', info: 'Control Value'}
       ]
     ],
     NOTE: [
@@ -39,8 +44,10 @@
       let options = [];
       if(parameter == '0xb0'){
         options = this.CC;
+        inputLabels = this.CC_PARAMS;
       }else{ // this is also the default;
         options = this.NOTE;
+        inputLabels = this.NOTE_PARAMS;
       }
       return options;
     }
@@ -48,7 +55,11 @@
 
   let optionList = [];
 
-  $: if(data.name == 'MIDI Relative') optionList = MIDIRELATIVE.optionList(data.parameters[0]);
+  let inputLabels = [];
+
+  $: if(data.name == 'MIDI Relative') {
+    optionList = MIDIRELATIVE.optionList(data.parameters[0]);
+  }
 
   function validate_midirelative(parameter, index){
 
@@ -106,6 +117,7 @@
   }
 
   onMount(()=>{
+    console.log('SUP?')
     optionList = MIDIRELATIVE.optionList(data.parameters[0].value);
   })
 
@@ -114,6 +126,7 @@
 
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
+    <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
     <DropDownInput optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Relative'}
@@ -124,16 +137,17 @@
 {/each}
 
 <style>
+  .dropDownInput{
+    padding-right:0.5rem;
+  }
+
   .dropDownInput:first-child{
-    margin-left: 0.5rem;
+    padding-left: 0rem;
   }
 
   .dropDownInput:last-child{
-    margin-right: 0.5rem;
+    padding-left: 0.5rem;
   }
 
-  .dropDownInput:not(:first-child):not(:last-child){
-    margin-right: 0.5rem;
-    margin-left: 0.5rem;
-  }
+  
 </style>
