@@ -249,15 +249,17 @@
 
   export function writeSerialPort(data){
     const port = serialports[0];
-    const MSG = GRID.encode(data.detail.className, data.detail.parameters);
-    port.write(`${MSG}\n`, function(err, result){
-      if(err){
-        console.log('Error while sending message : ' + err)
-      }
-      if (result) {
-        console.log('Response received after sending message : ' + result); 
-      }  
-    });
+    if(port){
+      const MSG = GRID.encode(data.detail.className, data.detail.parameters);
+      port.write(`${MSG}\n`, function(err, result){
+        if(err){
+          console.log('Error while sending message : ' + err)
+        }
+        if (result) {
+          console.log('Response received after sending message : ' + result); 
+        }  
+      });
+    }
   }
 
 

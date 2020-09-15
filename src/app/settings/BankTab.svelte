@@ -3,61 +3,49 @@
   import { globalSettings } from './globalSettings.store.js';
   import { elementSettings } from './elementSettings.store.js';
 
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
+
+  import ColorPicker from './ColorPicker.svelte';
   
   const dispatch = createEventDispatcher();
 
-  let colors = {
-    red: [245, 0, 0],
-    green: [0, 250, 0],
-    blue: [0, 0, 250],
-    pink: [200, 50, 70],
-    indigo: [30, 75, 200],
-    yellow: [160, 160, 20],
-    orange: [200, 100, 20]
-  }
-
   export let tab;
-
   export let selected;
-
-  let bank_color;
+  export let globalData;
 
   let rgb = [];
 
   let enabled = true;
 
-  let numberOfModules;
+  // Binding on parent for save & update.
+  export let bankName;
+  export let bankColor;
 
-  function bankSettings(state){
-    globalSettings.update((banks)=>{
-      banks.bankEnabled[selected] = state;
-      return banks;
-    })
-  }
+  // Colorpicker variables.
+  let startColor;
+  $: startColor = "rgb(" + globalData.colors[selected] + ")";
 
-  function selectColor(color){
-    bank_color = color;
-    rgb = colors[color];
+  function colorCallback(rgba) {
+
+    rgb[0] = Math.floor(rgba.detail.r * rgba.detail.a)
+    rgb[1] = Math.floor(rgba.detail.g * rgba.detail.a)
+    rgb[2] = Math.floor(rgba.detail.b * rgba.detail.a)
+
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
     ]})
-    globalSettings.update(banks => {
-      banks.colors[selected] = rgb;
-      return banks
-    })
+
+    bankColor = rgb;
+
   }
 
-/*
-  globalSettings.subscribe((setting)=>{
-    if(rgb.length > 0){
-      console.log('DISPATCH BANKCOLOR')
-      dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
-        {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
-      ]})
-    }
+  function handleBankEnabled(state){
+    bankState = state;
+  }
+
+  onMount(()=>{
   })
-*/
+
 </script>
 
 <style>
@@ -93,53 +81,34 @@
 
   <div class="flex flex-col">
 
+    <div class="p-2 my-1">
+      <div class="mb-1 text-gray-700">Name</div>
+      <input 
+        class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none"
+        bind:value={bankName}
+        placeholder="Set bank name..."
+        >
+    </div>
 
-    <div class="flex secondary justify-between text-white p-2 m-1 items-center">
-      <div>Enabled: <span class="text-blue-500">{enabled}</span></div>
+
+    <div class="flex justify-between text-white p-2 my-1 items-center">
+      <div class="text-gray-200 ">
+        {#if enabled}
+          Bank is <span class="text-green-500">enabled!</span>
+        {:else}
+          Bank is <span class="text-red-500">disabled...</span>
+        {/if}
+      </div>
       <div class="relative flex items-center justify-center">
-        <div on:click={()=>{bankSettings(enabled =! enabled)}} style="background: {enabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner transitions w-6 h-6 rounded-full"></div>
-        <div class:circle={enabled} class="w-12 h-12 rounded-full opacity-0 bg-red-400 absolute"></div>
+        <div on:click={()=>{handleBankEnabled(enabled =! enabled)}} style="background: {enabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner transitions w-6 h-6 rounded-full"></div>
+        <div class:circle={enabled} class="w-12 h-12 rounded-full opacity-0 cursor-pointer bg-red-400 absolute"></div>
       </div>
     </div>
 
-    <div class="p-2 m-1 text-white">Bank Color</div>
+    <div class="p-2 text-white">Bank Color</div>
 
-    <div class="flex p-2">
-      <div 
-        class:border-2="{bank_color === 'red'}" 
-        on:click="{() => selectColor('red')}"
-        class="shadow bg-red-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'green'}" 
-        on:click="{() => selectColor('green')}"
-        class="shadow bg-green-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'blue'}" 
-        on:click="{() => selectColor('blue')}"
-        class="shadow bg-blue-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'pink'}" 
-        on:click="{() => selectColor('pink')}"
-        class="shadow bg-pink-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'indigo'}" 
-        on:click="{() => selectColor('indigo')}"
-        class="shadow bg-indigo-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'yellow'}" 
-        on:click="{() => selectColor('yellow')}"
-        class="shadow bg-yellow-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
-      <div 
-        class:border-2="{bank_color === 'orange'}" 
-        on:click="{() => selectColor('orange')}"
-        class="shadow bg-orange-500 p-2 rounded-full border-white w-8 h-8 font-medium mx-2" 
-      ></div>
+    <div class="flex px-2">
+      <ColorPicker {startColor} ref={'bank'} index={selected} showAlpha={false} on:colorChange={colorCallback}/>
     </div>
   </div>
 {/if}

@@ -8,11 +8,12 @@
   import EN16 from './modules/EN16.svelte';
 
   import ControlNameOverlay from './overlays/ControlNameOverlay.svelte';
+  import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
+
 
   import { appSettings } from '../stores/app-settings.store.js';
-
   import { globalSettings } from '../settings/globalSettings.store.js';
-import { elementSettings } from '../settings/elementSettings.store.js';
+  import { elementSettings } from '../settings/elementSettings.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -49,7 +50,11 @@ import { elementSettings } from '../settings/elementSettings.store.js';
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
 
     {#if $appSettings.overlays.controlName}
-      <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}></ControlNameOverlay>
+      <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}/>
+    {/if}
+
+    {#if $appSettings.selectedDisplay == 'profiles'}
+      <ProfileLoadOverlay {id} {moduleWidth} {bank} {rotation}/>
     {/if}
 
   </svelte:component>

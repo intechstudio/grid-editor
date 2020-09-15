@@ -12,6 +12,7 @@
 
     appSettings.update((settings)=>{
       settings.overlays[type] = activated;
+      console.log(settings)
       return settings;
     })
 }

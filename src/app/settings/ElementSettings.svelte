@@ -32,6 +32,10 @@
 
   let controlElementName = '';
 
+  // copy-c and copy-v
+
+  let copiedActions;
+
   // ElementSettings store subscription
 
   // main
@@ -101,7 +105,6 @@
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
           if(elementEvent !== undefined){
             elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
-            console.log('this is saved:', data.parameters);
           }
         }
         return controller;
@@ -122,6 +125,31 @@
       })
       return grid; 
     })
+  }
+
+  function copyActions(){
+    $grid.used.forEach(controller => {
+      if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
+        let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        copiedActions = elementEvent.actions;
+      }
+    });
+  }
+
+  function pasteActions(){
+    grid.update((grid)=>{
+      grid.used.map((controller)=>{
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
+          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          const newActions = JSON.parse(JSON.stringify(copiedActions));
+          console.log('paste this...',elementEvent.actions, newActions)
+          elementEvent.actions = newActions;
+        }
+        return controller;
+      });   
+      return grid;
+    });
+    loadSelectedModuleSettings();
   }
 
   onMount(()=>{
@@ -153,7 +181,8 @@
     <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber[0]}</div>
   </div>
 
-  <div class="mx-2 my-4 w-full">
+
+  <div class="flex flex-col px-2 my-4 w-full">
   
     <div class="text-gray-700 flex py-1">
       <div>Name</div>
@@ -169,8 +198,8 @@
     
   </div>
 
-  <div class="mx-2 my-4 w-full">
-    <div class="text-gray-700 py-1">
+  <div class="flex flex-col">
+    <div class="text-gray-700 py-1 mx-2">
       Events
     </div>
 
@@ -186,32 +215,49 @@
       {/each}
     </div>
 
-    <div class="text-gray-700 py-1">
-      Actions
-    </div>
 
-    <div>
+  
+    <div class="mx-2 my-4">
 
-      <div class="flex w-full pr-4 py-4">
-        <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-1 rounded-none focus:outline-none">
-          {#each availableActions as action}
-            <option value={action} class="secondary text-white">{action.name}</option>
-          {/each}
-        </select>
-        <button 
-          disabled={selectedAction === undefined} 
-          class:disabled={selectedAction === undefined} 
-          on:click={()=>{selectedAction = manageActions(selectedAction); }} 
-          class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none"
-          >
-            Add Action
-          </button>
+      <div class="text-gray-700 py-1">
+        Actions
       </div>
+
+      <div class="flex w-full">
+
+          <div class="flex flex-col xl:flex-row w-full justify-between"> 
+
+            <div class="flex w-full xl:w-2/3">         
+              <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 rounded-none focus:outline-none">
+                {#each availableActions as action}
+                  <option value={action} class="secondary  text-white">{action.name}</option>
+                {/each}
+              </select>
+              <button 
+                disabled={selectedAction === undefined} 
+                class:disabled={selectedAction === undefined} 
+                on:click={()=>{selectedAction = manageActions(selectedAction); }} 
+                class="bg-highlight mx-1 w-32 font-medium text-white py-1 px-2 rounded-none border border-highlight hover:bg-highlight-400 focus:outline-none"
+                >
+                Add Action
+              </button>
+            </div>
+     
+            <div class="flex mt-2 xl:mt-0">
+              <button on:click={(e)=>{copyActions()}} class="mr-2 text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Copy</button>
+              <button on:click={(e)=>{pasteActions()}} class="text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Paste</button>
+            </div>
+
+          </div>  
+      </div>
+
+      
 
       <SortableActions
         {selectedActions} 
         let:data 
-        let:index>
+        let:index
+        >
         {#if selectedActions[0].parameters.length > 0}
           <Action 
             on:remove={handleRemoveAction}

@@ -339,6 +339,8 @@
   {/if}
 
   {#if $appSettings.selectedDisplay == 'profiles'}
+
+  <!--
   <div class="w-full absolute text-white h-full flex justify-between items-start">
     <div class="w-1/2 bg-gray-700 flex flex-row h-full justify-center items-center z-30">
       <div on:click={()=>{ startFresh(); $appSettings.selectedDisplay = 'layout'}} class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Start fresh...</div>
@@ -350,6 +352,7 @@
       <div class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Save profile...</div>
     </div>
   </div>
+  -->
   {/if}
 
   <!-- This is the (mostly) Layout part of the code. -->

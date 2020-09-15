@@ -15,23 +15,37 @@
 
   let selected = 0;
 
+  let globalData;
+
   let tabs = [0,1,2,3];
 
-  //$: selected = $elementSettings.bank;
+  $: if(globalData){
+    console.log('global data is updated',globalData);
+    globalSettings.update((banks)=>{
+      banks.names = globalData.names;
+      banks.colors = globalData.colors;
+      banks.bankEnabled = globalData.bankEnabled;
+      return banks;
+    })
+  }
 
   globalSettings.subscribe(banks => {
+    console.log(banks);
     let parameters = banks.bankEnabled.map((b,i)=>{
       b ? b = 1 : b = 0; 
       return {'BANKNUMBER': i,'ISENABLED': b}
     });
+    
+    console.log('global settings banks...',banks);
+    globalData = banks;
     selected =  banks.active;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})
   })
 
   function changeSelected(bank){
-    selected = bank;
+    globalData.active = bank;
     elementSettings.update(settings => {
-      settings.bank = selected;
+      settings.bank = bank;
       return settings;
     })
     dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': selected}]})
@@ -49,14 +63,12 @@
 
 <div class="inline-block primary rounded-lg p-4 m-4 z-20">
 
-  <div class="text-xl font-bold text-white m-2">
-    Global Settings
+  <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
+    <div class="mr-2">Global Settings</div>
+    <Tooltip text={'Global settings refer to Grid\'s bank system activated by the small side button.'}></Tooltip>
   </div>
 
-  <Tooltip text={'This is very important danit le kell nyűgözni ugyhogy most ez hosszabb lesz!'}></Tooltip>
-
-
-  <div class="flex flex-col my-4">
+  <div class="flex flex-col mt-4">
     <div class="text-gray-700 py-1 ml-2">
       Banks
     </div>   
@@ -75,22 +87,19 @@
       </div>
 
       <div class="my-2 flex flex-col justify-between">
-        {#each tabs as tab}     
-          <BankTab on:BANKCOLOR {tab} {selected}/>  
+        {#each tabs as tab, index}     
+          <BankTab 
+            on:BANKCOLOR 
+            {tab} 
+            {globalData} 
+            {selected}
+            bind:bankName={globalData.names[index]}
+            bind:bankState={globalData.bankEnabled[index]}
+            bind:bankColor={globalData.colors[index]} />  
         {/each}
       </div>
     </div>
       
   </div>
-
-
-      <!--
-      <select bind:value={nrpnResolution} class="bg-red-500 p-1 w-1/2 rounded-l-none rounded-r">
-        {#each ['10-bit', '11-bit', '12-bit'] as resolution}
-          <option class="font-medium text-black bg-white" >{resolution}</option>
-        {/each}
-      </select>
-      -->
-
 
 </div>

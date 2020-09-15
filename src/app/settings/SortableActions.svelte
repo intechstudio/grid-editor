@@ -90,7 +90,7 @@
         box-sizing: border-box;
         width: 100%;
         user-select: none;
-        padding-bottom: 1rem;
+        padding-top: 1rem;
     }
 
     .item:last-child {
@@ -181,7 +181,7 @@
                 data-id={(data.id ? data.id : JSON.stringify(data))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <div class=" pb-2 text-white">{data.name}</div>
+                <div class="pb-2 text-white">{data.name}</div>
                 <div class="wrapper">
                     <div>
                         <div class="invisible text-xs">Order</div>

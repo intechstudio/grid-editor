@@ -44,7 +44,7 @@
 
     //console.log(parameterArray, MSG_ARRAY)    
 
-    port.write(`${MSG_ARRAY[0]}\n`, function(err, result){
+    port.write(`${MSG_ARRAY}\n`, function(err, result){
       if(err){
         console.log('Error while sending message : ' + err)
       }
@@ -71,20 +71,10 @@
   
   function colorCallback(rgba) {
 
-    data.parameters[2] = Math.floor(rgba.detail.r * rgba.detail.a)
-    data.parameters[3] = Math.floor(rgba.detail.g * rgba.detail.a)
-    data.parameters[4] = Math.floor(rgba.detail.b * rgba.detail.a)
+    data.parameters[2] = Math.floor(rgba.detail.r)
+    data.parameters[3] = Math.floor(rgba.detail.g)
+    data.parameters[4] = Math.floor(rgba.detail.b)
     data.parameters[5] = rgba.detail.a;
-   
-    console.log('color-callback:', data.parameters);
-  }
-
-  function rgb2hex(rgb){
-    rgb = rgb.match(/^rgba?[\s+]?\([\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?,[\s+]?(\d+)[\s+]?/i);
-    return (rgb && rgb.length === 4) ? "#" +
-      ("0" + parseInt(rgb[1],10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[2],10).toString(16)).slice(-2) +
-      ("0" + parseInt(rgb[3],10).toString(16)).slice(-2) : '';
   }
 
   function setLedColorValidator(parameters){
@@ -116,9 +106,8 @@
 
     console.log('onMount data.parameters: ',data.parameters);
 
-    const color = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
-    startColor = rgb2hex(color).toUpperCase();
-    console.log('startColor: ', startColor);
+    startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
+
     alpha = data.parameters[5];
 
     data.parameters[0] = selectedControlNumber;
@@ -127,14 +116,14 @@
 
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col w-full">
   <div class="flex w-full text-white">
-    <div class="flex w-1/2 flex-col xl:flex-row">
-      <div class="w-full xl:w-6/12">
-        <div class="text-gray-700 text-xs">Control Element</div>
+    <div class="flex w-5/12 flex-col xl:flex-row">
+      <div class="w-full xl:w-5/12">
+        <div class="text-gray-700 text-xs">Element</div>
         <DropDownInput optionList={parameters} bind:dropDownValue={data.parameters[0]}/>
       </div>
-      <div class="w-full xl:w-6/12">
+      <div class="w-full xl:w-7/12">
         <div class="text-gray-700 text-xs">Layer</div>
         <div class="flex justify-around my-1">
           <div class="mx-1 flex ">
@@ -148,7 +137,7 @@
         </div>
       </div>
     </div>
-    <div class="flex w-1/2 flex-col xl:flex-row">
+    <div class="flex w-7/12 flex-col xl:flex-row">
       <div class="px-1">
         <div class="text-gray-700 text-xs">Red</div>
         <input type="number" bind:value={data.parameters[2]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
@@ -157,16 +146,20 @@
         <div class="text-gray-700 text-xs">Green</div>
         <input type="number" bind:value={data.parameters[3]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
-      <div class="px-1 xl:pr-2">
+      <div class="px-1">
         <div class="text-gray-700 text-xs">Blue</div>
         <input type="number" bind:value={data.parameters[4]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+      </div>
+      <div class="px-1 xl:pr-2">
+        <div class="text-gray-700 text-xs">Alpha</div>
+        <input type="number" bind:value={data.parameters[5]} min=0 max=1 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
     </div>
   </div>
 
   <div class="mt-2 pr-2 w-full">
     {#if startColor}
-      <ColorPicker {startColor} {alpha} {index} width={240} on:colorChange={colorCallback}/>
+      <ColorPicker {startColor}  ref={'action'} {alpha} {index} on:colorChange={colorCallback}/>
     {/if}
   </div>
 

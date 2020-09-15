@@ -226,12 +226,10 @@ export var GRID_PROTOCOL = {
 
     let command = '';
     PARAMETERS.forEach(CLASS => {
-      console.log('class:',CLASS)
       let param = '';
       for (const key in CLASS) {
        param += CLASS[key].toString(16).padStart(2, '0');
       }
-      console.log('param:',param);
       command += 
         String.fromCharCode(PROTOCOL.CONST.STX) +
         PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
@@ -239,8 +237,6 @@ export var GRID_PROTOCOL = {
         param + 
         String.fromCharCode(PROTOCOL.CONST.ETX);
     })
-
-    console.log('COMMAND',command);
 
     let params = '';
     BRC_PARAMETERS.forEach(param => {

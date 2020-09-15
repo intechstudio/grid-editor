@@ -117,7 +117,6 @@
   }
 
   onMount(()=>{
-    console.log('SUP?')
     optionList = MIDIRELATIVE.optionList(data.parameters[0].value);
   })
 
