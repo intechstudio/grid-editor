@@ -12,6 +12,7 @@
   import { appSettings } from '../stores/app-settings.store.js';
 
   import { globalSettings } from '../settings/globalSettings.store.js';
+import { elementSettings } from '../settings/elementSettings.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -27,6 +28,7 @@
   let selected;
   let color;
   let bankSettings;
+  let bank;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
@@ -36,6 +38,9 @@
     globalSettings.subscribe(banks =>{
       color = banks.colors[banks.active];
     })
+    elementSettings.subscribe(settings => {
+      bank = settings.bank
+    })
   })
 
 </script>
@@ -44,7 +49,7 @@
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
 
     {#if $appSettings.overlays.controlName}
-      <ControlNameOverlay {id} {moduleWidth} {rotation}></ControlNameOverlay>
+      <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}></ControlNameOverlay>
     {/if}
 
   </svelte:component>
