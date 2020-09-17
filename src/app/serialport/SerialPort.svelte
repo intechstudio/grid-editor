@@ -6,7 +6,7 @@
 
   import { elementSettings } from '../settings/elementSettings.store.js';
   import { globalSettings } from '../settings/globalSettings.store.js';
-  import { serialStore } from './serialport.store.js';
+  import { serialComm } from './serialport.store.js';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -92,9 +92,9 @@
       serialports[i] = new SerialPort(path, { autoOpen: false });
     });
 
-    serialStore.update(ports => {
-      ports = serialports;
-      return ports;
+    serialComm.update((ports) => {
+      ports = serialports; 
+      return ports
     });
   }
 
@@ -247,10 +247,12 @@
     }
   }
 
+  
   export function writeSerialPort(data){
+
     const port = serialports[0];
     if(port){
-      const MSG = GRID.encode(data.detail.className, data.detail.parameters);
+      const MSG = GRID.encode('', data.detail.className, data.detail.parameters);
       port.write(`${MSG}\n`, function(err, result){
         if(err){
           console.log('Error while sending message : ' + err)
@@ -260,6 +262,7 @@
         }  
       });
     }
+
   }
 
 

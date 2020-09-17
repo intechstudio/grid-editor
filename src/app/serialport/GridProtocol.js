@@ -209,12 +209,28 @@ export var GRID_PROTOCOL = {
       } else {
         object[param] = value;
       }
-      
     }
     return object;
   },
 
-  encode: function (CLASS_NAME, PARAMETERS){
+  encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS){
+
+    if(MODULE_INFO !== ''){
+      const dx = +MODULE_INFO.id.split(';')[0].split(':').pop();
+      const dy = +MODULE_INFO.id.split(';')[1].split(':').pop();
+      let rot = 0;
+
+      switch (MODULE_INFO.rotation){
+        case -0:
+          rot = 0; break;
+        case 90:
+          rot = 1; break;
+        case 180:
+          rot = 2; break;
+        case 270:
+          rot = 3; break;
+      }
+    }
 
     const PROTOCOL = this.PROTOCOL;
 
@@ -224,56 +240,7 @@ export var GRID_PROTOCOL = {
       this.utility_genId(), 127, 127, 255, 0
     ];
 
-    let command = '';
-    PARAMETERS.forEach(CLASS => {
-      let param = '';
-      for (const key in CLASS) {
-       param += CLASS[key].toString(16).padStart(2, '0');
-      }
-      command += 
-        String.fromCharCode(PROTOCOL.CONST.STX) +
-        PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-        String.fromCharCode(102) + // REP_CODE
-        param + 
-        String.fromCharCode(PROTOCOL.CONST.ETX);
-    })
-
-    let params = '';
-    BRC_PARAMETERS.forEach(param => {
-      params += param.toString(16).padStart(2, '0');
-      console.log(param);
-    })
-    
-    const append = 
-      String.fromCharCode(PROTOCOL.CONST.EOB) + 
-      command +
-      String.fromCharCode(PROTOCOL.CONST.EOT);
-
-    let message = prepend + params + append;
-
-    console.log(params);
-
-    message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
-
-    let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
-
-    message = message + checksum;
-
-    return message;
-  },
-
-
-  encode_two: function (CLASS_NAME, PARAMETERS){
-
-    console.log('input params',PARAMETERS);
-
-    const PROTOCOL = this.PROTOCOL;
-
-    const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
-
-    let BRC_PARAMETERS = [
-      this.utility_genId(), 255, 255, 255, 0
-    ];
+    console.log(BRC_PARAMETERS);
 
     let command = '';
     let param = '';

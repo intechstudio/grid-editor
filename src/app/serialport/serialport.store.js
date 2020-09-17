@@ -1,3 +1,18 @@
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
-export let serialStore = writable([])
+function createSerialComm(){
+  const store = writable([]);
+
+  return {
+    ...store,
+    write: (args) => { 
+      const port = get(store)[0];
+      port.write(`${args}\n`);
+      return
+    }
+  }
+}
+
+export const serialComm = createSerialComm();
+
+ 

@@ -3,7 +3,7 @@
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
-  import { serialStore } from '../../serialport/serialport.store';
+  import {  serialComm } from '../../serialport/serialport.store';
 
   import ColorPicker from '../ColorPicker.svelte';
 
@@ -11,11 +11,9 @@
 
   export let data;
   export let selectedControlNumber;
-  export let moduleId;
+  export let moduleInfo;
 
   $: if(data.parameters){
-    // num, layer, r, g, b
-    //console.log(data.parameters, layers);
 
     data.valid = setLedColorValidator(data.parameters);
 
@@ -35,25 +33,14 @@
       parameterArray.push(parameters);
     }
 
-    console.log('set led color on module...', moduleId)
+    console.log('set led color on module...', moduleInfo)
 
     let MSG_ARRAY = [];
     parameterArray.forEach(parameters => {
-      MSG_ARRAY.push(GRID_PROTOCOL.encode_two("LEDCOLOR", parameters));
+      MSG_ARRAY.push(GRID_PROTOCOL.encode(moduleInfo, "LEDCOLOR", parameters));
     });
      
-    const port = $serialStore[0];
-
-    //console.log(parameterArray, MSG_ARRAY)    
-
-    port.write(`${MSG_ARRAY}\n`, function(err, result){
-      if(err){
-        console.log('Error while sending message : ' + err)
-      }
-      if (result) {
-        console.log('Response received after sending message : ' + result); 
-      }  
-    });
+    serialComm.write(MSG_ARRAY);
     
   }
 

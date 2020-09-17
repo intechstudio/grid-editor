@@ -26,6 +26,8 @@
 
   let moduleId = '';
 
+  let moduleInfo;
+
   let events = [];
 
   let selectedEvent = '';
@@ -43,6 +45,7 @@
   function loadSelectedModuleSettings(){
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
+        moduleInfo = _controller;
         moduleId = _controller.id;
         events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
@@ -264,7 +267,7 @@
             on:change={handleOnChange}
             {data} 
             {index}
-            {moduleId}
+            {moduleInfo}
             selectedControlNumber={selectedElementSettings.controlNumber[0]}
           />
         {/if}
