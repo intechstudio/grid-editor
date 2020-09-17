@@ -13,7 +13,8 @@ const store = new Store({
         windowBounds: { 
             width: 800, 
             height: 600
-        }
+        },
+        profiles_folder: ''
     }
 });
 
@@ -40,8 +41,6 @@ function createWindow() {
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
     let { width, height } = store.get('windowBounds');
 
-    console.log('createwindow',width, height);
-
     mainWindow = new BrowserWindow({
         width,
         height,
@@ -66,7 +65,6 @@ function createWindow() {
 
     mainWindow.webContents.openDevTools();
     
-    
 }
 
 // This method will be called when Electron has finished
@@ -80,9 +78,8 @@ autoUpdater.checkForUpdatesAndNotify();
 
 
 ipcMain.on('setStoreValue-message', (event, arg) => {
-  store.set({
-    grid: arg
-  })
+  console.log('attempt to store..',arg);
+  store.set(arg)
   event.reply('setStoreValue-reply', 'saved');
 })
 
@@ -119,6 +116,11 @@ autoUpdater.on('update-downloaded', () => {
 ipcMain.on('restart_app', () => {
   autoUpdater.quitAndInstall();
 });
+
+// profile save and user config saves
+ipcMain.on('profiles-directory', () => {
+  log.info('default profiles folder is ', store.get('profiles_folder'))
+})
 
 
 // Quit when all windows are closed.

@@ -6,6 +6,18 @@
 
   // Importing dialog module using remote 
   const dialog = electron.remote.dialog; 
+
+  function openDirectory(){
+
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(directory => {
+        console.log(directory)
+    }).catch(err => {
+        console.log(err)
+    });
+
+  }
     
   function saveFile() { 
       // Resolves to a Promise<Object> 

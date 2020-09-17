@@ -20,7 +20,6 @@
   let tabs = [0,1,2,3];
 
   $: if(globalData){
-    console.log('global data is updated',globalData);
     globalSettings.update((banks)=>{
       banks.names = globalData.names;
       banks.colors = globalData.colors;
@@ -30,13 +29,11 @@
   }
 
   globalSettings.subscribe(banks => {
-    console.log(banks);
     let parameters = banks.bankEnabled.map((b,i)=>{
       b ? b = 1 : b = 0; 
       return {'BANKNUMBER': i,'ISENABLED': b}
     });
     
-    console.log('global settings banks...',banks);
     globalData = banks;
     selected =  banks.active;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})

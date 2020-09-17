@@ -241,6 +241,7 @@ export var GRID_PROTOCOL = {
     let params = '';
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');
+      console.log(param);
     })
     
     const append = 
@@ -249,6 +250,8 @@ export var GRID_PROTOCOL = {
       String.fromCharCode(PROTOCOL.CONST.EOT);
 
     let message = prepend + params + append;
+
+    console.log(params);
 
     message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
 
@@ -269,7 +272,7 @@ export var GRID_PROTOCOL = {
     const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
 
     let BRC_PARAMETERS = [
-      this.utility_genId(), 127, 127, 255, 0
+      this.utility_genId(), 255, 255, 255, 0
     ];
 
     let command = '';
@@ -287,13 +290,12 @@ export var GRID_PROTOCOL = {
       param +
       String.fromCharCode(PROTOCOL.CONST.ETX);
     
-    console.log('command',command);
-
     let params = '';
+   
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');
     })
-    
+     
     const append = 
       String.fromCharCode(PROTOCOL.CONST.EOB) + 
       command +

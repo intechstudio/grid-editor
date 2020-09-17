@@ -20,6 +20,7 @@
   // Binding on parent for save & update.
   export let bankName;
   export let bankColor;
+  export let bankState;
 
   // Colorpicker variables.
   let startColor;
@@ -108,7 +109,7 @@
     <div class="p-2 text-white">Bank Color</div>
 
     <div class="flex px-2">
-      <ColorPicker {startColor} ref={'bank'} index={selected} showAlpha={false} on:colorChange={colorCallback}/>
+      <ColorPicker {startColor} showAlpha={false} on:colorChange={colorCallback}/>
     </div>
   </div>
 {/if}

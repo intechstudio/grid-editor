@@ -41,6 +41,8 @@
 
   import Filesave from './app/Filesave.svelte';
 
+  import GlobalProfiles from './app/profiles/GlobalProfiles.svelte';
+
 
   /*
   *   layout helper functions
@@ -60,7 +62,7 @@
   */
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
-  import { dragndrop } from './app/layout/actions/dnd.action.js';
+  import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
 
   /*
   *   variables
@@ -133,7 +135,7 @@
       fwVersion = store.version;
       if(store.selectedDisplay == 'layout'){
         $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
-      } else if(store.selectedDisplay == 'settings'){
+      } else {
         $grid.layout = LAYOUT.removePossiblePlacementOutlines($grid)
       }
     });
@@ -164,7 +166,6 @@
   function initLayout(){
     if($grid.used.length > 0){
       $grid.used.forEach(usedCell => {
-        
         let renderCoords = document.getElementById('grid-cell-x:'+usedCell.dx+';y:'+usedCell.dy);
         var nodeCopy = document.getElementById(usedCell.id.substr(0,4)).cloneNode(true);
         nodeCopy.id = genModulId(usedCell.id.substr(0,4));
@@ -324,7 +325,6 @@
     <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
   {/if}
 
-
   <!-- This is the Settings part of the code-->
 
   {#if $appSettings.selectedDisplay == 'settings'}
@@ -339,20 +339,7 @@
   {/if}
 
   {#if $appSettings.selectedDisplay == 'profiles'}
-
-  <!--
-  <div class="w-full absolute text-white h-full flex justify-between items-start">
-    <div class="w-1/2 bg-gray-700 flex flex-row h-full justify-center items-center z-30">
-      <div on:click={()=>{ startFresh(); $appSettings.selectedDisplay = 'layout'}} class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Start fresh...</div>
-      <div on:click={()=>{ loadRecentSession(); $appSettings.selectedDisplay = 'settings'}} class="h-full w-full flex items-center justify-center bg-gray-700 hover:bg-highlight-400 cursor-pointer">Load recent session...</div>
-    </div>
-    
-    <div class="w-1/2 flex flex-col h-full justify-center items-center z-30">
-      <div class="h-full w-full flex items-center justify-center bg-gray-600 hover:bg-highlight-400 cursor-pointer">Load profile...</div>
-      <div class="h-full w-full flex items-center justify-center bg-gray-800 hover:bg-highlight-400 cursor-pointer">Save profile...</div>
-    </div>
-  </div>
-  -->
+    <GlobalProfiles/>
   {/if}
 
   <!-- This is the (mostly) Layout part of the code. -->

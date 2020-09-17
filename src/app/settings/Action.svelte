@@ -15,6 +15,7 @@
   export let data;
   export let index;
   export let selectedControlNumber;
+  export let moduleId;
 
   const components = {
     'MIDI Relative': MidiRelative,
@@ -46,11 +47,11 @@
 
 </script>
 
-<main class="flex flex-col"> 
+<main class="flex flex-col w-full"> 
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} bind:data={data} {selectedControlNumber} {index} />    
+    <svelte:component this={components[data.name]} bind:data={data} {moduleId} {selectedControlNumber} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

@@ -10,8 +10,8 @@
   import DropDownInput from '../DropDownInput.svelte';
 
   export let data;
-  export let index;
   export let selectedControlNumber;
+  export let moduleId;
 
   $: if(data.parameters){
     // num, layer, r, g, b
@@ -34,6 +34,8 @@
       ];
       parameterArray.push(parameters);
     }
+
+    console.log('set led color on module...', moduleId)
 
     let MSG_ARRAY = [];
     parameterArray.forEach(parameters => {
@@ -157,9 +159,9 @@
     </div>
   </div>
 
-  <div class="mt-2 pr-2 w-full">
+  <div class="mt-2 pr-1 xl:pr-2 w-full">
     {#if startColor}
-      <ColorPicker {startColor}  ref={'action'} {alpha} {index} on:colorChange={colorCallback}/>
+      <ColorPicker {startColor} {alpha} on:colorChange={colorCallback}/>
     {/if}
   </div>
 

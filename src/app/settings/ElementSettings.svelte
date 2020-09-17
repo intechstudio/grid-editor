@@ -141,7 +141,7 @@
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-          const newActions = JSON.parse(JSON.stringify(copiedActions));
+          const newActions = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
           console.log('paste this...',elementEvent.actions, newActions)
           elementEvent.actions = newActions;
         }
@@ -228,7 +228,7 @@
           <div class="flex flex-col xl:flex-row w-full justify-between"> 
 
             <div class="flex w-full xl:w-2/3">         
-              <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 rounded-none focus:outline-none">
+              <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
                 {#each availableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>
                 {/each}
@@ -237,7 +237,7 @@
                 disabled={selectedAction === undefined} 
                 class:disabled={selectedAction === undefined} 
                 on:click={()=>{selectedAction = manageActions(selectedAction); }} 
-                class="bg-highlight mx-1 w-32 font-medium text-white py-1 px-2 rounded-none border border-highlight hover:bg-highlight-400 focus:outline-none"
+                class="bg-highlight w-32 font-medium text-white py-1 px-2 rounded-none border border-highlight hover:bg-highlight-400 focus:outline-none"
                 >
                 Add Action
               </button>
@@ -264,6 +264,7 @@
             on:change={handleOnChange}
             {data} 
             {index}
+            {moduleId}
             selectedControlNumber={selectedElementSettings.controlNumber[0]}
           />
         {/if}
