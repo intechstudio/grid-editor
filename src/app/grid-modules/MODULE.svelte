@@ -53,9 +53,12 @@
       <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}/>
     {/if}
 
+    <!--    
     {#if $appSettings.selectedDisplay == 'profiles'}
       <ProfileLoadOverlay {id} {moduleWidth} {bank} {rotation}/>
     {/if}
+    -->
+
 
   </svelte:component>
 {/if}

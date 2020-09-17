@@ -23,6 +23,8 @@
 
   let message = '';
 
+  let rawserial = [];
+
   let GRID = GRID_PROTOCOL;
   GRID.initialize();
   console.log(GRID);
@@ -159,7 +161,8 @@
       });
 
       dispatch('debug', {
-        data: _array
+        data: _array,
+        raw_serial: array.join('')
       })
 
       let DATA = GRID.decode(_array);
@@ -205,10 +208,12 @@
         });
 
         elementSettings.update(settings => {
-          settings.bank = DATA.BANKACTIVE.BANKNUMBER;
+          console.log(DATA.BANKACTIVE);
+          if(DATA.BANKACTIVE.BANKNUMBER !== 255){
+            settings.bank = DATA.BANKACTIVE.BANKNUMBER;
+          }
           return settings;
         })
-
       }
       
       

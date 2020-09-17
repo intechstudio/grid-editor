@@ -47,6 +47,8 @@
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleInfo = _controller;
         moduleId = _controller.id;
+        console.log('attempt to load..',_controller.banks,selectedElementSettings.bank);
+   
         events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
         let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);

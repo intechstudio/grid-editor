@@ -1,6 +1,10 @@
 <script>
-import { onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
+  import { get } from 'svelte/store'
+import { LAYOUT } from '../layout/layout.js';
+import { globalSettings } from '../settings/globalSettings.store.js';
+  import { grid } from '../stores/grid.store.js';
 
   const electron = require('electron'); 
   const path = require('path'); 
@@ -16,6 +20,8 @@ import { onMount } from 'svelte';
   let PROFILE_PATH = '';
 
   let PROFILES = [];
+
+  let profileName = '';
 
   function openDirectory(){
     dialog.showOpenDialog({
@@ -37,25 +43,37 @@ import { onMount } from 'svelte';
       files.forEach(file => {
         fs.readFile(`${path + "/" + file}`,'utf-8', function (err, data) { 
             if (err) throw err; 
-            PROFILES = [...PROFILES, data]
+            let obj = JSON.parse(data)
+            PROFILES = [...PROFILES, obj]
         });
       })
     });
+    
   }
 
 
   function saveProfile() { 
+
+    const local = get(grid).used;
+    const global = get(globalSettings);
+
+    console.log(profile);
+
+    const profile = {local: local, global: global , name: profileName};
+
+    const json = JSON.stringify(profile);
+
     // Resolves to a Promise<Object> 
     dialog.showSaveDialog({ 
         title: 'Select the File Path to save', 
-        defaultPath: path.join(__dirname, '../assets/sample.txt'), 
+        defaultPath: path.join(__dirname, `../assets/${profileName}.json`), 
         // defaultPath: path.join(__dirname, '../assets/'), 
         buttonLabel: 'Save', 
-        // Restricting the user to only Text Files. 
+        // Restricting the user to only JSON Files. 
         filters: [ 
             { 
-                name: 'Text Files', 
-                extensions: ['txt', 'docx'] 
+                name: 'JSON Files', 
+                extensions: ['json'] 
             }, ], 
         properties: [] 
     }).then(file => { 
@@ -65,7 +83,7 @@ import { onMount } from 'svelte';
             const path = file.filePath.toString(); 
               
             // Creating and Writing to the sample.txt file 
-            fs.writeFile(path, 'This is a Sample File', function (err) { 
+            fs.writeFile(path, json, 'utf8', function (err) { 
                 if (err) throw err; 
                 console.log('Saved!'); 
             }); 
@@ -106,7 +124,19 @@ import { onMount } from 'svelte';
   }
 
   function loadProfile(){
-    console.log('Load profile...')
+    if(selected !== undefined){
+      const selectedProfile = PROFILES[selected];
+      console.log(selectedProfile);
+      grid.update(store => {
+        store.used = selectedProfile.local;
+        store.layout = LAYOUT.drawPossiblePlacementOutlines(store, 5)
+        return store;
+      });
+      globalSettings.update(store => {
+        store = selectedProfile.global;
+        return store;
+      })
+    }
   }
 
   onMount(async ()=> {
@@ -120,9 +150,16 @@ import { onMount } from 'svelte';
 
     <div class=" flex flex-col w-1/3 p-4 rounded-lg ">
 
-        <div class="primary rounded-lg flex justify-between items-center p-2 m-2">
-          <div class="p-2">Save this profile you made on the control surface...</div>
-          <button on:click={saveProfile} class="px-2 py-1 bg-highlight hover:bg-highlight-400 border-none rounded-none focus:outline-none">Save Profile</button>
+        <div class="primary rounded-lg flex justify-between items-end p-2 m-2">
+          <div class="w-full p-2">
+            <div class="py-2">Load this profile and save to disk...</div>
+            <input 
+              bind:value={profileName} 
+              type="text" 
+              placeholder="Name this profile"
+              class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+          </div>
+          <button on:click={saveProfile} class="px-2 py-1 my-2 mr-2 w-20 bg-highlight hover:bg-highlight-400 border-none rounded-none focus:outline-none">Save</button>
         </div>
 
         <div id="browse-profiles" class=" p-2 m-2 text-sm border border-primary rounded-lg">
@@ -137,7 +174,7 @@ import { onMount } from 'svelte';
             <div id="zero-level" class="flex flex-grow mr-2 p-2">
               <ul class="w-full">
                 {#each PROFILES as profile, i}
-                  <li class:bg-highlight="{selected === i}" on:click={()=>{selected = i}} class="p-1 my-1 cursor-pointer hover:bg-highlight-400">{profile}</li>
+                  <li class:bg-highlight="{selected === i}" on:click={()=>{selected = i}} class="p-1 my-1 cursor-pointer hover:bg-highlight-400">{profile.name}</li>
                 {/each}
               </ul>
             </div>

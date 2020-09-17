@@ -80,6 +80,7 @@
   let updateReady = false;
 
   let serial; // debug purposes
+  let raw_serial; // debug purposes
 
   $: gridsize = $appSettings.size * 106.6 + 10;
 
@@ -160,8 +161,6 @@
 
 
   });
-
-
 
   function initLayout(){
     if($grid.used.length > 0){
@@ -261,9 +260,9 @@
 
 <Tailwindcss />
 
-<!--
-<Debug {serial} />
--->
+
+<Debug {serial} {raw_serial} />
+
 
 <!--
 <Filesave></Filesave>
@@ -294,7 +293,7 @@
     $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
   }
   on:debug={
-    (e)=>{serial = e.detail.data}
+    (e)=>{serial = e.detail.data; raw_serial = e.detail.raw_serial}
   }
   on:coroner={(e)=>{
       grid.update(cell => {
@@ -415,7 +414,7 @@
         style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
         class="cell"
         class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
-        class:canBeUsed={cell.canBeUsed}
+        class:canBeUsed={cell.canBeUsed && $appSettings.selectedDisplay == 'layout'}
         class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
         class:isConnectedByUsb={cell.isConnectedByUsb}
         class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}

@@ -12,5 +12,6 @@ export const appSettings = writable({
     patch: +GRID.GRID_PROTOCOL_VERSION_PATCH
   },
   overlays: {controlName: false},
-  selectedDisplay: 'settings'
+  debugMode: false,
+  selectedDisplay: 'profiles'
 });
