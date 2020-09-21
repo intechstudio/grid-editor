@@ -6,6 +6,9 @@
 
   import { elementSettings } from '../settings/elementSettings.store.js';
   import { globalSettings } from '../settings/globalSettings.store.js';
+
+  import { debugStore } from '../stores/debug.store.js';
+
   import { serialComm } from './serialport.store.js';
 
   const SerialPort = require('serialport')
@@ -49,7 +52,7 @@
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
 
-      if(_removed !== undefined && _usedgrid.length !== 0){
+      if(_removed !== undefined && _usedgrid.length !== undefined){
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -68,6 +71,8 @@
      * Need to implement multiple port watch, if modules are connected on different usb ports.
     */
 
+    console.log('heartbeat interval',GRID.PROTOCOL.HEARTBEAT_INTERVAL);
+
     setInterval(() => {
       SerialPort.list()
         .then(ports => {
@@ -79,6 +84,7 @@
                 // Already initialized.
               }else {
                 serialpaths[i] = port.path;
+                console.log('Serial ports initialized.', port.path)
               }
             }                        
           });
@@ -153,18 +159,17 @@
     parser.on('data', function(data) {
 
       let array = Array.from(data);
+      console.log(array.join(''),99);
+      if(!(array.join('').slice(32).startsWith('010') && array.length == 48) ){
+        debugStore.store(array.join(''));
+      }
 
       let _array = [];
 
       array.forEach((element, i) => {
         _array[i] = element.charCodeAt(0);
       });
-
-      dispatch('debug', {
-        data: _array,
-        raw_serial: array.join('')
-      })
-
+      
       let DATA = GRID.decode(_array);
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
@@ -208,7 +213,7 @@
         });
 
         elementSettings.update(settings => {
-          console.log(DATA.BANKACTIVE);
+          //console.log(DATA.BANKACTIVE);
           if(DATA.BANKACTIVE.BANKNUMBER !== 255){
             settings.bank = DATA.BANKACTIVE.BANKNUMBER;
           }

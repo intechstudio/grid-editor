@@ -261,8 +261,10 @@
 <Tailwindcss />
 
 
-<Debug {serial} {raw_serial} />
+{#if $appSettings.debugMode == true}
 
+<Debug {raw_serial} />
+{/if}
 
 <!--
 <Filesave></Filesave>
