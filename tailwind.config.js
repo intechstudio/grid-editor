@@ -1,7 +1,7 @@
 module.exports = {
   theme: {
     fontFamily: {
-      'body': ['Roboto']
+      'body': ['roboto']
     },
     extend: {
       margin:{
@@ -14,6 +14,7 @@ module.exports = {
         'mono' : 'Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
         'aldo' : 'Aldo-SemiBold',
         'roboto-sans' : 'Roboto Sans',
+        'gt-pressura': 'GT Pressura Pro M Trial',
         'roboto' : 'Roboto',
         'roboto-mono' : 'Roboto Mono'
       },

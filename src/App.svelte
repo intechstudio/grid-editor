@@ -25,7 +25,8 @@
   *   svelte components
   */
 
-	import Menu from './app/menu/Menu.svelte';
+  import Menu from './app/menu/Menu.svelte';
+  import Titlebar from './app/menu/Titlebar.svelte';
   import GlobalSettings from './app/settings/GlobalSettings.svelte';
   import ElementSettings from './app/settings/ElementSettings.svelte';
   import MapMode from './app/settings/MapMode.svelte';
@@ -38,8 +39,6 @@
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
 
   import MODULE from './app/grid-modules/MODULE.svelte';
-
-  import Filesave from './app/Filesave.svelte';
 
   import GlobalProfiles from './app/profiles/GlobalProfiles.svelte';
 
@@ -260,10 +259,11 @@
 
 <Tailwindcss />
 
+<Titlebar/>
+
 
 {#if $appSettings.debugMode == true}
-
-<Debug {raw_serial} />
+  <Debug {raw_serial} />
 {/if}
 
 <!--
@@ -274,14 +274,14 @@
 <div id="notification">    
   {#if updateReady}
     <p id="message">Update Downloaded. It will be installed on restart. Restart now?</p>
-    <button id="restart-button" on:click={restartApp}>
+    <button class="cursor-pointer" id="restart-button" on:click={restartApp}>
       Restart
     </button>
   {:else}
     <p id="message">A new update is available. Downloading now...</p>
   {/if}
   
-  <button id="close-button" on:click={updateNotification = false}>
+  <button id="close-button" class="cursor-pointer" on:click={() => {updateNotification = false}}>
     Close
   </button>
   
@@ -293,9 +293,6 @@
   bind:this={serialPortComponent}
   on:change={
     $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
-  }
-  on:debug={
-    (e)=>{serial = e.detail.data; raw_serial = e.detail.raw_serial}
   }
   on:coroner={(e)=>{
       grid.update(cell => {

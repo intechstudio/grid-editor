@@ -44,6 +44,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width,
         height,
+        frame: false,
         webPreferences: {
           nodeIntegration: true
         }
@@ -85,12 +86,13 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 
 ipcMain.handle('getStoreValue', (event, key) => {
   const result = store.get(key);
-  return result
+  return result;
 })
 
 
 // Start the back-end micorservice on localport 3000.
 const polka = require('./polka')
+//const minmaxclose = require('./minmaxclose');
 
 // auto-update features
 

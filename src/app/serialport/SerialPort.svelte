@@ -51,8 +51,11 @@
       })
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
+      console.log('_usedgird length...', _usedgrid)
 
       if(_removed !== undefined && _usedgrid.length !== undefined){
+
+        
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -82,6 +85,7 @@
             if(port.productId == 'ECAD' || port.productId == 'ECAC'){        
               if(serialports.find(p => p.path == port.path)){
                 // Already initialized.
+                console.log('Serialport already initialized', port, i)
               }else {
                 serialpaths[i] = port.path;
                 console.log('Serial ports initialized.', port.path)
@@ -159,7 +163,6 @@
     parser.on('data', function(data) {
 
       let array = Array.from(data);
-      console.log(array.join(''),99);
       if(!(array.join('').slice(32).startsWith('010') && array.length == 48) ){
         debugStore.store(array.join(''));
       }
