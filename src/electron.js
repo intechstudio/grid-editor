@@ -110,6 +110,10 @@ autoUpdater.on('update-available', () => {
   mainWindow.webContents.send('update_available');
 });
 
+autoUpdater.on('update-progress', (progressObj) => {
+  mainWindow.webContents.send('update-progress', progressObj);
+});
+
 autoUpdater.on('update-downloaded', () => {
   log.info('update downloaded... in main!')
   mainWindow.webContents.send('update_downloaded');

@@ -11,7 +11,6 @@
   serialComm.subscribe(value => {
     if(value[0]){
       port = value[0];
-      console.log(port);
     }
   })
 

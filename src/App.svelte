@@ -77,6 +77,7 @@
   // self update
   let updateNotification = false;
   let updateReady = false;
+  let updateProgress = undefined;
 
   let serial; // debug purposes
   let raw_serial; // debug purposes
@@ -158,8 +159,24 @@
       updateReady = true;
     });
 
+    ipcRenderer.on('update_progress', (event,arg) => {
+      updateProgress = arg.percent;
+      console.log('update progress...', event, arg)
+    });
 
+    /*
+    let counter = 0;
+    const timer = setInterval(()=>{
+      counter++;
+      updateProgress = counter;
+      if(counter == 100){
+        updateReady = true;
+        clearInterval(timer);
+      }
+    },100);
+    */
   });
+
 
   function initLayout(){
     if($grid.used.length > 0){
@@ -239,14 +256,7 @@
   }
 
   #notification {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    width: 200px;
-    padding: 20px;
-    border-radius: 5px;
-    background-color: white;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+    background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
   }
 
   .hidden {
@@ -270,21 +280,27 @@
 <Filesave></Filesave>
 -->
 
-{#if updateNotification}
-<div id="notification">    
-  {#if updateReady}
-    <p id="message">Update Downloaded. It will be installed on restart. Restart now?</p>
-    <button class="cursor-pointer" id="restart-button" on:click={restartApp}>
-      Restart
+{#if updateNotification} <!--updateNotification-->
+<div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
+  <div id="notification" style="width:300px" class="p-4 rounded-lg">    
+    {#if updateReady} <!--updateReady-->
+      <p class="text-xl pb-2">🥂Update Downloaded!</p>
+      <p class="py-2">It will be installed on restart.</p>
+      <p class="py-2">Restart now?</p>
+      <button class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" id="restart-button" on:click={restartApp}>
+        Restart
+      </button>
+    {:else}
+      <p class="text-xl pb-2">✨New update is available! </p>
+      <p class="py-2">Downloading in the background... {updateProgress + '%'}</p>
+      <div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>
+    {/if}
+    
+    <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
+      Close
     </button>
-  {:else}
-    <p id="message">A new update is available. Downloading now...</p>
-  {/if}
-  
-  <button id="close-button" class="cursor-pointer" on:click={() => {updateNotification = false}}>
-    Close
-  </button>
-  
+    
+  </div>
 </div>
 {/if}
 
