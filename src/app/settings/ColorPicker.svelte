@@ -27,7 +27,7 @@
       startColor = rgb2hex(startColor).toUpperCase();
       let hex = startColor.replace('#','');
       if (hex.length !== 6 && hex.length !== 3 && !hex.match(/([^A-F0-9])/gi)) {
-        alert('Invalid property value (startColor)');
+        //alert('Invalid property value (startColor)');
         return;
       }
       let hexFiltered='';
@@ -46,6 +46,7 @@
   }
   
   function colorChangeCallback() {
+    //console.log('colorChangeCallback', r,g,b,a);
     dispatch('colorChange', {
         r: r,
         g: g,
@@ -72,6 +73,7 @@
   }
   
   function colorChange() {
+    //console.log('colorChange');
     let rgb = hsvToRgb(h, s, v);
     r = rgb[0];
     g = rgb[1];
@@ -155,6 +157,7 @@
           h=hnew;
           s=snew;
           v=vnew;
+          console.log('rgbToHSV-diff')
           colorChange();
           return;
         }
@@ -181,7 +184,8 @@
         h=hnew;
         s=snew;
         v=vnew;
-        colorChange();
+        //disable sending colorchange on init
+        //colorChange(); 
       }
       else {
         return {h:hnew,s:snew,v:vnew};
@@ -197,7 +201,7 @@
   }
 
   onMount(() => {
-   setStartColor();
+    setStartColor();
   });
 
   </script>

@@ -9,16 +9,6 @@
 
   let appVersion = '';
 
-  let debugMode;
-
-  $: {
-    appSettings.update((store)=>{
-      store.debugMode = debugMode;
-      return store;
-    })
-    console.log(debugMode)
-  }
-
   function changeSelectedDisplay(display){
     selectedDisplay = display;
     $appSettings.selectedDisplay = selectedDisplay;
@@ -92,11 +82,6 @@
       </svg>
       <div class="p-2">Profiles</div>
     </div>
-  </div>
-
-  <div class="w-1/3 flex items-center">
-    <div class="p-4 text-white">Debug:</div>
-    <input class="h-8 w-8" bind:checked={debugMode} type="checkbox">
   </div>
   
   <div class="w-1/4 flex justify-end">

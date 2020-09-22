@@ -1,17 +1,14 @@
 <script>
-
   import BankTab from './BankTab.svelte';  
-  import {globalSettings} from './globalSettings.store.js';
-  import {elementSettings} from './elementSettings.store.js';
+  import { globalSettings } from './globalSettings.store.js';
+  import { elementSettings } from './elementSettings.store.js';
+  import { serialComm } from '../serialport/serialport.store.js';
+
+  import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
 
   import Tooltip from '../helpers/Tooltip.svelte';
 
-  import { createEventDispatcher } from 'svelte';
-  
-  const dispatch = createEventDispatcher();
-
-  let bank_color = 'relative';
-  let bank_number = 'standard';
+  import { onMount } from 'svelte';
 
   let selected = 0;
 
@@ -19,25 +16,26 @@
 
   let tabs = [0,1,2,3];
 
-  $: if(globalData){
-    globalSettings.update((banks)=>{
-      banks.names = globalData.names;
-      banks.colors = globalData.colors;
-      banks.bankEnabled = globalData.bankEnabled;
-      return banks;
+  globalSettings.subscribe(banks => {
+      globalData = banks;
+      selected =  banks.active;      
     })
+
+  function handleColorChange(e){
+    const PARAMS = e.detail.parameters[0];
+    globalData.colors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
+    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters);
+    serialComm.write(command);
   }
 
-  globalSettings.subscribe(banks => {
-    let parameters = banks.bankEnabled.map((b,i)=>{
-      b ? b = 1 : b = 0; 
-      return {'BANKNUMBER': i,'ISENABLED': b}
-    });
-    
-    globalData = banks;
-    selected =  banks.active;
-    dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: parameters})
-  })
+  function handleBankEnableChange(e){
+    const PARAMS = e.detail.parameters[0];
+    console.log(e.detail);
+    globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
+    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters);
+    serialComm.write(command);
+  }
+
 
   function changeSelected(bank){
     globalData.active = bank;
@@ -45,7 +43,27 @@
       settings.bank = bank;
       return settings;
     })
-    dispatch('BANKACTIVE', {className: 'BANKACTIVE', parameters: [{'BANKNUMBER': selected}]})
+    selected = bank;
+    const command = GRID_PROTOCOL.encode('','BANKACTIVE',[{'BANKNUMBER': bank}])
+    serialComm.write(command);
+  }
+
+  function handleStoreGlobal(){
+    const command = GRID_PROTOCOL.encode('','STOREGLOBAL','');
+    serialComm.write(command);
+    console.log('Store global settings to Grid!')
+  }
+
+  function handleRecallGlobal(){
+    const command = GRID_PROTOCOL.encode('','RECALLGLOBAL','');
+    serialComm.write(command);
+    console.log('Recall global settings on Grid!')
+  }
+
+  function handleClearGlobal(){
+    const command = GRID_PROTOCOL.encode('','CLEARGLOBAL','');
+    serialComm.write(command);
+    console.log('Clear global settings on Grid!')
   }
 
 </script>
@@ -86,17 +104,25 @@
       <div class="my-2 flex flex-col justify-between">
         {#each tabs as tab, index}     
           <BankTab 
-            on:BANKCOLOR 
             {tab} 
-            {globalData} 
             {selected}
-            bind:bankName={globalData.names[index]}
-            bind:bankState={globalData.bankEnabled[index]}
-            bind:bankColor={globalData.colors[index]} />  
+            {globalData}
+            on:BANKCOLOR={handleColorChange}
+            on:BANKENABLE={handleBankEnableChange}
+            />  
         {/each}
       </div>
     </div>
+
+    <hr class="text-secondary border-none h-1 rounded bg-secondary m-2">
+
+    <div class="flex justify-between m-2">
+      <div class="flex">
+        <button on:click={handleStoreGlobal} class="focus:outline-none mr-1 text-white border-none border-primary bg-highlight hover:bg-highlight-400 px-2 py-1">Store</button>
+        <button on:click={handleRecallGlobal} class="focus:outline-none ml-1 text-white border-highlight hover:bg-highlight-400 px-2 py-1">Recall</button>
+      </div>
+      <button on:click={handleClearGlobal} class="focus:outline-none text-white border-none bg-secondary border-primary hover:bg-highlight-400 px-2 py-1">Clear</button>
+    </div>
       
   </div>
-
 </div>

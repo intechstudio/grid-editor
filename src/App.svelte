@@ -327,11 +327,7 @@
 
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
-      <GlobalSettings
-        on:BANKENABLED={(e)=>serialPortComponent.writeSerialPort(e)}
-        on:BANKACTIVE={(e)=>serialPortComponent.writeSerialPort(e)}
-        on:BANKCOLOR={(e)=>serialPortComponent.writeSerialPort(e)}
-      />
+      <GlobalSettings/>
       <ElementSettings/>
     </div>
   {/if}

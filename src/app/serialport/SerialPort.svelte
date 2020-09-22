@@ -51,7 +51,7 @@
       })
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
-      console.log('_usedgird length...', _usedgrid)
+      //console.log('_usedgird length...', _usedgrid)
 
       if(_removed !== undefined && _usedgrid.length !== undefined){
 
@@ -77,23 +77,25 @@
     console.log('heartbeat interval',GRID.PROTOCOL.HEARTBEAT_INTERVAL);
 
     setInterval(() => {
+      
       SerialPort.list()
         .then(ports => {
           let _serialpaths = [];
           ports.length == 0 ? serialpaths = [] : null;
           ports.forEach((port, i) => {
+            
             if(port.productId == 'ECAD' || port.productId == 'ECAC'){        
               if(serialports.find(p => p.path == port.path)){
                 // Already initialized.
-                console.log('Serialport already initialized', port, i)
               }else {
                 serialpaths[i] = port.path;
-                console.log('Serial ports initialized.', port.path)
+                
               }
             }                        
           });
         })
         .catch(err => {
+          
           console.error(err)
         });
     }, GRID.PROTOCOL.HEARTBEAT_INTERVAL )
@@ -103,17 +105,15 @@
     serialpaths.forEach((path, i) => {
       serialports[i] = new SerialPort(path, { autoOpen: false });
     });
-
-    serialComm.update((ports) => {
-      ports = serialports; 
-      return ports
-    });
   }
 
   function closeSerialPort() {
     if(serialpaths.length == 0){
       serialports = [];
       currentPorts = [];
+
+      serialComm.set([{path: 'none'}]);
+
       serialports.forEach((port, i)=>{
         port.close(function(err){
           console.warn('port closed', i, err)
@@ -134,7 +134,14 @@
           if(err){
             console.error('Error opening port: ', err.message)
           }
+
           currentPorts[i] = port.path;
+
+          // update serialport with detail about it's state: open / closed
+          serialComm.update((ports) => {
+            ports = serialports; 
+            return ports
+          });
         })
 
         port.on('error', function(err) {

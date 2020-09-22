@@ -46,9 +46,7 @@
     $grid.used.forEach(_controller => {
       if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
         moduleInfo = _controller;
-        moduleId = _controller.id;
-        console.log('attempt to load..',_controller.banks,selectedElementSettings.bank);
-   
+        moduleId = _controller.id;  
         events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
         let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
@@ -179,13 +177,16 @@
 
 
 
+
 <div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/3">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
-    <div class="text-orange-500 py-1">Module: {moduleId.substr(0,4)}</div>
-    <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber[0]}</div>
+    <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
+    <div class="text-orange-500 text-4xl absolute right-0">{$elementSettings.controlNumber[0] == undefined ? '-' : $elementSettings.controlNumber[0]}</div>
   </div>
 
+  {#if $elementSettings.controlNumber[0] !== undefined}
+  
 
   <div class="flex flex-col px-2 my-4 w-full">
   
@@ -276,8 +277,11 @@
       </SortableActions>
 
     </div>
-    </div>
-
   </div>
+  {:else}
+  <div class="px-2 my-4 w-full text-gray-700">Select a control element to start configuration!</div>
+  {/if}
+</div>
+
 
 

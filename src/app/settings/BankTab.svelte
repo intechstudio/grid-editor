@@ -10,21 +10,25 @@
   const dispatch = createEventDispatcher();
 
   export let tab;
-  export let selected;
-  export let globalData;
+  //export let globalData;
 
   let rgb = [];
 
   let enabled = true;
 
+  export let selected = 0;
+
   // Binding on parent for save & update.
-  export let bankName;
-  export let bankColor;
-  export let bankState;
+  export let globalData = undefined;
+  export let bankName = undefined;
 
   // Colorpicker variables.
-  let startColor;
-  $: startColor = "rgb(" + globalData.colors[selected] + ")";
+
+  let startColor = "rgb('255,0,0')";
+
+  $: if(globalData !== undefined){
+    startColor = "rgb(" + globalData.colors[selected] + ")";
+  }
 
   function colorCallback(rgba) {
 
@@ -36,16 +40,16 @@
       {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
     ]})
 
-    bankColor = rgb;
-
   }
 
   function handleBankEnabled(state){
-    bankState = state;
+    let _state;
+    state ? _state = 0 : _state = 1;
+    dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: [
+      {'BANKNUMBER': selected, 'ISENABLED': _state}
+    ]})
   }
 
-  onMount(()=>{
-  })
 
 </script>
 
@@ -108,8 +112,10 @@
 
     <div class="p-2 text-white">Bank Color</div>
 
+    {#if startColor}
     <div class="flex px-2">
       <ColorPicker {startColor} showAlpha={false} on:colorChange={colorCallback}/>
     </div>
+    {/if}
   </div>
 {/if}
