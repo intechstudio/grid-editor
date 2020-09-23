@@ -3,7 +3,11 @@ import { writable, get } from 'svelte/store';
 import { debugStore } from '../stores/debug.store';
 
 function createSerialComm(){
-  const store = writable([]);
+  const store = writable({
+    list: [],
+    open: undefined,
+    selected: ''
+  });
 
   return {
     ...store,
@@ -12,9 +16,23 @@ function createSerialComm(){
         store = [...store, {type: 'output', data: args} ]
         return store;
       })
-      const port = get(store)[0];
+      let port = get(store).open;
       port.write(`${args}\n`);
       return
+    },
+    selected: (port) => {
+      store.update(store => {
+        store.selected = port;
+        return store;
+      });
+      return
+    },
+    open: (port) => {
+      store.update(store=>{
+        store.open = port;
+        return store;
+      })
+      return;
     }
   }
 }

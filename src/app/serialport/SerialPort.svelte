@@ -15,26 +15,19 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
+  import { get } from 'svelte/store';
 
   const dispatch = createEventDispatcher();
-  
-  let serialpaths = [];
-
-  let serialports = [];
-
-  let currentPorts = [];
-
-  let message = '';
-
-  let rawserial = [];
 
   let GRID = GRID_PROTOCOL;
   GRID.initialize();
   console.log(GRID);
 
+  let PORT = {path: 0};
+
   export let grid = [];
 
-  $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
+ // $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
 
   function coroner(){
 
@@ -69,102 +62,87 @@
   }
 
   function discoverPorts(){
-
-    /**
-     * Need to implement multiple port watch, if modules are connected on different usb ports.
-    */
-
-    console.log('heartbeat interval',GRID.PROTOCOL.HEARTBEAT_INTERVAL);
-
     setInterval(() => {
-      
-      SerialPort.list()
-        .then(ports => {
-          let _serialpaths = [];
-          ports.length == 0 ? serialpaths = [] : null;
-          ports.forEach((port, i) => {
-            if(port.productId == 'ECAD' || port.productId == 'ECAC'){        
-              if(serialports.find(p => p.path == port.path)){
-                // Already initialized.
-              }else {
-                serialpaths[i] = port.path;
-                
-              }
-            }                        
-          });
-        })
-        .catch(err => {
-          
-          console.error(err)
-        });
+      listSerialPorts()
     }, GRID.PROTOCOL.HEARTBEAT_INTERVAL )
   }
-  
-  function createSerialPort() {
-    serialpaths.forEach((path, i) => {
-      serialports[i] = new SerialPort(path, { autoOpen: false });
+
+  function listSerialPorts(){
+    SerialPort.list()
+      .then(ports => {
+        //ports.length == 0 ? serialpaths = [] : null;
+        serialComm.update((store) => { store.list = []; return store;})
+        ports.forEach((port, i) => {  
+          
+          let isGrid = 0;
+          if(port.productId == 'ECAD' || port.productId == 'ECAC'){  isGrid = 1 }
+
+          // collect all ports in an array
+          serialComm.update((store) => { 
+            store.selected = port.path;     
+            store.list[i] = {isGrid: isGrid, port: port};
+            return store;
+          });       
+
+        });
+      })
+    .catch(err => {   
+      console.error(err)
     });
   }
 
+  function updateSelectedPort(port){
+    serialComm.selected(port);
+  }
+  
+  function openSerialPort() {
+    const store = get(serialComm);
+    const serial = store.list.find(serial => serial.port.path === store.selected);
+    PORT = new SerialPort(serial.port.path, { autoOpen: false });
+    serialComm.open(PORT);
+    readSerialPort();
+  }
+
   function closeSerialPort() {
-    if(serialpaths.length == 0){
-      serialports = [];
-      currentPorts = [];
 
-      serialComm.set([{path: 'none'}]);
+    PORT.close(function(err){
+      console.warn('port closed', err)
+    })
 
-      serialports.forEach((port, i)=>{
-        port.close(function(err){
-          console.warn('port closed', i, err)
-        })
-      })
-    }
+    serialComm.update((store)=>{
+      store.open = undefined;
+      return store
+    });
+
+    PORT = {path: 0};
   }
 
   function readSerialPort() {
-    
-    serialports.forEach((port, i) => {
-    
-      if(currentPorts.indexOf(port.path) == -1){
+        
+    console.log('We are proceeding with reading the port.')
 
-        console.log('We are proceeding with reading the port.')
-
-        port.open(function(err){
-          if(err){
-            console.error('Error opening port: ', err.message)
-          }
-
-          currentPorts[i] = port.path;
-
-          // update serialport with detail about it's state: open / closed
-          serialComm.update((ports) => {
-            ports = serialports; 
-            return ports
-          });
-        })
-
-        port.on('error', function(err) {
-          console.log('Error',err);
-        });
-
-        port.on('open', function() {
-          console.log('Port is open.', port.path); 
-          
-        }); 
-
-        runSerialParser(port, i) 
-
-      } else {
-        console.log('Do nothing.')
+    PORT.open(function(err){
+      if(err){
+        console.error('Error opening port: ', err.message)
       }
+      //currentPorts[i] = port.path;
+    })
 
-    }) 
+    PORT.on('error', function(err) {
+      console.log('Error',err);
+    });
 
+    PORT.on('open', function() {
+      console.log('Port is open.', PORT.path); 
+      
+    }); 
+
+    runSerialParser(PORT) 
   }
 
-  function runSerialParser(port, i){
+  function runSerialParser(port){
 
-    const parser = port.pipe(new Readline({ delimiter: "\n"}))
+    const parser = port.pipe(new Readline({ delimiter: "\n"}));
 
     parser.on('data', function(data) {
 
@@ -266,25 +244,6 @@
     }
   }
 
-  
-  export function writeSerialPort(data){
-
-    const port = serialports[0];
-    if(port){
-      const MSG = GRID.encode('', data.detail.className, data.detail.parameters);
-      port.write(`${MSG}\n`, function(err, result){
-        if(err){
-          console.log('Error while sending message : ' + err)
-        }
-        if (result) {
-          console.log('Response received after sending message : ' + result); 
-        }  
-      });
-    }
-
-  }
-
-
   onDestroy(()=>{
     clearInterval(discoverPorts);
     clearInterval(coroner)
@@ -296,8 +255,58 @@
     coroner();
   })
     
+  let selectedPort;
 
 </script>
+
+<div class="flex items-center not-draggable text-sm">
+
+  <button 
+    on:click={listSerialPorts} 
+    class="text-white px-2 py-1 mx-2 rounded border-highlight bg-highlight hover:bg-highlight-400 focus:outline-none ">
+    refresh
+  </button>
+
+  <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
+    {#each $serialComm.list as serial}
+      <option class:bg-highlight="{serial.isGrid}">{serial.port.path}</option> 
+    {/each}
+  </select>
+ 
+  <div class="flex items-center">
+    
+      <button 
+        on:click={openSerialPort} 
+        class="text-white px-2 py-1 mx-2 rounded border-highlight bg-highlight hover:bg-highlight-400 focus:outline-none ">
+        open
+      </button>
+      <button 
+        on:click={closeSerialPort} 
+        class="text-white px-2 py-1 mx-2 rounded border-highlight hover:bg-highlight-400 focus:outline-none ">
+        close
+      </button>
+      {#if PORT.path}
+      <div class="flex mx-2 items-center">
+        <div>{PORT.path}</div>
+        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-green-500"></div>
+        <div>Connected</div>
+      </div>
+      {:else}
+        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-red-500"></div>
+        <div class="text-red-500">Reconnect Grid!</div>
+      {/if}
+
+    
+  </div>
+  <div class="flex mx-2 items-center">
+    <div>TX</div>
+    <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
+  </div>
+  <div class="flex mx-2 items-center">
+    <div>RX</div>
+    <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
+  </div>
+</div>
 
 <!--
 <div style="left:40%" class="absolute p-2 flex bg-primary bottom-0 mb-20 z-20">

@@ -42,6 +42,8 @@
 
   import GlobalProfiles from './app/profiles/GlobalProfiles.svelte';
 
+  import MinMaxClose from './app/menu/MinMaxClose.svelte';
+
 
   /*
   *   layout helper functions
@@ -62,6 +64,7 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
+
 
   /*
   *   variables
@@ -191,116 +194,68 @@
     }
   }
 
+  let debugMode;
+  $: {
+    appSettings.update((store)=>{
+      store.debugMode = debugMode;
+      return store;
+    })
+  }
 
 </script>
-
-<style>
-
-	:global(body) {
-    background-color: #2A3439;
-    display: flex;
-    flex-direction: column;
-	}
-
-	:global(.primary){
-    background-color:#1E2628;
-	}
-	
-  :global(.secondary){
-    background-color:#2A3439;
-	}
-
-  .cell{
-    width: var(--cell-size);
-    height: var(--cell-size);
-    display: flex;
-    position: absolute;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .freeToDrop{
-    border: 2px dashed green !important;
-  }
-
-  .restricted-action{
-    background-color:rgba(255, 0, 0, 0);
-    border-radius: 10px;
-    animation: restricedFade .5s ease-out forwards; 
-  }
-
-  .canBeUsed{
-    border: 1px solid rgba(0,0,0,0.25);
-  }
-
-  .isConnectedByUsb{
-    background-color: rgba(0, 75, 225, 0.25);
-  }
-
-  @keyframes restricedFade {
-    0%,100% { background-color: rgba(255, 0, 0, 0);}
-    50% { background-color: rgba(255, 0, 0, 1); }
-  }
-
-  @keyframes fadein {
-    0%,100% { border-color: rgba(0, 255, 0, 0); }
-    50% { border-color:rgba(0, 255, 0, 1); }
-  }
-
-  .fwMismatch{
-    animation: blinker 1s linear infinite;
-  }
-
-  @keyframes blinker {
-    50% { 
-      background-color: rgba(255, 0, 0, 1); 
-    }
-  }
-
-  #notification {
-    background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
-  }
-
-  .hidden {
-    display: none;
-  }
-
-  .loading:after {
-  content: ' .';
-  animation: dots 1s steps(5, end) infinite;}
-
-@keyframes dots {
-  0%, 20% {
-    color: rgba(0,0,0,0);
-    text-shadow:
-      .25em 0 0 rgba(0,0,0,0),
-      .5em 0 0 rgba(0,0,0,0);}
-  40% {
-    color: white;
-    text-shadow:
-      .25em 0 0 rgba(0,0,0,0),
-      .5em 0 0 rgba(0,0,0,0);}
-  60% {
-    text-shadow:
-      .25em 0 0 white,
-      .5em 0 0 rgba(0,0,0,0);}
-  80%, 100% {
-    text-shadow:
-      .25em 0 0 white,
-      .5em 0 0 white;}}
-	
-</style>
 
 <!--<button class="text-white w-32 p-2 bg-red-500">Get store</button>-->
 
 <Tailwindcss />
 
-<Titlebar/>
 
+<main class="text-white  bg-primary p-1">
+  <div class="draggable flex justify-between">
+    <div class="flex">
+      <div class="p-1 text-gray-700 font-gt-pressura tracking-wider ">EDITOR</div>
+    </div>
+
+    <div class="flex items-center not-draggable text-sm">
+      <button 
+        on:click={()=> {debugMode = ! debugMode}} 
+        class:bg-highlight={debugMode} 
+        class="text-white px-2 py-1 mx-2 rounded border-highlight hover:bg-highlight-400 focus:outline-none ">
+        debug
+      </button>
+
+      <SerialPort 
+        bind:grid={$grid} 
+        on:change={$grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)}
+        on:coroner={(e)=>{
+            grid.update(cell => {
+              cell.used = e.detail.usedgrid;
+              cell.layout = cell.layout.map( _cell =>{
+                if(_cell.id == e.detail.removed.id){
+                  _cell.id = 'none';
+                  _cell.isConnectedByUsb = false;
+                }
+                return _cell; 
+              });
+              return cell;
+            });
+            $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
+          }
+        }
+      />
+  
+    </div>
+
+    <MinMaxClose/>
+        
+  </div>
+</main>
 
 {#if $appSettings.debugMode == true}
   <Debug {raw_serial} />
 {/if}
+
+  
+
 
 <!--
 <Filesave></Filesave>
@@ -318,7 +273,7 @@
       </button>
     {:else}
       <p class="text-xl pb-2">✨New update is available! </p>
-      <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0}{updateProgress + '%'}{/if}</p>
+      <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
       <div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>
     {/if}
     
@@ -330,34 +285,12 @@
 </div>
 {/if}
 
-<SerialPort 
-  bind:grid={$grid} 
-  bind:this={serialPortComponent}
-  on:change={
-    $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)
-  }
-  on:coroner={(e)=>{
-      grid.update(cell => {
-        cell.used = e.detail.usedgrid;
-        cell.layout = cell.layout.map( _cell =>{
-          if(_cell.id == e.detail.removed.id){
-            _cell.id = 'none';
-            _cell.isConnectedByUsb = false;
-          }
-          return _cell; 
-        });
-        return cell;
-      });
-      $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
-    }
-  }
-/>
 
 <FirmwareCheck />
 
 <Form />
 
-<div style="" class="relative h-full">
+<div id="grid-main-container" style="" class="relative h-full">
 
   <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
@@ -475,5 +408,110 @@
 <Menu/>
 
 
+<style>
 
+	:global(body) {
+    background-color: #2A3439;
+    display: flex;
+    flex-direction: column;
+	}
+
+	:global(.primary){
+    background-color:#1E2628;
+	}
+	
+  :global(.secondary){
+    background-color:#2A3439;
+	}
+
+  .cell{
+    width: var(--cell-size);
+    height: var(--cell-size);
+    display: flex;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .freeToDrop{
+    border: 2px dashed green !important;
+  }
+
+  .restricted-action{
+    background-color:rgba(255, 0, 0, 0);
+    border-radius: 10px;
+    animation: restricedFade .5s ease-out forwards; 
+  }
+
+  .canBeUsed{
+    border: 1px solid rgba(0,0,0,0.25);
+  }
+
+  .isConnectedByUsb{
+    background-color: rgba(0, 75, 225, 0.25);
+  }
+
+  @keyframes restricedFade {
+    0%,100% { background-color: rgba(255, 0, 0, 0);}
+    50% { background-color: rgba(255, 0, 0, 1); }
+  }
+
+  @keyframes fadein {
+    0%,100% { border-color: rgba(0, 255, 0, 0); }
+    50% { border-color:rgba(0, 255, 0, 1); }
+  }
+
+  .fwMismatch{
+    animation: blinker 1s linear infinite;
+  }
+
+  @keyframes blinker {
+    50% { 
+      background-color: rgba(255, 0, 0, 1); 
+    }
+  }
+
+  #notification {
+    background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .loading:after {
+  content: ' .';
+  animation: dots 1s steps(5, end) infinite;}
+
+  @keyframes dots {
+    0%, 20% {
+      color: rgba(0,0,0,0);
+      text-shadow:
+        .25em 0 0 rgba(0,0,0,0),
+        .5em 0 0 rgba(0,0,0,0);}
+    40% {
+      color: white;
+      text-shadow:
+        .25em 0 0 rgba(0,0,0,0),
+        .5em 0 0 rgba(0,0,0,0);}
+    60% {
+      text-shadow:
+        .25em 0 0 white,
+        .5em 0 0 rgba(0,0,0,0);}
+    80%, 100% {
+      text-shadow:
+        .25em 0 0 white,
+        .5em 0 0 white;}
+      }
+
+  :global(.draggable){
+    -webkit-app-region:drag;
+  }
+
+  :global(.not-draggable){
+    -webkit-app-region:no-drag;
+  }
+
+	
+</style>
 

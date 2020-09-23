@@ -3,9 +3,6 @@
   import { appSettings } from '../stores/app-settings.store';
   import { serialComm } from '../serialport/serialport.store';
 
-  const { remote } = require("electron");
-  const BrowserWindow = remote.BrowserWindow;
-
   let port = [{path: ''}];
 
   serialComm.subscribe(value => {
@@ -15,31 +12,6 @@
   })
 
 
-  function init() { 
-    document.getElementById("min-btn").addEventListener("click", function (e) {
-          var window = BrowserWindow.getFocusedWindow();
-          window.minimize(); 
-    });
-
-    document.getElementById("max-btn").addEventListener("click", function (e) {
-          var window = BrowserWindow.getFocusedWindow(); 
-          window.maximize(); 
-    });
-
-    document.getElementById("close-btn").addEventListener("click", function (e) {
-          var window = BrowserWindow.getFocusedWindow();
-          window.close();
-    }); 
-  }; 
-
-  let debugMode;
-
-  $: {
-    appSettings.update((store)=>{
-      store.debugMode = debugMode;
-      return store;
-    })
-  }
 
   onMount(()=>{
     init();
@@ -75,14 +47,10 @@
       </div>
       <div class="flex mx-2 items-center">
         <div>RX</div>
-        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-red-500"></div>
+        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
       </div>
     </div>
-    <div class="flex text-gray-300">
-      <div id="min-btn" class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">min</div>
-      <div id="max-btn" class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">max</div>
-      <div id="close-btn" class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">close</div>
-    </div>
+    
   </div>
 </main>
 
