@@ -11,6 +11,7 @@ export var GRID_PROTOCOL = {
 
     let HWCFG = {};
     let CONST = {};
+    let INSTR = {};
     let CLASSES = {};
     let BRC = {};
     let VERSION = {};
@@ -32,6 +33,13 @@ export var GRID_PROTOCOL = {
           HEARTBEAT_INTERVAL = +grid_protocol[key] + 10;
         }
 
+        // GRID INSTRUCTIONS
+        if(key.startsWith('GRID_INSTR')){
+          let paramName = key.slice(11).slice(0,-5);
+          let dec = parseInt(grid_protocol[key], 16); 
+          INSTR[paramName] = dec;
+        }
+        
         // GRID CONSTS
         if(key.startsWith('GRID_CONST')){
           let paramName = key.slice(11);
@@ -112,6 +120,7 @@ export var GRID_PROTOCOL = {
       CLASSES: CLASSES, 
       HWCFG: HWCFG, 
       CONST: CONST,
+      INSTR: INSTR,
       VERSION: VERSION,
       PARAMETERS: PARAMETERS,
       HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL
@@ -214,45 +223,6 @@ export var GRID_PROTOCOL = {
     return object;
   },
 
-  encode_nvm_commands: function(MODULE_INFO, CLASS_NAME, PARAMETERS){
-    const PROTOCOL = this.PROTOCOL;
-
-    const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
-
-    let BRC_PARAMETERS = [
-      this.utility_genId(), 127, 127, 255, 0
-    ];
-
-    
-
-    command =
-      String.fromCharCode(PROTOCOL.CONST.STX) +
-      PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-      String.fromCharCode(102) + // REP_CODE
-      String.fromCharCode(PROTOCOL.CONST.ETX);
-    
-    let params = '';
-   
-    BRC_PARAMETERS.forEach(param => {
-      params += param.toString(16).padStart(2, '0');
-    })
-     
-    const append = 
-      String.fromCharCode(PROTOCOL.CONST.EOB) + 
-      command +
-      String.fromCharCode(PROTOCOL.CONST.EOT);
-
-    let message = prepend + params + append;
-
-    message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
-
-    let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
-
-    message = message + checksum;
-
-    return message;
-
-  },
 
   encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS){
 
@@ -297,15 +267,18 @@ export var GRID_PROTOCOL = {
         }
       })
     }
+    console.log(PROTOCOL.CLASSES);
 
     command =
       String.fromCharCode(PROTOCOL.CONST.STX) +
       PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-      String.fromCharCode(102) + // REP_CODE
+      PROTOCOL.INSTR.EXECUTE.toString(16) +
       param +
       String.fromCharCode(PROTOCOL.CONST.ETX);
     
     let params = '';
+
+    console.log(PROTOCOL.INSTR.EXECUTE);
    
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');

@@ -111,6 +111,7 @@ autoUpdater.on('update-available', () => {
 });
 
 autoUpdater.on('download-progress', (progressObj) => {
+  log.info('update_progress', progressObj);
   mainWindow.webContents.send('update_progress', progressObj);
 });
 
