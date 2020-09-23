@@ -149,11 +149,12 @@ export var GRID_PROTOCOL = {
       // GRID_CONST_ETX
       if(element == 3){
         let obj = _decoded.find(o => o.id === id);
-        obj.length = i - obj.offset;
+        if(obj !== undefined){
+          obj.length = i - obj.offset;
+        }
       }
     });
 
-    //console.log(_decoded);
     
     return this.decode_by_class(serialData, _decoded);
 

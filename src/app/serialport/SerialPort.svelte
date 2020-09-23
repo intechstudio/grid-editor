@@ -83,7 +83,6 @@
           let _serialpaths = [];
           ports.length == 0 ? serialpaths = [] : null;
           ports.forEach((port, i) => {
-            
             if(port.productId == 'ECAD' || port.productId == 'ECAC'){        
               if(serialports.find(p => p.path == port.path)){
                 // Already initialized.

@@ -77,7 +77,7 @@
   // self update
   let updateNotification = false;
   let updateReady = false;
-  let updateProgress = undefined;
+  let updateProgress = 0;
 
   let serial; // debug purposes
   let raw_serial; // debug purposes
@@ -160,10 +160,11 @@
     });
 
     ipcRenderer.on('update_progress', (event,arg) => {
-      updateProgress = arg.percent;
+      updateProgress = Math.floor(arg.percent);
       console.log('update progress...', event, arg)
     });
 
+    
     /*
     let counter = 0;
     const timer = setInterval(()=>{
@@ -175,6 +176,7 @@
       }
     },100);
     */
+    
   });
 
 
@@ -262,6 +264,30 @@
   .hidden {
     display: none;
   }
+
+  .loading:after {
+  content: ' .';
+  animation: dots 1s steps(5, end) infinite;}
+
+@keyframes dots {
+  0%, 20% {
+    color: rgba(0,0,0,0);
+    text-shadow:
+      .25em 0 0 rgba(0,0,0,0),
+      .5em 0 0 rgba(0,0,0,0);}
+  40% {
+    color: white;
+    text-shadow:
+      .25em 0 0 rgba(0,0,0,0),
+      .5em 0 0 rgba(0,0,0,0);}
+  60% {
+    text-shadow:
+      .25em 0 0 white,
+      .5em 0 0 rgba(0,0,0,0);}
+  80%, 100% {
+    text-shadow:
+      .25em 0 0 white,
+      .5em 0 0 white;}}
 	
 </style>
 
@@ -292,7 +318,7 @@
       </button>
     {:else}
       <p class="text-xl pb-2">✨New update is available! </p>
-      <p class="py-2">Downloading in the background... {updateProgress + '%'}</p>
+      <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0}{updateProgress + '%'}{/if}</p>
       <div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>
     {/if}
     
