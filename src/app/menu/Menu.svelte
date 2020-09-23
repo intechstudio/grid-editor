@@ -86,6 +86,7 @@
   
   <div class="w-1/4 flex justify-end">
     <div class="p-4 text-white">Version: {appVersion}</div>
+    <div class="p-4 text-white">Protocol: {$appSettings.version.major + '.' + $appSettings.version.minor + '.' + $appSettings.version.patch }</div>
   </div>
 </div>
 

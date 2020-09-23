@@ -204,10 +204,7 @@
 
 </script>
 
-<!--<button class="text-white w-32 p-2 bg-red-500">Get store</button>-->
-
 <Tailwindcss />
-
 
 <main class="text-white  bg-primary p-1">
   <div class="draggable flex justify-between">

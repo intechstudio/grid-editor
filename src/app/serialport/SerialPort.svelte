@@ -16,6 +16,7 @@
 
 	import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
+import { set_raf } from 'svelte/internal';
 
   const dispatch = createEventDispatcher();
 
@@ -63,7 +64,7 @@
 
   function discoverPorts(){
     setInterval(() => {
-      listSerialPorts()
+      listSerialPorts();
     }, GRID.PROTOCOL.HEARTBEAT_INTERVAL )
   }
 
@@ -73,16 +74,16 @@
         //ports.length == 0 ? serialpaths = [] : null;
         serialComm.update((store) => { store.list = []; return store;})
         ports.forEach((port, i) => {  
-          
           let isGrid = 0;
           if(port.productId == 'ECAD' || port.productId == 'ECAC'){  isGrid = 1 }
-
           // collect all ports in an array
           serialComm.update((store) => { 
             store.selected = port.path;     
             store.list[i] = {isGrid: isGrid, port: port};
             return store;
           });       
+          
+          
 
         });
       })
@@ -110,7 +111,7 @@
     })
 
     serialComm.update((store)=>{
-      store.open = undefined;
+      store.open = 'none';
       return store
     });
 
@@ -261,12 +262,6 @@
 
 <div class="flex items-center not-draggable text-sm">
 
-  <button 
-    on:click={listSerialPorts} 
-    class="text-white px-2 py-1 mx-2 rounded border-highlight bg-highlight hover:bg-highlight-400 focus:outline-none ">
-    refresh
-  </button>
-
   <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
     {#each $serialComm.list as serial}
       <option class:bg-highlight="{serial.isGrid}">{serial.port.path}</option> 
@@ -286,18 +281,20 @@
         close
       </button>
       {#if PORT.path}
-      <div class="flex mx-2 items-center">
-        <div>{PORT.path}</div>
-        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-green-500"></div>
-        <div>Connected</div>
-      </div>
+        <div class="flex mx-2 items-center">
+          <div class="mr-2 rounded-full p-2 w-4 h-4 bg-green-500"></div>
+          <div>Connected: {PORT.path}</div>
+        </div>
       {:else}
-        <div class="mx-2 rounded-full p-2 w-4 h-4 bg-red-500"></div>
-        <div class="text-red-500">Reconnect Grid!</div>
+        <div class="flex mx-2 items-center">
+          <div class="mr-2 rounded-full p-2 w-4 h-4 bg-red-500"></div>
+          <div class="text-red-500">Reconnect Grid!</div>
+        </div>
       {/if}
 
     
   </div>
+  <!--
   <div class="flex mx-2 items-center">
     <div>TX</div>
     <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
@@ -306,11 +303,5 @@
     <div>RX</div>
     <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
   </div>
+  -->
 </div>
-
-<!--
-<div style="left:40%" class="absolute p-2 flex bg-primary bottom-0 mb-20 z-20">
-  <input type="text" class="secondary  text-xs text-white p-1 w-64 rounded-none focus:outline-none mr-2" bind:value={message}>
-  <button on:click={()=>{writeSerialPort(message)}} class="bg-highlight ml-1 w-32 font-medium text-white py-1 px-2 rounded-none border-none hover:bg-highlight-400 focus:outline-none cursor-pointer">Serial Write</button>
-</div>
--->

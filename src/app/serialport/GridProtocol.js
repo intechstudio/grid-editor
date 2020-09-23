@@ -226,11 +226,13 @@ export var GRID_PROTOCOL = {
 
   encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS){
 
-    if(MODULE_INFO !== ''){
-      const dx = +MODULE_INFO.id.split(';')[0].split(':').pop();
-      const dy = +MODULE_INFO.id.split(';')[1].split(':').pop();
-      let rot = 0;
+    let dx = 0;
+    let dy = 0;
+    let rot = 0;
 
+    if(MODULE_INFO !== ''){
+      dx = +MODULE_INFO.id.split(';')[0].split(':').pop();
+      dy = +MODULE_INFO.id.split(';')[1].split(':').pop();
       switch (MODULE_INFO.rotation){
         case -0:
           rot = 0; break;
@@ -255,7 +257,7 @@ export var GRID_PROTOCOL = {
      */
 
     let BRC_PARAMETERS = [
-      this.utility_genId(), 127, 127, 255, 0
+      this.utility_genId(), dx, dy, 255, rot
     ];
 
     let command = '';
@@ -267,7 +269,6 @@ export var GRID_PROTOCOL = {
         }
       })
     }
-    console.log(PROTOCOL.CLASSES);
 
     command =
       String.fromCharCode(PROTOCOL.CONST.STX) +

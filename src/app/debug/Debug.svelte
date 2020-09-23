@@ -61,10 +61,7 @@
 	
 	function debug(){
 		let data = GRID_PROTOCOL.encode_debugger(brc, command);
-		debugStore.update(store => {
-			store = [...store, {type: 'output', data: data} ]
-			return store;
-		})
+
 		serialComm.write(data);
 	}
 
@@ -112,7 +109,7 @@
 		</div>
 		-->
 
-		<div id="data" style="height:200px" class="overflow-auto flex-grow rounded bg-white p-2">
+		<div id="data" style="height:200px" class="overflow-auto flex-grow rounded font-mono bg-white p-2">
 			
 			{#each [...input].reverse() as entry}
 				<div class:serialOut="{entry.type == 'output'}">{entry.data}</div>
@@ -131,7 +128,7 @@
 			<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
 		</div>
 		<div class="mx-1">
-			<div>dx</div>
+			<div>dy</div>
 			<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
 		</div>
 		<div class="mx-1">
