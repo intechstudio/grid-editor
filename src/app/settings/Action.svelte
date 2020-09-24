@@ -2,10 +2,6 @@
 
   import { createEventDispatcher, onMount } from 'svelte';
 
-  import { grid } from './../stores/grid.store.js';
-
-  import DropDownInput from './DropDownInput.svelte';
-
   import MidiRelative from './actions/MidiRelative.svelte';
   import MidiAbsolute from './actions/MidiAbsolute.svelte';
   import SetLedColor from './actions/SetLedColor.svelte';
@@ -14,8 +10,9 @@
 
   export let data;
   export let index;
-  export let selectedControlNumber;
+  export let selectedElementSettings;
   export let moduleInfo;
+  export let eventInfo;
 
   const components = {
     'MIDI Relative': MidiRelative,
@@ -34,7 +31,7 @@
     })
   }
 
-  function sendData(encoded){
+  function sendData(){
     dispatch('change', {
       data: data,
       index: index
@@ -51,7 +48,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} bind:data={data} {moduleInfo} {selectedControlNumber} />    
+    <svelte:component this={components[data.name]} bind:data={data} {moduleInfo} {eventInfo} {selectedElementSettings} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

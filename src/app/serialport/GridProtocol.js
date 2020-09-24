@@ -224,7 +224,7 @@ export var GRID_PROTOCOL = {
   },
 
 
-  encode: function (MODULE_INFO, EVENT, CLASS_NAME, PARAMETERS){
+  encode: function (MODULE_INFO, CONFIG, CLASS_NAME, PARAMETERS){
 
     let dx = 0;
     let dy = 0;
@@ -263,18 +263,36 @@ export var GRID_PROTOCOL = {
       })
     }
 
+    if(CONFIG !== ''){
 
+      command =
+        String.fromCharCode(PROTOCOL.CONST.STX) +
+        '080' +
+        PROTOCOL.INSTR.EXECUTE.toString(16) +
+        CONFIG.BANKNUMBER.toString(16) +
+        CONFIG.ELEMENTNUMBER.toString(16) + 
+        CONFIG.EVENTTYPE.toString(16) +
+            String.fromCharCode(PROTOCOL.CONST.STX + 128) +
+            PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
+            PROTOCOL.INSTR.EXECUTE.toString(16) +
+            param +
+            String.fromCharCode(PROTOCOL.CONST.ETX + 128) + 
+        String.fromCharCode(PROTOCOL.CONST.ETX)
 
-    command =
-      String.fromCharCode(PROTOCOL.CONST.STX) +
-      PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-      PROTOCOL.INSTR.EXECUTE.toString(16) +
-      param +
-      String.fromCharCode(PROTOCOL.CONST.ETX);
+    } else {
+
+      command =
+        String.fromCharCode(PROTOCOL.CONST.STX) +
+        PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
+        PROTOCOL.INSTR.EXECUTE.toString(16) +
+        param +
+        String.fromCharCode(PROTOCOL.CONST.ETX);
     
-    let params = '';
+    }
 
-    console.log(CLASS_NAME);
+    console.log(command);
+
+    let params = '';
    
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');

@@ -27,6 +27,7 @@
   let moduleId = '';
 
   let moduleInfo;
+  let eventInfo;
 
   let events = [];
 
@@ -51,6 +52,7 @@
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
         let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
         selectedActions = elementEvent.actions;
+        eventInfo = elementEvent.event;
         controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
@@ -271,7 +273,8 @@
             {data} 
             {index}
             {moduleInfo}
-            selectedControlNumber={selectedElementSettings.controlNumber[0]}
+            {eventInfo}
+            {selectedElementSettings}
           />
         {/if}
       </SortableActions>

@@ -10,8 +10,9 @@
   import DropDownInput from '../DropDownInput.svelte';
 
   export let data;
-  export let selectedControlNumber;
+  export let selectedElementSettings;
   export let moduleInfo;
+  export let eventInfo;
 
   function sendData(){
 
@@ -37,9 +38,14 @@
 
     //console.log('set led color on module...', moduleInfo)
 
-    let MSG_ARRAY = [];
+    let config = {
+      BANKNUMBER: selectedElementSettings.bank,
+      ELEMENTNUMBER: selectedElementSettings.controlNumber[0],
+      EVENTTYPE: eventInfo.value,
+    }
+
     parameterArray.forEach(parameters => {
-      serialComm.write(GRID_PROTOCOL.encode(moduleInfo, "LEDCOLOR", parameters));
+      serialComm.write(GRID_PROTOCOL.encode(moduleInfo, config, "LEDCOLOR", parameters));
     });
     
   }
@@ -96,13 +102,13 @@
       data.parameters[5] = 1;
     } 
 
-    console.log('onMount data.parameters: ',data.parameters);
+    console.log('onMount data.parameters: ',eventInfo);
 
     startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
 
     alpha = data.parameters[5];
 
-    data.parameters[0] = selectedControlNumber;
+    data.parameters[0] = selectedElementSettings.controlNumber[0];
 
   })
 
