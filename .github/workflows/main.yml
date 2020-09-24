@@ -1,9 +1,6 @@
 name: Build Editor
 
-on:
-  push:
-    tags:
-      - 'v*.*.*'
+on: [push]
 
 jobs:
   build:
