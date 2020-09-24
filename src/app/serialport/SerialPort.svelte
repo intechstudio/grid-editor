@@ -195,18 +195,20 @@ import { set_raf } from 'svelte/internal';
       }
 
       if(DATA.BANKACTIVE){
-        globalSettings.update(settings => {
-          settings.active = DATA.BANKACTIVE.BANKNUMBER;
-          return settings
-        });
+        if(DATA.BANKACTIVE.BANKNUMBER !== 255){
+          globalSettings.update(settings => {
+            settings.active = DATA.BANKACTIVE.BANKNUMBER;
+            return settings
+          });
 
-        elementSettings.update(settings => {
-          //console.log(DATA.BANKACTIVE);
-          if(DATA.BANKACTIVE.BANKNUMBER !== 255){
-            settings.bank = DATA.BANKACTIVE.BANKNUMBER;
-          }
-          return settings;
-        })
+          elementSettings.update(settings => {
+            //console.log(DATA.BANKACTIVE);
+            if(DATA.BANKACTIVE.BANKNUMBER !== 255){
+              settings.bank = DATA.BANKACTIVE.BANKNUMBER;
+            }
+            return settings;
+          })
+        }
       }
       
       

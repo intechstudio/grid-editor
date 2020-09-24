@@ -44,7 +44,7 @@
 
   function handleBankEnabled(state){
     let _state;
-    state ? _state = 0 : _state = 1;
+    state ? _state = 1 : _state = 0;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: [
       {'BANKNUMBER': selected, 'ISENABLED': _state}
     ]})

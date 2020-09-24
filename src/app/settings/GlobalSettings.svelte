@@ -17,6 +17,7 @@
   let tabs = [0,1,2,3];
 
   globalSettings.subscribe(banks => {
+    console.log(banks);
       globalData = banks;
       selected =  banks.active;      
     })
@@ -28,7 +29,7 @@
     serialComm.write(command);
   }
 
-  function handleBankEnableChange(e){
+  function handleBankEnabledChange(e){
     const PARAMS = e.detail.parameters[0];
     console.log(e.detail);
     globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
@@ -108,7 +109,7 @@
             {selected}
             {globalData}
             on:BANKCOLOR={handleColorChange}
-            on:BANKENABLE={handleBankEnableChange}
+            on:BANKENABLED={handleBankEnabledChange}
             />  
         {/each}
       </div>
