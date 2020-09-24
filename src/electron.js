@@ -4,6 +4,8 @@ const log = require('electron-log');
  
 const Store = require('electron-store');
 
+const path = require('path');
+
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
@@ -14,11 +16,9 @@ const store = new Store({
             width: 800, 
             height: 600
         },
-        profiles_folder: ''
+        profiles_folder: '',
     }
 });
-
-const path = require('path');
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -87,6 +87,17 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 ipcMain.handle('getStoreValue', (event, key) => {
   const result = store.get(key);
   return result;
+})
+
+// uuid for google analytics
+
+ipcMain.on('set_uuid', (event,arg) => {
+  console.log('Storing UUID!');
+  store.set(arg);
+});
+
+ipcMain.handle('get_uuid', (event,arg) => {
+  return store.get('uuid');
 })
 
 

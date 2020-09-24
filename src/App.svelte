@@ -143,12 +143,7 @@
         $grid.layout = LAYOUT.removePossiblePlacementOutlines($grid)
       }
     });
-
-    ipcRenderer.on('setStoreValue-reply', (event, arg) => {
-      //console.log(arg) // prints "pong"
-    });
-
-    
+   
 
     ipcRenderer.on('update_available', () => {
       ipcRenderer.removeAllListeners('update_available');
