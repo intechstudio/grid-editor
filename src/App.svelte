@@ -134,7 +134,6 @@
   }
   
   onMount(()=>{
-    
 
     trackEvent('User Interaction', 'Thing')
 
