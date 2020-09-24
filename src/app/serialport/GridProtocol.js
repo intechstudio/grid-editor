@@ -231,8 +231,8 @@ export var GRID_PROTOCOL = {
     let rot = 0;
 
     if(MODULE_INFO !== ''){
-      dx = +MODULE_INFO.id.split(';')[0].split(':').pop();
-      dy = +MODULE_INFO.id.split(';')[1].split(':').pop();
+      dx = +MODULE_INFO.id.split(';')[0].split(':').pop() + 127;
+      dy = +MODULE_INFO.id.split(';')[1].split(':').pop() + 127;
       switch (MODULE_INFO.rotation){
         case -0:
           rot = 0; break;

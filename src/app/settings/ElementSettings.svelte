@@ -15,8 +15,8 @@
 
   let originalActions = [
     { id: 0, name: 'MIDI Relative' },
-    { id: 1, name: 'LED Color' },
-    { id: 2, name: 'LED Intensity'}
+    { id: 1, name: 'MIDI Absolute'},
+    { id: 2, name: 'LED Color' },
   ];
   let selectedAction = originalActions[0];
   $: availableActions = originalActions;
