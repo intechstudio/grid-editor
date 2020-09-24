@@ -1,6 +1,8 @@
 <script>
 
   const { ipcRenderer } = require('electron');
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
 
   /*
   *   tailwindcss
@@ -132,6 +134,9 @@
   }
   
   onMount(()=>{
+    
+
+    trackEvent('User Interaction', 'Thing')
 
     //startFresh();
 

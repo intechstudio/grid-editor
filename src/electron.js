@@ -1,10 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
-const log = require('electron-log');
- 
 const Store = require('electron-store');
 
 const path = require('path');
+const log = require('electron-log');
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -73,6 +72,32 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
+const ua = require('universal-analytics');
+const { v4: uuidv4 } = require('uuid');
+
+// Retrieve the userid value, and if it's not there, assign it a new uuid.
+const userId = store.get('userId') || uuidv4();
+
+// (re)save the userid, so it persists for the next app session.
+store.set('userId', userId)
+
+console.log(userId);
+
+var usr = ua('UA-XXXX-XX', userId);
+
+function trackEvent(category, action, label, value) {
+  usr
+    .event({
+      ec: category,
+      ea: action,
+      el: label,
+      ev: value,
+    })
+    .send();
+}
+
+global.trackEvent = trackEvent;
+
 log.info('check fo update and notify...')
 console.log('check for updates...')
 autoUpdater.checkForUpdatesAndNotify();
@@ -100,9 +125,9 @@ ipcMain.handle('get_uuid', (event,arg) => {
   return store.get('uuid');
 })
 
-
 // Start the back-end micorservice on localport 3000.
-const polka = require('./polka')
+const polka = require('./polka');
+const { use } = require('./polka');
 //const minmaxclose = require('./minmaxclose');
 
 // auto-update features

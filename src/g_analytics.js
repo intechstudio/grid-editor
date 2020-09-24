@@ -1,5 +1,5 @@
 const ua = require('universal-analytics');
-const uuid = require('uuid/v4');
+const uuid = require('uuid');
 const { ipcRenderer } = require('electron');
 
 let userId = undefined;
