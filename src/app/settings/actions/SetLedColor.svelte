@@ -3,7 +3,7 @@
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
-  import {  serialComm } from '../../serialport/serialport.store';
+  import { serialComm } from '../../serialport/serialport.store';
 
   import ColorPicker from '../ColorPicker.svelte';
 
@@ -13,7 +13,9 @@
   export let selectedControlNumber;
   export let moduleInfo;
 
-  $: if(data.parameters){
+  function sendData(){
+
+    console.log('change of data',data.parameters);
 
     data.valid = setLedColorValidator(data.parameters);
 
@@ -33,14 +35,12 @@
       parameterArray.push(parameters);
     }
 
-    console.log('set led color on module...', moduleInfo)
+    //console.log('set led color on module...', moduleInfo)
 
     let MSG_ARRAY = [];
     parameterArray.forEach(parameters => {
-      MSG_ARRAY.push(GRID_PROTOCOL.encode(moduleInfo, "LEDCOLOR", parameters));
+      serialComm.write(GRID_PROTOCOL.encode(moduleInfo, "LEDCOLOR", parameters));
     });
-     
-    serialComm.write(MSG_ARRAY);
     
   }
 
@@ -64,6 +64,9 @@
     data.parameters[3] = Math.floor(rgba.detail.g)
     data.parameters[4] = Math.floor(rgba.detail.b)
     data.parameters[5] = rgba.detail.a;
+
+    sendData();
+
   }
 
   function setLedColorValidator(parameters){
@@ -117,11 +120,11 @@
         <div class="flex justify-around my-1">
           <div class="mx-1 flex ">
             <div class="text-white mr-1">A</div>
-            <input bind:group={layers} value={1} type="checkbox" class="h-6 w-6">
+            <input bind:group={layers} value={1} on:change={sendData} type="checkbox" class="h-6 w-6">
           </div>
           <div class="mx-1 flex ">
             <div class="text-white pr-1">B</div>
-            <input bind:group={layers} value={2} type="checkbox" class="h-6 w-6">
+            <input bind:group={layers} value={2} on:change={sendData} type="checkbox" class="h-6 w-6">
           </div>
         </div>
       </div>
@@ -129,19 +132,19 @@
     <div class="flex w-7/12 flex-col xl:flex-row">
       <div class="px-1">
         <div class="text-gray-700 text-xs">Red</div>
-        <input type="number" bind:value={data.parameters[2]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <input type="number" bind:value={data.parameters[2]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
       <div class="px-1">
         <div class="text-gray-700 text-xs">Green</div>
-        <input type="number" bind:value={data.parameters[3]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <input type="number" bind:value={data.parameters[3]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
       <div class="px-1">
         <div class="text-gray-700 text-xs">Blue</div>
-        <input type="number" bind:value={data.parameters[4]} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <input type="number" bind:value={data.parameters[4]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
       <div class="px-1 xl:pr-2">
         <div class="text-gray-700 text-xs">Alpha</div>
-        <input type="number" bind:value={data.parameters[5]} min=0 max=1 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <input type="number" bind:value={data.parameters[5]} on:change={sendData} min=0 max=1 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
     </div>
   </div>
