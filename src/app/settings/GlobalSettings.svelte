@@ -50,19 +50,19 @@
   }
 
   function handleStoreGlobal(){
-    const command = GRID_PROTOCOL.encode('','STOREGLOBAL','');
+    const command = GRID_PROTOCOL.encode('','GLOBALSTORE','');
     serialComm.write(command);
     console.log('Store global settings to Grid!')
   }
 
   function handleRecallGlobal(){
-    const command = GRID_PROTOCOL.encode('','RECALLGLOBAL','');
+    const command = GRID_PROTOCOL.encode('','GLOBALRECALL','');
     serialComm.write(command);
     console.log('Recall global settings on Grid!')
   }
 
   function handleClearGlobal(){
-    const command = GRID_PROTOCOL.encode('','CLEARGLOBAL','');
+    const command = GRID_PROTOCOL.encode('','GLOBALCLEAR','');
     serialComm.write(command);
     console.log('Clear global settings on Grid!')
   }

@@ -69,6 +69,7 @@
     "e:builder": "electron-builder --publish onTagOrDraft",
     "e:builder:local": "electron-builder --publish never",
     "export": "run-s s:build e:builder",
+    "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "export:local": "run-s s:build e:builder:local",
     "s:build": "rollup -c",
     "dev": "rollup -c -w",

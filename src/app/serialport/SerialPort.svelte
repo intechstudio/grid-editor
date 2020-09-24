@@ -16,7 +16,6 @@
 
 	import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
-import { set_raf } from 'svelte/internal';
 
   const dispatch = createEventDispatcher();
 
@@ -148,7 +147,7 @@ import { set_raf } from 'svelte/internal';
     parser.on('data', function(data) {
 
       let array = Array.from(data);
-      if(!(array.join('').slice(32).startsWith('010') && array.length == 48) ){
+      if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
         debugStore.store(array.join(''));
       }
 
@@ -175,7 +174,7 @@ import { set_raf } from 'svelte/internal';
       }
 
       if(DATA.EVENT && DATA.EVENT.length > 0){
-        if(DATA.EVENT[0].ELEMENTTYPE !== 0){
+        if(DATA.EVENT[0].EVENTTYPE !== 1){
           elementSettings.update((setting)=>{
             setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
             setting.controlNumber = DATA.EVENT.map(event => {return event.ELEMENTNUMBER});   

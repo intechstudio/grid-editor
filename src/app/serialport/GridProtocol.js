@@ -224,7 +224,7 @@ export var GRID_PROTOCOL = {
   },
 
 
-  encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS){
+  encode: function (MODULE_INFO, EVENT, CLASS_NAME, PARAMETERS){
 
     let dx = 0;
     let dy = 0;
@@ -249,13 +249,6 @@ export var GRID_PROTOCOL = {
 
     const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
     
-
-    /**
-     * 
-     * Here the BRC parameters should be dynamically loaded if new firmware is present!
-     * 
-     */
-
     let BRC_PARAMETERS = [
       this.utility_genId(), dx, dy, 255, rot
     ];
@@ -270,6 +263,8 @@ export var GRID_PROTOCOL = {
       })
     }
 
+
+
     command =
       String.fromCharCode(PROTOCOL.CONST.STX) +
       PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
@@ -279,7 +274,7 @@ export var GRID_PROTOCOL = {
     
     let params = '';
 
-    console.log(PROTOCOL.INSTR.EXECUTE);
+    console.log(CLASS_NAME);
    
     BRC_PARAMETERS.forEach(param => {
       params += param.toString(16).padStart(2, '0');

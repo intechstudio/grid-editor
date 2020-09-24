@@ -2,34 +2,34 @@
 const TPEA = {
   down: {
     desc: 'down',
-    midi: 'DV7', 
-    led: 'DV8'
+    value: '4',
+    code: 'DP'
   },
   up: {
     desc: 'up',
-    midi: 'DV7',
-    led: 'DV8'
+    value: '5',
+    code: 'DR'
   },
-  value_change: {
-    desc: 'value change',
-    midi: 'AV7',
-    led: 'AV8'
+  analag_value_change: {
+    desc: 'analog value change',
+    value: '1',
+    code: 'AVC7'
   },
-  bank_init: {
+  init: {
     desc: 'bank init',
-    midi: '',
-    led: ''
+    value: '0',
+    code: 'INIT'
   }
 }
 
 export var GRID_CONTROLLER = {
 
   elementEvents: {
-    button: [ TPEA.bank_init, TPEA.down, TPEA.up ],
-    potentiometer: [ TPEA.bank_init, TPEA.value_change ],
-    fader: [ TPEA.bank_init, TPEA.value_change ],
+    button: [ TPEA.init, TPEA.down, TPEA.up ],
+    potentiometer: [ TPEA.init, TPEA.analag_value_change ],
+    fader: [ TPEA.init, TPEA.analag_value_change ],
     blank: [],
-    encoder: [ TPEA.bank_init, TPEA.down, TPEA.up, TPEA.value_change ]
+    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.analag_value_change ]
   },
 
   moduleElements: {
