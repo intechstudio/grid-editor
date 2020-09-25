@@ -25,7 +25,7 @@
   function handleColorChange(e){
     const PARAMS = e.detail.parameters[0];
     globalData.colors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
-    const command = GRID_PROTOCOL.encode('','', e.detail.className, e.detail.parameters);
+    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
     serialComm.write(command);
   }
 
@@ -33,7 +33,7 @@
     const PARAMS = e.detail.parameters[0];
     console.log(e.detail);
     globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
-    const command = GRID_PROTOCOL.encode('','', e.detail.className, e.detail.parameters);
+    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
     serialComm.write(command);
   }
 
@@ -45,24 +45,24 @@
       return settings;
     })
     selected = bank;
-    const command = GRID_PROTOCOL.encode('','','BANKACTIVE',[{'BANKNUMBER': bank}])
+    const command = GRID_PROTOCOL.encode('','BANKACTIVE',[{'BANKNUMBER': bank}], '')
     serialComm.write(command);
   }
 
   function handleStoreGlobal(){
-    const command = GRID_PROTOCOL.encode('','','GLOBALSTORE','');
+    const command = GRID_PROTOCOL.encode('','GLOBALSTORE','','');
     serialComm.write(command);
     console.log('Store global settings to Grid!')
   }
 
   function handleRecallGlobal(){
-    const command = GRID_PROTOCOL.encode('','GLOBALRECALL','');
+    const command = GRID_PROTOCOL.encode('','GLOBALRECALL','','');
     serialComm.write(command);
     console.log('Recall global settings on Grid!')
   }
 
   function handleClearGlobal(){
-    const command = GRID_PROTOCOL.encode('','GLOBALCLEAR','');
+    const command = GRID_PROTOCOL.encode('','GLOBALCLEAR','','');
     serialComm.write(command);
     console.log('Clear global settings on Grid!')
   }

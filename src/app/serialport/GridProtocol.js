@@ -279,7 +279,7 @@ export var GRID_PROTOCOL = {
     const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
     
     let BRC_PARAMETERS = [
-      this.utility_genId(), BRC.DX, BRC.DY, 255, BRC.ROT
+      this.utility_genId(), BRC.DX, BRC.DY, 0, BRC.ROT
     ];
 
     let command = '';
