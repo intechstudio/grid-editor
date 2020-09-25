@@ -152,6 +152,11 @@ import { elementSettings } from './app/settings/elementSettings.store';
         var shouldIgnore = !e.altKey;
         return shouldIgnore;
       },
+      beforeWheel: function(e) {
+        // allow wheel-zoom only if altKey is down. Otherwise - ignore
+        var shouldIgnore = !e.altKey;
+        return shouldIgnore;
+      }
       
     })
 
