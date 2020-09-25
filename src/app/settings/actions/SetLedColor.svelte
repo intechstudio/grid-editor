@@ -19,8 +19,6 @@
 
   function sendData(){
 
-    console.log('change of data',data.parameters);
-
     data.valid = setLedColorValidator(data.parameters);
 
     data.parameters[1] = layers;
@@ -28,7 +26,8 @@
     let parameterArray = [];
     for (let i = 0; i < data.parameters[1].length; i++) {
       let param_0;
-      if(data.parameters[0] !== 'A0' || data.parameters[0] !== 'A1'){ param_0 = Number(data.parameters[0]) }
+      console.log(data.parameters[0]);
+      if(data.parameters[0] != 'A0' && data.parameters[0] != 'A1'){ param_0 = Number(data.parameters[0]) } else { param_0 = data.parameters[0]}
       const parameters = [
         { 'NUM': param_0 },
         { 'LAY': data.parameters[1][i] },
@@ -39,12 +38,12 @@
       parameterArray.push(parameters);
     }
 
-    //console.log('set led color on module...', moduleInfo)
-
+    let serialized = '';
     parameterArray.forEach(parameters => {
-      configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("LEDCOLOR", parameters));
+      serialized += GRID_PROTOCOL.configure("LEDCOLOR", parameters);
     });
-    
+
+    configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, serialized);
   }
 
   let layers = data.parameters[1];
@@ -105,7 +104,7 @@
 
     alpha = data.parameters[5];
 
-    data.parameters[0] = selectedElementSettings.controlNumber[0];
+    data.parameters[0] = parameters[0].value;
 
   })
 

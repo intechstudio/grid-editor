@@ -11,9 +11,8 @@
   import OverlayToggle from '../grid-modules/overlays/OverlayToggle.svelte';
 
   import Action from './Action.svelte';
-import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
-import { serialComm } from '../serialport/serialport.store.js';
-import { Module } from 'module';
+  import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
+  import { serialComm } from '../serialport/serialport.store.js';
 
   let selectedElementSettings;
 
@@ -174,6 +173,7 @@ import { Module } from 'module';
           ELEMENTNUMBER: selectedElementSettings.controlNumber[0],
           EVENTTYPE: eventInfo.value
         }
+        console.log(store);
         const serialized = GRID_PROTOCOL.serialize_actions(config, actions.join(''))
         serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
       }

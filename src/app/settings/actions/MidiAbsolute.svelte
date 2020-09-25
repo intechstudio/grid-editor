@@ -4,26 +4,68 @@
 
   import DropDownInput from '../DropDownInput.svelte';
 
+  import { configStore } from '../../stores/config.store';
+
+  import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
+
   export let data;
   export let index;
+  export let moduleInfo;
+  export let eventInfo;
+  export let selectedElementSettings;
+
+  let valid = [];
+
+  const build_array = () => {
+    let arr = [];
+    for (let i = 0; i < 15; i++) {
+      arr[i] = {value: i.toString(), info: `${'Ch. ' + i}`}
+    }
+    return arr;
+  }
   
   const MIDIABSOLUTE = {
 
     PARAMS: ['Channel', 'Command', 'Parameter 1','Parameter 2'],
 
-    OPTIONS: [
+    CC: [
+      build_array(),
       [
-        {value: 'W', info: 'Channel Stuff'}
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
       ],
       [
-        {value: 'Z', info: 'Command Thingy'}
-      ],
-      [
-        {value: 'X', info: 'X'}
+        {value: 'A0', info: 'Control Number'}, 
+        {value: 'A1', info: 'Reversed Control Number'}
       ],[
-        {value: 'Y', info: 'Y'}
+        {value: 'A2', info: 'Control Value'}
       ]
     ],
+    NOTE: [
+      build_array(),
+      [
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
+      ],
+      [
+        {value: 'A0', info: 'Note'}, 
+        {value: 'A1', info: 'Reversed Note'}
+      ],
+      [
+        {value: 'A2', info: 'Velocity'}
+      ],
+    ],
+    optionList: function(parameter){
+      let options = [];
+      if(parameter == '0xb0'){
+        options = this.CC;
+      }else{ // this is also the default;
+        options = this.NOTE;
+      }
+      return options;
+    }
   
   }
 
@@ -38,19 +80,26 @@
     let humanReadable = '';
 
     if(index == 0){
-      if(parameter.length == 3 && +parameter >= 128 && +parameter <= 255){
+      if(parseInt(parameter) >= 0 && parseInt(parameter) <= 15){
+        type = 'dec';
+      } else {
+        defined = 'invalid :(';
+        //appears to be a wildcard
+      }
+    } else if(index == 1){
+      if(parseInt(parameter) >= 128 && parseInt(parameter) <= 255){
         type = 'dec';
         let hexstring = '0x' + (+parameter).toString(16).padStart(2, '0');       
         defined = checkForMatchingValue(hexstring, index);
         if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
-      } else if(parameter.startsWith('0x')) {  
+      } else if(parameter.startsWith('0x') && parameter.length > 3) {  
         type = 'hex';
         defined = checkForMatchingValue(parameter, index);
       } else {
-        //defined = 'invalid';
+        defined = 'invalid :(';
         //appears to be a wildcard
       }
-    } else if(index == 1){
+    } else if(index == 2){
       if(parameter == 'A0' || parameter == 'A1'){ 
         type = 'tmp param';
         defined = checkForMatchingValue(parameter, index);  
@@ -60,7 +109,7 @@
         // wildcard
         defined = 'invalid :('
       }
-    } else if(index == 2){
+    } else if(index == 3){
       if(parameter == 'A2'){    
         type = 'tmp param';
         defined = checkForMatchingValue(parameter, index);
@@ -77,7 +126,14 @@
     else 
       humanReadable = parameter;
 
+    if(humanReadable == 'invalid :('){
+      valid[index] = false;
+    } else {
+      valid[index] = true;
+    }
+
     return humanReadable;
+  
   }
 
   function checkForMatchingValue(parameter, index) {
@@ -86,8 +142,30 @@
     return defined;
   }
 
+  function sendData(){
+    const CHANNEL = parseInt(data.parameters[0]).toString(16).padStart(2,'0')[1];
+    const COMMAND = parseInt(data.parameters[1]).toString(16)[0];
+    
+    const parameters = [
+      {'CABLECOMMAND': `${'0'+COMMAND}` },
+      {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },
+      {'PARAM1': data.parameters[2]},
+      {'PARAM1': data.parameters[3]}
+    ];
+
+    const validity = valid.indexOf(false);
+    if(validity == -1){
+      configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
+    }
+  }
+
+  $: if(data.name == 'MIDI Absolute') {
+    console.log(data.name, )
+    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
+  }
+
   onMount(()=>{
-    optionList = MIDIABSOLUTE.OPTIONS;
+    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
   })
 
 </script>
@@ -96,7 +174,7 @@
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={sendData} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Absolute'}
         {validate_midiabsolute(data.parameters[index], index)}

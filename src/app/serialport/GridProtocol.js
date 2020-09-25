@@ -261,9 +261,9 @@ export var GRID_PROTOCOL = {
         String.fromCharCode(this.PROTOCOL.CONST.STX) +
         this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0') +
         this.PROTOCOL.INSTR.EXECUTE.toString(16) +
-        CONFIG.BANKNUMBER.toString(16) +
-        CONFIG.ELEMENTNUMBER.toString(16) + 
-        CONFIG.EVENTTYPE.toString(16) +
+        CONFIG.BANKNUMBER.toString(16).padStart(2, '0') +
+        CONFIG.ELEMENTNUMBER.toString(16).padStart(2, '0') + 
+        CONFIG.EVENTTYPE.toString(16).padStart(2, '0') +
           ACTIONS + 
         String.fromCharCode(this.PROTOCOL.CONST.ETX)
     return body;
@@ -296,7 +296,6 @@ export var GRID_PROTOCOL = {
         this.encode_class_parameters(PARAMETERS) +
         String.fromCharCode(PROTOCOL.CONST.ETX);
     }
-    
     
 
     let body = '';
