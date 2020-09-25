@@ -9,6 +9,9 @@
   */
 
   import Tailwindcss from './Tailwindcss.svelte';
+
+  import createPanZoom from 'panzoom';
+  let map;
   
   /*
   *   top-level stores
@@ -137,7 +140,20 @@ import { elementSettings } from './app/settings/elementSettings.store';
   
   onMount(()=>{
 
-    trackEvent('User Interaction', 'Thing')
+    trackEvent('User Interaction', 'Thing');
+
+    createPanZoom(map, {
+      bounds: true,
+      boundsPadding: 0.1,
+      zoomDoubleClickSpeed: 1,  //disable double click zoom
+      smoothScroll: false, // disable the smoothing effect
+      beforeMouseDown: function(e) {
+        // allow mouse-down panning only if altKey is down. Otherwise - ignore
+        var shouldIgnore = !e.altKey;
+        return shouldIgnore;
+      },
+      
+    })
 
     //startFresh();
 
@@ -299,6 +315,9 @@ import { elementSettings } from './app/settings/elementSettings.store';
 
 <div id="grid-main-container" style="" class="relative h-full">
 
+  <!-- Info on pan. -->
+
+
   <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
   {#if $appSettings.selectedDisplay == 'layout'}
@@ -310,6 +329,17 @@ import { elementSettings } from './app/settings/elementSettings.store';
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
       <GlobalSettings/>
+      {#if $grid.used.length > 0}
+      <div class="flex flex-col text-white ">
+        <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
+          <div class="mx-2">Hold</div>
+          <img class="w-10 h-10 p-2 bg-white rounded-lg shadow-md" alt="mac-alt-key" src="./../public/assets/svgs/mac-alt.svg">
+          <div class="mx-2">or</div>
+          <img class="w-10 h-10 p-2 bg-white rounded-lg shadow-md" alt="win-alt-key" src="./../public/assets/svgs/win-alt.svg">
+          <div class="mx-2">to pan the control surface.</div>
+        </div>    
+      </div>
+      {/if}
       <ElementSettings/>
     </div>
   {/if}
@@ -320,7 +350,7 @@ import { elementSettings } from './app/settings/elementSettings.store';
 
   <!-- This is the (mostly) Layout part of the code. -->
 
-  <div class="absolute overflow-hidden w-full flex flex-col h-full"
+  <div class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
 
     use:dragndrop={$appSettings.selectedDisplay} 
 
@@ -379,7 +409,7 @@ import { elementSettings } from './app/settings/elementSettings.store';
 
 
 
-    <div style="top:40%; left:40%;" class="w-full h-full flex relative justify-center items-center z-10"
+    <div bind:this={map} style="top:40%; left:40%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
       use:layoutMenu={$appSettings.selectedDisplay}
       on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
       on:menu-close={()=>{isMenuOpen = false}}
