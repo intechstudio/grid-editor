@@ -4,12 +4,16 @@
 
   import { elementSettings } from './elementSettings.store.js';
   import { grid } from '../stores/grid.store.js';
+  import { configStore } from '../stores/config.store.js';
 
   import SortableActions from './SortableActions.svelte';
 
   import OverlayToggle from '../grid-modules/overlays/OverlayToggle.svelte';
 
   import Action from './Action.svelte';
+import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
+import { serialComm } from '../serialport/serialport.store.js';
+import { Module } from 'module';
 
   let selectedElementSettings;
 
@@ -147,7 +151,6 @@
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
           const newActions = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
-          console.log('paste this...',elementEvent.actions, newActions)
           elementEvent.actions = newActions;
         }
         return controller;
@@ -163,7 +166,22 @@
       loadSelectedModuleSettings();
     });
 
+    configStore.subscribe((store)=>{
+      if(store[moduleId] !== undefined){
+        const actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
+        const config = {
+          BANKNUMBER: selectedElementSettings.bank,
+          ELEMENTNUMBER: selectedElementSettings.controlNumber[0],
+          EVENTTYPE: eventInfo.value
+        }
+        const serialized = GRID_PROTOCOL.serialize_actions(config, actions.join(''))
+        serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
+      }
+    })
+
   })
+
+  
 
 
 </script>

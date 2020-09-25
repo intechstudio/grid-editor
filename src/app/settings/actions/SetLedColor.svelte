@@ -5,11 +5,14 @@
 
   import { serialComm } from '../../serialport/serialport.store';
 
+  import { configStore } from '../../stores/config.store';
+
   import ColorPicker from '../ColorPicker.svelte';
 
   import DropDownInput from '../DropDownInput.svelte';
 
   export let data;
+  export let index;
   export let selectedElementSettings;
   export let moduleInfo;
   export let eventInfo;
@@ -38,14 +41,8 @@
 
     //console.log('set led color on module...', moduleInfo)
 
-    let config = {
-      BANKNUMBER: selectedElementSettings.bank,
-      ELEMENTNUMBER: selectedElementSettings.controlNumber[0],
-      EVENTTYPE: eventInfo.value,
-    }
-
     parameterArray.forEach(parameters => {
-      serialComm.write(GRID_PROTOCOL.encode(moduleInfo, config, "LEDCOLOR", parameters));
+      configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("LEDCOLOR", parameters));
     });
     
   }

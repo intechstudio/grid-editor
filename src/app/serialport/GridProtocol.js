@@ -223,79 +223,85 @@ export var GRID_PROTOCOL = {
     return object;
   },
 
-
-  encode: function (MODULE_INFO, CONFIG, CLASS_NAME, PARAMETERS){
-
-    let dx = 0;
-    let dy = 0;
-    let rot = 0;
+  get_module_info: function(MODULE_INFO){
+    let DX = 0;
+    let DY = 0;
+    let ROT = 0;
 
     if(MODULE_INFO !== ''){
-      dx = +MODULE_INFO.id.split(';')[0].split(':').pop() + 127;
-      dy = +MODULE_INFO.id.split(';')[1].split(':').pop() + 127;
+      DX = +MODULE_INFO.id.split(';')[0].split(':').pop() + 127;
+      DY = +MODULE_INFO.id.split(';')[1].split(':').pop() + 127;
       switch (MODULE_INFO.rotation){
         case -0:
-          rot = 0; break;
+          ROT = 0; break;
         case 90:
-          rot = 1; break;
+          ROT = 1; break;
         case 180:
-          rot = 2; break;
+          ROT = 2; break;
         case 270:
-          rot = 3; break;
+          ROT = 3; break;
       }
     }
+
+    return {ROT, DX, DY};
+  },
+
+  configure: function(CLASS_NAME, PARAMETERS){
+    const body = 
+        String.fromCharCode(this.PROTOCOL.CONST.STX + 128) +
+        this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
+        this.PROTOCOL.INSTR.EXECUTE.toString(16) +
+            this.encode_class_parameters(PARAMETERS) +
+        String.fromCharCode(this.PROTOCOL.CONST.ETX + 128)
+    return body;
+  },
+
+  serialize_actions: function(CONFIG,ACTIONS){
+    const body = 
+        String.fromCharCode(this.PROTOCOL.CONST.STX) +
+        this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0') +
+        this.PROTOCOL.INSTR.EXECUTE.toString(16) +
+        CONFIG.BANKNUMBER.toString(16) +
+        CONFIG.ELEMENTNUMBER.toString(16) + 
+        CONFIG.EVENTTYPE.toString(16) +
+          ACTIONS + 
+        String.fromCharCode(this.PROTOCOL.CONST.ETX)
+    return body;
+  },
+
+
+  encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS, SERIALIZED){
+
+    const BRC = this.get_module_info(MODULE_INFO);
 
     const PROTOCOL = this.PROTOCOL;
 
     const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
     
     let BRC_PARAMETERS = [
-      this.utility_genId(), dx, dy, 255, rot
+      this.utility_genId(), BRC.DX, BRC.DY, 255, BRC.ROT
     ];
 
     let command = '';
-    let param = '';
-    if(PARAMETERS !== ''){
-      PARAMETERS.forEach(CLASS => {     
-        for (const key in CLASS) {
-        param += CLASS[key].toString(16).padStart(2, '0');
-        }
-      })
-    }
 
-    if(CONFIG !== ''){
+    if(SERIALIZED !== ''){
 
-      command =
-        String.fromCharCode(PROTOCOL.CONST.STX) +
-        '080' +
-        PROTOCOL.INSTR.EXECUTE.toString(16) +
-        CONFIG.BANKNUMBER.toString(16) +
-        CONFIG.ELEMENTNUMBER.toString(16) + 
-        CONFIG.EVENTTYPE.toString(16) +
-            String.fromCharCode(PROTOCOL.CONST.STX + 128) +
-            PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-            PROTOCOL.INSTR.EXECUTE.toString(16) +
-            param +
-            String.fromCharCode(PROTOCOL.CONST.ETX + 128) + 
-        String.fromCharCode(PROTOCOL.CONST.ETX)
+      command = SERIALIZED;
 
     } else {
-
       command =
         String.fromCharCode(PROTOCOL.CONST.STX) +
         PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
         PROTOCOL.INSTR.EXECUTE.toString(16) +
-        param +
+        this.encode_class_parameters(PARAMETERS) +
         String.fromCharCode(PROTOCOL.CONST.ETX);
-    
     }
+    
+    
 
-    console.log(command);
-
-    let params = '';
-   
-    BRC_PARAMETERS.forEach(param => {
-      params += param.toString(16).padStart(2, '0');
+    let body = '';
+    BRC_PARAMETERS.forEach(parameter => {
+      body += parameter.toString(16).padStart(2, '0');
     })
      
     const append = 
@@ -303,7 +309,7 @@ export var GRID_PROTOCOL = {
       command +
       String.fromCharCode(PROTOCOL.CONST.EOT);
 
-    let message = prepend + params + append;
+    let message = prepend + body + append;
 
     message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
 
@@ -312,6 +318,18 @@ export var GRID_PROTOCOL = {
     message = message + checksum;
 
     return message;
+  },
+
+  encode_class_parameters: function(PARAMETERS){
+    let param = '';
+    if(PARAMETERS !== ''){
+      PARAMETERS.forEach(CLASS => {     
+        for (const key in CLASS) {
+        param += CLASS[key].toString(16).padStart(2, '0');
+        }
+      })
+    }
+    return param;
   },
 
   encode_debugger: function (brc, command){

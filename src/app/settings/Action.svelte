@@ -48,7 +48,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} bind:data={data} {moduleInfo} {eventInfo} {selectedElementSettings} />    
+    <svelte:component this={components[data.name]} bind:data={data} {index} {moduleInfo} {eventInfo} {selectedElementSettings} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>
