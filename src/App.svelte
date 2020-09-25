@@ -66,6 +66,8 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
+import { serialComm } from './app/serialport/serialport.store';
+import { elementSettings } from './app/settings/elementSettings.store';
 
 
   /*
@@ -209,6 +211,15 @@
   <div class="draggable flex justify-between">
     <div class="flex">
       <div class="p-1 text-gray-700 font-gt-pressura tracking-wider ">EDITOR</div>
+    </div>
+
+    <div class="flex items-center not-draggable text-sm">
+      <div class="pr-2">Size</div>
+      <input 
+        type="number" 
+        class="w-12 secondary text-white p-1 pl-2 rounded-none focus:outline-none" 
+        value={$appSettings.size}
+        on:input={(e)=>{appSettings.update(store => {store.size = e.target.value; return store;})}}/>
     </div>
 
     <div class="flex items-center not-draggable text-sm">
