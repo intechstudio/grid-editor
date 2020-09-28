@@ -17,7 +17,7 @@ function createSerialComm(){
         return store;
       })
       let port = get(store).open;
-      port.write(`${args}\n`);
+      port.write([...args, 10]);
       return
     },
     selected: (port) => {

@@ -249,28 +249,32 @@ export const GRID_PROTOCOL = {
   },
 
   configure: function(CLASS_NAME, PARAMETERS){
-    const body = 
-        String.fromCharCode(this.PROTOCOL.CONST.STX + 128) +
-        this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-        this.PROTOCOL.INSTR.EXECUTE.toString(16) +
-            this.encode_class_parameters(PARAMETERS) +
-        String.fromCharCode(this.PROTOCOL.CONST.ETX + 128)
+    let classname = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0')
+    const body = [
+        this.PROTOCOL.CONST.STX + 128,
+        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        this.PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
+        ...this.encode_class_parameters(PARAMETERS, this.PROTOCOL[CLASS_NAME]),
+        this.PROTOCOL.CONST.ETX + 128
+    ]
     return body;
   },
 
-  serialize_actions: function(CONFIG,ACTIONS){
-    const body = 
-        String.fromCharCode(this.PROTOCOL.CONST.STX) +
-        this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0') +
-        this.PROTOCOL.INSTR.EXECUTE.toString(16) +
-        CONFIG.BANKNUMBER.toString(16).padStart(2, '0') +
-        CONFIG.ELEMENTNUMBER.toString(16).padStart(2, '0') + 
-        CONFIG.EVENTTYPE.toString(16).padStart(2, '0') +
-          ACTIONS + 
-        String.fromCharCode(this.PROTOCOL.CONST.ETX)
+  serialize_actions: function(PARAMETERS, ACTIONS){
+    let classname = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
+    const body = [
+        this.PROTOCOL.CONST.STX,
+        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        this.PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0) ,
+        ...this.encode_class_parameters(PARAMETERS, this.PROTOCOL['CONFIGURATION']),
+        ...ACTIONS,
+        this.PROTOCOL.CONST.ETX
+    ];
+
+    console.log('serializer', ACTIONS, this.encode_class_parameters(PARAMETERS, this.PROTOCOL['CONFIGURATION']))
+
     return body;
   },
-
 
   encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS, SERIALIZED){
 
@@ -278,11 +282,17 @@ export const GRID_PROTOCOL = {
 
     const PROTOCOL = this.PROTOCOL;
 
-    const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
+    const prepend = [PROTOCOL.CONST.SOH, PROTOCOL.CONST.BRC]
     
     let BRC_PARAMETERS = [
-      this.utility_genId(), BRC.DX, BRC.DY, 0, BRC.ROT
+      {ID: this.utility_genId()}, 
+      {DX: BRC.DX}, 
+      {DY: BRC.DY}, 
+      {AGE: 0}, 
+      {ROT: BRC.ROT}
     ];
+
+    BRC_PARAMETERS = this.encode_class_parameters(BRC_PARAMETERS, PROTOCOL['BRC']);
 
     let command = '';
 
@@ -291,49 +301,56 @@ export const GRID_PROTOCOL = {
       command = SERIALIZED;
 
     } else {
-      command =
-        String.fromCharCode(PROTOCOL.CONST.STX) +
-        PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3, '0') +
-        PROTOCOL.INSTR.EXECUTE.toString(16) +
-        this.encode_class_parameters(PARAMETERS) +
-        String.fromCharCode(PROTOCOL.CONST.ETX);
-    }
-
-    console.log(PROTOCOL.CONST.ETX);
-    
-
-    let body = '';
-    BRC_PARAMETERS.forEach(parameter => {
-      body += parameter.toString(16).padStart(2, '0');
-    })
+      let classname = PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0');
+      command = [
+        PROTOCOL.CONST.STX,
+        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
+        ...this.encode_class_parameters(PARAMETERS, PROTOCOL[CLASS_NAME]),
+        PROTOCOL.CONST.ETX
+      ]
+    }  
      
-    const append = 
-      String.fromCharCode(PROTOCOL.CONST.EOB) + 
-      command +
-      String.fromCharCode(PROTOCOL.CONST.EOT);
+    const append = [
+      PROTOCOL.CONST.EOB,
+      ...command ,
+      PROTOCOL.CONST.EOT
+    ]
 
-    let message = prepend + body + append;
+    let message = prepend.concat(BRC_PARAMETERS, append);
 
-    message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
+    let length = (message.length+2).toString(16).padStart(2,'0');
+    length = [length.charCodeAt(0), length.charCodeAt(1)]
+    message = [...message.slice(0,2), ...length, ...message.slice(2,)];
 
-    let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
+    let checksum = [...message].map(a => a).reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
 
-    message = message + checksum;
+    message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
+
+    let ascii = message.map(m => {
+      return String.fromCharCode(m)
+    })
+
+    console.log(ascii.join(''));
 
     return message;
   },
 
-  encode_class_parameters: function(PARAMETERS){
-    let param = '';
+  encode_class_parameters: function(PARAMETERS, INFO){
+    let _parameters = [];
     if(PARAMETERS !== ''){
       PARAMETERS.forEach(CLASS => {     
         for (const key in CLASS) {
-        param += CLASS[key].toString(16).padStart(2, '0');
+          let param = [];
+          let p = CLASS[key].toString(16).padStart(INFO[key].length,'0');
+          for (let i = 0; i < INFO[key].length; i++) {
+            param[i] = p.charCodeAt(i)            
+          }
+          _parameters = [..._parameters, ...param];
         }
       })
     }
-    console.log(param);
-    return param;
+    return _parameters;
   },
 
   encode_debugger: function (brc, command){

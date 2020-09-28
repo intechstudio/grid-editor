@@ -168,13 +168,12 @@
     configStore.subscribe((store)=>{
       if(store[moduleId] !== undefined){
         const actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
-        const config = {
-          BANKNUMBER: selectedElementSettings.bank,
-          ELEMENTNUMBER: selectedElementSettings.controlNumber[0],
-          EVENTTYPE: eventInfo.value
-        }
-        console.log(store);
-        const serialized = GRID_PROTOCOL.serialize_actions(config, actions.join(''))
+        const config = [
+          { BANKNUMBER: selectedElementSettings.bank },
+          { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
+          { EVENTTYPE: eventInfo.value }
+        ]
+        const serialized = GRID_PROTOCOL.serialize_actions(config, actions[0])
         serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
       }
     })
