@@ -249,10 +249,10 @@ export const GRID_PROTOCOL = {
   },
 
   configure: function(CLASS_NAME, PARAMETERS){
-    let classname = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0')
+    let CLASS = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0')
     const body = [
         this.PROTOCOL.CONST.STX + 128,
-        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
         this.PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
         ...this.encode_class_parameters(PARAMETERS, this.PROTOCOL[CLASS_NAME]),
         this.PROTOCOL.CONST.ETX + 128
@@ -261,18 +261,15 @@ export const GRID_PROTOCOL = {
   },
 
   serialize_actions: function(PARAMETERS, ACTIONS){
-    let classname = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
+    let CONFIG = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
     const body = [
         this.PROTOCOL.CONST.STX,
-        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        ...[CONFIG.charCodeAt(0), CONFIG.charCodeAt(1), CONFIG.charCodeAt(2)],
         this.PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0) ,
         ...this.encode_class_parameters(PARAMETERS, this.PROTOCOL['CONFIGURATION']),
         ...ACTIONS,
         this.PROTOCOL.CONST.ETX
     ];
-
-    console.log('serializer', ACTIONS, this.encode_class_parameters(PARAMETERS, this.PROTOCOL['CONFIGURATION']))
-
     return body;
   },
 
@@ -301,10 +298,10 @@ export const GRID_PROTOCOL = {
       command = SERIALIZED;
 
     } else {
-      let classname = PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0');
+      let CLASS = PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0');
       command = [
         PROTOCOL.CONST.STX,
-        ...[classname.charCodeAt(0), classname.charCodeAt(1), classname.charCodeAt(2)],
+        ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
         PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
         ...this.encode_class_parameters(PARAMETERS, PROTOCOL[CLASS_NAME]),
         PROTOCOL.CONST.ETX
@@ -323,7 +320,7 @@ export const GRID_PROTOCOL = {
     length = [length.charCodeAt(0), length.charCodeAt(1)]
     message = [...message.slice(0,2), ...length, ...message.slice(2,)];
 
-    let checksum = [...message].map(a => a).reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
+    let checksum = [...message].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
 
     message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
 
@@ -331,7 +328,6 @@ export const GRID_PROTOCOL = {
   },
 
   encode_class_parameters: function(PARAMETERS, INFO){
-    console.log(PARAMETERS, INFO)
     let _parameters = [];
     if(PARAMETERS !== ''){
       PARAMETERS.forEach(CLASS => {     
@@ -345,7 +341,6 @@ export const GRID_PROTOCOL = {
         }
       })
     }
-    
     return _parameters;
   },
 

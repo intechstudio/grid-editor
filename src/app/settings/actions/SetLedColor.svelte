@@ -17,16 +17,18 @@
   export let moduleInfo;
   export let eventInfo;
 
+
   function sendData(){
 
-    data.valid = setLedColorValidator(data.parameters);
+    
+
+    
 
     data.parameters[1] = layers;
     
     let parameterArray = [];
     for (let i = 0; i < data.parameters[1].length; i++) {
       let param_0;
-      console.log(data.parameters[0]);
       if(data.parameters[0] != 'A0' && data.parameters[0] != 'A1'){ param_0 = Number(data.parameters[0]) } else { param_0 = data.parameters[0]}
       const parameters = [
         { 'NUM': param_0 },
@@ -35,15 +37,20 @@
         { 'GRE': Math.floor(data.parameters[3] * data.parameters[5]) },
         { 'BLU': Math.floor(data.parameters[4] * data.parameters[5]) }
       ];
-      parameterArray.push(parameters);
+      let valid = setLedColorValidator(data.parameters);
+      parameterArray.push({parameters: parameters, valid: valid});
     }
 
     let serialized = [];
-    parameterArray.forEach(parameters => {
-      serialized.push(...GRID_PROTOCOL.configure("LEDCOLOR", parameters));
+    parameterArray.forEach(p => {
+      if(p.valid){
+        serialized.push(...GRID_PROTOCOL.configure("LEDCOLOR", p.parameters));
+      }
     });
 
-    configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    if(serialized.length !== 0){
+      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    }
   }
 
   let layers = data.parameters[1];
@@ -72,14 +79,14 @@
   }
 
   function setLedColorValidator(parameters){
-    const num = data.parameters[0];
-    const lay = data.parameters[1];
-    const red = data.parameters[2];
-    const gre = data.parameters[3];
-    const blu = data.parameters[4];
+    const num = parameters[0];
+    const lay = parameters[1];
+    const red = parameters[2];
+    const gre = parameters[3];
+    const blu = parameters[4];
     let valid = true;
     if(!(num == 'A0' || num == 'A1' || 0 < num && num < 16 )) valid = false;
-    if(!(lay.length > 0)) valid = false;
+    if(!(lay.length > 0 || lay[0] !== '')) valid = false;
     if(!(0 <= red && red <= 255)) valid = false;
     if(!(0 <= gre && gre <= 255)) valid = false;
     if(!(0 <= blu && blu <= 255)) valid = false;
@@ -97,8 +104,6 @@
       data.parameters[4] = 0;
       data.parameters[5] = 1;
     } 
-
-    console.log('onMount data.parameters: ',eventInfo);
 
     startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
 
