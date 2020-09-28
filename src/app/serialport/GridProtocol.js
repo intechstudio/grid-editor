@@ -337,6 +337,7 @@ export const GRID_PROTOCOL = {
   },
 
   encode_class_parameters: function(PARAMETERS, INFO){
+    console.log(PARAMETERS, INFO)
     let _parameters = [];
     if(PARAMETERS !== ''){
       PARAMETERS.forEach(CLASS => {     
@@ -350,6 +351,7 @@ export const GRID_PROTOCOL = {
         }
       })
     }
+    
     return _parameters;
   },
 

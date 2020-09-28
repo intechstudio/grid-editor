@@ -37,7 +37,10 @@
     rgb[2] = Math.floor(rgba.detail.b * rgba.detail.a)
 
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
-      {'BANKNUMBER': selected, 'RED': rgb[0], 'GREEN': rgb[1], 'BLUE': rgb[2]}
+      {'NUM': selected}, 
+      {'RED': rgb[0]}, 
+      {'GRE': rgb[1]}, 
+      {'BLU': rgb[2]}
     ]})
 
   }
@@ -46,7 +49,8 @@
     let _state;
     state ? _state = 1 : _state = 0;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: [
-      {'BANKNUMBER': selected, 'ISENABLED': _state}
+      {'BANKNUMBER': selected}, 
+      {'ISENABLED': _state}
     ]})
   }
 

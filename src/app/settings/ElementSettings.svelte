@@ -20,6 +20,7 @@
     { id: 0, name: 'MIDI Relative' },
     { id: 1, name: 'MIDI Absolute'},
     { id: 2, name: 'LED Color' },
+    { id: 3, name: 'LED Phase' },
   ];
   let selectedAction = originalActions[0];
   $: availableActions = originalActions;
