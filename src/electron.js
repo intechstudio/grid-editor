@@ -63,7 +63,9 @@ function createWindow() {
       store.set('windowBounds', { width, height });
     })
 
-    mainWindow.webContents.openDevTools();
+    if (process.env.NODE_ENV === 'development') {
+      mainWindow.webContents.openDevTools();
+    }
     
 }
 

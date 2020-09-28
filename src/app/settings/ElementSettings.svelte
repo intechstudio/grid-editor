@@ -282,14 +282,14 @@
       <SortableActions
         {selectedActions} 
         let:data 
-        let:index
+        let:orderNumber
         >
         {#if selectedActions[0].parameters.length > 0}
           <Action 
             on:remove={handleRemoveAction}
             on:change={handleOnChange}
             {data} 
-            {index}
+            {orderNumber}
             {moduleInfo}
             {eventInfo}
             {selectedElementSettings}

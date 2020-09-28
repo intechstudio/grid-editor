@@ -9,12 +9,12 @@
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
   export let data;
-  export let index;
+  export let orderNumber;
   export let moduleInfo;
   export let eventInfo;
   export let selectedElementSettings;
 
-  let valid = [];
+  let validator = [];
 
   const build_array = () => {
     let arr = [];
@@ -126,12 +126,6 @@
     else 
       humanReadable = parameter;
 
-    if(humanReadable == 'invalid :('){
-      valid[index] = false;
-    } else {
-      valid[index] = true;
-    }
-
     return humanReadable;
   
   }
@@ -142,20 +136,36 @@
     return defined;
   }
 
-  function sendData(){
+  function parser(param){
+    let parameter;
+    if(isNaN(parseInt(param))){
+      parameter = param;  
+    } else {
+      parameter = parseInt(param)
+    }
+    return parameter
+  }
+
+  function sendData(params, index){
+
+    validator[index] = validate_midiabsolute(params, index)
+
     const CHANNEL = parseInt(data.parameters[0]).toString(16).padStart(2,'0')[1];
     const COMMAND = parseInt(data.parameters[1]).toString(16)[0];
     
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },
-      {'PARAM1': data.parameters[2]},
-      {'PARAM1': data.parameters[3]}
+      {'PARAM1': parser(data.parameters[2])},
+      {'PARAM1': parser(data.parameters[3])}
     ];
 
-    const validity = valid.indexOf(false);
-    if(validity == -1){
-      configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
+    let valid = false;
+    if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
+      valid = true;
+    }
+    if(valid == -1){
+      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
     }
   }
 
@@ -177,7 +187,7 @@
     <DropDownInput on:change={sendData} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Absolute'}
-        {validate_midiabsolute(data.parameters[index], index)}
+        {validator[index] ? validator[index] : ''}
       {/if}
     </div>
   </div>

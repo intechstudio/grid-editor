@@ -1,11 +1,13 @@
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json';
 import {GRID_CONTROLLER} from './GridController.js';
 
-var global_id = 0;
+const iconv = require('iconv-lite');
 
-var PROTOCOL = {};
+let global_id = 0;
 
-export var GRID_PROTOCOL = {
+let PROTOCOL = {};
+
+export const GRID_PROTOCOL = {
   
   initialize: function(){
 
@@ -296,6 +298,8 @@ export var GRID_PROTOCOL = {
         this.encode_class_parameters(PARAMETERS) +
         String.fromCharCode(PROTOCOL.CONST.ETX);
     }
+
+    console.log(PROTOCOL.CONST.ETX);
     
 
     let body = '';
@@ -328,6 +332,7 @@ export var GRID_PROTOCOL = {
         }
       })
     }
+    console.log(param);
     return param;
   },
 

@@ -8,14 +8,13 @@
 
   import DropDownInput from '../DropDownInput.svelte';
 
-
   export let data;
-  export let index;
+  export let orderNumber;
   export let moduleInfo;
   export let eventInfo;
   export let selectedElementSettings;
 
-  let valid = [];
+  let validator = [];
   
   const MIDIRELATIVE = {
 
@@ -82,6 +81,7 @@
         type = 'dec';
         let hexstring = '0x' + (+parameter).toString(16).padStart(2, '0');       
         defined = checkForMatchingValue(hexstring, index);
+        console.log('here?', parameter,(+parameter).toString(16).padStart(2, '0'),defined)
         if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
       } else if(parameter.startsWith('0x') && parameter.length > 3) {  
         type = 'hex';
@@ -117,28 +117,39 @@
     else 
       humanReadable = parameter;
 
-    if(humanReadable == 'invalid :('){
-      valid[index] = false;
-    } else {
-      valid[index] = true;
-    }
-
     return humanReadable;
   }
 
-  function sendData(){
+  function parser(param){
+    let parameter;
+    if(isNaN(parseInt(param))){
+      parameter = param;  
+    } else {
+      parameter = parseInt(param)
+    }
+    return parameter
+  }
+
+  function sendData(params, num){
+
+    validator[num] = validate_midirelative(params, num);
+
     const COMMAND = parseInt(data.parameters[0]).toString(16)[0];
     
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+'0'}` },
-      {'PARAM1': data.parameters[1]},
-      {'PARAM1': data.parameters[2]}
+      {'PARAM1': parser(data.parameters[1])},
+      {'PARAM1': parser(data.parameters[2])}
     ];
 
-    const validity = valid.indexOf(false);
-    if(validity == -1){
-      configStore.save(index, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
+    let valid = false;
+    if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
+      valid = true;
+    }
+    
+    if(valid){
+      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
     }
   }
 
@@ -158,10 +169,10 @@
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={sendData} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData(data.parameters[index], index)}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Relative'}
-        {validate_midirelative(data.parameters[index], index)}
+        {validator[index] ? validator[index] : ''}
       {/if}
     </div>
   </div>

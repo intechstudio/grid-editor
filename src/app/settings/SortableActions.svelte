@@ -173,11 +173,11 @@
         class={grabbed ? "item haunting" : "item"}
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
         <div class="list">
-        {#each selectedActions as data, index (data)}
+        {#each selectedActions as data, orderNumber (data)}
             <div 
                 id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
-                data-index={index}
+                data-index={orderNumber}
                 data-id={(data.id ? data.id : JSON.stringify(data))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
@@ -188,19 +188,19 @@
                         <div class="buttons bg-secondary">
                             <button 
                                 class="up focus:outline-none  border-none" 
-                                style={"display: " + (index > 0 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(index, index - 1);console.log(index, index-1)}}>
+                                style={"display: " + (orderNumber > 0 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(orderNumber, orderNumber - 1);console.log(orderNumber, orderNumber-1)}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                                 </button>
                             <button 
                                 class="down focus:outline-none border-none" 
-                                style={"display: " + (index < selectedActions.length - 1 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(index, index + 1);console.log(index, index+1)}}>
+                                style={"display: " + (orderNumber < selectedActions.length - 1 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(orderNumber, orderNumber + 1);console.log(orderNumber, orderNumber+1)}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                                 </button>
                         </div>    
                     </div>
-                    <slot {data} {index}></slot>            
+                    <slot {data} {orderNumber}></slot>            
                 </div>         
             </div>
             

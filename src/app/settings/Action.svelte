@@ -5,11 +5,12 @@
   import MidiRelative from './actions/MidiRelative.svelte';
   import MidiAbsolute from './actions/MidiAbsolute.svelte';
   import SetLedColor from './actions/SetLedColor.svelte';
+  import SetLedPhase from './actions/SetLedPhase.svelte';
 
   const dispatch = createEventDispatcher();
 
   export let data;
-  export let index;
+  export let orderNumber;
   export let selectedElementSettings;
   export let moduleInfo;
   export let eventInfo;
@@ -17,7 +18,8 @@
   const components = {
     'MIDI Relative': MidiRelative,
     'MIDI Absolute': MidiAbsolute,
-    'LED Color': SetLedColor
+    'LED Color': SetLedColor,
+    'LED Phase': SetLedPhase
   }
 
   $: if(data.parameters){
@@ -27,14 +29,14 @@
   function handleRemove(){
     dispatch('remove', {
       action: data,
-      index: index
+      index: orderNumber
     })
   }
 
   function sendData(){
     dispatch('change', {
       data: data,
-      index: index
+      index: orderNumber
     })
   }
 
@@ -48,7 +50,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} bind:data={data} {index} {moduleInfo} {eventInfo} {selectedElementSettings} />    
+    <svelte:component this={components[data.name]} bind:data={data} {orderNumber} {moduleInfo} {eventInfo} {selectedElementSettings} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

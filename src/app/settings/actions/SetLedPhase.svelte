@@ -19,7 +19,7 @@
 
   function sendData(){
 
-    data.valid = setLedColorValidator(data.parameters);
+    //data.valid = setLedColorValidator(data.parameters);
 
     data.parameters[1] = layers;
     
@@ -31,16 +31,14 @@
       const parameters = [
         { 'NUM': param_0 },
         { 'LAY': data.parameters[1][i] },
-        { 'RED': Math.floor(data.parameters[2] * data.parameters[5]) },
-        { 'GRE': Math.floor(data.parameters[3] * data.parameters[5]) },
-        { 'BLU': Math.floor(data.parameters[4] * data.parameters[5]) }
+        { 'PHA': Math.floor(data.parameters[2]) },
       ];
       parameterArray.push(parameters);
     }
 
     let serialized = '';
     parameterArray.forEach(parameters => {
-      serialized += GRID_PROTOCOL.configure("LEDCOLOR", parameters);
+      serialized += GRID_PROTOCOL.configure("LEDPHASE", parameters);
     });
 
     configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
@@ -71,38 +69,18 @@
 
   }
 
-  function setLedColorValidator(parameters){
-    const num = data.parameters[0];
-    const lay = data.parameters[1];
-    const red = data.parameters[2];
-    const gre = data.parameters[3];
-    const blu = data.parameters[4];
-    let valid = true;
-    if(!(num == 'A0' || num == 'A1' || 0 < num && num < 16 )) valid = false;
-    if(!(lay.length > 0)) valid = false;
-    if(!(0 <= red && red <= 255)) valid = false;
-    if(!(0 <= gre && gre <= 255)) valid = false;
-    if(!(0 <= blu && blu <= 255)) valid = false;
-    return valid;
-  }
-
 
   onMount(()=>{
     // this may be needed to put in a $: for reactivity but seems to work anyway
  
     if(data.parameters[2] === ''){
       data.parameters[1] = ['','']
-      data.parameters[2] = 255;
-      data.parameters[3] = 0;
-      data.parameters[4] = 0;
-      data.parameters[5] = 1;
+      data.parameters[2] = 1;
     } 
 
-    console.log('onMount data.parameters: ',eventInfo);
+    //startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
 
-    startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
-
-    alpha = data.parameters[5];
+    //alpha = data.parameters[5];
 
     data.parameters[0] = parameters[0].value;
 
@@ -135,18 +113,6 @@
       <div class="px-1">
         <div class="text-gray-700 text-xs">Red</div>
         <input type="number" bind:value={data.parameters[2]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
-      </div>
-      <div class="px-1">
-        <div class="text-gray-700 text-xs">Green</div>
-        <input type="number" bind:value={data.parameters[3]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
-      </div>
-      <div class="px-1">
-        <div class="text-gray-700 text-xs">Blue</div>
-        <input type="number" bind:value={data.parameters[4]} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
-      </div>
-      <div class="px-1 xl:pr-2">
-        <div class="text-gray-700 text-xs">Alpha</div>
-        <input type="number" bind:value={data.parameters[5]} on:change={sendData} min=0 max=1 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
       </div>
     </div>
   </div>
