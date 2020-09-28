@@ -40,7 +40,7 @@
 
     let serialized = [];
     parameterArray.forEach(parameters => {
-      serialized.push(GRID_PROTOCOL.configure("LEDCOLOR", parameters));
+      serialized.push(...GRID_PROTOCOL.configure("LEDCOLOR", parameters));
     });
 
     configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);

@@ -327,12 +327,6 @@ export const GRID_PROTOCOL = {
 
     message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
 
-    let ascii = message.map(m => {
-      return String.fromCharCode(m)
-    })
-
-    console.log(ascii.join(''));
-
     return message;
   },
 
