@@ -41,7 +41,6 @@
   }
 
   onMount(()=>{
-    console.log('ACTION!');
   })
 
 </script>

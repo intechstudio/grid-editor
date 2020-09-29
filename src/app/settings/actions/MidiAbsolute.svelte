@@ -73,47 +73,49 @@
 
   let inputLabels = MIDIABSOLUTE.PARAMS;
 
-  function validate_midiabsolute(parameter, index){
+  function validate_midiabsolute(PARAMETERS){
 
-    let type = '';
-    let defined = '';
-    let humanReadable = '';
+    PARAMETERS.forEach((PARAMETER, INDEX) => {
+      let type = '';
+      let defined = '';
+      let humanReadable = '';
 
-    if(index == 0){
+    if(INDEX == 0){
       if(parseInt(parameter) >= 0 && parseInt(parameter) <= 15){
         type = 'dec';
       } else {
         defined = 'invalid :(';
         //appears to be a wildcard
       }
-    } else if(index == 1){
-      if(parseInt(parameter) >= 128 && parseInt(parameter) <= 255){
+    } else if(INDEX == 1){
+      if(parseInt(PARAMETER) >= 128 && parseInt(PARAMETER) <= 255){
         type = 'dec';
-        let hexstring = '0x' + (+parameter).toString(16).padStart(2, '0');       
-        defined = checkForMatchingValue(hexstring, index);
+        let hexstring = '0x' + (+PARAMETER).toString(16).padStart(2, '0');      
+        console.log('hexstring',hexstring); 
+        defined = checkForMatchingValue(hexstring, INDEX);
         if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
-      } else if(parameter.startsWith('0x') && parameter.length > 3) {  
+      } else if(PARAMETER.startsWith('0x') && parameter.length > 3) {  
         type = 'hex';
-        defined = checkForMatchingValue(parameter, index);
+        defined = checkForMatchingValue(PARAMETER, INDEX);
       } else {
         defined = 'invalid :(';
         //appears to be a wildcard
       }
-    } else if(index == 2){
-      if(parameter == 'A0' || parameter == 'A1'){ 
+    } else if(INDEX == 2){
+      if(PARAMETER == 'A0' || PARAMETER == 'A1'){ 
         type = 'tmp param';
-        defined = checkForMatchingValue(parameter, index);  
-      } else if(+parameter >= 0 && +parameter <= 127){
+        defined = checkForMatchingValue(PARAMETER, INDEX);  
+      } else if(+PARAMETER >= 0 && +PARAMETER <= 127 && PARAMETER !== ''){
         type = 'dec';
       } else {
         // wildcard
         defined = 'invalid :('
       }
-    } else if(index == 3){
-      if(parameter == 'A2'){    
+    } else if(INDEX == 3){
+      if(PARAMETER == 'A2'){    
         type = 'tmp param';
-        defined = checkForMatchingValue(parameter, index);
-      } else if(+parameter >= 0 && +parameter <= 127){
+        defined = checkForMatchingValue(PARAMETER, INDEX);
+      } else if(PARAMETER >= 0 && PARAMETER <= 127 && PARAMETER !== ''){
         type = 'dec';
       } else {
         // wildcard
@@ -124,13 +126,13 @@
     if(defined)
       humanReadable = defined
     else 
-      humanReadable = parameter;
+      humanReadable = PARAMETER;
 
-    console.log('humanreadable', humanReadable)
+    validator[INDEX] = humanReadable;
 
-    return humanReadable;
-  
-  }
+  });
+
+}
 
   function checkForMatchingValue(parameter, index) {
     let defined = optionList[index].find(item => item.value === parameter);
@@ -148,9 +150,9 @@
     return parameter
   }
 
-  function sendData(params, index){
+  function sendData(){
 
-    validator[index] = validate_midiabsolute(params, index)
+    validate_midiabsolute(data.parameters)
 
     const CHANNEL = parseInt(data.parameters[0]).toString(16).padStart(2,'0')[1];
     const COMMAND = parseInt(data.parameters[1]).toString(16)[0];
@@ -166,7 +168,7 @@
     if(validator.length == 4 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
       valid = true;
     }
-    
+
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
     }
@@ -187,7 +189,7 @@
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={()=>{sendData(data.parameters[index],index)}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Absolute'}
         {validator[index] ? validator[index] : ''}

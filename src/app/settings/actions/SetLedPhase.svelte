@@ -19,12 +19,11 @@
 
   let validator = [];
 
-  function sendData(params, index){
+  function sendData(){
 
     data.parameters[1] = layers;
 
-    validator[index] = validate_setledphase(params, index);
-    console.log('validator!',validator);
+    validate_setledphase(data.parameters);
     
     let parameterArray = [];
     for (let i = 0; i < data.parameters[1].length; i++) {
@@ -40,12 +39,17 @@
       parameterArray.push(parameters);
     }
 
+
     let serialized = [];
-    parameterArray.forEach((parameters,i) => {
-      serialized.push(...GRID_PROTOCOL.configure("LEDPHASE", parameters));
+    parameterArray.forEach(p => {
+      if(p.valid){
+        serialized.push(...GRID_PROTOCOL.configure("LEDPHASE", p.parameters));
+      }
     });
 
-    configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    if(serialized.length !== 0){
+      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    }
   }
 
   function checkForMatchingValue(parameter, index) {
@@ -54,45 +58,52 @@
     return defined;
   }
 
-  function validate_setledphase(parameter,index){
-    let type = '';
-    let defined = '';
-    let humanReadable = '';
+  function validate_setledphase(parameters){
 
-    if(index == 0){
-      if(parameter == 'A0' || parameter == 'A1'){ 
-        type = 'tmp param';
-        defined = checkForMatchingValue(parameter, index);  
-      } else if(+parameter >= 0 && +parameter <= 15){
-        type = 'dec';
-      } else {
-        // wildcard
-        defined = 'invalid :('
-      }
-    } else if(index == 1){
-      if(parameter.length > 0 || parameter[0] == ''){ 
-        defined = 'Layer';
-      } else {
-        defined = 'invalid :(';
-      }
-    } else if(index == 2){
-      if(parameter == 'A3' || parameter == 'A7'){ 
-        type = 'tmp param';
-        defined = checkForMatchingValue(parameter, index);  
-      } else if(parseInt(parameter) >= 0 && parseInt(parameter) <= 255){
-        type = 'dec';
-      } else {
-        // wildcard
-        defined = 'invalid :('
-      }
-    }
+    parameters.forEach((parameter, index) => {
 
-    if(defined)
-      humanReadable = defined
-    else 
-      humanReadable = parameter;
+      let type = '';
+      let defined = '';
+      let humanReadable = '';
 
-    return humanReadable;
+      if(index == 0){
+        if(parameter == 'A0' || parameter == 'A1'){ 
+          type = 'tmp param';
+          defined = checkForMatchingValue(parameter, index);  
+        } else if(+parameter >= 0 && +parameter <= 15){
+          type = 'dec';
+        } else {
+          // wildcard
+          defined = 'invalid :('
+        }
+      } else if(index == 1){
+        if(parameter.length > 0 || parameter[0] == ''){ 
+          defined = 'Layer';
+        } else {
+          defined = 'invalid :(';
+        }
+      } else if(index == 2){
+        if(parameter == 'A3' || parameter == 'A7'){ 
+          type = 'tmp param';
+          defined = checkForMatchingValue(parameter, index);  
+        } else if(parseInt(parameter) >= 0 && parseInt(parameter) <= 255){
+          type = 'dec';
+        } else {
+          // wildcard
+          defined = 'invalid :('
+        }
+      }
+
+      if(defined)
+        humanReadable = defined
+      else 
+        humanReadable = parameter;
+
+      validator[index] = humanReadable;
+
+    })
+
+    
   }
 
   let layers = data.parameters[1];

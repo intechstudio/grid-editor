@@ -1,5 +1,7 @@
 <script>
   const { ipcRenderer } = require('electron');
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
 
   import { onMount } from 'svelte';
 
@@ -22,6 +24,8 @@
       console.log(arg.version)
       appVersion = arg.version;
     });
+
+    trackEvent('App', 'Report Version', 'Firmware', $appSettings.version);
   })
 
   

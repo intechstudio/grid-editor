@@ -81,9 +81,9 @@
             store.list[i] = {isGrid: isGrid, port: port};
             return store;
           });       
-          
-          
-
+          if(isGrid && $serialComm.open == undefined){
+            openSerialPort();
+          }
         });
       })
     .catch(err => {   

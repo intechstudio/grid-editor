@@ -139,8 +139,8 @@ import { elementSettings } from './app/settings/elementSettings.store';
   }
   
   onMount(()=>{
-
-    trackEvent('User Interaction', 'Thing');
+    //category, action, label, value
+    trackEvent('App', 'Report Version', 'Editor', $appSettings.version);
 
     createPanZoom(map, {
       bounds: true,
