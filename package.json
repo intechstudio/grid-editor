@@ -1,6 +1,6 @@
 {
-  "name": "editor",
-  "version": "0.0.804",
+  "name": "grid_editor",
+  "version": "0.0.805",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -47,9 +47,12 @@
     "uuid": "^8.3.0"
   },
   "build": {
-    "appId": "com.editor.app",
+    "appId": "com.grid-editor.app",
+    "productName": "Grid Editor",
+    "copyright": "Copyright © 2020 Intech Studio Ltd.",
     "directories": {
-      "output": "dist/"
+      "output": "dist/",
+      "buildResources": "icons/"
     },
     "win": {
       "publish": [
@@ -59,7 +62,7 @@
           "repo": "grid-editor"
         }
       ],
-      "artifactName": "${name}-Setup-${version}.${ext}",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
       "target": [
         "nsis",
         "portable"

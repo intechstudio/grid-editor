@@ -97,28 +97,47 @@
 
   let layers = data.parameters[1];
 
-  let optionList = [
-    [
-      {value: 'A0', info: 'This LED.'}, 
-      {value: 'A1', info: 'Reversed LED.'}, 
+  const SETLEDPHASE = {
+    analog: [
+      [
+        {value: 'A0', info: 'This LED.'}, 
+        {value: 'A1', info: 'Reversed LED.'}, 
+      ],
+      [
+        ''
+      ],
+      [
+        {value: 'A3', info: 'AV8 8-bit'}, 
+      ]
     ],
-    [
-      ''
+    digital: [
+      [
+        {value: 'A0', info: 'This LED.'}, 
+        {value: 'A1', info: 'Reversed LED.'}, 
+      ],
+      [
+        ''
+      ],
+      [
+        {value: 'A7', info: 'DV8 8-bit'}, 
+      ]
     ],
-    [
-      {value: 'A3', info: 'AV8 8-bit'}, 
-      {value: 'A7', info: 'DV8 8-bit'}, 
-    ]
-  ];
+
+    optionList: function() {
+      let options = [];
+      if(eventInfo.code[0] == 'A'){
+        options = this.analog;
+      }else{ // this is also the default;
+        options = this.digital;
+      }
+      optionList = options;
+    }
+  }
+
+  let optionList = [];
 
   onMount(()=>{
-    console.log(
-    data,
-  orderNumber,
-  selectedElementSettings,
-   moduleInfo,
-  eventInfo
-  )
+    SETLEDPHASE.optionList();
   })
 
 </script>
