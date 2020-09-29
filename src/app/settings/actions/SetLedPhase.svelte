@@ -19,6 +19,12 @@
 
   let validator = [];
 
+  $: {
+    // for order number change
+    console.log(orderNumber);
+    sendData();
+  }
+
   function sendData(){
 
     data.parameters[1] = layers;
@@ -39,15 +45,17 @@
       parameterArray.push(parameters);
     }
 
-
     let serialized = [];
-    parameterArray.forEach(p => {
-      if(p.valid){
-        serialized.push(...GRID_PROTOCOL.configure("LEDPHASE", p.parameters));
-      }
+    parameterArray.forEach(parameters => {
+      serialized.push(...GRID_PROTOCOL.configure("LEDPHASE", parameters));
     });
 
-    if(serialized.length !== 0){
+    let valid = false;
+    if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
+      valid = true;
+    }
+
+    if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
     }
   }

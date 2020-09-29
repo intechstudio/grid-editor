@@ -14,6 +14,13 @@
   export let eventInfo;
   export let selectedElementSettings;
 
+  $: {
+    // for order number change
+    console.log(orderNumber);
+    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
+    sendData();
+  }
+
   let validator = [];
 
   const build_array = () => {
@@ -28,7 +35,36 @@
 
     PARAMS: ['Channel', 'Command', 'Parameter 1','Parameter 2'],
 
-    CC: [
+    CC_digital: [
+      build_array(),
+      [
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
+      ],
+      [
+        {value: 'A0', info: 'Control Number'}, 
+        {value: 'A1', info: 'Reversed Control Number'}
+      ],[
+        {value: 'A6', info: 'Control Value'}
+      ]
+    ],
+    NOTE_digital: [
+      build_array(),
+      [
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
+      ],
+      [
+        {value: 'A0', info: 'Note'}, 
+        {value: 'A1', info: 'Reversed Note'}
+      ],
+      [
+        {value: 'A6', info: 'Velocity'}
+      ],
+    ],
+    CC_analog: [
       build_array(),
       [
         {value: '0xb0', info: 'Control Change'}, 
@@ -42,7 +78,7 @@
         {value: 'A2', info: 'Control Value'}
       ]
     ],
-    NOTE: [
+    NOTE_analog: [
       build_array(),
       [
         {value: '0xb0', info: 'Control Change'}, 
@@ -57,13 +93,24 @@
         {value: 'A2', info: 'Velocity'}
       ],
     ],
+
     optionList: function(parameter){
       let options = [];
       if(parameter == '0xb0'){
-        options = this.CC;
+        console.log(eventInfo);
+        if(eventInfo.code[0] == 'A'){
+          options = this.CC_analog;
+        }else {
+          options = this.CC_digital;
+        }
       }else{ // this is also the default;
-        options = this.NOTE;
+        if(eventInfo.code[0] == 'A'){
+          options = this.NOTE_analog;
+        } else {
+          options = this.NOTE_digital;
+        }
       }
+      inputLabels = this.PARAMS;
       return options;
     }
   
@@ -81,7 +128,7 @@
       let humanReadable = '';
 
     if(INDEX == 0){
-      if(parseInt(parameter) >= 0 && parseInt(parameter) <= 15){
+      if(parseInt(PARAMETER) >= 0 && parseInt(PARAMETER) <= 15){
         type = 'dec';
       } else {
         defined = 'invalid :(';
@@ -112,7 +159,7 @@
         defined = 'invalid :('
       }
     } else if(INDEX == 3){
-      if(PARAMETER == 'A2'){    
+      if(PARAMETER == 'A2' || PARAMETER == 'A6'){    
         type = 'tmp param';
         defined = checkForMatchingValue(PARAMETER, INDEX);
       } else if(PARAMETER >= 0 && PARAMETER <= 127 && PARAMETER !== ''){
@@ -174,10 +221,6 @@
     }
   }
 
-  $: if(data.name == 'MIDI Absolute') {
-    console.log(data.name, )
-    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
-  }
 
   onMount(()=>{
     optionList = MIDIABSOLUTE.optionList(data.parameters[1]);

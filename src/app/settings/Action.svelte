@@ -23,7 +23,7 @@
   }
 
   $: if(data.parameters){
-    sendData();
+    //sendData();
   }
 
   function handleRemove(){

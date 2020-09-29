@@ -55,8 +55,10 @@
         events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
         selectedEvent = selectedElementSettings.selectedEvent || events[0];
         let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-        selectedActions = elementEvent.actions;
-        eventInfo = elementEvent.event;
+        if(elementEvent !== undefined){
+          selectedActions = elementEvent.actions;
+          eventInfo = elementEvent.event;
+        }
         controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
@@ -167,14 +169,23 @@
     });
 
     configStore.subscribe((store)=>{
+
       if(store[moduleId] !== undefined){
+
         const actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
+        
         const config = [
           { BANKNUMBER: selectedElementSettings.bank },
           { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
           { EVENTTYPE: eventInfo.value }
         ]
-        const serialized = GRID_PROTOCOL.serialize_actions(config, actions[0])
+
+        let array = [];
+        actions.forEach(a => {
+          array.push(...a);
+        });
+
+        const serialized = GRID_PROTOCOL.serialize_actions(config, array);
         serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
       }
     })

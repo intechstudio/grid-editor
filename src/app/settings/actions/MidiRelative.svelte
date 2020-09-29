@@ -15,13 +15,46 @@
   export let selectedElementSettings;
 
   let validator = [];
+
+  $: {
+    // for order number change
+    optionList = MIDIRELATIVE.optionList(data.parameters[0]);
+    sendData();
+  }
   
   const MIDIRELATIVE = {
 
     CC_PARAMS: ['Control Change', 'Control Number', 'Control Value'],
     NOTE_PARAMS: ['Note On/Off', 'Pitch', 'Velocity'],
 
-    CC: [
+    CC_digital: [
+      [
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
+      ],
+      [
+        {value: 'A0', info: 'Control Number'}, 
+        {value: 'A1', info: 'Reversed Control Number'}
+      ],[
+        {value: 'A6', info: 'Control Value'}
+      ]
+    ],
+    NOTE_digital: [
+      [
+        {value: '0xb0', info: 'Control Change'}, 
+        {value: '0x90', info: 'Note On'}, 
+        {value: '0x80', info: 'Note Off'}
+      ],
+      [
+        {value: 'A0', info: 'Note'}, 
+        {value: 'A1', info: 'Reversed Note'}
+      ],
+      [
+        {value: 'A6', info: 'Velocity'}
+      ],
+    ],
+    CC_analog: [
       [
         {value: '0xb0', info: 'Control Change'}, 
         {value: '0x90', info: 'Note On'}, 
@@ -34,7 +67,7 @@
         {value: 'A2', info: 'Control Value'}
       ]
     ],
-    NOTE: [
+    NOTE_analog: [
       [
         {value: '0xb0', info: 'Control Change'}, 
         {value: '0x90', info: 'Note On'}, 
@@ -52,10 +85,19 @@
     optionList: function(parameter){
       let options = [];
       if(parameter == '0xb0'){
-        options = this.CC;
+        console.log(eventInfo);
+        if(eventInfo.code[0] == 'A'){
+          options = this.CC_analog;
+        }else {
+          options = this.CC_digital;
+        }
         inputLabels = this.CC_PARAMS;
       }else{ // this is also the default;
-        options = this.NOTE;
+        if(eventInfo.code[0] == 'A'){
+          options = this.NOTE_analog;
+        } else {
+          options = this.NOTE_digital;
+        }
         inputLabels = this.NOTE_PARAMS;
       }
       return options;
@@ -65,10 +107,6 @@
   let optionList = [];
 
   let inputLabels = [];
-
-  $: if(data.name == 'MIDI Relative') {
-    optionList = MIDIRELATIVE.optionList(data.parameters[0]);
-  }
 
   function validate_midirelative(PARAMETERS){
 
@@ -102,7 +140,7 @@
           defined = 'invalid :('
         }
       } else if(INDEX == 2){
-        if(PARAMETER == 'A2'){    
+        if(PARAMETER == 'A2' || PARAMETER == 'A6'){    
           type = 'tmp param';
           defined = checkForMatchingValue(PARAMETER, INDEX);
         } else if(PARAMETER >= 0 && PARAMETER <= 127 && PARAMETER !== ''){
@@ -161,6 +199,7 @@
   }
 
   function checkForMatchingValue(parameter, index) {
+    console.log('check for match', parameter, index, optionList[index])
     let defined = optionList[index].find(item => item.value === parameter);
     defined ? defined = defined.info : null;
     return defined;

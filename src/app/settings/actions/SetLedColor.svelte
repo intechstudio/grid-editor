@@ -17,12 +17,13 @@
   export let moduleInfo;
   export let eventInfo;
 
+  $: {
+    // for order number change
+    console.log(orderNumber);
+    sendData();
+  }
 
   function sendData(){
-
-    
-
-    
 
     data.parameters[1] = layers;
     
