@@ -130,9 +130,9 @@
     return parameter
   }
 
-  function sendData(params, num){
+  function sendData(params, index){
 
-    validator[num] = validate_midirelative(params, num);
+    validator[index] = validate_midirelative(params, index);
 
     const COMMAND = parseInt(data.parameters[0]).toString(16)[0];
     

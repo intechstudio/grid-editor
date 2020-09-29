@@ -126,6 +126,8 @@
     else 
       humanReadable = parameter;
 
+    console.log('humanreadable', humanReadable)
+
     return humanReadable;
   
   }
@@ -161,10 +163,11 @@
     ];
 
     let valid = false;
-    if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
+    if(validator.length == 4 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
       valid = true;
     }
-    if(valid == -1){
+    
+    if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
     }
   }
@@ -184,7 +187,7 @@
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={sendData} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData(data.parameters[index],index)}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if data.name == 'MIDI Absolute'}
         {validator[index] ? validator[index] : ''}
