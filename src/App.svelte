@@ -69,8 +69,8 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
-import { serialComm } from './app/serialport/serialport.store';
-import { elementSettings } from './app/settings/elementSettings.store';
+  import { serialComm } from './app/serialport/serialport.store';
+  import { elementSettings } from './app/settings/elementSettings.store';
 
 
   /*

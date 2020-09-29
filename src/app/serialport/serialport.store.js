@@ -22,14 +22,14 @@ function createSerialComm(){
       })
       let port = get(store).open;
       port.write([...args, 10]);
-      return
+      return;
     },
     selected: (port) => {
       store.update(store => {
         store.selected = port;
         return store;
       });
-      return
+      return;
     },
     open: (port) => {
       store.update(store=>{

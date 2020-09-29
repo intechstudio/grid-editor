@@ -16,6 +16,7 @@
 
 	import { createEventDispatcher } from 'svelte';
   import { get } from 'svelte/store';
+import { select } from '../grid-modules/event-handlers/select';
 
   const dispatch = createEventDispatcher();
 
@@ -26,6 +27,8 @@
   let PORT = {path: 0};
 
   export let grid = [];
+
+  let selectedPort = "";
 
  // $: serialpaths, closeSerialPort(), createSerialPort(), readSerialPort();
 
@@ -81,9 +84,12 @@
             store.list[i] = {isGrid: isGrid, port: port};
             return store;
           });       
+
           if(isGrid && $serialComm.open == undefined){
+            selectedPort = port.path;
             openSerialPort();
           }
+
         });
       })
     .catch(err => {   
@@ -91,16 +97,18 @@
     });
   }
 
-  function updateSelectedPort(port){
-    serialComm.selected(port);
-  }
+
   
   function openSerialPort() {
-    const store = get(serialComm);
-    const serial = store.list.find(serial => serial.port.path === store.selected);
+    const store = $serialComm;
+    const serial = store.list.find(serial => serial.port.path === selectedPort);
     PORT = new SerialPort(serial.port.path, { autoOpen: false });
     serialComm.open(PORT);
     readSerialPort();
+  }
+
+  function updateSelectedPort(port){
+    selectedPort = port;
   }
 
   function closeSerialPort() {
@@ -111,6 +119,7 @@
 
     serialComm.update((store)=>{
       store.open = 'none';
+      store.list = [];
       return store
     });
 
@@ -257,8 +266,6 @@
     coroner();
   })
     
-  let selectedPort;
-
 </script>
 
 <div class="flex items-center not-draggable text-sm">
