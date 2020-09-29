@@ -302,7 +302,7 @@ import { elementSettings } from './app/settings/elementSettings.store';
     {:else}
       <p class="text-xl pb-2">✨New update is available! </p>
       <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
-      <!--<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>-->
+      {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
     {/if}
     
     <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
