@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.805",
+  "version": "0.0.806",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -51,8 +51,7 @@
     "productName": "Grid Editor",
     "copyright": "Copyright © 2020 Intech Studio Ltd.",
     "directories": {
-      "output": "dist/",
-      "buildResources": "icons/"
+      "output": "dist/"
     },
     "win": {
       "publish": [
@@ -66,10 +65,12 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "icon": "icons/icon.png"
     },
     "mac": {
-      "target": ["dmg"]
+      "target": ["dmg"],
+      "icon": "icons/icon.png"
     }
   },
   "scripts": {
