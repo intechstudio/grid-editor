@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.812",
+  "version": "0.0.813",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -70,6 +70,7 @@
     },
     "mac": {
       "target": ["dmg"],
+      "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "icons/icon.png"
     }
   },

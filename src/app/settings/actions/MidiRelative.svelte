@@ -1,8 +1,10 @@
 <script>
 
-  import {onMount} from 'svelte';
+  import {afterUpdate, beforeUpdate, onMount} from 'svelte';
 
   import { configStore } from '../../stores/config.store';
+
+  import { orderChange } from '../order-change.store.js';
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
@@ -17,11 +19,9 @@
   let validator = [];
 
   $: {
-    // for order number change
     optionList = MIDIRELATIVE.optionList(data.parameters[0]);
-    sendData();
   }
-  
+    
   const MIDIRELATIVE = {
 
     CC_PARAMS: ['Control Change', 'Control Number', 'Control Value'],
@@ -85,7 +85,6 @@
     optionList: function(parameter){
       let options = [];
       if(parameter == '0xb0'){
-        console.log(eventInfo);
         if(eventInfo.code[0] == 'A'){
           options = this.CC_analog;
         }else {
@@ -119,7 +118,6 @@
         if(parseInt(PARAMETER) >= 128 && parseInt(PARAMETER) <= 255){
           type = 'dec';
           let hexstring = '0x' + (+PARAMETER).toString(16).padStart(2, '0');      
-          console.log('hexstring',hexstring); 
           defined = checkForMatchingValue(hexstring, INDEX);
           if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
         } else if(PARAMETER.startsWith('0x') && parameter.length > 3) {  
@@ -176,7 +174,6 @@
 
     const COMMAND = parseInt(data.parameters[0]).toString(16)[0];
 
-
     validate_midirelative(data.parameters);
     
     const parameters = [
@@ -190,8 +187,6 @@
     if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
       valid = true;
     }
-
-    console.log(validator)
     
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
@@ -199,14 +194,29 @@
   }
 
   function checkForMatchingValue(parameter, index) {
-    console.log('check for match', parameter, index, optionList[index])
     let defined = optionList[index].find(item => item.value === parameter);
     defined ? defined = defined.info : null;
     return defined;
   }
 
+
+  let orderChangeTrigger = null;
   onMount(()=>{
-    optionList = MIDIRELATIVE.optionList(data.parameters[0].value);
+    let c = 0;
+    orderChange.subscribe((change)=>{
+      c++;
+      console.log( data.name, 'order change subscription', orderNumber);
+      if(change !== null && c == 1){
+        orderChangeTrigger = true;
+      }
+      c = 0;
+    });
+  })
+
+  afterUpdate(() => {
+    if(orderChangeTrigger){
+      sendData();
+    }
   })
 
 </script>

@@ -17,7 +17,6 @@
   let tabs = [0,1,2,3];
 
   globalSettings.subscribe(banks => {
-    console.log(banks);
       globalData = banks;
       selected =  banks.active;      
     })
@@ -31,7 +30,6 @@
 
   function handleBankEnabledChange(e){
     const PARAMS = e.detail.parameters[0];
-    console.log(e.detail);
     globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
     const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
     serialComm.write(command);

@@ -3,7 +3,7 @@
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
-  import { serialComm } from '../../serialport/serialport.store';
+  import { orderChange } from '../order-change.store.js';
 
   import { configStore } from '../../stores/config.store';
 
@@ -17,11 +17,40 @@
   export let moduleInfo;
   export let eventInfo;
 
-  $: {
-    // for order number change
-    console.log(orderNumber);
-    sendData();
-  }
+  let orderChangeTrigger = null;
+
+  onMount(()=>{
+
+    if(data.parameters[2] === ''){
+      data.parameters[1] = ['','']
+      data.parameters[2] = 255;
+      data.parameters[3] = 0;
+      data.parameters[4] = 0;
+      data.parameters[5] = 1;
+    } 
+
+    startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
+
+    alpha = data.parameters[5];
+
+    data.parameters[0] = parameters[0].value;
+
+    let c = 0;
+    orderChange.subscribe((change)=>{
+      c++;
+      console.log( data.name, 'order change subscription', orderNumber);
+      if(change !== null && c == 1){
+        orderChangeTrigger = true;
+      }
+      c = 0;
+    });
+  })
+  
+  afterUpdate(() => {
+    if(orderChangeTrigger){
+      sendData();
+    }
+  })
 
   function sendData(){
 
@@ -94,25 +123,6 @@
     return valid;
   }
 
-
-  onMount(()=>{
-    // this may be needed to put in a $: for reactivity but seems to work anyway
- 
-    if(data.parameters[2] === ''){
-      data.parameters[1] = ['','']
-      data.parameters[2] = 255;
-      data.parameters[3] = 0;
-      data.parameters[4] = 0;
-      data.parameters[5] = 1;
-    } 
-
-    startColor = `rgb(${data.parameters[2]}, ${data.parameters[3]}, ${data.parameters[4]})`
-
-    alpha = data.parameters[5];
-
-    data.parameters[0] = parameters[0].value;
-
-  })
 
 </script>
 

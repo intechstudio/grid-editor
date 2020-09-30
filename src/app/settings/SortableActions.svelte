@@ -1,6 +1,8 @@
 <script>
     import {flip} from "svelte/animate";
 
+    import { orderChange } from './order-change.store.js'; 
+
     export let selectedActions = [];
 
     let ghost;
@@ -13,6 +15,11 @@
     let layerY = 0; // distance from top of list to top of client
 
     let flag;
+
+    function changeOrder(arg){
+        console.log(arg);
+        orderChange.click(arg);
+    }
 
     function grab(clientY, element) {
     
@@ -62,6 +69,7 @@
         let temp = selectedActions[from];
         selectedActions = [...selectedActions.slice(0, from), ...selectedActions.slice(from + 1)];
         selectedActions = [...selectedActions.slice(0, to), temp, ...selectedActions.slice(to)];
+        changeOrder('trigg');
     }
 
     function release(ev) {
@@ -189,13 +197,13 @@
                             <button 
                                 class="up focus:outline-none  border-none" 
                                 style={"display: " + (orderNumber > 0 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(orderNumber, orderNumber - 1);console.log(orderNumber, orderNumber-1)}}>
+                                on:click={function(ev) {moveDatum(orderNumber, orderNumber - 1);}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                                 </button>
                             <button 
                                 class="down focus:outline-none border-none" 
                                 style={"display: " + (orderNumber < selectedActions.length - 1 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(orderNumber, orderNumber + 1);console.log(orderNumber, orderNumber+1)}}>
+                                on:click={function(ev) {moveDatum(orderNumber, orderNumber + 1);}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                                 </button>
                         </div>    

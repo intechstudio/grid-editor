@@ -3,11 +3,9 @@
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
-  import { serialComm } from '../../serialport/serialport.store';
+  import { orderChange } from '../order-change.store.js';
 
   import { configStore } from '../../stores/config.store';
-
-  import ColorPicker from '../ColorPicker.svelte';
 
   import DropDownInput from '../DropDownInput.svelte';
 
@@ -19,12 +17,31 @@
 
   let validator = [];
 
+  let optionList = [];
+
   $: {
-    // for order number change
-    console.log(orderNumber);
-    sendData();
+    optionList = SETLEDPHASE.optionList();
   }
 
+  let orderChangeTrigger = null;
+  onMount(()=>{
+    let c = 0;
+    orderChange.subscribe((change)=>{
+      c++;
+      console.log( data.name, 'order change subscription', orderNumber);
+      if(change !== null && c == 1){
+        orderChangeTrigger = true;
+      }
+      c = 0;
+    });
+  })
+
+  afterUpdate(() => {
+    if(orderChangeTrigger){
+      sendData();
+    }
+  })
+  
   function sendData(){
 
     data.parameters[1] = layers;
@@ -149,15 +166,9 @@
       }else{ // this is also the default;
         options = this.digital;
       }
-      optionList = options;
+      return options;
     }
   }
-
-  let optionList = [];
-
-  onMount(()=>{
-    SETLEDPHASE.optionList();
-  })
 
 </script>
 

@@ -114,6 +114,7 @@
       grid.used.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          //console.log(index, 'name:',  data.name, 'parameters:', data.parameters)
           if(elementEvent !== undefined){
             elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
           }

@@ -1,8 +1,10 @@
 <script>
 
-  import {onMount} from 'svelte';
+  import {onMount, beforeUpdate, afterUpdate} from 'svelte';
 
   import DropDownInput from '../DropDownInput.svelte';
+
+  import { orderChange } from '../order-change.store.js';
 
   import { configStore } from '../../stores/config.store';
 
@@ -14,14 +16,12 @@
   export let eventInfo;
   export let selectedElementSettings;
 
+  let validator = [];
+
   $: {
-    // for order number change
-    console.log(orderNumber);
     optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
-    sendData();
   }
 
-  let validator = [];
 
   const build_array = () => {
     let arr = [];
@@ -97,7 +97,6 @@
     optionList: function(parameter){
       let options = [];
       if(parameter == '0xb0'){
-        console.log(eventInfo);
         if(eventInfo.code[0] == 'A'){
           options = this.CC_analog;
         }else {
@@ -138,7 +137,6 @@
       if(parseInt(PARAMETER) >= 128 && parseInt(PARAMETER) <= 255){
         type = 'dec';
         let hexstring = '0x' + (+PARAMETER).toString(16).padStart(2, '0');      
-        console.log('hexstring',hexstring); 
         defined = checkForMatchingValue(hexstring, INDEX);
         if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
       } else if(PARAMETER.startsWith('0x') && parameter.length > 3) {  
@@ -221,10 +219,26 @@
     }
   }
 
-
+  let orderChangeTrigger = null;
   onMount(()=>{
-    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
+    let c = 0;
+    orderChange.subscribe((change)=>{
+      c++;
+      console.log( data.name, 'order change subscription', orderNumber);
+      if(change !== null && c == 1){
+        orderChangeTrigger = true;
+      }
+      c = 0;
+    });
   })
+
+  afterUpdate(() => {
+    if(orderChangeTrigger){
+      sendData();
+    }
+  })
+
+
 
 </script>
 
