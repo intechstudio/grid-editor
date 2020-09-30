@@ -2,6 +2,8 @@
 
   import { createEventDispatcher, onMount } from 'svelte';
 
+  import { orderChange } from './order-change.store.js'; 
+
   import MidiRelative from './actions/MidiRelative.svelte';
   import MidiAbsolute from './actions/MidiAbsolute.svelte';
   import SetLedColor from './actions/SetLedColor.svelte';
@@ -22,10 +24,12 @@
     'LED Phase': SetLedPhase
   }
 
+
+  /*
   $: if(data.parameters){
     sendData();
   }
-
+*/
   function handleRemove(){
     dispatch('remove', {
       action: data,
@@ -49,7 +53,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} bind:data={data} {orderNumber} {moduleInfo} {eventInfo} {selectedElementSettings} />    
+    <svelte:component this={components[data.name]} on:send={sendData} bind:data={data} {orderNumber} {moduleInfo} {eventInfo} {selectedElementSettings} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

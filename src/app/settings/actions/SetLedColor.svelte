@@ -1,5 +1,7 @@
 <script>
-  import { onMount,  afterUpdate } from 'svelte';
+  import { onMount, createEventDispatcher, afterUpdate } from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
@@ -81,6 +83,8 @@
     if(serialized.length !== 0){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
     }
+
+    dispatch('send',{});
   }
 
   let layers = data.parameters[1];

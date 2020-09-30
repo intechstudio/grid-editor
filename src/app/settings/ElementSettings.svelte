@@ -89,6 +89,7 @@
           let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);
           selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
+          configStore.remove(index, moduleInfo, eventInfo, selectedElementSettings);
         }
         return controller;
       })
@@ -186,8 +187,12 @@
           array.push(...a);
         });
 
+
         const serialized = GRID_PROTOCOL.serialize_actions(config, array);
         serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
+
+        console.log('ENCODE',GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
+
       }
     })
 

@@ -17,7 +17,6 @@
     let flag;
 
     function changeOrder(arg){
-        console.log(arg);
         orderChange.click(arg);
     }
 

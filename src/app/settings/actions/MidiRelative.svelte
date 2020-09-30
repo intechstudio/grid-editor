@@ -1,6 +1,8 @@
 <script>
 
-  import {afterUpdate, beforeUpdate, onMount} from 'svelte';
+  import {afterUpdate, beforeUpdate, createEventDispatcher, onMount} from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   import { configStore } from '../../stores/config.store';
 
@@ -191,6 +193,8 @@
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
     }
+    
+    dispatch('send',{});
   }
 
   function checkForMatchingValue(parameter, index) {
@@ -205,9 +209,13 @@
     let c = 0;
     orderChange.subscribe((change)=>{
       c++;
-      console.log( data.name, 'order change subscription', orderNumber);
+      
       if(change !== null && c == 1){
         orderChangeTrigger = true;
+        console.log(data.name, 'REMOVE', orderNumber);
+        if(change == 'remove'){
+          //configStore.remove(orderNumber, moduleInfo, eventInfo, selectedElementSettings);
+        }
       }
       c = 0;
     });

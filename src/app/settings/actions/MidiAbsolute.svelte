@@ -1,6 +1,8 @@
 <script>
 
-  import {onMount, beforeUpdate, afterUpdate} from 'svelte';
+  import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   import DropDownInput from '../DropDownInput.svelte';
 
@@ -217,14 +219,17 @@
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
     }
+
+    dispatch('send',{});
   }
 
   let orderChangeTrigger = null;
   onMount(()=>{
     let c = 0;
     orderChange.subscribe((change)=>{
+      
       c++;
-      console.log( data.name, 'order change subscription', orderNumber);
+
       if(change !== null && c == 1){
         orderChangeTrigger = true;
       }

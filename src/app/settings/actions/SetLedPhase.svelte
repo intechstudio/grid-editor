@@ -1,5 +1,7 @@
 <script>
-  import { onMount, afterUpdate } from 'svelte';
+  import { onMount, createEventDispatcher, afterUpdate } from 'svelte';
+
+  const dispatch = createEventDispatcher();
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
@@ -75,6 +77,8 @@
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
     }
+
+    dispatch('send',{});
   }
 
   function checkForMatchingValue(parameter, index) {

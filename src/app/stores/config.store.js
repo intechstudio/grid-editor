@@ -4,6 +4,7 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json'
 const GRID = grid_protocol;
 
 function createConfigStore(){
+
   const store = writable({});
 
   return {
@@ -17,6 +18,13 @@ function createConfigStore(){
         return store;
       })
     },    
+    remove: (index, module, event, element) => {
+      store.update(store => {
+        console.log(store[module.id][element.bank][event.value]);
+        store[module.id][element.bank][event.value][index] = []
+        return store
+      })
+    }
   }
 }
 
