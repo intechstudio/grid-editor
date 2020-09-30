@@ -69,7 +69,7 @@
         let temp = selectedActions[from];
         selectedActions = [...selectedActions.slice(0, from), ...selectedActions.slice(from + 1)];
         selectedActions = [...selectedActions.slice(0, to), temp, ...selectedActions.slice(to)];
-        changeOrder('trigg');
+        changeOrder('trigger');
     }
 
     function release(ev) {

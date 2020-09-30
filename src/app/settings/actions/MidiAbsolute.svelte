@@ -195,7 +195,7 @@
     return parameter
   }
 
-  function sendData(){
+  function sendData(orderChange){
 
     validate_midiabsolute(data.parameters)
 
@@ -234,7 +234,7 @@
 
   afterUpdate(() => {
     if(orderChangeTrigger){
-      sendData();
+      sendData('orderchange');
     }
   })
 

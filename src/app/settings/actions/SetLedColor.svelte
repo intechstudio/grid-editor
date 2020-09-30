@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount,  afterUpdate } from 'svelte';
 
   import { GRID_PROTOCOL } from '../../serialport/GridProtocol.js';
 
@@ -45,7 +45,7 @@
       c = 0;
     });
   })
-  
+
   afterUpdate(() => {
     if(orderChangeTrigger){
       sendData();
