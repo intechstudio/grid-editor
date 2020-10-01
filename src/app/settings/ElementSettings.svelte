@@ -53,15 +53,31 @@
         moduleInfo = _controller;
         moduleId = _controller.id;  
         events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
-        selectedEvent = selectedElementSettings.selectedEvent || events[0];
+        selectedEvent = selectedElementSettings.selectedEvent || events[1];
+        
+        selectedEvent = checkIfSelectedEventIsCorrect(selectedElementSettings, events)
+
         let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        console.log(elementEvent)
         if(elementEvent !== undefined){
           selectedActions = elementEvent.actions;
           eventInfo = elementEvent.event;
+          
         }
+        /* else {
+          eventInfo = events[1];
+        }*/
         controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });
+  }
+
+  function checkIfSelectedEventIsCorrect(settings, events){
+    let event = events.find(e => e == settings.selectedEvent);
+    if(!event){
+      event = events[1];
+    }
+    return event;
   }
 
   function manageActions(action){
@@ -167,6 +183,7 @@
   onMount(()=>{
     elementSettings.subscribe((values)=>{
       selectedElementSettings = values;
+      //console.log('changed selected control element',values);
       loadSelectedModuleSettings();
     });
 
@@ -174,25 +191,31 @@
 
       if(store[moduleId] !== undefined){
 
-        const actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
-        
-        const config = [
-          { BANKNUMBER: selectedElementSettings.bank },
-          { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
-          { EVENTTYPE: eventInfo.value }
-        ]
+        console.log('on config store values..',moduleId,selectedElementSettings,eventInfo);
+        let actions;
 
-        let array = [];
-        actions.forEach(a => {
-          array.push(...a);
-        });
+        if(eventInfo){
+          actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
+        }
+
+        if(actions){
+          console.log('on config store actions...', actions)
+          
+          const config = [
+            { BANKNUMBER: selectedElementSettings.bank },
+            { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
+            { EVENTTYPE: eventInfo.value }
+          ]
+
+          let array = [];
+          actions.forEach(a => {
+            array.push(...a);
+          });
 
 
-        const serialized = GRID_PROTOCOL.serialize_actions(config, array);
-        serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
-        console.log('SERIAL', serialized)
-        console.log('ENCODE',GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
-
+          const serialized = GRID_PROTOCOL.serialize_actions(config, array);
+          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
+        }
       }
     })
 

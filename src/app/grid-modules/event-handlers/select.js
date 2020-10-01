@@ -9,12 +9,9 @@ export function select(node, [moduleId, selectedDisplay]){
       
       const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
 
-      
 
       if(controlNumber !== undefined){
         
-        console.log('select element',moduleId, controlNumber);
-
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
         const position = 'dx:'+dx+';dy:'+dy;
@@ -22,12 +19,12 @@ export function select(node, [moduleId, selectedDisplay]){
         elementSettings.update((settings)=>{
           settings.moduleId = moduleId,
           settings.position = position,
-          settings.controlNumber = controlNumber
+          settings.controlNumber = [controlNumber]
           return settings;
         })
   
         node.dispatchEvent(new CustomEvent('selected-element', {
-          detail: { controlNumber:  e.target.parentElement.dataset.controlNumber}
+          detail: { controlNumber:  [e.target.parentElement.dataset.controlNumber]}
         }));
   
       }

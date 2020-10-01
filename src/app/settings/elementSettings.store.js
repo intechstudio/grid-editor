@@ -4,6 +4,6 @@ export let elementSettings = writable({
   moduleId: '', 
   position: '', 
   controlNumber: '', 
-  selectedEvent: '', 
+  selectedEvent: 'bank init', 
   bank: 0
 })
