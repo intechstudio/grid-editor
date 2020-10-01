@@ -83,72 +83,53 @@
 
 </script>
 
-<div class="m-4 p-4">
+<div class="m-2 p-2">
 	<div class="flex flex-col">
 
-		<!--
-		<div class="chart" bind:this={el}>
-			<Pancake.Chart x1="{$x1+10}" x2="{$x2-2.5}" y1={y_min} y2={y_max} clip>
+		<div class="flex flex-row">
 
-				<Pancake.Grid horizontal count={5} let:value let:first>
-					<div class="grid-line horizontal" class:first><span>{value}</span></div>
-				</Pancake.Grid>
+			<div id="data" style="height:200px" class=" overflow-auto select-text flex-grow rounded font-mono bg-white m-2 p-2">
+				
+				{#each [...input].reverse() as entry}
+					<div class:serialOut="{entry.type == 'output'}">{entry.data}</div>
+				{/each}
 
-				<Pancake.Columns data={msgLen} width={2}>
-					<div class="column serial"></div>
-				</Pancake.Columns>
+			</div>
 
-				<Pancake.Svg>
-					<Pancake.SvgLine data={msgLen} let:d>
-						<path class="data" {d}></path>
-					</Pancake.SvgLine>
-			</Pancake.Svg>
+			<div class="flex text-white items-end p-2">
 
-			</Pancake.Chart>
+				<div class="mr-1">
+					<div>dx</div>
+					<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+				</div>
+				<div class="mx-1">
+					<div>dy</div>
+					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
+				</div>
+				<div class="mx-1">
+					<div>age</div>
+					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
+				</div>
+				<div class="mx-1">
+					<div>rot</div>
+					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
+				</div>
+				<div class="mx-1">
+					<div>command</div>
+					<input class="w-40 p-1 text-black focus:outline-none"  bind:value={command}>
+				</div>
+		
+				<button on:click={debug} class="p-1 px-2 mx-1 bg-blue-600 border-none rounded focus:outline-none">write</button>
+		
+		
+			</div>
 
 		</div>
-		-->
-
-		<div id="data" style="height:200px" class="overflow-auto flex-grow rounded font-mono bg-white p-2">
-			
-			{#each [...input].reverse() as entry}
-				<div class:serialOut="{entry.type == 'output'}">{entry.data}</div>
-			{/each}
-
-		</div>
-
-		<button on:click={clear} class="p-1 px-2 my-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
+		<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
 
 	</div>
 
-	<div class="flex text-white items-end py-2 my-2">
-
-		<div class="mr-1">
-			<div>dx</div>
-			<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
-		</div>
-		<div class="mx-1">
-			<div>dy</div>
-			<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
-		</div>
-		<div class="mx-1">
-			<div>age</div>
-			<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
-		</div>
-		<div class="mx-1">
-			<div>rot</div>
-			<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
-		</div>
-		<div class="mx-1">
-			<div>command</div>
-			<input class="w-40 p-1 text-black focus:outline-none"  bind:value={command}>
-		</div>
-
-		<button on:click={debug} class="p-1 px-2 mx-1 bg-blue-600 border-none rounded focus:outline-none">write</button>
-
-
-
-	</div>
+	
 
 </div>
 

@@ -45,6 +45,8 @@
         class="secondary w-16 text-white p-1 pl-2 rounded-none focus:outline-none" 
         value={$appSettings.size}
         step=".1"
+        min="1" 
+        max="4"
         on:input={(e)=>{appSettings.update(store => {store.size = e.target.value; return store;})}}/>
     </div>
   </div>

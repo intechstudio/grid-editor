@@ -27,8 +27,8 @@
 
   const build_array = () => {
     let arr = [];
-    for (let i = 0; i < 15; i++) {
-      arr[i] = {value: i.toString(), info: `${'Ch. ' + i}`}
+    for (let i = 0; i < 16; i++) {
+      arr[i] = {value: Number(i+1).toString(), info: `${'Ch. ' + Number(i+1)}`}
     }
     return arr;
   }
@@ -201,9 +201,11 @@
 
     validate_midiabsolute(data.parameters)
 
-    const CHANNEL = parseInt(data.parameters[0]).toString(16).padStart(2,'0')[1];
+    const CHANNEL = parseInt(data.parameters[0]-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
     const COMMAND = parseInt(data.parameters[1]).toString(16)[0];
     
+    console.log('command',COMMAND, CHANNEL);
+
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },

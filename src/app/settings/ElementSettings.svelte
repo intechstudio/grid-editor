@@ -190,7 +190,7 @@
 
         const serialized = GRID_PROTOCOL.serialize_actions(config, array);
         serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
-
+        console.log('SERIAL', serialized)
         console.log('ENCODE',GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
 
       }
