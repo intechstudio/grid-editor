@@ -18,6 +18,9 @@ module.exports = {
         'roboto' : 'Roboto',
         'roboto-mono' : 'Roboto Mono'
       },
+      cursor: {
+        'helper': 'help'
+      },
       minHeight: {
         '200': '200px',
         '300': '300px'

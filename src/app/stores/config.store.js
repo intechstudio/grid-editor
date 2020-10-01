@@ -21,7 +21,7 @@ function createConfigStore(){
     remove: (index, module, event, element) => {
       store.update(store => {
         console.log(store[module.id][element.bank][event.value]);
-        store[module.id][element.bank][event.value][index] = []
+        store[module.id][element.bank][event.value].splice(index, 1)
         return store
       })
     }

@@ -84,6 +84,7 @@
   body {
     @apply p-0;
     @apply font-roboto;
+    @apply select-none;
   }
 
   .btn {

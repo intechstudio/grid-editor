@@ -109,8 +109,8 @@
         {/if}
       </div>
       <div class="relative flex items-center justify-center">
-        <div on:click={()=>{handleBankEnabled(enabled =! enabled)}} style="background: {enabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner transitions w-6 h-6 rounded-full"></div>
-        <div class:circle={enabled} class="w-12 h-12 rounded-full opacity-0 cursor-pointer bg-red-400 absolute"></div>
+        <div on:click={()=>{handleBankEnabled(enabled =! enabled)}} style="background: {enabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner cursor-pointer transitions w-6 h-6 rounded-full"></div>
+        <div class:circle={enabled} class="w-12 h-12 rounded-full opacity-0 bg-red-400 absolute"></div>
       </div>
     </div>
 

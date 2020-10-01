@@ -228,19 +228,10 @@
 
 <Tailwindcss />
 
-<main class="text-white  bg-primary p-1">
+<main class="text-white bg-primary p-1">
   <div class="draggable flex justify-between">
     <div class="flex">
       <div class="p-1 text-gray-700 font-gt-pressura tracking-wider ">EDITOR</div>
-    </div>
-
-    <div class="flex items-center not-draggable text-sm">
-      <div class="pr-2">Size</div>
-      <input 
-        type="number" 
-        class="w-12 secondary text-white p-1 pl-2 rounded-none focus:outline-none" 
-        value={$appSettings.size}
-        on:input={(e)=>{appSettings.update(store => {store.size = e.target.value; return store;})}}/>
     </div>
 
     <div class="flex items-center not-draggable text-sm">
@@ -335,12 +326,15 @@
     <div class="absolute w-full h-full flex justify-between items-start">
       <GlobalSettings/>
       {#if $grid.used.length > 0}
+      {console.log(process.platform)}
       <div class="flex flex-col text-white ">
         <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
           <div class="mx-2">Hold</div>
-          <img class="w-10 h-10 p-2 bg-white rounded-lg shadow-md" alt="mac-alt-key" src="./../public/assets/svgs/mac-alt.svg">
-          <div class="mx-2">or</div>
-          <img class="w-10 h-10 p-2 bg-white rounded-lg shadow-md" alt="win-alt-key" src="./../public/assets/svgs/win-alt.svg">
+          {#if process.platform == "darwin"}
+            <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="mac-alt-key" src="./../public/assets/svgs/mac-alt.svg">
+          {:else}
+            <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="win-alt-key" src="./../public/assets/svgs/win-alt.svg">
+          {/if}
           <div class="mx-2">to pan the control surface.</div>
         </div>    
       </div>
@@ -409,10 +403,11 @@
     >
     
     {#if $appSettings.selectedDisplay == 'layout'}
+    <div class="flex flex-col absolute">
       <DragModule />     
+      
+    </div>
     {/if}
-
-
 
     <div bind:this={map} style="top:40%; left:40%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
       use:layoutMenu={$appSettings.selectedDisplay}

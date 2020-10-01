@@ -36,14 +36,18 @@
 </style>
 
 <div class="w-full flex justify-center text-xs text-white primary">
-  
-<div class="w-1/4"></div>
-  <!--
-  <div>
-    <div>change size</div>
-    <input class="text-black" bind:value={$appSettings.size} type="number">
+    
+  <div class="w-1/4 flex justify-start">
+    <div class="flex text-white items-center">
+      <div class="p-4 pr-2 block">Size</div>
+      <input 
+        type="number" 
+        class="secondary w-16 text-white p-1 pl-2 rounded-none focus:outline-none" 
+        value={$appSettings.size}
+        step=".1"
+        on:input={(e)=>{appSettings.update(store => {store.size = e.target.value; return store;})}}/>
+    </div>
   </div>
-  -->
 
   <div class="w-1/2 h-12 flex justify-around items-center ">
     <div 

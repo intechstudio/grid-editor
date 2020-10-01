@@ -58,7 +58,7 @@
      inkscape:label="Layer 3">
     <text
        xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:37.84183121px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:1.18255723"
+       style="font-style:normal;font-weight:normal;font-size:37.84183121px;line-height:1.25;font-family:sans-serif;letter-spacing:1px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:1"
        x="-0.29563692"
        y="39.375462"
        id="text905"><tspan
@@ -66,6 +66,6 @@
          id="tspan903"
          x="-0.29563692"
          y="39.375462"
-         style="stroke-width:1.18255723">Alt</tspan></text>
+         style="stroke-width:1">Alt</tspan></text>
   </g>
 </svg>
