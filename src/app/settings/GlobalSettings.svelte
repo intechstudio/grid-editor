@@ -4,6 +4,8 @@
   import { elementSettings } from './elementSettings.store.js';
   import { serialComm } from '../serialport/serialport.store.js';
 
+  import Commands from '../settings/Commands.svelte';
+
   import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
 
   import Tooltip from '../helpers/Tooltip.svelte';
@@ -47,23 +49,6 @@
     serialComm.write(command);
   }
 
-  function handleStoreGlobal(){
-    const command = GRID_PROTOCOL.encode('','GLOBALSTORE','','');
-    serialComm.write(command);
-    console.log('Store global settings to Grid!')
-  }
-
-  function handleRecallGlobal(){
-    const command = GRID_PROTOCOL.encode('','GLOBALRECALL','','');
-    serialComm.write(command);
-    console.log('Recall global settings on Grid!')
-  }
-
-  function handleClearGlobal(){
-    const command = GRID_PROTOCOL.encode('','GLOBALCLEAR','','');
-    serialComm.write(command);
-    console.log('Clear global settings on Grid!')
-  }
 
 </script>
 
@@ -115,13 +100,9 @@
 
     <hr class="text-secondary border-none h-1 rounded bg-secondary m-2">
 
-    <div class="flex justify-between m-2">
-      <div class="flex">
-        <button on:click={handleStoreGlobal} class="focus:outline-none mr-1 text-white border-none border-primary bg-highlight hover:bg-highlight-400 px-2 py-1">Store</button>
-        <button on:click={handleRecallGlobal} class="focus:outline-none ml-1 text-white border-highlight hover:bg-highlight-400 px-2 py-1">Recall</button>
-      </div>
-      <button on:click={handleClearGlobal} class="focus:outline-none text-white border-none bg-secondary border-primary hover:bg-highlight-400 px-2 py-1">Clear</button>
-    </div>
+    
       
   </div>
+
+  <Commands MODE={'GLOBAL'}/>
 </div>

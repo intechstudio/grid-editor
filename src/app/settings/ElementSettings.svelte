@@ -238,7 +238,7 @@
 
 
 
-<div class="inline-block primary rounded-lg p-4 m-4 z-20 w-1/3">
+<div class="inline-block primary rounded-lg p-4 z-20 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>

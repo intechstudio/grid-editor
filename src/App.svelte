@@ -42,6 +42,7 @@
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
+  import Commands from './app/settings/Commands.svelte';
 
   import MODULE from './app/grid-modules/MODULE.svelte';
 
@@ -326,20 +327,35 @@
     <div class="absolute w-full h-full flex justify-between items-start">
       <GlobalSettings/>
       {#if $grid.used.length > 0}
-      {console.log(process.platform)}
-      <div class="flex flex-col text-white ">
-        <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
-          <div class="mx-2">Hold</div>
-          {#if process.platform == "darwin"}
-            <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="mac-alt-key" src="./../public/assets/svgs/mac-alt.svg">
-          {:else}
-            <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="win-alt-key" src="./../public/assets/svgs/win-alt.svg">
-          {/if}
-          <div class="mx-2">to pan the control surface.</div>
-        </div>    
-      </div>
+        {console.log(process.platform)}
+        <div class="flex flex-col text-white ">
+          <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
+            <div class="mx-2">Hold</div>
+            {#if process.platform == "darwin"}
+              <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="mac-alt-key" src="./../public/assets/svgs/mac-alt.svg">
+            {:else}
+              <img class="w-10 h-10 p-2 bg-primary rounded-lg shadow-md" alt="win-alt-key" src="./../public/assets/svgs/win-alt.svg">
+            {/if}
+            <div class="mx-2">to pan the control surface.</div>
+          </div>    
+        </div>
       {/if}
-      <ElementSettings/>
+      
+      <div class="flex w-4/12 flex-col m-4">
+        <ElementSettings/>
+        {#if $elementSettings.controlNumber[0] !== undefined}
+          <div class="my-2 p-4 bg-primary rounded-lg z-20 w-full">
+            <Commands MODE={'LOCAL'}/>
+          </div>
+        {/if}
+      </div>
+      <!--
+      "GRID_CLASS_LOCALSTORE_code": "0x070",
+      "GRID_CLASS_LOCALSTORE_frame": "%c%03xe%c",
+      "GRID_CLASS_LOCALLOAD_code": "0x071",
+      "GRID_CLASS_LOCALCLEAR_frame": "%c%03xe%c",
+      "GRID_CLASS_LOCALCLEAR_code": "0x072",
+      -->
     </div>
   {/if}
 

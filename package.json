@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.818",
+  "version": "0.0.819",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -66,12 +66,16 @@
         "nsis",
         "portable"
       ],
-      "icon": "icons/icon.png"
+      "icon": "build/icon.png"
     },
     "mac": {
       "target": ["dmg"],
       "artifactName": "${name}-Setup-${version}.${ext}",
-      "icon": "icons/icon.png"
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "gatekeeperAssess": false
     }
   },
   "scripts": {
