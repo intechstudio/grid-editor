@@ -159,7 +159,7 @@
         return shouldIgnore;
       }
       
-    })
+    });
 
     //startFresh();
 
@@ -191,17 +191,10 @@
     });
 
     
-    /*
-    let counter = 0;
-    const timer = setInterval(()=>{
-      counter++;
-      updateProgress = counter;
-      if(counter == 100){
-        updateReady = true;
-        clearInterval(timer);
-      }
-    },100);
-    */
+    appSettings.update(store => {
+      store.selectedDisplay = 'settings';
+      return store;
+    })
     
   });
 
@@ -218,6 +211,7 @@
   }
 
   let debugMode;
+
   $: {
     appSettings.update((store)=>{
       store.debugMode = debugMode;
@@ -349,13 +343,6 @@
           </div>
         {/if}
       </div>
-      <!--
-      "GRID_CLASS_LOCALSTORE_code": "0x070",
-      "GRID_CLASS_LOCALSTORE_frame": "%c%03xe%c",
-      "GRID_CLASS_LOCALLOAD_code": "0x071",
-      "GRID_CLASS_LOCALCLEAR_frame": "%c%03xe%c",
-      "GRID_CLASS_LOCALCLEAR_code": "0x072",
-      -->
     </div>
   {/if}
 

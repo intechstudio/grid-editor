@@ -62,11 +62,7 @@
         if(elementEvent !== undefined){
           selectedActions = elementEvent.actions;
           eventInfo = elementEvent.event;
-          
         }
-        /* else {
-          eventInfo = events[1];
-        }*/
         controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
       }
     });

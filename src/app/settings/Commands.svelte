@@ -13,7 +13,7 @@
   }
 
   function handleRecall(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}RECALL`,'','');
+    const command = GRID_PROTOCOL.encode('',`${MODE}LOAD`,'','');
     serialComm.write(command);
     console.log('Recall LOCAL settings on Grid!')
   }

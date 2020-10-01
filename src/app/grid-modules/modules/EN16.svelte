@@ -60,7 +60,7 @@
   <slot></slot>
 
   <div 
-    use:select={[id, $appSettings.selectedDisplay]}
+    use:select={[id]}
     class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
     class="module-dimensions" 
     style="--module-size: {moduleWidth+'px'}"

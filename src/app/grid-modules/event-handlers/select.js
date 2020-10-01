@@ -1,6 +1,15 @@
-import { elementSettings } from '../../settings/elementSettings.store.js'
+import { elementSettings } from '../../settings/elementSettings.store.js';
+import { appSettings } from '../../stores/app-settings.store.js';
 
 export function select(node, [moduleId, selectedDisplay]){
+
+  appSettings.subscribe((store)=> {
+    if(store.selectedDisplay == 'settings'){
+      node.addEventListener('mousedown', handleMousedown);
+    } else {
+      node.removeEventListener('mousedown', handleMousedown);
+    }
+  })
 
   function handleMousedown(e) {
     //e.preventDefault();
@@ -33,13 +42,6 @@ export function select(node, [moduleId, selectedDisplay]){
   }
   
 	return {
-    update(args){
-      if(args[1] == 'settings'){
-        node.addEventListener('mousedown', handleMousedown);
-      } else if(args[1] == 'layout'){
-        node.removeEventListener('mousedown', handleMousedown);
-      }
-    },
 		destroy() {
 			node.removeEventListener('mousedown', handleMousedown);
 		}

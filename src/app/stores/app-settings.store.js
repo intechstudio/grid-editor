@@ -13,5 +13,5 @@ export const appSettings = writable({
   },
   overlays: {controlName: false},
   debugMode: false,
-  selectedDisplay: 'settings'
+  selectedDisplay: ''
 });
