@@ -260,8 +260,16 @@ export const GRID_PROTOCOL = {
     return body;
   },
 
+  configure_raw: function(PARAMETERS){
+    const body = [
+        this.PROTOCOL.CONST.STX + 128,
+        ...PARAMETERS,
+        this.PROTOCOL.CONST.ETX + 128
+    ]
+    return body;
+  },
+
   serialize_actions: function(PARAMETERS, ACTIONS){
-    console.log('INPUT ACTIONS', ACTIONS)
     let CONFIG = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
     const body = [
         this.PROTOCOL.CONST.STX,
@@ -271,7 +279,6 @@ export const GRID_PROTOCOL = {
         ...ACTIONS,
         this.PROTOCOL.CONST.ETX
     ];
-    console.log('OUTPUT BODY',body);
     return body;
   },
 

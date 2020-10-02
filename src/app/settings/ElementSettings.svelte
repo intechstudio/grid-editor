@@ -21,6 +21,7 @@
     { id: 1, name: 'MIDI Absolute'},
     { id: 2, name: 'LED Color' },
     { id: 3, name: 'LED Phase' },
+    { id: 4, name: 'RAW'}
   ];
   let selectedAction = originalActions[0];
   $: availableActions = originalActions;
@@ -185,7 +186,6 @@
 
       if(store[moduleId] !== undefined){
 
-        console.log('on config store values..',moduleId,selectedElementSettings,eventInfo);
         let actions;
 
         if(eventInfo){
@@ -193,7 +193,6 @@
         }
 
         if(actions){
-          console.log('on config store actions...', actions)
           
           const config = [
             { BANKNUMBER: selectedElementSettings.bank },
@@ -232,7 +231,7 @@
 
 
 
-<div class="inline-block primary rounded-lg p-4 z-20 w-full">
+<div class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>

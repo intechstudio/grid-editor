@@ -95,7 +95,10 @@
 				{/each}
 
 			</div>
-
+			<div>
+				<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
+			</div>
+			<!--
 			<div class="flex text-white items-end p-2">
 
 				<div class="mr-1">
@@ -123,9 +126,9 @@
 		
 		
 			</div>
-
+				-->
 		</div>
-		<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
+		
 
 	</div>
 

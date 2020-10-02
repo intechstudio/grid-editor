@@ -8,6 +8,7 @@
   import MidiAbsolute from './actions/MidiAbsolute.svelte';
   import SetLedColor from './actions/SetLedColor.svelte';
   import SetLedPhase from './actions/SetLedPhase.svelte';
+  import RawAction from './actions/RawAction.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -21,7 +22,8 @@
     'MIDI Relative': MidiRelative,
     'MIDI Absolute': MidiAbsolute,
     'LED Color': SetLedColor,
-    'LED Phase': SetLedPhase
+    'LED Phase': SetLedPhase,
+    'RAW': RawAction,
   }
 
 
