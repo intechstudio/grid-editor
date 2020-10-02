@@ -30,11 +30,21 @@
     startColor = "rgb(" + globalData.colors[selected] + ")";
   }
 
+  let timer;
+  const debounce = value => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        colorCallback(value);
+      }, 25);
+  }
+
   function colorCallback(rgba) {
+
 
     rgb[0] = Math.floor(rgba.detail.r * rgba.detail.a)
     rgb[1] = Math.floor(rgba.detail.g * rgba.detail.a)
     rgb[2] = Math.floor(rgba.detail.b * rgba.detail.a)
+
 
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'NUM': selected}, 
@@ -118,7 +128,7 @@
 
     {#if startColor}
     <div class="flex px-2">
-      <ColorPicker {startColor} showAlpha={false} on:colorChange={colorCallback}/>
+      <ColorPicker {startColor} showAlpha={false} on:colorChange={debounce}/>
     </div>
     {/if}
   </div>

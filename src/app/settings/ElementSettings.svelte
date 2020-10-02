@@ -78,9 +78,7 @@
 
   function manageActions(action){
     selectedActions = [...selectedActions, initActionParameters(action.name)];
-    if(availableActions[0] !== '' || availableActions[0] !== undefined){
-      return availableActions[0];
-    }   
+    return action;
   }
 
   function initActionParameters(actionName){
