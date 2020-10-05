@@ -64,7 +64,7 @@
 
   <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
     <div class="mr-2">Global Settings</div>
-    <Tooltip text={'Global settings refer to Grid\'s bank system activated by the small side button.'}></Tooltip>
+    <Tooltip text={"A 'Bank' refers to an independently customisable mode of a given Grid module. <br><br> At default you have four Banks available to you on each Grid module. <br><br> Banks store their settings independently from each other, so you can configure multiple different setups and switch between them on the fly. <br><br> You can switch between Banks quickly by pressing the Bank button located on the side opposite from the USB port."}></Tooltip>
   </div>
 
   <div class="flex flex-col mt-4">

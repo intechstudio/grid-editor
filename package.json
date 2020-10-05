@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.832",
+  "version": "0.0.833",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -84,7 +84,7 @@
     }
   },
   "scripts": {
-    "e:builder": "SET NODE_ENV=production NOTARIZE=true electron-builder --publish onTagOrDraft",
+    "e:builder": "NODE_ENV=production NOTARIZE=true electron-builder --publish onTagOrDraft",
     "e:builder:local": "electron-builder --publish never",
     "export": "run-s s:build e:builder",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",

@@ -303,11 +303,12 @@
               </button>
             </div>
      
+            <!--
             <div class="flex mt-2 xl:mt-0">
               <button on:click={(e)=>{copyActions()}} class="mr-2 text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Copy</button>
               <button on:click={(e)=>{pasteActions()}} class="text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Paste</button>
             </div>
-
+            -->
           </div>  
       </div>
 

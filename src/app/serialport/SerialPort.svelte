@@ -284,7 +284,7 @@ import { select } from '../grid-modules/event-handlers/select';
   <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
     {#each $serialComm.list as serial,index}
       {#if serial.isGrid}
-        <option value={serial.port.path}>{'Grid ' + (index+1)}</option> 
+        <option value={serial.port.path}>{'Grid'}</option> 
       {/if}
     {/each}
   </select>
