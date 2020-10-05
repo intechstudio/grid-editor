@@ -79,8 +79,7 @@
       "icon": "build/icon.png",
       "hardenedRuntime": true,
       "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "gatekeeperAssess": false
+      "entitlementsInherit": "build/entitlements.mac.plist"
     }
   },
   "scripts": {
