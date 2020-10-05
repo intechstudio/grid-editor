@@ -38,7 +38,16 @@ jobs:
       - name: Build
         run: npm run export
         env:
+          # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # macOS Code signing certificates
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+          # macOS notarization API key
+          appleId: ${{ secrets.APPLE_ID }}
+          appleIdPassword: ${{ secrets.APPLE_ID_PASSWORD }}
 
       - name: See directory
         run: ls dist/*.*
