@@ -89,8 +89,13 @@ import { select } from '../grid-modules/event-handlers/select';
             selectedPort = port.path;
             openSerialPort();
           }
-
         });
+
+        const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ECAC');
+        if(!thereIsGrid){
+          closeSerialPort();
+        }
+
       })
     .catch(err => {   
       console.error(err)
@@ -113,17 +118,23 @@ import { select } from '../grid-modules/event-handlers/select';
 
   function closeSerialPort() {
 
-    PORT.close(function(err){
-      console.warn('port closed', err)
-    })
+    if(PORT.path !== 0){
+      PORT.close(function(err){
+        console.warn('port closed', err)
+      })
 
-    serialComm.update((store)=>{
-      store.open = 'none';
-      store.list = [];
-      return store
-    });
+      serialComm.update((store)=>{
+        store.open = 'none';
+        store.list = [];
+        return store
+      });
 
-    PORT = {path: 0};
+      // reset UI
+      grid.used = [];
+      grid.layout = [];
+
+      PORT = {path: 0};
+    }
   }
 
   function readSerialPort() {
@@ -271,8 +282,10 @@ import { select } from '../grid-modules/event-handlers/select';
 <div class="flex items-center not-draggable text-sm">
 
   <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
-    {#each $serialComm.list as serial}
-      <option class:bg-highlight="{serial.isGrid}">{serial.port.path}</option> 
+    {#each $serialComm.list as serial,index}
+      {#if serial.isGrid}
+        <option value={serial.port.path}>{'Grid ' + (index+1)}</option> 
+      {/if}
     {/each}
   </select>
  

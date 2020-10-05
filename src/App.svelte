@@ -445,6 +445,10 @@
 	
 </div>
 
+<div class="opacity-25 text-4xl text-white absolute right-0 bottom-1 mr-5 mb-5 font-roboto font-bold">
+  Alpha
+</div>
+
 <Menu/>
 
 
