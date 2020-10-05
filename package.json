@@ -69,7 +69,7 @@
       "icon": "build/icon.png"
     },
     "mac": {
-      "target": ["dmg"],
+      "target": ["dmg", "zip"],
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",
       "hardenedRuntime": true,
