@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.827",
+  "version": "0.0.828",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -48,7 +48,7 @@
     "uuid": "^8.3.0"
   },
   "build": {
-    "appId": "com.grid_editor.app",
+    "appId": "com.Grid-Editor.app",
     "productName": "Grid Editor",
     "copyright": "Copyright © 2020 Intech Studio Ltd.",
     "directories": {
