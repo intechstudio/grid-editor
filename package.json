@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.824",
+  "version": "0.0.825",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -13,6 +13,7 @@
     "cross-env": "^7.0.2",
     "electron": "^9.0.5",
     "electron-builder": "^22.8.0",
+    "electron-notarize": "^1.0.0",
     "electron-rebuild": "^2.0.3",
     "npm-run-all": "^4.1.5",
     "postcss": "^7.0.21",
@@ -70,7 +71,10 @@
       "icon": "build/icon.png"
     },
     "mac": {
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",
       "hardenedRuntime": true,
