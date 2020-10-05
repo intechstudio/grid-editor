@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.834",
+  "version": "0.0.836",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -48,11 +48,15 @@
     "uuid": "^8.3.0"
   },
   "build": {
+    "asar": true,
     "appId": "com.Grid-Editor.app",
     "productName": "Grid Editor",
     "copyright": "Copyright © 2020 Intech Studio Ltd.",
     "directories": {
       "output": "dist/"
+    },
+    "dmg": {
+      "sign": false
     },
     "afterSign": "build/notarize.js",
     "win": {
@@ -78,6 +82,7 @@
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",
       "hardenedRuntime": true,
+      "gatekeeperAssess": true,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     }
