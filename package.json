@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.833",
+  "version": "0.0.834",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -78,7 +78,6 @@
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",
       "hardenedRuntime": true,
-      "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
       "entitlementsInherit": "build/entitlements.mac.plist"
     }
