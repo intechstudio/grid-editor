@@ -47,8 +47,8 @@
       <button on:click={handleRecall} class="focus:outline-none ml-1 cursor-pointer text-white border-highlight hover:bg-highlight-400 px-2 py-1">Recall</button>
     </div>
     <div class="flex items-center">
-      <button on:click={handleClear} class="focus:outline-none mr-2 text-white border-none bg-secondary border-primary hover:bg-highlight-400 px-2 py-1">Clear</button>
-      <Tooltip text={tooltip}/>
+      <button on:click={handleClear} class="focus:outline-none text-white border-none bg-secondary border-primary hover:bg-highlight-400 px-2 py-1">Clear</button>
+      <!--<Tooltip text={tooltip}/>-->
     </div>
     
   </div>
