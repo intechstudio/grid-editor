@@ -255,7 +255,7 @@
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
     <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
-      {#if data.name == 'MIDI Absolute'}
+      {#if data.name == 'MIDI Static'}
         {validator[index] ? validator[index] : ''}
       {/if}
     </div>

@@ -19,8 +19,8 @@
   export let eventInfo;
 
   const components = {
-    'MIDI Relative': MidiRelative,
-    'MIDI Absolute': MidiAbsolute,
+    'MIDI Dynamic': MidiRelative,
+    'MIDI Static': MidiAbsolute,
     'LED Color': SetLedColor,
     'LED Phase': SetLedPhase,
     'RAW': RawAction,

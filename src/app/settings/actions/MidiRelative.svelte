@@ -212,7 +212,6 @@
       
       if(change !== null && c == 1){
         orderChangeTrigger = true;
-        console.log(data.name, 'REMOVE', orderNumber);
         if(change == 'remove'){
           //configStore.remove(orderNumber, moduleInfo, eventInfo, selectedElementSettings);
         }
@@ -235,7 +234,7 @@
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
     <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
-      {#if data.name == 'MIDI Relative'}
+      {#if data.name == 'MIDI Dynamic'}
         {validator[index] ? validator[index] : ''}
       {/if}
     </div>

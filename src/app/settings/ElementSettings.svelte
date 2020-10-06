@@ -17,8 +17,8 @@
   let selectedElementSettings;
 
   let originalActions = [
-    { id: 0, name: 'MIDI Relative' },
-    { id: 1, name: 'MIDI Absolute'},
+    { id: 0, name: 'MIDI Dynamic' },
+    { id: 1, name: 'MIDI Static'},
     { id: 2, name: 'LED Color' },
     { id: 3, name: 'LED Phase' },
     { id: 4, name: 'RAW'}

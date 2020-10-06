@@ -15,8 +15,6 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
-  import { get } from 'svelte/store';
-import { select } from '../grid-modules/event-handlers/select';
 
   const dispatch = createEventDispatcher();
 
@@ -77,7 +75,11 @@ import { select } from '../grid-modules/event-handlers/select';
         serialComm.update((store) => { store.list = []; return store;})
         ports.forEach((port, i) => {  
           let isGrid = 0;
-          if(port.productId.toUpperCase() == 'ECAD' || port.productId.toUpperCase() == 'ECAC'){  isGrid = 1 }
+          if(port.productId){
+            if(port.productId.toUpperCase() == 'ECAD' || port.productId.toUpperCase() == 'ECAC'){
+              isGrid = 1 
+            }
+          }
           // collect all ports in an array
           serialComm.update((store) => { 
             store.selected = port.path;     
