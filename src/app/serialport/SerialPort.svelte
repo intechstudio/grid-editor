@@ -76,7 +76,7 @@
         ports.forEach((port, i) => {  
           let isGrid = 0;
           if(port.productId){
-            if(port.productId.toUpperCase() == 'ECAD' || port.productId.toUpperCase() == 'ECAC'){
+            if(port.productId == 'ECAD' || port.productId == 'ecad' || port.productId == 'ECAC' || port.productId == 'ecac'){
               isGrid = 1 
             }
           }
@@ -93,7 +93,7 @@
           }
         });
 
-        const thereIsGrid = ports.find(p => p.productId.toUpperCase() == 'ECAD' || p.productId.toUpperCase() == 'ECAC');
+        const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ecad' || p.productId == 'ECAC' || p.productId == 'ecac');
         if(!thereIsGrid){
           closeSerialPort();
         }
