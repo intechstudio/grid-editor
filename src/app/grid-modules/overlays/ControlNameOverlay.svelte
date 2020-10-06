@@ -28,7 +28,6 @@
   grid.subscribe(grid => {
     const settings = grid.used.find(controller => controller.id == id);
     if(settings !== undefined) controlElementSettings = settings.banks[bank];
-    console.log('overlay',controlElementSettings);
   })
 
  
