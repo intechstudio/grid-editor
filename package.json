@@ -69,7 +69,7 @@
       ],
       "artifactName": "${name}-Setup-${version}.${ext}",
       "target": [
-        "nsis",
+        "nsis"
       ],
       "icon": "build/icon.png"
     },
