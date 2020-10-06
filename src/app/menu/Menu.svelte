@@ -49,6 +49,19 @@
         max="4"
         on:input={(e)=>{appSettings.update(store => {store.size = e.target.value; return store;})}}/>
     </div>
+    <div class="ml-4 flex text-white items-center">
+      <div class="opacity-50 ">
+        Use
+        <span class="bg-secondary font-mono px-2 py-1 rounded">
+          {#if process.platform == 'darwin'}
+          Command + Shift + R
+          {:else}
+          Ctrl + Shift + R
+          {/if}
+        </span>
+        to reload app.
+      </div>
+    </div>
   </div>
 
   <div class="w-1/2 h-12 flex justify-around items-center ">

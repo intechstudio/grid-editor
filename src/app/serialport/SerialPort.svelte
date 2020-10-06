@@ -76,9 +76,8 @@ import { select } from '../grid-modules/event-handlers/select';
         //ports.length == 0 ? serialpaths = [] : null;
         serialComm.update((store) => { store.list = []; return store;})
         ports.forEach((port, i) => {  
-          console.log(port);
           let isGrid = 0;
-          if(port.productId == 'ECAD' || port.productId == 'ECAC'){  isGrid = 1 }
+          if(port.productId.toUpperCase() == 'ECAD' || port.productId.toUpperCase() == 'ECAC'){  isGrid = 1 }
           // collect all ports in an array
           serialComm.update((store) => { 
             store.selected = port.path;     
@@ -92,7 +91,7 @@ import { select } from '../grid-modules/event-handlers/select';
           }
         });
 
-        const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ECAC');
+        const thereIsGrid = ports.find(p => p.productId.toUpperCase() == 'ECAD' || p.productId.toUpperCase() == 'ECAC');
         if(!thereIsGrid){
           closeSerialPort();
         }

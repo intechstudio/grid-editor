@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest]
+        os: [macos-latest, windows-2016, ubuntu-latest]
 
     steps:
 
@@ -22,7 +22,7 @@ jobs:
 
       - name: Set env
         shell: bash
-        run: echo ::set-env name=RELEASE_VERSION::${GITHUB_REF#refs/tags/}
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/} >> $GITHUB_ENV
 
       - name: See env
         run: echo "${{ env.RELEASE_VERSION }}"

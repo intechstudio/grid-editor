@@ -28,6 +28,7 @@
   grid.subscribe(grid => {
     const settings = grid.used.find(controller => controller.id == id);
     if(settings !== undefined) controlElementSettings = settings.banks[bank];
+    console.log('overlay',controlElementSettings);
   })
 
  
@@ -57,11 +58,11 @@
       <div class="text-xs flex flex-col justify-around items-center" style="width: {moduleWidth / 4 +'px'}">
         {#each control_block(3) as element }
           <div class="text-xs flex flex-col items-center justify-center" style="height: {moduleWidth / 4 + 'px'}; transform: rotate({-1*rotation+'deg'})">
-            {#if breakpoint == 'small' || elementSettings[element * 4 + block].controlElementName.length <= 4}
-              <div class="block font-mono">{elementSettings[element * 4 + block].controlElementName.substr(0,4)}</div>
-            {:else if breakpoint == 'large' && elementSettings[element * 4 + block].controlElementName.length > 4}
-              <div class="block p-0 m-0 font-mono">{elementSettings[element * 4 + block].controlElementName.substr(0,4)}</div>
-              <div class="block p-0 m-0 font-mono">{elementSettings[element * 4 + block].controlElementName.substr(4,4)}</div>
+            {#if breakpoint == 'small' || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
+              <div class="block font-mono">{controlElementSettings[element * 4 + block].controlElementName.substr(0,4)}</div>
+            {:else if breakpoint == 'large' && controlElementSettings[element * 4 + block].controlElementName.length > 4}
+              <div class="block p-0 m-0 font-mono">{controlElementSettings[element * 4 + block].controlElementName.substr(0,4)}</div>
+              <div class="block p-0 m-0 font-mono">{controlElementSettings[element * 4 + block].controlElementName.substr(4,4)}</div>
             {/if}          
           </div>
         {/each}
