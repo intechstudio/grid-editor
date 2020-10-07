@@ -4,7 +4,8 @@
   const polka = require('polka');
   const { json } = require('body-parser');
   const Email = require('email-templates');
-
+  require('dotenv').config();
+  
   const app = polka();
 
   app.post('/form-submission',
