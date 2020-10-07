@@ -7,8 +7,6 @@
 
   const app = polka();
 
-  const newsletter = require('./backend/newsletter.js');
-
   app.post('/form-submission',
     (req,res,next) => {
       res.locals = {};
@@ -16,7 +14,7 @@
       res.locals.email = req.body.email;
       next();
     },
-    newsletter.checkOptIn('editor'),
+    //newsletter.checkOptIn('editor'),
     (req, res) => {
         const email = new Email({
           preview: false,
@@ -30,8 +28,8 @@
             port: 465,
             secure: true, // true for 465, false for other ports
             auth: {
-              user: 'shop@intech.studio', // generated ethereal user
-              pass: 'macgyver' // generated ethereal password
+              user: process.env.EMAIL, // generated ethereal user
+              pass: process.env.EMAIL_PASS // generated ethereal password
             }
           }
         });

@@ -20,6 +20,8 @@
     })
     
     const message = await res.json()
+
+    console.log(message);
     
     console.log(message);
     if(message.sent){
@@ -28,8 +30,8 @@
       result = false;
     }
 
-    dispatch('submit', {
-
+    dispatch('success', {
+      
     })
   }
 
@@ -54,7 +56,11 @@
           <button on:click={handleClose} class="bg-gray-400 w-24 text-black py-1 px-2 my-2 border-none hover:bg-gray-500 focus:outline-none rounded">Close</button>
         </div>
       {:else if (result == false)}
+      <div class="m-2">
         <p class="text-red-500">Sorry, feedback is lost in the ether.</p>
+        <button on:click={handleClose} class="bg-gray-400 w-24 text-black py-1 px-2 my-2 border-none hover:bg-gray-500 focus:outline-none rounded">Close</button>
+      </div>
+        
       {:else}
         <p class="m-2 pb-2">
           Let us know what feature you would see, report any bugs or issues.
@@ -75,11 +81,12 @@
           <textarea class="text-black w-full p-2 min-h-200 outline-none border-none" bind:value={formText} placeholder="Write your message here..."></textarea>
         </div>
 
+        <!--
         <div class="flex m-2 items-center">
           <input bind:checked={optIn} type="checkbox" class="w-5 h-5">
           <p class="p-2">Save my email address and name for @intechstudio newsletter.</p>
         </div>
-
+-->
         <div class="m-2 flex justify-between py-2">
           <button on:click={handleSubmit} class="bg-highlight font-medium w-24 text-white py-1 px-2 border-none hover:bg-highlight-500 focus:outline-none rounded">Submit</button>
           <button on:click={handleClose} class="bg-gray-400 w-24 text-black py-1 px-2 border-none hover:bg-gray-500 focus:outline-none rounded">Close</button>

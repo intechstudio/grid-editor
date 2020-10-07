@@ -22,5 +22,5 @@
 {/if}
 
 {#if openModal}
-  <FormModal on:close={()=>openModal = false}/>
+  <FormModal on:close={()=>openModal = false} on:success={formVisible = false}/>
 {/if}
