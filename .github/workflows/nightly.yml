@@ -1,0 +1,63 @@
+name: Build Nightly Grid Editor
+
+on: 
+  push:
+    tags:
+     - 'v*.*.*'
+
+jobs:
+  build:
+    if: github.event.base_ref == 'refs/heads/nightly'
+    name: Build Nightly Grid Editor
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-2016, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: ''
+          submodules: true
+
+      - name: Set env
+        shell: bash
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      - name: See env
+        run: echo "${{ env.RELEASE_VERSION }}"
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v1
+        with:
+          node-version: '10.16'
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build
+        run: npm run export
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # macOS Code signing certificates
+          CSC_LINK: ${{ secrets.CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+
+          # macOS notarization API key
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+
+      - name: See directory
+        run: ls dist/*.*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Nightly ${{ env.RELEASE_VERSION }}
+          files: dist/*.*
+          draft: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
