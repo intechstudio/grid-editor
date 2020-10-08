@@ -68,13 +68,13 @@ jobs:
     if: github.event.base_ref == 'refs/heads/nightly'
 
     name: Build Nightly Grid Editor
-     runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest, windows-2016, ubuntu-latest]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
         with:
           ref: ''
           submodules: true
