@@ -14,19 +14,19 @@
   function handleStore(){
     const command = GRID_PROTOCOL.encode('',`${MODE}STORE`,'','');
     serialComm.write(command);
-    console.log('Store LOCAL settings on Grid!')
+    console.log(`Store ${LOCAL} settings on Grid!`)
   }
 
   function handleRecall(){
     const command = GRID_PROTOCOL.encode('',`${MODE}LOAD`,'','');
     serialComm.write(command);
-    console.log('Recall LOCAL settings on Grid!')
+    console.log(`Recall ${LOCAL} settings on Grid!`)
   }
 
   function handleClear(){
     const command = GRID_PROTOCOL.encode('',`${MODE}CLEAR`,'','');
     serialComm.write(command);
-    console.log('Clear LOCAL settings on Grid!')
+    console.log(`Clear ${LOCAL} settings on Grid!`)
   }
 
   onMount(()=>{

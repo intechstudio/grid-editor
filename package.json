@@ -33,6 +33,7 @@
     "@sveltejs/pancake": "0.0.16",
     "axios": "^0.20.0",
     "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
     "electron-log": "^4.2.4",
     "electron-store": "^6.0.0",
     "electron-updater": "^4.3.4",
