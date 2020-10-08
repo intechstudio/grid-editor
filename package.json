@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.844",
+  "version": "0.0.844.nightly",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -76,7 +76,8 @@
     },
     "mac": {
       "target": [
-        "zip"
+        "zip",
+        "dmg"
       ],
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",
