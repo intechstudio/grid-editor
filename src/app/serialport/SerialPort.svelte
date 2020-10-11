@@ -169,8 +169,15 @@
     parser.on('data', function(data) {
 
       let array = Array.from(data);
+
+      let RESPONSE = {};
+
+      // filter heartbeat messages
       if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
-        debugStore.store(array.join(''));
+        debugStore.store(array.join(''));    
+
+        RESPONSE = GRID.decode_instr(array.slice(16,).join(''));      
+        
       }
 
       let _array = [];

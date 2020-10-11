@@ -183,8 +183,6 @@ export const GRID_PROTOCOL = {
 
       let array = serialData.slice(obj.offset, obj.length + obj.offset);
 
-      //console.log(obj.class);
-
       if(obj.class == "HEARTBEAT"){
         DATA.HEARTBEAT = this.decode_by_code(array, obj.class);
         let moduleType = this.utility_moduleLookup(DATA.HEARTBEAT.HWCFG);
@@ -223,6 +221,24 @@ export const GRID_PROTOCOL = {
       }
     }
     return object;
+  },
+
+  decode_instr(data){
+    const CLASSES = this.PROTOCOL.CLASSES;
+    const INST = parseInt(data.slice(0,3), 16);
+    let RESPONSE = {};
+    for (const KEY in CLASSES) {
+      // CHECK IF CLASS OBJ VALUE EQUALS TO INPUT EVENT TYPE
+      if(CLASSES[KEY] == INST){
+        // GLOBAL AND LOCAL SAVE CHECK
+        if(CLASSES[KEY] == 96 || CLASSES[KEY] == 97 || CLASSES[KEY] == 98 || CLASSES[KEY] == 112 || CLASSES[KEY] == 113 || CLASSES[KEY] == 114){
+          let value = '';
+          data.slice(3,4) == 'a' ? value = 'success' : value = 'failure';
+          RESPONSE[KEY] = value;
+        }
+      }
+    } 
+    return RESPONSE;
   },
 
   get_module_info: function(MODULE_INFO){

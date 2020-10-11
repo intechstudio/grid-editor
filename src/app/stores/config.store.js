@@ -9,6 +9,11 @@ function createConfigStore(){
 
   return {
     ...store,
+    config_state: (obj) => {
+      store.update(store => {
+        
+      })
+    },
     save: (index, module, event, element, config) => {
       store.update(store => {
         if(!store[module.id]) store[module.id] = {};
