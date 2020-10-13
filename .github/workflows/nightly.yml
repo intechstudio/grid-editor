@@ -2,7 +2,7 @@ name: Build Nightly Grid Editor
 
 on: 
   push:
-    braches:
+    branches:
      - nightly
 
 jobs:
