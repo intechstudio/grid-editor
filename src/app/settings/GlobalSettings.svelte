@@ -8,6 +8,8 @@
 
   import { GRID_PROTOCOL } from '../serialport/GridProtocol.js';
 
+  import { commands } from '../stores/handshake.store.js';
+
   import Tooltip from '../helpers/Tooltip.svelte';
 
   let selected = 0;
@@ -25,6 +27,7 @@
     const PARAMS = e.detail.parameters[0];
     globalData.colors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
     const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
 
@@ -32,6 +35,7 @@
     const PARAMS = e.detail.parameters[0];
     globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
     const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
 

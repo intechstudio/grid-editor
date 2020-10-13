@@ -2,8 +2,8 @@ name: Build Nightly Grid Editor
 
 on: 
   push:
-    tags:
-     - 'v*.*.*'
+    braches:
+     - nightly
 
 jobs:
   build:
@@ -22,7 +22,7 @@ jobs:
 
       - name: Set env
         shell: bash
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=${version}" >> $GITHUB_ENV
 
       - name: See env
         run: echo "${{ env.RELEASE_VERSION }}"

@@ -17,44 +17,6 @@
 		input = store;
 	})
 
-  let serialMessageLengthArray = [];
-
-  let tick = 0;
-
-  let limit = 100;
-/*
-  setInterval(()=>{
-		
-    tick += 1;
-    if(serial) {
-      if(serialMessageLengthArray.length >= limit) {
-        serialMessageLengthArray = serialMessageLengthArray.slice(1);
-        serialMessageLengthArray[serialMessageLengthArray.length] = serial.length;
-      } else {
-        serialMessageLengthArray.push(serial.length);
-      }
-    }
-  },100);
-  */
-	const x_min = 0
-  const x_max = 100
-  const y_min = 0
-	const y_max = 100
-
-  let el;
-  let w = 320;
-
-	const x1 = spring();
-  const x2 = spring();
-  let msgLen = []
-
-  //$: $x2 = x_max;
-	//$: $x1 = x_min;
-  //$: msgLen = rolling_array(tick);
-
-  function rolling_array(){
-    return serialMessageLengthArray.map((value, index ) => ({x: index, y: value}));
-	}
 
 	let brc = [];
 	let command;
@@ -95,39 +57,41 @@
 				{/each}
 
 			</div>
-			<div>
+			<div class="flex flex-col">
 				<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
-			</div>
-			<!--
-			<div class="flex text-white items-end p-2">
+				<div class="flex text-white items-end p-2">
 
-				<div class="mr-1">
-					<div>dx</div>
-					<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+					<div class="mr-1">
+						<div>dx</div>
+						<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+					</div>
+					<div class="mx-1">
+						<div>dy</div>
+						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
+					</div>
+					<div class="mx-1">
+						<div>age</div>
+						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
+					</div>
+					<div class="mx-1">
+						<div>rot</div>
+						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
+					</div>
+					<div class="mx-1">
+						<div>command</div>
+						<input class="w-40 p-1 text-black focus:outline-none"  bind:value={command}>
+					</div>
+			
+					<button on:click={debug} class="p-1 px-2 mx-1 bg-blue-600 border-none rounded focus:outline-none">write</button>
+			
+			
 				</div>
-				<div class="mx-1">
-					<div>dy</div>
-					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
-				</div>
-				<div class="mx-1">
-					<div>age</div>
-					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
-				</div>
-				<div class="mx-1">
-					<div>rot</div>
-					<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
-				</div>
-				<div class="mx-1">
-					<div>command</div>
-					<input class="w-40 p-1 text-black focus:outline-none"  bind:value={command}>
-				</div>
-		
-				<button on:click={debug} class="p-1 px-2 mx-1 bg-blue-600 border-none rounded focus:outline-none">write</button>
-		
-		
+	
 			</div>
-				-->
+
+		
 		</div>
+	
 		
 
 	</div>
@@ -143,63 +107,5 @@
 		color: blue;
 		font-weight: bold;
 	}
-
-	.data{
-		stroke: #fff;
-		stroke-width: 2px;
-		fill: none;
-	}
-
-	.chart {
-		position: relative;
-		height: 300px;
-		width: 300px;
-		margin: 0 0 36px 0;
-		overflow: hidden;
-    padding: 3em 2em 2em 3em;
-	}
-
-
-  .grid-line {
-		position: relative;
-		display: block;
-	}
-
-	.grid-line.horizontal {
-		width: calc(100% + 2em);
-		left: -2em;
-		border-bottom: 1px dashed rgb(115, 113, 113);
-	}
-
-	.grid-line.first {
-		border-bottom: 1px solid #333;
-	}
-
-	.grid-line span {
-		position: absolute;
-		left: 0;
-		bottom: 2px;
-		font-family: sans-serif;
-		font-size: 14px;
-		color: rgb(81, 81, 81);
-	}
-
-	.column {
-		position: absolute;
-    /*left: 1px;
-		width: calc(100% - 2px); 
-    */
-		left: 0;
-		padding:0;
-		margin:0;
-		width: 100%;
-		height: 100%;
-		opacity: 0.6;
-	}
-
-	.column.serial {
-		background-color: #1f77b4;
-	}
-
   
 </style>

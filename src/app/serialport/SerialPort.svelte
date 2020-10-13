@@ -15,6 +15,7 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
+  import { commands } from '../stores/handshake.store';
 
   const dispatch = createEventDispatcher();
 
@@ -47,9 +48,7 @@
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
       //console.log('_usedgird length...', _usedgrid)
 
-      if(_removed !== undefined && _usedgrid.length !== undefined){
-
-        
+      if(_removed !== undefined && _usedgrid.length !== undefined){    
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -162,6 +161,14 @@
     runSerialParser(PORT) 
   }
 
+  let usableArray = [];
+  function makeThisUsable(RESPONSE){
+    
+    let controller = grid.used.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
+    controller.instr = RESPONSE.COMMAND;
+
+  }
+
   function runSerialParser(port){
 
     const parser = port.pipe(new Readline({ delimiter: "\n"}));
@@ -172,14 +179,6 @@
 
       let RESPONSE = {};
 
-      // filter heartbeat messages
-      if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
-        debugStore.store(array.join(''));    
-
-        RESPONSE = GRID.decode_instr(array.slice(16,).join(''));      
-        
-      }
-
       let _array = [];
 
       array.forEach((element, i) => {
@@ -187,6 +186,17 @@
       });
       
       let DATA = GRID.decode(_array);
+
+      // filter heartbeat messages
+      if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
+        debugStore.store(array.join(''));    
+
+        RESPONSE = GRID.decode(_array);
+
+        RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
+
+        RESPONSE.COMMAND ? commands.response(RESPONSE) : null;
+      }
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
 

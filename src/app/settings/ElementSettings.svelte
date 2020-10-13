@@ -208,9 +208,11 @@
 
 
           const serialized = GRID_PROTOCOL.serialize_actions(config, array);
-          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized))
+          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
+
         }
       }
+      
     })
 
   })
