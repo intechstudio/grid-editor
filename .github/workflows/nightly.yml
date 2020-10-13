@@ -3,11 +3,10 @@ name: Build Nightly Grid Editor
 on: 
   push:
     branches:
-     - origin/nightly
+     - nightly
 
 jobs:
   build:
-    if: github.event.base_ref == 'refs/heads/nightly'
     name: Build Nightly Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
