@@ -240,7 +240,7 @@ export const GRID_PROTOCOL = {
         DATA.COMMAND = { 'GLOBALRECALL': obj.instr }
       }
       if(obj.class == "GLOBALCLEAR"){
-        DATA.COMMAND = { 'LOCALCLEAR': obj.instr }
+        DATA.COMMAND = { 'GLOBALCLEAR': obj.instr }
       }
 
 

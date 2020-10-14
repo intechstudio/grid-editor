@@ -99,7 +99,7 @@
     
   </div>
 
-  {#if $commands[MODE+'STORE'].msg == 'failure'}
+  {#if $commands[MODE+'STORE'].msg == 'failure' || $commands[MODE+'CLEAR'].msg == 'failure'}
     <div class="text-important text-xs pl-2">Failed to catch response from Grid in time...</div>
   {/if}
 

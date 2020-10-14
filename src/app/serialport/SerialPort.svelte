@@ -161,12 +161,9 @@
     runSerialParser(PORT) 
   }
 
-  let usableArray = [];
-  function makeThisUsable(RESPONSE){
-    
+  function makeThisUsable(RESPONSE){ 
     let controller = grid.used.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
     controller.instr = RESPONSE.COMMAND;
-
   }
 
   function runSerialParser(port){

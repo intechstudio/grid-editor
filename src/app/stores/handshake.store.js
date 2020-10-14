@@ -24,11 +24,10 @@ function create_commands(){
 
       setTimeout(()=>{
         const res = get(store).response;
-        if(res == undefined) { 
-          store.update(store => store[arg].msg  = 'failure')
+        if(res.COMMAND.hasOwnProperty("")) { 
+          store.update(store => {store[arg].msg  = 'failure'; return store;})
         };
       }, time)
-
     },
     response: (arg) => {
       let _key = '';

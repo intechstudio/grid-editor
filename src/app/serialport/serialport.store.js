@@ -13,14 +13,16 @@ function createSerialComm(){
     ...store,
     write: (args) => { 
       debugStore.update(store => {
-        /** 
-        let ascii = args.map(arg => {
-          return String.fromCharCode(arg)
-        });
-        */
-        //console.log(args);
-        //ascii = ascii.join('');
-        store = [...store, {type: 'output', data: args} ]
+        let output = args;
+        console.log(typeof output)
+        if(typeof output == 'object'){
+          output = args.map(arg => {
+            return String.fromCharCode(arg)
+          });
+          output = output.join('');
+        }
+        
+        store = [...store, {type: 'output', data: output} ]
         return store;
       })
       let port = get(store).open;

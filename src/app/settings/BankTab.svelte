@@ -40,11 +40,9 @@
 
   function colorCallback(rgba) {
 
-
     rgb[0] = Math.floor(rgba.detail.r * rgba.detail.a)
     rgb[1] = Math.floor(rgba.detail.g * rgba.detail.a)
     rgb[2] = Math.floor(rgba.detail.b * rgba.detail.a)
-
 
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'NUM': selected}, 

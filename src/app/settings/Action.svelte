@@ -26,12 +26,12 @@
     'RAW': RawAction,
   }
 
-
   /*
   $: if(data.parameters){
     sendData();
   }
 */
+
   function handleRemove(){
     dispatch('remove', {
       action: data,
@@ -66,8 +66,6 @@
       </div>
     </div>
   </div>
-
-  
 
 </main>
 
