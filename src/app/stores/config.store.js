@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json';
 
-import { commands } from '../stores/handshake.store.js';
+import { commands } from '../settings/shared/handshake.store.js';
 
 const GRID = grid_protocol;
 

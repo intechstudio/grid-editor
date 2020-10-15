@@ -2,8 +2,8 @@
   import { onMount } from 'svelte';
 
   import { get } from 'svelte/store'
-import { LAYOUT } from '../layout/layout.js';
-import { globalSettings } from '../settings/globalSettings.store.js';
+  import { LAYOUT } from '../layout/layout.js';
+  import { globalSettings } from '../settings/global/global-settings.store';
   import { grid } from '../stores/grid.store.js';
 
   const electron = require('electron'); 
