@@ -179,40 +179,29 @@
   onMount(()=>{
     localSettings.subscribe((values)=>{
       selectedElementSettings = values;
-      //console.log('changed selected control element',values);
       loadSelectedModuleSettings();
     });
 
     configStore.subscribe((store)=>{
-
       if(store[moduleId] !== undefined){
-
         let actions;
-
         if(eventInfo){
           actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
         }
-
-        if(actions){
-          
+        if(actions){   
           const config = [
             { BANKNUMBER: selectedElementSettings.bank },
             { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
             { EVENTTYPE: eventInfo.value }
           ]
-
           let array = [];
           actions.forEach(a => {
             array.push(...a);
           });
-
-
           const serialized = GRID_PROTOCOL.serialize_actions(config, array);
           serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
-
         }
-      }
-      
+      }   
     })
 
   })

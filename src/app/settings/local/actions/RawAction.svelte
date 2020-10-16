@@ -50,7 +50,6 @@
     let c = 0;
     actionListChange.subscribe((change)=>{
       c++;
-      
       if(change !== null && c == 1){
         orderChangeTrigger = true;
         console.log(data.name, 'REMOVE', orderNumber);
