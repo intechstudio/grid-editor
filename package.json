@@ -1,6 +1,10 @@
 {
   "name": "grid_editor",
+<<<<<<< HEAD
   "version": "0.0.846",
+=======
+  "version": "0.0.851",
+>>>>>>> nightly
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -33,6 +37,7 @@
     "@sveltejs/pancake": "0.0.16",
     "axios": "^0.20.0",
     "body-parser": "^1.19.0",
+    "dotenv": "^8.2.0",
     "electron-log": "^4.2.4",
     "electron-store": "^6.0.0",
     "electron-updater": "^4.3.4",
@@ -75,7 +80,8 @@
     },
     "mac": {
       "target": [
-        "zip"
+        "zip",
+        "dmg"
       ],
       "artifactName": "${name}-Setup-${version}.${ext}",
       "icon": "build/icon.png",

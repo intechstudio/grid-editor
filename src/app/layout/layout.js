@@ -1,5 +1,5 @@
-import {GRID_CONTROLLER} from '../serialport/GridController.js';
-import {appSettings} from '../stores/app-settings.store.js';
+import { GRID_CONTROLLER } from '../core/protocol/GridController.js';
+import { appSettings } from '../stores/app-settings.store.js';
 
 import { get } from 'svelte/store';
 

@@ -24,31 +24,28 @@
   *   serialport and nodejs
   */
 
-  import SerialPort from './app/serialport/SerialPort.svelte'
+  import SerialPort from './app/core/serialport/SerialPort.svelte'
 
   /*
   *   svelte components
   */
 
-  import Menu from './app/menu/Menu.svelte';
-  import Titlebar from './app/menu/Titlebar.svelte';
-  import GlobalSettings from './app/settings/GlobalSettings.svelte';
-  import ElementSettings from './app/settings/ElementSettings.svelte';
-  import MapMode from './app/settings/MapMode.svelte';
-  import Form from './app/form/Form.svelte';
-  import Debug from './app/debug/Debug.svelte';
-  import Polygon from './app/debug/Polygon.svelte';
-  import FirmwareCheck from './app/firmware-check/FirmwareCheck.svelte';
+  import Menu from './app/shared/menu/Menu.svelte';
+  import GlobalSettings from './app/settings/global/GlobalSettings.svelte';
+  import LocalSettings from './app/settings/local/LocalSettings.svelte';
+  import Form from './app/shared/feedback/Form.svelte';
+  import Debug from './app/shared/debug/Debug.svelte';
+  import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
-  import Commands from './app/settings/Commands.svelte';
+  import Commands from './app/settings/shared/Commands.svelte';
 
-  import MODULE from './app/grid-modules/MODULE.svelte';
+  import MODULE from './app/core/grid-modules/MODULE.svelte';
 
   import GlobalProfiles from './app/profiles/GlobalProfiles.svelte';
 
-  import MinMaxClose from './app/menu/MinMaxClose.svelte';
+  import MinMaxClose from './app/shared/menu/MinMaxClose.svelte';
 
 
   /*
@@ -70,8 +67,7 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
-  import { serialComm } from './app/serialport/serialport.store';
-  import { elementSettings } from './app/settings/elementSettings.store';
+  import { localSettings } from './app/settings/local/local-settings.store';
 
 
   /*
@@ -336,8 +332,8 @@
       {/if}
       
       <div class="flex w-4/12 flex-col m-4">
-        <ElementSettings/>
-        {#if $elementSettings.controlNumber[0] !== undefined}
+        <LocalSettings/>
+        {#if $localSettings.controlNumber[0] !== undefined}
           <div class="my-2 p-4 bg-primary rounded-lg z-20 w-full">
             <Commands MODE={'LOCAL'}/>
           </div>
