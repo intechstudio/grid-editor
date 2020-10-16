@@ -3,7 +3,7 @@
 <<<<<<< HEAD
   "version": "0.0.846",
 =======
-  "version": "0.0.851",
+  "version": "0.0.852",
 >>>>>>> nightly
   "main": "./src/electron.js",
   "repository": {
