@@ -2,10 +2,9 @@
 
   import { onMount, onDestroy } from 'svelte';
 
-  import { GRID_PROTOCOL } from '../protocol/GridProtocol';
+  import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
-  import { localSettings } from '../../settings/local/local-settings.store';
-  import { globalSettings } from '../../settings/global/global-settings.store';
+  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store';
 
   import { serialComm, serialCommDebug } from './serialport.store.js';
 
@@ -208,6 +207,7 @@
 
       if(DATA.EVENT && DATA.EVENT.length > 0){
         if(DATA.EVENT[0].EVENTTYPE !== 1){
+          console.log(DATA.EVENT,DATA.BRC);
           localSettings.update((setting)=>{
             setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
             setting.controlNumber = DATA.EVENT.map(event => {return event.ELEMENTNUMBER});   

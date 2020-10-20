@@ -24,7 +24,7 @@
   let startColor = "rgb('255,0,0')";
 
   $: if(globalData !== undefined){
-    startColor = "rgb(" + globalData.colors[selected] + ")";
+    startColor = "rgb(" + globalData.bankColors[selected] + ")";
   }
 
   let timer;

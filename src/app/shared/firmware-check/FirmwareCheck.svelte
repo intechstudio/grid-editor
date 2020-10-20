@@ -2,14 +2,14 @@
   import { onMount } from 'svelte';
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { grid } from '../../stores/grid.store.js';
+  import { runtime } from '../../stores/runtime.store.js';
 
   let fwMismatch = false; 
   let fwVersion;
 
-  grid.subscribe((grid)=>{
-    grid.used.forEach(used=>{
-      if(JSON.stringify(used.fwVersion) !== JSON.stringify(fwVersion)){
+  runtime.subscribe((store)=>{
+    store.forEach(gridController=>{
+      if(JSON.stringify(gridController.fwVersion) !== JSON.stringify(fwVersion)){
         fwMismatch = true;
       }
     });

@@ -1,12 +1,11 @@
 <script>
   import BankTab from './BankTab.svelte';  
-  import { globalSettings } from './global-settings.store';
-  import { localSettings } from '../local/local-settings.store';
+  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store.js';
   import { serialComm } from '../../core/serialport/serialport.store.js';
 
   import Commands from '../shared/Commands.svelte';
 
-  import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
   import { commands } from '../shared/handshake.store.js';
 
@@ -18,7 +17,7 @@
 
   let tabs = [0,1,2,3];
 
-  globalSettings.subscribe(banks => {
+  globalInputStore.subscribe(banks => {
       globalData = banks;
       selected =  banks.active;      
   })
@@ -42,7 +41,7 @@
 
   function changeSelected(bank){
     globalData.active = bank;
-    localSettings.update(settings => {
+    localInputStore.update(settings => {
       settings.bank = bank;
       return settings;
     })

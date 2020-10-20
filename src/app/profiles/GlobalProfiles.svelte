@@ -3,8 +3,7 @@
 
   import { get } from 'svelte/store'
   import { LAYOUT } from '../layout/layout.js';
-  import { globalSettings } from '../settings/global/global-settings.store';
-  import { grid } from '../stores/grid.store.js';
+  import { globalInputStore } from '../stores/control-surface-input.store';
 
   const electron = require('electron'); 
   const path = require('path'); 

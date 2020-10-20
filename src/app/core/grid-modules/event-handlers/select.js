@@ -1,4 +1,4 @@
-import { localSettings } from '../../../settings/local/local-settings.store';
+import { localInputStore } from '../../../stores/control-surface-input.store.js';
 import { appSettings } from '../../../stores/app-settings.store.js';
 
 export function select(node, [moduleId, selectedDisplay]){
@@ -23,13 +23,13 @@ export function select(node, [moduleId, selectedDisplay]){
         
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
-        const position = 'dx:'+dx+';dy:'+dy;
 
-        elementSettings.update((settings)=>{
-          settings.moduleId = moduleId,
-          settings.position = position,
-          settings.controlNumber = [controlNumber]
-          return settings;
+        localInputStore.update((store)=>{
+          store.id = moduleId,
+          store.dx = dx,
+          store.dy = dy;
+          store.elementNumber = [controlNumber]
+          return store;
         })
   
         node.dispatchEvent(new CustomEvent('selected-element', {

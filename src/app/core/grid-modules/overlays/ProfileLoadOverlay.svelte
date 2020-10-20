@@ -1,8 +1,7 @@
 <script>
 
-  import { grid } from '../../../stores/grid.store.js';
 
-  import { localSettings } from '../../../settings/local/local-settings.store';
+  import { localInputStore } from '../../../stores/control-surface-input.store.js';
 
   export let id;
   export let moduleWidth;

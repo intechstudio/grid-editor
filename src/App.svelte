@@ -18,7 +18,8 @@
   */
 
   import { appSettings } from './app/stores/app-settings.store';
-  import { grid } from './app/stores/grid.store.js';
+  import { layout } from './app/stores/layout.store.js';
+  import { runtime } from './app/stores/runtime.store.js';
 
   /*
   *   serialport and nodejs
@@ -67,7 +68,7 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
-  import { localSettings } from './app/settings/local/local-settings.store';
+import { localInputStore } from './app/stores/control-surface-input.store';
 
 
   /*
@@ -91,7 +92,8 @@
 
   $: gridsize = $appSettings.size * 106.6 + 10;
 
-  //
+  //  $: console.log($runtime);
+
 
   // The green highlight around grid for valid drop area.
   let current = ''; 
@@ -110,26 +112,6 @@
   /* 
   *   Render modules which are in the $grid.used array. 
   */
-
-  async function loadRecentSession(){
-    const result = await ipcRenderer.invoke('getStoreValue', 'grid');
-    $grid = result;
-    startAutoSave();
-    return result;
-  }
-
-  function startFresh(){
-    grid.set({used: [], layout: []})
-    $grid.layout = LAYOUT.createLayoutGrid(grid_layout);
-    initLayout();
-    startAutoSave();
-  }
-
-  function startAutoSave(){
-    grid.subscribe((grid)=>{
-      ipcRenderer.send('setStoreValue-message', grid)
-    });
-  }
 
   function restartApp(){
     ipcRenderer.send('restart_app');
@@ -162,9 +144,9 @@
     appSettings.subscribe((store)=>{
       fwVersion = store.version;
       if(store.selectedDisplay == 'layout'){
-        $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
+        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
       } else {
-        $grid.layout = LAYOUT.removePossiblePlacementOutlines($grid)
+        $layout = LAYOUT.removePossiblePlacementOutlines($layout)
       }
     });
    
@@ -195,17 +177,6 @@
   });
 
 
-  function initLayout(){
-    if($grid.used.length > 0){
-      $grid.used.forEach(usedCell => {
-        let renderCoords = document.getElementById('grid-cell-x:'+usedCell.dx+';y:'+usedCell.dy);
-        var nodeCopy = document.getElementById(usedCell.id.substr(0,4)).cloneNode(true);
-        nodeCopy.id = genModulId(usedCell.id.substr(0,4));
-        renderCoords.appendChild(nodeCopy);
-      });
-    }
-  }
-
   let debugMode;
 
   $: {
@@ -233,6 +204,7 @@
         debug
       </button>
 
+      <!--
       <SerialPort 
         bind:grid={$grid} 
         on:change={$grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)}
@@ -252,7 +224,7 @@
           }
         }
       />
-  
+  -->
     </div>
 
     <MinMaxClose/>
@@ -308,7 +280,9 @@
   <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
   {#if $appSettings.selectedDisplay == 'layout'}
+  <!--
     <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
+    -->
   {/if}
 
   <!-- This is the Settings part of the code-->
@@ -316,8 +290,7 @@
   {#if $appSettings.selectedDisplay == 'settings'}
     <div class="absolute w-full h-full flex justify-between items-start">
       <GlobalSettings/>
-      {#if $grid.used.length > 0}
-        {console.log(process.platform)}
+      {#if $runtime.length > 0}
         <div class="flex flex-col text-white ">
           <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
             <div class="mx-2">Hold</div>
@@ -333,7 +306,7 @@
       
       <div class="flex w-4/12 flex-col m-4">
         <LocalSettings/>
-        {#if $localSettings.controlNumber[0] !== undefined}
+        {#if $localInputStore.elementNumber[0] !== undefined}
           <div class="my-2 p-4 bg-primary rounded-lg z-20 w-full">
             <Commands MODE={'LOCAL'}/>
           </div>
@@ -355,7 +328,7 @@
     on:dnd-dragstart={(e)=>{
       let moved = handledrag.start(e);
       if(moved !== '' || undefined){
-        $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, moved);   
+        $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, moved);   
       }
     }}
 
@@ -366,17 +339,17 @@
     on:dnd-drop={(e)=>{
       // here we get back the dropped module id and drop target
       let data = handledrag.drop(e);
-      LAYOUT.addToUsedgrid($grid, data.modul, data.id, true);
+      LAYOUT.addToRuntime($runtime, data.modul, data.id, true);
     }}
 
     on:dnd-remove={(e)=>{
       let data = handledrag.remove(e)
-      let _usedgrid = $grid.used.filter(cell => cell.id !== data.modul);
-      grid.update(cell => {
-        cell.used = _usedgrid;
-        cell.layout = cell.layout.map( _cell =>{
+      // remove ?? 
+      $runtime = $runtime.filter(gridController => gridController.id !== data.modul);
+      layout.update(cell => {
+        cell = cell.map( _cell =>{
           if(_cell.id == data.modul){
-            _cell.id = 'none';
+            _cell.id = "";
             _cell.isConnectedByUsb = false;
           }
           return _cell;
@@ -397,14 +370,14 @@
     on:dnd-dragend={(e)=>{
       const dragend = handledrag.end(e); 
       current = dragend.current;
-      $grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout);
+      $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
+      console.log($layout, $runtime)
     }}
     >
     
     {#if $appSettings.selectedDisplay == 'layout'}
     <div class="flex flex-col absolute">
       <DragModule />     
-      
     </div>
     {/if}
 
@@ -414,7 +387,7 @@
       on:menu-close={()=>{isMenuOpen = false}}
       >
 
-      {#each $grid.layout as cell}
+      {#each $layout as cell}
         <div 
         id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
         style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"

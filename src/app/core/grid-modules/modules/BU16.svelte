@@ -2,7 +2,7 @@
 
   import { onMount } from 'svelte';
 
-  import { localSettings } from '../../../settings/local/local-settings.store';
+  import { localInputStore } from '../../../stores/control-surface-input.store.js';
   import { appSettings } from '../../../stores/app-settings.store.js';
 
   import { select } from '../event-handlers/select.js';
@@ -39,7 +39,7 @@
   }
 
   onMount(()=>{
-    localSettings.subscribe((values)=>{
+    localInputStore.subscribe((values)=>{
       selectedElement = values;
     });
 

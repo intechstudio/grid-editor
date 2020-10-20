@@ -1,6 +1,6 @@
 <script>
     
-  import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
   import { serialComm } from '../../core/serialport/serialport.store.js';
 

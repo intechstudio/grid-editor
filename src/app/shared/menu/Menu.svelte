@@ -65,7 +65,7 @@
   </div>
 
   <div class="w-1/2 h-12 flex justify-around items-center ">
-    <!--
+ 
     <div 
       on:click="{()=>{ changeSelectedDisplay('layout') }}" 
       class:bg-highlight={$appSettings.selectedDisplay === 'layout'}
@@ -76,7 +76,7 @@
         </svg>
         <div class="p-2">Layout</div>
     </div>
-    -->
+   
     <div 
       on:click="{()=>{changeSelectedDisplay('settings')}}" 
       class:bg-highlight={$appSettings.selectedDisplay === 'settings'}

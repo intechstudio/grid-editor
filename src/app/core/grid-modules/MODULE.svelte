@@ -12,8 +12,7 @@
 
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { globalSettings } from '../../settings/global/global-settings.store';
-  import { localSettings } from '../../settings/local/local-settings.store';
+  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -29,18 +28,16 @@
   let selected;
   let color;
   let bankSettings;
-  let bank;
+  let bankActive;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
   $: selected = components.find(component => component.type === type);
 
   onMount(()=>{
-    globalSettings.subscribe(banks =>{
-      color = banks.colors[banks.active];
-    })
-    localSettings.subscribe(settings => {
-      bank = settings.bank
+    globalInputStore.subscribe(banks =>{
+      color = banks.bankColors[banks.active];
+      bankActive = banks.bankActive;
     })
   })
 
@@ -50,7 +47,7 @@
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
 
     {#if $appSettings.overlays.controlName}
-      <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}/>
+      <ControlNameOverlay {id} {moduleWidth} {bankActive} {rotation}/>
     {/if}
 
     <!--    

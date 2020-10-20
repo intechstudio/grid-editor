@@ -4,13 +4,14 @@
 
   const dispatch = createEventDispatcher();
 
-  import { GRID_PROTOCOL } from '../../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
 
   import { actionListChange } from '../action-list-change.store.js';
 
   import { configStore } from '../../../stores/config.store';
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
+import { runtime } from '../../../stores/runtime.store.js';
 
   export let data;
   export let orderNumber;
@@ -192,6 +193,7 @@
     
     if(valid){
       configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
+      runtime.saveConfig()
     }
     
     dispatch('send',{});

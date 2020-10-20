@@ -6,7 +6,7 @@
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
 
-  import { GRID_PROTOCOL } from '../../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
 
   import { actionListChange } from '../action-list-change.store.js';
 

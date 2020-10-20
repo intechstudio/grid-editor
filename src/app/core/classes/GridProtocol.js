@@ -271,9 +271,9 @@ export const GRID_PROTOCOL = {
     let ROT = 0;
 
     if(MODULE_INFO !== ''){
-      DX = +MODULE_INFO.id.split(';')[0].split(':').pop() + 127;
-      DY = +MODULE_INFO.id.split(';')[1].split(':').pop() + 127;
-      switch (MODULE_INFO.rotation){
+      DX = +MODULE_INFO.dx + 127;
+      DY = +MODULE_INFO.dy + 127;
+      switch (MODULE_INFO.rot){
         case -0:
           ROT = 0; break;
         case 90:
@@ -284,7 +284,6 @@ export const GRID_PROTOCOL = {
           ROT = 3; break;
       }
     }
-
     return {ROT, DX, DY};
   },
 
@@ -300,6 +299,7 @@ export const GRID_PROTOCOL = {
     return body;
   },
 
+  
   configure_raw: function(PARAMETERS){
     const body = [
         this.PROTOCOL.CONST.STX + 128,
@@ -322,7 +322,7 @@ export const GRID_PROTOCOL = {
     return body;
   },
 
-  encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS, SERIALIZED){
+  encode: function (MODULE_INFO, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
 
     const BRC = this.get_module_info(MODULE_INFO);
 
@@ -351,7 +351,7 @@ export const GRID_PROTOCOL = {
       command = [
         PROTOCOL.CONST.STX,
         ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
-        PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
+        PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
         ...this.encode_class_parameters(PARAMETERS, PROTOCOL[CLASS_NAME]),
         PROTOCOL.CONST.ETX
       ]
