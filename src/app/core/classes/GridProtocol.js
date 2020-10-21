@@ -1,7 +1,5 @@
 import * as grid_protocol from '../../../external/grid-protocol/grid_protocol.json';
-import {GRID_CONTROLLER} from './GridController.js';
-
-const iconv = require('iconv-lite');
+import { GRID_CONTROLLER } from './GridController.js';
 
 let global_id = 0;
 
@@ -130,7 +128,15 @@ export const GRID_PROTOCOL = {
     
   },
 
-  decode: function(serialData){
+  decode_config: function(){
+    return 'config decoded';
+  },
+
+  encode_actions: function(){
+    return 'actions encoded';
+  },
+
+  decode_serial: function(serialData){
     /**
      * 
      * Slices serial data between STX 0x02 and ETX 0x03 for further processing by GRID_CLASS_XXX_code's.
@@ -287,7 +293,8 @@ export const GRID_PROTOCOL = {
     return {ROT, DX, DY};
   },
 
-  configure: function(CLASS_NAME, PARAMETERS){
+  // former configure()
+  action_to_cfg: function(CLASS_NAME, PARAMETERS){
     let CLASS = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0')
     const body = [
         this.PROTOCOL.CONST.STX + 128,
@@ -299,17 +306,8 @@ export const GRID_PROTOCOL = {
     return body;
   },
 
-  
-  configure_raw: function(PARAMETERS){
-    const body = [
-        this.PROTOCOL.CONST.STX + 128,
-        ...PARAMETERS,
-        this.PROTOCOL.CONST.ETX + 128
-    ]
-    return body;
-  },
-
-  serialize_actions: function(PARAMETERS, ACTIONS){
+  // former serialize_actions()
+  serialize_cfgs: function(PARAMETERS, ACTIONS){
     let CONFIG = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
     const body = [
         this.PROTOCOL.CONST.STX,
@@ -319,6 +317,15 @@ export const GRID_PROTOCOL = {
         ...ACTIONS,
         this.PROTOCOL.CONST.ETX
     ];
+    return body;
+  },
+
+  configure_raw: function(PARAMETERS){
+    const body = [
+        this.PROTOCOL.CONST.STX + 128,
+        ...PARAMETERS,
+        this.PROTOCOL.CONST.ETX + 128
+    ]
     return body;
   },
 

@@ -11,9 +11,9 @@
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
 
-  export let data;
-  export let orderNumber;
-  export let selectedElementSettings;
+  export let action;
+  export let index;
+  export let inputStore;
   export let moduleInfo;
   export let eventInfo;
 
@@ -30,7 +30,7 @@
     let c = 0;
     actionListChange.subscribe((change)=>{
       c++;
-      console.log( data.name, 'order change subscription', orderNumber);
+      console.log( action.name, 'order change subscription', index);
       if(change !== null && c == 1){
         orderChangeTrigger = true;
       }
@@ -46,19 +46,19 @@
   
   function sendData(){
 
-    data.parameters[1] = layers;
+    action.parameters[1] = layers;
 
-    validate_setledphase(data.parameters);
+    validate_setledphase(action.parameters);
     
     let parameterArray = [];
-    for (let i = 0; i < data.parameters[1].length; i++) {
+    for (let i = 0; i < action.parameters[1].length; i++) {
       let param_0;
       let param_2;
-      if(data.parameters[0] != 'A0' && data.parameters[0] != 'A1'){ param_0 = Number(data.parameters[0]) } else { param_0 = data.parameters[0]}
-      if(data.parameters[2] != 'A3' && data.parameters[2] != 'A7'){ param_2 = Number(data.parameters[2]) } else { param_2 = data.parameters[2]}
+      if(action.parameters[0] != 'A0' && action.parameters[0] != 'A1'){ param_0 = Number(action.parameters[0]) } else { param_0 = action.parameters[0]}
+      if(action.parameters[2] != 'A3' && action.parameters[2] != 'A7'){ param_2 = Number(action.parameters[2]) } else { param_2 = action.parameters[2]}
       const parameters = [
         { 'NUM': param_0 },
-        { 'LAY': data.parameters[1][i] },
+        { 'LAY': action.parameters[1][i] },
         { 'PHA': param_2 },
       ];
       parameterArray.push(parameters);
@@ -75,7 +75,7 @@
     }
 
     if(valid){
-      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+      configStore.save(index, moduleInfo, eventInfo, inputStore, serialized);
     }
 
     dispatch('send',{});
@@ -135,7 +135,7 @@
     
   }
 
-  let layers = data.parameters[1];
+  let layers = action.parameters[1];
 
   const SETLEDPHASE = {
     analog: [
@@ -180,7 +180,7 @@
   <div class="flex w-full text-white">
     <div class=" w-1/3">
       <div class="text-gray-700 text-xs">Element</div>
-      <DropDownInput optionList={optionList[0]} on:change={()=>{sendData(data.parameters[0], 0)}} bind:dropDownValue={data.parameters[0]}/>
+      <DropDownInput optionList={optionList[0]} on:change={()=>{sendData(action.parameters[0], 0)}} bind:dropDownValue={action.parameters[0]}/>
       <div class="text-white pl-2 flex-grow-0">
         {validator[0] ? validator[0] : ''}
       </div>
@@ -202,7 +202,7 @@
     <div class="flex w-1/3">
       <div class="px-1">
         <div class="text-gray-700 text-xs">Intensity</div>
-        <DropDownInput optionList={optionList[2]} on:change={()=>{sendData(data.parameters[2], 2)}} bind:dropDownValue={data.parameters[2]}/>
+        <DropDownInput optionList={optionList[2]} on:change={()=>{sendData(action.parameters[2], 2)}} bind:dropDownValue={action.parameters[2]}/>
         <div class="text-white pl-2 flex-grow-0">
           {validator[2] ? validator[2] : ''}
         </div>

@@ -17,9 +17,7 @@
   const dispatch = createEventDispatcher();
 
   let GRID = GRID_PROTOCOL;
-  GRID.initialize();
-
-  console.log(GRID);
+  //GRID.initialize();
 
   let PORT = {path: 0};
 

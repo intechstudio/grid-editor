@@ -10,17 +10,17 @@
 
   import { configStore } from '../../../stores/config.store';
 
-  export let data;
-  export let orderNumber;
+  export let action;
+  export let index;
   export let moduleInfo;
   export let eventInfo;
-  export let selectedElementSettings;
+  export let inputStore;
 
   let validator = [];
 
   function sendData(){
 
-    let _PARAMETERS = data.parameters[0].split('\n');
+    let _PARAMETERS = action.parameters[0].split('\n');
     _PARAMETERS = _PARAMETERS.map(param => {
       param = param.split('');
       param = param.map(p => {
@@ -29,18 +29,13 @@
       return param;
     }); 
 
-
-    //let PARAMETERS = _PARAMETERS.pop('10');
-
-    console.log(_PARAMETERS);
-
     let serialized = [];
     _PARAMETERS.forEach(param => {
       serialized.push(...GRID_PROTOCOL.configure_raw(param));
     });
 
     
-    configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    configStore.save(index, moduleInfo, eventInfo, inputStore, serialized);
 
     dispatch('send',{});
   }
@@ -52,9 +47,9 @@
       c++;
       if(change !== null && c == 1){
         orderChangeTrigger = true;
-        console.log(data.name, 'REMOVE', orderNumber);
+        console.log(action.name, 'REMOVE', index);
         if(change == 'remove'){
-          //configStore.remove(orderNumber, moduleInfo, eventInfo, selectedElementSettings);
+          //configStore.remove(index, moduleInfo, eventInfo, inputStore);
         }
       }
       c = 0;
@@ -71,8 +66,8 @@
 
 
 <div class='w-full  dropDownInput'>
-  <div class="text-gray-700 text-xs">Raw data input for debug purposes</div>
-  <textarea bind:value={data.parameters[0]} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
+  <div class="text-gray-700 text-xs">Raw action input for debug purposes</div>
+  <textarea bind:value={action.parameters[0]} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
   <button on:click={sendData} class="focus:outline-none cursor-pointer mr-1 text-white border-none border-primary bg-indigo-500 hover:bg-indigo-600 px-2 py-1">Send</button>
 </div>
 

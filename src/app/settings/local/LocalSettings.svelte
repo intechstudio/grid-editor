@@ -16,16 +16,18 @@
 
   let inputStore;
 
-  let originalActions = [
+  let arrayOfSelectableActions = [
     { id: 0, name: 'MIDI Dynamic' },
     { id: 1, name: 'MIDI Static'},
     { id: 2, name: 'LED Color' },
     { id: 3, name: 'LED Phase' },
     { id: 4, name: 'RAW'}
   ];
-  let selectedAction = originalActions[0];
-  $: availableActions = originalActions;
-  $: selectedActions = [];
+
+  let selectedAction = arrayOfSelectableActions[0];
+
+  let actions = [];
+  let temp_actions = [];
   
   let element_color;
 
@@ -49,36 +51,37 @@
   // main
 
   function loadSelectedModuleSettings(){
-    $runtime.forEach(_controller => {
-      if(_controller.dx == inputStore.dx && _controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
+    $runtime.forEach(controller => {
+      if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
 
-        moduleInfo = _controller;
-        moduleId = _controller.id;  
-        events = _controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});        
+        moduleInfo = controller;
+        moduleId = controller.id;  
+        events = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});        
         selectedEvent = checkIfSelectedEventIsCorrect(inputStore, events)
 
         // currently selected control element on bank x, with activated event y
-        let elementEvent = _controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-        let action;
+        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        
+        eventInfo = elementEvent.event;  
+
         // no config detected
-        if(elementEvent.config == ""){
-          // fetchConfig(moduleinfo, className, instrCode, parameters, serialized)
-          let cfg = runtime.fetchConfig(_controller, inputStore)
-       
-          action = runtime.configToAction(cfg)
+        if(elementEvent.config == "" && !controller.virtual){
+
+          let cfg = runtime.fetchConfig(controller, inputStore)
+          
+          actions = runtime.configToActions(cfg)
         }
 
-        console.log(action)
+        console.log(actions, moduleInfo, eventInfo, inputStore)
         
 
         /*
         if(elementEvent !== undefined){
-          selectedActions = elementEvent.actions;
-          eventInfo = elementEvent.event;
+          actions = elementEvent.actions;
         }
         */
 
-        controlElementName = _controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].controlElementName || '';
+        controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].controlElementName || '';
       }
     });
   }
@@ -93,28 +96,26 @@
   }
 
   function manageActions(action){
-    selectedActions = [...selectedActions, initActionParameters(action.name)];
+    actions = [...actions, initActionParameters(action.name)];
+    console.log(actions);
     return action;
   }
 
   function initActionParameters(actionName){
     let action = {name: actionName}
-    let parameters = [];
-    for (let i = 0; i < 3; i++) {
-      parameters[i] = '';
-    }
+    let parameters = []
     return {...action, parameters}
   }
 
   function handleRemoveAction(e){
-    const data = e.detail.data;
+    const action = e.detail.action;
     const index = e.detail.index;
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
           elementEvent.actions.splice(index,1);
-          selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
+          actions = elementEvent.actions; // update this list too. does kill smooth animations
           configStore.remove(index, moduleInfo, eventInfo, inputStore);
         }
         return controller;
@@ -135,17 +136,31 @@
     })
   }
 
-  function handleOnChange(e){
-    const data = e.detail.data;
+  function handleOnActionChange(e){
+    const action = e.detail.action;
     const index = e.detail.index;
+
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
-          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-          //console.log(index, 'name:',  data.name, 'parameters:', data.parameters)
-          if(elementEvent !== undefined){
-            elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
-          }
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
+          //let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          
+          console.log('ACTION CHANGE',index, 'name:',  action.name, 'parameters:', action.parameters) 
+          
+          temp_actions[index] = {name: action.name, parameters: action.parameters}; 
+
+          const cfgs = runtime.actionsToConfig(temp_actions);
+
+          const params = [
+            { BANKNUMBER: inputStore.bankActive },
+            { ELEMENTNUMBER: inputStore.elementNumber[0] },
+            { EVENTTYPE: eventInfo.value }
+          ]
+
+          const serialized = GRID_PROTOCOL.serialize_cfgs(params, cfgs);
+
+          console.log(serialized);
+          
         }
         return controller;
       })
@@ -298,7 +313,7 @@
 
             <div class="flex w-full xl:w-2/3">         
               <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
-                {#each availableActions as action}
+                {#each arrayOfSelectableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>
                 {/each}
               </select>
@@ -324,21 +339,19 @@
       
 
       <ActionList
-        {selectedActions} 
-        let:data 
-        let:orderNumber
+        {actions} 
+        let:action 
+        let:index
         >
-        {#if selectedActions[0].parameters.length > 0}
           <ActionWrapper 
             on:remove={handleRemoveAction}
-            on:change={handleOnChange}
-            {data} 
-            {orderNumber}
+            on:change={handleOnActionChange}
+            {action} 
+            {index}
             {moduleInfo}
             {eventInfo}
             {inputStore}
           />
-        {/if}
       </ActionList>
 
     </div>

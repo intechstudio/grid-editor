@@ -11,18 +11,18 @@
   import { configStore } from '../../../stores/config.store';
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
-import { runtime } from '../../../stores/runtime.store.js';
+  import { runtime } from '../../../stores/runtime.store.js';
 
-  export let data;
-  export let orderNumber;
+  export let action;
+  export let index;
   export let moduleInfo;
   export let eventInfo;
-  export let selectedElementSettings;
+  export let inputStore;
 
   let validator = [];
 
   $: {
-    optionList = MIDIRELATIVE.optionList(data.parameters[0]);
+    optionList = MIDIRELATIVE.optionList(action.parameters[0]);
   }
     
   const MIDIRELATIVE = {
@@ -86,6 +86,7 @@ import { runtime } from '../../../stores/runtime.store.js';
     ],
 
     optionList: function(parameter){
+      
       let options = [];
       if(parameter == '0xb0'){
         if(eventInfo.code[0] == 'A'){
@@ -175,28 +176,33 @@ import { runtime } from '../../../stores/runtime.store.js';
 
   function sendData(){
 
-    const COMMAND = parseInt(data.parameters[0]).toString(16)[0];
+    const COMMAND = parseInt(action.parameters[0]).toString(16)[0];
 
-    validate_midirelative(data.parameters);
+    validate_midirelative(action.parameters);
     
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+'0'}` },
-      {'PARAM1': parser(data.parameters[1])},
-      {'PARAM1': parser(data.parameters[2])}
+      {'PARAM1': parser(action.parameters[1])},
+      {'PARAM1': parser(action.parameters[2])}
     ];
 
     let valid = false;
+    
     if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
       valid = true;
     }
     
     if(valid){
-      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIRELATIVE", parameters));
-      runtime.saveConfig()
+      dispatch('send', { 
+        action: {
+          name: action.name, 
+          parameters: parameters
+        }, 
+        index: index 
+      });
     }
     
-    dispatch('send',{});
   }
 
   function checkForMatchingValue(parameter, index) {
@@ -215,7 +221,7 @@ import { runtime } from '../../../stores/runtime.store.js';
       if(change !== null && c == 1){
         orderChangeTrigger = true;
         if(change == 'remove'){
-          //configStore.remove(orderNumber, moduleInfo, eventInfo, selectedElementSettings);
+          //configStore.remove(index, moduleInfo, eventInfo, inputStore);
         }
       }
       c = 0;
@@ -234,9 +240,9 @@ import { runtime } from '../../../stores/runtime.store.js';
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={action.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
-      {#if data.name == 'MIDI Dynamic'}
+      {#if action.name == 'MIDI Dynamic'}
         {validator[index] ? validator[index] : ''}
       {/if}
     </div>

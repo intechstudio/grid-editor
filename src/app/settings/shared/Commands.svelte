@@ -56,7 +56,7 @@
       tooltip = "Store will save your local configuration in your Grid modules memory and Clear will clear it from there."
     }
 
-    commands.subscribe(value => console.log(value))
+    commands.subscribe(value => {})
   });
 
 </script>

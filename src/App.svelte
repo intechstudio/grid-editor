@@ -68,7 +68,7 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
-import { localInputStore } from './app/stores/control-surface-input.store';
+  import { localInputStore } from './app/stores/control-surface-input.store';
 
 
   /*
@@ -204,7 +204,7 @@ import { localInputStore } from './app/stores/control-surface-input.store';
         debug
       </button>
 
-      <!--
+<!--
       <SerialPort 
         bind:grid={$grid} 
         on:change={$grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)}
@@ -224,7 +224,7 @@ import { localInputStore } from './app/stores/control-surface-input.store';
           }
         }
       />
-  -->
+-->
     </div>
 
     <MinMaxClose/>

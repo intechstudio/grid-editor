@@ -10,9 +10,9 @@
 
   const dispatch = createEventDispatcher();
 
-  export let data;
-  export let orderNumber;
-  export let selectedElementSettings;
+  export let action;
+  export let index;
+  export let inputStore;
   export let moduleInfo;
   export let eventInfo;
 
@@ -32,15 +32,16 @@
 
   function handleRemove(){
     dispatch('remove', {
-      action: data,
-      index: orderNumber
+      action: action,
+      index: index
     })
   }
 
-  function sendData(){
+  function sendData(e){
+    console.log(e.detail)
     dispatch('change', {
-      data: data,
-      index: orderNumber
+      action: e.detail.action, // important! action parameters are converted at action level to grid protocol readable format
+      index: index
     })
   }
 
@@ -53,7 +54,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} on:send={sendData} bind:data={data} {orderNumber} {moduleInfo} {eventInfo} {selectedElementSettings} />    
+    <svelte:component this={components[action.name]} on:send={sendData} bind:action={action} {index} {moduleInfo} {eventInfo} {inputStore} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

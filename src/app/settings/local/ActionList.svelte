@@ -3,7 +3,7 @@
 
     import { actionListChange } from './action-list-change.store.js'; 
 
-    export let selectedActions = [];
+    export let actions = [];
 
     let ghost;
     let grabbed;
@@ -65,9 +65,9 @@
 
     // does the actual moving of items in data
     function moveDatum(from, to) {
-        let temp = selectedActions[from];
-        selectedActions = [...selectedActions.slice(0, from), ...selectedActions.slice(from + 1)];
-        selectedActions = [...selectedActions.slice(0, to), temp, ...selectedActions.slice(to)];
+        let temp = actions[from];
+        actions = [...actions.slice(0, from), ...actions.slice(from + 1)];
+        actions = [...actions.slice(0, to), temp, ...actions.slice(to)];
         changeOrder('trigger');
     }
 
@@ -180,34 +180,34 @@
         class={grabbed ? "item haunting" : "item"}
         style={"top: " + (mouseY + offsetY - layerY) + "px"}><p></p></div>
         <div class="list">
-        {#each selectedActions as data, orderNumber (data)}
+        {#each actions as action, index (action)}
             <div 
-                id={(grabbed && (data.id ? data.id : JSON.stringify(data)) == grabbed.dataset.id) ? "grabbed" : ""}
+                id={(grabbed && (action.id ? action.id : JSON.stringify(action)) == grabbed.dataset.id) ? "grabbed" : ""}
                 class="item"
-                data-index={orderNumber}
-                data-id={(data.id ? data.id : JSON.stringify(data))}
+                data-index={index}
+                data-id={(action.id ? action.id : JSON.stringify(action))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <div class="pb-2 text-white">{data.name}</div>
+                <div class="pb-2 text-white">{action.name}</div>
                 <div class="wrapper">
                     <div>
                         <div class="invisible text-xs">Order</div>
                         <div class="buttons bg-secondary">
                             <button 
                                 class="up focus:outline-none  border-none" 
-                                style={"display: " + (orderNumber > 0 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(orderNumber, orderNumber - 1);}}>
+                                style={"display: " + (index > 0 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(index, index - 1);}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6 1.41 1.41z"/></svg>
                                 </button>
                             <button 
                                 class="down focus:outline-none border-none" 
-                                style={"display: " + (orderNumber < selectedActions.length - 1 ? "" : "none") + ";"}
-                                on:click={function(ev) {moveDatum(orderNumber, orderNumber + 1);}}>
+                                style={"display: " + (index < actions.length - 1 ? "" : "none") + ";"}
+                                on:click={function(ev) {moveDatum(index, index + 1);}}>
                                 <svg class="fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12px" height="12px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
                                 </button>
                         </div>    
                     </div>
-                    <slot {data} {orderNumber}></slot>            
+                    <slot {action} {index}></slot>            
                 </div>         
             </div>
             

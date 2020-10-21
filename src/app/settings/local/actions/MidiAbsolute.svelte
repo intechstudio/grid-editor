@@ -12,16 +12,16 @@
 
   import { configStore } from '../../../stores/config.store';
 
-  export let data;
-  export let orderNumber;
+  export let action;
+  export let index;
   export let moduleInfo;
   export let eventInfo;
-  export let selectedElementSettings;
+  export let inputStore;
 
   let validator = [];
 
   $: {
-    optionList = MIDIABSOLUTE.optionList(data.parameters[1]);
+    optionList = MIDIABSOLUTE.optionList(action.parameters[1]);
   }
 
 
@@ -199,18 +199,18 @@
 
   function sendData(orderChange){
 
-    validate_midiabsolute(data.parameters)
+    validate_midiabsolute(action.parameters)
 
-    const CHANNEL = parseInt(data.parameters[0]-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
-    const COMMAND = parseInt(data.parameters[1]).toString(16)[0];
+    const CHANNEL = parseInt(action.parameters[0]-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
+    const COMMAND = parseInt(action.parameters[1]).toString(16)[0];
     
     console.log('command',COMMAND, CHANNEL);
 
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },
-      {'PARAM1': parser(data.parameters[2])},
-      {'PARAM1': parser(data.parameters[3])}
+      {'PARAM1': parser(action.parameters[2])},
+      {'PARAM1': parser(action.parameters[3])}
     ];
 
     let valid = false;
@@ -219,7 +219,7 @@
     }
 
     if(valid){
-      configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
+      configStore.save(index, moduleInfo, eventInfo, inputStore, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
     }
 
     dispatch('send',{});
@@ -253,9 +253,9 @@
 {#each optionList as parameters, index}
   <div class={'w-1/'+optionList.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={data.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={action.parameters[index]}/>
     <div class="text-white pl-2 flex-grow-0">
-      {#if data.name == 'MIDI Static'}
+      {#if action.name == 'MIDI Static'}
         {validator[index] ? validator[index] : ''}
       {/if}
     </div>
