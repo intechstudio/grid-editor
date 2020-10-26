@@ -12,16 +12,17 @@
 
   import { configStore } from '../../../stores/config.store';
 
+  import { check_for_matching_value, parameter_parser } from './action-helper';
+
   export let action;
   export let index;
-  export let moduleInfo;
   export let eventInfo;
-  export let inputStore;
 
   let validator = [];
+  let actionKeys = ['CABLECOMMAND','COMMANDCHANNEL','PARAM1','PARAM2'];
 
   $: {
-    optionList = MIDIABSOLUTE.optionList(action.parameters[1]);
+    optionList = MIDIABSOLUTE.optionList(action.parameters.COMMANDCHANNEL);
   }
 
 
@@ -98,7 +99,7 @@
 
     optionList: function(parameter){
       let options = [];
-      if(parameter == '0xb0'){
+      if(parameter == '176'){
         if(eventInfo.code[0] == 'A'){
           options = this.CC_analog;
         }else {
@@ -123,115 +124,108 @@
 
   function validate_midiabsolute(PARAMETERS){
 
-    PARAMETERS.forEach((PARAMETER, INDEX) => {
+    for (const KEY in PARAMETERS) {
       let type = '';
       let defined = '';
       let humanReadable = '';
+      if (PARAMETERS.hasOwnProperty(KEY)) {
+        const VALUE = PARAMETERS[KEY];
+        if(KEY == 'CABLECOMMAND'){
+          if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 15){
+            type = 'dec';
+          } else {
+            defined = 'invalid :(';
+            //appears to be a wildcard
+          }
+        }
+        else if(KEY == 'COMMANDCHANNEL'){
+          if(parseInt(VALUE) >= 128 && parseInt(VALUE) <= 255){
+            type = 'dec';
+            let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
+            defined = check_for_matching_value(optionList, hexstring, 1);
+            if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
+          } else if(VALUE.startsWith('0x') && parameter.length > 3) {  
+            type = 'hex';
+            defined = check_for_matching_value(optionList, VALUE, 1);
+          } else {
+            defined = 'invalid :(';
+            //appears to be a wildcard
+          }
+        }
+        else if(KEY == 'PARAM1'){
+          if(VALUE == 'A0' || VALUE == 'A1'){ 
+            type = 'tmp param';
+            defined = check_for_matching_value(optionList, VALUE, 2);  
+          } else if(+VALUE >= 0 && +VALUE <= 127 && VALUE !== ''){
+            type = 'dec';
+          } else {
+            // wildcard
+            defined = 'invalid :('
+          }
+        }
+        else if(KEY == 'PARAM2'){
+          if(VALUE == 'A2' || VALUE == 'A6'){    
+            type = 'tmp param';
+            defined = check_for_matching_value(optionList, VALUE, 3);
+          } else if(VALUE >= 0 && VALUE <= 127 && VALUE !== ''){
+            type = 'dec';
+          } else {
+            // wildcard
+            defined = 'invalid :(' 
+          }
+        }
 
-    if(INDEX == 0){
-      if(parseInt(PARAMETER) >= 0 && parseInt(PARAMETER) <= 15){
-        type = 'dec';
-      } else {
-        defined = 'invalid :(';
-        //appears to be a wildcard
-      }
-    } else if(INDEX == 1){
-      if(parseInt(PARAMETER) >= 128 && parseInt(PARAMETER) <= 255){
-        type = 'dec';
-        let hexstring = '0x' + (+PARAMETER).toString(16).padStart(2, '0');      
-        defined = checkForMatchingValue(hexstring, INDEX);
-        if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
-      } else if(PARAMETER.startsWith('0x') && parameter.length > 3) {  
-        type = 'hex';
-        defined = checkForMatchingValue(PARAMETER, INDEX);
-      } else {
-        defined = 'invalid :(';
-        //appears to be a wildcard
-      }
-    } else if(INDEX == 2){
-      if(PARAMETER == 'A0' || PARAMETER == 'A1'){ 
-        type = 'tmp param';
-        defined = checkForMatchingValue(PARAMETER, INDEX);  
-      } else if(+PARAMETER >= 0 && +PARAMETER <= 127 && PARAMETER !== ''){
-        type = 'dec';
-      } else {
-        // wildcard
-        defined = 'invalid :('
-      }
-    } else if(INDEX == 3){
-      if(PARAMETER == 'A2' || PARAMETER == 'A6'){    
-        type = 'tmp param';
-        defined = checkForMatchingValue(PARAMETER, INDEX);
-      } else if(PARAMETER >= 0 && PARAMETER <= 127 && PARAMETER !== ''){
-        type = 'dec';
-      } else {
-        // wildcard
-        defined = 'invalid :(' 
+        if(defined)
+          humanReadable = defined
+        else 
+          humanReadable = VALUE;
+        
+        validator[KEY] = humanReadable;
       }
     }
-
-    if(defined)
-      humanReadable = defined
-    else 
-      humanReadable = PARAMETER;
-
-    validator[INDEX] = humanReadable;
-
-  });
-
-}
-
-  function checkForMatchingValue(parameter, index) {
-    let defined = optionList[index].find(item => item.value === parameter);
-    defined ? defined = defined.info : null;
-    return defined;
   }
 
-  function parser(param){
-    let parameter;
-    if(isNaN(parseInt(param))){
-      parameter = param;  
-    } else {
-      parameter = parseInt(param)
-    }
-    return parameter
-  }
 
-  function sendData(orderChange){
+  function sendData(){
 
     validate_midiabsolute(action.parameters)
 
-    const CHANNEL = parseInt(action.parameters[0]-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
-    const COMMAND = parseInt(action.parameters[1]).toString(16)[0];
+    const CHANNEL = parseInt(action.parameters.CABLECOMMAND-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
+    const COMMAND = parseInt(action.parameters.COMMANDCHANNEL).toString(16)[0];
     
     console.log('command',COMMAND, CHANNEL);
 
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },
-      {'PARAM1': parser(action.parameters[2])},
-      {'PARAM1': parser(action.parameters[3])}
+      {'PARAM1': parameter_parser(action.parameters.PARAM1)},
+      {'PARAM1': parameter_parser(action.parameters.PARAM2)}
     ];
 
-    let valid = false;
-    if(validator.length == 4 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
-      valid = true;
+    let valid = true;
+ 
+    for (const key in validator) {
+      if(validator[key] == 'invalid :(' || validator[key] == undefined){
+        valid = false
+      }
     }
-
+    
     if(valid){
-      configStore.save(index, moduleInfo, eventInfo, inputStore, GRID_PROTOCOL.configure("MIDIABSOLUTE", parameters));
+      dispatch('send', { 
+        action: {
+          value: action.value, 
+          parameters: parameters
+        }, 
+        index: index 
+      });
     }
-
-    dispatch('send',{});
   }
 
   let orderChangeTrigger = null;
   onMount(()=>{
     let c = 0;
-    actionListChange.subscribe((change)=>{
-      
+    actionListChange.subscribe((change)=>{    
       c++;
-
       if(change !== null && c == 1){
         orderChangeTrigger = true;
       }
@@ -250,17 +244,18 @@
 </script>
 
 
-{#each optionList as parameters, index}
-  <div class={'w-1/'+optionList.length + ' dropDownInput'}>
+{#each actionKeys as actionKey, index}
+  <div class={'w-1/'+actionKeys.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-    <DropDownInput on:change={()=>{sendData()}} optionList={parameters} bind:dropDownValue={action.parameters[index]}/>
+    <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[actionKey]}/>
     <div class="text-white pl-2 flex-grow-0">
       {#if action.name == 'MIDI Static'}
-        {validator[index] ? validator[index] : ''}
+        {validator[actionKey] ? validator[actionKey] : ''}
       {/if}
     </div>
   </div>
 {/each}
+
 
 <style>
   .dropDownInput{

@@ -79,7 +79,7 @@ export var GRID_CONTROLLER = {
         bot: {dx: "", dy: ""},
         left: {dx: "", dy: ""},
       },
-      rotation: "",
+      rot: "",
       isConnectedByUsb: "",
       isLanding: "",
       banks: [], // consider naming to "local"
@@ -107,7 +107,7 @@ export var GRID_CONTROLLER = {
           bot: {dx: header.dx, dy: header.dy-1},
           left: {dx: header.dx-1, dy: header.dy},
         },
-        rotation: header.rot * -90,
+        rot: header.rot * -90,
         isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
         banks: this.createElementSettings(moduleType), // consider naming to "local"

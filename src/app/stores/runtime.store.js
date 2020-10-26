@@ -4,19 +4,6 @@ import { GRID_PROTOCOL } from '../core/classes/GridProtocol';
 
 GRID_PROTOCOL.initialize();
 
-function lookupEventClass(className){
-
-  const eventClasses = {
-    "MIDI Dynamic": "MIDIRELATIVE",
-    "MIDI Static": "MIDIABSOLUTE",
-    "LED Color": "LEDCOLOR",
-    "LED Phase": "LEDPHASE",
-    "RAW": "RAW"
-  }
-
-  return eventClasses[className];
-}
-
 function createRuntimeStore(){
 
   // provide a dummy grid controller module to this store
@@ -25,32 +12,35 @@ function createRuntimeStore(){
   return {
     ...store,
     actionsToConfig: (actions) => {
-      let cfgs = "";
+      let temp_cfgs = [];
+      let cfgs = [];
       actions.forEach((action,index) => {
-        const eventClass = lookupEventClass(action.name)
-        cfgs += GRID_PROTOCOL.action_to_cfg(eventClass, action.parameters);
+        temp_cfgs[index] = GRID_PROTOCOL.action_to_cfg(action.name, action.parameters);
+      });
+      temp_cfgs.map(a => {
+        cfgs.push(...a)
       });
       return cfgs;
     },
-    configToActions: (cfg) => {
-      const actions = GRID_PROTOCOL.decode_config();
+    configToActions: (cfgs) => {
+      let actions = GRID_PROTOCOL.cfgs_to_actions(cfgs);
       return actions;
     },
     fetchConfig: (controller, inputStore) => {
       const cfg = GRID_PROTOCOL.encode(
         { 
-          id: controller.id, 
-          dx: controller.dx, 
-          dy: controller.dy 
+          DX: controller.dx, 
+          DY: controller.dy,
+          ROT: controller.rot
         },
         "CONFIGURATION",
         "FETCH",
-        { 
-          BANKNUMBER: inputStore.bankActive, 
-          ELEMENTNUMBER: inputStore.elementNumber, 
-          EVENTTYPE: inputStore.eventType, 
-          ACTIONSTRING: "" 
-        },
+        [
+          { BANKNUMBER: inputStore.bankActive}, 
+          { ELEMENTNUMBER: inputStore.elementNumber[0]}, 
+          { EVENTTYPE: inputStore.eventType[0]}, 
+          { ACTIONSTRING: "" }
+        ],
         ""
       );
       return cfg;

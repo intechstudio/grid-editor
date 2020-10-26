@@ -17,18 +17,12 @@
   export let eventInfo;
 
   const components = {
-    'MIDI Dynamic': MidiRelative,
-    'MIDI Static': MidiAbsolute,
-    'LED Color': SetLedColor,
+    'MIDIRELATIVE': MidiRelative,
+    'MIDIABSOLUTE': MidiAbsolute,
+    'LEDCOLOR': SetLedColor,
     'LED Phase': SetLedPhase,
     'RAW': RawAction,
   }
-
-  /*
-  $: if(data.parameters){
-    sendData();
-  }
-*/
 
   function handleRemove(){
     dispatch('remove', {
@@ -38,15 +32,12 @@
   }
 
   function sendData(e){
-    console.log(e.detail)
     dispatch('change', {
       action: e.detail.action, // important! action parameters are converted at action level to grid protocol readable format
       index: index
     })
   }
 
-  onMount(()=>{
-  })
 
 </script>
 
@@ -54,7 +45,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[action.name]} on:send={sendData} bind:action={action} {index} {moduleInfo} {eventInfo} {inputStore} />    
+    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {moduleInfo} {eventInfo} {inputStore} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

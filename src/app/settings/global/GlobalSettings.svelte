@@ -24,8 +24,8 @@
 
   function handleColorChange(e){
     const PARAMS = e.detail.parameters[0];
-    globalData.colors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
-    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    globalData.bankColors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
+    const command = GRID_PROTOCOL.encode('', e.detail.className, 'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
@@ -33,7 +33,7 @@
   function handleBankEnabledChange(e){
     const PARAMS = e.detail.parameters[0];
     globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
-    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    const command = GRID_PROTOCOL.encode('', e.detail.className,'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
@@ -46,7 +46,7 @@
       return settings;
     })
     selected = bank;
-    const command = GRID_PROTOCOL.encode('','BANKACTIVE',[{'BANKNUMBER': bank}], '')
+    const command = GRID_PROTOCOL.encode('','BANKACTIVE','EXECUTE',[{'BANKNUMBER': bank}], '')
     serialComm.write(command);
   }
 

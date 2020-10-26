@@ -204,27 +204,32 @@
         debug
       </button>
 
-<!--
+
       <SerialPort 
-        bind:grid={$grid} 
-        on:change={$grid.layout = LAYOUT.drawPossiblePlacementOutlines($grid, grid_layout)}
+        bind:runtime={$runtime} 
+        on:change={(e) => {
+          const data = e.detail.data;
+          console.log($runtime);
+          $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
+          //LAYOUT.addToRuntime($runtime,data.moduleId, data.cellId, data.isVirtual);
+        }}
         on:coroner={(e)=>{
-            grid.update(cell => {
-              cell.used = e.detail.usedgrid;
-              cell.layout = cell.layout.map( _cell =>{
-                if(_cell.id == e.detail.removed.id){
-                  _cell.id = 'none';
-                  _cell.isConnectedByUsb = false;
-                }
-                return _cell; 
-              });
-              return cell;
+            runtime.update(grid => {
+              grid = e.detail.usedgrid;
+              return grid;
+            })
+            layout.update(cell => {
+              if(cell.id == e.detail.removed.id){
+                cell.id = "";
+                cell.isConnectedByUsb = false;
+              }
+              return cell; 
             });
-            $grid.layout = LAYOUT.removeSurroundingPlacementOutlines($grid.layout, e.detail.removed);
+            $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
           }
         }
       />
--->
+
     </div>
 
     <MinMaxClose/>

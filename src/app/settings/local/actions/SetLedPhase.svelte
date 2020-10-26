@@ -3,18 +3,15 @@
 
   const dispatch = createEventDispatcher();
 
-  import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
-
   import { actionListChange } from '../action-list-change.store.js';
-
-  import { configStore } from '../../../stores/config.store';
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
 
+  import { check_for_matching_value, parameter_parser } from './action-helper';
+
+
   export let action;
   export let index;
-  export let inputStore;
-  export let moduleInfo;
   export let eventInfo;
 
   let validator = [];
@@ -46,96 +43,90 @@
   
   function sendData(){
 
-    action.parameters[1] = layers;
-
     validate_setledphase(action.parameters);
-    
-    let parameterArray = [];
-    for (let i = 0; i < action.parameters[1].length; i++) {
-      let param_0;
-      let param_2;
-      if(action.parameters[0] != 'A0' && action.parameters[0] != 'A1'){ param_0 = Number(action.parameters[0]) } else { param_0 = action.parameters[0]}
-      if(action.parameters[2] != 'A3' && action.parameters[2] != 'A7'){ param_2 = Number(action.parameters[2]) } else { param_2 = action.parameters[2]}
-      const parameters = [
-        { 'NUM': param_0 },
-        { 'LAY': action.parameters[1][i] },
-        { 'PHA': param_2 },
-      ];
-      parameterArray.push(parameters);
+
+    let param_0;
+    let param_2;
+    if(action.parameters.NUM != 'A0' && action.parameters.NUM != 'A1'){ param_0 = Number(action.parameters.NUM) } else { param_0 = action.parameters.NUM}
+    if(action.parameters.PHA != 'A3' && action.parameters.PHA != 'A7'){ param_2 = Number(action.parameters.PHA) } else { param_2 = action.parameters.PHA}
+    const parameters = [
+      { 'NUM': parameter_parser(param_0) },
+      { 'LAY': action.parameters.LAY },
+      { 'PHA': parameter_parser(param_2) },
+    ];
+
+    let valid = true;
+ 
+    for (const key in validator) {
+      if(validator[key] == 'invalid :(' || validator[key] == undefined){
+        valid = false
+      }
     }
 
-    let serialized = [];
-    parameterArray.forEach(parameters => {
-      serialized.push(...GRID_PROTOCOL.configure("LEDPHASE", parameters));
-    });
-
-    let valid = false;
-    if(validator.length == 3 && validator.indexOf('invalid :(') == -1 && !validator.includes(undefined)){
-      valid = true;
-    }
-
-    if(valid){
-      configStore.save(index, moduleInfo, eventInfo, inputStore, serialized);
+    if(valid){    
+      dispatch('send',{
+        action: {
+          value: action.value, 
+          parameters: parameters
+        }, 
+        index: index 
+      });
     }
 
     dispatch('send',{});
   }
 
-  function checkForMatchingValue(parameter, index) {
-    let defined = optionList[index].find(item => item.value === parameter);
-    defined ? defined = defined.info : null;
-    return defined;
-  }
 
-  function validate_setledphase(parameters){
+  function validate_setledphase(PARAMETERS){
 
-    parameters.forEach((parameter, index) => {
-
+    for (const KEY in PARAMETERS) {
       let type = '';
       let defined = '';
       let humanReadable = '';
+      if (PARAMETERS.hasOwnProperty(KEY)) {
+        const VALUE = PARAMETERS[KEY];
 
-      if(index == 0){
-        if(parameter == 'A0' || parameter == 'A1'){ 
-          type = 'tmp param';
-          defined = checkForMatchingValue(parameter, index);  
-        } else if(+parameter >= 0 && +parameter <= 15){
-          type = 'dec';
-        } else {
-          // wildcard
-          defined = 'invalid :('
+        if(KEY == 'NUM'){
+          if(VALUE == 'A0' || VALUE == 'A1'){ 
+            type = 'tmp param';
+            defined = check_for_matching_value(optionList, VALUE, 0);  
+          } else if(+VALUE >= 0 && +VALUE <= 15){
+            type = 'dec';
+          } else {
+            // wildcard
+            defined = 'invalid :('
+          }
+        } 
+        else if(KEY == 'LAY'){
+          if(VALUE.length > 0 || VALUE[0] == ''){ 
+            defined = 'Layer';
+          } else {
+            defined = 'invalid :(';
+          }
+        } 
+        else if(KEY == 'PHA'){
+          if(VALUE == 'A3' || VALUE == 'A7'){ 
+            type = 'tmp param';
+            defined = check_for_matching_value(optionList, VALUE, 2);  
+          } else if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 255){
+            type = 'dec';
+          } else {
+            // wildcard
+            defined = 'invalid :('
+          }
         }
-      } else if(index == 1){
-        if(parameter.length > 0 || parameter[0] == ''){ 
-          defined = 'Layer';
-        } else {
-          defined = 'invalid :(';
-        }
-      } else if(index == 2){
-        if(parameter == 'A3' || parameter == 'A7'){ 
-          type = 'tmp param';
-          defined = checkForMatchingValue(parameter, index);  
-        } else if(parseInt(parameter) >= 0 && parseInt(parameter) <= 255){
-          type = 'dec';
-        } else {
-          // wildcard
-          defined = 'invalid :('
-        }
+
+        if(defined)
+          humanReadable = defined
+        else 
+          humanReadable = parameter;
+
+        validator[KEY] = humanReadable;
+
       }
-
-      if(defined)
-        humanReadable = defined
-      else 
-        humanReadable = parameter;
-
-      validator[index] = humanReadable;
-
-    })
-
+    }
     
   }
-
-  let layers = action.parameters[1];
 
   const SETLEDPHASE = {
     analog: [
@@ -180,31 +171,26 @@
   <div class="flex w-full text-white">
     <div class=" w-1/3">
       <div class="text-gray-700 text-xs">Element</div>
-      <DropDownInput optionList={optionList[0]} on:change={()=>{sendData(action.parameters[0], 0)}} bind:dropDownValue={action.parameters[0]}/>
+      <DropDownInput optionList={optionList[0]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.NUM}/>
       <div class="text-white pl-2 flex-grow-0">
-        {validator[0] ? validator[0] : ''}
+        {validator.NUM ? validator.NUM : ''}
       </div>
     </div>
-    <div class="w-1/3">
+
+    <div class=" w-1/3">
       <div class="text-gray-700 text-xs">Layer</div>
-      <div class="flex justify-around my-1">
-        <div class="mx-1 flex ">
-          <div class="text-white mr-1">A</div>
-          <input bind:group={layers} value={1} on:change={()=>{sendData(layers, 1)}} type="checkbox" class="h-6 w-6">
-        </div>
-        <div class="mx-1 flex ">
-          <div class="text-white pr-1">B</div>
-          <input bind:group={layers} value={2} on:change={()=>{sendData(layers, 1)}} type="checkbox" class="h-6 w-6">
-        </div>
+      <DropDownInput optionList={optionList[1]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.LAY}/>
+      <div class="text-white pl-2 flex-grow-0">
+        {validator.LAY ? validator.LAY : ''}
       </div>
     </div>
 
     <div class="flex w-1/3">
       <div class="px-1">
         <div class="text-gray-700 text-xs">Intensity</div>
-        <DropDownInput optionList={optionList[2]} on:change={()=>{sendData(action.parameters[2], 2)}} bind:dropDownValue={action.parameters[2]}/>
+        <DropDownInput optionList={optionList[2]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.PHA}/>
         <div class="text-white pl-2 flex-grow-0">
-          {validator[2] ? validator[2] : ''}
+          {validator.PHA ? validator.PHA : ''}
         </div>
       </div>
     </div>

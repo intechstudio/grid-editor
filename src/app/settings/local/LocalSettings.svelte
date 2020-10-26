@@ -12,16 +12,17 @@
   import OverlayToggle from '../../core/grid-modules/overlays/OverlayToggle.svelte';
 
   import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
+
   import { serialComm } from '../../core/serialport/serialport.store.js';
 
   let inputStore;
 
   let arrayOfSelectableActions = [
-    { id: 0, name: 'MIDI Dynamic' },
-    { id: 1, name: 'MIDI Static'},
-    { id: 2, name: 'LED Color' },
-    { id: 3, name: 'LED Phase' },
-    { id: 4, name: 'RAW'}
+    { id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' },
+    { id: 1, name: 'MIDI Static', value: 'MIDIABSOLUTE'},
+    { id: 2, name: 'LED Color', value: 'LEDCOLOR' },
+    { id: 3, name: 'LED Phase', value: 'LEDPHASE' },
+    { id: 4, name: 'RAW', value: 'RAW' }
   ];
 
   let selectedAction = arrayOfSelectableActions[0];
@@ -65,21 +66,27 @@
         eventInfo = elementEvent.event;  
 
         // no config detected
-        if(elementEvent.config == "" && !controller.virtual){
-
-          let cfg = runtime.fetchConfig(controller, inputStore)
-          
-          actions = runtime.configToActions(cfg)
-        }
-
-        console.log(actions, moduleInfo, eventInfo, inputStore)
-        
-
-        /*
-        if(elementEvent !== undefined){
-          actions = elementEvent.actions;
-        }
+        /**
+         * better handling of no config state! draw in drawio too!
         */
+        if(elementEvent.config == "" && !controller.virtual){
+          let cfg = runtime.fetchConfig(controller, inputStore)
+          serialComm.write(cfg);
+          /**
+           * 
+           * Here the fetched config should be loaded in somehow.
+           * Implement helper store maybe?
+           * 
+          */
+        } 
+        else if(elementEvent.config !== "" && controller.virtual){
+          actions = runtime.configToActions(elementEvent.config)
+        } 
+        else {
+          actions = []
+        }
+
+        console.log(elementEvent);
 
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].controlElementName || '';
       }
@@ -96,13 +103,12 @@
   }
 
   function manageActions(action){
-    actions = [...actions, initActionParameters(action.name)];
-    console.log(actions);
+    actions = [...actions, initActionParameters(action)];
     return action;
   }
 
-  function initActionParameters(actionName){
-    let action = {name: actionName}
+  function initActionParameters(action){
+    //let action = {name: actionValue}
     let parameters = []
     return {...action, parameters}
   }
@@ -143,11 +149,10 @@
     runtime.update((store)=>{
       store.map((controller)=>{
         if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
-          //let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
           
-          console.log('ACTION CHANGE',index, 'name:',  action.name, 'parameters:', action.parameters) 
-          
-          temp_actions[index] = {name: action.name, parameters: action.parameters}; 
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+                    
+          temp_actions[index] = {name: action.value, parameters: action.parameters}; 
 
           const cfgs = runtime.actionsToConfig(temp_actions);
 
@@ -159,7 +164,7 @@
 
           const serialized = GRID_PROTOCOL.serialize_cfgs(params, cfgs);
 
-          console.log(serialized);
+          elementEvent.config = serialized;
           
         }
         return controller;
@@ -348,9 +353,7 @@
             on:change={handleOnActionChange}
             {action} 
             {index}
-            {moduleInfo}
             {eventInfo}
-            {inputStore}
           />
       </ActionList>
 

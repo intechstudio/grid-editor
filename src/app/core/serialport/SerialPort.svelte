@@ -17,11 +17,11 @@
   const dispatch = createEventDispatcher();
 
   let GRID = GRID_PROTOCOL;
-  //GRID.initialize();
+  GRID.initialize();
 
   let PORT = {path: 0};
 
-  export let grid = [];
+  export let runtime = [];
 
   let selectedPort = "";
 
@@ -30,9 +30,9 @@
     setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = grid.used.find(g => (Date.now() - g.alive > 1000) && !g.virtual);
+      let _removed = runtime.find(g => (Date.now() - g.alive > 1000) && !g.virtual);
 
-      let _processgrid = grid.used.map(g => {
+      let _processgrid = runtime.map(g => {
         if(Date.now() - g.alive > 1000 && !g.virtual){
           g.alive = 'dead';
         }
@@ -104,6 +104,7 @@
     const serial = store.list.find(serial => serial.port.path === selectedPort);
     PORT = new SerialPort(serial.port.path, { autoOpen: false });
     serialComm.open(PORT);
+    serialComm.enabled(true);
     readSerialPort();
   }
 
@@ -120,13 +121,14 @@
 
       serialComm.update((store)=>{
         store.open = 'none';
+        store.isEnabled = false;
         store.list = [];
         return store
       });
 
       // reset UI
-      grid.used = [];
-      grid.layout = [];
+      runtime = [];
+      //layout = [];
 
       PORT = {path: 0};
     }
@@ -156,7 +158,7 @@
   }
 
   function makeThisUsable(RESPONSE){ 
-    let controller = grid.used.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
+    let controller = runtime.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
     controller.instr = RESPONSE.COMMAND;
   }
 
@@ -176,13 +178,14 @@
         _array[i] = element.charCodeAt(0);
       });
       
-      let DATA = GRID.decode(_array);
+      let DATA = GRID.decode_serial(_array);
 
       // filter heartbeat messages
       if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
+
         serialCommDebug.store(array.join(''));    
 
-        RESPONSE = GRID.decode(_array);
+        RESPONSE = GRID.decode_serial(_array);
 
         RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
 
@@ -203,14 +206,20 @@
         //console.log(DATA.LEDPHASE);
       }
 
+      if(DATA.CONFIGURATION){
+        console.log('received cfg',DATA.CONFIGURATION);
+      }
+
       if(DATA.EVENT && DATA.EVENT.length > 0){
         if(DATA.EVENT[0].EVENTTYPE !== 1){
           console.log(DATA.EVENT,DATA.BRC);
-          localSettings.update((setting)=>{
-            setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-            setting.controlNumber = DATA.EVENT.map(event => {return event.ELEMENTNUMBER});   
-            setting.eventparam = DATA.EVENT.map(event => {return event.EVENTPARAM});   
-            return setting;
+          localInputStore.update((store)=>{
+            store.dx = DATA.BRC.DX;
+            store.dy = DATA.BRC.DY;
+            store.elementNumber = DATA.EVENT.map(event => event.ELEMENTNUMBER);   
+            store.eventParam = DATA.EVENT.map(event => event.EVENTPARAM);   
+            store.eventType = DATA.EVENT.map(event => event.EVENTTYPE);
+            return store;
           })
         }
       }
@@ -226,18 +235,10 @@
 
       if(DATA.BANKACTIVE){
         if(DATA.BANKACTIVE.BANKNUMBER !== 255){
-          globalSettings.update(settings => {
-            settings.active = DATA.BANKACTIVE.BANKNUMBER;
-            return settings
+          bankActiveStore.update(store => {
+            store.bankActive = DATA.BANKACTIVE.BANKNUMBER;
+            return store
           });
-
-          localSettings.update(settings => {
-            //console.log(DATA.BANKACTIVE);
-            if(DATA.BANKACTIVE.BANKNUMBER !== 255){
-              settings.bank = DATA.BANKACTIVE.BANKNUMBER;
-            }
-            return settings;
-          })
         }
       }
       
@@ -248,17 +249,23 @@
   function updateGridUsedAndAlive(controller){
     if(controller !== undefined){
       let exists = false;
-      grid.used.forEach(g => {
+      runtime.forEach(g => {
         if(g.id == controller.id && g.virtual == false){
           exists = true;
         }
       });   
       if(!exists){
-        grid.used.push(controller);
-        dispatch('change');
+        runtime.push(controller);
+        dispatch('change', {
+          data: {
+            moduleId: controller.id,
+            cellId: 'dx:'+controller.dx + ';' + 'dy:'+controller.dy,
+            isVirtual: false
+          }
+        });
       }
       if(exists){
-        grid.used.map(c => {
+        runtime.map(c => {
           if(c.id === controller.id && c.virtual == false){
             c.alive = Date.now();
           }
@@ -267,13 +274,12 @@
       }
 
       if(!exists){
-        globalSettings.update((setting)=>{
-          setting.numberOfModules = grid.used.length;
-          return setting;
+        globalInputStore.update((store)=>{
+          store.numberOfModules = runtime.length;
+          return store;
         })
       }
-      
-      grid = grid;
+      runtime = runtime;
     }
   }
 
