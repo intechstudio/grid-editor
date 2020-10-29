@@ -1,6 +1,10 @@
 <script>
   import BankTab from './BankTab.svelte';  
-  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store.js';
+
+  import { localInputStore, globalConfigReportStore, bankActiveStore, numberOfModulesStore } from '../../stores/control-surface-input.store.js';
+  
+  import { runtime } from '../../stores/runtime.store.js';
+
   import { serialComm } from '../../core/serialport/serialport.store.js';
 
   import Commands from '../shared/Commands.svelte';
@@ -10,6 +14,8 @@
   import { commands } from '../shared/handshake.store.js';
 
   import Tooltip from '../../shared/helpers/Tooltip.svelte';
+  
+  import { onMount } from 'svelte';
 
   let selected = 0;
 
@@ -17,22 +23,29 @@
 
   let tabs = [0,1,2,3];
 
-  globalInputStore.subscribe(banks => {
-      globalData = banks;
-      selected =  banks.active;      
-  })
-
   function handleColorChange(e){
-    const PARAMS = e.detail.parameters[0];
-    globalData.bankColors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
+    const PARAMS = e.detail.parameters;
+
+    $runtime.forEach((controller) => {
+      controller.global.bankColors[PARAMS[0].NUM] = [PARAMS[1].RED, PARAMS[2].GRE, PARAMS[3].BLU];
+    });
+
+    console.log('$runtime (color) change', $runtime)
+
     const command = GRID_PROTOCOL.encode('', e.detail.className, 'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
 
   function handleBankEnabledChange(e){
-    const PARAMS = e.detail.parameters[0];
-    globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
+    const PARAMS = e.detail.parameters;
+    
+    $runtime.forEach((controller) => {
+      controller.global.bankEnabled[PARAMS[0].BANKNUMBER] = PARAMS[1].ISENABLED
+    });
+
+    console.log('$runtime (bankenabled) change', $runtime)
+
     const command = GRID_PROTOCOL.encode('', e.detail.className,'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
@@ -40,15 +53,51 @@
 
 
   function changeSelected(bank){
-    globalData.active = bank;
-    localInputStore.update(settings => {
-      settings.bank = bank;
-      return settings;
+    bankActiveStore.update(store => {
+      store.bankActive = bank;
+      return store;
     })
-    selected = bank;
     const command = GRID_PROTOCOL.encode('','BANKACTIVE','EXECUTE',[{'BANKNUMBER': bank}], '')
     serialComm.write(command);
   }
+
+  function renderGlobalConfiguration(){
+    if($runtime[0]){
+      if($runtime[0].global !== ""){
+        globalData = $runtime[0].global;
+      } else {
+        const fetch = runtime.fetchGlobalConfig('7f7f', 'ff');
+        serialComm.write(fetch);
+      }
+    }
+  }
+
+  onMount(()=>{
+
+    globalConfigReportStore.subscribe(store => {
+      globalData = store; 
+      // load to runtime all the shit you see
+      $runtime.forEach(controller => {
+        controller.global = store;
+        //renderGlobalConfiguration();
+      });
+    })
+
+    // on init serial port connected module change run this!
+    numberOfModulesStore.subscribe(() => {
+      const fetch = runtime.fetchGlobalConfig('7f7f', 'ff');
+      serialComm.write(fetch);
+    })
+
+    // this is very similiar to local input store, on trigger check runtime for config
+    bankActiveStore.subscribe(store => {
+      selected = store.bankActive;
+      renderGlobalConfiguration();
+    })
+
+
+
+  })
 
 
 </script>

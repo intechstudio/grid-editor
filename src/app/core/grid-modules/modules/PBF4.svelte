@@ -17,7 +17,7 @@
   export let moduleWidth;
   export let color;
 
-  $: moduleId = '';
+  let dx, dy;
 
   let selectedElement = {};
 
@@ -38,9 +38,8 @@
     });
 
     if(id !== undefined && (id.length > 4)){
-      const dx = id.split(';')[0].split(':').pop();
-      const dy = id.split(';')[1].split(':').pop();
-      moduleId = 'dx:'+dx+';dy:'+dy;
+      dx = +id.split(';')[0].split(':').pop();
+      dy = +id.split(';')[1].split(':').pop();
     }
 
   });
@@ -62,7 +61,7 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
       {#each [0,1,2,3] as elementNumber}
         <div 
-          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
+          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber}
           class="knob-and-led">
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
@@ -81,7 +80,7 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
       {#each [4,5,6,7] as elementNumber}
         <div 
-          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber} 
+          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber} 
           class="knob-and-led">
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 
@@ -101,7 +100,7 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       {#each [8,9,10,11] as elementNumber}
         <div 
-          class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == elementNumber}  
+          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber}
           class="knob-and-led">
           <Led 
             eventInput={handleEventParamChange(elementNumber, selectedElement.controlNumber)} 

@@ -19,7 +19,7 @@
   let _comm;
 
   function handleStore(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}STORE`,'','');
+    const command = GRID_PROTOCOL.encode('',`${MODE}STORE`,'EXECUTE','','');
     serialComm.write(command);
 
     // set configs
@@ -30,17 +30,8 @@
     console.log(`Store ${MODE} settings on Grid!`)
   }
 
-  function handleRecall(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}LOAD`,'','');
-    serialComm.write(command);
-
-    commands.start(`${MODE}RECALL`);
-
-    console.log(`Recall ${MODE} settings on Grid!`)
-  }
-
   function handleClear(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}CLEAR`,'','');
+    const command = GRID_PROTOCOL.encode('',`${MODE}CLEAR`,'EXECUTE','','');
     serialComm.write(command);
 
     commands.start(`${MODE}CLEAR`);

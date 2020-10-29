@@ -231,6 +231,9 @@
       }
       c = 0;
     });
+
+    validate_midiabsolute(action.parameters)
+    
   })
 
   afterUpdate(() => {

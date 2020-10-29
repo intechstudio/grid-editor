@@ -11,38 +11,45 @@ function createRuntimeStore(){
 
   return {
     ...store,
-    actionsToConfig: (actions) => {
-      let temp_cfgs = [];
-      let cfgs = [];
-      actions.forEach((action,index) => {
-        temp_cfgs[index] = GRID_PROTOCOL.action_to_cfg(action.name, action.parameters);
-      });
-      temp_cfgs.map(a => {
-        cfgs.push(...a)
-      });
-      return cfgs;
+    actionToConfig: (action) => {
+      const cfg = GRID_PROTOCOL.action_to_cfg(action.name, action.parameters);
+      return cfg;
     },
-    configToActions: (cfgs) => {
-      let actions = GRID_PROTOCOL.cfgs_to_actions(cfgs);
+    configsToActions: (cfgs) => {
+      let actions = [];
+      cfgs.forEach((cfg,i)=>{
+        actions[i] = GRID_PROTOCOL.cfg_to_action(cfg);
+      })
+      console.log(actions, cfgs);
       return actions;
     },
-    fetchConfig: (controller, inputStore) => {
+    fetchLocalConfig: (controller, inputStore) => {
       const cfg = GRID_PROTOCOL.encode(
         { 
-          DX: controller.dx, 
-          DY: controller.dy,
-          ROT: controller.rot
+          dx: controller.dx, 
+          dy: controller.dy,
+          rot: controller.rot
         },
         "CONFIGURATION",
         "FETCH",
         [
           { BANKNUMBER: inputStore.bankActive}, 
-          { ELEMENTNUMBER: inputStore.elementNumber[0]}, 
-          { EVENTTYPE: inputStore.eventType[0]}, 
+          { ELEMENTNUMBER: inputStore.elementNumber}, 
+          { EVENTTYPE: inputStore.eventType}, 
           { ACTIONSTRING: "" }
         ],
         ""
       );
+      return cfg;
+    },
+    fetchGlobalConfig: (controller, bank) => {
+      const cfg = GRID_PROTOCOL.encode(
+        "",
+        "GLOBALRECALL",
+        "EXECUTE",
+        [{BANKNUMBER: bank}],
+        ""
+      )
       return cfg;
     }
   }

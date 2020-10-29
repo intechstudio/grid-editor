@@ -8,36 +8,27 @@
 
   import { actionListChange } from '../action-list-change.store.js';
 
-  import { configStore } from '../../../stores/config.store';
-
   export let action;
   export let index;
-  export let moduleInfo;
-  export let eventInfo;
-  export let inputStore;
-
-  let validator = [];
 
   function sendData(){
 
-    let _PARAMETERS = action.parameters[0].split('\n');
-    _PARAMETERS = _PARAMETERS.map(param => {
-      param = param.split('');
-      param = param.map(p => {
-        return p.charCodeAt(0);
-      });
-      return param;
-    }); 
+    // this is validated by hitting the send button. no extra validation happens, experimental function.
 
-    let serialized = [];
-    _PARAMETERS.forEach(param => {
-      serialized.push(...GRID_PROTOCOL.configure_raw(param));
+    let _PARAMETERS = action.parameters;
+    _PARAMETERS = Array.from(action.parameters).map(p => {
+      return p.charCodeAt(0);
+    })
+
+    let serialized = GRID_PROTOCOL.configure_raw(_PARAMETERS);
+
+    dispatch('send',{
+      action: {
+        value: action.value, 
+        parameters: serialized
+      }, 
+      index: index 
     });
-
-    
-    configStore.save(index, moduleInfo, eventInfo, inputStore, serialized);
-
-    dispatch('send',{});
   }
 
   let orderChangeTrigger = null;
@@ -47,7 +38,6 @@
       c++;
       if(change !== null && c == 1){
         orderChangeTrigger = true;
-        console.log(action.name, 'REMOVE', index);
         if(change == 'remove'){
           //configStore.remove(index, moduleInfo, eventInfo, inputStore);
         }
@@ -67,7 +57,7 @@
 
 <div class='w-full  dropDownInput'>
   <div class="text-gray-700 text-xs">Raw action input for debug purposes</div>
-  <textarea bind:value={action.parameters[0]} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
+  <textarea bind:value={action.parameters} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
   <button on:click={sendData} class="focus:outline-none cursor-pointer mr-1 text-white border-none border-primary bg-indigo-500 hover:bg-indigo-600 px-2 py-1">Send</button>
 </div>
 

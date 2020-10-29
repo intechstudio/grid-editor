@@ -183,7 +183,8 @@
         valid = false
       }
     }
-    
+
+    console.log(parameters);
     if(valid){
       dispatch('send', { 
         action: {
@@ -209,6 +210,9 @@
       }
       c = 0;
     });
+
+    validate_midirelative(action.parameters);
+
   })
 
   afterUpdate(() => {

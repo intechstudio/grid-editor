@@ -4,7 +4,7 @@
 
   import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
-  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store';
+  import { localInputStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
   import { serialComm, serialCommDebug } from './serialport.store.js';
 
@@ -164,75 +164,86 @@
 
   function runSerialParser(port){
 
-    const parser = port.pipe(new Readline({ delimiter: "\n"}));
+    const parser = port.pipe(new Readline({ encoding: 'hex' }));
 
     parser.on('data', function(data) {
 
-      let array = Array.from(data);
+      let temp_array = Array.from(data);
+      let array = [];
+
+      for (let index = 0; index < temp_array.length; index+=2) {
+        array.push((temp_array[index] + '' + temp_array[index+1])) 
+      }
 
       let RESPONSE = {};
 
       let _array = [];
 
       array.forEach((element, i) => {
-        _array[i] = element.charCodeAt(0);
-      });
+        _array[i] = parseInt('0x'+element);
+      });      
       
       let DATA = GRID.decode_serial(_array);
 
-      // filter heartbeat messages
-      if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
+      let d_array = ''
+      _array.forEach((element, i) => {
+        d_array += String.fromCharCode(element);
+      })
 
-        serialCommDebug.store(array.join(''));    
+      // filter heartbeat messages
+      if(!(d_array.slice(30).startsWith('010') && d_array.length == 46) ){
+
+        serialCommDebug.store(d_array);    
 
         RESPONSE = GRID.decode_serial(_array);
 
         RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
 
         RESPONSE.COMMAND ? commands.response(RESPONSE) : null;
+      
       }
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
 
-      if(DATA.HEARTBEAT){
-        //console.log(DATA.HEARTBEAT);
+      // global config recall
+      if(DATA.BANKCOLOR.length > 0 || DATA.BANKENABLED.length > 0){
+        globalConfigReportStore.update(store => {
+          store.bankColors = DATA.BANKCOLOR.map(bank => {return [bank.RED, bank.GRE, bank.BLU]});
+          store.bankEnabled = DATA.BANKENABLED.map(bank => {return bank.ISENABLED == 1 ? true : false});
+          return store;
+        });
+        bankActiveStore.update(store => { 
+          if(store.bankActive == -1){ 
+            store.bankActive = 0 
+          }
+          return store;
+        });
       }
 
-      if(DATA.BRC){
-        //console.log(DATA.BRC);
-      }
-
-      if(DATA.LEDPHASE){
-        //console.log(DATA.LEDPHASE);
-      }
-
+      // local config recall
       if(DATA.CONFIGURATION){
-        console.log('received cfg',DATA.CONFIGURATION);
+        localConfigReportStore.update(store => { 
+          store.frame = DATA.CONFIGURATION; 
+          store.cfgs = DATA.CONFIGURATION_CFGS;
+          return store;
+        }) 
       }
 
-      if(DATA.EVENT && DATA.EVENT.length > 0){
-        if(DATA.EVENT[0].EVENTTYPE !== 1){
-          console.log(DATA.EVENT,DATA.BRC);
+      // local input update (user interaction)
+      if(DATA.EVENT){
+        if(DATA.EVENT.EVENTTYPE !== 1){
           localInputStore.update((store)=>{
             store.dx = DATA.BRC.DX;
             store.dy = DATA.BRC.DY;
-            store.elementNumber = DATA.EVENT.map(event => event.ELEMENTNUMBER);   
-            store.eventParam = DATA.EVENT.map(event => event.EVENTPARAM);   
-            store.eventType = DATA.EVENT.map(event => event.EVENTTYPE);
+            store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
+            store.eventParam = DATA.EVENT.EVENTPARAM;   
+            store.eventType = DATA.EVENT.EVENTTYPE;
             return store;
           })
         }
       }
 
-      // rep req not implemented as needed
-      if(DATA.BANKCOLOR){
-       
-      }
-
-      if(DATA.MIDIRELATIVE){ 
-        
-      }
-
+      // bank change by user
       if(DATA.BANKACTIVE){
         if(DATA.BANKACTIVE.BANKNUMBER !== 255){
           bankActiveStore.update(store => {
@@ -241,7 +252,6 @@
           });
         }
       }
-      
       
     })
   }
@@ -274,10 +284,7 @@
       }
 
       if(!exists){
-        globalInputStore.update((store)=>{
-          store.numberOfModules = runtime.length;
-          return store;
-        })
+        numberOfModulesStore.set(runtime.length);
       }
       runtime = runtime;
     }

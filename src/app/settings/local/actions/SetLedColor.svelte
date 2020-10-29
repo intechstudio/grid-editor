@@ -25,7 +25,7 @@
     let c = 0;
     actionListChange.subscribe((change)=>{
       c++;
-      console.log( action.name, 'order change subscription', index);
+      //console.log( action.name, 'order change subscription', index);
       if(change !== null && c == 1){
         orderChangeTrigger = true;
       }
@@ -78,12 +78,21 @@
   let alpha = 1;
   let parameters = [
     [
-      {value: 'A0', info: 'This LED.'}, 
-      {value: 'A1', info: 'Reversed LED.'}, 
+      {value: 'A0', info: 'This LED'}, 
+      {value: 'A1', info: 'Reversed LED'}, 
     ],
     [
-      {value: 'A', info: 'A Layer'}, 
-      {value: 'B', info: 'B Layer'}, 
+      {value: '01', info: 'A Layer'}, 
+      {value: '02', info: 'B Layer'}, 
+    ],
+    [
+      {value: 'B1', info: 'Def Red Color'}, 
+    ],
+    [
+      {value: 'B2', info: 'Def Green Color'}, 
+    ],
+    [
+      {value: 'B3', info: 'Def Blue Color'}, 
     ]
   ];
 
@@ -133,17 +142,17 @@
       </div>
     </div>
     <div class="flex w-full flex-col xl:flex-row">
-      <div class="px-1 w-full">
+      <div class="w-full px-1">
         <div class="text-gray-700 text-xs">Red</div>
-        <input type="number" bind:value={action.parameters.RED} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <DropDownInput on:change={()=>{sendData()}} optionList={parameters[2]} bind:dropDownValue={action.parameters.RED}/>
       </div>
-      <div class="px-1 w-full">
+      <div class="w-full px-1">
         <div class="text-gray-700 text-xs">Green</div>
-        <input type="number" bind:value={action.parameters.GRE} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <DropDownInput on:change={()=>{sendData()}} optionList={parameters[3]} bind:dropDownValue={action.parameters.GRE}/>
       </div>
-      <div class="px-1 w-full xl:pr-2">
+      <div class="w-full px-1">
         <div class="text-gray-700 text-xs">Blue</div>
-        <input type="number" bind:value={action.parameters.BLU} on:change={sendData} min=0 max=255 class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+        <DropDownInput on:change={()=>{sendData()}} optionList={parameters[4]} bind:dropDownValue={action.parameters.BLU}/>
       </div>
       <!--
       <div class="px-1 w-full xl:pr-2">

@@ -12,15 +12,13 @@
 
   export let action;
   export let index;
-  export let inputStore;
-  export let moduleInfo;
   export let eventInfo;
 
   const components = {
     'MIDIRELATIVE': MidiRelative,
     'MIDIABSOLUTE': MidiAbsolute,
     'LEDCOLOR': SetLedColor,
-    'LED Phase': SetLedPhase,
+    'LEDPHASE': SetLedPhase,
     'RAW': RawAction,
   }
 
@@ -45,7 +43,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {moduleInfo} {eventInfo} {inputStore} />    
+    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {eventInfo} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

@@ -26,9 +26,9 @@ export function select(node, [moduleId, selectedDisplay]){
 
         localInputStore.update((store)=>{
           store.id = moduleId,
-          store.dx = dx,
-          store.dy = dy;
-          store.elementNumber = [controlNumber]
+          store.dx = +dx,
+          store.dy = +dy;
+          store.elementNumber = +controlNumber
           return store;
         })
   

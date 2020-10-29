@@ -17,7 +17,7 @@
 
   let selectedElement = {};
 
-  $: moduleId = '';
+  let dx, dy;
 
   const control_block = (number) => {
     let array = [];
@@ -27,13 +27,8 @@
     return array;
   }
 
-  function handleEventParamChange(elementNumber, controlNumber){
-    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
-        const index = controlNumber.indexOf(elementNumber);
-        return selectedElement.eventparam[index]
-      }
-    }
+  function handleEventParamChange(elementNumber, selectedElement){
+   
   }
 
 
@@ -43,9 +38,9 @@
     })
 
     if(id !== undefined && (id.length > 4)){
-      const dx = id.split(';')[0].split(':').pop();
-      const dy = id.split(';')[1].split(':').pop();
-      moduleId = 'dx:'+dx+';dy:'+dy;
+      console.log(id);
+      dx = +id.split(';')[0].split(':').pop();
+      dy = +id.split(';')[1].split(':').pop();
     }
 
   });
@@ -66,9 +61,9 @@
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
-          <div class:active-element={moduleId == selectedElement.position && selectedElement.controlNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
+          <div class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange(block * 4 + element, selectedElement.controlNumber)}
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement)}
               userInput={0} 
               size={$appSettings.size}
               {color}/>

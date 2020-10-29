@@ -27,12 +27,13 @@
     let c = 0;
     actionListChange.subscribe((change)=>{
       c++;
-      console.log( action.name, 'order change subscription', index);
+      //console.log( action.name, 'order change subscription', index);
       if(change !== null && c == 1){
         orderChangeTrigger = true;
       }
       c = 0;
     });
+    validate_setledphase(action.parameters);
   })
 
   afterUpdate(() => {
@@ -47,8 +48,8 @@
 
     let param_0;
     let param_2;
-    if(action.parameters.NUM != 'A0' && action.parameters.NUM != 'A1'){ param_0 = Number(action.parameters.NUM) } else { param_0 = action.parameters.NUM}
-    if(action.parameters.PHA != 'A3' && action.parameters.PHA != 'A7'){ param_2 = Number(action.parameters.PHA) } else { param_2 = action.parameters.PHA}
+    if(action.parameters.NUM != 'A0' && action.parameters.NUM != 'A1'){ param_0 = action.parameters.NUM } else { param_0 = action.parameters.NUM}
+    if(action.parameters.PHA != 'A3' && action.parameters.PHA != 'A7'){ param_2 = action.parameters.PHA } else { param_2 = action.parameters.PHA}
     const parameters = [
       { 'NUM': parameter_parser(param_0) },
       { 'LAY': action.parameters.LAY },
@@ -56,12 +57,18 @@
     ];
 
     let valid = true;
+
+    console.log('run validator', action.parameters);
  
     for (const key in validator) {
       if(validator[key] == 'invalid :(' || validator[key] == undefined){
         valid = false
       }
     }
+
+    
+    console.log('set led color...',valid, parameters);
+     
 
     if(valid){    
       dispatch('send',{
@@ -72,8 +79,6 @@
         index: index 
       });
     }
-
-    dispatch('send',{});
   }
 
 
@@ -98,8 +103,8 @@
           }
         } 
         else if(KEY == 'LAY'){
-          if(VALUE.length > 0 || VALUE[0] == ''){ 
-            defined = 'Layer';
+          if(VALUE == '01' || VALUE == '02'){ 
+            defined = check_for_matching_value(optionList, VALUE, 1); 
           } else {
             defined = 'invalid :(';
           }
@@ -119,7 +124,7 @@
         if(defined)
           humanReadable = defined
         else 
-          humanReadable = parameter;
+          humanReadable = VALUE;
 
         validator[KEY] = humanReadable;
 
@@ -135,7 +140,8 @@
         {value: 'A1', info: 'Reversed LED.'}, 
       ],
       [
-        ''
+        {value: '01', info: 'A Layer'}, 
+        {value: '02', info: 'B Layer'},  
       ],
       [
         {value: 'A3', info: 'AV8 8-bit'}, 
@@ -147,7 +153,8 @@
         {value: 'A1', info: 'Reversed LED.'}, 
       ],
       [
-        ''
+        {value: '01', info: 'A Layer'}, 
+        {value: '02', info: 'B Layer'}, 
       ],
       [
         {value: 'A7', info: 'DV8 8-bit'}, 
@@ -167,9 +174,9 @@
 
 </script>
 
-<div class="flex flex-col w-full">
+<div class="flex flex-col w-full pr-1 ">
   <div class="flex w-full text-white">
-    <div class=" w-1/3">
+    <div class="w-1/3 pr-1">
       <div class="text-gray-700 text-xs">Element</div>
       <DropDownInput optionList={optionList[0]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.NUM}/>
       <div class="text-white pl-2 flex-grow-0">
@@ -178,10 +185,12 @@
     </div>
 
     <div class=" w-1/3">
-      <div class="text-gray-700 text-xs">Layer</div>
-      <DropDownInput optionList={optionList[1]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.LAY}/>
-      <div class="text-white pl-2 flex-grow-0">
-        {validator.LAY ? validator.LAY : ''}
+      <div class="px-1">
+        <div class="text-gray-700 text-xs">Layer</div>
+        <DropDownInput optionList={optionList[1]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.LAY}/>
+        <div class="text-white pl-2 flex-grow-0">
+          {validator.LAY ? validator.LAY : ''}
+        </div>
       </div>
     </div>
 

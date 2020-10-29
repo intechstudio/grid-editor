@@ -1,6 +1,6 @@
 <script>
 
-  const { ipcRenderer } = require('electron');
+  const { ipcRenderer, app } = require('electron');
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
 
@@ -68,7 +68,7 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop, selectedDisplay } from './app/layout/actions/dnd.action.js';
-  import { localInputStore } from './app/stores/control-surface-input.store';
+  import { localInputStore, bankActiveStore } from './app/stores/control-surface-input.store';
 
 
   /*
@@ -119,7 +119,7 @@
   
   onMount(()=>{
     //category, action, label, value
-    trackEvent('App', 'Report Version', 'Editor', $appSettings.version);
+    trackEvent('Editor Version', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
 
     createPanZoom(map, {
       bounds: true,
@@ -310,8 +310,11 @@
       {/if}
       
       <div class="flex w-4/12 flex-col m-4">
+
         <LocalSettings/>
-        {#if $localInputStore.elementNumber[0] !== undefined}
+
+        
+        {#if $localInputStore.elementNumber !== undefined}
           <div class="my-2 p-4 bg-primary rounded-lg z-20 w-full">
             <Commands MODE={'LOCAL'}/>
           </div>

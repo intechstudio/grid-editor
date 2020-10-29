@@ -4,7 +4,7 @@
 
   import { runtime } from '../../stores/runtime.store.js';
 
-  import { localInputStore, globalInputStore, derivedInputStore } from '../../stores/control-surface-input.store';
+  import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
@@ -14,6 +14,7 @@
   import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
   import { serialComm } from '../../core/serialport/serialport.store.js';
+  import { commands } from '../shared/handshake.store.js';
 
   let inputStore;
 
@@ -51,51 +52,45 @@
 
   // main
 
-  function loadSelectedModuleSettings(){
+  let RUNTIME;
+
+  //runtime.subscribe(changes => {RUNTIME = changes; console.log(RUNTIME)})
+
+  function renderLocalConfiguration(){
     $runtime.forEach(controller => {
-      if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
+      if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1 && inputStore.bankActive !== -1){
 
         moduleInfo = controller;
         moduleId = controller.id;  
-        events = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});        
-        selectedEvent = checkIfSelectedEventIsCorrect(inputStore, events)
+        events = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.map((cntrl)=>{return cntrl.event});        
+        selectedEvent = checkIfSelectedEventIsCorrect(inputStore, events);
 
         // currently selected control element on bank x, with activated event y
-        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
         
         eventInfo = elementEvent.event;  
 
-        // no config detected
-        /**
-         * better handling of no config state! draw in drawio too!
-        */
-        if(elementEvent.config == "" && !controller.virtual){
-          let cfg = runtime.fetchConfig(controller, inputStore)
-          serialComm.write(cfg);
-          /**
-           * 
-           * Here the fetched config should be loaded in somehow.
-           * Implement helper store maybe?
-           * 
-          */
+        //console.log('on input store change...',elementEvent);
+
+        if(elementEvent.config.length == 0 && !controller.virtual){
+          const fetch = runtime.fetchLocalConfig(controller, inputStore);
+          serialComm.write(fetch);
         } 
-        else if(elementEvent.config !== "" && controller.virtual){
-          actions = runtime.configToActions(elementEvent.config)
+        else if(elementEvent.config.length > 0){
+          actions = runtime.configsToActions(elementEvent.config);
         } 
         else {
           actions = []
         }
 
-        console.log(elementEvent);
-
-        controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].controlElementName || '';
+        controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
     });
   }
 
 
   function checkIfSelectedEventIsCorrect(settings, events){
-    let event = events.find(e => e == settings.eventType);
+    let event = events.find(e => e.value == settings.eventType);
     if(!event){
       event = events[1];
     }
@@ -118,11 +113,10 @@
     const index = e.detail.index;
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
-          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
-          elementEvent.actions.splice(index,1);
-          actions = elementEvent.actions; // update this list too. does kill smooth animations
-          configStore.remove(index, moduleInfo, eventInfo, inputStore);
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1){
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);   
+          elementEvent.config.splice(index,1);
+          actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
         }
         return controller;
       })
@@ -130,14 +124,9 @@
     })
   }
 
-  function handleFocus(e){
-    focus = true;
-  }
-
   function handleSelectEvent(event){
-    console.log(event);
     localInputStore.update((values)=>{
-      values.eventType = event;
+      values.eventType = event.value;
       return values;
     })
   }
@@ -146,29 +135,38 @@
     const action = e.detail.action;
     const index = e.detail.index;
 
+    // update runtime based on editor from configuration
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber[0] !== -1){
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1){
           
-          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
                     
           temp_actions[index] = {name: action.value, parameters: action.parameters}; 
 
-          const cfgs = runtime.actionsToConfig(temp_actions);
-
           const params = [
             { BANKNUMBER: inputStore.bankActive },
-            { ELEMENTNUMBER: inputStore.elementNumber[0] },
+            { ELEMENTNUMBER: inputStore.elementNumber },
             { EVENTTYPE: eventInfo.value }
           ]
-
-          const serialized = GRID_PROTOCOL.serialize_cfgs(params, cfgs);
-
-          elementEvent.config = serialized;
           
+          elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
+
+          commands.validity("LOCALSTORE",true)
+
+          let array = [];
+          elementEvent.config.forEach(a => {
+            array.push(...a);
+          });
+
+          const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
+          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
         }
+      
         return controller;
-      })
+
+      });
+
       return store;   
     });
 
@@ -179,7 +177,7 @@
     runtime.update((store)=>{
       store.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
-          controller.banks[inputStore.bank][inputStore.elementNumber[0]].controlElementName = name;
+          controller.banks[inputStore.bank][inputStore.elementNumber].controlElementName = name;
         }
         return controller;
       })
@@ -190,7 +188,7 @@
   function copyActions(){
     $runtime.forEach(controller => {
       if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
-        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
         copiedActions = elementEvent.actions;
       }
     });
@@ -200,7 +198,7 @@
     runtime.update((store)=>{
       store.map((controller)=>{
         if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
-          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
           const newActions = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
           elementEvent.actions = newActions;
         }
@@ -208,40 +206,32 @@
       });   
       return store;
     });
-    loadSelectedModuleSettings();
+    renderLocalConfiguration();
   }
 
   onMount(()=>{
+
     derivedInputStore.subscribe((values)=>{
       inputStore = values;
-      console.log('loading values...' , inputStore)
-      loadSelectedModuleSettings();
+      renderLocalConfiguration();
     });
 
-
-    /*
-    configStore.subscribe((store)=>{
-      if(store[moduleId] !== undefined){
-        let actions;
-        if(eventInfo){
-          actions = store[moduleId][inputStore.bankActive][eventInfo.value];
-        }
-        if(actions){   
-          const config = [
-            { BANKNUMBER: inputStore.bankActive },
-            { ELEMENTNUMBER: inputStore.elementNumber[0] },
-            { EVENTTYPE: eventInfo.value }
-          ]
-          let array = [];
-          actions.forEach(a => {
-            array.push(...a);
-          });
-          const serialized = GRID_PROTOCOL.serialize_actions(config, array);
-          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
-        }
-      }   
+    localConfigReportStore.subscribe(store => {
+      if(store.cfgs.length > 0){
+        // update runtime based on received config from grid
+        runtime.update(runtime => {
+          runtime.forEach(controller =>{
+            if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+              let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
+              events.config = store.cfgs
+            }
+          })
+          return runtime;
+        });
+        renderLocalConfiguration();
+      }
     })
-*/
+    
   })
 
   
@@ -258,17 +248,14 @@
 
 </style>
 
-
-
-
 <div class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Element Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
-    <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber[0] == undefined ? '-' : $localInputStore.elementNumber[0]}</div>
+    <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
   </div>
 
-  {#if $localInputStore.elementNumber[0] !== undefined}
+  {#if $localInputStore.elementNumber !== -1}
   
 
   <div class="flex flex-col px-2 my-4 w-full">
@@ -299,7 +286,7 @@
           class:shadow-md={selectedEvent === event}
           class:bg-highlight={selectedEvent === event}
           class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300  focus:outline-none">
-          {event}
+          {event.desc}
         </button>
       {/each}
     </div>

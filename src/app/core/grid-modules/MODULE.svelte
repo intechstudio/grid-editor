@@ -12,7 +12,7 @@
 
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { localInputStore, globalInputStore } from '../../stores/control-surface-input.store.js';
+  import { localInputStore } from '../../stores/control-surface-input.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -35,10 +35,12 @@
   $: selected = components.find(component => component.type === type);
 
   onMount(()=>{
+    /**
     globalInputStore.subscribe(banks =>{
       color = banks.bankColors[banks.active];
       bankActive = banks.bankActive;
     })
+    */
   })
 
 </script>
@@ -100,7 +102,7 @@
   }
 
   .active-element{
-    background-color: #ffffff1a;
+    background-color: #eed23766;
     padding: 2px;
     border-radius: 0.25rem;
   }

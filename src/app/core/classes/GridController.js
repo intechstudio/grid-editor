@@ -83,7 +83,7 @@ export var GRID_CONTROLLER = {
       isConnectedByUsb: "",
       isLanding: "",
       banks: [], // consider naming to "local"
-      global: {}
+      global: ""
     }
 
     // generic check, code below if works only if all parameters are provided
@@ -111,7 +111,7 @@ export var GRID_CONTROLLER = {
         isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
         banks: this.createElementSettings(moduleType), // consider naming to "local"
-        global: {}
+        global: ""
       }
       
     }
@@ -143,7 +143,7 @@ export var GRID_CONTROLLER = {
           events.push({        
             event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
             // actions // low level config string
-            config: ""
+            config: []
           })
         }
         control_elements[i] = {events: events, ...obj, };
