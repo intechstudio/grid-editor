@@ -43,7 +43,7 @@
 
 </script>
 
-<div style="backdrop-filter: blur(10px); z-index:9999" class="text-white absolute h-screen w-full">
+<div style="backdrop-filter: blur(10px); z-index:9999" class="text-white absolute w-full">
   <div class="flex justify-center items-center h-full ">
 
     <div class="p-4 m-4 w-1/3 bg-primary rounded border border-gray-700 shadow">

@@ -6,6 +6,7 @@
 
   import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
+
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
 
@@ -15,8 +16,12 @@
 
   import { serialComm } from '../../core/serialport/serialport.store.js';
   import { commands } from '../shared/handshake.store.js';
+  import Commands from '../shared/Commands.svelte';
 
-  let inputStore;
+  let inputStore = {
+    bankActive : -1,
+    elementNumber : -1
+  };
 
   let arrayOfSelectableActions = [
     { id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' },
@@ -176,8 +181,8 @@
     // PROBABLY RUNS TOO MANY TIMES, TRY ONBLUR AND OTHER DEBOUNCING METHODS
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
-          controller.banks[inputStore.bank][inputStore.elementNumber].controlElementName = name;
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+          controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName = name;
         }
         return controller;
       })
@@ -246,6 +251,22 @@
     cursor: not-allowed;
   }
 
+  
+  ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+      @apply bg-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+      background: #286787;
+      -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+  }
+
+  ::-webkit-scrollbar-corner {
+      background: #1e2628
+  }
+
 </style>
 
 <div class="inline-block primary rounded-lg p-4 z-30 w-full">
@@ -255,9 +276,10 @@
     <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
   </div>
 
-  {#if $localInputStore.elementNumber !== -1}
+  {#if inputStore.elementNumber !== -1 && inputStore.bankActive !== -1}
   
 
+  <!--
   <div class="flex flex-col px-2 my-4 w-full">
   
     <div class="text-gray-700 flex py-1">
@@ -270,9 +292,9 @@
       on:input={e => handleControlElementNaming(controlElementName)}
       type="text" 
       class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none" 
-      placeholder="Your name for this control element...">
-    
+      placeholder="Your name for this control element...">  
   </div>
+  -->
 
   <div class="flex flex-col">
     <div class="text-gray-700 py-1 mx-2">
@@ -285,7 +307,7 @@
           on:click={()=>{handleSelectEvent(event)}} 
           class:shadow-md={selectedEvent === event}
           class:bg-highlight={selectedEvent === event}
-          class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300  focus:outline-none">
+          class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400  focus:outline-none">
           {event.desc}
         </button>
       {/each}
@@ -330,26 +352,45 @@
 
       
 
-      <ActionList
-        {actions} 
-        let:action 
-        let:index
-        >
-          <ActionWrapper 
-            on:remove={handleRemoveAction}
-            on:change={handleOnActionChange}
-            {action} 
-            {index}
-            {eventInfo}
-          />
-      </ActionList>
+      <div style="max-height:300px" class="mt-4 pr-2 border-secondary overflow-y-scroll overflow-x-hidden">
+        <ActionList
+          {actions} 
+          let:action 
+          let:index
+          >
+            <ActionWrapper 
+              on:remove={handleRemoveAction}
+              on:change={handleOnActionChange}
+              {action} 
+              {index}
+              {eventInfo}
+            />
+        </ActionList>
+      </div>
 
     </div>
   </div>
+
+  <hr  class="text-secondary h-1 border-none rounded bg-secondary m-2">
+
   {:else}
-  <div class="px-2 my-4 w-full text-gray-700">Select a control element to start configuration!</div>
+  <div class="px-2 my-4 w-full text-important">
+    <span class="flicker">⚠️</span>
+    <span class="px-1">
+      Select a 
+      {#if inputStore.elementNumber == -1}control element{/if} 
+      {#if inputStore.bankActive == -1 && inputStore.elementNumber == -1}and{/if}
+      {#if inputStore.bankActive == -1}bank{/if} 
+      to start configuration!
+    </span>
+  </div>
   {/if}
+
+  {#if inputStore.elementNumber !== -1}
+    <Commands MODE={'GLOBAL'}/>
+  {/if}
+
+
+
 </div>
-
-
 

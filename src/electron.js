@@ -106,9 +106,9 @@ ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
-autoUpdater.on('error', (event) => {
-  log.info('Error..', event);
-  console.log('updater error')
+autoUpdater.on('error', (error) => {
+  log.info('Error..', error);
+  mainWindow.webContents.send('update_error', error);
 })
 
 autoUpdater.on('update-available', () => {

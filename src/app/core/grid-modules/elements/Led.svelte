@@ -11,9 +11,8 @@
 
   let rgb;
 
-  $: {color ? rgb = color : rgb = [255,255,0];
-    //console.log('led color',color);
-  }
+  $: {color ? rgb = color : rgb = [255,255,0];}
+  
   $: if(userInput !== undefined){
     alpha = userInput / 127;
   }

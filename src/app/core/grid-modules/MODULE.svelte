@@ -12,7 +12,7 @@
 
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { localInputStore } from '../../stores/control-surface-input.store.js';
+  import { bankActiveStore, globalConfigReportStore, localInputStore } from '../../stores/control-surface-input.store.js';
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -27,20 +27,27 @@
 
   let selected;
   let color;
-  let bankSettings;
+  let bankColors;
   let bankActive;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
   $: selected = components.find(component => component.type === type);
 
+  $: if(bankColors){
+    color = bankColors[bankActive];
+  }
+
   onMount(()=>{
-    /**
-    globalInputStore.subscribe(banks =>{
-      color = banks.bankColors[banks.active];
-      bankActive = banks.bankActive;
+
+    bankActiveStore.subscribe(store => {
+      bankActive = store.bankActive;
     })
-    */
+
+    globalConfigReportStore.subscribe(store => {
+      bankColors = store.bankColors;
+    })
+    
   })
 
 </script>
@@ -102,7 +109,7 @@
   }
 
   .active-element{
-    background-color: #eed23766;
+    background-color: #ffffff66;
     padding: 2px;
     border-radius: 0.25rem;
   }

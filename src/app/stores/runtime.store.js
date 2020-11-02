@@ -20,7 +20,6 @@ function createRuntimeStore(){
       cfgs.forEach((cfg,i)=>{
         actions[i] = GRID_PROTOCOL.cfg_to_action(cfg);
       })
-      console.log(actions, cfgs);
       return actions;
     },
     fetchLocalConfig: (controller, inputStore) => {

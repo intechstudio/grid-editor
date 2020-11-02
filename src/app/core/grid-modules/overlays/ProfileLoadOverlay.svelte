@@ -22,10 +22,6 @@
     return array;
   }
 
-  grid.subscribe(grid => {
-    const settings = grid.used.find(controller => controller.id == id);
-  })
-
 </script>
 
 <div class="overlay text-white w-full">

@@ -1,12 +1,12 @@
 <script>
 
-
-import { localInputStore } from '../../../stores/control-surface-input.store.js';
+  import { localInputStore } from '../../../stores/control-surface-input.store.js';
+  import { runtime } from '../../../stores/runtime.store.js';
 
   export let id;
   export let moduleWidth;
   export let rotation;
-  export let bank;
+  export let bankActive;
 
   let overlayDesign; 
 
@@ -24,9 +24,9 @@ import { localInputStore } from '../../../stores/control-surface-input.store.js'
     return array;
   }
 
-  grid.subscribe(grid => {
-    const settings = grid.used.find(controller => controller.id == id);
-    if(settings !== undefined) controlElementSettings = settings.banks[bank];
+  runtime.subscribe(runtime => {
+    const settings = runtime.find(controller => controller.id == id);
+    if(settings !== undefined) controlElementSettings = settings.banks[bankActive];
   })
 
  

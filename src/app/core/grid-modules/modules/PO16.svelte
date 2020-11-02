@@ -29,11 +29,10 @@
     return array;
   }
 
-  function handleEventParamChange(elementNumber, controlNumber){
-    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
-        const index = controlNumber.indexOf(elementNumber);
-        return selectedElement.eventparam[index]
+  function handleEventParamChange(static_elementNumber, input_elementNumber){
+    if(static_elementNumber == input_elementNumber){
+      if(dx == selectedElement.dx && dy == selectedElement.dy){
+        return selectedElement.eventParam;
       }
     }
   }
@@ -41,6 +40,7 @@
   onMount(()=>{
     localInputStore.subscribe((values)=>{
       selectedElement = values;
+      console.log(selectedElement)
     });
 
     if(id !== undefined && (id.length > 4)){
@@ -54,13 +54,13 @@
 </script>
 
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
+<div id={id} draggable={$appSettings.layoutMode} style="transform: rotate({rotation+'deg'})">
 
   <slot></slot>
 
   <div
     use:select={[id]}
-    class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
+    class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions " 
     style="--module-size: {moduleWidth+'px'}" 
     >
@@ -70,12 +70,12 @@
         {#each control_block(4) as element}
           <div class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} 
+              eventInput={handleEventParamChange((block * 4) + element, selectedElement.elementNumber)} 
               userInput={valueChange[((block * 4) + element)]} 
               size={$appSettings.size}
               {color}/>
             <Potentiometer 
-              eventInput={handleEventParamChange((block * 4) + element, selectedElement.controlNumber)} 
+              eventInput={handleEventParamChange((block * 4) + element, selectedElement.elementNumber)} 
               elementNumber={(block * 4) + element} 
               size={$appSettings.size}
               on:user-interaction={(e)=>{valueChange[((block * 4) + element)] = e.detail}}

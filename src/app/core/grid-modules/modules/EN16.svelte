@@ -27,8 +27,12 @@
     return array;
   }
 
-  function handleEventParamChange(elementNumber, selectedElement){
-   
+  function handleEventParamChange(static_elementNumber, input_elementNumber){
+    if(static_elementNumber == input_elementNumber){
+      if(dx == selectedElement.dx && dy == selectedElement.dy){
+        return selectedElement.eventParam;
+      }
+    }
   }
 
 
@@ -47,13 +51,13 @@
 
 </script>
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})">
+<div id={id} draggable={$appSettings.layoutMode} style="transform: rotate({rotation+'deg'})">
 
   <slot></slot>
 
   <div 
     use:select={[id]}
-    class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
+    class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions" 
     style="--module-size: {moduleWidth+'px'}"
     >
@@ -63,7 +67,7 @@
         {#each control_block(4) as element}
           <div class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange(block * 4 + element, selectedElement)}
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement.elementNumber)}
               userInput={0} 
               size={$appSettings.size}
               {color}/>

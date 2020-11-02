@@ -5,9 +5,8 @@ import { get } from 'svelte/store';
 import { runtime } from '../../stores/runtime.store.js';
 import { layout } from '../../stores/layout.store.js';
 
-export let selectedDisplay;
 
-export function dragndrop(node, selectedDisplay) {
+export function dragndrop(node, layoutMode) {
 
   let centerCanBeRemoved = false;
 
@@ -70,9 +69,7 @@ export function dragndrop(node, selectedDisplay) {
       }));
       
       node.dispatchEvent(new CustomEvent('dnd-invalid', {detail: {center: false}}));
-      node.addEventListener('dragover', handleDragOver);
-
-      console.log('GOING?')
+      window.addEventListener('dragover', handleDragOver);
       
     } else {
 
@@ -83,10 +80,10 @@ export function dragndrop(node, selectedDisplay) {
       if(centerCanBeRemoved){
         e.dataTransfer.setData("text", e.target.id);
         node.dispatchEvent(new CustomEvent('dnd-dragstart', {detail: {id: e.target.id, movedCell: movedCell}}));
-        node.addEventListener('dragover', handleDragOver);
+        window.addEventListener('dragover', handleDragOver);
       } else {
         node.dispatchEvent(new CustomEvent('dnd-invalid', {detail: {center: true, id: e.target.id, movedCell: movedCell}}));
-        node.removeEventListener('dragover', handleDragOver);
+        window.removeEventListener('dragover', handleDragOver);
       }
       
       console.log('YADA not good + ', 'dragvalidity: ', dragValidity, 'movable: ', movable)
@@ -94,7 +91,7 @@ export function dragndrop(node, selectedDisplay) {
   }
 
   function handleDragOver(e){
-        
+    console.log('here?')
     // DON'T ENABLE TO DROP ON AN OTHER MODULE
     if(e.target.children.length == 0){
 
@@ -169,8 +166,8 @@ export function dragndrop(node, selectedDisplay) {
         detail: {modul: modul}
       }));
     }
-    window.removeEventListener('dragstart', handleDragStart);
-    node.removeEventListener('dragover', handleDragOver);
+    
+    window.removeEventListener('dragover', handleDragOver);
     
   }
 
@@ -182,17 +179,22 @@ export function dragndrop(node, selectedDisplay) {
     window.removeEventListener('drop', handleDrop);
   }
 
-  node.addEventListener('dragstart', handleDragStart);
-  
+  //node.addEventListener('dragstart', handleDragStart);
+  //node.addEventListener('dragstart',handleDragStart);
+
+  window.addEventListener('dragstart', handleDragStart);
+
   return {
-    update(selectedDisplay){
-      if(selectedDisplay == 'settings'){
-        node.removeEventListener('dragstart', handleDragStart)
-      } else if(selectedDisplay == 'layout'){
-        node.addEventListener('dragstart', handleDragStart);
+
+    update(layoutMode){
+      if(!layoutMode){
+        window.removeEventListener('dragstart', handleDragStart)
+      } else {
+        window.addEventListener('dragstart', handleDragStart);
       }
-      console.log('selectedDisplay in action:',selectedDisplay);
+      console.log('layoutMode enabled in action:',layoutMode);
     },
+
     destroy() {
       window.removeEventListener('drop', handleDrop);
       window.removeEventListener('dragend', handleDragEnd);

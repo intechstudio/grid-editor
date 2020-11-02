@@ -297,7 +297,7 @@ export const GRID_PROTOCOL = {
   },
 
   detect_class_codes(array){
-    console.log(array);
+    //console.log(array);
     let _decoded = [];
     let id = '';
     array.forEach((elem, index)=>{

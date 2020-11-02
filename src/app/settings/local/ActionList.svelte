@@ -97,11 +97,12 @@
         box-sizing: border-box;
         width: 100%;
         user-select: none;
-        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 
     .item:last-child {
         margin-bottom: 0;
+        padding-bottom: 0;
     }
 
     .item:not(#grabbed):not(#ghost) {
@@ -188,7 +189,7 @@
                 data-id={(action.id ? action.id : JSON.stringify(action))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <div class="pb-2 text-white">{action.name}</div>
+                <!--<div class="pb-2 text-white">{action.name}</div>-->
                 <div class="wrapper">
                     <div>
                         <div class="invisible text-xs">Order</div>

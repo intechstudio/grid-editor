@@ -123,7 +123,7 @@ export var LAYOUT = {
           layoutCell.id = gridController.id;
           layoutCell.isConnectedByUsb = gridController.isConnectedByUsb;
           layoutCell.fwVersion = gridController.fwVersion;
-          layoutCell.rotation = gridController.rotation;
+          layoutCell.rot = gridController.rot;
         }
       });
     });
@@ -205,14 +205,14 @@ export var LAYOUT = {
 
     grid.used.map((used)=>{
       if(used.id == menuOnModuleWithId){
-        used.rotation = rotation;
+        used.rot = rot;
       }
       return used;
     })
 
     grid.layout.map((layout)=>{
       if(layout.id == menuOnModuleWithId){
-        layout.rotation = rotation;
+        layout.rot = rot;
       }
       return layout;
     })

@@ -231,6 +231,7 @@
 
       // local input update (user interaction)
       if(DATA.EVENT){
+//        console.log(DATA.EVENT);
         if(DATA.EVENT.EVENTTYPE !== 1){
           localInputStore.update((store)=>{
             store.dx = DATA.BRC.DX;
@@ -238,6 +239,7 @@
             store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
             store.eventParam = DATA.EVENT.EVENTPARAM;   
             store.eventType = DATA.EVENT.EVENTTYPE;
+            
             return store;
           })
         }

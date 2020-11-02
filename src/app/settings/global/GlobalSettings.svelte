@@ -110,7 +110,8 @@
 
 </style>
 
-<div class="inline-block primary rounded-lg p-4 m-4 z-20">
+<div class="flex">
+<div class="inline-block flex-grow-0 primary rounded-lg p-4 m-4 z-50">
 
   <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
     <div class="mr-2">Global Settings</div>
@@ -129,7 +130,7 @@
             on:click={()=>{changeSelected(tab)}} 
             class:shadow-md={selected === tab}
             class:bg-highlight={selected === tab}
-            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300 focus:outline-none">
+            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400 focus:outline-none">
             {tab+1}
           </button>
         {/each}
@@ -148,11 +149,24 @@
       </div>
     </div>
 
+    
+
     <hr class="text-secondary border-none h-1 rounded bg-secondary m-2">
 
     
       
   </div>
 
+  {#if selected == -1}
+
+    <div class="text-important m-2 flex items-center">
+      <span class="flicker pr-2">⚠️</span>
+      <span>Please select a bank to start configuration!</span>
+    </div>
+  {/if}
+  
+  {#if selected !== -1}
   <Commands MODE={'GLOBAL'}/>
+  {/if}
+</div>
 </div>

@@ -1,7 +1,7 @@
 import { writable, derived } from 'svelte/store';
 
 export const bankActiveStore = writable({
-  bankActive: -1
+  bankActive: 0
 });
 
 export const numberOfModulesStore = writable();

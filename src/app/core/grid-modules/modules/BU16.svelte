@@ -29,11 +29,10 @@
     return array;
   }
 
-  function handleEventParamChange(elementNumber, controlNumber){
-    if(elementNumber !== undefined && controlNumber !== undefined && selectedElement.eventparam !== undefined) {
-      if(controlNumber.indexOf(elementNumber) !== -1 && moduleId == selectedElement.position){
-        const index = controlNumber.indexOf(elementNumber);
-        return selectedElement.eventparam[index]
+  function handleEventParamChange(static_elementNumber, input_elementNumber){
+    if(static_elementNumber == input_elementNumber){
+      if(dx == selectedElement.dx && dy == selectedElement.dy){
+        return selectedElement.eventParam;
       }
     }
   }
@@ -54,13 +53,13 @@
 </script>
 
 
-<div id={id} draggable={$appSettings.selectedDisplay == 'layout'} style="transform: rotate({rotation+'deg'})" >
+<div id={id} draggable={$appSettings.layoutMode} style="transform: rotate({rotation+'deg'})" >
 
   <slot></slot>
 
   <div
     use:select={[id]}
-    class:disable-pointer-events={$appSettings.selectedDisplay == 'layout'}
+    class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions" 
     style="--module-size: {moduleWidth+'px'}" 
     >

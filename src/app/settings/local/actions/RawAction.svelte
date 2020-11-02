@@ -15,12 +15,17 @@
 
     // this is validated by hitting the send button. no extra validation happens, experimental function.
 
-    let _PARAMETERS = action.parameters;
-    _PARAMETERS = Array.from(action.parameters).map(p => {
-      return p.charCodeAt(0);
-    })
+    let _PARAMETERS = action.parameters.split('\n');
+    _PARAMETERS = _PARAMETERS.map(param => {
+      return param = Array.from(param).map(p => {
+        return p.charCodeAt(0);
+      })
+    });
 
-    let serialized = GRID_PROTOCOL.configure_raw(_PARAMETERS);
+    let serialized = [];
+    _PARAMETERS.forEach(param => {
+      serialized.push(...GRID_PROTOCOL.configure_raw(param))
+    })
 
     dispatch('send',{
       action: {
