@@ -20,6 +20,13 @@ jobs:
           ref: ''
           submodules: true
 
+      - uses: actions/download-artifact@v2
+        with:
+          name: nigthly
+          
+      - name: Display structure of downloaded files
+        run: ls -R
+
       - name: Setup NodeJs
         uses: actions/setup-node@v1
         with:
@@ -50,7 +57,4 @@ jobs:
       - name: See directory
         run: ls dist/*.*
 
-      - uses: actions/download-artifact@v2
-          
-      - name: Display structure of downloaded files
-        run: ls -R
+      
