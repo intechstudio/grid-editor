@@ -63,30 +63,40 @@
 
   function renderGlobalConfiguration(){
     if($runtime[0]){
-      if($runtime[0].global !== ""){
+      if(Object.keys($runtime[0].global).length !== 0){
         globalData = $runtime[0].global;
+        updateRuntimeWithGlobalConfig(globalData);
       } else {
+        // could be expanded the whole function to fetch global settings from all the modules
         const fetch = runtime.fetchGlobalConfig('7f7f', 'ff');
         serialComm.write(fetch);
       }
     }
   }
 
+  function updateRuntimeWithGlobalConfig(globalData){
+    runtime.update(runtime => {
+      runtime.forEach(controller => {
+        controller.global = globalData;
+      })
+      return runtime;
+    });
+  }
+
   onMount(()=>{
 
+    // triggers on successful runtime.fetchGlobalConfig
     globalConfigReportStore.subscribe(store => {
       globalData = store; 
-      // load to runtime all the shit you see
-      $runtime.forEach(controller => {
-        controller.global = store;
-        //renderGlobalConfiguration();
-      });
+      // load to runtime all the controllers you see
+      console.log('LOAD RUNTIME...', store, $runtime)
+      updateRuntimeWithGlobalConfig(store);
+      renderGlobalConfiguration();
     })
 
-    // on init serial port connected module change run this!
-    numberOfModulesStore.subscribe(() => {
-      const fetch = runtime.fetchGlobalConfig('7f7f', 'ff');
-      serialComm.write(fetch);
+    // on init and on module change serial port connected module change run this!
+    numberOfModulesStore.subscribe((number) => {
+      renderGlobalConfiguration();
     })
 
     // this is very similiar to local input store, on trigger check runtime for config
@@ -94,8 +104,6 @@
       selected = store.bankActive;
       renderGlobalConfiguration();
     })
-
-
 
   })
 
@@ -115,7 +123,6 @@
 
   <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
     <div class="mr-2">Global Settings</div>
-    <Tooltip text={"A 'Bank' refers to an independently customisable mode of a given Grid module. <br><br> At default you have four Banks available to you on each Grid module. <br><br> Banks store their settings independently from each other, so you can configure multiple different setups and switch between them on the fly. <br><br> You can switch between Banks quickly by pressing the Bank button located on the side opposite from the USB port."}></Tooltip>
   </div>
 
   <div class="flex flex-col mt-4">

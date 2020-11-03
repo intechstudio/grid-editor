@@ -40,13 +40,11 @@
   onMount(()=>{
     localInputStore.subscribe((values)=>{
       selectedElement = values;
-      console.log(selectedElement)
     });
 
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
-     
     }
 
   });

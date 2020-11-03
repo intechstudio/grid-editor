@@ -168,6 +168,8 @@
     const COMMAND = parseInt(action.parameters.COMMANDCHANNEL).toString(16)[0];
 
     validate_midirelative(action.parameters);
+
+    console.log(action.parameters)
     
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },

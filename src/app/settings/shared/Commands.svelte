@@ -54,7 +54,7 @@
 
 <div class="bg-primary flex flex-col rounded-lg z-20">
   <div class="flex flex-grow justify-between m-2 rounded-lg">
-    <div class="flex">
+    <div class="flex pr-1">
       <button 
         on:click={handleStore} 
         class:disabled={!$commands[MODE+'STORE'].valid} 
@@ -71,7 +71,7 @@
         <div class:clicked={$commands[MODE+'STORE'].msg == 'wait'} class="transition-all duration-500 delay-200 ease-in-out">Store</div>
       </button>
     </div>
-    <div class="flex items-center">
+    <div class="pl-1 flex items-center">
       <button 
       on:click={handleClear} 
       class:disabled={$commands[MODE+'CLEAR'].msg == 'wait'} 

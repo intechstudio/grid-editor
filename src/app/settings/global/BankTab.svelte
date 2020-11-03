@@ -100,6 +100,7 @@
 
   <div class="flex flex-col">
 
+    <!--
     <div class="p-2 my-1">
       <div class="mb-1 text-gray-700">Name</div>
       <input 
@@ -108,7 +109,7 @@
         placeholder="Set bank name..."
         >
     </div>
-
+-->
 
     <div class="flex justify-between text-white p-2 my-1 items-center">
       <div class="text-gray-200 ">

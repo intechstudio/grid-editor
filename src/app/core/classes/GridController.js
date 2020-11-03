@@ -111,7 +111,7 @@ export var GRID_CONTROLLER = {
         isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
         banks: this.createElementSettings(moduleType), // consider naming to "local"
-        global: ""
+        global: {}
       }
       
     }

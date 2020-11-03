@@ -12,7 +12,9 @@
 
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { bankActiveStore, globalConfigReportStore, localInputStore } from '../../stores/control-surface-input.store.js';
+  import { bankActiveStore, bankColorStore } from '../../stores/control-surface-input.store.js';
+  import { runtime } from '../../stores/runtime.store.js';
+
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -44,8 +46,10 @@
       bankActive = store.bankActive;
     })
 
-    globalConfigReportStore.subscribe(store => {
-      bankColors = store.bankColors;
+    runtime.subscribe(store => {
+      if(store.length !== 0){
+        bankColors = store[0].global.bankColors;
+      }
     })
     
   })
@@ -64,7 +68,6 @@
       <ProfileLoadOverlay {id} {moduleWidth} {bank} {rotation}/>
     {/if}
     -->
-
 
   </svelte:component>
 {/if}

@@ -190,7 +190,8 @@
 
 <Titlebar>
   <SerialPort 
-    bind:runtime={$runtime} 
+    bind:runtime={$runtime}
+    bind:layout={$layout}
     on:change={(e) => {
       $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
     }}
@@ -200,10 +201,9 @@
           return grid;
         })
         layout.update(cell => {
-          if(cell.id == e.detail.removed.id){
-            cell.id = "";
-            cell.isConnectedByUsb = false;
-          }
+          let removed = cell.find(c => c.id == e.detail.removed.id)
+          removed.id = "";
+          removed.isConnectedByUsb = false;
           return cell; 
         });
         $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);

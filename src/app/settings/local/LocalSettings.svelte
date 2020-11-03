@@ -88,6 +88,7 @@
           actions = []
         }
 
+
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
     });
@@ -156,7 +157,7 @@
           ]
           
           elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
-
+          
           commands.validity("LOCALSTORE",true)
 
           let array = [];
@@ -228,7 +229,11 @@
           runtime.forEach(controller =>{
             if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
               let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-              events.config = store.cfgs
+              // upon connecting many modules, the instant messages sent back to editor may be read as wrong event for specific control elements.
+              // may be a bug, further test is required
+              if(events){
+                events.config = store.cfgs
+              }
             }
           })
           return runtime;
@@ -271,7 +276,7 @@
 
 <div class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
-    <div class="text-xl">Element Settings</div>
+    <div class="text-xl">Local Settings</div>
     <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
     <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
   </div>
@@ -352,7 +357,7 @@
 
       
 
-      <div style="max-height:300px" class="mt-4 pr-2 border-secondary overflow-y-scroll overflow-x-hidden">
+      <div style="max-height:400px" class="mt-4 pr-2 border-secondary overflow-y-scroll overflow-x-hidden">
         <ActionList
           {actions} 
           let:action 
@@ -387,7 +392,7 @@
   {/if}
 
   {#if inputStore.elementNumber !== -1}
-    <Commands MODE={'GLOBAL'}/>
+    <Commands MODE={'LOCAL'}/>
   {/if}
 
 

@@ -22,6 +22,7 @@
   let PORT = {path: 0};
 
   export let runtime = [];
+  export let layout = [];
 
   let selectedPort = "";
 
@@ -30,10 +31,10 @@
     setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = runtime.find(g => (Date.now() - g.alive > 1000) && !g.virtual);
+      let _removed = runtime.find(g => (Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2)) && !g.virtual);
 
       let _processgrid = runtime.map(g => {
-        if(Date.now() - g.alive > 1000 && !g.virtual){
+        if(Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
@@ -120,7 +121,7 @@
       })
 
       serialComm.update((store)=>{
-        store.open = 'none';
+        store.open = undefined;
         store.isEnabled = false;
         store.list = [];
         return store
@@ -128,7 +129,7 @@
 
       // reset UI
       runtime = [];
-      //layout = [];
+      layout = [];
 
       PORT = {path: 0};
     }
@@ -216,6 +217,7 @@
           if(store.bankActive == -1){ 
             store.bankActive = 0 
           }
+          console.log('is this the bad guy?')
           return store;
         });
       }
@@ -231,17 +233,18 @@
 
       // local input update (user interaction)
       if(DATA.EVENT){
-//        console.log(DATA.EVENT);
         if(DATA.EVENT.EVENTTYPE !== 1){
-          localInputStore.update((store)=>{
-            store.dx = DATA.BRC.DX;
-            store.dy = DATA.BRC.DY;
-            store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
-            store.eventParam = DATA.EVENT.EVENTPARAM;   
-            store.eventType = DATA.EVENT.EVENTTYPE;
-            
-            return store;
-          })
+          // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
+          if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM){
+            localInputStore.update((store)=>{
+              store.dx = DATA.BRC.DX;
+              store.dy = DATA.BRC.DY;
+              store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
+              store.eventParam = DATA.EVENT.EVENTPARAM;   
+              store.eventType = DATA.EVENT.EVENTTYPE;
+              return store;
+            })
+          }
         }
       }
 
@@ -250,6 +253,7 @@
         if(DATA.BANKACTIVE.BANKNUMBER !== 255){
           bankActiveStore.update(store => {
             store.bankActive = DATA.BANKACTIVE.BANKNUMBER;
+            console.log('this is somehow triggered')
             return store
           });
         }

@@ -1,7 +1,10 @@
 import { writable, derived } from 'svelte/store';
-
 export const bankActiveStore = writable({
   bankActive: 0
+});
+
+export const bankColorStore = writable({
+  bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]]
 });
 
 export const numberOfModulesStore = writable();
