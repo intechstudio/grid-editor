@@ -90,6 +90,7 @@
   let updateNotification = false;
   let updateReady = false;
   let updateProgress = 0;
+  let updateError = "";
 
   let serial; // debug purposes
   let raw_serial; // debug purposes
@@ -227,12 +228,16 @@
           <button class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" id="restart-button" on:click={restartApp}>
             Restart
           </button>
-        {:else}
+        {:else if updateProgress}
           <p class="text-xl pb-2">✨New update is available! </p>
           <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
           {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
+        {:else if updateError !== ""}
+          <p class="text-xl pb-2">Error during self-update.</p>
+          <p class="py-2">Please update manually: <a href="https://github.com/intechstudio/grid-editor/releases/latest" target="_BLANK">grid-editor</a></p>
+          <p class="py-2">{updateError}</p>
         {/if}
-        
+
         <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
           Close
         </button>

@@ -34,9 +34,6 @@
         class="text-white px-2 py-1 mx-2 rounded border-highlight hover:bg-highlight-400 focus:outline-none ">
         debug
       </button>
-      <buton>
-        info
-      </buton>
 
       <slot></slot>
 
@@ -48,11 +45,11 @@
 </header>
 
 <style>
-  .draggable{
+  :global(.draggable){
     -webkit-app-region:drag;
   }
 
-  .not-draggable{
+  :global(.not-draggable){
     -webkit-app-region:no-drag;
   }
 
