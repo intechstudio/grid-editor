@@ -389,13 +389,13 @@
       {#if $appSettings.layoutMode}
         <p> 
           <span class="flicker">⚠️</span> 
-          Please close the <i class="pr-1">Virtual Modules</i> panel to select control elements.
+          <span>Please close the <i class="pr-1">Virtual Modules</i> panel to select control elements.</span>
         </p>
       {/if}
       {#if $runtime.length == 0}
         <p> 
           <span class="flicker">⚠️</span>
-          Add a module to access <i class="pr-1">Local Settings</i>!
+          <span>Add a module to access <i class="pr-1">Local Settings</i>!</span>
         </p>  
       {/if}
       {#if $runtime.length > 0 && !$appSettings.layoutMode}

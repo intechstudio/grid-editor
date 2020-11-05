@@ -16,6 +16,8 @@
   import Tooltip from '../../shared/helpers/Tooltip.svelte';
   
   import { onMount } from 'svelte';
+  
+  import { tour } from '../../stores/tour.store';
 
   let selected = 0;
 
@@ -123,7 +125,7 @@
 </style>
 
 <div class="flex">
-<div class="inline-block flex-grow-0 primary rounded-lg p-4 m-4 z-50">
+<div class:tour={$tour.selectedName == 'GlobalSettings'} class="inline-block flex-grow-0 primary rounded-lg p-4 m-4 z-50">
 
   <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
     <div class="mr-2">Global Settings</div>

@@ -62,6 +62,7 @@
   import { dragndrop } from './app/layout/actions/dnd.action.js';
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
+import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
 
 
   /*
@@ -138,8 +139,11 @@
 {/if}
 
 {#if !$appSettings.isElectron}
+  <WebsiteNav/>
   <Tour/>
 {/if}
+
+
 
 {#if $appSettings.isElectron}
   <Titlebar>
@@ -299,9 +303,12 @@
     </div>
 
     {#if !$appSettings.layoutMode}
+      
       <div class="opacity-25 text-4xl text-white absolute right-0 bottom-0 mr-3 font-roboto font-bold">
-        Alpha
+        {#if $appSettings.isElectron}Alpha{/if}
+        {#if !$appSettings.isElectron}Demo{/if}
       </div>
+      
     {/if}
 
     
