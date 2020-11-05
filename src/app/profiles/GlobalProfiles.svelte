@@ -6,7 +6,7 @@
   
   const electron = require('electron'); 
   const path = require('path'); 
-  const fs = require('fs'); 
+  //const fs = require('fs'); 
 
   const { ipcRenderer } = require('electron');
 
@@ -35,6 +35,7 @@
     });
   }
 
+  /**
   function loadFilesFromDirectory(path){
     PROFILES = [];
     fs.readdir(path, (err, files) => {
@@ -136,7 +137,7 @@
       })
     }
   }
-
+*/
   onMount(async ()=> {
     PROFILE_PATH = await ipcRenderer.invoke('getStoreValue', 'profiles_folder'); 
     if(PROFILE_PATH) loadFilesFromDirectory(PROFILE_PATH);

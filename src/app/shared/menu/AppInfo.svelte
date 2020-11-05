@@ -17,6 +17,7 @@
   }
 
   onMount(()=>{
+
     ipcRenderer.send('app_version');
     ipcRenderer.on('app_version', (event, arg) => {
       ipcRenderer.removeAllListeners('app_version');
@@ -25,6 +26,7 @@
     });
     trackEvent('Firmware', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
     trackEvent('OS', process.platform)
+
   })
 
   

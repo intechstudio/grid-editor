@@ -83,7 +83,7 @@ export var GRID_CONTROLLER = {
       isConnectedByUsb: "",
       isLanding: "",
       banks: [], // consider naming to "local"
-      global: ""
+      global: {}
     }
 
     // generic check, code below if works only if all parameters are provided
@@ -111,7 +111,10 @@ export var GRID_CONTROLLER = {
         isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
         banks: this.createElementSettings(moduleType), // consider naming to "local"
-        global: {}
+        global: {  
+          bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+          bankEnabled: [true,true,true,true]
+        }
       }
       
     }

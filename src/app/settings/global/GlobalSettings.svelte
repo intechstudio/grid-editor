@@ -26,8 +26,12 @@
   function handleColorChange(e){
     const PARAMS = e.detail.parameters;
 
-    $runtime.forEach((controller) => {
-      controller.global.bankColors[PARAMS[0].NUM] = [PARAMS[1].RED, PARAMS[2].GRE, PARAMS[3].BLU];
+    runtime.update(runtime => {
+      runtime.forEach(controller => {
+        controller.global.bankColors[PARAMS[0].NUM] = [PARAMS[1].RED, PARAMS[2].GRE, PARAMS[3].BLU];
+        console.log(controller, PARAMS);
+      })
+      return runtime;
     });
 
     console.log('$runtime (color) change', $runtime)

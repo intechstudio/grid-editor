@@ -44,6 +44,8 @@
     rgb[1] = Math.floor(rgba.detail.g * rgba.detail.a)
     rgb[2] = Math.floor(rgba.detail.b * rgba.detail.a)
 
+    console.log(rgba);
+
     dispatch('BANKCOLOR', {className: 'BANKCOLOR', parameters: [
       {'NUM': selected}, 
       {'RED': rgb[0]}, 

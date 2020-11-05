@@ -1,9 +1,5 @@
 <script>
 
-  const { ipcRenderer, app } = require('electron');
-  const { getGlobal } = require('electron').remote;
-  const trackEvent = getGlobal('trackEvent');
-
   import { fade } from 'svelte/transition';
 
   /*
@@ -33,23 +29,16 @@
   *   svelte components
   */
 
-  import Menu from './app/shared/menu/Menu.svelte';
   import GlobalSettings from './app/settings/global/GlobalSettings.svelte';
   import LocalSettings from './app/settings/local/LocalSettings.svelte';
   import Form from './app/shared/feedback/Form.svelte';
   import Debug from './app/shared/debug/Debug.svelte';
+  import Updater from './app/shared/updater/Updater.svelte';
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
-  import LayoutMenu from './app/layout/components/LayoutMenu.svelte';
-  import Commands from './app/settings/shared/Commands.svelte';
 
   import MODULE from './app/core/grid-modules/MODULE.svelte';
-
-  import GlobalProfiles from './app/profiles/GlobalProfiles.svelte';
-
-  import MinMaxClose from './app/shared/menu/MinMaxClose.svelte';
-
 
   /*
   *   layout helper functions
@@ -70,7 +59,6 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop } from './app/layout/actions/dnd.action.js';
-  import { localInputStore, bankActiveStore } from './app/stores/control-surface-input.store';
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
 
@@ -84,20 +72,10 @@
 
   // code base versions
   let fwVersion;
-  let appVersion;
 
-  // self update
-  let updateNotification = false;
-  let updateReady = false;
-  let updateProgress = 0;
-  let updateError = "";
-
-  let serial; // debug purposes
   let raw_serial; // debug purposes
 
   $: gridsize = $appSettings.size * 106.6 + 10;
-
-  //  $: console.log($runtime);
 
 
   // The green highlight around grid for valid drop area.
@@ -110,18 +88,7 @@
   let isMenuOpen = false;
   // Variable for context menu actions (set usb module).
   let menuOnModuleWithId;
-  
-  // Communicate with exported serialport function.
-  let serialPortComponent;
-	
-  /* 
-  *   Render modules which are in the $grid.used array. 
-  */
 
-  function restartApp(){
-    ipcRenderer.send('restart_app');
-  }
-  
   onMount(()=>{
 
     createPanZoom(map, {
@@ -142,7 +109,6 @@
       
     });
 
-    //startFresh();
 
     appSettings.subscribe((store)=>{
       fwVersion = store.version;
@@ -153,30 +119,7 @@
         $layout = LAYOUT.removePossiblePlacementOutlines($layout)
       }
     });
-   
-
-    ipcRenderer.on('update_available', () => {
-      ipcRenderer.removeAllListeners('update_available');
-      console.log('update available')
-      updateNotification = true;
-    });
-    
-    ipcRenderer.on('update_downloaded', () => {
-      ipcRenderer.removeAllListeners('update_downloaded');
-      console.log('update downloaded')
-      updateReady = true;
-    });
-
-    ipcRenderer.on('update_progress', (event,arg) => {
-      updateProgress = Math.floor(arg.percent);
-      console.log('update progress...', event, arg)
-    });
-
-    ipcRenderer.on('update_error', (event, arg) => {
-      updateError = arg;  
-      console.log('update error...', updateError)
-    });
-    
+       
     appSettings.update(store => {
       store.selectedDisplay = 'settings';
       return store;
@@ -189,66 +132,46 @@
 
 <Tailwindcss />
 
-<Titlebar>
-  <SerialPort 
-    bind:runtime={$runtime}
-    bind:layout={$layout}
-    on:change={(e) => {
-      $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
-    }}
-    on:coroner={(e)=>{
-        runtime.update(grid => {
-          grid = e.detail.usedgrid;
-          return grid;
-        })
-        layout.update(cell => {
-          let removed = cell.find(c => c.id == e.detail.removed.id)
-          removed.id = "";
-          removed.isConnectedByUsb = false;
-          return cell; 
-        });
-        $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
+{#if $appSettings.isElectron}
+ <Updater/>
+{/if}
+
+{#if $appSettings.isElectron}
+  <Titlebar>
+    <SerialPort 
+      bind:runtime={$runtime}
+      bind:layout={$layout}
+      on:change={(e) => {
+        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
+      }}
+      on:coroner={(e)=>{
+          runtime.update(grid => {
+            grid = e.detail.usedgrid;
+            return grid;
+          })
+          layout.update(cell => {
+            let removed = cell.find(c => c.id == e.detail.removed.id)
+            removed.id = "";
+            removed.isConnectedByUsb = false;
+            return cell; 
+          });
+          $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
+        }
       }
-    }
-  />
-</Titlebar>
+    />
+  </Titlebar>
+{/if}
 
 <main id="app" class="flex w-full h-full flex-row overflow-hidden">
 
   <section id="main" class="flex flex-col w-full">
     
+    {#if $appSettings.isElectron} 
+      <FirmwareCheck />
 
-    {#if updateNotification} <!--updateNotification-->
-    <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
-      <div id="notification" style="width:300px" class="p-4 rounded-lg">    
-        {#if updateReady} <!--updateReady-->
-          <p class="text-xl pb-2">🥂Update Downloaded!</p>
-          <p class="py-2">It will be installed on restart.</p>
-          <p class="py-2">Restart now?</p>
-          <button class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" id="restart-button" on:click={restartApp}>
-            Restart
-          </button>
-        {:else if updateProgress}
-          <p class="text-xl pb-2">✨New update is available! </p>
-          <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
-          {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
-        {:else if updateError !== ""}
-          <p class="text-xl pb-2">Error during self-update.</p>
-          <p class="py-2">Please update manually: <a href="https://github.com/intechstudio/grid-editor/releases/latest" target="_BLANK">grid-editor</a></p>
-          <p class="py-2">{updateError}</p>
-        {/if}
-
-        <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
-          Close
-        </button>
-        
-      </div>
-    </div>
+      <Form />
     {/if}
-
-    <FirmwareCheck />
-
-    <Form />
+    
 
     <div id="grid-main-container" style="" class="relative h-full">
 
@@ -271,7 +194,7 @@
             <GlobalSettings/>       
           </div>
 
-          {#if $runtime.length > 0}<PanInfo/>{/if}
+          {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
           
           <div class="flex w-4/12 flex-col m-4">
             <LocalSettings/>          
