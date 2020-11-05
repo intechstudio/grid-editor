@@ -233,7 +233,7 @@
 
       // local input update (user interaction)
       if(DATA.EVENT){
-        if(DATA.EVENT.EVENTTYPE !== 1){
+        if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
           if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM){
             localInputStore.update((store)=>{

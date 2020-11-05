@@ -34,6 +34,7 @@
   import Form from './app/shared/feedback/Form.svelte';
   import Debug from './app/shared/debug/Debug.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
+  import Tour from './app/shared/helpers/Tour.svelte';
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
@@ -136,6 +137,10 @@
  <Updater/>
 {/if}
 
+{#if !$appSettings.isElectron}
+  <Tour/>
+{/if}
+
 {#if $appSettings.isElectron}
   <Titlebar>
     <SerialPort 
@@ -210,7 +215,9 @@
 
         on:dnd-dragstart={(e)=>{
           let moved = handledrag.start(e);
-          console.log('HAY')
+          if($runtime.length == 0 ){
+            current = 'dx:0;dy:0';
+          }
           if(moved !== '' || undefined){
             $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, moved);   
           }
@@ -218,7 +225,6 @@
 
         on:dnd-dragover={(e)=>{
           current = handledrag.over(e);
-          console.log('HEY')
         }}
 
         on:dnd-drop={(e)=>{
@@ -274,7 +280,6 @@
             class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
             class:canBeUsed={cell.canBeUsed && $appSettings.layoutMode}
             class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
-            class:isConnectedByUsb={cell.isConnectedByUsb}
             class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
             >
 

@@ -1,8 +1,12 @@
 <script>
 
+  import { fade } from 'svelte/transition';
+
   import { onMount, onDestroy } from 'svelte';
 
   import { runtime } from '../../stores/runtime.store.js';
+
+  import { tour } from '../../stores/tour.store';
 
   import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
@@ -17,6 +21,7 @@
   import { serialComm } from '../../core/serialport/serialport.store.js';
   import { commands } from '../shared/handshake.store.js';
   import Commands from '../shared/Commands.svelte';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
   let inputStore = {
     bankActive : -1,
@@ -256,7 +261,6 @@
     cursor: not-allowed;
   }
 
-  
   ::-webkit-scrollbar {
       height: 6px;
       width: 6px;
@@ -274,11 +278,13 @@
 
 </style>
 
-<div class="inline-block primary rounded-lg p-4 z-30 w-full">
+<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Local Settings</div>
-    <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
-    <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
+    {#if moduleId != '' && $localInputStore.elementNumber != undefined}
+      <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
+      <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
+    {/if}
   </div>
 
   {#if inputStore.elementNumber !== -1 && inputStore.bankActive !== -1}
@@ -286,7 +292,6 @@
 
   <!--
   <div class="flex flex-col px-2 my-4 w-full">
-  
     <div class="text-gray-700 flex py-1">
       <div>Name</div>
       <OverlayToggle type={'controlName'}/>
@@ -306,7 +311,7 @@
       Events
     </div>
 
-    <div class="flex mx-1 secondary rounded-lg shadow overflow-x-auto">
+    <div class:tour={$tour.selectedName == "Events"} class="flex mx-1 secondary  rounded-lg shadow overflow-x-auto">
       {#each events as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
@@ -328,10 +333,10 @@
 
       <div class="flex w-full">
 
-          <div class="flex flex-col xl:flex-row w-full justify-between"> 
+          <div  class="flex flex-col xl:flex-row w-full justify-between"> 
 
-            <div class="flex w-full xl:w-2/3">         
-              <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
+            <div   class="flex w-full xl:w-2/3">         
+              <select class:tour={$tour.selectedName == "Actions"} bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
                 {#each arrayOfSelectableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>
                 {/each}
@@ -379,14 +384,30 @@
   <hr  class="text-secondary h-1 border-none rounded bg-secondary m-2">
 
   {:else}
-  <div class="px-2 my-4 w-full text-important">
-    <span class="flicker">⚠️</span>
+  <div class="px-2 my-4 w-full text-white">
     <span class="px-1">
-      Select a 
-      {#if inputStore.elementNumber == -1}control element{/if} 
-      {#if inputStore.bankActive == -1 && inputStore.elementNumber == -1}and{/if}
-      {#if inputStore.bankActive == -1}bank{/if} 
-      to start configuration!
+      {#if $appSettings.layoutMode}
+        <p> 
+          <span class="flicker">⚠️</span> 
+          Please close the <i class="pr-1">Virtual Modules</i> panel to select control elements.
+        </p>
+      {/if}
+      {#if $runtime.length == 0}
+        <p> 
+          <span class="flicker">⚠️</span>
+          Add a module to access <i class="pr-1">Local Settings</i>!
+        </p>  
+      {/if}
+      {#if $runtime.length > 0 && !$appSettings.layoutMode}
+        <p>
+          <span class="flicker">⚠️</span> 
+          Select a 
+          {#if inputStore.elementNumber == -1}control element{/if} 
+          {#if inputStore.bankActive == -1 && inputStore.elementNumber == -1}and{/if}
+          {#if inputStore.bankActive == -1}bank{/if} 
+          to start configuration!
+        </p>
+      {/if}
     </span>
   </div>
   {/if}

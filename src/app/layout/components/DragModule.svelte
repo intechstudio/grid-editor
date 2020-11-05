@@ -8,6 +8,7 @@
   import { fade } from 'svelte/transition';
 
   import { appSettings } from '../../stores/app-settings.store';
+  import { tour } from '../../stores/tour.store';
 
   let toggle;
 
@@ -29,10 +30,15 @@
     from{ transform: rotate(0deg);}
     to{ transform: rotate(90deg);}
   }
+
+  .changeTour{
+    @apply border-2;
+    @apply border-red-500;
+  }
 </style>
 
 <div class="w-full flex flex-col justify-start items-start">
-  <div class="primary p-4 m-4 rounded-lg z-20">   
+  <div class:tour={$tour.selectedName == 'DragModule'} class:changeTour={$tour.selectedName == 'LocalSettings' && toggle} class="primary p-4 m-4 rounded-lg z-20">   
     <div class="absolute invisible">
       
         <PO16/> 
