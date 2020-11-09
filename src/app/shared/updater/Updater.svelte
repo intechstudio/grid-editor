@@ -45,7 +45,7 @@
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
       <div id="notification" style="width:300px" class="p-4 rounded-lg">    
         
-        {#if updateNotification}
+        {#if updateNotification && updateProgress !== 100}
           <p class="text-xl pb-2">✨New update is available!</p> 
           <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
           {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}

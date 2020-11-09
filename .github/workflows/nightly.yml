@@ -27,15 +27,22 @@ jobs:
 
       - name: Install dependencies
         run: npm i
-
-      - name: Build
-        run: npm run export
         env:
           # email stuff
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
 
+      - name: create env file
+        run: |
+          touch .env
+          echo EMAIL=${{secrets.EMAIL}} >> .env
+          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
+          echo UA=${{secrets.UA}} >> .env
+
+      - name: Build
+        run: npm run export
+        env:     
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
