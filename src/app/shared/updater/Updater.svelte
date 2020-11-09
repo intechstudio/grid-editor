@@ -44,18 +44,24 @@
 {#if updateNotification} <!--updateNotification-->
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
       <div id="notification" style="width:300px" class="p-4 rounded-lg">    
+        
+        {#if updateNotification}
+          <p class="text-xl pb-2">✨New update is available!</p> 
+          <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
+          {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
+        {/if}
+
         {#if updateReady} <!--updateReady-->
           <p class="text-xl pb-2">🥂Update Downloaded!</p>
           <p class="py-2">It will be installed on restart.</p>
           <p class="py-2">Restart now?</p>
-          <button class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" id="restart-button" on:click={restartApp}>
+          <button class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" 
+            id="restart-button" 
+            on:click={restartApp}>
             Restart
           </button>
-        {:else if updateProgress}
-          <p class="text-xl pb-2">✨New update is available! </p>
-          <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
-          {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
         {/if}
+
         {#if updateError !== ""}
           <p class="text-xl pb-2">💥Error during self-update!</p>
           <p class="py-2">Please update manually.</p>
