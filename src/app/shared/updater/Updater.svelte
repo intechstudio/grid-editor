@@ -1,7 +1,6 @@
 <script>
   const { ipcRenderer, app } = require('electron');
   const { getGlobal } = require('electron').remote;
-  const trackEvent = getGlobal('trackEvent');
 
   import { openInBrowser } from '../helpers/global-helper.js';
 

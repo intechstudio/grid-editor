@@ -9,7 +9,7 @@ const userId = store.get('userId') || uuidv4();
 // (re)save the userid, so it persists for the next app session.
 store.set('userId', userId)
 
-var usr = ua(process.env.UA, userId);
+var usr = ua("UA-151670067-3", userId);
 
 function trackEvent(category, action, label, value) {
   usr
