@@ -24,6 +24,13 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '10.16'
+          
+      - name: create env file
+        run: |
+          touch .env
+          echo EMAIL=${{secrets.EMAIL}} >> .env
+          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
+          echo UA=${{secrets.UA}} >> .env
 
       - name: Install dependencies
         run: npm i
@@ -32,13 +39,6 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
-
-      - name: create env file
-        run: |
-          touch .env
-          echo EMAIL=${{secrets.EMAIL}} >> .env
-          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
-          echo UA=${{secrets.UA}} >> .env
 
       - name: Build
         run: npm run export
