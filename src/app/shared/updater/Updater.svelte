@@ -3,6 +3,8 @@
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
 
+  import { openInBrowser } from '../helpers/global-helper.js';
+
   // self update
   let updateNotification = false;
   let updateReady = false;
@@ -53,10 +55,15 @@
           <p class="text-xl pb-2">✨New update is available! </p>
           <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
           {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
-        {:else if updateError !== ""}
-          <p class="text-xl pb-2">Error during self-update.</p>
-          <p class="py-2">Please update manually: <a href="https://github.com/intechstudio/grid-editor/releases/latest" target="_BLANK">grid-editor</a></p>
-          <p class="py-2">{updateError}</p>
+        {/if}
+        {#if updateError !== ""}
+          <p class="text-xl pb-2">💥Error during self-update!</p>
+          <p class="py-2">Please update manually.</p>
+          <button 
+            class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" 
+            on:click={()=> {openInBrowser('https://github.com/intechstudio/grid-editor/releases/latest')}}>
+              Latest Release
+            </button>
         {/if}
 
         <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
@@ -66,3 +73,41 @@
       </div>
     </div>
   {/if}
+
+
+<style>
+
+  #notification {
+    background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .loading:after {
+  content: ' .';
+  animation: dots 1s steps(5, end) infinite;}
+
+  @keyframes dots {
+    0%, 20% {
+      color: rgba(0,0,0,0);
+      text-shadow:
+        .25em 0 0 rgba(0,0,0,0),
+        .5em 0 0 rgba(0,0,0,0);}
+    40% {
+      color: white;
+      text-shadow:
+        .25em 0 0 rgba(0,0,0,0),
+        .5em 0 0 rgba(0,0,0,0);}
+    60% {
+      text-shadow:
+        .25em 0 0 white,
+        .5em 0 0 rgba(0,0,0,0);}
+    80%, 100% {
+      text-shadow:
+        .25em 0 0 white,
+        .5em 0 0 white;}
+      }
+
+  </style>
