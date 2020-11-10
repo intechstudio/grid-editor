@@ -211,6 +211,7 @@
         globalConfigReportStore.update(store => {
           store.bankColors = DATA.BANKCOLOR.map(bank => {return [bank.RED, bank.GRE, bank.BLU]});
           store.bankEnabled = DATA.BANKENABLED.map(bank => {return bank.ISENABLED == 1 ? true : false});
+          store.isVirtual = false;
           return store;
         });
         bankActiveStore.update(store => { 

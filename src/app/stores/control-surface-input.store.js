@@ -10,9 +10,10 @@ export const bankColorStore = writable({
 export const numberOfModulesStore = writable();
 
 export const globalConfigReportStore = writable({
-  bankEnabled:[true,true,true,true], 
+  bankEnabled: [true,true,true,true], 
   bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
-  bankNames:['','','',''],
+  bankNames: ['','','',''],
+  isVirtual: true
 });
 
 export const localConfigReportStore = writable({

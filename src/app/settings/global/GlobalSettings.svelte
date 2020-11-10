@@ -68,8 +68,9 @@
   }
 
   function renderGlobalConfiguration(){
+   
     if($runtime[0]){
-      if(Object.keys($runtime[0].global).length !== 0){
+      if(Object.keys($runtime[0].global).length !== 0 && (!globalData.isVirtual || $runtime[0].virtual)){
         globalData = $runtime[0].global;
         updateRuntimeWithGlobalConfig(globalData);
       } else {
