@@ -305,7 +305,7 @@ import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
     {#if !$appSettings.layoutMode}
       
       <div class="opacity-25 text-4xl text-white absolute right-0 bottom-0 mr-3 font-roboto font-bold">
-        {#if $appSettings.isElectron && !$appSettings.debugMode}Alpha{/if}
+        {#if $appSettings.isElectron && !$appSettings.debugMode}Beta{/if}
         {#if !$appSettings.isElectron}Demo{/if}
       </div>
       

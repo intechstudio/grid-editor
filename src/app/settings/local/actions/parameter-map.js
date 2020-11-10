@@ -71,7 +71,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action){
             {value: 'P1', info: 'Reversed Control Number'}
           ],
           [
-            {value: 'P2', info: 'Absolute Value Change'},
+            {value: 'P2', info: 'Absolute Value'},
           ]
         ]
       }
@@ -141,7 +141,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action){
             {value: 'P1', info: 'Reversed Control Number'}
           ],
           [
-            {value: 'P2', info: 'Absolute Value Change'},
+            {value: 'P2', info: 'Absolute Value'},
           ]
         ]
       }
@@ -235,8 +235,8 @@ export const buildOptionList = function(elementInfo, eventInfo, action){
       if(eventType == "DP" || eventType == "DR" || (eventType == "INIT" && elementType == "B")){
         options =  [
           [
-            {value: 'B0', info: 'This LED.'}, 
-            {value: 'B1', info: 'Reversed LED.'}, 
+            {value: 'B0', info: 'This LED'}, 
+            {value: 'B1', info: 'Reversed LED'}, 
           ],
           [
             {value: '01', info: 'A Layer'}, 
@@ -256,8 +256,8 @@ export const buildOptionList = function(elementInfo, eventInfo, action){
       if(eventType == "AVC7" || eventType == "INIT"){
         options =  [
           [
-            {value: 'E0', info: 'This LED.'}, 
-            {value: 'E1', info: 'Reversed LED.'}, 
+            {value: 'E0', info: 'This LED'}, 
+            {value: 'E1', info: 'Reversed LED'}, 
           ],
           [
             {value: '01', info: 'A Layer'}, 
@@ -284,7 +284,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action){
             {value: '02', info: 'B Layer'},  
           ],
           [
-            {value: 'P2', info: 'Absolute Value Change'},
+            {value: 'P2', info: 'Absolute Value'},
           ]
         ]
       }

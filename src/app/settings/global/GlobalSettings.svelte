@@ -70,6 +70,7 @@
   function renderGlobalConfiguration(){
    
     if($runtime[0]){
+      // here rework is needed. switching up from working with virtual modules to real modules may break the config fetch
       if(Object.keys($runtime[0].global).length !== 0 && (!globalData.isVirtual || $runtime[0].virtual)){
         globalData = $runtime[0].global;
         updateRuntimeWithGlobalConfig(globalData);

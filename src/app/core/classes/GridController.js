@@ -10,8 +10,8 @@ const TPEA = {
     value: '5',
     code: 'DR'
   },
-  absolute_value_change: {
-    desc: 'absolute value change',
+  value_change: {
+    desc: 'value change',
     value: '1',
     code: 'AVC7'
   },
@@ -26,10 +26,10 @@ export var GRID_CONTROLLER = {
 
   elementEvents: {
     button: [ TPEA.init, TPEA.down, TPEA.up ],
-    potentiometer: [ TPEA.init, TPEA.absolute_value_change ],
-    fader: [ TPEA.init, TPEA.absolute_value_change ],
+    potentiometer: [ TPEA.init, TPEA.value_change ],
+    fader: [ TPEA.init, TPEA.value_change ],
     blank: [],
-    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.absolute_value_change ]
+    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.value_change ]
   },
 
   moduleElements: {
