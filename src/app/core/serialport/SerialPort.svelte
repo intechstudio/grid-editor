@@ -217,7 +217,6 @@
           if(store.bankActive == -1){ 
             store.bankActive = 0 
           }
-          console.log('is this the bad guy?')
           return store;
         });
       }
@@ -235,7 +234,9 @@
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
-          if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM){
+          // if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM)
+          // now not using due to changed protocol
+          {
             localInputStore.update((store)=>{
               store.dx = DATA.BRC.DX;
               store.dy = DATA.BRC.DY;
@@ -253,7 +254,6 @@
         if(DATA.BANKACTIVE.BANKNUMBER !== 255){
           bankActiveStore.update(store => {
             store.bankActive = DATA.BANKACTIVE.BANKNUMBER;
-            console.log('this is somehow triggered')
             return store
           });
         }

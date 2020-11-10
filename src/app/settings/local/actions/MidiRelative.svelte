@@ -10,102 +10,19 @@
 
   import { check_for_matching_value, parameter_parser } from './action-helper';
 
+  import { buildOptionList } from './parameter-map';
+
   export let action;
   export let index;
   export let eventInfo;
+  export let elementInfo;
 
   let validator = [];
   let actionKeys = ['COMMANDCHANNEL','PARAM1','PARAM2']
 
-  $: {
-    optionList = MIDIRELATIVE.optionList(action.parameters.COMMANDCHANNEL);
-  }
-    
-  const MIDIRELATIVE = {
+  let optionList = buildOptionList(elementInfo, eventInfo, action);
 
-    CC_PARAMS: ['Control Change', 'Control Number', 'Control Value'],
-    NOTE_PARAMS: ['Note On/Off', 'Pitch', 'Velocity'],
-
-    CC_digital: [
-      [
-        {value: '0xb0', info: 'Control Change'}, 
-        {value: '0x90', info: 'Note On'}, 
-        {value: '0x80', info: 'Note Off'}
-      ],
-      [
-        {value: 'A0', info: 'Control Number'}, 
-        {value: 'A1', info: 'Reversed Control Number'}
-      ],[
-        {value: 'A6', info: 'Control Value'}
-      ]
-    ],
-    NOTE_digital: [
-      [
-        {value: '0xb0', info: 'Control Change'}, 
-        {value: '0x90', info: 'Note On'}, 
-        {value: '0x80', info: 'Note Off'}
-      ],
-      [
-        {value: 'A0', info: 'Note'}, 
-        {value: 'A1', info: 'Reversed Note'}
-      ],
-      [
-        {value: 'A6', info: 'Velocity'}
-      ],
-    ],
-    CC_analog: [
-      [
-        {value: '0xb0', info: 'Control Change'}, 
-        {value: '0x90', info: 'Note On'}, 
-        {value: '0x80', info: 'Note Off'}
-      ],
-      [
-        {value: 'A0', info: 'Control Number'}, 
-        {value: 'A1', info: 'Reversed Control Number'}
-      ],[
-        {value: 'A2', info: 'Control Value'}
-      ]
-    ],
-    NOTE_analog: [
-      [
-        {value: '0xb0', info: 'Control Change'}, 
-        {value: '0x90', info: 'Note On'}, 
-        {value: '0x80', info: 'Note Off'}
-      ],
-      [
-        {value: 'A0', info: 'Note'}, 
-        {value: 'A1', info: 'Reversed Note'}
-      ],
-      [
-        {value: 'A2', info: 'Velocity'}
-      ],
-    ],
-
-    optionList: function(parameter){
-      
-      let options = [];
-      if(parameter == '176'){
-        if(eventInfo.code[0] == 'A'){
-          options = this.CC_analog;
-        }else {
-          options = this.CC_digital;
-        }
-        inputLabels = this.CC_PARAMS;
-      }else{ // this is also the default;
-        if(eventInfo.code[0] == 'A'){
-          options = this.NOTE_analog;
-        } else {
-          options = this.NOTE_digital;
-        }
-        inputLabels = this.NOTE_PARAMS;
-      }
-      return options;
-    }
-  }
-
-  let optionList = [];
-
-  let inputLabels = [];
+  let inputLabels = ['Command','Param 1','Param 2'];
 
   function validate_midirelative(PARAMETERS){
 
@@ -120,7 +37,7 @@
             type = 'dec';
             let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
             defined = check_for_matching_value(optionList, hexstring, 0);
-            if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
+            //if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
           } else if(VALUE.startsWith('0x') && parameter.length > 3) {  
             type = 'hex';
             defined = check_for_matching_value(optionList, VALUE, 0);
@@ -130,7 +47,7 @@
           }
         }
         else if(KEY == 'PARAM1'){
-          if(VALUE == 'A0' || VALUE == 'A1'){ 
+          if(VALUE == 'P0' || VALUE == 'P1' || VALUE == 'B0' || VALUE == 'B1' || VALUE == 'E0' || VALUE == 'E1'){ 
             type = 'tmp param';
             defined = check_for_matching_value(optionList, VALUE, 1);  
           } else if(+VALUE >= 0 && +VALUE <= 127 && VALUE !== ''){
@@ -141,7 +58,7 @@
           }
         }
         else if(KEY == 'PARAM2'){
-          if(VALUE == 'A2' || VALUE == 'A6'){    
+          if(VALUE == 'P2' || VALUE == 'B2' || VALUE == 'B3' || VALUE == 'B4' || VALUE == 'E2' || VALUE == 'E5'){    
             type = 'tmp param';
             defined = check_for_matching_value(optionList, VALUE, 2);
           } else if(VALUE >= 0 && VALUE <= 127 && VALUE !== ''){
@@ -229,9 +146,13 @@
   <div class={'w-1/'+actionKeys.length + ' dropDownInput'}>
     <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
     <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[actionKey]}/>
-    <div class="text-white pl-2 flex-grow-0">
+    <div class="text-white pl-2 text-xs font-light tracking-wide flex-grow-0">
       {#if action.name == 'MIDI Dynamic'}
-        {validator[actionKey] ? validator[actionKey] : ''}
+        {#if validator[actionKey] == 'invalid :('} 
+            <span class="text-important">Invalid parameter!</span>
+        {:else}
+            {validator[actionKey] ? validator[actionKey] : ''}
+        {/if}
       {/if}
     </div>
   </div>

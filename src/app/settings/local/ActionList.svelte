@@ -189,7 +189,7 @@
                 data-id={(action.id ? action.id : JSON.stringify(action))}
                 data-grabY="0" 
                 animate:flip|local={{duration: 200}}>
-                <!--<div class="pb-2 text-white">{action.name}</div>-->
+                <div class="pb-2 text-white">{action.name}</div>
                 <div class="wrapper">
                     <div>
                         <div class="invisible text-xs">Order</div>

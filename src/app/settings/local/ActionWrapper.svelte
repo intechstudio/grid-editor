@@ -13,6 +13,7 @@
   export let action;
   export let index;
   export let eventInfo;
+  export let elementInfo;
 
   const components = {
     'MIDIRELATIVE': MidiRelative,
@@ -43,7 +44,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {eventInfo} />    
+    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {eventInfo} {elementInfo} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

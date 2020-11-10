@@ -155,7 +155,7 @@ export const GRID_PROTOCOL = {
       // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
       if(element == 2){ 
         id = ""+ i +"";
-        _decoded = this.build_decoder(_decoded, id, serialData, i);    
+        _decoded = this.build_decoder('main',_decoded, id, serialData, i);    
       }
 
       // GRID_CONST_ETX
@@ -303,7 +303,7 @@ export const GRID_PROTOCOL = {
     array.forEach((elem, index)=>{
       if(elem == 130){
         id = "" + index + "";
-        _decoded = this.build_decoder(_decoded, id, array, index);
+        _decoded = this.build_decoder('config',_decoded, id, array, index);
       }
 
       if(elem == 131){
@@ -340,11 +340,20 @@ export const GRID_PROTOCOL = {
     return {ROT, DX, DY};
   },
 
-  build_decoder: function(array, id, data, index){
+  build_decoder: function(mode, array, id, data, index){
     const CLASSES = this.PROTOCOL.CLASSES;
     const INSTR = this.PROTOCOL.INSTR;
+    
     // CLASS BUILD
-    const class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+    let class_name = '';
+    if(data.length > 3 && mode == 'config'){
+      class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+    }
+
+    if(mode == 'main' && !(data[index] == 2 && data[index+1] == 48 && data[index+2] == 3)){      
+      class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+    }
+
     // INSTR DETECTION
     let instr = parseInt('0x'+String.fromCharCode(data[index+4]));
 
@@ -365,6 +374,7 @@ export const GRID_PROTOCOL = {
     if(rawFlag){
       array.push({id: id, class: "RAW", offset: index, instr: instr}); 
     }
+
     
     return array;
   },

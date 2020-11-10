@@ -47,6 +47,7 @@
 
   let moduleInfo;
   let eventInfo;
+  let elementInfo;
 
   let events = [];
 
@@ -79,6 +80,7 @@
         let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
         
         eventInfo = elementEvent.event;  
+        elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
         //console.log('on input store change...',elementEvent);
 
@@ -128,6 +130,9 @@
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);   
           elementEvent.config.splice(index,1);
           actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
+
+          sendChangesToGrid(elementEvent.config)
+          
         }
         return controller;
       })
@@ -154,24 +159,13 @@
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
                     
           temp_actions[index] = {name: action.value, parameters: action.parameters}; 
-
-          const params = [
-            { BANKNUMBER: inputStore.bankActive },
-            { ELEMENTNUMBER: inputStore.elementNumber },
-            { EVENTTYPE: eventInfo.value }
-          ]
           
           elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
           
-          commands.validity("LOCALSTORE",true)
+          commands.validity("LOCALSTORE",true);
 
-          let array = [];
-          elementEvent.config.forEach(a => {
-            array.push(...a);
-          });
-
-          const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
-          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
+          sendChangesToGrid(elementEvent.config);
+          
         }
       
         return controller;
@@ -181,6 +175,22 @@
       return store;   
     });
 
+  }
+
+  function sendChangesToGrid(config){
+    const params = [
+      { BANKNUMBER: inputStore.bankActive },
+      { ELEMENTNUMBER: inputStore.elementNumber },
+      { EVENTTYPE: eventInfo.value }
+    ]
+    
+    let array = [];
+    config.forEach(a => {
+      array.push(...a);
+    });
+
+    const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
+    serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
   }
 
   function handleControlElementNaming(name){
@@ -374,6 +384,7 @@
               {action} 
               {index}
               {eventInfo}
+              {elementInfo}
             />
         </ActionList>
       </div>

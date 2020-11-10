@@ -23,6 +23,7 @@
     });
 
     let serialized = [];
+    console.log(_PARAMETERS)
     _PARAMETERS.forEach(param => {
       serialized.push(...GRID_PROTOCOL.configure_raw(param))
     })

@@ -8,20 +8,18 @@
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
 
   import { check_for_matching_value, parameter_parser } from './action-helper';
+  import { buildOptionList } from './parameter-map';
 
 
   export let action;
   export let index;
   export let eventInfo;
+  export let elementInfo;
 
   let validator = [];
 
-  let optionList = [];
-
-  $: {
-    optionList = SETLEDPHASE.optionList();
-  }
-
+  let optionList = buildOptionList(elementInfo, eventInfo, action);
+  
   let orderChangeTrigger = null;
   onMount(()=>{
     let c = 0;
@@ -92,7 +90,7 @@
         const VALUE = PARAMETERS[KEY];
 
         if(KEY == 'NUM'){
-          if(VALUE == 'A0' || VALUE == 'A1'){ 
+          if(VALUE == 'B0' || VALUE == 'B1' || VALUE == 'E0' || VALUE == 'E1' || VALUE == 'P0' || VALUE == 'P1'){ 
             type = 'tmp param';
             defined = check_for_matching_value(optionList, VALUE, 0);  
           } else if(+VALUE >= 0 && +VALUE <= 15){
@@ -110,7 +108,7 @@
           }
         } 
         else if(KEY == 'PHA'){
-          if(VALUE == 'A3' || VALUE == 'A7'){ 
+          if(VALUE == 'P2' || VALUE == 'B2' || VALUE == 'B3' || VALUE == 'B4' || VALUE == 'E2' || VALUE == 'E5'){ 
             type = 'tmp param';
             defined = check_for_matching_value(optionList, VALUE, 2);  
           } else if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 255){
@@ -133,45 +131,6 @@
     
   }
 
-  const SETLEDPHASE = {
-    analog: [
-      [
-        {value: 'A0', info: 'This LED.'}, 
-        {value: 'A1', info: 'Reversed LED.'}, 
-      ],
-      [
-        {value: '01', info: 'A Layer'}, 
-        {value: '02', info: 'B Layer'},  
-      ],
-      [
-        {value: 'A3', info: 'AV8 8-bit'}, 
-      ]
-    ],
-    digital: [
-      [
-        {value: 'A0', info: 'This LED.'}, 
-        {value: 'A1', info: 'Reversed LED.'}, 
-      ],
-      [
-        {value: '01', info: 'A Layer'}, 
-        {value: '02', info: 'B Layer'}, 
-      ],
-      [
-        {value: 'A7', info: 'DV8 8-bit'}, 
-      ]
-    ],
-
-    optionList: function() {
-      let options = [];
-      if(eventInfo.code[0] == 'A'){
-        options = this.analog;
-      }else{ // this is also the default;
-        options = this.digital;
-      }
-      return options;
-    }
-  }
-
 </script>
 
 <div class="flex flex-col w-full pr-1 ">
@@ -179,8 +138,12 @@
     <div class="w-1/3 pr-1">
       <div class="text-gray-700 text-xs">Element</div>
       <DropDownInput optionList={optionList[0]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.NUM}/>
-      <div class="text-white pl-2 flex-grow-0">
-        {validator.NUM ? validator.NUM : ''}
+      <div class="text-white text-xs tracking-wide pl-2 flex-grow-0">
+        {#if validator.NUM == 'invalid :('} 
+          <span class="text-important">Invalid parameter!</span>
+        {:else}
+          {validator.NUM ? validator.NUM : ''}
+        {/if}
       </div>
     </div>
 
@@ -188,8 +151,12 @@
       <div class="px-1">
         <div class="text-gray-700 text-xs">Layer</div>
         <DropDownInput optionList={optionList[1]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.LAY}/>
-        <div class="text-white pl-2 flex-grow-0">
-          {validator.LAY ? validator.LAY : ''}
+        <div class="text-white text-xs tracking-wide pl-2 flex-grow-0">
+          {#if validator.LAY == 'invalid :('} 
+            <span class="text-important">Invalid parameter!</span>
+          {:else}
+            {validator.LAY ? validator.LAY : ''}
+          {/if}
         </div>
       </div>
     </div>
@@ -198,8 +165,12 @@
       <div class="px-1">
         <div class="text-gray-700 text-xs">Intensity</div>
         <DropDownInput optionList={optionList[2]} on:change={()=>{sendData()}} bind:dropDownValue={action.parameters.PHA}/>
-        <div class="text-white pl-2 flex-grow-0">
-          {validator.PHA ? validator.PHA : ''}
+        <div class="text-white pl-2 text-xs tracking-wide flex-grow-0">
+          {#if validator.PHA == 'invalid :('} 
+            <span class="text-important">Invalid parameter!</span>
+          {:else}
+            {validator.PHA ? validator.PHA : ''}
+          {/if}
         </div>
       </div>
     </div>
