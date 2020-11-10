@@ -10,42 +10,33 @@
 
   const dispatch = createEventDispatcher();
 
-  export let data;
-  export let orderNumber;
-  export let selectedElementSettings;
-  export let moduleInfo;
+  export let action;
+  export let index;
   export let eventInfo;
+  export let elementInfo;
 
   const components = {
-    'MIDI Dynamic': MidiRelative,
-    'MIDI Static': MidiAbsolute,
-    'LED Color': SetLedColor,
-    'LED Phase': SetLedPhase,
+    'MIDIRELATIVE': MidiRelative,
+    'MIDIABSOLUTE': MidiAbsolute,
+    'LEDCOLOR': SetLedColor,
+    'LEDPHASE': SetLedPhase,
     'RAW': RawAction,
   }
 
-  /*
-  $: if(data.parameters){
-    sendData();
-  }
-*/
-
   function handleRemove(){
     dispatch('remove', {
-      action: data,
-      index: orderNumber
+      action: action,
+      index: index
     })
   }
 
-  function sendData(){
+  function sendData(e){
     dispatch('change', {
-      data: data,
-      index: orderNumber
+      action: e.detail.action, // important! action parameters are converted at action level to grid protocol readable format
+      index: index
     })
   }
 
-  onMount(()=>{
-  })
 
 </script>
 
@@ -53,7 +44,7 @@
   
   <div class="w-full flex p-0 mx-2">
 
-    <svelte:component this={components[data.name]} on:send={sendData} bind:data={data} {orderNumber} {moduleInfo} {eventInfo} {selectedElementSettings} />    
+    <svelte:component this={components[action.value]} on:send={sendData} bind:action={action} {index} {eventInfo} {elementInfo} />    
 
     <div>
       <div class="invisible text-xs">Remove</div>

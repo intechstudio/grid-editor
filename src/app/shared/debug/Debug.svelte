@@ -3,8 +3,8 @@
 	import { spring } from 'svelte/motion';
 	import { onMount } from 'svelte';
 	import { serialComm, serialCommDebug } from '../../core/serialport/serialport.store';
-	import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol';
-	import { localSettings } from '../../settings/local/local-settings.store';
+	import { GRID_PROTOCOL } from '../../core/classes/GridProtocol';
+	import { localInputStore } from '../../stores/control-surface-input.store';
 	import { appSettings } from '../../stores/app-settings.store';
 
 	let input = [];
@@ -33,60 +33,56 @@
 
 </script>
 
-<div class="m-2 p-2">
-	<div class="flex flex-col">
 
-		<div class="flex flex-row">
+	<div class="flex m-2 p-2 h-full flex-col">
+		<!-- raw command input -->
+			<div class="flex flex-col xl:flex-row text-white xl:items-end p-2">
 
-			<div id="data" style="height:200px" class=" overflow-auto select-text flex-grow rounded font-mono bg-white m-2 p-2">
+				<div class="mr-1">
+					<div>dx</div>
+					<input class="w-full xl:w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+				</div>
+				<div class="mx-1">
+					<div>dy</div>
+					<input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
+				</div>
+				<div class="mx-1">
+					<div>age</div>
+					<input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
+				</div>
+				<div class="mx-1">
+					<div>rot</div>
+					<input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
+				</div>
+				<div class="mx-1">
+					<div>command</div>
+					<input class="w-full xl:w-24 p-1 text-black focus:outline-none"  bind:value={command}>
+				</div>
+		
+				<button on:click={debug} class="p-1 px-2 mt-4 mx-1 xl:mt-0 bg-blue-600 border-none rounded focus:outline-none">write</button>
+		
+		
+			</div>
+
+
+
+		<div class="flex flex-col h-full">
+			<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
+
+			<div id="data" style="height:300px;" class="overflow-auto select-text flex-grow rounded font-mono bg-white m-2 p-2">
 				
 				{#each [...input].reverse() as entry}
 					<div class:serialOut="{entry.type == 'output'}">{entry.data}</div>
 				{/each}
 
 			</div>
-			<div class="flex flex-col">
-				<button on:click={clear} class="p-1 px-2 m-2 w-32 text-white rounded bg-highlight focus:outline-none border-none">clear</button>
-				<div class="flex text-white items-end p-2">
-
-					<div class="mr-1">
-						<div>dx</div>
-						<input class="w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
-					</div>
-					<div class="mx-1">
-						<div>dy</div>
-						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
-					</div>
-					<div class="mx-1">
-						<div>age</div>
-						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
-					</div>
-					<div class="mx-1">
-						<div>rot</div>
-						<input class="w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
-					</div>
-					<div class="mx-1">
-						<div>command</div>
-						<input class="w-40 p-1 text-black focus:outline-none"  bind:value={command}>
-					</div>
-			
-					<button on:click={debug} class="p-1 px-2 mx-1 bg-blue-600 border-none rounded focus:outline-none">write</button>
-			
-			
-				</div>
-	
-			</div>
-
 		
 		</div>
-	
 		
 
 	</div>
 
-	
 
-</div>
 
 
 <style>

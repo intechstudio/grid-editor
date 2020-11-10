@@ -1,16 +1,23 @@
 <script>
   import BankTab from './BankTab.svelte';  
-  import { globalSettings } from './global-settings.store';
-  import { localSettings } from '../local/local-settings.store';
+
+  import { localInputStore, globalConfigReportStore, bankActiveStore, numberOfModulesStore } from '../../stores/control-surface-input.store.js';
+  
+  import { runtime } from '../../stores/runtime.store.js';
+
   import { serialComm } from '../../core/serialport/serialport.store.js';
 
   import Commands from '../shared/Commands.svelte';
 
-  import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
   import { commands } from '../shared/handshake.store.js';
 
   import Tooltip from '../../shared/helpers/Tooltip.svelte';
+  
+  import { onMount } from 'svelte';
+  
+  import { tour } from '../../stores/tour.store';
 
   let selected = 0;
 
@@ -18,38 +25,95 @@
 
   let tabs = [0,1,2,3];
 
-  globalSettings.subscribe(banks => {
-      globalData = banks;
-      selected =  banks.active;      
-  })
-
   function handleColorChange(e){
-    const PARAMS = e.detail.parameters[0];
-    globalData.colors[PARAMS.BANKNUMBER] = [PARAMS.RED, PARAMS.GREEN, PARAMS.BLUE];
-    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    const PARAMS = e.detail.parameters;
+
+    runtime.update(runtime => {
+      runtime.forEach(controller => {
+        controller.global.bankColors[PARAMS[0].NUM] = [PARAMS[1].RED, PARAMS[2].GRE, PARAMS[3].BLU];
+        console.log(controller, PARAMS);
+      })
+      return runtime;
+    });
+
+    console.log('$runtime (color) change', $runtime)
+
+    const command = GRID_PROTOCOL.encode('', e.detail.className, 'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
 
   function handleBankEnabledChange(e){
-    const PARAMS = e.detail.parameters[0];
-    globalData.bankEnabled[PARAMS.BANKNUMBER] = PARAMS.ISENABLED;
-    const command = GRID_PROTOCOL.encode('', e.detail.className, e.detail.parameters, '');
+    const PARAMS = e.detail.parameters;
+    
+    $runtime.forEach((controller) => {
+      controller.global.bankEnabled[PARAMS[0].BANKNUMBER] = PARAMS[1].ISENABLED
+    });
+
+    console.log('$runtime (bankenabled) change', $runtime)
+
+    const command = GRID_PROTOCOL.encode('', e.detail.className,'EXECUTE', e.detail.parameters, '');
     commands.validity('GLOBALSTORE',true);
     serialComm.write(command);
   }
 
 
   function changeSelected(bank){
-    globalData.active = bank;
-    localSettings.update(settings => {
-      settings.bank = bank;
-      return settings;
+    bankActiveStore.update(store => {
+      store.bankActive = bank;
+      return store;
     })
-    selected = bank;
-    const command = GRID_PROTOCOL.encode('','BANKACTIVE',[{'BANKNUMBER': bank}], '')
+    const command = GRID_PROTOCOL.encode('','BANKACTIVE','EXECUTE',[{'BANKNUMBER': bank}], '')
     serialComm.write(command);
   }
+
+  function renderGlobalConfiguration(){
+   
+    if($runtime[0]){
+      // here rework is needed. switching up from working with virtual modules to real modules may break the config fetch
+      if(Object.keys($runtime[0].global).length !== 0 && (!globalData.isVirtual || $runtime[0].virtual)){
+        globalData = $runtime[0].global;
+        updateRuntimeWithGlobalConfig(globalData);
+      } else {
+        // could be expanded the whole function to fetch global settings from all the modules
+        const fetch = runtime.fetchGlobalConfig('7f7f', 'ff');
+        serialComm.write(fetch);
+      }
+    }
+  }
+
+  function updateRuntimeWithGlobalConfig(globalData){
+    runtime.update(runtime => {
+      runtime.forEach(controller => {
+        controller.global = globalData;
+      })
+      return runtime;
+    });
+  }
+
+  onMount(()=>{
+
+    // triggers on successful runtime.fetchGlobalConfig
+    globalConfigReportStore.subscribe(store => {
+      globalData = store; 
+      // load to runtime all the controllers you see
+      console.log('LOAD RUNTIME...', store, $runtime)
+      updateRuntimeWithGlobalConfig(store);
+      renderGlobalConfiguration();
+    })
+
+    // on init and on module change serial port connected module change run this!
+    numberOfModulesStore.subscribe((number) => {
+      renderGlobalConfiguration();
+    })
+
+    // this is very similiar to local input store, on trigger check runtime for config
+    bankActiveStore.subscribe(store => {
+      selected = store.bankActive;
+      renderGlobalConfiguration();
+    })
+
+  })
 
 
 </script>
@@ -62,11 +126,11 @@
 
 </style>
 
-<div class="inline-block primary rounded-lg p-4 m-4 z-20">
+<div class="flex">
+<div class:tour={$tour.selectedName == 'GlobalSettings'} class="inline-block flex-grow-0 primary rounded-lg p-4 m-4 z-50">
 
   <div class="text-xl font-bold text-white m-2 flex items-center justify-between">
     <div class="mr-2">Global Settings</div>
-    <Tooltip text={"A 'Bank' refers to an independently customisable mode of a given Grid module. <br><br> At default you have four Banks available to you on each Grid module. <br><br> Banks store their settings independently from each other, so you can configure multiple different setups and switch between them on the fly. <br><br> You can switch between Banks quickly by pressing the Bank button located on the side opposite from the USB port."}></Tooltip>
   </div>
 
   <div class="flex flex-col mt-4">
@@ -81,7 +145,7 @@
             on:click={()=>{changeSelected(tab)}} 
             class:shadow-md={selected === tab}
             class:bg-highlight={selected === tab}
-            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300 focus:outline-none">
+            class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400 focus:outline-none">
             {tab+1}
           </button>
         {/each}
@@ -100,11 +164,24 @@
       </div>
     </div>
 
+    
+
     <hr class="text-secondary border-none h-1 rounded bg-secondary m-2">
 
     
       
   </div>
 
+  {#if selected == -1}
+
+    <div class="text-important m-2 flex items-center">
+      <span class="flicker pr-2">⚠️</span>
+      <span>Please select a bank to start configuration!</span>
+    </div>
+  {/if}
+  
+  {#if selected !== -1}
   <Commands MODE={'GLOBAL'}/>
+  {/if}
+</div>
 </div>

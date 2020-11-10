@@ -13,6 +13,7 @@
 
 </style>
 
+
 {#if formVisible}
   <div class="w-full relative bg-indigo-400 text-white justify-center items-center text-center p-4">
     <span>We @intechstudio do our best to roll out features you find useful.</span>

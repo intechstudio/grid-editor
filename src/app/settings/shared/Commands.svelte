@@ -1,6 +1,6 @@
 <script>
     
-  import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
   import { serialComm } from '../../core/serialport/serialport.store.js';
 
@@ -19,7 +19,7 @@
   let _comm;
 
   function handleStore(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}STORE`,'','');
+    const command = GRID_PROTOCOL.encode('',`${MODE}STORE`,'EXECUTE','','');
     serialComm.write(command);
 
     // set configs
@@ -30,17 +30,8 @@
     console.log(`Store ${MODE} settings on Grid!`)
   }
 
-  function handleRecall(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}LOAD`,'','');
-    serialComm.write(command);
-
-    commands.start(`${MODE}RECALL`);
-
-    console.log(`Recall ${MODE} settings on Grid!`)
-  }
-
   function handleClear(){
-    const command = GRID_PROTOCOL.encode('',`${MODE}CLEAR`,'','');
+    const command = GRID_PROTOCOL.encode('',`${MODE}CLEAR`,'EXECUTE','','');
     serialComm.write(command);
 
     commands.start(`${MODE}CLEAR`);
@@ -56,14 +47,14 @@
       tooltip = "Store will save your local configuration in your Grid modules memory and Clear will clear it from there."
     }
 
-    commands.subscribe(value => console.log(value))
+    commands.subscribe(value => {})
   });
 
 </script>
 
 <div class="bg-primary flex flex-col rounded-lg z-20">
   <div class="flex flex-grow justify-between m-2 rounded-lg">
-    <div class="flex">
+    <div class="flex pr-1">
       <button 
         on:click={handleStore} 
         class:disabled={!$commands[MODE+'STORE'].valid} 
@@ -80,7 +71,7 @@
         <div class:clicked={$commands[MODE+'STORE'].msg == 'wait'} class="transition-all duration-500 delay-200 ease-in-out">Store</div>
       </button>
     </div>
-    <div class="flex items-center">
+    <div class="pl-1 flex items-center">
       <button 
       on:click={handleClear} 
       class:disabled={$commands[MODE+'CLEAR'].msg == 'wait'} 

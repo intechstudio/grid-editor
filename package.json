@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "0.0.853",
+  "version": "0.0.912",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -9,25 +9,25 @@
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^1.3.0",
     "@rollup/plugin-json": "^4.1.0",
-    "chokidar": "^3.4.0",
+    "chokidar": "^3.4.3",
     "cross-env": "^7.0.2",
-    "electron": "^9.3.1",
-    "electron-builder": "^22.8.0",
+    "electron": "^9.3.2",
+    "electron-builder": "^22.9.1",
     "electron-notarize": "^1.0.0",
-    "electron-rebuild": "^2.0.3",
+    "electron-rebuild": "^2.3.2",
     "npm-run-all": "^4.1.5",
-    "postcss": "^7.0.21",
-    "postcss-load-config": "^2.1.0",
+    "postcss": "^7.0.35",
+    "postcss-load-config": "^2.1.2",
     "rollup": "^1.12.0",
     "rollup-plugin-commonjs": "^10.0.0",
     "rollup-plugin-livereload": "^1.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-svelte": "^5.0.3",
-    "rollup-plugin-terser": "^5.1.2",
-    "svelte": "^3.0.0",
-    "svelte-grid": "^1.10.8",
-    "svelte-preprocess": "^3.2.0-alpha.2",
-    "tailwindcss": "^1.1.3"
+    "rollup-plugin-svelte": "^5.2.3",
+    "rollup-plugin-terser": "^5.3.1",
+    "svelte": "^3.29.4",
+    "svelte-grid": "^1.11.2",
+    "svelte-preprocess": "^3.9.12",
+    "tailwindcss": "^1.9.6"
   },
   "dependencies": {
     "@sveltejs/pancake": "0.0.16",
@@ -35,18 +35,18 @@
     "body-parser": "^1.19.0",
     "dotenv": "^8.2.0",
     "electron-log": "^4.2.4",
-    "electron-store": "^6.0.0",
-    "electron-updater": "^4.3.4",
-    "email-templates": "^7.1.0",
+    "electron-store": "^6.0.1",
+    "electron-updater": "^4.3.5",
+    "email-templates": "^7.1.2",
     "iconv-lite": "^0.6.2",
-    "panzoom": "^9.2.4",
+    "panzoom": "^9.3.0",
     "polka": "^0.5.2",
     "pug": "^3.0.0",
-    "serialport": "^9.0.0",
-    "sirv-cli": "^0.4.4",
+    "serialport": "^9.0.2",
+    "sirv-cli": "^0.4.6",
     "svelte-color-picker": "^1.0.7",
     "universal-analytics": "^0.4.23",
-    "uuid": "^8.3.0"
+    "uuid": "^8.3.1"
   },
   "build": {
     "asar": true,
@@ -100,6 +100,6 @@
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
-    "pure-electron-dev": "cross-env DEBUG=email-templates NODE_ENV=development electron ."
+    "pure-electron-dev": "cross-env DEBUG=email-templates DEBUG=universal-analytics NODE_ENV=development electron ."
   }
 }

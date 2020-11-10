@@ -2,17 +2,17 @@ name: Build Nightly Grid Editor
 
 on: 
   push:
-    tags:
-     - 'v*.*.*'
+    branches:
+      - nightly
 
 jobs:
   build:
-    if: github.event.base_ref == 'refs/heads/nightly'
+    if: github.ref == 'refs/heads/nightly'
     name: Build Nightly Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [macos-latest, windows-2016, ubuntu-latest]
+        os: [windows-2016]
 
     steps:
       - uses: actions/checkout@v2
@@ -20,24 +20,29 @@ jobs:
           ref: ''
           submodules: true
 
-      - name: Set env
-        shell: bash
-        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: See env
-        run: echo "${{ env.RELEASE_VERSION }}"
-
       - name: Setup NodeJs
         uses: actions/setup-node@v1
         with:
           node-version: '10.16'
+          
+      - name: create env file
+        run: |
+          touch .env
+          echo EMAIL=${{secrets.EMAIL}} >> .env
+          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
+          echo UA=${{secrets.UA}} >> .env
 
       - name: Install dependencies
         run: npm i
+        env:
+          # email stuff
+          EMAIL: ${{ secrets.EMAIL }}
+          EMAIL_PASS: ${{secrets.EMAIL_PASS}}
+          UA: ${{ secrets.UA }}
 
       - name: Build
         run: npm run export
-        env:
+        env:     
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,13 +57,13 @@ jobs:
       - name: See directory
         run: ls dist/*.*
 
-      - name: Release
-        uses: softprops/action-gh-release@v1
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
         with:
-          tag_name: ${{ env.RELEASE_VERSION }}
-          name: Nightly ${{ env.RELEASE_VERSION }}
-          files: dist/*.*
-          draft: true,
-          prerelease: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: nightly
+          path: dist/*.*
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v2
+
+      

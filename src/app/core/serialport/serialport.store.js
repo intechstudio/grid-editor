@@ -4,7 +4,8 @@ function createSerialComm(){
   const store = writable({
     list: [],
     open: undefined,
-    selected: ''
+    selected: '',
+    isEnabled: false
   });
 
   function addToCommDebug(args){
@@ -23,17 +24,20 @@ function createSerialComm(){
 
   return {
     ...store,
+    enabled: (bool) => {
+      store.update(store => {store.isEnabled = bool; return store;});
+    },
     write: (args) => { 
+      if(get(store).isEnabled){
+        addToCommDebug(args);
 
-      addToCommDebug(args);
-
-      let port = get(store).open;
-      
-      if(typeof args == 'object')
-        port.write([...args, 10]);
-      else
-        port.write(args+'\n');
-
+        let port = get(store).open;
+        
+        if(typeof args == 'object')
+          port.write([...args, 10]);
+        else
+          port.write(args+'\n');
+      }
       return;
     },
     selected: (port) => {

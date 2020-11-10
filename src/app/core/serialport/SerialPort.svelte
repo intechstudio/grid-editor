@@ -2,10 +2,9 @@
 
   import { onMount, onDestroy } from 'svelte';
 
-  import { GRID_PROTOCOL } from '../protocol/GridProtocol';
+  import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
-  import { localSettings } from '../../settings/local/local-settings.store';
-  import { globalSettings } from '../../settings/global/global-settings.store';
+  import { localInputStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
   import { serialComm, serialCommDebug } from './serialport.store.js';
 
@@ -20,11 +19,10 @@
   let GRID = GRID_PROTOCOL;
   GRID.initialize();
 
-  console.log(GRID);
-
   let PORT = {path: 0};
 
-  export let grid = [];
+  export let runtime = [];
+  export let layout = [];
 
   let selectedPort = "";
 
@@ -33,10 +31,10 @@
     setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = grid.used.find(g => (Date.now() - g.alive > 1000) && !g.virtual);
+      let _removed = runtime.find(g => (Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2)) && !g.virtual);
 
-      let _processgrid = grid.used.map(g => {
-        if(Date.now() - g.alive > 1000 && !g.virtual){
+      let _processgrid = runtime.map(g => {
+        if(Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
@@ -107,6 +105,7 @@
     const serial = store.list.find(serial => serial.port.path === selectedPort);
     PORT = new SerialPort(serial.port.path, { autoOpen: false });
     serialComm.open(PORT);
+    serialComm.enabled(true);
     readSerialPort();
   }
 
@@ -122,14 +121,15 @@
       })
 
       serialComm.update((store)=>{
-        store.open = 'none';
+        store.open = undefined;
+        store.isEnabled = false;
         store.list = [];
         return store
       });
 
       // reset UI
-      grid.used = [];
-      grid.layout = [];
+      runtime = [];
+      layout = [];
 
       PORT = {path: 0};
     }
@@ -159,90 +159,106 @@
   }
 
   function makeThisUsable(RESPONSE){ 
-    let controller = grid.used.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
+    let controller = runtime.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
     controller.instr = RESPONSE.COMMAND;
   }
 
   function runSerialParser(port){
 
-    const parser = port.pipe(new Readline({ delimiter: "\n"}));
+    const parser = port.pipe(new Readline({ encoding: 'hex' }));
 
     parser.on('data', function(data) {
 
-      let array = Array.from(data);
+      let temp_array = Array.from(data);
+      let array = [];
+
+      for (let index = 0; index < temp_array.length; index+=2) {
+        array.push((temp_array[index] + '' + temp_array[index+1])) 
+      }
 
       let RESPONSE = {};
 
       let _array = [];
 
       array.forEach((element, i) => {
-        _array[i] = element.charCodeAt(0);
-      });
+        _array[i] = parseInt('0x'+element);
+      });      
       
-      let DATA = GRID.decode(_array);
+      let DATA = GRID.decode_serial(_array);
+
+      let d_array = ''
+      _array.forEach((element, i) => {
+        d_array += String.fromCharCode(element);
+      })
 
       // filter heartbeat messages
-      if(!(array.join('').slice(30).startsWith('010') && array.length == 46) ){
-        serialCommDebug.store(array.join(''));    
+      if(!(d_array.slice(30).startsWith('010') && d_array.length == 46) ){
 
-        RESPONSE = GRID.decode(_array);
+        serialCommDebug.store(d_array);    
+
+        RESPONSE = GRID.decode_serial(_array);
 
         RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
 
         RESPONSE.COMMAND ? commands.response(RESPONSE) : null;
+      
       }
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
 
-      if(DATA.HEARTBEAT){
-        //console.log(DATA.HEARTBEAT);
+      // global config recall
+      if(DATA.BANKCOLOR.length > 0 || DATA.BANKENABLED.length > 0){
+        globalConfigReportStore.update(store => {
+          store.bankColors = DATA.BANKCOLOR.map(bank => {return [bank.RED, bank.GRE, bank.BLU]});
+          store.bankEnabled = DATA.BANKENABLED.map(bank => {return bank.ISENABLED == 1 ? true : false});
+          store.isVirtual = false;
+          return store;
+        });
+        bankActiveStore.update(store => { 
+          if(store.bankActive == -1){ 
+            store.bankActive = 0 
+          }
+          return store;
+        });
       }
 
-      if(DATA.BRC){
-        //console.log(DATA.BRC);
+      // local config recall
+      if(DATA.CONFIGURATION){
+        localConfigReportStore.update(store => { 
+          store.frame = DATA.CONFIGURATION; 
+          store.cfgs = DATA.CONFIGURATION_CFGS;
+          return store;
+        }) 
       }
 
-      if(DATA.LEDPHASE){
-        //console.log(DATA.LEDPHASE);
-      }
-
-      if(DATA.EVENT && DATA.EVENT.length > 0){
-        if(DATA.EVENT[0].EVENTTYPE !== 1){
-          localSettings.update((setting)=>{
-            setting.position = 'dx:'+DATA.BRC.DX+';dy:'+DATA.BRC.DY;
-            setting.controlNumber = DATA.EVENT.map(event => {return event.ELEMENTNUMBER});   
-            setting.eventparam = DATA.EVENT.map(event => {return event.EVENTPARAM});   
-            return setting;
-          })
+      // local input update (user interaction)
+      if(DATA.EVENT){
+        if(DATA.EVENT.EVENTTYPE !== 12){
+          // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
+          // if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM)
+          // now not using due to changed protocol
+          {
+            localInputStore.update((store)=>{
+              store.dx = DATA.BRC.DX;
+              store.dy = DATA.BRC.DY;
+              store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
+              store.eventParam = DATA.EVENT.EVENTPARAM;   
+              store.eventType = DATA.EVENT.EVENTTYPE;
+              return store;
+            })
+          }
         }
       }
 
-      // rep req not implemented as needed
-      if(DATA.BANKCOLOR){
-       
-      }
-
-      if(DATA.MIDIRELATIVE){ 
-        
-      }
-
+      // bank change by user
       if(DATA.BANKACTIVE){
         if(DATA.BANKACTIVE.BANKNUMBER !== 255){
-          globalSettings.update(settings => {
-            settings.active = DATA.BANKACTIVE.BANKNUMBER;
-            return settings
+          bankActiveStore.update(store => {
+            store.bankActive = DATA.BANKACTIVE.BANKNUMBER;
+            return store
           });
-
-          localSettings.update(settings => {
-            //console.log(DATA.BANKACTIVE);
-            if(DATA.BANKACTIVE.BANKNUMBER !== 255){
-              settings.bank = DATA.BANKACTIVE.BANKNUMBER;
-            }
-            return settings;
-          })
         }
       }
-      
       
     })
   }
@@ -250,17 +266,23 @@
   function updateGridUsedAndAlive(controller){
     if(controller !== undefined){
       let exists = false;
-      grid.used.forEach(g => {
+      runtime.forEach(g => {
         if(g.id == controller.id && g.virtual == false){
           exists = true;
         }
       });   
       if(!exists){
-        grid.used.push(controller);
-        dispatch('change');
+        runtime.push(controller);
+        dispatch('change', {
+          data: {
+            moduleId: controller.id,
+            cellId: 'dx:'+controller.dx + ';' + 'dy:'+controller.dy,
+            isVirtual: false
+          }
+        });
       }
       if(exists){
-        grid.used.map(c => {
+        runtime.map(c => {
           if(c.id === controller.id && c.virtual == false){
             c.alive = Date.now();
           }
@@ -269,13 +291,9 @@
       }
 
       if(!exists){
-        globalSettings.update((setting)=>{
-          setting.numberOfModules = grid.used.length;
-          return setting;
-        })
+        numberOfModulesStore.set(runtime.length);
       }
-      
-      grid = grid;
+      runtime = runtime;
     }
   }
 

@@ -10,8 +10,8 @@ const TPEA = {
     value: '5',
     code: 'DR'
   },
-  absolute_value_change: {
-    desc: 'absolute value change',
+  value_change: {
+    desc: 'value change',
     value: '1',
     code: 'AVC7'
   },
@@ -26,10 +26,10 @@ export var GRID_CONTROLLER = {
 
   elementEvents: {
     button: [ TPEA.init, TPEA.down, TPEA.up ],
-    potentiometer: [ TPEA.init, TPEA.absolute_value_change ],
-    fader: [ TPEA.init, TPEA.absolute_value_change ],
+    potentiometer: [ TPEA.init, TPEA.value_change ],
+    fader: [ TPEA.init, TPEA.value_change ],
     blank: [],
-    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.absolute_value_change ]
+    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.value_change ]
   },
 
   moduleElements: {
@@ -59,36 +59,67 @@ export var GRID_CONTROLLER = {
     ]
   },
 
-  create: function(header, heartbeat, moduleType, virtual){
+  create: function(header, version, moduleType, virtual){
 
-    if(moduleType !== undefined){
+    let controller = {
+      // implement the module id rep / req
+      id: "",
+      dx: "",
+      dy: "",
+      fwVersion: {
+        major: "",
+        minor: "",
+        patch: "",
+      },
+      alive: Date.now(),
+      virtual: "",
+      map: {
+        top: {dx: "", dy: "",},
+        right: {dx: "", dy: ""},
+        bot: {dx: "", dy: ""},
+        left: {dx: "", dy: ""},
+      },
+      rot: "",
+      isConnectedByUsb: "",
+      isLanding: "",
+      banks: [], // consider naming to "local"
+      global: {}
+    }
 
-      var controller = {
-        id: moduleType + '_' + 'dx:' + header.DX + ';dy:' + header.DY,
-        dx: header.DX,
-        dy: header.DY,
+    // generic check, code below if works only if all parameters are provided
+    if(moduleType !== undefined && header !== undefined && version !== undefined && moduleType !== undefined && virtual !== undefined){
+      
+      controller = {
+        // implement the module id rep / req
+        id: moduleType + '_' + 'dx:' + header.dx + ';dy:' + header.dy,
+        dx: header.dx,
+        dy: header.dy,
         fwVersion: {
-          major: heartbeat.VMAJOR,
-          minor: heartbeat.VMINOR,
-          patch: heartbeat.VPATCH
+          major: version.vmajor,
+          minor: version.vminor,
+          patch: version.vpatch
         },
         alive: Date.now(),
         virtual: virtual,
         map: {
-          top: {dx: header.DX, dy: header.DY+1},
-          right: {dx: header.DX+1, dy: header.DY},
-          bot: {dx: header.DX, dy: header.DY-1},
-          left: {dx: header.DX-1, dy: header.DY},
+          top: {dx: header.dx, dy: header.dy+1},
+          right: {dx: header.dx+1, dy: header.dy},
+          bot: {dx: header.dx, dy: header.dy-1},
+          left: {dx: header.dx-1, dy: header.dy},
         },
-        rotation: header.ROT * -90,
-        isConnectedByUsb: (header.DX == 0 && header.DX == 0) ? true : false,
+        rot: header.rot * -90,
+        isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
-        banks: this.createElementSettings(moduleType),
+        banks: this.createElementSettings(moduleType), // consider naming to "local"
+        global: {  
+          bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+          bankEnabled: [true,true,true,true]
+        }
       }
-
-      return controller;
-
+      
     }
+    
+    return controller;
 
   },
 
@@ -114,11 +145,11 @@ export var GRID_CONTROLLER = {
         for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
           events.push({        
             event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
-            // actions
-            actions: []    
+            // actions // low level config string
+            config: []
           })
         }
-        control_elements[i] = {events: events, ...obj};
+        control_elements[i] = {events: events, ...obj, };
       }
 
       banks[b] = control_elements;
@@ -127,7 +158,7 @@ export var GRID_CONTROLLER = {
 
     return banks;
     
-  }
+  },
     
 }
 

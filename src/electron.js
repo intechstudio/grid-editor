@@ -1,6 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
-const Store = require('electron-store');
+const { trackEvent } = require('./analytics');
+const { store } = require('./main-store');
+
+global.trackEvent = trackEvent;
 
 const path = require('path');
 const log = require('electron-log');
@@ -8,16 +11,6 @@ const log = require('electron-log');
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
-
-const store = new Store({
-    defaults: { 
-        windowBounds: { 
-            width: 800, 
-            height: 600
-        },
-        profiles_folder: '',
-    }
-});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -74,29 +67,7 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 app.on('ready', createWindow);
 
-const ua = require('universal-analytics');
-const { v4: uuidv4 } = require('uuid');
 
-// Retrieve the userid value, and if it's not there, assign it a new uuid.
-const userId = store.get('userId') || uuidv4();
-
-// (re)save the userid, so it persists for the next app session.
-store.set('userId', userId)
-
-var usr = ua('UA-151670067-3', userId);
-
-function trackEvent(category, action, label, value) {
-  usr
-    .event({
-      ec: category,
-      ea: action,
-      el: label,
-      ev: value,
-    })
-    .send();
-}
-
-global.trackEvent = trackEvent;
 
 log.info('check fo update and notify...')
 console.log('check for updates...')
@@ -135,9 +106,9 @@ ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
 
-autoUpdater.on('error', (event) => {
-  log.info('Error..', event);
-  console.log('updater error')
+autoUpdater.on('error', (error) => {
+  log.info('Error..', error);
+  mainWindow.webContents.send('update_error', error);
 })
 
 autoUpdater.on('update-available', () => {

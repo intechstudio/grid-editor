@@ -1,4 +1,4 @@
-import { GRID_CONTROLLER } from '../core/protocol/GridController.js';
+import { GRID_CONTROLLER } from '../core/classes/GridController.js';
 import { appSettings } from '../stores/app-settings.store.js';
 
 import { get } from 'svelte/store';
@@ -15,16 +15,16 @@ export var LAYOUT = {
       const dy = +id.split(';')[1].split(':').pop();
 
       var header = {
-        DX: dx,
-        DY: dy,
-        ROT: 0,
+        dx: dx,
+        dy: dy,
+        rot: 0,
       }
 
       let flag = true;
 
       const newModul = modul.substr(0,4);
 
-      var cell = GRID_CONTROLLER.create(header, {VMAJOR: version.major, VMINOR: version.minor, VPATCH: version.patch}, newModul, virtual)
+      var cell = GRID_CONTROLLER.create(header, {vmajor: version.major, vminor: version.minor, vpatch: version.patch}, newModul, virtual)
 
       if(grid.used.length == 0){
         cell.isConnectedByUsb = true;
@@ -49,18 +49,60 @@ export var LAYOUT = {
     }
   },
 
+  addToRuntime: function(runtime, moduleId, cellId, isVirtual){
+    
+    if(cellId != 'bin'){
+
+      const dx = +cellId.split(';')[0].split(':').pop();
+      const dy = +cellId.split(';')[1].split(':').pop();
+
+      var header = {
+        dx: dx,
+        dy: dy,
+        rot: 0,
+      }
+
+      let flag = true;
+
+      const newModul = moduleId.substr(0,4);
+
+      var gridController = GRID_CONTROLLER.create(header, {vmajor: version.major, vminor: version.minor, vpatch: version.patch}, newModul, isVirtual)
+
+      if(runtime.length == 0){
+        gridController.isConnectedByUsb = true;
+        runtime.push(gridController);
+      }
+
+      runtime.map(m => { 
+        if(m.id == moduleId){ 
+          m.dx = gridController.dx;
+          m.dy = gridController.dy;
+          m.map = gridController.map;
+          flag = false; 
+        } 
+        return m;
+      });
+
+      if(flag){ 
+        runtime.push(gridController); 
+      }
+      
+      console.log(runtime);
+    }
+  },
+
   createLayoutGrid: function(layout_grid){
     const L = (-1*((layout_grid-1)/2))
     let cellGen = [];
     for (let i = 0; i < layout_grid; i++) {
       for (let j = 0; j < layout_grid; j++) {
-        cellGen.push({id: 'none', canBeUsed: false, fwVersion: version, dx: i+L, dy: j+L})
+        cellGen.push({id: '', canBeUsed: false, fwVersion: version, dx: i+L, dy: j+L})
       }
     }
     return cellGen;
   },
 
-  drawPossiblePlacementOutlines: function(grid, layout_grid){
+  drawPossiblePlacementOutlines: function(runtime, layout_grid){
 
     let layoutgrid = this.createLayoutGrid(layout_grid);
     
@@ -68,20 +110,20 @@ export var LAYOUT = {
 
     layoutgrid.forEach(layoutCell => {layoutCell.canBeUsed = false})
 
-    grid.used.forEach(usedCell => {
-      mapCoords.push({dx: usedCell.dx, dy: usedCell.dy});
-      for (const key in usedCell.map) {
-        mapCoords.push(usedCell.map[key])
+    runtime.forEach(gridController => {
+      mapCoords.push({dx: gridController.dx, dy: gridController.dy});
+      for (const key in gridController.map) {
+        mapCoords.push(gridController.map[key])
       }
     });
 
-    grid.used.forEach(usedCell => {
+    runtime.forEach(gridController => {
       layoutgrid.forEach(layoutCell => {
-        if(layoutCell.dx == usedCell.dx && layoutCell.dy == usedCell.dy){
-          layoutCell.id = usedCell.id;
-          layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
-          layoutCell.fwVersion = usedCell.fwVersion;
-          layoutCell.rotation = usedCell.rotation;
+        if(layoutCell.dx == gridController.dx && layoutCell.dy == gridController.dy){
+          layoutCell.id = gridController.id;
+          layoutCell.isConnectedByUsb = gridController.isConnectedByUsb;
+          layoutCell.fwVersion = gridController.fwVersion;
+          layoutCell.rot = gridController.rot;
         }
       });
     });
@@ -124,8 +166,8 @@ export var LAYOUT = {
 
   },
 
-  removePossiblePlacementOutlines: function(grid){
-    let layoutgrid = grid.layout.map(
+  removePossiblePlacementOutlines: function(layout){
+    let layoutgrid = layout.map(
       (layoutCell) => {
         layoutCell.canBeUsed = false; 
         return layoutCell;
@@ -136,21 +178,21 @@ export var LAYOUT = {
   setUsbConnectedModule: function(grid, menuOnModuleWithId){
 
     // reset all.
-    grid.used.forEach(usedCell => { usedCell.isConnectedByUsb = false });
+    grid.used.forEach(gridController => { gridController.isConnectedByUsb = false });
     grid.layout.forEach(layoutCell => { layoutCell.isConnectedByUsb = false });
 
     // set the usb connected module in used grid.
-    grid.used.forEach(usedCell => {
-      if(usedCell.id == menuOnModuleWithId){
-        usedCell.isConnectedByUsb = true;
+    grid.used.forEach(gridController => {
+      if(gridController.id == menuOnModuleWithId){
+        gridController.isConnectedByUsb = true;
       }
     });
 
     // update the layout with the new change on usb connected module.
     grid.layout.forEach(layoutCell => {
-      grid.used.forEach(usedCell => {
-        if(layoutCell.id == usedCell.id){
-          layoutCell.isConnectedByUsb = usedCell.isConnectedByUsb;
+      grid.used.forEach(gridController => {
+        if(layoutCell.id == gridController.id){
+          layoutCell.isConnectedByUsb = gridController.isConnectedByUsb;
         }
       });
     });
@@ -163,14 +205,14 @@ export var LAYOUT = {
 
     grid.used.map((used)=>{
       if(used.id == menuOnModuleWithId){
-        used.rotation = rotation;
+        used.rot = rot;
       }
       return used;
     })
 
     grid.layout.map((layout)=>{
       if(layout.id == menuOnModuleWithId){
-        layout.rotation = rotation;
+        layout.rot = rot;
       }
       return layout;
     })
@@ -180,14 +222,3 @@ export var LAYOUT = {
   }
 
 }
-/**
-exports.layout = {
-  addToUsedgrid,
-  createLayoutGrid,
-  drawPossiblePlacementOutlines,
-  removePossiblePlacementOutlines,
-  removeSurroundingPlacementOutlines,
-  setUsbConnectedModule,
-  setModuleRotation
-} 
-*/

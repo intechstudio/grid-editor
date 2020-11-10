@@ -21,11 +21,11 @@
 
     ipcRenderer.on('app_version', (event, arg) => {
       ipcRenderer.removeAllListeners('app_version');
-      console.log(arg.version)
       appVersion = arg.version;
+      trackEvent('Editor', `v${appVersion}`);
     });
-
-    trackEvent('App', 'Report Version', 'Firmware', $appSettings.version);
+    trackEvent('Firmware', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
+    trackEvent('OS', process.platform)
   })
 
   
@@ -35,7 +35,7 @@
 
 </style>
 
-<div class="w-full flex justify-center text-xs text-white primary">
+<nav id="menu" class="w-full flex static bottom-0 justify-center text-xs text-white primary">
     
   <div class="w-1/4 flex justify-start">
     <div class="flex text-white items-center">
@@ -65,7 +65,7 @@
   </div>
 
   <div class="w-1/2 h-12 flex justify-around items-center ">
-    <!--
+ 
     <div 
       on:click="{()=>{ changeSelectedDisplay('layout') }}" 
       class:bg-highlight={$appSettings.selectedDisplay === 'layout'}
@@ -76,7 +76,7 @@
         </svg>
         <div class="p-2">Layout</div>
     </div>
-    -->
+   
     <div 
       on:click="{()=>{changeSelectedDisplay('settings')}}" 
       class:bg-highlight={$appSettings.selectedDisplay === 'settings'}
@@ -115,7 +115,7 @@
     <div class="p-4 text-white">Version: {appVersion}</div>
     <div class="p-4 text-white">Protocol: {$appSettings.version.major + '.' + $appSettings.version.minor + '.' + $appSettings.version.patch }</div>
   </div>
-</div>
+</nav>
 
 
 

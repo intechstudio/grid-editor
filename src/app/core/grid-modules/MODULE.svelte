@@ -12,8 +12,9 @@
 
 
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { globalSettings } from '../../settings/global/global-settings.store';
-  import { localSettings } from '../../settings/local/local-settings.store';
+  import { bankActiveStore, bankColorStore } from '../../stores/control-surface-input.store.js';
+  import { runtime } from '../../stores/runtime.store.js';
+
 
   const components = [
 		{ type: 'BU16', component: BU16 },
@@ -28,20 +29,29 @@
 
   let selected;
   let color;
-  let bankSettings;
-  let bank;
+  let bankColors;
+  let bankActive;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
   $: selected = components.find(component => component.type === type);
 
+  $: if(bankColors){
+    color = bankColors[bankActive];
+  }
+
   onMount(()=>{
-    globalSettings.subscribe(banks =>{
-      color = banks.colors[banks.active];
+
+    bankActiveStore.subscribe(store => {
+      bankActive = store.bankActive;
     })
-    localSettings.subscribe(settings => {
-      bank = settings.bank
+
+    runtime.subscribe(store => {
+      if(store.length !== 0){
+        bankColors = store[0].global.bankColors;
+      }
     })
+    
   })
 
 </script>
@@ -50,7 +60,7 @@
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
 
     {#if $appSettings.overlays.controlName}
-      <ControlNameOverlay {id} {moduleWidth} {bank} {rotation}/>
+      <ControlNameOverlay {id} {moduleWidth} {bankActive} {rotation}/>
     {/if}
 
     <!--    
@@ -58,7 +68,6 @@
       <ProfileLoadOverlay {id} {moduleWidth} {bank} {rotation}/>
     {/if}
     -->
-
 
   </svelte:component>
 {/if}
@@ -103,7 +112,7 @@
   }
 
   .active-element{
-    background-color: #ffffff1a;
+    background-color: #ffffff66;
     padding: 2px;
     border-radius: 0.25rem;
   }

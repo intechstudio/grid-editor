@@ -1,7 +1,5 @@
 import * as grid_protocol from '../../../external/grid-protocol/grid_protocol.json';
-import {GRID_CONTROLLER} from './GridController.js';
-
-const iconv = require('iconv-lite');
+import { GRID_CONTROLLER } from './GridController.js';
 
 let global_id = 0;
 
@@ -130,7 +128,15 @@ export const GRID_PROTOCOL = {
     
   },
 
-  decode: function(serialData){
+  decode_config: function(){
+    return 'config decoded';
+  },
+
+  encode_actions: function(){
+    return 'actions encoded';
+  },
+
+  decode_serial: function(serialData){
     /**
      * 
      * Slices serial data between STX 0x02 and ETX 0x03 for further processing by GRID_CLASS_XXX_code's.
@@ -141,35 +147,15 @@ export const GRID_PROTOCOL = {
     const INSTR = this.PROTOCOL.INSTR;
 
     let _decoded = [];
-    let class_name = '';
-    let instr = '';
     let id = 0; 
 
     //console.log(serialData);
-
     serialData.forEach((element,i) => {  
-
+      
       // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
       if(element == 2){ 
-
-        // CLASS BUILD
-        class_name = parseInt("0x"+String.fromCharCode(serialData[i+1], serialData[i+2], serialData[i+3]));
-        // INSTR DETECTION
-        instr = parseInt('0x'+String.fromCharCode(serialData[i+4]));
-
-        for (const key in INSTR){
-          if(INSTR[key] == instr){ 
-            instr = key;
-          }
-        }       
-
         id = ""+ i +"";
-        for (const key in CLASSES){
-          if(CLASSES[key] == class_name){ 
-            _decoded.push({id: id, class: key, offset: i, instr: instr});     
-          }
-        }       
-    
+        _decoded = this.build_decoder('main',_decoded, id, serialData, i);    
       }
 
       // GRID_CONST_ETX
@@ -186,10 +172,20 @@ export const GRID_PROTOCOL = {
 
   },
 
+  param2lower: function(parameters){
+    let obj = {}
+    for (const key in parameters) {
+      const _key = key.toLowerCase();
+      obj[_key] = parameters[key]
+    }
+    return obj;
+  },
+
   decode_by_class: function(serialData, decoded){
 
     let DATA = {
-     EVENT: []
+      BANKCOLOR: [],
+      BANKENABLED: []
     };
 
     DATA.BRC = this.decode_by_code(serialData, 'BRC');
@@ -200,12 +196,29 @@ export const GRID_PROTOCOL = {
 
       // special processing
       if(obj.class == "EVENT"){
-        DATA.EVENT.push(this.decode_by_code(array, obj.class))
+        DATA.EVENT = this.decode_by_code(array, obj.class);
       }
       if(obj.class == "HEARTBEAT"){
         DATA.HEARTBEAT = this.decode_by_code(array, obj.class);
         let moduleType = this.utility_moduleLookup(DATA.HEARTBEAT.HWCFG);
-        DATA.CONTROLLER = GRID_CONTROLLER.create(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
+        DATA.CONTROLLER = GRID_CONTROLLER.create(
+          this.param2lower(DATA.BRC), 
+          this.param2lower(DATA.HEARTBEAT), 
+          moduleType, 
+        false)
+      }
+      if(obj.class == "CONFIGURATION"){   
+        //console.log(array);
+        let cfgs = this.detect_class_codes(array);
+        let cfg_array = []
+        cfgs.forEach((c,i) => {
+          cfg_array[i] = array.slice(c.offset, c.offset + c.length + 1);
+        })
+        DATA.CONFIGURATION_CFGS = cfg_array;
+        DATA.CONFIGURATION = this.decode_by_code(array, obj.class);
+      }
+      if(obj.class == "RAW"){
+        DATA.RAW = { "RAW" : array }
       }
 
       // normal processing
@@ -224,6 +237,16 @@ export const GRID_PROTOCOL = {
       if(obj.class == "LEDCOLOR"){
         DATA.LEDCOLOR = this.decode_by_code(array, obj.class)
       }
+
+      // global settings
+      if(obj.class == "BANKENABLED"){
+        DATA.BANKENABLED.push(this.decode_by_code(array, obj.class));
+      }
+      if(obj.class == "BANKCOLOR"){
+        DATA.BANKCOLOR.push(this.decode_by_code(array, obj.class));
+      }
+
+      // commands
       if(obj.class == "LOCALSTORE"){
         DATA.COMMAND = { 'LOCALSTORE': obj.instr }
       }
@@ -255,14 +278,44 @@ export const GRID_PROTOCOL = {
       let _value = serialData.slice(
         CLASS[param].offset, CLASS[param].length + CLASS[param].offset
       );    
-      let value = parseInt("0x"+String.fromCharCode(..._value));   
+      let value;
+
+      if (_value[0] < 91 && _value[0] > 64 ){
+        value = String.fromCharCode(..._value);
+      }else{
+        value = parseInt("0x"+String.fromCharCode(..._value));    
+      }
+       
       if(param == 'DX' || param == 'DY'){
         object[param] = value - 127;
       } else {
         object[param] = value;
       }
     }
+   
     return object;
+  },
+
+  detect_class_codes(array){
+    //console.log(array);
+    let _decoded = [];
+    let id = '';
+    array.forEach((elem, index)=>{
+      if(elem == 130){
+        id = "" + index + "";
+        _decoded = this.build_decoder('config',_decoded, id, array, index);
+      }
+
+      if(elem == 131){
+        let obj = _decoded.find(o => o.id == id);
+        if(obj !== undefined){
+          obj.length = index - obj.offset;
+        }
+      }
+    })
+
+    //console.log(array, _decoded);
+    return _decoded;
   },
 
   get_module_info: function(MODULE_INFO){
@@ -271,9 +324,9 @@ export const GRID_PROTOCOL = {
     let ROT = 0;
 
     if(MODULE_INFO !== ''){
-      DX = +MODULE_INFO.id.split(';')[0].split(':').pop() + 127;
-      DY = +MODULE_INFO.id.split(';')[1].split(':').pop() + 127;
-      switch (MODULE_INFO.rotation){
+      DX = +MODULE_INFO.dx + 127;
+      DY = +MODULE_INFO.dy + 127;
+      switch (MODULE_INFO.rot){
         case -0:
           ROT = 0; break;
         case 90:
@@ -284,32 +337,123 @@ export const GRID_PROTOCOL = {
           ROT = 3; break;
       }
     }
-
     return {ROT, DX, DY};
   },
 
-  configure: function(CLASS_NAME, PARAMETERS){
-    let CLASS = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0')
-    const body = [
+  build_decoder: function(mode, array, id, data, index){
+    const CLASSES = this.PROTOCOL.CLASSES;
+    const INSTR = this.PROTOCOL.INSTR;
+    
+    // CLASS BUILD
+    let class_name = '';
+    if(data.length > 3 && mode == 'config'){
+      class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+    }
+
+    if(mode == 'main' && !(data[index] == 2 && data[index+1] == 48 && data[index+2] == 3)){      
+      class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+    }
+
+    // INSTR DETECTION
+    let instr = parseInt('0x'+String.fromCharCode(data[index+4]));
+
+    let rawFlag = true;
+    for (const key in INSTR){
+      if(INSTR[key] == instr){ 
+        instr = key;
+      }
+    }       
+
+    for (const key in CLASSES){
+      if(CLASSES[key] == class_name){ 
+        array.push({id: id, class: key, offset: index, instr: instr});  
+        rawFlag = false;   
+      }
+    }    
+
+    if(rawFlag){
+      array.push({id: id, class: "RAW", offset: index, instr: instr}); 
+    }
+
+    
+    return array;
+  },
+
+  cfg_to_action: function(CFGS){
+
+    let _decoded = [];
+
+    if(CFGS !== "" && CFGS !== undefined){
+      _decoded = this.detect_class_codes(CFGS);
+      let actions = {};
+
+      _decoded.forEach(obj => {
+        let cfg = CFGS.slice(obj.offset, obj.offset + obj.length);
+        // RAW EXCEPTION
+        if(obj.class == "RAW"){
+          let output = cfg.map(arg => {
+            return String.fromCharCode(arg)
+          });
+          output = output.splice(1,).join('');
+          actions = {name: this.transform_action_name(obj.class), value: obj.class, parameters: output};
+        } else {
+          actions = {name: this.transform_action_name(obj.class), value: obj.class, parameters: this.decode_by_code(cfg, obj.class)};
+        }
+      })
+      
+      return actions
+    }
+   
+  },
+
+  transform_action_name: function(actionValue){
+
+    let name = "";
+
+    if(actionValue == "MIDIRELATIVE"){
+      name = "MIDI Dynamic";
+    }
+    if(actionValue == "MIDIABSOLUTE"){
+      name = "MIDI Static";
+    }
+    if(actionValue == "LEDCOLOR"){
+      name = "LED Color";
+    }
+    if(actionValue == "LEDPHASE"){
+      name = "LED Phase";
+    }
+    return name;
+  },
+
+  // former configure(), special cfg mode for raw actions
+  action_to_cfg: function(CLASS_NAME, PARAMETERS){
+
+    let body = [];
+
+    if(CLASS_NAME == "RAW"){
+
+      body = PARAMETERS;
+
+    } else {
+
+      let CLASS = this.PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0');
+
+      body = [
         this.PROTOCOL.CONST.STX + 128,
         ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
         this.PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
         ...this.encode_class_parameters(PARAMETERS, this.PROTOCOL[CLASS_NAME]),
         this.PROTOCOL.CONST.ETX + 128
-    ]
+      ]
+
+    }
+
     return body;
+  
   },
 
-  configure_raw: function(PARAMETERS){
-    const body = [
-        this.PROTOCOL.CONST.STX + 128,
-        ...PARAMETERS,
-        this.PROTOCOL.CONST.ETX + 128
-    ]
-    return body;
-  },
-
-  serialize_actions: function(PARAMETERS, ACTIONS){
+  // former serialize_actions()
+  serialize_cfgs: function(PARAMETERS, ACTIONS){
     let CONFIG = this.PROTOCOL.CLASSES['CONFIGURATION'].toString(16).padStart(3, '0')
     const body = [
         this.PROTOCOL.CONST.STX,
@@ -322,7 +466,16 @@ export const GRID_PROTOCOL = {
     return body;
   },
 
-  encode: function (MODULE_INFO, CLASS_NAME, PARAMETERS, SERIALIZED){
+  configure_raw: function(PARAMETERS){
+    const body = [
+        this.PROTOCOL.CONST.STX + 128,
+        ...PARAMETERS,
+        this.PROTOCOL.CONST.ETX + 128
+    ]
+    return body;
+  },
+
+  encode: function (MODULE_INFO, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
 
     const BRC = this.get_module_info(MODULE_INFO);
 
@@ -351,7 +504,7 @@ export const GRID_PROTOCOL = {
       command = [
         PROTOCOL.CONST.STX,
         ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
-        PROTOCOL.INSTR.EXECUTE.toString(16).charCodeAt(0),
+        PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
         ...this.encode_class_parameters(PARAMETERS, PROTOCOL[CLASS_NAME]),
         PROTOCOL.CONST.ETX
       ]
@@ -377,6 +530,7 @@ export const GRID_PROTOCOL = {
   },
 
   encode_class_parameters: function(PARAMETERS, INFO){
+    //console.log('encode class params',PARAMETERS, INFO)
     let _parameters = [];
     if(PARAMETERS !== ''){
       PARAMETERS.forEach(CLASS => {     

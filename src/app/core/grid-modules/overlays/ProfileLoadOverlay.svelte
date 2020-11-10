@@ -1,8 +1,7 @@
 <script>
 
-  import { grid } from '../../../stores/grid.store.js';
 
-  import { localSettings } from '../../../settings/local/local-settings.store';
+  import { localInputStore } from '../../../stores/control-surface-input.store.js';
 
   export let id;
   export let moduleWidth;
@@ -22,10 +21,6 @@
     }
     return array;
   }
-
-  grid.subscribe(grid => {
-    const settings = grid.used.find(controller => controller.id == id);
-  })
 
 </script>
 

@@ -1,31 +1,45 @@
 <script>
 
+  import { fade } from 'svelte/transition';
+
   import { onMount, onDestroy } from 'svelte';
 
-  import { localSettings } from './local-settings.store';
-  import { grid } from '../../stores/grid.store.js';
-  import { configStore } from '../../stores/config.store.js';
+  import { runtime } from '../../stores/runtime.store.js';
+
+  import { tour } from '../../stores/tour.store';
+
+  import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
+
 
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
 
   import OverlayToggle from '../../core/grid-modules/overlays/OverlayToggle.svelte';
 
-  import { GRID_PROTOCOL } from '../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
+
   import { serialComm } from '../../core/serialport/serialport.store.js';
+  import { commands } from '../shared/handshake.store.js';
+  import Commands from '../shared/Commands.svelte';
+  import { appSettings } from '../../stores/app-settings.store.js';
 
-  let selectedElementSettings;
+  let inputStore = {
+    bankActive : -1,
+    elementNumber : -1
+  };
 
-  let originalActions = [
-    { id: 0, name: 'MIDI Dynamic' },
-    { id: 1, name: 'MIDI Static'},
-    { id: 2, name: 'LED Color' },
-    { id: 3, name: 'LED Phase' },
-    { id: 4, name: 'RAW'}
+  let arrayOfSelectableActions = [
+    { id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' },
+    { id: 1, name: 'MIDI Static', value: 'MIDIABSOLUTE'},
+    { id: 2, name: 'LED Color', value: 'LEDCOLOR' },
+    { id: 3, name: 'LED Phase', value: 'LEDPHASE' },
+    { id: 4, name: 'RAW', value: 'RAW' }
   ];
-  let selectedAction = originalActions[0];
-  $: availableActions = originalActions;
-  $: selectedActions = [];
+
+  let selectedAction = arrayOfSelectableActions[0];
+
+  let actions = [];
+  let temp_actions = [];
   
   let element_color;
 
@@ -33,6 +47,7 @@
 
   let moduleInfo;
   let eventInfo;
+  let elementInfo;
 
   let events = [];
 
@@ -48,30 +63,47 @@
 
   // main
 
-  function loadSelectedModuleSettings(){
-    $grid.used.forEach(_controller => {
-      if(('dx:'+_controller.dx+';dy:'+_controller.dy) == selectedElementSettings.position){
-        moduleInfo = _controller;
-        moduleId = _controller.id;  
-        //console.log(selectedElementSettings)
-        events = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.map((cntrl)=>{return cntrl.event.desc});
-        selectedEvent = selectedElementSettings.selectedEvent || events[1];
-        
-        selectedEvent = checkIfSelectedEventIsCorrect(selectedElementSettings, events)
+  let RUNTIME;
 
-        let elementEvent = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-        //console.log(elementEvent)
-        if(elementEvent !== undefined){
-          selectedActions = elementEvent.actions;
-          eventInfo = elementEvent.event;
+  //runtime.subscribe(changes => {RUNTIME = changes; console.log(RUNTIME)})
+
+  function renderLocalConfiguration(){
+    $runtime.forEach(controller => {
+      if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1 && inputStore.bankActive !== -1){
+
+        moduleInfo = controller;
+        moduleId = controller.id;  
+        events = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.map((cntrl)=>{return cntrl.event});        
+        selectedEvent = checkIfSelectedEventIsCorrect(inputStore, events);
+
+        // currently selected control element on bank x, with activated event y
+        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
+        
+        eventInfo = elementEvent.event;  
+        elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
+
+        //console.log('on input store change...',elementEvent);
+
+        if(elementEvent.config.length == 0 && !controller.virtual){
+          const fetch = runtime.fetchLocalConfig(controller, inputStore);
+          serialComm.write(fetch);
+        } 
+        else if(elementEvent.config.length > 0){
+          actions = runtime.configsToActions(elementEvent.config);
+        } 
+        else {
+          actions = []
         }
-        controlElementName = _controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName || '';
+
+
+        controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
     });
   }
 
+
   function checkIfSelectedEventIsCorrect(settings, events){
-    let event = events.find(e => e == settings.selectedEvent);
+    let event = events.find(e => e.value == settings.eventType);
     if(!event){
       event = events[1];
     }
@@ -79,131 +111,152 @@
   }
 
   function manageActions(action){
-    selectedActions = [...selectedActions, initActionParameters(action.name)];
+    actions = [...actions, initActionParameters(action)];
     return action;
   }
 
-  function initActionParameters(actionName){
-    let action = {name: actionName}
-    let parameters = [];
-    for (let i = 0; i < 3; i++) {
-      parameters[i] = '';
-    }
+  function initActionParameters(action){
+    //let action = {name: actionValue}
+    let parameters = []
     return {...action, parameters}
   }
 
   function handleRemoveAction(e){
-    const data = e.detail.data;
+    const action = e.detail.action;
     const index = e.detail.index;
-    grid.update((grid)=>{
-      grid.used.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);   
-          elementEvent.actions.splice(index,1);
-          selectedActions = elementEvent.actions; // update this list too. does kill smooth animations
-          configStore.remove(index, moduleInfo, eventInfo, selectedElementSettings);
+    runtime.update((store)=>{
+      store.map((controller)=>{
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1){
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);   
+          elementEvent.config.splice(index,1);
+          actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
+
+          sendChangesToGrid(elementEvent.config)
+          
         }
         return controller;
       })
-      return grid;
+      return store;
     })
   }
 
-  function handleFocus(e){
-    focus = true;
-  }
-
   function handleSelectEvent(event){
-    localSettings.update((values)=>{
-      values.selectedEvent = event;
+    localInputStore.update((values)=>{
+      values.eventType = event.value;
       return values;
     })
   }
 
-  function handleOnChange(e){
-    const data = e.detail.data;
+  function handleOnActionChange(e){
+    const action = e.detail.action;
     const index = e.detail.index;
-    grid.update((grid)=>{
-      grid.used.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
-          //console.log(index, 'name:',  data.name, 'parameters:', data.parameters)
-          if(elementEvent !== undefined){
-            elementEvent.actions[index] = {name: data.name, parameters: data.parameters}; 
-          }
+
+    // update runtime based on editor from configuration
+    runtime.update((store)=>{
+      store.map((controller)=>{
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy && inputStore.elementNumber !== -1){
+          
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
+                    
+          temp_actions[index] = {name: action.value, parameters: action.parameters}; 
+          
+          elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
+          
+          commands.validity("LOCALSTORE",true);
+
+          sendChangesToGrid(elementEvent.config);
+          
         }
+      
         return controller;
-      })
-      return grid;   
+
+      });
+
+      return store;   
     });
 
   }
 
+  function sendChangesToGrid(config){
+    const params = [
+      { BANKNUMBER: inputStore.bankActive },
+      { ELEMENTNUMBER: inputStore.elementNumber },
+      { EVENTTYPE: eventInfo.value }
+    ]
+    
+    let array = [];
+    config.forEach(a => {
+      array.push(...a);
+    });
+
+    const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
+    serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
+  }
+
   function handleControlElementNaming(name){
     // PROBABLY RUNS TOO MANY TIMES, TRY ONBLUR AND OTHER DEBOUNCING METHODS
-    grid.update((grid)=>{
-      grid.used.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].controlElementName = name;
+    runtime.update((store)=>{
+      store.map((controller)=>{
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+          controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName = name;
         }
         return controller;
       })
-      return grid; 
+      return store; 
     })
   }
 
   function copyActions(){
-    $grid.used.forEach(controller => {
-      if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-        let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+    $runtime.forEach(controller => {
+      if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
+        let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
         copiedActions = elementEvent.actions;
       }
     });
   }
 
   function pasteActions(){
-    grid.update((grid)=>{
-      grid.used.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == selectedElementSettings.position){
-          let elementEvent = controller.banks[selectedElementSettings.bank][selectedElementSettings.controlNumber[0]].events.find(cntrl => cntrl.event.desc == selectedEvent);
+    runtime.update((store)=>{
+      store.map((controller)=>{
+        if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
+          let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
           const newActions = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
           elementEvent.actions = newActions;
         }
         return controller;
       });   
-      return grid;
+      return store;
     });
-    loadSelectedModuleSettings();
+    renderLocalConfiguration();
   }
 
   onMount(()=>{
-    localSettings.subscribe((values)=>{
-      selectedElementSettings = values;
-      loadSelectedModuleSettings();
+
+    derivedInputStore.subscribe((values)=>{
+      inputStore = values;
+      renderLocalConfiguration();
     });
 
-    configStore.subscribe((store)=>{
-      if(store[moduleId] !== undefined){
-        let actions;
-        if(eventInfo){
-          actions = store[moduleId][selectedElementSettings.bank][eventInfo.value];
-        }
-        if(actions){   
-          const config = [
-            { BANKNUMBER: selectedElementSettings.bank },
-            { ELEMENTNUMBER: selectedElementSettings.controlNumber[0] },
-            { EVENTTYPE: eventInfo.value }
-          ]
-          let array = [];
-          actions.forEach(a => {
-            array.push(...a);
-          });
-          const serialized = GRID_PROTOCOL.serialize_actions(config, array);
-          serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','',serialized));
-        }
-      }   
+    localConfigReportStore.subscribe(store => {
+      if(store.cfgs.length > 0){
+        // update runtime based on received config from grid
+        runtime.update(runtime => {
+          runtime.forEach(controller =>{
+            if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+              let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
+              // upon connecting many modules, the instant messages sent back to editor may be read as wrong event for specific control elements.
+              // may be a bug, further test is required
+              if(events){
+                events.config = store.cfgs
+              }
+            }
+          })
+          return runtime;
+        });
+        renderLocalConfiguration();
+      }
     })
-
+    
   })
 
   
@@ -218,23 +271,37 @@
     cursor: not-allowed;
   }
 
+  ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+      @apply bg-secondary;
+  }
+
+  ::-webkit-scrollbar-thumb {
+      background: #286787;
+      -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+  }
+
+  ::-webkit-scrollbar-corner {
+      background: #1e2628
+  }
+
 </style>
 
-
-
-
-<div class="inline-block primary rounded-lg p-4 z-30 w-full">
+<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
-    <div class="text-xl">Element Settings</div>
-    <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
-    <div class="text-orange-500 text-4xl absolute right-0">{$localSettings.controlNumber[0] == undefined ? '-' : $localSettings.controlNumber[0]}</div>
+    <div class="text-xl">Local Settings</div>
+    {#if moduleId != '' && $localInputStore.elementNumber != undefined}
+      <div class="text-orange-500 py-1">Module: {moduleId == '' ? '-' : moduleId.substr(0,4)}</div>
+      <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
+    {/if}
   </div>
 
-  {#if $localSettings.controlNumber[0] !== undefined}
+  {#if inputStore.elementNumber !== -1 && inputStore.bankActive !== -1}
   
 
+  <!--
   <div class="flex flex-col px-2 my-4 w-full">
-  
     <div class="text-gray-700 flex py-1">
       <div>Name</div>
       <OverlayToggle type={'controlName'}/>
@@ -245,23 +312,23 @@
       on:input={e => handleControlElementNaming(controlElementName)}
       type="text" 
       class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none" 
-      placeholder="Your name for this control element...">
-    
+      placeholder="Your name for this control element...">  
   </div>
+  -->
 
   <div class="flex flex-col">
     <div class="text-gray-700 py-1 mx-2">
       Events
     </div>
 
-    <div class="flex mx-1 secondary rounded-lg shadow overflow-x-auto">
+    <div class:tour={$tour.selectedName == "Events"} class="flex mx-1 secondary  rounded-lg shadow overflow-x-auto">
       {#each events as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
           class:shadow-md={selectedEvent === event}
           class:bg-highlight={selectedEvent === event}
-          class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-300  focus:outline-none">
-          {event}
+          class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400  focus:outline-none">
+          {event.desc}
         </button>
       {/each}
     </div>
@@ -276,11 +343,11 @@
 
       <div class="flex w-full">
 
-          <div class="flex flex-col xl:flex-row w-full justify-between"> 
+          <div  class="flex flex-col xl:flex-row w-full justify-between"> 
 
-            <div class="flex w-full xl:w-2/3">         
-              <select bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
-                {#each availableActions as action}
+            <div   class="flex w-full xl:w-2/3">         
+              <select class:tour={$tour.selectedName == "Actions"} bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
+                {#each arrayOfSelectableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>
                 {/each}
               </select>
@@ -305,30 +372,62 @@
 
       
 
-      <ActionList
-        {selectedActions} 
-        let:data 
-        let:orderNumber
-        >
-        {#if selectedActions[0].parameters.length > 0}
-          <ActionWrapper 
-            on:remove={handleRemoveAction}
-            on:change={handleOnChange}
-            {data} 
-            {orderNumber}
-            {moduleInfo}
-            {eventInfo}
-            {selectedElementSettings}
-          />
-        {/if}
-      </ActionList>
+      <div style="max-height:400px" class="mt-4 pr-2 border-secondary overflow-y-scroll overflow-x-hidden">
+        <ActionList
+          {actions} 
+          let:action 
+          let:index
+          >
+            <ActionWrapper 
+              on:remove={handleRemoveAction}
+              on:change={handleOnActionChange}
+              {action} 
+              {index}
+              {eventInfo}
+              {elementInfo}
+            />
+        </ActionList>
+      </div>
 
     </div>
   </div>
+
+  <hr  class="text-secondary h-1 border-none rounded bg-secondary m-2">
+
   {:else}
-  <div class="px-2 my-4 w-full text-gray-700">Select a control element to start configuration!</div>
+  <div class="px-2 my-4 w-full text-white">
+    <span class="px-1">
+      {#if $appSettings.layoutMode}
+        <p> 
+          <span class="flicker">⚠️</span> 
+          <span>Please close the <i class="pr-1">Virtual Modules</i> panel to select control elements.</span>
+        </p>
+      {/if}
+      {#if $runtime.length == 0}
+        <p> 
+          <span class="flicker">⚠️</span>
+          <span>Add a module to access <i class="pr-1">Local Settings</i>!</span>
+        </p>  
+      {/if}
+      {#if $runtime.length > 0 && !$appSettings.layoutMode}
+        <p>
+          <span class="flicker">⚠️</span> 
+          Select a 
+          {#if inputStore.elementNumber == -1}control element{/if} 
+          {#if inputStore.bankActive == -1 && inputStore.elementNumber == -1}and{/if}
+          {#if inputStore.bankActive == -1}bank{/if} 
+          to start configuration!
+        </p>
+      {/if}
+    </span>
+  </div>
   {/if}
+
+  {#if inputStore.elementNumber !== -1}
+    <Commands MODE={'LOCAL'}/>
+  {/if}
+
+
+
 </div>
-
-
 

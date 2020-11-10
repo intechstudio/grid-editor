@@ -4,14 +4,8 @@
   const polka = require('polka');
   const { json } = require('body-parser');
   const Email = require('email-templates');
-<<<<<<< HEAD
   require('dotenv').config();
   
-=======
-
-  require('dotenv').config();
-
->>>>>>> nightly
   const app = polka();
 
   app.post('/form-submission',
@@ -35,8 +29,8 @@
             port: 465,
             secure: true, // true for 465, false for other ports
             auth: {
-              user: process.env.EMAIL, // generated ethereal user
-              pass: process.env.EMAIL_PASS // generated ethereal password
+              user: "editor@intech.studio", // generated ethereal user
+              pass: "pleasedontabusethisaccount" // generated ethereal password
             }
           }
         });

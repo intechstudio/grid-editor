@@ -4,45 +4,37 @@
 
   const dispatch = createEventDispatcher();
 
-  import { GRID_PROTOCOL } from '../../../core/protocol/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
 
   import { actionListChange } from '../action-list-change.store.js';
 
-  import { configStore } from '../../../stores/config.store';
-
-  export let data;
-  export let orderNumber;
-  export let moduleInfo;
-  export let eventInfo;
-  export let selectedElementSettings;
-
-  let validator = [];
+  export let action;
+  export let index;
 
   function sendData(){
 
-    let _PARAMETERS = data.parameters[0].split('\n');
+    // this is validated by hitting the send button. no extra validation happens, experimental function.
+
+    let _PARAMETERS = action.parameters.split('\n');
     _PARAMETERS = _PARAMETERS.map(param => {
-      param = param.split('');
-      param = param.map(p => {
+      return param = Array.from(param).map(p => {
         return p.charCodeAt(0);
-      });
-      return param;
-    }); 
-
-
-    //let PARAMETERS = _PARAMETERS.pop('10');
-
-    console.log(_PARAMETERS);
-
-    let serialized = [];
-    _PARAMETERS.forEach(param => {
-      serialized.push(...GRID_PROTOCOL.configure_raw(param));
+      })
     });
 
-    
-    configStore.save(orderNumber, moduleInfo, eventInfo, selectedElementSettings, serialized);
+    let serialized = [];
+    console.log(_PARAMETERS)
+    _PARAMETERS.forEach(param => {
+      serialized.push(...GRID_PROTOCOL.configure_raw(param))
+    })
 
-    dispatch('send',{});
+    dispatch('send',{
+      action: {
+        value: action.value, 
+        parameters: serialized
+      }, 
+      index: index 
+    });
   }
 
   let orderChangeTrigger = null;
@@ -52,9 +44,8 @@
       c++;
       if(change !== null && c == 1){
         orderChangeTrigger = true;
-        console.log(data.name, 'REMOVE', orderNumber);
         if(change == 'remove'){
-          //configStore.remove(orderNumber, moduleInfo, eventInfo, selectedElementSettings);
+          //configStore.remove(index, moduleInfo, eventInfo, inputStore);
         }
       }
       c = 0;
@@ -71,8 +62,8 @@
 
 
 <div class='w-full  dropDownInput'>
-  <div class="text-gray-700 text-xs">Raw data input for debug purposes</div>
-  <textarea bind:value={data.parameters[0]} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
+  <div class="text-gray-700 text-xs">Raw action input for debug purposes</div>
+  <textarea bind:value={action.parameters} class="w-full font-mono secondary text-white border-none p-1 pl-2 rounded-none focus:outline-none"></textarea>
   <button on:click={sendData} class="focus:outline-none cursor-pointer mr-1 text-white border-none border-primary bg-indigo-500 hover:bg-indigo-600 px-2 py-1">Send</button>
 </div>
 
