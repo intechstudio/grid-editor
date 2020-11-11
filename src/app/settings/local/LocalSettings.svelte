@@ -131,6 +131,7 @@
           elementEvent.config.splice(index,1);
           actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
 
+          commands.validity("LOCALSTORE",true);
           sendChangesToGrid(elementEvent.config)
           
         }
@@ -208,9 +209,9 @@
 
   function copyActions(){
     $runtime.forEach(controller => {
-      if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
+      if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
         let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
-        copiedActions = elementEvent.actions;
+        copiedActions = elementEvent.config;
       }
     });
   }
@@ -218,10 +219,11 @@
   function pasteActions(){
     runtime.update((store)=>{
       store.map((controller)=>{
-        if(('dx:'+controller.dx+';dy:'+controller.dy) == inputStore.position){
+        if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
-          const newActions = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
-          elementEvent.actions = newActions;
+          const newConfig = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
+          elementEvent.config = newConfig;
+          sendChangesToGrid(elementEvent.config)
         }
         return controller;
       });   
@@ -361,12 +363,12 @@
               </button>
             </div>
      
-            <!--
+         
             <div class="flex mt-2 xl:mt-0">
               <button on:click={(e)=>{copyActions()}} class="mr-2 text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Copy</button>
               <button on:click={(e)=>{pasteActions()}} class="text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Paste</button>
             </div>
-            -->
+        
           </div>  
       </div>
 

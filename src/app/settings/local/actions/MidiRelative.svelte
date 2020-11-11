@@ -35,8 +35,8 @@
         if(KEY == 'COMMANDCHANNEL'){
           if(parseInt(VALUE) >= 128 && parseInt(VALUE) <= 255){
             type = 'dec';
-            let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
-            defined = check_for_matching_value(optionList, hexstring, 0);
+            //let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
+            defined = check_for_matching_value(optionList, /*hexstring*/ VALUE, 0);
             //if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
           } else if(VALUE.startsWith('0x') && parameter.length > 3) {  
             type = 'hex';
@@ -45,7 +45,9 @@
             defined = 'invalid :(';
             //appears to be a wildcard,
           }
+          console.log(VALUE, parseInt(VALUE), defined);
         }
+        
         else if(KEY == 'PARAM1'){
           if(VALUE == 'P0' || VALUE == 'P1' || VALUE == 'B0' || VALUE == 'B1' || VALUE == 'E0' || VALUE == 'E1'){ 
             type = 'tmp param';
