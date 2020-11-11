@@ -31,6 +31,7 @@
       }
       c = 0;
     });
+    console.log('MOUNT LED PHASE')
     validate_setledphase(action.parameters);
   })
 
@@ -50,7 +51,7 @@
     if(action.parameters.PHA != 'A3' && action.parameters.PHA != 'A7'){ param_2 = action.parameters.PHA } else { param_2 = action.parameters.PHA}
     const parameters = [
       { 'NUM': parameter_parser(param_0) },
-      { 'LAY': action.parameters.LAY },
+      { 'LAY': `${'0'+action.parameters.LAY}` },
       { 'PHA': parameter_parser(param_2) },
     ];
 
@@ -101,7 +102,8 @@
           }
         } 
         else if(KEY == 'LAY'){
-          if(VALUE == '01' || VALUE == '02'){ 
+          console.log(VALUE);
+          if(VALUE == 1 || VALUE == 2){ 
             defined = check_for_matching_value(optionList, VALUE, 1); 
           } else {
             defined = 'invalid :(';

@@ -41,12 +41,13 @@
           }
         }
         else if(KEY == 'COMMANDCHANNEL'){
+          console.log(VALUE, 'COMMANDCHANNEL')
           if(parseInt(VALUE) >= 128 && parseInt(VALUE) <= 255){
             type = 'dec';
-            let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
-            defined = check_for_matching_value(optionList, hexstring, 1);
+            //let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
+            defined = check_for_matching_value(optionList, /**hexstring*/ VALUE, 1);
             //if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
-          } else if(VALUE.startsWith('0x') && parameter.length > 3) {  
+          } else if(VALUE.toString().startsWith('0x') && parameter.length > 3) {  
             type = 'hex';
             defined = check_for_matching_value(optionList, VALUE, 1);
           } else {
@@ -76,6 +77,7 @@
             defined = 'invalid :(' 
           }
         }
+        
 
         if(defined)
           humanReadable = defined
@@ -95,14 +97,14 @@
     const CHANNEL = parseInt(action.parameters.CABLECOMMAND-1).toString(16).padStart(2,'0')[1]; // -1 on channel, beacuse it works 0..15
     const COMMAND = parseInt(action.parameters.COMMANDCHANNEL).toString(16)[0];
     
-    console.log('command',COMMAND, CHANNEL);
-
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
       {'COMMANDCHANNEL': `${COMMAND+CHANNEL}` },
       {'PARAM1': parameter_parser(action.parameters.PARAM1)},
       {'PARAM1': parameter_parser(action.parameters.PARAM2)}
     ];
+
+    console.log(parameters);
 
     let valid = true;
  
@@ -134,6 +136,10 @@
       c = 0;
     });
 
+    const cablecommand = action.parameters.COMMANDCHANNEL % 16;
+    const commandchannel = (action.parameters.CABLECOMMAND % 16) * 16;
+    action.parameters.COMMANDCHANNEL = commandchannel;
+    action.parameters.CABLECOMMAND = cablecommand + 1;
     validate_midiabsolute(action.parameters)
     
   })

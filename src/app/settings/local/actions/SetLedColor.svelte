@@ -46,18 +46,38 @@
   function sendData(){
     
     let param_0;
-    if(action.parameters.NUM != 'A0' && action.parameters.NUM != 'A1'){ 
-      param_0 = Number(action.parameters.NUM) 
+    let num = action.parameters.NUM;
+    if(num != 'P0' && num != 'P1' && num != 'E0' && num != 'E1' && num != 'B0' && num != 'B1'){ 
+      param_0 = Number(num);
     } else { 
-      param_0 = action.parameters.NUM
+      param_0 = num;
+    }
+
+    let colorMod = {};
+    if(action.parameters.RED == 'Z1'){
+      colorMod.RED = 'Z1';
+    }else{
+      colorMod.RED = Math.floor(action.parameters.RED);
+    }
+
+    if(action.parameters.GRE == 'Z2'){
+      colorMod.GRE = 'Z2';
+    }else{
+      colorMod.GRE = Math.floor(action.parameters.GRE);
+    }
+
+    if(action.parameters.BLU == 'Z3'){
+      colorMod.BLU = 'Z3';
+    }else{
+      colorMod.BLU = Math.floor(action.parameters.BLU);
     }
 
     const parameters = [
       { 'NUM': param_0 },
-      { 'LAY': action.parameters.LAY },
-      { 'RED': Math.floor(action.parameters.RED) },
-      { 'GRE': Math.floor(action.parameters.GRE) },
-      { 'BLU': Math.floor(action.parameters.BLU) },
+      { 'LAY': `${'0'+action.parameters.LAY}`},
+      { 'RED': colorMod.RED },
+      { 'GRE': colorMod.GRE },
+      { 'BLU': colorMod.BLU },
       //{ 'BLU': Math.floor(action.parameters.BLU * action.parameters.ALPHA) }
     ];
 
@@ -104,11 +124,11 @@
     const gre = parameters.GRE;
     const blu = parameters.BLU;
     let valid = true;
-    if(!(num == 'A0' || num == 'A1' || 0 < num && num < 16 )) valid = false;
-    if(!(lay.length > 0 || lay[0] !== '')) valid = false;
-    if(!(0 <= red && red <= 255)) valid = false;
-    if(!(0 <= gre && gre <= 255)) valid = false;
-    if(!(0 <= blu && blu <= 255)) valid = false;
+    if(!(num == 'P0' || num == 'P1' || num == "E0" || num == "E1" || num == "B0" || num == "B1" || 0 < num && num < 16 )) valid = false;
+    if(!(lay == 1 || lay == 2)) valid = false;
+    if(!((0 <= red && red <= 255) || red == 'Z1')) valid = false;
+    if(!((0 <= gre && gre <= 255) || gre == 'Z2')) valid = false;
+    if(!((0 <= blu && blu <= 255) || blu == 'Z3')) valid = false;
     return valid;
   }
 

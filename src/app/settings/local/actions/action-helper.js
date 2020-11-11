@@ -24,7 +24,7 @@ export const parameter_parser = function(param){
 }
 
 export const check_for_matching_value = function (list, parameter, index) {
-  let defined = list[index].find(item => item.value === parameter);
+  let defined = list[index].find(item => item.value == parameter);
   defined ? defined = defined.info : null;
   return defined;
 }
