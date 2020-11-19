@@ -1,4 +1,4 @@
-import * as grid_protocol from '../../../external/grid-protocol/grid_protocol.json';
+import * as grid_protocol from '../../../external/grid-protocol/grid_protocol_nightly.json';
 import { GRID_CONTROLLER } from './GridController.js';
 
 let global_id = 0;

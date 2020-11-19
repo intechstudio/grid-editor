@@ -2,8 +2,4 @@
 node_modules
 public/bundle.*
 dist
-<<<<<<< HEAD
 .env
-=======
-/.env
->>>>>>> nightly

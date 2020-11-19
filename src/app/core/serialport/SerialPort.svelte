@@ -18,6 +18,7 @@
 
   let GRID = GRID_PROTOCOL;
   GRID.initialize();
+  console.log(GRID);
 
   let PORT = {path: 0};
 
@@ -235,7 +236,8 @@
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
-          // if($localInputStore.eventParam !== DATA.EVENT.EVENTPARAM)
+          console.log($localInputStore.eventParam, DATA.EVENT)
+          if($localInputStore.elementNumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.eventType !== DATA.EVENT.EVENTTYPE )
           // now not using due to changed protocol
           {
             localInputStore.update((store)=>{

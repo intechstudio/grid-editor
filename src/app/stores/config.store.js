@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import * as grid_protocol from '../../external/grid-protocol/grid_protocol.json';
+import * as grid_protocol from '../../external/grid-protocol/grid_protocol_nightly.json';
 
 import { commands } from '../settings/shared/handshake.store.js';
 

@@ -13,6 +13,7 @@
 
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
+  import ActionCommands from './ActionCommands.svelte';
 
   import OverlayToggle from '../../core/grid-modules/overlays/OverlayToggle.svelte';
 
@@ -85,6 +86,7 @@
         //console.log('on input store change...',elementEvent);
 
         if(elementEvent.config.length == 0 && !controller.virtual){
+          actions = []; // set default 0
           const fetch = runtime.fetchLocalConfig(controller, inputStore);
           serialComm.write(fetch);
         } 
@@ -94,7 +96,6 @@
         else {
           actions = []
         }
-
 
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
@@ -165,6 +166,7 @@
           
           commands.validity("LOCALSTORE",true);
 
+          // comment this out to avoid reactive changes!
           sendChangesToGrid(elementEvent.config);
           
         }
@@ -229,6 +231,24 @@
       });   
       return store;
     });
+    renderLocalConfiguration();
+  }
+
+  function recallActions(){
+
+    const command = GRID_PROTOCOL.encode(
+      moduleInfo,
+      'CONFIGDEFAULT',
+      'EXECUTE',
+      [
+        { BANKNUMBER: inputStore.bankActive}, 
+        { ELEMENTNUMBER: inputStore.elementNumber}, 
+        { EVENTTYPE: inputStore.eventType}, 
+      ], 
+      ''
+    );
+    serialComm.write(command);
+
     renderLocalConfiguration();
   }
 
@@ -363,11 +383,13 @@
               </button>
             </div>
      
-         
-            <div class="flex mt-2 xl:mt-0">
-              <button on:click={(e)=>{copyActions()}} class="mr-2 text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Copy</button>
-              <button on:click={(e)=>{pasteActions()}} class="text-gray-200 w-16 text-center p-1 border rounded-none border-highlight hover:bg-highlight-400 focus:outline-none">Paste</button>
-            </div>
+        
+
+            <ActionCommands
+              on:copy={copyActions}
+              on:paste={pasteActions}
+              on:recall={recallActions}
+            />
         
           </div>  
       </div>
