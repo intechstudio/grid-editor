@@ -1,6 +1,0 @@
-[submodule "grid-protocol"]
-	path = grid-protocol
-	url = https://github.com/IntechStudioDev/grid-protocol.git
-[submodule "src/external/grid-protocol"]
-	path = src/external/grid-protocol
-	url = https://github.com/IntechStudioDev/grid-protocol.git
