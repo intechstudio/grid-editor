@@ -38,7 +38,7 @@
             //let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
             defined = check_for_matching_value(optionList, /*hexstring*/ VALUE, 0);
             //if(defined) optionList = MIDIRELATIVE.optionList(hexstring);
-          } else if(VALUE.startsWith('0x') && parameter.length > 3) {  
+          } else if(VALUE.startsWith('0x') && VALUE.length > 3) {  
             type = 'hex';
             defined = check_for_matching_value(optionList, VALUE, 0);
           } else {

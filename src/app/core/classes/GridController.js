@@ -11,7 +11,7 @@ const TPEA = {
     code: 'DR'
   },
   value_change: {
-    desc: 'value change',
+    desc: 'rotation',
     value: '1',
     code: 'AVC7'
   },

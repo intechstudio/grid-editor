@@ -237,6 +237,9 @@ export const GRID_PROTOCOL = {
       if(obj.class == "LEDCOLOR"){
         DATA.LEDCOLOR = this.decode_by_code(array, obj.class)
       }
+      if(obj.class == "HIDKEYBOARD"){
+        DATA.HIDKEYBOARD = this.decode_by_code(array, obj.class)
+      }
 
       // global settings
       if(obj.class == "BANKENABLED"){
@@ -421,6 +424,9 @@ export const GRID_PROTOCOL = {
     }
     if(actionValue == "LEDPHASE"){
       name = "LED Phase";
+    }
+    if(actionValue == "HIDKEYBOARD"){
+      name = "Keyboard";
     }
     return name;
   },

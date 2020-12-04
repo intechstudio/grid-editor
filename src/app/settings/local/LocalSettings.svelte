@@ -34,7 +34,9 @@
     { id: 1, name: 'MIDI Static', value: 'MIDIABSOLUTE'},
     { id: 2, name: 'LED Color', value: 'LEDCOLOR' },
     { id: 3, name: 'LED Phase', value: 'LEDPHASE' },
-    { id: 4, name: 'RAW', value: 'RAW' }
+    { id: 4, name: 'Keyboard - Atomic', value: 'HIDKEYBOARD' },
+    { id: 5, name: 'Keyboard - Macro', value: 'MACROKEYBOARD' },
+    { id: 6, name: 'RAW', value: 'RAW' },
   ];
 
   let selectedAction = arrayOfSelectableActions[0];
@@ -310,6 +312,8 @@
 
 </style>
 
+
+
 <div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-4 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Local Settings</div>
@@ -318,10 +322,8 @@
       <div class="text-orange-500 text-4xl absolute right-0">{$localInputStore.elementNumber == undefined ? '-' : $localInputStore.elementNumber}</div>
     {/if}
   </div>
-
   {#if inputStore.elementNumber !== -1 && inputStore.bankActive !== -1}
   
-
   <!--
   <div class="flex flex-col px-2 my-4 w-full">
     <div class="text-gray-700 flex py-1">

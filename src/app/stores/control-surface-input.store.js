@@ -25,9 +25,17 @@ export const localInputStore = writable({
   dx: "",
   dy: "",
   elementNumber: -1, // should be checked out if grid sends back array or not
-  eventParam: -1,
   eventType: 0
 });
+
+export const localInputEventParamStore = writable({
+  eventParam: -1,
+});
+
+export const derivedLocalInputStore = derived(
+  [localInputStore, localInputEventParamStore],
+  ([$a, $b]) => Object.assign($a, $b)
+)
 
 export const derivedInputStore = derived(
   [bankActiveStore, localInputStore], 

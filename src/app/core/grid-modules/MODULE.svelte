@@ -10,9 +10,8 @@
   import ControlNameOverlay from './overlays/ControlNameOverlay.svelte';
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
 
-
   import { appSettings } from '../../stores/app-settings.store.js';
-  import { bankActiveStore, bankColorStore } from '../../stores/control-surface-input.store.js';
+  import { bankActiveStore, derivedLocalInputStore, bankColorStore } from '../../stores/control-surface-input.store.js';
   import { runtime } from '../../stores/runtime.store.js';
 
 
@@ -31,6 +30,7 @@
   let color;
   let bankColors;
   let bankActive;
+  let selectedElement;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
@@ -51,13 +51,17 @@
         bankColors = store[0].global.bankColors;
       }
     })
+
+    derivedLocalInputStore.subscribe(store => {
+      selectedElement = store;
+    })
     
   })
 
 </script>
 
 {#if selected}
-  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color}>
+  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement}>
 
     {#if $appSettings.overlays.controlName}
       <ControlNameOverlay {id} {moduleWidth} {bankActive} {rotation}/>

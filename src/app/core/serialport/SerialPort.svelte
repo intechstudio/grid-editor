@@ -4,7 +4,7 @@
 
   import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
-  import { localInputStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
+  import { localInputStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
   import { serialComm, serialCommDebug } from './serialport.store.js';
 
@@ -236,19 +236,22 @@
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
-          console.log($localInputStore.eventParam, DATA.EVENT)
-          if($localInputStore.elementNumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.eventType !== DATA.EVENT.EVENTTYPE )
+          //console.log($localInputStore.eventParam, DATA.EVENT)
+          if($localInputStore.elementNumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.eventType !== DATA.EVENT.EVENTTYPE ){
           // now not using due to changed protocol
-          {
             localInputStore.update((store)=>{
               store.dx = DATA.BRC.DX;
               store.dy = DATA.BRC.DY;
               store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
-              store.eventParam = DATA.EVENT.EVENTPARAM;   
               store.eventType = DATA.EVENT.EVENTTYPE;
               return store;
-            })
+            });
           }
+
+          localInputEventParamStore.update((store) => {
+            store.eventParam = DATA.EVENT.EVENTPARAM;
+            return store;
+          });
         }
       }
 
