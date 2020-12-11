@@ -28,6 +28,6 @@
     class="ml-8 text-white px-2 py-1 text-xs border-none rounded focus:outline-none" 
     on:click={enableMacro}
     >
-    Re-enable Macro
+    Re-Enable Macro
   </button>   
 </div>

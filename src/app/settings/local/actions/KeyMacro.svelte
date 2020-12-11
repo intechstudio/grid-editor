@@ -142,12 +142,11 @@
 
 <div class="flex w-full flex-col">
   <div class="w-full flex flex-row items-end">
-    <div class="w-2/3 pr-2">
+    <div class="w-full pr-2">
       <div class="text-gray-700 text-xs">Key Type</div>
       <input class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none" bind:value={keys} on:keydown|preventDefault={identifyKey} >
-      
     </div>
-  <button on:click={clearMacro} class="text-white px-2 py-1">Clear</button>
+    <button on:click={clearMacro} class="bg-secondary hover:bg-highlight-400 text-white px-2 py-1 cursor-pointer border-none rounded focus:outline-none mr-2" >Clear</button>
   </div>
 </div>
 

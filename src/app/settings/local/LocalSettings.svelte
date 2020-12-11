@@ -35,7 +35,7 @@
     { id: 1, name: 'MIDI Static', value: 'MIDIABSOLUTE'},
     { id: 2, name: 'LED Color', value: 'LEDCOLOR' },
     { id: 3, name: 'LED Phase', value: 'LEDPHASE' },
-    { id: 4, name: 'Keyboard - Atomic', value: 'HIDKEYBOARD' },
+    //{ id: 4, name: 'Keyboard - Atomic', value: 'HIDKEYBOARD' },
     { id: 5, name: 'Keyboard - Macro', value: 'HIDKEYMACRO' },
     { id: 6, name: 'RAW', value: 'RAW' },
   ];
