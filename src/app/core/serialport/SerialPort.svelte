@@ -4,7 +4,7 @@
 
   import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
-  import { localInputStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
+  import { localInputStore,hidKeyStatusStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
   import { serialComm, serialCommDebug } from './serialport.store.js';
 
@@ -253,6 +253,13 @@
             return store;
           });
         }
+      }
+
+      if(DATA.HIDKEYSTATUS){
+        hidKeyStatusStore.update((store) => {
+          store.isEnabled = DATA.HIDKEYSTATUS.ISENABLED;
+          return store;
+        });
       }
 
       // bank change by user

@@ -55,6 +55,22 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ]
         ]
       }
+      if(eventType == 'ENCPUSHROT'){
+        options =  [
+          [
+            {value: '176', info: 'Control Change'}, 
+            {value: '144', info: 'Note On'}, 
+            {value: '128', info: 'Note Off'}
+          ],
+          [
+            {value: 'E0', info: 'Default Control Number'}, 
+            {value: 'E1', info: 'Reversed Control Number'}
+          ],
+          [
+            {value: 'E5', info: 'Encoder Relative Change'},
+          ]
+        ]
+      }
     }
 
     // POTENTIOMETER || FADER
@@ -124,6 +140,23 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ]
         ]
       }
+      if(eventType == 'ENCPUSHROT'){
+        options =  [
+          build_array(),
+          [
+            {value: '176', info: 'Control Change'}, 
+            {value: '144', info: 'Note On'}, 
+            {value: '128', info: 'Note Off'}
+          ],
+          [
+            {value: 'E0', info: 'Default Control Number'}, 
+            {value: 'E1', info: 'Reversed Control Number'}
+          ],
+          [
+            {value: 'E5', info: 'Encoder Relative Change'},
+          ]
+        ]
+      }
     }
 
     // POTENTIOMETER || FADER
@@ -178,7 +211,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
 
     // ENCODER
     if(elementType == "E"){
-      if(eventType == "AVC7" || eventType == "INIT"){
+      if(eventType == "AVC7" || eventType == 'ENCPUSHROT' || eventType == "INIT"){
         options =  [
           [
             {value: 'E0', info: 'This LED'}, 
@@ -253,7 +286,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
 
     // ENCODER
     if(elementType == "E"){
-      if(eventType == "AVC7" || eventType == "INIT"){
+      if(eventType == "AVC7" || eventType == "INIT" || eventType == 'ENCPUSHROT'){
         options =  [
           [
             {value: 'E0', info: 'This LED'}, 
@@ -265,6 +298,21 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E2', info: 'Encoder Absolute Value'},
+            {value: 'E5', info: 'Encoder Relative Change'},
+          ]
+        ]
+      }
+      if(eventType == 'ENCPUSHROT'){
+        options =  [
+          [
+            {value: 'E0', info: 'This LED'}, 
+            {value: 'E1', info: 'Reversed LED'}, 
+          ],
+          [
+            {value: '1', info: 'A Layer'}, 
+            {value: '2', info: 'B Layer'},  
+          ],
+          [
             {value: 'E5', info: 'Encoder Relative Change'},
           ]
         ]
@@ -292,10 +340,10 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
     
   }
 
-  if(actionName == 'MACROKEYBOARD' || actionName == 'HIDKEYBOARD'){
+  if(actionName == 'HIDKEYMACRO' || actionName == 'HIDKEYBOARD'){
     // BUTTON
     if(elementType == "B" || elementType == "E"){
-      if(eventType == "DP" || eventType == "DR" || (eventType == "INIT" && elementType == "B")){
+      if(eventType == "DP" || eventType == "DR" || eventType == 'ENCPUSHROT' || (eventType == "INIT" && elementType == "B")){
         // MODIFIER
         if(filter == 1){
           options = [
@@ -418,7 +466,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
       }
     }
   }
-
+  console.log(options);
   return options;
 
 }

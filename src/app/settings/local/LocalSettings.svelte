@@ -10,7 +10,6 @@
 
   import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
-
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
   import ActionCommands from './ActionCommands.svelte';
@@ -24,6 +23,8 @@
   import Commands from '../shared/Commands.svelte';
   import { appSettings } from '../../stores/app-settings.store.js';
 
+  import { parameter_parser } from './actions/action-helper.js';
+
   let inputStore = {
     bankActive : -1,
     elementNumber : -1
@@ -35,7 +36,7 @@
     { id: 2, name: 'LED Color', value: 'LEDCOLOR' },
     { id: 3, name: 'LED Phase', value: 'LEDPHASE' },
     { id: 4, name: 'Keyboard - Atomic', value: 'HIDKEYBOARD' },
-    { id: 5, name: 'Keyboard - Macro', value: 'MACROKEYBOARD' },
+    { id: 5, name: 'Keyboard - Macro', value: 'HIDKEYMACRO' },
     { id: 6, name: 'RAW', value: 'RAW' },
   ];
 
@@ -184,10 +185,12 @@
 
   function sendChangesToGrid(config){
     const params = [
-      { BANKNUMBER: inputStore.bankActive },
-      { ELEMENTNUMBER: inputStore.elementNumber },
-      { EVENTTYPE: eventInfo.value }
+      { BANKNUMBER: parameter_parser(inputStore.bankActive) },
+      { ELEMENTNUMBER: parameter_parser(inputStore.elementNumber) },
+      { EVENTTYPE: parameter_parser(eventInfo.value) }
     ]
+
+    console.log('sending config...', parameter_parser(eventInfo.value))
     
     let array = [];
     config.forEach(a => {
@@ -243,9 +246,9 @@
       'CONFIGDEFAULT',
       'EXECUTE',
       [
-        { BANKNUMBER: inputStore.bankActive}, 
-        { ELEMENTNUMBER: inputStore.elementNumber}, 
-        { EVENTTYPE: inputStore.eventType}, 
+        { BANKNUMBER: parameter_parser(inputStore.bankActive)}, 
+        { ELEMENTNUMBER: parameter_parser(inputStore.elementNumber)}, 
+        { EVENTTYPE: parameter_parser(inputStore.eventType)}, 
       ], 
       ''
     );

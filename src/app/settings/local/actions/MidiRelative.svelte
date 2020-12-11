@@ -20,7 +20,8 @@
   let validator = [];
   let actionKeys = ['COMMANDCHANNEL','PARAM1','PARAM2']
 
-  let optionList = buildOptionList(elementInfo, eventInfo, action);
+  let optionList = buildOptionList(elementInfo, eventInfo, action, '');
+  console.log(optionList);
 
   let inputLabels = ['Command','Param 1','Param 2'];
 

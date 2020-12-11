@@ -7,7 +7,6 @@
   import { actionListChange } from '../action-list-change.store.js';
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
-  import Toggle from '../../ui/components/Toggle.svelte';
   import Radio from '../../ui/components/Radio.svelte';
 
   import { check_for_matching_value, parameter_parser } from './action-helper';

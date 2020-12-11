@@ -1,0 +1,537 @@
+[
+  {
+    "value": "0x01",
+    "info": "ctrl",
+    "js_value": 17,
+    "is_modifier": true
+  },
+  {
+    "value": "0x02",
+    "info": "shift",
+    "js_value": 16,
+    "is_modifier": true
+  },
+  {
+    "value": "0x04",
+    "info": "alt",
+    "js_value": 18,
+    "is_modifier": true
+  },
+  {
+    "value": "0x08",
+    "info": "left window",
+    "js_value": 91,
+    "is_modifier": true
+  },
+  {
+    "value": "0x80",
+    "info": "right window",
+    "js_value": 92,
+    "is_modifier": true
+  },
+  {
+    "value": 30,
+    "info": 1,
+    "js_value": 49,
+    "is_modifier": false
+  },
+  {
+    "value": 31,
+    "info": 2,
+    "js_value": 50,
+    "is_modifier": false
+
+  },
+  {
+    "value": 32,
+    "info": 3,
+    "js_value": 51,
+    "is_modifier": false
+  },
+  {
+    "value": 33,
+    "info": 4,
+    "js_value": 52,
+    "is_modifier": false
+  },
+  {
+    "value": 34,
+    "info": 5,
+    "js_value": 53,
+    "is_modifier": false
+  },
+  {
+    "value": 35,
+    "info": 6,
+    "js_value": 54,
+    "is_modifier": false
+  },
+  {
+    "value": 36,
+    "info": 7,
+    "js_value": 55,
+    "is_modifier": false
+  },
+  {
+    "value": 37,
+    "info": 8,
+    "js_value": 56,
+    "is_modifier": false  
+  },
+  {
+    "value": 38,
+    "info": 9,
+    "js_value": 57,
+    "is_modifier": false
+  },
+  {
+    "value": 39,
+    "info": 0,
+    "js_value": 48,
+    "is_modifier": false
+  },
+  {
+    "value": "0x04",
+    "info": "A",
+    "js_value": 65,
+    "is_modifier": false
+  },
+  {
+    "value": "0x05",
+    "info": "B",
+    "js_value": 66,
+    "is_modifier": false
+  },
+  {
+    "value": "0x06",
+    "info": "C",
+    "js_value": 67,
+    "is_modifier": false
+  },
+  {
+    "value": "0x07",
+    "info": "D",
+    "js_value": 68,
+    "is_modifier": false
+  },
+  {
+    "value": "0x08",
+    "info": "E",
+    "js_value": 69,
+    "is_modifier": false
+  },
+  {
+    "value": "0x09",
+    "info": "F",
+    "js_value": 70,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0A",
+    "info": "G",
+    "js_value": 71,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0B",
+    "info": "H",
+    "js_value": 72,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0C",
+    "info": "I",
+    "js_value": 73,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0D",
+    "info": "J",
+    "js_value": 74,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0E",
+    "info": "K",
+    "js_value": 75,
+    "is_modifier": false
+  },
+  {
+    "value": "0x0F",
+    "info": "L",
+    "js_value": 76,
+    "is_modifier": false
+  },
+  {
+    "value": "0x10",
+    "info": "M",
+    "js_value": 77,
+    "is_modifier": false
+  },
+  {
+    "value": "0x11",
+    "info": "N",
+    "js_value": 78,
+    "is_modifier": false
+  },
+  {
+    "value": "0x12",
+    "info": "O",
+    "js_value": 79,
+    "is_modifier": false
+  },
+  {
+    "value": "0x13",
+    "info": "P",
+    "js_value": 80,
+    "is_modifier": false
+  },
+  {
+    "value": "0x14",
+    "info": "Q",
+    "js_value": 81,
+    "is_modifier": false
+  },
+  {
+    "value": "0x15",
+    "info": "R",
+    "js_value": 82,
+    "is_modifier": false
+  },
+  {
+    "value": "0x16",
+    "info": "S",
+    "js_value": 83,
+    "is_modifier": false
+  },
+  {
+    "value": "0x17",
+    "info": "T",
+    "js_value": 84,
+    "is_modifier": false
+  },
+  {
+    "value": "0x18",
+    "info": "U",
+    "js_value": 85,
+    "is_modifier": false
+  },
+  {
+    "value": "0x19",
+    "info": "V",
+    "js_value": 86,
+    "is_modifier": false
+  },
+  {
+    "value": "0x1A",
+    "info": "W",
+    "js_value": 87,
+    "is_modifier": false
+  },
+  {
+    "value": "0x1B",
+    "info": "X",
+    "js_value": 88,
+    "is_modifier": false
+  },
+  {
+    "value": "0x1C",
+    "info": "Y",
+    "js_value": 89,
+    "is_modifier": false
+  },
+  {
+    "value": "0x1D",
+    "info": "Z",
+    "js_value": 90,
+    "is_modifier": false
+  },
+  {
+    "value": 40,
+    "info": "enter",
+    "js_value": 13,
+    "is_modifier": false
+  },
+  {
+    "value": 41,
+    "info": "escape",
+    "js_value": 27,
+    "is_modifier": false
+  },
+  {
+    "value": 43,
+    "info": "tab",
+    "js_value": 9,
+    "is_modifier": false
+  },
+  {
+    "value": 44,
+    "info": "space",
+    "js_value": 32,
+    "is_modifier": false
+  },
+  {
+    "value": 45,
+    "info": "dash",
+    "js_value": 189,
+    "is_modifier": false
+  },
+  {
+    "value": 47,
+    "info": "{",
+    "js_value": 219,
+    "is_modifier": false
+  },
+  {
+    "value": 48,
+    "info": "}",
+    "js_value": 221,
+    "is_modifier": false
+  },
+  {
+    "value": 54,
+    "info": ",",
+    "js_value": 188,
+    "is_modifier": false
+  },
+  {
+    "value": 55,
+    "info": ".",
+    "js_value": 190,
+    "is_modifier": false
+  },
+  {
+    "value": 56,
+    "info": "/",
+    "js_value": 191,
+    "is_modifier": false
+  },
+  {
+    "value": 57,
+    "info": "caps lock",
+    "js_value": 20,
+    "is_modifier": false
+  },
+  {
+    "value": 58,
+    "info": "F1",
+    "js_value": 112,
+    "is_modifier": false
+  },
+  {
+    "value": 59,
+    "info": "F2",
+    "js_value": 113,
+    "is_modifier": false
+  },
+  {
+    "value": 60,
+    "info": "F3",
+    "js_value": 114,
+    "is_modifier": false
+  },
+  {
+    "value": 61,
+    "info": "F4",
+    "js_value": 115,
+    "is_modifier": false
+  },
+  {
+    "value": 62,
+    "info": "F5",
+    "js_value": 116,
+    "is_modifier": false
+  },
+  {
+    "value": 63,
+    "info": "F6",
+    "js_value": 117,
+    "is_modifier": false
+  },
+  {
+    "value": 64,
+    "info": "F7",
+    "js_value": 118,
+    "is_modifier": false
+  },
+  {
+    "value": 65,
+    "info": "F8",
+    "js_value": 119,
+    "is_modifier": false
+  },
+  {
+    "value": 66,
+    "info": "F9",
+    "js_value": 120,
+    "is_modifier": false
+  },
+  {
+    "value": 67,
+    "info": "F10",
+    "js_value": 121,
+    "is_modifier": false
+  },
+  {
+    "value": 68,
+    "info": "F11",
+    "js_value": 122,
+    "is_modifier": false
+  },
+  {
+    "value": 69,
+    "info": "F12",
+    "js_value": 123,
+    "is_modifier": false
+  },
+  {
+    "value": 71,
+    "info": "scroll lock",
+    "js_value": 145,
+    "is_modifier": false
+  },
+  {
+    "value": 73,
+    "info": "insert",
+    "js_value": 45,
+    "is_modifier": false
+  },
+  {
+    "value": 74,
+    "info": "home",
+    "js_value": 36,
+    "is_modifier": false
+  },
+  {
+    "value": 75,
+    "info": "page up",
+    "js_value": 33,
+    "is_modifier": false
+  },
+  {
+    "value": 76,
+    "info": "delete",
+    "js_value": 46,
+    "is_modifier": false
+  },
+  {
+    "value": 77,
+    "info": "end",
+    "js_value": 35,
+    "is_modifier": false
+  },
+  {
+    "value": 78,
+    "info": "page down",
+    "js_value": 34,
+    "is_modifier": false
+  },
+  {
+    "value": 79,
+    "info": "right arrow",
+    "js_value": 39,
+    "is_modifier": false
+  },
+  {
+    "value": 80,
+    "info": "left arrow",
+    "js_value": 37,
+    "is_modifier": false
+  },
+  {
+    "value": 81,
+    "info": "down arrow",
+    "js_value": 40,
+    "is_modifier": false
+  },
+  {
+    "value": 82,
+    "info": "up arrow",
+    "js_value": 38,
+    "is_modifier": false
+  },
+  {
+    "value": 84,
+    "info": "divide",
+    "js_value": 111,
+    "is_modifier": false
+  },
+  {
+    "value": 85,
+    "info": "multiply",
+    "js_value": 106,
+    "is_modifier": false
+  },
+  {
+    "value": 86,
+    "info": "subtract",
+    "js_value": 109,
+    "is_modifier": false
+  },
+  {
+    "value": 87,
+    "info": "add",
+    "js_value": 107,
+    "is_modifier": false
+  },
+  {
+    "value": 89,
+    "info": "numpad_1",
+    "js_value": 97,
+    "is_modifier": false
+  },
+  {
+    "value": 90,
+    "info": "numpad_2",
+    "js_value": 98,
+    "is_modifier": false
+  },
+  {
+    "value": 91,
+    "info": "numpad_3",
+    "js_value": 99,
+    "is_modifier": false
+  },
+  {
+    "value": 92,
+    "info": "numpad_4",
+    "js_value": 100,
+    "is_modifier": false
+  },
+  {
+    "value": 93,
+    "info": "numpad_5",
+    "js_value": 101,
+    "is_modifier": false
+  },
+  {
+    "value": 94,
+    "info": "numpad_6",
+    "js_value": 102,
+    "is_modifier": false
+  },
+  {
+    "value": 95,
+    "info": "numpad_7",
+    "js_value": 103,
+    "is_modifier": false
+  },
+  {
+    "value": 96,
+    "info": "numpad_8",
+    "js_value": 104,
+    "is_modifier": false
+  },
+  {
+    "value": 97,
+    "info": "numpad_9",
+    "js_value": 105,
+    "is_modifier": false
+  },
+  {
+    "value": 98,
+    "info": "numpad_0",
+    "js_value": 96,
+    "is_modifier": false
+  }
+]

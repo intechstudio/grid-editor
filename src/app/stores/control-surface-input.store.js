@@ -32,6 +32,10 @@ export const localInputEventParamStore = writable({
   eventParam: -1,
 });
 
+export const hidKeyStatusStore = writable({
+  isEnabled: 1
+})
+
 export const derivedLocalInputStore = derived(
   [localInputStore, localInputEventParamStore],
   ([$a, $b]) => Object.assign($a, $b)

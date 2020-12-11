@@ -241,6 +241,11 @@ export const GRID_PROTOCOL = {
         DATA.HIDKEYBOARD = this.decode_by_code(array, obj.class)
       }
 
+      // HID state
+      if(obj.class == "HIDKEYSTATUS"){
+        DATA.HIDKEYSTATUS = this.decode_by_code(array, obj.class);
+      }
+
       // global settings
       if(obj.class == "BANKENABLED"){
         DATA.BANKENABLED.push(this.decode_by_code(array, obj.class));

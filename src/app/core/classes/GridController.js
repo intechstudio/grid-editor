@@ -15,6 +15,11 @@ const TPEA = {
     value: '1',
     code: 'AVC7'
   },
+  push_rot: {
+    desc: 'push rot',
+    value: '13',
+    code: 'ENCPUSHROT'
+  },
   init: {
     desc: 'bank init',
     value: '0',
@@ -29,7 +34,7 @@ export var GRID_CONTROLLER = {
     potentiometer: [ TPEA.init, TPEA.value_change ],
     fader: [ TPEA.init, TPEA.value_change ],
     blank: [],
-    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.value_change ]
+    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.value_change, TPEA.push_rot ]
   },
 
   moduleElements: {
