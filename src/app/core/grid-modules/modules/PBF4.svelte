@@ -13,13 +13,12 @@
   import Button from '../elements/Button.svelte';
 
   export let id = 'PBF4';
+  export let selectedElement = {};
   export let rotation = 0;
   export let moduleWidth;
   export let color;
 
   let dx, dy;
-
-  let selectedElement = {};
 
   let valueChange = [];
 
@@ -32,9 +31,6 @@
   }
 
   onMount(()=>{
-    localInputStore.subscribe((values)=>{
-      selectedElement = values;
-    });
 
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();

@@ -33,7 +33,7 @@
       if (PARAMETERS.hasOwnProperty(KEY)) {
         const VALUE = PARAMETERS[KEY];
         if(KEY == 'CABLECOMMAND'){
-          if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 15){
+          if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 16){
             type = 'dec';
           } else {
             defined = 'invalid :(';
@@ -47,7 +47,7 @@
             //let hexstring = '0x' + (+VALUE).toString(16).padStart(2, '0');      
             defined = check_for_matching_value(optionList, /**hexstring*/ VALUE, 1);
             //if(defined) optionList = MIDIABSOLUTE.optionList(hexstring);
-          } else if(VALUE.toString().startsWith('0x') && parameter.length > 3) {  
+          } else if(VALUE.toString().startsWith('0x') && VALUE.length > 3) {  
             type = 'hex';
             defined = check_for_matching_value(optionList, VALUE, 1);
           } else {

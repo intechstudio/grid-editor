@@ -7,6 +7,8 @@
   import SetLedColor from './actions/SetLedColor.svelte';
   import SetLedPhase from './actions/SetLedPhase.svelte';
   import RawAction from './actions/RawAction.svelte';
+  import KeyBoard from './actions/KeyBoard.svelte';
+  import KeyMacro from './actions/KeyMacro.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -21,6 +23,8 @@
     'LEDCOLOR': SetLedColor,
     'LEDPHASE': SetLedPhase,
     'RAW': RawAction,
+    'HIDKEYBOARD': KeyBoard,
+    'HIDKEYMACRO': KeyMacro
   }
 
   function handleRemove(){

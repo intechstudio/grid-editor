@@ -11,11 +11,10 @@
   import Led from '../elements/Led.svelte';
 
   export let moduleWidth;
+  export let selectedElement = {};
   export let id = 'BU16';
   export let rotation = 0;
   export let color;
-
-  let selectedElement = {};
 
   let valueChange = [];
 
@@ -38,16 +37,10 @@
   }
 
   onMount(()=>{
-    localInputStore.subscribe((values)=>{
-      
-      selectedElement = values;
-    });
-
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
     }
-    
   });
 
 </script>

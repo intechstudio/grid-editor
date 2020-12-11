@@ -18,7 +18,6 @@ export const parameter_parser = function(param){
       parameter = parseInt(param).toString(16).padStart(2,'0');
     }
 
-    console.log(parameter);
     return parameter
   }
 }

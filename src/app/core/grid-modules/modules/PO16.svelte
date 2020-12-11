@@ -11,6 +11,7 @@
   import Led from '../elements/Led.svelte';
 
   export let id = 'PO16';
+  export let selectedElement = {};
   export let rotation = 0;
   export let moduleWidth;
   export let color;
@@ -18,8 +19,6 @@
   let valueChange = [];
 
   let dx, dy;
-
-  let selectedElement = {};
 
   const control_block = (number) => {
     let array = [];
@@ -38,9 +37,6 @@
   }
 
   onMount(()=>{
-    localInputStore.subscribe((values)=>{
-      selectedElement = values;
-    });
 
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();

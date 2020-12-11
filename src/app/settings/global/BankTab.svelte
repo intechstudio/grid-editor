@@ -3,6 +3,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
 
   import ColorPicker from '../ui/components/ColorPicker.svelte';
+import Toggle from '../ui/components/Toggle.svelte';
   
   const dispatch = createEventDispatcher();
 
@@ -56,9 +57,11 @@
   }
 
   function handleBankEnabled(){
-    bankEnabled = ! bankEnabled
+    console.log(bankEnabled);
+    bankEnabled = ! bankEnabled;
+
+    
     let _state = bankEnabled;
-    console.log(_state)
     _state ? _state = 1 : _state = 0;
     dispatch('BANKENABLED', {className: 'BANKENABLED', parameters: [
       {'BANKNUMBER': selected}, 
@@ -116,14 +119,13 @@
     <div class="flex justify-between text-white p-2 my-1 items-center">
       <div class="text-gray-200 ">
         {#if bankEnabled}
-          Bank is <span class="text-green-500">enabled!</span>
+          Bank Enable <span class=""></span>
         {:else}
-          Bank is <span class="text-red-500">disabled...</span>
+          Bank Enable <span class=""></span>
         {/if}
       </div>
       <div class="relative flex items-center justify-center">
-        <div on:click={()=>{handleBankEnabled()}} style="background: {bankEnabled ? 'rgb(45,220,0)' : 'rgb(220,45,0)'}" class="z-20 shadow-inner cursor-pointer transitions w-6 h-6 rounded-full"></div>
-        <div class:circle={bankEnabled} class="w-12 h-12 rounded-full opacity-0 bg-red-400 absolute"></div>
+        <Toggle on:change={handleBankEnabled} toggleValue={bankEnabled} />
       </div>
     </div>
 

@@ -2,6 +2,7 @@
 
   import { fade } from 'svelte/transition';
 
+  const fs = require('fs');
   /*
   *   tailwindcss
   */
@@ -38,6 +39,7 @@
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
+  import KeyStatus from './app/shared/menu/KeyStatus.svelte';
 
   import MODULE from './app/core/grid-modules/MODULE.svelte';
 
@@ -62,7 +64,7 @@
   import { dragndrop } from './app/layout/actions/dnd.action.js';
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
-import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
+  import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
 
 
   /*
@@ -168,6 +170,7 @@ import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
         }
       }
     />
+    <KeyStatus/>
   </Titlebar>
 {/if}
 
@@ -178,7 +181,7 @@ import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
     {#if $appSettings.isElectron} 
       <FirmwareCheck />
 
-      <Form />
+      <!--<Form />-->
     {/if}
     
 

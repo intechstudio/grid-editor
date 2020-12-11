@@ -51,9 +51,9 @@
 
     </div>
 
-    <div class="flex items-center justify-between">
+    <div on:click={enableLayoutMode} class="flex cursor-pointer items-center justify-between">
       <div class="text-white">Virtual Modules</div>
-      <button on:click={enableLayoutMode} class="ml-4 cursor-pointer focus:outline-none focus:bg-primary border-none w-4 h-4">
+      <div class="ml-4 cursor-pointer focus:outline-none focus:bg-primary border-none w-4 h-4">
         <svg class:rotate={toggle} version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
           style="fill:white;enable-background:new 0 0 451.846 451.847;" viewBox="0 0 451.846 451.847"
           xml:space="preserve">
@@ -63,7 +63,7 @@
               c6.177,6.18,9.262,14.271,9.262,22.366C354.708,234.018,351.617,242.115,345.441,248.292z"/>
           </g>
         </svg>
-      </button>
+      </div>
     </div>
     {#if toggle}
       <div in:fade class="secondary w-full mt-2 flex rounded-lg">
