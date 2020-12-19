@@ -10,8 +10,6 @@
 
   import { commands} from './handshake.store.js';
 
-  import { configStore } from '../../stores/config.store.js';
-
   import { onMount } from 'svelte';
 
   export let MODE = '';

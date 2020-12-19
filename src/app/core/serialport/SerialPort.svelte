@@ -40,11 +40,16 @@
         }
         return g;
       })
+
+      
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
       //console.log('_usedgird length...', _usedgrid)
 
       if(_removed !== undefined && _usedgrid.length !== undefined){    
+
+        // re-initialize Local Settings panel, if the module has been removed which had it's settings opened.
+          localInputStore.set({id: "",dx: "",dy: "",elementNumber: -1,eventType: 0});
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -84,18 +89,20 @@
 
           if(isGrid && $serialComm.open == undefined){
             selectedPort = port.path;
+            console.log('Found Grid port, attemting to open...', port.path)
             openSerialPort();
           }
         });
 
         const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ecad' || p.productId == 'ECAC' || p.productId == 'ecac');
         if(!thereIsGrid){
+          console.info('Grid not found, closing serial...')
           closeSerialPort();
         }
 
       })
     .catch(err => {   
-      console.error(err)
+      console.error(err);
     });
   }
 
@@ -107,6 +114,7 @@
     PORT = new SerialPort(serial.port.path, { autoOpen: false });
     serialComm.open(PORT);
     serialComm.enabled(true);
+    console.log('open & enable', PORT);
     readSerialPort();
   }
 
@@ -131,6 +139,7 @@
       // reset UI
       runtime = [];
       layout = [];
+      localInputStore.setToDefault();
 
       PORT = {path: 0};
     }
@@ -143,6 +152,7 @@
     PORT.open(function(err){
       if(err){
         console.error('Error opening port: ', err.message)
+        closeSerialPort();
       }
       //currentPorts[i] = port.path;
     })
@@ -324,7 +334,7 @@
 
 <div class="flex items-center not-draggable text-sm">
 
-  <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
+  <select bind:value={selectedPort} on:blur={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
     {#each $serialComm.list as serial,index}
       {#if serial.isGrid}
         <option value={serial.port.path}>{'Grid'}</option> 

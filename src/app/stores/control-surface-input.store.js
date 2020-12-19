@@ -1,4 +1,5 @@
-import { writable, derived } from 'svelte/store';
+import { writable, derived, get } from 'svelte/store';
+
 export const bankActiveStore = writable({
   bankActive: 0
 });
@@ -20,13 +21,39 @@ export const localConfigReportStore = writable({
   cfgs: []
 })
 
-export const localInputStore = writable({
-  id: "",
-  dx: "",
-  dy: "",
-  elementNumber: -1, // should be checked out if grid sends back array or not
-  eventType: 0
-});
+
+function createlocalInputStore() {
+
+  const defaultValues = { 
+    id: "",
+    dx: "",
+    dy: "",
+    elementNumber: -1, // should be checked out if grid sends back array or not
+    eventType: 0
+  }
+
+  // {...obj} syntax used to shallow copy default values. used to reset the store.
+	const store = writable({...defaultValues});
+
+	return {
+    ...store,
+    // This is used to re-init local settings panel if a module is removed which values have been displayed
+		setToDefault: (removed = 'reset') => {
+
+      const current = get(store);
+
+      if(removed.dx == current.dx && removed.dy == current.dy){
+        store.set({...defaultValues})
+      }
+
+      if(removed == 'reset'){
+        store.set({...defaultValues});
+      }
+    }
+	};
+}
+
+export const localInputStore = createlocalInputStore();
 
 export const localInputEventParamStore = writable({
   eventParam: -1,

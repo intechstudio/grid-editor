@@ -86,7 +86,7 @@
         eventInfo = elementEvent.event;  
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
-        //console.log('on input store change...',elementEvent);
+        console.log('render...', elementEvent);
 
         if(elementEvent.config.length == 0 && !controller.virtual){
           actions = []; // set default 0
@@ -261,10 +261,12 @@
 
     derivedInputStore.subscribe((values)=>{
       inputStore = values;
+      console.log('Chang2e?', values)
       renderLocalConfiguration();
     });
 
     localConfigReportStore.subscribe(store => {
+      console.log('Change?', store)
       if(store.cfgs.length > 0){
         // update runtime based on received config from grid
         runtime.update(runtime => {

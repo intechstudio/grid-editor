@@ -7,8 +7,6 @@
 
   import { actionListChange } from '../action-list-change.store.js';
 
-  import { configStore } from '../../../stores/config.store';
-
   import ColorPicker from '../../ui/components/ColorPicker.svelte';
 
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
