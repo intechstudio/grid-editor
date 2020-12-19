@@ -32,7 +32,7 @@
 
   import GlobalSettings from './app/settings/global/GlobalSettings.svelte';
   import LocalSettings from './app/settings/local/LocalSettings.svelte';
-  import Form from './app/shared/feedback/Form.svelte';
+  import Profiles from './app/profiles/Profiles.svelte';
   import Debug from './app/shared/debug/Debug.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import Tour from './app/shared/helpers/Tour.svelte';
@@ -65,6 +65,7 @@
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
   import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
+import GlobalProfiles from './app/profiles/Profiles.svelte';
 
 
   /*
@@ -203,6 +204,7 @@
         <div class="absolute mt-2 w-full h-full flex justify-between items-start">
           <div class="flex flex-col">
             <DragModule/> 
+            <Profiles/>
             <GlobalSettings/>       
           </div>
 
