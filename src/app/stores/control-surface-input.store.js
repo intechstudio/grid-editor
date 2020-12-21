@@ -21,7 +21,6 @@ export const localConfigReportStore = writable({
   cfgs: []
 })
 
-
 function createlocalInputStore() {
 
   const defaultValues = { 

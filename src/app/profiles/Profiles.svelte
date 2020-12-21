@@ -16,6 +16,8 @@
 
   import { runtime } from '../stores/runtime.store';
 
+  import { profileStore } from '../stores/profiles.store';
+
   let selected;
 
   let PROFILE_PATH = '';
@@ -46,7 +48,6 @@
         fs.readFile(`${path + "/" + file}`,'utf-8', function (err, data) { 
             if (err) throw err; 
             let obj = JSON.parse(data);
-            console.log(obj);
             PROFILES = [...PROFILES, obj]
         });
       })
@@ -60,8 +61,6 @@
     const configs = get(runtime)
 
     const profile = {name: profileName, data: configs}
-
-    const json = JSON.stringify(profile);
 
     // Resolves to a Promise<Object> 
     dialog.showSaveDialog({ 
@@ -78,19 +77,23 @@
         properties: [] 
     }).then(file => { 
         // Stating whether dialog operation was cancelled or not. 
-        console.log(file.canceled); 
         if (!file.canceled) { 
             const path = file.filePath.toString(); 
               
             // Creating and Writing to the sample.txt file 
-            fs.writeFile(path, json, 'utf8', function (err) { 
+            fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
                 if (err) throw err; 
                 console.log('Saved!'); 
             }); 
         } 
+
+        loadFilesFromDirectory(PROFILE_PATH);
+
     }).catch(err => { 
         console.log(err) 
     }); 
+
+
   }
 
   function openProfile(){
@@ -124,15 +127,10 @@
   }
 
   function loadProfile(){
+    console.log(selected);
     if(selected !== undefined){
       const profile = PROFILES[selected].data;
-      console.log('current runtime', $runtime)
-      runtime.update(store => {
-        store = profile;
-        console.log(profile);
-        return store;
-      });
-      commands.validity(`LOCALSTORE`,true)
+      profileStore.set(profile);
     }
   }
 
