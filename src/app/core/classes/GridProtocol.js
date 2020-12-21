@@ -123,7 +123,8 @@ export const GRID_PROTOCOL = {
       INSTR: INSTR,
       VERSION: VERSION,
       PARAMETERS: PARAMETERS,
-      HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL
+      HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL,
+      AGE: Math.floor(Math.random()*255).toString(16).padStart(2, '0')
     }
     
   },
@@ -498,7 +499,7 @@ export const GRID_PROTOCOL = {
       {ID: this.utility_genId()}, 
       {DX: BRC.DX}, 
       {DY: BRC.DY}, 
-      {AGE: 0}, 
+      {AGE: PROTOCOL.AGE}, // ON PROTOCOL INIT, THIS IS GENERATED!
       {ROT: BRC.ROT}
     ];
 
