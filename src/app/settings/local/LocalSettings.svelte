@@ -10,6 +10,8 @@
 
   import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
+  import { profileStore } from '../../stores/profiles.store';
+
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
   import ActionCommands from './ActionCommands.svelte';
@@ -86,23 +88,25 @@
         eventInfo = elementEvent.event;  
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
-        console.log('render...', elementEvent);
+        elementEvent.cfgStatus = configStatus(controller, inputStore, elementEvent.cfgStatus);     
 
-        if(elementEvent.config.length == 0 && !controller.virtual){
-          actions = []; // set default 0
-          const fetch = runtime.fetchLocalConfig(controller, inputStore);
-          serialComm.write(fetch);
-        } 
-        else if(elementEvent.config.length > 0){
-          actions = runtime.configsToActions(elementEvent.config);
-        } 
-        else {
-          actions = []
-        }
+
+        actions = runtime.configsToActions(elementEvent.config);
 
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
     });
+  }
+
+  function configStatus(controller, inputStore, status){
+    
+    if(status == 'expected' || status == 'fetched'){
+      const fetch = runtime.fetchLocalConfig(controller, inputStore);
+      serialComm.write(fetch);
+      status = 'fetched';
+    }
+    
+    return status;
   }
 
 
@@ -167,11 +171,10 @@
           
           elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
           
-          commands.validity("LOCALSTORE",true);
+          commands.validity("LOCALSTORE", true);
 
           // comment this out to avoid reactive changes!
           sendChangesToGrid(elementEvent.config);
-          
         }
       
         return controller;
@@ -183,14 +186,13 @@
 
   }
 
-  function sendChangesToGrid(config){
-    const params = [
-      { BANKNUMBER: parameter_parser(inputStore.bankActive) },
-      { ELEMENTNUMBER: parameter_parser(inputStore.elementNumber) },
-      { EVENTTYPE: parameter_parser(eventInfo.value) }
-    ]
+  function sendChangesToGrid(config, bankNumber = inputStore.bankActive, elementNumber = inputStore.elementNumber, eventType = eventInfo.value ){
 
-    console.log('sending config...', parameter_parser(eventInfo.value))
+    const params = [
+      { BANKNUMBER: parameter_parser(bankNumber) },
+      { ELEMENTNUMBER: parameter_parser(elementNumber) },
+      { EVENTTYPE: parameter_parser(eventType) }
+    ]
     
     let array = [];
     config.forEach(a => {
@@ -259,37 +261,73 @@
 
   onMount(()=>{
 
-    derivedInputStore.subscribe((values)=>{
-      inputStore = values;
-      console.log('Chang2e?', values)
+    // Render local input settings if BANK or SELECTED CONTROL ELEMENT changes
+    derivedInputStore.subscribe(store =>{
+      inputStore = store;
+      console.log('derivedInputStore', store);
       renderLocalConfiguration();
     });
 
+    // Update runtime based on received config from Grid.
+    // This is called, when config is fetched, interaction happened with a control element where no cfg found.
     localConfigReportStore.subscribe(store => {
-      console.log('Change?', store)
-      if(store.cfgs.length > 0){
-        // update runtime based on received config from grid
-        runtime.update(runtime => {
-          runtime.forEach(controller =>{
-            if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
-              let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-              // upon connecting many modules, the instant messages sent back to editor may be read as wrong event for specific control elements.
-              // may be a bug, further test is required
-              if(events){
-                events.config = store.cfgs
+      let cfgReport = false;
+      runtime.update(runtime => {
+        runtime.forEach(controller =>{
+          if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+            let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
+            
+            // Upon connecting modules, messages on config are sent back to editor at instant.
+            // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
+            if(events.cfgStatus !== 'received'){
+              if(store.cfgs.length > 0){
+                events.config = store.cfgs;
+              } else if(store.cfgs.length == 0){
+                events.config = [];
               }
+              cfgReport = true;
+              events.cfgStatus = 'received'
             }
-          })
+          }
+        })
+        return runtime;
+      });
+
+      // Render only if config is successfully read back!
+      cfgReport ? renderLocalConfiguration() : null;
+
+    });
+
+    /**
+    profileStore.subscribe(store => {
+      if(store !== undefined && store !== ''){
+        runtime.update(runtime => {
+          runtime = store;
           return runtime;
+        });
+
+        let counter = 0;
+        store.forEach(controller => {
+          controller.banks.forEach((bank, bankNumber) => {
+            bank.forEach((controlElement, elementNumber) => {
+              controlElement.events.forEach(event => {
+                counter++
+                setTimeout(() =>{
+                  console.log(event, event.config);
+                  sendChangesToGrid(event.config, bankNumber, elementNumber, event.value);
+                },counter*100)
+              })
+            })
+          })
         });
         renderLocalConfiguration();
       }
     })
+*/
+
+  });
+
     
-  })
-
-  
-
 
 </script>
 
@@ -372,9 +410,9 @@
 
       <div class="flex w-full">
 
-          <div  class="flex flex-col xl:flex-row w-full justify-between"> 
+          <div class="flex flex-col xl:flex-row w-full justify-between"> 
 
-            <div   class="flex w-full xl:w-2/3">         
+            <div class="flex w-full xl:w-2/3">         
               <select class:tour={$tour.selectedName == "Actions"} bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
                 {#each arrayOfSelectableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>
