@@ -18,7 +18,7 @@
 
   import { appSettings } from './app/stores/app-settings.store';
   import { layout } from './app/stores/layout.store.js';
-  import { runtime } from './app/stores/runtime.store.js';
+  import { runtime, gridSyncProcess } from './app/stores/runtime.store.js';
 
   /*
   *   serialport and nodejs
@@ -65,7 +65,7 @@
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
   import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
-import GlobalProfiles from './app/profiles/Profiles.svelte';
+
 
 
   /*
@@ -95,6 +95,8 @@ import GlobalProfiles from './app/profiles/Profiles.svelte';
   let menuOnModuleWithId;
 
   onMount(()=>{
+
+    gridSyncProcess.subscribe(()=>{})
 
     createPanZoom(map, {
       bounds: true,

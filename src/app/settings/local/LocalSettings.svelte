@@ -90,7 +90,6 @@
 
         elementEvent.cfgStatus = configStatus(controller, inputStore, elementEvent.cfgStatus);     
 
-
         actions = runtime.configsToActions(elementEvent.config);
 
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
@@ -98,6 +97,18 @@
     });
   }
 
+
+  /**
+   * 
+   * This should be implemented in the Grid Sync Process runtime checker.
+   * Upon connecting a module, it should try to syncrhonize Grid with Editor in the background.
+   * 
+   * 
+   * 
+   * @param controller
+   * @param inputStore
+   * @param status
+   */
   function configStatus(controller, inputStore, status){
     
     if(status == 'expected' || status == 'fetched'){
@@ -140,7 +151,9 @@
           actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
 
           commands.validity("LOCALSTORE",true);
-          sendChangesToGrid(elementEvent.config)
+          
+          elementEvent.cfgStatus = "changed";
+          //sendChangesToGrid(elementEvent.config)
           
         }
         return controller;
@@ -173,8 +186,9 @@
           
           commands.validity("LOCALSTORE", true);
 
+          elementEvent.cfgStatus = "changed";
           // comment this out to avoid reactive changes!
-          sendChangesToGrid(elementEvent.config);
+          //sendChangesToGrid(elementEvent.config);
         }
       
         return controller;
@@ -184,23 +198,6 @@
       return store;   
     });
 
-  }
-
-  function sendChangesToGrid(config, bankNumber = inputStore.bankActive, elementNumber = inputStore.elementNumber, eventType = eventInfo.value ){
-
-    const params = [
-      { BANKNUMBER: parameter_parser(bankNumber) },
-      { ELEMENTNUMBER: parameter_parser(elementNumber) },
-      { EVENTTYPE: parameter_parser(eventType) }
-    ]
-    
-    let array = [];
-    config.forEach(a => {
-      array.push(...a);
-    });
-
-    const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
-    serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
   }
 
   function handleControlElementNaming(name){
@@ -232,7 +229,8 @@
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
           const newConfig = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
           elementEvent.config = newConfig;
-          sendChangesToGrid(elementEvent.config)
+          elementEvent.cfgStatus = "changed";
+          //sendChangesToGrid(elementEvent.config)
         }
         return controller;
       });   
@@ -276,17 +274,20 @@
         runtime.forEach(controller =>{
           if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
             let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-            
             // Upon connecting modules, messages on config are sent back to editor at instant.
             // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
-            if(events.cfgStatus !== 'received'){
-              if(store.cfgs.length > 0){
-                events.config = store.cfgs;
-              } else if(store.cfgs.length == 0){
-                events.config = [];
+            console.log('configReportStore', events);
+            if(events){
+            // here this should be figured out... what to do on profile load or other...
+              if(events.cfgStatus !== 'received' && events.cfgStatus !== 'sent_to_grid' && events.cfgStatus !== 'changed'){
+                if(store.cfgs.length > 0){
+                  events.config = store.cfgs;
+                } else if(store.cfgs.length == 0){
+                  events.config = [];
+                }
+                cfgReport = true;
+                events.cfgStatus = 'received'
               }
-              cfgReport = true;
-              events.cfgStatus = 'received'
             }
           }
         })
@@ -298,15 +299,26 @@
 
     });
 
-    /**
     profileStore.subscribe(store => {
       if(store !== undefined && store !== ''){
+        store.forEach(controller => {
+          controller.banks.forEach((bank) => {
+            bank.forEach((controlElement) => {
+              controlElement.events.forEach(event => {
+                event.cfgStatus = "changed";                
+              })
+            })
+          })
+        });
         runtime.update(runtime => {
           runtime = store;
           return runtime;
         });
-
-        let counter = 0;
+        renderLocalConfiguration();
+      }
+    });
+    /*
+      let counter = 0;
         store.forEach(controller => {
           controller.banks.forEach((bank, bankNumber) => {
             bank.forEach((controlElement, elementNumber) => {
@@ -322,11 +334,8 @@
         });
         renderLocalConfiguration();
       }
-    })
-*/
-
-  });
-
+    */
+});
     
 
 </script>
@@ -346,6 +355,7 @@
 
   ::-webkit-scrollbar-thumb {
       background: #286787;
+      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
       -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
   }
 
