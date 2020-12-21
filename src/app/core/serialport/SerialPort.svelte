@@ -108,11 +108,14 @@
   
   function openSerialPort() {
     const store = $serialComm;
-    const serial = store.list.find(serial => serial.port.path === selectedPort);
-    PORT = new SerialPort(serial.port.path, { autoOpen: false });
-    serialComm.open(PORT);
-    serialComm.enabled(true);
-    readSerialPort();
+    // don't let reopen port if it's already opened!
+    if(!store.isEnabled){
+      const serial = store.list.find(serial => serial.port.path === selectedPort);
+      PORT = new SerialPort(serial.port.path, { autoOpen: false });
+      serialComm.open(PORT);
+      serialComm.enabled(true);
+      readSerialPort();
+    }
   }
 
   function updateSelectedPort(port){
