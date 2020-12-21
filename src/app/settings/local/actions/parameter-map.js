@@ -466,7 +466,6 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
       }
     }
   }
-  console.log(options);
   return options;
 
 }

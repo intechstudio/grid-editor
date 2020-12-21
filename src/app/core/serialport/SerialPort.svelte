@@ -49,7 +49,7 @@
       if(_removed !== undefined && _usedgrid.length !== undefined){    
 
         // re-initialize Local Settings panel, if the module has been removed which had it's settings opened.
-          localInputStore.set({id: "",dx: "",dy: "",elementNumber: -1,eventType: 0});
+        localInputStore.setToDefault(_removed);
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -89,14 +89,12 @@
 
           if(isGrid && $serialComm.open == undefined){
             selectedPort = port.path;
-            console.log('Found Grid port, attemting to open...', port.path)
             openSerialPort();
           }
         });
 
         const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ecad' || p.productId == 'ECAC' || p.productId == 'ecac');
         if(!thereIsGrid){
-          console.info('Grid not found, closing serial...')
           closeSerialPort();
         }
 
@@ -114,7 +112,6 @@
     PORT = new SerialPort(serial.port.path, { autoOpen: false });
     serialComm.open(PORT);
     serialComm.enabled(true);
-    console.log('open & enable', PORT);
     readSerialPort();
   }
 

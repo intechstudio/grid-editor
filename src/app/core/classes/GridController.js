@@ -10,8 +10,15 @@ const TPEA = {
     value: '5',
     code: 'DR'
   },
-  value_change: {
+  rotation: {
+    // same as slide, just it's easier to read
     desc: 'rotation',
+    value: '1',
+    code: 'AVC7'
+  },
+  slide: {
+    // same as rotation, just it's easier to read
+    desc: 'slide',
     value: '1',
     code: 'AVC7'
   },
@@ -31,10 +38,10 @@ export var GRID_CONTROLLER = {
 
   elementEvents: {
     button: [ TPEA.init, TPEA.down, TPEA.up ],
-    potentiometer: [ TPEA.init, TPEA.value_change ],
-    fader: [ TPEA.init, TPEA.value_change ],
+    potentiometer: [ TPEA.init, TPEA.rotation ],
+    fader: [ TPEA.init, TPEA.slide ],
     blank: [],
-    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.value_change, TPEA.push_rot ]
+    encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.rotation, TPEA.push_rot ]
   },
 
   moduleElements: {
@@ -115,10 +122,11 @@ export var GRID_CONTROLLER = {
         rot: header.rot * -90,
         isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
         isLanding: false,
-        banks: this.createElementSettings(moduleType), // consider naming to "local"
+        banks: this.createElementSettings(moduleType, virtual), // consider naming to "local"
         global: {  
           bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
-          bankEnabled: [true,true,true,true]
+          bankEnabled: [true,true,true,true],
+          cfgStatus: virtual ? 'virtual' : 'expected'
         }
       }
       
@@ -128,7 +136,7 @@ export var GRID_CONTROLLER = {
 
   },
 
-  createElementSettings: function(moduleType){
+  createElementSettings: function(moduleType, virtual){
 
     moduleType = moduleType.substr(0,4);
 
@@ -151,7 +159,8 @@ export var GRID_CONTROLLER = {
           events.push({        
             event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
             // actions // low level config string
-            config: []
+            config: [],
+            cfgStatus: virtual ? 'virtual' : 'expected'
           })
         }
         control_elements[i] = {events: events, ...obj, };

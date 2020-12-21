@@ -21,7 +21,6 @@
   let actionKeys = ['COMMANDCHANNEL','PARAM1','PARAM2']
 
   let optionList = buildOptionList(elementInfo, eventInfo, action, '');
-  console.log(optionList);
 
   let inputLabels = ['Command','Param 1','Param 2'];
 
@@ -46,7 +45,6 @@
             defined = 'invalid :(';
             //appears to be a wildcard,
           }
-          console.log(VALUE, parseInt(VALUE), defined);
         }
         
         else if(KEY == 'PARAM1'){
@@ -89,7 +87,6 @@
 
     validate_midirelative(action.parameters);
 
-    console.log(action.parameters)
     
     const parameters = [
       {'CABLECOMMAND': `${'0'+COMMAND}` },
@@ -106,7 +103,6 @@
       }
     }
 
-    console.log(parameters);
     if(valid){
       dispatch('send', { 
         action: {
