@@ -6,6 +6,8 @@ import { parameter_parser } from '../settings/local/actions/action-helper';
 
 import { serialComm } from '../core/serialport/serialport.store';
 
+import { messageStore } from '../stores/message.store';
+
 GRID_PROTOCOL.initialize();
 
 function createRuntimeStore(){
@@ -78,33 +80,90 @@ export const runtime = createRuntimeStore();
 let counter = 0;
 export const gridSyncProcess = readable(counter, function start(set){
 
+  function getConfig(controller, inputStore){
+    if(controller !== undefined && inputStore !== undefined){
+      const fetch = runtime.fetchLocalConfig(controller, inputStore);
+      serialComm.write(fetch);
+    }
+  }
+
+  function sendConfig(config, controller, bankNumber, elementNumber, eventType){
+    runtime.sendCfgToGrid(
+      config, 
+      {
+        dx: controller.dx, 
+        dy: controller.dy, 
+        rot: controller.rot
+      },
+      bankNumber, 
+      elementNumber,
+      eventType
+    );
+  }
+
   function synchronize(){
     const grid = get(runtime);
-    let kva = 0;
+    let changes = 0;
+    let gate = 0;
+    
+    let num_of_fetched = 0;
+    let num_of_received = 0;
+    let num_of_sent_to_grid = 0;
+    let num_of_changed = 0;
     grid.forEach((controller) => {
       controller.banks.forEach((bank, bankNumber) => {
         bank.forEach((controlElement, elementNumber) => {
           controlElement.events.forEach(event =>{
-            if(event.cfgStatus == "changed" && kva == 0){
-              runtime.sendCfgToGrid(
-                event.config, 
-                {
-                  dx: controller.dx, 
-                  dy: controller.dy, 
-                  rot: controller.rot
-                },
-                bankNumber, 
-                elementNumber,
-                event.event.value
-              );
-              event.cfgStatus = "sent_to_grid";
-              kva = 1
+
+            if(event.cfgStatus == "fetched"){
+              num_of_fetched++;
             }
-   
+
+            if(event.cfgStatus == "received"){
+              num_of_received++;
+            }
+
+            if(event.cfgStatus == "sent_to_grid"){
+              num_of_sent_to_grid++;
+            }
+
+            if(event.cfgStatus == "changed"){
+              num_of_changed++;
+            }
+
+
+            if(event.cfgStatus == "expected" || event.cfgStatus == "fetched" && gate == 0){
+
+              getConfig(controller, {bankActive: bankNumber, elementNumber: elementNumber, eventType: event.event.value});
+              event.cfgStatus = "fetched";
+
+              gate = 1
+            }
+            
+         
+            if(event.cfgStatus == "changed" && gate == 0){
+              sendConfig(event.config, controller, bankNumber, elementNumber, event.event.value)
+              event.cfgStatus = "sent_to_grid";
+              gate = 1;
+            }
+     
+
           })
         })
       })
     })
+
+    messageStore.fetched(num_of_fetched)
+    messageStore.received(num_of_received)
+    messageStore.changed(num_of_changed)
+    messageStore.sent_to_grid(num_of_sent_to_grid)
+
+    if(changes > 1){
+      //messageStore.multipleChanges(changes);
+    }
+    if(changes == 0){
+      //messageStore.reset();
+    }
   }
 
   const interval = setInterval(() => {
@@ -112,7 +171,7 @@ export const gridSyncProcess = readable(counter, function start(set){
     counter = counter % 100;
     set(counter);
     synchronize();
-  }, 30);
+  }, 13);
 
   return function stop(){
     counter = 0;

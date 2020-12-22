@@ -88,7 +88,12 @@
         eventInfo = elementEvent.event;  
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
-        elementEvent.cfgStatus = configStatus(controller, inputStore, elementEvent.cfgStatus);     
+ 
+        if(elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched"){
+          const fetch = runtime.fetchLocalConfig(controller, inputStore);
+          serialComm.write(fetch);
+          elementEvent.cfgStatus = "fetched";
+        }
 
         actions = runtime.configsToActions(elementEvent.config);
 
@@ -96,30 +101,6 @@
       }
     });
   }
-
-
-  /**
-   * 
-   * This should be implemented in the Grid Sync Process runtime checker.
-   * Upon connecting a module, it should try to syncrhonize Grid with Editor in the background.
-   * 
-   * 
-   * 
-   * @param controller
-   * @param inputStore
-   * @param status
-   */
-  function configStatus(controller, inputStore, status){
-    
-    if(status == 'expected' || status == 'fetched'){
-      const fetch = runtime.fetchLocalConfig(controller, inputStore);
-      serialComm.write(fetch);
-      status = 'fetched';
-    }
-    
-    return status;
-  }
-
 
   function checkIfSelectedEventIsCorrect(settings, events){
     let event = events.find(e => e.value == settings.eventType);
@@ -272,21 +253,20 @@
       let cfgReport = false;
       runtime.update(runtime => {
         runtime.forEach(controller =>{
-          if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
+          if(controller.dx == store.brc.DX && controller.dy == store.brc.DY){
             let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
             // Upon connecting modules, messages on config are sent back to editor at instant.
             // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
-            console.log('configReportStore', events);
             if(events){
             // here this should be figured out... what to do on profile load or other...
-              if(events.cfgStatus !== 'received' && events.cfgStatus !== 'sent_to_grid' && events.cfgStatus !== 'changed'){
+              if(events.cfgStatus == "fetched"){
                 if(store.cfgs.length > 0){
                   events.config = store.cfgs;
                 } else if(store.cfgs.length == 0){
                   events.config = [];
                 }
                 cfgReport = true;
-                events.cfgStatus = 'received'
+                events.cfgStatus = "received"
               }
             }
           }
@@ -301,6 +281,17 @@
 
     profileStore.subscribe(store => {
       if(store !== undefined && store !== ''){
+        // load only banks!
+        runtime.update(runtime => {
+          runtime.forEach((controller, i) => { 
+            if(store[i].banks !== undefined){
+              console.log(controller, i, store[i].banks)
+              controller.banks = store[i].banks;
+            }
+          })
+          return runtime;
+        });
+
         store.forEach(controller => {
           controller.banks.forEach((bank) => {
             bank.forEach((controlElement) => {
@@ -310,31 +301,11 @@
             })
           })
         });
-        runtime.update(runtime => {
-          runtime = store;
-          return runtime;
-        });
+        commands.validity("LOCALSTORE", true);
         renderLocalConfiguration();
       }
     });
-    /*
-      let counter = 0;
-        store.forEach(controller => {
-          controller.banks.forEach((bank, bankNumber) => {
-            bank.forEach((controlElement, elementNumber) => {
-              controlElement.events.forEach(event => {
-                counter++
-                setTimeout(() =>{
-                  console.log(event, event.config);
-                  sendChangesToGrid(event.config, bankNumber, elementNumber, event.value);
-                },counter*100)
-              })
-            })
-          })
-        });
-        renderLocalConfiguration();
-      }
-    */
+
 });
     
 

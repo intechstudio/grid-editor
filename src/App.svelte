@@ -40,6 +40,7 @@
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import KeyStatus from './app/shared/menu/KeyStatus.svelte';
+  import Message from './app/shared/messages/Message.svelte';
 
   import MODULE from './app/core/grid-modules/MODULE.svelte';
 
@@ -309,6 +310,7 @@
       
     </div>
 
+    <!--
     {#if !$appSettings.layoutMode}
       
       <div class="opacity-25 text-4xl text-white absolute right-0 bottom-0 mr-3 font-roboto font-bold">
@@ -317,7 +319,7 @@
       </div>
       
     {/if}
-
+    -->
     
   </section>
 
@@ -326,6 +328,8 @@
       <Debug />
     </section>
   {/if}
+
+  <Message/>
 
 </main>
 
