@@ -171,7 +171,7 @@ export const gridSyncProcess = readable(counter, function start(set){
     counter = counter % 100;
     set(counter);
     synchronize();
-  }, 13);
+  }, 25);
 
   return function stop(){
     counter = 0;

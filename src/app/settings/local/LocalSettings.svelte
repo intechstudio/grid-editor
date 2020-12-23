@@ -284,29 +284,30 @@
         // load only banks!
         runtime.update(runtime => {
           runtime.forEach((controller, i) => { 
-            if(store[i].banks !== undefined){
-              console.log(controller, i, store[i].banks)
-              controller.banks = store[i].banks;
+            if(store[i] !== undefined){
+              if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
+
+                console.log(controller, i, store[i].banks, store)
+
+                controller.banks = store[i].banks;
+                controller.banks.forEach((bank) => {
+                  bank.forEach((controlElement) => {
+                    controlElement.events.forEach(event => {
+                      event.cfgStatus = "changed";                
+                    })
+                  })
+                })
+              }
             }
           })
           return runtime;
         });
 
-        store.forEach(controller => {
-          controller.banks.forEach((bank) => {
-            bank.forEach((controlElement) => {
-              controlElement.events.forEach(event => {
-                event.cfgStatus = "changed";                
-              })
-            })
-          })
-        });
         commands.validity("LOCALSTORE", true);
         renderLocalConfiguration();
       }
     });
-
-});
+  });
     
 
 </script>

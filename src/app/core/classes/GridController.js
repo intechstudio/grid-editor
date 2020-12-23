@@ -160,7 +160,7 @@ export var GRID_CONTROLLER = {
             event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
             // actions // low level config string
             config: [],
-            cfgStatus: virtual ? 'virtual' : 'expected'
+            cfgStatus: (virtual || obj.controlElementType == "blank") ? 'not_expected' : 'expected'
           })
         }
         control_elements[i] = {events: events, ...obj, };
