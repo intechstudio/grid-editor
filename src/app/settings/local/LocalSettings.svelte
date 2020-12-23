@@ -255,6 +255,7 @@
         runtime.forEach(controller =>{
           if(controller.dx == store.brc.DX && controller.dy == store.brc.DY){
             let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
+            console.log(store.frame.EVENTTYPE)
             // Upon connecting modules, messages on config are sent back to editor at instant.
             // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
             if(events){

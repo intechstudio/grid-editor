@@ -38,9 +38,9 @@ function createRuntimeStore(){
         "CONFIGURATION",
         "FETCH",
         [
-          { BANKNUMBER: inputStore.bankActive}, 
-          { ELEMENTNUMBER: inputStore.elementNumber}, 
-          { EVENTTYPE: inputStore.eventType}, 
+          { BANKNUMBER: parameter_parser(inputStore.bankActive)}, 
+          { ELEMENTNUMBER: parameter_parser(inputStore.elementNumber)}, 
+          { EVENTTYPE: parameter_parser(inputStore.eventType)}, 
           { ACTIONSTRING: "" }
         ],
         ""
@@ -133,7 +133,7 @@ export const gridSyncProcess = readable(counter, function start(set){
 
 
             if(event.cfgStatus == "expected" || event.cfgStatus == "fetched" && gate == 0){
-
+              console.log(controller, event.cfgStatus)
               getConfig(controller, {bankActive: bankNumber, elementNumber: elementNumber, eventType: event.event.value});
               event.cfgStatus = "fetched";
 
