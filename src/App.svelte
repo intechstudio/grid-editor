@@ -193,7 +193,6 @@
 
       <!-- Info on pan. -->
 
-
       <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
 
       {#if $appSettings.selectedDisplay == 'layout'}
