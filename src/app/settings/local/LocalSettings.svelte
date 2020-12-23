@@ -10,6 +10,8 @@
 
   import { localInputStore, derivedInputStore, localConfigReportStore } from '../../stores/control-surface-input.store';
 
+  import { profileStore } from '../../stores/profiles.store';
+
   import ActionList from './ActionList.svelte';
   import ActionWrapper from './ActionWrapper.svelte';
   import ActionCommands from './ActionCommands.svelte';
@@ -86,25 +88,19 @@
         eventInfo = elementEvent.event;  
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
-        //console.log('on input store change...',elementEvent);
-
-        if(elementEvent.config.length == 0 && !controller.virtual){
-          actions = []; // set default 0
+ 
+        if(elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched"){
           const fetch = runtime.fetchLocalConfig(controller, inputStore);
           serialComm.write(fetch);
-        } 
-        else if(elementEvent.config.length > 0){
-          actions = runtime.configsToActions(elementEvent.config);
-        } 
-        else {
-          actions = []
+          elementEvent.cfgStatus = "fetched";
         }
+
+        actions = runtime.configsToActions(elementEvent.config);
 
         controlElementName = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementName || '';
       }
     });
   }
-
 
   function checkIfSelectedEventIsCorrect(settings, events){
     let event = events.find(e => e.value == settings.eventType);
@@ -136,7 +132,9 @@
           actions = runtime.configsToActions(elementEvent.config); // update this list too. does kill smooth animations
 
           commands.validity("LOCALSTORE",true);
-          sendChangesToGrid(elementEvent.config)
+          
+          elementEvent.cfgStatus = "changed";
+          //sendChangesToGrid(elementEvent.config)
           
         }
         return controller;
@@ -167,11 +165,11 @@
           
           elementEvent.config[index] = runtime.actionToConfig(temp_actions[index]);
           
-          commands.validity("LOCALSTORE",true);
+          commands.validity("LOCALSTORE", true);
 
+          elementEvent.cfgStatus = "changed";
           // comment this out to avoid reactive changes!
-          sendChangesToGrid(elementEvent.config);
-          
+          //sendChangesToGrid(elementEvent.config);
         }
       
         return controller;
@@ -181,24 +179,6 @@
       return store;   
     });
 
-  }
-
-  function sendChangesToGrid(config){
-    const params = [
-      { BANKNUMBER: parameter_parser(inputStore.bankActive) },
-      { ELEMENTNUMBER: parameter_parser(inputStore.elementNumber) },
-      { EVENTTYPE: parameter_parser(eventInfo.value) }
-    ]
-
-    console.log('sending config...', parameter_parser(eventInfo.value))
-    
-    let array = [];
-    config.forEach(a => {
-      array.push(...a);
-    });
-
-    const serialized = GRID_PROTOCOL.serialize_cfgs(params, array);
-    serialComm.write(GRID_PROTOCOL.encode(moduleInfo,'','','',serialized));
   }
 
   function handleControlElementNaming(name){
@@ -230,7 +210,8 @@
           let elementEvent = controller.banks[inputStore.bankActive][inputStore.elementNumber].events.find(cntrl => cntrl.event == selectedEvent);
           const newConfig = JSON.parse(JSON.stringify(copiedActions)); // deep copy of object.
           elementEvent.config = newConfig;
-          sendChangesToGrid(elementEvent.config)
+          elementEvent.cfgStatus = "changed";
+          //sendChangesToGrid(elementEvent.config)
         }
         return controller;
       });   
@@ -259,35 +240,75 @@
 
   onMount(()=>{
 
-    derivedInputStore.subscribe((values)=>{
-      inputStore = values;
+    // Render local input settings if BANK or SELECTED CONTROL ELEMENT changes
+    derivedInputStore.subscribe(store =>{
+      inputStore = store;
+      console.log('derivedInputStore', store);
       renderLocalConfiguration();
     });
 
+    // Update runtime based on received config from Grid.
+    // This is called, when config is fetched, interaction happened with a control element where no cfg found.
     localConfigReportStore.subscribe(store => {
-      if(store.cfgs.length > 0){
-        // update runtime based on received config from grid
+      let cfgReport = false;
+      runtime.update(runtime => {
+        runtime.forEach(controller =>{
+          if(controller.dx == store.brc.DX && controller.dy == store.brc.DY){
+            let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
+            // Upon connecting modules, messages on config are sent back to editor at instant.
+            // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
+            if(events){
+            // here this should be figured out... what to do on profile load or other...
+              if(events.cfgStatus == "fetched"){
+                if(store.cfgs.length > 0){
+                  events.config = store.cfgs;
+                } else if(store.cfgs.length == 0){
+                  events.config = [];
+                }
+                cfgReport = true;
+                events.cfgStatus = "received"
+              }
+            }
+          }
+        })
+        return runtime;
+      });
+
+      // Render only if config is successfully read back!
+      cfgReport ? renderLocalConfiguration() : null;
+
+    });
+
+    profileStore.subscribe(store => {
+      if(store !== undefined && store !== ''){
+        // load only banks!
         runtime.update(runtime => {
-          runtime.forEach(controller =>{
-            if(controller.dx == inputStore.dx && controller.dy == inputStore.dy){
-              let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-              // upon connecting many modules, the instant messages sent back to editor may be read as wrong event for specific control elements.
-              // may be a bug, further test is required
-              if(events){
-                events.config = store.cfgs
+          runtime.forEach((controller, i) => { 
+            if(store[i] !== undefined){
+              if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
+
+                console.log(controller, i, store[i].banks, store)
+
+                controller.banks = store[i].banks;
+                controller.banks.forEach((bank) => {
+                  bank.forEach((controlElement) => {
+                    controlElement.events.forEach(event => {
+                      event.cfgStatus = "changed";                
+                    })
+                  })
+                })
               }
             }
           })
           return runtime;
         });
+
+        commands.validity("LOCALSTORE", true);
         renderLocalConfiguration();
       }
-    })
+    });
+  });
     
-  })
-
-  
-
 
 </script>
 
@@ -306,6 +327,7 @@
 
   ::-webkit-scrollbar-thumb {
       background: #286787;
+      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
       -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
   }
 
@@ -370,9 +392,9 @@
 
       <div class="flex w-full">
 
-          <div  class="flex flex-col xl:flex-row w-full justify-between"> 
+          <div class="flex flex-col xl:flex-row w-full justify-between"> 
 
-            <div   class="flex w-full xl:w-2/3">         
+            <div class="flex w-full xl:w-2/3">         
               <select class:tour={$tour.selectedName == "Actions"} bind:value={selectedAction} class="secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
                 {#each arrayOfSelectableActions as action}
                   <option value={action} class="secondary  text-white">{action.name}</option>

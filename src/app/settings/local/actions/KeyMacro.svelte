@@ -22,16 +22,13 @@
   let validator = [];
 
   function sendData(){
-
-      dispatch('send', { 
-        action: {
-          value: action.value, 
-          parameters: parameters
-        }, 
-        index: index 
-      });
-    
-
+    dispatch('send', { 
+      action: {
+        value: action.value, 
+        parameters: parameters
+      }, 
+      index: index 
+    });
   }
 
   let orderChangeTrigger = null;
@@ -48,13 +45,12 @@
       c = 0;
     });
 
-    loadMacros()
-    //validate_macrokeyboard(action.parameters);
+    loadMacros();
   })
 
   afterUpdate(() => {
     if(orderChangeTrigger){
-      sendData();
+      manageMacro();
     }
   })
 
@@ -89,7 +85,6 @@
 
     for (const objKey in action.parameters) {
       if(objKey.startsWith('KEYCODE')){
-        console.log(action.parameters['KEYISMODIFIER'+objKey.slice(-1)], objKey.slice(-1))
         let found = keyMap.default.find(key => parseInt(key.value) == action.parameters[objKey] && key.is_modifier == action.parameters['KEYISMODIFIER'+objKey.slice(-1)]);
         if(found) {
           macro.push(found);
@@ -97,13 +92,10 @@
       }
     }
 
-    console.log(macro);
-
     macro.forEach(key => 
       keys += key.info + '  '
     )
 
-    //manageMacro();
   }
 
   function manageMacro(){
@@ -132,7 +124,7 @@
         parameters.push(obj);
       }
     }
-    console.log(parameters);
+
     sendData();
 
   }

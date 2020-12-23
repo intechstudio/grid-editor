@@ -6,7 +6,7 @@
 
   import { localInputStore,hidKeyStatusStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
-  import { serialComm, serialCommDebug } from './serialport.store.js';
+  import { commIndicator, serialComm, serialCommDebug } from './serialport.store.js';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -40,11 +40,16 @@
         }
         return g;
       })
+
+      
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
       //console.log('_usedgird length...', _usedgrid)
 
       if(_removed !== undefined && _usedgrid.length !== undefined){    
+
+        // re-initialize Local Settings panel, if the module has been removed which had it's settings opened.
+        localInputStore.setToDefault(_removed);
 
         dispatch('coroner', {
           usedgrid: _usedgrid, 
@@ -95,7 +100,7 @@
 
       })
     .catch(err => {   
-      console.error(err)
+      console.error(err);
     });
   }
 
@@ -103,11 +108,14 @@
   
   function openSerialPort() {
     const store = $serialComm;
-    const serial = store.list.find(serial => serial.port.path === selectedPort);
-    PORT = new SerialPort(serial.port.path, { autoOpen: false });
-    serialComm.open(PORT);
-    serialComm.enabled(true);
-    readSerialPort();
+    // don't let reopen port if it's already opened!
+    if(!store.isEnabled){
+      const serial = store.list.find(serial => serial.port.path === selectedPort);
+      PORT = new SerialPort(serial.port.path, { autoOpen: false });
+      serialComm.open(PORT);
+      serialComm.enabled(true);
+      readSerialPort();
+    }
   }
 
   function updateSelectedPort(port){
@@ -131,6 +139,7 @@
       // reset UI
       runtime = [];
       layout = [];
+      localInputStore.setToDefault();
 
       PORT = {path: 0};
     }
@@ -143,6 +152,7 @@
     PORT.open(function(err){
       if(err){
         console.error('Error opening port: ', err.message)
+        closeSerialPort();
       }
       //currentPorts[i] = port.path;
     })
@@ -170,6 +180,8 @@
 
     parser.on('data', function(data) {
 
+      
+
       let temp_array = Array.from(data);
       let array = [];
 
@@ -194,6 +206,8 @@
 
       // filter heartbeat messages
       if(!(d_array.slice(30).startsWith('010') && d_array.length == 46) ){
+
+        commIndicator.tick('rx');
 
         serialCommDebug.store(d_array);    
 
@@ -228,6 +242,7 @@
         localConfigReportStore.update(store => { 
           store.frame = DATA.CONFIGURATION; 
           store.cfgs = DATA.CONFIGURATION_CFGS;
+          store.brc = DATA.BRC;
           return store;
         }) 
       }
@@ -324,7 +339,7 @@
 
 <div class="flex items-center not-draggable text-sm">
 
-  <select bind:value={selectedPort} on:change={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
+  <select bind:value={selectedPort} on:blur={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
     {#each $serialComm.list as serial,index}
       {#if serial.isGrid}
         <option value={serial.port.path}>{'Grid'}</option> 

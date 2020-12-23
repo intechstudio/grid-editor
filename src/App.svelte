@@ -18,7 +18,7 @@
 
   import { appSettings } from './app/stores/app-settings.store';
   import { layout } from './app/stores/layout.store.js';
-  import { runtime } from './app/stores/runtime.store.js';
+  import { runtime, gridSyncProcess } from './app/stores/runtime.store.js';
 
   /*
   *   serialport and nodejs
@@ -32,7 +32,7 @@
 
   import GlobalSettings from './app/settings/global/GlobalSettings.svelte';
   import LocalSettings from './app/settings/local/LocalSettings.svelte';
-  import Form from './app/shared/feedback/Form.svelte';
+  import Profiles from './app/profiles/Profiles.svelte';
   import Debug from './app/shared/debug/Debug.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import Tour from './app/shared/helpers/Tour.svelte';
@@ -40,6 +40,7 @@
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
   import KeyStatus from './app/shared/menu/KeyStatus.svelte';
+  import Message from './app/shared/messages/Message.svelte';
 
   import MODULE from './app/core/grid-modules/MODULE.svelte';
 
@@ -65,6 +66,7 @@
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
   import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
+
 
 
   /*
@@ -94,6 +96,8 @@
   let menuOnModuleWithId;
 
   onMount(()=>{
+
+    gridSyncProcess.subscribe(()=>{})
 
     createPanZoom(map, {
       bounds: true,
@@ -203,6 +207,7 @@
         <div class="absolute mt-2 w-full h-full flex justify-between items-start">
           <div class="flex flex-col">
             <DragModule/> 
+            <Profiles/>
             <GlobalSettings/>       
           </div>
 
@@ -305,6 +310,7 @@
       
     </div>
 
+    <!--
     {#if !$appSettings.layoutMode}
       
       <div class="opacity-25 text-4xl text-white absolute right-0 bottom-0 mr-3 font-roboto font-bold">
@@ -313,7 +319,7 @@
       </div>
       
     {/if}
-
+    -->
     
   </section>
 
@@ -322,6 +328,8 @@
       <Debug />
     </section>
   {/if}
+
+  <Message/>
 
 </main>
 

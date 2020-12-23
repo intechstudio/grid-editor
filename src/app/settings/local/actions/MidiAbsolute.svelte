@@ -7,7 +7,6 @@
   import DropDownInput from '../../ui/components/DropDownInput.svelte';
   import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
   import { actionListChange } from '../action-list-change.store.js';
-  import { configStore } from '../../../stores/config.store';
   import { check_for_matching_value, parameter_parser } from './action-helper';
   import { buildOptionList } from './parameter-map';
 

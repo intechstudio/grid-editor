@@ -31,7 +31,6 @@
       }
       c = 0;
     });
-    console.log('MOUNT LED PHASE')
     validate_setledphase(action.parameters);
   })
 
@@ -57,7 +56,6 @@
 
     let valid = true;
 
-    console.log('run validator', action.parameters);
  
     for (const key in validator) {
       if(validator[key] == 'invalid :(' || validator[key] == undefined){
@@ -66,7 +64,6 @@
     }
 
     
-    console.log('set led color...',valid, parameters);
      
 
     if(valid){    
@@ -102,7 +99,6 @@
           }
         } 
         else if(KEY == 'LAY'){
-          console.log(VALUE);
           if(VALUE == 1 || VALUE == 2){ 
             defined = check_for_matching_value(optionList, VALUE, 1); 
           } else {

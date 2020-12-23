@@ -22,6 +22,10 @@ function createSerialComm(){
     })
   }
 
+  function serialTransmission(){
+
+  }
+
   return {
     ...store,
     enabled: (bool) => {
@@ -37,6 +41,8 @@ function createSerialComm(){
           port.write([...args, 10]);
         else
           port.write(args+'\n');
+
+        commIndicator.tick('tx');
       }
       return;
     },
@@ -58,6 +64,23 @@ function createSerialComm(){
 }
 
 export const serialComm = createSerialComm();
+
+export const commIndicator = createCommIndicator();
+
+function createCommIndicator(){
+
+  const { subscribe, update } = writable({tx: 0, rx: 0});
+
+	return {
+		subscribe,
+		tick: (direction) => {
+      update(t => { t[direction] = 1; return t})
+      setTimeout(()=>{
+        update(t => { t[direction] = 0; return t })
+      },100)
+    }
+	}
+}
 
 function createSerialCommDebug(){
   const store = writable([]);
