@@ -207,7 +207,7 @@
         <div class="absolute mt-2 w-full h-full flex justify-between items-start">
           <div class="flex flex-col">
             <DragModule/> 
-            <!--<Profiles/>-->
+            <Profiles/>
             <GlobalSettings/>       
           </div>
 
