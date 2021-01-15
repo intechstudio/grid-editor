@@ -15,8 +15,8 @@ function create_commands(){
   return{
     ...store,
     start: (arg) => {
-
-      let time = 1000;
+      // should rework this part
+      let time = 20000;
 
       store.update(store => {store[arg].msg = 'wait'; return store;})
       
