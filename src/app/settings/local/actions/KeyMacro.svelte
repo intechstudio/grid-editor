@@ -104,8 +104,6 @@
       if(!e.repeat && e.type == 'keyup'){
         if(keydownBuffer.length > 1){
           caretPos += 1
-        }else {
-          caretPos += 1
         }
       }
      
