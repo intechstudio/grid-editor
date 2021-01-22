@@ -58,62 +58,38 @@
   })
 
   let keys = '';
-  let macro = [];
   let parameters = [];
 
   let keydownBuffer = [];
+  let keyBuffer = [];
   function identifyKey(e){
-    // down = red
-    // up = yellow
-    // down-up = green
-   
-    if(e.keyCode == 8 && e.type == 'keydown'){
-      keys.splice(-2,2); 
-      macro.splice(-2,2);
-      keys = keys; 
-    } else {     
 
-      console.log(keydownBuffer.length);
-      if(!e.repeat && e.type == 'keydown'){
-        if(keydownBuffer.length > 0){
-          caretPos += 1;
-        }
-      }
-
-
+    // filter same keypress type
+    if(!e.repeat){
       let _keys = '';
-      let key = keyMap.default.find(key => key.js_value == e.keyCode);
-      if(key && !e.repeat){
-        if(caretPos){
-          let offset = 0;
-          e.type == 'keyup' ? offset = 1 : null;
-          macro.splice((caretPos+1+offset), 0, {...key, type: e.type});
-          if(e.type == 'keydown'){
-            keydownBuffer.push({...key, type: e.type})
-          }
-          if(e.type == 'keyup'){
-            keydownBuffer = keydownBuffer.filter(key => key.js_value !== e.keyCode);
-          }
-        } else{
-          macro.push({...key, type: e.type});
-        }
-        _keys = colorize(macro)
-        keys = _keys;
+      if(e.keyCode == 8 && e.type == 'keydown'){
+        keys.splice(-1,1); 
+        keyBuffer.splice(-1,1);
+      } else {     
+        let key = keyMap.default.find(key => key.js_value == e.keyCode);
+        const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);
+        console.log(key);
+        if(!f_key){
+          keyBuffer.push({...key, type: e.type});
+        } else if(f_key.type !== e.type) {
+          keyBuffer.push({...key, type: e.type});
+        }  
+        console.log(keyBuffer);  
+        _keys = colorize(keyBuffer)
       }
-
-      if(!e.repeat && e.type == 'keyup'){
-        if(keydownBuffer.length > 1){
-          caretPos += 1
-        }
-      }
-     
+      keys = _keys;
     }
+
     //manageMacro();
     
   }
 
   function colorize(args){
-
 
     // identify if the following element is a pair key, set type and cut point accordingly
     let cuts = [];
@@ -138,6 +114,11 @@
               </svg>
               `
 
+    // down = red
+    // up = yellow
+    // down-up = green
+   
+
     let coloredKeys = [];
     args.forEach((arg,i) => {
       if(arg.type == 'keydownup'){
@@ -149,7 +130,7 @@
       else if(arg.type == 'keyup'){
         coloredKeys.push(`<div class="text-yellow-500 px-2 mx-1  bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
-      coloredKeys.push(`<div data-caret="${i}" class="p-1 h-6 hover:bg-highlight"></div>`)
+      //coloredKeys.push(`<div data-caret="${i}" class="p-1 h-6 hover:bg-highlight"></div>`)
     })
     
 
@@ -201,7 +182,7 @@
   }
 
   function clearMacro(){
-    macro = [];
+    keyBuffer = [];
     keys = '';
     manageMacro();
   }
@@ -233,7 +214,7 @@
 
     for (let i = 0; i < 6; i++) {
       
-      const key = macro[i];
+      const key = keyBuffer[i];
 
       const keyIsModifier = 'KEYISMODIFIER' + (i);
       const keyCode = 'KEYCODE' + (i);
