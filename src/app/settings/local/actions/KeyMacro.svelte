@@ -2,6 +2,9 @@
 
   import {afterUpdate, beforeUpdate, createEventDispatcher, onMount} from 'svelte';
 
+  import { slide } from 'svelte/transition';
+  import { flip } from 'svelte/animate';
+
   const dispatch = createEventDispatcher();
 
   import { actionListChange } from '../action-list-change.store.js';
@@ -61,39 +64,78 @@
   let parameters = [];
 
   let keydownBuffer = [];
+
+  let caretKeyBuffer = [];
   let keyBuffer = [];
+
+  let keyMerge = [];
+  let normalKeys = [];
+
+  let caretArray = [];
+
+  function putKeyInArray(){
+
+  }
+
   function identifyKey(e){
+
+    /**
+    if(!e.repeat && e.type == 'keydown'){
+      if(keydownBuffer.length > 0){
+        caretPos += 1;
+      }
+    }
+*/
 
     // filter same keypress type
     if(!e.repeat){
-      let _keys = '';
       if(e.keyCode == 8 && e.type == 'keydown'){
-        keys.splice(-1,1); 
-        keyBuffer.splice(-1,1);
+        keys.splice(-2,2); 
+        keyBuffer.splice(-2,2);
       } else {     
-        let key = keyMap.default.find(key => key.js_value == e.keyCode);
-        const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);
-        console.log(key);
-        if(!f_key){
-          keyBuffer.push({...key, type: e.type});
-        } else if(f_key.type !== e.type) {
-          keyBuffer.push({...key, type: e.type});
-        }  
-        console.log(keyBuffer);  
-        _keys = colorize(keyBuffer)
+        if(caretPos){    
+          let key = keyMap.default.find(key => key.js_value == e.keyCode);  
+          const f_key = [...caretKeyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+          if(!f_key){
+            caretKeyBuffer.push({...key, type: e.type});         
+          } else if(f_key.type !== e.type) {        
+            caretKeyBuffer.push({...key, type: e.type});
+          } 
+          caretKeyBuffer = cutQuickDownUp(caretKeyBuffer);
+        } else {
+          let key = keyMap.default.find(key => key.js_value == e.keyCode);  
+          const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+          if(!f_key){
+            keyBuffer.push({...key, type: e.type});         
+          } else if(f_key.type !== e.type) {        
+            keyBuffer.push({...key, type: e.type});
+          }  
+          keyBuffer = cutQuickDownUp(keyBuffer)
+        }
+
+        // deep copy to create the needed keys from caret and standard array
+        let tempKeyBuffer = Array.from(keyBuffer);        
+        tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
+        keys = colorize(tempKeyBuffer)
       }
-      keys = _keys;
     }
 
+    /**
+    if(!e.repeat && e.type == 'keyup'){
+      if(keydownBuffer.length > 1){
+        caretPos += 1;
+      }
+    }
+*/
     //manageMacro();
     
   }
 
-  function colorize(args){
-
+  function cutQuickDownUp(args){
     // identify if the following element is a pair key, set type and cut point accordingly
     let cuts = [];
     args.forEach((arg,i) => {
+      //console.log(arg);
       if(args[i+1]){
         if(arg.info == args[i+1].info && arg.type == 'keydown' && args[i+1].type == 'keyup'){
           arg.type='keydownup';
@@ -105,6 +147,12 @@
       args.splice(cut,1);
     });
 
+    console.log(cuts, args )
+
+    return args;
+  }
+
+  function colorize(args){
 
     let svg = `
               <svg viewBox="0 0 95 95" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -117,23 +165,21 @@
     // down = red
     // up = yellow
     // down-up = green
-   
 
     let coloredKeys = [];
     args.forEach((arg,i) => {
       if(arg.type == 'keydownup'){
-        coloredKeys.push(`<div class="text-green-500 px-2 mx-1  bg-primary flex items-center border cursor-default border-green-500 rounded-md">${arg.info}</div>`)
+        coloredKeys.push(`<div class="text-green-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-green-500 rounded-md">${arg.info}</div>`)
       }
       else if(arg.type == 'keydown'){
         coloredKeys.push(`<div class="text-red-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-red-500 rounded-md">${arg.info} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
       else if(arg.type == 'keyup'){
-        coloredKeys.push(`<div class="text-yellow-500 px-2 mx-1  bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
+        coloredKeys.push(`<div class="text-yellow-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
-      //coloredKeys.push(`<div data-caret="${i}" class="p-1 h-6 hover:bg-highlight"></div>`)
+      coloredKeys.push(`<div data-caret="${i}" class="p-1 h-6 hover:bg-highlight"></div>`)
     })
     
-
     return coloredKeys;
 
   }
@@ -141,7 +187,10 @@
   let caretPos = 0;
   function setCaret(e){
     if(e.target.getAttribute('data-caret') !== null){
-      caretPos = +e.target.getAttribute('data-caret');
+      keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
+      caretKeyBuffer = [];
+      
+      caretPos = +e.target.getAttribute('data-caret')+1;
     } else {
       caretPos = undefined;
     }
@@ -183,7 +232,9 @@
 
   function clearMacro(){
     keyBuffer = [];
-    keys = '';
+    caretKeyBuffer = [];
+    caretPos = undefined;
+    keys = ''
     manageMacro();
   }
 
@@ -255,8 +306,8 @@
         on:keyup|preventDefault={identifyKey}
         contenteditable="true"
         on:click={setCaret}>
-        {#each keys as key,i}
-          <div data-index={i} class:blink={caretPos+(caretPos+1) == i}>{@html key}</div>
+        {#each keys as key, i (i)}
+          <div data-index={i} class:blink={(caretPos+caretPos-1) == i}>{@html key}</div>
         {/each}
       </div>
     </div>
