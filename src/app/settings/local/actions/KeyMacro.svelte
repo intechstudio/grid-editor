@@ -73,6 +73,7 @@
       keys = keys; 
     } else {     
 
+      console.log(keydownBuffer.length);
       if(!e.repeat && e.type == 'keydown'){
         if(keydownBuffer.length > 0){
           caretPos += 1;
@@ -102,13 +103,13 @@
 
       if(!e.repeat && e.type == 'keyup'){
         if(keydownBuffer.length > 1){
-          caretPos += 1;
+          caretPos += 1
+        }else {
+          caretPos += 1
         }
       }
      
     }
-
-    //caretToEnd(macroInputField);
     //manageMacro();
     
   }
