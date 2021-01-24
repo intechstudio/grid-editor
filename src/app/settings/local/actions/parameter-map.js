@@ -51,7 +51,11 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E2', info: 'Encoder Absolute Value'},
+            {value: 'E3', info: 'Encoder Absolute Slow'},
+            {value: 'E4', info: 'Encoder Absolute Fast'},
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
@@ -68,6 +72,8 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
@@ -136,7 +142,11 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E2', info: 'Encoder Absolute Value'},
+            {value: 'E3', info: 'Encoder Absolute Slow'},
+            {value: 'E4', info: 'Encoder Absolute Fast'},
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
@@ -154,6 +164,8 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
@@ -286,7 +298,7 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
 
     // ENCODER
     if(elementType == "E"){
-      if(eventType == "AVC7" || eventType == "INIT" || eventType == 'ENCPUSHROT'){
+      if(eventType == "AVC7" || eventType == "INIT"){
         options =  [
           [
             {value: 'E0', info: 'This LED'}, 
@@ -298,7 +310,11 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E2', info: 'Encoder Absolute Value'},
+            {value: 'E3', info: 'Encoder Absolute Slow'},
+            {value: 'E4', info: 'Encoder Absolute Fast'},
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
@@ -314,6 +330,8 @@ export const buildOptionList = function(elementInfo, eventInfo, action, filter){
           ],
           [
             {value: 'E5', info: 'Encoder Relative Change'},
+            {value: 'E6', info: 'Encoder Relative Slow'},
+            {value: 'E7', info: 'Encoder Relative Fast'},
           ]
         ]
       }
