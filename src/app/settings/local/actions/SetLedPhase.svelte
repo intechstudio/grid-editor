@@ -106,7 +106,7 @@
           }
         } 
         else if(KEY == 'PHA'){
-          if(VALUE == 'P2' || VALUE == 'B2' || VALUE == 'B3' || VALUE == 'B4' || VALUE == 'E2' || VALUE == 'E5'){ 
+          if(VALUE == 'P2' || VALUE == 'B2' || VALUE == 'B3' || VALUE == 'B4' || VALUE == 'E2' ||  VALUE == 'E3' || VALUE == 'E4'  || VALUE == 'E5' || VALUE == 'E6' || VALUE == 'E7'){ 
             type = 'tmp param';
             defined = check_for_matching_value(optionList, VALUE, 2);  
           } else if(parseInt(VALUE) >= 0 && parseInt(VALUE) <= 255){

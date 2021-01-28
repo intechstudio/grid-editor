@@ -66,6 +66,7 @@
   import Titlebar from './app/shared/menu/Titlebar.svelte';
   import PanInfo from './app/shared/menu/PanInfo.svelte';
   import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
+import KeyMacro from './app/settings/local/actions/KeyMacro.svelte';
 
 
 
@@ -191,6 +192,9 @@
 
     <div id="grid-main-container" style="" class="relative h-full">
 
+      <div class="p-4 m-4 bg-primary">
+        <KeyMacro/>
+      </div>
       <!-- Info on pan. -->
 
       <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
