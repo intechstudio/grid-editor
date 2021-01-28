@@ -1,4 +1,4 @@
-<div style="z-index:9999;" class="w-full bg-primary sticky top-0 h-12 sm:h-14">
+<div style="z-index:9999;" class="w-full bg-black sticky top-0 h-12 sm:h-14">
   <nav class="container mx-auto px-4 bg-primary flex items-center justify-between xl:justify-center p-3">
     <div class="flex flex-wrap justify-between lg:justify-center w-full">
       <a href="https://intech.studio/" class="flex items-center no-underline hover:no-underline hover:text-teal-300 flex-shrink-0 text-white transition pr-6">

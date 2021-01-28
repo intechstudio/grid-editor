@@ -180,8 +180,6 @@
 
     parser.on('data', function(data) {
 
-      
-
       let temp_array = Array.from(data);
       let array = [];
 
@@ -337,6 +335,7 @@
     
 </script>
 
+<!--
 <div class="flex items-center not-draggable text-sm">
 
   <select bind:value={selectedPort} on:blur={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
@@ -373,14 +372,6 @@
 
     
   </div>
-  <!--
-  <div class="flex mx-2 items-center">
-    <div>TX</div>
-    <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
-  </div>
-  <div class="flex mx-2 items-center">
-    <div>RX</div>
-    <div class="mx-2 rounded-full p-2 w-4 h-4 bg-black"></div>
-  </div>
-  -->
+
 </div>
+-->

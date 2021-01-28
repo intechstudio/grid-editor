@@ -39,10 +39,12 @@
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import DragModule from './app/layout/components/DragModule.svelte';
   import RemoveModule from './app/layout/components/RemoveModule.svelte';
-  import KeyStatus from './app/shared/menu/KeyStatus.svelte';
+  import KeyStatus from './app/shared/main/KeyStatus.svelte';
   import Message from './app/shared/messages/Message.svelte';
 
   import MODULE from './app/core/grid-modules/MODULE.svelte';
+
+  import NewMidi from './app/settings/local/actions/NewMidi.svelte';
 
   /*
   *   layout helper functions
@@ -63,10 +65,13 @@
   
   import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
   import { dragndrop } from './app/layout/actions/dnd.action.js';
-  import Titlebar from './app/shared/menu/Titlebar.svelte';
-  import PanInfo from './app/shared/menu/PanInfo.svelte';
-  import WebsiteNav from './app/shared/menu/WebsiteNav.svelte';
-import KeyMacro from './app/settings/local/actions/KeyMacro.svelte';
+  import Titlebar from './app/shared/main/Titlebar.svelte';
+  import PanInfo from './app/shared/main/PanInfo.svelte';
+  import WebsiteNav from './app/shared/main/WebsiteNav.svelte';
+  import NavTabs from './app/shared/main/NavTabs.svelte';
+  import TabContainer from './app/shared/main/TabContainer.svelte';
+import RuntimeSync from './app/runtime/RuntimeSync.svelte';
+import Preferences from './app/preferences/Preferences.svelte';
 
 
 
@@ -150,189 +155,147 @@ import KeyMacro from './app/settings/local/actions/KeyMacro.svelte';
   <Tour/>
 {/if}
 
-
-
 {#if $appSettings.isElectron}
-  <Titlebar>
-    <SerialPort 
-      bind:runtime={$runtime}
-      bind:layout={$layout}
-      on:change={(e) => {
-        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
-      }}
-      on:coroner={(e)=>{
-          runtime.update(grid => {
-            grid = e.detail.usedgrid;
-            return grid;
-          })
-          layout.update(cell => {
-            let removed = cell.find(c => c.id == e.detail.removed.id)
-            removed.id = "";
-            removed.isConnectedByUsb = false;
-            return cell; 
-          });
-          $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
-        }
+
+  <Titlebar/>
+ 
+  <SerialPort 
+    bind:runtime={$runtime}
+    bind:layout={$layout}
+    on:change={(e) => {
+      $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
+    }}
+    on:coroner={(e)=>{
+        runtime.update(grid => {
+          grid = e.detail.usedgrid;
+          return grid;
+        })
+        layout.update(cell => {
+          let removed = cell.find(c => c.id == e.detail.removed.id)
+          removed.id = "";
+          removed.isConnectedByUsb = false;
+          return cell; 
+        });
+        $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
       }
-    />
-    <KeyStatus/>
-  </Titlebar>
+    }
+  />
+ 
 {/if}
 
-<main id="app" class="flex w-full h-full flex-row overflow-hidden">
+<main id="app" class="relative flex w-full h-full flex-row justify-between overflow-hidden">
 
-  <section id="main" class="flex flex-col w-full">
+  <!-- Switch between tabs for different application features. -->
+  <NavTabs/>
+
+  <RuntimeSync/>
     
-    {#if $appSettings.isElectron} 
-      <FirmwareCheck />
-
-      <!--<Form />-->
-    {/if}
-    
-
-    <div id="grid-main-container" style="" class="relative h-full">
-
-      <div class="p-4 m-4 bg-primary">
-        <KeyMacro/>
-      </div>
-      <!-- Info on pan. -->
-
-      <!-- Context menu overwrite. grid is bound to $grid, for instant refresh of layout. -->
-
-      {#if $appSettings.selectedDisplay == 'layout'}
-      <!--
-        <LayoutMenu bind:grid={$grid} {isMenuOpen} {menuOnModuleWithId} />
-        -->
-      {/if}
-
-      <!-- This is the Settings part of the code-->
-
-        <div class="absolute mt-2 w-full h-full flex justify-between items-start">
-          <div class="flex flex-col">
-            <DragModule/> 
-            <Profiles/>
-            <GlobalSettings/>       
-          </div>
-
-          {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
-          
-          <div class="flex w-4/12 flex-col m-4">
-            <LocalSettings/>          
-          </div>
-        </div>
-
-
-      <!-- This is the (mostly) Layout part of the code. -->
-
-      <div class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
-
-        use:dragndrop={true} 
-
-        on:dnd-dragstart={(e)=>{
-          let moved = handledrag.start(e);
-          if($runtime.length == 0 ){
-            current = 'dx:0;dy:0';
-          }
-          if(moved !== '' || undefined){
-            $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, moved);   
-          }
-        }}
-
-        on:dnd-dragover={(e)=>{
-          current = handledrag.over(e);
-        }}
-
-        on:dnd-drop={(e)=>{
-          // here we get back the dropped module id and drop target
-          let data = handledrag.drop(e);
-          LAYOUT.addToRuntime($runtime, data.modul, data.id, true);
-        }}
-
-        on:dnd-remove={(e)=>{
-          let data = handledrag.remove(e)
-          // remove ?? 
-          $runtime = $runtime.filter(gridController => gridController.id !== data.modul);
-          layout.update(cell => {
-            cell = cell.map( _cell =>{
-              if(_cell.id == data.modul){
-                _cell.id = "";
-                _cell.isConnectedByUsb = false;
-              }
-              return _cell;
-            });
-            return cell;
-          });
-        }}
-
-        on:dnd-invalid={(e)=>{
-          let data = handledrag.invalid(e);
-          if(data !== undefined){ 
-            invalidDragHighlight = data.centerDragHighlight;
-            movedCell = data.movedCell;
-            setTimeout(()=>{invalidDragHighlight = false},500)
-          }  
-        }}
-
-        on:dnd-dragend={(e)=>{
-          const dragend = handledrag.end(e); 
-          current = dragend.current;
-          $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
-          console.log($layout, $runtime)
-        }}
-        > 
-
-        <div bind:this={map} style="top:40%; left:40%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
-          use:layoutMenu={$appSettings.layoutMode}
-          on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
-          on:menu-close={()=>{isMenuOpen = false}}
-          >
-
-          {#each $layout as cell}
-            <div 
-            id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
-            style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
-            class="cell"
-            class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
-            class:canBeUsed={cell.canBeUsed && $appSettings.layoutMode}
-            class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
-            class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
-            >
-
-            <MODULE type={cell.id.substr(0,4)} id={cell.id} rotation={cell.rot} />
-
-
-            </div>
-          {/each}    
-        </div>
-        {#if $appSettings.layoutMode}
-          <div in:fade><RemoveModule/></div>
-          
-        {/if}
-
-      </div>
-      
-    </div>
-
-    <!--
-    {#if !$appSettings.layoutMode}
-      
-      <div class="opacity-25 text-4xl text-white absolute right-0 bottom-0 mr-3 font-roboto font-bold">
-        {#if $appSettings.isElectron && !$appSettings.debugMode}Beta{/if}
-        {#if !$appSettings.isElectron}Demo{/if}
-      </div>
-      
-    {/if}
-    -->
-    
-  </section>
-
-  {#if $appSettings.debugMode == true}
-    <section id="debug" style="" class="w-1/3 h-full bg-black">
-      <Debug />
-    </section>
+  {#if $appSettings.isElectron} 
+    <FirmwareCheck />
   {/if}
 
-  <Message/>
+  <!-- Info on pan. -->
+  
+  
+  <!-- This is the (mostly) Layout part of the code. -->
+
+  <layout-container class="relative w-full h-full">
+    {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
+    <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
+
+      use:dragndrop={true} 
+
+      on:dnd-dragstart={(e)=>{
+        let moved = handledrag.start(e);
+        if($runtime.length == 0 ){
+          current = 'dx:0;dy:0';
+        }
+        if(moved !== '' || undefined){
+          $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, moved);   
+        }
+      }}
+
+      on:dnd-dragover={(e)=>{
+        current = handledrag.over(e);
+      }}
+
+      on:dnd-drop={(e)=>{
+        // here we get back the dropped module id and drop target
+        let data = handledrag.drop(e);
+        LAYOUT.addToRuntime($runtime, data.modul, data.id, true);
+      }}
+
+      on:dnd-remove={(e)=>{
+        let data = handledrag.remove(e)
+        // remove ?? 
+        $runtime = $runtime.filter(gridController => gridController.id !== data.modul);
+        layout.update(cell => {
+          cell = cell.map( _cell =>{
+            if(_cell.id == data.modul){
+              _cell.id = "";
+              _cell.isConnectedByUsb = false;
+            }
+            return _cell;
+          });
+          return cell;
+        });
+      }}
+
+      on:dnd-invalid={(e)=>{
+        let data = handledrag.invalid(e);
+        if(data !== undefined){ 
+          invalidDragHighlight = data.centerDragHighlight;
+          movedCell = data.movedCell;
+          setTimeout(()=>{invalidDragHighlight = false},500)
+        }  
+      }}
+
+      on:dnd-dragend={(e)=>{
+        const dragend = handledrag.end(e); 
+        current = dragend.current;
+        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
+        console.log($layout, $runtime)
+      }}
+      > 
+
+      <div id="grid-map" bind:this={map} style="top:40%; left:40%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
+        use:layoutMenu={$appSettings.layoutMode}
+        on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
+        on:menu-close={()=>{isMenuOpen = false}}
+        >
+
+        {#each $layout as cell}
+          <div 
+          id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
+          style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
+          class="cell"
+          class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
+          class:canBeUsed={cell.canBeUsed && $appSettings.layoutMode}
+          class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
+          class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
+          >
+
+          <MODULE type={cell.id.substr(0,4)} id={cell.id} rotation={cell.rot} />
+
+
+          </div>
+        {/each}    
+      </div>
+      {#if $appSettings.layoutMode}
+        <div in:fade><RemoveModule/></div>
+        
+      {/if}
+
+    </grid-layout>   
+  </layout-container>
+  
+  <!-- Show selected tab on the right side of the app. -->
+
+
+
+  <TabContainer/>
+
+  <Preferences/>
 
 </main>
 

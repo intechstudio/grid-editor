@@ -78,6 +78,7 @@ function createRuntimeStore(){
 export const runtime = createRuntimeStore();
 
 let counter = 0;
+
 export const gridSyncProcess = readable(counter, function start(set){
 
   function getConfig(controller, inputStore){

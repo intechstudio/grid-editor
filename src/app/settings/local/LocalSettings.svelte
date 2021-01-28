@@ -89,7 +89,7 @@
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
  
-        if(elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched"){
+        if((elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched") && !controller.virtual){
           const fetch = runtime.fetchLocalConfig(controller, inputStore);
           serialComm.write(fetch);
           elementEvent.cfgStatus = "fetched";
@@ -249,65 +249,42 @@
 
     // Update runtime based on received config from Grid.
     // This is called, when config is fetched, interaction happened with a control element where no cfg found.
-    localConfigReportStore.subscribe(store => {
-      let cfgReport = false;
+    
+    // Render only if config is successfully read back!
+    //cfgReport ? renderLocalConfiguration() : null;
+
+    manageActions({ id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' })
+  });
+
+    
+
+  profileStore.subscribe(store => {
+    if(store !== undefined && store !== ''){
+      // load only banks!
       runtime.update(runtime => {
-        runtime.forEach(controller =>{
-          if(controller.dx == store.brc.DX && controller.dy == store.brc.DY){
-            let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-            console.log(store.frame.EVENTTYPE)
-            // Upon connecting modules, messages on config are sent back to editor at instant.
-            // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
-            if(events){
-            // here this should be figured out... what to do on profile load or other...
-              if(events.cfgStatus == "fetched"){
-                if(store.cfgs.length > 0){
-                  events.config = store.cfgs;
-                } else if(store.cfgs.length == 0){
-                  events.config = [];
-                }
-                cfgReport = true;
-                events.cfgStatus = "received"
-              }
+        runtime.forEach((controller, i) => { 
+          if(store[i] !== undefined){
+            if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
+
+              console.log(controller, i, store[i].banks, store)
+
+              controller.banks = store[i].banks;
+              controller.banks.forEach((bank) => {
+                bank.forEach((controlElement) => {
+                  controlElement.events.forEach(event => {
+                    event.cfgStatus = "changed";                
+                  })
+                })
+              })
             }
           }
         })
         return runtime;
       });
 
-      // Render only if config is successfully read back!
-      cfgReport ? renderLocalConfiguration() : null;
-
-    });
-
-    profileStore.subscribe(store => {
-      if(store !== undefined && store !== ''){
-        // load only banks!
-        runtime.update(runtime => {
-          runtime.forEach((controller, i) => { 
-            if(store[i] !== undefined){
-              if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
-
-                console.log(controller, i, store[i].banks, store)
-
-                controller.banks = store[i].banks;
-                controller.banks.forEach((bank) => {
-                  bank.forEach((controlElement) => {
-                    controlElement.events.forEach(event => {
-                      event.cfgStatus = "changed";                
-                    })
-                  })
-                })
-              }
-            }
-          })
-          return runtime;
-        });
-
-        commands.validity("LOCALSTORE", true);
-        renderLocalConfiguration();
-      }
-    });
+      commands.validity("LOCALSTORE", true);
+      renderLocalConfiguration();
+    }
   });
     
 
@@ -340,7 +317,7 @@
 
 
 
-<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-4 z-30 w-full">
+<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-3 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Local Settings</div>
     {#if moduleId != '' && $localInputStore.elementNumber != undefined}

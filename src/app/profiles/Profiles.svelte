@@ -158,24 +158,9 @@
 
 </script>
 
-  <div  class="w-full flex flex-col justify-start items-start">
-    <div  class="primary p-4 m-4 rounded-lg z-20"> 
-      <div id="profiles" on:click={()=>{toggle = ! toggle}} class="flex cursor-pointer items-center justify-between">
-        <div class="text-white">Profiles</div>
-        <div class="ml-4 cursor-pointer focus:outline-none focus:bg-primary border-none w-4 h-4">
-          <svg class:rotate={toggle} version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-            style="fill:white;enable-background:new 0 0 451.846 451.847;" viewBox="0 0 451.846 451.847"
-            xml:space="preserve">
-            <g>
-              <path d="M345.441,248.292L151.154,442.573c-12.359,12.365-32.397,12.365-44.75,0c-12.354-12.354-12.354-32.391,0-44.744
-                L278.318,225.92L106.409,54.017c-12.354-12.359-12.354-32.394,0-44.748c12.354-12.359,32.391-12.359,44.75,0l194.287,194.284
-                c6.177,6.18,9.262,14.271,9.262,22.366C354.708,234.018,351.617,242.115,345.441,248.292z"/>
-            </g>
-          </svg>
-        </div>
-      </div>
-      {#if toggle}
+  <div  class="w-full p-2 m-2 flex flex-col justify-start items-start">
 
+      <div class="text-white">Profiles</div>
         <div class="flex flex-col text-white text-sm">
 
             <div in:fade={{delay:250}} class="primary rounded-lg py-2 flex justify-between items-center">
@@ -215,21 +200,5 @@
 
         </div>
 
-      {/if}
+
     </div>  
-  </div>
-
-
-
-<style>
-  .rotate{
-    animation: rotationAnim 1s;
-    animation-fill-mode: forwards;
-  }
-
-  @keyframes rotationAnim {
-    from{ transform: rotate(0deg);}
-    to{ transform: rotate(90deg);}
-  }
-
-</style>

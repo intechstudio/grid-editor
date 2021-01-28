@@ -47,7 +47,7 @@ module.exports = {
       },
       colors: {
         primary: {
-          'default': '#1e2628',
+          'DEFAULT': '#1e2628',
           '100':'#d3dcde',
           '200':'#b6c5c8',
           '300':'#99adb2',
@@ -62,7 +62,7 @@ module.exports = {
         secondary: '#2a3439',
         normal: '#cfdbd5',
         highlight: {
-          'default': '#cc5b5b',
+          'DEFAULT': '#cc5b5b',
           '100':'#edc5c5',
           '200':'#e19e9e',
           '300':'#d57777',
@@ -71,7 +71,7 @@ module.exports = {
           '600':'#882a2a'
         },
         important: {
-          'default': '#e4d203',
+          'DEFAULT': '#e4d203',
           '100': '#fffde6',
           '200': '#fef8b3',
           '300': '#fdf381',
@@ -83,6 +83,8 @@ module.exports = {
       }
     }
   },
-  variants: {},
+  variants: {
+    textColor: ['group-hover']
+  },
   plugins: []
 }

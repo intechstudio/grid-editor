@@ -126,7 +126,7 @@ export var GRID_CONTROLLER = {
         global: {  
           bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
           bankEnabled: [true,true,true,true],
-          cfgStatus: virtual ? 'virtual' : 'expected'
+          cfgStatus: virtual ? 'not_expected' : 'expected'
         }
       }
       

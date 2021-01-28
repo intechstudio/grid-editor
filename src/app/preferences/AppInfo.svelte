@@ -5,16 +5,11 @@
 
   import { onMount } from 'svelte';
 
-  import { appSettings } from '../../stores/app-settings.store';
+  import { appSettings } from '../stores/app-settings.store';
 
   let selectedDisplay = 'layout';
 
   let appVersion = '';
-
-  function changeSelectedDisplay(display){
-    selectedDisplay = display;
-    $appSettings.selectedDisplay = selectedDisplay;
-  }
 
   onMount(()=>{
 

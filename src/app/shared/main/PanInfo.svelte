@@ -1,7 +1,8 @@
 <script>
   export let os;
 </script>
-<div class="flex flex-col text-white ">
+
+<div class="absolute flex flex-col w-full items-center text-white ">
   <div class="flex flex-row p-4 m-4 items-center my-2 text-sm z-10 relative">
     <div class="mx-2">Hold</div>
     {#if os == "darwin"}
