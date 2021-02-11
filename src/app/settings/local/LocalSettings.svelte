@@ -89,7 +89,7 @@
         elementInfo = controller.banks[inputStore.bankActive][inputStore.elementNumber].controlElementType;
 
  
-        if(elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched"){
+        if((elementEvent.cfgStatus == "expected" || elementEvent.cfgStatus == "fetched") && !controller.virtual){
           const fetch = runtime.fetchLocalConfig(controller, inputStore);
           serialComm.write(fetch);
           elementEvent.cfgStatus = "fetched";
@@ -243,7 +243,7 @@
     // Render local input settings if BANK or SELECTED CONTROL ELEMENT changes
     derivedInputStore.subscribe(store =>{
       inputStore = store;
-      console.log('derivedInputStore', store);
+      //console.log('derivedInputStore', store);
       renderLocalConfiguration();
     });
 
@@ -255,7 +255,7 @@
         runtime.forEach(controller =>{
           if(controller.dx == store.brc.DX && controller.dy == store.brc.DY){
             let events = controller.banks[store.frame.BANKNUMBER][store.frame.ELEMENTNUMBER].events.find(cntrl => cntrl.event.value == store.frame.EVENTTYPE);
-            console.log(store.frame.EVENTTYPE)
+            //console.log(store.frame.EVENTTYPE)
             // Upon connecting modules, messages on config are sent back to editor at instant.
             // To avoid unnecessary message flow, filter configs sent back with the cfgstatus flag.
             if(events){
@@ -275,39 +275,38 @@
         return runtime;
       });
 
-      // Render only if config is successfully read back!
-      cfgReport ? renderLocalConfiguration() : null;
+    manageActions({ id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' })
+  });
+  });
+    
 
-    });
+  profileStore.subscribe(store => {
+    if(store !== undefined && store !== ''){
+      // load only banks!
+      runtime.update(runtime => {
+        runtime.forEach((controller, i) => { 
+          if(store[i] !== undefined){
+            if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
 
-    profileStore.subscribe(store => {
-      if(store !== undefined && store !== ''){
-        // load only banks!
-        runtime.update(runtime => {
-          runtime.forEach((controller, i) => { 
-            if(store[i] !== undefined){
-              if(controller.dx == store[i].dx && controller.dy == store[i].dy ){
+              console.log(controller, i, store[i].banks, store)
 
-                console.log(controller, i, store[i].banks, store)
-
-                controller.banks = store[i].banks;
-                controller.banks.forEach((bank) => {
-                  bank.forEach((controlElement) => {
-                    controlElement.events.forEach(event => {
-                      event.cfgStatus = "changed";                
-                    })
+              controller.banks = store[i].banks;
+              controller.banks.forEach((bank) => {
+                bank.forEach((controlElement) => {
+                  controlElement.events.forEach(event => {
+                    event.cfgStatus = "changed";                
                   })
                 })
-              }
+              })
             }
-          })
-          return runtime;
-        });
+          }
+        })
+        return runtime;
+      });
 
-        commands.validity("LOCALSTORE", true);
-        renderLocalConfiguration();
-      }
-    });
+      commands.validity("LOCALSTORE", true);
+      renderLocalConfiguration();
+    }
   });
     
 
@@ -340,7 +339,7 @@
 
 
 
-<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-4 z-30 w-full">
+<div class:tour={$tour.selectedName == "LocalSettings"} class="inline-block primary rounded-lg p-3 z-30 w-full">
   <div class="flex flex-col relative justify-between font-bold text-white m-2">
     <div class="text-xl">Local Settings</div>
     {#if moduleId != '' && $localInputStore.elementNumber != undefined}

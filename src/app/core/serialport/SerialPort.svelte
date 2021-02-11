@@ -4,9 +4,11 @@
 
   import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
+  import { sendDataToClient } from '../../debug/tower';
+
   import { localInputStore,hidKeyStatusStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
 
-  import { commIndicator, serialComm, serialCommDebug } from './serialport.store.js';
+  import { commIndicator, serialComm } from './serialport.store.js';
 
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
@@ -180,8 +182,6 @@
 
     parser.on('data', function(data) {
 
-      
-
       let temp_array = Array.from(data);
       let array = [];
 
@@ -195,21 +195,24 @@
 
       array.forEach((element, i) => {
         _array[i] = parseInt('0x'+element);
-      });      
+      });   
+      
       
       let DATA = GRID.decode_serial(_array);
 
       let d_array = ''
+
       _array.forEach((element, i) => {
         d_array += String.fromCharCode(element);
       })
+
+      // websocket debug info to client
+      sendDataToClient('input', d_array);
 
       // filter heartbeat messages
       if(!(d_array.slice(30).startsWith('010') && d_array.length == 46) ){
 
         commIndicator.tick('rx');
-
-        serialCommDebug.store(d_array);    
 
         RESPONSE = GRID.decode_serial(_array);
 
@@ -244,7 +247,7 @@
           store.cfgs = DATA.CONFIGURATION_CFGS;
           store.brc = DATA.BRC;
           return store;
-        }) 
+        });
       }
 
       // local input update (user interaction)
