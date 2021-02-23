@@ -1,5 +1,5 @@
 --- 
-title:  views
+title:  Views
 slug:   views
 ---
 
