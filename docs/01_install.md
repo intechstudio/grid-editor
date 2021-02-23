@@ -1,5 +1,6 @@
----
-Title: Install
+--- 
+title:  Install
+slug:   install
 ---
 
 ## Install Guide
