@@ -1,5 +1,6 @@
 --- 
-Title: First Setup
+title:  First setup
+slug:   first-setup
 ---
 
 Work in progress.
