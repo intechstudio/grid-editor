@@ -1,3 +1,7 @@
+---
+Title: Install
+---
+
 ## Install Guide
 
 We are building the Grid Editor for Mac OS, Windows and Linux. Here you can find the respective guides and information.
