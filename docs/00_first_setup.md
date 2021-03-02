@@ -28,12 +28,12 @@ When using Grid Editor you will get notified whenever your Grid modules firmware
 ![img](https://intech.studio/assets/image/grid_magnetic_interface_1.jpg)
 
 ### Firmware Update Instructions
-This document will walk you through the process of updating the firmware on your IntechGrid midicontroller. Please read through the  entire document beforehand in order to avid making any mistakes.
+This document will walk you through the process of updating the firmware on your Grid MIDI controller. Please carefully read through this document beforehand in order to aviod making any mistakes.
 
  The process will not require any special tools, you will only need
  - A computer running Windows, Mac or Linux
  - The Grid controller you wish to update
- - A USB Type C data cable
+ - A USB-C data cable
 
 This tutorial will walk you through the following steps:
  - Enumerate in bootloader mode
