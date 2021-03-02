@@ -3,7 +3,7 @@ title:  Install
 slug:   install
 ---
 
-## Install Guide
+## Software Setup for Grid Editor
 
 We are building the Grid Editor for Mac OS, Windows and Linux. Here you can find the respective guides and information.
 
