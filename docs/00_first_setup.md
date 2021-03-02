@@ -45,7 +45,7 @@ This tutorial will walk you through the following steps:
 
 #### Enumerating the bootloader
 
-Holding down the mapmode button on the side of the controller while plugging in the USB C cable will boot the device in bootloader mode. All of the LEDs on the user interface should display a dim red color. This means that the device booted successfully, but the host computer has not recognized the device yet. You can release the mapmode button. Once the device is configured on the host, all of the LEDs turn green. On the host computer the grid controller now shows up as a removable storage device named "GRID".
+Holding down the mapmode button on the side of the controller while plugging in the USB-C cable will boot the device in bootloader mode. All of the LEDs on the user interface should display a dim red color. This means that the device booted successfully, but the host computer has not recognized the device yet. You can now release the mapmode button. Once the device is configured on the host computer, all of the LEDs turn green. On the host computer the Grid controller now shows up as a removable storage device named "GRID".
 
 #### Checking the bootloader version
 Once the controller succesfully enumerated as a removable storage device, you can check the version of the bootloader. If you browse the device you will find 3 files on it:
@@ -64,10 +64,10 @@ Board-ID: SAMD51N20A-GRID
 #### Updating the bootloader
 Please verify the Bootloader version before before uploading a new firmware image to your controller. The bootloader is maintained in a separate repository:
 [grid-uf2](https://github.com/intechstudio/grid-uf2/releases/tag/v4.3.3-8)
-Download the bootloader image from the repository and unzip the archive. The bootloader binary is contained in a single update-bootloader***.uf2 file. Once the controller is enumerated in bootloader mode, copy the .uf2 image to the removable storage device called GRID. After a successful update, the controller will disconnect from USB turn off. Unplug the usb cable and repeat this step for all of your Grid modules.
+Download the bootloader image from the repository and unzip the archive. The bootloader binary is contained in a single update-bootloader***.uf2 file. Once the controller is enumerated in bootloader mode, copy the .uf2 image to the removable storage device called GRID. After a successful update, the controller will reboot. Unplug the USB cable and repeat this step for all of your Grid modules.
 
 #### Updating the firmware
-Download the firmware image from the repository and unzip the archive. The firmware binary is contained in the  grid_toplevel_release.uf2 file. Once the bootloader is enumerated copy the new firmware image to the removable storage device called GRID. After a successful update, the controller will reset and boot the newly installed firmware, ready to use. Make sure to repeat this process for all of your Grid modules, to ensure that they are all running the latest firmware.
+Download the firmware image from the repository and unzip the archive. The firmware binary is contained in the  grid_toplevel_release.uf2 file. Once the bootloader is enumerated, copy the new firmware image to the removable storage device called GRID. After a successful update, the controller will reset and boot the newly installed firmware, ready to use. Make sure to repeat this process for all of your Grid modules, to ensure that they are all running the latest firmware.
 
 ##### The firmware update step-by-step guide
 - Download & unzip the latest release.
@@ -77,7 +77,7 @@ Download the firmware image from the repository and unzip the archive. The firmw
 - Drag and drop the new firmware on the device.
 - Wait a few seconds, you should see the module rebooting.
 - Disconnect the module.
-- Reconnect the module, it should work fine now.
+- Reconnect the module and it should be updated to the new firmware version.
 
 ### Stable Build
 Here you can download the latest stable firmware release. Please visit the [releases](https://github.com/intechstudio/grid-fw/releases)
