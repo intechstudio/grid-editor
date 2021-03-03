@@ -41,7 +41,7 @@
     "iconv-lite": "^0.6.2",
     "panzoom": "^9.3.0",
     "polka": "^0.5.2",
-    "pug": "^3.0.0",
+    "pug": "^3.0.1",
     "serialport": "^9.0.2",
     "sirv-cli": "^0.4.6",
     "svelte-color-picker": "^1.0.7",
