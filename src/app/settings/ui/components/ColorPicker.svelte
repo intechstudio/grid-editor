@@ -256,7 +256,7 @@
 
   </style>
   
-  <div class="w-full flex flex-col secondary rounded p-4">
+  <div class="w-full flex flex-col secondary p-4">
     <input class:mb-2="{showAlpha}" on:input={hueDown} bind:value={hueValue} class="hue-selector slider" type="range" min="0" max="1536">
 
     {#if showAlpha}

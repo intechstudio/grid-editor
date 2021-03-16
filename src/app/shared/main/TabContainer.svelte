@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import Configuration from '../../elements/Configuration.svelte';
   import DragModule from '../../layout/components/DragModule.svelte';
   import Preferences from '../../preferences/Preferences.svelte';
   import Profiles from '../../profiles/Profiles.svelte';
@@ -15,7 +16,9 @@
 
 </script>
 
-<tab-container class="w-1/3 bg-primary">
+<tab-container class="w-1/3">
+
+  <Configuration/>
 
   {#if $appSettings.tab == 'virtual-modules'}
     <DragModule/>

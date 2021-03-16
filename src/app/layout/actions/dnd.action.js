@@ -69,7 +69,7 @@ export function dragndrop(node, layoutMode) {
       }));
       
       node.dispatchEvent(new CustomEvent('dnd-invalid', {detail: {center: false}}));
-      window.addEventListener('dragover', handleDragOver);
+      //window.addEventListener('dragover', handleDragOver);
       
     } else {
 
@@ -80,10 +80,10 @@ export function dragndrop(node, layoutMode) {
       if(centerCanBeRemoved){
         e.dataTransfer.setData("text", e.target.id);
         node.dispatchEvent(new CustomEvent('dnd-dragstart', {detail: {id: e.target.id, movedCell: movedCell}}));
-        window.addEventListener('dragover', handleDragOver);
+        //window.addEventListener('dragover', handleDragOver);
       } else {
         node.dispatchEvent(new CustomEvent('dnd-invalid', {detail: {center: true, id: e.target.id, movedCell: movedCell}}));
-        window.removeEventListener('dragover', handleDragOver);
+        //window.removeEventListener('dragover', handleDragOver);
       }
       
       console.log('YADA not good + ', 'dragvalidity: ', dragValidity, 'movable: ', movable)
@@ -118,7 +118,7 @@ export function dragndrop(node, layoutMode) {
                 detail: _cell
               }));
 
-              window.addEventListener('drop', handleDrop);
+              //window.addEventListener('drop', handleDrop);
             }
           })
 
@@ -135,7 +135,7 @@ export function dragndrop(node, layoutMode) {
               detail: cell
             }));
 
-            window.addEventListener('drop', handleDrop);
+            //window.addEventListener('drop', handleDrop);
           }
         }  
 
@@ -145,12 +145,12 @@ export function dragndrop(node, layoutMode) {
         e.preventDefault();
         console.log('it\'s the trash area', modul);
         dragEvent = 'remove';
-        window.addEventListener('drop', handleDrop);
+        //window.addEventListener('drop', handleDrop);
       } 
     } else{
       dragValidity = false;
     }
-    window.addEventListener('dragend',handleDragEnd);
+    //window.addEventListener('dragend',handleDragEnd);
   }
 
   function handleDrop(e) {
@@ -167,7 +167,7 @@ export function dragndrop(node, layoutMode) {
       }));
     }
     
-    window.removeEventListener('dragover', handleDragOver);
+    //window.removeEventListener('dragover', handleDragOver);
     
   }
 
@@ -176,28 +176,28 @@ export function dragndrop(node, layoutMode) {
       detail: {id: e.target.id, dragValidity: dragValidity}
     }));
     e.target.style.opacity = 1.0;
-    window.removeEventListener('drop', handleDrop);
+    //window.removeEventListener('drop', handleDrop);
   }
 
   //node.addEventListener('dragstart', handleDragStart);
   //node.addEventListener('dragstart',handleDragStart);
 
-  window.addEventListener('dragstart', handleDragStart);
+  //window.addEventListener('dragstart', handleDragStart);
 
   return {
 
     update(layoutMode){
       if(!layoutMode){
-        window.removeEventListener('dragstart', handleDragStart)
+        //window.removeEventListener('dragstart', handleDragStart)
       } else {
-        window.addEventListener('dragstart', handleDragStart);
+        //window.addEventListener('dragstart', handleDragStart);
       }
       console.log('layoutMode enabled in action:',layoutMode);
     },
 
     destroy() {
-      window.removeEventListener('drop', handleDrop);
-      window.removeEventListener('dragend', handleDragEnd);
+      //window.removeEventListener('drop', handleDrop);
+      //window.removeEventListener('dragend', handleDragEnd);
     }
   }
 }

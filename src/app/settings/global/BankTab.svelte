@@ -3,7 +3,7 @@
   import { createEventDispatcher, onMount } from 'svelte';
 
   import ColorPicker from '../ui/components/ColorPicker.svelte';
-import Toggle from '../ui/components/Toggle.svelte';
+  import Toggle from '../ui/components/Toggle.svelte';
   
   const dispatch = createEventDispatcher();
 

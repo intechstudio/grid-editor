@@ -53,6 +53,7 @@ export const appSettings = writable({
   selectedDisplay: '',
   layoutMode: false,
   isElectron: isElectron(),
+  configType: 'uiEvents',
   tab: '',
   preferences: false,
   os: checkOS()

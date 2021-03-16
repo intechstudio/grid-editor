@@ -132,10 +132,8 @@
 
 {/if}
 
-<style>
-  :global(.tour){
-    @apply border-2;
-    @apply border-important;
-    @apply border-solid;
+<style global>
+  .tour{
+    border: 4px solid yellow !important;
   }
 </style>
