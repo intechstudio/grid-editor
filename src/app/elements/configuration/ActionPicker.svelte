@@ -4,7 +4,7 @@
 
   import { clickOutside } from '../../settings/ui/helpers/clickOutside';
 
-  import {fly } from 'svelte/transition';
+  import { menuBoundaries } from '../boundaries.action';
 
   export let animation = false;
 
@@ -72,7 +72,8 @@
     visible = false;
   }
 
-  
+  let topOffset = 0;
+
 </script>
 
 
@@ -97,9 +98,17 @@
 
 <pick-action class="relative w-full flex ">
 
-  <div style="right: calc(100% + 2rem);top:-60px;width:250px;height:500px;" class="absolute shadow-md rounded-md bg-primary p-4  z-50">
+  <menu 
+    id="action-menu"
+    use:menuBoundaries={'init'} 
+    on:offset-top={(e)=>{topOffset = e.detail; console.log('top offset', e.detail)}} 
+    style="right: calc(100% + 2rem);top:{-250 + topOffset}px;width:250px;height:500px;" 
+    class="absolute shadow-md rounded-md bg-primary p-4  z-50">
      
-    <wrapper use:clickOutside on:click-outside={()=>{actionSelection = false; visible = false;}} class="flex flex-col flex-grow h-full">
+    <wrapper 
+      use:clickOutside
+      on:click-outside={()=>{actionSelection = false; visible = false;}} 
+      class="flex flex-col flex-grow h-full">
       <div class="py-1 text-gray-700 text-sm mb-1">Quick Access</div>
       <quick-access class="flex flex-row items-start">
         {#each ['MIDI', 'Macro'] as qu,index}
@@ -147,7 +156,7 @@
 
     </wrapper>
 
-  </div>
+  </menu>
 
 
 

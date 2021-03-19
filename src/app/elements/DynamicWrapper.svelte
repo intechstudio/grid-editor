@@ -10,13 +10,10 @@
   export let drag_start = false;
   export let id = '';
   export let action_id  = '';
-  export let draggable = false;
 
   let toggle = false;
 
-  let visible = false;
-
-  let addAction = false;
+  let preferencesMenu
 
   function heightChange(node, {
     delay = 0,
@@ -34,7 +31,7 @@
       }
     };
   }
-// {dragstart ? 'pointer-events-none' : ''}
+
 </script>
 
 
@@ -64,13 +61,25 @@
       </div>
     {/if}
 
-    <preferences class="flex px-2 justify-center items-center bg-transparent">
-      <svg class="h-6 w-6" viewBox="0 0 8 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    {#if preferencesMenu}
+    <preferences-menu class="flex flex-row items-center">
+      <div class="text-sm bg-red-500 hover:bg-red-700 cursor-pointer text-white h-full flex items-center px-2 ">
+        Remove
+      </div >
+      <div class="text-sm bg-blue-500 hover:bg-blue-700 cursor-pointer text-white h-full flex items-center px-2 ">
+        Copy
+      </div >
+    </preferences-menu>
+    {/if}
+
+    <preferences on:click={()=>{ preferencesMenu = ! preferencesMenu}} class="flex px-2 justify-center items-center bg-transparent">
+      <svg style="padding:0.125rem" class="h-6 w-6 hover:bg-purple-400 rounded-full" viewBox="0 0 8 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#ffffff"/>
         <path d="M8 16C8 18.2091 6.20914 20 4 20C1.79086 20 0 18.2091 0 16C0 13.7909 1.79086 12 4 12C6.20914 12 8 13.7909 8 16Z" fill="#ffffff"/>
         <path d="M8 28C8 30.2091 6.20914 32 4 32C1.79086 32 0 30.2091 0 28C0 25.7909 1.79086 24 4 24C6.20914 24 8 25.7909 8 28Z" fill="#ffffff"/>
       </svg>
     </preferences>
+
   </div>
 </wrapper>
 

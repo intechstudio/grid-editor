@@ -16,7 +16,7 @@
 
 </script>
 
-<tab-container class="w-1/3">
+<tab-container class="w-1/2">
 
   <Configuration/>
 

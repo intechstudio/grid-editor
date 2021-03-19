@@ -83,7 +83,6 @@ import DropZone from './DropZone.svelte';
         <DropZone index={-1} {drop_target} {animation} {drag_start}/>
       {/if}
 
-
       {#each actions as action, index (action.id)}
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper {drag_start} id={index} action_id={action.id} color={randomColor()} name={action.desc} type={action.type}>

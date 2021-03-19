@@ -100,7 +100,7 @@ export function changeOrder(node) {
     node.dispatchEvent(new CustomEvent('drag-end', {}));
 
     setTimeout(()=>{
-      dragged.style.opacity = '1.0';
+      if(dragged) dragged.style.opacity = '1.0';
       node.dispatchEvent(new CustomEvent('anim-end'))
     },300)
   }
