@@ -4,60 +4,153 @@
 
   import { clickOutside } from '../../settings/ui/helpers/clickOutside';
 
+  import {fly } from 'svelte/transition';
+
+  export let animation = false;
+
   const dispatch = createEventDispatcher();
+
+  let arrayOfActions = [
+    { 
+      key: 'MIDI', 
+      presets: [
+        { desc: 'Default',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI'}]}, 
+        { desc: 'Expression',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI'}]}, 
+        { desc: 'Volume',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI'}]}, 
+      ]
+    },
+    {
+      key: 'Macro', 
+      presets: [
+        { desc: 'Default',  type: 'standard', components: [{component: 'Macro', desc: 'Macro'}]}, 
+        { desc: 'git',  type: 'standard', components: [{component: 'Macro', desc: 'Macro'}]}, 
+      ]
+    },
+    {
+      key: 'Modifier',
+      presets: [
+        { desc: 'Default', type: 'modifier', components: [{component:'If', desc: 'If'}, {component:'Then', desc: 'Then'}, {component:'EndIf', desc: 'End If'}]},
+        { desc: 'If', type: 'modifier', components: [{component:'If', desc: 'If'}]},
+        { desc: 'Then', type: 'modifier', components: [{component:'Then', desc: 'Then'}]},
+        { desc: 'Else', type: 'modifier', components: [{component:'Else', desc: 'Else'}]},
+        { desc: 'ElseIf', type: 'modifier', components: [{component:'EndIf', desc: 'End If'}]},
+      ]
+    },
+    {
+      key: 'LED Phase',
+      presets: [
+        { desc: 'Default',  type: 'standard', components: [{component: 'LEDPhase', desc: 'LED Phase'}]}, 
+      ]
+    },
+    {
+      key: 'LED Color',
+      presets: [
+        { desc: 'Default',  type: 'standard', components: [{component: 'LEDColor', desc: 'LED Color'}]}, 
+      ]
+    },
+    {
+      key: 'RAW',
+      presets: [
+        { desc: 'Default',  type: 'standard', components: [{component: 'RAW', desc: 'RAW'}]}, 
+      ]
+    }
+  ];
 
   let actionSelection;
   let visible;
-  let selectedAction;
-  let arrayOfSelectableActions = [
-    { desc: 'MIDI',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI'}]}, 
-    { desc: 'Macro',  type: 'standard', components: [{component: 'Macro', desc: 'Macro'}]}, 
-    { desc: 'Modifier', type: 'modifier', components: [{component:'If', desc: 'If'}, {component:'Then', desc: 'Then'}, {component:'EndIf', desc: 'End If'}]}
-  ];
+
+  let selectedAction = arrayOfActions[0];
+  let presetsOfSelectedAction = arrayOfActions[0].presets;
+  let selectedActionPreset = presetsOfSelectedAction[0];
 
   function initAction(){
     dispatch('new-action', {
-      action: selectedAction
+      action: selectedActionPreset
     });
 
     actionSelection = false;
     visible = false;
   }
 
+  
 </script>
 
-{#if !actionSelection}
-<action-placeholder on:click={()=>{}} on:mouseenter={()=>{visible = true;}} on:mouseleave={()=>{visible = false;}} class="{visible ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300  flex items-center relative -ml-8 -my-2">
 
-  <div class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-highlight cursor-pointer z-10">
+<action-placeholder 
+  on:click={()=>{actionSelection = ! actionSelection}}  
+  on:mouseenter={()=>{visible = true;}} 
+  on:mouseleave={()=>{visible = false;}} 
+  class="{((visible || actionSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 cursor-pointer flex items-center relative -ml-8">
+
+  <div class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-highlight z-10">
     <svg class="w-5 h-5 p-1" viewBox="0 0 7 7" fill="white" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 0.5C3.77614 0.5 4 0.723858 4 1V3H6C6.27614 3 6.5 3.22386 6.5 3.5C6.5 3.77614 6.27614 4 6 4H4V6C4 6.27614 3.77614 6.5 3.5 6.5C3.22386 6.5 3 6.27614 3 6V4H1C0.723858 4 0.5 3.77614 0.5 3.5C0.5 3.22386 0.723858 3 1 3H3V1C3 0.723858 3.22386 0.5 3.5 0.5Z" fill="white"/>
     </svg>
   </div>
 
-  <div on:click={()=>{actionSelection = ! actionSelection}} class="h-2 w-full rounded-full bg-highlight cursor-pointer -ml-1"></div>
+  <div class="h-2 w-full rounded-full bg-highlight  -ml-1"></div>
 
 </action-placeholder>
-{/if}
+
+
 {#if actionSelection}
-<pick-action use:clickOutside on:click-outside={()=>{actionSelection = false; visible = false;}} class="w-full flex">
-  <select bind:value={selectedAction} class="bg-secondary flex-grow text-white p-1 mr-2 rounded-none focus:outline-none">
-    {#each arrayOfSelectableActions as action}
-      <option value={action} class="bg-secondary  text-white">{action.desc}</option>
-    {/each}
-  </select>
-  <button 
-    disabled={selectedAction === undefined} 
-    class:disabled={selectedAction === undefined} 
-    on:click={()=>{initAction()}} 
-    class="bg-highlight text-white py-1 px-2 mr-1 rounded border border-highlight hover:bg-highlight-400 focus:outline-none"
-    >
-    Add Action
-  </button>
-  <button
-    on:click={()=>{actionSelection = false; visible = false;}}
-    class="text-white py-1 px-2 ml-1 rounded border border-purple-400 hover:border-highlight-400 focus:outline-none">
-    Cancel
-  </button>
+
+<pick-action class="relative w-full flex ">
+
+  <div style="right: calc(100% + 2rem);top:-60px;width:250px;height:500px;" class="absolute shadow-md rounded-md bg-primary p-4  z-50">
+     
+    <wrapper use:clickOutside on:click-outside={()=>{actionSelection = false; visible = false;}} class="flex flex-col flex-grow h-full">
+      <div class="py-1 text-gray-700 text-sm mb-1">Quick Access</div>
+      <quick-access class="flex flex-row items-start">
+        {#each ['MIDI', 'Macro'] as qu,index}
+          <div class="rounded-full p-2 mr-2 bg-secondary text-white" on:click={()=>{}}>{qu}</div>
+        {/each}
+      </quick-access>
+
+      <action-menu class="flex flex-row w-full mt-4 flex-grow">
+        <list-of-actions class="w-1/2 flex flex-col">
+          <div class=" py-1 text-gray-700 text-sm mb-1">Actions</div>
+          <ul class="bg-secondary mr-1 p-1 text-white  h-full flex flex-col">
+            {#each arrayOfActions as action, index}
+              <li 
+                on:click={()=>{selectedAction = action}} 
+                class="{selectedAction == action ? 'bg-green-700' : null} py-1 px-2 my-1 rounded-lg text-white cursor-pointer hover:bg-green-600 bg-opacity-50 font-bold w-full">
+                  {action.key}
+              </li>
+            {/each}
+          </ul>
+        </list-of-actions>
+        <list-of-presets class="w-1/2 flex flex-col">
+          <div class="py-1 text-gray-700 text-sm mb-1">Presets</div>
+          <ul class=" bg-secondary ml-1 p-1 text-white h-full flex flex-col">
+            {#each selectedAction.presets as preset,index}
+              <li 
+                on:click={()=>{selectedActionPreset = preset}} 
+                class="{selectedActionPreset == preset ? 'bg-green-700' : null} py-1 px-2 my-1 rounded-lg text-white cursor-pointer hover:bg-green-600 bg-opacity-50 w-full">
+                  {preset.desc}
+              </li>
+            {/each}
+          </ul>
+        </list-of-presets>
+      </action-menu>
+
+      <div class="w-full mt-2 flex items-end">
+      <button 
+        disabled={selectedAction === undefined} 
+        class:disabled={selectedAction === undefined} 
+        on:click={()=>{initAction()}} 
+        class="bg-highlight text-white py-1 px-2 mr-1 rounded border border-highlight hover:bg-highlight-400 focus:outline-none"
+        >
+        Add Action
+      </button>
+    </div>
+
+    </wrapper>
+
+  </div>
+
+
+
+  
 </pick-action>
 {/if}

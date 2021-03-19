@@ -306,6 +306,7 @@ import Preferences from './app/preferences/Preferences.svelte';
     background-color: #2A3439;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 	}
 
 	:global(.primary){

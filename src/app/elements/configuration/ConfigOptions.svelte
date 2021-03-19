@@ -1,7 +1,7 @@
 <script>
   import ActionCommands from "../../settings/local/ActionCommands.svelte";
   import { appSettings } from "../../stores/app-settings.store";
-import DeepSelector from "../DeepSelector.svelte";
+  import DeepSelector from "../DeepSelector.svelte";
   
   let selectedAction;
   let selectedEvent;
@@ -21,7 +21,6 @@ import DeepSelector from "../DeepSelector.svelte";
 
 <div class="flex flex-col bg-primary w-full p-4">
 
-  <!--<DeepSelector/>-->
 
   {#if $appSettings.configType == 'uiEvents'}
     <div class="pb-2">

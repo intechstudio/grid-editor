@@ -1,6 +1,6 @@
 <script>
   import { flip } from 'svelte/animate';
-  import { fly, fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
 
   import DynamicWrapper from "../DynamicWrapper.svelte";
   import ActionPicker from "./ActionPicker.svelte";
@@ -12,6 +12,7 @@
   import Then from "./_modifiers/Then.svelte";
 
   import { changeOrder } from '../move.action';
+import DropZone from './DropZone.svelte';
 
   export let actions = [
     {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 0}, 
@@ -43,7 +44,8 @@
     return "rgb(" + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")";
   }
 
-  let dragstart = false;
+  let animation = false;
+  let drag_start = false;
   let drag_target = '';
   let drop_target = '';
 
@@ -56,53 +58,63 @@
     Actions
   </div>
 
-  <ActionPicker on:new-action={(e)=>{addActionAtPosition(e, 0)}}/>
 
-  <div 
-    use:changeOrder 
-    on:drag-start={(e)=>{dragstart = true; drag_target = e.detail.id}}  
-    on:drag-over={(e)=>{drop_target = e.detail.id;}}
-    on:drag-drop={(e)=>{
-      const grabbed = actions.find(act => Number(e.detail.transfer) === act.id);
-      const from  = actions.indexOf(grabbed);
-      let   to    = Number(drop_target.substr(3,));
-      if(to < from){ to = to + 1 };
-      actions = [...actions.slice(0, from), ...actions.slice(from + 1 )];
-      actions = [...actions.slice(0, to), {type: 'dummy', id: 99}, ...actions.slice(to)];
-      setTimeout(()=>{        
-        actions.splice(actions.findIndex(act => act.type === 'dummy'), 1);
+    <div 
+      use:changeOrder 
+      on:drag-start={(e)=>{drag_start = true;}}  
+      on:drag-target={(e)=>{drag_target = e.detail.id;}}
+      on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
+      on:drop={(e)=>{
+        const grabbed = actions.find((act) => Number(drag_target) === act.id);
+        const from  = actions.indexOf(grabbed);
+        let   to    = Number(drop_target);
+        if(to < from){ to = to + 1 };
+        actions = [...actions.slice(0, from), ...actions.slice(from + 1 )];
         actions = [...actions.slice(0, to), grabbed, ...actions.slice(to)];
-      }, 200);
-      dragstart = false;
-      drop_target = ''
-    }}
-    on:drag-end={(e)=>{dragstart = false; console.log('drag end')}}
-    class="flex flex-col">
-    {#each actions as action, index (action.id)}
-      <anim-block animate:flip={{duration: 200}} >
-        <div in:fade={{delay: 200, duration: 200}} draggable="true" id="{action.id}" class="block z-10">
-          <div class:pointer-events-none={dragstart}>
-            <DynamicWrapper color={randomColor()} name={action.desc} type={action.type}>
-              <svelte:component this={components[action.component]}/>
-            </DynamicWrapper>
+      }}
+      on:drag-end={(e)=>{drag_start = false; drop_target = undefined}}
+      on:anim-start={()=>{ animation= true;}}
+      on:anim-end={()=>{ animation = false;}}  
+      class="relative select-none">
 
-            {#if action.desc !== 'If' && !dragstart}
-              <ActionPicker on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
-            {/if}
-          </div>
-        </div>
+      {#if !drag_start}
+        <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, 0)}}/>
+      {:else}
+        <DropZone index={-1} {drop_target} {animation} {drag_start}/>
+      {/if}
 
-        <drop-zone id="dz-{index}" class="{dragstart ? 'block' : 'hidden'} -my-2">
-          <div class="pointer-events-none {drop_target == ('dz-'+index) && dragstart ? 'opacity-100 ' : 'opacity-0 '} h-5 transition-opacity duration-300 flex items-center relative">
-            <div class="h-2 w-full rounded-full bg-green-500 cursor-pointer"></div>
-          </div>
-        </drop-zone>
-      </anim-block>
-    {/each}
-      
 
-  </div>
-  
-
+      {#each actions as action, index (action.id)}
+        <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
+          <DynamicWrapper {drag_start} id={index} action_id={action.id} color={randomColor()} name={action.desc} type={action.type}>
+            <svelte:component this={components[action.component]}/>
+          </DynamicWrapper>
+          {#if action.desc !== 'If' && !drag_start}
+            <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
+          {:else}
+            <DropZone index={index} {drop_target} {animation} {drag_start}/>
+          {/if}
+        </anim-block>
+      {/each}
+    </div>
 
 </actions>
+
+<style global>
+
+  .grabbed{
+    cursor: move !important;
+   
+  }
+
+  .unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    cursor: default;
+  }
+
+</style>
