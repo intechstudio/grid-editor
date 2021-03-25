@@ -5,10 +5,11 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action = {parameters: {0:'0', 1: '1', 2: '2', 3: '3'}, name: ''};
+  export let action = {parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}], name: ''};
   export let index;
   export let eventInfo;
   export let elementInfo;
+  export let advanced ;
 
   let validator = [];
 
@@ -29,17 +30,18 @@
 
     let valid = true;
  
+    /**
     for (const key in validator) {
       if(!validator[key]){
         valid = false
       }
-    }
+    }*/
     
     if(valid){
-      dispatch('send', { 
+      dispatch('output', { 
         action: {
           value: action.value, 
-          parameters: parameters
+          parameters: action.parameters
         }, 
         index: index 
       });
@@ -55,23 +57,37 @@
   
   })
 
+  $: console.log('advanced',advanced, action.parameters)
+
 
 </script>
 
 
+{#if advanced}
+<action-midi class="flex flex-col w-full p-2">
+  {#each actionKeys as actionKey, index}
+    <div class="py-2">
+      <div class="text-gray-500 text-xs">{inputLabels[index]}</div>
+      <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[index][actionKey]}/>
+    </div>
+  {/each}
+</action-midi>
+{:else}
 <action-midi class="flex w-full p-2">
   {#each actionKeys as actionKey, index}
     <div class={'w-1/'+actionKeys.length + ' dropDownInput'}>
-      <div class="text-gray-700 text-xs">{inputLabels[index]}</div>
-      <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[actionKey]}/>
+      <div class="text-gray-500 text-xs">{inputLabels[index]}</div>
+      <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[index][actionKey]}/>
       <div class="text-white pl-2 text-xs tracking-wide flex-grow-0">
         info
       </div>
     </div>
   {/each}
 </action-midi>
+{/if}
 
 <style>
+
   .dropDownInput{
     padding-right:0.5rem;
   }

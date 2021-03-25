@@ -1,7 +1,7 @@
 <script>
   import ActionCommands from "../../settings/local/ActionCommands.svelte";
   import { appSettings } from "../../stores/app-settings.store";
-  import DeepSelector from "../DeepSelector.svelte";
+  import { fly, fade } from 'svelte/transition';
   
   let selectedAction;
   let selectedEvent;
@@ -21,22 +21,20 @@
 
 <div class="flex flex-col bg-primary w-full p-4">
 
-
-  {#if $appSettings.configType == 'uiEvents'}
-    <div class="pb-2">
-      <div class="text-gray-700 py-1 text-sm">
-        Selected Element
-      </div>
-
-      <div class="flex flex-col relative justify-between font-bold text-white">
-        <select class="bg-secondary flex-grow text-white p-2 focus:outline-none">
-          {#each [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] as element}
-          <option class="text-white bg-secondary py-1">Element {element}</option>
-          {/each}
-        </select>
-      </div>
+  <div class="pb-2 {$appSettings.configType == 'uiEvents' ? 'block' : 'hidden'}">
+    <div class="text-gray-700 py-1 text-sm">
+      Selected Element
     </div>
-  {/if}
+
+    <div class="flex flex-col relative justify-between font-bold text-white">
+      <select class="bg-secondary flex-grow text-white p-2 focus:outline-none">
+        {#each [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] as element}
+        <option class="text-white bg-secondary py-1">Element {element}</option>
+        {/each}
+      </select>
+    </div>
+  </div>
+  
   <div class="pb-2">
     <div class="text-gray-700 py-1 text-sm">
       Events
@@ -46,9 +44,7 @@
       {#each events as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
-          class:shadow-md={selectedEvent === event}
-          class:bg-highlight={selectedEvent === event}
-          class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400  focus:outline-none">
+          class="{selectedEvent === event? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
           {event.desc}
         </button>
       {/each}

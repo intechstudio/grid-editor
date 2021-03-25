@@ -1,4 +1,8 @@
+const colors = require('tailwindcss/colors')
+
 module.exports = {
+  purge: [],
+  darkMode: false, // or 'media' or 'class'
   theme: {
     fontFamily: {
       'body': ['roboto']
@@ -46,8 +50,16 @@ module.exports = {
         '16': '16px'
       },
       colors: {
+        black: colors.black,
+        white: colors.white,
+        gray: colors.trueGray,
+        green: colors.green,
+        red: colors.rose,
+        yellow: colors.amber,
+        pink: colors.pink,
+        purple: colors.purple,
         primary: {
-          'default': '#1e2628',
+          'DEFAULT': '#1e2628',
           '100':'#d3dcde',
           '200':'#b6c5c8',
           '300':'#99adb2',
@@ -58,13 +70,38 @@ module.exports = {
           '800':'#212a2c',
           '900': '#0b0e0f',
         },
-        secondary: '#2a3439',
+        pick: {
+          'DEFAULT': '#6B7AFF',
+          'desaturate-10': '#8591FF',
+          'desaturate-20': '#A9AEFF',
+          'saturate-10': '#5263FF',
+          'saturate-20': '#1F4AC5',
+          'complementer': '#FFEE52'
+        },
+        select: {
+          'DEFAULT': '#47575F',
+          'saturate-10': '#3E545F',
+          'saturate-20': '#1A2A31',
+          'desaturate-10': '#515A5F',
+          'desaturate-20': '#788991'
+        },
+        commit: {
+          'DEFAULT': '#0BA484',
+          'saturate-10': '#00A482',
+          'saturate-20': '#006F53',
+          'desaturate-10': '#1BA487',
+          'desaturate-20': '#5DDCB9'
+
+        },
+        secondary: {
+          'DEFAULT': '#2a3439',
+        },
         normal: '#cfdbd5',
         thirdery: {
-          'default': '#31313F'
+          'DEFAULT': '#31313F'
         },
         highlight: {
-          'default': '#cc5b5b',
+          'DEFAULT': '#CC5B5B',
           '100':'#edc5c5',
           '200':'#e19e9e',
           '300':'#d57777',
@@ -73,7 +110,7 @@ module.exports = {
           '600':'#882a2a'
         },
         important: {
-          'default': '#e4d203',
+          'DEFAULT': '#e4d203',
           '100': '#fffde6',
           '200': '#fef8b3',
           '300': '#fdf381',
@@ -81,13 +118,15 @@ module.exports = {
           '500': '#fcea1c',
           '600': '#e3d103',
           '700': '#b0a202'
-        }
+        },
       },
     }
   },
   variants: {
     textColor: ['group-hover'],
-    visibility: ['hover']
+    visibility: ['hover'],
+    backgroundColor: ['hover','group-hover'],
+    cursor: ['group-hover']
   },
   plugins: []
 }

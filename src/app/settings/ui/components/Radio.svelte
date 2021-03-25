@@ -31,8 +31,7 @@
 
   .tab{
     box-shadow: 0 0px 0px 2px #cc5b5b;
-    @apply bg-secondary;
-    @apply text-white;
+
   }
 
 </style>

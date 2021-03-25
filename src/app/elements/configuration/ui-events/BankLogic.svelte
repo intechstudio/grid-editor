@@ -119,17 +119,16 @@
     {#each banks as bank, index}
       <button 
         on:click={()=>{changeSelected(index)}} 
-        class:shadow-md={selected === index}
-        class:bg-highlight={selected === index}
-        class="m-2 p-1 text-white flex-grow outline-none border-0 rounded hover:bg-highlight-400 focus:outline-none">
+        class="{selected === index ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
         {bank}
       </button>
     {/each}
   </div>
 
   <div class="pt-2">
-    <DynamicWrapper name={'Bank Preferences'} color={'#1E5871'}>
+    <DynamicWrapper action={{desc: 'Bank Preferences', type: 'standard', action_id: ''}}>
       <BankView
+        slot="action"
         {selected}
         {globalData}
         on:BANKCOLOR={handleColorChange}

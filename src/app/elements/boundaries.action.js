@@ -1,4 +1,4 @@
-export function menuBoundaries(node, click) {
+export function menuBoundaries(node) {
 
   let rect = undefined;
 
@@ -29,7 +29,6 @@ export function menuBoundaries(node, click) {
 
     update(){
       node.dispatchEvent(new CustomEvent('offset-top', {detail: topOffset - 20}))
-
     },
 
     destroy() {

@@ -300,7 +300,6 @@
   ::-webkit-scrollbar {
       height: 6px;
       width: 6px;
-      @apply bg-secondary;
   }
 
   ::-webkit-scrollbar-thumb {

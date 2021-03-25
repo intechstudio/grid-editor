@@ -12,12 +12,14 @@
   import Then from "./_modifiers/Then.svelte";
 
   import { changeOrder } from '../move.action';
-import DropZone from './DropZone.svelte';
+  import DropZone from './DropZone.svelte';
+  import ActionPreferences from './ActionPreferences.svelte';
+  import Advanced from './Advanced.svelte';
 
   export let actions = [
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 0}, 
-    {type: 'standard', desc: 'Macro', component: 'Macro', id: 1}, 
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 2}, 
+    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 0, parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}]}, 
+    {type: 'standard', desc: 'Macro', component: 'Macro', id: 1, parameters: []}, 
+    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 2, parameters: []}, 
   ];
 
   const components = {
@@ -35,19 +37,18 @@ import DropZone from './DropZone.svelte';
 
   function initActions(action){
     let arr = action.components.map((c, index) => {
-      return {type: action.type, desc: c.desc, component: c.component, id: actions.length + 1 + index};
+      return {type: action.type, desc: c.desc, component: c.component, id: actions.length + 1 + index, parameters: c.parameters};
     });
     return arr;
   }
 
-  function randomColor(){
-    return "rgb(" + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")";
-  }
 
   let animation = false;
   let drag_start = false;
   let drag_target = '';
   let drop_target = '';
+
+  $: console.log(actions);
 
 </script>
 
@@ -57,7 +58,6 @@ import DropZone from './DropZone.svelte';
   <div class="text-gray-700 py-1 text-sm">
     Actions
   </div>
-
 
     <div 
       use:changeOrder 
@@ -85,9 +85,13 @@ import DropZone from './DropZone.svelte';
 
       {#each actions as action, index (action.id)}
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
-          <DynamicWrapper {drag_start} id={index} action_id={action.id} color={randomColor()} name={action.desc} type={action.type}>
-            <svelte:component this={components[action.component]}/>
+          <DynamicWrapper let:toggle {drag_start} {index} {action}>
+              <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{console.log(e.detail)}}/>         
+              <ActionPreferences slot="preferences" {toggle} {index} advanced={action.desc !== 'Macro'}/>
           </DynamicWrapper>
+
+          <Advanced {index} {action} on:output={(e)=>{console.log('adv output', e.detail); actions[index].parameters = e.detail.action.parameters; actions = actions;}}/>
+
           {#if action.desc !== 'If' && !drag_start}
             <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
           {:else}
@@ -103,7 +107,6 @@ import DropZone from './DropZone.svelte';
 
   .grabbed{
     cursor: move !important;
-   
   }
 
   .unselectable {
