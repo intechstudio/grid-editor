@@ -2,13 +2,13 @@
   import { sineOut } from 'svelte/easing';
   import { fly, fade } from 'svelte/transition';
 
+  import { actionPrefStore } from './action-preferences.store';
+
   export let action = {desc: 'unnamed', type: 'standard', action_id: ''};
   export let index = undefined;
   export let drag_start = false;
 
-  $: console.log(action);
-
-  let toggle = false;
+  export let toggle = false;
   const color = () => "rgb(" + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")";
 
   const icons = [
@@ -63,6 +63,9 @@
     };
   }
 
+  // when the advanced options are open then show the actions with disabled user interactions
+  let advancedView = false;
+  $: ($actionPrefStore.advanced.index == index && $actionPrefStore.advanced.visible) ? advancedView = true : advancedView = false;
 
 </script>
 
@@ -76,14 +79,14 @@
             {@html findIcon(action.desc)}         
           </div>              
         </icon>
-      {#if !toggle}
+      {#if !toggle && !advancedView}
         <name class="pl-4 flex items-center w-full bg-secondary py-2">
           {action.desc}
         </name>
       {/if}
     </carousel>
-    {#if toggle}
-      <container in:heightChange class="w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
+    {#if toggle || advancedView}
+      <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
         <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
           <slot name="action"></slot>
         </fader-transition>

@@ -17,4 +17,21 @@ function createActionPrefStore(){
   }
 }
 
+function createAdvancedPrefStore(){
+  const store = writable({
+    index:-1
+  });
+
+  return{
+    ...store,
+    setIndex: (i) => {
+      store.update(s => {s.index = i; return s;})
+    }
+  }
+
+
+}
+
+export const advancedPrefStore = createAdvancedPrefStore();
+
 export const actionPrefStore = createActionPrefStore();

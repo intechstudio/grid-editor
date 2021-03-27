@@ -16,20 +16,17 @@
     MIDI: Midi,
   }
 
+  const meta = [
+    {type: 'function', desc:'if', value: 'if'},{type: 'function', desc: 'abs', value: 'abs'}, {type: 'function', desc: 'sqrt', value: 'sqrt'},
+    {type: 'operator', desc:'*', value: '\\*'}, {type: 'operator',desc:'+', value: '\\+'}, {type: 'operator',desc:'-', value: '\\-'},
+    {type: 'global_variable', desc: 'Bank Default Red', value: 'bankDefRed'},{type: 'global_variable',desc: 'Active Bank', value: 'activeBank'},{type: 'global_variable',desc: 'Next Bank', value: 'nextBank'},
+    {type: 'element_variable', desc: 'Absolute Change', value: 'absoluteChange'},{type: 'element_variable',desc: 'Default Control Number', value: 'defaultControlNumber'},{type: 'element_variable',desc: 'Relative Value', value: 'relativeValue'},{type: 'element_variable',desc: 'Velocity Curve Param', value: 'velocityCurveParam'}
+  ]
 
-  const meta = {
-    functions: [{desc:'if()', value: 'if'},{desc: 'abs()', value: 'abs'}, {desc: 'sqrt()', value: 'sqrt'}],
-    operators: ['*', '+', '-', '/', '%', '(', ')', '==', '>', '<', '>=', '!='],
-    variables: {
-      global: [{desc: 'Bank Def Red', value: '255,0,0'},{desc: 'Active Bank', value: 'act-bank'},{desc: 'Next Bank', value: 'next-bank'}],
-      element: [{desc: 'Absolute Change', value: 'abs-val'},{desc: 'Default Control Number', value: 'def-ctrl-num'},{desc: 'Relative Value', value: 'rel-chng'},{desc: 'Velocity Curve Param', value: 'vel-cv-p'}]
-    }
+  let manual;
+  function addThisManually(elem){
+    manual = elem;
   }
-
-//$actionPrefStore.advanced.index == index && $actionPrefStore.advanced.visible
-//     
-// absolute
-$: console.log('hi')
 
 </script>
 
@@ -54,8 +51,8 @@ $: console.log('hi')
           <functions class="w-1/2 flex flex-col p-2">
             <span class="text-gray-500 text-sm">Functions</span>
             <div class="flex -ml-1 items-start flex-wrap">
-              {#each meta.functions as func}
-                <div class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{func.desc}</div>
+              {#each meta.filter(m => m.type === 'function') as func}
+                <div on:click={()=>{addThisManually(func)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{func.desc}</div>
               {/each}
             </div>
           </functions>
@@ -63,8 +60,8 @@ $: console.log('hi')
           <oparators class="w-1/2 flex flex-col p-2">
             <span class="text-gray-500 text-sm">Operators</span>
             <div class="flex -ml-1 items-start flex-wrap">
-              {#each meta.operators as operator}
-                <div class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{operator}</div>
+              {#each meta.filter(m => m.type === 'operator') as operator}
+                <div on:click={()=>{addThisManually(operator)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{operator.desc}</div>
               {/each}
             </div>
           </oparators>
@@ -72,8 +69,8 @@ $: console.log('hi')
           <element-variables class="w-1/2 flex flex-col p-2">
             <span class="text-gray-500 text-sm">Element Variables</span>
             <div class="flex -ml-1 items-start flex-wrap">
-              {#each meta.variables.element as variable}
-                <div class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{variable.desc}</div>
+              {#each meta.filter(m => m.type === 'element_variable') as variable}
+                <div on:click={()=>{addThisManually(variable)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{variable.desc}</div>
               {/each}
             </div>
           </element-variables>
@@ -81,16 +78,15 @@ $: console.log('hi')
           <global-variables class="w-1/2 flex flex-col p-2">
             <span class="text-gray-500 text-sm">Global Variables</span>
             <div class="flex -ml-1 items-start flex-wrap">
-              {#each meta.variables.global as variable}
-                <div class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{variable.desc}</div>
+              {#each meta.filter(m => m.type === 'global_variable') as variable}
+                <div  on:click={()=>{addThisManually(variable)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{variable.desc}</div>
               {/each}
             </div>
           </global-variables>
 
-
       </config-pool>
 
-      <svelte:component this={components[action.component]} advanced={true} on:output></svelte:component>
+      <svelte:component this={components[action.component]} advanced={true} optionList={meta} {manual} on:output></svelte:component>
 
     </wrapper>
 

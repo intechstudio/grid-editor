@@ -90,7 +90,7 @@
               <ActionPreferences slot="preferences" {toggle} {index} advanced={action.desc !== 'Macro'}/>
           </DynamicWrapper>
 
-          <Advanced {index} {action} on:output={(e)=>{console.log('adv output', e.detail); actions[index].parameters = e.detail.action.parameters; actions = actions;}}/>
+          <Advanced {index} {action} on:output={(e)=>{actions[index].parameters = e.detail.action.parameters; actions = actions;}}/>
 
           {#if action.desc !== 'If' && !drag_start}
             <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>

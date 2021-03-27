@@ -2,14 +2,15 @@
 
   import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
   import DropDownInput from '../../../settings/ui/components/DropDownInput.svelte';
+import AdvancedInput from './AdvancedInput.svelte';
 
   const dispatch = createEventDispatcher();
 
   export let action = {parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}], name: ''};
   export let index;
-  export let eventInfo;
-  export let elementInfo;
-  export let advanced ;
+  export let advanced;
+  export let manual;
+  export let optionList = [];
 
   let validator = [];
 
@@ -17,7 +18,6 @@
   
   let inputLabels = ['Channel', 'Command', 'Param 1','Param 2'];
 
-  let optionList = [['0','1'], ['no'], ['yes'], ['ok']]
 
   function sendData(){
     
@@ -57,9 +57,6 @@
   
   })
 
-  $: console.log('advanced',advanced, action.parameters)
-
-
 </script>
 
 
@@ -68,7 +65,7 @@
   {#each actionKeys as actionKey, index}
     <div class="py-2">
       <div class="text-gray-500 text-xs">{inputLabels[index]}</div>
-      <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[index][actionKey]}/>
+      <AdvancedInput on:change={()=>{sendData()}} {optionList} {manual} {index} bind:dropDownValue={action.parameters[index][actionKey]}/>
     </div>
   {/each}
 </action-midi>

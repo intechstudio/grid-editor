@@ -9,13 +9,15 @@
   export let advanced = false;
   let preferencesMenu = false;
 
+  $: console.log(toggle);
+
 </script>
 
 {#if preferencesMenu}
   <preferences-menu class="flex {toggle ? 'flex-col items-end bg-opacity-25' : 'flex-row items-center bg-secondary'}">
     {#if advanced}
       <div in:fly={{x:5}} class="table {toggle ? 'my-1 mx-2' : 'mr-2'}">
-        <span on:click={()=>{ actionPrefStore.showAdvanced(index, true) }} class="flex text-sm text-white  bg-green-600 hover:bg-green-700 cursor-pointer items-center rounded-md justify-center px-2 py-1">Advanced</span>
+        <span on:click={()=>{actionPrefStore.showAdvanced(index, true); preferencesMenu = false;}} class="flex text-sm text-white  bg-green-600 hover:bg-green-700 cursor-pointer items-center rounded-md justify-center px-2 py-1">Advanced</span>
       </div>
     {/if}
     <div in:fly={{x:5}} class="table {toggle ? 'my-1 mx-2' : 'mr-2'}">
