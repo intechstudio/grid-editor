@@ -2,17 +2,15 @@
 
   import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
   import DropDownInput from '../../../settings/ui/components/DropDownInput.svelte';
-import AdvancedInput from './AdvancedInput.svelte';
+  import AdvancedInput from './advanced-input/AdvancedInput.svelte';
 
   const dispatch = createEventDispatcher();
 
   export let action = {parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}], name: ''};
   export let index;
   export let advanced;
-  export let manual;
-  export let optionList = [];
-
-  let validator = [];
+  export let blockAddedOnClick;
+  export let inputSet = [];
 
   let actionKeys = ['CABLECOMMAND','COMMANDCHANNEL','PARAM1','PARAM2'];
   
@@ -65,7 +63,7 @@ import AdvancedInput from './AdvancedInput.svelte';
   {#each actionKeys as actionKey, index}
     <div class="py-2">
       <div class="text-gray-500 text-xs">{inputLabels[index]}</div>
-      <AdvancedInput on:change={()=>{sendData()}} {optionList} {manual} {index} bind:dropDownValue={action.parameters[index][actionKey]}/>
+      <AdvancedInput on:change={()=>{sendData()}} {inputSet} {blockAddedOnClick} {index} />
     </div>
   {/each}
 </action-midi>
@@ -74,7 +72,7 @@ import AdvancedInput from './AdvancedInput.svelte';
   {#each actionKeys as actionKey, index}
     <div class={'w-1/'+actionKeys.length + ' dropDownInput'}>
       <div class="text-gray-500 text-xs">{inputLabels[index]}</div>
-      <DropDownInput on:change={()=>{sendData()}} optionList={optionList[index]} bind:dropDownValue={action.parameters[index][actionKey]}/>
+      <DropDownInput on:change={()=>{sendData()}} inputSet={inputSet[index]} bind:dropDownValue={action.parameters[index][actionKey]}/>
       <div class="text-white pl-2 text-xs tracking-wide flex-grow-0">
         info
       </div>

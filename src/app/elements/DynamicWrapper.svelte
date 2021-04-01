@@ -37,11 +37,14 @@
     {
       action: 'Bank Preferences',
       svg: `icn`
+    },
+    {
+      action: 'Code Block',
+      svg: `icn`
     }
   ];
 
   function findIcon(name){
-    console.log(name);
     let icn = icons.find(i => i.action === name);
     if(icn) {return icn.svg} else { return ''}
   }

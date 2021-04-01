@@ -28,10 +28,12 @@ function createAdvancedPrefStore(){
       store.update(s => {s.index = i; return s;})
     }
   }
-
-
 }
 
 export const advancedPrefStore = createAdvancedPrefStore();
 
 export const actionPrefStore = createActionPrefStore();
+
+// THIS SHOULDNT BE HERE, TESTING PURPOSE ONLY!
+
+export const selectedControlElement = writable('encoder');

@@ -15,19 +15,23 @@
   import DropZone from './DropZone.svelte';
   import ActionPreferences from './ActionPreferences.svelte';
   import Advanced from './Advanced.svelte';
+  import CodeBlock from './_actions/CodeBlock.svelte';
 
+  
   export let actions = [
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 0, parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}]}, 
-    {type: 'standard', desc: 'Macro', component: 'Macro', id: 1, parameters: []}, 
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 2, parameters: []}, 
+    {type: 'standard', desc: 'Code Block', component: 'CODEBLOCK',  id: 0, parameters: [] },
+    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 1, parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}]}, 
+    {type: 'standard', desc: 'Macro', component: 'MACRO', id: 2, parameters: []}, 
+    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 3, parameters: []}, 
   ];
 
   const components = {
     MIDI: Midi,
-    Macro: Macro,
-    If: If,
-    Then: Then,
-    EndIf: EndIf
+    MACRO: Macro,
+    CODEBLOCK: CodeBlock,
+    IF: If,
+    THEN: Then,
+    ENDIF: EndIf
   }
 
   function addActionAtPosition(arg, index){
@@ -47,8 +51,6 @@
   let drag_start = false;
   let drag_target = '';
   let drop_target = '';
-
-  $: console.log(actions);
 
 </script>
 
@@ -87,7 +89,7 @@
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {action}>
               <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{console.log(e.detail)}}/>         
-              <ActionPreferences slot="preferences" {toggle} {index} advanced={action.desc !== 'Macro'}/>
+              <ActionPreferences  {toggle} {index} advanced={action.desc !== 'Macro'}/>
           </DynamicWrapper>
 
           <Advanced {index} {action} on:output={(e)=>{actions[index].parameters = e.detail.action.parameters; actions = actions;}}/>

@@ -9,8 +9,6 @@
   export let advanced = false;
   let preferencesMenu = false;
 
-  $: console.log(toggle);
-
 </script>
 
 {#if preferencesMenu}

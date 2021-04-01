@@ -6,6 +6,7 @@ let global_id = 0;
 let PROTOCOL = {};
 
 export const GRID_PROTOCOL = {
+
   
   initialize: function(){
 

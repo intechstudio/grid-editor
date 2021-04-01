@@ -14,7 +14,6 @@
   import { onMount } from 'svelte';
 
   import DynamicWrapper from "../../DynamicWrapper.svelte";
-  
 
   let banks = ['Bank 1', 'Bank 2', 'Bank 3', 'Bank 4'];
 
@@ -93,7 +92,6 @@
     globalConfigReportStore.subscribe(store => {
       globalData = store; 
       // load to runtime all the controllers you see
-      console.log('LOAD RUNTIME...', store, $runtime)
       updateRuntimeWithGlobalConfig(store);
       renderGlobalConfiguration();
     })

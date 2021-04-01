@@ -22,30 +22,30 @@
     {
       key: 'Macro', 
       presets: [
-        { desc: 'Default',  type: 'standard', components: [{component: 'Macro', desc: 'Macro',parameters: []}]}, 
-        { desc: 'git',  type: 'standard', components: [{component: 'Macro', desc: 'Macro', parameters: []}]}, 
+        { desc: 'Default',  type: 'standard', components: [{component: 'MACRO', desc: 'Macro',parameters: []}]}, 
+        { desc: 'git',  type: 'standard', components: [{component: 'MACRO', desc: 'Macro', parameters: []}]}, 
       ]
     },
     {
       key: 'Modifier',
       presets: [
-        { desc: 'Default', type: 'modifier', components: [{component:'If', desc: 'If',parameters: []}, {component:'Then', desc: 'Then'}, {component:'EndIf', desc: 'End If'}]},
-        { desc: 'If', type: 'modifier', components: [{component:'If', desc: 'If',parameters: []}]},
-        { desc: 'Then', type: 'modifier', components: [{component:'Then', desc: 'Then'}]},
-        { desc: 'Else', type: 'modifier', components: [{component:'Else', desc: 'Else'}]},
-        { desc: 'ElseIf', type: 'modifier', components: [{component:'EndIf', desc: 'End If'}]},
+        { desc: 'Default', type: 'modifier', components: [{component:'IF', desc: 'If',parameters: []}, {component:'Then', desc: 'Then'}, {component:'EndIf', desc: 'End If'}]},
+        { desc: 'If', type: 'modifier', components: [{component:'IF', desc: 'If',parameters: []}]},
+        { desc: 'Then', type: 'modifier', components: [{component:'THEN', desc: 'Then'}]},
+        { desc: 'Else', type: 'modifier', components: [{component:'ELSE', desc: 'Else'}]},
+        { desc: 'ElseIf', type: 'modifier', components: [{component:'ENDIF', desc: 'End If'}]},
       ]
     },
     {
       key: 'LED Phase',
       presets: [
-        { desc: 'Default',  type: 'standard', components: [{component: 'LEDPhase', desc: 'LED Phase', parameters: []}]}, 
+        { desc: 'Default',  type: 'standard', components: [{component: 'LEDPHASE', desc: 'LED Phase', parameters: []}]}, 
       ]
     },
     {
       key: 'LED Color',
       presets: [
-        { desc: 'Default',  type: 'standard', components: [{component: 'LEDColor', desc: 'LED Color', parameters: []}]}, 
+        { desc: 'Default',  type: 'standard', components: [{component: 'LEDCOLOR', desc: 'LED Color', parameters: []}]}, 
       ]
     },
     {
