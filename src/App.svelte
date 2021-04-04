@@ -300,6 +300,7 @@ import Preferences from './app/preferences/Preferences.svelte';
 </main>
 
 
+<!--
 <style>
 
 	:global(body) {
@@ -424,4 +425,4 @@ import Preferences from './app/preferences/Preferences.svelte';
 
 	
 </style>
-
+-->
