@@ -42,7 +42,14 @@ jobs:
 
       - name: rebuild
         run: | 
-          $(npm bin)/electron-rebuild
+          if matrix.os == 'ubuntu-latest' then
+             $(npm bin)/electron-rebuild
+          else if matrix.os == 'windows-2016' then
+             .\node_modules\.bin\electron-rebuild.cmd
+          else
+              echo "matrix.os not supported"
+              exit 1
+          fi
   
       - name: Build
         run: npm run export
