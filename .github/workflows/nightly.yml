@@ -40,6 +40,14 @@ jobs:
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
 
+      - name: Windows Rebuild
+        if: matrix.os == 'windows-2016'
+        run: .\node_modules\.bin\electron-rebuild.cmd
+      
+      - name: Ubuntu Rebuild
+        if: matrix.os == 'ubuntu-latest'
+        run: $(npm bin)/electron-rebuild
+  
       - name: Build
         run: npm run export
         env:     
