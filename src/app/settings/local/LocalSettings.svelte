@@ -243,7 +243,7 @@
     // Render local input settings if BANK or SELECTED CONTROL ELEMENT changes
     derivedInputStore.subscribe(store =>{
       inputStore = store;
-      console.log('derivedInputStore', store);
+      //console.log('derivedInputStore', store);
       renderLocalConfiguration();
     });
 
@@ -252,9 +252,10 @@
     
     // Render only if config is successfully read back!
     //cfgReport ? renderLocalConfiguration() : null;
-
     manageActions({ id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' })
   });
+  });
+    
 
     
 
