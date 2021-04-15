@@ -42,10 +42,10 @@ jobs:
 
       - name: rebuild
         run: | 
-          if [ "matrix.os" == "ubuntu-latest" ]; 
+          if [ matrix.os == "ubuntu-latest" ]
           then
              $(npm bin)/electron-rebuild
-          elseif [ "matrix.os" == "windows-2016"]; 
+          elseif [ matrix.os == "windows-2016"]
           then
              .\node_modules\.bin\electron-rebuild.cmd
           else
