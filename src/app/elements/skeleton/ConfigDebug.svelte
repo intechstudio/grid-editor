@@ -19,12 +19,11 @@
   
 
   runtime.subscribe(s => {
-    let code = '<?lua ';
+    let code = '';
     s.forEach((e,i) => {
       code += `--[[@${e.meta}--]]` + e.script + "\n";  
     }); 
-    code += ' ?>';
-    runtimeScript = code.replace(/(\r\n|\n|\r)/gm, "");
+    runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + '?>';
     runtimeParser = GLUA.parser(code, {comments: true});
   })
 

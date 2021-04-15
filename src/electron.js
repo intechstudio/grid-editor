@@ -19,6 +19,7 @@ let mainWindow;
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false;
 
+
 let watcher;
 if (process.env.NODE_ENV === 'development') {
  watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
@@ -38,7 +39,9 @@ function createWindow() {
         height,
         frame: false,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          contextIsolation: false,
+          enableRemoteModule: true
         }
     });
 
