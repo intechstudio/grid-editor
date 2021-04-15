@@ -98,7 +98,7 @@
   },
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true electron-builder --publish onTagOrDraft",
-    "e:builder:local": "electron-builder --publish never",
+    "e:builder:local": "cross-env NODE_ENV=development electron-builder --publish never",
     "export": "run-s s:build e:builder",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "export:local": "run-s s:build e:builder:local",
@@ -107,6 +107,7 @@
     "start": "sirv public --single",
     "start:dev": "sirv public --single --dev --host 0.0.0.0",
     "electron": "run-s build pure-electron",
+    "postinstall": "electron-builder install-app-deps",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
     "pure-electron-dev": "cross-env DEBUG=email-templates DEBUG=universal-analytics NODE_ENV=development electron ."
