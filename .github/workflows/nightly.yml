@@ -42,9 +42,9 @@ jobs:
 
       - name: rebuild
         run: | 
-          if [ "$RUNNER_OS" == "ubuntu-latest" ]; then
+          if [ "$RUNNER_OS" == "Linux " ]; then
              $(npm bin)/electron-rebuild
-          elif [ "$RUNNER_OS" == "windows-2016" ]; then
+          elif [ "$RUNNER_OS" == "Windows" ]; then
              .\node_modules\.bin\electron-rebuild.cmd
           else
               echo "$RUNNER_OS not supported"
