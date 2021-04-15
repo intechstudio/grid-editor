@@ -252,8 +252,7 @@
     
     // Render only if config is successfully read back!
     //cfgReport ? renderLocalConfiguration() : null;
-    manageActions({ id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' })
-  });
+    //manageActions({ id: 0, name: 'MIDI Dynamic', value: 'MIDIRELATIVE' })
   });
     
 
