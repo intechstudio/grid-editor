@@ -42,12 +42,12 @@ jobs:
 
       - name: rebuild
         run: | 
-          if [ matrix.os == "ubuntu-latest" ]; then
+          if [ "$RUNNER_OS" == "ubuntu-latest" ]; then
              $(npm bin)/electron-rebuild
-          elif [ matrix.os == "windows-2016" ]; then
+          elif [ "$RUNNER_OS" == "windows-2016" ]; then
              .\node_modules\.bin\electron-rebuild.cmd
           else
-              echo "matrix.os not supported"
+              echo "$RUNNER_OS not supported"
               exit 1
           fi
   
