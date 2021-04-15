@@ -41,7 +41,7 @@ jobs:
           UA: ${{ secrets.UA }}
 
       - name: Windows Rebuild
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-2016'
         run: .\node_modules\.bin\electron-rebuild.cmd
       
       - name: Ubuntu Rebuild
