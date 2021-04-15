@@ -2,9 +2,9 @@
   import { sineOut } from 'svelte/easing';
   import { fly, fade } from 'svelte/transition';
 
-  import { actionPrefStore } from './action-preferences.store';
+  import { actionPrefStore } from '../action-preferences.store';
 
-  export let action = {desc: 'unnamed', type: 'standard', action_id: ''};
+  export let action = '' //{desc: 'unnamed', type: 'standard', id: ''};
   export let index = undefined;
   export let drag_start = false;
 
@@ -73,28 +73,29 @@
 </script>
 
 
-<wrapper id="act-{index}" action-id={action.action_id} class="block border-none outline-none transition-opacity duration-300">
+<wrapper id="act-{index}" action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
   <div class="flex {drag_start ? 'pointer-events-none' : ''}">
     {#if action.type == 'standard'}
-    <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow text-white">
+      <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow text-white">
         <icon style="background-color: {color()}" class="flex items-center p-2">
           <div class="w-6 h-6">
             {@html findIcon(action.desc)}         
           </div>              
         </icon>
-      {#if !toggle && !advancedView}
-        <name class="pl-4 flex items-center w-full bg-secondary py-2">
-          {action.desc}
-        </name>
+        {#if !toggle && !advancedView}
+          <name class="pl-4 flex items-center w-full bg-secondary py-2">
+            <span class="block">{action.desc}</span> 
+            <span style="overflow:hidden !important;" class="pl-2 font-mono text-gray-500 inline-block max-w-xs overflow-ellipsis whitespace-nowrap">{action.script}</span>
+          </name>
+        {/if}
+      </carousel>
+      {#if toggle || advancedView}
+        <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
+          <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
+            <slot name="action"></slot>
+          </fader-transition>
+        </container>
       {/if}
-    </carousel>
-    {#if toggle || advancedView}
-      <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
-        <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
-          <slot name="action"></slot>
-        </fader-transition>
-      </container>
-    {/if}
     {:else}
       <div class="flex w-full flex-col">
         <slot name="action"></slot>

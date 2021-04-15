@@ -1,5 +1,6 @@
 <script>
 
+  import CodeEditor from '../user-interface/code-editor/CodeEditor.svelte';
 
 </script>
 
@@ -8,10 +9,8 @@
 
   <div class="font-bold pl-2 py-1 bg-black rounded-t-lg">IF</div>
 
-  <div class="flex">
-
-    <input type="text" class="bg-secondary flex-grow text-white pl-2 py-1 m-4 rounded-none focus:outline-none">
-
+  <div class="flex p-4">
+    <CodeEditor showCharCount={false}/>
   </div>
 
 </if-block>

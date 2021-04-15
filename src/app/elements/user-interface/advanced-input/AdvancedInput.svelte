@@ -77,7 +77,7 @@ import CodeEditor from "../../code-editor/CodeEditor.svelte";
     
 
     console.log(
-      [protocol.if(protocol.abs(1), protocol.midi(0,1,2,4)), protocol.if(protocol.abs(1), protocol.midi(0,1,4))]
+      //[protocol.if(protocol.abs(1), protocol.midi(0,1,2,4)), protocol.if(protocol.abs(1), protocol.midi(0,1,4))]
     ) ;
 
     errors.other.length ? errors.other = ['Undefined characters: ', ...errors.other].join(' ') : null;
@@ -104,11 +104,12 @@ import CodeEditor from "../../code-editor/CodeEditor.svelte";
 
 </script>
 
-
+<!--
 <RichText on:text={(e)=>{validate(e.detail)}} style={'min-height:48px;word-break:break-all;'} inputSet={inputSet.sort((a, b) => b.length - a.length)} {index} {blockAddedOnClick}/>
-
+-->
 <CodeEditor/>
 
+<!--
 <errors class="flex text-xs flex-col">
   <div class="text-white { validity.expression ?'text-green-400': 'text-red-400' }">expression is {validity.expression ? 'valid' : 'invalid'}</div>
   <div class="text-white { validity.parenthesis ?'text-green-400': 'text-red-400' }">parenthesis is {validity.parenthesis ? 'valid' : 'invalid'}</div>
@@ -119,3 +120,4 @@ import CodeEditor from "../../code-editor/CodeEditor.svelte";
   <div class="text-white">{errors.flow.join('; ')}</div>
 
 </errors>
+-->

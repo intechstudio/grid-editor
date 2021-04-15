@@ -13,12 +13,12 @@ export const _V = {
     console.log(newarr);
 
     newarr.forEach((type , i) => {
-      regex[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'operator') ? `${'\\' + v.desc}` : `${'\\b' + v.desc + '\\b'}`).join('|');
+      regex[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'operator') ? `${'\\' + v.desc}` : `${'\\b' + v.value + '\\b'}`).join('|');
     })
 
     inputSet.forEach((obj,i) => {
       if(obj.parameters !== undefined) {
-        functions.values[obj.desc] = {parameters: obj.parameters}; // here may be added code version? although not born for this valid case..
+        functions.values[obj.value] = {parameters: obj.parameters}; // here may be added code version? although not born for this valid case..
       }
     })
 
@@ -77,6 +77,27 @@ export const _V = {
     return !regex.test(text);
   },
 
+  isJson: function(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+  },
+
+  arrayToExpression: function(type = '', array = []){
+    let code = type; // prepend with type
+    const _unformatted = JSON.stringify(array);
+    [..._unformatted].forEach(e => {
+      if(e == '['){ code += '(' }
+      else if(e == ']') { code += ')'}
+      else if(e == "\"") { /* no return */ }
+      else { code += e }
+    })
+    return code;
+  },
+
   parenthesis: function(expression){
     let stack = [];
     let current;
@@ -85,7 +106,7 @@ export const _V = {
           "[": "]", 
           "{": "}", 
         };
-                      
+    //console.log(expression);
     for (let i = 0; i < expression.length; i++) {
       current = expression[i]; //easier than writing it over and over
       
@@ -113,8 +134,11 @@ export const _V = {
     pattern.push(`${'(?<separator>(\,))'}`);
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
+    // if its dot notation
+    pattern.push(`${'(?<dotnotation>((\\w+)\.(\\w)+))'}`)
     // if its character which is invalid
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`);
+
     // create full pattern
     pattern = pattern.join('|');
 
@@ -138,9 +162,50 @@ export const _V = {
   
   },
 
+  splitExprToArray: function(splitExpr){
+    let altered = "";
+    let depth = 0;
+    splitExpr.forEach((element, i) =>{
+        if(element.type == 'action' || element.type == 'function' || element.type == 'getter' || element.type == 'setter'){
+          // do nothing
+        } else if(element.value == '('){
+          if(depth >= 1){
+            if(depth == 1){
+              altered += "\"";
+            }
+            altered += "(";
+          } else {
+            altered += "[";
+          }
+          depth += 1;
+        } else if(element.value == ')'){
+          depth -= 1;
+          if(depth >= 1){
+            altered += ")"
+            if(depth == 1){
+              altered += "\"";
+            }
+          } else {
+            altered += "]";
+          }       
+        } else if(element.value == ',' && depth <= 1 ) {
+          altered += ",";
+        } else if(element.type == 'operator' && depth <= 1){
+          altered += ",\""+element.value+"\",";
+        } else {
+          if(depth <= 1){
+            altered += "\""+element.value+"\"";
+          } else {
+            altered += element.value;
+          }
+        }
+    })
+    return altered;
+  },
+
   fnSplit: function(text){
 
-    const pattern = `(${this.VALIDATOR.functions.pattern}).+?(?=(${this.VALIDATOR.functions.pattern}))|(${this.VALIDATOR.functions.pattern}).*`
+    const pattern = `().*`
 
     const regex = new RegExp(pattern, "gs")
 
@@ -158,7 +223,7 @@ export const _V = {
   fnCommas: function(arr = []){
     // original comma detection regex
     // ([a-zA-Z0-9\s)(]*[,]){${numOfComma}}
-    const pattern = this.VALIDATOR.function.pattern;
+    const pattern = this.VALIDATOR.functions.pattern;
     let validity = [];
     let _fn;
     arr.forEach((str,i) => {

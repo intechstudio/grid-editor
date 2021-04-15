@@ -18,7 +18,7 @@
 
   import { appSettings } from './app/stores/app-settings.store';
   import { layout } from './app/stores/layout.store.js';
-  import { runtime, gridSyncProcess } from './app/stores/runtime.store.js';
+  import { runtime } from './app/stores/runtime.store.js';
 
   /*
   *   serialport and nodejs
@@ -103,7 +103,7 @@ import Preferences from './app/preferences/Preferences.svelte';
 
   onMount(()=>{
 
-    gridSyncProcess.subscribe(()=>{})
+    //gridSyncProcess.subscribe(()=>{})
 
     createPanZoom(map, {
       bounds: true,
@@ -190,9 +190,11 @@ import Preferences from './app/preferences/Preferences.svelte';
 
   <RuntimeSync/>
     
+  <!--
   {#if $appSettings.isElectron} 
     <FirmwareCheck />
   {/if}
+-->
 
   <!-- Info on pan. -->
   

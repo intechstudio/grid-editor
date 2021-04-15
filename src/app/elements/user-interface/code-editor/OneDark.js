@@ -31,7 +31,7 @@ export const oneDarkTheme = EditorView.theme({
     caretColor: cursor
   },
 
-  "&.cm-focused": {outline: "none"},
+  "&.cm-focused": {outline: "none", border: "none"},
 
   "&.cm-focused .cm-cursor": {borderLeftColor: cursor},
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground, ::selection": {backgroundColor: selection},

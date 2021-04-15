@@ -2,32 +2,30 @@
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
 
-  import DynamicWrapper from "../DynamicWrapper.svelte";
-  import ActionPicker from "./ActionPicker.svelte";
-  import Macro from "./_actions/Macro.svelte";
-
-  import Midi from "./_actions/Midi.svelte";
-  import EndIf from "./_modifiers/EndIf.svelte";
-  import If from "./_modifiers/If.svelte";
-  import Then from "./_modifiers/Then.svelte";
+  import DynamicWrapper from "../view/DynamicWrapper.svelte";
+  import ActionPicker from "../view/ActionPicker.svelte";
+  
+  import Macro from "../_actions/Macro.svelte";
+  import Midi from "../_actions/Midi.svelte";
+  import LedPhase from '../_actions/LedPhase.svelte';
+  import CodeBlock from '../_actions/CodeBlock.svelte';
+  import EndIf from "../_modifiers/EndIf.svelte";
+  import If from "../_modifiers/If.svelte";
+  import Then from "../_modifiers/Then.svelte";
 
   import { changeOrder } from '../move.action';
-  import DropZone from './DropZone.svelte';
-  import ActionPreferences from './ActionPreferences.svelte';
-  import Advanced from './Advanced.svelte';
-  import CodeBlock from './_actions/CodeBlock.svelte';
+  import { actionIsDragged, runtime } from '../action-preferences.store'; 
 
-  
-  export let actions = [
-    {type: 'standard', desc: 'Code Block', component: 'CODEBLOCK',  id: 0, parameters: [] },
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 1, parameters: [{'CABLECOMMAND': '01'}, {'COMMANDCHANNEL':'10'},{'PARAM1':'T1'}, {'PARAM2': 'T2'}]}, 
-    {type: 'standard', desc: 'Macro', component: 'MACRO', id: 2, parameters: []}, 
-    {type: 'standard', desc: 'MIDI', component: 'MIDI',  id: 3, parameters: []}, 
-  ];
+  import DropZone from '../view/DropZone.svelte';
+  import ActionPreferences from '../view/ActionPreferences.svelte';
+  import Advanced from '../view/Advanced.svelte';
+
+  export let actions;
 
   const components = {
     MIDI: Midi,
     MACRO: Macro,
+    LEDPHASE: LedPhase,
     CODEBLOCK: CodeBlock,
     IF: If,
     THEN: Then,
@@ -52,6 +50,11 @@
   let drag_target = '';
   let drop_target = '';
 
+  // actions changed
+  $: if(actions){
+    runtime.set(actions);
+  }
+
 </script>
 
 
@@ -63,9 +66,9 @@
 
     <div 
       use:changeOrder 
-      on:drag-start={(e)=>{drag_start = true;}}  
-      on:drag-target={(e)=>{drag_target = e.detail.id;}}
-      on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
+      on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true)}}  
+      on:drag-target={(e)=>{drag_target = e.detail.id; console.log(e.detail)}}
+      on:drop-target={(e)=>{drop_target = e.detail.drop_target;console.log(drop_target)}}
       on:drop={(e)=>{
         const grabbed = actions.find((act) => Number(drag_target) === act.id);
         const from  = actions.indexOf(grabbed);
@@ -74,7 +77,7 @@
         actions = [...actions.slice(0, from), ...actions.slice(from + 1 )];
         actions = [...actions.slice(0, to), grabbed, ...actions.slice(to)];
       }}
-      on:drag-end={(e)=>{drag_start = false; drop_target = undefined}}
+      on:drag-end={(e)=>{drag_start = false; actionIsDragged.set(false); drop_target = undefined}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
       class="relative select-none">
@@ -88,16 +91,18 @@
       {#each actions as action, index (action.id)}
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {action}>
-              <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{console.log(e.detail)}}/>         
-              <ActionPreferences  {toggle} {index} advanced={action.desc !== 'Macro'}/>
+              <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>  
+              <ActionPreferences slot="preferences" {toggle} {index} type={action.type} advanced={action.desc !== "Macro"}/>
           </DynamicWrapper>
 
-          <Advanced {index} {action} on:output={(e)=>{actions[index].parameters = e.detail.action.parameters; actions = actions;}}/>
+          <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>
 
-          {#if action.desc !== 'If' && !drag_start}
-            <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
-          {:else}
-            <DropZone index={index} {drop_target} {animation} {drag_start}/>
+          {#if action.desc !== "If" }
+            {#if !drag_start}
+              <ActionPicker {animation} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
+            {:else}
+              <DropZone index={index} {drop_target} {animation} {drag_start}/>
+            {/if}
           {/if}
         </anim-block>
       {/each}

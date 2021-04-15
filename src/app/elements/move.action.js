@@ -20,7 +20,8 @@ export function changeOrder(node) {
     cursor.style.pointerEvents = "none";
     cursor.style.width = target.clientWidth + 'px';
 
-    document.body.append(cursor);
+    // put in app, so it wont overflow!
+    document.getElementById('app').append(cursor);
   }
 
   function handleMouseDown(e){
@@ -47,6 +48,7 @@ export function changeOrder(node) {
     // emit dragtarget once pointer events are disabled in drag mode
     if(drag == 2){
       dragged = e.target;
+      // the id "act" refers to dynamic index position and attribute "action-id" refers to initial keyed id of action
       node.dispatchEvent(new CustomEvent('drag-target', {
         detail: {id: e.target.getAttribute('action-id')}
       }));
@@ -99,6 +101,7 @@ export function changeOrder(node) {
 
     node.dispatchEvent(new CustomEvent('drag-end', {}));
 
+    // for fade in animation end sequencing
     setTimeout(()=>{
       if(dragged) dragged.style.opacity = '1.0';
       node.dispatchEvent(new CustomEvent('anim-end'))

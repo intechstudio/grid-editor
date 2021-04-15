@@ -78,7 +78,7 @@
   @tailwind components;
 
   html {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   body {

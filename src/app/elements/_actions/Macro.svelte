@@ -9,7 +9,7 @@
 
   //import { check_for_matching_value, parameter_parser } from './action-helper';
 
-  import * as keyMap from '../../../../external/macro/map.json';
+  import * as keyMap from '../../../external/macro/map.json';
 
   export let action;
   export let index;

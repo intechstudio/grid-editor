@@ -1,12 +1,10 @@
 <script>
-  import AdvancedInput from "./advanced-input/AdvancedInput.svelte";
+  import CodeEditor from "../user-interface/code-editor/CodeEditor.svelte";
 
   export let action = {parameters: [], name: '', value: ''};;
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
-
-  $: console.log('inputSet: ',inputSet)
 
   function sendData(){
 
@@ -25,4 +23,8 @@
 
 </script>
 
-<AdvancedInput on:change={()=>{sendData()}} {inputSet} {blockAddedOnClick} {index}/>
+
+
+<code-block class="w-full flex p-4">
+  <CodeEditor on:output doc={action.script} {index} showCharCount={false}/>
+</code-block>

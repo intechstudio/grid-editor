@@ -6,6 +6,7 @@ import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import css from 'rollup-plugin-css-only';
 import rollup_start_dev from './rollup_start_dev';
+import { lezer } from "lezer-generator/rollup"
 
 import json from '@rollup/plugin-json';
 
@@ -21,6 +22,7 @@ export default {
 	},
 	plugins: [
 		json(),
+		lezer(),
 		svelte({
 			preprocess: sveltePreprocess({
 				postcss: true,

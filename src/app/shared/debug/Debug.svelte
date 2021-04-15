@@ -22,7 +22,6 @@
 	
 	function debug(){
 		let data = GRID_PROTOCOL.encode_debugger(brc, command);
-		console.log(brc, command, data);
 		serialComm.write(data);
 	}
 

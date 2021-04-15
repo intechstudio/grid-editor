@@ -1,19 +1,19 @@
 <script>
   import BankView from "./BankView.svelte";
 
-  import { globalConfigReportStore, bankActiveStore, numberOfModulesStore } from '../../../stores/control-surface-input.store.js';
+  import { globalConfigReportStore, bankActiveStore, numberOfModulesStore } from '../../stores/control-surface-input.store.js';
   
-  import { runtime } from '../../../stores/runtime.store.js';
+  import { runtime } from '../../stores/runtime.store.js';
 
-  import { serialComm } from '../../../core/serialport/serialport.store.js';
+  import { serialComm } from '../../core/serialport/serialport.store.js';
 
-  import { GRID_PROTOCOL } from '../../../core/classes/GridProtocol.js';
+  import { GRID_PROTOCOL } from '../../core/classes/GridProtocol.js';
 
-  import { commands } from '../../../settings/shared/handshake.store';
+  import { commands } from '../../settings/shared/handshake.store';
 
   import { onMount } from 'svelte';
 
-  import DynamicWrapper from "../../DynamicWrapper.svelte";
+  import DynamicWrapper from "../view/DynamicWrapper.svelte";
 
   let banks = ['Bank 1', 'Bank 2', 'Bank 3', 'Bank 4'];
 

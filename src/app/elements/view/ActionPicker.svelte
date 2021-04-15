@@ -6,6 +6,8 @@
 
   import { menuBoundaries } from '../boundaries.action';
 
+  import { GRID_ACTIONS } from '../__action.js';
+
   export let animation = false;
 
   const dispatch = createEventDispatcher();
@@ -14,9 +16,9 @@
     { 
       key: 'MIDI', 
       presets: [
-        { desc: 'Default',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI', parameters: []}]}, 
-        { desc: 'Expression',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI',parameters: []}]}, 
-        { desc: 'Volume',  type: 'standard', components: [{component: 'MIDI', desc: 'MIDI',parameters: []}]}, 
+        { desc: 'Default',  type: 'standard', components: [GRID_ACTIONS.find(a => a.component == 'MIDI')]}, 
+        { desc: 'Expression',  type: 'standard', components: [GRID_ACTIONS.find(a => a.component == 'MIDI')]}, 
+        { desc: 'Volume',  type: 'standard', components: [GRID_ACTIONS.find(a => a.component == 'MIDI')]}, 
       ]
     },
     {
@@ -29,7 +31,7 @@
     {
       key: 'Modifier',
       presets: [
-        { desc: 'Default', type: 'modifier', components: [{component:'IF', desc: 'If',parameters: []}, {component:'Then', desc: 'Then'}, {component:'EndIf', desc: 'End If'}]},
+        { desc: 'Default', type: 'modifier', components: [{component:'IF', desc: 'If',parameters: []}, {component:'THEN', desc: 'Then'}, {component:'ENDIF', desc: 'End If'}]},
         { desc: 'If', type: 'modifier', components: [{component:'IF', desc: 'If',parameters: []}]},
         { desc: 'Then', type: 'modifier', components: [{component:'THEN', desc: 'Then'}]},
         { desc: 'Else', type: 'modifier', components: [{component:'ELSE', desc: 'Else'}]},
@@ -52,6 +54,13 @@
       key: 'RAW',
       presets: [
         { desc: 'Default',  type: 'standard', components: [{component: 'RAW', desc: 'RAW', parameters: []}]}, 
+      ]
+    },
+    {
+      key: 'Lightroom',
+      presets: [
+        { desc: 'Contrast',  type: 'standard', components: [{component: 'LEDCOLOR', desc: 'LED Color', parameters: []}]}, 
+        { desc: 'Highlight',  type: 'standard', components: [{component: 'LEDCOLOR', desc: 'LED Color', parameters: []}]}, 
       ]
     }
   ];

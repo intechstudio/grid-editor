@@ -1,8 +1,8 @@
 <script>
 
   import { createEventDispatcher, onMount } from 'svelte';
-  import ColorPicker from '../../../settings/ui/components/ColorPicker.svelte';
-  import Toggle from '../../../settings/ui/components/Toggle.svelte';
+  import ColorPicker from '../user-interface/ColorPicker.svelte';
+  import Toggle from '../user-interface/Toggle.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -70,7 +70,7 @@
       <div class="p-2">
         <div class="mb-1 text-gray-700 text-sm">Bank Name</div>
         <input 
-          class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none"
+          class="w-full secondary text-white p-1 pl-2 rounded-none focus:outline-none bg-secondary"
           bind:value={bankName}
           placeholder="Set bank name..."
         >

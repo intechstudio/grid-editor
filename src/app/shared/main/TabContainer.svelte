@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import Configuration from '../../elements/Configuration.svelte';
+  import Configuration from '../../elements/skeleton/Configuration.svelte';
   import DragModule from '../../layout/components/DragModule.svelte';
   import Preferences from '../../preferences/Preferences.svelte';
   import Profiles from '../../profiles/Profiles.svelte';
