@@ -40,16 +40,13 @@ jobs:
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
 
-      - name: rebuild
-        run: | 
-          if [ "$RUNNER_OS" == "Linux" ]; then
-             $(npm bin)/electron-rebuild
-          elif [ "$RUNNER_OS" == "Windows" ]; then
-             .\node_modules\.bin\electron-rebuild.cmd
-          else
-              echo "$RUNNER_OS not supported"
-              exit 1
-          fi
+      - name: Windows Rebuild
+        if: matrix.os == 'windows-latest'
+        run: .\node_modules\.bin\electron-rebuild.cmd
+      
+      - name: Ubuntu Rebuild
+        if: matrix.os == 'ubuntu-latest'
+        run: $(npm bin)/electron-rebuild
   
       - name: Build
         run: npm run export
