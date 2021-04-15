@@ -22,9 +22,6 @@ function createSerialComm(){
     })
   }
 
-  function serialTransmission(){
-
-  }
 
   return {
     ...store,
