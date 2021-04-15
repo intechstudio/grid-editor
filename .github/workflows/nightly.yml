@@ -42,7 +42,7 @@ jobs:
 
       - name: rebuild
         run: | 
-          if [ "$RUNNER_OS" == "Linux " ]; then
+          if [ "$RUNNER_OS" == "Linux" ]; then
              $(npm bin)/electron-rebuild
           elif [ "$RUNNER_OS" == "Windows" ]; then
              .\node_modules\.bin\electron-rebuild.cmd
