@@ -40,6 +40,10 @@ jobs:
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
 
+      - name: rebuild
+        run: | 
+          $(npm bin)/electron-rebuild
+  
       - name: Build
         run: npm run export
         env:     
