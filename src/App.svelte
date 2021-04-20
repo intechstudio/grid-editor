@@ -422,9 +422,7 @@ import KeyMacro from './app/settings/local/actions/KeyMacro.svelte';
     display: none;
   }
 
-  .loading:after {
-  content: ' .';
-  animation: dots 1s steps(5, end) infinite;}
+
 
   @keyframes dots {
     0%, 20% {
