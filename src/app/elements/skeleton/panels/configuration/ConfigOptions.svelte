@@ -1,6 +1,6 @@
 <script>
-  import ActionCommands from "../../settings/local/ActionCommands.svelte";
-  import { appSettings } from "../../stores/app-settings.store";
+  import ActionCommands from "../../../../settings/local/ActionCommands.svelte";
+  import { appSettings } from "../../../../stores/app-settings.store";
   import { fly, fade } from 'svelte/transition';
   
   let selectedAction;

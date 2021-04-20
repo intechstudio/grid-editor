@@ -52,7 +52,7 @@
   {#each scriptSegments as script, index}
     <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
       <div class="text-gray-500 text-sm pb-1">{inputLabels[index]}</div>
-      <AtomicInput inputValue={script}/>
+      <AtomicInput {index} inputValue={script}/>
     </div>
   {/each}
 </action-led-phase>

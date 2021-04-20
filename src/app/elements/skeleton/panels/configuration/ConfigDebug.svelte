@@ -2,13 +2,13 @@
 
   export let actions;
 
-  import { serialComm, serialCommDebug } from '../../core/serialport/serialport.store';
+  import { serialComm, serialCommDebug } from '../../../../core/serialport/serialport.store';
 
-	import { GRID_PROTOCOL } from '../../core/classes/GridProtocol';
+	import { GRID_PROTOCOL } from '../../../../core/classes/GridProtocol';
 
-  import { runtime } from '../action-preferences.store';
+  import { runtime } from '../../../action-preferences.store';
 
-  import * as GLUA from '../__action';
+  import * as GLUA from '../../../__action';
 
   let runtimeScript = '';
   let runtimeParser = '';
@@ -40,29 +40,29 @@
 
 </script>
 
-<config-debug class="w-full flex flex-col p-4">
+<config-debug class="w-full flex flex-col p-4 z-10">
 
-  <div class="flex flex-col xl:flex-row text-white xl:items-end p-2">
+  <div class="flex flex-col md:flex-row text-white md:items-end p-2">
 
     <div class="mr-1">
       <div>dx</div>
-      <input class="w-full xl:w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+      <input class="w-full md:w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
     </div>
     <div class="mx-1">
       <div>dy</div>
-      <input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
+      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
     </div>
     <div class="mx-1">
       <div>age</div>
-      <input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
+      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
     </div>
     <div class="mx-1">
       <div>rot</div>
-      <input class="w-full xl:w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
+      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
     </div>
     <div class="mx-1">
       <div>command</div>
-      <input class="w-full xl:w-24 p-1 text-black focus:outline-none"  bind:value={command}>
+      <input class="w-full md:w-32 p-1 text-black focus:outline-none"  bind:value={command}>
     </div>
 
   </div>

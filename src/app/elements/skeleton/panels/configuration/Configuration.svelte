@@ -1,9 +1,7 @@
 <script>
 
-  import { appSettings } from '../../stores/app-settings.store';
-  import { actionIsDragged } from '../action-preferences.store';
+  import { appSettings } from '../../../../stores/app-settings.store.js';
 
-  import BankLogic from './BankLogic.svelte';
   import ConfigActions from './ConfigActions.svelte';
   import ConfigDebug from './ConfigDebug.svelte';
   import ConfigOptions from './ConfigOptions.svelte';
@@ -11,7 +9,7 @@
 
   import { fly, fade } from 'svelte/transition';
 
-  import * as GLUA from '../__action.js';
+  import * as GLUA from '../../../__action.js';
 
   const grid_raw_actions = 
 `--@ms
@@ -33,10 +31,6 @@ if pagenumber == 1 then kms(alt,f4) end`;
 
   {#key $appSettings.configType == 'uiEvents'}
     <container in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
-
-      {#if $appSettings.configType == 'uiEvents'}
-        <BankLogic/>
-      {/if}
 
       <ConfigOptions/>
 

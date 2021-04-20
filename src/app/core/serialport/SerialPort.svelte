@@ -172,8 +172,13 @@
   }
 
   function makeThisUsable(RESPONSE){ 
-    let controller = runtime.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
-    controller.instr = RESPONSE.COMMAND;
+    try {
+      let controller = runtime.find(g => g.dx == RESPONSE.BRC.DX && g.dy == RESPONSE.BRC.DY);
+      controller.instr = RESPONSE.COMMAND;
+    } catch (error) {
+      console.error(error);
+    }
+    
   }
 
   function runSerialParser(port){

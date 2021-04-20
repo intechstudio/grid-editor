@@ -69,11 +69,9 @@
   import PanInfo from './app/shared/main/PanInfo.svelte';
   import WebsiteNav from './app/shared/main/WebsiteNav.svelte';
   import NavTabs from './app/shared/main/NavTabs.svelte';
-  import TabContainer from './app/shared/main/TabContainer.svelte';
-import RuntimeSync from './app/runtime/RuntimeSync.svelte';
-import Preferences from './app/preferences/Preferences.svelte';
+  import RuntimeSync from './app/runtime/RuntimeSync.svelte';
 
-
+  import PanelContainer from './app/elements/skeleton/PanelContainer.svelte';
 
   /*
   *   variables
@@ -201,7 +199,11 @@ import Preferences from './app/preferences/Preferences.svelte';
   
   <!-- This is the (mostly) Layout part of the code. -->
 
-  <layout-container class="relative w-full h-full">
+  
+  
+  <!-- Show selected tab on the right side of the app. -->
+
+  <layout-container class="relative flex items-start justify-end w-full h-full">
     {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
     <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
 
@@ -260,7 +262,7 @@ import Preferences from './app/preferences/Preferences.svelte';
       }}
       > 
 
-      <div id="grid-map" bind:this={map} style="top:40%; left:40%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
+      <div id="grid-map" bind:this={map} style="top:0%; left:0%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
         use:layoutMenu={$appSettings.layoutMode}
         on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
         on:menu-close={()=>{isMenuOpen = false}}
@@ -288,16 +290,11 @@ import Preferences from './app/preferences/Preferences.svelte';
         
       {/if}
 
-    </grid-layout>   
+    </grid-layout>  
   </layout-container>
-  
-  <!-- Show selected tab on the right side of the app. -->
 
+  <PanelContainer/>
 
-
-  <TabContainer/>
-
-  <Preferences/>
 
 </main>
 

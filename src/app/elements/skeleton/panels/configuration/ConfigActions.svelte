@@ -2,23 +2,23 @@
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
 
-  import DynamicWrapper from "../view/DynamicWrapper.svelte";
-  import ActionPicker from "../view/ActionPicker.svelte";
+  import DynamicWrapper from "../../../view/DynamicWrapper.svelte";
+  import ActionPicker from "../../../view/ActionPicker.svelte";
   
-  import Macro from "../_actions/Macro.svelte";
-  import Midi from "../_actions/Midi.svelte";
-  import LedPhase from '../_actions/LedPhase.svelte';
-  import CodeBlock from '../_actions/CodeBlock.svelte';
-  import EndIf from "../_modifiers/EndIf.svelte";
-  import If from "../_modifiers/If.svelte";
-  import Then from "../_modifiers/Then.svelte";
+  import Macro from "../../../_actions/Macro.svelte";
+  import Midi from "../../../_actions/Midi.svelte";
+  import LedPhase from '../../../_actions/LedPhase.svelte';
+  import CodeBlock from '../../../_actions/CodeBlock.svelte';
+  import EndIf from "../../../_modifiers/EndIf.svelte";
+  import If from "../../../_modifiers/If.svelte";
+  import Then from "../../../_modifiers/Then.svelte";
 
-  import { changeOrder } from '../move.action';
-  import { actionIsDragged, runtime } from '../action-preferences.store'; 
+  import { changeOrder } from '../../../move.action';
+  import { actionIsDragged, runtime } from '../../../action-preferences.store'; 
 
-  import DropZone from '../view/DropZone.svelte';
-  import ActionPreferences from '../view/ActionPreferences.svelte';
-  import Advanced from '../view/Advanced.svelte';
+  import DropZone from '../../../view/DropZone.svelte';
+  import ActionPreferences from '../../../view/ActionPreferences.svelte';
+  import Advanced from '../../../view/Advanced.svelte';
 
   export let actions;
 

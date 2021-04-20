@@ -1,6 +1,6 @@
 <script>
   
-  import { appSettings } from "../../stores/app-settings.store";
+  import { appSettings } from "../../../../stores/app-settings.store";
 
   let selectedConfig = 'uiEvents';
 

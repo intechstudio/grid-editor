@@ -1,5 +1,7 @@
 <script>
 
+  import { actionPrefStore } from '../action-preferences.store';
+
   import { clickOutside } from './helpers/clickOutside.js'
 
   import { createEventDispatcher } from 'svelte';
@@ -8,6 +10,9 @@
   
   export let inputValue = '';
   export let optionList = [];
+  export let index;
+
+  let edited = false;
 
   let disabled = false;
   let displayValue = '';
@@ -27,7 +32,8 @@
 
 </script>
 
-<main class="w-full relative" use:clickOutside on:click-outside={()=>{focus = false}}>
+<main class="w-full relative flex items-center" use:clickOutside on:click-outside={()=>{focus = false}}>
+  {#if disabled}<div on:click={()=>{actionPrefStore.showAdvanced(index, true);}} class="absolute cursor-pointer right-0 {$actionPrefStore.advanced.visible ? 'invisible' : 'flex'} items-center rounded-full py-0.5 px-2 text-white text-xs bg-green-600 hover:bg-green-700">Edit</div>{/if}
   <input 
     disabled={disabled}
     class:shadow={focus} 

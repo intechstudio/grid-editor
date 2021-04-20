@@ -54,7 +54,14 @@ export const appSettings = writable({
   layoutMode: false,
   isElectron: isElectron(),
   configType: 'uiEvents',
-  tab: '',
+  activePanel: 'gridConfiguration',
   preferences: false,
   os: checkOS()
 });
+
+export const preferenceStore = writable({
+  midiMonitor: {
+    show: false,
+    option: true
+  }
+})
