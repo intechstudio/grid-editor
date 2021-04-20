@@ -74,20 +74,21 @@
 
 
 <wrapper id="act-{index}" action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
-  <div class="flex {drag_start ? 'pointer-events-none' : ''}">
+  <div class="flex relative {drag_start ? 'pointer-events-none' : ''}">
     {#if action.type == 'standard'}
-      <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow text-white">
-        <icon style="background-color: {color()}" class="flex items-center p-2">
+      <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow relative text-white cursor-pointer ">
+        <icon style="background-color: {color()}" class="flex  items-center p-2">
           <div class="w-6 h-6">
             {@html findIcon(action.desc)}         
           </div>              
         </icon>
         {#if !toggle && !advancedView}
-          <name class="pl-4 flex items-center w-full bg-secondary py-2">
+          <name class="pl-4 flex items-center w-full bg-secondary hover:bg-select-saturate-10 py-2">
             <span class="block">{action.desc}</span> 
             <span style="overflow:hidden !important;" class="pl-2 font-mono text-gray-500 inline-block max-w-xs overflow-ellipsis whitespace-nowrap">{action.script}</span>
           </name>
         {/if}
+       
       </carousel>
       {#if toggle || advancedView}
         <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
@@ -96,6 +97,7 @@
           </fader-transition>
         </container>
       {/if}
+      
     {:else}
       <div class="flex w-full flex-col">
         <slot name="action"></slot>

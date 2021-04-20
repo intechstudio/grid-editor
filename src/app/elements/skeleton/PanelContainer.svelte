@@ -17,7 +17,7 @@
 </script>
 
 
-<panel-container class="w-1/2">
+<panel-container class="w-2/5">
 
   {#if $appSettings.activePanel == 'gridConfiguration'}
 

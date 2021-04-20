@@ -203,7 +203,7 @@
   
   <!-- Show selected tab on the right side of the app. -->
 
-  <layout-container class="relative flex items-start justify-end w-full h-full">
+  <layout-container class="relative flex items-start justify-end w-3/5 h-full">
     {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
     <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
 
