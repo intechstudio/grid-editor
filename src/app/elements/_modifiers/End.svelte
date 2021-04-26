@@ -4,19 +4,18 @@
   const dispatch = createEventDispatcher();
 
   function sendData(){
-    const script = 'then'; // important to set the function name
+    const script = 'end'; // important to set the function name
     dispatch('output', script)
   }
 
   onMount(()=>{
     sendData();
   })
-
 </script>
 
 
-<then-block class="w-full flex flex-col text-white">
+<endif-block class="w-full flex flex-col text-white py-2">
 
-  <div class="font-bold pl-2 py-1 bg-black">THEN</div>
+  <div class="font-bold pl-2 py-1 bg-black rounded-b-lg">ENDIF</div>
 
-</then-block>
+</endif-block>

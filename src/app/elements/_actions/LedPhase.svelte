@@ -11,38 +11,24 @@
   export let blockAddedOnClick;
   export let index;
 
-  const _v = _V;
-  _v.initialize(GLUA.FUNCTIONS);
-
   let scriptSegments = [];
 
   let inputLabels = ['LED', 'Layer', 'Intensity'];
 
+  const _v = _V;
+  _v.initialize(GLUA.FUNCTIONS);
+
   $: if(action.script){
-    scriptToAction(action.script)
+    scriptSegments = GLUA.scriptToAction({script: action.script, inputLabels})
   };
 
-
-  function sendData(){
-
-    let valid = true;
-    
-    if(valid){
-      dispatch('output', { 
-        action: {
-          value: action.value, 
-          parameters: action.parameters
-        }, 
-        index: index 
-      });
+  function sendData(e, index){
+    if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
+      scriptSegments[index] = e;
+      const script = _v.arrayToExpression('lsp',scriptSegments); // important to set the function name
+      dispatch('output', script)
     }
   }
-
-  function scriptToAction(expression = []) {
-    let splitExpr = _v.exprSplit(expression);
-    let actions = JSON.parse(_v.splitExprToArray(splitExpr));
-    scriptSegments = actions;
-  } 
 
 
 </script>
@@ -52,7 +38,7 @@
   {#each scriptSegments as script, index}
     <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
       <div class="text-gray-500 text-sm pb-1">{inputLabels[index]}</div>
-      <AtomicInput {index} inputValue={script}/>
+      <AtomicInput {index} inputValue={script} on:change={(e)=>{sendData(e.detail,index)}}/>
     </div>
   {/each}
 </action-led-phase>

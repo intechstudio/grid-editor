@@ -157,7 +157,6 @@ export const _V = {
         }
       }
     }
-
     return arr;
   
   },
@@ -193,7 +192,7 @@ export const _V = {
         } else if(element.type == 'operator' && depth <= 1){
           altered += ",\""+element.value+"\",";
         } else {
-          if(depth <= 1){
+          if(depth <= 1 || element.value == undefined){
             altered += "\""+element.value+"\"";
           } else {
             altered += element.value;

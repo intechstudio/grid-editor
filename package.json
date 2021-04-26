@@ -108,6 +108,6 @@
     "postinstall": "electron-builder install-app-deps",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
-    "pure-electron-dev": "cross-env DEBUG=email-templates DEBUG=universal-analytics NODE_ENV=development electron ."
+    "pure-electron-dev": "cross-env DEBUG=universal-analytics NODE_ENV=development electron ."
   }
 }

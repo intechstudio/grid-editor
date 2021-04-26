@@ -73,7 +73,7 @@
 </script>
 
 
-<wrapper id="act-{index}" action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
+<wrapper id="act-{index}" movable={action.type == 'standard' || action.component == 'IF' ? true : false } action-component={action.component} action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
   <div class="flex relative {drag_start ? 'pointer-events-none' : ''}">
     {#if action.type == 'standard'}
       <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow relative text-white cursor-pointer ">

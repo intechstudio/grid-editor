@@ -1,4 +1,4 @@
-export function changeOrder(node) {
+export function changeOrder(node, {actions}) {
   
   let drag = 0;
   let pos = {x:0, y: 0};
@@ -10,7 +10,40 @@ export function changeOrder(node) {
   let cursor = undefined;
   let dragged = undefined;
 
-  function createCursor(target){
+  let multiDragFlag = undefined;
+
+  let moveDisabled = false;
+
+  let drag_block = [];
+
+  let _actions  = actions;
+
+  function createMultiDragCursor(targets, width){
+    cursor = document.createElement('div');
+    let copyGroup = document.createElement('div');
+
+    cursor.id = 'drag-n-drop-cursor';
+    
+    for (const item of targets) {
+      const copy = item.cloneNode(true)
+      copyGroup.appendChild(copy);
+    }
+
+    console.log('drag_block:  ',drag_block);
+
+    cursor.appendChild(copyGroup)
+
+    cursor.style.position = "absolute";
+    cursor.style.userSelect = "none";
+    cursor.style.display = "none"
+    cursor.style.pointerEvents = "none";
+    cursor.style.width = width +'px';
+
+    // put in app, so it wont overflow!
+    document.getElementById('app').append(cursor);
+  }
+
+  function createCursor(target, width){
     cursor = target.cloneNode(true);
     cursor.id = 'drag-n-drop-cursor';
 
@@ -18,7 +51,7 @@ export function changeOrder(node) {
     cursor.style.userSelect = "none";
     cursor.style.display = "none"
     cursor.style.pointerEvents = "none";
-    cursor.style.width = target.clientWidth + 'px';
+    cursor.style.width =  width + 'px';
 
     // put in app, so it wont overflow!
     document.getElementById('app').append(cursor);
@@ -30,11 +63,15 @@ export function changeOrder(node) {
     
     shiftX = e.clientX - e.target.getBoundingClientRect().left;
     shiftY = e.clientY - e.target.getBoundingClientRect().top;
-    
+   
     node.addEventListener('mousemove', handleMouseMove)
   }
 
   function handleMouseMove(e){
+
+    // variables
+    const { id, clientHeight }  = e.target;
+
     // smooth out drag start with threshold
     if(Math.abs(e.clientY - pos.y) > threshold || Math.abs(e.clientX - pos.x) > threshold){
       drag += 1;
@@ -47,24 +84,56 @@ export function changeOrder(node) {
 
     // emit dragtarget once pointer events are disabled in drag mode
     if(drag == 2){
+
       dragged = e.target;
-      // the id "act" refers to dynamic index position and attribute "action-id" refers to initial keyed id of action
+
+      if(dragged.getAttribute('movable') == 'false'){
+        moveDisabled = true;
+        node.dispatchEvent(new CustomEvent('drag-end', {}));
+        return
+      }
+
+      let _actionIds = [];
+      // multidrag, added component type on dynamic wrapper
+      // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
+      const component = dragged.getAttribute('action-component')
+      if(component == 'IF'){
+        let _id = id.substr(4,);
+        const nodes = _actions.slice(_id);
+        const end_of_if = nodes.findIndex(n => n.component === 'END');
+        const drag_actions = nodes.slice(0,end_of_if + 1);
+        multiDragFlag = true;
+        for (const item of drag_actions) {
+          // using actions array, so dom elements need to be discovered by custom id
+          const drag_item = document.querySelectorAll(`[action-id="${item.id}"]`)[0];       
+          // before starting cursor, set the "left behind" actions to half opacity
+          drag_item.style.opacity = '0.5';
+          // drag_block is a collection of action-ids, original gen unique key ids.
+          drag_block.push(drag_item);
+          // attribute "action-id" refers to initial keyed id of action
+          _actionIds.push(item.id);
+        }
+        createMultiDragCursor(drag_block, dragged.clientWidth);
+      } else {
+        // the id "act" refers to dynamic index position and attribute "action-id" refers to initial keyed id of action
+        _actionIds = [dragged.getAttribute('action-id')]; // this is used as an array, as multidrag is supported
+        multiDragFlag = false;
+        dragged.style.opacity = '0.5';
+        createCursor(dragged);
+      }
+
       node.dispatchEvent(new CustomEvent('drag-target', {
-        detail: {id: e.target.getAttribute('action-id')}
+        detail: {id: _actionIds}
       }));
-      dragged.style.opacity = '0.5';
-      createCursor(e.target);
+
     }
 
     // drag over section
-    if(drag >= 2){
-
-      const {id, clientHeight}  = e.target;
-      
+    if(drag >= 2 && !moveDisabled){
       cursor.style.display = "block";
       cursor.style.left = shiftX + e.pageX - shiftX + 'px';
       cursor.style.top = shiftY + e.pageY - shiftY + 'px';
-      
+
       if(id){
         let drop_target = '';
         if(id.startsWith('act')){
@@ -73,45 +142,57 @@ export function changeOrder(node) {
           } else {
             drop_target = Number(id.substr(4,)) - 1;
           }
-        } else if(id.startsWith('dz')){  
+        } else if(id.substr(0,3) == 'dz-'){  
           drop_target = Number(id.substr(3,));
         }
 
-        node.dispatchEvent(new CustomEvent('drop-target', {
-          detail: {drop_target}
-        }));
+        if(drop_target){
+          node.dispatchEvent(new CustomEvent('drop-target', {
+            detail: {drop_target}
+          }));
+        }
       }
     }
-}
+  }
 
   function handleMouseUp(e){
+    if(!moveDisabled){
+      if(drag){
+        node.dispatchEvent(new CustomEvent('drop', {detail: {multi: multiDragFlag}}));
+        node.dispatchEvent(new CustomEvent('anim-start'))
+      }
 
-    node.removeEventListener('mousemove', handleMouseMove);
+      if(document.getElementById("drag-n-drop-cursor")) document.getElementById("drag-n-drop-cursor").remove();
 
-    if(drag){
-      node.dispatchEvent(new CustomEvent('drop', {}));
-      node.dispatchEvent(new CustomEvent('anim-start'))
+      node.dispatchEvent(new CustomEvent('drag-end', {}));
+
+      // for fade in animation end sequencing
+      setTimeout(()=>{
+        if(dragged) dragged.style.opacity = '1.0';
+        if(drag_block) {
+          for (const item of drag_block) {
+            item.style.opacity = '1.0';
+          }
+        }
+        drag_block = [];
+        node.dispatchEvent(new CustomEvent('anim-end'))
+      },300)
     }
 
+    node.removeEventListener('mousemove', handleMouseMove);
+    moveDisabled = false;
     drag = 0;
-    
     pos = {x: 0, y: 0};
-
-    if(document.getElementById("drag-n-drop-cursor")) document.getElementById("drag-n-drop-cursor").remove();
-
-    node.dispatchEvent(new CustomEvent('drag-end', {}));
-
-    // for fade in animation end sequencing
-    setTimeout(()=>{
-      if(dragged) dragged.style.opacity = '1.0';
-      node.dispatchEvent(new CustomEvent('anim-end'))
-    },300)
   }
 
   node.addEventListener('mousedown', handleMouseDown);
   document.addEventListener('mouseup', handleMouseUp);
 
   return {
+
+    update({actions}) {
+      _actions = actions;
+    },
 
     destroy() {
 

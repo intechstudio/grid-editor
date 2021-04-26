@@ -1,6 +1,6 @@
 <script>
 
-  import {onMount, beforeUpdate, afterUpdate, createEventDispatcher} from 'svelte';
+  import { onMount, beforeUpdate, afterUpdate, createEventDispatcher } from 'svelte';
   import AtomicInput from '../user-interface/AtomicInput.svelte';
   import { _V } from '../user-interface/advanced-input/string-manipulation.js';
   import * as GLUA from '../__action.js';
@@ -18,25 +18,15 @@
   _v.initialize(GLUA.FUNCTIONS);
 
   $: if(action.script){
-    scriptToAction(action.script)
+    scriptSegments = GLUA.scriptToAction({script: action.script, inputLabels})
   };
 
   function sendData(e, index){
-    scriptSegments[index] = e;
-    const script = _v.arrayToExpression('ms',scriptSegments);
-    dispatch('output', script)
-  }
-
-  function scriptToAction(expression = []) {
-    let actions = inputLabels.map(i => ''); // make empty array for right amount of input fields
-    const splitExpr = _v.exprSplit(expression);
-    const jsonArray = _v.splitExprToArray(splitExpr);
-    if(_v.isJson(jsonArray)){
-      actions = JSON.parse(_v.splitExprToArray(splitExpr));
-    } else {
-      console.error('error with json, continue.')
+    if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
+      scriptSegments[index] = e;
+      const script = _v.arrayToExpression('ms',scriptSegments); // important to set the function name
+      dispatch('output', script)
     }
-    scriptSegments = actions;
   }
 
 </script>

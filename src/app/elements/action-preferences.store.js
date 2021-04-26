@@ -11,15 +11,14 @@ function createActionPrefStore(){
   const store = writable({
     advanced: {
       index: undefined, 
-      visible: false
-    }
+      visible: false,
+    },
   });
 
   return {
     ...store,
     showAdvanced: (index, bool) => {
       store.update(s => {s.advanced = {index: index, visible: bool}; return s});
-      console.log(get(store))
     }
   }
 }
@@ -70,6 +69,41 @@ function createRuntimeStore(){
     }
   }
 }
+
+function createDropStore(){
+
+  const store = writable({
+    disabledDropZones: []
+  });
+
+  return {
+    ...store,
+    disabledDropZones: (actions) => {
+      let disabled_blocks = [];
+      let if_block = false;
+      actions.forEach(a => {
+
+        // check if it's and if block
+        if(a.component == 'IF'){
+          if_block = true;
+        }
+
+        if(if_block){
+          disabled_blocks.push(a.id);
+        }
+        
+        // this is the last, as END has to be disabled too!
+        if (a.component == 'END'){
+          if_block = false;
+        }
+
+      });
+      store.update(s => {s.disabledDropZones = disabled_blocks;return s;})
+    }
+  }
+}
+
+export const dropStore = createDropStore();
 
 export const advancedPrefStore = createAdvancedPrefStore();
 

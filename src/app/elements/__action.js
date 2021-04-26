@@ -1,4 +1,5 @@
-const luaparse = require('luaparse');
+import { _V } from './user-interface/advanced-input/string-manipulation.js';
+const lua = require('luaparse');
 
 export const FUNCTIONS = [
   {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], blacklist: ['CODEBLOCK'], desc:'if', value: 'if', parameters: paramArray(3)},
@@ -47,10 +48,15 @@ export const GRID_ACTIONS = [
   {meta: 'kms', type: 'standard', desc: 'Macro', component: 'MACRO', baseFunction: 'keyboard_macro_send', parameters: paramArray(6)},
   {meta: 'kcs', type: 'standard', desc: 'Keyboard', component: 'KEYBOARD', baseFunction: 'keyboard_change_send', parameters: paramArray(6)},
   {meta: 'cb', type: 'standard', desc: 'Code Block', component: 'CODEBLOCK', parameters: []},
-  {meta: 'if', type: 'modifier', desc: 'If', component: 'IF',  baseFunction: 'if'},
-  {meta: 'then', type: 'modifier', desc: 'Then', component: 'THEN', baseFunction: 'then'},
-  {meta: 'end', type: 'modifier', desc: 'End', component: 'END', baseFunction: 'end'}
+  {meta: 'if', type: 'modifier', desc: 'If', component: 'IF',  baseFunction: 'if', script: 'if true'},
+  {meta: 'then', type: 'modifier', desc: 'Then', component: 'THEN', baseFunction: 'then', script: 'then'},
+  {meta: 'elseif', type: 'modifier', desc: 'Else If', component: 'ELSEIF',  baseFunction: 'elseif'},
+  {meta: 'else', type: 'modifier', desc: 'Else', component: 'ELSE',  baseFunction: 'else'},
+  {meta: 'end', type: 'modifier', desc: 'End', component: 'END', baseFunction: 'end', script: 'end'}
 ];
+
+const _v = _V;
+_v.initialize(FUNCTIONS);
 
 function paramArray(num) {
   let arr = [];
@@ -60,19 +66,21 @@ function paramArray(num) {
   return arr;
 }
 
-export function parser(actions, comments){
+export function luaParser(actions, comments){
   const code = actions;
   let parser = '';
   try {
-    const _p = luaparse.parse(code);
+    const _p = lua.parse(code);
+    //const _p = parse(code);
     parser = 'ok';
   } catch (error) {
+    console.log(error);
     parser = error.message;
   } 
   return parser;
 }
 
-export function parse(script){
+export function rawParser(script){
 
   // splt by meta comments
   let scriptParts = script.split('--@');
@@ -99,6 +107,7 @@ export function parse(script){
     return obj;
   });
 
+
   let actionArray = [];
   scriptParts.forEach((element,index) => {
     // TODO: if undefined find... revert to codeblock!
@@ -108,4 +117,18 @@ export function parse(script){
   console.log('scriptParts', actionArray);
 
   return actionArray;
+}
+
+// Helpers for actions // modifiers.
+
+export function scriptToAction({script, inputLabels}){
+  let actions = inputLabels.map(i => ''); // make empty array for right amount of input fields
+  const splitExpr = _v.exprSplit(script);
+  const jsonArray = _v.splitExprToArray(splitExpr);
+  if(_v.isJson(jsonArray)){
+    actions = JSON.parse(_v.splitExprToArray(splitExpr));
+  } else {
+    console.error('error with json, continue.')
+  }
+  return actions;
 }

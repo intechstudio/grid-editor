@@ -21,7 +21,7 @@ lsp(1,1,av7)
 --@cb
 if pagenumber == 1 then kms(alt,f4) end`;
 
-  let actions = GLUA.parse(grid_raw_actions);
+  let actions = GLUA.rawParser(grid_raw_actions);
 
 </script>
 
