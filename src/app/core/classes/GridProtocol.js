@@ -329,9 +329,8 @@ export const GRID_PROTOCOL = {
   },
 
   get_module_info: function(MODULE_INFO){
-    // ezt jól átírtuk 0-0ról
-    let DX = 127;
-    let DY = 127;
+    let DX = 0;
+    let DY = 0;
     let ROT = 0;
 
     if(MODULE_INFO !== ''){

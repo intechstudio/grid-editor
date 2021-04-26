@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import {sendDataToClient} from '../../debug/tower';
 
 function createSerialComm(){
   const store = writable({
@@ -9,7 +10,6 @@ function createSerialComm(){
   });
 
   function addToCommDebug(args){
-    serialCommDebug.update(store => {
       let output = args;
       if(typeof output == 'object'){
         output = args.map(arg => {
@@ -17,9 +17,7 @@ function createSerialComm(){
         });
         output = output.join('');
       }
-      store = [...store, {type: 'output', data: output} ]
-      return store;
-    })
+      sendDataToClient('output', output);
   }
 
 

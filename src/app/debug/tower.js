@@ -59,9 +59,6 @@ export function sendDataToClient(type, serial){
     _serial.push(c.charCodeAt(0))
   });
 
-  console.log(JSON.stringify({type: type, data: _serial}));
-
-
   if(connection !== undefined){
     connection.send(JSON.stringify({type: type, data: _serial}))
   }

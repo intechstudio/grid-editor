@@ -211,7 +211,6 @@
         d_array += String.fromCharCode(element);
       })
 
-      console.log(d_array)
       // websocket debug info to client
       sendDataToClient('input', d_array);
 

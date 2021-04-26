@@ -38,11 +38,9 @@
   }
   
   function store() {
-
     const command = GRID_PROTOCOL.encode('',`LOCALSTORE`,'EXECUTE','','');
     console.log(command);
     serialComm.write(command);
-
   }
 
   function clear() {
@@ -53,7 +51,7 @@
 
   function heartbeat() {
     const command = GRID_PROTOCOL.encode(
-      '',
+      {dx: 0, dy: 0, rot: -0},
       `HEARTBEAT`,
       'EXECUTE',
       [
