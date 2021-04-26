@@ -211,11 +211,12 @@
         d_array += String.fromCharCode(element);
       })
 
+      console.log(d_array)
       // websocket debug info to client
       sendDataToClient('input', d_array);
 
       // filter heartbeat messages
-      if(!(d_array.slice(30).startsWith('010') && d_array.length == 46) ){
+      if(!(d_array.slice(30).startsWith('010') && d_array.length == 48) ){
 
         commIndicator.tick('rx');
 

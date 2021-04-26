@@ -46,7 +46,7 @@ function writeSerialCommand({brc, command}){
 
 export function sendDataToClient(type, serial){
 
-  if(serial.slice(30).startsWith('010') && serial.length == 46){
+  if(serial.slice(30).startsWith('010') && serial.length == 48){
     if(filters.heartbeat){
       return;
     } else {
@@ -58,6 +58,8 @@ export function sendDataToClient(type, serial){
   Array.from(serial).forEach(c => {
     _serial.push(c.charCodeAt(0))
   });
+
+  console.log(JSON.stringify({type: type, data: _serial}));
 
 
   if(connection !== undefined){
