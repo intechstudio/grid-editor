@@ -13,6 +13,7 @@
   export let animation = false;
   export let actions;
   export let index;
+  export let userHelper = false;
 
   const dispatch = createEventDispatcher();
 
@@ -146,7 +147,7 @@
 
 </script>
 
-{#if actions.length !== index}
+{#if !userHelper}
 
   <action-placeholder 
     on:click={()=>{actionSelection = ! actionSelection}}  
@@ -166,13 +167,12 @@
 {:else}
   
   <action-placeholder 
-    in:fade={{delay:400}}
     on:click={()=>{actionSelection = ! actionSelection}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
-    class="cursor-pointer flex items-center relative mt-4 mb-2">
+    class="cursor-pointer flex items-center relative mb-3">
 
-    <div class="{((visible || actionSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4">
+    <div class="{((visible || actionSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
       Add action...
     </div>
     

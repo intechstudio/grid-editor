@@ -43,10 +43,10 @@ export const FUNCTIONS = [
 
 export const GRID_ACTIONS = [
   // meta: --@ + code -> action identifier
-  {meta: 'ms', type: 'standard', desc: 'MIDI', component: 'MIDI', baseFunction: 'midi_send', parameters: paramArray(4)},
-  {meta: 'lsp', type: 'standard', desc: 'LED Phase', component: 'LEDPHASE', baseFunction: 'led_set_phase', parameters: paramArray(3)},
-  {meta: 'kms', type: 'standard', desc: 'Macro', component: 'MACRO', baseFunction: 'keyboard_macro_send', parameters: paramArray(6)},
-  {meta: 'kcs', type: 'standard', desc: 'Keyboard', component: 'KEYBOARD', baseFunction: 'keyboard_change_send', parameters: paramArray(6)},
+  {meta: 'ms', type: 'standard', desc: 'MIDI', component: 'MIDI', baseFunction: 'midi_send', script: 'ms("","","","")', parameters: paramArray(4)},
+  {meta: 'lsp', type: 'standard', desc: 'LED Phase', component: 'LEDPHASE', baseFunction: 'led_set_phase', script: 'lsp("","","","")', parameters: paramArray(3)},
+  {meta: 'kms', type: 'standard', desc: 'Macro', component: 'MACRO', baseFunction: 'keyboard_macro_send', script: 'kms("","","","")', parameters: paramArray(6)},
+  {meta: 'kcs', type: 'standard', desc: 'Keyboard', component: 'KEYBOARD', baseFunction: 'keyboard_change_send',script: 'kcs("","","","")', parameters: paramArray(6)},
   {meta: 'cb', type: 'standard', desc: 'Code Block', component: 'CODEBLOCK', parameters: []},
   {meta: 'if', type: 'modifier', desc: 'If', component: 'IF',  baseFunction: 'if', script: 'if true'},
   {meta: 'then', type: 'modifier', desc: 'Then', component: 'THEN', baseFunction: 'then', script: 'then'},

@@ -23,6 +23,7 @@
   import DropZone from '../../../view/DropZone.svelte';
   import ActionPreferences from '../../../view/ActionPreferences.svelte';
   import Advanced from '../../../view/Advanced.svelte';
+  import ActionBin from '../../../view/ActionBin.svelte';
 
   export let actions;
 
@@ -56,7 +57,7 @@
   let drop_target = '';
 
   function calcMultiChangeActions(drag_target, drop_target){
-    if(isDropZoneAvailable(drag_target, drop_target)){
+    if(isDropZoneAvailable(drop_target)){
       let grabbed = [];
       drag_target.forEach(id => {
         grabbed.push(actions.find((act) => Number(id) === act.id));
@@ -82,7 +83,7 @@
     actions = [...actions.slice(0, to), grabbed, ...actions.slice(to)];
   }
 
-  function isDropZoneAvailable(drag_target, drop_target){
+  function isDropZoneAvailable(drop_target){
     if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
     const target_id = actions[drop_target].id;
     const found = $dropStore.disabledDropZones.find(id => id == target_id);
@@ -92,10 +93,28 @@
     return 1
   }
 
+  function removeAction(actionsToRemove){
+    console.log('actionToRemove: ', actionsToRemove);
+    actionsToRemove.forEach(action => {
+      actions = actions.filter(a => a.id !== Number(action));
+    })
+  }
+
+  function handleDrop(e){
+    if(drop_target !== 'bin'){
+      if(e.detail.multi){
+        calcMultiChangeActions(drag_target, drop_target)
+      } else {
+        calcSingleChangeActions(drag_target, drop_target)
+      }
+    } else {
+      removeAction(drag_target);
+    }
+  }
+
   // actions changed
   $: if(actions){
     runtime.set(actions);
-    console.log('actions changed...',actions);
     dropStore.disabledDropZones(actions);
   }
 
@@ -114,22 +133,16 @@
       on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true)}}  
       on:drag-target={(e)=>{drag_target = e.detail.id;}}
       on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
-      on:drop={(e)=>{
-        if(e.detail.multi){
-          calcMultiChangeActions(drag_target, drop_target)
-        } else {
-          calcSingleChangeActions(drag_target, drop_target)
-        }      
-      }}
+      on:drop={handleDrop}
       on:drag-end={(e)=>{ drag_start = false; actionIsDragged.set(false); drop_target = undefined; drag_target = [];}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
-      class="relative select-none">
+      class=" relative">
 
       {#if !drag_start}
         <ActionPicker index={0} {actions} {animation} on:new-action={(e)=>{addActionAtPosition(e, 0)}}/>
       {:else}
-        <DropZone index={-1} {drop_target} {animation} {drag_start}/>
+        <DropZone index={-1} {drop_target} {drag_target} {animation} {drag_start}/>
       {/if}
 
       {#each actions as action, index (action.id)}
@@ -145,11 +158,18 @@
             {#if !drag_start}
               <ActionPicker index={index + 1} {animation} {actions} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
             {:else}
-              <DropZone {index} action_id={action.id} {drag_target} {drop_target} {animation} {drag_start}/>
+              <DropZone {index} {drag_target} {drop_target} {animation} {drag_start}/>
             {/if}
-          {/if}
+          {/if}        
         </anim-block>
       {/each}
+
+      {#if !drag_start}
+        <ActionPicker userHelper={true} index={actions.length + 1} {animation} {actions} on:new-action={(e)=>{addActionAtPosition(e, actions.length + 1)}}/>
+      {:else}
+        <ActionBin/>
+      {/if}
+      
 
     </div>
 

@@ -77,21 +77,24 @@ export function changeOrder(node, {actions}) {
       drag += 1;
     }
 
-    // emit dragstart only once
+    // emit dragstart only once, used to disabled pointer events
     if(drag == 1){
-      node.dispatchEvent(new CustomEvent('drag-start'));
+      node.dispatchEvent(new CustomEvent('drag-start'));      
+    }
+
+    // see if the target has movable attribute, so it can be moved...
+    if(drag == 2){
+      if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
+        moveDisabled = true;
+        node.dispatchEvent(new CustomEvent('drag-end'));
+        return;
+      } 
     }
 
     // emit dragtarget once pointer events are disabled in drag mode
-    if(drag == 2){
+    if(drag == 2 && !moveDisabled){
 
       dragged = e.target;
-
-      if(dragged.getAttribute('movable') == 'false'){
-        moveDisabled = true;
-        node.dispatchEvent(new CustomEvent('drag-end', {}));
-        return
-      }
 
       let _actionIds = [];
       // multidrag, added component type on dynamic wrapper
@@ -136,7 +139,7 @@ export function changeOrder(node, {actions}) {
 
       if(id){
         let drop_target = '';
-        if(id.startsWith('act')){
+        if(id.startsWith('act-')){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -144,9 +147,11 @@ export function changeOrder(node, {actions}) {
           }
         } else if(id.substr(0,3) == 'dz-'){  
           drop_target = Number(id.substr(3,));
+        } else if(id == 'action-bin'){
+          drop_target = 'bin';
         }
-
-        if(drop_target){
+        
+        if(drop_target !== ''){
           node.dispatchEvent(new CustomEvent('drop-target', {
             detail: {drop_target}
           }));
