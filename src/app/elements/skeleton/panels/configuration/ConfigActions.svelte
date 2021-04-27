@@ -97,7 +97,8 @@
     console.log('actionToRemove: ', actionsToRemove);
     actionsToRemove.forEach(action => {
       actions = actions.filter(a => a.id !== Number(action));
-    })
+    });
+    remakeIdsForEachBlock();
   }
 
   function handleDrop(e){
@@ -110,6 +111,11 @@
     } else {
       removeAction(drag_target);
     }
+  }
+
+  function remakeIdsForEachBlock(){
+    // as this regenerates action block, the keyed animation does not run, avoiding content jumps this way.
+    actions = actions.map((action,index) => {action.id = index; return action});
   }
 
   // actions changed
