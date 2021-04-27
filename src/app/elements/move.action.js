@@ -99,7 +99,8 @@ export function changeOrder(node, {actions}) {
       let _actionIds = [];
       // multidrag, added component type on dynamic wrapper
       // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
-      const component = dragged.getAttribute('action-component')
+      const component = dragged.getAttribute('action-component');
+
       if(component == 'IF'){
         let _id = id.substr(4,);
         const nodes = _actions.slice(_id);
@@ -139,7 +140,8 @@ export function changeOrder(node, {actions}) {
 
       if(id){
         let drop_target = '';
-        if(id.startsWith('act-')){
+        // if its a modifier, the below helper shouldn't be used!
+        if(id.startsWith('act-') && e.target.getAttribute('action-component') != 'IF' && e.target.getAttribute('action-component') != 'THEN'){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -150,6 +152,10 @@ export function changeOrder(node, {actions}) {
         } else if(id == 'action-bin'){
           drop_target = 'bin';
         }
+
+        if(e.target.getAttribute('action-component') == 'IF'){
+          drop_target = '';
+        };
         
         if(drop_target !== ''){
           node.dispatchEvent(new CustomEvent('drop-target', {
