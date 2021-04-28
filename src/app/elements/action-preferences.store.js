@@ -12,13 +12,19 @@ function createActionPrefStore(){
     advanced: {
       index: undefined, 
       visible: false,
-    },
+    }
   });
 
   return {
     ...store,
-    showAdvanced: (index, bool) => {
-      store.update(s => {s.advanced = {index: index, visible: bool}; return s});
+    showAdvanced: (index, outside) => {
+      store.update(s => {
+        s.advanced = {
+          index: index, 
+          visible: !s.advanced.visible
+        }
+        return s
+      });
     }
   }
 }
@@ -116,3 +122,57 @@ export const actionPrefStore = createActionPrefStore();
 export const selectedControlElement = writable('encoder');
 
 export const runtime = createRuntimeStore();
+
+export const appMultiSelect = writable({multiselect: false, selection: []});
+
+export const appActionClipboard = writable();
+
+function createAppActionManagement(){
+  const store = writable();
+
+  function genUniqueIds(actions){
+
+    let _temp_actions = [];
+    actions.forEach((a,i) => {
+      let _a = Object.assign({}, a); // need to mutate, else it wont be changed.
+      _a.id = i;
+      console.log(_a.id);
+      _temp_actions.push(_a)
+    });
+    console.log(_temp_actions);
+    return _temp_actions;
+  }
+  
+  return {
+    ...store,
+    copy: () => {
+
+      const actions = get(runtime);
+      const selection = get(appMultiSelect).selection;
+
+      let clipboard = [];
+      selection.forEach((elem,index) => {
+        if(elem){
+          clipboard.push(actions[index]);
+        }
+      });
+
+      console.log(clipboard)
+      appActionClipboard.set(clipboard);
+    },
+
+    paste: (index) => {
+
+      const clipboard = get(appActionClipboard);
+      let actions = get(runtime);
+      actions.splice(index, 0, ...clipboard);      
+      actions = genUniqueIds(actions);
+      runtime.set(actions);
+    }
+  }
+}
+
+
+export const appActionManagement = createAppActionManagement();
+
+

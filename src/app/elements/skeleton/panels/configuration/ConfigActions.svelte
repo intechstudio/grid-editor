@@ -20,11 +20,12 @@
   import { actionIsDragged, runtime, dropStore } from '../../../action-preferences.store'; 
 
   import DropZone from '../../../view/DropZone.svelte';
-  import ActionPreferences from '../../../view/ActionPreferences.svelte';
+  import ActionOptions from '../../../view/ActionOptions.svelte';
   import Advanced from '../../../view/Advanced.svelte';
   import ActionBin from '../../../view/ActionBin.svelte';
+  import ActionMultiSelect from '../../../view/ActionMultiSelect.svelte';
 
-  export let actions;
+  let actions;
 
   const components = {
     MIDI: Midi,
@@ -113,14 +114,17 @@
 
   function remakeIdsForEachBlock(){
     // as this regenerates action block, the keyed animation does not run, avoiding content jumps this way.
-    actions = actions.map((action,index) => {action.id = index; return action});
+    return actions.map((action,index) => {action.id = index; return action});
   }
 
   // actions changed
   $: if(actions){
-    runtime.set(actions);
     dropStore.disabledDropZones(actions);
   }
+
+  runtime.subscribe((a)=>{
+    actions = a;
+  })
 
 
 </script>
@@ -128,8 +132,9 @@
 
 <actions class="w-full block px-4 bg-primary py-2 mt-4">
 
-  <div class="text-gray-700 pt-1 text-sm">
-    Actions
+  <div class="pt-1 flex items-center justify-between">
+    <div class="text-gray-600 text-sm">Actions</div>
+    <ActionMultiSelect/>
   </div>
 
     <div 
@@ -141,7 +146,7 @@
       on:drag-end={(e)=>{ drag_start = false; actionIsDragged.set(false); drop_target = undefined; drag_target = [];}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
-      class=" relative">
+      class="relative">
 
       {#if !drag_start}
         <ActionPicker index={0} {actions} {animation} on:new-action={(e)=>{addActionAtPosition(e, 0)}}/>
@@ -153,7 +158,7 @@
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {action}>
               <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>  
-              <ActionPreferences slot="preferences" {toggle} {index} type={action.type} advanced={action.desc !== "Macro"}/>
+              <ActionOptions slot="preferences" {toggle} {index} type={action.type} advanced={action.desc !== "Macro"}/>
           </DynamicWrapper>
 
           <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>
@@ -173,7 +178,6 @@
         <ActionBin/>
       {/if}
       
-
     </div>
 
 </actions>

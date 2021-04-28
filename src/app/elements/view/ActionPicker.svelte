@@ -10,6 +10,8 @@
 
   import { GRID_ACTIONS } from '../__action.js';
 
+  import { appActionClipboard, appActionManagement } from '../action-preferences.store.js';
+
   export let animation = false;
   export let actions;
   export let index;
@@ -159,7 +161,7 @@
     on:click={()=>{actionSelection = ! actionSelection}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
-    class="{((visible || actionSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity duration-300 cursor-pointer flex items-center relative -ml-8">
+    class="{((visible || actionSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center relative -ml-8">
 
     <div class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10">
       <svg class="w-5 h-5 p-1" viewBox="0 0 7 7" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -200,11 +202,19 @@
         use:clickOutside
         on:click-outside={()=>{actionSelection = false; visible = false;}} 
         class="flex flex-col flex-grow h-full">
+        
         <div class="py-1 text-gray-700 text-sm mb-1">Quick Access</div>
         <quick-access class="flex flex-row items-start">
-          {#each ['MIDI', 'Macro'] as qu,index}
-            <div class="rounded-full p-2 mr-2 bg-secondary text-white" on:click={()=>{}}>{qu}</div>
-          {/each}
+          <div class="w-1/2 flex">
+            {#each ['MIDI', 'Macro'] as qu,index}
+              <div class="rounded-full p-2 mr-2 bg-secondary text-white" on:click={()=>{}}>{qu}</div>
+            {/each}
+          </div>
+          <div class="w-1/2 flex">
+            {#if $appActionClipboard}
+              <div class="rounded-full p-2 mr-2 cursor-pointer hover:bg-commit-saturate-20 bg-commit text-white" on:click={()=>{appActionManagement.paste(index)}}>Paste</div>
+            {/if}
+          </div>
         </quick-access>
 
         <action-menu class="flex flex-row w-full mt-4 flex-grow">

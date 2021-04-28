@@ -29,10 +29,9 @@ export function changeOrder(node, {actions}) {
       copyGroup.appendChild(copy);
     }
 
-    console.log('drag_block:  ',drag_block);
-
     cursor.appendChild(copyGroup)
 
+    cursor.style.opacity = '0.75';
     cursor.style.position = "absolute";
     cursor.style.userSelect = "none";
     cursor.style.display = "none"
@@ -46,7 +45,7 @@ export function changeOrder(node, {actions}) {
   function createCursor(target, width){
     cursor = target.cloneNode(true);
     cursor.id = 'drag-n-drop-cursor';
-
+    cursor.style.opacity = '0.75';
     cursor.style.position = "absolute";
     cursor.style.userSelect = "none";
     cursor.style.display = "none"
@@ -111,7 +110,7 @@ export function changeOrder(node, {actions}) {
           // using actions array, so dom elements need to be discovered by custom id
           const drag_item = document.querySelectorAll(`[action-id="${item.id}"]`)[0];       
           // before starting cursor, set the "left behind" actions to half opacity
-          drag_item.style.opacity = '0.5';
+          drag_item.style.opacity = '0.2';
           // drag_block is a collection of action-ids, original gen unique key ids.
           drag_block.push(drag_item);
           // attribute "action-id" refers to initial keyed id of action
@@ -122,7 +121,7 @@ export function changeOrder(node, {actions}) {
         // the id "act" refers to dynamic index position and attribute "action-id" refers to initial keyed id of action
         _actionIds = [dragged.getAttribute('action-id')]; // this is used as an array, as multidrag is supported
         multiDragFlag = false;
-        dragged.style.opacity = '0.5';
+        dragged.style.opacity = '0.2';
         createCursor(dragged);
       }
 

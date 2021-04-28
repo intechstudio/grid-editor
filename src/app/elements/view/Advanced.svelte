@@ -104,7 +104,7 @@
       class=" shadow-md rounded-md bg-primary p-2 z-50">
       <wrapper 
         use:clickOutside
-        on:click-outside={()=>{actionPrefStore.showAdvanced(index, false)}} 
+        on:click-outside={()=>{actionPrefStore.showAdvanced(index, 'outside')}} 
         class="flex flex-col h-full font-mono">
 
         <div class="flex items-center justify-between">

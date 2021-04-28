@@ -25,10 +25,8 @@
     s.forEach((e,i) => {
       code += `--[[@${e.meta}--]]` + e.script + "\n";  
     }); 
-    console.log(code);
     runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     runtimeParser = GLUA.luaParser(code, {comments: true});
-    console.log(runtimeParser);
   })
 
 	function debug(){
@@ -64,7 +62,6 @@
       '',
       ''
     );
-    console.log(command);
     serialComm.write(command);
   }
   
