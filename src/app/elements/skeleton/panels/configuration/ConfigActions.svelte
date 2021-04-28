@@ -11,7 +11,6 @@
   import CodeBlock from '../../../_actions/CodeBlock.svelte';
 
   import If from "../../../_modifiers/If.svelte";
-  import Then from "../../../_modifiers/Then.svelte";
   import Else from '../../../_modifiers/Else.svelte';
   import ElseIf from '../../../_modifiers/ElseIf.svelte';
   import End from "../../../_modifiers/End.svelte";
@@ -33,7 +32,6 @@
     LEDPHASE: LedPhase,
     CODEBLOCK: CodeBlock,
     IF: If,
-    THEN: Then,
     ELSE: Else,
     ELSEIF: ElseIf,
     END: End
@@ -159,14 +157,13 @@
           </DynamicWrapper>
 
           <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>
-
-          {#if action.desc !== "If" }
-            {#if !drag_start}
-              <ActionPicker index={index + 1} {animation} {actions} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
-            {:else}
-              <DropZone {index} {drag_target} {drop_target} {animation} {drag_start}/>
-            {/if}
-          {/if}        
+          
+          {#if !drag_start}
+            <ActionPicker index={index + 1} {animation} {actions} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>
+          {:else}
+            <DropZone {index} {drag_target} {drop_target} {animation} {drag_start}/>
+          {/if}
+                
         </anim-block>
       {/each}
 

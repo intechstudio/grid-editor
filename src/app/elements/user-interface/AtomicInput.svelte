@@ -10,6 +10,7 @@
   
   export let inputValue = '';
   export let optionList = [];
+  export let customClasses = '';
   export let index;
 
   let edited = false;
@@ -40,7 +41,7 @@
     bind:value={displayValue} 
     on:click={()=>{focus = true}} on:change={handleChange} 
     on:input={(e)=>{focus = false; handleChange()}} type="text" 
-    class="w-full bg-secondary text-white p-1 pl-2 rounded-none focus:outline-none">
+    class="{customClasses} w-full bg-secondary text-white py-0.5 pl-2 rounded-none focus:outline-none">
 </main>
 
 <style>

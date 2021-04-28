@@ -27,6 +27,12 @@
       ]
     },
     {
+      key: 'Code Block',
+      presets: [
+        {desc: 'Print', type: 'standard', components: [GRID_ACTIONS.find(a => a.component == 'CODEBLOCK')]}
+      ]
+    },
+    {
       key: 'Macro', 
       presets: [
         { desc: 'Default',  type: 'standard', components: [{component: 'MACRO', desc: 'Macro',parameters: []}]}, 
@@ -36,7 +42,7 @@
     {
       key: 'Modifier',
       presets: [
-        { desc: 'If Block', type: 'modifier', components: [GRID_ACTIONS.find(a => a.component == 'IF'), GRID_ACTIONS.find(a => a.component == 'THEN'), GRID_ACTIONS.find(a => a.component == 'END')]},
+        { desc: 'If Block', type: 'modifier', components: [GRID_ACTIONS.find(a => a.component == 'IF'), GRID_ACTIONS.find(a => a.component == 'END')]},
         { desc: 'Else', type: 'modifier', components: [GRID_ACTIONS.find(a => a.component == 'ELSE')]},
         { desc: 'Else If', type: 'modifier', components: [GRID_ACTIONS.find(a => a.component == 'ELSEIF')]},
       ]
@@ -119,7 +125,7 @@
         }
       } else if(desc == 'Else If'){
         try {     
-          if(fmlb.component == 'THEN' || fmlb.component == 'ELSEIF'){
+          if(fmlb.component == 'IF' || fmlb.component == 'ELSEIF'){
             validPlacement = true;
           }else{
             validPlacement = false;

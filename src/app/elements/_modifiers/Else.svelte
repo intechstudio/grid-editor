@@ -17,6 +17,6 @@
 
 <else-block class="w-full flex flex-col text-white">
 
-  <div class="font-bold pl-2 py-1 bg-black">ELSE</div>
+  <div class="font-bold pl-2 py-1 bg-yellow-500">ELSE</div>
 
 </else-block>

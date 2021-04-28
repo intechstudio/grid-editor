@@ -22,8 +22,8 @@
   };
 
   function sendData(e, index){
-    if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
-      scriptSegments[index] = e;
+    scriptSegments[index] = e;
+    if(!scriptSegments.includes('')){ // if we let here empty strings, unexpexted things happen in _v parsing.      
       const script = _v.arrayToExpression('ms',scriptSegments); // important to set the function name
       dispatch('output', script)
     }

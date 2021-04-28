@@ -15,15 +15,12 @@
   _v.initialize(GLUA.FUNCTIONS);
 
   $: if(action.script){
-    scriptSegment = action.script.slice(3);
-    console.log()
-    console.log('input of IF component: ',action.script);
+    scriptSegment = action.script.slice(4, -6);
   }
 
   function sendData(e){
     if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
-      const script = `if${e}` // important to set the function name
-      dispatch('output', `if ${e}`)
+      dispatch('output', `if (${e}) then`)
     }
   }
 
@@ -32,11 +29,11 @@
 
 <if-block class="w-full flex flex-col text-white">
 
-  <div class="font-bold pl-2 py-1 bg-black rounded-t-lg">IF</div>
-
-  <div class="flex flex-col bg-secondary bg-opacity-25 p-4">
-    <div class="text-gray-500 text-sm pb-1">Condition</div>
-    <AtomicInput inputValue={scriptSegment} {index} on:change={(e)=>{sendData(e.detail)}}/>
+  <div class="pl-2 flex items-center bg-yellow-500 rounded-t-lg">
+    <span class="font-bold py-1">IF</span>
+    <div class="pl-2 pr-1 w-full">
+      <AtomicInput inputValue={scriptSegment} {index} customClasses={'bg-opacity-75 rounded-tr-lg'} on:change={(e)=>{sendData(e.detail)}}/>
+    </div>
   </div>
 
 </if-block>
