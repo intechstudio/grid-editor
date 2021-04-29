@@ -18,6 +18,11 @@
     }
   }
 
+  function clearUpSelection(){
+    $appMultiSelect.selection = [];
+    $appMultiSelect.enabled = false;
+  }
+
 
 </script>
 
@@ -30,7 +35,7 @@
       <span slot="button">Remove</span>
     </BtnAndPopUp>
   
-    <BtnAndPopUp on:clicked={()=>{handleClick('copy')}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
+    <BtnAndPopUp on:clicked={()=>{handleClick('copy'); clearUpSelection()}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
       <span slot="popup">Copied!</span>
       <span slot="button">Copy</span>
     </BtnAndPopUp>

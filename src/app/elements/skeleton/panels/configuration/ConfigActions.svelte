@@ -17,7 +17,7 @@
 
 
   import { changeOrder } from '../../../move.action';
-  import { actionIsDragged, runtime, dropStore } from '../../../action-preferences.store'; 
+  import { actionIsDragged, runtime, dropStore, appActionManagement } from '../../../action-preferences.store'; 
 
   import DropZone from '../../../view/DropZone.svelte';
   import ActionOptions from '../../../view/ActionOptions.svelte';
@@ -41,6 +41,7 @@
   function addActionAtPosition(arg, index){
     const { action } = arg.detail;
     actions = [...actions.slice(0, index), ...initActions(action), ...actions.slice(index , actions.length)];
+    actionsChanged(actions);
   }
 
   function initActions(action){
@@ -70,6 +71,7 @@
       }
       actions = [...actions.slice(0, firstElem), ...actions.slice(lastElem + 1)];
       actions = [...actions.slice(0, to), ...grabbed, ...actions.slice(to)];
+      actionsChanged(actions);
     };
   }
 
@@ -80,24 +82,17 @@
     if(to < from){ to = to + 1 };
     actions = [...actions.slice(0, from), ...actions.slice(from + 1 )];
     actions = [...actions.slice(0, to), grabbed, ...actions.slice(to)];
+    actionsChanged(actions);
   }
 
   function isDropZoneAvailable(drop_target){
     if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-    const target_id = actions[drop_target].id;
-    const found = $dropStore.disabledDropZones.find(id => id == target_id);
+    const target_index = actions.indexOf(drop_target);
+    const found = $dropStore.disabledDropZones.find(index => index == target_index);
     if(found){
       return 0;
     }
     return 1
-  }
-
-  function removeAction(actionsToRemove){
-    console.log('actionToRemove: ', actionsToRemove);
-    actionsToRemove.forEach(action => {
-      actions = actions.filter(a => a.id !== Number(action));
-    });
-    remakeIdsForEachBlock();
   }
 
   function handleDrop(e){
@@ -108,22 +103,18 @@
         calcSingleChangeActions(drag_target, drop_target)
       }
     } else {
-      removeAction(drag_target);
+      appActionManagement.remove(drag_target);
     }
   }
 
-  function remakeIdsForEachBlock(){
-    // as this regenerates action block, the keyed animation does not run, avoiding content jumps this way.
-    return actions.map((action,index) => {action.id = index; return action});
-  }
-
   // actions changed
-  $: if(actions){
-    dropStore.disabledDropZones(actions);
+  function actionsChanged(actions){
+    runtime.set(actions);
+    dropStore.disabledDropZones();
   }
 
-  runtime.subscribe((a)=>{
-    actions = a;
+  runtime.subscribe(values=>{
+    actions = values;
   })
 
 
@@ -141,7 +132,7 @@
       use:changeOrder={{actions}} 
       on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true)}}  
       on:drag-target={(e)=>{drag_target = e.detail.id;}}
-      on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
+      on:drop-target={(e)=>{drop_target = e.detail.drop_target; console.log('DROP_TARGET', drop_target)}}
       on:drop={handleDrop}
       on:drag-end={(e)=>{ drag_start = false; actionIsDragged.set(false); drop_target = undefined; drag_target = [];}}
       on:anim-start={()=>{ animation= true;}}
@@ -158,7 +149,7 @@
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {action}>
               <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>  
-              <ActionOptions slot="preferences" {toggle} {index} type={action.type} advanced={action.desc !== "Macro"}/>
+              <ActionOptions slot="preferences" {toggle} {index} component={action.component} type={action.type} advanced={action.desc !== "Macro"}/>
           </DynamicWrapper>
 
           <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>

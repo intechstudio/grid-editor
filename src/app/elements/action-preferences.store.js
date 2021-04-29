@@ -84,18 +84,20 @@ function createDropStore(){
 
   return {
     ...store,
-    disabledDropZones: (actions) => {
+    disabledDropZones: () => {
+      const actions = get(runtime);
       let disabled_blocks = [];
       let if_block = false;
-      actions.forEach(a => {
+      actions.forEach((a,index) => {
 
         // check if it's and if block
         if(a.component == 'IF'){
           if_block = true;
         }
 
-        if(if_block){
-          disabled_blocks.push(a.id);
+        // don't add +1 id in the array (end)
+        if(if_block && a.component !== 'END'){
+          disabled_blocks.push(index);
         }
         
         // this is the last, as END has to be disabled too!
@@ -104,6 +106,9 @@ function createDropStore(){
         }
 
       });
+
+      //disabled_blocks.sort((a, b)=>a-b)
+
       store.update(s => {s.disabledDropZones = disabled_blocks;return s;})
     }
   }
@@ -157,7 +162,6 @@ function createAppActionManagement(){
         }
       });
 
-      console.log(clipboard)
       appActionClipboard.set(clipboard);
     },
 
@@ -166,6 +170,15 @@ function createAppActionManagement(){
       const clipboard = get(appActionClipboard);
       let actions = get(runtime);
       actions.splice(index, 0, ...clipboard);      
+      actions = genUniqueIds(actions);
+      runtime.set(actions);
+    },
+
+    remove: (array) => {
+      let actions = get(runtime);
+      array.forEach(elem => {
+        actions = actions.filter(a => a.id !== Number(elem));
+      });
       actions = genUniqueIds(actions);
       runtime.set(actions);
     }

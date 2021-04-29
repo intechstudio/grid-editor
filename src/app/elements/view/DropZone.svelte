@@ -5,7 +5,7 @@
   export let drag_target;
   export let animation;
 
-  import { runtime } from '../action-preferences.store.js';
+  import { runtime,dropStore } from '../action-preferences.store.js';
   // pointer-events-none  {dragstart ? 'block' : 'hidden'} 
   // class:pointer-events-none="{dragstart}"
 
@@ -20,12 +20,19 @@
     }
 
     if(drag_target.length > 1){
+
       const _index_high = $runtime.findIndex(a => a.id == Number(drag_target[drag_target.length-1]));
+
       if(_index_low <= index && index <= _index_high){
         dropZoneEnabled = false
       }
-    };
 
+      if($dropStore.disabledDropZones.includes(index)){
+        dropZoneEnabled = false
+      }
+
+    };
+    
   }
 </script>
 

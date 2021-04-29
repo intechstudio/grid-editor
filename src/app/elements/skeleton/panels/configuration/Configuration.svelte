@@ -39,7 +39,7 @@ if pagenumber == 1 then kms(alt,f4) end`;
 
       <ConfigOptions/>
 
-      <ConfigActions {actions}/>
+      <ConfigActions />
 
       <ConfigDebug {actions}/>
 

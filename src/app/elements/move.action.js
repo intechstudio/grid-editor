@@ -18,6 +18,9 @@ export function changeOrder(node, {actions}) {
 
   let _actions  = actions;
 
+
+  let selectionChange = false;
+
   function createMultiDragCursor(targets, width){
     cursor = document.createElement('div');
     let copyGroup = document.createElement('div');
@@ -66,6 +69,11 @@ export function changeOrder(node, {actions}) {
     node.addEventListener('mousemove', handleMouseMove)
   }
 
+  function handleSelectionChange(e){
+    //selectionChange = true;
+    console.log('selection change... ',document.getSelection());
+  }
+
   function handleMouseMove(e){
 
     // variables
@@ -78,6 +86,8 @@ export function changeOrder(node, {actions}) {
 
     // emit dragstart only once, used to disabled pointer events
     if(drag == 1){
+      console.log(e.target);
+
       node.dispatchEvent(new CustomEvent('drag-start'));      
     }
 
@@ -94,7 +104,6 @@ export function changeOrder(node, {actions}) {
     if(drag == 2 && !moveDisabled){
 
       dragged = e.target;
-
       let _actionIds = [];
       // multidrag, added component type on dynamic wrapper
       // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
@@ -140,7 +149,7 @@ export function changeOrder(node, {actions}) {
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
-        if(id.startsWith('act-') && e.target.getAttribute('action-component') != 'IF' && e.target.getAttribute('action-component') != 'THEN'){
+        if(id.startsWith('act-') && e.target.getAttribute('action-component') !== 'IF' && e.target.getAttribute('action-component') !== 'THEN'){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -153,7 +162,7 @@ export function changeOrder(node, {actions}) {
         }
 
         if(e.target.getAttribute('action-component') == 'IF'){
-          drop_target = '';
+          drop_target = Number(id.substr(4,)) - 1;
         };
         
         if(drop_target !== ''){
@@ -197,6 +206,7 @@ export function changeOrder(node, {actions}) {
 
   node.addEventListener('mousedown', handleMouseDown);
   document.addEventListener('mouseup', handleMouseUp);
+  document.addEventListener('selectionchange', handleSelectionChange);
 
   return {
 
@@ -205,7 +215,8 @@ export function changeOrder(node, {actions}) {
     },
 
     destroy() {
-
+      document.removeEventListener('selectionchange',handleSelectionChange);
+      document.removeEventListener('mouseup', handleMouseUp);
     }
   }
 }
