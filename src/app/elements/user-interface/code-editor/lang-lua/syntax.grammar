@@ -49,7 +49,7 @@ statement[@isGroup=Statement] {
 GridAction {
   actions
 }
-actions { @specialize<identifier , "midi_send" | "led_color" | "led_mode" | "keyboard_macro" | "keyboard_change"> FuncBody }
+actions { @specialize<identifier , "midi_send" | "led_value" | "led_mode" | "keyboard_macro" | "keyboard_change"> FuncBody }
 
 GridSetter {
   setter
@@ -64,7 +64,7 @@ getter { @specialize<identifier , "get_absolute_value" | "get_relative_value">  
 GridVariable {
   gvar
 }
-gvar { @specialize<identifier , "absolute_value" | "elapsed_time" | "active_bank" | "relative_change"> }
+gvar { @specialize<identifier , "encoder_number" | "elapsed_time" | "active_bank" | "relative_change"> }
 
 
 IfStatement {

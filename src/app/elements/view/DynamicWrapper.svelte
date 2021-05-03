@@ -1,8 +1,9 @@
 <script>
   import { sineOut } from 'svelte/easing';
+import { action_destroyer } from 'svelte/internal';
   import { fly, fade } from 'svelte/transition';
 
-  import { actionPrefStore, appMultiSelect } from '../action-preferences.store';
+  import { actionPrefStore, appMultiSelect, actionNodeBinding } from '../action-preferences.store';
 
   export let action = '' //{desc: 'unnamed', type: 'standard', id: ''};
   export let index = undefined;
@@ -70,10 +71,11 @@
   let advancedView = false;
   $: ($actionPrefStore.advanced.index == index && $actionPrefStore.advanced.visible) ? advancedView = true : advancedView = false;
 
+  
 </script>
 
 
-<wrapper id="act-{index}" movable={action.type == 'standard' || action.component == 'IF' ? true : false } action-component={action.component} action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
+<wrapper bind:this={$actionNodeBinding[action.id]} id="act-{index}" movable={action.type == 'standard' || action.component == 'IF' ? true : false } action-component={action.component} action-id={action.id} class="block border-none outline-none transition-opacity duration-300">
   <div class="flex relative {drag_start ? 'pointer-events-none' : ''}">
 
     {#if action.type == 'standard'}

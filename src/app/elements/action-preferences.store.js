@@ -1,4 +1,4 @@
-import {writable, get} from 'svelte/store';
+import {writable, get, derived} from 'svelte/store';
 
 import { GRID_PROTOCOL } from '../core/classes/GridProtocol';
 
@@ -51,6 +51,7 @@ function createRuntimeStore(){
       const cfg = GRID_PROTOCOL.action_to_cfg(action.name, action.parameters);
       return cfg;
     },
+
     configsToActions: (cfgs) => {
       let actions = [];
       cfgs.forEach((cfg,i)=>{
@@ -185,6 +186,26 @@ function createAppActionManagement(){
   }
 }
 
+export const localDefinitions = derived(runtime, $runtime => {
+  let locals = [];
+  $runtime.forEach(a => {
+    if(a.code == 'locals'){
+      // THIS IS A DUPLICATE, USED IN LOCALS TOO!
+      let arr = [];
+      const text = a.script.split('local');
+      text.forEach(element => {
+        if(element !== ''){
+          const _split = element.split('=');
+          arr.push({value: element, info: _split[0].trim()});
+        }
+      });
+      locals.push(...arr);
+    }
+  });
+  return locals;
+})
+
+export const actionNodeBinding = writable([]);
 
 export const appActionManagement = createAppActionManagement();
 

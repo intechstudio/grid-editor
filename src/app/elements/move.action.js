@@ -71,7 +71,7 @@ export function changeOrder(node, {actions}) {
 
   function handleSelectionChange(e){
     //selectionChange = true;
-    console.log('selection change... ',document.getSelection());
+    //console.log('selection change... ',document.getSelection());
   }
 
   function handleMouseMove(e){

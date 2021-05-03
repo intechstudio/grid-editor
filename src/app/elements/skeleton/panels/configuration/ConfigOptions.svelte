@@ -52,23 +52,4 @@
   </div>
 
 
-  <div class="">
-
-
-    <div class="flex w-full">
-      <div class="flex flex-col xl:flex-row w-full justify-between"> 
-      
-        <!--
-          <ActionCommands
-            on:copy={copyActions}
-            on:paste={pasteActions}
-            on:recall={recallActions}
-          />
-        -->
-      </div>  
-    </div>
-  </div>
-
-  
-
 </div>

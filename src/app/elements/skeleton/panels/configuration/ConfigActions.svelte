@@ -9,6 +9,7 @@
   import Midi from "../../../_actions/Midi.svelte";
   import LedPhase from '../../../_actions/LedPhase.svelte';
   import CodeBlock from '../../../_actions/CodeBlock.svelte';
+  import Locals from '../../../_actions/Locals.svelte'; 
 
   import If from "../../../_modifiers/If.svelte";
   import Else from '../../../_modifiers/Else.svelte';
@@ -17,7 +18,7 @@
 
 
   import { changeOrder } from '../../../move.action';
-  import { actionIsDragged, runtime, dropStore, appActionManagement } from '../../../action-preferences.store'; 
+  import { actionIsDragged, runtime, dropStore, appActionManagement, actionNodeBinding } from '../../../action-preferences.store'; 
 
   import DropZone from '../../../view/DropZone.svelte';
   import ActionOptions from '../../../view/ActionOptions.svelte';
@@ -35,7 +36,8 @@
     IF: If,
     ELSE: Else,
     ELSEIF: ElseIf,
-    END: End
+    END: End,
+    LOCALS: Locals
   }
 
   function addActionAtPosition(arg, index){
@@ -45,8 +47,8 @@
   }
 
   function initActions(action){
-    let arr = action.components.map((c, index) => {
-      return {meta: c.meta, type: action.type, desc: c.desc, component: c.component, baseFunction: c.baseFunction,  script: c.script, id: actions.length + index, parameters: c.parameters};
+    let arr = action.components.map((variables, index) => {
+      return {...variables, id: actions.length + index}
     });
     return arr;
   }
@@ -117,6 +119,8 @@
     actions = values;
   })
 
+  $: console.log('actions...', actions);
+
 
 </script>
 
@@ -148,11 +152,11 @@
       {#each actions as action, index (action.id)}
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {action}>
-              <svelte:component slot="action" this={components[action.component]} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>  
+              <svelte:component slot="action"  this={components[action.component]} {action} {index} on:output={(e)=>{action.script = e.detail; action = action; runtime.set(actions)}}/>  
               <ActionOptions slot="preferences" {toggle} {index} component={action.component} type={action.type} advanced={action.desc !== "Macro"}/>
           </DynamicWrapper>
 
-          <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action;}}/>
+          <Advanced {index} {action} on:output={(e)=>{action.script = e.detail; action = action; actionsChanged(actions)}}/>
           
           {#if !drag_start}
             <ActionPicker index={index + 1} {animation} {actions} on:new-action={(e)=>{addActionAtPosition(e, index + 1)}}/>

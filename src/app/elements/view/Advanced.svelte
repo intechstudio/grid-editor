@@ -1,84 +1,62 @@
 <script>
-  import { actionPrefStore, selectedControlElement } from '../action-preferences.store';
-
+  import { actionNodeBinding, actionPrefStore, selectedControlElement } from '../action-preferences.store';
   import { clickOutside } from '../../settings/ui/helpers/clickOutside';
-
   import { menuBoundaries } from '../boundaries.action';
-  import Midi from '../_actions/Midi.svelte';
-  import CodeBlock from '../_actions/CodeBlock.svelte';
-  import { onMount, run } from 'svelte/internal';
+  import { onMount, createEventDispatcher } from 'svelte';
 
   import CodeEditor from '../user-interface/code-editor/CodeEditor.svelte';
+
+  import { _V } from '../user-interface/advanced-input/string-manipulation.js';
+
+  import * as GLUA from '../__action';
+
+	const dispatch = createEventDispatcher();
+
+  import Locals from '../_actions/Locals.svelte'; 
+  import CodeBlock from '../_actions/CodeBlock.svelte';
+
+  const components = {
+    CODEBLOCK: CodeBlock,
+    LOCALS: Locals
+  }
   
   export let index = undefined;
   export let action = undefined;
 
+  const _v = _V;
+  _v.initialize(GLUA.FUNCTIONS);
+
   let topOffset = 0;
 
-  const components = {
-    MIDI: Midi,
-    CODEBLOCK: CodeBlock
+  function filterDuplicateTypes(arr) {
+    // v, i, a = value, index, array
+    return arr.filter((v,i,a)=>a.findIndex(t=>(t.type === v.type))===i).map(e => e.type);
   }
 
-  const paramArray = (num) => {
-    let arr = [];
-    for (let i = 0; i < num; i++) {
-      arr.push({required: true, validator: ''});
-    }
-    return arr;
-  }
-
-  const meta = [
-    {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], blacklist: ['CODEBLOCK'], desc:'if', value: 'if', parameters: paramArray(3)},
-    {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'abs', value: 'abs', parameters: paramArray(1)},
-    {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'sqrt', value: 'sqrt', parameters: paramArray(1)},
-    {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'sin', value: 'sin', parameters: paramArray(1)},
-    {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'cos', value: 'cos', parameters: paramArray(1)},
-
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'*', value: '\\*'}, 
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'+', value: '\\+'}, 
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'-', value: '\\-'}, 
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'(', value: '\\('},
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:')', value: '\\)'}, 
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'%', value: '\\%'},
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'/', value: '\\/'},
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'==', value: '\\=='},
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'!=', value: '\\=='},
-    {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'>=', value: '\\=='},
-
-    {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setDefaultBankColor', value: 'bank_set_default_color', parameters: paramArray(5)},
-    {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setActiveBank', value: 'bank_set_active', parameters: paramArray(1)},
-
-    {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setElementDefaultNumber', value: 'set_element_default_number', parameters: paramArray(2)},
-    {type: 'setter', allowed: ['encoder'], desc: 'setEncoderVelocityParameters', value: 'set_encoder_velocity_parameters', parameters: paramArray(3)},
-
-    {type: 'getter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'getAbsoluteValue', value: 'get_absolute_value', parameters: paramArray(2)} ,
-    {type: 'getter', allowed: ['encoder'], desc: 'getRelativeChange', value: 'get_relative_change', parameters: paramArray(1)},
-
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'midi', value: 'midi_send', parameters: paramArray(4)},
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledColor', value: 'led_set_color', parameters: paramArray(5)},
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledPhase', value: 'led_set_phase', parameters: paramArray(3)},
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledMode', value: 'led_set_mode', parameters: paramArray(2)},
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'keyboardMacro', value: 'keyboard_macro_send', parameters: paramArray(6)},
-    {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'keyboardChange', value: 'keyboard_change_send', parameters: paramArray(2)},
-
-    {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'elapsedTime', value: 'elapsed_time'},
-    {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'activeBank', value: 'active_bank'},
-    {type: 'variable', allowed: ['encoder'], desc: 'relativeChange', value: 'relative_change'},
-    {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'absoluteValue', value: 'absolute_value'}
-  ]
-
-  let blockAddedOnClick;
   function addThisManually(elem){
     blockAddedOnClick = elem;
   }
 
-  // filtering params are "component" and "element"
-  function createInputSet(component, element, metaInputList = []){
-    if(component == undefined && element == undefined && metaInputList.length == 0) { return [] };
-    let arr = metaInputList;
-    arr = arr.filter(obj => !(component !== 'CODEBLOCK' && obj.type === "setter") && obj.allowed.find(a => a === element));
-    return arr;
+  function colorByDesc(desc){
+    let color = '';
+    switch (desc.split('_')[0]) {
+      case 'led':
+        color = 'text-yellow-400'
+        break;
+      case 'midi':
+        color = 'text-indigo-400'
+        break;
+      case 'keyboard':
+        color = 'text-green-400'
+        break;
+      case 'page':
+        color = 'text-pink-400'
+        break;
+      default:
+        color = 'text-white'
+        break;
+    }
+    return color;
   }
 
   let sg = "all"; // show suggestion
@@ -117,86 +95,70 @@
           </div>
         </div>
 
-        <div class="flex flex-grow">
+        <div class="flex flex-grow overflow-y-scroll">
 
-          <advanced-menu class="w-2/5 flex flex-col">
+          <advanced-menu class="w-2/5 flex flex-col ">
             
               <select-config-suggestions class="w-full text-white flex flex-col text-sm">
                 <div class=" flex flex-row py-2 flex-wrap">
-                  {#each ['all', 'variables', 'operators', 'setters', 'getters', 'actions'] as key}
+                  {#each ['all',...filterDuplicateTypes(GLUA.FUNCTIONS)] as key}
                     <div on:click={()=>{sg = key}} class="{sg == key ? 'bg-select' : 'hover:bg-select-desaturate-10'} m-1 px-2 py-1 rounded-lg cursor-pointer">{key}</div>
                   {/each}
                 </div>
               </select-config-suggestions>
 
               <config-pool class="w-full flex flex-col overflow-y-scroll">
-                {#if sg == "all" || sg == "math"}
+                {#if sg == "all" || sg == "arithmetic_operator"}
                   <basic-functions class="w-full flex flex-col p-2">
                     
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Basic Functions</span>{/if}
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Arithmetic Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'function' && m.allowed.find(a => a === $selectedControlElement)) as func}
-                        <div on:click={()=>{addThisManually(func)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{func.desc}</div>
+                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
                   </basic-functions>
                 {/if}
 
-                {#if sg == "all" || sg == "operators"}
+                {#if sg == "all" || sg == "relational_operator"}
                   <oparators class="w-full flex flex-col p-2">
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Operators</span>{/if}
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Relational Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'operator' && m.allowed.find(a => a === $selectedControlElement)) as operator}
-                        <div on:click={()=>{addThisManually(operator)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{operator.desc}</div>
+                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
                   </oparators>
-
                 {/if}
 
-                {#if sg == "all" || sg == "getters"}
-                  <getters class="w-full flex flex-col p-2">
-
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Get Functions</span>{/if}
+                {#if sg == "all" || sg == "logical_operator"}
+                  <oparators class="w-full flex flex-col p-2">
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Logical Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'getter' && m.allowed.find(a => a === $selectedControlElement)) as getter}
-                        <div on:click={()=>{addThisManually(getter)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{getter.desc}</div>
+                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
-                  </getters>
+                  </oparators>
                 {/if}
 
-                {#if sg == "all" || sg == "setters"}
-                  <!-- Show setter functions only in codeblock -->
-                  {#if action.component == 'CODEBLOCK'}
-                  <setters class="w-full flex flex-col p-2">
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Set Functions</span>{/if}
-                    <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'setter' && m.allowed.find(a => a === $selectedControlElement)) as setter}
-                        <div on:click={()=>{addThisManually(setter)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{setter.desc}</div>
-                      {/each}
-                    </div>
-                  </setters>
-                  {/if}
-                {/if}
-
-                {#if sg == "all" || sg == "actions"}
+                {#if sg == "all" || sg == "grid_function"}
                   <action-functions class="w-full flex flex-col p-2">
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Action Funcitons</span>{/if}
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Functions</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'action' && m.allowed.find(a => a === $selectedControlElement)) as action}
-                        <div  on:click={()=>{addThisManually(action)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{action.desc}</div>
+                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'grid_function' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                        <div  on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black {colorByDesc(syntax.human)}">{syntax.human}</div>
                       {/each}
                     </div>
                   </action-functions>
-                  {/if}
+                {/if}
 
-                {#if sg == "all" || sg == "variables"}
+                {#if sg == "all" || sg == "grid_variable"}
                   <variables class="w-full flex flex-col p-2">
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Read Only Variables</span>{/if}
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Variable</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each meta.filter(m => m.type === 'variable' && m.allowed.find(a => a === $selectedControlElement)) as variable}
-                        <div on:click={()=>{addThisManually(variable)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{variable.desc}</div>
+                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'grid_variable' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
                   </variables>
@@ -205,26 +167,30 @@
       
           </advanced-menu>
 
-          <advanced-code class="w-3/5">
-            <CodeEditor doc={action.script} on:output/>
+          <advanced-code class="w-3/5 px-4">
+            <svelte:component slot="action" this={components[action.component]} {action} advanced={true} {index} on:output/>  
           </advanced-code>
 
         </div>
 
-        <!--
-        <svelte:component this={components[action.component]} advanced={true} inputSet={createInputSet(action.component, $selectedControlElement, meta)} {blockAddedOnClick} on:output></svelte:component>
--->
       </wrapper>
 
     </container>
       
   </advanced-config>
 
-
   {/if}
 {/if}
 
 <style>
+
+  segment:first-child{
+    margin-top: 0px;
+  }
+
+  segment:last-child{
+    margin-bottom: 0px;
+  }
 
   ::-webkit-scrollbar {
       height: 6px;

@@ -10,19 +10,15 @@
   import { fly, fade } from 'svelte/transition';
 
   import * as GLUA from '../../../__action.js';
-import { runtime } from '../../../action-preferences.store.js';
+  import { runtime } from '../../../action-preferences.store.js';
+
 
   const grid_raw_actions = 
-`--@ms
-ms(1,176,(7+4*(el.av7)),av)
---@if
-if (true) then
---@lsp
-lsp(1,1,av7)
---@end
-end
---@cb
-if pagenumber == 1 then kms(alt,f4) end`;
+`--@locals
+local x = 1 local y = -12 + elem_num(1 + 2)
+--@glsp
+led_value(0,1,2)`
+;
 
   let actions = GLUA.rawParser(grid_raw_actions);
 
@@ -39,7 +35,7 @@ if pagenumber == 1 then kms(alt,f4) end`;
 
       <ConfigOptions/>
 
-      <ConfigActions />
+      <ConfigActions/>
 
       <ConfigDebug {actions}/>
 

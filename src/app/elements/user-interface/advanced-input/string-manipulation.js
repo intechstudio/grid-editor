@@ -1,6 +1,8 @@
+const lua = require('luaparse');
+
 export const _V = {
  
-  initialize:function(inputSet = []){
+  initialize: function(inputSet = []){
 
     let regex = {};
     let functions = {pattern: [], values: {}};
@@ -10,15 +12,13 @@ export const _V = {
       if (inputSet[i].type!=inputSet[i-1].type) newarr.push(inputSet[i].type);
     }
 
-    console.log(newarr);
-
     newarr.forEach((type , i) => {
-      regex[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'operator') ? `${'\\' + v.desc}` : `${'\\b' + v.value + '\\b'}`).join('|');
+      regex[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
     })
 
     inputSet.forEach((obj,i) => {
       if(obj.parameters !== undefined) {
-        functions.values[obj.value] = {parameters: obj.parameters}; // here may be added code version? although not born for this valid case..
+        functions.values[obj.human] = {parameters: obj.parameters}; // here may be added code version? using human readable
       }
     })
 
@@ -33,25 +33,9 @@ export const _V = {
       regex: regex,
       functions: functions
     }
-    console.log(this);
+    //console.log(this);
   },
 
-  /**
-  const protocol = {
-    midi: function(){
-      return {fn: this.midi.name, args: arguments, len: arguments.length}
-    },
-    ledColor: function(){
-      return {fn: this.ledColor.name, args: arguments, len: arguments.length}
-    },
-    if: function(){
-      return {fn: this.if.name, args: arguments, len: arguments.length}
-    },
-    abs: function(){
-      return {fn: this.abs.name, args: arguments, len: arguments.length}
-    }
-  }
- */
   checkFn: function(text){
     const pattern = `${'('+ this.VALIDATOR.functions.pattern +')'}`;
     const regex = new RegExp(pattern, "g");
@@ -72,6 +56,7 @@ export const _V = {
   },
 
   arithmetics: function(text) {
+    // OPERATOR IS NO MORE A CORRECT NAME
     const pattern = `${'(' + this.VALIDATOR.regex.operator + ')(?:\\s*\\1){1,}|(?:(' + this.VALIDATOR.regex.operator + ')(?:\\s*))+(?:(' + this.VALIDATOR.regex.operator + ')(?:\\s*)|$)|([0-9](\\s)(?:\d))'}`
     const regex = new RegExp(pattern, "gm")
     return !regex.test(text);
@@ -82,6 +67,15 @@ export const _V = {
         JSON.parse(str);
     } catch (e) {
         return false;
+    }
+    return true;
+  },
+
+  isLua: function (script){
+    try {
+        lua.parse(script);
+    } catch (err) {
+        return false
     }
     return true;
   },
@@ -130,8 +124,17 @@ export const _V = {
     for (const key in this.VALIDATOR.regex) {
       pattern.push(`${'(?<' + key + '>' + this.VALIDATOR.regex[key] + ')'}`);
     }
+
+    // split with dev
+    if(process.env.NODE_ENV == "development"){
+      //console.log("Running _V in development mode.");
+      //pattern.push(`${'(?<development>([a-zA-Z_]+))'}`);
+    }
+
     // for "," in functions
     pattern.push(`${'(?<separator>(\,))'}`);
+    // for parenthesis ")" "("
+    pattern.push(`${'(?<parenthesis>([)()]))'}`)
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
     // if its dot notation
@@ -164,8 +167,9 @@ export const _V = {
   splitExprToArray: function(splitExpr){
     let altered = "";
     let depth = 0;
+    //console.log(splitExpr)
     splitExpr.forEach((element, i) =>{
-        if(element.type == 'action' || element.type == 'function' || element.type == 'getter' || element.type == 'setter'){
+        if(element.type == 'grid_function' || element.type == 'grid_variable'){
           // do nothing
         } else if(element.value == '('){
           if(depth >= 1){
@@ -189,7 +193,7 @@ export const _V = {
           }       
         } else if(element.value == ',' && depth <= 1 ) {
           altered += ",";
-        } else if(element.type == 'operator' && depth <= 1){
+        } else if(element.type == 'arithmetic_operator' && depth <= 1){
           altered += ",\""+element.value+"\",";
         } else {
           if(depth <= 1 || element.value == undefined){
@@ -227,7 +231,6 @@ export const _V = {
     let _fn;
     arr.forEach((str,i) => {
       const fn = new RegExp(pattern, "g").exec(str);
-      console.log(fn, str);
       if(fn) {
         _fn = fn[0].toUpperCase();
         let indices = [];

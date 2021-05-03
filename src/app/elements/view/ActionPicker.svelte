@@ -20,6 +20,12 @@
   const dispatch = createEventDispatcher();
 
   let arrayOfActions = [
+    {
+      key: 'Locals',
+      presets: [
+        {desc: 'Default', type: 'standard', components: [GRID_ACTIONS.find(a => a.component == 'LOCALS')]}
+      ]
+    },
     { 
       key: 'MIDI', 
       presets: [

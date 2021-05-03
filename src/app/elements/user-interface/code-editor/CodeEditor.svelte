@@ -99,7 +99,7 @@
           dispatch('output', code);
         }
       }),
-      //linter(luaLint(Linter)),
+      //linter(luaLint()),
       oneDarkTheme,
       oneDarkHighlightStyle,
     ],

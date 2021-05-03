@@ -9,7 +9,7 @@
 	const dispatch = createEventDispatcher();
   
   export let inputValue = '';
-  export let optionList = [];
+  export let suggestions = [];
   export let customClasses = '';
   export let index;
 
@@ -18,22 +18,19 @@
   let disabled = false;
   let displayValue = '';
 
-  $: if(inputValue[0] == '(' && inputValue[inputValue.length-1] == ')'){
-    disabled = true;
-    displayValue = '(expr)'
-  } else {
+  $: if(inputValue){
     displayValue = inputValue;
   }
-  
+
   let focus;
 
   function handleChange(){
-    dispatch('change',displayValue)
+    dispatch('change', displayValue )
   }
 
 </script>
 
-<main class="w-full relative flex items-center" use:clickOutside on:click-outside={()=>{focus = false}}>
+<div class="w-full relative" use:clickOutside on:click-outside={()=>{focus = false}}>
   {#if disabled}<div on:click={()=>{actionPrefStore.showAdvanced(index, true);}} class="absolute cursor-pointer right-0 {$actionPrefStore.advanced.visible ? 'invisible' : 'flex'} items-center rounded-full py-0.5 px-2 text-white text-xs bg-green-600 hover:bg-green-700">Edit</div>{/if}
   <input 
     disabled={disabled}
@@ -42,7 +39,15 @@
     on:click={()=>{focus = true}} on:change={handleChange} 
     on:input={(e)=>{focus = false; handleChange()}} type="text" 
     class="{customClasses} w-full bg-secondary text-white py-0.5 pl-2 rounded-none focus:outline-none">
-</main>
+  
+    {#if focus}
+      <ul class:shadow={focus} style="max-height:250px; min-width:100px;z-index:9000;" class="fixed scrollbar block border-t overflow-y-auto border-important text-white cursor-pointer  w-auto bg-secondary">
+        {#each suggestions as suggestion, index}
+          <li on:click={(e)=>{displayValue = suggestion.value; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
+        {/each}
+      </ul>
+    {/if}
+  </div>
 
 <style>
 

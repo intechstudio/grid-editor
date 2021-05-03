@@ -3,6 +3,9 @@ import {Text} from "@codemirror/state"
 import {EditorView} from "@codemirror/view"
 import {lua_language} from "./lang-package"
 
+const lua = require('luaparse');
+
+
 /// Connects an [lualint](https://lualint.org/) linter to CodeMirror's
 /// [lint](#lint) integration. `lualint` should be an instance of the
 /// [`Linter`](https://lualint.org/docs/developer-guide/nodejs-api#linter)
@@ -36,7 +39,7 @@ export function luaLint(lualint, config) {
       
       let code = state.doc.text.join('\n');
       console.log(code)
-      console.log(lualint(state.doc.text.join('\n')))
+      console.log(lua.parse(code))
       //for (let d of lualint.verify(state.sliceDoc(from, to), config))
       found.push(translateDiagnostic(state.doc, offset))
     }

@@ -2,56 +2,66 @@ import { _V } from './user-interface/advanced-input/string-manipulation.js';
 const lua = require('luaparse');
 
 export const FUNCTIONS = [
-  {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], blacklist: ['CODEBLOCK'], desc:'if', value: 'if', parameters: paramArray(3)},
-  {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'abs', value: 'abs', parameters: paramArray(1)},
-  {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'sqrt', value: 'sqrt', parameters: paramArray(1)},
-  {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'sin', value: 'sin', parameters: paramArray(1)},
-  {type: 'function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'cos', value: 'cos', parameters: paramArray(1)},
 
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'*', value: '\\*'}, 
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'+', value: '\\+'}, 
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'-', value: '\\-'}, 
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'(', value: '\\('},
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:')', value: '\\)'}, 
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'%', value: '\\%'},
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'/', value: '\\/'},
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'==', value: '\\=='},
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'!=', value: '\\=='},
-  {type: 'operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc:'>=', value: '\\=='},
+  // code OPERATORS https://www.tutorialspoint.com/code/code_operators.htm
 
-  {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setDefaultBankColor', value: 'bank_set_default_color', parameters: paramArray(5)},
-  {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setActiveBank', value: 'bank_set_active', parameters: paramArray(1)},
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\*',  human:'*', }, 
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\+',  human:'+', }, 
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\-',  human:'-',}, 
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\%',  human:'%', },
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\/',  human:'/',},
+  {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\^',  human:'^', },
 
-  {type: 'setter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'setElementDefaultNumber', value: 'set_element_default_number', parameters: paramArray(2)},
-  {type: 'setter', allowed: ['encoder'], desc: 'setEncoderVelocityParameters', value: 'set_encoder_velocity_parameters', parameters: paramArray(3)},
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '==',   human:'==' },
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '~=',   human:'~=' },
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '>',    human:'>' },
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '<',    human:'<' },
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '>=',   human:'>='},
+  {type: 'relational_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '<=',   human:'<=' },
 
-  {type: 'getter', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'getAbsoluteValue', value: 'get_absolute_value', parameters: paramArray(2)} ,
-  {type: 'getter', allowed: ['encoder'], desc: 'getRelativeChange', value: 'get_relative_change', parameters: paramArray(1)},
+  {type: 'logical_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'],  code: 'and',  human:'and'},
+  {type: 'logical_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'],  code: 'or',   human:'or'},
+  {type: 'logical_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'],  code: 'not',  human:'not'},
 
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'midi', value: 'ms', parameters: paramArray(4)},
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledColor', value: 'lsc', parameters: paramArray(5)},
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledPhase', value: 'lsp', parameters: paramArray(3)},
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'ledMode', value: 'lsm', parameters: paramArray(2)},
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'keyboardMacro', value: 'kms', parameters: paramArray(6)},
-  {type: 'action', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'keyboardChange', value: 'kcs', parameters: paramArray(2)},
+  // GRID FUNCTIONS
 
-  {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'elapsedTime', value: 'elapsed_time'},
-  {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'activeBank', value: 'active_bank'},
-  {type: 'variable', allowed: ['encoder'], desc: 'relativeChange', value: 'relative_change'},
-  {type: 'variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], desc: 'absoluteValue', value: 'absolute_value'}
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsp',   human: 'led_value', parameters: 3},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsn',   human: 'led_color_min', parameters: 3},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsd',   human: 'led_color_mid',  parameters: 3},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsx',   human: 'led_color_max', parameters: 3},
+
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsf',   human: 'led_animation_rate',  parameters: 3},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glss',   human: 'led_animation_type',  parameters: 3},
+
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glspfs', human: 'led_animation_phase', parameters: 3},
+
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gms',    human: 'midi_send',  parameters: 4},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gmr',    human: 'midi_receive',  parameters: 4},
+
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gsk',    human: 'keyboard_send',  parameters: 1},
+
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gps',    human: 'page_select', parameters: 4},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gpsn',   human: 'page_select_next', parameters: 4},
+  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gpsp',   human: 'page_select_prev', parameters: 4},
+
+  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzx',    human: 'module_position_x'},
+  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzy',    human: 'module_position_y'},
+  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzr',    human: 'module_rotation' },
 ]
 
 export const GRID_ACTIONS = [
   // meta: --@ + code -> action identifier
-  {meta: 'ms', type: 'standard', desc: 'MIDI', component: 'MIDI', baseFunction: 'midi_send', script: 'ms("","","","")', parameters: paramArray(4)},
-  {meta: 'lsp', type: 'standard', desc: 'LED Phase', component: 'LEDPHASE', baseFunction: 'led_set_phase', script: 'lsp("","","","")', parameters: paramArray(3)},
-  {meta: 'kms', type: 'standard', desc: 'Macro', component: 'MACRO', baseFunction: 'keyboard_macro_send', script: 'kms("","","","")', parameters: paramArray(6)},
-  {meta: 'kcs', type: 'standard', desc: 'Keyboard', component: 'KEYBOARD', baseFunction: 'keyboard_change_send',script: 'kcs("","","","")', parameters: paramArray(6)},
-  {meta: 'cb', type: 'standard', desc: 'Code Block', component: 'CODEBLOCK', script: 'print()', parameters: []},
-  {meta: 'if', type: 'modifier', desc: 'If', component: 'IF',  baseFunction: 'if', script: 'if (true)'},
-  {meta: 'elseif', type: 'modifier', desc: 'Else If', component: 'ELSEIF',  baseFunction: 'elseif'},
-  {meta: 'else', type: 'modifier', desc: 'Else', component: 'ELSE',  baseFunction: 'else'},
-  {meta: 'end', type: 'modifier', desc: 'End', component: 'END', baseFunction: 'end', script: 'end'}
+  {code: 'locals', human: 'locals',        type: 'standard', desc: 'Local Definitions', component: 'LOCALS',    script: '',                 parameterNames: ['Local 1']},
+  {code: 'gms',    human: 'midi_send',     type: 'standard', desc: 'MIDI',              component: 'MIDI',      script: 'midi_send(,,,)',   parameterNames: ['Channel', 'Command', 'Parameter 1', 'Parameter 2']},
+  {code: 'glsp',   human: 'led_value',     type: 'standard', desc: 'LED Phase',         component: 'LEDPHASE',  script: 'led_value(,,)',    parameterNames: ['LED Number', 'Layer', 'Intensity']},
+  {code: 'gsk',    human: 'keyboard_send', type: 'standard', desc: 'Macro',             component: 'MACRO',     script: 'keyboard_send()',  parameterNames: ['Keys']},
+  
+  {code: 'ecb',    human: 'code_block', type: 'standard', desc: 'Code Block', component: 'CODEBLOCK', script: 'print()'},
+
+  {code: 'if',     human: 'if',      type: 'modifier', desc: 'If',       component: 'IF',      script: 'if (true)'},
+  {code: 'elseif', human: 'elseif',  type: 'modifier', desc: 'Else If',  component: 'ELSEIF',  script: 'else if true'},
+  {code: 'else',   human: 'else',    type: 'modifier', desc: 'Else',     component: 'ELSE'},
+  {code: 'end',    human: 'end',     type: 'modifier', desc: 'End',      component: 'END'}
 ];
 
 const _v = _V;
@@ -100,7 +110,7 @@ export function rawParser(script){
       arr.push(testy[0])
     }
     
-    obj.meta = arr[0];
+    obj.code = arr[0];
     obj.script = arr[1];
     
     return obj;
@@ -110,24 +120,57 @@ export function rawParser(script){
   let actionArray = [];
   scriptParts.forEach((element,index) => {
     // TODO: if undefined find... revert to codeblock!
-    actionArray = [...actionArray, {...GRID_ACTIONS.find(a => a.meta == element.meta), script: element.script, id: index}];
+    actionArray = [...actionArray, {...GRID_ACTIONS.find(a => a.code == element.code), script: element.script, id: index}];
   });
-
-  console.log('scriptParts', actionArray);
 
   return actionArray;
 }
 
 // Helpers for actions // modifiers.
 
-export function scriptToAction({script, inputLabels}){
-  let actions = inputLabels.map(i => ''); // make empty array for right amount of input fields
+// this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
+export function localsToAction({script}){
+  const text = script.split('local');
+  let _script = [];
+  text.forEach(element => {
+    if(element !== ''){
+      const _split = element.split('=');
+      _script.push({variable: _split[0].trim(), value: _split[1].trim()});
+    }
+  });
+  return _script;
+}
+
+export function scriptToAction({human, script, length}){
+
+  // get the part after function name with parenthesis
+  let _script = script.split(human)[1];
+  // remove parenthesis
+  _script = _script.slice(1, -1);
+  // split by comma to make array
+  _script = _script.split(',');
+
+  return _script;
+
+  /**
+   * 
+   * This part below has been used when we let expressions in input fields.
+   * It handles unknown empty strings, undefined functions and variables badly.
+   * Yet its an ok baseground for validators, as spltExprToArray is cool.
+   * 
+   */
+
+  /*
+  let actions = parameterNames.map(i => ""); // make empty array for right amount of input fields
   const splitExpr = _v.exprSplit(script);
+  console.log('splitexpr...', splitExpr)
   const jsonArray = _v.splitExprToArray(splitExpr);
+  console.log('jsonarray...',jsonArray);
   if(_v.isJson(jsonArray)){
     actions = JSON.parse(_v.splitExprToArray(splitExpr));
   } else {
-    console.error('error with json, continue.')
+    console.warn("Part of script is not a valid JSON, continue!")
   }
   return actions;
+  */
 }
