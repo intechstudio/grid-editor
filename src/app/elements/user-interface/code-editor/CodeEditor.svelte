@@ -3,8 +3,9 @@
 
   import { StreamLanguage } from "@codemirror/stream-parser"
   import { EditorView } from "@codemirror/view"
-  import { basicSetup } from "@codemirror/basic-setup"
   import { EditorState } from "@codemirror/state"
+
+  import { basicSetup } from './setup.js';
 
   import { javascript, esLint } from '@codemirror/lang-javascript';
   import { linter, openLintPanel } from '@codemirror/lint';
@@ -21,6 +22,20 @@
 
   export let doc = '';
   export let showCharCount = true;
+  export let showLineNumbers = true;
+
+  export let advancedClickAddon;
+
+  let cursorPosition;
+
+  $: if(advancedClickAddon){
+    editor.dispatch({
+      changes: {
+        from: cursorPosition.from, 
+        insert: advancedClickAddon.human
+      }
+    })
+  }
 
   function countChars(doc) {
     let count = 0, iter = doc.iter()
@@ -88,14 +103,24 @@
   const initialState = EditorState.create({
     doc: doc,
     extensions: [
-      basicSetup,
+      basicSetup({showLineNumbers}),
       wordHover,
       charCounter(),
       lua(),
       EditorView.updateListener.of((v) => {
+        
+
+        if(v.state.selection){
+          let pos = v.state.selection.main.head;
+          cursorPosition = v.state.doc.lineAt(pos)
+        }
+
         if (v.docChanged) {
+
           // Document changed
           const code = (v.state.doc.text.join('\n'));
+          
+
           dispatch('output', code);
         }
       }),
@@ -110,6 +135,9 @@
       state: initialState,
       parent: codeblock
     })
+
+    
+
   })
 
 </script>

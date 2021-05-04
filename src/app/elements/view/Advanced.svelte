@@ -14,6 +14,8 @@
 
   import Locals from '../_actions/Locals.svelte'; 
   import CodeBlock from '../_actions/CodeBlock.svelte';
+  
+  let advancedClickAddon;
 
   const components = {
     CODEBLOCK: CodeBlock,
@@ -34,7 +36,7 @@
   }
 
   function addThisManually(elem){
-    blockAddedOnClick = elem;
+    advancedClickAddon = elem;
   }
 
   function colorByDesc(desc){
@@ -97,7 +99,7 @@
 
         <div class="flex flex-grow overflow-y-scroll">
 
-          <advanced-menu class="w-2/5 flex flex-col ">
+          <advanced-menu class="w-3/12 flex flex-col ">
             
               <select-config-suggestions class="w-full text-white flex flex-col text-sm">
                 <div class=" flex flex-row py-2 flex-wrap">
@@ -167,8 +169,8 @@
       
           </advanced-menu>
 
-          <advanced-code class="w-3/5 px-4">
-            <svelte:component slot="action" this={components[action.component]} {action} advanced={true} {index} on:output/>  
+          <advanced-code class="w-9/12 px-4 overflow-y-scroll">
+            <svelte:component slot="action" this={components[action.component]} {action} advanced={true} {advancedClickAddon} {index} on:output/>  
           </advanced-code>
 
         </div>

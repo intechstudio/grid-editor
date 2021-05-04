@@ -9,6 +9,9 @@
   export let action = '';
   export let index;
   export let advanced = false;
+  export let advancedClickAddon;
+
+  $: console.log(advancedClickAddon);
 
   const regex = new RegExp(/\blocal\b\s*[a-zA-Z]\s*[=].*[a-zA-Z0-9\-\+\(\)].*/, 'g');
 
@@ -33,11 +36,11 @@
   }
 
   function sendData(){
-    dispatch('output', localArrayToScript())
+    dispatch('output', localArrayToScript(scriptSegments))
   }
 
-  function localArrayToScript(){
-    let script = scriptSegments.map(segment =>
+  function localArrayToScript(arr){
+    let script = arr.map(segment =>
       `local ${segment.variable}=${segment.value} ` // important to keep space before cat upper thingy
     );
     return script.join('');
@@ -105,11 +108,31 @@
 {:else}
 <advanced-local-definitions>
   {#each scriptSegments as script, i}
-    <segment class="w-full block h-20 my-10">
-      <div class="text-gray-500 text-sm pb-1">{`Local ${i}`}</div>
-      <CodeEditor doc={`${script.variable} = ${script.value}`} showCharCount={false} on:output={(e)=>{sendData()}}/>
+    <segment class="w-full block local-defs py-2">
+      <div class="flex items-start">
+        <div class="flex items-baseline">
+          <div class="pointer-events-none py-0.5 text-gray-500 px-1 bg-thirdery">local </div>
+          <input on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}} style="backround" class="py-0.5 mb-1 pl-1 w-20 bg-secondary text-white" value={script.variable}>
+        </div>
+        <span class="text-sm text-gray-500 px-1 py-0.5">=</span>
+        <CodeEditor doc={`${script.value}`} showLineNumbers={false} showCharCount={false} {advancedClickAddon} on:output={(e)=>{saveChangesOnInput(e.detail, i ,'value')}}/>
+      </div>
     </segment>
   {/each}
+
+  <div class="w-full flex group py-2">
+    <div on:click={()=>{addLocalVariable()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
+      Add local variable...
+    </div>
+  </div>
+
+  <div class="text-gray-300 flex flex-col py-2">
+    <div class="font-bold">Output:</div>
+    {#each scriptSegments as script}
+      <div>{`local ${script.variable} = ${script.value} `}</div>
+    {/each}
+  </div>
+
 </advanced-local-definitions>
 {/if}
 
