@@ -1,10 +1,14 @@
+
+import { GRID_PROTOCOL } from '../core/classes/GridProtocol.js';
 import { _V } from './user-interface/advanced-input/string-manipulation.js';
 const lua = require('luaparse');
 
-export const FUNCTIONS = [
+const GRID = GRID_PROTOCOL;
+GRID.initialize();
+const LUA = GRID.PROTOCOL.LUA;
 
+const _FUNCTIONS = [
   // code OPERATORS https://www.tutorialspoint.com/code/code_operators.htm
-
   {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\*',  human:'*', }, 
   {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\+',  human:'+', }, 
   {type: 'arithmetic_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: '\\-',  human:'-',}, 
@@ -23,31 +27,76 @@ export const FUNCTIONS = [
   {type: 'logical_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'],  code: 'or',   human:'or'},
   {type: 'logical_operator', allowed: ['encoder', 'potentiometer', 'button', 'fader'],  code: 'not',  human:'not'},
 
-  // GRID FUNCTIONS
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsp',   human: 'led_value', parameters: 3},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsn',   human: 'led_color_min', parameters: 3},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsd',   human: 'led_color_mid',  parameters: 3},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsx',   human: 'led_color_max', parameters: 3},
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glsf',   human: 'led_animation_rate',  parameters: 3},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glss',   human: 'led_animation_type',  parameters: 3},
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'glspfs', human: 'led_animation_phase', parameters: 3},
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gms',    human: 'midi_send',  parameters: 4},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gmr',    human: 'midi_receive',  parameters: 4},
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gsk',    human: 'keyboard_send',  parameters: 1},
-
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gps',    human: 'page_select', parameters: 4},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gpsn',   human: 'page_select_next', parameters: 4},
-  {type: 'grid_function', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gpsp',   human: 'page_select_prev', parameters: 4},
-
-  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzx',    human: 'module_position_x'},
-  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzy',    human: 'module_position_y'},
-  {type: 'grid_variable', allowed: ['encoder', 'potentiometer', 'button', 'fader'], code: 'gzr',    human: 'module_rotation' },
 ]
+
+export const FUNCTIONS = () => {
+  console.log('called');
+  let fnc = _FUNCTIONS;
+
+  const objs = findItem(LUA);
+
+  fnc = mapObjects(fnc, objs);
+  console.log(fnc);
+  return fnc;
+}
+
+function findItem (obj) {
+  var found = {};                
+  let parent = '';
+
+  function _find(obj, d) {       
+      for (var key in obj) {     
+          if(d == 0){
+            parent = key;
+            found[parent] = [];
+          }
+         
+          if (typeof obj[key] === 'object') { 
+              _find(obj[key], d + 1);
+          } else{
+        
+          if(found[parent].indexOf(obj) == -1){
+            found[parent].push(obj)
+          }
+        }
+      }
+  }
+  _find(obj, 0);                 
+
+  return found;
+}
+
+function mapObjects (fnc, object){
+
+  function mapper(arr, type){
+    return arr = arr.map((e, i) => {
+      return {type: type, ...e }
+    })
+  }
+
+  for (const key in object) {
+
+    if(key == 'B'){
+      fnc = [...fnc, ...mapper(object[key], 'button')]
+    }
+
+    if(key == 'E'){
+      fnc = [...fnc, ...mapper(object[key], 'encoder')]
+    }
+
+    if(key == 'G'){
+      fnc = [...fnc, ...mapper(object[key], 'global')]
+    }
+
+    if(key == 'P'){
+      fnc = [...fnc, ...mapper(object[key], 'potmeter')]
+    }
+
+  }
+
+  return fnc;
+}
+
 
 export const GRID_ACTIONS = [
   // meta: --@ + code -> action identifier
@@ -65,7 +114,7 @@ export const GRID_ACTIONS = [
 ];
 
 const _v = _V;
-_v.initialize(FUNCTIONS);
+_v.initialize(FUNCTIONS());
 
 function paramArray(num) {
   let arr = [];

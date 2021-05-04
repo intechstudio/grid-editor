@@ -31,23 +31,24 @@ import { localDefinitions } from '../action-preferences.store';
   const _suggestions = [
     // led number
       [
-        {value: 'this', info: ''},
-        {value: '', info: ''}
+        {value: 'to do...', info: 'to do...'},
+        {value: 'to do...', info: 'to do...'}
       ],
     // layer
       [
-        {value: '', info: 'layer'}
+        {value: 'to do...', info: 'layer'}
       ],
     // intensity or value
       [
-        {value: '', info: 'idk'}
+        {value: 'to do...', info: 'to do...'}
       ]
   ];
 
   let suggestions = [];
 
   $: if($localDefinitions){
-    suggestions = _suggestions.map(s => [...$localDefinitions, ...s])
+    suggestions = _suggestions.map(s => [...$localDefinitions, ...s]);
+    suggestions = suggestions;
   }
 
   onMount(()=>{

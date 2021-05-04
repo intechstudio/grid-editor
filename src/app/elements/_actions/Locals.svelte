@@ -115,7 +115,7 @@
           <input on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}} style="backround" class="py-0.5 mb-1 pl-1 w-20 bg-secondary text-white" value={script.variable}>
         </div>
         <span class="text-sm text-gray-500 px-1 py-0.5">=</span>
-        <CodeEditor doc={`${script.value}`} showLineNumbers={false} showCharCount={false} {advancedClickAddon} on:output={(e)=>{saveChangesOnInput(e.detail, i ,'value')}}/>
+        <CodeEditor doc={`${script.value}`} showLineNumbers={false} showCharCount={false} index={i} {advancedClickAddon} on:output={(e)=>{saveChangesOnInput(e.detail, i ,'value')}}/>
       </div>
     </segment>
   {/each}

@@ -17,6 +17,8 @@
   import {showPanel} from "@codemirror/panel"
   import { lintGutter } from "./lang-lua/LintGutter";
   import { luaLint } from './lang-lua/luaLint';
+  import { focusedCodeEditor } from "../../action-preferences.store.js";
+
 
   const dispatch = createEventDispatcher();
 
@@ -25,16 +27,24 @@
   export let showLineNumbers = true;
 
   export let advancedClickAddon;
+  export let index;
 
-  let cursorPosition;
+  let dataAtCursor;
 
   $: if(advancedClickAddon){
-    editor.dispatch({
-      changes: {
-        from: cursorPosition.from, 
-        insert: advancedClickAddon.human
-      }
-    })
+    appendAtCursor();
+  }
+
+  function appendAtCursor(){
+    if($focusedCodeEditor == index){
+      editor.dispatch({
+        changes: {
+          from: dataAtCursor.cursor,
+          insert: advancedClickAddon.human
+        }
+      })
+      //editor.dispatch({selection: {anchor: dataAtCursor.cursor + advancedClickAddon.human.length}})
+    }
   }
 
   function countChars(doc) {
@@ -109,10 +119,13 @@
       lua(),
       EditorView.updateListener.of((v) => {
         
+        if(editor.hasFocus){
+          focusedCodeEditor.set(index);
+        }
 
         if(v.state.selection){
           let pos = v.state.selection.main.head;
-          cursorPosition = v.state.doc.lineAt(pos)
+          dataAtCursor = {cursor: pos, ...v.state.doc.lineAt(pos)}
         }
 
         if (v.docChanged) {

@@ -20,7 +20,6 @@
 
   let GRID = GRID_PROTOCOL;
   GRID.initialize();
-  console.log(GRID);
 
   let PORT = {path: 0};
 

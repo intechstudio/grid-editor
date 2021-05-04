@@ -133,6 +133,8 @@ export const appMultiSelect = writable({multiselect: false, selection: []});
 
 export const appActionClipboard = writable();
 
+export const focusedCodeEditor = writable();
+
 function createAppActionManagement(){
   const store = writable();
 
@@ -156,6 +158,8 @@ function createAppActionManagement(){
       const actions = get(runtime);
       const selection = get(appMultiSelect).selection;
 
+      console.log(selection);
+
       let clipboard = [];
       selection.forEach((elem,index) => {
         if(elem){
@@ -164,6 +168,7 @@ function createAppActionManagement(){
       });
 
       appActionClipboard.set(clipboard);
+      console.log(clipboard);
     },
 
     paste: (index) => {

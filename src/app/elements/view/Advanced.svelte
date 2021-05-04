@@ -26,11 +26,13 @@
   export let action = undefined;
 
   const _v = _V;
-  _v.initialize(GLUA.FUNCTIONS);
+  _v.initialize(GLUA.FUNCTIONS());
 
   let topOffset = 0;
 
-  function filterDuplicateTypes(arr) {
+  function filterDuplicateTypes() {
+    let arr = GLUA.FUNCTIONS();
+    console.log(arr);
     // v, i, a = value, index, array
     return arr.filter((v,i,a)=>a.findIndex(t=>(t.type === v.type))===i).map(e => e.type);
   }
@@ -103,7 +105,7 @@
             
               <select-config-suggestions class="w-full text-white flex flex-col text-sm">
                 <div class=" flex flex-row py-2 flex-wrap">
-                  {#each ['all',...filterDuplicateTypes(GLUA.FUNCTIONS)] as key}
+                  {#each ['all',...filterDuplicateTypes()] as key}
                     <div on:click={()=>{sg = key}} class="{sg == key ? 'bg-select' : 'hover:bg-select-desaturate-10'} m-1 px-2 py-1 rounded-lg cursor-pointer">{key}</div>
                   {/each}
                 </div>
@@ -115,7 +117,7 @@
                     
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Arithmetic Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each GLUA.FUNCTIONS().filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -126,7 +128,7 @@
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Relational Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each GLUA.FUNCTIONS().filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -137,7 +139,7 @@
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Logical Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each GLUA.FUNCTIONS().filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -148,18 +150,18 @@
                   <action-functions class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Functions</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'grid_function' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each GLUA.FUNCTIONS().filter(m => m.type === 'global') as syntax}
                         <div  on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black {colorByDesc(syntax.human)}">{syntax.human}</div>
                       {/each}
                     </div>
                   </action-functions>
                 {/if}
 
-                {#if sg == "all" || sg == "grid_variable"}
+                {#if sg == "all" || sg == "encoder"}
                   <variables class="w-full flex flex-col p-2">
-                    {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Variable</span>{/if}
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Encoder</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each GLUA.FUNCTIONS.filter(m => m.type === 'grid_variable' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each GLUA.FUNCTIONS().filter(m => m.type === 'encoder') as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>

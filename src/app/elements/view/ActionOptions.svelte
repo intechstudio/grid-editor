@@ -10,12 +10,8 @@
   let showSelectBox = true;
   let ifBlockSize = 0;
 
-  $: if(index || $runtime || $appMultiSelect){
-    const actions = get(runtime);
-    showSelectBox = ifBlockCheck(actions);
-    ifBlockBoundaries(actions);
-    
-    //console.log(`Running this ${component}'s ifBlockCheck with actions:`, actions, index)
+  $: if($runtime){
+    showSelectBox = ifBlockCheck($runtime);
   }
 
   function ifBlockCheck(actions){
@@ -37,22 +33,24 @@
       //console.log(index, " - ",  component, '<- this is in IF block')
       notInBlock = false;
     }
+
     return notInBlock;
 
   }
 
+  function handleMultiSelect(){
 
-  function ifBlockBoundaries(actions){
+    // called only on IF component
+
+    const lookafter = $runtime.slice(index);
+
+    const end_index = lookafter.findIndex(a => a.component == 'END');
     
-    if(component == 'IF'){
-      // lookafter
-      const lookafter = actions.slice(index);
+    ifBlockSize = end_index;
 
-      const end_index = lookafter.findIndex(a => a.component == 'END');
-      
-      ifBlockSize = end_index;
+    for (let i = index; i < index + end_index + 1; i++) {
+      $appMultiSelect.selection[i] = !$appMultiSelect.selection[i]
     }
-  
   }
 
 
@@ -77,7 +75,7 @@
 {:else if (component == 'IF' && $appMultiSelect.enabled) && showSelectBox}
 <select-box class="flex pl-2 group justify-center items-center bg-transparent">
   <div 
-    on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index]}} 
+    on:click={()=>{handleMultiSelect()}} 
     class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
     {$appMultiSelect.selection[index] ? '✔' : ''}
     {#if $appMultiSelect.selection[index]}
@@ -90,8 +88,8 @@
 {:else}
 <select-box-palceholder>
   <select-box class="flex pl-2 group justify-center items-center bg-transparent">
-    <div class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 text-xs">
-        {$appMultiSelect.selection[index] ? '✔' : ''}
+    <div class="flex items-center justify-center p-2 w-6 h-6 text-xs">
+        {''}
     </div>
   </select-box>
 </select-box-palceholder>

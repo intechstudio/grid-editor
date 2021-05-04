@@ -15,6 +15,9 @@ export const GRID_PROTOCOL = {
     let INSTR = {};
     let CLASSES = {};
     let BRC = {};
+
+    let LUA = {};
+
     let VERSION = {};
     let PARAMETERS = {};
     let HEARTBEAT_INTERVAL = 0;
@@ -71,6 +74,12 @@ export const GRID_PROTOCOL = {
           CLASSES[key.slice('GRID_CLASS_'.length).slice(0,-5)] = +grid_protocol[key];
         }
 
+        if(key.startsWith('GRID_LUA_')){
+          let paramSet = key.split('_');
+          let value = grid_protocol[key];
+          createNestedObject( LUA, paramSet.slice(3,), value )
+        }
+
         let param = '';
 
         if(key.startsWith('GRID_CLASS_')){
@@ -85,6 +94,23 @@ export const GRID_PROTOCOL = {
       }
     }
 
+    function createNestedObject( base, names, value ) {
+      // If a value is given, remove the last name and keep it for later:
+      var lastName = arguments.length === 3 ? names.pop() : false;
+  
+      // Walk the hierarchy, creating new objects where needed.
+      // If the lastName was removed, then the last object is not set yet:
+      for( var i = 0; i < names.length; i++ ) {
+          base = base[ names[i] ] = base[ names[i] ] || {};
+      }
+  
+      // If a value was given, set it to the last name:
+      if( lastName ) base = base[ lastName ] = value;
+  
+      // Return the last object in the hierarchy:
+      return base;
+  };
+  
     for(const key in grid_protocol){
       if(typeof grid_protocol[key] !== 'object'){
         let paramName = '';
@@ -118,6 +144,7 @@ export const GRID_PROTOCOL = {
     this.PROTOCOL = {
       ...PROTOCOL,
       BRC: BRC , 
+      LUA: LUA,
       CLASSES: CLASSES, 
       HWCFG: HWCFG, 
       CONST: CONST,

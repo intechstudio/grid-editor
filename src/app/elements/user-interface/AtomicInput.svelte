@@ -43,7 +43,7 @@
     {#if focus}
       <ul class:shadow={focus} style="max-height:250px; min-width:100px;z-index:9000;" class="fixed scrollbar block border-t overflow-y-auto border-important text-white cursor-pointer  w-auto bg-secondary">
         {#each suggestions as suggestion, index}
-          <li on:click={(e)=>{displayValue = suggestion.value; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
+          <li on:click={(e)=>{displayValue = suggestion.info; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
         {/each}
       </ul>
     {/if}
