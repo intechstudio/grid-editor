@@ -3,11 +3,8 @@ import { GRID_CONTROLLER } from './GridController.js';
 
 let global_id = 0;
 
-let PROTOCOL = {};
-
 export const GRID_PROTOCOL = {
 
-  
   initialize: function(){
 
     let HWCFG = {};

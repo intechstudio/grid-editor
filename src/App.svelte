@@ -71,7 +71,7 @@
   import NavTabs from './app/shared/main/NavTabs.svelte';
   import RuntimeSync from './app/runtime/RuntimeSync.svelte';
 
-  import PanelContainer from './app/elements/skeleton/PanelContainer.svelte';
+  import PanelContainer from './app/elements/app/PanelContainer.svelte';
 
   /*
   *   variables
