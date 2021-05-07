@@ -581,7 +581,14 @@
   let suggestions = [];
 
   function renderSuggestions(){
-    let selectedCommand = _suggestions[1].find(s => s.value == scriptSegments[1])?.key || 'control_change_messages';
+    // removed ?. as terser didn't work
+    let selectedCommand = _suggestions[1].find(s => s.value == scriptSegments[1]);
+    if(selectedCommand){
+      selectedCommand = selectedCommand;
+    } else {
+      selectedCommand = 'control_change_messages';
+    }
+    
     try {
       let param_1 = _suggestions[2][selectedCommand];
       suggestions = [_suggestions[0], _suggestions[1], (param_1 || []), _suggestions[3]];
