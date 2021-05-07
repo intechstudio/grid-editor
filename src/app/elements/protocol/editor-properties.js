@@ -17,4 +17,5 @@ export const editor_lua_properties = [
   {type: 'logical_operator', allowed: ['encoder', 'potmeter', 'button'],  short: 'and',  human:'and'},
   {type: 'logical_operator', allowed: ['encoder', 'potmeter', 'button'],  short: 'or',   human:'or'},
   {type: 'logical_operator', allowed: ['encoder', 'potmeter', 'button'],  short: 'not',  human:'not'},
+  {type: 'global', allowed: ['encoder', 'potmeter', 'button'], short: 'l', human: 'locals'}
 ]

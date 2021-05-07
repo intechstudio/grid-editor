@@ -1,8 +1,8 @@
-export function changeOrder(node, {actions}) {
+export function changeOrder(node, {configs}) {
   
   let drag = 0;
   let pos = {x:0, y: 0};
-  const threshold = 3;
+  const threshold = 4;
 
   let shiftX;
   let shiftY;
@@ -16,10 +16,9 @@ export function changeOrder(node, {actions}) {
 
   let drag_block = [];
 
-  let _actions  = actions;
+  let _configs  = configs;
 
-
-  let selectionChange = false;
+  let selectionLength = false;
 
   function createMultiDragCursor(targets, width){
     cursor = document.createElement('div');
@@ -70,8 +69,7 @@ export function changeOrder(node, {actions}) {
   }
 
   function handleSelectionChange(e){
-    //selectionChange = true;
-    //console.log('selection change... ',document.getSelection());
+    selectionLength = document.getSelection().toString().length;
   }
 
   function handleMouseMove(e){
@@ -79,8 +77,8 @@ export function changeOrder(node, {actions}) {
     // variables
     const { id, clientHeight }  = e.target;
 
-    // smooth out drag start with threshold
-    if(Math.abs(e.clientY - pos.y) > threshold || Math.abs(e.clientX - pos.x) > threshold){
+    // smooth out drag start with threshold, track only up-down movement
+    if(Math.abs(e.clientY - pos.y) > threshold && selectionLength < 1){
       drag += 1;
     }
 
@@ -104,38 +102,38 @@ export function changeOrder(node, {actions}) {
     if(drag == 2 && !moveDisabled){
 
       dragged = e.target;
-      let _actionIds = [];
+      let _configIds = [];
       // multidrag, added component type on dynamic wrapper
       // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
-      const component = dragged.getAttribute('action-component');
+      const component = dragged.getAttribute('config-component');
 
-      if(component == 'IF'){
+      if(component == 'If'){
         let _id = id.substr(4,);
-        const nodes = _actions.slice(_id);
-        const end_of_if = nodes.findIndex(n => n.component === 'END');
-        const drag_actions = nodes.slice(0,end_of_if + 1);
+        const nodes = _configs.slice(_id);
+        const end_of_if = nodes.findIndex(n => n.component.name === 'End');
+        const drag_configs = nodes.slice(0,end_of_if + 1);
         multiDragFlag = true;
-        for (const item of drag_actions) {
-          // using actions array, so dom elements need to be discovered by custom id
-          const drag_item = document.querySelectorAll(`[action-id="${item.id}"]`)[0];       
-          // before starting cursor, set the "left behind" actions to half opacity
+        for (const item of drag_configs) {
+          // using configs array, so dom elements need to be discovered by custom id
+          const drag_item = document.querySelectorAll(`[config-id="${item.id}"]`)[0];       
+          // before starting cursor, set the "left behind" configs to half opacity
           drag_item.style.opacity = '0.2';
-          // drag_block is a collection of action-ids, original gen unique key ids.
+          // drag_block is a collection of config-ids, original gen unique key ids.
           drag_block.push(drag_item);
-          // attribute "action-id" refers to initial keyed id of action
-          _actionIds.push(item.id);
+          // attribute "config-id" refers to initial keyed id of config
+          _configIds.push(item.id);
         }
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
-        // the id "act" refers to dynamic index position and attribute "action-id" refers to initial keyed id of action
-        _actionIds = [dragged.getAttribute('action-id')]; // this is used as an array, as multidrag is supported
+        // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
+        _configIds = [dragged.getAttribute('config-id')]; // this is used as an array, as multidrag is supported
         multiDragFlag = false;
         dragged.style.opacity = '0.2';
         createCursor(dragged);
       }
 
       node.dispatchEvent(new CustomEvent('drag-target', {
-        detail: {id: _actionIds}
+        detail: {id: _configIds}
       }));
 
     }
@@ -149,7 +147,7 @@ export function changeOrder(node, {actions}) {
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
-        if(id.startsWith('act-') && e.target.getAttribute('action-component') !== 'IF' && e.target.getAttribute('action-component') !== 'THEN'){
+        if(id.startsWith('cfg-') && e.target.getAttribute('config-component') !== 'If' && e.target.getAttribute('config-component') !== 'Then'){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -157,11 +155,11 @@ export function changeOrder(node, {actions}) {
           }
         } else if(id.substr(0,3) == 'dz-'){  
           drop_target = Number(id.substr(3,));
-        } else if(id == 'action-bin'){
+        } else if(id == 'config-bin'){
           drop_target = 'bin';
         }
 
-        if(e.target.getAttribute('action-component') == 'IF'){
+        if(e.target.getAttribute('config-component') == 'If'){
           drop_target = Number(id.substr(4,)) - 1;
         };
         
@@ -202,6 +200,7 @@ export function changeOrder(node, {actions}) {
     moveDisabled = false;
     drag = 0;
     pos = {x: 0, y: 0};
+    selectionLength = 0;
   }
 
   node.addEventListener('mousedown', handleMouseDown);
@@ -210,8 +209,8 @@ export function changeOrder(node, {actions}) {
 
   return {
 
-    update({actions}) {
-      _actions = actions;
+    update({configs}) {
+      _configs = configs;
     },
 
     destroy() {

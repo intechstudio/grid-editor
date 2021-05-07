@@ -10,6 +10,10 @@
 
   import { config_collection } from '../config-library/built-in-configs.js';
 
+  import _utils from '../../../runtime/_utils.js';
+  
+  import { createNestedObject, returnDeepestObjects } from '../../../protocol/_utils.js';
+
   export let animation = false;
   export let actions;
   export let index;
@@ -19,32 +23,115 @@
 
   let favourites = [];
 
-  let actionSelection;
+  let configSelection;
   let visible;
+  
+  let configs = [];
 
-  let selectedAction = config_collection[0];
-  let presetsOfSelectedAction = config_collection[0].configs;
-  let selectedActionPreset = presetsOfSelectedAction[0];
+  let selectedConfig = config_collection[0];
+//  let presetsOfSelectedAction = config_collection[0].configs;
+//  let selectedActionPreset = presetsOfSelectedAction[0];
+
+  function parseConfigCollection(){
+
+    function parseConfigList(arr){
+      arr = arr.join();
+      arr = _utils.rawLuaToConfigList(arr);
+      arr = _utils.configBreakDown(arr);
+      arr = _utils.extendProperties(arr);
+      return arr; 
+    }
+
+    let depth = 0;
+    let tree = {};
+
+    let leafs = [];
+
+    config_collection.forEach(elem => {
+
+      const a = JSON.stringify(leafs);
+      const b = JSON.stringify(elem.category);
+      const c = a.indexOf(b);
+
+      if(c == -1){
+
+        //console.log('element not found!')
+
+        leafs.push(elem.category);
+
+        createNestedObject(tree, JSON.parse(JSON.stringify(elem.category)), [{name: elem.name, configs: parseConfigList(elem.configs)}]);
+
+      } else {  
+
+        //console.log('element found!', elem.category)
+
+        let propName = elem.category.join('.');
+
+        function assign(obj, prop, value) {
+            if (typeof prop === "string")
+                prop = prop.split(".");
+
+            if (prop.length > 1) {
+                var e = prop.shift();
+                assign(obj[e] =
+                        Object.prototype.toString.call(obj[e]) === "[object Object]"
+                        ? obj[e]
+                        : {},
+                      prop,
+                      value);
+            } else
+                obj[prop[0]] = value;
+        }
+
+        Object.byString = function(o, s) {
+          s = s.replace(/\[(\w+)\]/g, '.$1'); // convert indexes to properties
+          s = s.replace(/^\./, '');           // strip a leading dot
+          var a = s.split('.');
+          for (var i = 0, n = a.length; i < n; ++i) {
+           
+              var k = a[i];
+              if (k in o) {
+                  o = o[k];
+                  console.log(k, o);
+
+              } else {
+                  return;
+              }
+          }
+          return o;
+        }
+        let x = Object.byString(tree, `${propName}`);
+        assign(tree, propName, [...x, {name: elem.name, configs: parseConfigList(elem.configs)}]);
+
+
+        
+      
+      }
+
+      
+    })
+
+    //console.log(configs);
+  }
 
   function changeFavourite(preset){
     preset.isFav = ! preset.isFav;
-    selectedAction.presets =  selectedAction.presets
+    selectedConfig.presets =  selectedConfig.presets
   }
 
-  function initAction(){
-    dispatch('new-action', {
-      action: selectedActionPreset
+  function initConfig(){
+    dispatch('new-config', {
+      config: selectedConfig.config
     });
 
-    actionSelection = false;
+    configSelection = false;
     visible = false;
   }
 
   let topOffset = 0;
 
+  /**
   function checkIfPlacementPossible(desc, type){
-
-    console.log(actions, desc, index);
 
     // lookbefore
     const lookbefore = actions.slice(0,index).reverse();
@@ -93,16 +180,17 @@
 
     return returnHtml;
   }
+  */
 
 </script>
 
 {#if !userHelper}
 
   <action-placeholder 
-    on:click={()=>{actionSelection = ! actionSelection}}  
+    on:click={()=>{configSelection = ! configSelection}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
-    class="{((visible || actionSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center relative -ml-8">
+    class="{((visible || configSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center relative -ml-8">
 
     <div class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10">
       <svg class="w-5 h-5 p-1" viewBox="0 0 7 7" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -116,12 +204,12 @@
 {:else}
   
   <action-placeholder 
-    on:click={()=>{actionSelection = ! actionSelection}}  
+    on:click={()=>{configSelection = ! configSelection}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class="cursor-pointer flex items-center relative mb-3">
 
-    <div class="{((visible || actionSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
+    <div class="{((visible || configSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
       Add action...
     </div>
     
@@ -129,7 +217,7 @@
 
 {/if}
 
-{#if actionSelection}
+{#if configSelection}
   <pick-action class="relative w-full flex ">
 
     <menu 
@@ -141,9 +229,10 @@
       
       <wrapper 
         use:clickOutside
-        on:click-outside={()=>{actionSelection = false; visible = false;}} 
+        on:click-outside={()=>{configSelection = false; visible = false;}} 
         class="flex flex-col flex-grow h-full">
         
+        <!--
         <div class="py-1 text-gray-700 text-sm mb-1">Quick Access</div>
         <quick-access class="flex flex-row items-start">
           <div class="w-1/2 flex">
@@ -157,16 +246,17 @@
             {/if}
           </div>
         </quick-access>
+        -->
 
-        <action-menu class="flex flex-row w-full mt-4 flex-grow">
-          <list-of-actions class="w-1/2 flex flex-col">
+        <action-menu class="flex flex-row w-full flex-grow">
+          <list-of-actions class="w-full flex flex-col">
             <div class=" py-1 text-gray-700 text-sm mb-1">Actions</div>
             <ul class="bg-secondary mr-1 p-1 text-white  h-full flex flex-col items-start">
               {#each config_collection as config, index}
                 <li 
-                  on:click={()=>{selectedAction = config}} 
-                  class="{selectedAction == config ? 'bg-select text-white' : 'hover:bg-select-saturate-10 text-gray-50'} py-1 px-2 my-1 flex items-center rounded-lg cursor-pointer w-full">
-                    <svg class="{selectedAction == config ? null : 'invisible'}" width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  on:click={()=>{selectedConfig = config; console.log(selectedConfig)}} 
+                  class="{selectedConfig == config ? 'bg-select text-white' : 'hover:bg-select-saturate-10 text-gray-50'} py-1 px-2 my-1 flex items-center rounded-lg cursor-pointer w-full">
+                    <svg class="{selectedConfig == config ? null : 'invisible'}" width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path fill-rule="evenodd" clip-rule="evenodd" d="M4.30351 6L1.03864e-07 1.80265L1.84825 0L8 6L1.84825 12L0 10.1973L4.30351 6Z" fill="#C9C8C8"/>
                     </svg>
                     <div class="pl-2">
@@ -176,16 +266,18 @@
               {/each}
             </ul>
           </list-of-actions>
+          <!--
           <list-of-presets class="w-1/2 flex flex-col">
             <div class="py-1 text-gray-700 text-sm mb-1">Presets</div>
             <ul class=" bg-secondary ml-1 p-1 text-white h-full flex flex-col">
-              {#each selectedAction.presets as preset,index}
+              {#each selectedConfig as preset,index}
                 <li on:click={()=>{selectedActionPreset = preset}} class="flex items-center my-1 cursor-pointer justify-between rounded-lg w-full {selectedActionPreset == preset ? 'bg-select text-white' : 'hover:bg-select-saturate-10 text-gray-50'}">
                     <div class="flex items-center  py-1 px-2 " >
                       <svg class="{selectedActionPreset == preset ? null : 'invisible'}" width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#C9C8C8"/>
                       </svg>
                       <div class="pl-2">
+                        {preset.name}
                         {@html checkIfPlacementPossible(preset.desc, preset.type)}
                       </div>
                     </div>
@@ -198,14 +290,15 @@
               {/each}
             </ul>
           </list-of-presets>
+          -->
         </action-menu>
 
         <div class="w-full mt-2 flex items-end">
         <button 
-          disabled={selectedAction === undefined} 
-          class:disabled={selectedAction === undefined} 
-          on:click={()=>{initAction()}} 
-          class="bg-commit hover:bg-commit-saturate-20 text-white py-1 px-2 mr-1 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+          disabled={selectedConfig === undefined} 
+          class:disabled={selectedConfig === undefined} 
+          on:click={()=>{initConfig()}} 
+          class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 mr-1 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
           >
           Add Action
         </button>

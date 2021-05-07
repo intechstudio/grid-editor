@@ -4,8 +4,8 @@
   import {actionPrefStore} from '../../../stores/app-helper.store.js';
 
   export let index;
-  export let type;
-  export let component;
+  export let groupType;
+  export let componentName;
 
   let showSelectBox = true;
   let ifBlockSize = 0;
@@ -56,7 +56,7 @@
 
 </script>
 
-{#if type == "standard" && !$appMultiSelect.enabled}
+{#if (componentName == 'Locals' || componentName == 'CodeBlock') && !$appMultiSelect.enabled}
   <show-advanced id="show-advanced" on:click={()=>{  actionPrefStore.showAdvanced(index) }} class="flex pl-2 group justify-center  items-center bg-transparent">
     <svg style="padding:0.125rem" class="{$actionPrefStore.advanced.visible && $actionPrefStore.advanced.index == index ? 'bg-select-desaturate-10' : ''} h-6 w-6 pointer-events-none group-hover:bg-select-desaturate-10 group-hover:cursor-pointer rounded-full" viewBox="0 0 8 32" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#ffffff"/>
@@ -64,7 +64,7 @@
       <path d="M8 28C8 30.2091 6.20914 32 4 32C1.79086 32 0 30.2091 0 28C0 25.7909 1.79086 24 4 24C6.20914 24 8 25.7909 8 28Z" fill="#ffffff"/>
     </svg>
   </show-advanced>
-{:else if (type == "standard" && $appMultiSelect.enabled) && showSelectBox}
+{:else if (groupType == "standard" && $appMultiSelect.enabled) && showSelectBox}
   <select-box class="flex pl-2 group justify-center items-center bg-transparent">
     <div 
       on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index]}} 
@@ -72,7 +72,7 @@
         {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
-{:else if (component == 'IF' && $appMultiSelect.enabled) && showSelectBox}
+{:else if (componentName == 'If' && $appMultiSelect.enabled) && showSelectBox}
 <select-box class="flex pl-2 group justify-center items-center bg-transparent">
   <div 
     on:click={()=>{handleMultiSelect()}} 

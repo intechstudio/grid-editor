@@ -2,9 +2,7 @@
   import { GRID_PROTOCOL } from "../../core/classes/GridProtocol";  
   
   import { runtime } from "../runtime/runtime.store";
-  import { luaParser } from "../runtime/_utils";
-
-  export let actions;
+  import _utils, { luaParser } from "../runtime/_utils";
 
   let runtimeScript = '';
   let runtimeParser = '';
@@ -17,7 +15,7 @@
   runtime.subscribe(s => {
     let code = '';
     s.forEach((e,i) => {
-      code += `--[[@${e.code}--]]` + e.script + "\n";  
+      code += `--[[@${e.short}]] ` + e.script + "\n";  
     }); 
     runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     runtimeParser = luaParser(code, {comments: true});

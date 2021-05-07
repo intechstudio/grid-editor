@@ -1,28 +1,40 @@
+<script context="module">
+  // config descriptor parameters
+  export const information = {
+    short: 'glp',
+    groupType: 'standard',
+    desc: 'LED Value',
+    icon: null
+  }
+</script>
+
 <script>
   import {onMount, createEventDispatcher} from 'svelte';
   import AtomicInput from '../app/user-interface/AtomicInput.svelte';
 
-  import { scriptToConfig, configToScript } from '../runtime/_utils.js';
+  import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
 
-  const dispatch = createEventDispatcher();
-
-  export let action;
+  export let config;
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
 
-  let configSegments = [];
+  const dispatch = createEventDispatcher();
 
+  const parameterNames = ['LED Number', 'Layer', 'Intensity'];
 
-  $: if(action.script){
-    configSegments = scriptToConfig({human: action.human, script: action.script})
+  let scriptSegments = [];
+
+  // config.script cannot be undefined
+  $: if(config.script){
+    scriptSegments = _utils.scriptToSegments({human: config.human, short: config.short, script: config.script})
   };
 
   function sendData(e, index){
-    configSegments[index] = e;
+    scriptSegments[index] = e;
     // important to set the function name = human readable for now
-    const script = configToScript({human: action.human, array: configSegments}); 
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
     dispatch('output', script)
   }
 
@@ -57,14 +69,14 @@
 </script>
 
 
-<action-led-phase class="flex w-full p-2">
-  {#each configSegments as script, i}
-    <div class={'w-1/'+configSegments.length + ' atomicInput'}>
-      <div class="text-gray-500 text-sm pb-1">{action.parameterNames[i]}</div>
+<config-led-phase class="flex w-full p-2">
+  {#each scriptSegments as script, i}
+    <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
+      <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
       <AtomicInput {index} inputValue={script} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
     </div>
   {/each}
-</action-led-phase>
+</config-led-phase>
 
 <style>
   .atomicInput{

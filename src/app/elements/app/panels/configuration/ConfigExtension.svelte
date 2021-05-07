@@ -9,26 +9,15 @@
 
   import grid from '../../../protocol/grid-protocol.js';
 
-  import Locals from '../../../configs/Locals.svelte'; 
-  import CodeBlock from '../../../configs/CodeBlock.svelte';
-
-  const dispatch = createEventDispatcher();
-
-  
   let advancedClickAddon;
-
-  const components = {
-    CODEBLOCK: CodeBlock,
-    LOCALS: Locals
-  }
   
   export let index = undefined;
-  export let action = undefined;
+  export let config = undefined;
 
   let topOffset = 0;
 
   function filterDuplicateTypes() {
-    let arr = grid.properties;
+    let arr = grid.properties.LUA;
     console.log(arr);
     // v, i, a = value, index, array
     return arr.filter((v,i,a)=>a.findIndex(t=>(t.type === v.type))===i).map(e => e.type);
@@ -76,7 +65,7 @@
 
   <advanced-config class="relative w-full flex ">
     <container 
-      id="action-menu"
+      id="config-menu"
       use:menuBoundaries
       on:offset-top={(e)=>{topOffset = e.detail;}} 
       style="right: calc(100% + 2rem);top:{-150 + topOffset}px;width:600px;height:600px;position:absolute;" 
@@ -114,7 +103,7 @@
                     
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Arithmetic Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -125,7 +114,7 @@
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Relational Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -136,7 +125,7 @@
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Logical Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $selectedControlElement)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -144,21 +133,21 @@
                 {/if}
 
                 {#if sg == "all" || sg == "grid_function"}
-                  <action-functions class="w-full flex flex-col p-2">
+                  <config-functions class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Functions</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.filter(m => m.type === 'global') as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'global') as syntax}
                         <div  on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black {colorByDesc(syntax.human)}">{syntax.human}</div>
                       {/each}
                     </div>
-                  </action-functions>
+                  </config-functions>
                 {/if}
 
                 {#if sg == "all" || sg == "encoder"}
                   <variables class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Encoder</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.filter(m => m.type === 'encoder') as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'encoder') as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -169,7 +158,7 @@
           </advanced-menu>
 
           <advanced-code class="w-9/12 px-4 overflow-y-scroll">
-            <svelte:component slot="action" this={components[action.component]} {action} advanced={true} {advancedClickAddon} {index} on:output/>  
+            <svelte:component slot="config" this={config.component} {config} advanced={true} {advancedClickAddon} {index} on:output/>  
           </advanced-code>
 
         </div>

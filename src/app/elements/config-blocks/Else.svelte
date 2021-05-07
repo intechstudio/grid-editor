@@ -1,3 +1,12 @@
+<script context="module">
+  // config descriptor parameters
+  export const information = {
+    short: '',
+    groupType: '',
+    desc: ''
+  }
+</script>
+
 <script>
   import { onMount, createEventDispatcher } from 'svelte';
 

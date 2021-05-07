@@ -1,25 +1,37 @@
+<script context="module">
+  // config descriptor parameters
+  export const information = {
+    short: 'gsm',
+    groupType: 'standard',
+    desc: 'MIDI'
+  }
+</script>
+
 <script>
 
   import { onMount, beforeUpdate, afterUpdate, createEventDispatcher } from 'svelte';
   import AtomicInput from '../app/user-interface/AtomicInput.svelte';
 
-  import { scriptToConfig, configToScript } from '../runtime/_utils.js';
+  import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
+
+  export let config = ''
+  export let index;
 
   const dispatch = createEventDispatcher();
 
-  export let action = ''
-  export let index;
+  const parameterNames = ['Channel', 'Command', 'Parameter 1', 'Parameter 2'];
 
-  let configSegments = [];
+  let scriptSegments = [];
 
-  $: if(action.script){
-    configSegments = scriptToConfig({human: action.human, script: action.script});
+  // config.script cannot be undefined
+  $: if(config.script){
+    scriptSegments = _utils.scriptToSegments({human: config.human,short: config.short, script: config.script});
   };
 
   function sendData(e, index){
-    configSegments[index] = e;
-    const script = configToScript({human: action.human, array: configSegments});  // important to set the function name
+    scriptSegments[index] = e;
+    const script = _utils.segmentsToScript({human: config.human,short: config.short, array: scriptSegments});  // important to set the function name
     dispatch('output', script)
   }
   
@@ -569,7 +581,7 @@
   let suggestions = [];
 
   function renderSuggestions(){
-    let selectedCommand = _suggestions[1].find(s => s.value == configSegments[1])?.key || 'control_change_messages';
+    let selectedCommand = _suggestions[1].find(s => s.value == scriptSegments[1])?.key || 'control_change_messages';
     try {
       let param_1 = _suggestions[2][selectedCommand];
       suggestions = [_suggestions[0], _suggestions[1], (param_1 || []), _suggestions[3]];
@@ -578,7 +590,7 @@
       suggestions = _suggestions;
   }}
 
-  $: if(configSegments[1] || $localDefinitions){
+  $: if(scriptSegments[1] || $localDefinitions){
     renderSuggestions();
     suggestions = suggestions.map(s => [...$localDefinitions, ...s])
   }
@@ -589,11 +601,10 @@
 
 </script>
 
-
 <action-midi class="flex w-full p-2">
-  {#each configSegments as script, i}
-    <div class={'w-1/'+configSegments.length + ' atomicInput'}>
-      <div class="text-gray-500 text-sm pb-1">{action.parameterNames[i]}</div>
+  {#each scriptSegments as script, i}
+    <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
+      <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
       <AtomicInput inputValue={script} {index} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
     </div>
   {/each}

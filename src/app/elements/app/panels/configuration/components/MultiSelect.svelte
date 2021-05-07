@@ -5,7 +5,7 @@
 
   let multiSelectToggle = false;
 
-  appMultiSelect.subscribe(chg => console.log('appMultiSelect', chg));
+  //appMultiSelect.subscribe(chg => console.log('appMultiSelect', chg));
 
   let removeClick;
   let copyClick;

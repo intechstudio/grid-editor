@@ -22,7 +22,7 @@ app.allowRendererProcessReuse = false;
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
- watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
+ watcher = require('chokidar').watch(path.join(__dirname, '../public/build/*'), { ignoreInitial: true });
  watcher.on('change', () => {
     mainWindow.reload();
  });

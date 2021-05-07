@@ -2,6 +2,7 @@ import svelte from 'rollup-plugin-svelte';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import css from 'rollup-plugin-css-only';
@@ -16,9 +17,10 @@ export default {
 	input: 'src/svelte.js',
 	output: {
 		sourcemap: true,
-		format: 'iife',
+		format: 'es',
 		name: 'app',
-		file: 'public/bundle.js'
+		dir: 'public/build/',
+		entryFileNames: 'main.js'
 	},
 	plugins: [
 		json(),
@@ -47,7 +49,11 @@ export default {
 			dedupe: importee => importee === 'svelte' || importee.startsWith('svelte/')
 		}),
 
+		// some packages like luaparse needs this (?)
 		commonjs(),
+
+		// need this badboy to import dynamically components
+		dynamicImportVars(),
 
 		// In dev mode, call `npm run start:dev` once
 		// the bundle has been generated

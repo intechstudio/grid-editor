@@ -7,22 +7,23 @@
   import Debug from '../../Debug.svelte';
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
+  import ConfigPicker from './ConfigPicker.svelte';
 
   
 
   import { runtime } from '../../../runtime/runtime.store.js';
-  import { rawLuaScriptToConfigList } from '../../../runtime/_utils.js';
+  import _utils from '../../../runtime/_utils.js';
 
   const grid_raw_actions = `
-  --@locals
+  --[[@l]]
   local x = 1 local y = -12 + elem_num(1 + 2)
-  --@glsp
-  led_value(0,1,2)`
+  --[[@glp]]
+  glp(0,1,2)`
   ;
 
-  let actions = rawLuaScriptToConfigList({script: grid_raw_actions});
-
-  runtime.set(actions);
+  let configs = _utils.rawLuaToConfigList(grid_raw_actions);
+  configs = _utils.configBreakDown(configs);
+  _utils.extendProperties(configs).then(res => {console.log(res); runtime.set(res)});
 
   let selectedConfig = 'uiEvents';
 
@@ -33,6 +34,9 @@
 
 
 </script>
+
+
+
 
 <configuration class="w-full flex flex-col">
 
@@ -60,7 +64,7 @@
 
       <ConfigList/>
 
-      <Debug {actions}/>
+      <Debug/>
 
     </container>
   {/key}

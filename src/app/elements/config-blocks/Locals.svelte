@@ -1,15 +1,23 @@
+<script context="module">
+  export const information = {
+    short: 'l',
+    groupType: 'standard',
+    desc: 'Local Definitions',
+    icon: null
+  }
+</script>
+
 <script>
 
   import { onMount, createEventDispatcher } from 'svelte';
+  import CodeEditor from '../app/user-interface/code-editor/CodeEditor.svelte';
 
-  import { scriptToConfig, configToScript } from '../runtime/_utils.js';
-
-  const dispatch = createEventDispatcher();
-
-  export let action = '';
+  export let config = '';
   export let index;
   export let advanced = false;
   export let advancedClickAddon;
+
+  const dispatch = createEventDispatcher();
 
   const regex = new RegExp(/\blocal\b\s*[a-zA-Z]\s*[=].*[a-zA-Z0-9\-\+\(\)].*/, 'g');
 
@@ -21,13 +29,15 @@
   let scriptSegments = [{variable: '', value: ''}]; 
 
 
-  // incoming data
-  $: if(action.script){
-    scriptSegments = scriptToConfig({script: action.script})
+  // config.script cannot be undefined
+  $: if(config.script){
+    // this works differently from normal _utils...
+    // localsToConfig
+    scriptSegments = localsToConfig({script: config.script, human: config.human})
   }
 
   // DON'T USE $ BINDING! 
-  // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming action reactivity.
+  // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
   function saveChangesOnInput(e, i, k){
     scriptSegments[i][k] = e;
     sendData();
@@ -44,6 +54,20 @@
     return script.join('');
   }
 
+  function localsToConfig({script}){
+    // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
+    const text = script.split('local');
+    let config = [];
+    text.forEach(element => {
+      if(element !== ''){
+        const _split = element.split('=');
+        config.push({variable: _split[0].trim(), value: _split[1].trim()});
+      }
+    });
+    return config;
+  }
+
+
   function addLocalVariable(){
     scriptSegments = [...scriptSegments, {variable: '', value: ''}];
   }
@@ -58,7 +82,7 @@
 </script>
 
 {#if !advanced}
-<action-local-definitions class="flex flex-col w-full p-2">
+<config-local-definitions class="flex flex-col w-full p-2">
   <div class="w-full flex flex-col">
     {#each scriptSegments as script, i (i)}
       <div class="w-full flex local-defs py-2">
@@ -102,7 +126,7 @@
     </div>
   </div>
 
-</action-local-definitions>
+</config-local-definitions>
 {:else}
 <advanced-local-definitions>
   {#each scriptSegments as script, i}

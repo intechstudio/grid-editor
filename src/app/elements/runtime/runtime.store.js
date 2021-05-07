@@ -5,6 +5,10 @@ function createRuntimeStore(){
 
   return {
     ...store,
+    set: (actions) => {
+      let _t = genUniqueIds(actions);
+      store.set(_t);
+    }
   }
 }
 
@@ -16,22 +20,19 @@ export const appMultiSelect = writable({multiselect: false, selection: []});
 
 export const appActionClipboard = writable();
 
+function genUniqueIds(actions){
+
+  let _temp_actions = [];
+  actions.forEach((a,i) => {
+    let _a = Object.assign({}, a); // need to mutate, else it wont be changed.
+    _a.id = i;
+    _temp_actions.push(_a)
+  });
+  return _temp_actions;
+}
 
 function createAppActionManagement(){
   const store = writable();
-
-  function genUniqueIds(actions){
-
-    let _temp_actions = [];
-    actions.forEach((a,i) => {
-      let _a = Object.assign({}, a); // need to mutate, else it wont be changed.
-      _a.id = i;
-      console.log(_a.id);
-      _temp_actions.push(_a)
-    });
-    console.log(_temp_actions);
-    return _temp_actions;
-  }
   
   return {
     ...store,

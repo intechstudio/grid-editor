@@ -1,3 +1,12 @@
+<script context="module">
+  // config descriptor parameters
+  export const information = {
+    short: 'gsk',
+    groupType: 'standard',
+    desc: 'Macro'
+  }
+</script>
+
 <script>
 
   import {afterUpdate, beforeUpdate, createEventDispatcher, onMount} from 'svelte';
@@ -10,6 +19,8 @@
   //import { check_for_matching_value, parameter_parser } from './action-helper';
 
   import * as keyMap from '../../../external/macro/map.json';
+
+
 
   export let action;
   export let index;

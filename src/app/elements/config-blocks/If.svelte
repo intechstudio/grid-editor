@@ -1,11 +1,23 @@
+<script context="module">
+  // config descriptor parameters
+  export const information = {
+    short: 'if',
+    groupType: 'modifier',
+    desc: 'If'
+  }
+</script>
+
+
 <script>
   import { createEventDispatcher } from 'svelte';
   import AtomicInput from '../app/user-interface/AtomicInput.svelte';
 
-  const dispatch = createEventDispatcher();
+
 
   export let action = ''
   export let index;
+
+  const dispatch = createEventDispatcher();
 
   let scriptSegment = ''; // local script part
 
