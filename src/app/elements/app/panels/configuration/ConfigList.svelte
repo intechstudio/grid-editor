@@ -14,7 +14,7 @@
   import { changeOrder } from '../../actions/move.action.js';
 
   import { dropStore, actionIsDragged } from '../../stores/app-helper.store.js';
-  import { runtime } from '../../../runtime/runtime.store.js';
+  import { appActionClipboard, appConfigManagement, runtime } from '../../../runtime/runtime.store.js';
   import _utils from '../../../runtime/_utils';
 
   let configs = [];
@@ -26,84 +26,20 @@
 
   runtime.subscribe(store => {configs = store})
 
-  async function addConfigAtPosition(arg, index){
+  function addConfigAtPosition(arg, index){
     const { config } = arg.detail;
-    
-    initConfigs(config).then(res => {
-      console.log(res);
-      configs = [...configs.slice(0, index), ...res, ...configs.slice(index , configs.length)];
-      configsChanged(configs);
-    });
-  }
-
-  async function initConfigs(config){
-    let configs = _utils.rawLuaToConfigList(config);
-    configs = _utils.configBreakDown(configs);
-    return await _utils.extendProperties(configs)
-  }
-
-  function calcMultiChangeConfigs(drag_target, drop_target){
-    if(isDropZoneAvailable(drop_target)){
-      let grabbed = [];
-      drag_target.forEach(id => {
-        grabbed.push(configs.find((act) => Number(id) === act.id));
-      });
-      const firstElem = configs.indexOf(grabbed[0]);
-      const lastElem = configs.indexOf(grabbed[grabbed.length-1]);
-      let to = Number(drop_target) + 1;
-      // correction for multidrag
-      if(to > firstElem){
-        to = to - drag_target.length;
-      }
-      configs = [...configs.slice(0, firstElem), ...configs.slice(lastElem + 1)];
-      configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-      configsChanged(configs);
-    };
-  }
-
-  function calcSingleChangeConfigs(drag_target, drop_target){
-    const grabbed = configs.find((act) => Number(...drag_target) === act.id);
-    const from  = configs.indexOf(grabbed);
-    let   to    = Number(drop_target);
-    if(to < from){ to = to + 1 };
-    configs = [...configs.slice(0, from), ...configs.slice(from + 1 )];
-    configs = [...configs.slice(0, to), grabbed, ...configs.slice(to)];
-    configsChanged(configs);
-  }
-
-  function isDropZoneAvailable(drop_target){
-    if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-    const target_index = configs.indexOf(drop_target);
-    const found = $dropStore.disabledDropZones.find(index => index == target_index);
-    if(found){
-      return 0;
-    }
-    return 1
+    appConfigManagement.add(index, config);
   }
 
   function handleDrop(e){
  
     if(drop_target !== 'bin'){
-      if(e.detail.multi){
-        calcMultiChangeConfigs(drag_target, drop_target)
-      } else {
-        calcMultiChangeConfigs(drag_target, drop_target)
-
-        //calcSingleChangeConfigs(drag_target, drop_target)
-      }
+      appConfigManagement.reorder(drag_target, drop_target);
     } else {
-      appActionManagement.remove(drag_target);
+      appConfigManagement.remove(drag_target);
     }
 
   }
- 
-  // actions changed
-  function configsChanged(configs){
-    console.log('config changed...', configs)
-    runtime.set(configs);
-    dropStore.disabledDropZones();
-  }
-
 
 </script>
 
@@ -142,7 +78,7 @@
           <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail; config = config; }}/>
           
           {#if !drag_start}
-            <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index)}}/>
+            <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
           {:else}
             <DropZone {index} {drag_target} {drop_target} {animation} {drag_start}/>
           {/if}

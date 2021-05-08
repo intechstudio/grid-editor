@@ -1,5 +1,6 @@
 <script>
 
+  import { get } from 'svelte/store';
   import { appMultiSelect, runtime } from '../../../../runtime/runtime.store.js';
   import { actionPrefStore, configNodeBinding } from '../../../stores/app-helper.store.js';
 
@@ -53,11 +54,21 @@
     }
 
     let height = 0;
-    $appMultiSelect.selection.forEach(selection => {
-      
-    })
+    $appMultiSelect.selection.forEach((selection, i) => {
+      if(selection){
+        //height += Number($configNodeBinding[i].id)
+        //console.log($configNodeBinding[i].id)
+      }
+    });
 
-    console.log($configNodeBinding);
+    const nodes = get(configNodeBinding);
+    console.log(nodes);
+    for (const n in nodes) {
+
+      console.log( nodes[n].clientHeight);
+    }
+
+    
   }
 
   $: console.log($appMultiSelect.selection);

@@ -6,7 +6,7 @@
 
   import { menuBoundaries } from '../../actions/boundaries.action.js';
 
-  import { appActionClipboard, appActionManagement } from '../../../runtime/runtime.store.js';
+  import { appActionClipboard, appConfigManagement } from '../../../runtime/runtime.store.js';
 
   import { config_collection } from '../config-library/built-in-configs.js';
 
@@ -242,7 +242,7 @@
           </div>
           <div class="w-1/2 flex">
             {#if $appActionClipboard}
-              <div class="rounded-full p-2 mr-2 cursor-pointer hover:bg-commit-saturate-20 bg-commit text-white" on:click={()=>{appActionManagement.paste(index)}}>Paste</div>
+              <div class="rounded-full p-2 mr-2 cursor-pointer hover:bg-commit-saturate-20 bg-commit text-white" on:click={()=>{appConfigManagement.paste(index)}}>Paste</div>
             {/if}
           </div>
         </quick-access>

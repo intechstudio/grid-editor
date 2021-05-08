@@ -1,6 +1,6 @@
 <script>
 
-  import { appMultiSelect, appActionManagement } from '../../../../runtime/runtime.store.js';
+  import { appMultiSelect, appConfigManagement } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';
 
   let multiSelectToggle = false;
@@ -12,9 +12,9 @@
 
   function handleClick(e){
     if(e == 'copy'){
-      appActionManagement.copy(); 
+      appConfigManagement.copy(); 
     } else {
-      appActionManagement.remove();
+      appConfigManagement.remove();
     }
   }
 

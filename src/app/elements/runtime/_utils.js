@@ -73,7 +73,7 @@ const _utils = {
         return {
           short: element.short, 
           script: element.script, 
-          id: index, 
+          id: (+new Date + index).toString(36).slice(-8), 
           human: getHumanFunctionName({short: element.short}),
           ...await getComponentInformation({short: element.short})
         }

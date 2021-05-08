@@ -13,12 +13,15 @@
   
 
   runtime.subscribe(s => {
+    console.log(s)
     let code = '';
+    
     s.forEach((e,i) => {
       code += `--[[@${e.short}]] ` + e.script + "\n";  
     }); 
     runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     runtimeParser = luaParser(code, {comments: true});
+    
   })
 
 	function debug(){
