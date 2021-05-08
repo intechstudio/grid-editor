@@ -18,12 +18,12 @@
   --[[@l]]
   local x = 1 local y = -12 + elem_num(1 + 2)
   --[[@glp]]
-  glp(0,1,2)`
+  glp(0,1,2)
+  --[[@cb]]
+  if x == 1 then gsm(1,176,7,this.element[0]) end`
   ;
 
-  let configs = _utils.rawLuaToConfigList(grid_raw_actions);
-  configs = _utils.configBreakDown(configs);
-  _utils.extendProperties(configs).then(res => {console.log(res); runtime.set(res)});
+  _utils.gridLuaToEditorLua(grid_raw_actions).then(config =>{ console.log(config); runtime.set(config)})
 
   let selectedConfig = 'uiEvents';
 

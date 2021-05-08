@@ -16,6 +16,12 @@ const _utils = {
    * @config = --[[@ @short ]] + @script
    */
 
+  gridLuaToEditorLua: async function(fullConfig){
+    let configs = this.rawLuaToConfigList(fullConfig);
+    configs = this.configBreakDown(configs);
+    return await this.extendProperties(configs);
+  },
+
   // make smaller chunks from <?lua ... ?>, huge raw lua
   rawLuaToConfigList: function(rawLua){
 

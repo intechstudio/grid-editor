@@ -42,7 +42,6 @@
     return await _utils.extendProperties(configs)
   }
 
-
   function calcMultiChangeConfigs(drag_target, drop_target){
     if(isDropZoneAvailable(drop_target)){
       let grabbed = [];
@@ -88,7 +87,9 @@
       if(e.detail.multi){
         calcMultiChangeConfigs(drag_target, drop_target)
       } else {
-        calcSingleChangeConfigs(drag_target, drop_target)
+        calcMultiChangeConfigs(drag_target, drop_target)
+
+        //calcSingleChangeConfigs(drag_target, drop_target)
       }
     } else {
       appActionManagement.remove(drag_target);
@@ -135,7 +136,7 @@
         <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {config}>
               <svelte:component slot="config"  this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail; config = config; runtime.set(configs)}}/>  
-              <Options slot="options" {toggle} {index} groupType={config.groupType} componentName={config.component.name} />
+              <Options slot="options" {toggle} {index} groupType={config.information.groupType} componentName={config.component.name} />
           </DynamicWrapper>
 
           <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail; config = config; }}/>

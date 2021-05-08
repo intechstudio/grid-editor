@@ -1,5 +1,5 @@
 <script>
-  import { actionNodeBinding, actionPrefStore } from '../../stores/app-helper.store.js';
+  import { configNodeBinding, actionPrefStore } from '../../stores/app-helper.store.js';
   import { selectedControlElement } from '../../../runtime/runtime.store.js';
 
   import { clickOutside } from '../../actions/click-outside.action.js';

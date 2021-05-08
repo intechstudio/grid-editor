@@ -1,7 +1,7 @@
 <script>
 
   import { appMultiSelect, runtime } from '../../../../runtime/runtime.store.js';
-  import {actionPrefStore} from '../../../stores/app-helper.store.js';
+  import { actionPrefStore, configNodeBinding } from '../../../stores/app-helper.store.js';
 
   export let index;
   export let groupType;
@@ -14,13 +14,13 @@
     showSelectBox = ifBlockCheck($runtime);
   }
 
-  function ifBlockCheck(actions){
+  function ifBlockCheck(configs){
     let notInBlock = true;
     // lookbefore
-    const lookbefore  = actions.slice(0,index).reverse();
+    const lookbefore  = configs.slice(0,index).reverse();
 
-    const if_index  = lookbefore.findIndex(a => a.component == 'IF');
-    const end_index = lookbefore.findIndex(a => a.component == 'END');
+    const if_index  = lookbefore.findIndex(a => a.component.name == 'If');
+    const end_index = lookbefore.findIndex(a => a.component.name == 'End');
 
     if(if_index !== -1 && end_index !== -1){
       if(if_index < end_index){
@@ -44,14 +44,23 @@
 
     const lookafter = $runtime.slice(index);
 
-    const end_index = lookafter.findIndex(a => a.component == 'END');
+    const end_index = lookafter.findIndex(a => a.component.name == 'End');
     
     ifBlockSize = end_index;
 
     for (let i = index; i < index + end_index + 1; i++) {
       $appMultiSelect.selection[i] = !$appMultiSelect.selection[i]
     }
+
+    let height = 0;
+    $appMultiSelect.selection.forEach(selection => {
+      
+    })
+
+    console.log($configNodeBinding);
   }
+
+  $: console.log($appMultiSelect.selection);
 
 
 </script>

@@ -78,7 +78,7 @@ function createAdvancedPrefStore(){
 
 export const focusedCodeEditor = writable();
 
-export const actionNodeBinding = writable([]);
+export const configNodeBinding = writable([]);
 
 export const advancedPrefStore = createAdvancedPrefStore();
 

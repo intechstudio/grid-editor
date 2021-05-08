@@ -1,7 +1,14 @@
 const fs = require('fs');
+const path = require('path');
 const fsPromises = fs.promises;
 
-const folder = './src/app/elements/config-blocks'
+let folder = ''
+
+if(process.env.NODE_ENV == 'production'){
+  folder = path.join(__dirname, '/build/config-blocks')
+} else {
+  folder = './src/app/elements/config-blocks';
+}
 
 async function scanConfigBlockDirectory(){
 
@@ -12,6 +19,7 @@ async function scanConfigBlockDirectory(){
   } catch (err) {
     console.error('Error occured while reading directory!', err);
   }
+  
 }
 
 async function importComponents(files){
@@ -22,9 +30,7 @@ async function importComponents(files){
         return await import(`../config-blocks/${name}.svelte`)
       })
     );
-
     return components;
-
   } catch (err) {
     console.error('Failed to import!', err)
   }
@@ -37,7 +43,6 @@ async function getImports(short){
     .then(components => components.map(c => c = {component: c.default, information: c.information}))
     .then(components => components.find(c => c.information.short == short))
 
-  console.log('component imported...', component)
   return component;
 }
 

@@ -28,7 +28,6 @@
 
   let scriptSegments = [{variable: '', value: ''}]; 
 
-
   // config.script cannot be undefined
   $: if(config.script){
     // this works differently from normal _utils...
@@ -66,7 +65,6 @@
     });
     return config;
   }
-
 
   function addLocalVariable(){
     scriptSegments = [...scriptSegments, {variable: '', value: ''}];

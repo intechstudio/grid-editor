@@ -1,9 +1,9 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: '',
-    groupType: '',
-    desc: ''
+    short: 'end',
+    groupType: 'modifier',
+    desc: 'End'
   }
 </script>
 

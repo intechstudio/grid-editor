@@ -3,7 +3,7 @@
 
   import { fade } from 'svelte/transition';
 
-  import { actionPrefStore, actionNodeBinding } from '../../../stores/app-helper.store.js';
+  import { actionPrefStore, configNodeBinding } from '../../../stores/app-helper.store.js';
   import { appMultiSelect } from '../../../../runtime/runtime.store.js';
 
   export let config = '' //{desc: 'unnamed', groupType: 'standard', id: ''};
@@ -38,7 +38,7 @@
 </script>
 
 
-<wrapper bind:this={$actionNodeBinding[config.id]} id="cfg-{index}" movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } config-component={config.component.name} config-id={config.id} class="block border-none outline-none transition-opacity duration-300">
+<wrapper bind:this={$configNodeBinding[config.id]} id="cfg-{index}" movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } config-component={config.component.name} config-id={config.id} class="block border-none outline-none transition-opacity duration-300">
   <div class="flex relative {drag_start ? 'pointer-events-none' : ''}">
 
     {#if config.information.groupType == 'standard'}

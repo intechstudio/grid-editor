@@ -22,6 +22,7 @@
     "postcss-load-config": "^2.1.2",
     "rollup": "^2.44.0",
     "rollup-plugin-commonjs": "^10.0.0",
+    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-css-only": "^3.1.0",
     "rollup-plugin-livereload": "^1.0.0",
     "rollup-plugin-node-resolve": "^5.2.0",
@@ -64,6 +65,7 @@
     "directories": {
       "output": "dist/"
     },
+    "extraResources": "src/app/elements/config-block/*",
     "dmg": {
       "sign": false
     },
@@ -97,11 +99,12 @@
   },
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true electron-builder --publish onTagOrDraft",
-    "e:builder:local": "cross-env NODE_ENV=development electron-builder --publish never",
+    "e:builder:local": "cross-env NODE_ENV=production electron-builder --publish never",
     "export": "run-s s:build e:builder",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "export:local": "run-s s:build e:builder:local",
-    "s:build": "rollup -c",
+    "s:build": "cross-env NODE_ENV=production rollup -c",
+    "s:build:local": "cross-env NODE_ENV=production rollup -c",
     "dev": "rollup -c -w",
     "start": "sirv public --single",
     "start:dev": "sirv public --single --dev --host 0.0.0.0",
