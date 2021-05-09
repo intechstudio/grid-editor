@@ -13,8 +13,8 @@
 
   import { changeOrder } from '../../actions/move.action.js';
 
-  import { dropStore, actionIsDragged } from '../../stores/app-helper.store.js';
-  import { appActionClipboard, appConfigManagement, runtime } from '../../../runtime/runtime.store.js';
+  import { actionIsDragged } from '../../stores/app-helper.store.js';
+  import { appActionClipboard, appConfigManagement, runtime, dropStore } from '../../../runtime/runtime.store.js';
   import _utils from '../../../runtime/_utils';
 
   let configs = [];
@@ -32,7 +32,7 @@
   }
 
   function handleDrop(e){
- 
+    console.log(drop_target);
     if(drop_target !== 'bin'){
       appConfigManagement.reorder(drag_target, drop_target);
     } else {

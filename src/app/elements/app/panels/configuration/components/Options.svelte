@@ -54,24 +54,21 @@
     }
 
     let height = 0;
+    const nodes = get(configNodeBinding);
+    let nodeArray = [];
+    for (const n in nodes) {
+      nodeArray.push({id: nodes[n].id, height: nodes[n].clientHeight});
+    }
+    nodeArray = nodeArray.sort((a, b) => Number(a.id.substr(4,)) - Number(b.id.substr(4,)))
+
     $appMultiSelect.selection.forEach((selection, i) => {
       if(selection){
-        //height += Number($configNodeBinding[i].id)
-        //console.log($configNodeBinding[i].id)
+        height += nodeArray[i].height;
       }
     });
-
-    const nodes = get(configNodeBinding);
-    console.log(nodes);
-    for (const n in nodes) {
-
-      console.log( nodes[n].clientHeight);
-    }
-
     
   }
 
-  $: console.log($appMultiSelect.selection);
 
 
 </script>

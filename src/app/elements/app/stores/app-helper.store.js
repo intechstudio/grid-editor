@@ -1,4 +1,4 @@
-import {writable, get} from 'svelte/store';
+import { writable, get, derived } from 'svelte/store';
 
 import { runtime } from '../../runtime/runtime.store.js';
 
@@ -11,23 +11,23 @@ function createDropStore(){
   return {
     ...store,
     disabledDropZones: () => {
-      const actions = get(runtime);
+      const configs = get(runtime);
       let disabled_blocks = [];
       let if_block = false;
-      actions.forEach((a,index) => {
-
+      configs.forEach((a,index) => {
+        console.log(a, a.component.name, index)
         // check if it's and if block
-        if(a.component == 'IF'){
+        if(a.component.name == 'If'){
           if_block = true;
         }
 
         // don't add +1 id in the array (end)
-        if(if_block && a.component !== 'END'){
+        if(if_block && a.component.name !== 'End'){
           disabled_blocks.push(index);
         }
         
         // this is the last, as END has to be disabled too!
-        if (a.component == 'END'){
+        if (a.component.name == 'End'){
           if_block = false;
         }
 
@@ -82,10 +82,10 @@ export const configNodeBinding = writable([]);
 
 export const advancedPrefStore = createAdvancedPrefStore();
 
-export const dropStore = createDropStore();
-
 export const actionPrefStore = createActionPrefStore();
 
 export const actionIsDragged = writable(false);
+
+
 
 

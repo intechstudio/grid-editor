@@ -1,5 +1,4 @@
 import { writable, get, derived } from 'svelte/store';
-import { dropStore } from '../app/stores/app-helper.store';
 import _utils from './_utils';
 
 function createRuntimeStore(){
@@ -16,6 +15,21 @@ export const selectedControlElement = writable('encoder');
 
 export const appMultiSelect = writable({multiselect: false, selection: []});
 
+function createAppMultiSelect(){
+  const store = writable({});
+  
+  return {
+    ...store,
+    toggle: (index) => {
+      store.update(s => {
+        s.selection[index].isSelected = ! s.selection[index].isSelected;
+        return s;
+      })
+    }
+  }
+
+}
+
 export const appActionClipboard = writable();
 
 function genUniqueIds(configs){
@@ -31,8 +45,9 @@ function genUniqueIds(configs){
 
 function isDropZoneAvailable(drop_target){
   if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-  const target_index = get(runtime).indexOf(drop_target);
-  const found = get(dropStore).disabledDropZones.find(index => index == target_index);
+  //const target_index = get(runtime)[drop_target];
+  const found = get(dropStore).find(index => index == drop_target);
+  console.log(get(dropStore), drop_target);
   if(found){
     return 0;
   }
@@ -49,9 +64,6 @@ function createAppConfigManagement(){
       _utils.gridLuaToEditorLua(config).then(res => {
         let configs = get(runtime);
         configs.splice(index, 0, ...res);      
-        //configs = genUniqueIds(configs);
-        console.log(configs)
-
         runtime.set(configs);
       })
     },
@@ -112,7 +124,7 @@ function createAppConfigManagement(){
 
       let configs = get(runtime);
       array.forEach(elem => {
-        configs = configs.filter(a => a.id !== Number(elem));
+        configs = configs.filter(a => a.id !== elem);
       });
       configs = genUniqueIds(configs);
       runtime.set(configs);
@@ -139,6 +151,31 @@ export const localDefinitions = derived(runtime, $runtime => {
   });
   return locals;
 })
+
+export const dropStore = derived(runtime, $runtime => {
+  let disabled_blocks = [];
+  let if_block = false;
+  $runtime.forEach((a,index) => {
+    console.log(a, a.component.name, index)
+    // check if it's and if block
+    if(a.component.name == 'If'){
+      if_block = true;
+    }
+
+    // don't add +1 id in the array (end)
+    if(if_block && a.component.name !== 'End'){
+      disabled_blocks.push(index);
+    }
+    
+    // this is the last, as END has to be disabled too!
+    if (a.component.name == 'End'){
+      if_block = false;
+    }
+
+  });
+  return disabled_blocks;
+});
+
 
 
 

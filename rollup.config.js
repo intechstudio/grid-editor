@@ -29,7 +29,7 @@ export default {
 		svelte({
 			preprocess: sveltePreprocess({
 				postcss: true,
-				sourceMap: !production,
+				sourceMap: production,
 			}),
 			compilerOptions: {
 				dev: !production
