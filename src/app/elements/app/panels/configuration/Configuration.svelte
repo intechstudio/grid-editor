@@ -9,8 +9,6 @@
   import ConfigList from './ConfigList.svelte';
   import ConfigPicker from './ConfigPicker.svelte';
 
-  
-
   import { runtime } from '../../../runtime/runtime.store.js';
   import _utils from '../../../runtime/_utils.js';
 
@@ -20,7 +18,7 @@
   --[[@glp]]
   glp(0,1,2)
   --[[@cb]]
-  if x == 1 then gsm(1,176,7,this.element[0]) end`
+  if x == 1 then gms(1,176,7,this.element[0]) end`
   ;
 
   _utils.gridLuaToEditorLua(grid_raw_actions).then(config =>{ console.log(config); runtime.set(config)})
@@ -32,10 +30,7 @@
     $appSettings.configType = selectedConfig;
   }
 
-
 </script>
-
-
 
 
 <configuration class="w-full flex flex-col">

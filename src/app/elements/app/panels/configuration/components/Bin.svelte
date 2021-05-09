@@ -16,7 +16,7 @@
     in:fade={{delay:100, duration: 150}}
     on:mouseenter="{(e)=>{isOverBin = true}}" 
     on:mouseleave="{(e)=>{isOverBin = false}}" 
-    on:mouseup="{(e)=>{}}" id="action-bin" class="px-4 pt-1 pb-2 w-full text-white ">
+    on:mouseup="{(e)=>{}}" id="config-bin" class="px-4 pt-1 pb-2 w-full text-white ">
     <div class="{isOverBin ? 'bg-opacity-100' : 'bg-opacity-50'} transition-all duration-300 pointer-events-none p-2 flex w-full items-center justify-center rounded-lg bg-red-500 ">
       <div>Remove action...</div>
       <svg class="ml-2 w-6 h-6 fill-current text-white" viewBox="0 0 512 512"  xmlns="http://www.w3.org/2000/svg">

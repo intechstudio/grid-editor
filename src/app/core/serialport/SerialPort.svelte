@@ -4,6 +4,8 @@
 
   import { GRID_PROTOCOL } from '../classes/GridProtocol';
 
+  import grid from '../../elements/protocol/grid-protocol.js';
+
   import { sendDataToClient } from '../../debug/tower';
 
   import { localInputStore,hidKeyStatusStore, localInputEventParamStore, bankActiveStore, localConfigReportStore, numberOfModulesStore, globalConfigReportStore } from '../../stores/control-surface-input.store';
@@ -18,8 +20,8 @@
 
   const dispatch = createEventDispatcher();
 
-  let GRID = GRID_PROTOCOL;
-  GRID.initialize();
+  //let GRID = GRID_PROTOCOL;
+  //GRID.initialize();
 
   let PORT = {path: 0};
 
@@ -33,10 +35,10 @@
     setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = runtime.find(g => (Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2)) && !g.virtual);
+      let _removed = runtime.find(g => (Date.now() - g.alive > (grid.properties.HEARTBEAT_INTERVAL*2)) && !g.virtual);
 
       let _processgrid = runtime.map(g => {
-        if(Date.now() - g.alive > (GRID.PROTOCOL.HEARTBEAT_INTERVAL*2) && !g.virtual){
+        if(Date.now() - g.alive > (grid.properties.HEARTBEAT_INTERVAL*2) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
@@ -59,14 +61,14 @@
         
       }
         
-    }, GRID.PROTOCOL.HEARTBEAT_INTERVAL)
+    }, grid.properties.HEARTBEAT_INTERVAL)
 
   }
 
   function discoverPorts(){
     setInterval(() => {
       listSerialPorts();
-    }, GRID.PROTOCOL.HEARTBEAT_INTERVAL )
+    }, grid.properties.HEARTBEAT_INTERVAL )
   }
 
   function listSerialPorts(){
@@ -200,9 +202,8 @@
       array.forEach((element, i) => {
         _array[i] = parseInt('0x'+element);
       });   
-      
-      
-      let DATA = GRID.decode_serial(_array);
+            
+      let DATA = grid.translate.decode(_array);
 
       let d_array = ''
 
@@ -218,7 +219,7 @@
 
         commIndicator.tick('rx');
 
-        RESPONSE = GRID.decode_serial(_array);
+        RESPONSE = grid.translate.decode(_array);
 
         RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
 
@@ -226,23 +227,9 @@
       
       }
 
-      updateGridUsedAndAlive(DATA.CONTROLLER);
+      //console.log('CONTROLLER',DATA.CONTROLLER)
 
-      // global config recall
-      if(DATA.BANKCOLOR.length > 0 || DATA.BANKENABLED.length > 0){
-        globalConfigReportStore.update(store => {
-          store.bankColors = DATA.BANKCOLOR.map(bank => {return [bank.RED, bank.GRE, bank.BLU]});
-          store.bankEnabled = DATA.BANKENABLED.map(bank => {return bank.ISENABLED == 1 ? true : false});
-          store.isVirtual = false;
-          return store;
-        });
-        bankActiveStore.update(store => { 
-          if(store.bankActive == -1){ 
-            store.bankActive = 0 
-          }
-          return store;
-        });
-      }
+      updateGridUsedAndAlive(DATA.CONTROLLER);
 
       // local config recall
       if(DATA.CONFIGURATION){
@@ -343,44 +330,3 @@
   })
     
 </script>
-
-<!--
-<div class="flex items-center not-draggable text-sm">
-
-  <select bind:value={selectedPort} on:blur={()=>updateSelectedPort(selectedPort)} class="bg-secondary flex-grow text-white p-1 mx-2 rounded-none focus:outline-none">
-    {#each $serialComm.list as serial,index}
-      {#if serial.isGrid}
-        <option value={serial.port.path}>{'Grid'}</option> 
-      {/if}
-    {/each}
-  </select>
- 
-  <div class="flex items-center">
-    
-      <button 
-        on:click={openSerialPort} 
-        class="text-white px-2 py-1 mx-2 rounded border-highlight bg-highlight hover:bg-highlight-400 focus:outline-none ">
-        open
-      </button>
-      <button 
-        on:click={closeSerialPort} 
-        class="text-white px-2 py-1 mx-2 rounded border-highlight hover:bg-highlight-400 focus:outline-none ">
-        close
-      </button>
-      {#if PORT.path}
-        <div class="flex mx-2 items-center">
-          <div class="mr-2 rounded-full p-2 w-4 h-4 bg-green-500"></div>
-          <div>Connected: {PORT.path}</div>
-        </div>
-      {:else}
-        <div class="flex mx-2 items-center">
-          <div class="mr-2 rounded-full p-2 w-4 h-4 bg-red-500"></div>
-          <div class="text-red-500">Reconnect Grid!</div>
-        </div>
-      {/if}
-
-    
-  </div>
-
-</div>
--->

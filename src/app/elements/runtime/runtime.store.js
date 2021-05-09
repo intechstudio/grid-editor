@@ -43,15 +43,18 @@ function genUniqueIds(configs){
   return _temp_actions;
 }
 
-function isDropZoneAvailable(drop_target){
-  if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-  //const target_index = get(runtime)[drop_target];
-  const found = get(dropStore).find(index => index == drop_target);
-  console.log(get(dropStore), drop_target);
-  if(found){
-    return 0;
+function isDropZoneAvailable(drop_target, isMultiDrag){
+  if(isMultiDrag){
+    if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
+    const found = get(dropStore).find(index => index == drop_target);
+    if(found){
+      return 0;
+    }
+    return 1;
+  } else {
+    return 1;
   }
-  return 1
+  
 }
 
 function createAppConfigManagement(){
@@ -68,9 +71,9 @@ function createAppConfigManagement(){
       })
     },
 
-    reorder: (drag_target, drop_target) => {
+    reorder: (drag_target, drop_target, isMultiDrag) => {
 
-      if(isDropZoneAvailable(drop_target)){
+      if(isDropZoneAvailable(drop_target, isMultiDrag)){
         let configs = get(runtime);
         let grabbed = [];
         drag_target.forEach(id => {
@@ -87,8 +90,6 @@ function createAppConfigManagement(){
 
         configs = [...configs.slice(0, firstElem), ...configs.slice(lastElem + 1)];
         configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-        //configs = genUniqueIds(configs);
-        console.log(configs);
         runtime.set(configs);
       };
 
@@ -115,7 +116,7 @@ function createAppConfigManagement(){
       const clipboard = get(appActionClipboard);
       let configs = get(runtime);
       configs.splice(index, 0, ...clipboard);      
-      configs = genUniqueIds(configs);
+      //configs = genUniqueIds(configs);
       runtime.set(configs);
 
     },
@@ -123,10 +124,11 @@ function createAppConfigManagement(){
     remove: (array) => {
 
       let configs = get(runtime);
+      console.log('remove...',array);
       array.forEach(elem => {
         configs = configs.filter(a => a.id !== elem);
       });
-      configs = genUniqueIds(configs);
+      //configs = genUniqueIds(configs);
       runtime.set(configs);
 
     }
@@ -156,7 +158,6 @@ export const dropStore = derived(runtime, $runtime => {
   let disabled_blocks = [];
   let if_block = false;
   $runtime.forEach((a,index) => {
-    console.log(a, a.component.name, index)
     // check if it's and if block
     if(a.component.name == 'If'){
       if_block = true;

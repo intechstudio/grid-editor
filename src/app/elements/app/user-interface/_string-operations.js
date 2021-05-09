@@ -1,19 +1,24 @@
-const validator = {
+const stringManipulation = {
  
   initialize: function(inputSet = []){
+    let regex_short = {};
+    let regex_human = {};
 
-    let regex = {};
     let functions = {pattern: [], values: {}};
 
+    // create type fields for different lua parts
     let newarr = [inputSet[0].type];
     for (let i=1; i<inputSet.length; i++) {
       if (inputSet[i].type!=inputSet[i-1].type) newarr.push(inputSet[i].type);
     }
-
+    
+    // make human readable and short regex groups
     newarr.forEach((type , i) => {
-      regex[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
+      regex_short[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'' + v.short}` : `${'\\b' + v.short + '\\b'}`).join('|');
+      regex_human[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
     })
 
+    // function could be used for validation purpose, currently not used.
     inputSet.forEach((obj,i) => {
       if(obj.parameters !== undefined) {
         functions.values[obj.human] = {parameters: obj.parameters}; // here may be added code version? using human readable
@@ -28,9 +33,11 @@ const validator = {
 
     this.VALIDATOR = {
       
-      regex: regex,
-      functions: functions
+      regex_short: regex_short,
+      regex_human: regex_human,
+      //functions: functions
     }
+    console.log(this.VALIDATOR);
   },
 
   checkFn: function(text){
@@ -72,10 +79,10 @@ const validator = {
     return stack.length === 0; //any elements mean brackets left open
   },
 
-  exprSplit: function(text){
+  splitShortScript: function(script){
     let pattern = [];
-    for (const key in this.VALIDATOR.regex) {
-      pattern.push(`${'(?<' + key + '>' + this.VALIDATOR.regex[key] + ')'}`);
+    for (const key in this.VALIDATOR.regex_short) {
+      pattern.push(`${'(?<' + key + '>' + this.VALIDATOR.regex_short[key] + ')'}`);
     }
 
     // split with dev
@@ -90,7 +97,11 @@ const validator = {
     pattern.push(`${'(?<parenthesis>([)()]))'}`)
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
-    // if its dot notation
+    // if its if-then-end
+    pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
+    // if its local
+    pattern.push(`${'(?<local>(\\blocal\\b))'}`)
+    // if its dotnotation
     pattern.push(`${'(?<dotnotation>((\\w+)\.(\\w)+))'}`)
     // if its character which is invalid
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`);
@@ -102,7 +113,7 @@ const validator = {
 
     let m;
     let arr = [];
-    while ((m = regex.exec(text)) !== null) {
+    while ((m = regex.exec(script)) !== null) {
       // This is necessary to avoid infinite loops with zero-width matches
       if (m.index === regex.lastIndex) {
           regex.lastIndex++;
@@ -200,4 +211,4 @@ const validator = {
 
 }
 
-export { validator }
+export default stringManipulation;

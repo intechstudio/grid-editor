@@ -32,9 +32,8 @@
   }
 
   function handleDrop(e){
-    console.log(drop_target);
     if(drop_target !== 'bin'){
-      appConfigManagement.reorder(drag_target, drop_target);
+      appConfigManagement.reorder(drag_target, drop_target, e.detail.multi);
     } else {
       appConfigManagement.remove(drag_target);
     }

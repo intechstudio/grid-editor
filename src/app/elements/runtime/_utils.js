@@ -1,9 +1,14 @@
 // es6 import
 import { getComponentInformation } from '../config-blocks/_configs.js';
 import grid from '../protocol/grid-protocol.js';
+import stringManipulation from '../app/user-interface/_string-operations.js';
 
 // commonjs node require
 const lua = require('luaparse');
+
+// init string converter
+const _convert = stringManipulation;
+_convert.initialize(grid.properties.LUA);
 
 const _utils = {
 
@@ -70,6 +75,10 @@ const _utils = {
     try {
       return Promise.all(configList.map(async (element,index) => {
         // TODO: if undefined find... revert to codeblock!
+
+        // TODO: we convert grid short script names to human names!
+        console.log(_convert.splitShortScript(element.script));
+
         return {
           short: element.short, 
           script: element.script, 
@@ -81,7 +90,6 @@ const _utils = {
     } catch (err) {
       console.error(err);
     }
-      
   },
 
   scriptToSegments: function({script, human, short}){
