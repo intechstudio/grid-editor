@@ -99,10 +99,6 @@ ipcMain.handle('get_uuid', (event,arg) => {
   return store.get('uuid');
 })
 
-// Start the back-end micorservice on localport 3000.
-const polka = require('./polka');
-//const minmaxclose = require('./minmaxclose');
-
 // auto-update features
 
 ipcMain.on('app_version', (event) => {

@@ -5,7 +5,6 @@
 	import { serialComm, serialCommDebug } from '../../core/serialport/serialport.store';
 	import { GRID_PROTOCOL } from '../../core/classes/GridProtocol';
 	import { localInputStore } from '../../stores/control-surface-input.store';
-	import { appSettings } from '../../stores/app-settings.store';
 
 	let input = [];
 	let counter = 0;

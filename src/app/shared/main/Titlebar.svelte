@@ -1,30 +1,10 @@
 <script>
   import { onMount } from 'svelte';
   import MinMaxClose from './MinMaxClose.svelte';
-  import {appSettings} from '../../stores/app-settings.store';
-import { commIndicator } from '../../core/serialport/serialport.store';
-import { messageStore } from '../../stores/message.store';
-
-
-  export let debugMode;
-
-  let tx, rx;
 
   onMount(()=>{
 
-    commIndicator.subscribe(values => {
-      tx = values.tx;
-      rx = values.rx;
-    })
-
   })
-
-  $: {
-    appSettings.update((store)=>{
-      store.debugMode = debugMode;
-      return store;
-    })
-  }
 
 </script>
 

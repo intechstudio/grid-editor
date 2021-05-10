@@ -1,5 +1,4 @@
-import { GRID_PROTOCOL } from '../core/classes/GridProtocol';
-import { serialComm } from '../core/serialport/serialport.store';
+import { serialComm } from '../serialport/serialport.store';
 
 const WebSocket = require('ws');
 
@@ -32,7 +31,6 @@ wss.on('connection', function (ws) {
 
   ws.on('close', function () {
     console.log('Client disconnected!');
-    //clearInterval(id);
   });
 })
 

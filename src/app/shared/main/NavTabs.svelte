@@ -1,6 +1,6 @@
 <script>
 
-  import {appSettings} from '../../stores/app-settings.store'
+  import {appSettings} from '../../main/_stores/app-helper.store.js';
 
   let selectedTab = 'gridConfiguration';
 

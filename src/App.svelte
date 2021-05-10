@@ -1,301 +1,48 @@
 <script>
 
-  import { fade } from 'svelte/transition';
-
-  const fs = require('fs');
   /*
   *   tailwindcss
   */
 
   import Tailwindcss from './Tailwindcss.svelte';
 
-  import createPanZoom from 'panzoom';
-  let map;
-  
-  /*
-  *   top-level stores
-  */
-
-  import { appSettings } from './app/stores/app-settings.store';
-  import { layout } from './app/stores/layout.store.js';
-  import { runtime } from './app/stores/runtime.store.js';
 
   /*
   *   serialport and nodejs
   */
 
-  import SerialPort from './app/core/serialport/SerialPort.svelte'
+  import SerialPort from './app/serialport/SerialPort.svelte';
 
-  /*
-  *   svelte components
+
+  /**
+   *  svelte UI parts and components
   */
 
-  import GlobalSettings from './app/settings/global/GlobalSettings.svelte';
-  import LocalSettings from './app/settings/local/LocalSettings.svelte';
-  import Profiles from './app/profiles/Profiles.svelte';
-  import Debug from './app/shared/debug/Debug.svelte';
-  import Updater from './app/shared/updater/Updater.svelte';
-  import Tour from './app/shared/helpers/Tour.svelte';
-  import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
-  import DragModule from './app/layout/components/DragModule.svelte';
-  import RemoveModule from './app/layout/components/RemoveModule.svelte';
-  import KeyStatus from './app/shared/main/KeyStatus.svelte';
-  import Message from './app/shared/messages/Message.svelte';
-
-  import MODULE from './app/core/grid-modules/MODULE.svelte';
-
-  import NewMidi from './app/settings/local/actions/NewMidi.svelte';
-
-  /*
-  *   layout helper functions
-  */
-
-	import { islanding } from './app/layout/islanding.js';
-  import { handledrag } from './app/layout/handledrag.js';
-  import { LAYOUT } from './app/layout/layout.js';
-
-  /*
-  *   svelte functions
-  */
-  import { onMount } from 'svelte';
-
-  /*
-  *   actions
-  */
-  
-  import { layoutMenu } from './app/layout/actions/layout-menu.action.js';
-  import { dragndrop } from './app/layout/actions/dnd.action.js';
   import Titlebar from './app/shared/main/Titlebar.svelte';
-  import PanInfo from './app/shared/main/PanInfo.svelte';
-  import WebsiteNav from './app/shared/main/WebsiteNav.svelte';
   import NavTabs from './app/shared/main/NavTabs.svelte';
-  import RuntimeSync from './app/runtime/RuntimeSync.svelte';
-
-  import PanelContainer from './app/elements/app/PanelContainer.svelte';
-
-  /*
-  *   variables
-  */ 
-
-  // For rendering the "id=grid-cell-x:x;y:y" layout drop area.
-  let grid_layout = 5;
-
-  // code base versions
-  let fwVersion;
-
-  let raw_serial; // debug purposes
-
-  $: gridsize = $appSettings.size * 106.6 + 10;
-
-
-  // The green highlight around grid for valid drop area.
-  let current = ''; 
-  // Red borders on cell if it's an invalid drag due to dnd-invalid.
-  let invalidDragHighlight = false;
-  // For adding red border in dnd-invalid.
-  let movedCell;
-  // Boolean state for right click context-menu override.
-  let isMenuOpen = false;
-  // Variable for context menu actions (set usb module).
-  let menuOnModuleWithId;
-
-  onMount(()=>{
-
-    //gridSyncProcess.subscribe(()=>{})
-
-    createPanZoom(map, {
-      bounds: true,
-      boundsPadding: 0.1,
-      zoomDoubleClickSpeed: 1,  //disable double click zoom
-      smoothScroll: false, // disable the smoothing effect
-      beforeMouseDown: function(e) {
-        // allow mouse-down panning only if altKey is down. Otherwise - ignore
-        var shouldIgnore = !e.altKey;
-        return shouldIgnore;
-      },
-      beforeWheel: function(e) {
-        // ignore wheel zoom
-        var shouldIgnore = true //!e.altKey;
-        return shouldIgnore;
-      }
-      
-    });
-
-
-    appSettings.subscribe((store)=>{
-      fwVersion = store.version;
-      if(store.layoutMode){
-        console.log(store.layoutMode)
-        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
-      } else {
-        $layout = LAYOUT.removePossiblePlacementOutlines($layout)
-      }
-    });
-       
-    appSettings.update(store => {
-      store.selectedDisplay = 'settings';
-      return store;
-    })
-    
-  });
+  import PanelContainer from './app/main/PanelContainer.svelte';
+  import GridLayout from './app/main/grid-layout/GridLayout.svelte';
 
 
 </script>
 
 <Tailwindcss />
 
-{#if $appSettings.isElectron}
- <Updater/>
-{/if}
+<Titlebar/>
 
-{#if !$appSettings.isElectron}
-  <WebsiteNav/>
-  <Tour/>
-{/if}
+<SerialPort/>
 
-{#if $appSettings.isElectron}
-
-  <Titlebar/>
- 
-  <SerialPort 
-    bind:runtime={$runtime}
-    bind:layout={$layout}
-    on:change={(e) => {
-      console.log($runtime);
-      $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout)
-    }}
-    on:coroner={(e)=>{
-        runtime.update(grid => {
-          grid = e.detail.usedgrid;
-          return grid;
-        })
-        layout.update(cell => {
-          let removed = cell.find(c => c.id == e.detail.removed.id)
-          removed.id = "";
-          removed.isConnectedByUsb = false;
-          return cell; 
-        });
-        $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, e.detail.removed);
-      }
-    }
-  />
- 
-{/if}
 
 <main id="app" class="relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
-  <NavTabs/>
-
-  <RuntimeSync/>
-    
-  <!--
-  {#if $appSettings.isElectron} 
-    <FirmwareCheck />
-  {/if}
--->
-
-  <!-- Info on pan. -->
-  
+  <NavTabs/> 
   
   <!-- This is the (mostly) Layout part of the code. -->
+  <GridLayout/>
 
-  
-  
-  <!-- Show selected tab on the right side of the app. -->
-
-  <layout-container class="relative flex items-start justify-end w-3/5 h-full">
-    {#if $runtime.length > 0}<PanInfo os={$appSettings.os}/>{/if}
-    <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
-
-      use:dragndrop={true} 
-
-      on:dnd-dragstart={(e)=>{
-        let moved = handledrag.start(e);
-        if($runtime.length == 0 ){
-          current = 'dx:0;dy:0';
-        }
-        if(moved !== '' || undefined){
-          $layout = LAYOUT.removeSurroundingPlacementOutlines($layout, moved);   
-        }
-      }}
-
-      on:dnd-dragover={(e)=>{
-        current = handledrag.over(e);
-      }}
-
-      on:dnd-drop={(e)=>{
-        // here we get back the dropped module id and drop target
-        let data = handledrag.drop(e);
-        LAYOUT.addToRuntime($runtime, data.modul, data.id, true);
-      }}
-
-      on:dnd-remove={(e)=>{
-        let data = handledrag.remove(e)
-        // remove ?? 
-        $runtime = $runtime.filter(gridController => gridController.id !== data.modul);
-        layout.update(cell => {
-          cell = cell.map( _cell =>{
-            if(_cell.id == data.modul){
-              _cell.id = "";
-              _cell.isConnectedByUsb = false;
-            }
-            return _cell;
-          });
-          return cell;
-        });
-      }}
-
-      on:dnd-invalid={(e)=>{
-        let data = handledrag.invalid(e);
-        if(data !== undefined){ 
-          invalidDragHighlight = data.centerDragHighlight;
-          movedCell = data.movedCell;
-          setTimeout(()=>{invalidDragHighlight = false},500)
-        }  
-      }}
-
-      on:dnd-dragend={(e)=>{
-        const dragend = handledrag.end(e); 
-        current = dragend.current;
-        $layout = LAYOUT.drawPossiblePlacementOutlines($runtime, grid_layout);
-        console.log($layout, $runtime)
-      }}
-      > 
-
-      <div id="grid-map" bind:this={map} style="top:0%; left:0%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10"
-        use:layoutMenu={$appSettings.layoutMode}
-        on:menu-open={(e)=>{isMenuOpen = true; menuOnModuleWithId = e.detail.target}}
-        on:menu-close={()=>{isMenuOpen = false}}
-        >
-
-        {#each $layout as cell}
-          <div 
-          id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
-          style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
-          class="cell"
-          class:freeToDrop={current == 'dx:'+cell.dx+';dy:'+cell.dy}
-          class:canBeUsed={cell.canBeUsed && $appSettings.layoutMode}
-          class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
-          class:restricted-action={invalidDragHighlight && (movedCell.dx === cell.dx) && (movedCell.dy === cell.dy)}
-          >
-
-          <MODULE type={cell.id.substr(0,4)} id={cell.id} rotation={cell.rot} />
-
-
-          </div>
-        {/each}    
-      </div>
-      {#if $appSettings.layoutMode}
-        <div in:fade><RemoveModule/></div>
-        
-      {/if}
-
-    </grid-layout>  
-  </layout-container>
-
+  <!-- The right side panel container -->
   <PanelContainer/>
-
 
 </main>
 
