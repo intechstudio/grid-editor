@@ -376,7 +376,6 @@ const grid = {
             DATA.HEARTBEAT = decode_by_code(array, obj.class);
             let moduleType = moduleLookup(DATA.HEARTBEAT.HWCFG);
             DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
-            console.log(DATA.BRC, DATA.HEARTBEAT, moduleType);
           }
 
           if(obj.class == "CONFIGURATION"){   
