@@ -2,10 +2,9 @@ const colors = require('tailwindcss/colors')
 
 module.exports = {
   purge: {
-    enabled: !process.env.ROLLUP_WATCH,
+    enabled:  false, //!process.env.ROLLUP_WATCH,
     mode: 'all',
     content: ['./**/**/*.html', './**/**/*.svelte'],
-
     options: {
       whitelistPatterns: [/svelte-/],
       defaultExtractor: (content) =>

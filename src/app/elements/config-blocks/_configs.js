@@ -1,19 +1,12 @@
+require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
 const fsPromises = fs.promises;
 
-let folder = ''
-
-if(process.env.NODE_ENV == 'production'){
-  folder = path.join(__dirname, '/build/config-blocks')
-} else {
-  folder = './src/app/elements/config-blocks';
-}
-
 async function scanConfigBlockDirectory(){
 
   try {
-    let files = fsPromises.readdir(folder);
+    let files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
     files = (await files).filter(f => f !== '_configs.js');
     return files;
   } catch (err) {

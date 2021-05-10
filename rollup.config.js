@@ -3,7 +3,6 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
-import postcss from 'rollup-plugin-postcss'
 import copy from 'rollup-plugin-copy'
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
@@ -30,7 +29,7 @@ export default {
 		svelte({
 			preprocess: sveltePreprocess({
 				postcss: true,
-				sourceMap: production,
+				sourceMap: true,
 			}),
 			compilerOptions: {
 				dev: !production
