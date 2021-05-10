@@ -373,12 +373,10 @@ const grid = {
             DATA.EVENT = decode_by_code(array, obj.class);
           }
           if(obj.class == "HEARTBEAT"){
-            //console.log('hb',obj.class, array);
             DATA.HEARTBEAT = decode_by_code(array, obj.class);
             let moduleType = moduleLookup(DATA.HEARTBEAT.HWCFG);
-            console.log(moduleType)
             DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
-            console.log('CTRL', DATA.CONTROLLER);
+            console.log(DATA.BRC, DATA.HEARTBEAT, moduleType);
           }
 
           if(obj.class == "CONFIGURATION"){   
@@ -578,7 +576,7 @@ const grid = {
           global: {  
             bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
             bankEnabled: [true,true,true,true],
-            cfgStatus: virtual ? 'not_expected' : 'expected'
+            cfgStatus: virtual ? 'not_expected' : 'ok'
           }
         }
         

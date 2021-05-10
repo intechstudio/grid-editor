@@ -62,12 +62,12 @@
 
 <style>
 
-  tab:first-child{
+/*  tab:first-child{
     @apply mt-2;
   }
 
   tab:last-child{
     @apply mb-2
   }
-
+*/
   </style>

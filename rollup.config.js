@@ -3,6 +3,7 @@ import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
+import postcss from 'rollup-plugin-postcss'
 import copy from 'rollup-plugin-copy'
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
@@ -17,7 +18,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
 	input: 'src/svelte.js',
 	output: {
-		sourcemap: true,
+		sourcemap: production,
 		format: 'es',
 		name: 'app',
 		dir: 'public/build/',
@@ -65,7 +66,7 @@ export default {
 		!production && livereload('public'),
 
 		// If building for production copy config svelte files to public
-		production && copy({
+		copy({
 			targets:[
 				{ src: './src/app/elements/config-blocks/*', dest: 'public/build/config-blocks'}
 			]
