@@ -6,13 +6,14 @@
 
   export let index;
   export let groupType;
+  export let configs;
   export let componentName;
 
   let showSelectBox = true;
   let ifBlockSize = 0;
 
-  $: if($runtime){
-    showSelectBox = ifBlockCheck($runtime);
+  $: if(configs.length){
+    showSelectBox = ifBlockCheck(configs);
   }
 
   function ifBlockCheck(configs){

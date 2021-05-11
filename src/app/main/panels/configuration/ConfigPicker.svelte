@@ -6,7 +6,7 @@
 
   import { menuBoundaries } from '../../_actions/boundaries.action.js';
 
-  import { appActionClipboard, appConfigManagement } from '../../../runtime/runtime.store.js';
+  import { appActionClipboard } from '../../../runtime/runtime.store.js';
 
   import { config_collection } from '../config-library/built-in-configs.js';
 

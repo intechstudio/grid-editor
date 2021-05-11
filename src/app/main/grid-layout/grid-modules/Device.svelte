@@ -11,7 +11,7 @@
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
 
   import { appSettings } from '../../../main/_stores/app-helper.store.js';
-  import { runtime, derivedLocalInputStore } from '../../../runtime/runtime.store.js';
+  import { runtime, localInputStore } from '../../../runtime/runtime.store.js';
 
 
   const components = [
@@ -28,7 +28,7 @@
   let selected;
   let color;
   let bankColors;
-  let bankActive;
+  let bankActive = 0; // future page!
   let selectedElement;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
@@ -41,9 +41,7 @@
 
   onMount(()=>{
 
-    bankActiveStore.subscribe(store => {
-      bankActive = store.bankActive;
-    })
+
 
     runtime.subscribe(store => {
       if(store.length !== 0){
@@ -51,7 +49,7 @@
       }
     })
 
-    derivedLocalInputStore.subscribe(store => {
+    localInputStore.subscribe(store => {
       selectedElement = store;
     })
     
@@ -63,7 +61,7 @@
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement}>
 
     {#if $appSettings.overlays.controlName}
-      <ControlNameOverlay {id} {moduleWidth} {bankActive} {rotation}/>
+      <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation}/>
     {/if}
 
     <!--    

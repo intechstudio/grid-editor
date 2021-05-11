@@ -1,7 +1,7 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'gsm',
+    short: 'gms',
     groupType: 'standard',
     desc: 'MIDI'
   }
@@ -31,8 +31,9 @@
 
   function sendData(e, index){
     scriptSegments[index] = e;
-    const script = _utils.segmentsToScript({human: config.human,short: config.short, array: scriptSegments});  // important to set the function name
-    dispatch('output', script)
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
+    console.log(script);
+    dispatch('output', {short: config.short, script: script})
   }
   
 

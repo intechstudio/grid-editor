@@ -12,7 +12,7 @@
   import Button from '../elements/Button.svelte';
 
   export let id = 'PBF4';
-  export let selectedElement = {};
+  export let selectedElement = {id: '', brc: {}, event: {}};
   export let rotation = 0;
   export let moduleWidth;
   export let color;
@@ -23,8 +23,8 @@
 
   function handleEventParamChange(static_elementNumber, input_elementNumber){
     if(static_elementNumber == input_elementNumber){
-      if(dx == selectedElement.dx && dy == selectedElement.dy){
-        return selectedElement.eventParam;
+      if(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy){
+        return selectedElement.event.eventParam;
       }
     }
   }
@@ -55,15 +55,15 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
       {#each [0,1,2,3] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber}
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Potentiometer 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
             on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
             {elementNumber} 
             size={$appSettings.size}/>
@@ -74,15 +74,15 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
       {#each [4,5,6,7] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber} 
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber} 
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Fader 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
             on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
@@ -94,10 +94,10 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       {#each [8,9,10,11] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == elementNumber}
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>

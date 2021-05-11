@@ -6,22 +6,24 @@
   let runtimeScript = '';
   let runtimeParser = '';
 
+  export let configs = {lua: []};
+
   
   let brc = [0,0,0,0];
   let [command_1, command_2] = ['', ''];
   
 
-  runtime.subscribe(s => {
-    console.log(s)
+ $: if(configs){
+    //console.log(s)
     let code = '';
     
-    s.forEach((e,i) => {
+    configs.forEach((e,i) => {
       code += `--[[@${e.short}]] ` + e.script + "\n";  
     }); 
     runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     runtimeParser = luaParser(code, {comments: true});
     
-  })
+  }
 
 	function debug(){
     let data = GRID_PROTOCOL.encode_debugger(brc, command_1+runtimeScript+command_2);

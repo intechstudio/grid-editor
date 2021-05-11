@@ -18,6 +18,7 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
+  import rt from '../runtime/_rt.js';
 
   const dispatch = createEventDispatcher();
 
@@ -190,7 +191,6 @@
             
       let DATA = grid.translate.decode(_array);
 
-
       let d_array = ''
 
       _array.forEach((element, i) => {
@@ -202,44 +202,34 @@
 
       // filter heartbeat messages
       if(!(d_array.slice(30).startsWith('010') && d_array.length == 48) ){
-
         RESPONSE = grid.translate.decode(_array);
-
-        //RESPONSE.COMMAND ? makeThisUsable(RESPONSE) : null;
-
-        //RESPONSE.COMMAND ? commands.response(RESPONSE) : null;
-      
       }
-
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
-
-      // local config recall
-      if(DATA.CONFIGURATION){
-        localConfigReportStore.update(store => { 
-          store.frame = DATA.CONFIGURATION; 
-          store.cfgs = DATA.CONFIGURATION_CFGS;
-          store.brc = DATA.BRC;
-          return store;
-        });
-      }
 
       // local input update (user interaction)
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
           //console.log($localInputStore.eventParam, DATA.EVENT)
-          if($localInputStore.elementNumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.eventType !== DATA.EVENT.EVENTTYPE ){
+          if($localInputStore.event.elementnumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.event.eventtype !== DATA.EVENT.EVENTTYPE ) {
           // now not using due to changed protocol
             localInputStore.update((store)=>{
-              store.dx = DATA.BRC.DX;
-              store.dy = DATA.BRC.DY;
-              store.elementNumber = DATA.EVENT.ELEMENTNUMBER;   
-              store.eventType = DATA.EVENT.EVENTTYPE;
+              store.brc.dx = DATA.BRC.DX;
+              store.brc.dy = DATA.BRC.DY;
+              store.brc.rot = DATA.BRC.ROT
+              store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
+              store.event.eventtype = DATA.EVENT.EVENTTYPE;
+              store.event.pagenumber = DATA.EVENT.PAGENUMBER || 0;
               return store;
             });
           }
         }
+      }
+
+      // lua config received, save to runtime
+      if(DATA.CONFIG){
+        rt.update({lua: DATA.CONFIG});
       }
 
       if(DATA.HIDKEYSTATUS){
@@ -284,7 +274,7 @@
       }
 
       runtime.set(_runtime);
-      
+
     }
   }
 

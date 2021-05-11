@@ -1,6 +1,6 @@
 <script>
 
-  import { appMultiSelect, appConfigManagement } from '../../../../runtime/runtime.store.js';
+  import { appMultiSelect } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';
 
   let multiSelectToggle = false;

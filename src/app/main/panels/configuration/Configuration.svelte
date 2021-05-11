@@ -8,8 +8,12 @@
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
-  import { runtime } from '../../../runtime/runtime.store.js';
+  import { runtime, localInputStore, activeConfiguration } from '../../../runtime/runtime.store.js';
+
+  import { dropStore } from '../../../runtime/config-manager.store.js';
+
   import _utils from '../../../runtime/_utils.js';
+  import { onMount } from 'svelte';
 
   const grid_raw_actions = `
   --[[@l]]
@@ -24,13 +28,24 @@
 
   let selectedConfig = 'uiEvents';
 
+  let configs = [];
+
   function changeSelectedConfig(arg){
     selectedConfig = arg;
     $appSettings.configType = selectedConfig;
   }
 
-</script>
+  activeConfiguration.subscribe(cfg => {
+    if(cfg.length > 0){
+      _utils.gridLuaToEditorLua(cfg).then(res => { 
+        configs = res;
+        dropStore.update(res);
+      })
+    }
+  });
 
+
+</script>
 
 <configuration class="w-full flex flex-col">
 
@@ -56,9 +71,9 @@
 
       <ConfigParameters/>
 
-      <ConfigList/>
+      <ConfigList {configs}/>
 
-      <Debug/>
+      <Debug {configs}/>
 
     </container>
   {/key}

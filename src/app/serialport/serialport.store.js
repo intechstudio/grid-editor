@@ -36,8 +36,6 @@ function createSerialComm(){
           port.write([...args, 10]);
         else
           port.write(args+'\n');
-
-        commIndicator.tick('tx');
       }
       return;
     },

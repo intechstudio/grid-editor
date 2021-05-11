@@ -43,7 +43,7 @@
   }
 
   function sendData(){
-    dispatch('output', localArrayToScript(scriptSegments))
+    dispatch('output', {short: 'l', script: localArrayToScript(scriptSegments)})
   }
 
   function localArrayToScript(arr){

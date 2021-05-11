@@ -2,6 +2,8 @@ import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_
 import { editor_lua_properties } from './editor-properties.js';
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_nightly.json';
 
+let global_id = 0;
+
 const utility_genId  = () => {
   if((global_id / 255) == 1){
     global_id = 0;
@@ -16,6 +18,15 @@ const moduleLookup = (hwcfg) => {
     if(HWCFG[key] == hwcfg)
       return type = key;
   }
+}
+
+const param2lower = (parameters) => {
+  let obj = {}
+  for (const key in parameters) {
+    const _key = key.toLowerCase();
+    obj[_key] = parameters[key]
+  }
+  return obj;
 }
 
 const get_module_info = (MODULE_INFO) => {
@@ -40,42 +51,33 @@ const get_module_info = (MODULE_INFO) => {
   return {ROT, DX, DY};
 }
 
-// Template Parameter Event Assignment table.
-const TPEA = { 
-  down: {
-    desc: 'down',
-    value: '4',
-    code: 'DP'
-  },
-  up: {
-    desc: 'up',
-    value: '5',
-    code: 'DR'
-  },
-  rotation: {
-    // same as slide, just it's easier to read
-    desc: 'rotation',
-    value: '1',
-    code: 'AVC7'
-  },
-  slide: {
-    // same as rotation, just it's easier to read
-    desc: 'slide',
-    value: '1',
-    code: 'AVC7'
-  },
-  push_rot: {
-    desc: 'push rot',
-    value: '13',
-    code: 'ENCPUSHROT'
-  },
+// Control Element Event Assignment Table.
+const CEEAT = { 
   init: {
-    desc: 'bank init',
+    desc: 'init',
     value: '0',
-    code: 'INIT'
-  }
-}
+    key: 'INIT'
+  },
+  
+  potmeter: {
+    desc: 'potmeter',
+    value: '1',
+    key: 'AC'
+  },
 
+  encoder: {
+    desc: 'encoder',
+    value: '2',
+    key: 'EC'
+  },
+
+  button: {
+    desc: 'bank init',
+    value: '3',
+    key: 'BC'
+  },
+
+}
 
 const grid = {
   
@@ -85,6 +87,7 @@ const grid = {
     let CONST = {};
     let INSTR = {};
     let CLASSES = {};
+    let EVENTS = {};
     let LUA = {};
     let BRC = {};  
     let VERSION = {};
@@ -117,7 +120,7 @@ const grid = {
           let paramName = key.slice(11);
           let dec = parseInt(grid_protocol[key], 16); 
           CONST[paramName] = dec;
-        } 
+        }       
 
         // GRID TEMPLATE PARAMETERS
         if(key.startsWith('GRID_PARAMETER_TEMPLATEINDEX_')){
@@ -129,14 +132,21 @@ const grid = {
         if(key.startsWith('GRID_PROTOCOL_VERSION_')){
           const param = key.substr('GRID_PROTOCOL_VERSION_'.length);
           VERSION[param] = +grid_protocol[key];
-        }
+        }       
 
+        // GRID BRC
         if(key.startsWith('GRID_BRC_')){
           let paramSet = key.split('_');
           let value = grid_protocol[key];
           if(paramSet[paramSet.length-1] !== "frame"){
             createNestedObject( BRC, paramSet.slice(2,), value )
           }
+        }
+
+        // GRID EVENT TYPES
+        if(key.startsWith('GRID_EVENT')){
+          let paramSet = key.split('_');
+          EVENTS[paramSet[2]] = grid_protocol[key];
         }
 
         // GRID LUA PROPERTIES
@@ -146,7 +156,7 @@ const grid = {
           createNestedObject( LUA, paramSet.slice(3,), value )
         }
 
-        // LEGACY GRID CLASS CONSTRUCTION
+        // GRID CLASSES
         if(key.startsWith('GRID_CLASS_')){
           let paramSet = key.split('_');
           let value = grid_protocol[key];
@@ -162,6 +172,7 @@ const grid = {
       LUA: extendLua(LUA),
       CLASSES: CLASSES, 
       HWCFG: HWCFG, 
+      EVENTS: EVENTS,
       CONST: CONST,
       INSTR: INSTR,
       VERSION: VERSION,
@@ -179,7 +190,7 @@ const grid = {
   }()),
 
   translate: {
-    encode: function (MODULE_INFO, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
+    encode: function (HEADER, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
 
       function encode_class_parameters(PARAMETERS, INFO){
         let _parameters = [];
@@ -187,10 +198,16 @@ const grid = {
           PARAMETERS.forEach(CLASS => {     
             for (const key in CLASS) {
               let param = [];
-              let p = CLASS[key].toString(16).padStart(INFO[key].length,'0');
-              for (let i = 0; i < INFO[key].length; i++) {
-                param[i] = p.charCodeAt(i)            
-              }
+              if(key == 'ACTIONSTRING'){
+                for (let index = 0; index < CLASS[key].length; index++) {
+                  param[index] = CLASS[key].charCodeAt(index);
+                }
+              } else {
+                let p = CLASS[key].toString(16).padStart(INFO[key].length,'0');
+                for (let i = 0; i < INFO[key].length; i++) {
+                  param[i] = p.charCodeAt(i)            
+                }
+              } 
               _parameters = [..._parameters, ...param];
             }
           })
@@ -198,7 +215,7 @@ const grid = {
         return _parameters;
       }
 
-      const BRC = get_module_info(MODULE_INFO);
+      const BRC = get_module_info(HEADER);
   
       const PROTOCOL = grid.properties;
   
@@ -214,22 +231,16 @@ const grid = {
   
       BRC_PARAMETERS = encode_class_parameters(BRC_PARAMETERS, PROTOCOL['BRC']);
   
-      let command = '';
-  
-      if(SERIALIZED !== ''){
-  
-        command = SERIALIZED;
-  
-      } else {
-        let CLASS = PROTOCOL.CLASSES[CLASS_NAME].toString(16).padStart(3,'0');
-        command = [
-          PROTOCOL.CONST.STX,
-          ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
-          PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
-          ...encode_class_parameters(PARAMETERS, PROTOCOL[CLASS_NAME]),
-          PROTOCOL.CONST.ETX
-        ]
-      }  
+      let command = '';  
+      
+      let CLASS = PROTOCOL.CLASSES[CLASS_NAME].code.slice(2,)
+      command = [
+        PROTOCOL.CONST.STX,
+        ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
+        PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
+        ...encode_class_parameters(PARAMETERS, PROTOCOL.CLASSES[CLASS_NAME]),
+        PROTOCOL.CONST.ETX
+      ]
        
       const append = [
         PROTOCOL.CONST.EOB,
@@ -358,6 +369,27 @@ const grid = {
         
       }
 
+      function detect_class_codes(array){
+        //console.log(array);
+        let _decoded = [];
+        let id = '';
+        array.forEach((elem, index)=>{
+          if(elem == 130){
+            id = "" + index + "";
+            _decoded = build_decoder('config',_decoded, id, array, index);
+          }
+    
+          if(elem == 131){
+            let obj = _decoded.find(o => o.id == id);
+            if(obj !== undefined){
+              obj.length = index - obj.offset;
+            }
+          }
+        })
+    
+        return _decoded;
+      }
+
       function decode_by_class(serialData, decoded){
 
         let DATA = {};
@@ -365,42 +397,21 @@ const grid = {
         DATA.BRC = decode_by_code(serialData, 'BRC');
     
         decoded.forEach((obj)=>{
-          //console.log('OBJ',obj);
+
           let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
-    
-          // special processing
           if(obj.class == "EVENT"){
             DATA.EVENT = decode_by_code(array, obj.class);
           }
+
           if(obj.class == "HEARTBEAT"){
             DATA.HEARTBEAT = decode_by_code(array, obj.class);
             let moduleType = moduleLookup(DATA.HEARTBEAT.HWCFG);
             DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
           }
 
-          if(obj.class == "CONFIGURATION"){   
-          // THIS IS NOW REWORKED
+          if(obj.class == "CONFIG"){ 
+            DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
           }    
-    
-          // commands
-          if(obj.class == "LOCALSTORE"){
-            DATA.COMMAND = { 'LOCALSTORE': obj.instr }
-          }
-          if(obj.class == "LOCALRECALL"){
-            DATA.COMMAND = { 'LOCALRECALL': obj.instr }
-          }
-          if(obj.class == "LOCALCLEAR"){
-            DATA.COMMAND = { 'LOCALCLEAR': obj.instr }
-          }
-          if(obj.class == "GLOBALSTORE"){
-            DATA.COMMAND = { 'GLOBALSTORE': obj.instr }
-          }
-          if(obj.class == "GLOBALRECALL"){
-            DATA.COMMAND = { 'GLOBALRECALL': obj.instr }
-          }
-          if(obj.class == "GLOBALCLEAR"){
-            DATA.COMMAND = { 'GLOBALCLEAR': obj.instr }
-          }
     
         });
     
@@ -434,11 +445,11 @@ const grid = {
   device: {
 
     elementEvents: {
-      button: [ TPEA.init, TPEA.down, TPEA.up ],
-      potentiometer: [ TPEA.init, TPEA.rotation ],
-      fader: [ TPEA.init, TPEA.slide ],
+      button: [ CEEAT.init, CEEAT.button ],
+      potentiometer: [ CEEAT.init, CEEAT.potmeter ],
+      fader: [ CEEAT.init, CEEAT.potmeter ],
       blank: [],
-      encoder: [ TPEA.init, TPEA.down, TPEA.up, TPEA.rotation, TPEA.push_rot ]
+      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder]
     },
   
     moduleElements: {
@@ -470,50 +481,35 @@ const grid = {
 
     make: function(header, version, moduleType, virtual){
 
-      const param2lower = (parameters) => {
-        let obj = {}
-        for (const key in parameters) {
-          const _key = key.toLowerCase();
-          obj[_key] = parameters[key]
-        }
-        return obj;
-      }
-
-      function createElementSettings(moduleType, virtual){
+      function createElementSettings(moduleType, elementEvents, moduleElements){
 
         moduleType = moduleType.substr(0,4);
     
-        let banks = [];
+        let pages = [];
     
-        //banks
-        for (let b = 0; b < 4; b++) {  
+        //pages
+        for (let p = 0; p < 1; p++) {  
     
           let control_elements = [];
     
           // control elements
           for (let i = 0; i < 16; i++) {
             let events = [];
-            let obj = {
-              controlElementType: this.moduleElements[moduleType][i],
-              controlElementName: '',
-            }
-            // events
-            for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
+            for (let j=0; j < elementEvents[moduleElements[moduleType][i]].length; j++) {
               events.push({        
-                event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
-                // actions // low level config string
+                event: elementEvents[moduleElements[moduleType][i]][j], 
                 config: [],
-                cfgStatus: (virtual || obj.controlElementType == "blank") ? 'not_expected' : 'expected'
+                cfgStatus: 'not specified'
               })
             }
-            control_elements[i] = {events: events, ...obj, };
+            control_elements[i] = {events: events, controlElementType: moduleElements[moduleType][i], };
           }
     
-          banks[b] = control_elements;
+          pages[p] = control_elements;
     
         }
     
-        return banks;
+        return pages;
         
       }
 
@@ -538,13 +534,12 @@ const grid = {
         rot: "",
         isConnectedByUsb: "",
         isLanding: "",
-        banks: [], // consider naming to "local"
+        pages: [], // consider naming to "local"
         global: {}
       }
 
-  
       // generic check, code below if works only if all parameters are provided
-      if(header !== undefined && version !== undefined && moduleType !== undefined && virtual !== undefined){
+      if(header !== undefined && moduleType !== undefined){
         
         header = param2lower(header);
         //moduleType = param2lower(moduleType);
@@ -571,7 +566,7 @@ const grid = {
           rot: header.rot * -90,
           isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
           isLanding: false,
-          banks:  0, // reateElementSettings(moduleType, virtual), // consider naming to "local"
+          pages: createElementSettings(moduleType, this.elementEvents, this.moduleElements),
           global: {  
             bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
             bankEnabled: [true,true,true,true],

@@ -1,9 +1,10 @@
 import { writable, get, derived } from 'svelte/store';
+import instructions from '../serialport/instructions';
+import { configManagement } from './config-manager.store';
 import _utils from './_utils';
 
 function createRuntimeStore(){
   const store = writable([])
-
   return {
     ...store
   }
@@ -13,10 +14,16 @@ function createlocalInputStore() {
 
   const defaultValues = { 
     id: "",
-    dx: "",
-    dy: "",
-    elementNumber: -1, // should be checked out if grid sends back array or not
-    eventType: 0
+    brc: {
+      dx: "",
+      dy: "",
+      rot: ""
+    },
+    event: {
+      pagenumber: 0,
+      elementnumber: -1, // should be checked out if grid sends back array or not
+      eventtype: 0
+    }
   }
 
   // {...obj} syntax used to shallow copy default values. used to reset the store.
@@ -29,7 +36,7 @@ function createlocalInputStore() {
       
       const current = get(store);
 
-      if(removed.dx == current.dx && removed.dy == current.dy){
+      if(removed.dx == current.brc.dx && removed.dy == current.brc.dy){
         store.set({...defaultValues})
       }
 
@@ -39,108 +46,43 @@ function createlocalInputStore() {
     }
 	};
 }
+export const localInputStore = createlocalInputStore();
 
-function isDropZoneAvailable(drop_target, isMultiDrag){
-  if(isMultiDrag){
-    if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-    const found = get(dropStore).find(index => index == drop_target);
-    if(found){
-      return 0;
-    }
-    return 1;
-  } else {
-    return 1;
-  }
-  
-}
+export const activeConfiguration = derived([localInputStore], ([$li]) => {
 
-function createAppConfigManagement(){
-  const store = writable();
-  
-  return {
-    ...store,
+  const _runtime = get(runtime);
 
-    add: (index, config) => {
-      _utils.gridLuaToEditorLua(config).then(res => {
-        let configs = get(runtime);
-        configs.splice(index, 0, ...res);      
-        runtime.set(configs);
-      })
-    },
+  let config = [];
 
-    reorder: (drag_target, drop_target, isMultiDrag) => {
+  _runtime.forEach(device => {
 
-      if(isDropZoneAvailable(drop_target, isMultiDrag)){
-        let configs = get(runtime);
-        let grabbed = [];
-        drag_target.forEach(id => {
-          grabbed.push(configs.find((act) => id === act.id));
-        });
-        const firstElem = configs.indexOf(grabbed[0]);
-        const lastElem = configs.indexOf(grabbed[grabbed.length-1]);
+    if(device.dx == $li.brc.dx && device.dy == $li.brc.dy){
+      let _event = device.pages[$li.event.pagenumber][$li.event.elementnumber].events.find(e => e.event.value == $li.event.eventtype);
+      console.log(_event)
+        if(_event.config.length){
+          config = _event.config;
 
-        let to = Number(drop_target) + 1;
-        // correction for multidrag
-        if(to > firstElem){
-          to = to - drag_target.length;
+          console.log('Config is available!');
+        } else {
+
+          instructions.fetchConfigFromGrid({device: device, inputStore: $li});
+        
+          console.log('Config Fetched!');
         }
 
-        configs = [...configs.slice(0, firstElem), ...configs.slice(lastElem + 1)];
-        configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-        runtime.set(configs);
-      };
-
-    },
-
-    copy: () => {
-
-      const configs = get(runtime);
-      const selection = get(appMultiSelect).selection;
-
-      let clipboard = [];
-      selection.forEach((elem,index) => {
-        if(elem){
-          clipboard.push(configs[index]);
-        }
-      });
-
-      appActionClipboard.set(clipboard);
-
-    },
-
-    paste: (index) => {
-
-      const clipboard = get(appActionClipboard);
-      let configs = get(runtime);
-      configs.splice(index, 0, ...clipboard);      
-      //configs = genUniqueIds(configs);
-      runtime.set(configs);
-
-    },
-
-    remove: (array) => {
-
-      let configs = get(runtime);
-      array.forEach(elem => {
-        configs = configs.filter(a => a.id !== elem);
-      });
-      //configs = genUniqueIds(configs);
-      runtime.set(configs);
-
     }
-  }
+  });
+
+  return config;
+
 }
+);
 
 export const appActionClipboard = writable();
 
 export const runtime = createRuntimeStore();
 
-export const appConfigManagement = createAppConfigManagement();
-
-export const localInputStore = createlocalInputStore();
-
 export const appMultiSelect = writable({multiselect: false, selection: []});
-
 
 export const localDefinitions = derived(runtime, $runtime => {
   let locals = [];
@@ -161,32 +103,7 @@ export const localDefinitions = derived(runtime, $runtime => {
   return locals;
 })
 
-export const dropStore = derived(runtime, $runtime => {
-  let disabled_blocks = [];
-  let if_block = false;
-  $runtime.forEach((a,index) => {
-    // check if it's and if block
-    if(a.component.name == 'If'){
-      if_block = true;
-    }
-
-    // don't add +1 id in the array (end)
-    if(if_block && a.component.name !== 'End'){
-      disabled_blocks.push(index);
-    }
-    
-    // this is the last, as END has to be disabled too!
-    if (a.component.name == 'End'){
-      if_block = false;
-    }
-
-  });
-  return disabled_blocks;
-});
-
 export const derivedLocalInputStore = derived(
   [localInputStore],
-  ([$a, $b]) => Object.assign($a, $b)
-)
-
+  ([$a]) => Object.assign($a))
 

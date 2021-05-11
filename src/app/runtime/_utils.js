@@ -24,6 +24,7 @@ const _utils = {
   gridLuaToEditorLua: async function(fullConfig){
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
+    console.log(configs);
     return await this.extendProperties(configs);
   },
 
@@ -35,11 +36,15 @@ const _utils = {
     // get rid of more than 2 spaces
     rawLua = rawLua.replace(/\s{2,10}/g, ' ');
 
+    console.log('RLUA',rawLua);
+
     // splt by meta comments
-    let configList = rawLua.split('--[[@');
+    let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
 
     // filter "*space*" with regex or empty string
     configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
+
+
 
     return configList;
   
@@ -47,27 +52,11 @@ const _utils = {
 
   // break down config to script and short properties
   configBreakDown: function(configList){
-
-    // get the function name
-    const regexp = /^([^\s]+)|([^\s].*)+/g; // pay attention to multiline or single line flag! "m"
-
-    // make an array of action names and script parts
-    configList = configList.map((element) => {
-      let obj = {short: '', script: ''};
-
-      let arr= [];
-      let testy;
-      while ((testy = regexp.exec(element)) !== null) {
-        arr.push(testy[0])
-      }
-      obj.short = arr[0].slice(0,-2); // remove tailing "]]"
-      obj.script = arr[1];
-      
-      return obj;
-    });
-
-    return configList;
-
+    let configMatrix = [];
+    for (let i = 0; i < configList.length; i+=2) {
+      configMatrix.push({short: configList[i].slice(5,-2), script: configList[i+1].trim()})
+    }
+    return configMatrix;
   },
 
   // add extra properties used in the app, like the id for listing and component
@@ -115,6 +104,15 @@ const _utils = {
       else { code += e }
     })
     return code;
+  },
+
+  configMerge: function({config}){
+    let lua = '';
+    config.forEach((e,i) => {
+      lua += `--[[@${e.short}]] ` + e.script + "\n";  
+    });
+    lua = lua.replace(/(\r\n|\n|\r)/gm, "");
+    return lua;
   }
 
 }

@@ -10,7 +10,7 @@
   import Led from '../elements/Led.svelte';
 
   export let moduleWidth;
-  export let selectedElement = {};
+  export let selectedElement = {id: '', brc: {}, event: {}};
   export let id = 'EN16';
   export let rotation = 0;
   export let color;
@@ -27,8 +27,8 @@
 
   function handleEventParamChange(static_elementNumber, input_elementNumber){
     if(static_elementNumber == input_elementNumber){
-      if(dx == selectedElement.dx && dy == selectedElement.dy){
-        return selectedElement.eventParam;
+      if(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy){
+        return selectedElement.event.eventParam;
       }
     }
   }
@@ -60,9 +60,9 @@
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
-          <div class:active-element={dx == selectedElement.dx && dy == selectedElement.dy && selectedElement.elementNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
+          <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == block * 4 + element} data-element-number={block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange(block * 4 + element, selectedElement.elementNumber)}
+              eventInput={handleEventParamChange(block * 4 + element, selectedElement.event.elementNumber)}
               userInput={0} 
               size={$appSettings.size}
               {color}/>
