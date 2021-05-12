@@ -56,14 +56,14 @@
   }
 
   function handleConfigChange(){
+
+    console.log('CONFIG CHANGE!');
     
      rt.update({
       lua: _utils.configMerge({config: configs})
     });
 
   }
-
-  $: console.log('CONFIGS',configs);
 
 </script>
 

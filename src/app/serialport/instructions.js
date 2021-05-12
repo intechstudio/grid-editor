@@ -37,11 +37,11 @@ const instructions = {
       { PAGENUMBER: pParser(event.pagenumber) },
       { ELEMENTNUMBER: pParser(event.elementnumber) },
       { EVENTTYPE: pParser(event.eventtype) },
-      { ACTIONLENGTH: pParser(`<?lua ${lua} ?>`.length)},
-      { ACTIONSTRING: `<?lua ${lua} ?>`}
+      { ACTIONLENGTH: pParser(`<?lua ${lua.trim()} ?>`.length)},
+      { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    console.log('sendConfigToGrid',parameters);
+    console.log('sendConfigToGrid',parameters[3], parameters[4]);
 
     const cfg = grid.translate.encode(brc, 'CONFIG', 'EXECUTE', parameters)
 

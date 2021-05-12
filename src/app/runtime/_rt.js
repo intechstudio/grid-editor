@@ -29,7 +29,6 @@ const rt = {
       }
       
       console.info('Runtime updated: ', dest);
-
       /*
       Tell runtime what changed! Sent it to grid!
       */

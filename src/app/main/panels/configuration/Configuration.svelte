@@ -8,7 +8,7 @@
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
-  import { runtime, localInputStore, activeConfiguration } from '../../../runtime/runtime.store.js';
+  import { runtime, activeConfiguration } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -29,19 +29,24 @@
   let selectedConfig = 'uiEvents';
 
   let configs = [];
+  let events;
+  let elements ;
 
   function changeSelectedConfig(arg){
     selectedConfig = arg;
     $appSettings.configType = selectedConfig;
   }
 
-  activeConfiguration.subscribe(cfg => {
-    if(cfg.length > 0){
-      _utils.gridLuaToEditorLua(cfg).then(res => { 
-        configs = res;
-        dropStore.update(res);
-      })
-    }
+  activeConfiguration.subscribe(active => {
+    
+    _utils.gridLuaToEditorLua(active.config).then(res => { 
+      configs = res;
+      dropStore.update(res);
+    }).catch(err => {console.error(err); configs = [];})
+
+    events = active.events;
+    elements = active.elements;
+
   });
 
 
@@ -69,7 +74,7 @@
   {#key $appSettings.configType == 'uiEvents'}
     <container in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
-      <ConfigParameters/>
+      <ConfigParameters {events} {elements}/>
 
       <ConfigList {configs}/>
 

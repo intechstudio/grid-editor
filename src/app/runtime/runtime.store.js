@@ -10,10 +10,10 @@ function createRuntimeStore(){
   }
 }
 
+
 function createlocalInputStore() {
 
   const defaultValues = { 
-    id: "",
     brc: {
       dx: "",
       dy: "",
@@ -82,7 +82,8 @@ function _rtUpdate(){
 
   return {
     ...store,
-    count: () => store.update(n => n + 1)
+    count: () => store.update(n => n + 1),
+    reset: () => store.set(0)
   }
 }
 
@@ -93,28 +94,40 @@ export const activeConfiguration = derived([localInputStore, rtUpdate], ([$li, $
     const _runtime = get(runtime);
 
     let config = [];
-
-    console.log($rtu);
+    let events = [];
+    let elementNumbers = [];
+    let selectedNumber = "";
+    let selectedEvent = "";
   
     _runtime.forEach(device => {
   
       if(device.dx == $li.brc.dx && device.dy == $li.brc.dy){
-        let _event = device.pages[$li.event.pagenumber][$li.event.elementnumber].events.find(e => e.event.value == $li.event.eventtype);
-        console.log(_event)
-          if(_event.config.length){
-            config = _event.config.trim();
-  
-            console.log('Config is available!');
-          } else {
-  
-            instructions.fetchConfigFromGrid({device: device, inputStore: $li});
-          
-            console.log('Config Fetched!');
-          }
-  
+      
+        selectedNumber = $li.event.elementnumber;
+        elementNumbers = device.pages[$li.event.pagenumber] 
+        events = elementNumbers[selectedNumber].events;
+        selectedEvent = events.find(e => e.event.value == $li.event.eventtype);
+
+        if(selectedEvent.config.length){
+          config = selectedEvent.config.trim();
+          console.info('Config is available!');
+        } else {
+          instructions.fetchConfigFromGrid({device: device, inputStore: $li});     
+          console.info('Config Fetched!');
+        }
       }
     });
   
-    return config;
+    return {
+      config: config, 
+      events: {
+        selected: selectedEvent.event, 
+        options: events.map(e => e.event)
+      }, 
+      elements: {
+        selected: selectedNumber,
+        options: elementNumbers.map((n,i) => i)
+      }
+    };
   
 });

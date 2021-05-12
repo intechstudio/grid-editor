@@ -1,19 +1,22 @@
 <script>
   import { appSettings } from "../../_stores/app-helper.store.js";
+
+  import { localInputStore } from '../../../runtime/runtime.store.js';
+  
+  export let events = {options: [], selected: ""};
+  export let elements = {options: [], selected: ""};
   
   let selectedAction;
   let selectedEvent;
   let arrayOfSelectableActions = [{code: 'AV7', name: 'MIDI'}, {code: 'HID', name:'Macro'}]
 
-  let events = [{value: '',desc:'bank init'}, {value: '',desc:'down'}, {value: '',desc:'up'}]
 
   function handleSelectEvent(arg){
     selectedEvent = arg
   }
 
-  function manageActions(arg){
+  $: selectedEvent = events.selected;
 
-  }
 
 </script>
 
@@ -25,9 +28,9 @@
     </div>
 
     <div class="flex flex-col relative justify-between font-bold text-white">
-      <select class="bg-secondary flex-grow text-white p-2 focus:outline-none">
-        {#each [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15] as element}
-        <option class="text-white bg-secondary py-1">Element {element}</option>
+      <select bind:value={elements.selected} class="bg-secondary flex-grow text-white p-2 focus:outline-none">
+        {#each elements.options as element}
+          <option value={element} class="text-white bg-secondary py-1">Element {element}</option>
         {/each}
       </select>
     </div>
@@ -39,7 +42,7 @@
     </div>
 
     <div class="flex bg-secondary shadow overflow-x-auto">
-      {#each events as event}
+      {#each events.options as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
           class="{selectedEvent === event? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">

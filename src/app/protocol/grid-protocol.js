@@ -72,7 +72,7 @@ const CEEAT = {
   },
 
   button: {
-    desc: 'bank init',
+    desc: 'button',
     value: '3',
     key: 'BC'
   },

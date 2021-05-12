@@ -22,9 +22,9 @@ const _utils = {
    */
 
   gridLuaToEditorLua: async function(fullConfig){
+    if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
-    console.log(configs);
     return await this.extendProperties(configs);
   },
 
@@ -35,8 +35,6 @@ const _utils = {
     rawLua = rawLua.replace(/[\n\r]+/g, '');
     // get rid of more than 2 spaces
     rawLua = rawLua.replace(/\s{2,10}/g, ' ');
-
-    console.log('RLUA',rawLua);
 
     // splt by meta comments
     let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
@@ -61,24 +59,19 @@ const _utils = {
 
   // add extra properties used in the app, like the id for listing and component
   extendProperties: function(configList){
-    try {
-      return Promise.all(configList.map(async (element,index) => {
-        // TODO: if undefined find... revert to codeblock!
+    return Promise.all(configList.map(async (element,index) => {
+      // TODO: if undefined find... revert to codeblock!
 
-        // TODO: we convert grid short script names to human names!
-        console.log(_convert.splitShortScript(element.script));
-
-        return {
-          short: element.short, 
-          script: element.script, 
-          id: (+new Date + index).toString(36).slice(-8), 
-          human: getHumanFunctionName({short: element.short}),
-          ...await getComponentInformation({short: element.short})
-        }
-      }));
-    } catch (err) {
-      console.error(err);
-    }
+      // TODO: we convert grid short script names to human names!
+      // console.log(_convert.splitShortScript(element.script));
+      return {
+        short: element.short, 
+        script: element.script, 
+        id: (+new Date + index).toString(36).slice(-8), 
+        human: getHumanFunctionName({short: element.short}),
+        ...await getComponentInformation({short: element.short})
+      }
+    }));
   },
 
   scriptToSegments: function({script, human, short}){

@@ -137,7 +137,7 @@
 
       // reset UI
       runtime.set([]);
-      layout.set([]);
+      rtUpdate.reset();
       localInputStore.setToDefault();
 
       PORT = {path: 0};
