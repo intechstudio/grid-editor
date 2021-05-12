@@ -198,7 +198,7 @@
       })
 
       // websocket debug info to client
-      // sendDataToClient('input', d_array);
+      sendDataToClient('input', d_array);
 
       // filter heartbeat messages
       if(!(d_array.slice(30).startsWith('010') && d_array.length == 48) ){

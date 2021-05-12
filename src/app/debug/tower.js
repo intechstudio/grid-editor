@@ -1,5 +1,7 @@
 import { serialComm } from '../serialport/serialport.store';
 
+import grid from '../protocol/grid-protocol.js';
+
 const WebSocket = require('ws');
 
 const wss = new WebSocket.Server({port: 1040})
@@ -35,7 +37,7 @@ wss.on('connection', function (ws) {
 })
 
 function writeSerialCommand({brc, command}){
-  let data = GRID_PROTOCOL.encode_debugger(brc, command);
+  let data = grid.translate.encode_debugger(brc, command);
   // websocket debug info to client
   sendDataToClient('output', data);
   serialComm.write(data);    

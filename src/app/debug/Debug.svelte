@@ -1,4 +1,6 @@
 <script>
+import grid from "../protocol/grid-protocol";
+
   
   import { runtime } from "../runtime/runtime.store";
   import _utils, { luaParser } from "../runtime/_utils";
@@ -26,25 +28,25 @@
   }
 
 	function debug(){
-    let data = GRID_PROTOCOL.encode_debugger(brc, command_1+runtimeScript+command_2);
+    let data = grid.translate.encode_debugger(brc, command_1+runtimeScript+command_2);
     console.log(data);
 		serialComm.write(data);
   }
   
   function store() {
-    const command = GRID_PROTOCOL.encode('',`LOCALSTORE`,'EXECUTE','','');
+    const command = grid.translate.encode('',`LOCALSTORE`,'EXECUTE','','');
     console.log(command);
     serialComm.write(command);
   }
 
   function clear() {
-    const command = GRID_PROTOCOL.encode('',`LOCALCLEAR`,'EXECUTE','','');
+    const command = grid.translate.encode('',`LOCALCLEAR`,'EXECUTE','','');
     console.log(command);
     serialComm.write(command);
   }
 
   function heartbeat() {
-    const command = GRID_PROTOCOL.encode(
+    const command = grid.translate.encode(
       {dx: 0, dy: 0, rot: -0},
       `HEARTBEAT`,
       'EXECUTE',
