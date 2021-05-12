@@ -41,14 +41,6 @@
 
   onMount(()=>{
 
-
-
-    runtime.subscribe(store => {
-      if(store.length !== 0){
-        bankColors = store[0].global.bankColors;
-      }
-    })
-
     localInputStore.subscribe(store => {
       selectedElement = store;
     })

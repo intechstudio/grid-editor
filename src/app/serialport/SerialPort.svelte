@@ -6,7 +6,7 @@
 
   import { numberOfModulesStore } from '../main/_stores/app-helper.store.js';
 
-  import { runtime, localInputStore } from '../runtime/runtime.store.js';
+  import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
 
   import { layout } from '../main/_stores/app-helper.store.js';
 
@@ -230,6 +230,7 @@
       // lua config received, save to runtime
       if(DATA.CONFIG){
         rt.update({lua: DATA.CONFIG});
+        rtUpdate.count();
       }
 
       if(DATA.HIDKEYSTATUS){

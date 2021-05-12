@@ -69,7 +69,8 @@ export default {
 		copy ({
 			targets:[
 				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'}
-			]
+			],
+			copyOnce: true
 		}),
 
 		// If we're building for production (npm run build

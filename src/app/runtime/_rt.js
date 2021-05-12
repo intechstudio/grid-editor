@@ -1,6 +1,6 @@
 import { get } from 'svelte/store';
 import instructions from '../serialport/instructions.js';
-import { runtime, localInputStore } from './runtime.store.js';
+import { runtime, rtUpdate, localInputStore } from './runtime.store.js';
 import _utils from './_utils.js';
 
 
@@ -24,7 +24,7 @@ const rt = {
     runtime.update(_runtime => {
       let dest = findUpdateDestination(_runtime, li);
       if (dest) {
-        dest.config = lua;
+        dest.config = lua.trim();
         dest.cfgStatus = "changed";
       }
       

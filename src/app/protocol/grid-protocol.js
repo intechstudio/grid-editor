@@ -409,8 +409,15 @@ const grid = {
             DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
           }
 
-          if(obj.class == "CONFIG"){ 
-            DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
+          if(obj.class == "CONFIG"){
+            
+            if(obj.instr == "REPORT"){
+              DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
+            }
+
+            if(obj.instr == "ACKNOWLEDGE"){
+              DATA.ACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
           }    
     
         });

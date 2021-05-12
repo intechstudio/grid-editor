@@ -37,7 +37,7 @@
   }
 
   function appendAtCursor(){
-    if($focusedCodeEditor == index){
+    if($focusedCodeEditor == index && editor != undefined){
       editor.dispatch({
         changes: {
           from: dataAtCursor.cursor,
@@ -134,8 +134,7 @@
           // Document changed
           const code = (v.state.doc.text.join('\n'));
           
-
-          dispatch('output', code);
+          dispatch('output', {short: 'cb', script: code});
         }
       }),
       //linter(luaLint()),

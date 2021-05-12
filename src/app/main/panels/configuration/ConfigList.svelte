@@ -92,13 +92,13 @@
       {/if}
 
       {#each configs as config, index (config.id)}
-        <anim-block animate:flip={{duration: 300}} in:fade={{delay: 300}} class="block select-none">
+        <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
           <DynamicWrapper let:toggle {drag_start} {index} {config}>
-              <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(e.detail)}}/>  
+              <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(e.detail); configs = configs;}}/>  
               <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
           </DynamicWrapper>
 
-          <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(e.detail)}}/>
+          <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(e.detail); configs = configs; }}/>
           
           {#if !drag_start}
             <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
