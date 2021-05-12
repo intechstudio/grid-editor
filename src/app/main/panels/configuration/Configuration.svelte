@@ -41,6 +41,7 @@
     
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
+      console.log(configs);
       dropStore.update(res);
     }).catch(err => {console.error(err); configs = [];})
 

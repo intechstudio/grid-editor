@@ -24,12 +24,15 @@ const _utils = {
   gridLuaToEditorLua: async function(fullConfig){
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
+    console.log(configs);
     configs = this.configBreakDown(configs);
+    console.log(configs);
     return await this.extendProperties(configs);
   },
 
   // make smaller chunks from <?lua ... ?>, huge raw lua
   rawLuaToConfigList: function(rawLua){
+    console.log('rawlua...',rawLua);
 
     // get rid of new line, enter
     rawLua = rawLua.replace(/[\n\r]+/g, '');
@@ -41,7 +44,6 @@ const _utils = {
 
     // filter "*space*" with regex or empty string
     configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
-
 
 
     return configList;

@@ -415,8 +415,7 @@ const grid = {
             
             if(obj.instr == "REPORT"){
               try {
-                DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
-
+                DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0]
               } catch (error) {
                 console.error("Probably an 'expr' in CONFIG REPORT!");
               }
