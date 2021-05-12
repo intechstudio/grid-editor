@@ -36,6 +36,7 @@ const instructions = {
 
     const {event, brc} = li;
 
+
     const parameters = [
       { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
@@ -47,7 +48,8 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    console.log('sendConfigToGrid',parameters[3], parameters[4]);
+    console.log('sendConfigToGrid',parameters[7]);
+
 
     const cfg = grid.translate.encode(brc, 'CONFIG', 'EXECUTE', parameters)
 

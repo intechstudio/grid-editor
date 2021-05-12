@@ -535,7 +535,7 @@ const grid = {
         fwVersion: {
           major: "",
           minor: "",
-          patch: "",
+          patch: ""
         },
         alive: Date.now(),
         virtual: "",
@@ -565,9 +565,9 @@ const grid = {
           dx: header.dx,
           dy: header.dy,
           fwVersion: {
-            major: version.vmajor,
-            minor: version.vminor,
-            patch: version.vpatch
+            major: grid.properties.VERSION.MAJOR,
+            minor: grid.properties.VERSION.MINOR,
+            patch: grid.properties.VERSION.PATCH,
           },
           alive: Date.now(),
           virtual: virtual,

@@ -19,6 +19,7 @@
   import _utils from '../../../runtime/_utils';
   import rt from '../../../runtime/_rt';
   import { onMount } from 'svelte';
+import Debug from '../../../debug/Debug.svelte';
 
   export let configs = [];
   
@@ -33,7 +34,7 @@
 
     configs = await configManagement.add({configs: configs, index: index, newConfig: config});
 
-    rt.update({lua: _utils.configMerge({config: configs})})
+    rt.update({lua: _utils.configMerge({config: configs}), update: 'USER'})
 
   }
 
@@ -52,7 +53,7 @@
       });
     }
 
-    rt.update({lua: _utils.configMerge({config: configs})})
+    rt.update({lua: _utils.configMerge({config: configs}), update: 'USER'})
   }
 
   function handleConfigChange(){
@@ -60,7 +61,8 @@
     console.log('CONFIG CHANGE!');
     
      rt.update({
-      lua: _utils.configMerge({config: configs})
+      lua: _utils.configMerge({config: configs}),
+      update: 'USER'
     });
 
   }
@@ -118,6 +120,8 @@
     </div>
 
   </configs>
+
+  <Debug {configs}/>
 
  <style global>
 

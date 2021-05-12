@@ -100,6 +100,8 @@ export const activeConfiguration = derived([localInputStore, rtUpdate], ([$li, $
     let selectedEvent = "";
   
     _runtime.forEach(device => {
+
+      console.log(device);
   
       if(device.dx == $li.brc.dx && device.dy == $li.brc.dy){
       

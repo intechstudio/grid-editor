@@ -20,13 +20,11 @@ import {serialComm} from "../serialport/serialport.store";
  $: if(configs){
     //console.log(s)
     let code = '';
-    
     configs.forEach((e,i) => {
       code += `--[[@${e.short}]] ` + e.script + "\n";  
     }); 
     runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     runtimeParser = luaParser(code, {comments: true});
-    
   }
 
 	function debug(){

@@ -19,7 +19,7 @@ function findUpdateDestination(_runtime, li){
 
 const rt = {
 
-  update: ({lua}) => {
+  update: ({lua, update}) => {
     const li = get(localInputStore);
     runtime.update(_runtime => {
       let dest = findUpdateDestination(_runtime, li);
@@ -33,7 +33,9 @@ const rt = {
       Tell runtime what changed! Sent it to grid!
       */
 
-      instructions.sendConfigToGrid({lua, li});
+      if(update == 'USER'){
+        instructions.sendConfigToGrid({lua, li});
+      }
 
       return _runtime;
     })

@@ -78,8 +78,6 @@
 
       <ConfigList {configs}/>
 
-      <Debug {configs}/>
-
     </container>
   {/key}
 </configuration>

@@ -229,7 +229,7 @@
 
       // lua config received, save to runtime
       if(DATA.CONFIG){
-        rt.update({lua: DATA.CONFIG});
+        rt.update({lua: DATA.CONFIG, update: 'REPORT'});
         rtUpdate.count();
       }
 
