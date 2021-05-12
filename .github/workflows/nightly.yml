@@ -68,6 +68,7 @@ jobs:
 
   notifiy:
     needs: build
+    runs-on: ubuntu-latest
     steps:
       - name: Build Success
         uses: rjstone/discord-webhook-notify@v1
