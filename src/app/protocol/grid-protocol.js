@@ -411,7 +411,7 @@ const grid = {
 
           if(obj.class == "CONFIG"){
 
-            console.log(obj.instr, obj.class, String.fromCharCode.apply(String, serialData))
+            console.log(obj.instr, obj.class, obj)
             
             if(obj.instr == "REPORT"){
               try {

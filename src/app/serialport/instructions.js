@@ -16,9 +16,9 @@ const instructions = {
       "CONFIG",
       "FETCH",
       [
-        { VERSIONMAJOR: pParser(grid.properties.VERSION.VERSIONMAJOR) },
-        { VERSIONMINOR: pParser(grid.properties.VERSION.VERSIONMINOR) },
-        { VERSIONPATCH: pParser(grid.properties.VERSION.VERSIONPATCH) },
+        { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
+        { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
+        { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
         { PAGENUMBER: pParser(0)}, 
         { ELEMENTNUMBER: pParser(inputStore.event.elementnumber)}, 
         { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
@@ -37,9 +37,9 @@ const instructions = {
     const {event, brc} = li;
 
     const parameters = [
-      { VERSIONMAJOR: pParser(grid.properties.VERSION.VERSIONMINOR) },
-      { VERSIONMINOR: pParser(grid.properties.VERSION.VERSIONMINOR) },
-      { VERSIONPATCH: pParser(grid.properties.VERSION.VERSIONPATCH) },
+      { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
+      { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
+      { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
       { PAGENUMBER: pParser(event.pagenumber) },
       { ELEMENTNUMBER: pParser(event.elementnumber) },
       { EVENTTYPE: pParser(event.eventtype) },
