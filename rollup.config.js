@@ -66,7 +66,7 @@ export default {
 
 		// If building for production copy config svelte files to public
 
-		production && ({
+		production && copy ({
 			targets:[
 				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'}
 			]
