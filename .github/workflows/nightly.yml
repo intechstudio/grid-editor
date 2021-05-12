@@ -68,7 +68,8 @@ jobs:
 
   notifiy:
     needs: build
-      name: Build Success
+    steps:
+      - name: Build Success
         uses: rjstone/discord-webhook-notify@v1
         if: success()
         with:
