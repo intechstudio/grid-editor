@@ -1,5 +1,7 @@
 <script>
 import grid from "../protocol/grid-protocol";
+import { pParser } from "../protocol/_utils";
+import {serialComm} from "../serialport/serialport.store";
 
   
   import { runtime } from "../runtime/runtime.store";
@@ -34,13 +36,13 @@ import grid from "../protocol/grid-protocol";
   }
   
   function store() {
-    const command = grid.translate.encode('',`LOCALSTORE`,'EXECUTE','','');
+    const command = grid.translate.encode('',`LOCALSTORE`,'EXECUTE','');
     console.log(command);
     serialComm.write(command);
   }
 
   function clear() {
-    const command = grid.translate.encode('',`LOCALCLEAR`,'EXECUTE','','');
+    const command = grid.translate.encode('',`LOCALCLEAR`,'EXECUTE','');
     console.log(command);
     serialComm.write(command);
   }
@@ -51,13 +53,12 @@ import grid from "../protocol/grid-protocol";
       `HEARTBEAT`,
       'EXECUTE',
       [
-        { TYPE: parameter_parser(255)}, 
-        { HWCFG: parameter_parser(255)}, 
-        { VMAJOR: parameter_parser(1)}, 
-        { VMINOR: parameter_parser(1)}, 
-        { VPATCH: parameter_parser(9)}, 
+        { TYPE: pParser(255)}, 
+        { HWCFG: pParser(255)}, 
+        { VMAJOR: pParser(1)}, 
+        { VMINOR: pParser(1)}, 
+        { VPATCH: pParser(9)}, 
       ], 
-      '',
       ''
     );
     serialComm.write(command);
