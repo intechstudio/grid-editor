@@ -16,6 +16,9 @@ const instructions = {
       "CONFIG",
       "FETCH",
       [
+        { VERSIONMAJOR: pParser(1) },
+        { VERSIONMINOR: pParser(1) },
+        { VERSIONPATCH: pParser(9) },
         { PAGENUMBER: pParser(0)}, 
         { ELEMENTNUMBER: pParser(inputStore.event.elementnumber)}, 
         { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
@@ -34,6 +37,9 @@ const instructions = {
     const {event, brc} = li;
 
     const parameters = [
+      { VERSIONMAJOR: pParser(1) },
+      { VERSIONMINOR: pParser(1) },
+      { VERSIONPATCH: pParser(9) },
       { PAGENUMBER: pParser(event.pagenumber) },
       { ELEMENTNUMBER: pParser(event.elementnumber) },
       { EVENTTYPE: pParser(event.eventtype) },

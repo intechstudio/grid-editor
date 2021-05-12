@@ -36,13 +36,13 @@ import {serialComm} from "../serialport/serialport.store";
   }
   
   function store() {
-    const command = grid.translate.encode('',`LOCALSTORE`,'EXECUTE','');
+    const command = grid.translate.encode('',`CONFIGSTORE`,'EXECUTE','');
     console.log(command);
     serialComm.write(command);
   }
 
   function clear() {
-    const command = grid.translate.encode('',`LOCALCLEAR`,'EXECUTE','');
+    const command = grid.translate.encode('',`CONFIGERASE`,'EXECUTE','');
     console.log(command);
     serialComm.write(command);
   }

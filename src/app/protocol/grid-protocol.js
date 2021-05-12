@@ -410,9 +410,16 @@ const grid = {
           }
 
           if(obj.class == "CONFIG"){
+
+            console.log(obj.instr, obj.class, String.fromCharCode.apply(String, serialData))
             
             if(obj.instr == "REPORT"){
-              DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
+              try {
+                DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].slice(0,-6)
+
+              } catch (error) {
+                console.error("Probably an 'expr' in CONFIG REPORT!");
+              }
             }
 
             if(obj.instr == "ACKNOWLEDGE"){
