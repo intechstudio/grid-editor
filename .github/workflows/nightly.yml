@@ -66,15 +66,13 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
-  notifiy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Build Success
+      - name: Discord Notification
         uses: rjstone/discord-webhook-notify@v1
         if: success()
         with:
             severity: info
-            details: 'link: https://github.com/intechstudio/grid-editor/actions'
+            username: Nightly Bot
+            footer: Programming is fun.
+            description: 'Download latest nightly artifact!'
+            details: 'Link to workflows: https://github.com/intechstudio/grid-editor/actions'
             webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
-            text: 'New nightly available!'      
