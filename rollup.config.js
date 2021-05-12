@@ -65,13 +65,13 @@ export default {
 		!production && livereload('public'),
 
 		// If building for production copy config svelte files to public
-		/**
-		copy({
+
+		production && ({
 			targets:[
 				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'}
 			]
 		}),
-	*/
+
 		// If we're building for production (npm run build
 		// instead of npm run dev, minify
 		production && terser()
