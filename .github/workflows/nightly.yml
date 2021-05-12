@@ -75,7 +75,6 @@ jobs:
         if: success()
         with:
             severity: info
-            details: New nighlty build available!
-            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
             details: 'link: https://github.com/intechstudio/grid-editor/actions'
-      
+            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+            text: 'New nightly available!'      
