@@ -66,4 +66,14 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
+  notifiy:
+    needs: build
+      name: Build Success
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
+        with:
+            severity: info
+            details: New nighlty build available!
+            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+            details: 'link: https://github.com/intechstudio/grid-editor/actions'
       
