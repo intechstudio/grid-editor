@@ -17,7 +17,6 @@
   let edited = false;
 
   let disabled = false;
-  let displayValue = '';
   let infoValue = '';
 
   $: if(inputValue){
@@ -28,6 +27,7 @@
   let focus;
 
   function handleChange(){
+    console.log('sent out?', inputValue);
     dispatch('change', inputValue )
   }
 
@@ -46,12 +46,12 @@
     {#if focus}
       <ul class:shadow={focus} style="max-height:250px; min-width:100px;z-index:9000;" class="fixed scrollbar block border-t overflow-y-auto border-important text-white cursor-pointer  w-auto bg-secondary">
         {#each suggestions as suggestion, index}
-          <li on:click={(e)=>{infoValue=suggestion.info; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
+          <li on:click={(e)=>{infoValue=suggestion.info; focus = false; inputValue = suggestion.value; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
         {/each}
       </ul>
     {/if}
 
-    {#if suggestionInfo}<div class="text-gray-500 text-sm pb-1">{infoValue}</div>{/if}
+    {#if suggestionInfo}<div class="{infoValue ? 'text-gray-500' : 'text-yellow-400'} text-sm py-1">{infoValue}</div>{/if}
   </div>
 
 <style>

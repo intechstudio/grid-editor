@@ -15,9 +15,9 @@ function createlocalInputStore() {
 
   const defaultValues = { 
     brc: {
-      dx: "",
-      dy: "",
-      rot: ""
+      dx: "0",
+      dy: "0",
+      rot: "0"
     },
     event: {
       pagenumber: 0,
@@ -31,6 +31,9 @@ function createlocalInputStore() {
 
 	return {
     ...store,
+    appUserChangeEvent: ({key, value}) => {
+      store.update(s => {s.event[key] = value; return s});
+    },
     // This is used to re-init local settings panel if a module is removed which values have been displayed
 		setToDefault: (removed = 'reset') => {
       
@@ -81,8 +84,6 @@ export const activeConfiguration = derived([localInputStore, rtUpdate], ([$li, $
     let selectedEvent = "";
   
     _runtime.forEach(device => {
-
-      console.log(device);
   
       if(device.dx == $li.brc.dx && device.dy == $li.brc.dy){
       

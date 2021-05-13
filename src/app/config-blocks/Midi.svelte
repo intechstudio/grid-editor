@@ -584,7 +584,7 @@
     // removed ?. as terser didn't work
     let selectedCommand = _suggestions[1].find(s => s.value == scriptSegments[1]);
     if(selectedCommand){
-      selectedCommand = selectedCommand;
+      selectedCommand = selectedCommand.key;
     } else {
       selectedCommand = 'control_change_messages';
     }
@@ -595,7 +595,8 @@
     } catch (error) {
       console.warn('error while creating midi suggetions');
       suggestions = _suggestions;
-  }}
+    }
+  }
 
   $: if(scriptSegments[1] || $localDefinitions){
     renderSuggestions();

@@ -25,18 +25,12 @@ const rt = {
       let dest = findUpdateDestination(_runtime, li);
       if (dest) {
         dest.config = lua.trim();
-        dest.cfgStatus = "changed";
-      }
-      
-      console.info('Runtime updated: ', dest);
-      /*
-      Tell runtime what changed! Sent it to grid!
-      */
-
+        dest.cfgStatus = update;
+      }    
+      //Tell runtime what changed! Sent it to grid!
       if(update == 'USER'){
         instructions.sendConfigToGrid({lua, li});
       }
-
       return _runtime;
     })
   }

@@ -55,15 +55,15 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}" >
       {#each [0,1,2,3] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber}
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Potentiometer 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
             on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
             {elementNumber} 
             size={$appSettings.size}/>
@@ -74,15 +74,15 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}">
       {#each [4,5,6,7] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber} 
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Fader 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
             on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
@@ -94,10 +94,10 @@
     <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}">
       {#each [8,9,10,11] as elementNumber}
         <div 
-          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == elementNumber}
+          class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementNumber)} 
+            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>

@@ -2,8 +2,6 @@ import { writable, get, derived } from 'svelte/store';
 
 import {runtime, localInputStore} from './runtime.store.js';
 
-import instructions from '../serialport/instructions.js';
-
 import _utils from './_utils.js';
 
 export const configManagement = {

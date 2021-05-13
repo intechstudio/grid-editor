@@ -6,13 +6,11 @@
   export let events = {options: [], selected: ""};
   export let elements = {options: [], selected: ""};
   
-  let selectedAction;
   let selectedEvent;
-  let arrayOfSelectableActions = [{code: 'AV7', name: 'MIDI'}, {code: 'HID', name:'Macro'}]
 
-
-  function handleSelectEvent(arg){
-    selectedEvent = arg
+  function handleSelectEvent(event){
+    selectedEvent = event
+    localInputStore.appUserChangeEvent({key: 'eventtype', value: event.value});
   }
 
   $: selectedEvent = events.selected;
