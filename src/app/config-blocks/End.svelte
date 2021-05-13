@@ -1,7 +1,7 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'end',
+    short: 'en',
     groupType: 'modifier',
     desc: 'End'
   }
@@ -13,8 +13,7 @@
   const dispatch = createEventDispatcher();
 
   function sendData(){
-    const script = 'end'; // important to set the function name
-    dispatch('output', script)
+    dispatch('output', {short: 'en', script: 'end'})
   }
 
   onMount(()=>{

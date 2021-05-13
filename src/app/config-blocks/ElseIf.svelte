@@ -1,7 +1,7 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'elseif',
+    short: 'ei',
     groupType: 'modifier',
     desc: 'Else If'
   }
@@ -14,20 +14,18 @@
 
   const dispatch = createEventDispatcher();
 
-  export let action = ''
+  export let config = ''
   export let index;
 
-  let configSegment = ''; // local script part
+  let scriptSegment = ''; // local script part
 
 
   $: if(action.script){
-    configSegment = action.script.slice(9, -6);
+    scriptSegment = config.script.slice(8, -5);
   }
 
   function sendData(e){
-    if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
-      dispatch('output', `else if (${e}) then`)
-    }
+    dispatch('output', `else if ${e} then`)
   }
 </script>
 
@@ -37,7 +35,7 @@
   <div class="pl-2 flex items-center bg-yellow-500">
     <div class="font-bold py-1">ELSE IF</div>
     <div class="pl-2 pr-1 flex-grow">
-      <AtomicInput inputValue={configSegment} {index} customClasses={'bg-opacity-75'} on:change={(e)=>{sendData(e.detail)}}/>
+      <AtomicInput inputValue={scriptSegment} {index} customClasses={'bg-opacity-75'} on:change={(e)=>{sendData(e.detail)}}/>
     </div>
   </div>
 

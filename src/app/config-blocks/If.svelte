@@ -14,21 +14,19 @@
 
 
 
-  export let action = ''
+  export let config = ''
   export let index;
 
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ''; // local script part
 
-  $: if(action.script){
-    scriptSegment = action.script.slice(4, -6);
+  $: if(config.script){
+    scriptSegment = config.script.slice(3, -5);
   }
 
   function sendData(e){
-    if(e !== ''){ // if we let here empty strings, unexpexted things happen in _v parsing.
-      dispatch('output', `if (${e}) then`)
-    }
+    dispatch('output', {short: `if`, script:`if ${e} then`})
   }
 
 </script>

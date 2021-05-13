@@ -1,7 +1,7 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'else',
+    short: 'el',
     groupType: 'modifier',
     desc: 'Else'
   }
@@ -13,8 +13,7 @@
   const dispatch = createEventDispatcher();
 
   function sendData(){
-    const script = 'else'; // important to set the function name
-    dispatch('output', script)
+    dispatch('output', {short: 'el', script: 'else'})
   }
 
   onMount(()=>{
