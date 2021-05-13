@@ -37,7 +37,7 @@
   <div class="pl-2 flex items-center bg-yellow-500 rounded-t-lg">
     <span class="font-bold py-1">IF</span>
     <div class="pl-2 pr-1 w-full">
-      <AtomicInput inputValue={scriptSegment} {index} customClasses={'bg-opacity-75 rounded-tr-lg'} on:change={(e)=>{sendData(e.detail)}}/>
+      <AtomicInput inputValue={scriptSegment} {index} suggestionInfo={false} customClasses={'bg-opacity-75 rounded-tr-lg'} on:change={(e)=>{sendData(e.detail)}}/>
     </div>
   </div>
 

@@ -32,7 +32,6 @@
   function sendData(e, index){
     scriptSegments[index] = e;
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
-    console.log(script);
     dispatch('output', {short: config.short, script: script})
   }
   

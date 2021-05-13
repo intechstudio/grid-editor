@@ -8,7 +8,7 @@
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
-  import { runtime, activeConfiguration } from '../../../runtime/runtime.store.js';
+  import { runtime, activeConfiguration, localDefinitions } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -41,8 +41,8 @@
     
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
-      console.log(configs);
       dropStore.update(res);
+      localDefinitions.update(configs);
     }).catch(err => {console.error(err); configs = [];})
 
     events = active.events;

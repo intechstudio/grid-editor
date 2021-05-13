@@ -41,12 +41,12 @@
   const _suggestions = [
     // led number
       [
-        {value: 'to do...', info: 'to do...'},
-        {value: 'to do...', info: 'to do...'}
+        {value: 'this.ind()', info: 'this led'},
       ],
     // layer
       [
-        {value: 'to do...', info: 'layer'}
+        {value: '1', info: 'layer 1'},
+        {value: '2', info: 'layer 2'}
       ],
     // intensity or value
       [

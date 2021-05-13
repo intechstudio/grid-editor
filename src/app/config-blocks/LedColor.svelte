@@ -38,7 +38,22 @@
   }
 
   const _suggestions = [
-  
+    [
+      {value: 'this.ind()', info: 'this led'},
+    ],
+    [
+      {value: '1', info: 'layer 1'},
+      {value: '2', info: 'layer 2'}
+    ],
+    [
+      {value: '255', info: '255'}
+    ],
+    [
+      {value: '255', info: '255'}
+    ],
+    [
+      {value: '255', info: '255'}
+    ]
   ];
 
   let suggestions = [];
@@ -59,7 +74,7 @@
   {#each scriptSegments as script, i}
     <div class={'w-1/'+scriptSegments.length + ' atomicInput '}>
       <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-      <AtomicInput {index} inputValue={script} suggestions={[]} on:change={(e)=>{sendData(e.detail,i)}}/>
+      <AtomicInput {index} inputValue={script} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
     </div>
   {/each}
 </config-led-color>

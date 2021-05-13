@@ -11,21 +11,24 @@
   export let inputValue = '';
   export let suggestions = [];
   export let customClasses = '';
+  export let suggestionInfo = true;
   export let index;
 
   let edited = false;
 
   let disabled = false;
   let displayValue = '';
+  let infoValue = '';
 
   $: if(inputValue){
-    displayValue = inputValue;
+    infoValue = suggestions.find(s => String(s.value).trim() == String(inputValue).trim());
+    infoValue ? infoValue = infoValue.info : ''   
   }
 
   let focus;
 
   function handleChange(){
-    dispatch('change', displayValue )
+    dispatch('change', inputValue )
   }
 
 </script>
@@ -35,7 +38,7 @@
   <input 
     disabled={disabled}
     class:shadow={focus} 
-    bind:value={displayValue} 
+    bind:value={inputValue} 
     on:click={()=>{focus = true}} on:change={handleChange} 
     on:input={(e)=>{focus = false; handleChange()}} type="text" 
     class="{customClasses} w-full bg-secondary text-white py-0.5 pl-2 rounded-none focus:outline-none">
@@ -43,10 +46,12 @@
     {#if focus}
       <ul class:shadow={focus} style="max-height:250px; min-width:100px;z-index:9000;" class="fixed scrollbar block border-t overflow-y-auto border-important text-white cursor-pointer  w-auto bg-secondary">
         {#each suggestions as suggestion, index}
-          <li on:click={(e)=>{displayValue = suggestion.info; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
+          <li on:click={(e)=>{infoValue=suggestion.info; focus = false; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
         {/each}
       </ul>
     {/if}
+
+    {#if suggestionInfo}<div class="text-gray-500 text-sm pb-1">{infoValue}</div>{/if}
   </div>
 
 <style>

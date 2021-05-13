@@ -14,12 +14,12 @@
   import { changeOrder } from '../../_actions/move.action.js';
 
   import { actionIsDragged } from '../../_stores/app-helper.store.js';
-  import { appActionClipboard, runtime } from '../../../runtime/runtime.store.js';
+  import { appActionClipboard, runtime, rtUpdate } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import rt from '../../../runtime/_rt';
   import { onMount } from 'svelte';
-import Debug from '../../../debug/Debug.svelte';
+  import Debug from '../../../debug/Debug.svelte';
 
   export let configs = [];
   
@@ -35,7 +35,7 @@ import Debug from '../../../debug/Debug.svelte';
     configs = await configManagement.add({configs: configs, index: index, newConfig: config});
 
     rt.update({lua: _utils.configMerge({config: configs}), update: 'USER'})
-
+    rtUpdate.count();
   }
 
   function handleDrop(e){

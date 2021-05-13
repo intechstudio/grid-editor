@@ -54,25 +54,6 @@ export const runtime = createRuntimeStore();
 
 export const appMultiSelect = writable({multiselect: false, selection: []});
 
-export const localDefinitions = derived(runtime, $runtime => {
-  let locals = [];
-  $runtime.forEach(a => {
-    if(a.short == 'l'){
-      // THIS IS A DUPLICATE, USED IN LOCALS TOO!
-      let arr = [];
-      const text = a.script.split('local');
-      text.forEach(element => {
-        if(element !== ''){
-          const _split = element.split('=');
-          arr.push({value: element, info: _split[0].trim()});
-        }
-      });
-      locals.push(...arr);
-    }
-  });
-  return locals;
-})
-
 export const derivedLocalInputStore = derived(
   [localInputStore],
   ([$a]) => Object.assign($a))
@@ -133,3 +114,31 @@ export const activeConfiguration = derived([localInputStore, rtUpdate], ([$li, $
     };
   
 });
+
+function createShowLocalDefinitions(){
+  
+  const store = writable();
+
+  return {
+    ...store,
+    update: (configs) => {
+      let locals = [];
+      configs.forEach(c => {
+        if(c.short == 'l'){
+          let arr = [];
+          const text = c.script.split('local');
+          text.forEach(element => {
+            if(element !== ''){
+              const _split = element.split('=');
+              arr.push({value: _split[0].trim(), info: _split[0].trim()});
+            }
+          });
+          locals.push(...arr);
+        }
+      });
+      store.set(locals);
+    }
+  }
+}
+
+export const localDefinitions = createShowLocalDefinitions();
