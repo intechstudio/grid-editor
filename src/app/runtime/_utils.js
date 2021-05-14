@@ -22,6 +22,7 @@ const _utils = {
    */
 
   gridLuaToEditorLua: async function(fullConfig){
+    console.log(fullConfig);
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);

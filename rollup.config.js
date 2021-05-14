@@ -17,7 +17,7 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
 	input: 'src/svelte.js',
 	output: {
-		sourcemap: production,
+		sourcemap: false,
 		format: 'es',
 		name: 'app',
 		dir: 'public/build/',
@@ -29,7 +29,7 @@ export default {
 		svelte({
 			preprocess: sveltePreprocess({
 				postcss: true,
-				sourceMap: true,
+				sourceMap: false,
 			}),
 			compilerOptions: {
 				dev: !production

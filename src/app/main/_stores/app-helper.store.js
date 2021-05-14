@@ -73,6 +73,8 @@ function createAdvancedPrefStore(){
   }
 }
 
+export const selectedConfigPreset = writable({});
+
 export const layout = writable([]);
 
 export const numberOfModulesStore = writable();

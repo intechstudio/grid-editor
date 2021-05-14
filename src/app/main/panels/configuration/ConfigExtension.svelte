@@ -154,7 +154,6 @@
                   </variables>
                 {/if}
               </config-pool>
-      
           </advanced-menu>
 
           <advanced-code class="w-9/12 px-4 overflow-y-scroll">

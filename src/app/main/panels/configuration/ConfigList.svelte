@@ -9,7 +9,7 @@
   import Options from './components/Options.svelte';
 
   import ConfigExtension from './ConfigExtension.svelte';
-  import ConfigPicker from './ConfigPicker.svelte';
+  import ConfigPicker from './config-picker/ConfigPicker.svelte';
 
   import { changeOrder } from '../../_actions/move.action.js';
 
@@ -38,6 +38,8 @@
 
     rtUpdate.count();
   }
+
+  $: console.log(configs);
 
   function handleDrop(e){
     if(drop_target !== 'bin'){

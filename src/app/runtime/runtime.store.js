@@ -55,6 +55,8 @@ export const appActionClipboard = writable();
 
 export const runtime = createRuntimeStore();
 
+export const conditionalConfigPlacement = writable();
+
 export const appMultiSelect = writable({multiselect: false, selection: []});
 
 export const derivedLocalInputStore = derived(

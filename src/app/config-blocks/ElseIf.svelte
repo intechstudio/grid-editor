@@ -20,12 +20,12 @@
   let scriptSegment = ''; // local script part
 
 
-  $: if(action.script){
+  $: if(config.script){
     scriptSegment = config.script.slice(8, -5);
   }
 
   function sendData(e){
-    dispatch('output', `else if ${e} then`)
+    dispatch('output', {short: 'ei', script: `else if ${e} then`})
   }
 </script>
 
@@ -35,7 +35,7 @@
   <div class="pl-2 flex items-center bg-yellow-500">
     <div class="font-bold py-1">ELSE IF</div>
     <div class="pl-2 pr-1 flex-grow">
-      <AtomicInput inputValue={scriptSegment} {index} customClasses={'bg-opacity-75'} on:change={(e)=>{sendData(e.detail)}}/>
+      <AtomicInput inputValue={scriptSegment} {index} suggestionInfo={false} customClasses={'bg-opacity-75'} on:change={(e)=>{sendData(e.detail)}}/>
     </div>
   </div>
 
