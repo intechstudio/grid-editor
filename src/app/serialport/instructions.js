@@ -19,7 +19,7 @@ const instructions = {
         { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
         { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
         { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
-        { PAGENUMBER: pParser(0)}, 
+        { PAGENUMBER: pParser(inputStore.event.pagenumber)}, 
         { ELEMENTNUMBER: pParser(inputStore.event.elementnumber)}, 
         { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
         { ACTIONLENGTH: pParser(0)},

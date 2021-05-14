@@ -8,8 +8,8 @@ export const config_collection = [
     {category: ["LED", "Value"],       name: "Button",                     configs: "--[[@glp]] glp(this.ind(),2,this.bva())" },
     {category: ["LED", "Value"],       name: "Potmeter",                   configs: "--[[@glp]] glp(this.ind(),2,this.pva())"},
 
-    {category: ["LED", "Color"],       name: "Button / Potmeter",          configs: "--[[@glsc]] glsc(this.ind(),1,255,255,255)"},
-    {category: ["LED", "Color"],       name: "Encoder",                    configs: "--[[@glsc]] glsc(this.ind(),2,255,255,255)"},
+    {category: ["LED", "Color"],       name: "Button / Potmeter",          configs: "--[[@glc]] glc(this.ind(),1,255,255,255)"},
+    {category: ["LED", "Color"],       name: "Encoder",                    configs: "--[[@glc]] glc(this.ind(),2,255,255,255)"},
 
     {category: ["MIDI"],               name: "Encoder",                    configs: "--[[@gms]] gms(0,176,this.ind(),this.eva())"},
     {category: ["MIDI"],               name: "Button",                     configs: "--[[@gms]] gms(0,176,this.ind(),this.bva())"},
