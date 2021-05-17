@@ -11,7 +11,7 @@
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
 
   import { appSettings } from '../../../main/_stores/app-helper.store.js';
-  import { runtime, localInputStore } from '../../../runtime/runtime.store.js';
+  import { runtime, user_input} from '../../../runtime/runtime.store.js';
 
 
   const components = [
@@ -41,7 +41,7 @@
 
   onMount(()=>{
 
-    localInputStore.subscribe(store => {
+    user_input.subscribe(store => {
       selectedElement = store;
     })
     

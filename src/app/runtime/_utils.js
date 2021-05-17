@@ -2,6 +2,7 @@
 import { getComponentInformation } from '../config-blocks/_configs.js';
 import grid from '../protocol/grid-protocol.js';
 import stringManipulation from '../main/user-interface/_string-operations.js';
+import { v4 as uuidv4 } from 'uuid';
 
 // commonjs node require
 const lua = require('luaparse');
@@ -67,7 +68,7 @@ const _utils = {
       return {
         short: element.short, 
         script: element.script, 
-        id: (+new Date + index).toString(36).slice(-8), 
+        id: uuidv4(), 
         human: getHumanFunctionName({short: element.short}),
         ...await getComponentInformation({short: element.short})
       }

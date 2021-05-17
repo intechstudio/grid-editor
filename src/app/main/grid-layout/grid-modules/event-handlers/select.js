@@ -1,4 +1,4 @@
-import { localInputStore } from '../../../../runtime/runtime.store.js';
+import { user_input } from '../../../../runtime/runtime.store.js';
 
 export function select(node, [moduleId, selectedDisplay]){
 
@@ -13,7 +13,7 @@ export function select(node, [moduleId, selectedDisplay]){
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
 
-        localInputStore.update((store)=>{
+        user_input.update_all((store)=>{
           store.id = moduleId,
           store.brc.dx = +dx,
           store.brc.dy = +dy;

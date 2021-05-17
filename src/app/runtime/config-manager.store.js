@@ -1,6 +1,6 @@
 import { writable, get, derived } from 'svelte/store';
 
-import {runtime, localInputStore} from './runtime.store.js';
+import {runtime, localInputStore} from './runtime.store';
 
 import _utils from './_utils.js';
 

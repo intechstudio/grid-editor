@@ -3,7 +3,8 @@
   export const information = {
     short: 'cb',
     groupType: 'standard',
-    desc: 'Code Block'
+    desc: 'Code Block',
+    icon: null
   }
 
 </script>

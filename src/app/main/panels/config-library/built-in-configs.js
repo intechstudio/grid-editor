@@ -4,6 +4,8 @@ export const config_collection = [
 
     {category: ["Locals"],             name: "Default",                    configs: "--[[@l]] local x = 1"},
 
+    {category: ["Advanced", "Code Block", "Nice"],   name: 'Hello Dani',   configs: "--[[@cb]] if dani == 'happy' then gms(0,0,0,0) end"},
+
     {category: ["LED", "Value"],       name: "Encoder",                    configs: "--[[@glp]] glp(this.ind(),2,this.eva())" },
     {category: ["LED", "Value"],       name: "Button",                     configs: "--[[@glp]] glp(this.ind(),2,this.bva())" },
     {category: ["LED", "Value"],       name: "Potmeter",                   configs: "--[[@glp]] glp(this.ind(),2,this.pva())"},

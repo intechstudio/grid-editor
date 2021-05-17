@@ -499,7 +499,7 @@ const grid = {
         let pages = [];
     
         //pages
-        for (let p = 0; p < 1; p++) {  
+        for (let p = 0; p < 4; p++) {  
     
           let control_elements = [];
     

@@ -1,8 +1,8 @@
 <script>
   import { appSettings } from "../../_stores/app-helper.store.js";
 
-  import { localInputStore } from '../../../runtime/runtime.store.js';
-  
+  import { user_input } from '../../../runtime/runtime.store.js';
+
   export let events = {options: [], selected: ""};
   export let elements = {options: [], selected: ""};
   
@@ -10,11 +10,15 @@
 
   function handleSelectEvent(event){
     selectedEvent = event
-    localInputStore.appUserChangeEvent({key: 'eventtype', value: event.value});
+    user_input.update_eventtype(event.value);
+  }
+
+  function handleSelectElement(element){
+    console.log('change selected element...', element)
+    user_input.update_elementnumber(element);
   }
 
   $: selectedEvent = events.selected;
-
 
 </script>
 
@@ -26,7 +30,8 @@
     </div>
 
     <div class="flex flex-col relative justify-between font-bold text-white">
-      <select bind:value={elements.selected} class="bg-secondary flex-grow text-white p-2 focus:outline-none">
+      <!-- svelte-ignore a11y-no-onchange -->
+      <select bind:value={elements.selected} on:change={(e)=>{handleSelectElement(elements.selected)}} class="bg-secondary flex-grow text-white p-2 focus:outline-none">
         {#each elements.options as element}
           <option value={element} class="text-white bg-secondary py-1">Element {element}</option>
         {/each}

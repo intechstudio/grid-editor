@@ -8,7 +8,7 @@
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
-  import { runtime, activeConfiguration, localDefinitions, conditionalConfigPlacement } from '../../../runtime/runtime.store.js';
+  import { runtime, localDefinitions, conditionalConfigPlacement } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -37,7 +37,7 @@
     $appSettings.configType = selectedConfig;
   }
 
-  activeConfiguration.subscribe(active => {
+  runtime.active_config(active => {
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       dropStore.update(res);

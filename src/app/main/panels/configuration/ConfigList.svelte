@@ -14,10 +14,9 @@
   import { changeOrder } from '../../_actions/move.action.js';
 
   import { actionIsDragged, appSettings } from '../../_stores/app-helper.store.js';
-  import { appActionClipboard, runtime, rtUpdate, localDefinitions } from '../../../runtime/runtime.store.js';
+  import { runtime, localDefinitions } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
-  import rt from '../../../runtime/_rt';
   import { onMount } from 'svelte';
   import Debug from '../../../debug/Debug.svelte';
 
@@ -34,12 +33,8 @@
 
     configs = await configManagement.add({configs: configs, index: index, newConfig: config});
 
-    rt.update({lua: _utils.configMerge({config: configs}), update: 'USER'})
-
-    rtUpdate.count();
+    runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
   }
-
-  $: console.log(configs);
 
   function handleDrop(e){
     if(drop_target !== 'bin'){
@@ -56,20 +51,18 @@
       });
     }
 
-    rt.update({lua: _utils.configMerge({config: configs}), update: 'USER'})
+    runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+
   }
 
   function handleConfigChange({configName}){
-    let updateMode = '';
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
     if(configName == 'End' || configName == 'Else'){
-      updateMode = 'AUTO';
+      runtime.update.status('BACKGROUND').config({lua: _utils.configMerge({config: configs})});
     } else {
-      updateMode = 'USER'
+      runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
     }
-
-    rt.update({lua: _utils.configMerge({config: configs}), update: updateMode});
 
     localDefinitions.update(configs);
 
@@ -93,38 +86,40 @@
       on:drag-end={(e)=>{ drag_start = false; actionIsDragged.set(false); drop_target = undefined; drag_target = [];}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
-      class="relative">
+      class="flex flex-col relative min-h-200 justify-between">
 
-      {#if !drag_start}
-        <ConfigPicker index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
-      {:else}
-        <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
-      {/if}
+      <config-list class="flex flex-col w-full">
+        {#if !drag_start}
+          <ConfigPicker index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
+        {:else}
+          <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
+        {/if}
 
-      {#each configs as config, index (config.id)}
-        <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
-          <DynamicWrapper let:toggle {drag_start} {index} {config}>
-              <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs;}}/>  
-              <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
-          </DynamicWrapper>
+        {#each configs as config, index (config.id)}
+          <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
+            <DynamicWrapper let:toggle {drag_start} {index} {config}>
+                <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs;}}/>  
+                <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
+            </DynamicWrapper>
 
-          <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(); configs = configs; }}/>
-          
-          {#if !drag_start}
-            <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
-          {:else}
-            <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
-          {/if}
-                
-        </anim-block>
-      {/each}
-
-      {#if !drag_start}
-        <ConfigPicker userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
-      {:else}
-        <Bin/>
-      {/if}
-      
+            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(); configs = configs; }}/>
+            
+            {#if !drag_start}
+              <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
+            {:else}
+              <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
+            {/if}
+                  
+          </anim-block>
+        {/each}
+      </config-list>
+      <container class="flex flex-col w-full">
+        {#if !drag_start}
+          <ConfigPicker  userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
+        {:else}
+          <Bin/>
+        {/if}
+      </container>
     </div>
 
   </configs>

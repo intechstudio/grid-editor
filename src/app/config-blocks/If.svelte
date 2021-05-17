@@ -3,7 +3,8 @@
   export const information = {
     short: 'if',
     groupType: 'modifier',
-    desc: 'If'
+    desc: 'If',
+    icon: null
   }
 </script>
 

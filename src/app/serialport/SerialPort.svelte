@@ -6,7 +6,8 @@
 
   import { numberOfModulesStore } from '../main/_stores/app-helper.store.js';
 
-  import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
+  //import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
+  import { runtime, user_input } from '../runtime/runtime.store.js';
 
   import { layout } from '../main/_stores/app-helper.store.js';
 
@@ -18,16 +19,16 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
-  import rt from '../runtime/_rt.js';
 
   const dispatch = createEventDispatcher();
 
   let PORT = {path: 0};
 
-  let _runtime = [];
   let _layout = [];
 
   let selectedPort = "";
+
+  let _runtime = []
 
   runtime.subscribe(rt => {_runtime = rt; return 1});
   layout.subscribe(l => {_layout = l; return 1});
@@ -52,7 +53,7 @@
       if(_removed !== undefined && _usedgrid.length !== undefined){    
 
         // re-initialize Local Settings panel, if the module has been removed which had it's settings opened.
-        localInputStore.setToDefault(_removed);
+        user_input.reset(_removed);
 
         runtime.set(_usedgrid);
         
@@ -137,8 +138,8 @@
 
       // reset UI
       runtime.set([]);
-      rtUpdate.reset();
-      localInputStore.setToDefault();
+      //rtUpdate.reset();
+      user_input.reset();
 
       PORT = {path: 0};
     }
@@ -211,26 +212,36 @@
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
           // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
-          //console.log($localInputStore.eventParam, DATA.EVENT)
-          if($localInputStore.event.elementnumber !== DATA.EVENT.ELEMENTNUMBER || $localInputStore.event.eventtype !== DATA.EVENT.EVENTTYPE ) {
+          // console.log($user_input.eventParam, DATA.EVENT)
+          if($user_input.event.elementnumber !== DATA.EVENT.ELEMENTNUMBER || $user_input.event.eventtype !== DATA.EVENT.EVENTTYPE ) {
           // now not using due to changed protocol
-            localInputStore.update((store)=>{
+
+          console.log('EVENT', DATA.EVENT)
+
+            user_input.update_all((store)=>{
               store.brc.dx = DATA.BRC.DX;
               store.brc.dy = DATA.BRC.DY;
               store.brc.rot = DATA.BRC.ROT
-              store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
-              store.event.eventtype = DATA.EVENT.EVENTTYPE;
+
+              if(DATA.EVENT.ELEMENTNUMBER == 16){
+                store.event.eventtype = String(+DATA.EVENT.EVENTTYPE - 1);
+              } else {
+                store.event.eventtype = DATA.EVENT.EVENTTYPE;
+                store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
+              }
               store.event.pagenumber = DATA.EVENT.PAGENUMBER || 0;
               return store;
             });
+
+            
           }
         }
       }
 
       // lua config received, save to runtime
       if(DATA.CONFIG){
-        rt.update({lua: DATA.CONFIG, update: 'REPORT'});
-        rtUpdate.count();
+        console.log('DATA', DATA.CONFIG)
+        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG}).trigger(true)
       }
 
       if(DATA.HIDKEYSTATUS){
@@ -275,7 +286,6 @@
       }
 
       runtime.set(_runtime);
-
     }
   }
 
