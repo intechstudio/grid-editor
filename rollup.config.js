@@ -68,7 +68,8 @@ export default {
 
 		copy ({
 			targets:[
-				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'}
+				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'},
+				{ src: 'public/assets/fonts/*', dest: 'public/build/assets/fonts'}
 			],
 			copyOnce: true
 		}),

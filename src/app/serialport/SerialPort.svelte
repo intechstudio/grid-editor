@@ -222,7 +222,7 @@
               store.brc.rot = DATA.BRC.ROT
 
 
-              if(DATA.EVENT.ELEMENTNUMBER !== 16){
+              if(DATA.EVENT.ELEMENTNUMBER !== 255){
 
                 store.event.eventtype = DATA.EVENT.EVENTTYPE;
                 store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   

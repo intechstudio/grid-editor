@@ -38,7 +38,7 @@ function create_user_input () {
 
   }
 
-  function reset_disconnected({removed = 'reset'}){
+  function reset_disconnected(removed = 'reset'){
     // This is used to re-init local settings panel if a module is removed which values have been displayed
     const current = get(_event);
 
@@ -136,11 +136,7 @@ function create_runtime () {
 
       
         selectedNumber = ui.event.elementnumber;
-        console.log(selectedNumber)
         elementNumbers = device.pages[ui.event.pagenumber] 
-        console.log(device.pages)
-
-        console.log(elementNumbers);
 
         events = elementNumbers[selectedNumber].events;
         selectedEvent = events.find(e => e.event.value == ui.event.eventtype);
