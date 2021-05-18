@@ -8,7 +8,10 @@
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
-  import { runtime, localDefinitions, conditionalConfigPlacement } from '../../../runtime/runtime.store.js';
+  import Pages from './Pages.svelte';
+
+
+  import { runtime, localDefinitions, conditionalConfigPlacement, user_input } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -29,8 +32,8 @@
   let selectedConfig = 'uiEvents';
 
   let configs = [];
-  let events;
-  let elements ;
+  let events = {options: ['', '', ''], selected: ""};
+  let elements = {options: [], selected: ""};
 
   function changeSelectedConfig(arg){
     selectedConfig = arg;
@@ -45,15 +48,22 @@
       localDefinitions.update(configs);
     }).catch(err => {console.error(err); configs = [];})
 
-    events = active.events;
-    elements = active.elements;
+    // let use of default dummy parameters
+    if(active.elements.selected !== ""){
+      events = active.events;
+      elements = active.elements;
+    }
 
   });
+
+
 
 
 </script>
 
 <configuration class="w-full flex flex-col">
+
+  <Pages/>
 
   <tabs class="flex flex-row items-start mt-8">
     <tab 

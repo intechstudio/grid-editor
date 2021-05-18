@@ -3,8 +3,8 @@
 
   import { user_input } from '../../../runtime/runtime.store.js';
 
-  export let events = {options: [], selected: ""};
-  export let elements = {options: [], selected: ""};
+  export let events;
+  export let elements;
   
   let selectedEvent;
 
@@ -18,7 +18,7 @@
     user_input.update_elementnumber(element);
   }
 
-  $: selectedEvent = events.selected;
+  $: selectedEvent = events.selected; console.log('evts',events);
 
 </script>
 
@@ -48,8 +48,9 @@
       {#each events.options as event}
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
-          class="{selectedEvent === event? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
-          {event.desc}
+          class:dummy={event.desc == undefined}
+          class="{(selectedEvent === event) && (event.desc !== undefined) ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
+          {@html event.desc ? event.desc : `<span class="invisible">null</span>`}
         </button>
       {/each}
     </div>
@@ -57,3 +58,12 @@
 
 
 </div>
+
+<style>
+
+  .dummy{
+    @apply bg-select;
+    @apply bg-opacity-50;
+  }
+
+</style>

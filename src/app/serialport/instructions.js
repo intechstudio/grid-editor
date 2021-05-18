@@ -58,6 +58,23 @@ const instructions = {
     serialComm.write(cfg);
 
     return 1;
+  },
+
+  changeActivePage: ({li}) => {
+
+    const {event, brc} = li;
+
+    const parameters = [
+      { PAGENUMBER: pParser(event.pagenumber) },
+    ]
+
+    const cfg = grid.translate.encode(brc, 'PAGEACTIVE', 'EXECUTE', parameters)
+
+    console.log(String.fromCharCode.apply(String, cfg));
+
+    serialComm.write(cfg);
+
+    return 1;
   }
 
 }

@@ -233,7 +233,14 @@ const grid = {
   
       let command = '';  
       
-      let CLASS = PROTOCOL.CLASSES[CLASS_NAME].code.slice(2,)
+      // should build a generic error handler!
+      let CLASS = '';
+      try {
+        CLASS = PROTOCOL.CLASSES[CLASS_NAME].code.slice(2,)
+      } catch (error) {
+        console.error(`Cannot find CLASS code: ${CLASS_NAME} in protocol!`);
+      }
+
       command = [
         PROTOCOL.CONST.STX,
         ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],

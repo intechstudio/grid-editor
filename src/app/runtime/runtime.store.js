@@ -33,6 +33,9 @@ function create_user_input () {
 
   function update_pagenumber(value){
     _event.update(s => {s.event.pagenumber = value; return s});
+
+    instructions.changeActivePage({li: get(_event)});
+
   }
 
   function reset_disconnected({removed = 'reset'}){
@@ -80,7 +83,7 @@ function create_runtime () {
   const _runtime_update = function() {
     
     const li = get(user_input);
-    let lua = '';
+    let code = '';
     let cfgStatus = 'BACKGROUND';
 
     this.status = function(status) {
@@ -89,7 +92,7 @@ function create_runtime () {
     };
 
     this.config = function({lua}) {
-      lua = lua;
+      code = lua;
 
       _runtime.update(_runtime => {
         let dest = findUpdateDestination(_runtime, li);
@@ -104,7 +107,7 @@ function create_runtime () {
     };
 
     this.sendToGrid = function(){
-      instructions.sendConfigToGrid({lua: lua, li: li});
+      instructions.sendConfigToGrid({lua: code, li: li});
       return this;
     };
 
@@ -157,7 +160,7 @@ function create_runtime () {
     return {
       config: config, 
       events: {
-        selected: selectedEvent.event, 
+        selected: selectedEvent.event,
         options: events.map(e => e.event)
       }, 
       elements: {

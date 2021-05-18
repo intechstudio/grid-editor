@@ -216,20 +216,21 @@
           if($user_input.event.elementnumber !== DATA.EVENT.ELEMENTNUMBER || $user_input.event.eventtype !== DATA.EVENT.EVENTTYPE ) {
           // now not using due to changed protocol
 
-          console.log('EVENT', DATA.EVENT)
-
             user_input.update_all((store)=>{
               store.brc.dx = DATA.BRC.DX;
               store.brc.dy = DATA.BRC.DY;
               store.brc.rot = DATA.BRC.ROT
 
-              if(DATA.EVENT.ELEMENTNUMBER == 16){
-                store.event.eventtype = String(+DATA.EVENT.EVENTTYPE - 1);
-              } else {
+
+              if(DATA.EVENT.ELEMENTNUMBER !== 16){
+
                 store.event.eventtype = DATA.EVENT.EVENTTYPE;
                 store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
+                
               }
+
               store.event.pagenumber = DATA.EVENT.PAGENUMBER || 0;
+
               return store;
             });
 
