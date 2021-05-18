@@ -1,9 +1,8 @@
 <script>
-import { onMount } from 'svelte';
 
+  import { onMount } from 'svelte';
 
   import { user_input } from '../../../runtime/runtime.store.js';
-
 
   let manage = false;
   function managePages(){

@@ -65,7 +65,7 @@
 
   <Pages/>
 
-  <tabs class="flex flex-row items-start mt-8">
+  <tabs class="flex flex-row items-start mt-4">
     <tab 
       on:click={()=>{changeSelectedConfig('uiEvents')}} 
       class="{selectedConfig == 'uiEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">

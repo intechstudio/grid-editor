@@ -270,12 +270,12 @@ const grid = {
 
     encode_debugger: function (brc, command){
 
-      const PROTOCOL = this.PROTOCOL;
+      const PROTOCOL = grid.properties;
   
       const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
   
       let BRC_PARAMETERS = [
-        this.utility_genId(), +brc[0], +brc[1], +brc[2], +brc[3]
+        utility_genId(), +brc[0], +brc[1], +brc[2], +brc[3]
       ];
       
       let params = '';

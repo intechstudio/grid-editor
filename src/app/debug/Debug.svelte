@@ -28,20 +28,20 @@ import {serialComm} from "../serialport/serialport.store";
   }
 
 	function debug(){
-    let data = grid.translate.encode_debugger(brc, command_1+runtimeScript+command_2);
+    let data = grid.translate.encode_debugger(brc, command_1);
     console.log(data);
 		serialComm.write(data);
   }
   
   function store() {
     const command = grid.translate.encode('',`CONFIGSTORE`,'EXECUTE','');
-    console.log(command);
+    console.log('STORE', command);
     serialComm.write(command);
   }
 
   function clear() {
     const command = grid.translate.encode('',`CONFIGERASE`,'EXECUTE','');
-    console.log(command);
+    console.log('ERASE', command);
     serialComm.write(command);
   }
 
@@ -98,10 +98,6 @@ import {serialComm} from "../serialport/serialport.store";
 
   <textarea style="min-height:100px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-primary rounded px-1 my-2 text-white font-mono"/>
 
-  <div class="mx-1">
-    <div class="text-white">command 2</div>
-    <input class="w-full md:w-32 p-1 text-black focus:outline-none"  bind:value={command_2}>
-  </div>
 
   <div class="mx-1 my-2">
     <div class="text-white">Syntax check: {runtimeParser}</div>

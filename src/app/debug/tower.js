@@ -40,6 +40,7 @@ function writeSerialCommand({brc, command}){
   let data = grid.translate.encode_debugger(brc, command);
   // websocket debug info to client
   sendDataToClient('output', data);
+  console.log('THIS IS FROM SDEBUGGER', data);
   serialComm.write(data);    
 }
 
