@@ -22,6 +22,7 @@
 
   export let configs = [];
   
+  let disable_pointer_events = false;
   let animation = false;
   let drag_start = false;
   let drag_target = '';
@@ -80,11 +81,13 @@
 
     <div 
       use:changeOrder={{configs}} 
+      on:disable-pointer-events={(e)=>{disable_pointer_events = true;}}
       on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true)}}  
-      on:drag-target={(e)=>{drag_target = e.detail.id;}}
+      on:drag-target={(e)=>{drag_target = e.detail.id; }}
       on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
       on:drop={handleDrop}
       on:drag-end={(e)=>{ drag_start = false; actionIsDragged.set(false); drop_target = undefined; drag_target = [];}}
+      on:enable-pointer-events={(e)=>{disable_pointer_events = false;}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
       class="flex flex-col relative min-h-200 justify-between">
@@ -98,7 +101,7 @@
 
         {#each configs as config, index (config.id)}
           <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
-            <DynamicWrapper let:toggle {drag_start} {index} {config}>
+            <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
                 <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs;}}/>  
                 <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
             </DynamicWrapper>

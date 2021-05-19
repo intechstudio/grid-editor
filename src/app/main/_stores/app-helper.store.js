@@ -73,7 +73,32 @@ function createAdvancedPrefStore(){
   }
 }
 
-export const selectedConfigPreset = writable({});
+function createPresetManagement(){
+
+  const _selected_preset = writable({sub: '', name: '', configs: ''});
+
+  const _quick_access = writable([]);
+
+
+
+  return {
+    subscribe: _selected_preset.subscribe,
+    selected_preset: {
+      subscribe: _selected_preset.subscribe,
+      update: ({sub, name, configs}) => {
+        _selected_preset.set({sub: sub, name: name, configs: configs});
+      },
+    },
+    quick_access: {
+      subscribe: _quick_access.subscribe,
+      update: () => {
+        _quick_access.update(s => { if(s.length >= 4){ s.shift() }; s = [...s, get(_selected_preset)]; return s});
+      }
+    }
+  }
+}
+
+export const presetManagement = createPresetManagement();
 
 export const layout = writable([]);
 

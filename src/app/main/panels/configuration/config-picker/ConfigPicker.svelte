@@ -14,7 +14,9 @@
   
   import { createNestedObject, returnDeepestObjects } from '../../../../protocol/_utils.js';
   
-  import { selectedConfigPreset } from '../../../_stores/app-helper.store';
+  import { presetManagement } from '../../../_stores/app-helper.store';
+
+  import { get } from 'svelte/store';
 
   export let animation = false;
   export let actions;
@@ -32,11 +34,13 @@
 
   function initConfig(){
 
-    console.log($selectedConfigPreset.configs);
+    const cfg = get(presetManagement.selected_preset).configs;
 
     dispatch('new-config', {
-      config: $selectedConfigPreset.configs
+      config: cfg
     });
+
+    presetManagement.quick_access.update();
 
     configSelection = false;
     visible = false;
@@ -70,6 +74,20 @@
       let obj = Object.byString(configs, cfg.category.join('.'));
       obj.push({name: cfg.name, configs: cfg.configs})
     }
+  })
+
+  function quickAdd(qa){
+    dispatch('new-config', {
+      config: qa.configs
+    });
+  }
+
+
+  let quickAccess = [{name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}];
+    presetManagement.quick_access.subscribe(val => {
+    quickAccess = val;
+    configSelection = false;
+    visible = false;
   })
 
 </script>
@@ -122,39 +140,40 @@
         on:click-outside={()=>{configSelection = false; visible = false;}} 
         class="flex flex-col flex-grow h-full">
 
+        <div on:click={()=>{configSelection = false; visible = false;}} id="close-btn" style="top:8px; right:8px;" class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary">
+          <svg class="w-5 h-5 p-1 fill-current text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
+            <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
+          </svg>
+        </div>    
 
-       
-        <!--
-        <div class="py-1 text-gray-700 text-sm mb-1">Quick Access</div>
-        <quick-access class="flex flex-row items-start">
-          <div class="w-1/2 flex">
-            {#each ['MIDI', 'Macro'] as qu,index}
-              <div class="rounded-full p-2 mr-2 bg-secondary text-white" on:click={()=>{}}>{qu}</div>
+
+        {#if quickAccess.length}
+          <div class="py-1 text-gray-500 text-sm mb-1">Quick Access</div>
+          <quick-access class="flex flex-wrap items-start">
+            {#each quickAccess as qa,index}
+              <div class="rounded-full flex items-center mr-2 mb-2 text-sm cursor-pointer hover:shadow-md text-white border hover:border-pick border-select transition" on:click={()=>{quickAdd(qa)}}>
+                <div class="rounded-l-full px-2 py-0.5 bg-select">{qa.sub}</div>
+                <div class="rounded-r-full px-2 py-0.5 bg-pick">{qa.name}</div>
+              </div>
             {/each}
-          </div>
-          <div class="w-1/2 flex">
-            {#if false}
-              <div class="rounded-full p-2 mr-2 cursor-pointer hover:bg-commit-saturate-20 bg-commit text-white" on:click={()=>{/* paste.. */}}>Paste</div>
-            {/if}
-          </div>
-        </quick-access>
-        -->
+          </quick-access>
+        {/if}
 
+        <div class="py-1 w-full text-gray-500 text-sm mb-1">Presets</div> 
 
         <Folder name={"Presets"} {index} counter={0} configs={Object.entries(configs)} expanded/>
 
-        
-
         <div class="w-full mt-2 flex items-end">
-        <button 
-          disabled={selectedConfig === undefined} 
-          class:disabled={selectedConfig === undefined} 
-          on:click={initConfig} 
-          class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 mr-1 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-          >
-          Add Action
-        </button>
-      </div>
+          <button 
+            disabled={selectedConfig === undefined} 
+            class:disabled={selectedConfig === undefined} 
+            on:click={initConfig} 
+            class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 mr-1 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+            >
+            Add Action
+          </button>
+        </div>
 
       </wrapper>
 

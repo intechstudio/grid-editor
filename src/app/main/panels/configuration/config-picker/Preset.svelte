@@ -1,5 +1,5 @@
 <script>
-  import { selectedConfigPreset } from "../../../_stores/app-helper.store";
+  import { presetManagement } from "../../../_stores/app-helper.store";
   import { conditionalConfigPlacement } from '../../../../runtime/runtime.store';
 
   import {get} from 'svelte/store';
@@ -7,13 +7,12 @@
 	export let configs;
   export let name;
   export let index;
+  export let sub;
 
   let pick;
   let isSelected;
 
   $: type = ["If", "Else If", "Else"].includes(name) ? 'modifier' : 'standard';
-
-  $: console.log(type);
 
   function checkIfPlacementPossible(name){
 
@@ -80,12 +79,12 @@
   }
 
   function pickAction(){
-    selectedConfigPreset.set({name: name, configs: configs});
+    presetManagement.selected_preset.update({sub: sub, name: name, configs: configs});
     isEqual();
   }
 
   function isEqual(){
-    if($selectedConfigPreset.name == name && JSON.stringify($selectedConfigPreset.configs) == JSON.stringify(configs)){
+    if(get(presetManagement.selected_preset).name == name && JSON.stringify(get(presetManagement.selected_preset).configs) == JSON.stringify(configs)){
       return true;
     }
     return false;
@@ -93,9 +92,9 @@
 
 </script>
 
-<div on:click={pickAction} class="flex items-center my-1 cursor-pointer justify-between rounded-lg w-full {isEqual($selectedConfigPreset) ? 'bg-select text-white' : 'hover:bg-select-saturate-10 text-gray-50'}">
+<div on:click={pickAction} class="flex items-center my-1 cursor-pointer justify-between rounded-lg w-full {isEqual($presetManagement) ? 'bg-select text-white' : 'hover:bg-select-saturate-10 text-gray-50'}">
     <div class="flex items-center  py-1 px-2 " >
-      <svg class="{isEqual($selectedConfigPreset) ? null : 'invisible'}" width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <svg class="{isEqual($presetManagement) ? null : 'invisible'}" width="8" height="8" viewBox="0 0 8 8" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#C9C8C8"/>
       </svg>
       <div class="pl-2">

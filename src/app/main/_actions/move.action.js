@@ -79,18 +79,27 @@ export function changeOrder(node, {configs}) {
       drag += 1;
     }
 
-    // emit dragstart only once, used to disabled pointer events
+    //  used to disabled pointer events
     if(drag == 1){
-      console.log('move target 1: ',e.target)
-      node.dispatchEvent(new CustomEvent('drag-start'));      
+      node.dispatchEvent(new CustomEvent('disable-pointer-events'));      
     }
 
     // see if the target has movable attribute, so it can be moved...
-    if(drag == 2 && (e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined)){
-      moveDisabled = true;
-      node.dispatchEvent(new CustomEvent('drag-end'));
-      console.log('This cannot be moved!')
-      return;
+    // emit dragstart only once
+    if(drag == 2){
+
+      //console.log(e.target)
+      if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
+        moveDisabled = true;
+        node.dispatchEvent(new CustomEvent('drag-end'));
+        node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
+        console.log('This cannot be moved!')
+      } else {
+        node.dispatchEvent(new CustomEvent('drag-start'));      
+
+        moveDisabled = false;
+      }
+
     }
 
     // emit dragtarget once pointer events are disabled in drag mode
@@ -169,8 +178,8 @@ export function changeOrder(node, {configs}) {
   }
 
   function handleMouseUp(e){
-    console.log('MOUSEUP', moveDisabled)
-    if(!moveDisabled){
+    console.log(`Move is ${moveDisabled ? 'disabled' : 'enabled'}!`, dragged)
+    if(!moveDisabled && dragged !== undefined){
       if(drag){
         node.dispatchEvent(new CustomEvent('drop', {detail: {multi: multiDragFlag}}));
         node.dispatchEvent(new CustomEvent('anim-start'))
@@ -179,6 +188,7 @@ export function changeOrder(node, {configs}) {
       if(document.getElementById("drag-n-drop-cursor")) document.getElementById("drag-n-drop-cursor").remove();
 
       node.dispatchEvent(new CustomEvent('drag-end', {}));
+      node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
 
       // for fade in animation end sequencing
       setTimeout(()=>{
@@ -189,8 +199,13 @@ export function changeOrder(node, {configs}) {
           }
         }
         drag_block = [];
+        dragged = undefined;
         node.dispatchEvent(new CustomEvent('anim-end'))
       },300)
+
+    } else {
+      node.dispatchEvent(new CustomEvent('drag-end'));
+      node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
     }
 
     node.removeEventListener('mousemove', handleMouseMove);
@@ -199,7 +214,6 @@ export function changeOrder(node, {configs}) {
   }
 
   function reset(){
-    moveDisabled = false;
     drag = 0;
     pos = {x: 0, y: 0};
     selectionLength = 0;

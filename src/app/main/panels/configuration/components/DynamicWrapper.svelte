@@ -8,7 +8,7 @@
 
   export let config = '' //{desc: 'unnamed', groupType: 'standard', id: ''};
   export let index = undefined;
-  export let drag_start = false;
+  export let disable_pointer_events = false;
 
   export let toggle = false;
   const color = () => "rgb(" + Math.floor(Math.random() * 256) + "," + Math.floor(Math.random() * 256) + ","+ Math.floor(Math.random() * 256) + ")";
@@ -39,7 +39,7 @@
 
 
 <wrapper bind:this={$configNodeBinding[config.id]} id="cfg-{index}" movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } config-component={config.component.name} config-id={config.id} class="block border-none outline-none transition-opacity duration-300">
-  <div class="flex relative {drag_start ? 'pointer-events-none' : ''}">
+  <div class="flex relative {disable_pointer_events ? 'pointer-events-none' : ''}">
 
     {#if config.information.groupType == 'standard'}
       <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow relative text-white cursor-pointer ">
