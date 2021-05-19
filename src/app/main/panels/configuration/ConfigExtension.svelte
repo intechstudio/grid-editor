@@ -57,8 +57,6 @@ import { user_input } from '../../../runtime/runtime.store.js';
     ready = true;
   });
 
-
-
 </script>
 
 {#if ready}
@@ -105,7 +103,7 @@ import { user_input } from '../../../runtime/runtime.store.js';
                     
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Arithmetic Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.LUA.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a === $user_input.event.eventtype)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a == $user_input.event.eventtype)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -116,7 +114,7 @@ import { user_input } from '../../../runtime/runtime.store.js';
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Relational Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.LUA.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a === $user_input.event.eventtype)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'relational_operator' && m.allowed.find(a => a == $user_input.event.eventtype)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>
@@ -127,7 +125,7 @@ import { user_input } from '../../../runtime/runtime.store.js';
                   <oparators class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Logical Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
-                      {#each grid.properties.LUA.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a === $user_input.event.eventtype)) as syntax}
+                      {#each grid.properties.LUA.filter(m => m.type === 'logical_operator' && m.allowed.find(a => a == $user_input.event.eventtype)) as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>

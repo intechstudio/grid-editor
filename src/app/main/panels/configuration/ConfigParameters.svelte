@@ -18,7 +18,7 @@
     user_input.update_elementnumber(element);
   }
 
-  $: selectedEvent = events.selected; console.log('evts',events);
+  $: selectedEvent = events.selected;
 
 </script>
 

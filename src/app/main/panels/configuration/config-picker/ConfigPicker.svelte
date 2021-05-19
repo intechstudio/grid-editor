@@ -60,7 +60,7 @@
         }
     }
     return o;
-}
+  }
 
   config_collection.forEach(cfg => {
     if(JSON.stringify(cfg.category) !== lastCategory){
@@ -71,8 +71,6 @@
       obj.push({name: cfg.name, configs: cfg.configs})
     }
   })
-
-  console.log(configs);
 
 </script>
 

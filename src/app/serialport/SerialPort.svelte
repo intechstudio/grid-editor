@@ -208,6 +208,11 @@
 
       updateGridUsedAndAlive(DATA.CONTROLLER);
 
+      if(DATA.PAGEACTIVE){
+        console.log('pagenumber',DATA.PAGEACTIVE.PAGENUMBER )
+        user_input.update_pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
+      }
+
       // local input update (user interaction)
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
@@ -217,21 +222,19 @@
           // now not using due to changed protocol
 
             user_input.update_all((store)=>{
+
               store.brc.dx = DATA.BRC.DX;
               store.brc.dy = DATA.BRC.DY;
               store.brc.rot = DATA.BRC.ROT
 
-
               if(DATA.EVENT.ELEMENTNUMBER !== 255){
-
                 store.event.eventtype = DATA.EVENT.EVENTTYPE;
                 store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
-                
-              }
-
-              store.event.pagenumber = DATA.EVENT.PAGENUMBER || 0;
+                //store.event.pagenumber = DATA.EVENT.PAGENUMBER;
+              }      
 
               return store;
+
             });
 
             
@@ -241,7 +244,6 @@
 
       // lua config received, save to runtime
       if(DATA.CONFIG){
-        console.log('DATA', DATA.CONFIG)
         runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG}).trigger(true)
       }
 

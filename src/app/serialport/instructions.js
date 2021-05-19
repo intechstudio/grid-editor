@@ -70,7 +70,7 @@ const instructions = {
 
     const cfg = grid.translate.encode(brc, 'PAGEACTIVE', 'EXECUTE', parameters)
 
-    console.log(String.fromCharCode.apply(String, cfg));
+    console.log('pagenum: ', event.pagenumber, 'cfg: ', String.fromCharCode.apply(String, cfg));
 
     serialComm.write(cfg);
 

@@ -416,6 +416,10 @@ const grid = {
             DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
           }
 
+          if(obj.class == "PAGEACTIVE"){
+            DATA.PAGEACTIVE = decode_by_code(array, obj.class);
+          }
+
           if(obj.class == "CONFIG"){
             
             if(obj.instr == "REPORT"){

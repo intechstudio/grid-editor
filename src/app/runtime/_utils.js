@@ -23,7 +23,6 @@ const _utils = {
    */
 
   gridLuaToEditorLua: async function(fullConfig){
-    console.log(fullConfig);
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
@@ -53,7 +52,8 @@ const _utils = {
   configBreakDown: function(configList){
     let configMatrix = [];
     for (let i = 0; i < configList.length; i+=2) {
-      configMatrix.push({short: configList[i].slice(5,-2), script: configList[i+1].trim()})
+      let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : '' ]
+      configMatrix.push({short: short, script: script})
     }
     return configMatrix;
   },

@@ -37,7 +37,6 @@
   onMount(()=>{
 
     if(id !== undefined && (id.length > 4)){
-      console.log(id);
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
     }

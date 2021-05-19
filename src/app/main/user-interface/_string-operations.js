@@ -37,7 +37,6 @@ const stringManipulation = {
       regex_human: regex_human,
       //functions: functions
     }
-    console.log(this.VALIDATOR);
   },
 
   checkFn: function(text){

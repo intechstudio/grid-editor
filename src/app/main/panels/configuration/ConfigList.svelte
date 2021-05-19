@@ -37,6 +37,7 @@
   }
 
   function handleDrop(e){
+    console.log('DROP EVENT...', e.detail, drag_target, drop_target)
     if(drop_target !== 'bin'){
       configs = configManagement.reorder({
         configs: configs, 
@@ -44,7 +45,7 @@
         drop_target: drop_target, 
         isMultiDrag: e.detail.multi
       });
-    } else {
+    } else { 
       configs = configManagement.remove({
         configs: configs, 
         array: drag_target
@@ -74,7 +75,7 @@
 
   <div class="pt-1 flex items-center justify-between">
     <div class="text-gray-600 text-sm">Configurations</div>
-    <MultiSelect/>
+    <!--<MultiSelect/>-->
   </div>
 
     <div 
@@ -102,7 +103,7 @@
                 <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
             </DynamicWrapper>
 
-            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange(); configs = configs; }}/>
+            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs; }}/>
             
             {#if !drag_start}
               <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>

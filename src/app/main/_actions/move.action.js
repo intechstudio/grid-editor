@@ -1,5 +1,7 @@
 export function changeOrder(node, {configs}) {
-  
+
+  let _configs  = configs;
+
   let drag = 0;
   let pos = {x:0, y: 0};
   const threshold = 4;
@@ -9,15 +11,10 @@ export function changeOrder(node, {configs}) {
 
   let cursor = undefined;
   let dragged = undefined;
-
   let multiDragFlag = undefined;
-
   let moveDisabled = false;
-
   let drag_block = [];
-
-  let _configs  = configs;
-
+  
   let selectionLength = false;
 
   function createMultiDragCursor(targets, width){
@@ -84,18 +81,16 @@ export function changeOrder(node, {configs}) {
 
     // emit dragstart only once, used to disabled pointer events
     if(drag == 1){
-      console.log(e.target);
-
+      console.log('move target 1: ',e.target)
       node.dispatchEvent(new CustomEvent('drag-start'));      
     }
 
     // see if the target has movable attribute, so it can be moved...
-    if(drag == 2){
-      if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
-        moveDisabled = true;
-        node.dispatchEvent(new CustomEvent('drag-end'));
-        return;
-      } 
+    if(drag == 2 && (e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined)){
+      moveDisabled = true;
+      node.dispatchEvent(new CustomEvent('drag-end'));
+      console.log('This cannot be moved!')
+      return;
     }
 
     // emit dragtarget once pointer events are disabled in drag mode
@@ -136,6 +131,7 @@ export function changeOrder(node, {configs}) {
         detail: {id: _configIds}
       }));
 
+      console.log('DRAG-TARGET!', _configIds);
     }
 
     // drag over section
@@ -173,6 +169,7 @@ export function changeOrder(node, {configs}) {
   }
 
   function handleMouseUp(e){
+    console.log('MOUSEUP', moveDisabled)
     if(!moveDisabled){
       if(drag){
         node.dispatchEvent(new CustomEvent('drop', {detail: {multi: multiDragFlag}}));
@@ -197,6 +194,11 @@ export function changeOrder(node, {configs}) {
     }
 
     node.removeEventListener('mousemove', handleMouseMove);
+
+    reset();
+  }
+
+  function reset(){
     moveDisabled = false;
     drag = 0;
     pos = {x: 0, y: 0};

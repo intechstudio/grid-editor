@@ -128,8 +128,6 @@ function create_runtime () {
     let selectedNumber = "";
     let selectedEvent = "";
 
-    console.log(ui,rt )
-
     rt.forEach(device => {
   
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy){
