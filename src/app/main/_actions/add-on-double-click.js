@@ -1,19 +1,21 @@
 /** Dispatch event on double click of node */
-export function clickOutside(node) {
+export function addOnDoubleClick(node) {
   
-  const handleClick = event => {
+  const handleDblClick = event => {
+    node.dispatchEvent(
+      new CustomEvent('double-click')
+    )
+
     if (node && !node.contains(event.target) && !event.defaultPrevented) {
-      node.dispatchEvent(
-        new CustomEvent('click-outside', node)
-      )
+      console.log('DBL', node, event.target)
     }
   }
 
-	document.addEventListener('click', handleClick, true);
+	node.addEventListener('dblclick', handleDblClick, true);
   
   return {
     destroy() {
-      document.removeEventListener('click', handleClick, true);
+      node.removeEventListener('dblclick', handleDblClick, true);
     }
 	}
 }

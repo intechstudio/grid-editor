@@ -83,8 +83,8 @@
   }
 
 
-  let quickAccess = [{name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}, {name: 'Default', sub: 'Code Block'}];
-    presetManagement.quick_access.subscribe(val => {
+  let quickAccess = [];
+  presetManagement.quick_access.subscribe(val => {
     quickAccess = val;
     configSelection = false;
     visible = false;
@@ -162,7 +162,9 @@
 
         <div class="py-1 w-full text-gray-500 text-sm mb-1">Presets</div> 
 
-        <Folder name={"Presets"} {index} counter={0} configs={Object.entries(configs)} expanded/>
+        <div class="w-full pr-2 h-full overflow-y-auto">
+          <Folder name={"Presets"} on:double-click={initConfig} {index} counter={0} configs={Object.entries(configs)} expanded/>
+        </div>
 
         <div class="w-full mt-2 flex items-end">
           <button 
@@ -184,3 +186,22 @@
     
   </pick-action>
 {/if}
+
+<style>
+
+  ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+      background: #1e2628;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+      background: #286787;
+      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+  }
+  
+  ::-webkit-scrollbar-corner {
+      background: #1e2628
+  }
+
+</style>
