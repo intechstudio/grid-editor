@@ -402,8 +402,10 @@ const grid = {
         let DATA = {};
     
         DATA.BRC = decode_by_code(serialData, 'BRC');
+
     
         decoded.forEach((obj)=>{
+
 
           let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
           if(obj.class == "EVENT"){
@@ -422,6 +424,11 @@ const grid = {
 
           if(obj.class == "PAGECOUNT"){
             DATA.PAGECOUNT = decode_by_code(array, obj.class);
+          }
+
+          if(obj.class == "DEBUGTEXT"){
+            const arr = array.slice(5,);
+            DATA.DEBUGTEXT = String.fromCharCode(...arr)
           }
 
           if(obj.class == "CONFIG"){

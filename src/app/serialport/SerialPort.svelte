@@ -7,7 +7,7 @@
   import { numberOfModulesStore } from '../main/_stores/app-helper.store.js';
 
   //import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
-  import { runtime, user_input } from '../runtime/runtime.store.js';
+  import { debug, runtime, user_input } from '../runtime/runtime.store.js';
 
   import { layout } from '../main/_stores/app-helper.store.js';
 
@@ -217,6 +217,18 @@
         runtime.device.update({brc:DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
       }
 
+      if(DATA.DEBUGTEXT){
+        debug.update((d) => {
+          if(d.enabled){
+            if(d.data.length >= 15){
+              d.data.shift()
+            }
+            d.data = [...d.data, DATA.DEBUGTEXT];
+          }
+          return d;
+        })
+      }
+
       // local input update (user interaction)
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
@@ -234,7 +246,6 @@
               if(DATA.EVENT.ELEMENTNUMBER !== 255){
                 store.event.eventtype = DATA.EVENT.EVENTTYPE;
                 store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
-                //store.event.pagenumber = DATA.EVENT.PAGENUMBER;
               }      
 
               return store;
@@ -290,8 +301,6 @@
 
       if(!exists){
         numberOfModulesStore.set(_runtime.length);
-
-        console.log('New module', controller);
 
         const cfg = grid.translate.encode(
           {dx: controller.dx, dy: controller.dy, rot: controller.rot},

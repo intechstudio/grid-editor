@@ -4,7 +4,7 @@ import { pParser } from "../protocol/_utils";
 import {serialComm} from "../serialport/serialport.store";
 
   
-  import { runtime } from "../runtime/runtime.store";
+  import { runtime, debug as debugtext } from "../runtime/runtime.store";
   import _utils, { luaParser } from "../runtime/_utils";
 
   let runtimeScript = '';
@@ -33,8 +33,6 @@ import {serialComm} from "../serialport/serialport.store";
     console.log(data);
 		serialComm.write(data);
   }
-  
-
 
   function heartbeat() {
     const command = grid.translate.encode(
@@ -56,6 +54,10 @@ import {serialComm} from "../serialport/serialport.store";
   function charCount(text){
     return text.length;
   }
+
+  let debugText = [];
+
+
 
 
 </script>
@@ -100,4 +102,21 @@ import {serialComm} from "../serialport/serialport.store";
     <button on:click={debug} class="rounded my-2 bg-green-700 hover:bg-green-900 text-white px-2 py-2 w-32 mr-2">Send To Grid</button>
     <button on:click={()=>{heartbeat()}} class="rounded my-2 bg-pink-700 hover:bg-pink-900 text-white px-2 py-2 w-32 mr-2">Heartbeat ❤️</button>
   </div>
+
+
+  <div class="flex flex-col font-mono overflow-y-auto text-white bg-primary-900 p-2">
+    {#each $debugtext.data as debug, i}
+      <span class="debugtexty py-0.5">{debug}</span>
+    {/each}
+  </div>
+
 </config-debug>
+
+<style>
+
+
+  .debugtexty:nth-child(even){
+    @apply bg-select;
+  }
+
+</style>

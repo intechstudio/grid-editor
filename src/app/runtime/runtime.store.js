@@ -202,9 +202,11 @@ function create_runtime () {
     update: new _runtime_update(),
     device: new _device_update(),
     active_config: _active_config.subscribe,
-    unsaved: _unsaved_changes
+    unsaved: _unsaved_changes,
   }
 }
+
+export const debug = writable({enabled: true, data: []});
 
 export const runtime = create_runtime();
 
