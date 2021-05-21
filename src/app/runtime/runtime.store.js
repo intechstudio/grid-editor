@@ -1,4 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
+import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import _utils from './_utils';
 
@@ -16,7 +17,7 @@ function create_user_input () {
     },
     event: {
       pagenumber: 0,
-      elementnumber: 4, // should be checked out if grid sends back array or not
+      elementnumber: -1, // should be checked out if grid sends back array or not
       eventtype: 2
     }
   }
@@ -66,7 +67,9 @@ export const user_input = create_user_input();
 
 function create_runtime () {
 
-  const _change = writable(0);
+  const _unsaved_changes = writable(0);
+
+  const _trigger_ui_change = writable(0);
 
   const _runtime = writable([]);
 
@@ -74,10 +77,27 @@ function create_runtime () {
     let _event;
     _runtime.forEach((device) => {
       if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-        _event = device.pages[li.event.pagenumber][li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
+        _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
       }
     });
     return _event;
+  }
+
+  const _device_update = function(){
+
+    this.update = function({brc, pagenumber}){
+      _runtime.update(_runtime => {
+        _runtime.forEach((device)=>{
+          if(device.dx == brc.DX && device.dy == brc.DY){
+            for (let i = 0; i < pagenumber - 1; i++) {
+              device.pages = [...device.pages, grid.device.createPage(device.id)];
+            }
+            console.log('device pages created...', device.pages)
+          }
+        })
+        return _runtime;
+      })
+    }
   }
 
   const _runtime_update = function() {
@@ -107,20 +127,23 @@ function create_runtime () {
     };
 
     this.sendToGrid = function(){
+      _unsaved_changes.update(n => n + 1);
       instructions.sendConfigToGrid({lua: code, li: li});
       return this;
     };
 
     this.trigger = function(){
-      _change.update(n => n + 1);
+      _trigger_ui_change.update(n => n + 1);
       return this;
     };
 
   }
 
-  const _active_config = derived([user_input, _change], ([ui, chng]) => {
+  const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
 
     const rt = get(_runtime);
+
+    let pages = [];
 
     let config = [];
     let events = [];
@@ -128,13 +151,18 @@ function create_runtime () {
     let selectedNumber = "";
     let selectedEvent = "";
 
+
+
     rt.forEach(device => {
   
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy){
 
+        pages = device.pages;
       
+        console.log(pages)
+
         selectedNumber = ui.event.elementnumber;
-        elementNumbers = device.pages[ui.event.pagenumber] 
+        elementNumbers = device.pages[ui.event.pagenumber].control_elements;
 
         events = elementNumbers[selectedNumber].events;
         selectedEvent = events.find(e => e.event.value == ui.event.eventtype);
@@ -160,6 +188,10 @@ function create_runtime () {
       elements: {
         selected: selectedNumber,
         options: elementNumbers.map((n,i) => i)
+      },
+      pages: {
+        selected: ui.event.pagenumber,
+        options: pages.map((n,i) => i)
       }
     }
   })
@@ -168,7 +200,9 @@ function create_runtime () {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
     update: new _runtime_update(),
-    active_config: _active_config.subscribe
+    device: new _device_update(),
+    active_config: _active_config.subscribe,
+    unsaved: _unsaved_changes
   }
 }
 

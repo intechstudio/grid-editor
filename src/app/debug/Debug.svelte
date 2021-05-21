@@ -10,22 +10,23 @@ import {serialComm} from "../serialport/serialport.store";
   let runtimeScript = '';
   let runtimeParser = '';
 
-  export let configs = {lua: []};
+  let configs = [];
+
+  runtime.active_config(active => {
+    _utils.gridLuaToEditorLua(active.config).then(res => { 
+      configs = res;
+      let code = '';
+      configs.forEach((e,i) => {
+        code += `--[[@${e.short}]] ` + e.script + "\n";  
+      }); 
+      runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
+      runtimeParser = luaParser(code, {comments: true});
+    }).catch(err => {console.error(err); configs = [];})
+  })
 
   
   let brc = [0,0,0,0];
   let [command_1, command_2] = ['', ''];
-  
-
- $: if(configs){
-    //console.log(s)
-    let code = '';
-    configs.forEach((e,i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";  
-    }); 
-    runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
-    runtimeParser = luaParser(code, {comments: true});
-  }
 
 	function debug(){
     let data = grid.translate.encode_debugger(brc, command_1);
@@ -33,17 +34,7 @@ import {serialComm} from "../serialport/serialport.store";
 		serialComm.write(data);
   }
   
-  function store() {
-    const command = grid.translate.encode('',`CONFIGSTORE`,'EXECUTE','');
-    console.log('STORE', command);
-    serialComm.write(command);
-  }
 
-  function clear() {
-    const command = grid.translate.encode('',`CONFIGERASE`,'EXECUTE','');
-    console.log('ERASE', command);
-    serialComm.write(command);
-  }
 
   function heartbeat() {
     const command = grid.translate.encode(
@@ -107,8 +98,6 @@ import {serialComm} from "../serialport/serialport.store";
 
   <div class="flex">
     <button on:click={debug} class="rounded my-2 bg-green-700 hover:bg-green-900 text-white px-2 py-2 w-32 mr-2">Send To Grid</button>
-    <button on:click={()=>{store()}} class="rounded my-2 bg-purple-700 hover:bg-purple-900 text-white px-2 py-2 w-32 mr-2">Store</button>
-    <button on:click={()=>{clear()}} class="rounded my-2 bg-yellow-700 hover:bg-yellow-900 text-white px-2 py-2 w-32 mr-2">Clear</button>
     <button on:click={()=>{heartbeat()}} class="rounded my-2 bg-pink-700 hover:bg-pink-900 text-white px-2 py-2 w-32 mr-2">Heartbeat ❤️</button>
   </div>
 </config-debug>

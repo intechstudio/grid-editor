@@ -30,7 +30,8 @@ export const appSettings = writable({
   selectedDisplay: '',
   layoutMode: false,
   configType: 'uiEvents',
-  activePanel: 'gridConfiguration',
+  activePanel: 'Configuration',
+  leftPanel: '',
   preferences: false,
   os: checkOS()
 });
@@ -78,8 +79,6 @@ function createPresetManagement(){
   const _selected_preset = writable({sub: '', name: '', configs: ''});
 
   const _quick_access = writable([]);
-
-
 
   return {
     subscribe: _selected_preset.subscribe,

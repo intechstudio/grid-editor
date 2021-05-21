@@ -135,7 +135,10 @@ module.exports = {
     textColor: ['group-hover'],
     visibility: ['hover'],
     backgroundColor: ['hover','group-hover'],
-    cursor: ['group-hover']
+    cursor: ['group-hover'],
+    borderRadius: ['hover'],
+    height: ['group-hover', 'hover'],
+    scale: ['hover','group-hover']
   },
   plugins: []
 }

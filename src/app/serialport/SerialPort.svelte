@@ -213,6 +213,10 @@
         user_input.update_pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
       }
 
+      if(DATA.PAGECOUNT){
+        runtime.device.update({brc:DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
+      }
+
       // local input update (user interaction)
       if(DATA.EVENT){
         if(DATA.EVENT.EVENTTYPE !== 12){
@@ -286,6 +290,18 @@
 
       if(!exists){
         numberOfModulesStore.set(_runtime.length);
+
+        console.log('New module', controller);
+
+        const cfg = grid.translate.encode(
+          {dx: controller.dx, dy: controller.dy, rot: controller.rot},
+          "PAGECOUNT",
+          "FETCH",
+          ""
+        );
+        
+        serialComm.write(cfg);
+
       }
 
       runtime.set(_runtime);

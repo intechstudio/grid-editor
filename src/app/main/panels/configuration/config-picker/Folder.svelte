@@ -28,7 +28,6 @@
 	}
 
 	onMount(()=>{
-		console.log(name);
 		counter++;
 	})
 

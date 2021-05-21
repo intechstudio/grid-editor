@@ -22,7 +22,7 @@
 
 </script>
 
-<div class="flex flex-col bg-primary w-full p-4">
+<div class="{selectedEvent || 'pointer-events-none'} flex flex-col bg-primary w-full p-4">
 
   <div class="pb-2 {$appSettings.configType == 'uiEvents' ? 'block' : 'hidden'}">
     <div class="text-gray-600 py-1 text-sm">

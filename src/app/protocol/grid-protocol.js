@@ -420,6 +420,10 @@ const grid = {
             DATA.PAGEACTIVE = decode_by_code(array, obj.class);
           }
 
+          if(obj.class == "PAGECOUNT"){
+            DATA.PAGECOUNT = decode_by_code(array, obj.class);
+          }
+
           if(obj.class == "CONFIG"){
             
             if(obj.instr == "REPORT"){
@@ -501,39 +505,30 @@ const grid = {
       ]
     },
 
-    make: function(header, version, moduleType, virtual){
-
-      function createElementSettings(moduleType, elementEvents, moduleElements){
-
+    createPage: function(moduleType){
         moduleType = moduleType.substr(0,4);
     
-        let pages = [];
-    
-        //pages
-        for (let p = 0; p < 4; p++) {  
-    
-          let control_elements = [];
-    
-          // control elements
-          for (let i = 0; i < 16; i++) {
-            let events = [];
-            for (let j=0; j < elementEvents[moduleElements[moduleType][i]].length; j++) {
-              events.push({        
-                event: elementEvents[moduleElements[moduleType][i]][j], 
-                config: [],
-                cfgStatus: 'not specified'
-              })
-            }
-            control_elements[i] = {events: events, controlElementType: moduleElements[moduleType][i], };
+        let control_elements = [];
+
+        let status = {desc: ''};
+  
+        // control elements
+        for (let i = 0; i < 16; i++) {
+          let events = [];
+          for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
+            events.push({        
+              event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
+              config: [],
+              cfgStatus: 'not specified'
+            })
           }
-    
-          pages[p] = control_elements;
-    
+          control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };
         }
-    
-        return pages;
-        
-      }
+  
+        return {status, control_elements};
+    },
+
+    make: function(header, version, moduleType, virtual){
 
       let controller = {
         // implement the module id rep / req
@@ -588,7 +583,7 @@ const grid = {
           rot: header.rot * -90,
           isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
           isLanding: false,
-          pages: createElementSettings(moduleType, this.elementEvents, this.moduleElements),
+          pages: [this.createPage(moduleType)],
           global: {  
             bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
             bankEnabled: [true,true,true,true],

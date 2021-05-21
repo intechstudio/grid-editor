@@ -24,8 +24,6 @@
 
     const active = get(conditionalConfigPlacement);
 
-    console.log('INDEX', index)
-
     // lookbefore
     const lookbefore = active.slice(0,index).reverse();
     // lookafter
@@ -36,8 +34,6 @@
     if(type == 'modifier'){
       const fmlb = lookbefore.find(a => a.information.groupType == 'modifier'); //firstModifierLookBefore
       const fmla = lookafter.find(a => a.information.groupType == 'modifier'); //firstModifierLookAfter
-      console.log('before', fmlb)
-      console.log('after', fmla)
 
       if(name == 'Else'){
         try {     

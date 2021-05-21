@@ -2,26 +2,28 @@
 
   import { createEventDispatcher } from 'svelte';
 
-  import { clickOutside } from '../../../_actions/click-outside.action';
+  import { clickOutside } from '../../_actions/click-outside.action';
 
-  import { menuBoundaries } from '../../../_actions/boundaries.action.js';
+  import { menuBoundaries } from '../../_actions/boundaries.action.js';
 
-  import { config_collection } from '../../config-library/built-in-configs.js'
+  import { config_collection } from '../config-library/built-in-configs.js'
 
-  import _utils from '../../../../runtime/_utils';
+  import _utils from '../../../runtime/_utils';
 
-  import Folder from './Folder.svelte';
+  import Folder from '../configuration/config-picker/Folder.svelte';
   
-  import { createNestedObject, returnDeepestObjects } from '../../../../protocol/_utils.js';
+  import { createNestedObject, returnDeepestObjects } from '../../../protocol/_utils.js';
   
-  import { presetManagement } from '../../../_stores/app-helper.store';
+  import { presetManagement } from '../../_stores/app-helper.store';
 
   import { get } from 'svelte/store';
 
   export let animation = false;
   export let actions;
-  export let index;
+  export let index = 0;
   export let userHelper = false;
+
+  export let classes;
 
   const dispatch = createEventDispatcher();
 
@@ -92,54 +94,13 @@
 
 </script>
 
-{#if !userHelper}
-
-  <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection}}  
-    on:mouseenter={()=>{visible = true;}} 
-    on:mouseleave={()=>{visible = false;}} 
-    class="{((visible || configSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center">
-
-    <div class="h-2 w-full rounded-full bg-pick -mr-1"></div>
-
-    <div class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10 ">
-      <svg class="w-5 h-5 p-1" viewBox="0 0 7 7" fill="white" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M3.5 0.5C3.77614 0.5 4 0.723858 4 1V3H6C6.27614 3 6.5 3.22386 6.5 3.5C6.5 3.77614 6.27614 4 6 4H4V6C4 6.27614 3.77614 6.5 3.5 6.5C3.22386 6.5 3 6.27614 3 6V4H1C0.723858 4 0.5 3.77614 0.5 3.5C0.5 3.22386 0.723858 3 1 3H3V1C3 0.723858 3.22386 0.5 3.5 0.5Z" fill="white"/>
-      </svg>
-    </div>
-
-  </action-placeholder>
-
-{:else}
-  
-  <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection}}  
-    on:mouseenter={()=>{visible = true;}} 
-    on:mouseleave={()=>{visible = false;}} 
-    class=" cursor-pointer flex items-center mb-3">
-
-    <div class="{((visible || configSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
-      Add config block...
-    </div>
-    
-  </action-placeholder>
-
-{/if}
-
-{#if configSelection}
-  <pick-action class="w-full absolute flex">
+<pick-action class="relative flex {classes}">
 
     <menu 
       id="action-menu"
-      use:menuBoundaries={'init'} 
-      on:offset-top={(e)=>{topOffset = e.detail; console.log(topOffset)}} 
-      style="right: calc(100% + 2rem);top:{-250 + topOffset}px;width:300px;height:500px;z-index:9999" 
-      class="absolute shadow-md rounded-md bg-primary p-4">
+      class="w-full relative m-4 shadow-md rounded-md bg-primary p-4 ">
       
-      <wrapper 
-        use:clickOutside
-        on:click-outside={()=>{configSelection = false; visible = false;}} 
-        class="flex flex-col flex-grow h-full">
+      <wrapper class="flex flex-col flex-grow h-full">
 
         <div on:click={()=>{configSelection = false; visible = false;}} id="close-btn" style="top:8px; right:8px;" class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary">
           <svg class="w-5 h-5 p-1 fill-current text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -185,8 +146,7 @@
 
 
     
-  </pick-action>
-{/if}
+</pick-action>
 
 <style>
 

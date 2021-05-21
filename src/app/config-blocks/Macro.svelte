@@ -27,8 +27,6 @@
 
   import * as keyMap from '../../external/macro/map.json';
 
-
-
   export let action;
   export let index;
   export let eventInfo;
@@ -303,7 +301,7 @@
       <div
         id="idk"
         bind:this={macroInputField}
-        class="editableDiv w-full secondary text-white p-2 pl-2 flex flex-row rounded-none focus:outline-none" 
+        class="editableDiv w-full secondary text-white p-2 pl-2 flex flex-row flex-wrap rounded-none focus:outline-none" 
         on:keydown|preventDefault={identifyKey}
         on:keyup|preventDefault={identifyKey}
         contenteditable="true"

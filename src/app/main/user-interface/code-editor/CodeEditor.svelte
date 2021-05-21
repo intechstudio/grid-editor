@@ -155,7 +155,7 @@
 
 </script>
 
-<div class="w-full h-full" bind:this={codeblock}></div>
+<div class="h-full w-full" bind:this={codeblock}></div>
 
 <style global>
 
@@ -165,7 +165,7 @@
 
   .cm-editor {
     height: 100%;
-   
+    width: 100%;
   }
 
   /* The lint marker gutter */

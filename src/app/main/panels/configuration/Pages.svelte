@@ -2,39 +2,76 @@
 
   import { onMount } from 'svelte';
 
-  import { user_input } from '../../../runtime/runtime.store.js';
+  import { get } from 'svelte/store';
+
+  import { runtime, user_input } from '../../../runtime/runtime.store.js';
+
+  export let pages;
+
+  let alert = false;
 
   let manage = false;
   function managePages(){
     manage = ! manage;
   }
 
-  let selectedPage = 0;
+  let selectedPage = undefined;
   function handleSelectPage(page) {
-    selectedPage = page;
-    user_input.update_pagenumber(selectedPage);
+    if(get(runtime.unsaved) == 0){
+      selectedPage = page;
+      user_input.update_pagenumber(selectedPage);
+    }
+    else{
+      alert = true;
+
+      setTimeout(()=>{
+        alert = false;
+      }, 2000)
+    }
   }
 
-  onMount(()=>{
-    user_input.subscribe(val => {
-      selectedPage = val.event.pagenumber;
-    })
-  })
+  const design = (page) => {
+    let style = '';
+    if(page !== ''){
+      if(selectedPage == page){
+        style = 'shadow-md bg-pick text-white';
+      } else {
+        style = 'hover:bg-pick-desaturate-10 text-gray-50'
+      }
+    } else {
+      style = 'dummy'
+    }
+    console.log(page, selectedPage)
+
+    return style;
+  }
+
+  $: selectedPage = pages.selected; console.log(selectedPage);
 
 </script>
 
-<page-controller class="p-4 flex flex-col w-full bg-primary">
+<page-controller class="{pages.options.includes('') && 'pointer-events-none'} relative px-4 pb-4 flex flex-col w-full bg-primary">
 
-  <div class="text-gray-600 py-1 text-sm">
+
+  {#if alert}
+  
+  <div class="absolute left-0 mt-4 w-56 -ml-60 text-center text-white bg-red-500 p-4 rounded">
+    Save your config before changing page!
+  </div>
+  
+
+  {/if}
+
+  <div class="text-gray-500 py-1 text-sm">
     Pages
   </div>
 
   <div class="flex bg-secondary shadow overflow-x-auto">
-    {#each [0,1,2,3] as page}
+    {#each pages.options as page}
       <button 
-        on:click={()=>{handleSelectPage(page)}} 
-        class="{selectedPage === page ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
-        {page}
+        on:click={()=>{handleSelectPage(page)}}           
+        class="{design(page)} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
+        {@html page !== '' ? page : `<span class="invisible">null</span>`}
       </button>
 
       {#if manage}
@@ -64,3 +101,21 @@
   -->
 
 </page-controller>
+
+<style>
+
+  .dummy{
+    @apply bg-select;
+    @apply bg-opacity-50;
+  }
+
+  .triangle-right{
+    width:0px;
+    height:0px;
+    border:10px solid;
+    border-top-color: transparent;
+    border-left-color: green;
+    border-right-color: transparent;
+    border-bottom-color: transparent;
+  }
+</style>

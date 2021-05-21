@@ -6,20 +6,22 @@
   import Preferences from './panels/preferences/Preferences.svelte';
   import MidiMonitor from './panels/midi-monitor/MidiMonitor.svelte';
 
+  export let classes;
+
 </script>
 
 
-<panel-container class="w-2/5">
+<panel-container class="{classes} h-full">
 
-  {#if $appSettings.activePanel == 'gridConfiguration'}
+  {#if $appSettings.activePanel == 'Configuration'}
 
     <Configuration/>
 
-  {:else if $appSettings.activePanel == 'preferences'}
+  {:else if $appSettings.activePanel == 'Preferences'}
 
     <Preferences/>
 
-  {:else if $appSettings.activePanel == 'midiMonitor'}
+  {:else if $appSettings.activePanel == 'MIDI Monitor'}
 
     <MidiMonitor/>
 

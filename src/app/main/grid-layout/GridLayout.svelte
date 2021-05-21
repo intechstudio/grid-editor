@@ -10,6 +10,8 @@
 
   import Device from './grid-modules/Device.svelte';
 
+  export let classes;
+
   let map;
 
   // code base versions
@@ -39,7 +41,7 @@
 
 </script>
 
-<layout-container class="relative flex items-start justify-end w-3/5 h-full">
+<layout-container class="relative flex items-start {classes} h-full">
 
   <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
 

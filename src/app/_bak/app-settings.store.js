@@ -36,7 +36,10 @@ export const appSettings = writable({
   layoutMode: false,
   isElectron: isElectron(),
   configType: 'uiEvents',
-  activePanel: 'gridConfiguration',
+  activePanel: {
+    right: 'gridConfiguration',
+    left: ''
+  },
   preferences: false,
   os: checkOS()
 });

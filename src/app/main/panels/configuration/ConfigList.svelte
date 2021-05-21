@@ -2,6 +2,8 @@
   import { flip } from 'svelte/animate';
   import { fade } from 'svelte/transition';
 
+  import { configListScrollSize } from '../../_actions/boundaries.action';
+
   import MultiSelect from './components/MultiSelect.svelte';
   import Bin from './components/Bin.svelte';
   import DropZone from './components/DropZone.svelte';
@@ -13,7 +15,7 @@
 
   import { changeOrder } from '../../_actions/move.action.js';
 
-  import { actionIsDragged, appSettings } from '../../_stores/app-helper.store.js';
+  import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
   import { runtime, localDefinitions } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
@@ -27,6 +29,8 @@
   let drag_start = false;
   let drag_target = '';
   let drop_target = '';
+
+  let scrollHeight = '100%';
 
   async function addConfigAtPosition(arg, index){
 
@@ -70,11 +74,13 @@
 
   }
 
+  //$: console.log($configNodeBinding);
+
 </script>
 
-<configs class="w-full block px-4 bg-primary py-2 mt-4">
+<configs class="w-full h-full flex flex-col px-4  bg-primary py-2 mt-4">
 
-  <div class="pt-1 flex items-center justify-between">
+  <div class="pt-1 flex items-center  justify-between">
     <div class="text-gray-600 text-sm">Configurations</div>
     <!--<MultiSelect/>-->
   </div>
@@ -90,9 +96,10 @@
       on:enable-pointer-events={(e)=>{disable_pointer_events = false;}}
       on:anim-start={()=>{ animation= true;}}
       on:anim-end={()=>{ animation = false;}}  
-      class="flex flex-col relative min-h-200 justify-between">
+      class="flex flex-col h-full relative justify-between">
 
-      <config-list class="flex flex-col w-full">
+      <config-list style="height:{scrollHeight}" use:configListScrollSize={configs} on:height={(e)=>{scrollHeight = e.detail}} class="flex flex-col w-full  h-auto overflow-y-auto">
+        
         {#if !drag_start}
           <ConfigPicker index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
         {:else}
@@ -117,6 +124,7 @@
           </anim-block>
         {/each}
       </config-list>
+
       <container class="flex flex-col w-full">
         {#if !drag_start}
           <ConfigPicker  userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
@@ -128,7 +136,7 @@
 
   </configs>
 
-  <Debug {configs}/>
+  <!--<Debug {configs}/>-->
 
  <style global>
 
@@ -145,5 +153,21 @@
     user-select: none;
     cursor: default;
   }
+
+  ::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+      background: #1e2628;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+      background: #286787;
+      box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+  }
+  
+  ::-webkit-scrollbar-corner {
+      background: #1e2628
+  }
+
 
 </style>
