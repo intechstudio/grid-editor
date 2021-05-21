@@ -41,12 +41,11 @@
     } else {
       style = 'dummy'
     }
-    console.log(page, selectedPage)
 
     return style;
   }
 
-  $: selectedPage = pages.selected; console.log(selectedPage);
+  $: selectedPage = pages.selected;
 
 </script>
 

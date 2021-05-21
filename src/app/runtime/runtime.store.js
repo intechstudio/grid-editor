@@ -150,8 +150,6 @@ function create_runtime () {
     let selectedNumber = "";
     let selectedEvent = "";
 
-
-
     rt.forEach(device => {
   
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy){
@@ -206,8 +204,8 @@ function create_runtime () {
 export const debug = writable({enabled: true, data: []});
 
 export const heartbeat = writable({
-  editor: 150,
-  grid: grid.properties.HEARTBEAT_INTERVAL * 2
+  editor: 300,
+  grid: 300
 })
 
 export const runtime = create_runtime();

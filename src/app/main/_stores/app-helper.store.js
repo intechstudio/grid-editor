@@ -1,4 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
+import grid from '../../protocol/grid-protocol';
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -21,9 +22,9 @@ function checkOS() {
 export const appSettings = writable({
   size: 2,
   version: {
-    major: 1,
-    minor: 1,
-    patch: 9
+    major: grid.properties.VERSION.MAJOR,
+    minor: grid.properties.VERSION.MINOR,
+    patch: grid.properties.VERSION.PATCH
   },
   overlays: {controlName: false},
   debugMode: false,

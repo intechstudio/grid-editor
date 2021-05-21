@@ -21,8 +21,8 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
-import instructions from './instructions.js';
-import { pParser } from '../protocol/_utils.js';
+  import instructions from './instructions.js';
+  import { pParser } from '../protocol/_utils.js';
 
   const dispatch = createEventDispatcher();
 
@@ -37,22 +37,29 @@ import { pParser } from '../protocol/_utils.js';
   runtime.subscribe(rt => {_runtime = rt; return 1});
   layout.subscribe(l => {_layout = l; return 1});
 
-  function coroner(){
+  $: if($heartbeat.editor){ clearInterval(editor_heartbeat_interval); editorHeartbeat()}
 
-    setInterval(()=>{
+  $: if($heartbeat.grid){ clearInterval(grid_heartbeat_interval); gridHeartbeat()}
+
+  let grid_heartbeat_interval;
+
+  function gridHeartbeat(){ 
+
+    const interval = get(heartbeat).grid;
+    
+    grid_heartbeat_interval = setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = _runtime.find(g => (Date.now() - g.alive > ($heartbeat.grid * 2.5)) && !g.virtual);
+      let _removed = _runtime.find(g => (Date.now() - g.alive > ($heartbeat.grid * 2)) && !g.virtual);
 
       let _processgrid = _runtime.map(g => {
-        if(Date.now() - g.alive > ($heartbeat.grid * 2.5) && !g.virtual){
+        if(Date.now() - g.alive > ($heartbeat.grid *2) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
       })
       
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
-      //console.log('_usedgird length...', _usedgrid)
 
       if(_removed !== undefined && _usedgrid.length !== undefined){    
 
@@ -68,42 +75,46 @@ import { pParser } from '../protocol/_utils.js';
         
       }
         
-    }, $heartbeat.grid)
+    }, interval)
 
   }
 
-  function editorHeartbeat(){
 
-    setInterval(()=>{
+  let editor_heartbeat_interval;
 
-      let type = 255
+  function editorHeartbeat(){ 
 
-      if(get(runtime.unsaved) != 0){
-        type = 254
-      }
-      
-  
-      const command = grid.translate.encode(
-      {dx: 0, dy: 0, rot: -0},
-      `HEARTBEAT`,
-      'EXECUTE',
-      [
-        { TYPE: pParser(type)}, // if all good = 255, not guud = 254
-        { HWCFG: pParser(255)}, 
-        { VMAJOR: pParser($appSettings.version.major)}, 
-        { VMINOR: pParser($appSettings.version.minor)}, 
-        { VPATCH: pParser($appSettings.version.patch)}, 
-      ], 
-      ''
-    );
-    serialComm.write(command);
+    const interval = get(heartbeat).editor;
+    
+    editor_heartbeat_interval = setInterval(()=>{
+        let type = 255
+        if(get(runtime.unsaved) != 0){
+          type = 254
+        }
 
-    }, $heartbeat.editor)
+        const command = grid.translate.encode(
+          {dx: 0, dy: 0, rot: -0},
+          `HEARTBEAT`,
+          'EXECUTE',
+          [
+            { TYPE: pParser(type)}, // if all good = 255, not guud = 254
+            { HWCFG: pParser(255)}, 
+            { VMAJOR: pParser($appSettings.version.major)}, 
+            { VMINOR: pParser($appSettings.version.minor)}, 
+            { VPATCH: pParser($appSettings.version.patch)}, 
+          ], 
+          ''
+        );
+
+        serialComm.write(command);
+        
+    }, interval);
 
   }
 
+  let port_disovery_interval;
   function discoverPorts(){
-    setInterval(() => {
+    port_disovery_interval = setInterval(() => {
       listSerialPorts();
     }, grid.properties.HEARTBEAT_INTERVAL )
   }
@@ -172,8 +183,9 @@ import { pParser } from '../protocol/_utils.js';
 
       // reset UI
       runtime.set([]);
-      //rtUpdate.reset();
       user_input.reset();
+      runtime.unsaved.set(0);
+      runtime.update.trigger();
 
       PORT = {path: 0};
     }
@@ -352,16 +364,16 @@ import { pParser } from '../protocol/_utils.js';
   }
 
   onDestroy(()=>{
-    clearInterval(discoverPorts);
-    clearInterval(coroner);
-    clearInterval(editorHeartbeat);
+    clearInterval(port_disovery_interval);
+    clearInterval(grid_heartbeat_interval);
+    clearInterval(editor_heartbeat_interval);
     closeSerialPort();
   })
 
   onMount(() => {
     discoverPorts();
     editorHeartbeat();
-    coroner();
+    gridHeartbeat();
   })
     
 </script>
