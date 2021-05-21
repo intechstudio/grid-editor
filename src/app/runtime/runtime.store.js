@@ -92,7 +92,6 @@ function create_runtime () {
             for (let i = 0; i < pagenumber - 1; i++) {
               device.pages = [...device.pages, grid.device.createPage(device.id)];
             }
-            console.log('device pages created...', device.pages)
           }
         })
         return _runtime;
@@ -159,8 +158,6 @@ function create_runtime () {
 
         pages = device.pages;
       
-        console.log(pages)
-
         selectedNumber = ui.event.elementnumber;
         elementNumbers = device.pages[ui.event.pagenumber].control_elements;
 
@@ -207,6 +204,11 @@ function create_runtime () {
 }
 
 export const debug = writable({enabled: true, data: []});
+
+export const heartbeat = writable({
+  editor: 150,
+  grid: grid.properties.HEARTBEAT_INTERVAL * 2
+})
 
 export const runtime = create_runtime();
 

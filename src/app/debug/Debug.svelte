@@ -1,7 +1,7 @@
 <script>
-import grid from "../protocol/grid-protocol";
-import { pParser } from "../protocol/_utils";
-import {serialComm} from "../serialport/serialport.store";
+  import grid from "../protocol/grid-protocol";
+  import { pParser } from "../protocol/_utils";
+  import {serialComm} from "../serialport/serialport.store";
 
   
   import { runtime, debug as debugtext } from "../runtime/runtime.store";
@@ -55,61 +55,69 @@ import {serialComm} from "../serialport/serialport.store";
     return text.length;
   }
 
-  let debugText = [];
-
-
-
 
 </script>
 
-<config-debug class="w-full flex flex-col p-4 z-10">
+<config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
 
-  <div class="flex flex-col md:flex-row text-white md:items-end p-2">
+  <div class="flex flex-col w-full text-white p-2">
 
-    <div class="mr-1">
-      <div>dx</div>
-      <input class="w-full md:w-10 p-1 text-black focus:outline-none" bind:value={brc[0]}>
+    <div class="flex w-full">
+
+      <div class="mr-1">
+        <div>dx</div>
+        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[0]}>
+      </div>
+      <div class="mx-1">
+        <div>dy</div>
+        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[1]}>
+      </div>
+      <div class="mx-1">
+        <div>age</div>
+        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[2]}>
+      </div>
+      <div class="ml-1">
+        <div>rot</div>
+        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[3]}>
+      </div>
+
     </div>
-    <div class="mx-1">
-      <div>dy</div>
-      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[1]}>
-    </div>
-    <div class="mx-1">
-      <div>age</div>
-      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[2]}>
-    </div>
-    <div class="mx-1">
-      <div>rot</div>
-      <input class="w-full md:w-10 p-1 text-black focus:outline-none"  bind:value={brc[3]}>
-    </div>
-    <div class="mx-1">
+
+    <div class="w-full mt-1">
+
       <div>command 1</div>
-      <input class="w-full md:w-32 p-1 text-black focus:outline-none"  bind:value={command_1}>
+      <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none"  bind:value={command_1}>
+
     </div>
 
   </div>
 
-  <textarea style="min-height:100px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-primary rounded px-1 my-2 text-white font-mono"/>
+  <textarea style="min-height:100px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
-  <div class="mx-1 my-2">
-    <div class="text-white">Syntax check: {runtimeParser}</div>
+  <div class="flex justify-between items-center">  
+    
+    <div class="mx-1 my-2">
+      <div class="text-white">Syntax: {runtimeParser}</div>
+      <div class="text-white">Char count: {@html charCount(runtimeScript) > 120 ? `<span class="text-yellow-400">${charCount(runtimeScript)}</span>` : `${charCount(runtimeScript)}`}</div>
+    </div>
 
-    <div class="text-white">Char count: {@html charCount(runtimeScript) > 120 ? `<span class="text-yellow-400">${charCount(runtimeScript)}</span>` : `${charCount(runtimeScript)}`}</div>
-  </div>
-
-  <div class="flex">
     <button on:click={debug} class="rounded my-2 bg-green-700 hover:bg-green-900 text-white px-2 py-2 w-32 mr-2">Send To Grid</button>
-    <button on:click={()=>{heartbeat()}} class="rounded my-2 bg-pink-700 hover:bg-pink-900 text-white px-2 py-2 w-32 mr-2">Heartbeat ❤️</button>
+
   </div>
 
-
-  <div class="flex flex-col font-mono overflow-y-auto text-white bg-primary-900 p-2">
-    {#each $debugtext.data as debug, i}
-      <span class="debugtexty py-0.5">{debug}</span>
-    {/each}
+  <div class="flex text-white items-center"> 
+    <input class="mr-1" type="checkbox" bind:checked={$debugtext.enabled}>
+    <div class="ml-1">Enable DEBUGTEXT</div>
   </div>
 
+  {#if $debugtext.data.length }
+    <div class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1">
+      {#each $debugtext.data as debug, i}
+        <span class="debugtexty px-1 py-0.5 ">{debug}</span>
+      {/each}
+    </div>
+  {/if}
 </config-debug>
 
 <style>

@@ -2,12 +2,14 @@
 
   import { onMount, onDestroy } from 'svelte';
 
+  import { get } from 'svelte/store';
+
   import { sendDataToClient } from '../debug/tower.js';
 
-  import { numberOfModulesStore } from '../main/_stores/app-helper.store.js';
+  import { appSettings, numberOfModulesStore } from '../main/_stores/app-helper.store.js';
 
   //import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
-  import { debug, runtime, user_input } from '../runtime/runtime.store.js';
+  import { debug, runtime, user_input, heartbeat } from '../runtime/runtime.store.js';
 
   import { layout } from '../main/_stores/app-helper.store.js';
 
@@ -19,6 +21,8 @@
   const Readline = SerialPort.parsers.Readline;
 
 	import { createEventDispatcher } from 'svelte';
+import instructions from './instructions.js';
+import { pParser } from '../protocol/_utils.js';
 
   const dispatch = createEventDispatcher();
 
@@ -38,10 +42,10 @@
     setInterval(()=>{
 
       // Don't interfere with virtual modules.
-      let _removed = _runtime.find(g => (Date.now() - g.alive > (grid.properties.HEARTBEAT_INTERVAL*2)) && !g.virtual);
+      let _removed = _runtime.find(g => (Date.now() - g.alive > ($heartbeat.grid * 2.5)) && !g.virtual);
 
       let _processgrid = _runtime.map(g => {
-        if(Date.now() - g.alive > (grid.properties.HEARTBEAT_INTERVAL*2) && !g.virtual){
+        if(Date.now() - g.alive > ($heartbeat.grid * 2.5) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
@@ -64,7 +68,37 @@
         
       }
         
-    }, grid.properties.HEARTBEAT_INTERVAL)
+    }, $heartbeat.grid)
+
+  }
+
+  function editorHeartbeat(){
+
+    setInterval(()=>{
+
+      let type = 255
+
+      if(get(runtime.unsaved) != 0){
+        type = 254
+      }
+      
+  
+      const command = grid.translate.encode(
+      {dx: 0, dy: 0, rot: -0},
+      `HEARTBEAT`,
+      'EXECUTE',
+      [
+        { TYPE: pParser(type)}, // if all good = 255, not guud = 254
+        { HWCFG: pParser(255)}, 
+        { VMAJOR: pParser($appSettings.version.major)}, 
+        { VMINOR: pParser($appSettings.version.minor)}, 
+        { VPATCH: pParser($appSettings.version.patch)}, 
+      ], 
+      ''
+    );
+    serialComm.write(command);
+
+    }, $heartbeat.editor)
 
   }
 
@@ -319,12 +353,14 @@
 
   onDestroy(()=>{
     clearInterval(discoverPorts);
-    clearInterval(coroner)
+    clearInterval(coroner);
+    clearInterval(editorHeartbeat);
     closeSerialPort();
   })
 
   onMount(() => {
     discoverPorts();
+    editorHeartbeat();
     coroner();
   })
     

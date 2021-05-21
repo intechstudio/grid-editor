@@ -8,7 +8,11 @@
   function clear() {
     const command = grid.translate.encode('',`CONFIGERASE`,'EXECUTE','');
     serialComm.write(command);
+    
     runtime.unsaved.set(0);
+
+    runtime.set([]);
+    runtime.update.trigger();
   }
 
 </script>

@@ -21,9 +21,9 @@ function checkOS() {
 export const appSettings = writable({
   size: 2,
   version: {
-    major: 0,
-    minor: 0,
-    patch: 0
+    major: 1,
+    minor: 1,
+    patch: 9
   },
   overlays: {controlName: false},
   debugMode: false,
@@ -31,7 +31,7 @@ export const appSettings = writable({
   layoutMode: false,
   configType: 'uiEvents',
   activePanel: 'Configuration',
-  leftPanel: '',
+  leftPanel: 'Debug',
   preferences: false,
   os: checkOS()
 });
