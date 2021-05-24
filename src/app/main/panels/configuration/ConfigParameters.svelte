@@ -31,9 +31,9 @@
 
     <div class="flex flex-col relative justify-between font-bold text-white">
       <!-- svelte-ignore a11y-no-onchange -->
-      <select bind:value={elements.selected} on:change={(e)=>{handleSelectElement(elements.selected)}} class="bg-secondary flex-grow text-white p-2 focus:outline-none">
+      <select bind:value={elements.selected} on:change={(e)=>{handleSelectElement(elements.selected)}} class="bg-secondary flex-grow text-white p-2 shadow">
         {#each elements.options as element}
-          <option value={element} class="text-white bg-secondary py-1">Element {element}</option>
+          <option value={element} class="text-white bg-secondary py-1 border-select">Element {element}</option>
         {/each}
       </select>
     </div>

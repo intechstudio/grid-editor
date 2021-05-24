@@ -585,7 +585,7 @@
       },
     // param 2
       [
-        {value: 'to do...', info: 'to do...'}
+        {value: '', info: 'to do...'}
       ]
   ];
 

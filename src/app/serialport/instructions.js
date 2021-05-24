@@ -75,6 +75,20 @@ const instructions = {
     serialComm.write(cfg);
 
     return 1;
+  },
+
+  fetchPageCountFromGrid: ({controller}) => {
+
+    const cfg = grid.translate.encode(
+      {dx: controller.dx, dy: controller.dy, rot: controller.rot},
+      "PAGECOUNT",
+      "FETCH",
+      ""
+    );
+    
+    serialComm.write(cfg);
+
+    return 1;
   }
 
 }

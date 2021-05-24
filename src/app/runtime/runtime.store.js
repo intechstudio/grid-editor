@@ -24,6 +24,24 @@ function create_user_input () {
 
   const _event = writable({...defaultValues})
 
+  function update({brc, event}){
+    if(event.EVENTTYPE !== 12){
+      const store = get(_event);
+      if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE ) {
+        _event.update((store)=>{
+          store.brc.dx = brc.DX;
+          store.brc.dy = brc.DY;
+          store.brc.rot = brc.ROT
+          if(event.ELEMENTNUMBER !== 255){
+            store.event.eventtype = event.EVENTTYPE;
+            store.event.elementnumber = event.ELEMENTNUMBER;   
+          }      
+          return store;
+        });
+      }
+    }
+  }
+
   function update_eventtype(value){
     _event.update(s => {s.event.eventtype = value; return s});
   }
@@ -55,7 +73,7 @@ function create_user_input () {
   return {
     ..._event,
     subscribe: _event.subscribe,
-    update_all: _event.update,
+    update: update,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     update_pagenumber: update_pagenumber,
@@ -85,7 +103,26 @@ function create_runtime () {
 
   const _device_update = function(){
 
-    this.update = function({brc, pagenumber}){
+    this.is_online = function(controller){
+      _runtime.update((_runtime) => {
+        let online = false;
+        _runtime.forEach(device => {
+          // device is online, update the uptime
+          if(device.id == controller.id){
+            online = true;
+            device.alive = Date.now();
+          }
+        });
+        // device not found, add it to runtime and get page count from grid
+        if(!online){
+          _runtime.push(controller);
+          instructions.fetchPageCountFromGrid({controller});
+        }
+        return _runtime;
+      });
+    }
+
+    this.update_pages = function({brc, pagenumber}){
       _runtime.update(_runtime => {
         _runtime.forEach((device)=>{
           if(device.dx == brc.DX && device.dy == brc.DY){
@@ -201,7 +238,24 @@ function create_runtime () {
   }
 }
 
-export const debug = writable({enabled: true, data: []});
+function createDebug(){
+  const store = writable({enabled: true, data: []});
+
+  return {
+    ...store,
+    update_debugtext: (debugtext) => {
+      if(d.enabled){
+        if(d.data.length >= 15){
+          d.data.shift()
+        }
+        d.data = [...d.data, debugtext];
+      }
+      return d;
+    }
+  }
+}
+
+export const debug = createDebug();
 
 export const heartbeat = writable({
   editor: 300,

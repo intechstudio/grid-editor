@@ -4,14 +4,9 @@
 
   import { get } from 'svelte/store';
 
-  import { sendDataToClient } from '../debug/tower.js';
+  import { appSettings } from '../main/_stores/app-helper.store.js';
 
-  import { appSettings, numberOfModulesStore } from '../main/_stores/app-helper.store.js';
-
-  //import { runtime, rtUpdate, localInputStore } from '../runtime/runtime.store.js';
-  import { debug, runtime, user_input, heartbeat } from '../runtime/runtime.store.js';
-
-  import { layout } from '../main/_stores/app-helper.store.js';
+  import { runtime, user_input, heartbeat } from '../runtime/runtime.store.js';
 
   import { serialComm } from './serialport.store.js';
 
@@ -20,68 +15,46 @@
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
 
-	import { createEventDispatcher } from 'svelte';
-  import instructions from './instructions.js';
   import { pParser } from '../protocol/_utils.js';
-
-  const dispatch = createEventDispatcher();
+  import { messageStream } from './message-stream.store.js';  
 
   let PORT = {path: 0};
-
-  let _layout = [];
 
   let selectedPort = "";
 
   let _runtime = []
 
   runtime.subscribe(rt => {_runtime = rt; return 1});
-  layout.subscribe(l => {_layout = l; return 1});
 
   $: if($heartbeat.editor){ clearInterval(editor_heartbeat_interval); editorHeartbeat()}
 
   $: if($heartbeat.grid){ clearInterval(grid_heartbeat_interval); gridHeartbeat()}
 
+  // Main serial intervals
+
   let grid_heartbeat_interval;
-
   function gridHeartbeat(){ 
-
     const interval = get(heartbeat).grid;
-    
     grid_heartbeat_interval = setInterval(()=>{
-
-      // Don't interfere with virtual modules.
       let _removed = _runtime.find(g => (Date.now() - g.alive > ($heartbeat.grid * 2)) && !g.virtual);
-
       let _processgrid = _runtime.map(g => {
         if(Date.now() - g.alive > ($heartbeat.grid *2) && !g.virtual){
           g.alive = 'dead';
         }
         return g;
       })
-      
       let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
 
       if(_removed !== undefined && _usedgrid.length !== undefined){    
-
-        // re-initialize Local Settings panel, if the module has been removed which had it's settings opened.
+        // re-initialize configuration panel, if the module has been removed which had it's settings opened.
         user_input.reset(_removed);
-
-        runtime.set(_usedgrid);
-        
-        dispatch('coroner', {
-          usedgrid: _usedgrid, 
-          removed: _removed
-        })
-        
+        runtime.set(_usedgrid);      
       }
         
     }, interval)
-
   }
 
-
   let editor_heartbeat_interval;
-
   function editorHeartbeat(){ 
 
     const interval = get(heartbeat).editor;
@@ -119,11 +92,15 @@
     }, grid.properties.HEARTBEAT_INTERVAL )
   }
 
+  // Basic serial usage
+
   function listSerialPorts(){
+
     SerialPort.list()
       .then(ports => {
-        //ports.length == 0 ? serialpaths = [] : null;
+
         serialComm.update((store) => { store.list = []; return store;})
+
         ports.forEach((port, i) => {  
           let isGrid = 0;
           if(port.productId){
@@ -131,6 +108,7 @@
               isGrid = 1 
             }
           }
+
           // collect all ports in an array
           serialComm.update((store) => { 
             store.selected = port.path;     
@@ -142,6 +120,7 @@
             selectedPort = port.path;
             openSerialPort();
           }
+
         });
 
         const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ecad' || p.productId == 'ECAC' || p.productId == 'ecac');
@@ -150,6 +129,7 @@
         }
 
       })
+
     .catch(err => {   
       console.error(err);
     });
@@ -171,7 +151,7 @@
 
     if(PORT.path !== 0){
       PORT.close(function(err){
-        console.warn('port closed', err)
+        console.warn('Port closed', err)
       })
 
       serialComm.update((store)=>{
@@ -181,7 +161,7 @@
         return store
       });
 
-      // reset UI
+      // reset runtime and user input on closing the port
       runtime.set([]);
       user_input.reset();
       runtime.unsaved.set(0);
@@ -207,161 +187,22 @@
     });
 
     PORT.on('open', function() {
-      console.log('Port is open.', PORT.path); 
-      
+      console.log('Port is open.', PORT.path);    
+      runSerialParser(PORT);
     }); 
-
-    runSerialParser(PORT) 
   }
 
-
+  
   function runSerialParser(port){
 
     const parser = port.pipe(new Readline({ encoding: 'hex' }));
 
     parser.on('data', function(data) {
-
-      let temp_array = Array.from(data);
-      let array = [];
-
-      for (let index = 0; index < temp_array.length; index+=2) {
-        array.push((temp_array[index] + '' + temp_array[index+1])) 
-      }
-
-      let RESPONSE = {};
-
-      let _array = [];
-
-      array.forEach((element, i) => {
-        _array[i] = parseInt('0x'+element);
-      });   
-            
-      let DATA = grid.translate.decode(_array);
-
-      let d_array = ''
-
-      _array.forEach((element, i) => {
-        d_array += String.fromCharCode(element);
-      })
-
-      // websocket debug info to client
-      sendDataToClient('input', d_array);
-
-      // filter heartbeat messages
-      if(!(d_array.slice(30).startsWith('010') && d_array.length == 48) ){
-        RESPONSE = grid.translate.decode(_array);
-      }
-
-      updateGridUsedAndAlive(DATA.CONTROLLER);
-
-      if(DATA.PAGEACTIVE){
-        console.log('pagenumber',DATA.PAGEACTIVE.PAGENUMBER )
-        user_input.update_pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
-      }
-
-      if(DATA.PAGECOUNT){
-        runtime.device.update({brc:DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
-      }
-
-      if(DATA.DEBUGTEXT){
-        debug.update((d) => {
-          if(d.enabled){
-            if(d.data.length >= 15){
-              d.data.shift()
-            }
-            d.data = [...d.data, DATA.DEBUGTEXT];
-          }
-          return d;
-        })
-      }
-
-      // local input update (user interaction)
-      if(DATA.EVENT){
-        if(DATA.EVENT.EVENTTYPE !== 12){
-          // avoid validator retrigger on changing things on a the same parameter, as grid sends back the event with each config. 
-          // console.log($user_input.eventParam, DATA.EVENT)
-          if($user_input.event.elementnumber !== DATA.EVENT.ELEMENTNUMBER || $user_input.event.eventtype !== DATA.EVENT.EVENTTYPE ) {
-          // now not using due to changed protocol
-
-            user_input.update_all((store)=>{
-
-              store.brc.dx = DATA.BRC.DX;
-              store.brc.dy = DATA.BRC.DY;
-              store.brc.rot = DATA.BRC.ROT
-
-              if(DATA.EVENT.ELEMENTNUMBER !== 255){
-                store.event.eventtype = DATA.EVENT.EVENTTYPE;
-                store.event.elementnumber = DATA.EVENT.ELEMENTNUMBER;   
-              }      
-
-              return store;
-
-            });
-
-            
-          }
-        }
-      }
-
-      // lua config received, save to runtime
-      if(DATA.CONFIG){
-        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG}).trigger(true)
-      }
-
-      if(DATA.HIDKEYSTATUS){
-        hidKeyStatusStore.update((store) => {
-          store.isEnabled = DATA.HIDKEYSTATUS.ISENABLED;
-          return store;
-        });
-      }
-
+      messageStream.set(grid.translate.decode(data));      
     })
+
   }
 
-  function updateGridUsedAndAlive(controller){
-    if(controller !== undefined){
-      let exists = false;
-      _runtime.forEach(g => {
-        if(g.id == controller.id && g.virtual == false){
-          exists = true;
-        }
-      });   
-      if(!exists){
-        _runtime.push(controller);
-        dispatch('change', {
-          data: {
-            moduleId: controller.id,
-            cellId: 'dx:'+controller.dx + ';' + 'dy:'+controller.dy,
-            isVirtual: false
-          }
-        });
-      }
-      if(exists){
-        _runtime.map(c => {
-          if(c.id === controller.id && c.virtual == false){
-            c.alive = Date.now();
-          }
-          return c;
-        });
-      }
-
-      if(!exists){
-        numberOfModulesStore.set(_runtime.length);
-
-        const cfg = grid.translate.encode(
-          {dx: controller.dx, dy: controller.dy, rot: controller.rot},
-          "PAGECOUNT",
-          "FETCH",
-          ""
-        );
-        
-        serialComm.write(cfg);
-
-      }
-
-      runtime.set(_runtime);
-    }
-  }
 
   onDestroy(()=>{
     clearInterval(port_disovery_interval);

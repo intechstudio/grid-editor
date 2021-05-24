@@ -38,14 +38,21 @@ wss.on('connection', function (ws) {
 
 function writeSerialCommand({brc, command}){
   let data = grid.translate.encode_debugger(brc, command);
-  // websocket debug info to client
   sendDataToClient('output', data);
-  console.log('THIS IS FROM SDEBUGGER', data);
   serialComm.write(data);    
 }
 
 
-export function sendDataToClient(type, serial){
+export function sendDataToClient(type, array){
+
+  let serial = '';
+  if(Array.isArray(array)){
+    array.forEach((element, i) => {
+      serial += String.fromCharCode(element);
+    })
+  } else {
+    serial = array;
+  }
 
   if(serial.slice(30).startsWith('010') && serial.length == 48){
     if(filters.heartbeat){

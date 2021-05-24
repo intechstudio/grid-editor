@@ -113,7 +113,7 @@
                 <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
             </DynamicWrapper>
 
-            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs; }}/>
+            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; console.log(config.script); handleConfigChange({configName: config.information.desc}); configs = configs; }}/>
             
             {#if !drag_start}
               <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>

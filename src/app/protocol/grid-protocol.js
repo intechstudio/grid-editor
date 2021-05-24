@@ -1,6 +1,8 @@
+import * as grid_protocol from '../../external/grid-protocol/grid_protocol_nightly.json';
+
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';
-import * as grid_protocol from '../../external/grid-protocol/grid_protocol_nightly.json';
+import { sendDataToClient } from '../debug/tower.js';
 
 let global_id = 0;
 
@@ -167,6 +169,8 @@ const grid = {
       }
     }
 
+
+
     return {
       BRC: BRC , 
       LUA: extendLua(LUA),
@@ -186,6 +190,8 @@ const grid = {
       const array = mapObjectsToArray(editor_lua_properties, deepObjects);
       return array;
     }
+
+
 
   }()),
 
@@ -299,8 +305,28 @@ const grid = {
       return message;
     },
   
-    decode: function(serialData){
+    decode: function(data){
 
+      function prepare_serial_data(data) {
+
+        let temp_array = Array.from(data);
+        let array = [];
+
+        for (let index = 0; index < temp_array.length; index+=2) {
+          array.push((temp_array[index] + '' + temp_array[index+1])) 
+        }
+
+        let _array = [];
+
+        array.forEach((element, i) => {
+          _array[i] = parseInt('0x'+element);
+        });   
+
+        // websocket debug info to client
+        sendDataToClient('input', _array);
+
+        return _array;
+      }
 
       function build_decoder(mode, array, id, data, index){
         const CLASSES = grid.properties.CLASSES;
@@ -368,33 +394,10 @@ const grid = {
           } else {
             object[param] = value;
           }
-
-
         }
 
         return object;
         
-      }
-
-      function detect_class_codes(array){
-        //console.log(array);
-        let _decoded = [];
-        let id = '';
-        array.forEach((elem, index)=>{
-          if(elem == 130){
-            id = "" + index + "";
-            _decoded = build_decoder('config',_decoded, id, array, index);
-          }
-    
-          if(elem == 131){
-            let obj = _decoded.find(o => o.id == id);
-            if(obj !== undefined){
-              obj.length = index - obj.offset;
-            }
-          }
-        })
-    
-        return _decoded;
       }
 
       function decode_by_class(serialData, decoded){
@@ -402,20 +405,19 @@ const grid = {
         let DATA = {};
     
         DATA.BRC = decode_by_code(serialData, 'BRC');
-
     
+        // grid protocol specific parsing and data manipulation
+
         decoded.forEach((obj)=>{
 
-
           let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
+                 
           if(obj.class == "EVENT"){
             DATA.EVENT = decode_by_code(array, obj.class);
           }
-
+                
           if(obj.class == "HEARTBEAT"){
             DATA.HEARTBEAT = decode_by_code(array, obj.class);
-            let moduleType = moduleLookup(DATA.HEARTBEAT.HWCFG);
-            DATA.CONTROLLER = grid.device.make(DATA.BRC, DATA.HEARTBEAT, moduleType, false)
           }
 
           if(obj.class == "PAGEACTIVE"){
@@ -447,12 +449,15 @@ const grid = {
           }    
     
         });
+
     
         return DATA;
       }
    
       let _decoded = [];
       let id = 0; 
+
+      let serialData = prepare_serial_data(data);
   
       serialData.forEach((element,i) => {  
       
@@ -471,7 +476,7 @@ const grid = {
         }
       });
       
-      return decode_by_class(serialData, _decoded);
+      return decode_by_class(serialData, _decoded)
     }
   },
 
@@ -535,7 +540,9 @@ const grid = {
         return {status, control_elements};
     },
 
-    make: function(header, version, moduleType, virtual){
+    make: function(header, heartbeat, virtual){
+
+      let moduleType = moduleLookup(heartbeat.HWCFG);
 
       let controller = {
         // implement the module id rep / req
@@ -566,7 +573,6 @@ const grid = {
       if(header !== undefined && moduleType !== undefined){
         
         header = param2lower(header);
-        //moduleType = param2lower(moduleType);
         moduleType = moduleType.substr(0,4);
 
         controller = {
@@ -605,7 +611,8 @@ const grid = {
     }
 
   }
-
 }
+
+console.log(grid.properties)
 
 export default grid;

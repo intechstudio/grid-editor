@@ -63,13 +63,14 @@ import { user_input } from '../../../runtime/runtime.store.js';
 
   {#if index == $actionPrefStore.advanced.index && $actionPrefStore.advanced.visible}
 
-  <advanced-config class="relative w-full flex ">
+  <advanced-config class="w-full flex absolute">
     <container 
       id="config-menu"
       use:menuBoundaries
       on:offset-top={(e)=>{topOffset = e.detail;}} 
       style="right: calc(100% + 2rem);top:{-150 + topOffset}px;width:600px;height:600px;position:absolute;" 
-      class=" shadow-md rounded-md bg-primary p-2 z-50">
+      class="absolute shadow-md rounded-md bg-primary p-2 z-50">
+      
       <wrapper 
         use:clickOutside
         on:click-outside={()=>{actionPrefStore.showAdvanced(index, 'outside')}} 
