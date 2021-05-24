@@ -27,6 +27,10 @@
 
   import * as keyMap from '../../external/macro/map.json';
 
+  console.log(keyMap);
+
+  $: console.log(keyBuffer, caretKeyBuffer);
+
   export let action;
   export let index;
   export let eventInfo;
@@ -36,14 +40,6 @@
   let macroInputField;
 
   function sendData(){
-    /**    dispatch('send', { 
-      action: {
-        value: action.value, 
-        parameters: parameters
-      }, 
-      index: index 
-    });
-    */
 
   }
 
@@ -55,9 +51,7 @@
   })
 
   afterUpdate(() => {
-    if(orderChangeTrigger){
-      manageMacro();
-    }
+  
   })
 
   let keys = '';
@@ -73,62 +67,107 @@
 
   let caretArray = [];
 
-  function putKeyInArray(){
+  let visibleCaretPos = 0;
 
-  }
+  let last_key = undefined;
 
   function identifyKey(e){
 
-    /**
-    if(!e.repeat && e.type == 'keydown'){
-      if(keydownBuffer.length > 0){
-        caretPos += 1;
-      }
-    }
-*/
+    // if(last_key == 8 && e.keyCode !== 8) caretPos = -1;
 
-    // filter same keypress type
-    if(!e.repeat){
-      if(e.keyCode == 8 && e.type == 'keydown'){
-        keys.splice(-2,2); 
-        keyBuffer.splice(-2,2);
-      } else {     
-        if(caretPos){    
-          let key = keyMap.default.find(key => key.js_value == e.keyCode);  
-          const f_key = [...caretKeyBuffer].reverse().find(key => key.js_value == e.keyCode);    
-          if(!f_key){
-            caretKeyBuffer.push({...key, type: e.type});         
-          } else if(f_key.type !== e.type) {        
-            caretKeyBuffer.push({...key, type: e.type});
-          } 
-          caretKeyBuffer = cutQuickDownUp(caretKeyBuffer);
-        } else {
-          let key = keyMap.default.find(key => key.js_value == e.keyCode);  
-          const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);    
-          if(!f_key){
-            keyBuffer.push({...key, type: e.type});         
-          } else if(f_key.type !== e.type) {        
-            keyBuffer.push({...key, type: e.type});
-          }  
-          keyBuffer = cutQuickDownUp(keyBuffer)
+    // delete on backspace
+    if(e.keyCode == 8 && e.type == 'keydown'){
+
+      let tempKeyBuffer = Array.from(keyBuffer);  
+
+      console.log('CARETKEYBUFFER: ', caretKeyBuffer, 'KEYBUFFER: ', keyBuffer)
+
+      /**
+       * if there is caretbuffer array after delete, then we must delete elements from there first and merge with keybuffer accordingly
+       * pay extra attention to -1 (caret is on the end) and 0 as its the beginning....
+      */
+      
+      if(caretPos !== -1){
+
+        //console.log(tempKeyBuffer, caretPos, caretKeyBuffer.length)
+        if(last_key != 8) {
+          tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
+          caretPos = caretPos + caretKeyBuffer.length;
         }
 
-        // deep copy to create the needed keys from caret and standard array
-        let tempKeyBuffer = Array.from(keyBuffer);        
-        tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
-        keys = colorize(tempKeyBuffer)
+        //console.log('new caretPos',caretPos);
+
+        if(caretPos !== 0){
+          tempKeyBuffer.splice(caretPos - 1, 1);
+        }
+
+        if(caretPos != 0){
+          caretPos -= 1;
+          visibleCaretPos = caretPos;
+        }
+
+      } else {
+        if(caretPos != 0){
+          tempKeyBuffer.splice(tempKeyBuffer.length - 1, 1);
+        }
       }
+      
+      keyBuffer = tempKeyBuffer;
+
+      keys = colorize(tempKeyBuffer);
     }
 
-    /**
-    if(!e.repeat && e.type == 'keyup'){
-      if(keydownBuffer.length > 1){
-        caretPos += 1;
+    // filter same keypress type
+    if(!e.repeat && e.keyCode != 8){
+      if(caretPos !== -1){    
+        let key = keyMap.default.find(key => key.js_value == e.keyCode);  
+        const f_key = [...caretKeyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+        if(!f_key){
+          caretKeyBuffer.push({...key, type: e.type});         
+        } else if(f_key.type !== e.type) {        
+          caretKeyBuffer.push({...key, type: e.type});
+        } 
+        caretKeyBuffer = cutQuickDownUp(caretKeyBuffer);  
+      } else {
+        let key = keyMap.default.find(key => key.js_value == e.keyCode);  
+        const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+        if(!f_key){
+          keyBuffer.push({...key, type: e.type});         
+        } else if(f_key.type !== e.type) {        
+          keyBuffer.push({...key, type: e.type});
+        }  
+        keyBuffer = cutQuickDownUp(keyBuffer)
       }
+
+      // deep copy to create the needed keys from caret and standard array
+      let tempKeyBuffer = Array.from(keyBuffer);  
+      
+      if(caretKeyBuffer.length > 0){
+        // merge caretbuffer with keybuffer
+        tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
+        // set visible caret when we write between keys
+        visibleCaretPos = caretPos + caretKeyBuffer.length;
+      } else {
+        // visible caret when we append to the end of keys
+        visibleCaretPos = tempKeyBuffer.length;
+      }
+      
+      keys = colorize(tempKeyBuffer);
+
+      //console.log(tempKeyBuffer, 'vis caret', visibleCaretPos,  'caret: ', caretPos);
+     
+
     }
-*/
-    //manageMacro();
+
+    // update last key...
+    last_key = e.keyCode;
     
+  }
+
+  function addKey(){
+    keyBuffer.splice(caretPos, 0, {...selectedKey, type: 'keydownup'});
+    console.log('addkey...',caretPos, keyBuffer, selectedKey)
+    keys = colorize(keyBuffer);
   }
 
   function cutQuickDownUp(args){
@@ -147,7 +186,7 @@
       args.splice(cut,1);
     });
 
-    console.log(cuts, args )
+    //console.log(cuts, args )
 
     return args;
   }
@@ -167,68 +206,55 @@
     // down-up = green
 
     let coloredKeys = [];
+
+    // set a caret 0
+    coloredKeys.push(`<div data-caret="0" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`)
+
     args.forEach((arg,i) => {
+
       if(arg.type == 'keydownup'){
-        coloredKeys.push(`<div class="text-green-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-green-500 rounded-md">${arg.info}</div>`)
+        coloredKeys.push(`<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${arg.info}</div>`)
       }
       else if(arg.type == 'keydown'){
-        coloredKeys.push(`<div class="text-red-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-red-500 rounded-md">${arg.info} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
+        coloredKeys.push(`<div class="text-red-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-red-500 rounded-md">${arg.info} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
       else if(arg.type == 'keyup'){
-        coloredKeys.push(`<div class="text-yellow-500 px-2 mx-1 bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
+        coloredKeys.push(`<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
-      coloredKeys.push(`<div data-caret="${i}" class="p-1 h-6 hover:bg-highlight"></div>`)
+
+      // add a caret pos after each key
+      coloredKeys.push(`<div data-caret="${i+1}" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`)
     })
     
     return coloredKeys;
 
   }
 
-  let caretPos = 0;
+  let caretPos = -1;
+
   function setCaret(e){
     if(e.target.getAttribute('data-caret') !== null){
       keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
       caretKeyBuffer = [];
-      
-      caretPos = +e.target.getAttribute('data-caret')+1;
-    } else {
-      caretPos = undefined;
-    }
-  }
-  
-  function caretToEnd(el){
-    el.focus();
-    if (typeof window.getSelection != "undefined"
-            && typeof document.createRange != "undefined") {
-        var range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-    } else if (typeof document.body.createTextRange != "undefined") {
-        var textRange = document.body.createTextRange();
-        textRange.moveToElementText(el);
-        textRange.collapse(false);
-        textRange.select();
-    }
-    
-    
-    /**
-    let div = macroInputField;
-    const range = document.createRange();
-    const sel = window.getSelection();
-    range.selectNodeContents(div);
-    range.collapse(false);
-    console.log(sel)
-    sel.removeAllRanges();
-    sel.addRange(range);
-    div.focus();
-    range.detach(); // optimization
+      // this is the caret pos used to add new keys in the array
+      caretPos = +e.target.getAttribute('data-caret');
+      // this caret for the blinking cursor
+      visibleCaretPos = caretPos;
 
-    div.scrollTop = div.scrollHeight;
-    */
+      console.log('set caret...',caretPos)
+
+    } else {
+      
+      if(focus == false){
+        keys = [`<div data-caret="0" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`];
+        visibleCaretPos = 0;
+        caretPos = -1;
+      }
+
+    }
   }
+
+  let focus = false;
 
   function clearMacro(){
     keyBuffer = [];
@@ -291,29 +317,37 @@
 
   }
 
+  let selectedKey;
+
 </script>
 
 
-<div class="flex w-full flex-col">
-  <div class="w-full flex flex-row items-end">
-    <div class="w-full pr-2">
-      <div class="text-gray-700 text-xs">Key Type</div>
-      <div
-        id="idk"
-        bind:this={macroInputField}
-        class="editableDiv w-full secondary text-white p-2 pl-2 flex flex-row flex-wrap rounded-none focus:outline-none" 
-        on:keydown|preventDefault={identifyKey}
-        on:keyup|preventDefault={identifyKey}
-        contenteditable="true"
-        on:click={setCaret}>
-        {#each keys as key, i (i)}
-          <div data-index={i} class:blink={(caretPos+caretPos-1) == i}>{@html key}</div>
-        {/each}
-      </div>
+<div class="flex w-full flex-col items-start p-2">
+  <div class="text-gray-500 text-sm pb-1">Macro</div>
+  <div class="flex w-full p-2">
+    <div
+      id="idk"  
+      bind:this={macroInputField}
+      class="{focus ? 'border-select-desaturate-20' : 'border-select'} editableDiv w-full rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none" 
+      on:keydown|preventDefault={identifyKey}
+      on:keyup|preventDefault={identifyKey}
+      contenteditable="true"
+      on:click={(e)=>{setCaret(e); focus = true;}}>
+      {#each keys as key, i}
+        <div data-index={i} class:blink={(visibleCaretPos * 2) === i}>{@html key}</div>
+      {/each}
     </div>
-    <button on:click={caretToEnd}>caret</button>
-    <button on:click={clearMacro} class="bg-secondary hover:bg-highlight-400 text-white px-2 py-1 cursor-pointer border-none rounded focus:outline-none mr-2" >Clear</button>
   </div>
+  <div class="flex w-full items-center justify-between p-2">
+    <select bind:value={selectedKey} class="bg-secondary flex flex-grow text-white p-2 focus:outline-none border-select">
+      {#each keyMap.default as key}
+        <option value={key} class="text-white bg-secondary py-1 ">{key.info}</option>
+      {/each}
+    </select>
+    <button on:click={addKey} class="flex items-center justify-center rounded my-2 ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2 py-0.5">Add</button>
+  </div>
+  <button on:click={clearMacro} class="flex items-center justify-center rounded m-2 border-select bg-select border-2 hover:bg-red-500 text-white px-2 py-0.5">Clear All</button>
+
 </div>
 
 <style>
@@ -324,7 +358,6 @@
 
   .editableDiv div:first-child {
     margin-left: 0;
-    
   }
 
   .editableDiv{
@@ -336,14 +369,17 @@
       opacity: 0.0;
     }
   }
+
   @-webkit-keyframes blink {
     50% {
       opacity: 0.0;
     }
   }
+
   .blink {
     background-color: white;
     animation: blink 1s step-start 0s infinite;
     -webkit-animation: blink 1s step-start 0s infinite;
   }
+
 </style>
