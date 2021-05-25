@@ -25,7 +25,9 @@ const _utils = {
   gridLuaToEditorLua: async function(fullConfig){
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
+
     configs = this.configBreakDown(configs);
+
     return await this.extendProperties(configs);
   },
 
@@ -50,9 +52,15 @@ const _utils = {
 
   // break down config to script and short properties
   configBreakDown: function(configList){
+
+    /**
+     * If the configuration is with unknown short script tag, make an invalid short script and return the script part,
+     * as the rawLuaToConfigList does not care if no comments are found...
+     */
+
     let configMatrix = [];
     for (let i = 0; i < configList.length; i+=2) {
-      let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : '' ]
+      let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : configList[i].trim() ]
       configMatrix.push({short: short, script: script})
     }
     return configMatrix;

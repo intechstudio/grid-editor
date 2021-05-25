@@ -31,14 +31,21 @@ const param2lower = (parameters) => {
   return obj;
 }
 
-const get_module_info = (MODULE_INFO) => {
+const convert_header_to_grid = (MODULE_INFO) => {
+
+  // convert editor runtime module info to grid brc parameters
+
   let DX = 0;
   let DY = 0;
+  let SX = 0;
+  let SY = 0;
   let ROT = 0;
 
   if(MODULE_INFO !== ''){
     DX = +MODULE_INFO.dx + 127;
     DY = +MODULE_INFO.dy + 127;
+    SX = +MODULE_INFO.sx + 127;
+    SY = +MODULE_INFO.sy + 127;
     switch (MODULE_INFO.rot){
       case -0:
         ROT = 0; break;
@@ -50,17 +57,18 @@ const get_module_info = (MODULE_INFO) => {
         ROT = 3; break;
     }
   }
-  return {ROT, DX, DY};
+  return {ROT, DX, DY, SX, SY};
 }
 
 // Control Element Event Assignment Table.
 const CEEAT = { 
+
   init: {
     desc: 'init',
     value: '0',
     key: 'INIT'
   },
-  
+
   potmeter: {
     desc: 'potmeter',
     value: '1',
@@ -78,6 +86,12 @@ const CEEAT = {
     value: '3',
     key: 'BC'
   },
+
+  map: {
+    desc: 'utility',
+    value: '4',
+    key: 'MAP'
+  }
 
 }
 
@@ -182,7 +196,7 @@ const grid = {
       VERSION: VERSION,
       PARAMETERS: PARAMETERS,
       HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL,
-      AGE: Math.floor(Math.random()*255).toString(16).padStart(2, '0')
+      SESSION: Math.floor(Math.random()*255).toString(16).padStart(2, '0')
     }
 
     function extendLua(propObject){
@@ -197,6 +211,7 @@ const grid = {
 
   translate: {
     encode: function (HEADER, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
+
 
       function encode_class_parameters(PARAMETERS, INFO){
         let _parameters = [];
@@ -221,7 +236,7 @@ const grid = {
         return _parameters;
       }
 
-      const BRC = get_module_info(HEADER);
+      const BRC = convert_header_to_grid(HEADER);
   
       const PROTOCOL = grid.properties;
   
@@ -229,10 +244,13 @@ const grid = {
       
       let BRC_PARAMETERS = [
         {ID: utility_genId()}, 
+        {SESSION: PROTOCOL.SESSION}, // ON PROTOCOL INIT, THIS IS GENERATED!
+        {SX: 0},
+        {SY: 0},
         {DX: BRC.DX}, 
         {DY: BRC.DY}, 
-        {AGE: PROTOCOL.AGE}, // ON PROTOCOL INIT, THIS IS GENERATED!
-        {ROT: BRC.ROT}
+        {ROT: BRC.ROT},
+        {MSGAGE: 0}
       ];
   
       BRC_PARAMETERS = encode_class_parameters(BRC_PARAMETERS, PROTOCOL['BRC']);
@@ -263,8 +281,9 @@ const grid = {
   
       let message = prepend.concat(BRC_PARAMETERS, append);
   
-      let length = (message.length+2).toString(16).padStart(2,'0');
-      length = [length.charCodeAt(0), length.charCodeAt(1)]
+      // maybe 4
+      let length = (message.length+2).toString(16).padStart(4,'0');
+      length = [length.charCodeAt(0), length.charCodeAt(1), length.charCodeAt(2), length.charCodeAt(3)]
       message = [...message.slice(0,2), ...length, ...message.slice(2,)];
   
       let checksum = [...message].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
@@ -389,7 +408,7 @@ const grid = {
             value = parseInt("0x"+String.fromCharCode(..._value));    
           }
            
-          if(param == 'DX' || param == 'DY'){
+          if(param == 'DX' || param == 'DY' || param == 'SX' || param == 'SY' ){
             object[param] = value - 127;
           } else {
             object[param] = value;
@@ -401,6 +420,7 @@ const grid = {
       }
 
       function decode_by_class(serialData, decoded){
+
 
         let DATA = {};
     
@@ -458,6 +478,8 @@ const grid = {
       let id = 0; 
 
       let serialData = prepare_serial_data(data);
+
+
   
       serialData.forEach((element,i) => {  
       
@@ -487,7 +509,8 @@ const grid = {
       potentiometer: [ CEEAT.init, CEEAT.potmeter ],
       fader: [ CEEAT.init, CEEAT.potmeter ],
       blank: [],
-      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder]
+      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder],
+      utility: [CEEAT.init, CEEAT.map]
     },
   
     moduleElements: {
@@ -495,25 +518,29 @@ const grid = {
         'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
         'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
         'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer'
+        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+        'utility'
       ],
       PBF4: [
         'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
         'fader', 'fader', 'fader', 'fader', 
         'button', 'button', 'button', 'button', 
-        'blank', 'blank', 'blank', 'blank'
+        'blank', 'blank', 'blank', 'blank',
+        'utility'
       ],
       BU16: [
         'button','button','button','button',
         'button','button','button','button',
         'button','button','button','button',
-        'button','button','button','button'
+        'button','button','button','button',
+        'utility'
       ],
       EN16: [
         'encoder', 'encoder', 'encoder', 'encoder',
         'encoder', 'encoder', 'encoder', 'encoder',
         'encoder', 'encoder', 'encoder', 'encoder',
         'encoder', 'encoder', 'encoder', 'encoder',
+        'utility'
       ]
     },
 
@@ -525,7 +552,7 @@ const grid = {
         let status = {desc: ''};
   
         // control elements
-        for (let i = 0; i < 16; i++) {
+        for (let i = 0; i < 17; i++) {
           let events = [];
           for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
             events.push({        
@@ -573,13 +600,14 @@ const grid = {
       if(header !== undefined && moduleType !== undefined){
         
         header = param2lower(header);
+
         moduleType = moduleType.substr(0,4);
 
         controller = {
           // implement the module id rep / req
-          id: moduleType + '_' + 'dx:' + header.dx + ';dy:' + header.dy,
-          dx: header.dx,
-          dy: header.dy,
+          id: moduleType + '_' + 'dx:' + header.sx + ';dy:' + header.sy,
+          dx: header.sx,
+          dy: header.sy,
           fwVersion: {
             major: grid.properties.VERSION.MAJOR,
             minor: grid.properties.VERSION.MINOR,
@@ -588,13 +616,13 @@ const grid = {
           alive: Date.now(),
           virtual: virtual,
           map: {
-            top: {dx: header.dx, dy: header.dy+1},
-            right: {dx: header.dx+1, dy: header.dy},
-            bot: {dx: header.dx, dy: header.dy-1},
-            left: {dx: header.dx-1, dy: header.dy},
+            top: {dx: header.sx, dy: header.sy+1},
+            right: {dx: header.sx+1, dy: header.sy},
+            bot: {dx: header.sx, dy: header.sy-1},
+            left: {dx: header.sx-1, dy: header.sy},
           },
           rot: header.rot * -90,
-          isConnectedByUsb: (header.dx == 0 && header.dx == 0) ? true : false,
+          isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
           isLanding: false,
           pages: [this.createPage(moduleType)],
           global: {  

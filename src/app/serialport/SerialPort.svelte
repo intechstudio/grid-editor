@@ -26,7 +26,7 @@
 
   runtime.subscribe(rt => {_runtime = rt; return 1});
 
-  $: if($heartbeat.editor){ clearInterval(editor_heartbeat_interval); editorHeartbeat()}
+  //$: if($heartbeat.editor){ clearInterval(editor_heartbeat_interval); editorHeartbeat()}
 
   $: if($heartbeat.grid){ clearInterval(grid_heartbeat_interval); gridHeartbeat()}
 
@@ -213,7 +213,7 @@
 
   onMount(() => {
     discoverPorts();
-    editorHeartbeat();
+    //editorHeartbeat();
     gridHeartbeat();
   })
     

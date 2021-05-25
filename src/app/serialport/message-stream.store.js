@@ -18,7 +18,7 @@ function createMessageStream(){
     }
 
     if(DATA.EVENT){
-      user_input.update({brc: DATA.BRC, event: DATA.EVENT});
+      user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT});
     }
 
     if(DATA.PAGEACTIVE){

@@ -16,7 +16,7 @@
 
 <script>
 
-  import { createEventDispatcher,} from 'svelte';
+  import { createEventDispatcher, onDestroy,} from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -29,9 +29,10 @@
   export let eventInfo;
   export let elementInfo;
 
+  let loaded = false;
   let macroInputField;
 
-  $: if(config.script){
+  $: if(config.script && !loaded){
     macrosToConfig({script: config.script});
   }
 
@@ -41,27 +42,36 @@
     try {
       const text = script.split('gks(')[1].slice(0,-1);
       array = text.split(',');
-      for (let i = 0; i < array.length; i+=3) {
-        console.log(i, array[i])
-        if(array[i] != 15){
-          const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toUpperCase();
-          let f_key = keyMap.default.find(k => k.value == val && array[i] == k.is_modifier);
-          _keys.push({...f_key, type: array[i+1] == 0 ? 'keyup' : array[i+1] == 1 ? 'keydown' : array[i+1] == 2 ? 'keydownup' : undefined})
-        } else {
-          _keys.push({value: array[i+2], info: "delay", js_value: -1, is_modifier: 15, type: 'delay'})
+      defaultDelay = array[0] || 5;
+      array = array.slice(1,);
+      if(array[0] != ''){
+        for (let i = 0; i < array.length; i+=3) {
+          if(array[i] != 15){
+            const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toUpperCase();
+            let f_key = keyMap.default.find(k => k.value == val && array[i] == k.is_modifier);
+            _keys.push({...f_key, type: array[i+1] == 0 ? 'keyup' : array[i+1] == 1 ? 'keydown' : array[i+1] == 2 ? 'keydownup' : undefined})
+          } else {
+            _keys.push({value: array[i+2], info: "delay", js_value: -1, is_modifier: 15, type: 'delay'})
+          }
         }
+        keyBuffer = _keys;
+        keys = colorize(_keys);
+        loaded = true;
       }
-
     } catch (error) {
       console.warn('gsk can\'t be turned to config', script);
-    }
-
-    keyBuffer = _keys;
-    keys = colorize(keyBuffer);
+    }    
   }
 
+  onDestroy(()=>{
+    loaded = false;
+  })
+
   function sendData(parameters){
-    let script = 'gks(' + parameters.join(',') + ')';
+
+    console.log('OUT: ',parameters);
+
+    let script = 'gks(' + defaultDelay + ',' + parameters.join(',') + ')';
     dispatch('output', {short: 'gks', script: script})
   }
 
@@ -69,7 +79,7 @@
   let parameters = [];
   let caretKeyBuffer = [];
   let keyBuffer = [];
-  let visibleCaretPos = 0;
+  let visibleCaretPos = -1;
   let last_key = undefined;
 
   let focus = false;
@@ -77,22 +87,17 @@
   let caretPos = -1;
 
   let selectedKey;
-  let delayKey = 100;
+  let addonKeyType = 'keydownup';
+  let delayKey = 100; // ms
+  let defaultDelay = 5; // ms
 
 
   function identifyKey(e){
-
-    // if(last_key == 8 && e.keyCode !== 8) caretPos = -1;
 
     // delete on backspace
     if(e.keyCode == 8 && e.type == 'keydown'){
 
       let tempKeyBuffer = Array.from(keyBuffer);  
-
-      /**
-       * if there is caretbuffer array after delete, then we must delete elements from there first and merge with keybuffer accordingly
-       * pay extra attention to -1 (caret is on the end) and 0 as its the beginning....
-      */
       
       if(caretPos !== -1){
 
@@ -102,8 +107,6 @@
           caretPos = caretPos + caretKeyBuffer.length;
           caretKeyBuffer = [];
         }
-
-        console.log('new caretPos',caretPos, tempKeyBuffer);
 
         if(caretPos !== 0){
           tempKeyBuffer.splice(caretPos - 1, 1);
@@ -125,6 +128,7 @@
 
       keys = colorize(tempKeyBuffer);
 
+      manageMacro();
     }
 
     // filter same keypress type
@@ -163,28 +167,35 @@
       }
       
       keys = colorize(tempKeyBuffer);
-
-      //console.log(tempKeyBuffer, 'vis caret', visibleCaretPos,  'caret: ', caretPos);
-     
-
+    
+      manageMacro();
     }
+
 
     // update last key...
     last_key = e.keyCode;
-
-    manageMacro();
     
   }
 
   function addKey(){
-    keyBuffer.splice(caretPos, 0, {...selectedKey, type: 'keydownup'});
+    if(caretPos == -1){
+      keyBuffer.splice(keyBuffer.length-1, 0, {...selectedKey, type: addonKeyType});
+    } else {
+      keyBuffer.splice(caretPos, 0, {...selectedKey, type: addonKeyType});
+    }
     keys = colorize(keyBuffer);
+    visibleCaretPos += 1;
     manageMacro();
   }
 
   function addDelay(){
-    keyBuffer.splice(caretPos, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
+    if(caretPos == -1){
+      keyBuffer.splice(keyBuffer.length-1, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
+    } else {
+      keyBuffer.splice(caretPos, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
+    }
     keys = colorize(keyBuffer);
+    visibleCaretPos += 1;
     manageMacro();
   }
 
@@ -226,7 +237,7 @@
     let coloredKeys = [];
 
     // set a caret 0
-    coloredKeys.push(`<div data-caret="0" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`)
+    coloredKeys.push(`<div data-caret="0" class="px-1 h-6"></div>`)
 
     args.forEach((arg,i) => {
 
@@ -244,7 +255,7 @@
       }
 
       // add a caret pos after each key
-      coloredKeys.push(`<div data-caret="${i+1}" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`)
+      coloredKeys.push(`<div data-caret="${i+1}" class="px-1 h-6"></div>`)
     })
     
     return coloredKeys;
@@ -264,7 +275,7 @@
     } else {
       
       if(focus == false){
-        keys = [`<div data-caret="0" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`];
+        keys = [`<div data-caret="0" class="px-1 h-6"></div>`];
         visibleCaretPos = 0;
         caretPos = -1;
       }
@@ -276,8 +287,9 @@
   function clearMacro(){
     keyBuffer = [];
     caretKeyBuffer = [];
-    caretPos = undefined;
-    keys = ''
+    caretPos = -1;
+    visibleCaretPos = 0;
+    keys = [`<div data-caret="0" class="px-1 h-6"></div>`];
     manageMacro();
   }
 
@@ -288,7 +300,11 @@
 
     let tempKeyBuffer = Array.from(keyBuffer);
 
-    tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer)
+    console.log('manage...', keyBuffer, caretPos, caretKeyBuffer )
+
+    if(caretPos != -1){
+      tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer)
+    }
 
     tempKeyBuffer.forEach((key, i) => {
 
@@ -310,7 +326,8 @@
 
       parameters.push(code);
 
-    })
+    });
+
 
     sendData(parameters);
 
@@ -320,7 +337,7 @@
 
 
 <div class="flex w-full flex-col items-start p-2">
-  <div class="text-gray-500 text-sm pb-1">Macro</div>
+  <div class="text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
   <div class="flex w-full p-2">
     <div
       id="idk"  
@@ -331,23 +348,46 @@
       contenteditable="true"
       on:click={(e)=>{setCaret(e); focus = true;}}>
       {#each keys as key, i}
-        <div data-index={i} class:blink={(visibleCaretPos * 2) === i}>{@html key}</div>
+        <div data-index={i} class:blink={(visibleCaretPos * 2) === i} class="{(i + i%2 ) == i ? 'hover:bg-pick-complementer cursor-pointer' : 'cursor-default' } ">{@html key}</div>
       {/each}
     </div>
   </div>
-  <div class="flex w-full items-center justify-between p-2">
-    <select bind:value={selectedKey} class="bg-secondary flex flex-grow text-white p-2 focus:outline-none border-select">
-      {#each keyMap.default as key}
-        <option value={key} class="text-white bg-secondary py-1 ">{key.info}</option>
-      {/each}
-    </select>
-    <button on:click={addKey} class="flex items-center justify-center rounded my-2 ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2 py-0.5">Add</button>
+  <div class="flex flex-col w-full items-start p-2">
+
+    <div class="text-gray-500 text-sm pb-1">Add Key</div>
+
+    <div class="flex w-full items-start justify-between">
+
+      <div class="flex flex-col">
+        <select bind:value={selectedKey} class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select">
+          {#each keyMap.default as key}
+            <option value={key} class="text-white bg-secondary py-1 ">{key.info}</option>
+          {/each}
+        </select>
+        <div class="flex mt-1">
+          <div on:click={()=>{addonKeyType = 'keyup'}} class="{addonKeyType == 'keyup' ? 'border-yellow-500 text-yellow-500' : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md">keyup</div>
+          <div on:click={()=>{addonKeyType = 'keydown'}} class="{addonKeyType == 'keydown' ? 'border-red-500 text-red-500' : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md">keydown</div>
+          <div on:click={()=>{addonKeyType = 'keydownup'}} class="{addonKeyType == 'keydownup' ? 'border-green-500 text-green-500' : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md">keydownup</div>
+        </div>
+      </div>
+
+      <button on:click={addKey} class="flex items-center justify-center rounded border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2">Add Key</button>
+    
+    </div>
+
   </div>
 
-  <div class="flex w-full items-center justify-between p-2">
-    <input bind:value={delayKey} type="number" min="5" max="4000" class="bg-secondary flex flex-grow text-white p-2 focus:outline-none border-select">
-    
-    <button on:click={addDelay} class="flex items-center justify-center rounded my-2 ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2 py-0.5">Add</button>
+  <div class="flex flex-col w-full items-start p-2">
+    <div class="text-gray-500 text-sm pb-1">Delay Key</div>
+    <div class="flex items-start justify-between w-full">
+      <input bind:value={delayKey} type="number" min="5" max="4000" class="bg-secondary flex flex-grow text-white py-1 px-2 focus:outline-none border-select">
+      <button on:click={addDelay} class="flex items-center justify-center rounded ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2">Add Delay</button>
+    </div>
+  </div>
+
+  <div class="flex w-full flex-col p-2">
+    <div class="text-gray-500 text-sm pb-1">Default Delay</div>
+    <input bind:value={defaultDelay} on:input={(e)=>{manageMacro()}} type="number" min="5" max="4000" class="bg-secondary w-full flex flex-grow text-white px-2 py-1 focus:outline-none border-select">
   </div>
 
   <button on:click={clearMacro} class="flex items-center justify-center rounded m-2 border-select bg-select border-2 hover:bg-red-500 text-white px-2 py-0.5">Clear All</button>

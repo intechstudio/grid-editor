@@ -48,12 +48,10 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    console.log('sendConfigToGrid',parameters[7]);
-
 
     const cfg = grid.translate.encode(brc, 'CONFIG', 'EXECUTE', parameters)
 
-    console.log(String.fromCharCode.apply(String, cfg));
+    //console.log(String.fromCharCode.apply(String, cfg));
 
     serialComm.write(cfg);
 
@@ -70,8 +68,6 @@ const instructions = {
 
     const cfg = grid.translate.encode(brc, 'PAGEACTIVE', 'EXECUTE', parameters)
 
-    console.log('pagenum: ', event.pagenumber, 'cfg: ', String.fromCharCode.apply(String, cfg));
-
     serialComm.write(cfg);
 
     return 1;
@@ -79,6 +75,7 @@ const instructions = {
 
   fetchPageCountFromGrid: ({controller}) => {
 
+    console.log(controller);
     const cfg = grid.translate.encode(
       {dx: controller.dx, dy: controller.dy, rot: controller.rot},
       "PAGECOUNT",

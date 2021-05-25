@@ -12,15 +12,12 @@ export function select(node, [moduleId, selectedDisplay]){
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
 
-        user_input.update({
-          id: moduleId, 
-          brc: {
-            dx: +dx, 
-            dy: +dy
-          }, 
-          event: {
-            elementnumber: +controlNumber
-          }
+        user_input.update((ui) =>{
+          ui.id = moduleId;
+          ui.brc.dx = +dx;
+          ui.brc.dy = +dy;
+          ui.event.elementnumber = +controlNumber;
+          return ui;
         });
   
         node.dispatchEvent(new CustomEvent('selected-element', {

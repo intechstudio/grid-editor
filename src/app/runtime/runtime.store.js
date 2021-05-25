@@ -24,13 +24,13 @@ function create_user_input () {
 
   const _event = writable({...defaultValues})
 
-  function update({brc, event}){
+  function grid_update({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
       if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE ) {
         _event.update((store)=>{
-          store.brc.dx = brc.DX;
-          store.brc.dy = brc.DY;
+          store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
+          store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
           store.brc.rot = brc.ROT
           if(event.ELEMENTNUMBER !== 255){
             store.event.eventtype = event.EVENTTYPE;
@@ -73,7 +73,8 @@ function create_user_input () {
   return {
     ..._event,
     subscribe: _event.subscribe,
-    update: update,
+    update: _event.update,
+    grid_update: grid_update,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     update_pagenumber: update_pagenumber,
@@ -125,7 +126,7 @@ function create_runtime () {
     this.update_pages = function({brc, pagenumber}){
       _runtime.update(_runtime => {
         _runtime.forEach((device)=>{
-          if(device.dx == brc.DX && device.dy == brc.DY){
+          if(device.dx == brc.SX && device.dy == brc.SY){
             for (let i = 0; i < pagenumber - 1; i++) {
               device.pages = [...device.pages, grid.device.createPage(device.id)];
             }
@@ -197,8 +198,10 @@ function create_runtime () {
         elementNumbers = device.pages[ui.event.pagenumber].control_elements;
 
         events = elementNumbers[selectedNumber].events;
-        selectedEvent = events.find(e => e.event.value == ui.event.eventtype);
 
+        // don't let selection of event, which is not on that control element
+        let f_event = events.find(e => e.event.value == ui.event.eventtype);
+        selectedEvent = f_event ? f_event : events[events.length - 1];
         
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();

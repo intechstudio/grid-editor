@@ -13,11 +13,12 @@
 
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
-
   export let config;
   export let index;
   export let advanced;
   export let advancedClickAddon;
+
+  $: console.log(config);
 
 </script>
 

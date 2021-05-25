@@ -39,6 +39,14 @@
   function changeSelectedConfig(arg){
     selectedConfig = arg;
     $appSettings.configType = selectedConfig;
+
+    if(arg == 'systemEvents'){
+      user_input.update((ui) => {ui.event.elementnumber = 16; ui.event.eventtype = 4; return ui});
+    }
+
+    if(arg == 'uiEvents'){
+      user_input.update((ui) => {ui.event.elementnumber = 0; ui.event.eventtype = 0; return ui});
+    }
   }
 
   runtime.active_config(active => {
@@ -48,6 +56,8 @@
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
     }).catch(err => {console.error(err); configs = [];})
+
+    console.log('active config',active);
 
     // let use of default dummy parameters
     if(active.elements.selected !== ""){
