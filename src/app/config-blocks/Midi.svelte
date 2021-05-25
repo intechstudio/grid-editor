@@ -57,7 +57,7 @@
 
   const _suggestions = [
     // channels
-      [...channels(15)],
+      [...channels(16)],
     // commands
       [
         {value: '176', info: 'Control Change', key: 'control_change_messages'}, 

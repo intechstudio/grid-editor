@@ -244,13 +244,15 @@ function createDebug(){
   return {
     ...store,
     update_debugtext: (debugtext) => {
-      if(d.enabled){
-        if(d.data.length >= 15){
-          d.data.shift()
+      store.update(d => {
+        if(d.enabled){
+          if(d.data.length >= 15){
+            d.data.shift()
+          }
+          d.data = [...d.data, debugtext];
         }
-        d.data = [...d.data, debugtext];
-      }
-      return d;
+        return d;
+      })
     }
   }
 }

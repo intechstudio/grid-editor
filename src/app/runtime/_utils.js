@@ -61,10 +61,12 @@ const _utils = {
   // add extra properties used in the app, like the id for listing and component
   extendProperties: function(configList){
     return Promise.all(configList.map(async (element,index) => {
-      // TODO: if undefined find... revert to codeblock!
+      
+      // if short is not in lua... revert to codeblock!
+      if(!grid.properties.LUA.find(l => l.short == element.short)){
+       element.short = 'cb'
+      }
 
-      // TODO: we convert grid short script names to human names!
-      // console.log(_convert.splitShortScript(element.script));
       return {
         short: element.short, 
         script: element.script, 

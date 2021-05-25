@@ -8,18 +8,20 @@ export function select(node, [moduleId, selectedDisplay]){
       const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
 
       if(controlNumber !== undefined){
-
         
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
 
-        user_input.update_all((store)=>{
-          store.id = moduleId,
-          store.brc.dx = +dx,
-          store.brc.dy = +dy;
-          store.event.elementnumber = +controlNumber
-          return store;
-        })
+        user_input.update({
+          id: moduleId, 
+          brc: {
+            dx: +dx, 
+            dy: +dy
+          }, 
+          event: {
+            elementnumber: +controlNumber
+          }
+        });
   
         node.dispatchEvent(new CustomEvent('selected-element', {
           detail: { controlNumber:  [e.target.parentElement.dataset.controlNumber]}

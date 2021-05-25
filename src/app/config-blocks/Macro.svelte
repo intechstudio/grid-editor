@@ -1,7 +1,7 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'gsk',
+    short: 'gks',
     groupType: 'standard',
     desc: 'Macro',
     icon:`
@@ -16,10 +16,7 @@
 
 <script>
 
-  import {afterUpdate, beforeUpdate, createEventDispatcher, onMount} from 'svelte';
-
-  import { slide } from 'svelte/transition';
-  import { flip } from 'svelte/animate';
+  import { createEventDispatcher,} from 'svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -27,49 +24,61 @@
 
   import * as keyMap from '../../external/macro/map.json';
 
-  console.log(keyMap);
-
-  $: console.log(keyBuffer, caretKeyBuffer);
-
-  export let action;
+  export let config;
   export let index;
   export let eventInfo;
   export let elementInfo;
 
-  let validator = [];
   let macroInputField;
 
-  function sendData(){
-
+  $: if(config.script){
+    macrosToConfig({script: config.script});
   }
 
-  let orderChangeTrigger = null;
-  onMount(()=>{
-    let c = 0;
+  function macrosToConfig({script}){
+    let array = [];
+    let _keys = [];
+    try {
+      const text = script.split('gks(')[1].slice(0,-1);
+      array = text.split(',');
+      for (let i = 0; i < array.length; i+=3) {
+        console.log(i, array[i])
+        if(array[i] != 15){
+          const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toUpperCase();
+          let f_key = keyMap.default.find(k => k.value == val && array[i] == k.is_modifier);
+          _keys.push({...f_key, type: array[i+1] == 0 ? 'keyup' : array[i+1] == 1 ? 'keydown' : array[i+1] == 2 ? 'keydownup' : undefined})
+        } else {
+          _keys.push({value: array[i+2], info: "delay", js_value: -1, is_modifier: 15, type: 'delay'})
+        }
+      }
 
-    //loadMacros();
-  })
+    } catch (error) {
+      console.warn('gsk can\'t be turned to config', script);
+    }
 
-  afterUpdate(() => {
-  
-  })
+    keyBuffer = _keys;
+    keys = colorize(keyBuffer);
+  }
+
+  function sendData(parameters){
+    let script = 'gks(' + parameters.join(',') + ')';
+    dispatch('output', {short: 'gks', script: script})
+  }
 
   let keys = '';
   let parameters = [];
-
-  let keydownBuffer = [];
-
   let caretKeyBuffer = [];
   let keyBuffer = [];
-
-  let keyMerge = [];
-  let normalKeys = [];
-
-  let caretArray = [];
-
   let visibleCaretPos = 0;
-
   let last_key = undefined;
+
+  let focus = false;
+
+  let caretPos = -1;
+
+  let selectedKey;
+  let delayKey = 100;
+
 
   function identifyKey(e){
 
@@ -79,8 +88,6 @@
     if(e.keyCode == 8 && e.type == 'keydown'){
 
       let tempKeyBuffer = Array.from(keyBuffer);  
-
-      console.log('CARETKEYBUFFER: ', caretKeyBuffer, 'KEYBUFFER: ', keyBuffer)
 
       /**
        * if there is caretbuffer array after delete, then we must delete elements from there first and merge with keybuffer accordingly
@@ -93,9 +100,10 @@
         if(last_key != 8) {
           tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
           caretPos = caretPos + caretKeyBuffer.length;
+          caretKeyBuffer = [];
         }
 
-        //console.log('new caretPos',caretPos);
+        console.log('new caretPos',caretPos, tempKeyBuffer);
 
         if(caretPos !== 0){
           tempKeyBuffer.splice(caretPos - 1, 1);
@@ -109,12 +117,14 @@
       } else {
         if(caretPos != 0){
           tempKeyBuffer.splice(tempKeyBuffer.length - 1, 1);
+          visibleCaretPos = tempKeyBuffer.length;
         }
       }
       
       keyBuffer = tempKeyBuffer;
 
       keys = colorize(tempKeyBuffer);
+
     }
 
     // filter same keypress type
@@ -161,13 +171,21 @@
 
     // update last key...
     last_key = e.keyCode;
+
+    manageMacro();
     
   }
 
   function addKey(){
     keyBuffer.splice(caretPos, 0, {...selectedKey, type: 'keydownup'});
-    console.log('addkey...',caretPos, keyBuffer, selectedKey)
     keys = colorize(keyBuffer);
+    manageMacro();
+  }
+
+  function addDelay(){
+    keyBuffer.splice(caretPos, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
+    keys = colorize(keyBuffer);
+    manageMacro();
   }
 
   function cutQuickDownUp(args){
@@ -221,6 +239,9 @@
       else if(arg.type == 'keyup'){
         coloredKeys.push(`<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
+      else if(arg.type == 'delay'){
+        coloredKeys.push(`<div class="text-purple-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-purple-500 rounded-md">${arg.info + ': ' + arg.value}</div>` + '  ')
+      }
 
       // add a caret pos after each key
       coloredKeys.push(`<div data-caret="${i+1}" class="px-0.5 py-1 h-6 mx-0.5 hover:bg-pick-complementer"></div>`)
@@ -230,7 +251,6 @@
 
   }
 
-  let caretPos = -1;
 
   function setCaret(e){
     if(e.target.getAttribute('data-caret') !== null){
@@ -240,8 +260,6 @@
       caretPos = +e.target.getAttribute('data-caret');
       // this caret for the blinking cursor
       visibleCaretPos = caretPos;
-
-      console.log('set caret...',caretPos)
 
     } else {
       
@@ -254,7 +272,6 @@
     }
   }
 
-  let focus = false;
 
   function clearMacro(){
     keyBuffer = [];
@@ -264,60 +281,40 @@
     manageMacro();
   }
 
-  function loadMacros(){
-
-    // parseInt('0xff')
-
-    macro = [];
-    keys = '';
-
-    for (const objKey in action.parameters) {
-      if(objKey.startsWith('KEYCODE')){
-        let found = keyMap.default.find(key => parseInt(key.value) == action.parameters[objKey] && key.is_modifier == action.parameters['KEYISMODIFIER'+objKey.slice(-1)]);
-        if(found) {
-          macro.push(found);
-        }
-      }
-    }
-
-    macro.forEach(key => 
-      keys += key.info + '  '
-    )
-
-  }
 
   function manageMacro(){
+
     parameters = [];
 
-    for (let i = 0; i < 6; i++) {
-      
-      const key = keyBuffer[i];
+    let tempKeyBuffer = Array.from(keyBuffer);
 
-      const keyIsModifier = 'KEYISMODIFIER' + (i);
-      const keyCode = 'KEYCODE' + (i);
+    tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer)
 
-      let obj = {};
+    tempKeyBuffer.forEach((key, i) => {
 
-      if(key){
-        let modifier = 0;
-        key.is_modifier ?  modifier = 1 : modifier = 0 ;
+      let code = [];
 
-        obj[keyIsModifier] = parameter_parser(modifier);
-        obj[keyCode] = parameter_parser(key.value)
-
-        parameters.push(obj);
+      if(key.type !== 'delay'){
+        code = [ 
+          key.is_modifier ? 1 : 0,
+          key.type == 'keydown' ? 1 : key.type == 'keyup' ? 0 : key.type == 'keydownup' ? 2 : undefined,
+          parseInt(key.value)
+        ]
       } else {
-        obj[keyIsModifier] = parameter_parser(0);
-        obj[keyCode] = parameter_parser(255);
-        parameters.push(obj);
+        code = [
+          15,
+          0,
+          key.value
+        ]
       }
-    }
 
-    sendData();
+      parameters.push(code);
+
+    })
+
+    sendData(parameters);
 
   }
-
-  let selectedKey;
 
 </script>
 
@@ -346,6 +343,13 @@
     </select>
     <button on:click={addKey} class="flex items-center justify-center rounded my-2 ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2 py-0.5">Add</button>
   </div>
+
+  <div class="flex w-full items-center justify-between p-2">
+    <input bind:value={delayKey} type="number" min="5" max="4000" class="bg-secondary flex flex-grow text-white p-2 focus:outline-none border-select">
+    
+    <button on:click={addDelay} class="flex items-center justify-center rounded my-2 ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2 py-0.5">Add</button>
+  </div>
+
   <button on:click={clearMacro} class="flex items-center justify-center rounded m-2 border-select bg-select border-2 hover:bg-red-500 text-white px-2 py-0.5">Clear All</button>
 
 </div>

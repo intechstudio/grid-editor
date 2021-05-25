@@ -17,7 +17,7 @@ export const config_collection = [
     {category: ["MIDI"],               name: "Button",                     configs: "--[[@gms]] gms(0,176,this.ind(),this.bva())"},
     {category: ["MIDI"],               name: "Potmeter",                   configs: "--[[@gms]] gms(0,176,this.ind(),this.pva())"},
     
-    {category: ["Macro"],              name: "Default",                    configs: "--[[@gsk]] gsk()"},
+    {category: ["Macro"],              name: "Default",                    configs: "--[[@gks]] gks()"},
 
     {category: ["Condition"],          name: "If",                         configs: "--[[@if]] if (1) then --[[@en]] end" },
     {category: ["Condition"],          name: "Else",                       configs: "--[[@el]] else" },

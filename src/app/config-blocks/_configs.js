@@ -28,7 +28,7 @@ async function importComponents(files){
   }
 }
 
-async function getImports(short){
+export async function getComponentInformation({short}){
 
   const files = await scanConfigBlockDirectory();
   const component = await importComponents(files)
@@ -37,8 +37,3 @@ async function getImports(short){
 
   return component;
 }
-
-
-export async function getComponentInformation({short}){
-  return await getImports(short);
-};
