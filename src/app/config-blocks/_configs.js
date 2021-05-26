@@ -11,7 +11,6 @@ async function scanConfigBlockDirectory(){
   } catch (err) {
     console.error('Error occured while reading directory!', err);
   }
-  
 }
 
 async function importComponents(files){

@@ -1,21 +1,23 @@
-function validate (value) {
-  
-  _valid = 0;
+const validate = function(value){
 
-  this.min = (mn) => {
-    value >= mn ? this._valid = 1 : this._valid = 0;
-    return this
+  this.value = value;
+
+  this.valid = 1;
+
+  this.min = function(mn){
+    value <= mn ? this.valid = 0 : null;
+    return this;
   }
 
-  this.max = (mx) => {
-    value <= mx ? this._valid = 1 : this._valid = 0;
-    return this
+  this.max = function(mx){
+    value >= mx ? this.valid = 0 : null;
+    return this;
   }
-  
-  return {
-    max: this.max,
-    min: this.min,
+
+  this.result = function(){
+    return this.valid
   }
+
 }
 
 export default validate;

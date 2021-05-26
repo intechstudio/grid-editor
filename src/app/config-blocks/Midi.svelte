@@ -25,8 +25,8 @@
 
   import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
-import validate from './_validators';
 
+  import validate from './_validators';
 
   export let config = ''
   export let index;
@@ -51,8 +51,9 @@ import validate from './_validators';
 
   function sendData(e, index){
     
-    console.log(    validate(e).min(5).max(10)
-);
+    const validator = new validate(e);
+    
+    console.log('IS valid', validator.min(2).max(10).result());
 
     scriptSegments[index] = e;
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
