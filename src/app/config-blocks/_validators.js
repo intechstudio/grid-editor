@@ -1,23 +1,20 @@
-const validator = {
+const validate = (value) => {
+  this.valid = 0;
+  this.value = value;
 
-  length: function(args){
-
-  },
-
-  check: function(value){
-
-    this.value = value
-    
-    this.min = (m) => {
-      
-    }
-    
-  },
-
-  max: function(value){
-
+  this.min = (mn) => {
+    value >= mn ? valid = 1 : valid = 0;
   }
 
+  this.max = (mx) => {
+    value <= mx ? valid = 1 : valid = 0;
+  }
+  
+  return {
+    max,
+    min,
+    valid
+  }
 }
 
-export default validator;
+export default validate;
