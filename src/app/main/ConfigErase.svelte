@@ -6,12 +6,10 @@
   export let classes;
 
   function clear() {
-    const command = grid.translate.encode('',`CONFIGERASE`,'EXECUTE','');
+    const command = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
     serialComm.write(command);
-    
     runtime.unsaved.set(0);
-
-    runtime.set([]);
+    runtime.set([]); // this causes blink, we could simply remove all config and reinit state
     runtime.update.trigger();
   }
 

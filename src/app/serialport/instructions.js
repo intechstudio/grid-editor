@@ -13,6 +13,7 @@ const instructions = {
         dy: device.dy,
         rot: device.rot
       },
+      "LOCAL",
       "CONFIG",
       "FETCH",
       [
@@ -24,7 +25,6 @@ const instructions = {
         { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
         { ACTIONLENGTH: pParser(0)},
       ],
-      ""
     );
 
     console.log(String.fromCharCode.apply(String, cfg));
@@ -50,7 +50,7 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    const cfg = grid.translate.encode(brc, 'CONFIG', 'EXECUTE', parameters)
+    const cfg = grid.translate.encode(brc, 'GLOBAL', 'CONFIG', 'EXECUTE', parameters)
 
     serialComm.write(cfg);
 
@@ -65,7 +65,7 @@ const instructions = {
       { PAGENUMBER: pParser(event.pagenumber) },
     ]
 
-    const cfg = grid.translate.encode(brc, 'PAGEACTIVE', 'EXECUTE', parameters)
+    const cfg = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
 
     serialComm.write(cfg);
 
@@ -76,6 +76,7 @@ const instructions = {
 
     const cfg = grid.translate.encode(
       {dx: controller.dx, dy: controller.dy, rot: controller.rot},
+      "GLOBAL",
       "PAGECOUNT",
       "FETCH",
       ""

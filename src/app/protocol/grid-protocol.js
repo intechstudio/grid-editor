@@ -31,7 +31,7 @@ const param2lower = (parameters) => {
   return obj;
 }
 
-const convert_header_to_grid = (MODULE_INFO) => {
+const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
 
   // convert editor runtime module info to grid brc parameters
 
@@ -42,10 +42,12 @@ const convert_header_to_grid = (MODULE_INFO) => {
   let ROT = 0;
 
   if(MODULE_INFO !== ''){
-    DX = +MODULE_INFO.dx + 127;
-    DY = +MODULE_INFO.dy + 127;
-    SX = +MODULE_INFO.sx + 127;
-    SY = +MODULE_INFO.sy + 127;
+    if(DESTINATION == 'LOCAL'){
+      DX = +MODULE_INFO.dx + 127;
+      DY = +MODULE_INFO.dy + 127;
+      SX = +MODULE_INFO.sx + 127;
+      SY = +MODULE_INFO.sy + 127;
+    }
     switch (MODULE_INFO.rot){
       case -0:
         ROT = 0; break;
@@ -210,7 +212,7 @@ const grid = {
   }()),
 
   translate: {
-    encode: function (HEADER, CLASS_NAME, INSTR_CODE, PARAMETERS, SERIALIZED){
+    encode: function (HEADER, DESTINATION, CLASS_NAME, INSTR_CODE, PARAMETERS){
 
 
       function encode_class_parameters(PARAMETERS, INFO){
@@ -236,7 +238,7 @@ const grid = {
         return _parameters;
       }
 
-      const BRC = convert_header_to_grid(HEADER);
+      const BRC = convert_header_to_grid(HEADER, DESTINATION);
   
       const PROTOCOL = grid.properties;
   

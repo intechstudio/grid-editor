@@ -8,7 +8,7 @@
 
 
   function store() {
-    const command = grid.translate.encode('',`CONFIGSTORE`,'EXECUTE','');
+    const command = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
     serialComm.write(command);
     runtime.unsaved.set(0);
   }

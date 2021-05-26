@@ -67,7 +67,8 @@
 
         const command = grid.translate.encode(
           {dx: 0, dy: 0, rot: -0},
-          `HEARTBEAT`,
+          'GLOBAL',
+          'HEARTBEAT',
           'EXECUTE',
           [
             { TYPE: pParser(type)}, // if all good = 255, not guud = 254
@@ -75,8 +76,7 @@
             { VMAJOR: pParser($appSettings.version.major)}, 
             { VMINOR: pParser($appSettings.version.minor)}, 
             { VPATCH: pParser($appSettings.version.patch)}, 
-          ], 
-          ''
+          ]
         );
 
         serialComm.write(command);

@@ -4,7 +4,7 @@ export const config_collection = [
 
     {category: ["Locals"],             name: "Default",                    configs: "--[[@l]] local x = 1"},
 
-    {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]]"},
+    {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
 
     {category: ["LED", "Value"],       name: "Encoder",                    configs: "--[[@glp]] glp(this.ind(),2,this.eva())" },
     {category: ["LED", "Value"],       name: "Button",                     configs: "--[[@glp]] glp(this.ind(),2,this.bva())" },

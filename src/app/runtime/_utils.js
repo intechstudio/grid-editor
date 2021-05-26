@@ -45,6 +45,7 @@ const _utils = {
     // filter "*space*" with regex or empty string
     configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
 
+    console.log('rawLuaToConfigList', configList);
 
     return configList;
   
@@ -60,7 +61,8 @@ const _utils = {
 
     let configMatrix = [];
     for (let i = 0; i < configList.length; i+=2) {
-      let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : configList[i].trim() ]
+      console.log('configBreakDown', configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : '' )
+      let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : '' ]
       configMatrix.push({short: short, script: script})
     }
     return configMatrix;

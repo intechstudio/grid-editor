@@ -179,23 +179,25 @@
 
   function addKey(){
     if(caretPos == -1){
-      keyBuffer.splice(keyBuffer.length-1, 0, {...selectedKey, type: addonKeyType});
+      keyBuffer.splice(keyBuffer.length, 0, {...selectedKey, type: addonKeyType});
     } else {
       keyBuffer.splice(caretPos, 0, {...selectedKey, type: addonKeyType});
     }
     keys = colorize(keyBuffer);
     visibleCaretPos += 1;
+    caretPos += 1;
     manageMacro();
   }
 
   function addDelay(){
     if(caretPos == -1){
-      keyBuffer.splice(keyBuffer.length-1, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
+      keyBuffer.splice(keyBuffer.length, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
     } else {
       keyBuffer.splice(caretPos, 0, {value: delayKey, info: "delay", js_value: -1, is_modifier: 15, type: 'delay'});
     }
     keys = colorize(keyBuffer);
     visibleCaretPos += 1;
+    caretPos += 1;
     manageMacro();
   }
 

@@ -215,8 +215,6 @@ function create_runtime () {
           instructions.fetchConfigFromGrid({device: device, inputStore: ui});     
           console.info('Config Fetched!');
         }
-
-        console.log(events);
       
       }
     });
