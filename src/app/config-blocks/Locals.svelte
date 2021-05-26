@@ -11,6 +11,7 @@
 
   import { onMount, createEventDispatcher } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
+import stringManipulation from '../main/user-interface/_string-operations';
 
   export let config = '';
   export let index;
@@ -38,8 +39,10 @@
   // DON'T USE $ BINDING! 
   // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
   function saveChangesOnInput(e, i, k){
-    scriptSegments[i][k] = e;
-    sendData();
+    if(stringManipulation.parenthesis(e)){
+      scriptSegments[i][k] = e;
+      sendData();
+    }
   }
 
   function sendData(){
@@ -47,23 +50,44 @@
   }
 
   function localArrayToScript(arr){
-    let script = arr.map(segment =>
-      `local ${segment.variable}=${segment.value} ` // important to keep space before cat upper thingy
-    );
-    return script.join('');
+    let script = ['local ', arr.map(e => e.variable).join(','), '=', arr.map(e => e.value).join(',')].join('');
+    return script
   }
 
   function localsToConfig({script}){
-    // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
-    const text = script.split('local');
-    let config = [];
-    text.forEach(element => {
-      if(element !== ''){
-        const _split = element.split('=');
-        config.push({variable: _split[0].trim(), value: _split[1].trim()});
+
+    if(stringManipulation.parenthesis(script)){
+      // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
+      let _variable_array = script.split('=')[0];
+      _variable_array = _variable_array.split('local')[1];
+      let _value_array = script.split('=')[1];
+
+      let slice_pos = [];
+      let _part = '';
+      let offset = 0;
+
+      Array.from(_value_array).forEach((element,index) => {
+        _part += element;    
+        const closed = stringManipulation.parenthesis(_part);
+        if(closed && element == ','){
+          slice_pos.push({off:offset,ind: index});
+          offset = index+1;
+        }
+        if(index == _value_array.length-1){
+          slice_pos.push({off:offset, ind: index+1});
       }
-    });
-    return config;
+      });
+
+      _variable_array = _variable_array.split(',');
+
+      let arr = [];
+
+      slice_pos.forEach((pos,i) => {
+        arr.push({variable: _variable_array[i].trim(), value: _value_array.slice(pos.off, pos.ind).trim()});
+      });
+
+      return arr;
+    }
   }
 
   function addLocalVariable(){

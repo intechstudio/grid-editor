@@ -27,7 +27,6 @@ const instructions = {
       ],
     );
 
-    console.log(String.fromCharCode.apply(String, cfg));
     
     serialComm.write(cfg);
 
@@ -51,6 +50,9 @@ const instructions = {
     ]
 
     const cfg = grid.translate.encode(brc, 'GLOBAL', 'CONFIG', 'EXECUTE', parameters)
+
+    console.log(String.fromCharCode.apply(String, cfg));
+
 
     serialComm.write(cfg);
 

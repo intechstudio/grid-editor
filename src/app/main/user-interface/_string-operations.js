@@ -100,11 +100,10 @@ const stringManipulation = {
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
     // if its local
     pattern.push(`${'(?<local>(\\blocal\\b))'}`)
-    // if its dotnotation
-    pattern.push(`${'(?<dotnotation>((\\w+)\.(\\w)+))'}`)
     // if its character which is invalid
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`);
-
+    // if its dotnotation
+    pattern.push(`${'(?<dotnotation>((\\w+)\.(\\w)+))'}`)
     // create full pattern
     pattern = pattern.join('|');
 
