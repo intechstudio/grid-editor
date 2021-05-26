@@ -182,6 +182,8 @@ function create_runtime () {
 
     let pages = [];
 
+    console.log(ui,chng);
+
     let config = [];
     let events = [];
     let elementNumbers = [];
@@ -206,10 +208,15 @@ function create_runtime () {
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
           console.info('Config is available!');
-        } else {
+        }
+        
+        if(selectedEvent.cfgStatus !== 'GRID_REPORT'){
+          selectedEvent.cfgStatus = 'FETCHED';
           instructions.fetchConfigFromGrid({device: device, inputStore: ui});     
           console.info('Config Fetched!');
         }
+
+        console.log(events);
       
       }
     });

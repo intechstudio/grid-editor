@@ -26,6 +26,8 @@ const instructions = {
       ],
       ""
     );
+
+    console.log(String.fromCharCode.apply(String, cfg));
     
     serialComm.write(cfg);
 
@@ -48,10 +50,7 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-
     const cfg = grid.translate.encode(brc, 'CONFIG', 'EXECUTE', parameters)
-
-    //console.log(String.fromCharCode.apply(String, cfg));
 
     serialComm.write(cfg);
 
@@ -75,7 +74,6 @@ const instructions = {
 
   fetchPageCountFromGrid: ({controller}) => {
 
-    console.log(controller);
     const cfg = grid.translate.encode(
       {dx: controller.dx, dy: controller.dy, rot: controller.rot},
       "PAGECOUNT",

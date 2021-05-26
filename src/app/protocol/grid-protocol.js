@@ -558,7 +558,7 @@ const grid = {
             events.push({        
               event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
               config: [],
-              cfgStatus: 'not specified'
+              cfgStatus: 'NULL'
             })
           }
           control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };
