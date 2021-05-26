@@ -2,9 +2,8 @@
   import grid from "../protocol/grid-protocol";
   import { pParser } from "../protocol/_utils";
   import {serialComm} from "../serialport/serialport.store";
-
   
-  import { runtime, debug as debugtext } from "../runtime/runtime.store";
+  import { runtime, debug_store } from "../runtime/runtime.store";
   import _utils, { luaParser } from "../runtime/_utils";
 
   let runtimeScript = '';
@@ -12,7 +11,8 @@
 
   let configs = [];
 
-  runtime.active_config(active => {
+  debug_store.subscribe(active => {
+    console.log('active config change...', active.config);
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       let code = '';
@@ -34,23 +34,6 @@
 		serialComm.write(data);
   }
 
-  function heartbeat() {
-    const command = grid.translate.encode(
-      {dx: 0, dy: 0, rot: -0},
-      `HEARTBEAT`,
-      'EXECUTE',
-      [
-        { TYPE: pParser(255)}, 
-        { HWCFG: pParser(255)}, 
-        { VMAJOR: pParser(1)}, 
-        { VMINOR: pParser(1)}, 
-        { VPATCH: pParser(9)}, 
-      ], 
-      ''
-    );
-    serialComm.write(command);
-  }
-  
   function charCount(text){
     return text.length;
   }
@@ -107,13 +90,17 @@
   </div>
 
   <div class="flex text-white items-center"> 
-    <input class="mr-1" type="checkbox" bind:checked={$debugtext.enabled}>
+    <input class="mr-1" type="checkbox" bind:checked={$debug_store.enabled}>
     <div class="ml-1">Enable DEBUGTEXT</div>
   </div>
 
-  {#if $debugtext.data.length }
+  <div class="flex text-white items-center"> 
+    <button class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" on:click={()=>{debug_store.update(s => {s.data = []; return s})}}>Clear DEBUGTEXT</button>
+  </div>
+
+  {#if $debug_store.data.length }
     <div class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1">
-      {#each $debugtext.data as debug, i}
+      {#each $debug_store.data as debug, i}
         <span class="debugtexty px-1 py-0.5 ">{debug}</span>
       {/each}
     </div>
@@ -121,7 +108,6 @@
 </config-debug>
 
 <style>
-
 
   .debugtexty:nth-child(even){
     @apply bg-select;

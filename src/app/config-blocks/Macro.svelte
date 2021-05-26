@@ -68,9 +68,6 @@
   })
 
   function sendData(parameters){
-
-    console.log('OUT: ',parameters);
-
     let script = 'gks(' + defaultDelay + ',' + parameters.join(',') + ')';
     dispatch('output', {short: 'gks', script: script})
   }

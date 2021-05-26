@@ -247,17 +247,20 @@ function create_runtime () {
 }
 
 function createDebug(){
-  const store = writable({enabled: true, data: []});
+  const store = writable({config: '',enabled: true, data: []});
 
   return {
     ...store,
-    update_debugtext: (debugtext) => {
+    update_config: (value) => {
+      store.update(s => {s.config = value; return s})
+    },
+    update_debugtext: ({brc,text}) => {
       store.update(d => {
         if(d.enabled){
           if(d.data.length >= 15){
             d.data.shift()
           }
-          d.data = [...d.data, debugtext];
+          d.data = [...d.data, `[${brc.SX},${brc.SY}] ${text}`];
         }
         return d;
       })
@@ -265,7 +268,7 @@ function createDebug(){
   }
 }
 
-export const debug = createDebug();
+export const debug_store = createDebug();
 
 export const heartbeat = writable({
   editor: 300,

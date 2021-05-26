@@ -1,7 +1,7 @@
 // Top level imports
 import { writable } from 'svelte/store';
 import grid from '../protocol/grid-protocol';
-import { debug, runtime, user_input } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input } from '../runtime/runtime.store';
 
 function createMessageStream(){
 
@@ -26,7 +26,7 @@ function createMessageStream(){
     }
 
     if(DATA.DEBUGTEXT){
-      debug.update_debugtext(DATA.DEBUGTEXT);
+      debug_store.update_debugtext({brc: DATA.BRC, text: DATA.DEBUGTEXT});
     }
 
     if(DATA.CONFIG){

@@ -16,7 +16,7 @@
   import { changeOrder } from '../../_actions/move.action.js';
 
   import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
-  import { runtime, localDefinitions } from '../../../runtime/runtime.store.js';
+  import { runtime, localDefinitions, debug_store } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import { onMount } from 'svelte';
@@ -74,7 +74,7 @@
 
   }
 
-  //$: console.log($configNodeBinding);
+  $: debug_store.update_config(_utils.configMerge({config: configs}));
 
 </script>
 
