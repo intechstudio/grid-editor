@@ -19,6 +19,8 @@
 
   let scriptSegment = ''; // local script part
 
+  let loaded = false;
+
   $: if(config.script && !loaded){
     scriptSegment = config.script.slice(3, -5);
     loaded = true;
