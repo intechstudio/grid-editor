@@ -9,7 +9,7 @@
 </script>
 
 <script>
-  import {onMount, createEventDispatcher} from 'svelte';
+  import {onMount, createEventDispatcher, onDestroy} from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
 
   import _utils from '../runtime/_utils.js';
@@ -20,6 +20,8 @@
   export let blockAddedOnClick;
   export let index;
 
+  let loaded = false;
+
   const dispatch = createEventDispatcher();
 
   const parameterNames = ['LED Number', 'Layer', 'Intensity'];
@@ -27,9 +29,13 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if(config.script){
+  $: if(config.script && !loaded){
     scriptSegments = _utils.scriptToSegments({human: config.human, short: config.short, script: config.script})
   };
+
+  onDestroy(()=>{
+    loaded = false;
+  })
 
   function sendData(e, index){
     scriptSegments[index] = e;

@@ -36,6 +36,10 @@
     macrosToConfig({script: config.script});
   }
 
+  onDestroy(()=>{
+    loaded = false;
+  })
+
   function macrosToConfig({script}){
     let array = [];
     let _keys = [];
@@ -62,10 +66,6 @@
       console.warn('gsk can\'t be turned to config', script);
     }    
   }
-
-  onDestroy(()=>{
-    loaded = false;
-  })
 
   function sendData(parameters){
     let script = 'gks(' + defaultDelay + ',' + parameters.join(',') + ')';

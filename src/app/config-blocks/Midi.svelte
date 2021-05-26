@@ -20,15 +20,16 @@
 
 <script>
 
-  import { onMount, beforeUpdate, afterUpdate, createEventDispatcher } from 'svelte';
+  import { onMount, beforeUpdate, afterUpdate, createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
 
   import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
-import { validate } from 'uuid';
 
   export let config = ''
   export let index;
+
+  let loaded = false;
 
   const dispatch = createEventDispatcher();
 
@@ -37,14 +38,17 @@ import { validate } from 'uuid';
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if(config.script){
+  $: if(config.script && !loaded){
     scriptSegments = _utils.scriptToSegments({human: config.human,short: config.short, script: config.script});
+    loaded = true;
   };
 
+  onDestroy(()=>{
+    loaded = false;
+  })
+
   function sendData(e, index){
-
     validate(e);
-
     scriptSegments[index] = e;
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
     dispatch('output', {short: config.short, script: script})

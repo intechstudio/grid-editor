@@ -18,7 +18,11 @@
   export let advanced;
   export let advancedClickAddon;
 
-  $: console.log(config);
+  /*
+
+  No validators implemented!
+  
+  */
 
 </script>
 

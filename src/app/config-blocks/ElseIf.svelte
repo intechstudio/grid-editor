@@ -9,7 +9,7 @@
 </script>
 
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
 
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
 
@@ -18,12 +18,19 @@
   export let config = ''
   export let index;
 
+  let loaded = false;
+
   let scriptSegment = ''; // local script part
 
 
-  $: if(config.script){
+  $: if(config.script && !loaded){
     scriptSegment = config.script.slice(8, -5);
+    loaded = true;
   }
+
+  onDestroy(()=>{
+    loaded = false;
+  })
 
   function sendData(e){
     dispatch('output', {short: 'ei', script: `else if ${e} then`})

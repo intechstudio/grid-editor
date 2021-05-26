@@ -9,9 +9,9 @@
 
 <script>
 
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher, onDestroy } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-import stringManipulation from '../main/user-interface/_string-operations';
+  import stringManipulation from '../main/user-interface/_string-operations';
 
   export let config = '';
   export let index;
@@ -27,14 +27,20 @@ import stringManipulation from '../main/user-interface/_string-operations';
    * @locals []
   */
 
+  let loaded = false;
+
   let scriptSegments = [{variable: '', value: ''}]; 
 
   // config.script cannot be undefined
-  $: if(config.script){
+  $: if(config.script && !loaded){
     // this works differently from normal _utils...
-    // localsToConfig
     scriptSegments = localsToConfig({script: config.script, human: config.human})
+    loaded = true;
   }
+
+  onDestroy(()=>{
+    loaded = false;
+  })
 
   // DON'T USE $ BINDING! 
   // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
