@@ -26,6 +26,8 @@
   import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
 
+  import validator from '../config-blocks/_validators';
+
   export let config = ''
   export let index;
 
@@ -48,7 +50,9 @@
   })
 
   function sendData(e, index){
-    validate(e);
+    
+    //validator.check(e).min(5)
+
     scriptSegments[index] = e;
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
     dispatch('output', {short: config.short, script: script})

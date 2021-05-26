@@ -32,9 +32,17 @@
       
   let selectedConfig = [];
 
+  let promptValue = '';
+
   function initConfig(){
 
-    const cfg = get(presetManagement.selected_preset).configs;
+    let cfg = '';
+
+    if(promptValue !== ''){
+      cfg = promptValue; 
+    } else {
+      cfg = get(presetManagement.selected_preset).configs;
+    }
 
     dispatch('new-config', {
       config: cfg
@@ -167,12 +175,14 @@
           <Folder name={"Presets"} on:double-click={initConfig} {index} counter={0} configs={Object.entries(configs)} expanded/>
         </div>
 
+        <input class="my-1 p-1 font-mono" bind:value={promptValue} >
+
         <div class="w-full mt-2 flex items-end">
           <button 
             disabled={selectedConfig === undefined} 
             class:disabled={selectedConfig === undefined} 
             on:click={initConfig} 
-            class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 mr-1 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+            class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
             >
             Add Action
           </button>
