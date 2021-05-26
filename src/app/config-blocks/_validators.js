@@ -1,19 +1,20 @@
-const validate = (value) => {
-  this.valid = 0;
-  this.value = value;
+function validate (value) {
+  
+  _valid = 0;
 
   this.min = (mn) => {
-    value >= mn ? valid = 1 : valid = 0;
+    value >= mn ? this._valid = 1 : this._valid = 0;
+    return this
   }
 
   this.max = (mx) => {
-    value <= mx ? valid = 1 : valid = 0;
+    value <= mx ? this._valid = 1 : this._valid = 0;
+    return this
   }
   
   return {
-    max,
-    min,
-    valid
+    max: this.max,
+    min: this.min,
   }
 }
 

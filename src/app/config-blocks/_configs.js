@@ -6,7 +6,7 @@ async function scanConfigBlockDirectory(){
 
   try {
     let files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
-    files = (await files).filter(f => f !== '_configs.js');
+    files = (await files).filter(f => f.slice(-2) !== 'js');
     return files;
   } catch (err) {
     console.error('Error occured while reading directory!', err);
