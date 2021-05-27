@@ -9,6 +9,8 @@ function createMessageStream(){
 
   const _on_data = function(DATA) {
 
+    console.log(DATA);
+
     if(DATA.HEARTBEAT){
       runtime.device.is_online(grid.device.make(DATA.BRC, DATA.HEARTBEAT, false));
     }

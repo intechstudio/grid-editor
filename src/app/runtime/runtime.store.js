@@ -77,7 +77,12 @@ function create_user_input () {
   const _update = function(){
 
     this.pagenumber = function(value){
-      _event.update(s => {s.event.pagenumber = value; return s});
+      const store = get(_event);
+      // only update pagenumber if it differs from the runtime pagenumber
+      if(store.event.pagenumber !== value){ 
+        _event.update(s => {s.event.pagenumber = value; return s});
+      }
+      
       return this;
     }
 
@@ -234,7 +239,7 @@ function create_runtime () {
 
     rt.forEach(device => {
   
-      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy){
+      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
 
         pages = device.pages;
       
