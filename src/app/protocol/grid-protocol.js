@@ -423,7 +423,6 @@ const grid = {
 
       function decode_by_class(serialData, decoded){
 
-
         let DATA = {};
     
         DATA.BRC = decode_by_code(serialData, 'BRC');
@@ -434,8 +433,19 @@ const grid = {
 
           let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
                  
+
           if(obj.class == "EVENT"){
-            DATA.EVENT = decode_by_code(array, obj.class);
+
+            if(DATA.EVENT){
+              DATA.EVENT = [...DATA.EVENT, decode_by_code(array, obj.class)];
+            } else {
+              DATA.EVENT = [decode_by_code(array, obj.class)]
+            }
+
+            if(DATA.EVENT[DATA.EVENT.length-1].EVENTTYPE == 1){
+              DATA.EVENTPARAM = DATA.EVENT;
+            }
+
           }
                 
           if(obj.class == "HEARTBEAT"){
@@ -452,7 +462,10 @@ const grid = {
 
           if(obj.class == "DEBUGTEXT"){
             const arr = array.slice(5,);
-            DATA.DEBUGTEXT = String.fromCharCode(...arr)
+            DATA.DEBUGTEXT = String.fromCharCode(...arr);
+            if(DATA.DEBUGTEXT.includes('page change is disabled')){
+              DATA.LOG = 'Store your config before switching pages!'
+            }
           }
 
           if(obj.class == "CONFIG"){

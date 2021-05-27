@@ -5,20 +5,6 @@ import { configManagement } from '../../../../runtime/config-manager.store.js';
   import { appMultiSelect } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';
 
-  let multiSelectToggle = false;
-
-  //appMultiSelect.subscribe(chg => console.log('appMultiSelect', chg));
-
-  let removeClick;
-  let copyClick;
-
-  function handleClick(e){
-    if(e == 'copy'){
-      configManagement.copy(); 
-    } else {
-      configManagement.remove();
-    }
-  }
 
   function clearUpSelection(){
     $appMultiSelect.selection = [];
@@ -29,17 +15,22 @@ import { configManagement } from '../../../../runtime/config-manager.store.js';
 </script>
 
 
-<app-action-multi-select class="flex">
+<app-action-multi-select class="flex items-end justify-end  flex-wrap">
   <!-- When any of the array elements is true -->
-  {#if $appMultiSelect.selection.includes(true) && $appMultiSelect.enabled}
-    <BtnAndPopUp btnStyle={"bg-red-500 hover:bg-red-600 mr-2"} popStyle={'bg-red-500 '}> 
+  {#if $appMultiSelect.enabled}
+    <BtnAndPopUp on:clicked={()=>{configManagement.on_click.remove();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2"} popStyle={'bg-red-500 '}> 
       <span slot="popup">Removed!</span>
       <span slot="button">Remove</span>
     </BtnAndPopUp>
   
-    <BtnAndPopUp on:clicked={()=>{handleClick('copy'); clearUpSelection()}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
+    <BtnAndPopUp on:clicked={()=>{configManagement.on_click.copy(); clearUpSelection()}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
       <span slot="popup">Copied!</span>
       <span slot="button">Copy</span>
+    </BtnAndPopUp>
+
+    <BtnAndPopUp on:clicked={()=>{configManagement.on_click.select_all();}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-select '}> 
+      <span slot="popup">Selected!</span>
+      <span slot="button">Select all</span>
     </BtnAndPopUp>
   {/if}
   <button 

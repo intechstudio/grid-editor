@@ -30,6 +30,7 @@
   let bankColors;
   let bankActive = 0; // future page!
   let selectedElement;
+  let eventParam;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
@@ -39,10 +40,13 @@
     color = bankColors[bankActive];
   }
 
+  let ready = false;
+
   onMount(()=>{
 
-    user_input.subscribe(store => {
-      selectedElement = store;
+    user_input.active_input(store => {
+      selectedElement = store.selected;
+      eventParam = store.eventparams;
     })
     
   })
@@ -50,7 +54,7 @@
 </script>
 
 {#if selected}
-  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement}>
+  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement} {eventParam}>
 
     {#if $appSettings.overlays.controlName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation}/>

@@ -4,7 +4,7 @@
 
   import { get } from 'svelte/store';
 
-  import { runtime, user_input } from '../../../runtime/runtime.store.js';
+  import { logger, runtime, user_input } from '../../../runtime/runtime.store.js';
 
   export let pages;
 
@@ -22,11 +22,8 @@
       user_input.update_pagenumber.pagenumber(selectedPage).sendToGrid();
     }
     else{
-      alert = true;
+      logger.set('Store your config before changing pages!');
 
-      setTimeout(()=>{
-        alert = false;
-      }, 2000)
     }
   }
 
@@ -55,7 +52,7 @@
   {#if alert}
   
   <div class="absolute left-0 mt-4 w-56 -ml-60 text-center text-white bg-red-500 p-4 rounded">
-    Save your config before changing page!
+    Store your config before changing pages!
   </div>
   
 

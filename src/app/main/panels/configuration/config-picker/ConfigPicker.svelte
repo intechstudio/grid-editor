@@ -17,6 +17,7 @@
   import { presetManagement } from '../../../_stores/app-helper.store';
 
   import { get } from 'svelte/store';
+import { appActionClipboard } from '../../../../runtime/runtime.store';
 
   export let animation = false;
   export let actions;
@@ -34,25 +35,7 @@
 
   let promptValue = '';
 
-  function initConfig(){
 
-    let cfg = '';
-
-    if(promptValue !== ''){
-      cfg = promptValue; 
-    } else {
-      cfg = get(presetManagement.selected_preset).configs;
-    }
-
-    dispatch('new-config', {
-      config: cfg
-    });
-
-    presetManagement.quick_access.update();
-
-    configSelection = false;
-    visible = false;
-  }
 
   let topOffset = 0;
 
@@ -84,12 +67,37 @@
     }
   })
 
+  function initConfig(){
+
+    let cfg = '';
+
+    if(promptValue !== ''){
+      cfg = promptValue; 
+    } else {
+      cfg = get(presetManagement.selected_preset).configs;
+    }
+
+    dispatch('new-config', {
+      config: cfg
+    });
+
+    presetManagement.quick_access.update();
+
+    configSelection = false;
+    visible = false;
+  }
+
   function quickAdd(qa){
     dispatch('new-config', {
       config: qa.configs
     });
   }
 
+  function paste(){
+    dispatch('new-config', {
+      config: get(appActionClipboard).join('')
+    });
+  }
 
   let quickAccess = [];
   presetManagement.quick_access.subscribe(val => {
@@ -97,6 +105,7 @@
     configSelection = false;
     visible = false;
   })
+
 
 </script>
 
@@ -166,7 +175,14 @@
                 <div class="rounded-r-full px-2 py-0.5 bg-pick">{qa.name}</div>
               </div>
             {/each}
+
           </quick-access>
+        {/if}
+
+        {#if $appActionClipboard.length}
+          <button 
+            on:click={()=>{paste()}}
+            class="flex items-center justify-center bg-purple-400 hover:bg-purple-500 text-sm mr-8 mb-2 py-0.5 px-4 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500">Paste</button>
         {/if}
 
         <div class="py-1 w-full text-gray-500 text-sm mb-1">Presets</div> 

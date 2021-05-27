@@ -3,35 +3,44 @@ import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import _utils from './_utils';
 
-export const appActionClipboard = writable();
+export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
+
+function createLogger(){
+  const _log_store = writable('');
+  const _trigger = writable(0);
+
+  function set_log(value){
+    _log_store.set(value);
+    _trigger.update(n => n + 1);
+  }
+
+  const _log = derived([_log_store, _trigger],([$s, $t])=> {
+    return {message: $s, n: $t}
+  });
+
+  return{
+    set: set_log,
+    subscribe: _log.subscribe
+  }
+}
+export const logger = createLogger();
 
 function createMultiSelect(){
 
-  const default_values = {multiselect: false, selection: []};
+  const default_values = {multiselect: false, selection: [], enabled: false};
 
-  const store = writable({...default_values});
+  const store = writable(default_values);
 
   return {
     ...store,
-    select: ({config, selected}) => {
+    reset: () => {
       store.update(s => {
-
-        if(selected){
-          s.selection.push({config: config})
-        }
-
-        if(!selected){
-          s.selection = s.selection.filter(s => s.config == config);
-        }
-
-        console.log(s);
-
+        s.multiselect = false; 
+        s.selection = []; 
+        s.enabled = false;
         return s;
       })
-    },
-    reset: () => {
-      store.set({...default_values});
     }
   }
 
@@ -50,23 +59,42 @@ function create_user_input () {
     event: {
       pagenumber: 0,
       elementnumber: -1, // should be checked out if grid sends back array or not
-      eventtype: 2
+      eventtype: 2,
     }
   }
 
-  const _event = writable({...defaultValues})
+  const _event = writable({...defaultValues});
+  
+  const _param = writable([]);
+
+  const _active_input = derived([_event, _param], ([$e, $p]) => { 
+
+    return {
+      selected: $e,
+      eventparams: $p
+    }
+
+  });
+
+  function update_eventparam({brc, event}){
+    // update more than one user input eventparam for cool ui tweaks!
+    _param.update((s)=>{
+      s = [brc, event];
+      return s;
+    })
+  }
 
   function grid_update({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
-      if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE ) {
+      if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE) {
         _event.update((store)=>{
           store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
           store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
-          store.brc.rot = brc.ROT
+          store.brc.rot = brc.ROT;
           if(event.ELEMENTNUMBER !== 255){
             store.event.eventtype = event.EVENTTYPE;
-            store.event.elementnumber = event.ELEMENTNUMBER;   
+            store.event.elementnumber = event.ELEMENTNUMBER;
           }      
           return store;
         });
@@ -82,7 +110,7 @@ function create_user_input () {
       if(store.event.pagenumber !== value){ 
         _event.update(s => {s.event.pagenumber = value; return s});
       }
-      
+
       return this;
     }
 
@@ -122,6 +150,8 @@ function create_user_input () {
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     update_pagenumber: new _update(),
+    update_eventparam: update_eventparam,
+    active_input: _active_input.subscribe,
     reset: reset_disconnected
   }
 }

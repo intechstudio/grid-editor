@@ -8,12 +8,14 @@
 
   import Potentiometer from '../elements/Potentiometer.svelte';
   import Led from '../elements/Led.svelte';
+  import { user_input } from '../../../../runtime/runtime.store.js';
 
   export let id = 'PO16';
   export let selectedElement = {id: '', brc: {}, event: {}};
   export let rotation = 0;
   export let moduleWidth;
   export let color;
+  export let eventParam = [];
 
   let valueChange = [];
 
@@ -27,10 +29,21 @@
     return array;
   }
 
-  function handleEventParamChange(static_elementNumber, input_elementNumber){
-    if(static_elementNumber == input_elementNumber){
-      if(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy){
-        return selectedElement.event.eventParam;
+  function handleEventParamChange(static_elementNumber, eventParam){
+    if(eventParam.length){
+      let v = 0;
+      eventParam[1].forEach((e)=>{
+        if(eventParam[0].SX == selectedElement.brc.dx && eventParam[0].SY == selectedElement.brc.dy){
+          if(static_elementNumber == e.ELEMENTNUMBER){
+            v =  e.EVENTPARAM;
+            return;
+          }
+        }
+      })
+      
+      if(v){
+        console.log(static_elementNumber, v);
+        return v;
       }
     }
   }
@@ -61,14 +74,14 @@
     {#each control_block(4) as block }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each control_block(4) as element}
-          <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementNumber == block * 4 + element} class="knob-and-led">
+          <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == block * 4 + element} class="knob-and-led">
             <Led 
-              eventInput={handleEventParamChange((block * 4) + element, selectedElement.event.elementNumber)} 
+              eventInput={handleEventParamChange((block * 4) + element, eventParam)} 
               userInput={valueChange[((block * 4) + element)]} 
               size={$appSettings.size}
               {color}/>
             <Potentiometer 
-              eventInput={handleEventParamChange((block * 4) + element, selectedElement.event.elementNumber)} 
+              eventInput={handleEventParamChange((block * 4) + element, eventParam)} 
               elementNumber={(block * 4) + element} 
               size={$appSettings.size}
               on:user-interaction={(e)=>{valueChange[((block * 4) + element)] = e.detail}}

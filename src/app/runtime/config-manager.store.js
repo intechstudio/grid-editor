@@ -4,79 +4,117 @@ import {runtime, appMultiSelect, appActionClipboard} from './runtime.store';
 
 import _utils from './_utils.js';
 
+
+function get_configs () {
+  let configs = '';
+  const unsubscribe = runtime.active_config(active => {
+    configs = _utils.rawLuaToConfigList(active.config);
+    let arr = [];
+    for (let i = 0; i < configs.length; i+=2) {
+      arr.push(`${configs[i]}${configs[i+1]}`.trim())
+    }
+    configs = arr;
+  });
+  unsubscribe();
+  return configs;
+}
+
 export const configManagement = {
 
-    add: async ({configs, index, newConfig}) => {
-      return await _utils.gridLuaToEditorLua(newConfig).then(res => {
-        configs.splice(index, 0, ...res);  
-        return configs;    
-      })
-    },
+  drag_and_drop: {
 
-    remove: ({configs, array}) => {
-      array.forEach(elem => {
-        configs = configs.filter(a => a.id !== elem);
-      });
-      return configs;
-    },
+      add: async ({configs, index, newConfig}) => {
+        return await _utils.gridLuaToEditorLua(newConfig).then(res => {
+          configs.splice(index, 0, ...res);  
+          return configs;    
+        })
+      },
 
-    reorder: ({configs, drag_target, drop_target, isMultiDrag}) => {
-
-      function isDropZoneAvailable(drop_target, isMultiDrag){
-        if(isMultiDrag){
-          if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-          const found = get(dropStore).find(index => index == drop_target);
-          if(found){
-            return 0;
-          }
-          return 1;
-        } else {
-          return 1;
-        }
-      }
-
-      if(isDropZoneAvailable(drop_target, isMultiDrag)){
-        let grabbed = [];
-        drag_target.forEach(id => {
-          grabbed.push(configs.find((act) => id === act.id));
+      remove: ({configs, array}) => {
+        array.forEach(elem => {
+          configs = configs.filter(a => a.id !== elem);
         });
-        const firstElem = configs.indexOf(grabbed[0]);
-        const lastElem = configs.indexOf(grabbed[grabbed.length-1]);
+        return configs;
+      },
 
-        let to = Number(drop_target) + 1;
-        // correction for multidrag
-        if(to > firstElem){
-          to = to - drag_target.length;
+      reorder: ({configs, drag_target, drop_target, isMultiDrag}) => {
+
+        function isDropZoneAvailable(drop_target, isMultiDrag){
+          if(isMultiDrag){
+            if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
+            const found = get(dropStore).find(index => index == drop_target);
+            if(found){
+              return 0;
+            }
+            return 1;
+          } else {
+            return 1;
+          }
         }
 
-        configs = [...configs.slice(0, firstElem), ...configs.slice(lastElem + 1)];
-        configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];      
-      };
+        if(isDropZoneAvailable(drop_target, isMultiDrag)){
+          let grabbed = [];
+          drag_target.forEach(id => {
+            grabbed.push(configs.find((act) => id === act.id));
+          });
+          const firstElem = configs.indexOf(grabbed[0]);
+          const lastElem = configs.indexOf(grabbed[grabbed.length-1]);
 
-      return configs;
+          let to = Number(drop_target) + 1;
+          // correction for multidrag
+          if(to > firstElem){
+            to = to - drag_target.length;
+          }
 
+          configs = [...configs.slice(0, firstElem), ...configs.slice(lastElem + 1)];
+          configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];      
+        };
+
+        return configs;
+
+      },
+
+    },
+  
+  on_click: {
+
+    select_all: () => {
+      const configs = get_configs();
+      appMultiSelect.update((s)=>{
+        s.selection = configs.map(v => true);
+        return s
+      })
     },
 
     copy: () => {
       const selection = get(appMultiSelect).selection;
-      const configs = get(runtime).active_config;
+      
+      const configs = get_configs();
+
       let clipboard = [];
-      console.log(selection);
+
       selection.forEach((elem,index) => {
         if(elem){
           clipboard.push(configs[index]);
         }
       });
-      console.log('Clipboard: ', clipboard);
+
       appActionClipboard.set(clipboard);
     },
 
-    paste: (index) => {
-      const clipboard = get(appActionClipboard);
-      let configs = get(runtime);
-      configs.splice(index, 0, ...clipboard);      
-      runtime.set(configs);
+    paste: () => {
+      // Not used, configPicker handles pasting.
     },
+
+    remove: () => {
+      const configs = get_configs();
+      const selection = get(appMultiSelect).selection;
+      const filtered = configs.filter((city,index) => selection[index] !== true);
+      appMultiSelect.reset();
+      // this can stutter UI!
+      runtime.update.status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
+    }
+  }
 }
 
 function createDropStore(){
