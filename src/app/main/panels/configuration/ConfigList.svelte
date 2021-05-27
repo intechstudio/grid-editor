@@ -41,7 +41,6 @@
   }
 
   function handleDrop(e){
-    console.log('DROP EVENT...', e.detail, drag_target, drop_target)
     if(drop_target !== 'bin'){
       configs = configManagement.reorder({
         configs: configs, 
@@ -81,7 +80,7 @@
 
   <div class="pt-1 flex items-center  justify-between">
     <div class="text-gray-600 text-sm">Configurations</div>
-    <!--<MultiSelect/>-->
+    <MultiSelect/>
   </div>
 
     <div 

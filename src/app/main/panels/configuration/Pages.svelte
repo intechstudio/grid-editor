@@ -19,7 +19,7 @@
   function handleSelectPage(page) {
     if(get(runtime.unsaved) == 0){
       selectedPage = page;
-      user_input.update_pagenumber(selectedPage);
+      user_input.update_pagenumber.pagenumber(selectedPage).sendToGrid();
     }
     else{
       alert = true;

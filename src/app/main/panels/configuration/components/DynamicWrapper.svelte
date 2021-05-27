@@ -43,7 +43,7 @@
 
     {#if config.information.groupType == 'standard'}
       <carousel on:click={()=>{toggle = ! toggle;}} style="" class="flex flex-grow relative text-white cursor-pointer ">
-        <icon style="background-color: {color()}" class="flex  items-center p-2">
+        <icon style="background-color: {config.information.color}" class="flex  items-center p-2">
           <div class="w-6 h-6">
             {@html config.information.icon ? config.information.icon : ' '}         
           </div>              

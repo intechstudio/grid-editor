@@ -1,4 +1,6 @@
 <script>
+import { configManagement } from '../../../../runtime/config-manager.store.js';
+
 
   import { appMultiSelect } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';
@@ -12,9 +14,9 @@
 
   function handleClick(e){
     if(e == 'copy'){
-      appConfigManagement.copy(); 
+      configManagement.copy(); 
     } else {
-      appConfigManagement.remove();
+      configManagement.remove();
     }
   }
 

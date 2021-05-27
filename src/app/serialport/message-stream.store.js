@@ -22,7 +22,7 @@ function createMessageStream(){
     }
 
     if(DATA.PAGEACTIVE){
-      user_input.update_pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
+      user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
     }
 
     if(DATA.DEBUGTEXT){

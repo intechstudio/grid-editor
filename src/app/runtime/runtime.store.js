@@ -5,7 +5,39 @@ import _utils from './_utils';
 
 export const appActionClipboard = writable();
 export const conditionalConfigPlacement = writable();
-export const appMultiSelect = writable({multiselect: false, selection: []});
+
+function createMultiSelect(){
+
+  const default_values = {multiselect: false, selection: []};
+
+  const store = writable({...default_values});
+
+  return {
+    ...store,
+    select: ({config, selected}) => {
+      store.update(s => {
+
+        if(selected){
+          s.selection.push({config: config})
+        }
+
+        if(!selected){
+          s.selection = s.selection.filter(s => s.config == config);
+        }
+
+        console.log(s);
+
+        return s;
+      })
+    },
+    reset: () => {
+      store.set({...default_values});
+    }
+  }
+
+}
+
+export const appMultiSelect = createMultiSelect();
 
 function create_user_input () {
 
@@ -42,19 +74,26 @@ function create_user_input () {
     }
   }
 
+  const _update = function(){
+
+    this.pagenumber = function(value){
+      _event.update(s => {s.event.pagenumber = value; return s});
+      return this;
+    }
+
+    this.sendToGrid = function(){
+      instructions.changeActivePage({li: get(_event)});
+      return this;
+    }
+
+  }
+
   function update_eventtype(value){
     _event.update(s => {s.event.eventtype = value; return s});
   }
 
   function update_elementnumber(value){
     _event.update(s => {s.event.elementnumber = value; return s});
-  }
-
-  function update_pagenumber(value){
-    _event.update(s => {s.event.pagenumber = value; return s});
-
-    instructions.changeActivePage({li: get(_event)});
-
   }
 
   function reset_disconnected(removed = 'reset'){
@@ -77,7 +116,7 @@ function create_user_input () {
     grid_update: grid_update,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
-    update_pagenumber: update_pagenumber,
+    update_pagenumber: new _update(),
     reset: reset_disconnected
   }
 }
@@ -304,37 +343,3 @@ function createLocalDefinitions(){
 }
 
 export const localDefinitions = createLocalDefinitions();
-
-function createDropStore () {
-  
-  const store = writable([]);
-
-  return {
-    ...store,
-    update: (configs) => {
-      let disabled_blocks = [];
-      let if_block = false;
-      configs.forEach((a,index) => {
-        // check if it's and if block
-        if(a.component.name == 'If'){
-          if_block = true;
-        }
-    
-        // don't add +1 id in the array (end)
-        if(if_block && a.component.name !== 'End'){
-          disabled_blocks.push(index);
-        }
-        
-        // this is the last, as END has to be disabled too!
-        if (a.component.name == 'End'){
-          if_block = false;
-        }
-      });
-
-      store.set(disabled_blocks);
-
-    }
-  }
-}
-
-export const dropStore = createDropStore();

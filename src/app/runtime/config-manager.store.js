@@ -1,6 +1,6 @@
 import { writable, get, derived } from 'svelte/store';
 
-import {runtime, localInputStore} from './runtime.store';
+import {runtime, appMultiSelect, appActionClipboard} from './runtime.store';
 
 import _utils from './_utils.js';
 
@@ -59,12 +59,15 @@ export const configManagement = {
 
     copy: () => {
       const selection = get(appMultiSelect).selection;
+      const configs = get(runtime).active_config;
       let clipboard = [];
+      console.log(selection);
       selection.forEach((elem,index) => {
         if(elem){
           clipboard.push(configs[index]);
         }
       });
+      console.log('Clipboard: ', clipboard);
       appActionClipboard.set(clipboard);
     },
 

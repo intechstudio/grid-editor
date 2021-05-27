@@ -9,6 +9,8 @@
   export let configs;
   export let componentName;
 
+  let selected = false;
+
   let showSelectBox = true;
   let ifBlockSize = 0;
 
@@ -67,6 +69,8 @@
         height += nodeArray[i].height;
       }
     });
+
+    console.log('multi select height',height, nodeArray)
     
   }
 
@@ -85,18 +89,18 @@
 {:else if (groupType == "standard" && $appMultiSelect.enabled) && showSelectBox}
   <select-box class="flex pl-2 group justify-center items-center bg-transparent">
     <div 
-      on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index]}} 
-      class="{$appMultiSelect.selection[index]  ? 'bg-pick' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2  border-pick rounded-full text-white text-xs">
-        {$appMultiSelect.selection[index] ? '✔' : ''}
+      on:click={()=>{selected = !selected; appMultiSelect.select({config: configs[index], selected: selected})}}
+      class="{selected  ? 'bg-pick' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2  border-pick rounded-full text-white text-xs">
+        {selected ? '✔' : ''}
     </div>
   </select-box>
 {:else if (componentName == 'If' && $appMultiSelect.enabled) && showSelectBox}
 <select-box class="flex pl-2 group justify-center items-center bg-transparent">
   <div 
     on:click={()=>{handleMultiSelect()}} 
-    class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
-    {$appMultiSelect.selection[index] ? '✔' : ''}
-    {#if $appMultiSelect.selection[index]}
+    class="{selected  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
+    {selected ? '✔' : ''}
+    {#if selected}
       <div style="height:{ifBlockSize * 40 + 'px'}" class="absolute w-1 bg-pink-500 top-0 mt-7 flex justify-center">
         <div class="absolute bottom-0 rounded-full bg-pink-500 w-4 h-4"></div>
       </div>
