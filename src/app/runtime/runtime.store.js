@@ -141,7 +141,7 @@ function create_runtime () {
     
     const li = get(user_input);
     let code = '';
-    let cfgStatus = 'BACKGROUND';
+    let cfgStatus = 'EDITOR_BACKGROUND';
 
     this.status = function(status) {
       cfgStatus = status;
@@ -203,19 +203,19 @@ function create_runtime () {
 
         // don't let selection of event, which is not on that control element
         let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        selectedEvent = f_event ? f_event : events[events.length - 1];
-        
+        selectedEvent = f_event ? f_event : events[events.length - 1];        
+
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
           console.info('Config is available!');
         }
         
-        if(selectedEvent.cfgStatus !== 'GRID_REPORT'){
+        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
           selectedEvent.cfgStatus = 'FETCHED';
           instructions.fetchConfigFromGrid({device: device, inputStore: ui});     
           console.info('Config Fetched!');
         }
-      
+
       }
     });
 

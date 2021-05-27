@@ -19,8 +19,6 @@
   import { runtime, localDefinitions, debug_store } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
-  import { onMount } from 'svelte';
-  import Debug from '../../../debug/Debug.svelte';
 
   export let configs = [];
   
@@ -38,7 +36,8 @@
 
     configs = await configManagement.add({configs: configs, index: index, newConfig: config});
 
-    runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+  
   }
 
   function handleDrop(e){
@@ -57,7 +56,7 @@
       });
     }
 
-    runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
 
   }
 
@@ -65,9 +64,9 @@
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
     if(configName == 'End' || configName == 'Else'){
-      runtime.update.status('BACKGROUND').config({lua: _utils.configMerge({config: configs})});
+      runtime.update.status('EDITOR_BACKGROUND').config({lua: _utils.configMerge({config: configs})});
     } else {
-      runtime.update.status('USER_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+      runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
     }
 
     localDefinitions.update(configs);
