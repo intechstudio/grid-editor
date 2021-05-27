@@ -24,6 +24,8 @@
 
     const active = get(conditionalConfigPlacement);
 
+    if(!active) return name;
+
     // lookbefore
     const lookbefore = active.slice(0,index).reverse();
     // lookafter

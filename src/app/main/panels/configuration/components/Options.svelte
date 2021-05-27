@@ -46,14 +46,16 @@
 
     // called only on IF component
 
-    const lookafter = $runtime.slice(index);
+    const lookafter = configs.slice(index);
 
     const end_index = lookafter.findIndex(a => a.component.name == 'End');
     
     ifBlockSize = end_index;
 
+    console.log(configs, 'i: ', index, 'end-i: ', end_index, 'end-i+1: ', index + end_index + 1);
+
     for (let i = index; i < index + end_index + 1; i++) {
-      $appMultiSelect.selection[i] = !$appMultiSelect.selection[i]
+      appMultiSelect.select({config: configs[index], selected: selected})
     }
 
     let height = 0;
@@ -65,6 +67,7 @@
     nodeArray = nodeArray.sort((a, b) => Number(a.id.substr(4,)) - Number(b.id.substr(4,)))
 
     $appMultiSelect.selection.forEach((selection, i) => {
+      console.log('selection...', selection);
       if(selection){
         height += nodeArray[i].height;
       }

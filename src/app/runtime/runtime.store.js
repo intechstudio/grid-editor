@@ -132,12 +132,15 @@ function create_runtime () {
   const _runtime = writable([]);
 
   const findUpdateDestination = (_runtime, li) =>{
-    let _event;
-    _runtime.forEach((device) => {
-      if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-        _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
-      }
-    });
+    let _event = undefined;
+    // this elementnumber check refers to uninitialized UI...
+    if(li.event.elementnumber !== -1){
+      _runtime.forEach((device) => {
+        if(device.dx == li.brc.dx && device.dy == li.brc.dy){
+          _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
+        }
+      });
+    }
     return _event;
   }
 
