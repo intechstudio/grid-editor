@@ -42,7 +42,6 @@
       })
       
       if(v){
-        console.log(static_elementNumber, v);
         return v;
       }
     }

@@ -4,7 +4,7 @@
 
   import { onMount } from 'svelte';
 
-  import { layout, appSettings } from '../_stores/app-helper.store.js';
+  import { appSettings } from '../_stores/app-helper.store.js';
 
   import { runtime } from '../../runtime/runtime.store.js';
 
@@ -45,17 +45,16 @@
 
   <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
 
-    <div id="grid-map" bind:this={map} style="top:0%; left:0%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10">
+    <div id="grid-map" bind:this={map} style="top:25%; left:25%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center z-10">
 
-      {#each $runtime as cell}
+      {#each $runtime as device}
         <div 
-        id="grid-cell-{'dx:'+cell.dx+';dy:'+cell.dy}" 
-        style="--cell-size: {gridsize + 'px'}; top:{-1*(cell.dy*106.6*$appSettings.size*1.1) +'px'};left:{(cell.dx*106.6*$appSettings.size*1.1) +'px'};"
-        class="cell"
-        class:fwMismatch={JSON.stringify(cell.fwVersion) !== JSON.stringify(fwVersion)}
-        >
-      
-        <Device type={cell.id.substr(0,4)} id={cell.id} rotation={cell.rot} />
+          id="grid-device-{'dx:'+device.dx+';dy:'+device.dy}" 
+          style="--device-size: {gridsize + 'px'}; top:{-1*(device.dy*106.6*$appSettings.size*1.1) +'px'};left:{(device.dx*106.6*$appSettings.size*1.1) +'px'};"
+          class="device"
+          class:fwMismatch={JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)}>
+        
+            <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot} />
 
         </div>
       {/each}    
@@ -64,3 +63,16 @@
 
   </grid-layout>  
 </layout-container>
+
+<style>
+
+  .device{
+    width: var(--device-size);
+    height: var(--device-size);
+    display: flex;
+    position: absolute;
+    justify-content: center;
+    align-items: center;
+  }
+
+</style>

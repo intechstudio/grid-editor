@@ -12,7 +12,6 @@
   let configs = [];
 
   debug_store.subscribe(active => {
-    console.log('active config change...', active.config);
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       let code = '';
@@ -30,7 +29,6 @@
 
 	function debug(){
     let data = grid.translate.encode_debugger(brc, command_1);
-    console.log(data);
 		serialComm.write(data);
   }
 

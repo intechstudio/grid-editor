@@ -83,7 +83,6 @@ const _utils = {
   },
 
   scriptToSegments: function({script, human, short}){
-    console.log(script, human, short)
     // get the part after function name with parenthesis
     let config = [];
     config = script.split(short)[1];

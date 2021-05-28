@@ -16,7 +16,6 @@ import { transition_in } from 'svelte/internal';
   runtime.unsaved.subscribe(v => unsaved = v);
 
   logger.subscribe(s => {
-    console.log('HERE', s)
     message = s.message;
     setTimeout(()=>{
       message = '';

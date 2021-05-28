@@ -34,7 +34,6 @@ function createMessageStream(){
     }
 
     if(DATA.LOG){
-      console.log('DATA LOG', DATA.LOG)
       logger.set(DATA.LOG);
     }
 

@@ -18,7 +18,6 @@ import { user_input } from '../../../runtime/runtime.store.js';
 
   function filterDuplicateTypes() {
     let arr = grid.properties.LUA;
-    console.log(arr);
     // v, i, a = value, index, array
     return arr.filter((v,i,a)=>a.findIndex(t=>(t.type === v.type))===i).map(e => e.type);
   }

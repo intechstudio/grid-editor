@@ -31,8 +31,6 @@
 
     selectedLeftTab = tab;
 
-    console.log(tab);
-
     appSettings.update(store => {
       store.leftPanel = tab;
       return store;

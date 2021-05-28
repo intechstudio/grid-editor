@@ -201,9 +201,12 @@ function create_runtime () {
     }
 
     this.update_pages = function({brc, pagenumber}){
+      // this is called as many modules there are, because the pagecount fetch is global.
+      // we should device which pagenumber is the meta
       _runtime.update(_runtime => {
         _runtime.forEach((device)=>{
-          if(device.dx == brc.SX && device.dy == brc.SY){
+          // don't make pages if there are already same amount of pages...
+          if(device.dx == brc.SX && device.dy == brc.SY && pagenumber !== device.pages.length){
             for (let i = 0; i < pagenumber - 1; i++) {
               device.pages = [...device.pages, grid.device.createPage(device.id)];
             }
@@ -259,8 +262,6 @@ function create_runtime () {
 
     let pages = [];
 
-    console.log(ui,chng);
-
     let config = [];
     let events = [];
     let elementNumbers = [];
@@ -275,6 +276,8 @@ function create_runtime () {
       
         selectedNumber = ui.event.elementnumber;
         elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+
+        console.log('PAGES', pages);
 
         events = elementNumbers[selectedNumber].events;
 

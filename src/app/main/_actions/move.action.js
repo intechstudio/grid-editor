@@ -140,7 +140,6 @@ export function changeOrder(node, {configs}) {
         detail: {id: _configIds}
       }));
 
-      console.log('DRAG-TARGET!', _configIds);
     }
 
     // drag over section
