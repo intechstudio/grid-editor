@@ -9,15 +9,15 @@
   export let configs;
   export let componentName;
 
-  let selected = false;
+  export let toggle;
 
   let showSelectBox = true;
-  let ifBlockSize = 0;
   let ifHeight = 0;
 
   $: if(configs.length){
     showSelectBox = ifBlockCheck(configs);
   }
+
 
   function ifBlockCheck(configs){
     let notInBlock = true;
@@ -47,35 +47,47 @@
 
     // called only on IF component
 
-    const lookafter = configs.slice(index);
+    const _configs = configs.slice(index);
+    const _configs_length = _configs.length;
 
-    const end_index = lookafter.findIndex(a => a.component.name == 'End');
+    let arr = [];
+    let stack = [];
+    let current;
+
+    let skipSelection = false;
+
+    const matchLookup = {
+      "If": "End", 
+    };
+
+    for (let i = 0; i < _configs_length; i++) {
+      if(!skipSelection){
+        current = _configs[i].component.name; //easier than writing it over and over      
+        if (current === 'If') {
+          stack.push(current);
+        } else if (current === 'End') {
+          const lastBracket = stack.pop();
+          if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
+            return false; //terminate immediately - no need to continue scanning the string
+          }
+        }
+
+        arr.push(_configs[i]);        
+
+        if(stack.length == 0 && current == 'End'){
+          skipSelection = true;
+        }
+      }
+    }
     
-    ifBlockSize = end_index;
+    const selection_length = arr.length + index;
 
-    console.log(configs, 'i: ', index, 'end-i: ', end_index, 'end-i+1: ', index + end_index + 1);
+    console.log('configs: ', configs, 'index: ', index, 'selection_length: ', selection_length );
 
-    for (let i = index; i < index + end_index + 1; i++) {
+    for (let i = index; i < selection_length; i++) {
       $appMultiSelect.selection[i] = ! $appMultiSelect.selection[i]
     }
 
-    ifHeight = 0;
-
-  
-    const nodes = get(configNodeBinding);
-    let nodeArray = [];
-    for (const n in nodes) {
-      if(nodes[n]){
-        nodeArray.push({id: nodes[n].id, height: nodes[n].clientHeight});
-      }
-    }
-
-    nodeArray = nodeArray.sort((a, b) => Number(a.id.substr(4,)) - Number(b.id.substr(4,)))
-
-    nodeArray.forEach((n) => {
-      ifHeight += n.height;
-    });
-    
   }
 
 
@@ -99,24 +111,23 @@
     </div>
   </select-box>
 {:else if (componentName == 'If' && $appMultiSelect.enabled) && showSelectBox}
-<select-box class="flex pl-2 group justify-center items-center bg-transparent">
-  <div 
-    on:click={()=>{handleMultiSelect()}} 
-    class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
-    {$appMultiSelect.selection[index] ? '✔' : ''}
-    {#if $appMultiSelect.selection[index]}
-      <div style="height:{ifHeight + 'px'}" class="absolute w-1 bg-pink-500 top-0 mt-7 flex justify-center">
-        <div class="absolute bottom-0 rounded-full bg-pink-500 w-4 h-4"></div>
-      </div>
-    {/if}
-  </div>
-</select-box>
-{:else}
-<select-box-palceholder>
   <select-box class="flex pl-2 group justify-center items-center bg-transparent">
-    <div class="flex items-center justify-center p-2 w-6 h-6 text-xs">
-        {''}
+    <div 
+      on:click={()=>{handleMultiSelect()}} 
+      class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
+      {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
-</select-box-palceholder>
+{:else }
+  <select-box class="flex pl-2 group justify-center items-center bg-transparent">
+    {#if $appMultiSelect.enabled}
+      <div class="{$appMultiSelect.selection[index]  ? 'bg-select border-2 border-select' : ''}  flex items-center justify-center p-2 w-6 h-6 rounded-full text-white text-xs">
+        {$appMultiSelect.selection[index] ? '✔' : ''}
+      </div>
+    {:else}
+      <div class=" flex items-center justify-center p-2 w-6 h-6 rounded-full text-white text-xs">
+        {''}
+      </div>
+    {/if}
+  </select-box>
 {/if}

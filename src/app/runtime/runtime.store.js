@@ -256,7 +256,11 @@ function create_runtime () {
 
   }
 
+  // this is used to refresh the user interface in the active right panel
   const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
+
+    // whenever the UI changes, disable multiselect
+    appMultiSelect.reset();
 
     const rt = get(_runtime);
 
@@ -276,8 +280,6 @@ function create_runtime () {
       
         selectedNumber = ui.event.elementnumber;
         elementNumbers = device.pages[ui.event.pagenumber].control_elements;
-
-        console.log('PAGES', pages);
 
         events = elementNumbers[selectedNumber].events;
 
@@ -316,6 +318,31 @@ function create_runtime () {
     }
   })
 
+  // this is used for copy and select_all in config management.
+  // previously active_config was used, but we are updating the runtime without direct UI changes.
+  // we need to fetch active lua from the runtime itself, instead of the UI builder _active_config store.
+  const _active_lua = derived([_runtime, user_input], ([rt, ui]) => {
+
+    let config = undefined;
+
+    rt.forEach((device)=>{
+      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
+        let elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+        let events = elementNumbers[ui.event.elementnumber].events;
+
+        // don't let selection of event, which is not on that control element
+        let f_event = events.find(e => e.event.value == ui.event.eventtype);
+        let selectedEvent = f_event ? f_event : events[events.length - 1];        
+
+        if(selectedEvent.config.length){
+          config = selectedEvent.config.trim();
+        }
+      }
+    })
+
+    return config;
+  })
+
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
@@ -323,6 +350,7 @@ function create_runtime () {
     device: new _device_update(),
     active_config: _active_config.subscribe,
     unsaved: _unsaved_changes,
+    active_lua: _active_lua.subscribe
   }
 }
 

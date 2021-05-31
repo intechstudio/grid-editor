@@ -79,7 +79,7 @@
 <configs class="w-full h-full flex flex-col px-4  bg-primary py-2 mt-4">
 
   <div class="pt-1 flex items-center  justify-between">
-    <div class="text-gray-600 text-sm">Configurations</div>
+    <div class="text-gray-500 text-sm">Configurations</div>
     <MultiSelect/>
   </div>
 

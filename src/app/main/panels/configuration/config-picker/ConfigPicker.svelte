@@ -17,7 +17,8 @@
   import { presetManagement } from '../../../_stores/app-helper.store';
 
   import { get } from 'svelte/store';
-import { appActionClipboard } from '../../../../runtime/runtime.store';
+  
+  import { appActionClipboard } from '../../../../runtime/runtime.store';
 
   export let animation = false;
   export let actions;
@@ -34,8 +35,6 @@ import { appActionClipboard } from '../../../../runtime/runtime.store';
   let selectedConfig = [];
 
   let promptValue = '';
-
-
 
   let topOffset = 0;
 

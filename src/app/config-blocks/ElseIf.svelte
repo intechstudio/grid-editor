@@ -22,7 +22,6 @@
 
   let scriptSegment = ''; // local script part
 
-
   $: if(config.script && !loaded){
     scriptSegment = config.script.slice(8, -5);
     loaded = true;

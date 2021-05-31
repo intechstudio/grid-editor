@@ -7,8 +7,8 @@ import _utils from './_utils.js';
 
 function get_configs () {
   let configs = '';
-  const unsubscribe = runtime.active_config(active => {
-    configs = _utils.rawLuaToConfigList(active.config);
+  const unsubscribe = runtime.active_lua(config => {
+    configs = _utils.rawLuaToConfigList(config);
     let arr = [];
     for (let i = 0; i < configs.length; i+=2) {
       arr.push(`${configs[i]}${configs[i+1]}`.trim())
@@ -78,10 +78,10 @@ export const configManagement = {
   
   on_click: {
 
-    select_all: () => {
+    select_all: (bool) => {
       const configs = get_configs();
       appMultiSelect.update((s)=>{
-        s.selection = configs.map(v => true);
+        s.selection = configs.map(v => bool);
         return s
       })
     },
@@ -90,6 +90,8 @@ export const configManagement = {
       const selection = get(appMultiSelect).selection;
       
       const configs = get_configs();
+
+      console.log(configs);
 
       let clipboard = [];
 
@@ -106,11 +108,16 @@ export const configManagement = {
       // Not used, configPicker handles pasting.
     },
 
+    cut: () => {
+      return
+    },
+
     remove: () => {
       const configs = get_configs();
       const selection = get(appMultiSelect).selection;
       const filtered = configs.filter((city,index) => selection[index] !== true);
-      appMultiSelect.reset();
+      // reset is done in multiselet.svelte, calls first remove() then clearup!
+      // appMultiSelect.reset();
       // this can stutter UI!
       runtime.update.status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
     }
