@@ -4,7 +4,6 @@
     groupType: 'standard',
     desc: 'Local Definitions',
     icon: `<span class="block w-full text-center italic font-gt-pressura">L</span>`,
-    color: '#EF8275'
   }
 </script>
 
