@@ -34,7 +34,7 @@
 
     const { config } = arg.detail;
 
-    configs = await configManagement.drag_and_drop.add({configs: configs, index: index, newConfig: config});
+    configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
     runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
   
@@ -42,14 +42,14 @@
 
   function handleDrop(e){
     if(drop_target !== 'bin'){
-      configs = configManagement.drag_and_drop.reorder({
+      configs = configManagement().drag_and_drop.reorder({
         configs: configs, 
         drag_target: drag_target, 
         drop_target: drop_target, 
         isMultiDrag: e.detail.multi
       });
     } else { 
-      configs = configManagement.drag_and_drop.remove({
+      configs = configManagement().drag_and_drop.remove({
         configs: configs, 
         array: drag_target
       });
@@ -76,7 +76,7 @@
 
 </script>
 
-<configs class="w-full h-full flex flex-col px-4  bg-primary py-2 mt-4">
+<configs class="w-full h-full flex flex-col px-4 bg-primary py-2">
 
   <div class="pt-1 flex items-center  justify-between">
     <div class="text-gray-500 text-sm">Configurations</div>

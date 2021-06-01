@@ -28,7 +28,7 @@ export const logger = createLogger();
 
 function createMultiSelect(){
 
-  const default_values = {multiselect: false, selection: [], enabled: false};
+  const default_values = {multiselect: false, selection: [], enabled: false, all_selected: false};
 
   const store = writable(default_values);
 
@@ -37,6 +37,7 @@ function createMultiSelect(){
     reset: () => {
       store.update(s => {
         s.multiselect = false; 
+        s.all_selected = false;
         s.selection = []; 
         s.enabled = false;
         return s;

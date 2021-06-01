@@ -1,16 +1,8 @@
 <script>
-import { configManagement } from '../../../../runtime/config-manager.store.js';
-
+  import { configManagement } from '../../../../runtime/config-manager.store.js';
 
   import { appMultiSelect } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';
-
-  let all_selected = false;
-
-  function selectAll(){
-    all_selected = ! all_selected
-    configManagement.on_click.select_all(all_selected); 
-  }
 
   function multiSelectToggle(){
     $appMultiSelect.enabled = !$appMultiSelect.enabled;
@@ -27,17 +19,17 @@ import { configManagement } from '../../../../runtime/config-manager.store.js';
 
 
   {#if $appMultiSelect.enabled}
-  <BtnAndPopUp on:clicked={()=>{configManagement.on_click.remove(); appMultiSelect.reset();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2"} popStyle={'bg-red-500 '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.remove(); appMultiSelect.reset();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2"} popStyle={'bg-red-500 '}> 
     <span slot="popup">Removed!</span>
     <span slot="button">Remove</span>
   </BtnAndPopUp>
 
-  <BtnAndPopUp on:clicked={()=>{configManagement.on_click.cut(); appMultiSelect.reset();}} btnStyle={"bg-yellow-500 hover:bg-yellow-600 mr-2"} popStyle={'bg-yellow-500 '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.cut(); appMultiSelect.reset();}} btnStyle={"bg-yellow-500 hover:bg-yellow-600 mr-2"} popStyle={'bg-yellow-500 '}> 
     <span slot="popup">Cutted!</span>
     <span slot="button">Cut</span>
   </BtnAndPopUp>
 
-  <BtnAndPopUp on:clicked={()=>{configManagement.on_click.copy(); appMultiSelect.reset();}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.copy(); appMultiSelect.reset();}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
     <span slot="popup">Copied!</span>
     <span slot="button">Copy</span>
   </BtnAndPopUp>
@@ -61,11 +53,10 @@ import { configManagement } from '../../../../runtime/config-manager.store.js';
   </button>
 
   {#if $appMultiSelect.enabled}
-
     <div 
-      on:click={()=>{selectAll(); /* appMultiSelect.select({config: configs[index], selected: selected})*/}}
-      class="{all_selected  ? 'bg-pick' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2  border-pick rounded-full text-white text-xs">
-        {all_selected ? '✔' : ''}
+      on:click={()=>{configManagement().on_click.select_all();  /* appMultiSelect.select({config: configs[index], selected: selected})*/}}
+      class="{$appMultiSelect.all_selected  ? 'bg-pick' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2  border-pick rounded-full text-white text-xs">
+        {$appMultiSelect.all_selected ? '✔' : ''}
     </div>
 
   {/if}

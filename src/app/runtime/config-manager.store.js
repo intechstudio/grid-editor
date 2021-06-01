@@ -19,25 +19,25 @@ function get_configs () {
   return configs;
 }
 
-export const configManagement = {
+export function configManagement() {
 
-  drag_and_drop: {
+  const drag_and_drop = function(){
 
-      add: async ({configs, index, newConfig}) => {
+      this.add = async ({configs, index, newConfig}) => {
         return await _utils.gridLuaToEditorLua(newConfig).then(res => {
           configs.splice(index, 0, ...res);  
           return configs;    
         })
-      },
+      };
 
-      remove: ({configs, array}) => {
+      this.remove = ({configs, array}) => {
         array.forEach(elem => {
           configs = configs.filter(a => a.id !== elem);
         });
         return configs;
-      },
+      };
 
-      reorder: ({configs, drag_target, drop_target, isMultiDrag}) => {
+      this.reorder = ({configs, drag_target, drop_target, isMultiDrag}) => {
 
         function isDropZoneAvailable(drop_target, isMultiDrag){
           if(isMultiDrag){
@@ -72,26 +72,25 @@ export const configManagement = {
 
         return configs;
 
-      },
+      };
 
-    },
+  }
   
-  on_click: {
+  const on_click = function() {
 
-    select_all: (bool) => {
+    this.select_all = function() {
       const configs = get_configs();
       appMultiSelect.update((s)=>{
-        s.selection = configs.map(v => bool);
+        s.all_selected = ! s.all_selected;
+        s.selection = configs.map(v => s.all_selected);
         return s
       })
-    },
+    };
 
-    copy: () => {
+    this.copy = function() {
       const selection = get(appMultiSelect).selection;
       
       const configs = get_configs();
-
-      console.log(configs);
 
       let clipboard = [];
 
@@ -102,27 +101,26 @@ export const configManagement = {
       });
 
       appActionClipboard.set(clipboard);
-    },
+    };
 
-    paste: () => {
-      // Not used, configPicker handles pasting.
-    },
+    this.cut = function() {
+      this.copy();
+      this.remove();
+    };
 
-    cut: () => {
-      return
-    },
-
-    remove: () => {
+    this.remove = function() {
       const configs = get_configs();
       const selection = get(appMultiSelect).selection;
       const filtered = configs.filter((city,index) => selection[index] !== true);
-      // reset is done in multiselet.svelte, calls first remove() then clearup!
-      // appMultiSelect.reset();
-      // this can stutter UI!
       runtime.update.status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
-    }
+    };
   }
-}
+
+  return {
+    drag_and_drop: new drag_and_drop(),
+    on_click: new on_click()
+  }
+};
 
 function createDropStore(){
   

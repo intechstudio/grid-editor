@@ -445,7 +445,6 @@ const grid = {
             if(DATA.EVENT[DATA.EVENT.length-1].EVENTTYPE == 1){
               DATA.EVENTPARAM = DATA.EVENT;
             }
-
           }
                 
           if(obj.class == "HEARTBEAT"){

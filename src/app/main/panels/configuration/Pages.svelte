@@ -46,7 +46,7 @@
 
 </script>
 
-<page-controller class="{pages.options.includes('') && 'pointer-events-none'} relative px-4 pb-4 flex flex-col w-full bg-primary">
+<page-controller class="{pages.options.includes('') && 'pointer-events-none'} relative rounded-tl-lg px-4 pb-4 pt-2 mt-4 flex flex-col w-full bg-primary">
 
 
   {#if alert}

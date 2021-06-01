@@ -75,7 +75,7 @@ export function changeOrder(node, {configs}) {
     const { id, clientHeight }  = e.target;
 
     // smooth out drag start with threshold, track only up-down movement
-    if(Math.abs(e.clientY - pos.y) > threshold && selectionLength < 1){
+    if(Math.abs(e.clientY - pos.y) > threshold || Math.abs(e.clientX - pos.x) > threshold /*&& selectionLength < 1 */){
       drag += 1;
     }
 
