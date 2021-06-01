@@ -2,26 +2,24 @@
 // must match naming conventions of grid-protocol.json
 export const config_collection = [
 
-    {category: ["Locals"],             name: "Default",                    configs: "--[[@l]] local x = 0"},
+    {category: ["Locals"],             name: "Button",                    configs: "--[[@l]] local num, val = this.ind(), this.bva()"},
+    {category: ["Locals"],             name: "Potmeter / Fader",          configs: "--[[@l]] local num, val = this.ind(), this.pva()"},
+    {category: ["Locals"],             name: "Encoder",                   configs: "--[[@l]] local num, val = this.ind(), this.eva()"},
+
 
     {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
 
-    {category: ["LED", "Value"],       name: "Encoder",                    configs: "--[[@glp]] glp(this.ind(),2,this.eva())" },
-    {category: ["LED", "Value"],       name: "Button",                     configs: "--[[@glp]] glp(this.ind(),2,this.bva())" },
-    {category: ["LED", "Value"],       name: "Potmeter",                   configs: "--[[@glp]] glp(this.ind(),2,this.pva())"},
+    {category: ["LED", "Value"],       name: "Blank",                       configs: "--[[@glp]] glp(,,)" },
 
-    {category: ["LED", "Color"],       name: "Button / Potmeter",          configs: "--[[@glc]] glc(this.ind(),1,255,255,255)"},
-    {category: ["LED", "Color"],       name: "Encoder",                    configs: "--[[@glc]] glc(this.ind(),2,255,255,255)"},
+    {category: ["LED", "Color"],       name: "Blank",                      configs: "--[[@glc]] glc(,,,,)"},
 
-    {category: ["MIDI"],               name: "Encoder",                    configs: "--[[@gms]] gms(0,176,this.ind(),this.eva())"},
-    {category: ["MIDI"],               name: "Button",                     configs: "--[[@gms]] gms(0,176,this.ind(),this.bva())"},
-    {category: ["MIDI"],               name: "Potmeter",                   configs: "--[[@gms]] gms(0,176,this.ind(),this.pva())"},
+    {category: ["MIDI"],               name: "Blank",                       configs: "--[[@gms]] gms(,,,)"},
     
     {category: ["Macro"],              name: "Default",                    configs: "--[[@gks]] gks()"},
 
-    {category: ["Condition"],          name: "If",                         configs: "--[[@if]] if (1) then --[[@en]] end" },
+    {category: ["Condition"],          name: "If",                         configs: "--[[@if]] if  then --[[@en]] end" },
     {category: ["Condition"],          name: "Else",                       configs: "--[[@el]] else" },
-    {category: ["Condition"],          name: "Else If",                    configs: "--[[@ei]] else if 1 then" },
+    {category: ["Condition"],          name: "Else If",                    configs: "--[[@ei]] else if  then" },
 
 ];
 

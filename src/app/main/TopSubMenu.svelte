@@ -15,6 +15,10 @@ import { transition_in } from 'svelte/internal';
 
   runtime.unsaved.subscribe(v => unsaved = v);
 
+  function throwUnsaved(){
+    //runtime.throw...
+  }
+
   logger.subscribe(s => {
     message = s.message;
     setTimeout(()=>{
@@ -35,7 +39,7 @@ import { transition_in } from 'svelte/internal';
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>
         <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{unsaved}</div>
-        <button on:click={()=>{runtime.unsaved.set(0)}} class="ml-4 flex items-center justify-center rounded my-2 border-select bg-select border-2 hover:bg-yellow-600 hover:border-yellow-700 text-white px-2 py-0.5">Discard Changes</button>
+        <button on:click={()=>{throwUnsaved();}} class="ml-4 flex items-center justify-center rounded my-2 border-select bg-select border-2 hover:bg-yellow-600 hover:border-yellow-700 text-white px-2 py-0.5">Discard Changes</button>
       </div>
     {/if}
 

@@ -51,14 +51,15 @@ function createActionPrefStore(){
 
   return {
     ...store,
-    showAdvanced: (index, outside) => {
-      store.update(s => {
-        s.advanced = {
-          index: index, 
-          visible: !s.advanced.visible
-        }
-        return s
-      });
+    showAdvanced: (index, bool) => {
+        store.update(s => {
+            s.advanced = {
+              index: index, 
+              visible: s.advanced.visible = ! s.advanced.visible,
+            }
+
+          return s
+        });
     }
   }
 }

@@ -106,7 +106,6 @@ export function changeOrder(node, {configs}) {
         console.log('This cannot be moved!')
       } else {
         node.dispatchEvent(new CustomEvent('drag-start'));      
-
         moveDisabled = false;
       }
 
@@ -158,6 +157,8 @@ export function changeOrder(node, {configs}) {
       cursor.style.left = shiftX + e.pageX - shiftX + 'px';
       cursor.style.top = shiftY + e.pageY - shiftY + 'px';
 
+      console.log(id);
+
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
@@ -172,6 +173,7 @@ export function changeOrder(node, {configs}) {
         } else if(id == 'config-bin'){
           drop_target = 'bin';
         }
+        
 
         if(e.target.getAttribute('config-component') == 'If'){
           drop_target = Number(id.substr(4,)) - 1;
@@ -187,7 +189,9 @@ export function changeOrder(node, {configs}) {
   }
 
   function handleMouseUp(e){
-    console.log(`Move is ${moveDisabled ? 'disabled' : 'enabled'}!`, dragged)
+    
+    //console.log(`Move is ${moveDisabled ? 'disabled' : 'enabled'}!`, dragged)
+    
     if(!moveDisabled && dragged !== undefined){
       if(drag){
         node.dispatchEvent(new CustomEvent('drop', {detail: {multi: multiDragFlag}}));

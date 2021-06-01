@@ -16,15 +16,26 @@
   export let rotation = 0;
   export let moduleWidth;
   export let color;
+  export let eventParam = [];
 
   let dx, dy;
 
   let valueChange = [];
 
-  function handleEventParamChange(static_elementNumber, input_elementNumber){
-    if(static_elementNumber == input_elementNumber){
-      if(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy){
-        return selectedElement.event.eventParam;
+  function handleEventParamChange(static_elementNumber, eventParam){
+    if(eventParam.length){
+      let v = 0;
+      eventParam[1].forEach((e)=>{
+        if(eventParam[0].SX == selectedElement.brc.dx && eventParam[0].SY == selectedElement.brc.dy){
+          if(static_elementNumber == e.ELEMENTNUMBER){
+            v =  e.EVENTPARAM;
+            return;
+          }
+        }
+      })
+      
+      if(v){
+        return v;
       }
     }
   }
@@ -58,12 +69,12 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
+            eventInput={handleEventParamChange(elementNumber, eventParam)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Potentiometer 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
+            eventInput={handleEventParamChange(elementNumber, eventParam)} 
             on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
             {elementNumber} 
             size={$appSettings.size}/>
@@ -77,12 +88,12 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
+            eventInput={handleEventParamChange(elementNumber, eventParam)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Fader 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
+            eventInput={handleEventParamChange(elementNumber, eventParam)} 
             on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
@@ -97,7 +108,7 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, selectedElement.event.elementnumber)} 
+            eventInput={handleEventParamChange(elementNumber, eventParam)} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>

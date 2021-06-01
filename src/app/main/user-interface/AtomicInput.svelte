@@ -32,8 +32,10 @@
 
 </script>
 
-<div class="w-full relative" use:clickOutside on:click-outside={()=>{focus = false}}>
+<div class="w-full relative" use:clickOutside={{useCapture:false}} on:click-outside={()=>{focus = false}}>
+  <!--
   {#if disabled}<div on:click={()=>{actionPrefStore.showAdvanced(index, true);}} class="absolute cursor-pointer right-0 {$actionPrefStore.advanced.visible ? 'invisible' : 'flex'} items-center rounded-full py-0.5 px-2 text-white text-xs bg-green-600 hover:bg-green-700">Edit</div>{/if}
+  -->
   <input 
     disabled={disabled}
     class:shadow={focus} 

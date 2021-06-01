@@ -31,17 +31,6 @@
   let drag_target = '';
   let drop_target = '';
 
-  // if the selected event or selected page changes, reset drag_and_drop 
-  /**
-  $: if(events.selected.value || pages.selected){
-    disable_pointer_events = false;
-    animation = false;
-    drag_start = false;
-    drag_target = '';
-    drop_target = '';
-  };
-  */
- 
   let scrollHeight = '100%';
 
   async function addConfigAtPosition(arg, index){
@@ -55,19 +44,26 @@
   }
 
   function handleDrop(e){
+
     if(drop_target !== 'bin'){
-      console.log(configs, drag_target, drop_target)
-      configs = configManagement().drag_and_drop.reorder({
-        configs: configs, 
-        drag_target: drag_target, 
-        drop_target: drop_target, 
-        isMultiDrag: e.detail.multi
-      });
+      
+      // if only cfg-list is selected, don't let dnd happen nor delete.
+      if(!Number.isNaN(drop_target)){
+        configs = configManagement().drag_and_drop.reorder({
+          configs: configs, 
+          drag_target: drag_target, 
+          drop_target: drop_target, 
+          isMultiDrag: e.detail.multi
+        });
+      }
+
     } else { 
+
       configs = configManagement().drag_and_drop.remove({
         configs: configs, 
         array: drag_target
       });
+
     }
 
     runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
@@ -111,7 +107,7 @@
       on:anim-end={()=>{ animation = false;}}  
       class="flex flex-col h-full relative justify-between">
 
-      <config-list style="height:{scrollHeight}" use:configListScrollSize={configs} on:height={(e)=>{scrollHeight = e.detail}} class="flex flex-col w-full  h-auto overflow-y-auto">
+      <config-list id="cfg-list" style="height:{scrollHeight}" use:configListScrollSize={configs} on:height={(e)=>{scrollHeight = e.detail}} class="flex flex-col w-full  h-auto overflow-y-auto">
         
         {#if !drag_start}
           <ConfigPicker index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>

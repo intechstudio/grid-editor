@@ -18,7 +18,7 @@
 
   import { get } from 'svelte/store';
   
-  import { appActionClipboard } from '../../../../runtime/runtime.store';
+  import { appActionClipboard, appMultiSelect } from '../../../../runtime/runtime.store';
 
   export let animation = false;
   export let actions;
@@ -96,6 +96,8 @@
     dispatch('new-config', {
       config: get(appActionClipboard).join('')
     });
+    configSelection = false;
+    visible = false;
   }
 
   let quickAccess = [];
@@ -111,7 +113,7 @@
 {#if !userHelper}
 
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection}}  
+    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class="{((visible || configSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center">
@@ -129,7 +131,7 @@
 {:else}
   
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection}}  
+    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class=" cursor-pointer flex items-center mb-3">
@@ -153,7 +155,7 @@
       class="absolute shadow-md rounded-md bg-primary p-4">
       
       <wrapper 
-        use:clickOutside
+        use:clickOutside={{useCapture: true}}
         on:click-outside={()=>{configSelection = false; visible = false;}} 
         class="flex flex-col flex-grow h-full">
 
