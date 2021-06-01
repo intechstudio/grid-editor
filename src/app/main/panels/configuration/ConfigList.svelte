@@ -16,18 +16,32 @@
   import { changeOrder } from '../../_actions/move.action.js';
 
   import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
-  import { runtime, localDefinitions, debug_store } from '../../../runtime/runtime.store.js';
+  import { runtime, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
 
   export let configs = [];
-  
+
+  export let events;
+  export let pages;
+
   let disable_pointer_events = false;
   let animation = false;
   let drag_start = false;
   let drag_target = '';
   let drop_target = '';
 
+  // if the selected event or selected page changes, reset drag_and_drop 
+  /**
+  $: if(events.selected.value || pages.selected){
+    disable_pointer_events = false;
+    animation = false;
+    drag_start = false;
+    drag_target = '';
+    drop_target = '';
+  };
+  */
+ 
   let scrollHeight = '100%';
 
   async function addConfigAtPosition(arg, index){
@@ -42,6 +56,7 @@
 
   function handleDrop(e){
     if(drop_target !== 'bin'){
+      console.log(configs, drag_target, drop_target)
       configs = configManagement().drag_and_drop.reorder({
         configs: configs, 
         drag_target: drag_target, 
@@ -86,7 +101,7 @@
     <div 
       use:changeOrder={{configs}} 
       on:disable-pointer-events={(e)=>{disable_pointer_events = true;}}
-      on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true)}}  
+      on:drag-start={(e)=>{drag_start = true; actionIsDragged.set(true); appMultiSelect.reset();}}  
       on:drag-target={(e)=>{drag_target = e.detail.id; }}
       on:drop-target={(e)=>{drop_target = e.detail.drop_target;}}
       on:drop={handleDrop}

@@ -2,7 +2,7 @@
 // must match naming conventions of grid-protocol.json
 export const config_collection = [
 
-    {category: ["Locals"],             name: "Default",                    configs: "--[[@l]] local x = 1"},
+    {category: ["Locals"],             name: "Default",                    configs: "--[[@l]] local x = 0"},
 
     {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
 

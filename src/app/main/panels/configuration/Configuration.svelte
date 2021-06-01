@@ -108,7 +108,7 @@ import grid from '../../../protocol/grid-protocol.js';
 
       <ConfigParameters {events} {elements}/>
 
-      <ConfigList {configs}/>
+      <ConfigList {pages} {events} {configs}/>
 
     </container>
   {/key}

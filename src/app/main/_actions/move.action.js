@@ -1,6 +1,8 @@
+import { user_input } from "../../runtime/runtime.store";
+
 export function changeOrder(node, {configs}) {
 
-  let _configs  = configs;
+  let _configs = configs;
 
   let drag = 0;
   let pos = {x:0, y: 0};
@@ -16,6 +18,14 @@ export function changeOrder(node, {configs}) {
   let drag_block = [];
   
   let selectionLength = false;
+
+  // when user input (event or page) changes, reset drag and drop
+  const unsubscribe = user_input.subscribe(changes => {
+    if(document.getElementById("drag-n-drop-cursor")) document.getElementById("drag-n-drop-cursor").remove();
+    node.dispatchEvent(new CustomEvent('drag-end', {}));
+    node.dispatchEvent(new CustomEvent('enable-pointer-events')); 
+    reset(); 
+  })
 
   function createMultiDragCursor(targets, width){
     cursor = document.createElement('div');
@@ -231,6 +241,7 @@ export function changeOrder(node, {configs}) {
     destroy() {
       document.removeEventListener('selectionchange',handleSelectionChange);
       document.removeEventListener('mouseup', handleMouseUp);
+      unsubscribe;
     }
   }
 }

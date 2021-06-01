@@ -1,4 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
+import stringManipulation from '../main/user-interface/_string-operations';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import _utils from './_utils';
@@ -393,21 +394,22 @@ function createLocalDefinitions(){
   return {
     ...store,
     update: (configs) => {
-      let locals = [];
-      configs.forEach(c => {
+
+      let arr = [];
+
+      configs.forEach((c) => {
         if(c.short == 'l'){
-          let arr = [];
-          const text = c.script.split('local');
-          text.forEach(element => {
-            if(element !== ''){
-              const _split = element.split('=');
-              arr.push({value: _split[0].trim(), info: _split[0].trim()});
-            }
+          let _variable_array = c.script.split('=')[0];
+          _variable_array = _variable_array.split('local')[1];
+          _variable_array = _variable_array.split(',');
+
+          _variable_array.forEach((val,i) => {
+            arr.push({info: val.trim(), value:  val.trim()});
           });
-          locals.push(...arr);
         }
       });
-      store.set(locals);
+
+      store.set(arr);
     }
   }
 }

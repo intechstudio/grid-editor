@@ -13,6 +13,7 @@
   import { onMount, createEventDispatcher, onDestroy } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
   import stringManipulation from '../main/user-interface/_string-operations';
+import { localDefinitions } from '../runtime/runtime.store';
 
   export let config = '';
   export let index;
