@@ -1,6 +1,5 @@
 <script>
 
-  import { get } from 'svelte/store';
   import { appMultiSelect, runtime } from '../../../../runtime/runtime.store.js';
   import { actionPrefStore, configNodeBinding } from '../../../_stores/app-helper.store.js';
 
@@ -24,8 +23,8 @@
     // lookbefore
     const lookbefore  = configs.slice(0,index).reverse();
 
-    const if_index  = lookbefore.findIndex(a => a.component.name == 'If');
-    const end_index = lookbefore.findIndex(a => a.component.name == 'End');
+    const if_index  = lookbefore.findIndex(a => a.information.name == 'If');
+    const end_index = lookbefore.findIndex(a => a.information.name == 'End');
 
     if(if_index !== -1 && end_index !== -1){
       if(if_index < end_index){
@@ -62,7 +61,7 @@
 
     for (let i = 0; i < _configs_length; i++) {
       if(!skipSelection){
-        current = _configs[i].component.name; //easier than writing it over and over      
+        current = _configs[i].information.name; //easier than writing it over and over      
         if (current === 'If') {
           stack.push(current);
         } else if (current === 'End') {

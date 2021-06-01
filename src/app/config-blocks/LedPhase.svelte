@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'glp',
+    name: 'LedPhase',
     groupType: 'standard',
     desc: 'LED Value',
     icon: `

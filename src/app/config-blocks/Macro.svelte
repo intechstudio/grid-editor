@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'gks',
+    name: 'Macro',
     groupType: 'standard',
     desc: 'Macro',
     icon:`

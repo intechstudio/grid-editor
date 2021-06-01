@@ -76,7 +76,7 @@
 
 </script>
 
-<configs class="w-full h-full flex flex-col px-4 bg-primary py-2">
+<configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
 
   <div class="pt-1 flex items-center  justify-between">
     <div class="text-gray-500 text-sm">Configurations</div>
@@ -108,7 +108,7 @@
           <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
             <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
                 <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs;}}/>  
-                <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.component.name} />
+                <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.information.name} />
             </DynamicWrapper>
 
             <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; console.log(config.script); handleConfigChange({configName: config.information.desc}); configs = configs; }}/>

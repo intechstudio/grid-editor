@@ -40,7 +40,7 @@
   </div>
   
   <div class="pb-2">
-    <div class="text-gray-400 py-1 text-sm">
+    <div class="text-gray-500 py-1 text-sm">
       Events
     </div>
 

@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'ei',
+    name: 'ElseIf',
     groupType: 'modifier',
     desc: 'Else If',
     icon: null

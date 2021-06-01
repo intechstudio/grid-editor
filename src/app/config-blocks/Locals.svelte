@@ -1,6 +1,7 @@
 <script context="module">
   export const information = {
     short: 'l',
+    name: 'Locals',
     groupType: 'standard',
     desc: 'Local Definitions',
     icon: `<span class="block w-full text-center italic font-gt-pressura">L</span>`,

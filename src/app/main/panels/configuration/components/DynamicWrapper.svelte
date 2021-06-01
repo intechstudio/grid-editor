@@ -44,8 +44,8 @@
     <carousel 
         class="flex flex-grow text-white cursor-pointer group"
         id="cfg-{index}" 
-        movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } 
-        config-component={config.component.name} 
+        movable={config.information.groupType == 'standard' || config.information.name == 'If' ? true : false } 
+        config-component={config.information.name} 
         config-id={config.id}>
 
           <div 

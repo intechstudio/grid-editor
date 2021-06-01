@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'glc',
+    name: 'LedColor',
     groupType: 'standard',
     desc: 'LED Color',
     icon: `

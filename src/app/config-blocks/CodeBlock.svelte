@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'cb',
+    name: 'CodeBlock',
     groupType: 'standard',
     desc: 'Code Block',
     icon: `

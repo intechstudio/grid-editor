@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'gms',
+    name: 'Midi',
     groupType: 'standard',
     desc: 'MIDI',
     icon: `

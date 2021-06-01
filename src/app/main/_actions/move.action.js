@@ -114,7 +114,7 @@ export function changeOrder(node, {configs}) {
       if(component == 'If'){
         let _id = id.substr(4,);
         const nodes = _configs.slice(_id);
-        const end_of_if = nodes.findIndex(n => n.component.name === 'End');
+        const end_of_if = nodes.findIndex(n => n.information.name === 'End');
         const drag_configs = nodes.slice(0,end_of_if + 1);
         multiDragFlag = true;
         for (const item of drag_configs) {

@@ -2,6 +2,7 @@
   // config descriptor parameters
   export const information = {
     short: 'el',
+    name: 'Else',
     groupType: 'modifier',
     desc: 'Else',
     icon: null

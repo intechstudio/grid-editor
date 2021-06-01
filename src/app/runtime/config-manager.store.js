@@ -133,17 +133,17 @@ function createDropStore(){
       let if_block = false;
       configs.forEach((a,index) => {
         // check if it's and if block
-        if(a.component.name == 'If'){
+        if(a.information.name == 'If'){
           if_block = true;
         }
     
         // don't add +1 id in the array (end)
-        if(if_block && a.component.name !== 'End'){
+        if(if_block && a.information.name !== 'End'){
           disabled_blocks.push(index);
         }
         
         // this is the last, as END has to be disabled too!
-        if (a.component.name == 'End'){
+        if (a.information.name == 'End'){
           if_block = false;
         }
       });
