@@ -40,39 +40,42 @@
 <wrapper bind:this={$configNodeBinding[config.id]} class="flex border-none outline-none transition-opacity duration-300">
 
     {#if config.information.groupType == 'standard'}
-        <carousel 
-            class="flex flex-grow text-white cursor-pointer group"
-            id="cfg-{index}" 
-            movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } 
-            config-component={config.component.name} 
-            config-id={config.id}>
 
-                <div 
-                  on:click={()=>{toggle = ! toggle;}}
-                  class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative ">
-                  <icon style="" class="flex {`bg-configs-${config.information.short}`} group-hover:bg-opacity-75 items-center p-2">
-                    <div class="w-6 h-6">
-                      {@html config.information.icon ? config.information.icon : ' '}         
-                    </div>              
-                  </icon>
-                </div>
+    <carousel 
+        class="flex flex-grow text-white cursor-pointer group"
+        id="cfg-{index}" 
+        movable={config.information.groupType == 'standard' || config.component.name == 'If' ? true : false } 
+        config-component={config.component.name} 
+        config-id={config.id}>
 
-                {#if !toggle && !advancedView}
-                  <name on:click={()=>{toggle = true;}}  class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2">
-                    <span class="block">{config.information.desc}</span> 
-                    <span style="overflow:hidden !important;" class="pl-2 font-mono text-gray-500 inline-block max-w-xs overflow-ellipsis whitespace-nowrap">{config.script}</span>
-                  </name>
-                {/if}
-          
-        </carousel>
+          <div 
+            on:click={()=>{toggle = ! toggle;}}
+            class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative ">
+            <icon style="" class="flex {`bg-configs-${config.information.short}`} group-hover:bg-opacity-75 items-center p-2">
+              <div class="w-6 h-6">
+                {@html config.information.icon ? config.information.icon : ' '}         
+              </div>              
+            </icon>
+          </div>
+
+          {#if !toggle && !advancedView}
+            <name on:click={()=>{toggle = true;}}  class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2">
+              <span class="block">{config.information.desc}</span> 
+              <span style="overflow:hidden !important;" class="pl-2 font-mono text-gray-500 inline-block max-w-xs overflow-ellipsis whitespace-nowrap">{config.script}</span>
+            </name>
+          {/if}
+    
+    </carousel>
         
-        {#if toggle || advancedView}
-          <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
-            <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
-              <slot name="config"></slot>
-            </fader-transition>
-          </container>
-        {/if}
+    {#if toggle || advancedView}
+
+    <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
+      <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
+        <slot name="config"></slot>
+      </fader-transition>
+    </container>
+
+    {/if}
       
     {:else}
 

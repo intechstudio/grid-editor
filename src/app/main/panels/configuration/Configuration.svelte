@@ -54,6 +54,7 @@ import grid from '../../../protocol/grid-protocol.js';
   runtime.active_config(active => {
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
+      console.log(configs)
       dropStore.update(res);
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
