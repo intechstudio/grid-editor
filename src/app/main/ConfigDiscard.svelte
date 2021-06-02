@@ -5,8 +5,8 @@
 
   export let classes;
 
-  function clear() {
-    const command = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
+  function discard() {
+    const command = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
     serialComm.write(command);
     runtime.unsaved.set(0);
     runtime.set([]); // this causes blink, we could simply remove all config and reinit state
@@ -15,4 +15,4 @@
 
 </script>
 
-<button on:click={()=>{clear()}} class="flex items-center justify-center rounded my-2 border-select bg-select border-2 hover:bg-red-500 text-white px-2 py-0.5 {classes}">Clear</button>
+<button on:click={()=>{discard()}} class="flex items-center justify-center rounded my-2 border-select bg-select border-2 hover:bg-yellow-600 hover:border-yellow-700 text-white px-2 py-0.5 {classes}">Discard</button>

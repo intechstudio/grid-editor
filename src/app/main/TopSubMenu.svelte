@@ -8,6 +8,7 @@ import { transition_in } from 'svelte/internal';
   import ConfigStore from './ConfigStore.svelte';
 
   import {fade} from 'svelte/transition';
+import ConfigDiscard from './ConfigDiscard.svelte';
 
   let unsaved = 0;
 
@@ -26,6 +27,7 @@ import { transition_in } from 'svelte/internal';
     }, 2500)
   })
 
+
 </script>
 
 
@@ -39,7 +41,7 @@ import { transition_in } from 'svelte/internal';
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>
         <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{unsaved}</div>
-        <button on:click={()=>{throwUnsaved();}} class="ml-4 flex items-center justify-center rounded my-2 border-select bg-select border-2 hover:bg-yellow-600 hover:border-yellow-700 text-white px-2 py-0.5">Discard Changes</button>
+        <ConfigDiscard classes={'ml-4'}/>
       </div>
     {/if}
 
