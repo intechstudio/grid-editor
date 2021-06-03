@@ -271,7 +271,6 @@
       caretPos = +e.target.getAttribute('data-caret');
       // this caret for the blinking cursor
       visibleCaretPos = caretPos;
-
     } else {
       
       if(focus == false){
@@ -346,7 +345,7 @@
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
       contenteditable="true"
-      on:click={(e)=>{setCaret(e); focus = true;}}>
+      on:click={(e)=>{focus = true; setCaret(e);}}>
       {#each keys as key, i}
         <div data-index={i} class:blink={(visibleCaretPos * 2) === i} class="{(i + i%2 ) == i ? 'hover:bg-pick-complementer cursor-pointer' : 'cursor-default' } ">{@html key}</div>
       {/each}
