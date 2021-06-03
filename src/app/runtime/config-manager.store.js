@@ -40,6 +40,8 @@ export function configManagement() {
       this.reorder = ({configs, drag_target, drop_target, isMultiDrag}) => {
 
         function isDropZoneAvailable(drop_target, isMultiDrag){
+          return 1;
+          /**
           if(isMultiDrag){
             if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
             const found = get(dropStore).find(index => index == drop_target);
@@ -50,6 +52,7 @@ export function configManagement() {
           } else {
             return 1;
           }
+           */
         }
 
         if(isDropZoneAvailable(drop_target, isMultiDrag)){

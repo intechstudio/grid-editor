@@ -29,10 +29,12 @@
     };
   }
 
-  // when the advanced options are open then show the actions with disabled user interactions
   let advancedView = false;
+  // default advanced view behaviour
+  // when the advanced options are open then show the actions with disabled user interactions
   $: ($actionPrefStore.advanced.index == index && $actionPrefStore.advanced.visible) ? advancedView = true : advancedView = false;
-
+  // CodeBlock different advanced view behaviour due to different update / render process
+  $: ($actionPrefStore.advanced.index == index && $actionPrefStore.advanced.visible && config.information.name == 'CodeBlock') ? toggle = false : null;
   
 </script>
 
@@ -74,7 +76,14 @@
           <slot name="config"></slot>
         </fader-transition>
       </container>
+<!--
+      {:else if advancedView}
 
+      <name class="{advancedView ? 'opacity-50 pointer-events-none' : ''} pl-4 flex items-center w-full bg-secondary text-white group-hover:bg-select-saturate-10 py-2">
+        <span class="block">{config.information.desc}</span> 
+        <span style="overflow:hidden !important;" class="pl-2 font-mono text-gray-500 inline-block max-w-xs overflow-ellipsis whitespace-nowrap">{config.script}</span>
+      </name>
+-->
       {/if}
       
     {:else}

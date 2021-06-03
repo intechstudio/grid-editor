@@ -18,7 +18,7 @@
       configs.forEach((e,i) => {
         code += `--[[@${e.short}]] ` + e.script + "\n";  
       }); 
-      runtimeScript = '<?lua ' + code.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
+      runtimeScript = '<?lua ' + '\n' + code + ' ?>';
       runtimeParser = luaParser(code, {comments: true});
     }).catch(err => {console.error(err); configs = [];})
   })
@@ -40,40 +40,40 @@
 </script>
 
 <config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
+  <!--
+    <div class="flex flex-col w-full text-white p-2">
 
-  <div class="flex flex-col w-full text-white p-2">
+      <div class="flex w-full">
 
-    <div class="flex w-full">
+        <div class="mr-1">
+          <div>dx</div>
+          <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[0]}>
+        </div>
+        <div class="mx-1">
+          <div>dy</div>
+          <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[1]}>
+        </div>
+        <div class="mx-1">
+          <div>age</div>
+          <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[2]}>
+        </div>
+        <div class="ml-1">
+          <div>rot</div>
+          <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[3]}>
+        </div>
 
-      <div class="mr-1">
-        <div>dx</div>
-        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[0]}>
       </div>
-      <div class="mx-1">
-        <div>dy</div>
-        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[1]}>
-      </div>
-      <div class="mx-1">
-        <div>age</div>
-        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[2]}>
-      </div>
-      <div class="ml-1">
-        <div>rot</div>
-        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none" bind:value={brc[3]}>
+
+      <div class="w-full mt-1">
+
+        <div>command 1</div>
+        <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none"  bind:value={command_1}>
+
       </div>
 
     </div>
-
-    <div class="w-full mt-1">
-
-      <div>command 1</div>
-      <input class="w-full rounded bg-secondary py-0.5 px-1 text-white focus:outline-none"  bind:value={command_1}>
-
-    </div>
-
-  </div>
-
-  <textarea style="min-height:100px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
+  -->
+  <textarea style="min-height:300px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
   <div class="flex justify-between items-center">  

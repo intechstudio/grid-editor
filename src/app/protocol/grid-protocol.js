@@ -302,7 +302,7 @@ const grid = {
       const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
   
       let BRC_PARAMETERS = [
-        utility_genId(), +brc[0], +brc[1], +brc[2], +brc[3]
+        utility_genId(), 0, 0, +brc.dx, +brc.dy, 0, 0
       ];
       
       let params = '';

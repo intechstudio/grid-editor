@@ -1,5 +1,6 @@
 import { writable, get, derived } from 'svelte/store';
 import stringManipulation from '../main/user-interface/_string-operations';
+import { actionPrefStore } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import _utils from './_utils';
@@ -265,6 +266,8 @@ function create_runtime () {
 
     // whenever the UI changes, disable multiselect
     appMultiSelect.reset();
+
+    actionPrefStore.reset();
 
     const rt = get(_runtime);
 

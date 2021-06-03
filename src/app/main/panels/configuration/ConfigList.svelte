@@ -118,11 +118,11 @@
         {#each configs as config, index (config.id)}
           <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
             <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
-                <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs;}}/>  
+                <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>  
                 <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.information.name} />
             </DynamicWrapper>
 
-            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.desc}); configs = configs; }}/>
+            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
             
             {#if !drag_start}
               <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>

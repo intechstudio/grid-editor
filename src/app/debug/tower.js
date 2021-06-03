@@ -36,8 +36,9 @@ wss.on('connection', function (ws) {
   });
 })
 
-function writeSerialCommand({brc, command}){
-  let data = grid.translate.encode_debugger(brc, command);
+function writeSerialCommand({dx, dy, command}){
+  const brc = {dx: dx, dy: dy}
+  const data = grid.translate.encode_debugger(brc, command);
   sendDataToClient('output', data);
   serialComm.write(data);    
 }

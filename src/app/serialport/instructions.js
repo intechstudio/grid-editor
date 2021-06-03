@@ -37,7 +37,6 @@ const instructions = {
 
     const {event, brc} = li;
 
-
     const parameters = [
       { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
@@ -49,10 +48,9 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    const cfg = grid.translate.encode(brc, 'GLOBAL', 'CONFIG', 'EXECUTE', parameters)
+    const cfg = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
 
     //console.log('CFG TO GRID: ',String.fromCharCode.apply(String, cfg));
-
 
     serialComm.write(cfg);
 

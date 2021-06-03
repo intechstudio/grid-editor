@@ -42,12 +42,14 @@ export const preferenceStore = writable();
 
 function createActionPrefStore(){
 
-  const store = writable({
+  const default_values = {
     advanced: {
       index: undefined, 
       visible: false,
     }
-  });
+  }
+
+  const store = writable(default_values);
 
   return {
     ...store,
@@ -60,19 +62,9 @@ function createActionPrefStore(){
 
           return s
         });
-    }
-  }
-}
-
-function createAdvancedPrefStore(){
-  const store = writable({
-    index:-1
-  });
-
-  return{
-    ...store,
-    setIndex: (i) => {
-      store.update(s => {s.index = i; return s;})
+    },
+    reset: () => {
+      store.update(s => {s = default_values; return s;});
     }
   }
 }
@@ -109,8 +101,6 @@ export const numberOfModulesStore = writable();
 export const focusedCodeEditor = writable();
 
 export const configNodeBinding = writable([]);
-
-export const advancedPrefStore = createAdvancedPrefStore();
 
 export const actionPrefStore = createActionPrefStore();
 
