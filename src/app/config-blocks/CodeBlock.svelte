@@ -31,10 +31,6 @@
 
   const dispatch = createEventDispatcher();
 
-  $: if(config.script){
-    console.log('new...', config.script);
-  }
-
   function sendData(e){
     if(parenthesis(e)){
       dispatch('output', {short: 'cb', script: e})
