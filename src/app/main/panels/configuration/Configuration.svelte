@@ -17,8 +17,6 @@
 
   import _utils from '../../../runtime/_utils.js';
   import { onMount } from 'svelte';
-import stringManipulation from '../../user-interface/_string-operations.js';
-import grid from '../../../protocol/grid-protocol.js';
 
   const grid_raw_actions = `
   --[[@l]]

@@ -6,8 +6,6 @@
   export let animation;
   export let configs;
 
-  import { dropStore } from '../../../../runtime/config-manager.store.js';
-
   let dropZoneEnabled = true;
   $: if(drag_target.length > 0){
 
@@ -22,10 +20,6 @@
       const _index_high = configs.findIndex(a => a.id == drag_target[drag_target.length-1]);
 
       if(_index_low <= index && index <= _index_high){
-        dropZoneEnabled = false
-      }
-
-      if($dropStore.includes(index)){
         dropZoneEnabled = false
       }
 

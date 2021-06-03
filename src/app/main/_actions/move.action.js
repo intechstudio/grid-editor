@@ -163,7 +163,6 @@ export function changeOrder(node, {configs}) {
         const _id = id.substr(4,);
         const nodes = _configs.slice(_id);
         const end_of_if = if_end_pairs(_configs, _id);
-        console.log('END OF IF', end_of_if);
         const drag_configs = nodes.slice(0, end_of_if);
         multiDragFlag = true;
         for (const item of drag_configs) {
