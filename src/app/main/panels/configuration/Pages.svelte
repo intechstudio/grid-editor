@@ -23,7 +23,6 @@
     }
     else{
       logger.set('Store your config before switching pages!');
-
     }
   }
 

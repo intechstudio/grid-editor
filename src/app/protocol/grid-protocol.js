@@ -465,6 +465,9 @@ const grid = {
             if(DATA.DEBUGTEXT.includes('page change is disabled')){
               DATA.LOG = 'Store your config before switching pages!'
             }
+            if(DATA.DEBUGTEXT.includes('store complete')){
+              DATA.LOG = 'Store complete!'
+            }
           }
 
           if(obj.class == "CONFIG"){

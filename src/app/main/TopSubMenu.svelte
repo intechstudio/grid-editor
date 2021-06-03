@@ -8,11 +8,13 @@ import { transition_in } from 'svelte/internal';
   import ConfigStore from './ConfigStore.svelte';
 
   import {fade} from 'svelte/transition';
-import ConfigDiscard from './ConfigDiscard.svelte';
+  import ConfigDiscard from './ConfigDiscard.svelte';
 
   let unsaved = 0;
 
   let message = '';
+
+  let color = 'red';
 
   runtime.unsaved.subscribe(v => unsaved = v);
 
@@ -20,6 +22,11 @@ import ConfigDiscard from './ConfigDiscard.svelte';
 
   logger.subscribe(s => {
     message = s.message;
+    if(message == 'Store complete!'){
+      color = 'green';
+    } else {
+      color = 'red';
+    }
     clearInterval(timer);
     timer = setTimeout(()=>{
       message = '';
@@ -45,7 +52,7 @@ import ConfigDiscard from './ConfigDiscard.svelte';
     {/if}
 
     {#if message}
-      <div in:fade class="bg-red-500 text-sm absolute top-20 right-1/2 text-white leading-relaxed tracking-wide p-4 rounded-md text-center">{message}</div>
+      <div in:fade class="{`bg-${color}-600`} text-sm absolute top-20 right-1/2 text-white leading-relaxed tracking-wide p-4 rounded-md text-center">{message}</div>
     {/if}
 
     <div class="px-4">
