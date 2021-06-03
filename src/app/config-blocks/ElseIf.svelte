@@ -40,7 +40,7 @@
 
 <else-if-block class="w-full flex flex-col text-white ">
 
-  <div class="pl-2 flex items-center bg-yellow-500">
+  <div class="pl-2 flex items-center bg-purple-400">
     <div class="font-bold py-1">ELSE IF</div>
     <div class="pl-2 pr-1 flex-grow">
       <AtomicInput inputValue={scriptSegment} {index} suggestionInfo={false} customClasses={'bg-opacity-75'} on:change={(e)=>{sendData(e.detail)}}/>
