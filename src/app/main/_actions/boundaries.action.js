@@ -8,15 +8,11 @@ export function menuBoundaries(node) {
       node.style.top = -250 + (window.innerHeight - rect.bottom) - 20 + 'px';
     }
 
-    console.log('INIT')
-
   }
 
   function getSize(){
     const h = window.innerHeight;
     const topOffset = h - rect.bottom;
-
-    console.log('GET SIZE', h, rect.bottom)
 
     // 20 as a "padding on bottom"
     if(topOffset < 20){

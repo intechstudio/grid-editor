@@ -10,10 +10,10 @@
 
 <script>
 
-  import { onMount, createEventDispatcher, onDestroy } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-  import stringManipulation from '../main/user-interface/_string-operations';
-import { localDefinitions } from '../runtime/runtime.store';
+
+  import { parenthesis } from './_validators';
 
   export let config = '';
   export let index;
@@ -34,7 +34,7 @@ import { localDefinitions } from '../runtime/runtime.store';
   let scriptSegments = [{variable: '', value: ''}]; 
 
   // config.script cannot be undefined
-  $: if(config.script && !loaded){
+  $: if(config.script /* && !loaded*/){
     // this works differently from normal _utils...
     scriptSegments = localsToConfig({script: config.script, human: config.human})
     loaded = true;
@@ -47,14 +47,15 @@ import { localDefinitions } from '../runtime/runtime.store';
   // DON'T USE $ BINDING! 
   // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
   function saveChangesOnInput(e, i, k){
-    if(stringManipulation.parenthesis(e)){
-      scriptSegments[i][k] = e;
-      sendData();
-    }
+    scriptSegments[i][k] = e;
+    sendData();
   }
 
   function sendData(){
-    dispatch('output', {short: 'l', script: localArrayToScript(scriptSegments)})
+    const script = localArrayToScript(scriptSegments);
+    if(parenthesis(script)){
+      dispatch('output', {short: 'l', script: localArrayToScript(scriptSegments)})
+    }
   }
 
   function localArrayToScript(arr){
@@ -62,9 +63,9 @@ import { localDefinitions } from '../runtime/runtime.store';
     return script
   }
 
-  function localsToConfig({script}){
+  function localsToConfig({script}){  
 
-    if(stringManipulation.parenthesis(script)){
+    if(parenthesis(script)){
       // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
       let _variable_array = script.split('=')[0];
       _variable_array = _variable_array.split('local')[1];
@@ -76,7 +77,7 @@ import { localDefinitions } from '../runtime/runtime.store';
 
       Array.from(_value_array).forEach((element,index) => {
         _part += element;    
-        const closed = stringManipulation.parenthesis(_part);
+        const closed = parenthesis(_part);
         if(closed && element == ','){
           slice_pos.push({off:offset,ind: index});
           offset = index+1;
@@ -168,6 +169,20 @@ import { localDefinitions } from '../runtime/runtime.store';
         </div>
         <span class="text-sm text-gray-500 px-1 py-0.5">=</span>
         <CodeEditor doc={`${script.value}`} showLineNumbers={false} showCharCount={false} index={i} {advancedClickAddon} on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}/>
+        {#if i !== 0}
+        <div on:click|preventDefault={()=>{removeLocalVariable(i)}} class="flex items-center group cursor-pointer pl-1 mt-1.5">
+          <svg class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
+            <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
+          </svg>
+        </div>
+        {:else}
+        <div class=" flex invisible items-center group cursor-pointer pl-1">
+          <div class="w-5 h-5 p-1">
+            x
+          </div>
+        </div>
+        {/if}
       </div>
     </segment>
   {/each}

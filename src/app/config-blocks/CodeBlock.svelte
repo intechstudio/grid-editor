@@ -20,24 +20,34 @@
 
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
+  import {createEventDispatcher} from 'svelte';
+
+  import { parenthesis } from './_validators';
+
   export let config;
   export let index;
   export let advanced;
   export let advancedClickAddon;
 
-  /*
+  const dispatch = createEventDispatcher();
 
-  No validators implemented!
-  
-  */
+  $: if(config.script){
+    console.log('new...', config.script);
+  }
+
+  function sendData(e){
+    if(parenthesis(e)){
+      dispatch('output', {short: 'cb', script: e})
+    }
+  }
 
 </script>
 
 
 {#if !advanced}
 <code-block class="w-full flex p-4">
-  <CodeEditor on:output doc={`${config.script}`} {index} showCharCount={false}/>
+  <CodeEditor doc={`${config.script}`} {index} showCharCount={false} on:output />
 </code-block>
 {:else}
-  <CodeEditor doc={`${config.script}`} showLineNumbers={false} showCharCount={false} {advancedClickAddon} on:output/>
+  <CodeEditor doc={`${config.script}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
 {/if}

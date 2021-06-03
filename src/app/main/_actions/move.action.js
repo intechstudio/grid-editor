@@ -27,6 +27,43 @@ export function changeOrder(node, {configs}) {
     reset(); 
   })
 
+  function if_end_pairs(_c, i){
+    const _cfgs = _c.slice(i);
+    const _cfgs_length = _cfgs.length;
+
+    let arr = [];
+    let stack = [];
+    let current;
+
+    let skipSelection = false;
+
+    const matchLookup = {
+      "If": "End", 
+    };
+
+    for (let i = 0; i < _cfgs_length; i++) {
+      if(!skipSelection){
+        current = _cfgs[i].information.name; //easier than writing it over and over      
+        if (current === 'If') {
+          stack.push(current);
+        } else if (current === 'End') {
+          const lastBracket = stack.pop();
+          if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
+            return false; //terminate immediately - no need to continue scanning the string
+          }
+        }
+
+        arr.push(_cfgs[i]);        
+
+        if(stack.length == 0 && current == 'End'){
+          skipSelection = true;
+        }
+      }
+    }
+      
+    return arr.length;
+  }
+
   function createMultiDragCursor(targets, width){
     cursor = document.createElement('div');
     let copyGroup = document.createElement('div');
@@ -101,6 +138,7 @@ export function changeOrder(node, {configs}) {
       //console.log(e.target)
       if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
         moveDisabled = true;
+        console.log(e.target.getAttribute('movable'), e.target)
         node.dispatchEvent(new CustomEvent('drag-end'));
         node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
         console.log('This cannot be moved!')
@@ -121,10 +159,12 @@ export function changeOrder(node, {configs}) {
       const component = dragged.getAttribute('config-component');
 
       if(component == 'If'){
-        let _id = id.substr(4,);
+        console.log('If drag!');
+        const _id = id.substr(4,);
         const nodes = _configs.slice(_id);
-        const end_of_if = nodes.findIndex(n => n.information.name === 'End');
-        const drag_configs = nodes.slice(0,end_of_if + 1);
+        const end_of_if = if_end_pairs(_configs, _id);
+        console.log('END OF IF', end_of_if);
+        const drag_configs = nodes.slice(0, end_of_if);
         multiDragFlag = true;
         for (const item of drag_configs) {
           // using configs array, so dom elements need to be discovered by custom id
