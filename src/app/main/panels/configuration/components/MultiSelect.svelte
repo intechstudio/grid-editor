@@ -19,17 +19,17 @@
 
 
   {#if $appMultiSelect.enabled}
-  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.remove(); appMultiSelect.reset();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2"} popStyle={'bg-red-500 '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.remove(); appMultiSelect.reset();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2 rounded-full"} popStyle={'bg-red-500 '}> 
     <span slot="popup">Removed!</span>
     <span slot="button">Remove</span>
   </BtnAndPopUp>
 
-  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.cut(); appMultiSelect.reset();}} btnStyle={"bg-yellow-500 hover:bg-yellow-600 mr-2"} popStyle={'bg-yellow-500 '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.cut(); appMultiSelect.reset();}} btnStyle={"bg-yellow-500 hover:bg-yellow-600 mr-2 rounded-full"} popStyle={'bg-yellow-500 '}> 
     <span slot="popup">Cutted!</span>
     <span slot="button">Cut</span>
   </BtnAndPopUp>
 
-  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.copy(); appMultiSelect.reset();}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2"} popStyle={'bg-pick '}> 
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.copy(); appMultiSelect.reset();}} btnStyle={"bg-pick hover:bg-pick-saturate-10 mr-2 rounded-full"} popStyle={'bg-pick '}> 
     <span slot="popup">Copied!</span>
     <span slot="button">Copy</span>
   </BtnAndPopUp>

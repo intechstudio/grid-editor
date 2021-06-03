@@ -35,6 +35,7 @@ export const appSettings = writable({
   activePanel: 'Configuration',
   leftPanel: 'Debug',
   preferences: false,
+  modal: '',
   os: checkOS()
 });
 

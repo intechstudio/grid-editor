@@ -12,6 +12,8 @@
 
   import ConfigExtension from './ConfigExtension.svelte';
   import ConfigPicker from './config-picker/ConfigPicker.svelte';
+  import ExportConfigs from './components/ExportConfigs.svelte';
+
 
   import { changeOrder } from '../../_actions/move.action.js';
 
@@ -136,7 +138,10 @@
 
       <container class="flex flex-col w-full">
         {#if !drag_start}
-          <ConfigPicker  userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
+          <div class="w-full flex justify-between mb-3">
+            <ConfigPicker userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
+            <ExportConfigs/>
+          </div>
         {:else}
           <Bin/>
         {/if}

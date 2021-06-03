@@ -79,7 +79,7 @@
     -->
     <div 
       on:click={()=>{changeTab('Configuration')}}  
-      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedTab == 'Configuration' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
+      class="cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedTab == 'Configuration' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
       <svg 
         class="stroke-current text-white" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12.6772" cy="12.6777" r="11.5"  stroke-width="2"/>
@@ -88,9 +88,6 @@
       <div class="left-0 -ml-1 absolute transition-all  {selectedTab == 'Configuration' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
 
     </div>
-
-
-
 
     <div 
       on:click={()=>{changeTab('Preferences')}}  

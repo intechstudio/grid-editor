@@ -1,17 +1,21 @@
 <script>
   import Debug from "../debug/Debug.svelte";
-import { appSettings } from "./_stores/app-helper.store";
+  import { appSettings } from "./_stores/app-helper.store";
 
   export let classes;
 </script>
 
-<panel-container class="{classes} h-full">
+{#if $appSettings.leftPanel}
 
-  
-  {#if $appSettings.leftPanel == 'Debug'}
+  <panel-container class="{classes} h-full">
 
-    <Debug/>
+    
+    {#if $appSettings.leftPanel == 'Debug'}
 
-  {/if}
+      <Debug/>
 
-</panel-container>
+    {/if}
+
+  </panel-container>
+
+{/if}

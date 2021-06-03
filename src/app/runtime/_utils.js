@@ -41,7 +41,9 @@ const _utils = {
     let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
 
     // filter "*space*" with regex or empty string
-    configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
+    // configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
+
+    configList = configList.slice(1);
 
     return configList;
   
@@ -57,9 +59,13 @@ const _utils = {
 
     let configMatrix = [];
     for (let i = 0; i < configList.length; i+=2) {
+      if(/(--\[\[@+[a-z]+\]\])/.test(configList[i+1])){
+        //console.log('NEXT IS REGEX!');
+      }
       let [short, script] = [configList[i].slice(5,-2), configList[i+1] ? configList[i+1].trim() : '' ]
       configMatrix.push({short: short, script: script})
     }
+
     return configMatrix;
   },
 

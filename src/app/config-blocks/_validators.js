@@ -7,12 +7,21 @@ const _v = {
     this.valid = 1;
   
     this.min = function(mn){
-      value <= mn ? this.valid = 0 : null;
+      Number(this.value) <= (mn - 1) ? this.valid = 0 : null;
       return this;
     }
   
     this.max = function(mx){
-      value >= mx ? this.valid = 0 : null;
+      Number(this.value) >= (mx + 1) ? this.valid = 0 : null;
+      return this;
+    }
+
+    this.isLocal = function(arr){
+      if(this.valid == 0 && !arr.includes(this.value)){
+        this.valid = 0;
+      } else {
+        this.valid = 1;
+      }
       return this;
     }
   

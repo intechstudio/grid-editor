@@ -117,7 +117,7 @@
   <div class="w-full flex flex-col">
     {#each scriptSegments as script, i (i)}
       <div class="w-full flex local-defs py-2">
-        <div class="w-1/2 pr-1">
+        <div class="w-1/3 pr-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
           placeholder="variable name" 
@@ -125,7 +125,7 @@
           on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}}
           > 
         </div>
-        <div class="w-1/2 pl-1">
+        <div class="w-2/3 pl-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
           placeholder="value" 

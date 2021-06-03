@@ -51,14 +51,35 @@
   })
 
   function sendData(e, index){
-    
-    const validator = new validate(e);
-    
-    console.log('IS valid', validator.min(2).max(10).result());
 
-    scriptSegments[index] = e;
-    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
-    dispatch('output', {short: config.short, script: script})
+    let valid = 0;
+    
+    const validator = new validate.check(e);
+
+    const locals = $localDefinitions.map(l => l.value)
+    
+    if(index == 0){
+      valid = validator.min(0).max(15).isLocal(locals).result();
+    }
+
+    if(index == 1){
+      valid = validator.min(127).max(255).isLocal(locals).result();
+    }
+
+    if(index == 2){
+      valid = validator.min(0).max(127).isLocal(locals).result();
+    }
+
+    if(index == 3){
+      valid = validator.min(0).max(127).isLocal(locals).result();
+    }
+
+    if(valid){
+      scriptSegments[index] = e;
+      const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments});  // important to set the function name
+      dispatch('output', {short: config.short, script: script})
+    }
+    
   }
   
 
@@ -626,7 +647,8 @@
 
   $: if(scriptSegments[1] || $localDefinitions){
     renderSuggestions();
-    suggestions = suggestions.map(s => [...$localDefinitions, ...s])
+    suggestions = suggestions.map(s => [...$localDefinitions, ...s]);
+    console.log('LOCALS:....',$localDefinitions);
   }
 
   onMount(()=>{

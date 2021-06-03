@@ -83,8 +83,9 @@
       <div class="text-white">Char count: {@html charCount(runtimeScript) > 120 ? `<span class="text-yellow-400">${charCount(runtimeScript)}</span>` : `${charCount(runtimeScript)}`}</div>
     </div>
 
-    <button on:click={debug} class="rounded my-2 bg-green-700 hover:bg-green-900 text-white px-2 py-2 w-32 mr-2">Send To Grid</button>
-
+    <!--
+     <button on:click={debug} class="rounded my-2 bg-green-700 hover:bg-green-900 text-white px-2 py-2 w-32 mr-2">Send To Grid</button>
+    --> 
   </div>
 
   <div class="flex text-white items-center"> 

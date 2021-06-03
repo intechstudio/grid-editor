@@ -71,7 +71,7 @@
     let cfg = '';
 
     if(promptValue !== ''){
-      cfg = promptValue; 
+      cfg = promptValue.split('<?lua')[1].split('?>')[0].trim(); 
     } else {
       cfg = get(presetManagement.selected_preset).configs;
     }
@@ -134,7 +134,7 @@
     on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
-    class=" cursor-pointer flex items-center mb-3">
+    class=" cursor-pointer flex w-full items-center">
 
     <div class="{((visible || configSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
       Add config block...
@@ -192,7 +192,10 @@
           <Folder name={"Presets"} on:double-click={initConfig} {index} counter={0} configs={Object.entries(configs)} expanded/>
         </div>
 
-        <input class="my-1 p-1 font-mono" bind:value={promptValue} >
+        <div class="flex flex-col">
+          <div class="py-1 text-gray-500 text-sm w-full">Prompt Input</div>
+          <input class="my-1 px-1 py-2 rounded bg-secondary focus:ring-1 focus:outline-none text-white font-mono" bind:value={promptValue} >
+        </div>
 
         <div class="w-full mt-2 flex items-end">
           <button 

@@ -16,13 +16,12 @@ import ConfigDiscard from './ConfigDiscard.svelte';
 
   runtime.unsaved.subscribe(v => unsaved = v);
 
-  function throwUnsaved(){
-    //runtime.throw...
-  }
+  let timer;
 
   logger.subscribe(s => {
     message = s.message;
-    setTimeout(()=>{
+    clearInterval(timer);
+    timer = setTimeout(()=>{
       message = '';
     }, 2500)
   })
@@ -31,7 +30,7 @@ import ConfigDiscard from './ConfigDiscard.svelte';
 </script>
 
 
-<top-sub-menu style="background-color:rgb(25, 26, 32)" class="w-full rounded-tl-lg pt-4 -mt-2 shadow-md flex  text-white">
+<top-sub-menu style="background-color:rgb(25, 26, 32)" class="w-full rounded-tl-lg pt-4 -mt-4 shadow-md flex  text-white">
   
   <div class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg  flex items-center justify-between">
 

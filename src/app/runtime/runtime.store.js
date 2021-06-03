@@ -261,6 +261,43 @@ function create_runtime () {
 
   }
 
+  const _runtime_unsaved = function() {
+
+    const li = get(user_input);
+
+    this.setToZero = function(){
+      _unsaved_changes.set(0);
+      return this;
+    }
+
+    this.throw = function(){
+      _runtime.update(_runtime => {
+        _runtime.forEach((device)=>{
+          console.log(device.pages[li.event.pagenumber].control_elements);
+          device.pages[li.event.pagenumber].control_elements.forEach(control_element =>{
+            control_element.events.forEach((event)=>{
+              if(['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(event.cfgStatus)){
+                event.config = '';
+                event.cfgStatus = 'NULL';
+              }
+            })
+          })
+        });
+        return _runtime;
+      })
+      return this
+    }
+
+    this.trigger = function(){
+      // epicly shitty workaround before implementing acknowledge state management
+      setTimeout(()=>{
+        _trigger_ui_change.update(n => n + 1);
+        return this;
+      }, 150)
+    }
+
+  }
+
   // this is used to refresh the user interface in the active right panel
   const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
 
@@ -355,6 +392,7 @@ function create_runtime () {
     subscribe: _runtime.subscribe,
     update: new _runtime_update(),
     device: new _device_update(),
+    unsave: new _runtime_unsaved(),
     active_config: _active_config.subscribe,
     unsaved: _unsaved_changes,
     active_lua: _active_lua.subscribe

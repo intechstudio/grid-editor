@@ -25,6 +25,7 @@
   import GridLayout from './app/main/grid-layout/GridLayout.svelte';
   import ConfigLibrary from './app/main/panels/config-library/ConfigLibrary.svelte';
   import TopSubMenu from './app/main/TopSubMenu.svelte';
+  import Modal from './app/main/Modal.svelte';
 
 
 </script>
@@ -36,10 +37,13 @@
 <SerialPort/>
 
 
-<main id="app" class="relative flex w-full h-full flex-row justify-between overflow-hidden">
+<main id="app" spellcheck="false" class="relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
   <NavTabs/> 
+
+  <!-- The modal pages views -->
+  <Modal/>
 
   <div class="flex flex-col w-full h-full">
   

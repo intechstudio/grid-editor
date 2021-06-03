@@ -28,6 +28,8 @@
   import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
 
+  import validate from './_validators';
+
   export let config;
   export let inputSet;
   export let blockAddedOnClick;
@@ -51,10 +53,31 @@
   })
 
   function sendData(e, index){
-    scriptSegments[index] = e;
-    // important to set the function name = human readable for now
-    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
-    dispatch('output', {short: config.short, script: script})
+
+    let valid = 0;
+    
+    const validator = new validate.check(e);
+
+    const locals = $localDefinitions.map(l => l.value)
+    
+    if(index == 0){
+      valid = validator.min(0).max(15).isLocal(locals).result();
+    }
+
+    if(index == 1){
+      valid = validator.min(1).max(2).isLocal(locals).result();
+    }
+
+    if(index == 2){
+      valid = validator.min(0).max(255).isLocal(locals).result();
+    }
+
+    if(valid){
+      scriptSegments[index] = e;
+      // important to set the function name = human readable for now
+      const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
+      dispatch('output', {short: config.short, script: script})
+    }
   }
 
   const _suggestions = [

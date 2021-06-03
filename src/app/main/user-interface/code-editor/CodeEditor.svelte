@@ -41,7 +41,7 @@
       editor.dispatch({
         changes: {
           from: dataAtCursor.cursor,
-          insert: advancedClickAddon.human
+          insert: advancedClickAddon.short
         }
       })
       //editor.dispatch({selection: {anchor: dataAtCursor.cursor + advancedClickAddon.human.length}})
@@ -133,8 +133,8 @@
 
           // Document changed
           const code = (v.state.doc.text.join('\n'));
-          
-          dispatch('output', {short: 'cb', script: code});
+          // add a whitespace before 'e'
+          dispatch('output', {short: 'cb', script: ` ${code}`});
         }
       }),
       //linter(luaLint()),
