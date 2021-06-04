@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    if: github.event.base_ref == 'refs/heads/stable'
+    if: github.ref == 'refs/heads/stable'
     name: Build Stable Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
@@ -58,6 +58,6 @@ jobs:
           tag_name: ${{ env.RELEASE_VERSION }}
           name: Release ${{ env.RELEASE_VERSION }}
           files: dist/*.*
-          draft: false
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
