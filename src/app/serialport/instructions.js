@@ -37,6 +37,11 @@ const instructions = {
 
     const {event, brc} = li;
 
+    // configurations on the 16th element, which is the utility button
+    if(event.elementnumber == 16){
+      event.elementnumber = 255;
+    }
+
     const parameters = [
       { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
