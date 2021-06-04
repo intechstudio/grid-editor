@@ -46,7 +46,7 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
       DX = +MODULE_INFO.dx + 127;
       DY = +MODULE_INFO.dy + 127;
       SX = 0; // +MODULE_INFO.sx + 127
-      SY = 0// +MODULE_INFO.sy + 127;
+      SY = 0; // +MODULE_INFO.sy + 127;
     }
     switch (MODULE_INFO.rot){
       case -0:
@@ -168,7 +168,7 @@ const grid = {
         }
 
         // GRID LUA PROPERTIES
-        if(key.startsWith('GRID_LUA_')){
+        if(key.startsWith('GRID_LUA_FNC_') && !/_ACTION_/gm.test(key) && !/_LIST_/gm.test(key)){
           let paramSet = key.split('_');
           let value = grid_protocol[key];
           createNestedObject( LUA, paramSet.slice(3,), value )
@@ -212,8 +212,8 @@ const grid = {
   }()),
 
   translate: {
-    encode: function (HEADER, DESTINATION, CLASS_NAME, INSTR_CODE, PARAMETERS){
 
+    encode: function (HEADER, DESTINATION, CLASS_NAME, INSTR_CODE, PARAMETERS){
 
       function encode_class_parameters(PARAMETERS, INFO){
         let _parameters = [];

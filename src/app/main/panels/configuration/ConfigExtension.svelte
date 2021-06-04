@@ -99,8 +99,7 @@
 
               <config-pool class="w-full flex flex-col overflow-y-scroll">
                 {#if sg == "all" || sg == "arithmetic_operator"}
-                  <basic-functions class="w-full flex flex-col p-2">
-                    
+                  <basic-functions class="w-full flex flex-col p-2">      
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Arithmetic Operators</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
                       {#each grid.properties.LUA.filter(m => m.type === 'arithmetic_operator' && m.allowed.find(a => a == $user_input.event.eventtype)) as syntax}
@@ -132,7 +131,7 @@
                   </oparators>
                 {/if}
 
-                {#if sg == "all" || sg == "grid_function"}
+                {#if sg == "all" || sg == "global"}
                   <config-functions class="w-full flex flex-col p-2">
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Grid Functions</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
@@ -148,6 +147,28 @@
                     {#if sg == "all"}<span class="text-gray-500 text-sm">Encoder</span>{/if}
                     <div class="flex -ml-1 items-start flex-wrap">
                       {#each grid.properties.LUA.filter(m => m.type === 'encoder') as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
+                      {/each}
+                    </div>
+                  </variables>
+                {/if}
+
+                {#if sg == "all" || sg == "button"}
+                  <variables class="w-full flex flex-col p-2">
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Button</span>{/if}
+                    <div class="flex -ml-1 items-start flex-wrap">
+                      {#each grid.properties.LUA.filter(m => m.type === 'button') as syntax}
+                        <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
+                      {/each}
+                    </div>
+                  </variables>
+                {/if}
+
+                {#if sg == "all" || sg == "potmeter"}
+                  <variables class="w-full flex flex-col p-2">
+                    {#if sg == "all"}<span class="text-gray-500 text-sm">Potmeter</span>{/if}
+                    <div class="flex -ml-1 items-start flex-wrap">
+                      {#each grid.properties.LUA.filter(m => m.type === 'potmeter') as syntax}
                         <div on:click={()=>{addThisManually(syntax)}} class="rounded-lg text-sm px-3 py-1 cursor-pointer hover:shadow-md border border-pick-saturate-20 hover:border-pick m-1 bg-gray-900 hover:bg-black text-white">{syntax.human}</div>
                       {/each}
                     </div>

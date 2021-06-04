@@ -83,7 +83,7 @@
   const _suggestions = [
     // led number
       [
-        {value: 'this.ind()', info: 'this led'},
+        //{value: 'this.ind()', info: 'this led'},
       ],
     // layer
       [
@@ -92,7 +92,7 @@
       ],
     // intensity or value
       [
-        {value: 'to do...', info: 'to do...'}
+        //{value: 'to do...', info: 'to do...'}
       ]
   ];
 

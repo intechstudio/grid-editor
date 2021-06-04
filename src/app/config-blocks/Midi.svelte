@@ -621,7 +621,7 @@
       },
     // param 2
       [
-        {value: '', info: 'to do...'}
+        //{value: '', info: 'to do...'}
       ]
   ];
 
@@ -648,7 +648,6 @@
   $: if(scriptSegments[1] || $localDefinitions){
     renderSuggestions();
     suggestions = suggestions.map(s => [...$localDefinitions, ...s]);
-    console.log('LOCALS:....',$localDefinitions);
   }
 
   onMount(()=>{

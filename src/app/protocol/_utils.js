@@ -35,19 +35,19 @@ export function mapObjectsToArray (array, object){
     for (const key in object) {
 
       if(key == 'B'){
-        array = [...array, ...mapper(object[key], 'button', ['button'])]
+        array = [...array, ...mapper(object[key], 'button', ['3'])]
       }
 
       if(key == 'E'){
-        array = [...array, ...mapper(object[key], 'encoder', ['encoder'])]
+        array = [...array, ...mapper(object[key], 'encoder', ['2'])]
       }
 
       if(key == 'G'){
-        array = [...array, ...mapper(object[key], 'global', ['encoder', 'button', 'potmeter'])]
+        array = [...array, ...mapper(object[key], 'global', ['2', '3', '1'])]
       }
 
       if(key == 'P'){
-        array = [...array, ...mapper(object[key], 'potmeter', ['potmeter'])]
+        array = [...array, ...mapper(object[key], 'potmeter', ['1'])]
       }
 
     }

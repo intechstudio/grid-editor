@@ -82,27 +82,28 @@
 
   const _suggestions = [
     [
-      {value: 'this.ind()', info: 'this led'},
+      //{value: 'this.ind()', info: 'this led'},
     ],
     [
       {value: '1', info: 'layer 1'},
       {value: '2', info: 'layer 2'}
     ],
     [
-      {value: '255', info: '255'}
+      //{value: '255', info: '255'}
     ],
     [
-      {value: '255', info: '255'}
+      //{value: '255', info: '255'}
     ],
     [
-      {value: '255', info: '255'}
+      //{value: '255', info: '255'}
     ]
   ];
 
   let suggestions = [];
 
   $: if($localDefinitions){
-   // TODO
+    suggestions = _suggestions.map(s => [...$localDefinitions, ...s]);
+    suggestions = suggestions;
   }
 
   onMount(()=>{
