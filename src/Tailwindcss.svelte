@@ -1,4 +1,4 @@
-<style global>
+<style global lang="postcss">
   @tailwind base;
 
   @font-face {
@@ -78,29 +78,12 @@
   @tailwind components;
 
   html {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   body {
-    @apply p-0;
-    @apply font-roboto;
     @apply select-none;
-  }
-
-  .btn {
-    @apply bg-gray-500 text-black;
-  }
-
-  .btn:hover {
-    @apply bg-gray-600;
-  }
-
-  .btn-active {
-    @apply bg-red-500 text-white;
-  }
-
-  .btn-active:hover {
-    @apply bg-red-500;
+    @apply flex flex-col bg-secondary font-roboto p-0 m-0 h-screen;
   }
 
   input, select{

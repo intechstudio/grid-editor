@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { appSettings } from '../../stores/app-settings.store.js';
+  import { appSettings } from '../../_stores/app-helper.store.js';
   import { runtime } from '../../stores/runtime.store.js';
   import { openInBrowser } from '../helpers/global-helper.js';
 

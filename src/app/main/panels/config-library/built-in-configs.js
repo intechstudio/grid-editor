@@ -1,0 +1,26 @@
+// meta: *--[[@ + code]]* -> config identifier
+// must match naming conventions of grid-protocol.json
+export const config_collection = [
+
+    {category: ["Locals"],             name: "Button",                    configs: "--[[@l]] local num, val = this.ind(), this.bva()"},
+    {category: ["Locals"],             name: "Potmeter / Fader",          configs: "--[[@l]] local num, val = this.ind(), this.pva()"},
+    {category: ["Locals"],             name: "Encoder",                   configs: "--[[@l]] local num, val = this.ind(), this.eva()"},
+
+
+    {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
+
+    {category: ["LED", "Value"],       name: "Blank",                       configs: "--[[@glp]] glp(,,)" },
+
+    {category: ["LED", "Color"],       name: "Blank",                      configs: "--[[@glc]] glc(,,,,)"},
+
+    {category: ["MIDI"],               name: "Blank",                       configs: "--[[@gms]] gms(,,,)"},
+    
+    {category: ["Macro"],              name: "Default",                    configs: "--[[@gks]] gks()"},
+
+    {category: ["Condition"],          name: "If",                         configs: "--[[@if]] if  then --[[@en]] end" },
+    {category: ["Condition"],          name: "Else",                       configs: "--[[@el]] else" },
+    {category: ["Condition"],          name: "Else If",                    configs: "--[[@ei]] else if  then" },
+
+];
+
+

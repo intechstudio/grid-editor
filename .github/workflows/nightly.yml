@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2016, ubuntu-latest]
+        os: [ubuntu-latest]
 
     steps:
       - uses: actions/checkout@v2
@@ -23,7 +23,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v1
         with:
-          node-version: '10.16'
+          node-version: '14.4'
           
       - name: create env file
         run: |
@@ -39,7 +39,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
-
+  
       - name: Build
         run: npm run export
         env:     
@@ -66,4 +66,13 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v2
 
-      
+      - name: Discord Notification
+        uses: rjstone/discord-webhook-notify@v1
+        if: success()
+        with:
+            severity: info
+            username: Nightly Bot
+            footer: Programming is fun.
+            description: 'Download latest nightly artifact!'
+            details: 'Link to workflows: https://github.com/intechstudio/grid-editor/actions'
+            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}

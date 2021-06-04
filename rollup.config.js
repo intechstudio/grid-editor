@@ -2,10 +2,13 @@ import svelte from 'rollup-plugin-svelte';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
+import dynamicImportVars from '@rollup/plugin-dynamic-import-vars';
+import copy from 'rollup-plugin-copy'
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
-
+import css from 'rollup-plugin-css-only';
 import rollup_start_dev from './rollup_start_dev';
+import { lezer } from "lezer-generator/rollup"
 
 import json from '@rollup/plugin-json';
 
@@ -14,23 +17,28 @@ const production = !process.env.ROLLUP_WATCH;
 export default {
 	input: 'src/svelte.js',
 	output: {
-		sourcemap: true,
-		format: 'iife',
+		sourcemap: false,
+		format: 'es',
 		name: 'app',
-		file: 'public/bundle.js'
+		dir: 'public/build/',
+		entryFileNames: 'main.js'
 	},
 	plugins: [
 		json(),
+		lezer(),
 		svelte({
-			preprocess: sveltePreprocess({ postcss: true }),
-			// enable run-time checks when not in production
-			dev: !production,
-			// we'll extract any component CSS out into
-			// a separate file — better for performance
-			css: css => {
-				css.write('public/bundle.css');
+			preprocess: sveltePreprocess({
+				postcss: true,
+				sourceMap: false,
+			}),
+			compilerOptions: {
+				dev: !production
 			}
 		}),
+
+		// we'll extract any component CSS out into
+		// a separate file - better for performance
+		css({ output: 'bundle.css' }),
 
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
@@ -41,7 +49,12 @@ export default {
 			browser: true,
 			dedupe: importee => importee === 'svelte' || importee.startsWith('svelte/')
 		}),
+
+		// some packages like luaparse needs this (?)
 		commonjs(),
+
+		// need this badboy to import dynamically components
+		dynamicImportVars(),
 
 		// In dev mode, call `npm run start:dev` once
 		// the bundle has been generated
@@ -51,8 +64,18 @@ export default {
 		// browser on changes when not in production
 		!production && livereload('public'),
 
+		// If building for production copy config svelte files to public
+
+		copy ({
+			targets:[
+				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'},
+				{ src: 'public/assets/fonts/*', dest: 'public/build/assets/fonts'}
+			],
+			copyOnce: true
+		}),
+
 		// If we're building for production (npm run build
-		// instead of npm run dev), minify
+		// instead of npm run dev, minify
 		production && terser()
 	],
 	watch: {

@@ -19,9 +19,10 @@ let mainWindow;
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false;
 
+
 let watcher;
 if (process.env.NODE_ENV === 'development') {
- watcher = require('chokidar').watch(path.join(__dirname, '../public/*'), { ignoreInitial: true });
+ watcher = require('chokidar').watch(path.join(__dirname, '../public/build/*'), { ignoreInitial: true });
  watcher.on('change', () => {
     mainWindow.reload();
  });
@@ -36,9 +37,14 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width,
         height,
+        'minHeight': 500,
+        'minWidth': 800,
+        backgroundColor: '#1e2628',
         frame: false,
         webPreferences: {
-          nodeIntegration: true
+          nodeIntegration: true,
+          contextIsolation: false,
+          enableRemoteModule: true
         }
     });
 
@@ -95,10 +101,6 @@ ipcMain.on('set_uuid', (event,arg) => {
 ipcMain.handle('get_uuid', (event,arg) => {
   return store.get('uuid');
 })
-
-// Start the back-end micorservice on localport 3000.
-//const polka = require('./polka');
-//const minmaxclose = require('./minmaxclose');
 
 // auto-update features
 
