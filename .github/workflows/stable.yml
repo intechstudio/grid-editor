@@ -2,7 +2,7 @@ name: Build Stable Grid Editor
 
 on: 
   push:
-    branches:
+    tags:
      - 'v*.*.*'
 
 jobs:
