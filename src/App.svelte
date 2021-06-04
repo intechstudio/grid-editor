@@ -26,7 +26,7 @@
   import ConfigLibrary from './app/main/panels/config-library/ConfigLibrary.svelte';
   import TopSubMenu from './app/main/TopSubMenu.svelte';
   import Modal from './app/main/Modal.svelte';
-import Updater from './app/shared/updater/Updater.svelte';
+  import Updater from './app/shared/updater/Updater.svelte';
 
 
 </script>
