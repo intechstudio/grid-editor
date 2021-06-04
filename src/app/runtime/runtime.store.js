@@ -175,12 +175,17 @@ function create_runtime () {
     if(li.event.elementnumber !== -1){
       _runtime.forEach((device) => {
         if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-          _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
+          try {
+            _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
+          } catch (error) {    
+            console.error('Couldn\'t update in destination: ', li)
+          }
         }
       });
     }
     return _event;
   }
+
 
   const _device_update = function(){
 
@@ -197,7 +202,7 @@ function create_runtime () {
         // device not found, add it to runtime and get page count from grid
         if(!online){
           _runtime.push(controller);
-          instructions.fetchPageCountFromGrid({controller});
+          instructions.fetchPageCountFromGrid({brc: controller});
         }
         return _runtime;
       });
@@ -211,7 +216,7 @@ function create_runtime () {
           // don't make pages if there are already same amount of pages...
           if(device.dx == brc.SX && device.dy == brc.SY && pagenumber !== device.pages.length){
             for (let i = 0; i < pagenumber - 1; i++) {
-              device.pages = [...device.pages, grid.device.createPage(device.id)];
+              device.pages = [...device.pages, grid.device.createPage(device.id, 'GRID_REPORT')];
             }
           }
         })
@@ -321,9 +326,16 @@ function create_runtime () {
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
 
         pages = device.pages;
-      
         selectedNumber = ui.event.elementnumber;
-        elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+
+        try {
+          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+        } catch (error) {
+          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
+          elementNumbers = device.pages[0].control_elements;
+          console.info(`Fetch pages from grid!`);
+          instructions.fetchPageCountFromGrid({brc: ui.brc});
+        }
 
         events = elementNumbers[selectedNumber].events;
 
@@ -371,7 +383,16 @@ function create_runtime () {
 
     rt.forEach((device)=>{
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
-        let elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+
+        let elementNumbers = [];
+
+        try {
+          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+        } catch (error) {
+          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_lua`)
+          elementNumbers = device.pages[0].control_elements;
+        }
+
         let events = elementNumbers[ui.event.elementnumber].events;
 
         // don't let selection of event, which is not on that control element

@@ -26,6 +26,7 @@
   import ConfigLibrary from './app/main/panels/config-library/ConfigLibrary.svelte';
   import TopSubMenu from './app/main/TopSubMenu.svelte';
   import Modal from './app/main/Modal.svelte';
+import Updater from './app/shared/updater/Updater.svelte';
 
 
 </script>
@@ -44,6 +45,9 @@
 
   <!-- The modal pages views -->
   <Modal/>
+
+  <!-- Update notification -->
+  <Updater/>
 
   <div class="flex flex-col w-full h-full">
   

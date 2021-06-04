@@ -72,10 +72,10 @@ const instructions = {
     return 1;
   },
 
-  fetchPageCountFromGrid: ({controller}) => {
+  fetchPageCountFromGrid: ({brc}) => {
 
     const cfg = grid.translate.encode(
-      {dx: controller.dx, dy: controller.dy, rot: controller.rot},
+      {dx: brc.dx, dy: brc.dy, rot: brc.rot},
       "GLOBAL",
       "PAGECOUNT",
       "FETCH",

@@ -561,12 +561,12 @@ const grid = {
       ]
     },
 
-    createPage: function(moduleType){
+    createPage: function(moduleType, pageStatus = 'INIT'){
         moduleType = moduleType.substr(0,4);
     
         let control_elements = [];
 
-        let status = {desc: ''};
+        let status = pageStatus;
   
         // control elements
         for (let i = 0; i < 17; i++) {

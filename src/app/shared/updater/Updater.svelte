@@ -43,14 +43,29 @@
 {#if updateNotification} <!--updateNotification-->
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
       <div id="notification" style="width:300px" class="p-4 rounded-lg">    
+
+        <p class="text-xl pb-2">✨New version is available!</p> 
+        <p class="py-2">Please visit the website and pick the download for your operating system!</p>
         
+        <button 
+        class="cursor-pointer relative px-2 py-1 mt-2 mr-2 bg-commit rounded hover:bg-commit-saturate-20 focus:outline-none" 
+        on:click={()=> {openInBrowser('https://intech.studio/downloads')}}>
+          Download
+        </button>
+
+        <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 rounded hover:bg-select focus:outline-none" on:click={() => {updateNotification = false}}>
+          Close
+        </button>
+
+        <!--
         {#if updateNotification && updateError == "" && !updateReady}
-          <p class="text-xl pb-2">✨New update is available!</p> 
+          <p class="text-xl pb-2">✨New version is available!</p> 
           <p class="py-2 loading">Downloading in the background {#if updateProgress !== 0 && updateProgress !== undefined}{updateProgress + '%'}{/if}</p>
           {#if updateProgress !== 0 && updateProgress !== undefined}<div style="width:{updateProgress + '%'};" class="rounded my-2 h-1 flex bg-highlight"></div>{/if}
         {/if}
+        
 
-        {#if updateReady} <!--updateReady-->
+        {#if updateReady}
           <p class="text-xl pb-2">🥂Update Downloaded!</p>
           <p class="py-2">It will be installed on restart.</p>
           <p class="py-2">Restart now?</p>
@@ -74,7 +89,8 @@
         <button id="close-button" class="cursor-pointer relative px-2 py-1 mt-2 border-highlight rounded hover:bg-highlight-400 focus:outline-none" on:click={() => {updateNotification = false}}>
           Close
         </button>
-        
+        -->
+
       </div>
     </div>
   {/if}
