@@ -22,7 +22,7 @@
   onMount(()=>{
     runtime.active_lua((lua) => {
       config = `<?lua ${lua} ?>`;
-    })
+    });
   })
 
 
