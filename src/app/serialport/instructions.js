@@ -37,17 +37,17 @@ const instructions = {
 
     const {event, brc} = li;
 
+    let enumber = undefined;
+
     // configurations on the 16th element, which is the utility button
-    if(event.elementnumber == 16){
-      event.elementnumber = 255;
-    }
+    event.elementnumber != 16 ? enumber = event.elementnumber : enumber = 255;
 
     const parameters = [
       { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
       { PAGENUMBER: pParser(event.pagenumber) },
-      { ELEMENTNUMBER: pParser(event.elementnumber) },
+      { ELEMENTNUMBER: pParser(enumber) },
       { EVENTTYPE: pParser(event.eventtype) },
       { ACTIONLENGTH: pParser(`<?lua ${lua.trim()} ?>`.length)},
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
