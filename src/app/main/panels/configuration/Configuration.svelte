@@ -29,16 +29,13 @@
 
   //_utils.gridLuaToEditorLua(grid_raw_actions).then(config =>{ console.log(config); runtime.set(config)})
 
-  let selectedConfig = 'uiEvents';
-
   let configs = [];
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
 
   function changeSelectedConfig(arg){
-    selectedConfig = arg;
-    $appSettings.configType = selectedConfig;
+    $appSettings.configType = arg;
 
     if(arg == 'systemEvents'){
       user_input.update((ui) => {ui.event.elementnumber = 16; ui.event.eventtype = 4; return ui});
@@ -58,13 +55,16 @@
       localDefinitions.update(configs);
     }).catch(err => {console.error(err); configs = [];})
 
-    console.log('active config',active);
-
     // let use of default dummy parameters
     if(active.elements.selected !== ""){
       events = active.events;
       elements = active.elements;
       pages = active.pages;
+    }
+
+    // set UI to uiEvents, if its not system events
+    if(elements.selected !== 16){
+      $appSettings.configType = 'uiEvents';
     }
 
   });
@@ -87,14 +87,14 @@
   <tabs class="flex flex-row items-start mt-4">
     <tab 
       on:click={()=>{changeSelectedConfig('uiEvents')}} 
-      class="{selectedConfig == 'uiEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         UI Events
       </span>
     </tab>
     <tab 
       on:click={()=>{changeSelectedConfig('systemEvents')}} 
-      class="{selectedConfig == 'systemEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         System Events
       </span>

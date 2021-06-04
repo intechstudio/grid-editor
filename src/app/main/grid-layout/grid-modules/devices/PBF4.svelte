@@ -59,7 +59,7 @@
   <div 
     use:select={[id]}
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions " 
+    class="module-dimensions {(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy) ? 'border-2 border-gray-500' : ''}" 
     style="--module-size: {moduleWidth+'px'}" 
     >
 
