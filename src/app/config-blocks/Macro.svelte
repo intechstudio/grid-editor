@@ -19,6 +19,8 @@
 
   import { createEventDispatcher, onDestroy,} from 'svelte';
 
+  import { clickOutside } from '../main/_actions/click-outside.action';
+
   const dispatch = createEventDispatcher();
 
   //import { check_for_matching_value, parameter_parser } from './action-helper';
@@ -265,6 +267,7 @@
 
   function setCaret(e){
     if(e.target.getAttribute('data-caret') !== null){
+      console.log('set caret', +e.target.getAttribute('data-caret'))
       keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
       caretKeyBuffer = [];
       // this is the caret pos used to add new keys in the array
@@ -340,11 +343,17 @@
   <div class="flex w-full p-2">
     <div
       id="idk"  
+      use:clickOutside={{useCapture:true}}
+      on:click-outside={(e)=>{
+        focus = false;
+        visibleCaretPos = -1;
+        caretPos = -1;
+      }}
       bind:this={macroInputField}
       class="{focus ? 'border-select-desaturate-20' : 'border-select'} editableDiv w-full rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none" 
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
-      contenteditable="true"
+      contenteditable="true"e
       on:click={(e)=>{focus = true; setCaret(e);}}>
       {#each keys as key, i}
         <div data-index={i} class:blink={(visibleCaretPos * 2) === i} class="{(i + i%2 ) == i ? 'hover:bg-pick-complementer cursor-pointer' : 'cursor-default' } ">{@html key}</div>
