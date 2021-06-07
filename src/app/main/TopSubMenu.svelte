@@ -12,27 +12,9 @@ import { transition_in } from 'svelte/internal';
 
   let unsaved = 0;
 
-  let message = '';
-
   let color = 'red';
 
   runtime.unsaved.subscribe(v => unsaved = v);
-
-  let timer;
-
-  logger.subscribe(s => {
-    message = s.message;
-    if(message == 'Store complete!'){
-      color = 'green';
-    } else {
-      color = 'red';
-    }
-    clearInterval(timer);
-    timer = setTimeout(()=>{
-      message = '';
-    }, 2500)
-  })
-
 
 </script>
 
@@ -49,10 +31,6 @@ import { transition_in } from 'svelte/internal';
         <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{unsaved}</div>
         <ConfigDiscard classes={'ml-4'}/>
       </div>
-    {/if}
-
-    {#if message}
-      <div in:fade class="{`bg-${color}-600`} text-sm absolute top-20 right-1/2 text-white leading-relaxed tracking-wide p-4 rounded-md text-center">{message}</div>
     {/if}
 
     <div class="px-4">

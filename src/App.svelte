@@ -27,6 +27,7 @@
   import TopSubMenu from './app/main/TopSubMenu.svelte';
   import Modal from './app/main/Modal.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
+  import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
 
 
 </script>
@@ -48,6 +49,8 @@
 
   <!-- Update notification -->
   <Updater/>
+
+  <CursorLog/>
 
   <div class="flex flex-col w-full h-full">
   

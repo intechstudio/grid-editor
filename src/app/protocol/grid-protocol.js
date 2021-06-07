@@ -460,14 +460,23 @@ const grid = {
           }
 
           if(obj.class == "DEBUGTEXT"){
+
             const arr = array.slice(5,);
+
             DATA.DEBUGTEXT = String.fromCharCode(...arr);
+
             if(DATA.DEBUGTEXT.includes('page change is disabled')){
-              DATA.LOG = 'Store your config before switching pages!'
+              DATA.LOG = {type: 'alert', message: 'Store your config before switching pages!'}
             }
+            
             if(DATA.DEBUGTEXT.includes('store complete')){
-              DATA.LOG = 'Store complete!'
+              DATA.LOG = {type: 'success', message: 'Store complete!'}
             }
+
+            if(DATA.DEBUGTEXT.includes('clear complete')){
+              DATA.LOG = {type: 'success', message: 'Clear complete!'}
+            }
+
           }
 
           if(obj.class == "CONFIG"){

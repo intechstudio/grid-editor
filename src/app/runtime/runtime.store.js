@@ -9,7 +9,7 @@ export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
 function createLogger(){
-  const _log_store = writable('');
+  const _log_store = writable({type:'', message: ''});
   const _trigger = writable(0);
 
   function set_log(value){
@@ -17,8 +17,8 @@ function createLogger(){
     _trigger.update(n => n + 1);
   }
 
-  const _log = derived([_log_store, _trigger],([$s, $t])=> {
-    return {message: $s, n: $t}
+  const _log = derived([_trigger],([$t])=> {
+    return {...get(_log_store), n: $t}
   });
 
   return{
@@ -26,6 +26,7 @@ function createLogger(){
     subscribe: _log.subscribe
   }
 }
+
 export const logger = createLogger();
 
 function createMultiSelect(){

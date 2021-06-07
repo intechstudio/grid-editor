@@ -1,6 +1,6 @@
 <script>
   import grid from "../protocol/grid-protocol";
-  import { runtime } from "../runtime/runtime.store";
+  import { logger, runtime } from "../runtime/runtime.store";
   import { serialComm } from "../serialport/serialport.store";
 
   export let classes;
@@ -8,6 +8,7 @@
   function clear() {
     const command = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
     serialComm.write(command);
+    logger.set({type: 'info', message: 'Clear started!'})
     runtime.unsaved.set(0);
     runtime.set([]); // this causes blink, we could simply remove all config and reinit state
     runtime.update.trigger();
