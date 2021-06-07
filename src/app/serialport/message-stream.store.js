@@ -1,5 +1,6 @@
 // Top level imports
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
+import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import { debug_store, runtime, user_input, logger } from '../runtime/runtime.store';
 
@@ -18,7 +19,10 @@ function createMessageStream(){
     }
 
     if(DATA.EVENT){
-      user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+      console.log('changeoncontant', get(appSettings).changeOnContact)
+      if(get(appSettings).changeOnContact){
+        user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+      }
     }
 
     if(DATA.EVENTPARAM){

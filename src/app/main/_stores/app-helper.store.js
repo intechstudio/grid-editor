@@ -30,6 +30,7 @@ export const appSettings = writable({
   overlays: {controlName: false},
   debugMode: false,
   selectedDisplay: '',
+  changeOnContact: true,
   layoutMode: false,
   configType: 'uiEvents',
   activePanel: 'Configuration',

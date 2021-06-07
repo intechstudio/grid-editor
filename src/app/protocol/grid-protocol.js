@@ -93,6 +93,12 @@ const CEEAT = {
     desc: 'utility',
     value: '4',
     key: 'MAP'
+  },
+
+  midirx: {
+    desc: 'midi rx',
+    value: 5,
+    key: 'MIDIRX'
   }
 
 }
@@ -468,7 +474,7 @@ const grid = {
             if(DATA.DEBUGTEXT.includes('page change is disabled')){
               DATA.LOG = {type: 'alert', message: 'Store your config before switching pages!'}
             }
-            
+
             if(DATA.DEBUGTEXT.includes('store complete')){
               DATA.LOG = {type: 'success', message: 'Store complete!'}
             }
@@ -536,7 +542,7 @@ const grid = {
       fader: [ CEEAT.init, CEEAT.potmeter ],
       blank: [],
       encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder],
-      utility: [CEEAT.init, CEEAT.map]
+      utility: [CEEAT.init, CEEAT.map, CEEAT.midirx]
     },
   
     moduleElements: {

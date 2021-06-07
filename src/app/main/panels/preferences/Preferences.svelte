@@ -45,6 +45,11 @@
         <input bind:value={$heartbeat.grid} min="150" max="1000" type="range">
       </div>
 
+      <div class="flex text-white items-center"> 
+        <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
+        <div class="ml-1">Track physical Grid interaction</div>
+      </div>
+
     </div>
 
   </preferences>
