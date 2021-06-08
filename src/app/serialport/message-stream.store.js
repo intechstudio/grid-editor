@@ -19,7 +19,6 @@ function createMessageStream(){
     }
 
     if(DATA.EVENT){
-      console.log('changeoncontant', get(appSettings).changeOnContact)
       if(get(appSettings).changeOnContact){
         user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
       }
