@@ -469,7 +469,7 @@ function createEngine(){
 
       logger.set({type: 'alert', message: `${type} in progress...`})
 
-      _strict_command.set({type: type, serial: serial, id: id, debug_id: id});        
+      _strict_command.set({type: type, serial: serial, id: glitch(id), debug_id: id});        
 
       sync();
     }
@@ -492,7 +492,7 @@ function createEngine(){
         resend(strict.serial);
         logger.set({type: 'progress', message: `Resend ${strict.type} command...`})
         // DEBUG
-        //_strict_command.update(v => {v.id = v.debug_id; return v});
+        _strict_command.update(v => {v.id = v.debug_id; return v});
       }
     }
 

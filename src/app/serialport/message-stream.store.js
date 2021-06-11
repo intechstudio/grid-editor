@@ -18,18 +18,20 @@ function createMessageStream(){
       runtime.device.update_pages({brc: DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
     }
 
-    if(DATA.EVENT){
-      if(get(appSettings).changeOnContact){
-        user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+    if(get(engine) == 'ENABLED'){
+      if(DATA.EVENT){
+        if(get(appSettings).changeOnContact){
+          user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+        }
       }
-    }
 
-    if(DATA.EVENTPARAM){
-      user_input.update_eventparam({brc: DATA.BRC, event: DATA.EVENT});
-    }
+      if(DATA.EVENTPARAM){
+        user_input.update_eventparam({brc: DATA.BRC, event: DATA.EVENT});
+      }
 
-    if(DATA.PAGEACTIVE){
-      user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
+      if(DATA.PAGEACTIVE){
+        user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
+      }
     }
 
     if(DATA.DEBUGTEXT){
