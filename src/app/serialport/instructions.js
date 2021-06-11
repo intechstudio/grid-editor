@@ -7,7 +7,7 @@ import { pParser } from '../protocol/_utils.js';
 const instructions = {
 
   fetchConfigFromGrid: ({device, inputStore}) => {
-    const cfg = grid.translate.encode(
+    const {serial, id} = grid.translate.encode(
       { 
         dx: device.dx, 
         dy: device.dy,
@@ -27,8 +27,8 @@ const instructions = {
       ],
     );
 
-    
-    serialComm.write(cfg);
+    console.log('editor fetchConfigFromGrid: ', id)
+    serialComm.write(serial);
 
     return 1;
   },
@@ -53,11 +53,13 @@ const instructions = {
       { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
     ]
 
-    const cfg = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
+    const {serial, id} = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
 
     //console.log('CFG TO GRID: ',String.fromCharCode.apply(String, cfg));
 
-    serialComm.write(cfg);
+    console.log('editor sendConfigToGrid: ', id)
+
+    serialComm.write(serial);
 
     return 1;
   },
@@ -70,16 +72,18 @@ const instructions = {
       { PAGENUMBER: pParser(event.pagenumber) },
     ]
 
-    const cfg = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
+    const {serial, id}  = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
 
-    serialComm.write(cfg);
+    console.log('editor changeActivePage: ', id)
+
+    serialComm.write(serial);
 
     return 1;
   },
 
   fetchPageCountFromGrid: ({brc}) => {
 
-    const cfg = grid.translate.encode(
+    const {serial, id} = grid.translate.encode(
       {dx: brc.dx, dy: brc.dy, rot: brc.rot},
       "GLOBAL",
       "PAGECOUNT",
@@ -87,7 +91,7 @@ const instructions = {
       ""
     );
     
-    serialComm.write(cfg);
+    serialComm.write(serial);
 
     return 1;
   }

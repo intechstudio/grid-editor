@@ -65,7 +65,7 @@
           type = 254
         }
 
-        const command = grid.translate.encode(
+        const {serial, id} = grid.translate.encode(
           {dx: 0, dy: 0, rot: -0},
           'GLOBAL',
           'HEARTBEAT',
@@ -79,7 +79,7 @@
           ]
         );
 
-        serialComm.write(command);
+        serialComm.write(serial);
         
     }, interval);
 

@@ -11,7 +11,7 @@
   import Pages from './Pages.svelte';
 
 
-  import { runtime, localDefinitions, conditionalConfigPlacement, user_input } from '../../../runtime/runtime.store.js';
+  import { runtime, localDefinitions, conditionalConfigPlacement, user_input, synchron } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -45,6 +45,8 @@
       user_input.update((ui) => {ui.event.elementnumber = 0; ui.event.eventtype = 0; return ui});
     }
   }
+
+  synchron.subscribe(val => {console.log('SYNC', val)})
 
   runtime.active_config(active => {
     _utils.gridLuaToEditorLua(active.config).then(res => { 

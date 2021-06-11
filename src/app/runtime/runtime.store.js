@@ -342,7 +342,13 @@ function create_runtime () {
 
         // don't let selection of event, which is not on that control element
         let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        selectedEvent = f_event ? f_event : events[events.length - 1];        
+        selectedEvent = f_event ? f_event : events[events.length - 1];     
+        
+        // on switching between system and ui events, set proper eventtype for fetching config
+        // f_event is undefined, if currently stored ui eventtype is not found on control element
+        if(!f_event){
+          ui.event.eventtype = events[events.length - 1].event.value;
+        }
 
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
@@ -352,7 +358,7 @@ function create_runtime () {
         if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
           selectedEvent.cfgStatus = 'FETCHED';
           instructions.fetchConfigFromGrid({device: device, inputStore: ui});     
-          console.info('Config Fetched!');
+          console.info('Config Fetched!', ui);
         }
 
       }
@@ -420,6 +426,30 @@ function create_runtime () {
     active_lua: _active_lua.subscribe
   }
 }
+
+function createSynchronizer(){
+  
+  const _command_collection = writable([]);
+
+  function glitch(id){
+    const rnd = Math.random() * 10;
+    if(rnd > 5){
+      return -1
+    } else {
+      return id
+    }
+  }
+
+  return {
+    subscribe: _command_collection.subscribe,
+    store: (serial, id) => {
+      _command_collection.update(s => {s = [...s, {serial: serial, id: glitch(id)}]; return s;})
+    }
+  }
+
+}
+
+export const synchron = createSynchronizer();
 
 function createDebug(){
   const store = writable({config: '',enabled: true, data: []});

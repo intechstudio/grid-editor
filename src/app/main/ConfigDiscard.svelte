@@ -6,8 +6,9 @@
   export let classes;
 
   function discard() {
-    const command = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
-    serialComm.write(command);
+    const { serial, id } = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
+    console.log('editor discard: ', id)
+    serialComm.write(serial);
     //runtime.set([]); // this causes blink, we could simply remove all config and reinit state
     //runtime.update.trigger();
 

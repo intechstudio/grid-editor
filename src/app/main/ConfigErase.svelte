@@ -6,8 +6,9 @@
   export let classes;
 
   function clear() {
-    const command = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
-    serialComm.write(command);
+    const {serial, id} = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
+    console.log('editor erase: ', id)
+    serialComm.write(serial);
     logger.set({type: 'info', message: 'Clear started!'})
     runtime.unsaved.set(0);
     runtime.set([]); // this causes blink, we could simply remove all config and reinit state

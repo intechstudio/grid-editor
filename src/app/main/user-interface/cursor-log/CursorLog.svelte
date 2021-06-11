@@ -10,6 +10,8 @@
 
   let newMsg = undefined;
 
+  let logCleanUp = undefined;
+
   onMount(()=>{
    
     logger.subscribe((log)=>{
@@ -18,12 +20,16 @@
         logs = [...logs, log];
         clearInterval(newMsg);
         newMsg = setTimeout(()=>{
-          logs.pop();
-          logs = logs;
+          //logs.pop();
+          logs = [];
           popup = false;
         }, 2000)
       }
     });
+
+    logCleanUp = setInterval(()=>{
+      //logs
+    },1000)
 
   });
 
@@ -90,12 +96,17 @@
   {#if popup}
     <div 
       transition:fade={{duration: 200}} 
-      class:border-green-500={logs[logs.length-1].type == 'success'}
-      class:border-yellow-400={logs[logs.length-1].type == 'info'}
-      class:border-red-500={logs[logs.length-1].type == 'alert'}
-      class="flex flex-col w-full rounded bg-primary shadow border-2 px-4 py-2 text-white">
+      class:border-green-600={logs[logs.length-1].type == 'success'}
+      class:border-yellow-600={logs[logs.length-1].type == 'info'}
+      class:border-red-600={logs[logs.length-1].type == 'alert'}
+      class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
       {#each logs as log}
-        <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 p-0.5">{log.message}</div>
+        <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
+          <div class="px-2 py-1 bg-primary rounded mr-2">
+            {log.type == 'success' ? '✔️' : log.type == 'alert' ? '❗' : log.type == 'info' ? '⏳' : log.type == 'failed' ? '❌' : null}
+          </div>
+          {log.message}
+        </div>
       {/each}
     </div>
   {/if}

@@ -40,8 +40,24 @@ function createMessageStream(){
       logger.set(DATA.LOG);
     }
 
-    if(DATA.CONFIG){
-      runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG}).trigger(true)
+    if(DATA.CONFIG_LUA){
+      runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}).trigger(true)
+    }
+
+    if(DATA.CONFIG_ACKNOWLEDGE){
+      console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE.LASTHEADER)
+    }
+
+    if(DATA.CONFIG_NACKNOWLEDGE){
+      console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE.LASTHEADER)
+    }
+
+    if(DATA.CONFIGSTORE){
+      console.log("CONFIGSTORE: ", DATA.CONFIGSTORE.LASTHEADER)
+    }
+
+    if(DATA.CONFIGERASE){
+      console.log("CONFIGERASE: ", DATA.CONFIGERASE.LASTHEADER)
     }
 
     _message_stream.set(DATA);

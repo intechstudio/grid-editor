@@ -30,6 +30,7 @@
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
 
 
+
 </script>
 
 <Tailwindcss />

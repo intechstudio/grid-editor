@@ -248,10 +248,12 @@ const grid = {
   
       const PROTOCOL = grid.properties;
   
-      const prepend = [PROTOCOL.CONST.SOH, PROTOCOL.CONST.BRC]
+      const prepend = [PROTOCOL.CONST.SOH, PROTOCOL.CONST.BRC];
+
+      const ID = utility_genId()
       
       let BRC_PARAMETERS = [
-        {ID: utility_genId()}, 
+        {ID: ID}, 
         {SESSION: PROTOCOL.SESSION}, // ON PROTOCOL INIT, THIS IS GENERATED!
         {SX: 0},
         {SY: 0},
@@ -298,7 +300,7 @@ const grid = {
   
       message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
   
-      return message;
+      return {serial: message, id: ID}; // return id for checking communication issues
     },
 
     encode_debugger: function (brc, command){
@@ -485,21 +487,40 @@ const grid = {
 
           }
 
+          if(obj.class == "CONFIGSTORE"){
+            DATA.CONFIGSTORE = decode_by_code(array, obj.class);
+          }
+
+          if(obj.class == "CONFIGERASE"){
+            DATA.CONFIGERASE = decode_by_code(array, obj.class);
+          }
+
+          if(obj.class == "CONFIGDISCARD"){
+            // To do...
+          }
+
           if(obj.class == "CONFIG"){
-            
+
+            // if config report is not coming in after a fetch -> check
+            // if check return with different id, refetch and restart the sync
+
             if(obj.instr == "REPORT"){
               try {
-                DATA.CONFIG = String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0]
+                DATA.CONFIG_LUA = String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0]
               } catch (error) {
                 console.error("Probably an 'expr' in CONFIG REPORT!");
               }
             }
 
             if(obj.instr == "ACKNOWLEDGE"){
-              DATA.ACKNOWLEDGE = decode_by_code(array, obj.class);
+              DATA.CONFIG_ACKNOWLEDGE = decode_by_code(array, obj.class);
             }
+
+            if(obj.instr == "NACKNOWLEDGE"){
+              DATA.CONFIG_NACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
+
           }    
-    
         });
 
     

@@ -1,15 +1,17 @@
 <script>
 
   import grid from "../protocol/grid-protocol";
-  import { runtime } from "../runtime/runtime.store";
+  import { runtime, synchron } from "../runtime/runtime.store";
   import { serialComm } from "../serialport/serialport.store";
 
   export let classes;
 
 
   function store() {
-    const command = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
-    serialComm.write(command);
+    const { serial, id } = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
+    synchron.store(serial, id);
+    serialComm.write(serial);
+    console.log('editor store: ', id)
     runtime.unsaved.set(0);
   }
 
