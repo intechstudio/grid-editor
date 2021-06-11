@@ -20,7 +20,6 @@
         logs = [...logs, log];
         clearInterval(newMsg);
         newMsg = setTimeout(()=>{
-          //logs.pop();
           logs = [];
           popup = false;
         }, 2000)
@@ -34,8 +33,12 @@
   });
 
   $: if(logs.length >= 5){
-    logs = logs.shift();     
+    console.log('before shift...',logs)
+    logs.shift();  
+    logs = logs;
+    console.log('after shift..', logs);   
   }
+
 
   export function cursorLog(node, {popup}){
 
@@ -97,13 +100,14 @@
     <div 
       transition:fade={{duration: 200}} 
       class:border-green-600={logs[logs.length-1].type == 'success'}
-      class:border-yellow-600={logs[logs.length-1].type == 'info'}
-      class:border-red-600={logs[logs.length-1].type == 'alert'}
+      class:border-yellow-600={logs[logs.length-1].type == 'alert'}
+      class:border-red-600={logs[logs.length-1].type == 'fail'}
+      class:border-blue-600={logs[logs.length-1].type == 'progress'}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
       {#each logs as log}
         <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
           <div class="px-2 py-1 bg-primary rounded mr-2">
-            {log.type == 'success' ? '✔️' : log.type == 'alert' ? '❗' : log.type == 'info' ? '⏳' : log.type == 'failed' ? '❌' : null}
+            {log.type == 'success' ? '✔️' : log.type == 'alert' ? '⚠️' : log.type == 'progress' ? '⏳' : log.type == 'fail' ? '❌' : null}
           </div>
           {log.message}
         </div>

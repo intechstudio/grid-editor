@@ -3,7 +3,7 @@ import { transition_in } from 'svelte/internal';
 
 
   import { appSettings } from '../main/_stores/app-helper.store';
-  import { logger, runtime } from '../runtime/runtime.store';
+  import { engine, logger, runtime } from '../runtime/runtime.store';
   import ConfigErase from './ConfigErase.svelte';
   import ConfigStore from './ConfigStore.svelte';
 
@@ -35,8 +35,16 @@ import { transition_in } from 'svelte/internal';
 
     <div class="px-4">
 
-      <div class="flex">
+      <div class="flex items-center">
 
+        <button 
+          on:click={()=>{engine.enable()}} 
+          class="flex items-center justify-center text-xs rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-20 hover:border-select-saturate-20 text-white px-2 py-0.5 mr-2">
+           rst engine
+        </button>
+
+        <div class="mr-4 px-4 py-2 text-sm flex items-center justify-center rounded-md bg-select-saturate-20 text-pink-200">ENGINE {$engine}</div>
+        
         <ConfigErase classes={'mr-1 w-24'}/>
 
         <ConfigStore classes={'ml-1 w-24'}/>        

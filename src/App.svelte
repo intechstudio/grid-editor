@@ -28,6 +28,7 @@
   import Modal from './app/main/Modal.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
+import { engine } from './app/runtime/runtime.store';
 
 
 
@@ -40,7 +41,7 @@
 <SerialPort/>
 
 
-<main id="app" spellcheck="false" class="relative flex w-full h-full flex-row justify-between overflow-hidden">
+<main id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
   <NavTabs/> 
@@ -57,7 +58,7 @@
   
     <TopSubMenu/>
 
-    <div class="flex w-full h-full">
+    <div class="flex w-full h-full { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
       <LeftPanelContainer classes={"w-3/12"}/>
       

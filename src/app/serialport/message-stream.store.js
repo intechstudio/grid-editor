@@ -2,7 +2,7 @@
 import { writable, get } from 'svelte/store';
 import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
-import { debug_store, runtime, user_input, logger } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input, logger, engine } from '../runtime/runtime.store';
 
 function createMessageStream(){
 
@@ -53,11 +53,11 @@ function createMessageStream(){
     }
 
     if(DATA.CONFIGSTORE){
-      console.log("CONFIGSTORE: ", DATA.CONFIGSTORE.LASTHEADER)
+      engine.strict.compare(DATA.CONFIGSTORE.LASTHEADER)
     }
 
     if(DATA.CONFIGERASE){
-      console.log("CONFIGERASE: ", DATA.CONFIGERASE.LASTHEADER)
+      engine.strict.compare(DATA.CONFIGERASE.LASTHEADER)
     }
 
     _message_stream.set(DATA);

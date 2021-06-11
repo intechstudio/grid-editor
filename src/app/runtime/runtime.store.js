@@ -3,6 +3,7 @@ import stringManipulation from '../main/user-interface/_string-operations';
 import { actionPrefStore } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
+import { serialComm } from '../serialport/serialport.store';
 import _utils from './_utils';
 
 export const appActionClipboard = writable([]);
@@ -427,9 +428,13 @@ function create_runtime () {
   }
 }
 
-function createSynchronizer(){
+function createEngine(){
+
+  let deadline = undefined;
   
-  const _command_collection = writable([]);
+  const _strict_command = writable({});
+
+  const _engine_state = writable('ENABLED');
 
   function glitch(id){
     const rnd = Math.random() * 10;
@@ -440,16 +445,82 @@ function createSynchronizer(){
     }
   }
 
-  return {
-    subscribe: _command_collection.subscribe,
-    store: (serial, id) => {
-      _command_collection.update(s => {s = [...s, {serial: serial, id: glitch(id)}]; return s;})
+  function sync(){
+    deadline = setTimeout(()=>{
+      check();
+    },100)
+  }
+
+  function check(){
+    const strict = get(_strict_command);
+    const { serial } = grid.translate.encode('','GLOBAL', `CONFIG${strict.type.toUpperCase()}`,'CHECK','');
+    serialComm.write(serial);
+  }
+
+  function resend(serial){
+    serialComm.write(serial);
+  }
+
+  const _strict = function(){
+
+    this.store = function(type, serial, id){ // type equals partly classname
+
+      _engine_state.set('DISABLED'); 
+
+      logger.set({type: 'alert', message: `${type} in progress...`})
+
+      _strict_command.set({type: type, serial: serial, id: id, debug_id: id});        
+
+      sync();
     }
+
+    this.compare = function(last_id){
+
+      const strict = get(_strict_command);
+
+      let success = false;
+
+      if(strict.id == last_id){
+        success = true;
+        clearTimeout(deadline);
+        _engine_state.set('ENABLED');
+        logger.set({type: 'success', message: `${strict.type} complete!`})
+      }
+
+      if(!success){
+        _engine_state.set('RESEND');
+        resend(strict.serial);
+        logger.set({type: 'progress', message: `Resend ${strict.type} command...`})
+        // DEBUG
+        //_strict_command.update(v => {v.id = v.debug_id; return v});
+      }
+    }
+
+  }
+
+  const _leanient = function(){
+
+    this.store = function(){
+      // to do...
+    }
+
+    this.compare = function(){
+      // to do...
+    }
+  }
+
+  return {
+    subscribe: _engine_state.subscribe,
+    enable: () => {
+      _engine_state.set('ENABLED');
+    },
+    strict: new _strict(),
+    leanient: new _leanient()
   }
 
 }
 
-export const synchron = createSynchronizer();
+export const engine = createEngine();
 
 function createDebug(){
   const store = writable({config: '',enabled: true, data: []});
