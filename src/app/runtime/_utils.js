@@ -26,6 +26,7 @@ const _utils = {
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
+    console.log('gridlua to editorlua', )
     return await this.extendProperties(configs);
   },
 
@@ -72,7 +73,7 @@ const _utils = {
   // add extra properties used in the app, like the id for listing and component
   extendProperties: function(configList){
     return Promise.all(configList.map(async (element,index) => {
-      
+
       // if short is not in lua... revert to codeblock!
       if(!grid.properties.LUA.find(l => l.short == element.short)){
        element.short = 'cb'

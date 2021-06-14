@@ -1,5 +1,5 @@
 export const editor_lua_properties = [
-  // code OPERATORS https://www.tutorialspoint.com/code/code_operators.htm
+  // code OPERATORS https://www.tutorialspoint.com/code/code_operators.html
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\*',  human:'*'}, 
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\+',  human:'+'}, 
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\-',  human:'-'}, 
@@ -23,5 +23,9 @@ export const editor_lua_properties = [
   {type: 'global', allowed: ['2', '1', '3'], short: 'if', human: 'if'},
   {type: 'global', allowed: ['2', '1', '3'], short: 'el', human: 'else'},
   {type: 'global', allowed: ['2', '1', '3'], short: 'ei', human: 'else if'},
-  {type: 'global', allowed: ['2', '1', '3'], short: 'en', human: 'end'}
+  {type: 'global', allowed: ['2', '1', '3'], short: 'en', human: 'end'},
+ 
+  {type: 'encoder', allowed: ['2'], short: 'sec', human: 'encoder_settings'},
+
+  {type: 'button', allowed: ['3'], short: 'sbc', human: 'button_settings'}
 ]

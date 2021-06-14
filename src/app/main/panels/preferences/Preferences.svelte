@@ -1,6 +1,6 @@
 
 <script>
-  import { runtime, heartbeat } from '../../../runtime/runtime.store.js';
+  import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
 
   import { appSettings, preferenceStore } from '../../_stores/app-helper.store.js';
 
@@ -49,6 +49,12 @@
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
         <div class="ml-1">Track physical Grid interaction</div>
       </div>
+
+      <button 
+        on:click={()=>{engine.enable()}} 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-20 hover:border-select-saturate-20 text-white px-2 py-0.5 mr-2">
+        Enable Engine and User Inputs
+      </button>
 
     </div>
 

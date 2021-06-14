@@ -428,14 +428,19 @@ function create_runtime () {
   }
 }
 
+export const runtime = create_runtime();
+
 function createEngine(){
 
   let deadline = undefined;
   
   const _strict_command = writable({});
 
-  const _engine_state = writable('ENABLED');
+  const _engine = writable([]);
 
+  const _engine_state = derived(_engine, $e => $e.map(val => val.state === 'ENABLED').includes(false) ? 'DISABLED' : 'ENABLED');
+
+  // Glitch is probably buggy with multiple modules
   function glitch(id){
     const rnd = Math.random() * 10;
     if(rnd > 5){
@@ -443,6 +448,15 @@ function createEngine(){
     } else {
       return id
     }
+  }
+
+  function update_engine(responseSource, state){
+    _engine.update(store => {
+      console.log(responseSource, store);
+      let device = store.find(d => d.device == responseSource);
+      device.state = state;
+      return store;
+    });
   }
 
   function sync(){
@@ -463,37 +477,55 @@ function createEngine(){
 
   const _strict = function(){
 
+    // initiated from editor
     this.store = function(type, serial, id){ // type equals partly classname
 
-      _engine_state.set('DISABLED'); 
+      const devices = get(_runtime_modules);
 
-      logger.set({type: 'alert', message: `${type} in progress...`})
+      let state = [];
 
-      _strict_command.set({type: type, serial: serial, id: id, debug_id: id});        
+      devices.forEach(device => {
+        state.push({device: device, state: 'DISABLED'})
+      })
+
+      _engine.set(state); 
+
+      logger.set({type: 'progress', message: `${type} in progress...`})
+
+      _strict_command.set({connected: devices, type: type, serial: serial, id: id, debug_id: id});        
 
       sync();
     }
 
-    this.compare = function(last_id){
+    // on response from grid
+    this.compare = function({brc, lastheader}){
 
       const strict = get(_strict_command);
 
       let success = false;
 
-      if(strict.id == last_id){
-        success = true;
-        clearTimeout(deadline);
-        _engine_state.set('ENABLED');
-        logger.set({type: 'success', message: `${strict.type} complete!`})
+      const responseSource = strict.connected.find(d => d.sx == brc.SX && d.sy == brc.SY);
+
+      if(responseSource){
+
+        if(strict.id == lastheader){
+          success = true; // lastheader matches!
+          clearTimeout(deadline);
+          update_engine(responseSource, 'ENABLED');
+          logger.set({type: 'success', message: `${strict.type} complete!`})
+        }
+
+        if(!success){
+          update_engine(responseSource, 'RESEND');
+          resend(strict.serial);
+          logger.set({type: 'alert', message: `Resending ${strict.type} command...`})
+
+          // DEBUG
+          //_strict_command.update(v => {v.id = v.debug_id; return v});
+        }
+
       }
 
-      if(!success){
-        _engine_state.set('RESEND');
-        resend(strict.serial);
-        logger.set({type: 'progress', message: `Resend ${strict.type} command...`})
-        // DEBUG
-        //_strict_command.update(v => {v.id = v.debug_id; return v});
-      }
     }
 
   }
@@ -510,9 +542,10 @@ function createEngine(){
   }
 
   return {
-    subscribe: _engine_state.subscribe,
+    subscribe: _engine.subscribe,
+    state: _engine_state,
     enable: () => {
-      _engine_state.set('ENABLED');
+      _engine.set([]);
     },
     strict: new _strict(),
     leanient: new _leanient()
@@ -551,7 +584,7 @@ export const heartbeat = writable({
   grid: 300
 })
 
-export const runtime = create_runtime();
+
 
 function createLocalDefinitions(){
   
@@ -581,3 +614,11 @@ function createLocalDefinitions(){
 }
 
 export const localDefinitions = createLocalDefinitions();
+
+export const _runtime_modules = derived(runtime, $rt => {
+  let arr = [];
+  $rt.forEach(device => {
+    arr.push({device: device.id, sx: device.dx, sy: device.dy});
+  })
+  return arr;
+});

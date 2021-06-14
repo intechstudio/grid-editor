@@ -2,7 +2,7 @@
 
   import { onMount } from "svelte";
   import { fly, fade } from 'svelte/transition';
-  import { logger } from "../../../runtime/runtime.store";
+  import { engine, logger } from "../../../runtime/runtime.store";
 
   let statusColor = '';
   let logs = [];
@@ -38,6 +38,37 @@
     logs = logs;
     console.log('after shift..', logs);   
   }
+
+  let devices = {
+    number: 0,
+    progress: 0,
+    disabled: 0,
+    enabled: 0
+  }
+
+  engine.subscribe(_devices => {
+
+    devices.number = _devices.length;
+    devices.disabled = 0;
+    devices.progress = 0;
+    devices.enabled = 0;
+
+    _devices.forEach(d => {
+
+      if(d.state == 'ENABLED'){
+        devices.enabled += 1;
+      }
+
+      if(d.state == 'DISABLED'){
+        devices.disabled += 1;
+      }
+      
+      if(d.state == 'PROGRESS'){
+        devices.progress += 1;
+      }
+
+    })
+  })
 
 
   export function cursorLog(node, {popup}){
@@ -104,6 +135,13 @@
       class:border-red-600={logs[logs.length-1].type == 'fail'}
       class:border-blue-600={logs[logs.length-1].type == 'progress'}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
+      <div class="py-2 mb-2 border-b border-gray-500">
+        {#if devices.enabled !== devices.number}
+          {devices.enabled}/{devices.number} {devices.number > 1 ? 'controllers are' : 'controller is'} calculating...
+        {:else}
+          {devices.number}/{devices.enabled} {devices.number > 1 ? 'controllers are' : 'controller is'} ready!
+        {/if}
+      </div>
       {#each logs as log}
         <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
           <div class="px-2 py-1 bg-primary rounded mr-2">

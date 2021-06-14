@@ -134,8 +134,9 @@ module.exports = {
           'glp': '#BBAB8B',
           'l': '#EF8275',
           'gks': '#9AD4D6',
-          'gms': '#DBCBD8'
-
+          'gms': '#DBCBD8',
+          'sbc': '#065A82',
+          'sec': '#963D5A'
 
         }
       },

@@ -4,6 +4,8 @@ import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import { debug_store, runtime, user_input, logger, engine } from '../runtime/runtime.store';
 
+const engine_state = engine.state;
+
 function createMessageStream(){
 
   const _message_stream = writable({});
@@ -18,7 +20,8 @@ function createMessageStream(){
       runtime.device.update_pages({brc: DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
     }
 
-    if(get(engine) == 'ENABLED'){
+    // enable user input from grid only if engine is enabled
+    if(get(engine_state)){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
           user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
@@ -47,19 +50,19 @@ function createMessageStream(){
     }
 
     if(DATA.CONFIG_ACKNOWLEDGE){
-      console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE.LASTHEADER)
+      console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE)
     }
 
     if(DATA.CONFIG_NACKNOWLEDGE){
-      console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE.LASTHEADER)
+      console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
     }
 
     if(DATA.CONFIGSTORE){
-      engine.strict.compare(DATA.CONFIGSTORE.LASTHEADER)
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGSTORE.LASTHEADER})
     }
 
     if(DATA.CONFIGERASE){
-      engine.strict.compare(DATA.CONFIGERASE.LASTHEADER)
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGERASE.LASTHEADER})
     }
 
     _message_stream.set(DATA);

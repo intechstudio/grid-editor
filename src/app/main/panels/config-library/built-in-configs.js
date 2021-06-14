@@ -8,6 +8,9 @@ export const config_collection = [
 
 
     {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
+    
+    {category: ["Element Settings"],   name: 'Encoder Modes',               configs: "--[[@sec]] this.emo(0)"}, 
+    {category: ["Element Settings"],   name: 'Button Modes',               configs: "--[[@sbc]] this.bmo(0)"}, 
 
     {category: ["LED", "Value"],       name: "Blank",                       configs: "--[[@glp]] glp(,,)" },
 

@@ -28,9 +28,13 @@
   import Modal from './app/main/Modal.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
-import { engine } from './app/runtime/runtime.store';
+  import { engine } from './app/runtime/runtime.store';
 
+  //let state = 'ENABLED';
 
+  const engine_state = engine.state;
+
+  //engine.state.subscribe(s => {state = s;})
 
 </script>
 
@@ -58,7 +62,7 @@ import { engine } from './app/runtime/runtime.store';
   
     <TopSubMenu/>
 
-    <div class="flex w-full h-full { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+    <div class="flex w-full h-full { $engine_state == 'ENABLED' ? '' : 'pointer-events-none'}">
 
       <LeftPanelContainer classes={"w-3/12"}/>
       
