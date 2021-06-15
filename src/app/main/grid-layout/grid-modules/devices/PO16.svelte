@@ -33,7 +33,7 @@
     if(eventParam.length){
       let v = 0;
       eventParam[1].forEach((e)=>{
-        if(eventParam[0].SX == selectedElement.brc.dx && eventParam[0].SY == selectedElement.brc.dy){
+        if(eventParam[0].SX == dx && eventParam[0].SY == dy){
           if(static_elementNumber == e.ELEMENTNUMBER){
             v =  e.EVENTPARAM;
             return;

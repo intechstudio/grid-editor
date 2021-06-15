@@ -149,7 +149,9 @@ module.exports = {
     cursor: ['group-hover'],
     borderRadius: ['hover'],
     height: ['group-hover', 'hover'],
-    scale: ['hover','group-hover']
+    scale: ['hover','group-hover'],
+    display: ['hover', 'group-hover'],
+    visibility: ['hover', 'group-hover']
   },
   plugins: []
 }

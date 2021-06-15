@@ -21,7 +21,7 @@ function createMessageStream(){
     }
 
     // enable user input from grid only if engine is enabled
-    if(get(engine_state)){
+    if(get(engine_state) == 'ENABLED'){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
           user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui

@@ -1,16 +1,16 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { appSettings } from '../../_stores/app-helper.store.js';
-  import { runtime } from '../../stores/runtime.store.js';
+  import { appSettings } from '../../main/_stores/app-helper.store';
+  import { runtime } from '../../runtime/runtime.store';
   import { openInBrowser } from '../helpers/global-helper.js';
 
   let fwMismatch = false; 
   let fwVersion;
 
   runtime.subscribe((store)=>{
-    store.forEach(gridController=>{
-      if(JSON.stringify(gridController.fwVersion) !== JSON.stringify(fwVersion)){
+    store.forEach(device=>{
+      if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
         fwMismatch = true;
       }
     });

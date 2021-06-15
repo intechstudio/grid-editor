@@ -29,6 +29,7 @@
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
   import { engine } from './app/runtime/runtime.store';
+import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
 
   //let state = 'ENABLED';
 
@@ -61,6 +62,8 @@
   <div class="flex flex-col w-full h-full">
   
     <TopSubMenu/>
+
+    <FirmwareCheck/>
 
     <div class="flex w-full h-full { $engine_state == 'ENABLED' ? '' : 'pointer-events-none'}">
 

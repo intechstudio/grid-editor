@@ -21,7 +21,7 @@ function checkOS() {
 }
 
 export const appSettings = writable({
-  size: 2,
+  size: 2.1,
   version: {
     major: grid.properties.VERSION.MAJOR,
     minor: grid.properties.VERSION.MINOR,

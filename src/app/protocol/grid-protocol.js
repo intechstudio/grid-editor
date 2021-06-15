@@ -650,7 +650,7 @@ const grid = {
       }
 
       // generic check, code below if works only if all parameters are provided
-      if(header !== undefined && moduleType !== undefined){
+      if(header !== undefined && moduleType !== undefined && heartbeat !== undefined){
         
         header = param2lower(header);
 
@@ -662,9 +662,9 @@ const grid = {
           dx: header.sx,
           dy: header.sy,
           fwVersion: {
-            major: grid.properties.VERSION.MAJOR,
-            minor: grid.properties.VERSION.MINOR,
-            patch: grid.properties.VERSION.PATCH,
+            major: heartbeat.VMAJOR,
+            minor: heartbeat.VMINOR,
+            patch: heartbeat.VPATCH,
           },
           alive: Date.now(),
           virtual: virtual,

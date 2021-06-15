@@ -18,7 +18,7 @@
   let fwVersion;
 
   // $appSettings.size
-  $: gridsize = 2.5 * 106.6 + 10;
+  $: gridsize = 2.1 * 106.6 + 10;
 
   onMount(()=>{
     createPanZoom(map, {
@@ -37,7 +37,12 @@
         return shouldIgnore;
       }
     });
+
+    appSettings.subscribe(s => fwVersion = s.version);
+
   })
+
+  $: console.log(fwVersion);
 
 </script>
 
@@ -73,6 +78,11 @@
     position: absolute;
     justify-content: center;
     align-items: center;
+  }
+
+  .fwMismatch{
+    @apply bg-red-500;
+    @apply rounded-lg;
   }
 
 </style>
