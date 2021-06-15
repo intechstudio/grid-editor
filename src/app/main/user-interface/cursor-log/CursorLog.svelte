@@ -17,26 +17,24 @@
     logger.subscribe((log)=>{
       if(log.message != ''){
         popup = true;
+        if(logs.map(l => l.classname).includes('pagechange') && log.classname == 'strict'){
+          logs = [];
+        }
         logs = [...logs, log];
+        console.log(logs);
         clearInterval(newMsg);
         newMsg = setTimeout(()=>{
           logs = [];
           popup = false;
-        }, 2000)
+        }, 3000);
       }
     });
 
-    logCleanUp = setInterval(()=>{
-      //logs
-    },1000)
-
   });
 
-  $: if(logs.length >= 5){
-    console.log('before shift...',logs)
+  $: if(logs.length >= 6){
     logs.shift();  
     logs = logs;
-    console.log('after shift..', logs);   
   }
 
   let devices = {
@@ -135,13 +133,17 @@
       class:border-red-600={logs[logs.length-1].type == 'fail'}
       class:border-blue-600={logs[logs.length-1].type == 'progress'}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
-      <div class="py-2 mb-2 border-b border-gray-500">
-        {#if devices.enabled !== devices.number}
-          {devices.enabled}/{devices.number} {devices.number > 1 ? 'controllers are' : 'controller is'} calculating...
-        {:else}
-          {devices.number}/{devices.enabled} {devices.number > 1 ? 'controllers are' : 'controller is'} ready!
-        {/if}
-      </div>
+
+      {#if !logs.map(l => l.classname).includes('pagechange')}
+        <div class="py-2 mb-2 border-b border-gray-500">
+          {#if devices.enabled !== devices.number}
+            {devices.enabled}/{devices.number} {devices.number > 1 ? 'controllers are' : 'controller is'} calculating...
+          {:else}
+            {devices.number}/{devices.enabled} {devices.number > 1 ? 'controllers are' : 'controller is'} ready!
+          {/if}
+        </div>
+      {/if}
+
       {#each logs as log}
         <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
           <div class="px-2 py-1 bg-primary rounded mr-2">
@@ -150,6 +152,7 @@
           {log.message}
         </div>
       {/each}
+
     </div>
   {/if}
 </div> 

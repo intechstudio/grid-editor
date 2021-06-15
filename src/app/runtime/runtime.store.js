@@ -10,7 +10,7 @@ export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
 function createLogger(){
-  const _log_store = writable({type:'', message: ''});
+  const _log_store = writable({type:'', message: '', classname: ''});
   const _trigger = writable(0);
 
   function set_log(value){
@@ -490,7 +490,7 @@ function createEngine(){
 
       _engine.set(state); 
 
-      logger.set({type: 'progress', message: `${type} in progress...`})
+      logger.set({type: 'progress', classname: 'strict', message: `${type} in progress...`})
 
       _strict_command.set({connected: devices, type: type, serial: serial, id: id, debug_id: id});        
 
@@ -510,18 +510,18 @@ function createEngine(){
 
         if(strict.id == lastheader){
           success = true; // lastheader matches!
-          clearTimeout(deadline);
+          clearTimeout(deadline); // THIS IS ONLY TRIGGERED ONCE, NOT FOR ALL MODULE INFO...
           update_engine(responseSource, 'ENABLED');
-          logger.set({type: 'success', message: `${strict.type} complete!`})
+          logger.set({type: 'success', classname: 'strict', message: `${strict.type} complete!`})
         }
 
         if(!success){
           update_engine(responseSource, 'RESEND');
           resend(strict.serial);
-          logger.set({type: 'alert', message: `Resending ${strict.type} command...`})
+          logger.set({type: 'alert', classname: 'strict', message: `Resending ${strict.type} command...`})
 
           // DEBUG
-          //_strict_command.update(v => {v.id = v.debug_id; return v});
+          // _strict_command.update(v => {v.id = v.debug_id; return v});
         }
 
       }

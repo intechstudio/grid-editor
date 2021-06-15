@@ -474,7 +474,7 @@ const grid = {
             DATA.DEBUGTEXT = String.fromCharCode(...arr);
 
             if(DATA.DEBUGTEXT.includes('page change is disabled')){
-              DATA.LOG = {type: 'alert', message: 'Store your config before switching pages!'}
+              DATA.LOG = {type: 'alert', classname: 'pagechange', message: 'Store your config before switching pages!'}
             }
 
 /*          if(DATA.DEBUGTEXT.includes('store complete')){
