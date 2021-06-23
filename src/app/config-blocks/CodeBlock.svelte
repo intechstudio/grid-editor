@@ -23,6 +23,7 @@
   import {createEventDispatcher} from 'svelte';
 
   import { parenthesis } from './_validators';
+  import stringManipulation from '../main/user-interface/_string-operations';
 
   export let config;
   export let index;
@@ -34,6 +35,7 @@
 
   function sendData(e){
     if(parenthesis(e)){
+      e = stringManipulation.shortify(e);
       dispatch('output', {short: 'cb', script: e})
     }
   }
@@ -43,8 +45,8 @@
 
 {#if !advanced}
 <code-block class="w-full flex p-4">
-  <CodeEditor doc={`${humanScript}`} {index} showCharCount={false} on:output />
+  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{sendData(e.detail.script)}}/>
 </code-block>
 {:else}
-  <CodeEditor doc={`${humanScript}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
+  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
 {/if}

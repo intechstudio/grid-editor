@@ -8,25 +8,41 @@
 
   stringManipulation.initialize(grid.properties.LUA);
 
-
   export let config;
   export let index;
 
-  console.log(grid.properties.LUA)
+  //console.log(grid.properties.LUA)
+
+  const decision = (short) => {
+    return (short == 'cb' || short == 'l') ? true : false;
+  }
 
   function hijack(event){
-    const script = stringManipulation.shortify(event.detail.script);
-    console.log(event.detail.short, script);
+
+    let script = event.detail.script;
+    
+    const {short} = event.detail;
+    
+    if(decision(short)){
+      const shorted = stringManipulation.shortify(script);
+      shorted !== 'INVALID' ? script = shorted : null;
+    }
+
+
+    
     dispatch('output', {short: event.detail.short, script: script})
   }
 
-  function humanify(script){
+  function humanify(config){
+    // codeblock check, codeblock is wild, local is wild too!!
+    if(decision(config.short)) {
+      const script = stringManipulation.humanize(config.script);
+      script !== 'INVALID' ?  config.script = script : null;
+    }
 
-    const res = stringManipulation.humanize(script);
 
-    // codeblock check, codeblock is wild!
+    return config
 
-    return res;
   }
 
 </script>
@@ -34,9 +50,8 @@
 
 <svelte:component 
   this={config.component} 
-  {config} 
-  humanScript={humanify(config.script, config.short)} 
   {index} 
-  on:output={(e) => { hijack(e) }} 
-  />
+  {config}
+  on:output
+/>
 

@@ -163,9 +163,8 @@ export function luaParser({config}){
   let parser = '';
   try {
     lua.parse(config);
-    parser = 'ok';
+    parser = 'VALID';
   } catch (error) {
-    console.log(error);
     parser = error.message;
   } 
   return parser;

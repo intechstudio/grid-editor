@@ -14,10 +14,11 @@ export const lua_language = LezerLanguage.define({
       }),
       styleTags({
         "if then else elseif end": [t.strong, t.processingInstruction],
-        GridAction: t.special(t.variableName),
-        GridSetter: [t.special(t.string)],
-        GridGetter: t.function(t.variableName),
-        GridVariable: t.keyword,
+        GridLed: t.special(t.variableName),
+        GridMidi: [t.special(t.string)],
+        Element: t.string,
+        'this': t.function(t.variableName),
+        kw: t.keyword,
         ArithOp: t.arithmeticOperator,
         CompareOp: t.compareOperator,
         String: t.string,
@@ -34,7 +35,12 @@ export const lua_language = LezerLanguage.define({
 
 export const lua_completion = lua_language.data.of({
   autocomplete: completeFromList([
-    {label: "midi", type: "keyword"}
+    {label: "local", type: "keyword"},
+    {label: "led_default_red()", type: "function"},
+    {label: "led_default_green()", type: "function"},
+    {label: "led_default_blue()", type: "function"},
+    {label: "this.button_value()", type: "function"},
+    {label: "led_value(number,layer,value)", type: "function"}
   ])
 })
 

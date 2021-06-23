@@ -50,6 +50,10 @@ export function mapObjectsToArray (array, object){
         array = [...array, ...mapper(object[key], 'potmeter', ['1'])]
       }
 
+      if(key == "KW"){
+        array = [...array, ...mapper(object[key], 'keyword', ['1','2','3'])]
+      }
+
     }
 
     return array;

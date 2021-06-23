@@ -12,12 +12,12 @@
 
   import { createEventDispatcher, onDestroy } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-  import stringManipulation from '../main/user-interface/_string-operations';
+  import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
+  import { luaParser } from '../runtime/_utils';
 
   import { parenthesis } from './_validators';
 
   export let config = '';
-  export let humanScript;
   export let index;
   export let advanced = false;
   export let advancedClickAddon;
@@ -38,7 +38,13 @@
   // config.script cannot be undefined
   $: if(config.script /* && !loaded*/){
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({script: humanScript})
+    scriptSegments = localsToConfig({script: config.script});
+
+    scriptSegments = scriptSegments.map(elem => {
+      elem.value = stringManipulation.humanize(elem.value); 
+      return elem;
+    })
+
     loaded = true;
   }
 
@@ -50,7 +56,9 @@
   // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
   function saveChangesOnInput(e, i, k){
     scriptSegments[i][k] = e;
+
     sendData();
+
   }
 
   function sendData(){
@@ -58,6 +66,7 @@
     let script = localArrayToScript(scriptSegments);
 
     if(parenthesis(script)){
+      script = stringManipulation.shortify(script);
       dispatch('output', {short: 'l', script: script})
     }
   }
@@ -131,12 +140,12 @@
           > 
         </div>
         <div class="w-9/12 pl-1">
-          <input 
-          class="py-0.5 pl-1 w-full bg-secondary text-white" 
-          placeholder="value" 
-          value={script.value} 
-          on:input={(e)=>{saveChangesOnInput(e.target.value, i ,'value')}}
-         >
+          <CodeEditor doc={`${script.value}`} 
+          showLineNumbers={false} 
+          showCharCount={false} 
+          index={i} 
+          {advancedClickAddon} 
+          on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}/>
         </div>
         {#if i !== 0}
           <div on:click={()=>{removeLocalVariable(i)}} class="flex items-center group cursor-pointer pl-1">

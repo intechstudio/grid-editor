@@ -16,14 +16,10 @@ const utility_genId  = () => {
 const moduleLookup = (hwcfg) => {
   var HWCFG = grid.properties.HWCFG;
   let type = '';
-  console.log()
   for (const key in HWCFG) {
     if(HWCFG[key] == hwcfg){
       return type = key;
     }
-    /*else {
-      return type = "PBF4_RevA"
-    }*/
   }
 }
 
@@ -183,6 +179,13 @@ const grid = {
           let paramSet = key.split('_');
           let value = grid_protocol[key];
           createNestedObject( LUA, paramSet.slice(3,), value )
+        }
+
+        // GRID LUA KEYWORDS
+        if(key.startsWith('GRID_LUA_KW_')){
+          let paramSet = key.split('_');
+          let value = grid_protocol[key];
+          createNestedObject( LUA, paramSet.slice(2,), value )
         }
 
         // GRID CLASSES

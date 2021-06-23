@@ -45,8 +45,9 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if(humanScript && !loaded){
-    scriptSegments = _utils.humanScriptToSegments({human: config.human, script: humanScript})
+  $: if(config.script && !loaded){
+    // alternatively humanScriptToSegments could be used
+    scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script})
   };
 
   onDestroy(()=>{

@@ -83,7 +83,7 @@ const stringManipulation = {
     // for "," in functions
     pattern.push(`${'(?<separator>(\,))'}`);
     // for parenthesis ")" "("
-    pattern.push(`${'(?<parenthesis>([)()[\]]))'}`)
+    pattern.push(`${'(?<parenthesis>([\\)\\(\\]\\[]))'}`)
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
     // if its if-then-end
@@ -98,7 +98,6 @@ const stringManipulation = {
     pattern = pattern.join('|');
 
     const regex = new RegExp(pattern, "g");
-
 
     let m;
     let arr = [];
@@ -188,12 +187,12 @@ const stringManipulation = {
         }
         
       } catch (error) {
+        
         console.error(`Could not ${returnFormat}ize section!`, element);
 
-        string += element.value;
-      }
+        string += element.value
 
-      
+      }      
     
     });
 
@@ -286,3 +285,11 @@ const stringManipulation = {
 }
 
 export default stringManipulation;
+
+export function debounce( callback, delay ) {
+  let timeout;
+  return function() {
+      clearTimeout( timeout );
+      timeout = setTimeout( callback, delay );
+  }
+}

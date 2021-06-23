@@ -135,6 +135,7 @@
           const code = (v.state.doc.text.join('\n'));
           // add a whitespace before 'e'
           dispatch('output', {short: 'cb', script: ` ${code}`});
+          
         }
       }),
       //linter(luaLint()),

@@ -21,7 +21,6 @@
           logs = [];
         }
         logs = [...logs, log];
-        console.log(logs);
         clearInterval(newMsg);
         newMsg = setTimeout(()=>{
           logs = [];

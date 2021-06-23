@@ -17,6 +17,7 @@
 
   export let config = ''
   export let index;
+  export let humanScript;
 
   const dispatch = createEventDispatcher();
 
@@ -27,7 +28,8 @@
   let loaded = false;
 
   $: if(config.script){
-    const matches = whatsInParenthesis.exec(config.script);
+    console.log(humanScript)
+    const matches = whatsInParenthesis.exec(humanScript);
     scriptValue = matches[1]
     loaded = true;
   }

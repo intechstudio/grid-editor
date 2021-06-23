@@ -37,34 +37,35 @@ statement[@isGroup=Statement] {
   Assign { VarList "=" ExpList } |
   FunctionCall ~fcall |
   Local { kw<"local"> AttNameList ("=" ExpList)? } |
-  GridAction |
-  GridSetter | 
-  GridGetter |
-  GridVariable
+  GridLed |
+  GridMidi | 
+  GridMacro |
+  Element |
+  This { kw<"this"> Element}
 }
 
 // Grid specific keywords
 
 
-GridAction {
+GridLed {
   actions
 }
-actions { @specialize<identifier , "midi_send" | "led_value" | "led_mode" | "keyboard_macro" | "keyboard_change"> FuncBody }
+actions { @specialize<identifier , "led_default_red" | "led_default_green" | "led_default_blue" | "led_value" | "led_timeout" | "led_color_min" | "led_color_mid" | "led_color_max" | "led_color" | "led_animation_rate" | "led_animation_type" | "led_animation_phase_rate_type" > FuncBody }
 
-GridSetter {
-  setter
+GridMidi {
+  midi
 }
-setter { @specialize<identifier , "set_default_bank_color" | "set_active_bank" | "set_element_default_number" | "set_encoder_velocity_parameters"> FuncBody }
+midi { @specialize<identifier , "midi_send"> FuncBody }
 
-GridGetter {
-  getter
+GridMacro {
+  macro
 }
-getter { @specialize<identifier , "get_absolute_value" | "get_relative_value">  ~fcall}
+macro { @specialize<identifier , "keyboard_send" >  ~fcall}
 
-GridVariable {
-  gvar
+Element {
+  element
 }
-gvar { @specialize<identifier , "encoder_number" | "elapsed_time" | "active_bank" | "relative_change"> }
+element { @specialize<identifier , "element_index" | "button_number" | "button_value" | "button_min" | "button_max" | "button_mode" | "button_elapsed_time" | "button_state" | "encoder_number" | "encoder_value" | "encoder_min" | "encoder_max" | "encoder_mode" | "encoder_elapsed_time" | "encoder_state" | "encoder_change" | "button_change" | "potmeter_number" | "potmeter_value" | "potmeter_min" | "potmeter_max" | "potmeter_resolution" | "potmeter_elapsed_time" | "potmeter_state" | "potmeter_change"> FuncBody }
 
 
 IfStatement {
@@ -103,9 +104,10 @@ exp {
   UnaryExpression |
   TableConstructor |
   FunctionDef { kw<"function"> FuncBody } |
-  GridVariable |
-  GridSetter |
-  GridAction
+  Element |
+  GridMidi |
+  GridMacro |
+  GridLed
 }
 
 field[@isGroup=Field] {
