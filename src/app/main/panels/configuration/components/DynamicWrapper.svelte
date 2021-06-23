@@ -73,7 +73,7 @@
 
       <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
         <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
-          <slot name="config"></slot>
+          <slot name="humanify"></slot>
         </fader-transition>
       </container>
 <!--
@@ -96,7 +96,7 @@
         class="flex w-full flex-col">
 
         <div class="{disable_pointer_events ? 'pointer-events-none' : ''} w-full flex relative">
-          <slot name="config"></slot>
+          <slot name="humanify"></slot>
         </div>
       </div>
 

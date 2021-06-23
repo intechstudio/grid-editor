@@ -27,7 +27,6 @@ const instructions = {
       ],
     );
 
-    console.log('editor fetchConfigFromGrid: ', id)
     serialComm.write(serial);
 
     return 1;
@@ -55,10 +54,6 @@ const instructions = {
 
     const {serial, id} = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
 
-    //console.log('CFG TO GRID: ',String.fromCharCode.apply(String, cfg));
-
-    console.log('editor sendConfigToGrid: ', id)
-
     serialComm.write(serial);
 
     return 1;
@@ -73,8 +68,6 @@ const instructions = {
     ]
 
     const {serial, id}  = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
-
-    console.log('editor changeActivePage: ', id)
 
     serialComm.write(serial);
 

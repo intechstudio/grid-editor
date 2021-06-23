@@ -26,7 +26,6 @@ const _utils = {
     if(fullConfig.length == 0) return Promise.reject("No config passed!");
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
-    console.log('gridlua to editorlua', )
     return await this.extendProperties(configs);
   },
 
@@ -89,7 +88,7 @@ const _utils = {
     }));
   },
 
-  scriptToSegments: function({script, human, short}){
+  scriptToSegments: function({script, short}){
     // get the part after function name with parenthesis
     let config = [];
     config = script.split(short)[1];
@@ -101,8 +100,35 @@ const _utils = {
     return config;
   },
 
+  humanScriptToSegments: function({script, human}){
+    // get the part after function name with parenthesis
+    let config = [];
+    config = script.split(human)[1];
+
+    // remove spaces
+    config = config.replace(/\s+/g, '');
+    // remove parenthesis
+    config = config.slice(1, -1);
+    // split by comma to make array
+    config = config.split(',');
+  
+    return config;
+  },
+
   segmentsToScript: function({human = '', short, array = []}){
     let code = short; // prepend with type
+    const _unformatted = JSON.stringify(array);
+    [..._unformatted].forEach(e => {
+      if(e == '['){ code += '(' }
+      else if(e == ']') { code += ')'}
+      else if(e == "\"") { /* no return */ }
+      else { code += e }
+    })
+    return code;
+  },
+
+  humanSegmentsToScript: function({human = '', short, array = []}){
+    let code = human; // prepend with type
     const _unformatted = JSON.stringify(array);
     [..._unformatted].forEach(e => {
       if(e == '['){ code += '(' }

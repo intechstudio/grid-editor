@@ -50,11 +50,11 @@ function createMessageStream(){
     }
 
     if(DATA.CONFIG_ACKNOWLEDGE){
-      console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE)
+      //console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE)
     }
 
     if(DATA.CONFIG_NACKNOWLEDGE){
-      console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
+      //console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
     }
 
     if(DATA.CONFIGSTORE){

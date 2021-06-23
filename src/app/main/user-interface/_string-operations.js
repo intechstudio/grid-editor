@@ -3,6 +3,7 @@ const stringManipulation = {
   initialize: function(inputSet = []){
     let regex_short = {};
     let regex_human = {};
+    let lookup = [];
 
     let functions = {pattern: [], values: {}};
 
@@ -14,9 +15,10 @@ const stringManipulation = {
     
     // make human readable and short regex groups
     newarr.forEach((type , i) => {
-      regex_short[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'' + v.short}` : `${'\\b' + v.short + '\\b'}`).join('|');
       regex_human[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
-    })
+      regex_short[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.short}` : `${'\\b' + v.short + '\\b'}`).join('|');
+      lookup[i] = inputSet.filter(obj => obj.type === type).map((v) => { return { "short": v.short, "human": v.human};});
+    });
 
     // function could be used for validation purpose, currently not used.
     inputSet.forEach((obj,i) => {
@@ -31,12 +33,17 @@ const stringManipulation = {
 
     functions.pattern = functions.pattern.join('|');
 
+
+
     this.VALIDATOR = {
       
       regex_short: regex_short,
       regex_human: regex_human,
+      lookup: [].concat(...lookup)
       //functions: functions
     }
+
+    console.log( this.VALIDATOR)
   },
 
   checkFn: function(text){
@@ -52,10 +59,19 @@ const stringManipulation = {
     return !regex.test(text);
   },
 
-  splitShortScript: function(script){
+  splitShortScript: function(script, mode){
+
+    let lookupType;
+
+    switch(mode){
+      case 'short': lookupType = 'regex_short'; break;
+      case 'human': lookupType = 'regex_human'; break;
+    }
+
     let pattern = [];
-    for (const key in this.VALIDATOR.regex_short) {
-      pattern.push(`${'(?<' + key + '>' + this.VALIDATOR.regex_short[key] + ')'}`);
+
+    for (const key in this.VALIDATOR[lookupType]) {
+      pattern.push(`${'(?<' + key + '>' + this.VALIDATOR[lookupType][key] + ')'}`);
     }
 
     // split with dev
@@ -67,21 +83,22 @@ const stringManipulation = {
     // for "," in functions
     pattern.push(`${'(?<separator>(\,))'}`);
     // for parenthesis ")" "("
-    pattern.push(`${'(?<parenthesis>([)()]))'}`)
+    pattern.push(`${'(?<parenthesis>([)()[\]]))'}`)
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
     // if its if-then-end
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
     // if its local
-    pattern.push(`${'(?<local>(\\blocal\\b))'}`)
-    // if its character which is invalid
-    pattern.push(`${'(?<other>([a-zA-Z]+))'}`);
+    pattern.push(`${'(?<special>(\\blocal\\b|[=.]))'}`)
     // if its dotnotation
-    pattern.push(`${'(?<dotnotation>((\\w+)\.(\\w)+))'}`)
+    pattern.push(`${'(?<dotnotation>(\\bthis\\b.\\w+))'}`)
+    // if unknown
+    pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
     pattern = pattern.join('|');
 
     const regex = new RegExp(pattern, "g");
+
 
     let m;
     let arr = [];
@@ -97,6 +114,91 @@ const stringManipulation = {
       }
     }
     return arr;
+  },
+
+  humanize: function(script){
+
+    const splitArray = this.splitShortScript(script, 'short');
+
+    //console.log('HUMAN SPLIT: ',splitArray);
+
+    const humanized = this.splitArrayToString(splitArray, 'human');
+
+    //console.log('HUMAN: ',humanized);
+
+    return humanized;
+    
+  },
+
+  shortify(script){
+
+    const splitArray = this.splitShortScript(script, 'human');
+
+    //console.log('SHORT SPLIT: ', splitArray);
+
+    const shorted = this.splitArrayToString(splitArray, 'short');
+
+    //console.log('SHORT: ', shorted);
+
+    return shorted;
+
+  },
+
+  splitArrayToString: function(splitArray, direction){
+
+    let returnFormat;
+    let lookupFormat;
+
+    switch(direction){
+      case 'human': {
+        returnFormat = 'human';
+        lookupFormat = 'short';
+        break;
+      } 
+      case 'short': {
+        returnFormat = 'short';
+        lookupFormat = 'human';
+        break;
+      }
+
+    }
+
+    let string = '';
+
+    splitArray.forEach((element) => {
+
+      const value = element.type == 'dotnotation' ? element.value.split('this.')[1] : element.value;
+      const found = this.VALIDATOR.lookup.find(element => element[lookupFormat] == value);
+
+      try {
+
+        if(element.type == 'dotnotation'){
+          string += `this.${found[returnFormat]}`;
+          //console.log('DOT NOTATION', `this.${found[returnFormat]}`)
+        }
+        else if(element.value == 'local'){
+          string += `local ` // <-- here is a space!;
+        }
+        else if(element.type == 'global'){
+          string += `${found[returnFormat]}`
+          //console.log('GLOBAL', `${found[returnFormat]}`)
+        }
+        else {
+          string += element.value;
+        }
+        
+      } catch (error) {
+        console.error(`Could not ${returnFormat}ize section!`, element);
+
+        string += element.value;
+      }
+
+      
+    
+    });
+
+    return string;
+
   },
 
   splitExprToArray: function(splitExpr){

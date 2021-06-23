@@ -157,7 +157,6 @@
           h=hnew;
           s=snew;
           v=vnew;
-          console.log('rgbToHSV-diff')
           colorChange();
           return;
         }

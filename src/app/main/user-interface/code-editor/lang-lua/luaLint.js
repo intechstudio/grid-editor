@@ -38,8 +38,6 @@ export function luaLint(lualint, config) {
       let fromLine = state.doc.lineAt(from), offset = {line: fromLine.number - 1, col: from - fromLine.from, pos: from}
       
       let code = state.doc.text.join('\n');
-      console.log(code)
-      console.log(lua.parse(code))
       //for (let d of lualint.verify(state.sliceDoc(from, to), config))
       found.push(translateDiagnostic(state.doc, offset))
     }

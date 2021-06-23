@@ -16,9 +16,14 @@ const utility_genId  = () => {
 const moduleLookup = (hwcfg) => {
   var HWCFG = grid.properties.HWCFG;
   let type = '';
+  console.log()
   for (const key in HWCFG) {
-    if(HWCFG[key] == hwcfg)
+    if(HWCFG[key] == hwcfg){
       return type = key;
+    }
+    /*else {
+      return type = "PBF4_RevA"
+    }*/
   }
 }
 
@@ -456,7 +461,9 @@ const grid = {
           }
                 
           if(obj.class == "HEARTBEAT"){
-            DATA.HEARTBEAT = decode_by_code(array, obj.class);
+            if(!(DATA.BRC.SX == -127 && DATA.BRC.SY == -127)){
+              DATA.HEARTBEAT = decode_by_code(array, obj.class);
+            }
           }
 
           if(obj.class == "PAGEACTIVE"){

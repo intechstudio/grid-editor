@@ -280,7 +280,6 @@ function create_runtime () {
     this.throw = function(){
       _runtime.update(_runtime => {
         _runtime.forEach((device)=>{
-          console.log(device.pages[li.event.pagenumber].control_elements);
           device.pages[li.event.pagenumber].control_elements.forEach(control_element =>{
             control_element.events.forEach((event)=>{
               if(['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(event.cfgStatus)){
@@ -452,7 +451,6 @@ function createEngine(){
 
   function update_engine(responseSource, state){
     _engine.update(store => {
-      console.log(responseSource, store);
       let device = store.find(d => d.device == responseSource);
       device.state = state;
       return store;

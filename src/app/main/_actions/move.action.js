@@ -138,7 +138,7 @@ export function changeOrder(node, {configs}) {
       //console.log(e.target)
       if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
         moveDisabled = true;
-        console.log(e.target.getAttribute('movable'), e.target)
+        //console.log(e.target.getAttribute('movable'), e.target)
         node.dispatchEvent(new CustomEvent('drag-end'));
         node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
         console.log('This cannot be moved!')
@@ -159,7 +159,6 @@ export function changeOrder(node, {configs}) {
       const component = dragged.getAttribute('config-component');
 
       if(component == 'If'){
-        console.log('If drag!');
         const _id = id.substr(4,);
         const nodes = _configs.slice(_id);
         const end_of_if = if_end_pairs(_configs, _id);
@@ -195,9 +194,7 @@ export function changeOrder(node, {configs}) {
       cursor.style.display = "block";
       cursor.style.left = shiftX + e.pageX - shiftX + 'px';
       cursor.style.top = shiftY + e.pageY - shiftY + 'px';
-
-      console.log(id);
-
+      
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!

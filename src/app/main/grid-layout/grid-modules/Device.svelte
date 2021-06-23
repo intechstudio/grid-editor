@@ -47,7 +47,6 @@
     user_input.active_input(store => {
       selectedElement = store.selected;
       eventParam = store.eventparams;
-      console.log('active...',store);
     })
     
   })

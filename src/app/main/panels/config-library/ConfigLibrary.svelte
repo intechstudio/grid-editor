@@ -38,8 +38,6 @@
 
     const cfg = get(presetManagement.selected_preset).configs;
 
-    console.log('NEW CONFIG', cfg);
-
     dispatch('new-config', {
       config: cfg
     });

@@ -21,6 +21,7 @@
   import { runtime, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
+  import ConfigBlock from './components/ConfigBlock.svelte';
 
   export let configs = [];
 
@@ -120,7 +121,7 @@
         {#each configs as config, index (config.id)}
           <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
             <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
-                <svelte:component slot="config" this={config.component} {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>  
+                <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
                 <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.information.name} />
             </DynamicWrapper>
 

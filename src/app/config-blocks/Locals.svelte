@@ -12,10 +12,12 @@
 
   import { createEventDispatcher, onDestroy } from 'svelte';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
+  import stringManipulation from '../main/user-interface/_string-operations';
 
   import { parenthesis } from './_validators';
 
   export let config = '';
+  export let humanScript;
   export let index;
   export let advanced = false;
   export let advancedClickAddon;
@@ -36,7 +38,7 @@
   // config.script cannot be undefined
   $: if(config.script /* && !loaded*/){
     // this works differently from normal _utils...
-    scriptSegments = localsToConfig({script: config.script, human: config.human})
+    scriptSegments = localsToConfig({script: humanScript})
     loaded = true;
   }
 
@@ -52,20 +54,23 @@
   }
 
   function sendData(){
-    const script = localArrayToScript(scriptSegments);
+
+    let script = localArrayToScript(scriptSegments);
+
     if(parenthesis(script)){
-      dispatch('output', {short: 'l', script: localArrayToScript(scriptSegments)})
+      dispatch('output', {short: 'l', script: script})
     }
   }
 
   function localArrayToScript(arr){
     let script = ['local ', arr.map(e => e.variable).join(','), '=', arr.map(e => e.value).join(',')].join('');
-    return script
+    return script;
   }
 
   function localsToConfig({script}){  
 
     if(parenthesis(script)){
+
       // this had to be moved out of locals function, as array refresh was killed by $ with scriptSegments..
       let _variable_array = script.split('=')[0];
       _variable_array = _variable_array.split('local')[1];
@@ -117,7 +122,7 @@
   <div class="w-full flex flex-col">
     {#each scriptSegments as script, i (i)}
       <div class="w-full flex local-defs py-2">
-        <div class="w-1/3 pr-1">
+        <div class="w-3/12 pr-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
           placeholder="variable name" 
@@ -125,7 +130,7 @@
           on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}}
           > 
         </div>
-        <div class="w-2/3 pl-1">
+        <div class="w-9/12 pl-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
           placeholder="value" 

@@ -42,8 +42,6 @@
 
   })
 
-  $: console.log(fwVersion);
-
 </script>
 
 <layout-container class="relative flex items-start {classes} h-full">

@@ -26,6 +26,7 @@
 
   export let config;
   export let index;
+  export let humanScript;
   export let advanced;
   export let advancedClickAddon;
 
@@ -42,8 +43,8 @@
 
 {#if !advanced}
 <code-block class="w-full flex p-4">
-  <CodeEditor doc={`${config.script}`} {index} showCharCount={false} on:output />
+  <CodeEditor doc={`${humanScript}`} {index} showCharCount={false} on:output />
 </code-block>
 {:else}
-  <CodeEditor doc={`${config.script}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
+  <CodeEditor doc={`${humanScript}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
 {/if}

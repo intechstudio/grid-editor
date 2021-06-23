@@ -31,6 +31,7 @@
   import validate from './_validators';
 
   export let config;
+  export let humanScript;
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
@@ -44,8 +45,8 @@
   let scriptSegments = [];
 
   // config.script cannot be undefined
-  $: if(config.script && !loaded){
-    scriptSegments = _utils.scriptToSegments({human: config.human, short: config.short, script: config.script})
+  $: if(humanScript && !loaded){
+    scriptSegments = _utils.humanScriptToSegments({human: config.human, script: humanScript})
   };
 
   onDestroy(()=>{

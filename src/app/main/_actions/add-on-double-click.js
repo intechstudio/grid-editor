@@ -7,7 +7,7 @@ export function addOnDoubleClick(node) {
     )
 
     if (node && !node.contains(event.target) && !event.defaultPrevented) {
-      console.log('DBL', node, event.target)
+      //console.log('DBL', node, event.target)
     }
   }
 

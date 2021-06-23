@@ -81,8 +81,6 @@
     
     const selection_length = arr.length + index;
 
-    console.log('configs: ', configs, 'index: ', index, 'selection_length: ', selection_length );
-
     for (let i = index; i < selection_length; i++) {
       $appMultiSelect.selection[i] = ! $appMultiSelect.selection[i]
     }

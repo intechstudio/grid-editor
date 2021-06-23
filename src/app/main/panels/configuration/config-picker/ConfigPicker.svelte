@@ -150,7 +150,7 @@
     <menu 
       id="action-menu"
       use:menuBoundaries={'init'} 
-      on:offset-top={(e)=>{topOffset = e.detail; console.log(topOffset)}} 
+      on:offset-top={(e)=>{topOffset = e.detail;}} 
       style="right: calc(100% + 2rem);top:{-250 + topOffset}px;width:300px;height:500px;z-index:9999" 
       class="absolute shadow-md rounded-md bg-primary p-4">
       
