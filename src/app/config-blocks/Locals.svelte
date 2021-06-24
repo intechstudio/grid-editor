@@ -3,7 +3,7 @@
     short: 'l',
     name: 'Locals',
     groupType: 'standard',
-    desc: 'Local Definitions',
+    desc: 'Local Variables',
     icon: `<span class="block w-full text-center italic font-gt-pressura">L</span>`,
   }
 </script>

@@ -89,13 +89,11 @@ const stringManipulation = {
     // if its if-then-end
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
     // if its local
-    pattern.push(`${'(?<special>(\\blocal\\b|[=.]))'}`)
+    pattern.push(`${'(?<special>(\\blocal\\b|[=._]))'}`)
     // if unknown
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
     pattern = pattern.join('|');
-
-    console.log(pattern);
 
     const regex = new RegExp(pattern, "g");
 
