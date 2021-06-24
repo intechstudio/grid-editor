@@ -90,12 +90,12 @@ const stringManipulation = {
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
     // if its local
     pattern.push(`${'(?<special>(\\blocal\\b|[=.]))'}`)
-    // if its dotnotation
-    pattern.push(`${'(?<dotnotation>(\\bthis\\b.\\w+))'}`)
     // if unknown
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
     pattern = pattern.join('|');
+
+    console.log(pattern);
 
     const regex = new RegExp(pattern, "g");
 
@@ -143,6 +143,22 @@ const stringManipulation = {
 
   },
 
+  typeCheck: function(type){
+
+    let keys = [];
+    let bool = false;
+
+    for (const key in this.VALIDATOR.regex_human){
+      keys.push(key);
+    }
+
+    if(keys.includes(type)){
+      bool = true;
+    }
+
+    return bool;
+  },
+
   splitArrayToString: function(splitArray, direction){
 
     let returnFormat;
@@ -163,24 +179,19 @@ const stringManipulation = {
     }
 
     let string = '';
+    
 
     splitArray.forEach((element) => {
 
-      const value = element.type == 'dotnotation' ? element.value.split('this.')[1] : element.value;
-      const found = this.VALIDATOR.lookup.find(element => element[lookupFormat] == value);
+      const found = this.VALIDATOR.lookup.find(lookup_element => lookup_element[lookupFormat] == element.value);
 
       try {
 
-        if(element.type == 'dotnotation'){
-          string += `this.${found[returnFormat]}`;
-          //console.log('DOT NOTATION', `this.${found[returnFormat]}`)
+        if(this.typeCheck(element.type)){
+          string += `${found[returnFormat]}`;
         }
         else if(element.value == 'local'){
           string += `local ` // <-- here is a space!;
-        }
-        else if(element.type == 'global'){
-          string += `${found[returnFormat]}`
-          //console.log('GLOBAL', `${found[returnFormat]}`)
         }
         else {
           string += element.value;
@@ -195,6 +206,8 @@ const stringManipulation = {
       }      
     
     });
+
+
 
     return string;
 
