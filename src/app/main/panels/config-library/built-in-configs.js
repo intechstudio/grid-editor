@@ -6,6 +6,7 @@ export const config_collection = [
     {category: ["Locals"],             name: "Potmeter / Fader",          configs: "--[[@l]] local num, val = this.ind(), this.pva()"},
     {category: ["Locals"],             name: "Encoder",                   configs: "--[[@l]] local num, val = this.ind(), this.eva()"},
 
+    {category: ["Lookup"],             name: "MIDI Assignment",           configs: "--[[@glut]] glut(param1,36,0,37,1)"},
 
     {category: ["Code Block"],         name: 'Default',                    configs: "--[[@cb]] "}, // <-- imporant to let a space there!
     

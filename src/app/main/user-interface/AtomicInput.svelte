@@ -11,8 +11,7 @@
   export let inputValue = '';
   export let suggestions = [];
   export let customClasses = '';
-  export let suggestionInfo = true;
-  export let config_index;
+  export let placeholder = '';
 
   let edited = false;
 
@@ -27,85 +26,47 @@
   let focus;
 
   function handleChange(){
+    console.log('inputvalue...', inputValue);
     dispatch('change', inputValue);
   }
 
-  function handleClick(){
-    focus = true;
-    dispatch('focus', {
-      detail: {
-        focus: true
-      }
+  function handleFocus(mode, bool){
+    focus = bool;
+    dispatch(`${mode}-focus`, {
+      focus: bool  
     });
   }
-  
-  export function dimensions(node){
 
-    const handleResize = event => {
-
-      console.log(event);
-
-      node.dispatchEvent(
-        new CustomEvent('double-click')
-      )
-
-      if (node && !node.contains(event.target) && !event.defaultPrevented) {
-        //console.log('DBL', node, event.target)
-      }
-    }
-
-    node.addEventListener('resize', handleResize, true);
-    
-
-    return {
-      update: () => {
-
-      },
-      destroy: () => {
-
-      }
-    }
-
-  }
 
 </script>
 
-<div use:dimensions class="w-full relative" use:clickOutside={{useCapture:false}} on:click-outside={()=>{focus = false}}>
+<div class="w-full relative" use:clickOutside={{useCapture:false}} on:click-outside={()=>{focus = false; handleFocus('loose',false)}}>
 
   <input 
     disabled={disabled}
-    class:shadow={focus} 
     bind:value={inputValue} 
-    on:click={handleClick} 
+    on:click={()=>{handleFocus('active',true)}} 
     on:change={handleChange} 
-    on:input={(e)=>{focus = false; handleChange()}} 
+    on:input={(e)=>{handleChange(); handleFocus('loose', false)}} 
     type="text" 
-    class="{customClasses} w-full border-l-2 {focus ? 'border-commit' : 'border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
+    placeholder={placeholder}
+    class="{customClasses} w-full border {focus ? ' neumorph border-select rounded-lg' : 'border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
   >
 
-  {#if suggestionInfo}<div class="{infoValue ? 'text-gray-500' : 'text-yellow-400'} text-sm py-1">{infoValue}</div>{/if}
-
-
-
-  {#if focus}
-    <ul class:shadow={focus} class="h-56 sticky scrollbar block border-t overflow-y-scroll  border-important text-white cursor-pointer bg-secondary">
-      {#each suggestions as suggestion, index}
-        <li on:click={(e)=>{infoValue=suggestion.info; focus = false; inputValue = suggestion.value; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
-      {/each}
-    </ul>
-  {/if}
+  {#if !focus}<div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm py-1">{infoValue}</div>{/if}
 
 
 </div>
 
 <style>
-  .extra{
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
+  .neumorph{
+    box-shadow:  -2px -2px 10px #242c30,
+                2px 2px 10px #303c42;
   }
   
 
 ::-webkit-scrollbar {
+    border-radius: 8px;
     height: 6px;
     width: 6px;
     background: #1e2628;
@@ -113,10 +74,12 @@
 
 ::-webkit-scrollbar-thumb {
     background: #286787;
+    border-radius: 8px;
     -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
 }
 
 ::-webkit-scrollbar-corner {
+    border-radius: 8px;
     background: #1e2628
 }
 

@@ -23,7 +23,7 @@
 
   import { onMount, beforeUpdate, afterUpdate, createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
-
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
   import _utils from '../runtime/_utils.js';
   import { localDefinitions } from '../runtime/runtime.store';
 
@@ -59,19 +59,19 @@
     const locals = $localDefinitions.map(l => l.value)
     
     if(index == 0){
-      valid = validator.min(0).max(15).isLocal(locals).result();
+      valid = validator.min(0).max(15).result();
     }
 
     if(index == 1){
-      valid = validator.min(127).max(255).isLocal(locals).result();
+      valid = validator.min(127).max(255).result();
     }
 
     if(index == 2){
-      valid = validator.min(0).max(127).isLocal(locals).result();
+      valid = validator.min(0).max(127).result();
     }
 
     if(index == 3){
-      valid = validator.min(0).max(127).isLocal(locals).result();
+      valid = validator.min(0).max(127).result();
     }
 
     if(valid){
@@ -650,49 +650,67 @@
     suggestions = suggestions.map(s => [...$localDefinitions, ...s]);
   }
 
+  let ready = false;
   onMount(()=>{
     renderSuggestions();
+    ready = true;
   });
 
-  let showSuggestions = true;
+  let showSuggestions = false;
+  let focusedInput = undefined;
+  let focusGroup = [];
 
-  let focusedInput = 0;
-
-  function onFocusChange(event,index){
+  function onActiveFocus(event,index){
+    focusGroup[index] = event.detail.focus;
     focusedInput = index;
   }
 
+  function onLooseFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    showSuggestions = focusGroup.includes(true);
+  }
+
+
+
+
 </script>
 
-<action-midi class="flex w-full p-2">
-  {#each scriptSegments as script, i}
-    <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
-      <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-      <AtomicInput inputValue={script} on:focus={(e)=>{onFocusChange(e,i)}} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
-    </div>
-  {/each}
-</action-midi>
-<!--
-<div class="flex relative flex-col w-full p-4 text-white">
 
-  <button class="flex items-center focus:outline-none" on:click={()=>{showSuggestions = ! showSuggestions}}>
-    <svg class="{showSuggestions ? 'rotate-90' : 'rotate-0'} transform" width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path fill-rule="evenodd" clip-rule="evenodd" d="M4.30351 6L1.03864e-07 1.80265L1.84825 0L8 6L1.84825 12L0 10.1973L4.30351 6Z" fill="#C9C8C8"/>
-    </svg>
-    <div>Show Suggestions</div>
-  </button>
- 
+<action-midi class="flex flex-col w-full p-2">
+
+  <div class="w-full flex">
+    {#each scriptSegments as script, i}
+      <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
+        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+        <AtomicInput 
+          inputValue={script} 
+          suggestions={suggestions[i]} 
+          on:active-focus={(e)=>{onActiveFocus(e,i)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,i)}} 
+          on:change={(e)=>{sendData(e.detail,i)}}/>
+      </div>
+    {/each}
+  </div>
+  
   {#if showSuggestions}
-    <ul style="max-height:250px;" class="{ 'border-commit'} scrollbar w-full overflow-y-scroll bg-secondary bg-opacity-75 p-1 border-t-2 ">
-      {#each suggestions[focusedInput] as suggestion, index }
-        <li class="py-0.5 px-1">{suggestion.info}</li>
-      {/each}
-    </ul>
+
+  <AtomicSuggestions 
+    {suggestions} 
+    {focusedInput} 
+    on:select={(e)=>{
+      scriptSegments[e.detail.index] = e.detail.value; 
+      sendData(e.detail.value,e.detail.index)
+    }}
+  />
+
   {/if}
 
+</action-midi>
 
-</div>
--->
+
+
+
+
 <style>
 
   .atomicInput{
@@ -701,11 +719,6 @@
 
   .atomicInput:first-child{
     padding-left: 0.5rem;
-  }
-
-  .extra{
-    transform: translateZ(0);
-    -webkit-transform: translateZ(0);
   }
   
 </style>

@@ -47,7 +47,6 @@
   }
 
   runtime.active_config(active => {
-    console.log(active);
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       dropStore.update(res);

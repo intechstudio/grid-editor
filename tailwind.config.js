@@ -137,7 +137,7 @@ module.exports = {
           'gms': '#DBCBD8',
           'sbc': '#065A82',
           'sec': '#963D5A',
-          's': '#3E2F5B'
+          'glut': '#78BC61'
 
         }
       },

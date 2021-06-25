@@ -3,7 +3,7 @@
 
   import Preset from './Preset.svelte';
 
-	import {fly } from 'svelte/transition'
+	import { fly } from 'svelte/transition'
 
 	export let expanded = false;
 	export let name;

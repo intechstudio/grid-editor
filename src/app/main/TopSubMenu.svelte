@@ -45,8 +45,8 @@
               Indicator of editor engine state.
             </p> 
             <p class="py-2">
-              <span class="text-blue-500 pt-2">green:</span> enabled <br> 
-              <span class="text-yellow-500 pb-2">red:</span> disabled 
+              <span class="text-green-500 pt-2">green:</span> enabled <br> 
+              <span class="text-red-500 pb-2">red:</span> disabled 
             </p>
             <p>
               This can be reactivated under preferences (cogwheel to left).

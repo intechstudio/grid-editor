@@ -5,11 +5,11 @@
     groupType: 'standard',
     desc: 'Lookup',
     icon: 
-     `<svg width="100%" height="100%" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M189.754 0L239.996 28.5774L190.241 58.0011L190.04 34.0236L120.042 34.6159L119.958 24.5698L189.955 23.9775L189.754 0Z" fill="white"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M189.754 120.557L239.996 149.135L190.241 178.558L190.04 154.581L120.042 155.173L119.958 145.127L189.955 144.535L189.754 120.557Z" fill="white"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M50.2414 119.443L0 90.8653L49.7551 61.4417L49.9561 85.4192L119.954 84.8269L120.038 94.8729L50.0403 95.4653L50.2414 119.443Z" fill="white"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M50.2414 240L0 211.423L49.7551 181.999L49.9561 205.976L119.954 205.384L120.038 215.43L50.0403 216.023L50.2414 240Z" fill="white"/>
+     `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 15.526L123.027 0.207275L108.651 56.1951L93.2051 41.1528L43.769 90.5889L33.8695 80.6894L83.3056 31.2533L67.294 15.526Z" fill="black"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 196.307L123.027 211.626L108.651 155.638L93.2051 170.68L43.769 121.244L33.8695 131.144L83.3056 180.58L67.294 196.307Z" fill="black"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M112.712 76.9999L162.954 105.577L113.199 135.001L112.913 113.443L43 113.443L43 99.4427L112.913 99.4427L112.712 76.9999Z" fill="black"/>
+        <path d="M35 105.5C35 115.165 27.165 123 17.5 123C7.83502 123 0 115.165 0 105.5C0 95.835 7.83502 88 17.5 88C27.165 88 35 95.835 35 105.5Z" fill="black"/>
       </svg>
     `,
   }
@@ -19,6 +19,7 @@
 
   import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';  
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
   import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
   import { localDefinitions } from '../runtime/runtime.store';  
@@ -39,10 +40,7 @@
   // Using onDestroy() and loaded flag may help ever changing reactivity
 
   $: if(config.script && ! loaded){
-    scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script});
-    console.log('lookup init 1', scriptSegments)
-    lookupTable = createLookupTable(scriptSegments);
-    console.log('lookup init 2', lookupTable)
+    lookupTable = createLookupTable(config.script);
     loaded = true;
   }
 
@@ -62,19 +60,29 @@
     array = [lookupTable.source, ...array];
 
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: array});  // important to set the function name
-    dispatch('output', {short: config.short, script: script})
+
+    dispatch('output', {short: config.short, script: `${lookupTable.destination}=${script}`})
   }
 
-  function createLookupTable(array){
-    const source = array[0];
-    const pairs = array.slice(1,);
+  function createLookupTable(script){
+
+    let split_script = script.split('glut');
+
+    const destination_part = split_script[0].trim().slice(0,-1);
+    let function_part = split_script[1].trim().slice(1,-1).split(',');
+
+    console.log('DEST', destination_part);
+    console.log('FUNC', function_part);
+
+    const source = function_part[0];
+    const pairs = function_part.slice(1,);
 
     let pairObjects = [];
     for (let i = 0; i < pairs.length; i+=2) {
       pairObjects.push({input: pairs[i], output: pairs[i+1]})
     }
 
-    return {source: source, pairs: pairObjects};
+    return {destination: destination_part, source: source, pairs: pairObjects};
   }
 
   function addNewLine(){
@@ -84,35 +92,69 @@
   function removeLine(i){
     lookupTable.pairs.splice(i,1);
     lookupTable.pairs = [...lookupTable.pairs];
-    sendData();
   }
 
-  
+  let showSuggestions = false;
+  let focusedInput = undefined;
+  let focusGroup = [];
+
+  function onActiveFocus(event,index){
+    console.log('ACTIVE',event.detail.focus, index)
+    focusGroup[index] = event.detail.focus;
+    focusedInput = index;
+  }
+
+  function onLooseFocus(event,index){
+    console.log('LOOSE',event.detail.focus, index)
+
+    focusGroup[index] = event.detail.focus;
+    showSuggestions = focusGroup.includes(true);
+  }
 
 </script>
 
 
 <config-lookup class="flex flex-col w-full p-2">
 
-  <div class="flex flex-col">
+  <div class="flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1">Source</div>
-    <AtomicInput bind:inputValue={lookupTable.source} suggestions={$localDefinitions} />
+    <AtomicInput 
+      placeholder={'Incoming value to match'}
+      bind:inputValue={lookupTable.source}
+      on:active-focus={(e)=>{onActiveFocus(e,0)}} 
+      on:loose-focus={(e)=>{onLooseFocus(e,0)}}  
+    />
   </div>
 
-  <div class="w-full flex flex-col">
+  {#if focusGroup[0]}
+  <AtomicSuggestions 
+    suggestions={[$localDefinitions]}
+    on:select={(e)=>{
+      lookupTable.source = e.detail.value;
+    }}
+  />
+  {/if}
+
+  <div class="w-full p-2 flex flex-col">
+
+    <div class="flex text-gray-500 text-sm">
+      <div class="w-1/2">Input</div>
+      <div class="w-1/2 -ml-2">Output</div>
+    </div>
+
     {#each lookupTable.pairs as pair, i (i)}
       <div class="w-full flex local-defs py-2">
         <div class="w-1/2 pr-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
-          placeholder="variable name" 
+          placeholder="input" 
           bind:value={pair.input}
           > 
         </div>
         <div class="w-1/2 pl-1">
           <input 
           class="py-0.5 pl-1 w-full bg-secondary text-white" 
-          placeholder="variable name" 
+          placeholder="output" 
           bind:value={pair.output}
           > 
         </div>
@@ -124,7 +166,7 @@
             </svg>
           </div>
         {:else}
-        <div class=" flex invisible items-center group cursor-pointer pl-1">
+        <div class="flex invisible items-center group cursor-pointer pl-1">
           <div class="w-5 h-5 p-1">
             x
           </div>
@@ -133,6 +175,26 @@
       </div>
     {/each}
   </div>
+
+  <div class="flex flex-col p-2">
+    <div class="text-gray-500 text-sm pb-1">Destination</div>
+    <AtomicInput 
+      placeholder={'Variable name to load the lookup result'} 
+      bind:inputValue={lookupTable.destination}
+      on:active-focus={(e)=>{onActiveFocus(e,1)}} 
+      on:loose-focus={(e)=>{onLooseFocus(e,1)}}  
+    />
+  </div>
+
+  {#if focusGroup[1]}
+
+  <AtomicSuggestions 
+    suggestions={[$localDefinitions]}
+    on:select={(e)=>{
+      lookupTable.destination = e.detail.value; 
+    }}
+  />
+  {/if}
 
   <div class="w-full flex group py-2">
     <div on:click={()=>{addNewLine()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">

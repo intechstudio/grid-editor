@@ -17,7 +17,7 @@ export const lua_language = LezerLanguage.define({
         GridLed: t.special(t.variableName),
         GridMidi: [t.special(t.string)],
         Element: t.string,
-        'this': t.function(t.variableName),
+        'self': t.function(t.variableName),
         kw: t.keyword,
         ArithOp: t.arithmeticOperator,
         CompareOp: t.compareOperator,

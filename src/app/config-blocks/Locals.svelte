@@ -40,11 +40,6 @@
     // this works differently from normal _utils...
     scriptSegments = localsToConfig({script: config.script});
 
-    scriptSegments = scriptSegments.map(elem => {
-      elem.value = stringManipulation.humanize(elem.value); 
-      return elem;
-    })
-
     loaded = true;
   }
 
@@ -52,13 +47,17 @@
     loaded = false;
   })
 
-  // DON'T USE $ BINDING! 
-  // It will trigger dom reactivity and will add everything 2 times, as its referenced on top incoming config reactivity.
+
   function saveChangesOnInput(e, i, k){
     scriptSegments[i][k] = e;
-
     sendData();
+  }
 
+  function humanizeLocals(segments){
+    return segments.map(elem => {
+      elem.value = stringManipulation.humanize(elem.value); 
+      return elem;
+    })
   }
 
   function sendData(){
@@ -109,6 +108,8 @@
         arr.push({variable: _variable_array[i].trim(), value: _value_array.slice(pos.off, pos.ind).trim()});
       });
 
+      arr = humanizeLocals(arr);
+
       return arr;
     }
   }
@@ -120,7 +121,6 @@
   function removeLocalVariable(i){
     scriptSegments.splice(i,1);
     scriptSegments = [...scriptSegments];
-
     sendData();
   }
 

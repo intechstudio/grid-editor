@@ -86,9 +86,5 @@
     @apply flex flex-col bg-secondary font-roboto p-0 m-0 h-screen;
   }
 
-  input, select{
-    @apply border-none;
-  }
-
   @tailwind utilities;
 </style>

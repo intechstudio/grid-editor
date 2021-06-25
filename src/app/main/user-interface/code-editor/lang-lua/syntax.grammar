@@ -41,7 +41,7 @@ statement[@isGroup=Statement] {
   GridMidi | 
   GridMacro |
   Element |
-  This { kw<"this"> Element}
+  This { kw<"self"> Element}
 }
 
 // Grid specific keywords
