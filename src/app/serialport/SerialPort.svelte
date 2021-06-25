@@ -198,7 +198,10 @@
     const parser = port.pipe(new Readline({ encoding: 'hex' }));
 
     parser.on('data', function(data) {
-      messageStream.set(grid.translate.decode(data));      
+      const decoded = grid.translate.decode(data);
+      if(decoded !== false){
+        messageStream.set(decoded);   
+      }
     })
 
   }

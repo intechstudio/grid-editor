@@ -344,6 +344,28 @@ const grid = {
   
     decode: function(data){
 
+      function check_checksum(data){
+
+        let first_section = data.slice(0,-2);
+
+        let last_two_char = data.slice(-2);
+
+        last_two_char[0] = String.fromCharCode(last_two_char[0]);
+        last_two_char[1] = String.fromCharCode(last_two_char[1]);
+
+        let str = last_two_char[0] + last_two_char[1];
+
+        let cross_math = 0;
+
+        first_section.forEach(e => { cross_math ^= e});
+
+        cross_math = cross_math % 256;
+
+        cross_math = parseInt(cross_math).toString(16);
+
+        return cross_math === str;
+      }
+
       function prepare_serial_data(data) {
 
         let temp_array = Array.from(data);
@@ -401,8 +423,7 @@ const grid = {
         if(rawFlag){
           array.push({id: id, class: "RAW", offset: index, instr: instr}); 
         }
-    
-        
+          
         return array;
       }
 
@@ -542,26 +563,35 @@ const grid = {
 
       let serialData = prepare_serial_data(data);
 
+      if(check_checksum(serialData)){
 
-  
-      serialData.forEach((element,i) => {  
+        serialData.forEach((element,i) => {  
       
-        // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
-        if(element == 2){ 
-          id = ""+ i +"";
-          _decoded = build_decoder('main', _decoded, id, serialData, i);    
-        }
-  
-        // GRID_CONST_ETX
-        if(element == 3){
-          let obj = _decoded.find(o => o.id === id);
-          if(obj !== undefined){
-            obj.length = i - obj.offset;
+          // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
+          if(element == 2){ 
+            id = ""+ i +"";
+            _decoded = build_decoder('main', _decoded, id, serialData, i);    
           }
-        }
-      });
+    
+          // GRID_CONST_ETX
+          if(element == 3){
+            let obj = _decoded.find(o => o.id === id);
+            if(obj !== undefined){
+              obj.length = i - obj.offset;
+            }
+          }
+        });
+
+        return decode_by_class(serialData, _decoded)
+
+      } else {
+
+        console.error('checksum mismatch!');
+        
+        return false;
+
+      }
       
-      return decode_by_class(serialData, _decoded)
     }
   },
 

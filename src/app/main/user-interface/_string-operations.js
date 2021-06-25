@@ -33,13 +33,17 @@ const stringManipulation = {
 
     functions.pattern = functions.pattern.join('|');
 
-
+    let function_types = [];
+    for (const key in regex_human){
+      function_types.push(key);
+    }
 
     this.VALIDATOR = {
       
       regex_short: regex_short,
       regex_human: regex_human,
-      lookup: [].concat(...lookup)
+      lookup: [].concat(...lookup),
+      function_types: function_types
       //functions: functions
     }
 
@@ -141,30 +145,25 @@ const stringManipulation = {
 
     //script = script.replace(/\s\s+/g, ' ');
 
-    console.log('SHORTIFY', script);
-
     const splitArray = this.splitShortScript(script, 'human');
 
-    console.log('SHORT SPLIT: ', splitArray);
+    //console.log('SHORT SPLIT: ', splitArray);
 
     const shorted = this.splitArrayToString(splitArray, 'short');
 
-    console.log('SHORT: ', shorted);
+    //console.log('SHORT: ', shorted);
 
     return shorted;
 
   },
 
-  typeCheck: function(type){
+  typeCheck: function(type,value){
 
-    let keys = [];
     let bool = false;
 
-    for (const key in this.VALIDATOR.regex_human){
-      keys.push(key);
-    }
+    const blacklist = ['if','else','elseif','end'];
 
-    if(keys.includes(type)){
+    if(this.VALIDATOR.function_types.includes(type) && !blacklist.includes(value)){
       bool = true;
     }
 
@@ -199,11 +198,8 @@ const stringManipulation = {
 
       try {
 
-        if(this.typeCheck(element.type)){
+        if(this.typeCheck(element.type, element.value)){
           string += `${found[returnFormat]}`;
-        }
-        else if(element.value == 'local'){
-          string += `local` // <-- here is a space!;
         }
         else {
           string += element.value;
