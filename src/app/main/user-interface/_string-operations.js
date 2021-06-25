@@ -59,6 +59,10 @@ const stringManipulation = {
     return !regex.test(text);
   },
 
+  removeWhiteSpaces: function(string){
+    return string.replace(/\s/g,'');
+  },
+
   splitShortScript: function(script, mode){
 
     let lookupType;
@@ -89,7 +93,7 @@ const stringManipulation = {
     // if its if-then-end
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
     // if its local
-    pattern.push(`${'(?<special>(\\blocal\\b|[=._]))'}`)
+    pattern.push(`${'(?<special>(\\blocal\\b|[=._@:;]))'}`)
     // if unknown
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
@@ -117,7 +121,7 @@ const stringManipulation = {
 
     const splitArray = this.splitShortScript(script, 'short');
 
-    //console.log('HUMAN SPLIT: ',splitArray);
+    console.log('HUMAN SPLIT: ',splitArray);
 
     const humanized = this.splitArrayToString(splitArray, 'human');
 

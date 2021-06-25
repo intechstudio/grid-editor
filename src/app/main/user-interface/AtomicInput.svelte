@@ -1,6 +1,6 @@
 <script>
 
-  import { actionPrefStore } from '../_stores/app-helper.store.js';
+  import { activeDropDown } from '../_stores/app-helper.store.js';
 
   import { clickOutside } from '../_actions/click-outside.action.js'
 
@@ -12,7 +12,7 @@
   export let suggestions = [];
   export let customClasses = '';
   export let suggestionInfo = true;
-  export let index;
+  export let config_index;
 
   let edited = false;
 
@@ -27,36 +27,83 @@
   let focus;
 
   function handleChange(){
-    dispatch('change', inputValue )
+    dispatch('change', inputValue);
+  }
+
+  function handleClick(){
+    focus = true;
+    dispatch('focus', {
+      detail: {
+        focus: true
+      }
+    });
+  }
+  
+  export function dimensions(node){
+
+    const handleResize = event => {
+
+      console.log(event);
+
+      node.dispatchEvent(
+        new CustomEvent('double-click')
+      )
+
+      if (node && !node.contains(event.target) && !event.defaultPrevented) {
+        //console.log('DBL', node, event.target)
+      }
+    }
+
+    node.addEventListener('resize', handleResize, true);
+    
+
+    return {
+      update: () => {
+
+      },
+      destroy: () => {
+
+      }
+    }
+
   }
 
 </script>
 
-<div class="w-full relative" use:clickOutside={{useCapture:false}} on:click-outside={()=>{focus = false}}>
-  <!--
-  {#if disabled}<div on:click={()=>{actionPrefStore.showAdvanced(index, true);}} class="absolute cursor-pointer right-0 {$actionPrefStore.advanced.visible ? 'invisible' : 'flex'} items-center rounded-full py-0.5 px-2 text-white text-xs bg-green-600 hover:bg-green-700">Edit</div>{/if}
-  -->
+<div use:dimensions class="w-full relative" use:clickOutside={{useCapture:false}} on:click-outside={()=>{focus = false}}>
+
   <input 
     disabled={disabled}
     class:shadow={focus} 
     bind:value={inputValue} 
-    on:click={()=>{focus = true}} on:change={handleChange} 
-    on:input={(e)=>{focus = false; handleChange()}} type="text" 
-    class="{customClasses} w-full bg-secondary text-white py-0.5 pl-2 rounded-none focus:outline-none">
-  
-    {#if focus}
-      <ul class:shadow={focus} style="max-height:250px; min-width:100px;z-index:9000;" class="fixed scrollbar block border-t overflow-y-auto border-important text-white cursor-pointer w-auto bg-secondary">
-        {#each suggestions as suggestion, index}
-          <li on:click={(e)=>{infoValue=suggestion.info; focus = false; inputValue = suggestion.value; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
-        {/each}
-      </ul>
-    {/if}
+    on:click={handleClick} 
+    on:change={handleChange} 
+    on:input={(e)=>{focus = false; handleChange()}} 
+    type="text" 
+    class="{customClasses} w-full border-l-2 {focus ? 'border-commit' : 'border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
+  >
 
-    {#if suggestionInfo}<div class="{infoValue ? 'text-gray-500' : 'text-yellow-400'} text-sm py-1">{infoValue}</div>{/if}
-  </div>
+  {#if suggestionInfo}<div class="{infoValue ? 'text-gray-500' : 'text-yellow-400'} text-sm py-1">{infoValue}</div>{/if}
+
+
+
+  {#if focus}
+    <ul class:shadow={focus} class="h-56 sticky scrollbar block border-t overflow-y-scroll  border-important text-white cursor-pointer bg-secondary">
+      {#each suggestions as suggestion, index}
+        <li on:click={(e)=>{infoValue=suggestion.info; focus = false; inputValue = suggestion.value; handleChange()}} class="hover:bg-black p-1 pl-2">{suggestion.info}</li>
+      {/each}
+    </ul>
+  {/if}
+
+
+</div>
 
 <style>
-
+  .extra{
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+  }
+  
 
 ::-webkit-scrollbar {
     height: 6px;

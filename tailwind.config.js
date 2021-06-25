@@ -136,7 +136,8 @@ module.exports = {
           'gks': '#9AD4D6',
           'gms': '#DBCBD8',
           'sbc': '#065A82',
-          'sec': '#963D5A'
+          'sec': '#963D5A',
+          's': '#3E2F5B'
 
         }
       },

@@ -94,6 +94,8 @@ function createPresetManagement(){
   }
 }
 
+export const activeDropDown = writable({config_index: undefined, input_index: undefined})
+
 export const presetManagement = createPresetManagement();
 
 export const layout = writable([]);

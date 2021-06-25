@@ -652,7 +652,15 @@
 
   onMount(()=>{
     renderSuggestions();
-  })
+  });
+
+  let showSuggestions = true;
+
+  let focusedInput = 0;
+
+  function onFocusChange(event,index){
+    focusedInput = index;
+  }
 
 </script>
 
@@ -660,11 +668,31 @@
   {#each scriptSegments as script, i}
     <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
       <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-      <AtomicInput inputValue={script} {index} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
+      <AtomicInput inputValue={script} on:focus={(e)=>{onFocusChange(e,i)}} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
     </div>
   {/each}
 </action-midi>
+<!--
+<div class="flex relative flex-col w-full p-4 text-white">
 
+  <button class="flex items-center focus:outline-none" on:click={()=>{showSuggestions = ! showSuggestions}}>
+    <svg class="{showSuggestions ? 'rotate-90' : 'rotate-0'} transform" width="8" height="12" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path fill-rule="evenodd" clip-rule="evenodd" d="M4.30351 6L1.03864e-07 1.80265L1.84825 0L8 6L1.84825 12L0 10.1973L4.30351 6Z" fill="#C9C8C8"/>
+    </svg>
+    <div>Show Suggestions</div>
+  </button>
+ 
+  {#if showSuggestions}
+    <ul style="max-height:250px;" class="{ 'border-commit'} scrollbar w-full overflow-y-scroll bg-secondary bg-opacity-75 p-1 border-t-2 ">
+      {#each suggestions[focusedInput] as suggestion, index }
+        <li class="py-0.5 px-1">{suggestion.info}</li>
+      {/each}
+    </ul>
+  {/if}
+
+
+</div>
+-->
 <style>
 
   .atomicInput{
@@ -673,6 +701,11 @@
 
   .atomicInput:first-child{
     padding-left: 0.5rem;
+  }
+
+  .extra{
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
   }
   
 </style>
