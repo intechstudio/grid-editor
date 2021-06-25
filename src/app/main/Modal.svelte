@@ -21,7 +21,7 @@
 
   onMount(()=>{
     runtime.active_lua((lua) => {
-      config = `<?lua ${lua} ?>`;
+      config = (lua !== undefined) ?  `<?lua ${lua} ?>` : '';
     });
   })
 

@@ -132,9 +132,9 @@
         if (v.docChanged) {
 
           // Document changed
-          const code = (v.state.doc.text.join('\n'));
+          const code = v.state.doc.toString();
           // add a whitespace before 'e'
-          dispatch('output', {short: 'cb', script: ` ${code}`});
+          dispatch('output', {short: 'cb', script: ` ${code.replace(/\n/g, " ")}`});
           
         }
       }),

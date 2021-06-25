@@ -37,33 +37,20 @@ statement[@isGroup=Statement] {
   Assign { VarList "=" ExpList } |
   FunctionCall ~fcall |
   Local { kw<"local"> AttNameList ("=" ExpList)? } |
-  GridLed |
-  GridMidi | 
-  GridMacro |
+  GridGlobal | 
   Element |
   This { kw<"self"> Element}
 }
 
 // Grid specific keywords
 
-
-GridLed {
-  actions
+GridGlobal {
+  global
 }
-actions { @specialize<identifier , "led_default_red" | "led_default_green" | "led_default_blue" | "led_value" | "led_timeout" | "led_color_min" | "led_color_mid" | "led_color_max" | "led_color" | "led_animation_rate" | "led_animation_type" | "led_animation_phase_rate_type" > FuncBody }
-
-GridMidi {
-  midi
-}
-midi { @specialize<identifier , "midi_send"> FuncBody }
-
-GridMacro {
-  macro
-}
-macro { @specialize<identifier , "keyboard_send" >  ~fcall}
+global { @specialize<identifier , "midi_send" | "keyboard_send" | "random" | "hardware_configuration" | "version_major" | "version_minor" | "version_patch" | "module_position_x" | "module_position_y" | "module_rotation" | "page_next" | "page_previous" | "page_current" | "page_load" | "lookup" | "limit" | "print" | "led_default_red" | "led_default_green" | "led_default_blue" | "led_value" | "led_timeout" | "led_color_min" | "led_color_mid" | "led_color_max" | "led_color" | "led_animation_rate" | "led_animation_type" | "led_animation_phase_rate_type"> FuncBody }
 
 Element {
-  element
+  element 
 }
 element { @specialize<identifier , "element_index" | "button_number" | "button_value" | "button_min" | "button_max" | "button_mode" | "button_elapsed_time" | "button_state" | "encoder_number" | "encoder_value" | "encoder_min" | "encoder_max" | "encoder_mode" | "encoder_elapsed_time" | "encoder_state" | "encoder_change" | "button_change" | "potmeter_number" | "potmeter_value" | "potmeter_min" | "potmeter_max" | "potmeter_resolution" | "potmeter_elapsed_time" | "potmeter_state" | "potmeter_change"> FuncBody }
 
@@ -105,9 +92,7 @@ exp {
   TableConstructor |
   FunctionDef { kw<"function"> FuncBody } |
   Element |
-  GridMidi |
-  GridMacro |
-  GridLed
+  GridGlobal
 }
 
 field[@isGroup=Field] {

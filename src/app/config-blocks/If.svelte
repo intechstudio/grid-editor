@@ -43,7 +43,12 @@
   <div class="pl-2 flex items-center bg-purple-400 rounded-t-lg">
     <span class="font-bold py-1">IF</span>
     <div class="pl-2 pr-1 w-full">
-      <AtomicInput inputValue={scriptSegment} {index} suggestionInfo={false} customClasses={'bg-opacity-75 rounded-tr-lg'} on:change={(e)=>{sendData(e.detail)}}/>
+      <input 
+      class="py-0.5 pl-1 w-full bg-secondary text-white bg-opacity-75" 
+      placeholder="condition" 
+      value={scriptSegment}
+      on:input={(e)=>{sendData(e.target.value)}}
+      > 
     </div>
   </div>
 

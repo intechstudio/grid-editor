@@ -92,8 +92,10 @@ const stringManipulation = {
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
     // if its if-then-end
     pattern.push(`${'(?<ifblock>(\\bif\\b|\\bthen\\b|\\bend\\b))'}`);
-    // if its local
-    pattern.push(`${'(?<special>(\\blocal\\b|[=._@:;]))'}`)
+    // if its new line or space
+    pattern.push(`${'(?<space>([\\s\\n]))'}`);
+    // if its special
+    pattern.push(`${'(?<special>(\\blocal\\b|[=._@:;]))'}`);
     // if unknown
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
@@ -119,9 +121,11 @@ const stringManipulation = {
 
   humanize: function(script){
 
+    // We should heaviliy consider handling spaces and returns better!
+
     const splitArray = this.splitShortScript(script, 'short');
 
-    console.log('HUMAN SPLIT: ',splitArray);
+    //console.log('HUMAN SPLIT: ',splitArray);
 
     const humanized = this.splitArrayToString(splitArray, 'human');
 
@@ -133,13 +137,19 @@ const stringManipulation = {
 
   shortify(script){
 
+    // We should heaviliy consider handling spaces and returns better!
+
+    //script = script.replace(/\s\s+/g, ' ');
+
+    console.log('SHORTIFY', script);
+
     const splitArray = this.splitShortScript(script, 'human');
 
-    //console.log('SHORT SPLIT: ', splitArray);
+    console.log('SHORT SPLIT: ', splitArray);
 
     const shorted = this.splitArrayToString(splitArray, 'short');
 
-    //console.log('SHORT: ', shorted);
+    console.log('SHORT: ', shorted);
 
     return shorted;
 
@@ -193,7 +203,7 @@ const stringManipulation = {
           string += `${found[returnFormat]}`;
         }
         else if(element.value == 'local'){
-          string += `local ` // <-- here is a space!;
+          string += `local` // <-- here is a space!;
         }
         else {
           string += element.value;
