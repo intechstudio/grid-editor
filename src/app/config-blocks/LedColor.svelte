@@ -15,6 +15,8 @@
 <script>
   import {onMount, createEventDispatcher, onDestroy} from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+
 
   import validate from './_validators';
 
@@ -52,31 +54,10 @@
 
     const locals = $localDefinitions.map(l => l.value)
     
-    if(index == 0){
-      valid = validator.min(0).max(15).isLocal(locals).result();
-    }
-
-    if(index == 1){
-      valid = validator.min(1).max(2).isLocal(locals).result();
-    }
-
-    if(index == 2){
-      valid = validator.min(0).max(255).isLocal(locals).result();
-    }
-
-    if(index == 3){
-      valid = validator.min(0).max(255).isLocal(locals).result();
-    }
-
-    if(index == 4){
-      valid = validator.min(0).max(255).isLocal(locals).result();
-    }
-
-    if(valid){
-      scriptSegments[index] = e;
-      const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
-      dispatch('output', {short: config.short, script: script})
-    }
+    scriptSegments[index] = e;
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
+    dispatch('output', {short: config.short, script: script})
+    
     
   }
 
@@ -102,7 +83,14 @@
   let suggestions = [];
 
   $: if($localDefinitions){
-    suggestions = _suggestions.map(s => [...$localDefinitions, ...s]);
+    suggestions = _suggestions.map((s,i) => {
+      // SKIP LAYER
+      if(i != 1){
+        return [...$localDefinitions, ...s]
+      } else {
+        return [ ...s, ...$localDefinitions]
+      }
+    });
     suggestions = suggestions;
   }
 
@@ -110,17 +98,53 @@
     suggestions = _suggestions;
   })
 
+  let showSuggestions = false;
+  let focusedInput = undefined;
+  let focusGroup = [];
+
+  function onActiveFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    focusedInput = index;
+  }
+
+  function onLooseFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    showSuggestions = focusGroup.includes(true);
+  }
+
 
 </script>
 
 
-<config-led-color class="flex w-full p-2">
-  {#each scriptSegments as script, i}
-    <div class={'w-1/'+scriptSegments.length + ' atomicInput '}>
-      <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-      <AtomicInput {index} inputValue={script} suggestions={suggestions[i]} on:change={(e)=>{sendData(e.detail,i)}}/>
-    </div>
-  {/each}
+<config-led-color class="flex flex-col w-full p-2">
+
+  <div class="w-full flex">
+    {#each scriptSegments as script, i}
+      <div class={'w-1/'+scriptSegments.length + ' atomicInput '}>
+        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+        <AtomicInput 
+          inputValue={script} 
+          suggestions={suggestions[i]} 
+          on:active-focus={(e)=>{onActiveFocus(e,i)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,i)}} 
+          on:change={(e)=>{sendData(e.detail,i)}}/>    
+      </div>
+    {/each}
+  </div>
+
+  {#if showSuggestions}
+
+  <AtomicSuggestions 
+    {suggestions} 
+    {focusedInput} 
+    on:select={(e)=>{
+      scriptSegments[e.detail.index] = e.detail.value; 
+      sendData(e.detail.value,e.detail.index)
+    }}
+  />
+
+{/if}
+
 </config-led-color>
 
 <style>

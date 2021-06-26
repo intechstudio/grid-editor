@@ -41,7 +41,7 @@
       editor.dispatch({
         changes: {
           from: dataAtCursor.cursor,
-          insert: advancedClickAddon.short
+          insert: advancedClickAddon.human
         }
       })
       //editor.dispatch({selection: {anchor: dataAtCursor.cursor + advancedClickAddon.human.length}})
@@ -156,7 +156,9 @@
 
 </script>
 
-<div class="h-full w-full" bind:this={codeblock}></div>
+<div class="relative h-full w-full ">
+  <div bind:this={codeblock}></div>
+</div>
 
 <style global>
 

@@ -14,10 +14,10 @@
 
   import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
 
   export let config = ''
   export let index;
-  export let humanScript;
 
   const dispatch = createEventDispatcher();
 
@@ -27,10 +27,11 @@
 
   let loaded = false;
 
-  $: if(config.script){
-    console.log(humanScript)
-    const matches = whatsInParenthesis.exec(humanScript);
-    scriptValue = matches[1]
+  $: if(config.script && !loaded){
+    const matches = whatsInParenthesis.exec(config.script);
+    scriptValue = matches[1];
+    console.log('whats here',config.script, scriptValue)
+
     loaded = true;
   }
 
@@ -38,8 +39,26 @@
     loaded = false;
   })
 
+  $: if(scriptValue){
+    sendData(scriptValue);
+  }
+
   function sendData(e){
-    dispatch('output', {short: `sec`, script:`this.emo(${e})`})
+    dispatch('output', {short: `sec`, script:`self:emo(${e})`})
+  }
+
+  let showSuggestions = false;
+  let focusedInput = undefined;
+  let focusGroup = [];
+
+  function onActiveFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    focusedInput = index;
+  }
+
+  function onLooseFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    showSuggestions = focusGroup.includes(true);
   }
 
   const suggestions = [
@@ -53,9 +72,22 @@
 </script>
 
 
-<encoder-settings class="flex w-full p-2">
+<encoder-settings class="flex flex-col w-full p-2">
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Encoder Mode</div>
-    <AtomicInput inputValue={scriptValue} {index} suggestions={suggestions[0]} on:change={(e)=>{sendData(e.detail)}}/>
+    <AtomicInput 
+      suggestions={suggestions[0]} 
+      bind:inputValue={scriptValue} 
+      on:active-focus={(e)=>{onActiveFocus(e,0)}} 
+      on:loose-focus={(e)=>{onLooseFocus(e,0)}} />
   </div>
+
+  {#if focusGroup[0]}
+    <AtomicSuggestions 
+      suggestions={suggestions}
+      on:select={(e)=>{
+        scriptValue = e.detail.value;
+      }}
+    />
+  {/if}
 </encoder-settings>

@@ -71,9 +71,6 @@
     const destination_part = split_script[0].trim().slice(0,-1);
     let function_part = split_script[1].trim().slice(1,-1).split(',');
 
-    console.log('DEST', destination_part);
-    console.log('FUNC', function_part);
-
     const source = function_part[0];
     const pairs = function_part.slice(1,);
 
@@ -99,14 +96,11 @@
   let focusGroup = [];
 
   function onActiveFocus(event,index){
-    console.log('ACTIVE',event.detail.focus, index)
     focusGroup[index] = event.detail.focus;
     focusedInput = index;
   }
 
   function onLooseFocus(event,index){
-    console.log('LOOSE',event.detail.focus, index)
-
     focusGroup[index] = event.detail.focus;
     showSuggestions = focusGroup.includes(true);
   }
@@ -119,6 +113,7 @@
   <div class="flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1">Source</div>
     <AtomicInput 
+      suggestions={$localDefinitions}
       placeholder={'Incoming value to match'}
       bind:inputValue={lookupTable.source}
       on:active-focus={(e)=>{onActiveFocus(e,0)}} 
@@ -180,6 +175,7 @@
     <div class="text-gray-500 text-sm pb-1">Destination</div>
     <AtomicInput 
       placeholder={'Variable name to load the lookup result'} 
+      suggestions={$localDefinitions}
       bind:inputValue={lookupTable.destination}
       on:active-focus={(e)=>{onActiveFocus(e,1)}} 
       on:loose-focus={(e)=>{onLooseFocus(e,1)}}  
@@ -196,7 +192,7 @@
   />
   {/if}
 
-  <div class="w-full flex group py-2">
+  <div class="w-full flex group p-2">
     <div on:click={()=>{addNewLine()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
       Add new pair...
     </div>

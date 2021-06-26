@@ -361,9 +361,15 @@ const grid = {
 
         cross_math = cross_math % 256;
 
-        cross_math = parseInt(cross_math).toString(16);
+        cross_math = parseInt(cross_math).toString(16).padStart(2,'0');
 
-        return cross_math === str;
+        let bool = cross_math === str;
+
+        if(!bool){
+          console.error('Checksum mismatch!', cross_math, str)
+        }
+
+        return bool;
       }
 
       function prepare_serial_data(data) {
@@ -585,8 +591,6 @@ const grid = {
         return decode_by_class(serialData, _decoded)
 
       } else {
-
-        console.error('checksum mismatch!');
         
         return false;
 

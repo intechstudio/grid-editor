@@ -36,8 +36,33 @@ export const lua_language = LezerLanguage.define({
 export const lua_completion = lua_language.data.of({
   autocomplete: completeFromList([
     {label: "local", type: "keyword"},
+    {label: "self:", type: "keyword"},
 
+    {label: "self:element_index()", type: "function"},
+
+    {label: "self:button_number()", type: "function"},
     {label: "self:button_value()", type: "function"},
+    {label: "self:button_min()", type: "function"},
+    {label: "self:button_max()", type: "function"},
+    {label: "self:button_mode()", type: "function"},
+    {label: "self:button_elapsed_time()", type: "function"},
+    {label: "self:button_state()", type: "function"},
+
+    {label: "self:encoder_number()", type: "function"},
+    {label: "self:encoder_value()", type: "function"},
+    {label: "self:encoder_min()", type: "function"},
+    {label: "self:encoder_max()", type: "function"},
+    {label: "self:encoder_mode()", type: "function"},
+    {label: "self:encoder_elapsed_time()", type: "function"},
+    {label: "self:encoder_state()", type: "function"},
+    
+    {label: "self:potmeter_number()", type: "function"},
+    {label: "self:potmeter_value()", type: "function"},
+    {label: "self:potmeter_min()", type: "function"},
+    {label: "self:potmeter_max()", type: "function"},
+    {label: "self:potmeter_resolution()", type: "function"},
+    {label: "self:potmeter_elapsed_time()", type: "function"},
+    {label: "self:potmeter_state()", type: "function"},
 
     {label: "led_default_red()", type: "function"},
     {label: "led_default_green()", type: "function"},

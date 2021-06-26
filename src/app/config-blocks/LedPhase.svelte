@@ -29,7 +29,7 @@
   import { localDefinitions } from '../runtime/runtime.store';
 
   import validate from './_validators';
-import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
 
   export let config;
   export let humanScript;
@@ -48,7 +48,8 @@ import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
   // config.script cannot be undefined
   $: if(config.script && !loaded){
     // alternatively humanScriptToSegments could be used
-    scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script})
+    scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script});
+    loaded = true;
   };
 
   onDestroy(()=>{
