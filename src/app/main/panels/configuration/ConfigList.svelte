@@ -93,7 +93,7 @@
 <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
 
   <div class="pt-1 flex items-center  justify-between">
-    <div class="text-gray-500 text-sm">Configurations</div>
+    <div class="text-gray-500 text-sm">Actions</div>
     <MultiSelect/>
   </div>
 

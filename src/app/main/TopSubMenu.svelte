@@ -21,7 +21,7 @@
   
   <div class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg  flex items-center justify-between">
 
-    <div class="px-4">{$appSettings.activePanel}</div>
+    <div class="px-4">{$appSettings.rightPanel}</div>
 
     {#if unsaved}
       <div in:fade class="flex items-center">

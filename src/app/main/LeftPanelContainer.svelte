@@ -1,5 +1,6 @@
 <script>
   import Debug from "../debug/Debug.svelte";
+  import Profiles from "./panels/profiles/Profiles.svelte";
   import { appSettings } from "./_stores/app-helper.store";
 
   export let classes;
@@ -13,6 +14,12 @@
     {#if $appSettings.leftPanel == 'Debug'}
 
       <Debug/>
+
+    {/if}
+
+    {#if $appSettings.leftPanel == 'Profiles'}
+
+      <Profiles/>
 
     {/if}
 

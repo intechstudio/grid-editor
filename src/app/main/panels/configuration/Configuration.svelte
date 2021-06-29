@@ -37,7 +37,7 @@
   function changeSelectedConfig(arg){
     $appSettings.configType = arg;
 
-    if(arg == 'systemEvents'){
+    if(arg == 'systemEvents'){ // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {ui.event.elementnumber = 16; ui.event.eventtype = 4; return ui});
     }
 

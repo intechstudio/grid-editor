@@ -49,7 +49,7 @@
     try {
       const text = script.split('gks(')[1].slice(0,-1);
       array = text.split(',');
-      defaultDelay = array[0] || 5;
+      defaultDelay = array[0] ? array[0] : defaultDelay;
       array = array.slice(1,);
       if(array[0] != ''){
         for (let i = 0; i < array.length; i+=3) {
@@ -90,7 +90,7 @@
   let selectedKey;
   let addonKeyType = 'keydownup';
   let delayKey = 100; // ms
-  let defaultDelay = 5; // ms
+  let defaultDelay = 25; // ms
 
 
   function identifyKey(e){

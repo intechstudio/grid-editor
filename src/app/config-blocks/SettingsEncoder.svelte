@@ -21,17 +21,21 @@
 
   const dispatch = createEventDispatcher();
 
-  let scriptValue = ''; // local script part
+  let emo = ''; // local script part
+  let ev0 = '';
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
   let loaded = false;
 
   $: if(config.script && !loaded){
-    const matches = whatsInParenthesis.exec(config.script);
-    scriptValue = matches[1];
-    console.log('whats here',config.script, scriptValue)
-
+    const arr = config.script.split('self:').slice(1,);
+    
+    emo = whatsInParenthesis.exec(arr[0])[1];
+    //emo = emo[1];
+    ev0 = whatsInParenthesis.exec(arr[1])[1];
+    //ev0 = ev0[1];
+    
     loaded = true;
   }
 
@@ -39,12 +43,12 @@
     loaded = false;
   })
 
-  $: if(scriptValue){
-    sendData(scriptValue);
+  $: if(emo || ev0){
+    sendData(emo, ev0);
   }
 
-  function sendData(e){
-    dispatch('output', {short: `sec`, script:`self:emo(${e})`})
+  function sendData(p1, p2){
+    dispatch('output', {short: `sec`, script:`self:emo(${p1}) self:ev0(${p2})`})
   }
 
   let showSuggestions = false;
@@ -66,6 +70,11 @@
       {value: '0', info: 'Absolute'}, 
       {value: '1', info: 'Relative BinOffset'},
       {value: '2', info: 'Relative 2\'s Comp'}
+    ],
+
+    [
+      {value: '0', info: 'No velocity (0%)'}, 
+      {value: '100', info: 'Default (100%)'},
     ]
   ]
 
@@ -73,21 +82,47 @@
 
 
 <encoder-settings class="flex flex-col w-full p-2">
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Encoder Mode</div>
-    <AtomicInput 
-      suggestions={suggestions[0]} 
-      bind:inputValue={scriptValue} 
-      on:active-focus={(e)=>{onActiveFocus(e,0)}} 
-      on:loose-focus={(e)=>{onLooseFocus(e,0)}} />
+
+  <div class="w-full flex">
+    <div class="w-1/2 flex flex-col">
+
+      <div class="w-full px-2">
+        <div class="text-gray-500 text-sm pb-1">Encoder Mode</div>
+        <AtomicInput 
+          suggestions={suggestions[0]} 
+          bind:inputValue={emo} 
+          on:active-focus={(e)=>{onActiveFocus(e,0)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,0)}} />
+      </div>
+    </div>
+
+    <div class="w-1/2 flex flex-col">
+
+      <div class="w-full px-2">
+        <div class="text-gray-500 text-sm pb-1">Encoder Velocity</div>
+        <AtomicInput 
+          suggestions={suggestions[1]} 
+          bind:inputValue={ev0} 
+          on:active-focus={(e)=>{onActiveFocus(e,1)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,1)}} />
+      </div>
+
+    </div>
   </div>
 
-  {#if focusGroup[0]}
+  {#if showSuggestions}
     <AtomicSuggestions 
       suggestions={suggestions}
+      {focusedInput} 
       on:select={(e)=>{
-        scriptValue = e.detail.value;
+        if(focusedInput == 1){
+          ev0 = e.detail.value;
+        }
+        if(focusedInput == 0){
+          emo = e.detail.value;
+        }
       }}
     />
   {/if}
+
 </encoder-settings>

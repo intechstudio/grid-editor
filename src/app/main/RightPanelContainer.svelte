@@ -13,15 +13,15 @@
 
 <panel-container class="{classes} h-full">
 
-  {#if $appSettings.activePanel == 'Configuration'}
+  {#if $appSettings.rightPanel == 'Configuration'}
 
     <Configuration/>
 
-  {:else if $appSettings.activePanel == 'Preferences'}
+  {:else if $appSettings.rightPanel == 'Preferences'}
 
     <Preferences/>
 
-  {:else if $appSettings.activePanel == 'MIDI Monitor'}
+  {:else if $appSettings.rightPanel == 'MIDI Monitor'}
 
     <MidiMonitor/>
 

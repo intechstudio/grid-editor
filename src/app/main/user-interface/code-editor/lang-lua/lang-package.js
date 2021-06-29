@@ -55,6 +55,7 @@ export const lua_completion = lua_language.data.of({
     {label: "self:encoder_mode()", type: "function"},
     {label: "self:encoder_elapsed_time()", type: "function"},
     {label: "self:encoder_state()", type: "function"},
+    {label: "self:encoder_velocity()", type: "function"},
     
     {label: "self:potmeter_number()", type: "function"},
     {label: "self:potmeter_value()", type: "function"},
@@ -80,6 +81,9 @@ export const lua_completion = lua_language.data.of({
     {label: "midi_send(ch,cmd,p1,p2)", type: "function"},
 
     {label: "keyboard_send(def_delay,is_modifier,keystate,key_code)", type: "function"},
+
+    {label: "mouse_move_send(position,axis)", type:"function"},
+    {label: "mouse_button_send(state,button)", type:"function"},
 
     {label: "random()", type: "function"},
     {label: "hardware_configuration()", type: "function"},

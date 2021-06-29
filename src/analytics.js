@@ -12,14 +12,18 @@ store.set('userId', userId)
 var usr = ua("UA-151670067-3", userId);
 
 function trackEvent(category, action, label, value) {
-  usr
-    .event({
-      ec: category,
-      ea: action,
-      el: label,
-      ev: value,
-    })
-    .send();
+  if(process.env.NODE_ENV !== "development"){
+    usr
+      .event({
+        ec: category,
+        ea: action,
+        el: label,
+        ev: value,
+      })
+      .send();
+  } else {
+    console.info(`UA offline during ${process.env.NODE_ENV}!`);
+  }
 }
 
 module.exports = { trackEvent };

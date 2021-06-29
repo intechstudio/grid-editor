@@ -12,8 +12,8 @@
     engine.strict.store('erase', serial, id);
     serialComm.write(serial);
     runtime.unsaved.set(0);
-    runtime.set([]); // this causes blink, we could simply remove all config and reinit state
-    runtime.update.trigger();
+    runtime.erase();
+
   }
 
 </script>

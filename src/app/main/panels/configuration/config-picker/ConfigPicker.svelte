@@ -137,7 +137,7 @@
     class=" cursor-pointer flex w-full items-center">
 
     <div class="{((visible || configSelection) && !animation) ? 'border-pick bg-select-saturate-10' : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2">
-      Add config block...
+      Add action block...
     </div>
     
   </action-placeholder>

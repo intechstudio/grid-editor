@@ -1,6 +1,5 @@
 <script>
   const { ipcRenderer, app } = require('electron');
-  const { getGlobal } = require('electron').remote;
 
   import { openInBrowser } from '../helpers/global-helper.js';
 

@@ -525,11 +525,15 @@ const grid = {
           }
 
           if(obj.class == "CONFIGSTORE"){
-            DATA.CONFIGSTORE = decode_by_code(array, obj.class);
+            if(obj.instr == "ACKNOWLEDGE"){
+              DATA.CONFIGSTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
           }
 
           if(obj.class == "CONFIGERASE"){
-            DATA.CONFIGERASE = decode_by_code(array, obj.class);
+            if(obj.instr == "ACKNOWLEDGE"){
+              DATA.CONFIGERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
           }
 
           if(obj.class == "CONFIGDISCARD"){
@@ -647,21 +651,31 @@ const grid = {
         let control_elements = [];
 
         let status = pageStatus;
-  
-        // control elements
-        for (let i = 0; i < 17; i++) {
-          let events = [];
-          for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
-            events.push({        
-              event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
-              config: [],
-              cfgStatus: 'NULL'
-            })
+
+        try {
+
+           // control elements
+          for (let i = 0; i < 17; i++) {
+            let events = [];
+            for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
+              events.push({        
+                event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
+                config: [],
+                cfgStatus: 'NULL'
+              })
+            }
+            control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };
           }
-          control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };
+    
+          return {status, control_elements};
+          
+        } catch (error) {
+          
+          console.error('Error while creating page for ', moduleType, error)
+
         }
-  
-        return {status, control_elements};
+        
+       
     },
 
     make: function(header, heartbeat, virtual){

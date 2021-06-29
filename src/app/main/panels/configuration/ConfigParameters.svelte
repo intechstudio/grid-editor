@@ -24,13 +24,14 @@
 
 <div class="{selectedEvent || 'pointer-events-none'} flex flex-col bg-primary w-full p-4">
 
-  <!--
+ 
   <div class="pb-2 {$appSettings.configType == 'uiEvents' ? 'block' : 'hidden'}">
     <div class="text-gray-500 py-1 text-sm">
       Selected Element
     </div>
 
     <div class="flex flex-col relative justify-between font-bold text-white">
+      <!-- svelte-ignore a11y-no-onchange -->
       <select bind:value={elements.selected} on:change={(e)=>{handleSelectElement(elements.selected)}} class="bg-secondary flex-grow text-white p-2 shadow">
         {#each elements.options.slice(0,-1) as element}
           <option value={element} class="text-white bg-secondary py-1 border-select">Element {element}</option>
@@ -38,7 +39,7 @@
       </select>
     </div>
   </div>
-  -->
+
 
   <div class="pb-2">
     <div class="text-gray-500 py-1 text-sm">

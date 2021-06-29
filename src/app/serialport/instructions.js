@@ -7,6 +7,12 @@ import { pParser } from '../protocol/_utils.js';
 const instructions = {
 
   fetchConfigFromGrid: ({device, inputStore}) => {
+
+    let enumber = undefined;
+
+    // configurations on the 16th element, which is the utility button
+    inputStore.event.elementnumber != 16 ? enumber = inputStore.event.elementnumber : enumber = 255;
+
     const {serial, id} = grid.translate.encode(
       { 
         dx: device.dx, 
@@ -21,7 +27,7 @@ const instructions = {
         { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
         { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
         { PAGENUMBER: pParser(inputStore.event.pagenumber)}, 
-        { ELEMENTNUMBER: pParser(inputStore.event.elementnumber)}, 
+        { ELEMENTNUMBER: pParser(enumber)}, 
         { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
         { ACTIONLENGTH: pParser(0)},
       ],

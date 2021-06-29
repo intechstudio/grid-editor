@@ -45,8 +45,13 @@ function createMessageStream(){
       logger.set(DATA.LOG);
     }
 
+    
     if(DATA.CONFIG_LUA){
-      runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}).trigger(true)
+      if(get(engine_state) == 'ENABLED'){
+        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}).trigger(true)
+      } else {
+        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+      }
     }
 
     if(DATA.CONFIG_ACKNOWLEDGE){
@@ -57,12 +62,12 @@ function createMessageStream(){
       //console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
     }
 
-    if(DATA.CONFIGSTORE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGSTORE.LASTHEADER})
+    if(DATA.CONFIGSTORE_ACKNOWLEDGE){
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGSTORE_ACKNOWLEDGE.LASTHEADER})
     }
 
-    if(DATA.CONFIGERASE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGERASE.LASTHEADER})
+    if(DATA.CONFIGERASE_ACKNOWLEDGE){
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGERASE_ACKNOWLEDGE.LASTHEADER})
     }
 
     _message_stream.set(DATA);

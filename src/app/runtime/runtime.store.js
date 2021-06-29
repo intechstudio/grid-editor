@@ -188,6 +188,61 @@ function create_runtime () {
     return _event;
   }
 
+  const fetchOrLoadConfig = (rt, ui) => {
+    
+    let pages = [];
+
+    let config = [];
+    let events = [];
+    let elementNumbers = [];
+    let selectedNumber = "";
+    let selectedEvent = "";
+
+    rt.forEach(device => {
+  
+      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
+
+        pages = device.pages;
+        selectedNumber = ui.event.elementnumber;
+
+        try {
+          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+        } catch (error) {
+          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
+          elementNumbers = device.pages[0].control_elements;
+          //console.info(`Fetch pages from grid!`);
+          instructions.fetchPageCountFromGrid({brc: ui.brc});
+        }
+
+        events = elementNumbers[selectedNumber].events;
+
+        // don't let selection of event, which is not on that control element
+        let f_event = events.find(e => e.event.value == ui.event.eventtype);
+        selectedEvent = f_event ? f_event : events[events.length - 1];     
+        
+        // on switching between system and ui events, set proper eventtype for fetching config
+        // f_event is undefined, if currently stored ui eventtype is not found on control element
+        if(!f_event){
+          ui.event.eventtype = events[events.length - 1].event.value;
+        }
+
+        if(selectedEvent.config.length){
+          config = selectedEvent.config.trim();
+          //console.info('Config is available!');
+        }
+        
+        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
+          selectedEvent.cfgStatus = 'FETCHED';
+          // ui elementnumber 255 (utility fetch) is handles in instructions.js
+          instructions.fetchConfigFromGrid({device: device, inputStore: ui});         
+          //console.info('Config Fetched!', ui);
+        }
+      }
+    });
+
+    return {pages, config, events, elementNumbers, selectedEvent, selectedNumber};
+
+  }
 
   const _device_update = function(){
 
@@ -227,8 +282,6 @@ function create_runtime () {
     }
   }
 
-  
-
   const _runtime_update = function() {
     
     const li = get(user_input);
@@ -264,6 +317,50 @@ function create_runtime () {
     this.trigger = function(){
       _trigger_ui_change.update(n => n + 1);
       return this;
+    };
+
+  }
+  
+  const _runtime_fetch = function() {
+
+    const _li = get(user_input);
+
+    this.missing = function(){
+
+      engine.disable();
+
+      logger.set({type: 'progress', classname: 'pagechange', message: `Preparing configs...`})
+
+      const rt = get(runtime);
+
+      let li = Object.assign({}, _li);
+
+      const { elements, events } = get(_active_config)
+
+      const array = [];
+
+      events.options.forEach(event => {
+        elements.options.forEach(elementnumber => {
+          array.push({event: event.value, elementnumber});
+        })
+      })
+
+      return new Promise((resolve, reject) => {
+        array.forEach((elem,ind) => {
+          (function(ind) {
+            setTimeout(function(){
+              li.event.eventtype = elem.event;
+              li.event.elementnumber = elem.elementnumber;
+              fetchOrLoadConfig(rt, li);
+              if(ind == ((elements.options.length * events.options.length) - 1)){
+                engine.enable();
+                logger.set({type: 'success', classname: 'pagechange', message: `Ready to save!`});
+                resolve('finish')
+              }
+            }, 100 * ind);
+          })(ind);
+        })
+      })
     };
 
   }
@@ -314,55 +411,8 @@ function create_runtime () {
 
     const rt = get(_runtime);
 
-    let pages = [];
+    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers } = fetchOrLoadConfig(rt, ui);
 
-    let config = [];
-    let events = [];
-    let elementNumbers = [];
-    let selectedNumber = "";
-    let selectedEvent = "";
-
-    rt.forEach(device => {
-  
-      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
-
-        pages = device.pages;
-        selectedNumber = ui.event.elementnumber;
-
-        try {
-          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
-        } catch (error) {
-          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
-          elementNumbers = device.pages[0].control_elements;
-          console.info(`Fetch pages from grid!`);
-          instructions.fetchPageCountFromGrid({brc: ui.brc});
-        }
-
-        events = elementNumbers[selectedNumber].events;
-
-        // don't let selection of event, which is not on that control element
-        let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        selectedEvent = f_event ? f_event : events[events.length - 1];     
-        
-        // on switching between system and ui events, set proper eventtype for fetching config
-        // f_event is undefined, if currently stored ui eventtype is not found on control element
-        if(!f_event){
-          ui.event.eventtype = events[events.length - 1].event.value;
-        }
-
-        if(selectedEvent.config.length){
-          config = selectedEvent.config.trim();
-          console.info('Config is available!');
-        }
-        
-        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
-          selectedEvent.cfgStatus = 'FETCHED';
-          instructions.fetchConfigFromGrid({device: device, inputStore: ui});     
-          console.info('Config Fetched!', ui);
-        }
-
-      }
-    });
 
     return {
       config: config, 
@@ -413,21 +463,40 @@ function create_runtime () {
     })
 
     return config;
-  })
+  });
+
 
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
     update: new _runtime_update(),
+    fetch: new _runtime_fetch(),
     device: new _device_update(),
     unsave: new _runtime_unsaved(),
     active_config: _active_config.subscribe,
     unsaved: _unsaved_changes,
+    erase: () => {
+      _runtime.update(rt => {
+        rt.forEach(device => {
+          device.pages.forEach(page => {
+            page.control_elements.forEach(events => {
+              events.events.forEach(event => {
+                event.config = '';
+                event.cfgStatus = 'ERASED'
+              })
+            })
+          })
+        });
+        return rt;
+      })
+
+    },
     active_lua: _active_lua.subscribe
   }
 }
 
 export const runtime = create_runtime();
+
 
 function createEngine(){
 
@@ -460,7 +529,7 @@ function createEngine(){
   function sync(){
     deadline = setTimeout(()=>{
       check();
-    },100)
+    },5000)
   }
 
   function check(){
@@ -473,20 +542,34 @@ function createEngine(){
     serialComm.write(serial);
   }
 
+  function disable_all(){
+
+    let state = [];
+
+    const devices = get(_runtime_modules);
+
+    devices.forEach(device => {
+      state.push({device: device, state: 'DISABLED'})
+    })
+  
+    _engine.set(state);
+
+  }
+
   const _strict = function(){
 
     // initiated from editor
     this.store = function(type, serial, id){ // type equals partly classname
 
-      const devices = get(_runtime_modules);
-
+      const devices = get(_runtime_modules);     
+      
       let state = [];
 
       devices.forEach(device => {
         state.push({device: device, state: 'DISABLED'})
       })
-
-      _engine.set(state); 
+    
+      _engine.set(state);
 
       logger.set({type: 'progress', classname: 'strict', message: `${type} in progress...`})
 
@@ -510,7 +593,8 @@ function createEngine(){
           success = true; // lastheader matches!
           clearTimeout(deadline); // THIS IS ONLY TRIGGERED ONCE, NOT FOR ALL MODULE INFO...
           update_engine(responseSource, 'ENABLED');
-          logger.set({type: 'success', classname: 'strict', message: `${strict.type} complete!`})
+          logger.set({type: 'success', classname: 'strict', message: `${strict.type} complete!`});
+          runtime.update.trigger();
         }
 
         if(!success){
@@ -545,6 +629,7 @@ function createEngine(){
     enable: () => {
       _engine.set([]);
     },
+    disable: disable_all,
     strict: new _strict(),
     leanient: new _leanient()
   }

@@ -2,14 +2,14 @@
 
   import {appSettings} from '../../main/_stores/app-helper.store.js';
 
-  let selectedTab = 'Configuration';
+  let selectedRightTab = 'Configuration';
 
   let selectedLeftTab = 'Debug';
 
-  function changeTab(tab){
-    selectedTab = tab;
+  function changeRightTab(tab){
+    selectedRightTab = tab;
     appSettings.update(store => {
-      store.activePanel = tab;
+      store.rightPanel = tab;
       return store;
     })
   };
@@ -43,29 +43,20 @@
   <div class="flex flex-col">
     <!--
     <div 
-      class:bg-secondary={selectedTab == 'virtual-modules'} 
-      on:click={()=>{changeTab('virtual-modules')}} 
+      class:bg-secondary={selectedRightTab == 'virtual-modules'} 
+      on:click={()=>{changeRightTab('virtual-modules')}} 
       class="m-1 my-2 p-1 w-12 h-12 flex justify-center items-center group hover:bg-secondary rounded-lg">
       <svg 
-        class:text-white={selectedTab == 'virtual-modules'} 
+        class:text-white={selectedRightTab == 'virtual-modules'} 
         class="fill-current text-black group-hover:text-white" width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M21 2H4C2.89543 2 2 2.89543 2 4V21C2 22.1046 2.89543 23 4 23H21C22.1046 23 23 22.1046 23 21V4C23 2.89543 22.1046 2 21 2ZM4 0C1.79086 0 0 1.79086 0 4V21C0 23.2091 1.79086 25 4 25H21C23.2091 25 25 23.2091 25 21V4C25 1.79086 23.2091 0 21 0H4Z"/>
         <path d="M12.4863 14.5869L13.8604 9.60352H15.9248L13.4297 17H11.543L9.04785 9.60352H11.1123L12.4863 14.5869Z" />
       </svg>
     </div>
-        <div 
-      on:click={()=>{changeTab('Profiles')}}  
-      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedTab == 'Profiles' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
-      <svg 
-        class="stroke-current text-white" width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 5.5L1.00028 19C1.0003 20.1046 1.89573 21 3.00028 21H24C25.1046 21 26 20.1046 26 19V7.5C26 6.39543 25.1046 5.5 24 5.5H11.0002M1 5.5V3C1 1.89543 1.89543 1 3 1H9.00019C10.1048 1 11.0002 1.89543 11.0002 3V5.5M1 5.5H11.0002"  stroke-width="2"/>
-      </svg>
-      <div class="left-0 -ml-1 absolute transition-all  {selectedTab == 'Profiles' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
-    </div>
 
     <div 
-      on:click={()=>{changeTab('MIDI Monitor')}}  
-      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedTab == 'MIDI Monitor' ? 'bg-opacity-100 ' : 'bg-opacity-40 '} bg-secondary">
+      on:click={()=>{changeRightTab('MIDI Monitor')}}  
+      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedRightTab == 'MIDI Monitor' ? 'bg-opacity-100 ' : 'bg-opacity-40 '} bg-secondary">
       <svg 
         class="fill-current text-white"  width="28"   viewBox="0 0 32 25" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M28 2H4C2.89543 2 2 2.89543 2 4V21C2 22.1046 2.89543 23 4 23H28C29.1046 23 30 22.1046 30 21V4C30 2.89543 29.1046 2 28 2ZM4 0C1.79086 0 0 1.79086 0 4V21C0 23.2091 1.79086 25 4 25H28C30.2091 25 32 23.2091 32 21V4C32 1.79086 30.2091 0 28 0H4Z" />
@@ -74,29 +65,29 @@
           <path d="M17.5195 13.0513C17.5195 12.1453 17.7218 11.4238 18.1265 10.8867C18.5347 10.3496 19.0915 10.0811 19.7969 10.0811C20.3626 10.0811 20.8299 10.2923 21.1987 10.7148V7.75H22.7563V16H21.3545L21.2793 15.3823C20.8926 15.8657 20.3949 16.1074 19.7861 16.1074C19.1022 16.1074 18.5526 15.8389 18.1372 15.3018C17.7254 14.7611 17.5195 14.0109 17.5195 13.0513ZM19.0718 13.1641C19.0718 13.7083 19.1667 14.1255 19.3564 14.4155C19.5462 14.7056 19.8219 14.8506 20.1836 14.8506C20.6634 14.8506 21.0018 14.6483 21.1987 14.2437V11.9502C21.0054 11.5456 20.6706 11.3433 20.1943 11.3433C19.446 11.3433 19.0718 11.9502 19.0718 13.1641Z"/>
           <path d="M25.5977 16H24.04V10.1885H25.5977V16ZM23.9487 8.68457C23.9487 8.45182 24.0257 8.26025 24.1797 8.10986C24.3372 7.95947 24.5503 7.88428 24.8188 7.88428C25.0838 7.88428 25.2951 7.95947 25.4526 8.10986C25.6102 8.26025 25.689 8.45182 25.689 8.68457C25.689 8.9209 25.6084 9.11426 25.4473 9.26465C25.2897 9.41504 25.0802 9.49023 24.8188 9.49023C24.5575 9.49023 24.3462 9.41504 24.1851 9.26465C24.0275 9.11426 23.9487 8.9209 23.9487 8.68457Z" />
       </svg>
-      <div class="left-0 -ml-1 absolute transition-all  {selectedTab == 'MIDI Monitor' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+      <div class="left-0 -ml-1 absolute transition-all  {selectedRightTab == 'MIDI Monitor' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
     </div>
     -->
     <div 
-      on:click={()=>{changeTab('Configuration')}}  
-      class="cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedTab == 'Configuration' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
+      on:click={()=>{changeRightTab('Configuration')}}  
+      class="cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab == 'Configuration' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
       <svg 
         class="stroke-current text-white" width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12.6772" cy="12.6777" r="11.5"  stroke-width="2"/>
         <rect x="1.17725" y="12.1777" width="10" height="1" fill="black" />
       </svg>
-      <div class="left-0 -ml-1 absolute transition-all  {selectedTab == 'Configuration' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+      <div class="left-0 -ml-1 absolute transition-all  {selectedRightTab == 'Configuration' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
 
     </div>
 
     <div 
-      on:click={()=>{changeTab('Preferences')}}  
-      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedTab == 'Preferences' ? 'bg-opacity-100 ' : 'bg-opacity-40 '} bg-secondary">
+      on:click={()=>{changeRightTab('Preferences')}}  
+      class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedRightTab == 'Preferences' ? 'bg-opacity-100 ' : 'bg-opacity-40 '} bg-secondary">
       <svg 
         class=" fill-current text-white" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M10.2183 0.254654L13.5394 0.254654V3.74186C14.6186 3.96094 15.6218 4.38934 16.5048 4.98285L19.0189 2.46874L21.3673 4.81712L18.8372 7.34721C19.3982 8.20699 19.8043 9.17715 20.0155 10.218H23.5027V13.5391H20.0155C19.7965 14.6184 19.3681 15.6216 18.7745 16.5046L21.2887 19.0187L18.9403 21.3671L16.4102 18.837C15.5504 19.398 14.5802 19.804 13.5394 20.0153L13.5394 23.5026H10.2183L10.2183 20.0153C9.17739 19.804 8.20724 19.398 7.34746 18.837L4.81735 21.3671L2.46897 19.0187L4.98309 16.5046C4.38958 15.6216 3.96117 14.6184 3.74209 13.5391H0.254883L0.254883 10.218H3.74209C3.95338 9.17715 4.35938 8.20699 4.92042 7.34721L2.39033 4.81712L4.73872 2.46874L7.25284 4.98285C8.13581 4.38934 9.13902 3.96094 10.2183 3.74186V0.254654ZM11.8788 5.78986C11.3031 5.78986 10.7461 5.86975 10.2183 6.01905C9.73878 6.15467 9.28335 6.34754 8.85982 6.58983C7.88231 7.14903 7.07473 7.97142 6.53364 8.96043C6.31769 9.35513 6.1442 9.77638 6.01928 10.218C5.86998 10.7459 5.79009 11.3029 5.79009 11.8786C5.79009 12.4543 5.86998 13.0113 6.01928 13.5391C6.1549 14.0186 6.34778 14.4741 6.59007 14.8976C7.14927 15.8751 7.97167 16.6827 8.96068 17.2238C9.35538 17.4397 9.77662 17.6132 10.2183 17.7381C10.7461 17.8874 11.3031 17.9673 11.8788 17.9673C12.4545 17.9673 13.0115 17.8874 13.5394 17.7381C13.981 17.6132 14.4023 17.4397 14.797 17.2238C15.786 16.6827 16.6084 15.8751 17.1676 14.8976C17.4099 14.4741 17.6027 14.0186 17.7383 13.5391C17.8876 13.0113 17.9675 12.4543 17.9675 11.8786C17.9675 11.3029 17.8876 10.7459 17.7383 10.218C17.6134 9.77638 17.4399 9.35513 17.224 8.96043C16.6829 7.97142 15.8753 7.14903 14.8978 6.58983C14.4743 6.34754 14.0189 6.15467 13.5394 6.01905C13.0115 5.86975 12.4545 5.78986 11.8788 5.78986Z" />
       </svg>
-      <div class="left-0 -ml-1 absolute transition-all  {selectedTab == 'Preferences' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+      <div class="left-0 -ml-1 absolute transition-all  {selectedRightTab == 'Preferences' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
 
     </div>
 
@@ -104,13 +95,39 @@
 
   
   <div class="flex flex-col">
+    <!--
+        <div 
+          on:click={()=>{changeLeftTab('Profiles')}}  
+          class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Profiles' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
+          <svg 
+            class="stroke-current text-white" width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 5.5L1.00028 19C1.0003 20.1046 1.89573 21 3.00028 21H24C25.1046 21 26 20.1046 26 19V7.5C26 6.39543 25.1046 5.5 24 5.5H11.0002M1 5.5V3C1 1.89543 1.89543 1 3 1H9.00019C10.1048 1 11.0002 1.89543 11.0002 3V5.5M1 5.5H11.0002"  stroke-width="2"/>
+          </svg>
+          <div class="left-0 -ml-1 absolute transition-all  {selectedLeftTab == 'Profiles' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+        </div>
+    -->
     <div 
       on:click={()=>{changeLeftTab('Debug')}}  
       class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Debug' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
-      <span class="text-white">Debug</span>
+      <svg class="fill-current text-white p-0.5" width="24" height="24"  viewBox="0 0 512 511" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M282.667 511H229.333C149.931 511 85.3333 446.403 85.3333 367V249.667C85.3333 170.264 149.931 105.667 229.333 105.667H282.667C362.069 105.667 426.667 170.264 426.667 249.667V367C426.667 446.403 362.069 511 282.667 511ZM229.333 137.667C167.573 137.667 117.333 187.907 117.333 249.667V367C117.333 428.76 167.573 479 229.333 479H282.667C344.427 479 394.667 428.76 394.667 367V249.667C394.667 187.907 344.427 137.667 282.667 137.667H229.333Z"/>
+        <path d="M340.693 151.533C338.176 151.533 335.616 150.936 333.227 149.677C325.419 145.539 322.432 135.875 326.549 128.045C329.216 123.032 330.667 116.973 330.667 111C330.667 90.4133 313.92 73.6666 293.333 73.6666H218.667C208.64 73.6666 199.232 77.528 192.213 84.5467C185.195 91.5653 181.333 100.973 181.333 111C181.333 116.973 182.784 123.032 185.451 128.045C189.568 135.853 186.603 145.539 178.773 149.677C170.965 153.816 161.301 150.808 157.163 143C152.043 133.336 149.333 122.264 149.333 111C149.333 92.4187 156.523 74.9893 169.6 61.9333C182.677 48.8773 200.085 41.6666 218.667 41.6666H293.333C331.563 41.6666 362.667 72.7706 362.667 111C362.667 122.264 359.957 133.336 354.837 143C351.979 148.44 346.432 151.533 340.693 151.533Z"/>
+        <path d="M219.157 68.3333C210.325 68.3333 203.157 61.1653 203.157 52.3333V16.9413C203.157 8.10931 210.325 0.941315 219.157 0.941315C227.989 0.941315 235.157 8.10931 235.157 16.9413V52.3333C235.157 61.1653 227.989 68.3333 219.157 68.3333Z" />
+        <path d="M293.824 68.3333C284.992 68.3333 277.824 61.1653 277.824 52.3333V16.9413C277.824 8.10931 284.992 0.941315 293.824 0.941315C302.656 0.941315 309.824 8.10931 309.824 16.9413V52.3333C309.824 61.1653 302.656 68.3333 293.824 68.3333Z" />
+        <path d="M256 404.333C247.168 404.333 240 397.165 240 388.333V228.333C240 219.501 247.168 212.333 256 212.333C264.832 212.333 272 219.501 272 228.333V388.333C272 397.165 264.832 404.333 256 404.333Z" />
+        <path d="M496 324.333H416C407.168 324.333 400 317.165 400 308.333C400 299.501 407.168 292.333 416 292.333H496C504.832 292.333 512 299.501 512 308.333C512 317.165 504.832 324.333 496 324.333Z" />
+        <path d="M96 324.333H16C7.168 324.333 0 317.165 0 308.333C0 299.501 7.168 292.333 16 292.333H96C104.832 292.333 112 299.501 112 308.333C112 317.165 104.832 324.333 96 324.333Z" />
+        <path d="M37.3333 489.667C32.448 489.667 27.6267 487.448 24.4693 483.203C19.2 476.099 20.672 466.093 27.776 460.824L96.6827 409.624C103.765 404.376 113.792 405.827 119.061 412.931C124.331 420.035 122.859 430.04 115.755 435.309L46.848 486.509C44.0107 488.643 40.6613 489.667 37.3333 489.667Z" />
+        <path d="M405.781 210.2C400.896 210.2 396.075 207.981 392.917 203.736C387.648 196.632 389.12 186.627 396.224 181.357L465.131 130.157C472.213 124.909 482.24 126.36 487.509 133.464C492.779 140.568 491.307 150.573 484.203 155.843L415.296 207.043C412.437 209.176 409.088 210.2 405.781 210.2Z" />
+        <path d="M474.667 489.667C471.339 489.667 467.989 488.643 465.131 486.509L396.224 435.309C389.12 430.04 387.648 420.013 392.917 412.931C398.208 405.827 408.235 404.397 415.296 409.624L484.203 460.824C491.307 466.093 492.779 476.12 487.509 483.203C484.373 487.448 479.552 489.667 474.667 489.667Z" />
+        <path d="M106.219 210.2C102.891 210.2 99.5413 209.176 96.6827 207.043L27.776 155.843C20.6933 150.573 19.2213 140.547 24.4907 133.464C29.76 126.36 39.808 124.931 46.8693 130.157L115.776 181.357C122.88 186.627 124.352 196.653 119.083 203.736C115.947 207.96 111.104 210.2 106.219 210.2Z"/>
+      </svg>
+        
       <div class="left-0 -ml-1 absolute transition-all  {selectedLeftTab == 'Debug' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
     </div>
   </div>
+
+ 
  
 
 </nav-tab>

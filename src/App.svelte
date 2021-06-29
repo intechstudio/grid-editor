@@ -1,5 +1,13 @@
 <script>
 
+  /**
+  *   Analytics 
+  */
+
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
+  require('dotenv').config();
+
   /*
   *   tailwindcss
   */
@@ -18,6 +26,8 @@
    *  svelte UI parts and components
   */
 
+  import { onMount } from 'svelte';
+
   import Titlebar from './app/shared/main/Titlebar.svelte';
   import NavTabs from './app/shared/main/NavTabs.svelte';
   import RightPanelContainer from './app/main/RightPanelContainer.svelte';
@@ -29,13 +39,18 @@
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
   import { engine } from './app/runtime/runtime.store';
-import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
-
-  //let state = 'ENABLED';
+  import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
+  import { appSettings } from './app/main/_stores/app-helper.store';
+  import NotificationBar from './app/shared/notifications/NotificationBar.svelte';
 
   const engine_state = engine.state;
 
-  //engine.state.subscribe(s => {state = s;})
+  onMount(()=>{
+
+    trackEvent('fw-editor-version', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
+    trackEvent('operating-system', process.platform)
+    
+  });
 
 </script>
 
@@ -67,13 +82,13 @@ import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
 
     <div class="flex w-full h-full { $engine_state == 'ENABLED' ? '' : 'pointer-events-none'}">
 
-      <LeftPanelContainer classes={"w-3/12"}/>
+      <LeftPanelContainer classes={"w-2/12"}/>
       
       <!-- This is the (mostly) Layout part of the code. -->
       <GridLayout classes={"w-7/12"}/>
 
       <!-- The right side panel container -->
-      <RightPanelContainer classes={"w-5/12"}/>
+      <RightPanelContainer classes={"w-6/12"}/>
 
     </div>
   </div>
