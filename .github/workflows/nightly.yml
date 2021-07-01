@@ -6,7 +6,7 @@ on:
       - stable
 
 jobs:
-  build:
+  job_1:
     name: Build Nightly Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: '14.4'
-          
+
       - name: create env file
         run: |
           touch .env
@@ -38,7 +38,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
-  
+
       - name: Build
         run: npm run export
         env:     
@@ -61,9 +61,25 @@ jobs:
         with:
           name: nightly
           path: dist/*.*
-      
+    
+
       - name: Download Artifacts
         uses: actions/download-artifact@v2
+      
+      - name: Create Archive
+        run: |
+          tar -cvf deploy.tar nightly
+          ls -l
+      
+      - name: Copy build to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_USERNAME }}
+          password: ${{ secrets.NAS_PASSWORD }}
+          port: ${{ secrets.NAS_PORT }}
+          source: "deploy.tar"
+          target: "/volume1/shared"
 
       - name: Discord Notification
         uses: rjstone/discord-webhook-notify@v1
