@@ -65,10 +65,13 @@ jobs:
 
       - name: Download Artifacts
         uses: actions/download-artifact@v2
+        with:
+          name: nightly
       
       - name: Create Archive
         run: |
-          tar -cvf deploy.tar nightly
+          ls -l
+          tar -cvf deploy.tar dist/*.*
           ls -l
       
       - name: Copy build to server
