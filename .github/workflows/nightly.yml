@@ -37,16 +37,6 @@ jobs:
           ls -l
           tar -cvf deploy.tar test_file
           ls -l
-      
-      - name: Copy build to server
-        uses: garygrossgarten/github-action-scp@release
-        with:
-          local: "deploy.tar"
-          remote: "/volume1/shared/test"
-          host: ${{ secrets.NAS_HOST }}
-          username: ${{ secrets.NAS_USERNAME }}
-          password: ${{ secrets.NAS_PASSWORD }}
-          port: ${{ secrets.NAS_PORT }}
           
       - name: executing remote ssh commands using password
         uses: appleboy/ssh-action@master
@@ -60,6 +50,17 @@ jobs:
             mkdir deploy_test
             ls -l
             echo 'Yes'
+      
+      - name: Copy build to server
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: "deploy.tar"
+          remote: "/volume1/shared/test"
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_USERNAME }}
+          password: ${{ secrets.NAS_PASSWORD }}
+          port: ${{ secrets.NAS_PORT }}
+          
 
 
   
