@@ -24,43 +24,17 @@ jobs:
         with:
           node-version: '14.4'
 
-      - name: create env file
+      - name: create  file
         run: |
-          touch .env
-          echo EMAIL=${{secrets.EMAIL}} >> .env
-          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
-          echo UA=${{secrets.UA}} >> .env
-
-      - name: Install dependencies
-        run: npm i
-        env:
-          # email stuff
-          EMAIL: ${{ secrets.EMAIL }}
-          EMAIL_PASS: ${{secrets.EMAIL_PASS}}
-          UA: ${{ secrets.UA }}
-
-      - name: Build
-        run: npm run export
-        env:     
-          # gh repo token
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # macOS Code signing certificates
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-
-          # macOS notarization API key
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-
-      - name: See directory
-        run: ls dist/*.*
+          touch test_file
+          echo "hello" >> test_file
+          ls -l
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: nightly
-          path: dist/*.*
+          path: test_file
     
 
       - name: Download Artifacts
@@ -71,7 +45,7 @@ jobs:
       - name: Create Archive
         run: |
           ls -l
-          tar -cvf deploy.tar dist/*.*
+          tar -cvf deploy.tar test_file
           ls -l
       
       - name: Copy build to server
