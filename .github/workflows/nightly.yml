@@ -55,7 +55,7 @@ jobs:
         uses: garygrossgarten/github-action-scp@release
         with:
           local: "deploy.tar"
-          remote: "/volume1/shared/test"
+          remote: "/volume1/shared/deploy_test"
           host: ${{ secrets.NAS_HOST }}
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
