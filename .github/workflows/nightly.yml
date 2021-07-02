@@ -11,19 +11,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2016, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ''
-          submodules: true
-
-      - name: Setup NodeJs
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.4'
-
       - name: create  file
         run: |
           touch test_file
@@ -55,8 +45,9 @@ jobs:
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           port: ${{ secrets.NAS_PORT }}
+          debug: true
           source: "deploy.tar"
-          target: "/volume1/shared/"
+          target: "volume1/shared/"
 
       - name: Discord Notification
         uses: rjstone/discord-webhook-notify@v1
