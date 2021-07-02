@@ -39,13 +39,27 @@ jobs:
           ls -l
       
       - name: Copy build to server
-        uses: appleboy/scp-action@master
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: "deploy.tar"
+          remote: "/volume1/shared/test"
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_USERNAME }}
+          password: ${{ secrets.NAS_PASSWORD }}
+          port: ${{ secrets.NAS_PORT }}
+          
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.NAS_HOST }}
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           port: ${{ secrets.NAS_PORT }}
-          source: "deploy.tar"
-          target: "/volume1/shared/test"
+          script: |
+            cd /volume1/shared
+            mkdir deploy_test
+            ls -l
+            echo 'Yes'
+
 
   
