@@ -39,23 +39,13 @@ jobs:
           ls -l
       
       - name: Copy build to server
-        uses: appleboy/scp-action@master
+        uses: garygrossgarten/github-action-scp@release
         with:
           host: ${{ secrets.NAS_HOST }}
           username: ${{ secrets.NAS_USERNAME }}
           password: ${{ secrets.NAS_PASSWORD }}
           port: ${{ secrets.NAS_PORT }}
-          debug: true
-          source: "deploy.tar"
-          target: "/volume1/shared/test"
+          local: "deploy.tar"
+          remote: "/volume1/shared"
 
-      - name: Discord Notification
-        uses: rjstone/discord-webhook-notify@v1
-        if: success()
-        with:
-            severity: info
-            username: Nightly Bot
-            footer: Programming is fun.
-            description: 'Download latest nightly artifact!'
-            details: 'Link to workflows: https://github.com/intechstudio/grid-editor/actions'
-            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+  
