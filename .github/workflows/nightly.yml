@@ -46,6 +46,6 @@ jobs:
           password: ${{ secrets.NAS_PASSWORD }}
           port: ${{ secrets.NAS_PORT }}
           local: "deploy.tar"
-          remote: "/volume1/shared"
+          remote: "/volume1/shared/test"
 
   
