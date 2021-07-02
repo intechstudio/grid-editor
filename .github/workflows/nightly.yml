@@ -56,7 +56,7 @@ jobs:
           password: ${{ secrets.NAS_PASSWORD }}
           port: ${{ secrets.NAS_PORT }}
           source: "deploy.tar"
-          target: "/volume1/shared"
+          target: "/volume1/shared/"
 
       - name: Discord Notification
         uses: rjstone/discord-webhook-notify@v1
