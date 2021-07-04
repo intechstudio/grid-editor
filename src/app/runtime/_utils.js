@@ -119,9 +119,7 @@ const _utils = {
     let code = short; // prepend with type
     const _unformatted = JSON.stringify(array);
     [..._unformatted].forEach(e => {
-      if(e == '['){ code += '(' }
-      else if(e == ']') { code += ')'}
-      else if(e == "\"") { /* no return */ }
+      if(e == "\"") { /* no return */ }
       else { code += e }
     })
     return code;

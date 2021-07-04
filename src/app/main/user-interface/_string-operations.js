@@ -91,7 +91,7 @@ const stringManipulation = {
     // for "," in functions
     pattern.push(`${'(?<separator>(\,))'}`);
     // for parenthesis ")" "("
-    pattern.push(`${'(?<parenthesis>([\\)\\(\\]\\[]))'}`)
+    pattern.push(`${'(?<parenthesis>([\\)\\(\\]\\[\\}\\{]))'}`)
     // if its a simple integer
     pattern.push(`${'(?<integer>([+-]?[1-9]\\d*|0))'}`) ;
     // if its if-then-end
@@ -147,11 +147,11 @@ const stringManipulation = {
 
     const splitArray = this.splitShortScript(script, 'human');
 
-    //console.log('SHORT SPLIT: ', splitArray);
+    console.log('SHORT SPLIT: ', splitArray);
 
     const shorted = this.splitArrayToString(splitArray, 'short');
 
-    //console.log('SHORT: ', shorted);
+    console.log('SHORT: ', shorted);
 
     return shorted;
 
