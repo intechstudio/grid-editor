@@ -6,72 +6,61 @@ on:
       - stable
 
 jobs:
-  build:
+  job_1:
     name: Build Nightly Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2016, macos-latest]
+        os: [ubuntu-latest]
 
     steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: ''
-          submodules: true
-
-      - name: Setup NodeJs
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.4'
-          
-      - name: create env file
+      - name: create  file
         run: |
-          touch .env
-          echo EMAIL=${{secrets.EMAIL}} >> .env
-          echo EMAIL_PASS=${{secrets.EMAIL_PASS}} >> .env
-          echo UA=${{secrets.UA}} >> .env
-
-      - name: Install dependencies
-        run: npm i
-        env:
-          # email stuff
-          EMAIL: ${{ secrets.EMAIL }}
-          EMAIL_PASS: ${{secrets.EMAIL_PASS}}
-          UA: ${{ secrets.UA }}
-  
-      - name: Build
-        run: npm run export
-        env:     
-          # gh repo token
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # macOS Code signing certificates
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-
-          # macOS notarization API key
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-
-      - name: See directory
-        run: ls dist/*.*
+          touch test_file
+          echo "hello" >> test_file
+          ls -l
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
         with:
           name: nightly
-          path: dist/*.*
-      
+          path: test_file
+    
+
       - name: Download Artifacts
         uses: actions/download-artifact@v2
-
-      - name: Discord Notification
-        uses: rjstone/discord-webhook-notify@v1
-        if: success()
         with:
-            severity: info
-            username: Nightly Bot
-            footer: Programming is fun.
-            description: 'Download latest nightly artifact!'
-            details: 'Link to workflows: https://github.com/intechstudio/grid-editor/actions'
-            webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+          name: nightly
+      
+      - name: Create Archive
+        run: |
+          ls -l
+          tar -cvf deploy.tar test_file
+          ls -l
+          
+      - name: executing remote ssh commands using password
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_USERNAME }}
+          password: ${{ secrets.NAS_PASSWORD }}
+          port: ${{ secrets.NAS_PORT }}
+          script: |
+            cd /volume1/shared
+            mkdir deploy_test
+            ls -l
+            echo 'Yes'
+      
+      - name: Copy build to server
+        uses: garygrossgarten/github-action-scp@release
+        with:
+          local: "deploy.tar"
+          remote: "/volume1/shared/deploy_test"
+          host: ${{ secrets.NAS_HOST }}
+          username: ${{ secrets.NAS_USERNAME }}
+          password: ${{ secrets.NAS_PASSWORD }}
+          port: ${{ secrets.NAS_PORT }}
+          
+
+
+  
