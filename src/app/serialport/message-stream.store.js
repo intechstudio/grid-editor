@@ -2,6 +2,7 @@
 import { writable, get } from 'svelte/store';
 import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
+import { writeBuffer } from '../runtime/engine.store';
 import { debug_store, runtime, user_input, logger, engine } from '../runtime/runtime.store';
 
 const engine_state = engine.state;
@@ -46,11 +47,11 @@ function createMessageStream(){
     }
 
     
-    if(DATA.CONFIG_LUA){
+    if(DATA.LUA){
       if(get(engine_state) == 'ENABLED'){
-        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}).trigger(true)
+        runtime.update.status('GRID_REPORT').config({lua: DATA.LUA}).trigger(true)
       } else {
-        runtime.update.status('GRID_REPORT').config({lua: DATA.CONFIG_LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+        runtime.update.status('GRID_REPORT').config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
       }
     }
 
@@ -70,6 +71,8 @@ function createMessageStream(){
       engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGERASE_ACKNOWLEDGE.LASTHEADER})
     }
 
+    writeBuffer.validate_incoming(DATA);
+   
     _message_stream.set(DATA);
 
   }

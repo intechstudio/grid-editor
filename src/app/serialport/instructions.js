@@ -3,6 +3,7 @@ import { serialComm } from './serialport.store.js';
 import grid from '../protocol/grid-protocol.js';
 
 import { pParser } from '../protocol/_utils.js';
+import { writeBuffer } from '../runtime/engine.store.js';
 
 const instructions = {
 
@@ -32,6 +33,30 @@ const instructions = {
         { ACTIONLENGTH: pParser(0)},
       ],
     );
+
+    let buffer_element = {
+      responseRequired: true,
+      serial: serial,
+      filter: {
+        id: id, 
+        classParameters: {
+          'ELEMENTNUMBER': enumber,
+          'EVENTTYPE': inputStore.event.eventtype,
+          'PAGENUMBER': inputStore.event.pagenumber
+        }, 
+        brc: { 
+          'SX': device.dx, 
+          'SY': device.dy,
+          'ROT': Math.abs(device.rot)
+        },
+        instr: 'REPORT',
+        className: 'CONFIG'
+      },
+      failCb: function(){console.log('fail')}, 
+      successCb: function(){console.log('success')}
+    }
+
+    writeBuffer.add_first(buffer_element);
 
     serialComm.write(serial);
 
