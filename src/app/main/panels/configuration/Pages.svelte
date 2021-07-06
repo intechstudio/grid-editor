@@ -22,7 +22,7 @@
       user_input.update_pagenumber.pagenumber(selectedPage).sendToGrid();
     }
     else{
-      logger.set({type: 'alert', classname: 'pagechange', message: 'Store your config before switching pages!'});
+      logger.set({type: 'alert', classname: 'pagechange', mode: 0, message: 'Store your config before switching pages!'});
     }
   }
 

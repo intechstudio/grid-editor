@@ -3,6 +3,7 @@ import { serialComm } from '../serialport/serialport.store';
 
 const buffer_element = {
   responseRequired: true,
+  responseTimeout: 2000,
   serial: '',
   filter: {id: '', event: {}, brc: {}},
   failCb: function(){console.log('fail')}, 
@@ -12,68 +13,58 @@ const buffer_element = {
 
 function createWriteBuffer (){
 
-  const _write_buffer = writable([Object.create(buffer_element)]);
+  const messages = writable([]);
 
-  const _engine = writable(0); // state
+  let _write_buffer = [];
 
   let write_buffer_busy = false;
 
   let active_elem = undefined;
-  
-  _write_buffer.subscribe(value => { 
-    writeBufferTryNext();
-  })
 
   function writeBufferTryNext() {
 
-    active_elem = get(_write_buffer)[0];
-
-    if(write_buffer_busy || active_elem !== {}){ return }
+    if(write_buffer_busy || _write_buffer.length == 0) return;
 
     write_buffer_busy = true;
 
-    _write_buffer.update(s => {
-      if(s.length){
-        s.shift(); 
-      }
-      return s
-    });
+    active_elem = _write_buffer[0];
+
+    if(active_elem.hasOwnProperty('commandCb')){
+      active_elem.commandCb();
+      write_buffer_busy = false;
+      return;
+    }
 
     serialComm.write(active_elem.serial);
 
+    _write_buffer.shift();
+
     if(active_elem.responseRequired !== undefined){
 
-      // if config fetch
+      const responseTimeout = active_elem.responseTimeout ?? 1000;
 
-      startFetchTimeout();
+      startFetchTimeout(responseTimeout);
 
     } else {
-
-      console.log('CANCEL OUT')
-
       // heartbeat
       active_elem = undefined;
       write_buffer_busy = false;
       writeBufferTryNext();
-
     }
-
-
 
   };
 
   let _fetch_timeout = undefined;
-  function startFetchTimeout() {
+  function startFetchTimeout(timeout) {
+    console.log('timeout', timeout);
     _fetch_timeout = setTimeout(()=>{
-
       fetchTimeoutCallback();
-
-    }, 2000)
+    }, timeout)
   }
 
   function fetchTimeoutCallback(){
 
-    if(active_elem.failCb !== undefined){
+    if(active_elem !== undefined){
 
       active_elem.failCb();
 
@@ -84,24 +75,11 @@ function createWriteBuffer (){
 
   }
 
-  function add_first(obj){
-    _write_buffer.update(s => {
-      s.splice(0,0,obj);
-      return s;
-    })
-  }
-
-  function add_last(obj){
-    _write_buffer.update(s => {
-      s = [...s, obj];
-      return s;
-    })
-  }
-
   function validateIncoming(data) {
 
     // compare data and filter key - value pairs
 
+    if(!active_elem) return
 
     let isHeartbeat = false;
     for (const _class in data) {
@@ -117,7 +95,7 @@ function createWriteBuffer (){
     // validate filter classParameters
     for (const parameter in active_elem.filter.classParameters){
       if(data.hasOwnProperty(active_elem.filter.className)){
-        if(data[active_elem.filter.className][parameter] !== active_elem.filter.classParameters[parameter]){
+        if(data[active_elem.filter.className][parameter] != active_elem.filter.classParameters[parameter]){
           incomingValid = false;
         }
       }
@@ -125,27 +103,38 @@ function createWriteBuffer (){
 
     // validate BRC
     for (const parameter in active_elem.filter.brc) {
-      if(data.BRC[parameter] !== active_elem.filter.brc[parameter]){
+      if(data.BRC[parameter] != active_elem.filter.brc[parameter]){
         incomingValid = false;
       }
     }
 
-
     if(incomingValid){
       active_elem.successCb();
       active_elem = undefined;
+      write_buffer_busy = false;
+      clearInterval(_fetch_timeout);
       writeBufferTryNext();
     } else {
       // not matched, maybe later
     }
   }
 
+  function add_first(obj){
+    _write_buffer.splice(0,0,obj);
+    writeBufferTryNext();
+  }
+
+  function add_last(obj){
+    _write_buffer = [..._write_buffer, obj];
+    writeBufferTryNext();
+  }
+
 
   return {
+    messages: messages,
     add_first: add_first,
     add_last: add_last,
     validate_incoming: validateIncoming
-
   }
 
 }

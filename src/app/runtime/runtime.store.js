@@ -4,6 +4,7 @@ import { actionPrefStore } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import { serialComm } from '../serialport/serialport.store';
+import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 export const appActionClipboard = writable([]);
@@ -177,8 +178,9 @@ function create_runtime () {
     if(li.event.elementnumber !== -1){
       _runtime.forEach((device) => {
         if(device.dx == li.brc.dx && device.dy == li.brc.dy){
+          const enumber = li.event.elementnumber == 255 ? 16 : li.event.elementnumber;
           try {
-            _event = device.pages[li.event.pagenumber].control_elements[li.event.elementnumber].events.find(e => e.event.value == li.event.eventtype);
+            _event = device.pages[li.event.pagenumber].control_elements[enumber].events.find(e => e.event.value == li.event.eventtype);
           } catch (error) {    
             console.error('Couldn\'t update in destination: ', li)
           }
@@ -203,14 +205,13 @@ function create_runtime () {
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
 
         pages = device.pages;
-        selectedNumber = ui.event.elementnumber;
+        selectedNumber = ui.event.elementnumber == 255 ? 16 : ui.event.elementnumber;
 
         try {
           elementNumbers = device.pages[ui.event.pagenumber].control_elements;
         } catch (error) {
           console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
           elementNumbers = device.pages[0].control_elements;
-          //console.info(`Fetch pages from grid!`);
           instructions.fetchPageCountFromGrid({brc: ui.brc});
         }
 
@@ -228,14 +229,12 @@ function create_runtime () {
 
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
-          //console.info('Config is available!');
         }
         
+        // ui elementnumber 255 (utility fetch) is handles in instructions.js
         if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
           selectedEvent.cfgStatus = 'FETCHED';
-          // ui elementnumber 255 (utility fetch) is handles in instructions.js
-          instructions.fetchConfigFromGrid({device: device, inputStore: ui});         
-          //console.info('Config Fetched!', ui);
+          runtime.fetch.One(device, ui);  
         }
       }
     });
@@ -282,9 +281,27 @@ function create_runtime () {
     }
   }
 
+  function erase_all(){
+
+    _runtime.update(rt => {
+      rt.forEach(device => {
+        device.pages.forEach(page => {
+          page.control_elements.forEach(events => {
+            events.events.forEach(event => {
+              event.config = '';
+              event.cfgStatus = 'ERASED'
+            })
+          })
+        })
+      });
+      return rt;
+    })
+
+  }
+
   const _runtime_update = function() {
     
-    const li = get(user_input);
+    let li = get(user_input);
     let code = '';
     let cfgStatus = 'EDITOR_BACKGROUND';
 
@@ -293,9 +310,15 @@ function create_runtime () {
       return this;
     };
 
+    this.event = function(evt){
+      li.event.eventtype = evt.EVENTTYPE;
+      li.event.pagenumber = evt.PAGENUMBER;
+      li.event.elementnumber = evt.ELEMENTNUMBER;
+      return this;
+    };
+
     this.config = function({lua}) {
       code = lua;
-
       _runtime.update(_runtime => {
         let dest = findUpdateDestination(_runtime, li);
         if (dest) {
@@ -325,17 +348,24 @@ function create_runtime () {
 
     const _li = get(user_input);
 
-    this.missing = function(){
+    this.One = function(device, ui){
+      console.log('ui', ui)
+      instructions.fetchConfigFromGrid({device: device, inputStore: ui});
+      return this;
+    }
+
+    // fetches all config from each action and event on current page + utility button
+    this.Many = function(){
 
       engine.disable();
 
-      logger.set({type: 'progress', classname: 'pagechange', message: `Preparing configs...`})
+      logger.set({type: 'progress', mode: 0, classname: 'pagesave', message: `Preparing configs...`})
 
       const rt = get(runtime);
 
       let li = Object.assign({}, _li);
 
-      const { elements, events } = get(_active_config)
+      const { elements, events } = get(_active_config);
 
       const array = [];
 
@@ -345,27 +375,27 @@ function create_runtime () {
         })
       })
 
-      return new Promise((resolve, reject) => {
-        array.forEach((elem,ind) => {
-          (function(ind) {
-            setTimeout(function(){
-              li.event.eventtype = elem.event;
-              li.event.elementnumber = elem.elementnumber;
-              fetchOrLoadConfig(rt, li);
-              if(ind == ((elements.options.length * events.options.length) - 1)){
-                engine.enable();
-                logger.set({type: 'success', classname: 'pagechange', message: `Ready to save!`});
-                resolve('finish')
-              }
-            }, 100 * ind);
-          })(ind);
-        })
+      array.forEach((elem, ind) => {
+        li.event.eventtype = elem.event;
+        li.event.elementnumber = elem.elementnumber;
+        fetchOrLoadConfig(rt, li);
       })
-    };
+
+      writeBuffer.add_last({
+        responseRequired: true,
+        commandCb: function(){
+          writeBuffer.messages.set('ready to save');                
+          logger.set({type: 'success', mode: 0, classname: 'pagesave', message: `Ready to save!`});
+          engine.enable();
+        }
+      });
+      
+      return this;
+    }
 
   }
 
-  const _runtime_unsaved = function() {
+  const _runtime_changes = function() {
 
     const li = get(user_input);
 
@@ -402,17 +432,19 @@ function create_runtime () {
   }
 
   // this is used to refresh the user interface in the active right panel
+  // also used for config management, copy paste etc
+
   const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
 
-    // whenever the UI changes, disable multiselect
+    // whenever the UI changes, reset multiselect
     appMultiSelect.reset();
 
+    // close advanced views
     actionPrefStore.reset();
 
     const rt = get(_runtime);
 
     const {config, events, selectedEvent, selectedNumber, pages, elementNumbers } = fetchOrLoadConfig(rt, ui);
-
 
     return {
       config: config, 
@@ -431,67 +463,16 @@ function create_runtime () {
     }
   })
 
-  // this is used for copy and select_all in config management.
-  // previously active_config was used, but we are updating the runtime without direct UI changes.
-  // we need to fetch active lua from the runtime itself, instead of the UI builder _active_config store.
-  const _active_lua = derived([_runtime, user_input], ([rt, ui]) => {
-
-    let config = undefined;
-
-    rt.forEach((device)=>{
-      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
-
-        let elementNumbers = [];
-
-        try {
-          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
-        } catch (error) {
-          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_lua`)
-          elementNumbers = device.pages[0].control_elements;
-        }
-
-        let events = elementNumbers[ui.event.elementnumber].events;
-
-        // don't let selection of event, which is not on that control element
-        let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        let selectedEvent = f_event ? f_event : events[events.length - 1];        
-
-        if(selectedEvent.config.length){
-          config = selectedEvent.config.trim();
-        }
-      }
-    })
-
-    return config;
-  });
-
-
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
+    active_config: _active_config.subscribe,
     update: new _runtime_update(),
     fetch: new _runtime_fetch(),
     device: new _device_update(),
-    unsave: new _runtime_unsaved(),
-    active_config: _active_config.subscribe,
+    changes: new _runtime_changes(),
+    erase: erase_all(),
     unsaved: _unsaved_changes,
-    erase: () => {
-      _runtime.update(rt => {
-        rt.forEach(device => {
-          device.pages.forEach(page => {
-            page.control_elements.forEach(events => {
-              events.events.forEach(event => {
-                event.config = '';
-                event.cfgStatus = 'ERASED'
-              })
-            })
-          })
-        });
-        return rt;
-      })
-
-    },
-    active_lua: _active_lua.subscribe
   }
 }
 
@@ -571,7 +552,7 @@ function createEngine(){
     
       _engine.set(state);
 
-      logger.set({type: 'progress', classname: 'strict', message: `${type} in progress...`})
+      logger.set({type: 'progress', mode: 1, classname: 'strict', message: `${type} in progress...`})
 
       _strict_command.set({connected: devices, type: type, serial: serial, id: id, debug_id: id});        
 
@@ -593,14 +574,14 @@ function createEngine(){
           success = true; // lastheader matches!
           clearTimeout(deadline); // THIS IS ONLY TRIGGERED ONCE, NOT FOR ALL MODULE INFO...
           update_engine(responseSource, 'ENABLED');
-          logger.set({type: 'success', classname: 'strict', message: `${strict.type} complete!`});
+          logger.set({type: 'success', mode: 1, classname: 'strict', message: `${strict.type} complete!`});
           runtime.update.trigger();
         }
 
         if(!success){
           update_engine(responseSource, 'RESEND');
           resend(strict.serial);
-          logger.set({type: 'alert', classname: 'strict', message: `Resending ${strict.type} command...`})
+          logger.set({type: 'alert', mode: 1, classname: 'strict', message: `Resending ${strict.type} command...`})
 
           // DEBUG
           // _strict_command.update(v => {v.id = v.debug_id; return v});
@@ -612,17 +593,6 @@ function createEngine(){
 
   }
 
-  const _leanient = function(){
-
-    this.store = function(){
-      // to do...
-    }
-
-    this.compare = function(){
-      // to do...
-    }
-  }
-
   return {
     subscribe: _engine.subscribe,
     state: _engine_state,
@@ -631,7 +601,6 @@ function createEngine(){
     },
     disable: disable_all,
     strict: new _strict(),
-    leanient: new _leanient()
   }
 
 }

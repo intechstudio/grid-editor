@@ -2,6 +2,7 @@
 
   import grid from "../protocol/grid-protocol";
   import { runtime, engine } from "../runtime/runtime.store";
+  import instructions from "../serialport/instructions";
   import { serialComm } from "../serialport/serialport.store";
 
   const engine_state = engine.state;
@@ -10,10 +11,7 @@
 
 
   function store() {
-    const { serial, id } = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
-    engine.strict.store('store', serial, id);
-    serialComm.write(serial);
-    runtime.unsaved.set(0);
+    instructions.sendStoreToGrid();
   }
 
 /*   function check(){

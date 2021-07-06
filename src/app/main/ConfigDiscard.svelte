@@ -1,19 +1,13 @@
 <script>
   import grid from "../protocol/grid-protocol";
   import { runtime } from "../runtime/runtime.store";
+  import instructions from "../serialport/instructions";
   import { serialComm } from "../serialport/serialport.store";
 
   export let classes;
 
   function discard() {
-    const { serial, id } = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
-    console.log('editor discard: ', id)
-    serialComm.write(serial);
-    //runtime.set([]); // this causes blink, we could simply remove all config and reinit state
-    //runtime.update.trigger();
-
-    runtime.unsave.throw().setToZero().trigger();
-
+    instructions.sendDiscardToGrid();
   }
 
 </script>

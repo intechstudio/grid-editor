@@ -55,6 +55,8 @@ export function sendDataToClient(type, array){
     serial = array;
   }
 
+  if(!serial) return;
+
   if(serial.slice(30).startsWith('010') && serial.length == 48){
     if(filters.heartbeat){
       return;

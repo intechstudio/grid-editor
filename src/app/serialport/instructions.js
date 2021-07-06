@@ -4,6 +4,7 @@ import grid from '../protocol/grid-protocol.js';
 
 import { pParser } from '../protocol/_utils.js';
 import { writeBuffer } from '../runtime/engine.store.js';
+import { engine, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
 
@@ -52,13 +53,11 @@ const instructions = {
         instr: 'REPORT',
         className: 'CONFIG'
       },
-      failCb: function(){console.log('fail')}, 
-      successCb: function(){console.log('success')}
+      failCb: function(){console.log('config fetch - fail')}, 
+      successCb: function(){console.log('config fetch - success')}
     }
 
     writeBuffer.add_first(buffer_element);
-
-    serialComm.write(serial);
 
     return 1;
   },
@@ -85,7 +84,29 @@ const instructions = {
 
     const {serial, id} = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
 
-    serialComm.write(serial);
+    let buffer_element = {
+      responseRequired: true,
+      serial: serial,
+      filter: {
+        id: id, 
+        classParameters: {
+          'ELEMENTNUMBER': enumber,
+          'EVENTTYPE': event.eventtype,
+          'PAGENUMBER': event.pagenumber
+        }, 
+        brc: { 
+          'SX': brc.dx, 
+          'SY': brc.dy,
+          'ROT': Math.abs(brc.rot)
+        },
+        instr: 'EXECUTE',
+        className: 'CONFIG'
+      },
+      failCb: function(){console.log('config execute - fail')}, 
+      successCb: function(){console.log('config execute - success')}
+    }
+
+    writeBuffer.add_first(buffer_element);
 
     return 1;
   },
@@ -100,7 +121,15 @@ const instructions = {
 
     const {serial, id}  = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
 
-    serialComm.write(serial);
+    let buffer_element = {
+      responseRequired: true,
+      serial: serial,
+      filter: { className: 'PAGEACTIVE' },
+      failCb: function(){console.log('change page - fail')}, 
+      successCb: function(){console.log('change page - success')}
+    }
+
+    writeBuffer.add_first(buffer_element);
 
     return 1;
   },
@@ -115,9 +144,67 @@ const instructions = {
       ""
     );
     
-    serialComm.write(serial);
+    let buffer_element = {
+      responseRequired: true,
+      serial: serial,
+      filter: { className: 'PAGECOUNT' },
+      failCb: function(){console.log('fetch page count - fail')}, 
+      successCb: function(){console.log('fetch page count - success')}
+    }
+
+    writeBuffer.add_first(buffer_element);
 
     return 1;
+  },
+
+  sendStoreToGrid: () => {
+    const { serial, id } = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
+    let buffer_element = {
+      serial: serial,
+      responseRequired: true,
+      filter: { className: 'CONFIGSTORE' },
+      failCb: function(){console.log('store execute - fail')}, 
+      successCb: function(){console.log('store execute - success')}
+    }
+    engine.strict.store('store', serial, id);
+    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last({successCb: function(){
+      runtime.unsaved.set(0);
+    }})
+  },
+
+  sendEraseToGrid: () => {
+    const {serial, id} = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
+    engine.strict.store('erase', serial, id);
+    let buffer_element = {
+      responseRequired: true,
+      responseTimeout: 8000,
+      filter: { className: 'CONFIGERASE' },
+      serial: serial,
+      failCb: function(){console.log('erase execute - fail')}, 
+      successCb: function(){console.log('erase execute - success')}
+    }
+    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last({successCb: function(){
+      runtime.unsaved.set(0);
+      runtime.erase();
+    }})
+  },
+
+  sendDiscardToGrid: () => {
+    const { serial, id } = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
+    let buffer_element = {
+      responseRequired: true,
+      filter: { className: 'CONFIGDISCARD' },
+      serial: serial,
+      failCb: function(){console.log('discard execute - fail')}, 
+      successCb: function(){console.log('discard execute - success')}
+    }
+    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last({successCb: function(){
+      runtime.changes.throw().setToZero().trigger();  
+    }})
+    
   }
 
 }

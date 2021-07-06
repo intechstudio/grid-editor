@@ -4,6 +4,7 @@
   import { get } from 'svelte/store'
 
   import { fade } from 'svelte/transition'
+import { writeBuffer } from '../../../runtime/engine.store.js';
   
   const electron = require('electron'); 
   const path = require('path'); 
@@ -15,7 +16,7 @@
   const dialog = electron.remote.dialog; 
 
   import { runtime, user_input } from '../../../runtime/runtime.store.js';
-import { appSettings } from '../../_stores/app-helper.store.js';
+  import { appSettings } from '../../_stores/app-helper.store.js';
 
   let selected;
 
@@ -56,73 +57,77 @@ import { appSettings } from '../../_stores/app-helper.store.js';
     
   }
 
-  function buildProfileData(data){
-    console.log(data)
+
+  function saveProfile(profileName, profile) {
+    // Resolves to a Promise<Object> 
+    dialog.showSaveDialog({ 
+          title: 'Select the File Path to save', 
+          defaultPath: path.join(__dirname, `../assets/${profileName}.json`), 
+          // defaultPath: path.join(__dirname, '../assets/'), 
+          buttonLabel: 'Save', 
+          // Restricting the user to only JSON Files. 
+          filters: [ 
+              { 
+                  name: 'JSON Files', 
+                  extensions: ['json'] 
+              }, ], 
+          properties: [] 
+        }).then(file => { 
+            // Stating whether dialog operation was cancelled or not. 
+            if (!file.canceled) { 
+                const path = file.filePath.toString(); 
+                  
+                // Creating and Writing to the sample.txt file 
+                fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
+                    if (err) throw err; 
+                    console.log('Saved!'); 
+                }); 
+            } 
+
+            loadFilesFromDirectory(PROFILE_PATH);
+
+        }).catch(err => { 
+            console.log(err) 
+        }); 
   }
 
-  
-
-
-  async function saveProfile() { 
+  function prepareSave() { 
 
     let _user_input = undefined;
     const _active_user_input = user_input.active_input(value => _user_input = value.selected);
     _active_user_input();
     
     try {
-      await runtime.fetch.missing();
 
-      const configs = get(runtime);
+      runtime.fetch.Many();
+      
+      writeBuffer.messages.subscribe((value) => {
+        if(value == 'ready to save'){
+          const configs = get(runtime);
 
-      let profile = {
-        name: profileName, 
-        meta: {
-          type: '', 
-          version: {
-            major: $appSettings.version.major, 
-            minor: $appSettings.version.minor, 
-            patch: $appSettings.version.patch
+          let profile = {
+            name: profileName, 
+            meta: {
+              type: '', 
+              version: {
+                major: $appSettings.version.major, 
+                minor: $appSettings.version.minor, 
+                patch: $appSettings.version.patch
+              }
+            }
           }
+
+          configs.forEach(d => {
+            if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
+              profile.configs = d.pages[_user_input.event.pagenumber];
+              profile.meta.type = d.id;
+            }
+          })    
+
+          saveProfile(profileName, profile);
         }
-      }
+      });
 
-      configs.forEach(d => {
-        if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
-          profile.configs = d.pages[_user_input.event.pagenumber];
-          profile.meta.type = d.id;
-        }
-      })    
-
-      // Resolves to a Promise<Object> 
-      dialog.showSaveDialog({ 
-        title: 'Select the File Path to save', 
-        defaultPath: path.join(__dirname, `../assets/${profileName}.json`), 
-        // defaultPath: path.join(__dirname, '../assets/'), 
-        buttonLabel: 'Save', 
-        // Restricting the user to only JSON Files. 
-        filters: [ 
-            { 
-                name: 'JSON Files', 
-                extensions: ['json'] 
-            }, ], 
-        properties: [] 
-      }).then(file => { 
-          // Stating whether dialog operation was cancelled or not. 
-          if (!file.canceled) { 
-              const path = file.filePath.toString(); 
-                
-              // Creating and Writing to the sample.txt file 
-              fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
-                  if (err) throw err; 
-                  console.log('Saved!'); 
-              }); 
-          } 
-
-          loadFilesFromDirectory(PROFILE_PATH);
-
-      }).catch(err => { 
-          console.log(err) 
-      }); 
 
     } catch (error) {
       console.error('Error while saving a profile!', error); 
@@ -187,9 +192,10 @@ import { appSettings } from '../../_stores/app-helper.store.js';
         type="text" 
         placeholder="Name of this profile"
         class="w-full bg-secondary text-white py-1 pl-2 rounded-none">
-        <button on:click={saveProfile} class="px-2 py-1 block text-white bg-pick hover:bg-pick-saturate-10 border-none rounded-none focus:outline-none">Save</button>
+        
     </div>
 
+    <button on:click={prepareSave} disabled={profileName.length == 0 ? true : false} class="{profileName.length <= 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100 hover:bg-pick-saturate-10'} transition px-2 py-1 my-2 block rounded w-20 text-white bg-pick  border-none focus:outline-none">Save</button>
 
     <div in:fade={{delay:250}} id="browse-profiles" class="w-full flex flex-col py-2 border  border-primary rounded-lg">
       

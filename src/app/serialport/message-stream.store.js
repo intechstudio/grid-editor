@@ -49,9 +49,9 @@ function createMessageStream(){
     
     if(DATA.LUA){
       if(get(engine_state) == 'ENABLED'){
-        runtime.update.status('GRID_REPORT').config({lua: DATA.LUA}).trigger(true)
+        runtime.update.status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}).trigger();
       } else {
-        runtime.update.status('GRID_REPORT').config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+        runtime.update.status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
       }
     }
 

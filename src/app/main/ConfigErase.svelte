@@ -1,6 +1,7 @@
 <script>
   import grid from "../protocol/grid-protocol";
   import { engine, logger, runtime } from "../runtime/runtime.store";
+  import instructions from "../serialport/instructions";
   import { serialComm } from "../serialport/serialport.store";
 
   const engine_state = engine.state;
@@ -8,12 +9,7 @@
   export let classes;
 
   function erase() {
-    const {serial, id} = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
-    engine.strict.store('erase', serial, id);
-    serialComm.write(serial);
-    runtime.unsaved.set(0);
-    runtime.erase();
-
+    instructions.sendEraseToGrid();
   }
 
 </script>

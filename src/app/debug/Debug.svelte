@@ -73,10 +73,10 @@
 
     </div>
   -->
-  <textarea style="min-height:300px;" spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
+  <textarea spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
-  <div class="flex justify-between items-center">  
+  <div class="flex justify-between items-center overflow-y-auto">  
     
     <div class="mx-1 my-2">
       <div class="text-white">Syntax: {runtimeParser}</div>

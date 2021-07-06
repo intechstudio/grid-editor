@@ -7,8 +7,8 @@ import _utils from './_utils.js';
 
 function get_configs () {
   let configs = '';
-  const unsubscribe = runtime.active_lua(config => {
-    configs = _utils.rawLuaToConfigList(config);
+  const unsubscribe = runtime.active_config(data => {
+    configs = _utils.rawLuaToConfigList(data.config);
     let arr = [];
     for (let i = 0; i < configs.length; i+=2) {
       arr.push(`${configs[i]}${configs[i+1]}`.trim())

@@ -95,7 +95,7 @@
 
   
   <div class="flex flex-col">
-    <!--
+
         <div 
           on:click={()=>{changeLeftTab('Profiles')}}  
           class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Profiles' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
@@ -105,7 +105,7 @@
           </svg>
           <div class="left-0 -ml-1 absolute transition-all  {selectedLeftTab == 'Profiles' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
         </div>
-    -->
+
     <div 
       on:click={()=>{changeLeftTab('Debug')}}  
       class="cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Debug' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">

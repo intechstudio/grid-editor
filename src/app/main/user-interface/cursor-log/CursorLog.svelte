@@ -12,6 +12,8 @@
 
   let logCleanUp = undefined;
 
+  
+
   onMount(()=>{
    
     logger.subscribe((log)=>{
