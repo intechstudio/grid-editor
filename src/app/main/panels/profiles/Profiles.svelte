@@ -4,7 +4,7 @@
   import { get } from 'svelte/store'
 
   import { fade } from 'svelte/transition'
-import { writeBuffer } from '../../../runtime/engine.store.js';
+  import { writeBuffer } from '../../../runtime/engine.store.js';
   
   const electron = require('electron'); 
   const path = require('path'); 
@@ -25,8 +25,6 @@ import { writeBuffer } from '../../../runtime/engine.store.js';
   let PROFILES = [];
 
   let profileName = '';
-
-  $: console.log(PROFILES);
 
   function openDirectory(){
     dialog.showOpenDialog({
@@ -54,7 +52,6 @@ import { writeBuffer } from '../../../runtime/engine.store.js';
         });
       })
     });
-    
   }
 
 
@@ -119,7 +116,7 @@ import { writeBuffer } from '../../../runtime/engine.store.js';
 
           configs.forEach(d => {
             if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
-              profile.configs = d.pages[_user_input.event.pagenumber];
+              profile.configs = d.pages[_user_input.event.pagenumber].control_elements;
               profile.meta.type = d.id;
             }
           })    
@@ -135,44 +132,32 @@ import { writeBuffer } from '../../../runtime/engine.store.js';
 
   }
 
-  function openProfile(){
-  // Resolves to a Promise<Object> 
-    dialog.showOpenDialog({ 
-        title: 'Open Grid configuration file...', 
-        defaultPath: path.join(__dirname, '../assets/sample.txt'), 
-        // defaultPath: path.join(__dirname, '../assets/'), 
-        buttonLabel: 'Open', 
-        // Restricting the user to only Text Files. 
-        filters: [ 
-            { 
-                name: 'Text Files', 
-                extensions: ['txt', 'docx'] 
-            }, ], 
-        properties: ['openFile'] 
-    }).then(file => { 
-        // Stating whether dialog operation was cancelled or not. 
-        if (!file.canceled) { 
-            const path = file.filePaths[0].toString(); 
-              
-            // Creating and Writing to the sample.txt file 
-            fs.readFile(path,'utf-8', function (err, data) { 
-                if (err) throw err; 
-                console.log('Data read: ',data)
-            }); 
-        } 
-    }).catch(err => { 
-        console.log(err) 
-    }); 
-  }
-
   function loadProfile(){
+
     if(selected !== undefined){
-      const profile = PROFILES[selected].data;
-      console.log('LOADING PROFILES',profile);
+
+      const profile = PROFILES[selected];
+
+      const rt = get(runtime);
+      const ui = get(user_input);
+      const currentModule = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy);
+
+      if(currentModule.id.substr(0,4) == profile.meta.type.substr(0,4)){
+
+        console.log('Its a match!');
+
+        console.log(profile);
+
+        runtime.update.batch(profile.configs);
+
+      } else {
+
+        console.log('not a match');
+
+      }
     }
   }
 
-  let toggle = false;
 
   onMount(async ()=> {
     PROFILE_PATH = await ipcRenderer.invoke('getStoreValue', 'profiles_folder'); 

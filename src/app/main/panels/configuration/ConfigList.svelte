@@ -42,7 +42,7 @@
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
-    runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
   
   }
 
@@ -69,7 +69,7 @@
 
     }
 
-    runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
 
   }
 
@@ -77,9 +77,9 @@
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
     if(configName == 'End' || configName == 'Else'){
-      runtime.update.status('EDITOR_BACKGROUND').config({lua: _utils.configMerge({config: configs})});
+      runtime.update.one().status('EDITOR_BACKGROUND').config({lua: _utils.configMerge({config: configs})});
     } else {
-      runtime.update.status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+      runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
     }
 
     localDefinitions.update(configs);

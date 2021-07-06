@@ -661,8 +661,8 @@ const grid = {
             for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
               events.push({        
                 event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
-                config: [],
-                cfgStatus: 'NULL'
+                config: "",
+                cfgStatus: "NULL"
               })
             }
             control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };

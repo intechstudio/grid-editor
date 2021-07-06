@@ -25,6 +25,7 @@ function createMessageStream(){
     if(get(engine_state) == 'ENABLED'){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
+          console.log(DATA);
           user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
         }
       }
@@ -49,9 +50,9 @@ function createMessageStream(){
     
     if(DATA.LUA){
       if(get(engine_state) == 'ENABLED'){
-        runtime.update.status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}).trigger();
+        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}).trigger();
       } else {
-        runtime.update.status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
       }
     }
 

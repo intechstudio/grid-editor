@@ -165,7 +165,7 @@
       runtime.set([]);
       user_input.reset();
       runtime.unsaved.set(0);
-      runtime.update.trigger();
+      runtime.update.one().trigger();
 
       PORT = {path: 0};
     }

@@ -115,7 +115,7 @@ export function configManagement() {
       const configs = get_configs();
       const selection = get(appMultiSelect).selection;
       const filtered = configs.filter((city,index) => selection[index] !== true);
-      runtime.update.status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
+      runtime.update.one().status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
     };
   }
 

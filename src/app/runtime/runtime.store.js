@@ -300,47 +300,78 @@ function create_runtime () {
   }
 
   const _runtime_update = function() {
-    
-    let li = get(user_input);
-    let code = '';
-    let cfgStatus = 'EDITOR_BACKGROUND';
 
-    this.status = function(status) {
-      cfgStatus = status;
-      return this;
-    };
+    this.batch = function(array){
 
-    this.event = function(evt){
-      li.event.eventtype = evt.EVENTTYPE;
-      li.event.pagenumber = evt.PAGENUMBER;
-      li.event.elementnumber = evt.ELEMENTNUMBER;
-      return this;
-    };
-
-    this.config = function({lua}) {
-      code = lua;
-      _runtime.update(_runtime => {
-        let dest = findUpdateDestination(_runtime, li);
-        if (dest) {
-          dest.config = lua.trim();
-          dest.cfgStatus = cfgStatus;
-        }    
-        return _runtime;
+      array.forEach((element,index) => {
+        element.events.forEach((ev)=>{
+          const operation = new _update();
+          operation.status('EDITOR_PROFILE_LOAD');
+          operation.event({ELEMENTNUMBER: index, EVENTTYPE: ev.event.value, PAGENUMBER: 0});
+          operation.config({lua: ev.config});
+          operation.sendToGrid();
+        })
       })
 
-      return this;
     };
 
-    this.sendToGrid = function(){
-      _unsaved_changes.update(n => n + 1);
-      instructions.sendConfigToGrid({lua: code, li: li});
-      return this;
-    };
+    this.one = function(){
 
-    this.trigger = function(){
-      _trigger_ui_change.update(n => n + 1);
-      return this;
-    };
+      const operation = new _update();
+
+      return {
+        status: operation.status,
+        event: operation.event,
+        config: operation.config,
+        sendToGrid: operation.sendToGrid,
+        trigger: operation.trigger
+      };
+    }
+
+    const _update = function(){
+    
+      let li = get(user_input);
+      let code = '';
+      let cfgStatus = 'EDITOR_BACKGROUND';
+
+      this.status = function(status) {
+        cfgStatus = status;
+        return this;
+      };
+
+      this.event = function(evt){
+        li.event.eventtype = evt.EVENTTYPE;
+        li.event.pagenumber = evt.PAGENUMBER;
+        li.event.elementnumber = evt.ELEMENTNUMBER;
+        return this;
+      };
+
+      this.config = function({lua}) {
+        code = lua;
+        console.log('code', code,'cfgStatus', cfgStatus)
+        _runtime.update(_runtime => {
+          let dest = findUpdateDestination(_runtime, li);
+          if (dest) {
+            dest.config = lua.trim();
+            dest.cfgStatus = cfgStatus;
+          }    
+          return _runtime;
+        })
+        return this;
+      };
+
+      this.sendToGrid = function(){
+        _unsaved_changes.update(n => n + 1);
+        instructions.sendConfigToGrid({lua: code, li: li});
+        return this;
+      };
+
+      this.trigger = function(){
+        _trigger_ui_change.update(n => n + 1);
+        return this;
+      };
+
+    }
 
   }
   
@@ -349,7 +380,6 @@ function create_runtime () {
     const _li = get(user_input);
 
     this.One = function(device, ui){
-      console.log('ui', ui)
       instructions.fetchConfigFromGrid({device: device, inputStore: ui});
       return this;
     }
@@ -575,7 +605,7 @@ function createEngine(){
           clearTimeout(deadline); // THIS IS ONLY TRIGGERED ONCE, NOT FOR ALL MODULE INFO...
           update_engine(responseSource, 'ENABLED');
           logger.set({type: 'success', mode: 1, classname: 'strict', message: `${strict.type} complete!`});
-          runtime.update.trigger();
+          runtime.update.one().trigger();
         }
 
         if(!success){
