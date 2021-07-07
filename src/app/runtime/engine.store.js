@@ -36,7 +36,7 @@ function createWriteBuffer (){
       return;
     }
 
-    if($appSettings.debugMode)
+    if(get(appSettings).debugMode)
       if(Math.random() > 0.3){
         serialComm.write(active_elem.serial);
       } else{
