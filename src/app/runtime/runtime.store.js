@@ -348,7 +348,6 @@ function create_runtime () {
 
       this.config = function({lua}) {
         code = lua;
-        console.log('code', code,'cfgStatus', cfgStatus)
         _runtime.update(_runtime => {
           let dest = findUpdateDestination(_runtime, li);
           if (dest) {

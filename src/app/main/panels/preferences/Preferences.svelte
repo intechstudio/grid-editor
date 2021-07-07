@@ -7,15 +7,6 @@
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
-  let selectedTab = preferences[0];
-
-
-  function close(){
-    appSettings.update( store => {
-      store.preferences = false;
-      return store;
-    })
-  }
 
 </script>
 
@@ -34,8 +25,6 @@
 
       </div>
 
-      
-
       <div class="flex flex-col my-2">
         <div class="flex justify-between items-center">
           <div>Grid Heartbeat</div>
@@ -45,9 +34,14 @@
         <input bind:value={$heartbeat.grid} min="150" max="1000" type="range">
       </div>
 
-      <div class="flex text-white items-center"> 
+      <div class="flex my-1 text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
         <div class="ml-1">Track physical Grid interaction</div>
+      </div>
+
+      <div class="flex my-1 text-white items-center"> 
+        <input class="mr-1" type="checkbox" bind:checked={$appSettings.debugMode}>
+        <div class="ml-1">Glitch debug mode</div>
       </div>
 
       <button 

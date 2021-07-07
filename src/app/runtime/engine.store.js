@@ -1,4 +1,5 @@
 import { get, writable } from 'svelte/store';
+import { appSettings } from '../main/_stores/app-helper.store';
 import { serialComm } from '../serialport/serialport.store';
 
 const buffer_element = {
@@ -35,10 +36,13 @@ function createWriteBuffer (){
       return;
     }
 
-    if(Math.random() > 0.3){
+    if($appSettings.debugMode)
+      if(Math.random() > 0.3){
+        serialComm.write(active_elem.serial);
+      } else{
+        console.error('GLITCH')
+    } else {
       serialComm.write(active_elem.serial);
-    } else{
-      console.error('GLITCH')
     }
 
     _write_buffer.shift();
@@ -117,8 +121,6 @@ function createWriteBuffer (){
       incomingValid = false;
 
     }
-
-    //console.log('validateIncoming', incomingValid, data);
 
     if(incomingValid){
       active_elem.successCb();
