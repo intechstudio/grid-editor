@@ -71,7 +71,7 @@
     let cfg = '';
 
     if(promptValue !== ''){
-      cfg = promptValue.split('<?lua')[1].split('?>')[0].trim(); 
+      cfg = promptValue.trim(); 
     } else {
       cfg = get(presetManagement.selected_preset).configs;
     }

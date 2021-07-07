@@ -77,8 +77,8 @@ const instructions = {
       { PAGENUMBER: pParser(event.pagenumber) },
       { ELEMENTNUMBER: pParser(enumber) },
       { EVENTTYPE: pParser(event.eventtype) },
-      { ACTIONLENGTH: pParser(`<?lua ${lua.trim()} ?>`.length)},
-      { ACTIONSTRING: `<?lua ${lua.trim()} ?>`}
+      { ACTIONLENGTH: pParser(`${lua.trim()}`.length)},
+      { ACTIONSTRING: `${lua.trim()}`}
     ]
 
     const {serial, id} = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)

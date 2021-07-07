@@ -27,8 +27,6 @@
   if x == 1 then gms(1,176,7,this.element[0]) end`
   ;
 
-  //_utils.gridLuaToEditorLua(grid_raw_actions).then(config =>{ console.log(config); runtime.set(config)})
-
   let configs = [];
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};

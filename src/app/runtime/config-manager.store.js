@@ -24,7 +24,9 @@ export function configManagement() {
   const drag_and_drop = function(){
 
       this.add = async ({configs, index, newConfig}) => {
+        console.log('ADD config', configs);
         return await _utils.gridLuaToEditorLua(newConfig).then(res => {
+          console.log(configs);
           configs.splice(index, 0, ...res);  
           return configs;    
         })

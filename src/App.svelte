@@ -38,7 +38,7 @@
   import Modal from './app/main/Modal.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
-  import { engine } from './app/runtime/runtime.store';
+  import { engine, runtime } from './app/runtime/runtime.store';
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import { appSettings } from './app/main/_stores/app-helper.store';
   import NotificationBar from './app/shared/notifications/NotificationBar.svelte';

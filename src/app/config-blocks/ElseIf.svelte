@@ -4,7 +4,7 @@
     short: 'ei',
     name: 'ElseIf',
     groupType: 'modifier',
-    desc: 'Else If',
+    desc: 'ElseIf',
     icon: null
   }
 </script>
@@ -13,9 +13,9 @@
   import { createEventDispatcher, onDestroy } from 'svelte';
 
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
-import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-import stringManipulation from '../main/user-interface/_string-operations';
-import { parenthesis } from './_validators';
+  import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
+  import stringManipulation from '../main/user-interface/_string-operations';
+  import { parenthesis } from './_validators';
 
   const dispatch = createEventDispatcher();
 
@@ -27,7 +27,7 @@ import { parenthesis } from './_validators';
   let scriptSegment = ''; // local script part
 
   $: if(config.script && !loaded){
-    scriptSegment = stringManipulation.humanize(config.script.slice(8, -5));
+    scriptSegment = stringManipulation.humanize(config.script.slice(7, -5));
     loaded = true;
   }
 
@@ -38,7 +38,7 @@ import { parenthesis } from './_validators';
   function sendData(e){
     if(parenthesis(e)){
       const script = stringManipulation.shortify(e);
-      dispatch('output', {short: 'ei', script: `else if ${script} then`})
+      dispatch('output', {short: 'ei', script: `elseif ${script} then`})
     }
   }
   

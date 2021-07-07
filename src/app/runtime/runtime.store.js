@@ -229,6 +229,7 @@ function create_runtime () {
 
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
+          //console.log('CONFIG TO RETURN', config)
         }
         
         // ui elementnumber 255 (utility fetch) is handles in instructions.js
@@ -303,11 +304,13 @@ function create_runtime () {
 
     this.batch = function(array){
 
+      const li = get(user_input);
+
       array.forEach((element,index) => {
-        element.events.forEach((ev)=>{
+        element.forEach((ev)=>{
           const operation = new _update();
           operation.status('EDITOR_PROFILE_LOAD');
-          operation.event({ELEMENTNUMBER: index, EVENTTYPE: ev.event.value, PAGENUMBER: 0});
+          operation.event({ELEMENTNUMBER: index, EVENTTYPE: ev.event, PAGENUMBER: li.event.pagenumber});
           operation.config({lua: ev.config});
           operation.sendToGrid();
         })
@@ -637,7 +640,7 @@ function createEngine(){
 export const engine = createEngine();
 
 function createDebug(){
-  const store = writable({config: '',enabled: true, data: []});
+  const store = writable({config: '', enabled: true, data: []});
 
   return {
     ...store,

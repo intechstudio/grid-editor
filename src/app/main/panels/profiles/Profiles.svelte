@@ -99,7 +99,9 @@
       runtime.fetch.Many();
       
       writeBuffer.messages.subscribe((value) => {
+
         if(value == 'ready to save'){
+
           const configs = get(runtime);
 
           let profile = {
@@ -116,12 +118,23 @@
 
           configs.forEach(d => {
             if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
-              profile.configs = d.pages[_user_input.event.pagenumber].control_elements;
+
+              profile.configs = d.pages[_user_input.event.pagenumber].control_elements.map(cfg => {
+                return cfg.events.map(ev => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config
+                  }
+                })
+              });
+
               profile.meta.type = d.id;
+
             }
           })    
 
           saveProfile(profileName, profile);
+          
         }
       });
 

@@ -30,12 +30,19 @@ const _utils = {
   },
 
   // make smaller chunks from <?lua ... ?>, huge raw lua
+  // returns an array of possible actions
   rawLuaToConfigList: function(rawLua){
 
     // get rid of new line, enter
     rawLua = rawLua.replace(/[\n\r]+/g, '');
     // get rid of more than 2 spaces
     rawLua = rawLua.replace(/\s{2,10}/g, ' ');
+
+    // remove lua opening and closing characters
+    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+    if(rawLua.startsWith('<?lua')){
+      rawLua = rawLua.split('<?lua')[1].split('?>')[0];
+    }
 
     // splt by meta comments
     let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
@@ -142,7 +149,7 @@ const _utils = {
     config.forEach((e,i) => {
       lua += `--[[@${e.short}]] ` + e.script + "\n";  
     });
-    lua = lua.replace(/(\r\n|\n|\r)/gm, "");
+    lua = '<?lua ' + lua.replace(/(\r\n|\n|\r)/gm, "") + ' ?>';
     return lua;
   }
 

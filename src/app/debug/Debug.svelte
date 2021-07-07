@@ -18,12 +18,11 @@
       configs.forEach((e,i) => {
         code += `--[[@${e.short}]] ` + e.script + "\n";  
       }); 
-      runtimeScript = '<?lua ' + '\n' + code + ' ?>';
+      runtimeScript = '<?lua ' + '\n' + code + '?>';
       runtimeParser = luaParser(code, {comments: true});
-    }).catch(err => {console.error(err); configs = [];})
-  })
+    })
+  });
 
-  
   let brc = [0,0,0,0];
   let [command_1, command_2] = ['', ''];
 

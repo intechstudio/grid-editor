@@ -107,8 +107,6 @@ const stringManipulation = {
 
     const regex = new RegExp(pattern, "g");
 
-    console.log(pattern)
-
     let m;
     let arr = [];
     while ((m = regex.exec(script)) !== null) {
