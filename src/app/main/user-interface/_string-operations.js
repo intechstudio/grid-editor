@@ -15,8 +15,8 @@ const stringManipulation = {
     
     // make human readable and short regex groups
     newarr.forEach((type , i) => {
-      regex_human[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
-      regex_short[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator') ? `${'\\' + v.short}` : `${'\\b' + v.short + '\\b'}`).join('|');
+      regex_human[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator' || type == 'relational_operator') ? `${'\\' + v.human}` : `${'\\b' + v.human + '\\b'}`).join('|');
+      regex_short[type] = inputSet.filter(obj => obj.type === type).map((v)=> (type == 'arithmetic_operator' || type == 'relational_operator') ? `${'\\' + v.short}` : `${'\\b' + v.short + '\\b'}`).join('|');
       lookup[i] = inputSet.filter(obj => obj.type === type).map((v) => { return { "short": v.short, "human": v.human};});
     });
 
@@ -106,6 +106,8 @@ const stringManipulation = {
     pattern = pattern.join('|');
 
     const regex = new RegExp(pattern, "g");
+
+    console.log(pattern)
 
     let m;
     let arr = [];

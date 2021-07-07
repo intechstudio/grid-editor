@@ -12,6 +12,9 @@
 <script>
   import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
+import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
+import stringManipulation from '../main/user-interface/_string-operations';
+import { parenthesis } from './_validators';
 
   export let config = ''
   export let index;
@@ -23,7 +26,7 @@
   let loaded = false;
 
   $: if(config.script && !loaded){
-    scriptSegment = config.script.slice(3, -5);
+    scriptSegment = stringManipulation.humanize(config.script.slice(3, -5));
     loaded = true;
   }
 
@@ -32,7 +35,10 @@
   })
 
   function sendData(e){
-    dispatch('output', {short: `if`, script:`if ${e} then`})
+    if(parenthesis(e)){
+      const script = stringManipulation.shortify(e);
+      dispatch('output', {short: `if`, script:`if ${script} then`})
+    }
   }
 
 </script>
@@ -42,13 +48,11 @@
 
   <div class="pl-2 flex items-center bg-purple-400 rounded-t-lg">
     <span class="font-bold py-1">IF</span>
-    <div class="pl-2 pr-1 w-full">
-      <input 
-      class="py-0.5 pl-1 w-full bg-secondary text-white bg-opacity-75" 
-      placeholder="condition" 
-      value={scriptSegment}
-      on:input={(e)=>{sendData(e.target.value)}}
-      > 
+    <div class="pl-2 py-0.5 pr-1 w-full">
+      <CodeEditor doc={`${scriptSegment}`} 
+        showLineNumbers={false} 
+        showCharCount={false} 
+        on:output={(e)=>{sendData(e.detail.script)}}/>
     </div>
   </div>
 
