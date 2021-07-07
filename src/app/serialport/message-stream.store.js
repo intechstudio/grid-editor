@@ -25,7 +25,6 @@ function createMessageStream(){
     if(get(engine_state) == 'ENABLED'){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
-          console.log(DATA);
           user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
         }
       }
@@ -50,9 +49,9 @@ function createMessageStream(){
     
     if(DATA.LUA){
       if(get(engine_state) == 'ENABLED'){
-        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}).trigger();
+        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
       } else {
-        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
       }
     }
 
@@ -64,12 +63,12 @@ function createMessageStream(){
       //console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
     }
 
-    if(DATA.CONFIGSTORE_ACKNOWLEDGE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGSTORE_ACKNOWLEDGE.LASTHEADER})
+    if(DATA.PAGESTORE_ACKNOWLEDGE){
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.PAGESTORE_ACKNOWLEDGE.LASTHEADER})
     }
 
-    if(DATA.CONFIGERASE_ACKNOWLEDGE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.CONFIGERASE_ACKNOWLEDGE.LASTHEADER})
+    if(DATA.NVMERASE_ACKNOWLEDGE){
+      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.NVMERASE_ACKNOWLEDGE.LASTHEADER})
     }
 
     writeBuffer.validate_incoming(DATA);

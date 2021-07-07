@@ -2,11 +2,12 @@
 
   import { appSettings } from '../main/_stores/app-helper.store';
   import { engine, logger, runtime } from '../runtime/runtime.store';
-  import ConfigErase from './ConfigErase.svelte';
-  import ConfigStore from './ConfigStore.svelte';
+  import NVMErase from './NVMErase.svelte';
+  import PageStore from './PageStore.svelte';
 
   import {fade} from 'svelte/transition';
-  import ConfigDiscard from './ConfigDiscard.svelte';
+  import PageDiscard from './PageDiscard.svelte';
+import PageClear from './PageClear.svelte';
 
   let unsaved = 0;
 
@@ -27,7 +28,7 @@
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>
         <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{unsaved}</div>
-        <ConfigDiscard classes={'ml-4'}/>
+        <PageDiscard classes={'ml-4'}/>
       </div>
     {/if}
 
@@ -54,9 +55,11 @@
           </div>
         </div>
         
-        <ConfigErase classes={'mr-1 w-24'}/>
+        <NVMErase classes={'mr-6 w-32'}/>
 
-        <ConfigStore classes={'ml-1 w-24'}/>        
+        <PageClear classes={'mx-1 w-24'}/>
+
+        <PageStore classes={'ml-1 w-24'}/>        
 
       </div> 
 

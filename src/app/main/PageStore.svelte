@@ -11,14 +11,8 @@
 
 
   function store() {
-    instructions.sendStoreToGrid();
+    instructions.sendPageStoreToGrid();
   }
-
-/*   function check(){
-    const { serial, id } = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'CHECK','');
-    serialComm.write(serial);
-  }
- */
 
 </script>
 
@@ -28,14 +22,6 @@
   class="{$engine_state == 'ENABLED' ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20' : 'opacity-75'} flex items-center justify-center rounded my-2 focus:outline-none border-2 border-commit bg-commit hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white px-2 py-0.5 {classes}">
     Store
 </button>
-
-<!--
-<button 
-  on:click={()=>{check()}} 
-  class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-commit bg-commit hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white px-2 py-0.5 {classes}">
-  check
-</button>
--->
 
 <style>
 

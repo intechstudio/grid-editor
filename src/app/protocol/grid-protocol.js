@@ -317,10 +317,19 @@ const grid = {
   
       const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
   
-      let BRC_PARAMETERS = [
-        utility_genId(), 0, 0, +brc.dx, +brc.dy, 0, 0
-      ];
+      const ID = utility_genId()
       
+      let BRC_PARAMETERS = [
+        ID, 
+        PROTOCOL.SESSION, // ON PROTOCOL INIT, THIS IS GENERATED!
+        0,
+        0,
+        +brc.dx, 
+        +brc.dy, 
+        0,
+        0
+      ];
+
       let params = '';
       BRC_PARAMETERS.forEach(param => {
         params += param.toString(16).padStart(2, '0');
@@ -331,9 +340,9 @@ const grid = {
         command +
         String.fromCharCode(PROTOCOL.CONST.EOT);
   
-      let message = prepend + params + append;
+      let message = prepend.concat(params, append);
   
-      message = message.slice(0,2) + (message.length+2).toString(16).padStart(2, '0') + message.slice(2,);
+      message = message.slice(0,2) + (message.length+2).toString(16).padStart(4, '0') + message.slice(2,);
   
       let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
   
@@ -524,20 +533,22 @@ const grid = {
  */
           }
 
-          if(obj.class == "CONFIGSTORE"){
+          if(obj.class == "PAGESTORE"){
             if(obj.instr == "ACKNOWLEDGE"){
-              DATA.CONFIGSTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
+              DATA.PAGESTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
             }
           }
 
-          if(obj.class == "CONFIGERASE"){
+          if(obj.class == "NVMERASE"){
             if(obj.instr == "ACKNOWLEDGE"){
-              DATA.CONFIGERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
+              DATA.NVMERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
             }
           }
 
-          if(obj.class == "CONFIGDISCARD"){
-            // To do...
+          if(obj.class == "PAGEDISCARD"){
+            if(obj.instr == "ACKNOWLEDGE"){
+              DATA.PAGEDISCARD_ACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
           }
 
           if(obj.class == "CONFIG"){
@@ -547,7 +558,7 @@ const grid = {
 
             if(obj.instr == "REPORT"){
               try {
-                DATA.CONFIG = decode_by_code(array, obj.class);
+                DATA.CONFIG_REPORT = decode_by_code(array, obj.class);
                 DATA.LUA = String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0]
               } catch (error) {
                 console.error("Probably an 'expr' in CONFIG REPORT!");

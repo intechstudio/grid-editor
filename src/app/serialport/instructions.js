@@ -40,18 +40,17 @@ const instructions = {
       serial: serial,
       filter: {
         id: id, 
-        classParameters: {
-          'ELEMENTNUMBER': enumber,
-          'EVENTTYPE': inputStore.event.eventtype,
-          'PAGENUMBER': inputStore.event.pagenumber
-        }, 
         brc: { 
           'SX': device.dx, 
           'SY': device.dy,
           'ROT': Math.abs(device.rot)
         },
-        instr: 'REPORT',
-        className: 'CONFIG'
+        'CONFIG_REPORT': {
+          'EVENTTYPE': inputStore.event.eventtype,
+          'ELEMENTNUMBER': enumber,
+          'PAGENUMBER': inputStore.event.pagenumber
+        },
+        className: 'CONFIG_REPORT'
       },
       failCb: function(){console.log('config fetch - fail')}, 
       successCb: function(){console.log('config fetch - success')}
@@ -88,19 +87,15 @@ const instructions = {
       responseRequired: true,
       serial: serial,
       filter: {
-        id: id, 
-        classParameters: {
-          'ELEMENTNUMBER': enumber,
-          'EVENTTYPE': event.eventtype,
-          'PAGENUMBER': event.pagenumber
-        }, 
         brc: { 
           'SX': brc.dx, 
           'SY': brc.dy,
           'ROT': Math.abs(brc.rot)
         },
-        instr: 'EXECUTE',
-        className: 'CONFIG'
+        'CONFIG_ACKNOWLEDGE': {
+          'LASTHEADER': id,
+        },
+        className: 'CONFIG_ACKNOWLEDGE'
       },
       failCb: function(){console.log('config execute - fail')}, 
       successCb: function(){console.log('config execute - success')}
@@ -122,7 +117,7 @@ const instructions = {
     const {serial, id}  = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
 
     let buffer_element = {
-      responseRequired: true,
+      //responseRequired: true,
       serial: serial,
       filter: { className: 'PAGEACTIVE' },
       failCb: function(){console.log('change page - fail')}, 
@@ -157,14 +152,19 @@ const instructions = {
     return 1;
   },
 
-  sendStoreToGrid: () => {
-    const { serial, id } = grid.translate.encode('','GLOBAL',`CONFIGSTORE`,'EXECUTE','');
+  sendPageStoreToGrid: () => {
+    const { serial, id } = grid.translate.encode('','GLOBAL',`PAGESTORE`,'EXECUTE','');
     let buffer_element = {
       serial: serial,
       responseRequired: true,
-      filter: { className: 'CONFIGSTORE' },
-      failCb: function(){console.log('store execute - fail')}, 
-      successCb: function(){console.log('store execute - success')}
+      filter: { 
+        'PAGESTORE_ACKNOWLEDGE': {
+          'LASTHEADER': id,
+        },
+        className: 'PAGESTORE_ACKNOWLEDGE'
+      },
+      failCb: function(){console.log('page store execute - fail')}, 
+      successCb: function(){console.log('page store execute - success')}
     }
     engine.strict.store('store', serial, id);
     writeBuffer.add_first(buffer_element);
@@ -173,16 +173,21 @@ const instructions = {
     }})
   },
 
-  sendEraseToGrid: () => {
-    const {serial, id} = grid.translate.encode('','GLOBAL','CONFIGERASE','EXECUTE','');
+  sendNVMEraseToGrid: () => {
+    const {serial, id} = grid.translate.encode('','GLOBAL','NVMERASE','EXECUTE','');
     engine.strict.store('erase', serial, id);
     let buffer_element = {
       responseRequired: true,
       responseTimeout: 8000,
-      filter: { className: 'CONFIGERASE' },
+      filter: { 
+        'NVMERASE_ACKNOWLEDGE': {
+          'LASTHEADER': id,
+        },
+        className: 'NVMERASE_ACKNOWLEDGE'
+      },
       serial: serial,
-      failCb: function(){console.log('erase execute - fail')}, 
-      successCb: function(){console.log('erase execute - success')}
+      failCb: function(){console.log('NVM erase execute - fail')}, 
+      successCb: function(){console.log('NVM erase execute - success')}
     }
     writeBuffer.add_first(buffer_element);
     writeBuffer.add_last({successCb: function(){
@@ -191,14 +196,40 @@ const instructions = {
     }})
   },
 
-  sendDiscardToGrid: () => {
-    const { serial, id } = grid.translate.encode('','GLOBAL','CONFIGDISCARD','EXECUTE','');
+  sendPageDiscardToGrid: () => {
+    const { serial, id } = grid.translate.encode('','GLOBAL','PAGEDISCARD','EXECUTE','');
     let buffer_element = {
       responseRequired: true,
-      filter: { className: 'CONFIGDISCARD' },
+      filter: { 
+        'PAGEDISCARD_ACKNOWLEDGE': {
+          'LASTHEADER': id,
+        },
+        className: 'PAGEDISCARD_ACKNOWLEDGE'
+      },
       serial: serial,
-      failCb: function(){console.log('discard execute - fail')}, 
-      successCb: function(){console.log('discard execute - success')}
+      failCb: function(){console.log('page discard execute - fail')}, 
+      successCb: function(){console.log('page discard execute - success')}
+    }
+    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last({successCb: function(){
+      runtime.changes.throw().setToZero().trigger();  
+    }})
+    
+  },
+
+  sendPageClearToGrid: () => {
+    const { serial, id } = grid.translate.encode('','GLOBAL','PAGECLEAR','EXECUTE','');
+    let buffer_element = {
+      responseRequired: true,
+      filter: { 
+        'PAGECLEAR_ACKNOWLEDGE': {
+          'LASTHEADER': id,
+        },
+        className: 'PAGECLEAR_ACKNOWLEDGE'
+      },
+      serial: serial,
+      failCb: function(){console.log('page clear execute - fail')}, 
+      successCb: function(){console.log('page clear execute - success')}
     }
     writeBuffer.add_first(buffer_element);
     writeBuffer.add_last({successCb: function(){

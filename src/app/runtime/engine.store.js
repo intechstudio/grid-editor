@@ -35,7 +35,11 @@ function createWriteBuffer (){
       return;
     }
 
-    serialComm.write(active_elem.serial);
+    if(Math.random() > 0.3){
+      serialComm.write(active_elem.serial);
+    } else{
+      console.error('GLITCH')
+    }
 
     _write_buffer.shift();
 
@@ -88,25 +92,33 @@ function createWriteBuffer (){
       }
     }
 
-    if(isHeartbeat) return;
+    if(isHeartbeat) return;    
 
     let incomingValid = true;
 
-    // validate filter classParameters
-    for (const parameter in active_elem.filter.classParameters){
-      if(data.hasOwnProperty(active_elem.filter.className)){
-        if(data[active_elem.filter.className][parameter] != active_elem.filter.classParameters[parameter]){
-          incomingValid = false;
-        }
-      }
-    }
 
-    // validate BRC
+    // validate BRC, must start with this as every input contains BRC!
     for (const parameter in active_elem.filter.brc) {
       if(data.BRC[parameter] != active_elem.filter.brc[parameter]){
         incomingValid = false;
       }
     }
+
+    if(data.hasOwnProperty(active_elem.filter.className)){
+
+      for (const parameter in active_elem.filter[active_elem.filter.className]) {
+        if(data[active_elem.filter.className][parameter] != active_elem.filter[active_elem.filter.className][parameter]){
+          incomingValid = false;
+        }
+      }
+
+    } else {
+
+      incomingValid = false;
+
+    }
+
+    //console.log('validateIncoming', incomingValid, data);
 
     if(incomingValid){
       active_elem.successCb();
