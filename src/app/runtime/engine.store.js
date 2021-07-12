@@ -37,8 +37,7 @@ function createWriteBuffer (){
         return bool;
       });
 
-      if(active_elem !== undefined){
-        console.log(active_elem.filter.brc, active_elem.encodeParameters[0])
+      if(active_elem !== undefined && active_elem.encodeParameters[1] == 'LOCAL'){
         if(active_elem.filter.brc.SX == active_elem.encodeParameters[0].dx && active_elem.filter.brc.SY == active_elem.encodeParameters[0].dy){
           active_elem = undefined;
           write_buffer_busy = false;

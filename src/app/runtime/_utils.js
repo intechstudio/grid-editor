@@ -103,6 +103,8 @@ const _utils = {
     config = config.slice(1, -1);
     // split by comma to make array
     config = config.split(',');
+    // trim whitespaces
+    config = config.map(c => c.trim())
   
     return config;
   },
@@ -127,7 +129,7 @@ const _utils = {
     const _unformatted = JSON.stringify(array);
     [..._unformatted].forEach(e => {
       if(e == "\"") { /* no return */ }
-      else { code += e }
+      else { code += e.trim() }
     })
     return code;
   },

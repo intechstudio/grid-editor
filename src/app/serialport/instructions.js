@@ -40,7 +40,6 @@ const instructions = {
         brc: { 
           'SX': device.dx, 
           'SY': device.dy,
-          'ROT': device.rot
         },
         'CONFIG_REPORT': {
           'PAGENUMBER': inputStore.event.pagenumber,
@@ -91,7 +90,6 @@ const instructions = {
         brc: { 
           'SX': brc.dx, 
           'SY': brc.dy,
-          'ROT': brc.rot
         },
         'CONFIG_ACKNOWLEDGE': {
           'LASTHEADER': null
@@ -117,7 +115,7 @@ const instructions = {
 
     let buffer_element = {
       encodeParameters: [
-        brc,
+        '',
         'GLOBAL', 
         'PAGEACTIVE', 
         'EXECUTE', 
@@ -198,7 +196,7 @@ const instructions = {
     //engine.strict.store('erase', serial, id);
 
     let buffer_element = {
-     // responseRequired: true,
+      responseRequired: true,
       responseTimeout: 8000,
       encodeParameters: [
         '',

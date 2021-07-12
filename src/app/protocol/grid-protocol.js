@@ -728,6 +728,7 @@ const grid = {
           id: moduleType + '_' + 'dx:' + header.sx + ';dy:' + header.sy,
           dx: header.sx,
           dy: header.sy,
+          rot: header.rot,
           fwVersion: {
             major: heartbeat.VMAJOR,
             minor: heartbeat.VMINOR,
@@ -741,7 +742,6 @@ const grid = {
             bot: {dx: header.sx, dy: header.sy-1},
             left: {dx: header.sx-1, dy: header.sy},
           },
-          rot: header.rot,
           isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
           isLanding: false,
           pages: [this.createPage(moduleType)],

@@ -253,6 +253,7 @@ function create_runtime () {
           // device is online, update the uptime
           if(device.id == controller.id){
             online = true;
+            device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
             device.alive = Date.now();
           }
         });
