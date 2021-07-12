@@ -166,7 +166,7 @@ const instructions = {
   sendPageStoreToGrid: () => {
 
     let buffer_element = {
-     //responseRequired: true,
+      responseRequired: true,
       encodeParameters: [
         '',
         'GLOBAL',
@@ -228,7 +228,7 @@ const instructions = {
   sendPageDiscardToGrid: () => {
 
     let buffer_element = {
-    //  responseRequired: true,
+      responseRequired: true,
       filter: { 
         'PAGEDISCARD_ACKNOWLEDGE': {
           'LASTHEADER': null,

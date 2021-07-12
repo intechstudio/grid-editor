@@ -40,8 +40,7 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
   let DY = 0;
   let SX = 0;
   let SY = 0;
-
-  let ROT = MODULE_INFO.rot;
+  let ROT = 0;
 
   if(MODULE_INFO !== ''){
     if(DESTINATION == 'LOCAL'){
@@ -49,6 +48,7 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
       DY = +MODULE_INFO.dy + 127;
       SX = 0; // +MODULE_INFO.sx + 127
       SY = 0; // +MODULE_INFO.sy + 127;
+      ROT = MODULE_INFO.rot;
     }
   }
   return {ROT, DX, DY, SX, SY};
