@@ -161,7 +161,7 @@ function createWriteBuffer (){
 
     if(isHeartbeat) return;    
 
-    console.log(active_elem, data);
+    //console.log(active_elem, data);
 
     let incomingValid = true;
 

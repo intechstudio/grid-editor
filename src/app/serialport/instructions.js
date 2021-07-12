@@ -48,9 +48,14 @@ const instructions = {
         },
         className: 'CONFIG_REPORT'
       },
-      failCb: function(){console.log('config fetch - fail')}, 
-      successCb: function(){console.log('config fetch - success')}
+      failCb: function(){
+        //console.log('config fetch - fail')
+      }, 
+      successCb: function(){
+        //console.log('config fetch - success')
+      }
     }
+
 
     writeBuffer.add_first(buffer_element);
 
@@ -96,8 +101,18 @@ const instructions = {
         },
         className: 'CONFIG_ACKNOWLEDGE'
       },
-      failCb: function(){console.log('config execute - fail')}, 
-      successCb: function(){console.log('config execute - success')}
+      failCb: function(){
+        //console.log('config execute - fail')
+      }, 
+      successCb: function(){
+        //console.log('config execute - success')
+      }
+    }
+
+
+    if(grid.properties.CONFIG_LENGTH <= parameters[7]['ACTIONSTRING'].length){
+      logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${parameters[7]['ACTIONSTRING'].length} characters`})
+      return;
     }
 
     writeBuffer.add_first(buffer_element);
@@ -122,8 +137,12 @@ const instructions = {
         parameters
       ],
       filter: { className: 'PAGEACTIVE' },
-      failCb: function(){console.log('change page - fail')}, 
-      successCb: function(){console.log('change page - success')}
+      failCb: function(){
+        //console.log('change page - fail')
+      }, 
+      successCb: function(){
+        //console.log('change page - success')
+      }
     }
 
     writeBuffer.add_first(buffer_element);
@@ -152,8 +171,12 @@ const instructions = {
         },
         className: 'PAGECOUNT' 
       },
-      failCb: function(){console.log('fetch page count - fail')}, 
-      successCb: function(){console.log('fetch page count - success')}
+      failCb: function(){
+        //console.log('fetch page count - fail')
+      }, 
+      successCb: function(){
+        //console.log('fetch page count - success')
+      }
     }
 
     writeBuffer.add_first(buffer_element);
@@ -187,13 +210,13 @@ const instructions = {
       },
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pagestore', message: `Retry page store...`})
-        console.log('page store execute - fail')
+        //console.log('page store execute - fail')
       }, 
       successCb: function(){
         engine.set('ENABLED');
         runtime.unsaved.set(0);
         logger.set({type: 'success', mode: 0, classname: 'pagestore', message: `Store complete!`})
-        console.log('page store execute - success')
+        //console.log('page store execute - success')
       }
     }
 
@@ -232,14 +255,14 @@ const instructions = {
       },
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'nvmerase', message: `Retry erase all modules...`});
-        console.log('NVM erase execute - fail')
+        //console.log('NVM erase execute - fail')
       }, 
       successCb: function(){
         runtime.unsaved.set(0);
         runtime.erase();
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'nvmerase', message: `Erase complete!`});
-        console.log('NVM erase execute - success')
+        //console.log('NVM erase execute - success')
       }
     }
 
@@ -273,13 +296,13 @@ const instructions = {
       ],
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pagediscard', message: `Retry configuration discard...`})
-        console.log('page discard execute - fail')
+        //console.log('page discard execute - fail')
       }, 
       successCb: function(){
         runtime.changes.throw().setToZero().trigger();  
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'pagediscard', message: `Discard complete!`});
-        console.log('page discard execute - success');
+        //console.log('page discard execute - success');
       }
     }
 
@@ -313,13 +336,13 @@ const instructions = {
       ],
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pageclear', message: `Retry clear page...`})
-        console.log('page clear execute - fail')
+        //console.log('page clear execute - fail')
       }, 
       successCb: function(){
         runtime.changes.throw().setToZero().trigger(); 
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'pageclear', message: `Page clear complete!`})
-        console.log('page clear execute - success')
+        //console.log('page clear execute - success')
       }
     }
 

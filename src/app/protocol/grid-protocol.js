@@ -109,6 +109,7 @@ const grid = {
     let VERSION = {};
     let PARAMETERS = {};
     let HEARTBEAT_INTERVAL = 0;
+    let CONFIG_LENGTH = 0;
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
@@ -122,6 +123,10 @@ const grid = {
         // GRID HEARTBEAT INTERVAL
         if(key == 'GRID_PARAMETER_HEARTBEAT_interval'){
           HEARTBEAT_INTERVAL = +grid_protocol[key];
+        }
+
+        if(key == 'GRID_PARAMETER_ACTIONSTRING_maxlength'){
+          CONFIG_LENGTH = +grid_protocol[key];
         }
 
         // GRID INSTRUCTIONS
@@ -203,6 +208,7 @@ const grid = {
       VERSION: VERSION,
       PARAMETERS: PARAMETERS,
       HEARTBEAT_INTERVAL: HEARTBEAT_INTERVAL,
+      CONFIG_LENGTH: CONFIG_LENGTH,
       SESSION: Math.floor(Math.random()*255).toString(16).padStart(2, '0')
     }
 

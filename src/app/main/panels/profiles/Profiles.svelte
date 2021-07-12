@@ -158,8 +158,6 @@
 
       if(currentModule.id.substr(0,4) == profile.meta.type.substr(0,4)){
 
-        console.log('Its a match!');
-
         writeBuffer.add_first({
           commandCb: function(){
             engine.set('DISABLED');
@@ -172,7 +170,8 @@
         writeBuffer.add_last({
           commandCb: function(){
             engine.set('ENABLED');
-            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`})
+            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
+            runtime.update.one().trigger();
           }
         });
 
