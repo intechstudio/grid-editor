@@ -17,6 +17,7 @@
 
   import { pParser } from '../protocol/_utils.js';
   import { messageStream } from './message-stream.store.js';  
+import { writeBuffer } from '../runtime/engine.store.js';
 
   let PORT = {path: 0};
 
@@ -48,9 +49,11 @@
       if(_removed !== undefined && _usedgrid.length !== undefined){    
         // re-initialize configuration panel, if the module has been removed which had it's settings opened.
         user_input.reset(_removed);
-        runtime.set(_usedgrid);      
+        runtime.set(_usedgrid); 
+        writeBuffer.clean_up.one(_removed);
+     
       }
-        
+
     }, interval)
   }
 
@@ -66,7 +69,7 @@
         }
 
         const {serial, id} = grid.translate.encode(
-          {dx: 0, dy: 0, rot: -0},
+          {dx: 0, dy: 0, rot: 0},
           'GLOBAL',
           'HEARTBEAT',
           'EXECUTE',
@@ -166,6 +169,8 @@
       user_input.reset();
       runtime.unsaved.set(0);
       runtime.update.one().trigger();
+
+      writeBuffer.clean_up.all();
 
       PORT = {path: 0};
     }

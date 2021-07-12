@@ -15,40 +15,37 @@ const instructions = {
     // configurations on the 16th element, which is the utility button
     inputStore.event.elementnumber != 16 ? enumber = inputStore.event.elementnumber : enumber = 255;
 
-    const {serial, id} = grid.translate.encode(
-      { 
-        dx: device.dx, 
-        dy: device.dy,
-        rot: device.rot
-      },
-      "LOCAL",
-      "CONFIG",
-      "FETCH",
-      [
-        { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
-        { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
-        { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
-        { PAGENUMBER: pParser(inputStore.event.pagenumber)}, 
-        { ELEMENTNUMBER: pParser(enumber)}, 
-        { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
-        { ACTIONLENGTH: pParser(0)},
-      ],
-    );
-
     let buffer_element = {
       responseRequired: true,
-      serial: serial,
+      encodeParameters: [
+        { 
+          dx: device.dx, 
+          dy: device.dy,
+          rot: device.rot
+        },
+        "LOCAL",
+        "CONFIG",
+        "FETCH",
+        [
+          { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
+          { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
+          { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
+          { PAGENUMBER: pParser(inputStore.event.pagenumber)}, 
+          { ELEMENTNUMBER: pParser(enumber)}, 
+          { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
+          { ACTIONLENGTH: pParser(0)},
+        ]
+      ],
       filter: {
-        id: id, 
         brc: { 
           'SX': device.dx, 
           'SY': device.dy,
-          'ROT': Math.abs(device.rot)
+          'ROT': device.rot
         },
         'CONFIG_REPORT': {
-          'EVENTTYPE': inputStore.event.eventtype,
+          'PAGENUMBER': inputStore.event.pagenumber,
           'ELEMENTNUMBER': enumber,
-          'PAGENUMBER': inputStore.event.pagenumber
+          'EVENTTYPE': inputStore.event.eventtype
         },
         className: 'CONFIG_REPORT'
       },
@@ -81,19 +78,23 @@ const instructions = {
       { ACTIONSTRING: `${lua.trim()}`}
     ]
 
-    const {serial, id} = grid.translate.encode(brc, 'LOCAL', 'CONFIG', 'EXECUTE', parameters)
-
     let buffer_element = {
       responseRequired: true,
-      serial: serial,
+      encodeParameters: [
+        brc, 
+        'LOCAL', 
+        'CONFIG', 
+        'EXECUTE',
+        parameters
+      ],
       filter: {
         brc: { 
           'SX': brc.dx, 
           'SY': brc.dy,
-          'ROT': Math.abs(brc.rot)
+          'ROT': brc.rot
         },
         'CONFIG_ACKNOWLEDGE': {
-          'LASTHEADER': id,
+          'LASTHEADER': null
         },
         className: 'CONFIG_ACKNOWLEDGE'
       },
@@ -112,13 +113,16 @@ const instructions = {
 
     const parameters = [
       { PAGENUMBER: pParser(event.pagenumber) },
-    ]
-
-    const {serial, id}  = grid.translate.encode(brc, 'GLOBAL', 'PAGEACTIVE', 'EXECUTE', parameters)
+    ];
 
     let buffer_element = {
-      //responseRequired: true,
-      serial: serial,
+      encodeParameters: [
+        brc,
+        'GLOBAL', 
+        'PAGEACTIVE', 
+        'EXECUTE', 
+        parameters
+      ],
       filter: { className: 'PAGEACTIVE' },
       failCb: function(){console.log('change page - fail')}, 
       successCb: function(){console.log('change page - success')}
@@ -130,19 +134,26 @@ const instructions = {
   },
 
   fetchPageCountFromGrid: ({brc}) => {
-
-    const {serial, id} = grid.translate.encode(
-      {dx: brc.dx, dy: brc.dy, rot: brc.rot},
-      "GLOBAL",
-      "PAGECOUNT",
-      "FETCH",
-      ""
-    );
-    
+   
     let buffer_element = {
       responseRequired: true,
-      serial: serial,
-      filter: { className: 'PAGECOUNT' },
+      encodeParameters: [
+        {
+          dx: brc.dx, 
+          dy: brc.dy, 
+          rot: brc.rot
+        },
+        "LOCAL",
+        "PAGECOUNT",
+        "FETCH",
+        ""
+      ],
+      filter: { 
+        'PAGECOUNT': {
+          'LASTHEADER': null
+        },
+        className: 'PAGECOUNT' 
+      },
       failCb: function(){console.log('fetch page count - fail')}, 
       successCb: function(){console.log('fetch page count - success')}
     }
@@ -153,88 +164,120 @@ const instructions = {
   },
 
   sendPageStoreToGrid: () => {
-    const { serial, id } = grid.translate.encode('','GLOBAL',`PAGESTORE`,'EXECUTE','');
+
     let buffer_element = {
-      serial: serial,
-      responseRequired: true,
+     //responseRequired: true,
+      encodeParameters: [
+        '',
+        'GLOBAL',
+        'PAGESTORE',
+        'EXECUTE',
+        ''
+      ],
       filter: { 
         'PAGESTORE_ACKNOWLEDGE': {
-          'LASTHEADER': id,
+          'LASTHEADER': null,
         },
         className: 'PAGESTORE_ACKNOWLEDGE'
       },
       failCb: function(){console.log('page store execute - fail')}, 
-      successCb: function(){console.log('page store execute - success')}
+      successCb: function(){
+        runtime.unsaved.set(0);
+        console.log('page store execute - success')
+      }
     }
-    engine.strict.store('store', serial, id);
+
+    //engine.strict.store('store', serial, id);
+
     writeBuffer.add_first(buffer_element);
-    writeBuffer.add_last({successCb: function(){
-      runtime.unsaved.set(0);
-    }})
+
   },
 
   sendNVMEraseToGrid: () => {
-    const {serial, id} = grid.translate.encode('','GLOBAL','NVMERASE','EXECUTE','');
-    engine.strict.store('erase', serial, id);
+
+    //engine.strict.store('erase', serial, id);
+
     let buffer_element = {
-      responseRequired: true,
+     // responseRequired: true,
       responseTimeout: 8000,
+      encodeParameters: [
+        '',
+        'GLOBAL',
+        'NVMERASE',
+        'EXECUTE',
+        ''
+      ],
       filter: { 
         'NVMERASE_ACKNOWLEDGE': {
-          'LASTHEADER': id,
+          'LASTHEADER': null,
         },
         className: 'NVMERASE_ACKNOWLEDGE'
       },
-      serial: serial,
       failCb: function(){console.log('NVM erase execute - fail')}, 
-      successCb: function(){console.log('NVM erase execute - success')}
+      successCb: function(){
+        runtime.unsaved.set(0);
+        runtime.erase();
+        console.log('NVM erase execute - success')
+      }
     }
+
     writeBuffer.add_first(buffer_element);
-    writeBuffer.add_last({successCb: function(){
-      runtime.unsaved.set(0);
-      runtime.erase();
-    }})
+
   },
 
   sendPageDiscardToGrid: () => {
-    const { serial, id } = grid.translate.encode('','GLOBAL','PAGEDISCARD','EXECUTE','');
+
     let buffer_element = {
-      responseRequired: true,
+    //  responseRequired: true,
       filter: { 
         'PAGEDISCARD_ACKNOWLEDGE': {
-          'LASTHEADER': id,
+          'LASTHEADER': null,
         },
         className: 'PAGEDISCARD_ACKNOWLEDGE'
       },
-      serial: serial,
+      encodeParameters: [
+        '',
+        'GLOBAL',
+        'PAGEDISCARD',
+        'EXECUTE',
+        ''
+      ],
       failCb: function(){console.log('page discard execute - fail')}, 
-      successCb: function(){console.log('page discard execute - success')}
+      successCb: function(){
+        runtime.changes.throw().setToZero().trigger();  
+        console.log('page discard execute - success')
+      }
     }
+
     writeBuffer.add_first(buffer_element);
-    writeBuffer.add_last({successCb: function(){
-      runtime.changes.throw().setToZero().trigger();  
-    }})
     
   },
 
   sendPageClearToGrid: () => {
-    const { serial, id } = grid.translate.encode('','GLOBAL','PAGECLEAR','EXECUTE','');
+
     let buffer_element = {
       responseRequired: true,
       filter: { 
         'PAGECLEAR_ACKNOWLEDGE': {
-          'LASTHEADER': id,
+          'LASTHEADER': null,
         },
         className: 'PAGECLEAR_ACKNOWLEDGE'
       },
-      serial: serial,
+      encodeParameters: [
+        '',
+        'GLOBAL',
+        'PAGECLEAR',
+        'EXECUTE',
+        ''
+      ],
       failCb: function(){console.log('page clear execute - fail')}, 
-      successCb: function(){console.log('page clear execute - success')}
+      successCb: function(){
+        runtime.changes.throw().setToZero().trigger(); 
+        console.log('page clear execute - success')
+      }
     }
+
     writeBuffer.add_first(buffer_element);
-    writeBuffer.add_last({successCb: function(){
-      runtime.changes.throw().setToZero().trigger();  
-    }})
     
   }
 

@@ -40,7 +40,8 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
   let DY = 0;
   let SX = 0;
   let SY = 0;
-  let ROT = 0;
+
+  let ROT = MODULE_INFO.rot;
 
   if(MODULE_INFO !== ''){
     if(DESTINATION == 'LOCAL'){
@@ -48,16 +49,6 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
       DY = +MODULE_INFO.dy + 127;
       SX = 0; // +MODULE_INFO.sx + 127
       SY = 0; // +MODULE_INFO.sy + 127;
-    }
-    switch (MODULE_INFO.rot){
-      case -0:
-        ROT = 0; break;
-      case 90:
-        ROT = 1; break;
-      case 180:
-        ROT = 2; break;
-      case 270:
-        ROT = 3; break;
     }
   }
   return {ROT, DX, DY, SX, SY};
@@ -539,15 +530,21 @@ const grid = {
             }
           }
 
-          if(obj.class == "NVMERASE"){
+          if(obj.class == "PAGECLEAR"){
             if(obj.instr == "ACKNOWLEDGE"){
-              DATA.NVMERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
+              DATA.PAGECLEAR_ACKNOWLEDGE = decode_by_code(array, obj.class);
             }
           }
 
           if(obj.class == "PAGEDISCARD"){
             if(obj.instr == "ACKNOWLEDGE"){
               DATA.PAGEDISCARD_ACKNOWLEDGE = decode_by_code(array, obj.class);
+            }
+          }
+
+          if(obj.class == "NVMERASE"){
+            if(obj.instr == "ACKNOWLEDGE"){
+              DATA.NVMERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
             }
           }
 
@@ -744,7 +741,7 @@ const grid = {
             bot: {dx: header.sx, dy: header.sy-1},
             left: {dx: header.sx-1, dy: header.sy},
           },
-          rot: header.rot * -90,
+          rot: header.rot,
           isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
           isLanding: false,
           pages: [this.createPage(moduleType)],

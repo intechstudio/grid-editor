@@ -45,7 +45,7 @@
 </script>
 
 
-<div id={id} draggable={$appSettings.layoutMode} style="transform: rotate({rotation+'deg'})" >
+<div id={id} draggable={$appSettings.layoutMode} style="transform: rotate({rotation*90+'deg'})" >
 
   <slot></slot>
 

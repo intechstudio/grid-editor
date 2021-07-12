@@ -64,11 +64,11 @@ function createMessageStream(){
     }
 
     if(DATA.PAGESTORE_ACKNOWLEDGE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.PAGESTORE_ACKNOWLEDGE.LASTHEADER})
+      //engine.strict.compare({brc: DATA.BRC, lastheader: DATA.PAGESTORE_ACKNOWLEDGE.LASTHEADER})
     }
 
     if(DATA.NVMERASE_ACKNOWLEDGE){
-      engine.strict.compare({brc: DATA.BRC, lastheader: DATA.NVMERASE_ACKNOWLEDGE.LASTHEADER})
+      //engine.strict.compare({brc: DATA.BRC, lastheader: DATA.NVMERASE_ACKNOWLEDGE.LASTHEADER})
     }
 
     writeBuffer.validate_incoming(DATA);

@@ -1,5 +1,6 @@
 import { get, writable } from 'svelte/store';
 import { appSettings } from '../main/_stores/app-helper.store';
+import grid from '../protocol/grid-protocol';
 import { serialComm } from '../serialport/serialport.store';
 
 const buffer_element = {
@@ -22,6 +23,60 @@ function createWriteBuffer (){
 
   let active_elem = undefined;
 
+  const clean_up = function (){
+
+    this.one = function(device){
+
+      let arr = [];
+      
+      _write_buffer = _write_buffer.filter((e) => {
+        let bool = true;
+        if(device.dx == e.encodeParameters[0].dx && device.dy == e.encodeParameters[0].dy){
+          bool = false
+        }
+        return bool;
+      });
+
+      if(active_elem !== undefined){
+        console.log(active_elem.filter.brc, active_elem.encodeParameters[0])
+        if(active_elem.filter.brc.SX == active_elem.encodeParameters[0].dx && active_elem.filter.brc.SY == active_elem.encodeParameters[0].dy){
+          active_elem = undefined;
+          write_buffer_busy = false;
+        }
+      }
+
+      console.info('Clean up >one< writeBuffer!', active_elem, _write_buffer);
+
+      writeBufferTryNext();
+
+    }
+
+    this.all = function(){
+      _write_buffer = [];
+      active_elem = undefined;
+      write_buffer_busy = false;
+      clearInterval(_fetch_timeout);
+
+      console.info('Clean up >all< writeBuffer!', active_elem, _write_buffer);
+
+    }
+    
+
+  }
+
+  function checkIfAckNack(className){
+
+    // className can be CONFIG_ACKNOWLEDGE, CONFIG_NACKNOWLEDGE, both are valid!
+    return className.includes('ACKNOWLEDGE');
+    
+  }
+
+  function sendDataToGrid(encodeParameters) {
+    const {serial, id} = grid.translate.encode(...encodeParameters);
+    serialComm.write(serial);
+    return {id: id};
+  }
+
   function writeBufferTryNext() {
 
     if(write_buffer_busy || _write_buffer.length == 0) return;
@@ -42,7 +97,11 @@ function createWriteBuffer (){
       } else{
         console.error('GLITCH')
     } else {
-      serialComm.write(active_elem.serial);
+      // create and send serial, save the ID for validation
+      const { id } = sendDataToGrid(active_elem.encodeParameters);
+      if(active_elem.responseRequired && checkIfAckNack(active_elem.filter.className)){
+        active_elem.filter[active_elem.filter.className]['LASTHEADER'] = id;
+      }
     }
 
     _write_buffer.shift();
@@ -64,7 +123,6 @@ function createWriteBuffer (){
 
   let _fetch_timeout = undefined;
   function startFetchTimeout(timeout) {
-    console.log('timeout', timeout);
     _fetch_timeout = setTimeout(()=>{
       fetchTimeoutCallback();
     }, timeout)
@@ -85,9 +143,13 @@ function createWriteBuffer (){
 
   function validateIncoming(data) {
 
-    // compare data and filter key - value pairs
 
+    // compare data and filter key - value pairs
     if(!active_elem) return
+
+    // check if active_elem has filter
+    if(!active_elem.hasOwnProperty('filter')) return;
+
 
     let isHeartbeat = false;
     for (const _class in data) {
@@ -98,8 +160,9 @@ function createWriteBuffer (){
 
     if(isHeartbeat) return;    
 
-    let incomingValid = true;
+    console.log(active_elem, data);
 
+    let incomingValid = true;
 
     // validate BRC, must start with this as every input contains BRC!
     for (const parameter in active_elem.filter.brc) {
@@ -107,13 +170,14 @@ function createWriteBuffer (){
         incomingValid = false;
       }
     }
-
+    
     if(data.hasOwnProperty(active_elem.filter.className)){
 
       for (const parameter in active_elem.filter[active_elem.filter.className]) {
         if(data[active_elem.filter.className][parameter] != active_elem.filter[active_elem.filter.className][parameter]){
           incomingValid = false;
         }
+
       }
 
     } else {
@@ -121,7 +185,7 @@ function createWriteBuffer (){
       incomingValid = false;
 
     }
-
+ 
     if(incomingValid){
       active_elem.successCb();
       active_elem = undefined;
@@ -148,7 +212,8 @@ function createWriteBuffer (){
     messages: messages,
     add_first: add_first,
     add_last: add_last,
-    validate_incoming: validateIncoming
+    validate_incoming: validateIncoming,
+    clean_up: new clean_up()
   }
 
 }

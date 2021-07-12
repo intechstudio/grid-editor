@@ -31,13 +31,13 @@
   const rotMode = (rotation) => {
     rotation == undefined ? rotation = 0 : null;
     let rot;
-    (rotation == 90 || rotation == 270) ? rot = 'X' : rot = 'Y'; 
+    (rotation == 1 || rotation == 3) ? rot = 'X' : rot = 'Y'; 
     return rot;
   }
 
   const inverse = () => {
     let _inverse = -1;
-    (rotation == 90 || rotation == 180) ? _inverse = 1 : _inverse = -1;
+    (rotation == 1 || rotation == 2) ? _inverse = 1 : _inverse = -1;
     return _inverse;
   }
 

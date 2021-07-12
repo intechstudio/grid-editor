@@ -414,7 +414,7 @@ function create_runtime () {
       })
 
       writeBuffer.add_last({
-        responseRequired: true,
+        //responseRequired: true,
         commandCb: function(){
           writeBuffer.messages.set('ready to save');                
           logger.set({type: 'success', mode: 0, classname: 'pagesave', message: `Ready to save!`});
