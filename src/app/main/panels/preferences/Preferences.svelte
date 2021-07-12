@@ -45,7 +45,7 @@
       </div>
 
       <button 
-        on:click={()=>{engine.enable()}} 
+        on:click={()=>{engine.set('ENABLED')}} 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-20 hover:border-select-saturate-20 text-white px-2 py-0.5 mr-2">
         Enable Engine and User Inputs
       </button>

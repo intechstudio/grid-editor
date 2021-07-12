@@ -38,12 +38,9 @@
   import Modal from './app/main/Modal.svelte';
   import Updater from './app/shared/updater/Updater.svelte';
   import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
-  import { engine, runtime } from './app/runtime/runtime.store';
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import { appSettings } from './app/main/_stores/app-helper.store';
   import NotificationBar from './app/shared/notifications/NotificationBar.svelte';
-
-  const engine_state = engine.state;
 
   onMount(()=>{
 
@@ -80,7 +77,7 @@
 
     <FirmwareCheck/>
 
-    <div class="flex w-full h-full { $engine_state == 'ENABLED' ? '' : 'pointer-events-none'}">
+    <div class="flex w-full h-full">
 
       <LeftPanelContainer classes={"w-2/12"}/>
       

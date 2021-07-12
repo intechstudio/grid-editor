@@ -390,9 +390,13 @@ function create_runtime () {
     // fetches all config from each action and event on current page + utility button
     this.Many = function(){
 
-      engine.disable();
+      writeBuffer.add_first({
+        commandCb: function(){
+          engine.set('DISABLED');
+          logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
+        }
+      });
 
-      logger.set({type: 'progress', mode: 0, classname: 'pagesave', message: `Preparing configs...`})
 
       const rt = get(runtime);
 
@@ -418,8 +422,8 @@ function create_runtime () {
         //responseRequired: true,
         commandCb: function(){
           writeBuffer.messages.set('ready to save');                
-          logger.set({type: 'success', mode: 0, classname: 'pagesave', message: `Ready to save!`});
-          engine.enable();
+          logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Ready to save!`});
+          engine.set('ENABLED');
         }
       });
       
@@ -504,7 +508,7 @@ function create_runtime () {
     fetch: new _runtime_fetch(),
     device: new _device_update(),
     changes: new _runtime_changes(),
-    erase: erase_all(),
+    erase: erase_all,
     unsaved: _unsaved_changes,
   }
 }
@@ -513,127 +517,11 @@ export const runtime = create_runtime();
 
 
 function createEngine(){
-
-  let deadline = undefined;
   
-  const _strict_command = writable({});
-
-  const _engine = writable([]);
-
-  const _engine_state = derived(_engine, $e => $e.map(val => val.state === 'ENABLED').includes(false) ? 'DISABLED' : 'ENABLED');
-
-  // Glitch is probably buggy with multiple modules
-  function glitch(id){
-    const rnd = Math.random() * 10;
-    if(rnd > 5){
-      return -1
-    } else {
-      return id
-    }
-  }
-
-  function update_engine(responseSource, state){
-    _engine.update(store => {
-      let device = store.find(d => d.device == responseSource);
-      device.state = state;
-      return store;
-    });
-  }
-
-  function sync(){
-    deadline = setTimeout(()=>{
-      check();
-    },5000)
-  }
-
-  function check(){
-    const strict = get(_strict_command);
-    const { serial } = grid.translate.encode('','GLOBAL', `CONFIG${strict.type.toUpperCase()}`,'CHECK','');
-    serialComm.write(serial);
-  }
-
-  function resend(serial){
-    serialComm.write(serial);
-  }
-
-  function disable_all(){
-
-    let state = [];
-
-    const devices = get(_runtime_modules);
-
-    devices.forEach(device => {
-      state.push({device: device, state: 'DISABLED'})
-    })
-  
-    _engine.set(state);
-
-  }
-
-  const _strict = function(){
-
-    // initiated from editor
-    this.store = function(type, serial, id){ // type equals partly classname
-
-      const devices = get(_runtime_modules);     
-      
-      let state = [];
-
-      devices.forEach(device => {
-        state.push({device: device, state: 'DISABLED'})
-      })
-    
-      _engine.set(state);
-
-      logger.set({type: 'progress', mode: 1, classname: 'strict', message: `${type} in progress...`})
-
-      _strict_command.set({connected: devices, type: type, serial: serial, id: id, debug_id: id});        
-
-      sync();
-    }
-
-    // on response from grid
-    this.compare = function({brc, lastheader}){
-
-      const strict = get(_strict_command);
-
-      let success = false;
-
-      const responseSource = strict.connected.find(d => d.sx == brc.SX && d.sy == brc.SY);
-
-      if(responseSource){
-
-        if(strict.id == lastheader){
-          success = true; // lastheader matches!
-          clearTimeout(deadline); // THIS IS ONLY TRIGGERED ONCE, NOT FOR ALL MODULE INFO...
-          update_engine(responseSource, 'ENABLED');
-          logger.set({type: 'success', mode: 1, classname: 'strict', message: `${strict.type} complete!`});
-          runtime.update.one().trigger();
-        }
-
-        if(!success){
-          update_engine(responseSource, 'RESEND');
-          resend(strict.serial);
-          logger.set({type: 'alert', mode: 1, classname: 'strict', message: `Resending ${strict.type} command...`})
-
-          // DEBUG
-          // _strict_command.update(v => {v.id = v.debug_id; return v});
-        }
-
-      }
-
-    }
-
-  }
+  const _engine = writable('ENABLED');
 
   return {
-    subscribe: _engine.subscribe,
-    state: _engine_state,
-    enable: () => {
-      _engine.set([]);
-    },
-    disable: disable_all,
-    strict: new _strict(),
+    ..._engine
   }
 
 }

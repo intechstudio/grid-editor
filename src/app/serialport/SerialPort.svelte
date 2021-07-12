@@ -17,7 +17,7 @@
 
   import { pParser } from '../protocol/_utils.js';
   import { messageStream } from './message-stream.store.js';  
-import { writeBuffer } from '../runtime/engine.store.js';
+  import { writeBuffer } from '../runtime/engine.store.js';
 
   let PORT = {path: 0};
 

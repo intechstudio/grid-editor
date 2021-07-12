@@ -4,7 +4,7 @@ import grid from '../protocol/grid-protocol.js';
 
 import { pParser } from '../protocol/_utils.js';
 import { writeBuffer } from '../runtime/engine.store.js';
-import { engine, runtime } from '../runtime/runtime.store.js';
+import { engine, logger, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
 
@@ -67,7 +67,7 @@ const instructions = {
     event.elementnumber != 16 ? enumber = event.elementnumber : enumber = 255;
 
     const parameters = [
-      { VERSIONMAJOR: pParser(grid.properties.VERSION.MINOR) },
+      { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
       { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
       { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
       { PAGENUMBER: pParser(event.pagenumber) },
@@ -163,6 +163,13 @@ const instructions = {
 
   sendPageStoreToGrid: () => {
 
+    writeBuffer.add_first({
+      commandCb: function(){
+        engine.set('DISABLED');
+        logger.set({type: 'progress', mode: 0, classname: 'pagestore', message: `Store configurations on page...`})
+      }
+    });
+
     let buffer_element = {
       responseRequired: true,
       encodeParameters: [
@@ -178,9 +185,14 @@ const instructions = {
         },
         className: 'PAGESTORE_ACKNOWLEDGE'
       },
-      failCb: function(){console.log('page store execute - fail')}, 
+      failCb: function(){
+        logger.set({type: 'alert', mode: 0, classname: 'pagestore', message: `Retry page store...`})
+        console.log('page store execute - fail')
+      }, 
       successCb: function(){
+        engine.set('ENABLED');
         runtime.unsaved.set(0);
+        logger.set({type: 'success', mode: 0, classname: 'pagestore', message: `Store complete!`})
         console.log('page store execute - success')
       }
     }
@@ -194,6 +206,13 @@ const instructions = {
   sendNVMEraseToGrid: () => {
 
     //engine.strict.store('erase', serial, id);
+
+    writeBuffer.add_first({
+      commandCb: function(){
+        engine.set('DISABLED');
+        logger.set({type: 'progress', mode: 0, classname: 'nvmerase', message: `Erasing all modules...`})
+      }
+    });
 
     let buffer_element = {
       responseRequired: true,
@@ -211,10 +230,15 @@ const instructions = {
         },
         className: 'NVMERASE_ACKNOWLEDGE'
       },
-      failCb: function(){console.log('NVM erase execute - fail')}, 
+      failCb: function(){
+        logger.set({type: 'alert', mode: 0, classname: 'nvmerase', message: `Retry erase all modules...`});
+        console.log('NVM erase execute - fail')
+      }, 
       successCb: function(){
         runtime.unsaved.set(0);
         runtime.erase();
+        engine.set('ENABLED');
+        logger.set({type: 'success', mode: 0, classname: 'nvmerase', message: `Erase complete!`});
         console.log('NVM erase execute - success')
       }
     }
@@ -224,6 +248,13 @@ const instructions = {
   },
 
   sendPageDiscardToGrid: () => {
+
+    writeBuffer.add_first({
+      commandCb: function(){
+        engine.set('DISABLED');
+        logger.set({type: 'progress', mode: 0, classname: 'pagediscard', message: `Discarding configurations...`})
+      }
+    });
 
     let buffer_element = {
       responseRequired: true,
@@ -240,10 +271,15 @@ const instructions = {
         'EXECUTE',
         ''
       ],
-      failCb: function(){console.log('page discard execute - fail')}, 
+      failCb: function(){
+        logger.set({type: 'alert', mode: 0, classname: 'pagediscard', message: `Retry configuration discard...`})
+        console.log('page discard execute - fail')
+      }, 
       successCb: function(){
         runtime.changes.throw().setToZero().trigger();  
-        console.log('page discard execute - success')
+        engine.set('ENABLED');
+        logger.set({type: 'success', mode: 0, classname: 'pagediscard', message: `Discard complete!`});
+        console.log('page discard execute - success');
       }
     }
 
@@ -252,6 +288,13 @@ const instructions = {
   },
 
   sendPageClearToGrid: () => {
+
+    writeBuffer.add_first({
+      commandCb: function(){
+        engine.set('DISABLED');
+        logger.set({type: 'progress', mode: 0, classname: 'pageclear', message: `Clearing configurations from page...`})
+      }
+    });
 
     let buffer_element = {
       responseRequired: true,
@@ -268,9 +311,14 @@ const instructions = {
         'EXECUTE',
         ''
       ],
-      failCb: function(){console.log('page clear execute - fail')}, 
+      failCb: function(){
+        logger.set({type: 'alert', mode: 0, classname: 'pageclear', message: `Retry clear page...`})
+        console.log('page clear execute - fail')
+      }, 
       successCb: function(){
         runtime.changes.throw().setToZero().trigger(); 
+        engine.set('ENABLED');
+        logger.set({type: 'success', mode: 0, classname: 'pageclear', message: `Page clear complete!`})
         console.log('page clear execute - success')
       }
     }

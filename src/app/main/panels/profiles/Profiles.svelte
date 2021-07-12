@@ -15,7 +15,7 @@
   // Importing dialog module using remote 
   const dialog = electron.remote.dialog; 
 
-  import { runtime, user_input } from '../../../runtime/runtime.store.js';
+  import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { appSettings } from '../../_stores/app-helper.store.js';
 
   let selected;
@@ -78,10 +78,11 @@
                 fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
                     if (err) throw err; 
                     console.log('Saved!'); 
+                    loadFilesFromDirectory(PROFILE_PATH);
                 }); 
             } 
 
-            loadFilesFromDirectory(PROFILE_PATH);
+            
 
         }).catch(err => { 
             console.log(err) 
@@ -159,13 +160,25 @@
 
         console.log('Its a match!');
 
-        console.log(profile);
+        writeBuffer.add_first({
+          commandCb: function(){
+            engine.set('DISABLED');
+            logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
+          }
+        });
 
         runtime.update.batch(profile.configs);
 
+        writeBuffer.add_last({
+          commandCb: function(){
+            engine.set('ENABLED');
+            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`})
+          }
+        });
+
       } else {
 
-        console.log('not a match');
+        logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }
     }
@@ -179,7 +192,7 @@
 
 </script>
 
-  <div class="w-full h-full p-4 flex flex-col justify-start bg-primary">
+  <profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
 
     <div class="text-white my-2 px-1">Profiles</div>
@@ -220,6 +233,6 @@
 
     </div>
 
-  </div>
+  </profiles>
 
 

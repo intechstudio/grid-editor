@@ -5,8 +5,6 @@ import grid from '../protocol/grid-protocol';
 import { writeBuffer } from '../runtime/engine.store';
 import { debug_store, runtime, user_input, logger, engine } from '../runtime/runtime.store';
 
-const engine_state = engine.state;
-
 function createMessageStream(){
 
   const _message_stream = writable({});
@@ -22,7 +20,7 @@ function createMessageStream(){
     }
 
     // enable user input from grid only if engine is enabled
-    if(get(engine_state) == 'ENABLED'){
+    if(get(engine) == 'ENABLED'){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
           user_input.grid_update({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
@@ -48,7 +46,7 @@ function createMessageStream(){
 
     
     if(DATA.LUA){
-      if(get(engine_state) == 'ENABLED'){
+      if(get(engine) == 'ENABLED'){
         runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
       } else {
         runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!

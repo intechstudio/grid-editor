@@ -6,7 +6,7 @@
 
   import { appSettings } from '../_stores/app-helper.store.js';
 
-  import { runtime } from '../../runtime/runtime.store.js';
+  import { engine, runtime } from '../../runtime/runtime.store.js';
 
   import Device from './grid-modules/Device.svelte';
 
@@ -44,7 +44,7 @@
 
 </script>
 
-<layout-container class="relative flex items-start {classes} h-full">
+<layout-container class="relative flex items-start {classes} h-full { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
   <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
 

@@ -77,7 +77,7 @@
 
 </script>
 
-<configuration class="w-full h-full flex flex-col">
+<configuration class="w-full h-full flex flex-col { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
   <Pages {pages}/>
 

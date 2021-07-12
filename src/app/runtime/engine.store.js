@@ -86,6 +86,8 @@ function createWriteBuffer (){
 
     if(active_elem.hasOwnProperty('commandCb')){
       active_elem.commandCb();
+      active_elem = undefined;
+      _write_buffer.shift();
       write_buffer_busy = false;
       return;
     }

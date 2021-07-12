@@ -45,6 +45,7 @@
     enabled: 0
   }
 
+  /**
   engine.subscribe(_devices => {
 
     devices.number = _devices.length;
@@ -68,7 +69,7 @@
 
     })
   })
-
+  */
 
   export function cursorLog(node, {popup}){
 
@@ -135,6 +136,7 @@
       class:border-blue-600={logs[logs.length-1].type == 'progress'}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
 
+      <!--
       {#if !logs.map(l => l.classname).includes('pagechange')}
         <div class="py-2 mb-2 border-b border-gray-500">
           {#if devices.enabled !== devices.number}
@@ -144,7 +146,7 @@
           {/if}
         </div>
       {/if}
-
+-->
       {#each logs as log}
         <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
           <div class="px-2 py-1 bg-primary rounded mr-2">
