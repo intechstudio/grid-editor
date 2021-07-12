@@ -97,7 +97,7 @@
             on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
-            {rotation}/>
+            rotation={rotation*-90}/>
         </div>
       {/each}
     </div>
