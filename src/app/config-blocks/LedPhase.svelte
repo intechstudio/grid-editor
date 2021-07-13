@@ -47,7 +47,6 @@
 
   // config.script cannot be undefined
   $: if(config.script && !loaded){
-    // alternatively humanScriptToSegments could be used
     scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script});
     loaded = true;
   };
