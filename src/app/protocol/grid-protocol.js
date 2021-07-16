@@ -91,6 +91,12 @@ const CEEAT = {
     desc: 'midi rx',
     value: '5',
     key: 'MIDIRX'
+  },
+
+  timer: {
+    desc: 'timer',
+    value: '6',
+    key: 'TIMER'
   }
 
 }
@@ -621,12 +627,12 @@ const grid = {
   device: {
 
     elementEvents: {
-      button: [ CEEAT.init, CEEAT.button ],
-      potentiometer: [ CEEAT.init, CEEAT.potmeter ],
-      fader: [ CEEAT.init, CEEAT.potmeter ],
+      button: [ CEEAT.init, CEEAT.button, CEEAT.timer ],
+      potentiometer: [ CEEAT.init, CEEAT.potmeter, CEEAT.timer ],
+      fader: [ CEEAT.init, CEEAT.potmeter,CEEAT.timer ],
       blank: [],
-      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder],
-      utility: [CEEAT.init, CEEAT.map, CEEAT.midirx]
+      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer ],
+      utility: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer]
     },
   
     moduleElements: {
