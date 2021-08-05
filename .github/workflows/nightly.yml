@@ -6,7 +6,7 @@ on:
       - stable
 
 jobs:
-  build:
+  job_1:
     name: Build Nightly Grid Editor
     runs-on: ${{ matrix.os }}
     strategy:
@@ -31,10 +31,7 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
-        
-      - name: Test
-        run: npm test
-
+      
       - name: Build        
         run: npm run export
         if: ${{ always() }}
@@ -72,3 +69,9 @@ jobs:
             description: 'Download latest nightly artifact!'
             details: 'Link to workflows: https://github.com/intechstudio/grid-editor/actions'
             webhookUrl: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+  job_2:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Test'
+        run: npm test
