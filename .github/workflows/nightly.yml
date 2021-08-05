@@ -36,7 +36,7 @@ jobs:
         run: npm test
   
       - name: Continue even if test fails!
-        if: always()
+        if: ${{ always() }}
 
       - name: Build
         run: npm run export
