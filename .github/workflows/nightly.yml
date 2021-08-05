@@ -31,6 +31,9 @@ jobs:
           EMAIL: ${{ secrets.EMAIL }}
           EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
+        
+      - name: Test
+        run: npm test
   
       - name: Build
         run: npm run export
