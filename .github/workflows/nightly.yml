@@ -34,12 +34,10 @@ jobs:
         
       - name: Test
         run: npm test
-  
-      - name: Continue even if test fails!
-        if: ${{ always() }}
 
-      - name: Build
+      - name: Build        
         run: npm run export
+        if: ${{ always() }}
         env:     
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
