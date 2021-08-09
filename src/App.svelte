@@ -79,10 +79,10 @@
 
     <div class="flex w-full h-full">
 
-      <LeftPanelContainer classes={"w-2/12"}/>
+      <LeftPanelContainer classes={"w-3/12"}/>
       
       <!-- This is the (mostly) Layout part of the code. -->
-      <GridLayout classes={"w-7/12"}/>
+      <GridLayout classes={"w-5/12"}/>
 
       <!-- The right side panel container -->
       <RightPanelContainer classes={"w-6/12"}/>

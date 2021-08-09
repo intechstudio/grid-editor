@@ -4,8 +4,12 @@ import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_
 import { editor_lua_properties } from './editor-properties.js';
 import { sendDataToClient } from '../debug/tower.js';
 
+
+// global id for serial message generation
 let global_id = 0;
 
+
+// helper functions
 const utility_genId  = () => {
   if((global_id / 255) == 1){
     global_id = 0;
@@ -54,8 +58,14 @@ const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
   return {ROT, DX, DY, SX, SY};
 }
 
-// Control Element Event Assignment Table.
+// control element event assignment table.
 const CEEAT = { 
+
+  undef: {
+    desc: 'UNDEFINED',
+    value: '-1',
+    key: 'UNDEFINED'
+  },
 
   init: {
     desc: 'init',
@@ -99,6 +109,49 @@ const CEEAT = {
     key: 'TIMER'
   }
 
+}
+
+// default module elements at specific positions
+let moduleElements = {
+  PO16: [
+    'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+    'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+    'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+    'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+  ],
+  PBF4: [
+    'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
+    'fader', 'fader', 'fader', 'fader', 
+    'button', 'button', 'button', 'button', 
+  ],
+  BU16: [
+    'button','button','button','button',
+    'button','button','button','button',
+    'button','button','button','button',
+    'button','button','button','button',
+  ],
+  EN16: [
+    'encoder', 'encoder', 'encoder', 'encoder',
+    'encoder', 'encoder', 'encoder', 'encoder',
+    'encoder', 'encoder', 'encoder', 'encoder',
+    'encoder', 'encoder', 'encoder', 'encoder'        
+  ]
+}
+
+// add utility (system events) control element or map mode at 255 
+moduleElements['BU16'][255] = 'utility';
+moduleElements['EN16'][255] = 'utility';
+moduleElements['PBF4'][255] = 'utility';
+moduleElements['PO16'][255] = 'utility';
+
+// elementEvents based on control element type and the CEEA table
+const elementEvents = {
+  button: [ CEEAT.init, CEEAT.button, CEEAT.timer ],
+  potentiometer: [ CEEAT.init, CEEAT.potmeter, CEEAT.timer ],
+  fader: [ CEEAT.init, CEEAT.potmeter,CEEAT.timer ],
+  blank: [ CEEAT.undef ],
+  encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer ],
+  utility: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer]
 }
 
 const grid = {
@@ -536,6 +589,10 @@ const grid = {
  */
           }
 
+          if(obj.class == "MIDI"){
+            DATA.MIDI = decode_by_code(array, obj.class);
+          }
+
           if(obj.class == "PAGESTORE"){
             if(obj.instr == "ACKNOWLEDGE"){
               DATA.PAGESTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
@@ -625,69 +682,35 @@ const grid = {
   },
 
   device: {
-
-    elementEvents: {
-      button: [ CEEAT.init, CEEAT.button, CEEAT.timer ],
-      potentiometer: [ CEEAT.init, CEEAT.potmeter, CEEAT.timer ],
-      fader: [ CEEAT.init, CEEAT.potmeter,CEEAT.timer ],
-      blank: [],
-      encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer ],
-      utility: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer]
-    },
   
-    moduleElements: {
-      PO16: [
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'utility'
-      ],
-      PBF4: [
-        'potentiometer', 'potentiometer', 'potentiometer', 'potentiometer',
-        'fader', 'fader', 'fader', 'fader', 
-        'button', 'button', 'button', 'button', 
-        'blank', 'blank', 'blank', 'blank',
-        'utility'
-      ],
-      BU16: [
-        'button','button','button','button',
-        'button','button','button','button',
-        'button','button','button','button',
-        'button','button','button','button',
-        'utility'
-      ],
-      EN16: [
-        'encoder', 'encoder', 'encoder', 'encoder',
-        'encoder', 'encoder', 'encoder', 'encoder',
-        'encoder', 'encoder', 'encoder', 'encoder',
-        'encoder', 'encoder', 'encoder', 'encoder',
-        'utility'
-      ]
-    },
-
     createPage: function(moduleType, pageStatus = 'INIT'){
+
         moduleType = moduleType.substr(0,4);
-    
+      
         let control_elements = [];
 
         let status = pageStatus;
 
         try {
 
+          const elementsArrayLength = moduleElements[moduleType].length;
+
            // control elements
-          for (let i = 0; i < 17; i++) {
-            let events = [];
-            for (let j=0; j < this.elementEvents[this.moduleElements[moduleType][i]].length; j++) {
-              events.push({        
-                event: this.elementEvents[this.moduleElements[moduleType][i]][j], 
-                config: "",
-                cfgStatus: "NULL"
-              })
+          for (let i = 0; i < elementsArrayLength; i++) {
+            if(moduleElements[moduleType][i]){
+              let events = [];
+              for (let j=0; j < elementEvents[moduleElements[moduleType][i]].length; j++) {
+                events.push({        
+                  event: elementEvents[moduleElements[moduleType][i]][j], 
+                  config: "",
+                  cfgStatus: "NULL"
+                })
+              }
+              control_elements[i] = {events: events, controlElementType: moduleElements[moduleType][i]};
             }
-            control_elements[i] = {events: events, controlElementType: this.moduleElements[moduleType][i], };
           }
-    
+        
+
           return {status, control_elements};
           
         } catch (error) {
@@ -696,7 +719,6 @@ const grid = {
 
         }
         
-       
     },
 
     make: function(header, heartbeat, virtual){
@@ -765,6 +787,7 @@ const grid = {
         }
         
       }
+
       
       return controller;
   

@@ -13,7 +13,7 @@ const instructions = {
     let enumber = undefined;
 
     // configurations on the 16th element, which is the utility button
-    inputStore.event.elementnumber != 16 ? enumber = inputStore.event.elementnumber : enumber = 255;
+    enumber = inputStore.event.elementnumber;
 
     let buffer_element = {
       responseRequired: true,
@@ -68,8 +68,8 @@ const instructions = {
 
     let enumber = undefined;
 
-    // configurations on the 16th element, which is the utility button
-    event.elementnumber != 16 ? enumber = event.elementnumber : enumber = 255;
+    // configurations on the 255th element are system events...
+    enumber = event.elementnumber;
 
     const parameters = [
       { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },

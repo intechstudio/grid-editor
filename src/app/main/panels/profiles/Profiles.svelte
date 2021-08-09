@@ -101,6 +101,8 @@
       
       writeBuffer.messages.subscribe((value) => {
 
+        console.log('value', value);
+
         if(value == 'ready to save'){
 
           const configs = get(runtime);

@@ -178,7 +178,7 @@ function create_runtime () {
     if(li.event.elementnumber !== -1){
       _runtime.forEach((device) => {
         if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-          const enumber = li.event.elementnumber == 255 ? 16 : li.event.elementnumber;
+          const enumber = li.event.elementnumber;
           try {
             _event = device.pages[li.event.pagenumber].control_elements[enumber].events.find(e => e.event.value == li.event.eventtype);
           } catch (error) {    
@@ -205,7 +205,7 @@ function create_runtime () {
       if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
 
         pages = device.pages;
-        selectedNumber = ui.event.elementnumber == 255 ? 16 : ui.event.elementnumber;
+        selectedNumber = ui.event.elementnumber;
 
         try {
           elementNumbers = device.pages[ui.event.pagenumber].control_elements;
@@ -397,7 +397,6 @@ function create_runtime () {
         }
       });
 
-
       const rt = get(runtime);
 
       let li = Object.assign({}, _li);
@@ -549,6 +548,31 @@ function createDebug(){
     }
   }
 }
+
+
+function createMidiMonitor(){
+
+  const store = writable([]);
+
+  return {
+    ...store,
+    update_midi: ({brc,midi}) => {
+      store.update(s => {
+        if(s.length >= 30){
+          s.shift()
+        };
+
+        midi.sx = brc.SX;
+        midi.sy = brc.SY;
+
+        s = [...s, midi];
+        return s;
+      })
+    }
+  }
+}
+
+export const midi_monitor_store = createMidiMonitor();
 
 export const debug_store = createDebug();
 

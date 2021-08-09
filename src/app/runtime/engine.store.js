@@ -31,8 +31,10 @@ function createWriteBuffer (){
       
       _write_buffer = _write_buffer.filter((e) => {
         let bool = true;
-        if(device.dx == e.encodeParameters[0].dx && device.dy == e.encodeParameters[0].dy){
-          bool = false
+        if(e.encodeParameters){
+          if(device.dx == e.encodeParameters[0].dx && device.dy == e.encodeParameters[0].dy){
+            bool = false
+          }
         }
         return bool;
       });

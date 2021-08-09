@@ -1,5 +1,6 @@
 <script>
   import Debug from "../debug/Debug.svelte";
+import MidiMonitor from "./panels/midi-monitor/MidiMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
   import { appSettings } from "./_stores/app-helper.store";
 
@@ -14,6 +15,12 @@
     {#if $appSettings.leftPanel == 'Debug'}
 
       <Debug/>
+
+    {/if}
+
+    {#if $appSettings.leftPanel == 'MIDI Monitor'}
+
+      <MidiMonitor/>
 
     {/if}
 

@@ -36,7 +36,7 @@
     $appSettings.configType = arg;
 
     if(arg == 'systemEvents'){ // maybe ui.event.elementnumber = 255 ?
-      user_input.update((ui) => {ui.event.elementnumber = 16; ui.event.eventtype = 4; return ui});
+      user_input.update((ui) => {ui.event.elementnumber = 255; ui.event.eventtype = 4; return ui});
     }
 
     if(arg == 'uiEvents'){

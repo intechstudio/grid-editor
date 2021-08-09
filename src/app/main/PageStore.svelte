@@ -7,7 +7,6 @@
 
   export let classes;
 
-
   function store() {
     instructions.sendPageStoreToGrid();
   }

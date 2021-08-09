@@ -3,7 +3,7 @@ import { writable, get } from 'svelte/store';
 import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import { writeBuffer } from '../runtime/engine.store';
-import { debug_store, runtime, user_input, logger, engine } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input, logger, engine, midi_monitor_store } from '../runtime/runtime.store';
 
 function createMessageStream(){
 
@@ -38,6 +38,10 @@ function createMessageStream(){
 
     if(DATA.DEBUGTEXT){
       debug_store.update_debugtext({brc: DATA.BRC, text: DATA.DEBUGTEXT});
+    }
+
+    if(DATA.MIDI){
+      midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI});
     }
 
     if(DATA.LOG){
