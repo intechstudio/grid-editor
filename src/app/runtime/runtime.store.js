@@ -90,7 +90,7 @@ function create_user_input () {
     })
   }
 
-  function grid_update({brc, event}){
+  function grid_process_incoming({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
       if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE) {
@@ -152,7 +152,7 @@ function create_user_input () {
     ..._event,
     subscribe: _event.subscribe,
     update: _event.update,
-    grid_update: grid_update,
+    grid_process_incoming: grid_process_incoming,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     update_pagenumber: new _update(),
@@ -178,9 +178,10 @@ function create_runtime () {
     if(li.event.elementnumber !== -1){
       _runtime.forEach((device) => {
         if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-          const enumber = li.event.elementnumber;
           try {
-            _event = device.pages[li.event.pagenumber].control_elements[enumber].events.find(e => e.event.value == li.event.eventtype);
+            const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+            const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+            _event = device.pages[pageIndex].control_elements[elementIndex].events.find(e => e.event.value == li.event.eventtype);
           } catch (error) {    
             console.error('Couldn\'t update in destination: ', li)
           }
@@ -207,15 +208,19 @@ function create_runtime () {
         pages = device.pages;
         selectedNumber = ui.event.elementnumber;
 
+        const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+
         try {
-          elementNumbers = device.pages[ui.event.pagenumber].control_elements;
+          elementNumbers = device.pages[pageIndex].control_elements;
         } catch (error) {
           console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
           elementNumbers = device.pages[0].control_elements;
           instructions.fetchPageCountFromGrid({brc: ui.brc});
         }
 
-        events = elementNumbers[selectedNumber].events;
+        const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+
+        events = elementNumbers[elementIndex].events;
 
         // don't let selection of event, which is not on that control element
         let f_event = events.find(e => e.event.value == ui.event.eventtype);
@@ -260,6 +265,7 @@ function create_runtime () {
         // device not found, add it to runtime and get page count from grid
         if(!online){
           _runtime.push(controller);
+          console.log(controller);
           instructions.fetchPageCountFromGrid({brc: controller});
         }
         return _runtime;
@@ -274,7 +280,7 @@ function create_runtime () {
           // don't make pages if there are already same amount of pages...
           if(device.dx == brc.SX && device.dy == brc.SY && pagenumber !== device.pages.length){
             for (let i = 0; i < pagenumber - 1; i++) {
-              device.pages = [...device.pages, grid.device.createPage(device.id, 'GRID_REPORT')];
+              device.pages = [...device.pages, grid.device.createPage(device.id, 'GRID_REPORT', i+1)];
             }
           }
         })
@@ -365,6 +371,7 @@ function create_runtime () {
 
       this.sendToGrid = function(){
         _unsaved_changes.update(n => n + 1);
+        console.log(code);
         instructions.sendConfigToGrid({lua: code, li: li});
         return this;
       };

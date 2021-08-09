@@ -683,7 +683,7 @@ const grid = {
 
   device: {
   
-    createPage: function(moduleType, pageStatus = 'INIT'){
+    createPage: function(moduleType, pageStatus = 'INIT', pageNumber = 0){
 
         moduleType = moduleType.substr(0,4);
       
@@ -706,12 +706,13 @@ const grid = {
                   cfgStatus: "NULL"
                 })
               }
-              control_elements[i] = {events: events, controlElementType: moduleElements[moduleType][i]};
+              control_elements[i] = {events: events, controlElementNumber: i, controlElementType: moduleElements[moduleType][i]};
             }
           }
-        
 
-          return {status, control_elements};
+          control_elements = control_elements.filter(x => x); // filter null or invalid items!
+
+          return {status, pageNumber: pageNumber, control_elements};
           
         } catch (error) {
           

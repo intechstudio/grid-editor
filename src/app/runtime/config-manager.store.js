@@ -24,7 +24,6 @@ export function configManagement() {
   const drag_and_drop = function(){
 
       this.add = async ({configs, index, newConfig}) => {
-        console.log('ADD config', configs);
         return await _utils.gridLuaToEditorLua(newConfig).then(res => {
           console.log(configs);
           configs.splice(index, 0, ...res);  
@@ -114,10 +113,10 @@ export function configManagement() {
     };
 
     this.remove = function() {
-      const configs = get_configs();
+      const configs = [...get_configs()];
       const selection = get(appMultiSelect).selection;
-      const filtered = configs.filter((city,index) => selection[index] !== true);
-      runtime.update.one().status('EDITOR_EXECUTE').config({lua: filtered.join('')}).sendToGrid().trigger();
+      const filtered = configs.filter((x, index) => selection[index] !== true);
+      runtime.update.one().status('EDITOR_EXECUTE').config({lua: configs.join('')}).sendToGrid().trigger();
     };
   }
 

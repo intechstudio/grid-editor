@@ -109,7 +109,6 @@ const instructions = {
       }
     }
 
-
     if(grid.properties.CONFIG_LENGTH <= parameters[7]['ACTIONSTRING'].length){
       logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${parameters[7]['ACTIONSTRING'].length} characters`})
       return;

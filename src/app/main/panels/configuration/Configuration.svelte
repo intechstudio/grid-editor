@@ -60,11 +60,13 @@
     }
 
     // set UI to uiEvents, if its not system events
-    if(elements.selected !== 16){
+    if(elements.selected !== 255){
       $appSettings.configType = 'uiEvents';
     }
 
   });
+
+  $: console.log($appSettings.configType)
 
 
   onMount(()=>{
