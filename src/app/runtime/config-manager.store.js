@@ -1,15 +1,15 @@
 import { writable, get, derived } from 'svelte/store';
 
-import {runtime, appMultiSelect, appActionClipboard} from './runtime.store';
+import {runtime, appMultiSelect, appActionClipboard, debug_store} from './runtime.store';
 
 import _utils from './_utils.js';
 
 
 function get_configs () {
   let configs = '';
-  const unsubscribe = runtime.active_config(data => {
-    configs = _utils.rawLuaToConfigList(data.config);
+  const unsubscribe = debug_store.subscribe(data => {
     let arr = [];
+    configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i+=2) {
       arr.push(`${configs[i]}${configs[i+1]}`.trim())
     }
@@ -113,10 +113,26 @@ export function configManagement() {
     };
 
     this.remove = function() {
-      const configs = [...get_configs()];
+
       const selection = get(appMultiSelect).selection;
-      const filtered = configs.filter((x, index) => selection[index] !== true);
-      runtime.update.one().status('EDITOR_EXECUTE').config({lua: configs.join('')}).sendToGrid().trigger();
+
+      if(selection.length){
+
+        const configs = [...get_configs()];
+
+        let filtered = [];
+
+        for (let i = 0; i < configs.length; i++) {
+          if(selection[i] !== true){
+            filtered.push(configs[i]);
+          } else {
+            // dont return
+          }
+        }
+
+        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + filtered.join('') + ' ?>'}).sendToGrid().trigger();
+      }
+
     };
   }
 

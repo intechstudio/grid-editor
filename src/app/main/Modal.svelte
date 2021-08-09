@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { runtime } from "../runtime/runtime.store";
+  import { debug_store, runtime } from "../runtime/runtime.store";
   import BtnAndPopUp from "./user-interface/BtnAndPopUp.svelte";
   import { appSettings } from "./_stores/app-helper.store";
 
@@ -20,7 +20,7 @@
   }
 
   onMount(()=>{
-    runtime.active_config((data) => {
+    debug_store.subscribe((data) => {
       config = (data.config !== undefined) ?  `${data.config}` : '<?lua ?>';
     });
   })
