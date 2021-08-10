@@ -23,7 +23,7 @@ function createMessageStream(){
     if(get(engine) == 'ENABLED'){
       if(DATA.EVENT){
         if(get(appSettings).changeOnContact){
-          user_input.grid_process_incoming({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+          user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
         }
       }
 

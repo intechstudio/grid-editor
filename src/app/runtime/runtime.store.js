@@ -90,7 +90,18 @@ function create_user_input () {
     })
   }
 
-  function grid_process_incoming({brc, event}){
+  function getIdFromRuntimeByBrc(brc){
+    try {
+      const rt = get(runtime);
+      const moduleByBrc = rt.find(x => x.dx == brc.SX && x.dy == brc.SY);
+      return moduleByBrc.id.substr(0,4);
+    } catch (error) {
+      console.error('Sorry, module ID is not extracted!')
+      return "undefined";
+    }
+  }
+
+  function process_incoming_from_grid({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
       if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE) {
@@ -98,9 +109,10 @@ function create_user_input () {
           store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
           store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
           store.brc.rot = brc.ROT;
+          store.id = getIdFromRuntimeByBrc(brc);
           if(event.ELEMENTNUMBER !== 255){
             store.event.eventtype = event.EVENTTYPE;
-            store.event.elementnumber = event.ELEMENTNUMBER;
+            store.event.elementnumber = event.ELEMENTNUMBER;       
           }      
           return store;
         });
@@ -112,9 +124,15 @@ function create_user_input () {
 
     this.pagenumber = function(value){
       const store = get(_event);
+
       // only update pagenumber if it differs from the runtime pagenumber
       if(store.event.pagenumber !== value){ 
+
         _event.update(s => {s.event.pagenumber = value; return s});
+
+        // clean up the writebuffer if pagenumber changes!
+        writeBuffer.clean_up.all();
+
       }
 
       return this;
@@ -152,7 +170,7 @@ function create_user_input () {
     ..._event,
     subscribe: _event.subscribe,
     update: _event.update,
-    grid_process_incoming: grid_process_incoming,
+    process_incoming_from_grid: process_incoming_from_grid,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     update_pagenumber: new _update(),
@@ -220,10 +238,6 @@ function create_runtime () {
 
         const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
 
-        console.log(elementIndex, ui.event.elementnumber);
-
-        //console.log(elementNumbers)
-
         events = elementNumbers[elementIndex].events;
 
         // don't let selection of event, which is not on that control element
@@ -269,7 +283,6 @@ function create_runtime () {
         // device not found, add it to runtime and get page count from grid
         if(!online){
           _runtime.push(controller);
-          console.log(controller);
           instructions.fetchPageCountFromGrid({brc: controller});
         }
         return _runtime;
@@ -326,6 +339,9 @@ function create_runtime () {
           operation.sendToGrid();
         });
       });
+
+      const checkrT = runtime.subscribe(val => console.log(val));
+      checkrT();
 
     };
 

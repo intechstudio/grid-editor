@@ -34,7 +34,7 @@ export const appSettings = writable({
   layoutMode: false,
   configType: 'uiEvents',
   rightPanel: 'Configuration',
-  leftPanel: 'Debug',
+  leftPanel: 'Profiles',
   preferences: false,
   modal: '',
   os: checkOS()

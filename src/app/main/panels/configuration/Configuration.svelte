@@ -16,6 +16,7 @@
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
   import _utils from '../../../runtime/_utils.js';
+
   import { onMount } from 'svelte';
 
   const grid_raw_actions = `
@@ -45,6 +46,7 @@
   }
 
   runtime.active_config(active => {
+
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       dropStore.update(res);
@@ -63,10 +65,7 @@
     if(elements.selected !== 255){
       $appSettings.configType = 'uiEvents';
     }
-
   });
-
-  $: console.log($appSettings.configType)
 
 
   onMount(()=>{

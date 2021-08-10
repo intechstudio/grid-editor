@@ -77,7 +77,7 @@
 
     <FirmwareCheck/>
 
-    <div class="flex w-full h-full">
+    <div class="flex w-full h-full overflow-hidden">
 
       <LeftPanelContainer classes={"w-3/12"}/>
       
