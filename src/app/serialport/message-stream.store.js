@@ -22,7 +22,8 @@ function createMessageStream(){
     // enable user input from grid only if engine is enabled
     if(get(engine) == 'ENABLED'){
       if(DATA.EVENT){
-        if(get(appSettings).changeOnContact){
+        // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
+        if(get(appSettings).changeOnContact && DATA.EVENT.EVENTTYPE != 6){
           user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
         }
       }

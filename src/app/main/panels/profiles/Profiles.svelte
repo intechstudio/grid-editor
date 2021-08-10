@@ -22,13 +22,13 @@
   let selected = {
     name: '',
     description: '',
-    type: 'Select a profile...'
+    type: ''
   };
 
   let newProfile = {
     name: '',
     description: '',
-    type: 'Select control element...'
+    type: ''
   };
 
   let selectedIndex = undefined;
@@ -133,6 +133,7 @@
     fs.writeFile(`${path}/${name}.json`, JSON.stringify(profile, null, 4), function (err) { 
         if (err) throw err; 
         console.log('Saved!'); 
+        logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
         loadFilesFromDirectory(PROFILE_PATH);
     }); 
   }
@@ -159,8 +160,7 @@
                 // Creating and Writing to the sample.txt file 
                 fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
                     if (err) throw err; 
-                    console.log('Saved!'); 
-                    profile.
+                    console.log('Saved!');                
                     loadFilesFromDirectory(PROFILE_PATH);
                 }); 
             } 
@@ -276,6 +276,23 @@
     if(PROFILE_PATH) loadFilesFromDirectory(PROFILE_PATH);
   })
 
+  function checkIfOk(profile){
+
+    let ok = true;
+
+    if(profile.name == ''){
+      ok = false;
+    }
+
+    if(profile.type == ''){
+      ok = false;
+    }
+
+    console.log(profile, ok)
+
+    return ok;
+  }
+
 </script>
 
 <profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
@@ -311,16 +328,19 @@
         <div class="text-sm text-gray-500 pb-1">Module Type</div>
         <input 
           bind:value={newProfile.type}
+          placeholder="Select control element..."
           type="text" 
           class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
       </div>
 
-      <button on:click={prepareSave} disabled={newProfile.name.length == 0 ? true : false} class="{newProfile.name.length <= 0 ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit  border-none focus:outline-none">Save</button>
+      <button on:click={prepareSave} disabled={!checkIfOk(newProfile)} class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit  border-none focus:outline-none">Save</button>
 
     </div>
 
 
     <div in:fade={{delay:200}} class="primary rounded-lg bg-opacity-25 bg-secondary px-4 py-2 h-full mt-4 flex flex-col justify-start items-start overflow-hidden">
+
+      <div class="pt-2 text-white">Load Profile</div>
 
       <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
   
@@ -359,6 +379,7 @@
         <div class="flex flex-col w-full py-2">
           <input 
             bind:value={selected.type}
+            placeholder="Select a profile first"
             type="text" 
             class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
         </div>

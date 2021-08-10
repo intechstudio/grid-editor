@@ -591,6 +591,7 @@ const grid = {
 
           if(obj.class == "MIDI"){
             DATA.MIDI = decode_by_code(array, obj.class);
+            DATA.MIDI.INSTR = obj.instr;
           }
 
           if(obj.class == "PAGESTORE"){

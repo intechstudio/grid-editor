@@ -340,9 +340,6 @@ function create_runtime () {
         });
       });
 
-      const checkrT = runtime.subscribe(val => console.log(val));
-      checkrT();
-
     };
 
     this.one = function(){
@@ -448,11 +445,11 @@ function create_runtime () {
         //responseRequired: true,
         commandCb: function(){
           writeBuffer.messages.set('ready to save');                
-          logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Ready to save!`});
+          logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
           engine.set('ENABLED');
         }
       });
-      
+     
       return this;
     }
 

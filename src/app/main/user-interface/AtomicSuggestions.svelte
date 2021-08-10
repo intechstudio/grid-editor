@@ -9,9 +9,11 @@
   function sendData(value, index){
     dispatch('select', {
       value: value, 
-      index, index
+      index: index
     })
   }
+
+  $: console.log(suggestions);
 
 </script>
 

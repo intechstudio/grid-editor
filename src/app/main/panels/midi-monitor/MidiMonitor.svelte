@@ -24,7 +24,7 @@ import { onMount } from "svelte";
   <div class="flex flex-col">
 
   {#each midiArray as midi}
-    <div>[{midi.sx},{midi.sy}] {midi.CHANNEL} {midi.COMMAND} {midi.PARAM1} {midi.PARAM2}</div>
+    <div class="{midi.INSTR == 'REPORT' ? 'text-blue-400' : 'text-green-400'}">[{midi.sx},{midi.sy}] {midi.CHANNEL} {midi.COMMAND} {midi.PARAM1} {midi.PARAM2}</div>
   {/each}
 
 </div>
