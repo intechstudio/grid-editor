@@ -104,6 +104,9 @@ export const lua_completion = lua_language.data.of({
     {label: "limit()", type: "function"},
 
     {label: "print()", type: "function"},
+
+    {label: "self:timer_start()", type: "function"},
+    {label: "self:timer_stop()", type: "function"}
     
   ])
 })

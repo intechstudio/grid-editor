@@ -47,7 +47,7 @@ statement[@isGroup=Statement] {
 GridGlobal {
   global
 }
-global { @specialize<identifier , "midi_send" | "keyboard_send" | "random" | "hardware_configuration" | "version_major" | "version_minor" | "version_patch" | "module_position_x" | "module_position_y" | "module_rotation" | "page_next" | "page_previous" | "page_current" | "page_load" | "lookup" | "limit" | "print" | "led_default_red" | "led_default_green" | "led_default_blue" | "led_value" | "led_timeout" | "led_color_min" | "led_color_mid" | "led_color_max" | "led_color" | "led_animation_rate" | "led_animation_type" | "led_animation_phase_rate_type"> FuncBody }
+global { @specialize<identifier , "midi_send" | "keyboard_send" | "random" | "hardware_configuration" | "version_major" | "version_minor" | "version_patch" | "module_position_x" | "module_position_y" | "module_rotation" | "page_next" | "page_previous" | "page_current" | "page_load" | "lookup" | "limit" | "print" | "led_default_red" | "led_default_green" | "led_default_blue" | "led_value" | "led_timeout" | "led_color_min" | "led_color_mid" | "led_color_max" | "led_color" | "led_animation_rate" | "led_animation_type" | "led_animation_phase_rate_type" | "timer_start" | "timer_stop" > FuncBody }
 
 Element {
   element 

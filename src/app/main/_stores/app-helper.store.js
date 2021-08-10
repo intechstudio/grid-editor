@@ -1,6 +1,5 @@
 import { writable, get, derived } from 'svelte/store';
 import grid from '../../protocol/grid-protocol';
-import { appMultiSelect } from '../../runtime/runtime.store';
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {

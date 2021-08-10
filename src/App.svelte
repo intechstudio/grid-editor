@@ -85,7 +85,7 @@
       <GridLayout classes={"w-5/12"}/>
 
       <!-- The right side panel container -->
-      <RightPanelContainer classes={"w-6/12"}/>
+      <RightPanelContainer classes={"w-7/12"}/>
 
     </div>
   </div>
