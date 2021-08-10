@@ -101,8 +101,6 @@
       
       writeBuffer.messages.subscribe((value) => {
 
-        console.log('value', value);
-
         if(value == 'ready to save'){
 
           const configs = get(runtime);
@@ -120,20 +118,27 @@
           }
 
           configs.forEach(d => {
+
             if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
 
-              profile.configs = d.pages[_user_input.event.pagenumber].control_elements.map(cfg => {
-                return cfg.events.map(ev => {
+              const page = d.pages.find(x => x.pageNumber == _user_input.event.pagenumber);
+
+              profile.configs = page.control_elements.map(cfg => {
                   return {
-                    event: ev.event.value,
-                    config: ev.config
+                    controlElementNumber: cfg.controlElementNumber,
+                    events: cfg.events.map(ev => {
+                      return {
+                        event: ev.event.value,
+                        config: ev.config
+                      }
+                    })
                   }
-                })
               });
 
               profile.meta.type = d.id;
 
             }
+
           })    
 
           saveProfile(profileName, profile);

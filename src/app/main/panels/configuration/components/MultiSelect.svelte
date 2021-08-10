@@ -17,7 +17,6 @@
 <app-action-multi-select class="flex items-end justify-end  flex-wrap">
   <!-- When any of the array elements is true -->  
 
-
   {#if $appMultiSelect.enabled}
   <BtnAndPopUp on:clicked={()=>{configManagement().on_click.remove(); appMultiSelect.reset();}} btnStyle={"bg-red-500 hover:bg-red-600 mr-2 rounded-full"} popStyle={'bg-red-500 '}> 
     <span slot="popup">Removed!</span>

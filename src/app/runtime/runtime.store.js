@@ -220,6 +220,10 @@ function create_runtime () {
 
         const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
 
+        console.log(elementIndex, ui.event.elementnumber);
+
+        //console.log(elementNumbers)
+
         events = elementNumbers[elementIndex].events;
 
         // don't let selection of event, which is not on that control element
@@ -313,15 +317,15 @@ function create_runtime () {
 
       const li = get(user_input);
 
-      array.forEach((element,index) => {
-        element.forEach((ev)=>{
+      array.forEach((element) => {
+        element.events.forEach((ev)=>{
           const operation = new _update();
           operation.status('EDITOR_PROFILE_LOAD');
-          operation.event({ELEMENTNUMBER: index, EVENTTYPE: ev.event, PAGENUMBER: li.event.pagenumber});
+          operation.event({ELEMENTNUMBER: element.controlElementNumber, EVENTTYPE: ev.event, PAGENUMBER: li.event.pagenumber});
           operation.config({lua: ev.config});
           operation.sendToGrid();
-        })
-      })
+        });
+      });
 
     };
 
@@ -415,8 +419,8 @@ function create_runtime () {
       events.options.forEach(event => {
         elements.options.forEach(elementnumber => {
           array.push({event: event.value, elementnumber});
-        })
-      })
+        });
+      });
 
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
@@ -497,11 +501,11 @@ function create_runtime () {
       }, 
       elements: {
         selected: selectedNumber,
-        options: elementNumbers.map((n,i) => i)
+        options: elementNumbers.map((n) => n.controlElementNumber)
       },
       pages: {
         selected: ui.event.pagenumber,
-        options: pages.map((n,i) => i)
+        options: pages.map((n) => n.pageNumber)
       }
     }
   })
