@@ -618,11 +618,10 @@ function createLocalDefinitions(){
       let arr = [];
 
       configs.forEach((c) => {
-        if(c.short == 'l'){
+        if(c.short == 'l' && c.script !== ''){
           let _variable_array = c.script.split('=')[0];
           _variable_array = _variable_array.split('local')[1];
           _variable_array = _variable_array.split(',');
-
           _variable_array.forEach((val,i) => {
             arr.push({info: `local - ${val.trim()}`, value:  val.trim()});
           });

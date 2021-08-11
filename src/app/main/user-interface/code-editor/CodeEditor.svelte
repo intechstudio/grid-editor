@@ -137,6 +137,7 @@
           dispatch('output', {short: 'cb', script: ` ${code.replace(/\n/g, " ")}`});
           
         }
+        
       }),
       //linter(luaLint()),
       oneDarkTheme,

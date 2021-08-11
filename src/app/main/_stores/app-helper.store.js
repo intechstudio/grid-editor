@@ -32,7 +32,7 @@ export const appSettings = writable({
   changeOnContact: true,
   layoutMode: false,
   configType: 'uiEvents',
-  rightPanel: 'Preferences',
+  rightPanel: 'Configuration',
   leftPanel: 'Profiles',
   preferences: false,
   modal: '',

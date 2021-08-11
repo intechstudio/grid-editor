@@ -10,7 +10,8 @@
 
 <script>
 
-  import { createEventDispatcher, onDestroy } from 'svelte';
+  import { createEventDispatcher, onDestroy, onMount } from 'svelte';
+  import { fly } from 'svelte/transition';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
   import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
   import { luaParser } from '../runtime/_utils';
@@ -35,6 +36,11 @@
 
   let scriptSegments = [{variable: '', value: ''}]; 
 
+  let codeEditorContent = '';
+  let committedCode = '';
+  let parenthesisError = 0;
+  let commitState = 1;
+
   // config.script cannot be undefined
   $: if(config.script /* && !loaded*/){
     // this works differently from normal _utils...
@@ -50,7 +56,15 @@
 
   function saveChangesOnInput(e, i, k){
     scriptSegments[i][k] = e;
-    sendData();
+
+    codeEditorContent = localArrayToScript(scriptSegments);
+
+    if(parenthesis(codeEditorContent)){
+      parenthesisError = 0;
+    } else {
+      parenthesisError = 1;
+    }
+
   }
 
   function humanizeLocals(segments){
@@ -62,11 +76,21 @@
 
   function sendData(){
 
-    let script = localArrayToScript(scriptSegments);
+    let outputCode = codeEditorContent;
 
-    if(parenthesis(script)){
-      script = stringManipulation.shortify(script);
-      dispatch('output', {short: 'l', script: script})
+    if(parenthesis(outputCode)){
+      committedCode = outputCode;
+      outputCode = stringManipulation.shortify(outputCode);
+      dispatch('output', {short: 'l', script: outputCode});
+      commitState = 0;
+    }
+  }
+
+  $: {
+    if(codeEditorContent.trim() == committedCode.trim()){
+      commitState = 0;
+    } else {
+      commitState = 1;
     }
   }
 
@@ -116,18 +140,37 @@
 
   function addLocalVariable(){
     scriptSegments = [...scriptSegments, {variable: '', value: ''}];
+    codeEditorContent = localArrayToScript(scriptSegments);
   }
 
   function removeLocalVariable(i){
     scriptSegments.splice(i,1);
     scriptSegments = [...scriptSegments];
+    codeEditorContent = localArrayToScript(scriptSegments);
     sendData();
   }
+
+  onMount(()=>{
+
+    /**
+     * To do: implement default code check, to see if we return to the starting point, just like in codeblock
+    */
+
+  })
 
 </script>
 
 {#if !advanced}
 <config-local-definitions class="flex flex-col w-full p-2">
+
+  <div class="flex justify-between items-center my-2 px-2">
+    {#key commitState}
+      <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+    {/key}
+    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
+    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+  </div>
+
   <div class="w-full flex flex-col p-2">
     {#each scriptSegments as script, i (i)}
       <div class="w-full flex local-defs py-2">
@@ -176,6 +219,13 @@
 </config-local-definitions>
 {:else}
 <advanced-local-definitions>
+  <div class="flex justify-between items-center my-2 font-roboto">
+    {#key commitState}
+      <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+    {/key}
+    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
+    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+  </div>
   {#each scriptSegments as script, i}
     <segment class="w-full block local-defs py-2">
       <div class="w-full flex items-start">

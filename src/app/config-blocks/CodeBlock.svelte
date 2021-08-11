@@ -20,7 +20,9 @@
 
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
-  import {createEventDispatcher} from 'svelte';
+  import {createEventDispatcher, onMount} from 'svelte';
+
+  import {fly} from 'svelte/transition';
 
   import { parenthesis } from './_validators';
   import stringManipulation from '../main/user-interface/_string-operations';
@@ -31,22 +33,67 @@
   export let advanced;
   export let advancedClickAddon;
 
+  let codeEditorContent = '';
+  let committedCode = '';
+  let parenthesisError = 0;
+
+  let commitState = 1;
+
   const dispatch = createEventDispatcher();
 
-  function sendData(e){
-    if(parenthesis(e)){
-      e = stringManipulation.shortify(e);
-      dispatch('output', {short: 'cb', script: e})
+  function stringFromCodeEditor(code){
+    codeEditorContent = code;
+    if(parenthesis(codeEditorContent)){
+      parenthesisError = 0;
+    } else {
+      parenthesisError = 1;
     }
   }
+
+  function sendData(){
+    let outputCode = codeEditorContent;
+    if(parenthesis(outputCode)){
+      committedCode = outputCode;
+      outputCode = stringManipulation.shortify(outputCode);
+      dispatch('output', {short: 'cb', script: outputCode});
+      commitState = 0;
+    }
+  }
+
+  $: {
+    if(codeEditorContent.trim() == committedCode.trim()){
+      commitState = 0;
+    } else {
+      commitState = 1;
+    }
+  }
+
+  onMount(()=>{
+    committedCode = stringManipulation.humanize(config.script)
+    codeEditorContent = committedCode;
+  })
 
 </script>
 
 
 {#if !advanced}
-<code-block class="w-full flex p-4">
-  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{sendData(e.detail.script)}}/>
+<code-block class="w-full flex flex-col p-4">
+  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+  <div class="flex justify-between items-center mt-2">
+    {#key commitState}
+      <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+    {/key}
+    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
+    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+  </div>
 </code-block>
 {:else}
-  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{sendData(e.detail.script)}}/>
+<div class="flex justify-between items-center mb-2 font-roboto">
+  {#key commitState}
+    <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+  {/key}
+  {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
+  <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+  </div>
+  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
 {/if}
