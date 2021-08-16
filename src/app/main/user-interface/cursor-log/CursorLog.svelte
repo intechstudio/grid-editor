@@ -8,26 +8,33 @@
   let logs = [];
   let popup = false;
 
-  let newMsg = undefined;
-
-  let logCleanUp = undefined;
-
+  let [logClear, popupWindow] = [undefined, undefined];
   
 
   onMount(()=>{
    
     logger.subscribe((log)=>{
       if(log.message != ''){
+
         popup = true;
+
         if(logs.map(l => l.classname).includes('pagechange') && log.classname == 'strict'){
           logs = [];
         }
+
+        clearInterval(logClear);
+        clearInterval(popupWindow);
+
         logs = [...logs, log];
-        clearInterval(newMsg);
-        newMsg = setTimeout(()=>{
-          logs = [];
+
+        popupWindow = setTimeout(()=>{
           popup = false;
+        }, 3250);
+             
+        logClear = setTimeout(()=>{
+          logs = [];
         }, 3000);
+
       }
     });
 
@@ -38,38 +45,14 @@
     logs = logs;
   }
 
-  let devices = {
-    number: 0,
-    progress: 0,
-    disabled: 0,
-    enabled: 0
-  }
+  let engine_state = 0;
+  
+  engine.subscribe(_engine_state => {
 
-  /**
-  engine.subscribe(_devices => {
+    engine_state = _engine_state;
 
-    devices.number = _devices.length;
-    devices.disabled = 0;
-    devices.progress = 0;
-    devices.enabled = 0;
-
-    _devices.forEach(d => {
-
-      if(d.state == 'ENABLED'){
-        devices.enabled += 1;
-      }
-
-      if(d.state == 'DISABLED'){
-        devices.disabled += 1;
-      }
-      
-      if(d.state == 'PROGRESS'){
-        devices.progress += 1;
-      }
-
-    })
   })
-  */
+
 
   export function cursorLog(node, {popup}){
 
@@ -82,22 +65,28 @@
 
     function moveCursor(){
 
-      let left = 0;
+      let [TOP, LEFT] = [0, 0];
 
       const rect = node.getBoundingClientRect();
 
-      if(width - (mouseX + rect.width) < 30){
-        left = mouseX - 40;
+      let [placeleft_X, placeleft_Y] = [ width - mouseX, height - mouseY ]; // the place left before going out of frame
+
+      if((placeleft_X - rect.width) < 0 ){
+        
+        LEFT = mouseX + (placeleft_X - rect.width);
       } else {
-        left = mouseX;
+        LEFT = mouseX;
       }
 
-      if(height - (mouseY + rect.height) < 0){
-        return
+
+      if((placeleft_Y - rect.height) < 0){
+        TOP = mouseY + (placeleft_Y - rect.height - 30);
+      } else {
+        TOP = mouseY;
       }
 
-      div.style.left = left - (rect.width / 2) + 'px';
-      div.style.top = mouseY + 5 + 'px';
+      div.style.left = LEFT + 'px';
+      div.style.top = TOP + 'px';
 
     }
 
@@ -130,25 +119,23 @@
   {#if popup}
     <div 
       transition:fade={{duration: 200}} 
-      class:border-green-600={logs[logs.length-1].type == 'success'}
-      class:border-yellow-600={logs[logs.length-1].type == 'alert'}
-      class:border-red-600={logs[logs.length-1].type == 'fail'}
-      class:border-blue-600={logs[logs.length-1].type == 'progress'}
+      class:border-primary={logs.length == 0}
+      class:border-green-600={logs[logs.length-1]?.type == 'success'}
+      class:border-yellow-600={logs[logs.length-1]?.type == 'alert'}
+      class:border-red-600={logs[logs.length-1]?.type == 'fail'}
+      class:border-blue-600={logs[logs.length-1]?.type == 'progress'}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
 
-      <!--
-      {#if !logs.map(l => l.classname).includes('pagechange')}
-        <div class="py-2 mb-2 border-b border-gray-500">
-          {#if devices.enabled !== devices.number}
-            {devices.enabled}/{devices.number} {devices.number > 1 ? 'controllers are' : 'controller is'} calculating...
-          {:else}
-            {devices.number}/{devices.enabled} {devices.number > 1 ? 'controllers are' : 'controller is'} ready!
-          {/if}
-        </div>
-      {/if}
--->
-      {#each logs as log}
-        <div in:fly={{x: -10, delay: 200}} out:fly={{x: 10, delay: 200}} class="my-1 flex items-center p-0.5">
+      <div class="py-2 mb-2 border-b border-gray-500">
+        {#if engine_state == 'DISABLED'}
+          <p class="calculating">Grid engine is calculating<span>.</span><span>.</span><span>.</span></p>
+        {:else}
+          Grid engine is enabled!
+        {/if}
+      </div>
+
+      {#each logs as log, i (log.n)}
+        <div in:fly={{x: -10, delay: 200 * i}} out:fly={{x: 10, delay: 200 * i}} class="my-1 flex items-center p-0.5">
           <div class="px-2 py-1 bg-primary rounded mr-2">
             {log.type == 'success' ? '✔️' : log.type == 'alert' ? '⚠️' : log.type == 'progress' ? '⏳' : log.type == 'fail' ? '❌' : null}
           </div>
@@ -159,3 +146,72 @@
     </div>
   {/if}
 </div> 
+
+<style>
+
+    @keyframes blink {
+      /**
+      * At the start of the animation the dot
+      * has an opacity of .2
+      */
+      0% {
+        opacity: .2;
+      }
+      /**
+      * At 20% the dot is fully visible and
+      * then fades out slowly
+      */
+      20% {
+        opacity: 1;
+      }
+      /**
+      * Until it reaches an opacity of .2 and
+      * the animation can start again
+      */
+      100% {
+        opacity: .2;
+      }
+    }
+
+    .calculating span {
+        /**
+        * Use the blink animation, which is defined above
+        */
+        animation-name: blink;
+        /**
+        * The animation should take 1.4 seconds
+        */
+        animation-duration: 1.4s;
+        /**
+        * It will repeat itself forever
+        */
+        animation-iteration-count: infinite;
+        /**
+        * This makes sure that the starting style (opacity: .2)
+        * of the animation is applied before the animation starts.
+        * Otherwise we would see a short flash or would have
+        * to set the default styling of the dots to the same
+        * as the animation. Same applies for the ending styles.
+        */
+        animation-fill-mode: both;
+    }
+
+    .calculating span:nth-child(2) {
+        /**
+        * Starts the animation of the third dot
+        * with a delay of .2s, otherwise all dots
+        * would animate at the same time
+        */
+        animation-delay: .2s;
+    }
+
+    .calculating span:nth-child(3) {
+        /**
+        * Starts the animation of the third dot
+        * with a delay of .4s, otherwise all dots
+        * would animate at the same time
+        */
+        animation-delay: .4s;
+    }
+
+</style>

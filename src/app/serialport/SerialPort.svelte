@@ -6,7 +6,7 @@
 
   import { appSettings } from '../main/_stores/app-helper.store.js';
 
-  import { runtime, user_input, heartbeat } from '../runtime/runtime.store.js';
+  import { runtime, user_input, heartbeat, engine } from '../runtime/runtime.store.js';
 
   import { serialComm } from './serialport.store.js';
 
@@ -169,8 +169,10 @@
       user_input.reset();
       runtime.unsaved.set(0);
       runtime.update.one().trigger();
-
+      // clearup fifo writebuffer
       writeBuffer.clean_up.all();
+      // reset engine to enabled
+      engine.set('ENABLED');
 
       PORT = {path: 0};
     }

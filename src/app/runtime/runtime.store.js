@@ -425,21 +425,27 @@ function create_runtime () {
 
       let li = Object.assign({}, _li);
 
-      const { elements, events } = get(_active_config);
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const controlElements = device.pages[pageIndex].control_elements;
 
       const array = [];
 
-      events.options.forEach(event => {
-        elements.options.forEach(elementnumber => {
-          array.push({event: event.value, elementnumber});
-        });
-      });
+      controlElements.forEach((controlElement) => {
+        controlElement.events.forEach((elem) => {
+          array.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
+        })
+      })
+
 
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
+        console.log(elem);
         fetchOrLoadConfig(rt, li);
       })
+
+      //console.log(array);
 
       writeBuffer.add_last({
         //responseRequired: true,

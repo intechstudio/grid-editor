@@ -4,6 +4,8 @@
 
   import { appSettings, preferenceStore } from '../../_stores/app-helper.store.js';
 
+  import NVMDefrag from '../../NVMDefrag.svelte';
+  import NVMErase from '../../NVMErase.svelte';
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -38,6 +40,11 @@
       <div class="flex py-2 text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.debugMode}>
         <div class="ml-1">Glitch Debug Mode</div>
+      </div>
+
+      <div class="flex flex-col items-start">
+        <NVMDefrag/>
+        <NVMErase/>
       </div>
 
       <button 

@@ -20,6 +20,8 @@
 
   $: selectedEvent = events.selected;
 
+  $: console.log(events, elements)
+
 </script>
 
 <div class="{selectedEvent || 'pointer-events-none'} flex flex-col bg-primary w-full p-4">

@@ -211,7 +211,7 @@
                     events: cfg.events.map(ev => {
                       return {
                         event: ev.event.value,
-                        config: ev.config
+                        config: ev.config || "<?lua ?>"
                       }
                     })
                   }
@@ -287,8 +287,6 @@
     if(profile.type == ''){
       ok = false;
     }
-
-    console.log(profile, ok)
 
     return ok;
   }

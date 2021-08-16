@@ -269,6 +269,35 @@ const instructions = {
 
   },
 
+  sendNVMDefragToGrid: () => {
+
+    let buffer_element = {
+      encodeParameters: [
+        '',
+        'GLOBAL',
+        'NVMDEFRAG',
+        'EXECUTE',
+        ''
+      ],
+      filter: { 
+        'NVMDEFRAG_ACKNOWLEDGE': {
+          'LASTHEADER': null,
+        },
+        className: 'NVMDEFRAG_ACKNOWLEDGE'
+      },
+      failCb: function(){
+        console.log('NVM defrag execute - fail')
+      }, 
+      successCb: function(){
+        console.log('NVM defrag execute - success')
+        //logger.set({type: 'success', mode: 0, classname: 'nvmdefrag', message: `NVM defrag complete!`});
+      }
+    }
+
+    writeBuffer.add_first(buffer_element);
+
+  },
+
   sendPageDiscardToGrid: () => {
 
     writeBuffer.add_first({

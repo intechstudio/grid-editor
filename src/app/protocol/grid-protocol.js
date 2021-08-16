@@ -254,8 +254,6 @@ const grid = {
       }
     }
 
-
-
     return {
       BRC: BRC , 
       LUA: extendLua(LUA),
@@ -276,8 +274,6 @@ const grid = {
       const array = mapObjectsToArray(editor_lua_properties, deepObjects);
       return array;
     }
-
-
 
   }()),
 

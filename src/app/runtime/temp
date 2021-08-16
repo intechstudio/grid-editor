@@ -1,0 +1,11 @@
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const controlElements = device.pages[pageIndex].control_elements;
+
+      const array = [];
+
+      controlElements.forEach((controlElement) => {
+        controlElement.events.forEach((elem) => {
+          array.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
+        })
+      })

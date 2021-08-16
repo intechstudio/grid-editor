@@ -4,7 +4,7 @@
 
   let selectedRightTab = 'Configuration';
 
-  let selectedLeftTab = 'Debug';
+  let selectedLeftTab = 'Profiles';
 
   function changeRightTab(tab){
     selectedRightTab = tab;
