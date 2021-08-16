@@ -70,19 +70,6 @@
     }
   }
 
-
-  $: if(commitState == 1){
-    engine.set('DISABLED');
-  } else {
-    engine.set('ENABLED');
-  }
-
-  function showAlert(){
-    if(commitState == 1){
-      logger.set({type: 'alert', classname: 'code_editor_commit', mode: 0, message: 'Commit your changes first!'})
-    }
-  }
-
   onMount(()=>{
     committedCode = stringManipulation.humanize(config.script)
     codeEditorContent = committedCode;
@@ -92,10 +79,8 @@
 
 
 {#if !advanced}
-<code-block 
-  use:clickOutside={{useCapture: false}}
-  on:click-outside={()=>{showAlert()}}  
-  class="w-full flex flex-col p-4 {commitState ? 'pointer-events-auto' : ''}">
+<code-block   
+  class="w-full flex flex-col p-4">
     <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
     <div class="flex justify-between items-center mt-2">
       {#key commitState}

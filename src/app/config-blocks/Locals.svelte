@@ -97,17 +97,6 @@
     }
   }
 
-  $: if(commitState == 1){
-    engine.set('DISABLED');
-  } else {
-    engine.set('ENABLED');
-  }
-
-  function showAlert(){
-    if(commitState == 1){
-      logger.set({type: 'alert', classname: 'code_editor_commit', mode: 0, message: 'Commit your changes first!'})
-    }
-  }
 
   function localArrayToScript(arr){
     let script = ['local ', arr.map(e => e.variable).join(','), '=', arr.map(e => e.value).join(',')].join('');
@@ -176,10 +165,8 @@
 </script>
 
 {#if !advanced}
-<config-local-definitions  
-  use:clickOutside={{useCapture: false}}
-  on:click-outside={()=>{showAlert()}}   
-  class="flex flex-col w-full p-2 {commitState ? 'pointer-events-auto' : ''}">
+<config-local-definitions   
+  class="flex flex-col w-full p-2 ">
 
   <div class="flex justify-between items-center my-2 px-2">
     {#key commitState}
