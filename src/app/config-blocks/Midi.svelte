@@ -647,7 +647,6 @@
 
   $: if(scriptSegments[1] || $localDefinitions){
     renderSuggestions();
-    console.log('MIDI', suggestions)
     suggestions = suggestions.map(s => [...$localDefinitions, ...s]);
   }
 

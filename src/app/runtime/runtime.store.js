@@ -226,9 +226,8 @@ function create_runtime () {
         pages = device.pages;
         selectedNumber = ui.event.elementnumber;
 
-        const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
-
         try {
+          const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
           elementNumbers = device.pages[pageIndex].control_elements;
         } catch (error) {
           console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
@@ -236,9 +235,14 @@ function create_runtime () {
           instructions.fetchPageCountFromGrid({brc: ui.brc});
         }
 
-        const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
-
-        events = elementNumbers[elementIndex].events;
+        try {
+          const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+          events = elementNumbers[elementIndex].events;
+        } catch (error) {
+          console.error(`Requested events at elementIndex: ${elementIndex0} not available, revert to events at 0 elem!`);
+          events = elementNumbers[0].events;
+        }
+        
 
         // don't let selection of event, which is not on that control element
         let f_event = events.find(e => e.event.value == ui.event.eventtype);
@@ -388,7 +392,6 @@ function create_runtime () {
 
       this.sendToGrid = function(){
         _unsaved_changes.update(n => n + 1);
-        console.log(code);
         instructions.sendConfigToGrid({lua: code, li: li});
         return this;
       };
@@ -441,7 +444,6 @@ function create_runtime () {
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        console.log(elem);
         fetchOrLoadConfig(rt, li);
       })
 

@@ -40,7 +40,6 @@ function writeSerialCommand({dx, dy, command}){
   const brc = {dx: dx, dy: dy}
   const data = grid.translate.encode_debugger(brc, command);
   sendDataToClient('output', data);
-  console.log('sdebuuger',data)
   serialComm.write(data);    
 }
 

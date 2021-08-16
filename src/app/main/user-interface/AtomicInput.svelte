@@ -26,7 +26,6 @@
   let focus;
 
   function handleChange(){
-    console.log('inputvalue...', inputValue);
     dispatch('change', inputValue);
   }
 

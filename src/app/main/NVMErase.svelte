@@ -6,8 +6,6 @@
 
   export let classes;
 
-  $: console.log($engine);
-
   function erase() {
     instructions.sendNVMEraseToGrid();
   }

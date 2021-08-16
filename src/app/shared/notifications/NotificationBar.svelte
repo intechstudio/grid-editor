@@ -8,9 +8,7 @@
     console.log('HELLO')
     try {
        notification = await fetch('https://intech.studio/is-api/notifications/public', {method: 'GET'});
-       console.log('notif',notification);
     } catch (err) {
-      console.log('asd')
       console.error(err);
     }
 

@@ -25,7 +25,6 @@ export function configManagement() {
 
       this.add = async ({configs, index, newConfig}) => {
         return await _utils.gridLuaToEditorLua(newConfig).then(res => {
-          console.log(configs);
           configs.splice(index, 0, ...res);  
           return configs;    
         })

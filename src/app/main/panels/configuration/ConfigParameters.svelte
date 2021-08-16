@@ -14,13 +14,10 @@
   }
 
   function handleSelectElement(element){
-    console.log('change selected element...', element)
     user_input.update_elementnumber(element);
   }
 
   $: selectedEvent = events.selected;
-
-  $: console.log(events, elements)
 
 </script>
 

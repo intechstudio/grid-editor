@@ -268,7 +268,7 @@
 
   function setCaret(e){
     if(e.target.getAttribute('data-caret') !== null){
-      console.log('set caret', +e.target.getAttribute('data-caret'))
+      //console.log('set caret', +e.target.getAttribute('data-caret'))
       keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
       caretKeyBuffer = [];
       // this is the caret pos used to add new keys in the array
@@ -303,7 +303,7 @@
 
     let tempKeyBuffer = Array.from(keyBuffer);
 
-    console.log('manage...', keyBuffer, caretPos, caretKeyBuffer )
+    //console.log('manage...', keyBuffer, caretPos, caretKeyBuffer )
 
     if(caretPos != -1){
       tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer)

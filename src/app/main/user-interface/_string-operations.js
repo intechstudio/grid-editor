@@ -47,7 +47,7 @@ const stringManipulation = {
       //functions: functions
     }
 
-    console.log( this.VALIDATOR)
+    console.log(this.VALIDATOR)
   },
 
   checkFn: function(text){
@@ -147,11 +147,11 @@ const stringManipulation = {
 
     const splitArray = this.splitShortScript(script, 'human');
 
-    console.log('SHORT SPLIT: ', splitArray);
+    //console.log('SHORT SPLIT: ', splitArray);
 
     const shorted = this.splitArrayToString(splitArray, 'short');
 
-    console.log('SHORT: ', shorted);
+    //console.log('SHORT: ', shorted);
 
     return shorted;
 
