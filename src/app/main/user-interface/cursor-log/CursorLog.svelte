@@ -111,6 +111,16 @@
     }
   }
 
+  function setBorderColor(log, msg){
+    let bool = false;
+    if(log){
+      if(log.type == msg){
+        bool = true;
+      }
+    } 
+    return bool;
+  }
+
 </script>
 
 
@@ -120,10 +130,10 @@
     <div 
       transition:fade={{duration: 200}} 
       class:border-primary={logs.length == 0}
-      class:border-green-600={logs[logs.length-1]?.type == 'success'}
-      class:border-yellow-600={logs[logs.length-1]?.type == 'alert'}
-      class:border-red-600={logs[logs.length-1]?.type == 'fail'}
-      class:border-blue-600={logs[logs.length-1]?.type == 'progress'}
+      class:border-green-600={setBorderColor(logs[logs.length-1], 'success')}
+      class:border-yellow-600={setBorderColor(logs[logs.length-1] , 'alert')}
+      class:border-red-600={setBorderColor(logs[logs.length-1], 'fail')}
+      class:border-blue-600={setBorderColor(logs[logs.length-1], 'progress')}
       class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
 
       <div class="py-2 mb-2 border-b border-gray-500">
