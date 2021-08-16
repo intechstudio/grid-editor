@@ -14,6 +14,8 @@
   import { fly } from 'svelte/transition';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
   import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
+  import { clickOutside } from '../main/_actions/click-outside.action';
+  import { engine, logger } from '../runtime/runtime.store';
   import { luaParser } from '../runtime/_utils';
 
   import { parenthesis } from './_validators';
@@ -39,7 +41,8 @@
   let codeEditorContent = '';
   let committedCode = '';
   let parenthesisError = 0;
-  let commitState = 1;
+  
+  export let commitState = 1;
 
   // config.script cannot be undefined
   $: if(config.script /* && !loaded*/){
@@ -91,6 +94,18 @@
       commitState = 0;
     } else {
       commitState = 1;
+    }
+  }
+
+  $: if(commitState == 1){
+    engine.set('DISABLED');
+  } else {
+    engine.set('ENABLED');
+  }
+
+  function showAlert(){
+    if(commitState == 1){
+      logger.set({type: 'alert', classname: 'code_editor_commit', mode: 0, message: 'Commit your changes first!'})
     }
   }
 
@@ -161,7 +176,10 @@
 </script>
 
 {#if !advanced}
-<config-local-definitions class="flex flex-col w-full p-2">
+<config-local-definitions  
+  use:clickOutside={{useCapture: false}}
+  on:click-outside={()=>{showAlert()}}   
+  class="flex flex-col w-full p-2 {commitState ? 'pointer-events-auto' : ''}">
 
   <div class="flex justify-between items-center my-2 px-2">
     {#key commitState}
@@ -218,7 +236,7 @@
 
 </config-local-definitions>
 {:else}
-<advanced-local-definitions>
+<advanced-local-definitions >
   <div class="flex justify-between items-center my-2 font-roboto">
     {#key commitState}
       <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>

@@ -54,8 +54,6 @@
           </div>
         </div>
         
-        <NVMErase classes={'mr-6 w-32'}/>
-
         <PageClear classes={'mx-1 w-24'}/>
 
         <PageStore classes={'ml-1 w-24'}/>        

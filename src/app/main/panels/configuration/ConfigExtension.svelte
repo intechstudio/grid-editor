@@ -7,7 +7,7 @@
   import { onMount, createEventDispatcher } from 'svelte';
 
   import grid from '../../../protocol/grid-protocol.js';
-  import { user_input } from '../../../runtime/runtime.store.js';
+  import { logger, user_input } from '../../../runtime/runtime.store.js';
 
   let advancedClickAddon;
   
@@ -56,6 +56,16 @@
     ready = true;
   });
 
+  let commitState = 1;
+  
+  function closeIfCommitted(){
+    if(!commitState){
+      actionPrefStore.showAdvanced(index)
+    } else {
+      logger.set({type: 'alert', classname: 'code_editor_commit', mode: 0, message: 'Commit your changes first!'})
+    }
+  }
+
 </script>
 
 {#if ready}
@@ -72,12 +82,12 @@
       
       <wrapper 
         use:clickOutside={{useCapture: false}}
-        on:click-outside={()=>{actionPrefStore.showAdvanced(index)}} 
-        class="flex flex-col h-full font-mono">
+        on:click-outside={()=>{closeIfCommitted()}} 
+        class="flex flex-col h-full font-mono pointer-events-auto">
 
         <div class="flex items-center justify-between">
           <div class="font-bold w-auto py-2 mx-2 border-b border-gray-700 text-white">Advanced</div>
-          <div on:click={()=>{actionPrefStore.showAdvanced(index)}} id="close-btn" class="p-1 mx-1 cursor-pointer not-draggable rounded hover:bg-secondary">
+          <div on:click={()=>{closeIfCommitted()}} id="close-btn" class="p-1 mx-1 cursor-pointer not-draggable rounded hover:bg-secondary">
             <svg class="w-5 h-5 p-1 fill-current text-gray-300" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
               <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
@@ -178,7 +188,7 @@
           </advanced-menu>
 
           <advanced-code class="w-9/12 px-4 overflow-y-scroll">
-            <svelte:component slot="config" this={config.component} {config} advanced={true} {advancedClickAddon} {index} on:output/>  
+            <svelte:component slot="config" this={config.component} {config} advanced={true} {advancedClickAddon} {index} bind:commitState on:output/>  
           </advanced-code>
 
         </div>

@@ -26,6 +26,8 @@
 
   import { parenthesis } from './_validators';
   import stringManipulation from '../main/user-interface/_string-operations';
+  import { engine, logger } from '../runtime/runtime.store';
+  import { clickOutside } from '../main/_actions/click-outside.action';
 
   export let config;
   export let index;
@@ -37,7 +39,7 @@
   let committedCode = '';
   let parenthesisError = 0;
 
-  let commitState = 1;
+  export let commitState = 1;
 
   const dispatch = createEventDispatcher();
 
@@ -68,6 +70,19 @@
     }
   }
 
+
+  $: if(commitState == 1){
+    engine.set('DISABLED');
+  } else {
+    engine.set('ENABLED');
+  }
+
+  function showAlert(){
+    if(commitState == 1){
+      logger.set({type: 'alert', classname: 'code_editor_commit', mode: 0, message: 'Commit your changes first!'})
+    }
+  }
+
   onMount(()=>{
     committedCode = stringManipulation.humanize(config.script)
     codeEditorContent = committedCode;
@@ -77,15 +92,18 @@
 
 
 {#if !advanced}
-<code-block class="w-full flex flex-col p-4">
-  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
-  <div class="flex justify-between items-center mt-2">
-    {#key commitState}
-      <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-    {/key}
-    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
-  </div>
+<code-block 
+  use:clickOutside={{useCapture: false}}
+  on:click-outside={()=>{showAlert()}}  
+  class="w-full flex flex-col p-4 {commitState ? 'pointer-events-auto' : ''}">
+    <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+    <div class="flex justify-between items-center mt-2">
+      {#key commitState}
+        <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+      {/key}
+      {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
+      <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+    </div>
 </code-block>
 {:else}
 <div class="flex justify-between items-center mb-2 font-roboto">
