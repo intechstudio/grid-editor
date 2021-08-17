@@ -33,9 +33,6 @@ jobs:
 
       - name: Install dependencies
         run: npm i
-      
-      - name: Test
-        run: npm test
 
       - name: Build
         run: npm run export
