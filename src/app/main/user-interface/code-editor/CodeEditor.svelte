@@ -1,4 +1,7 @@
 <script>  
+
+  import * as luamin from "./luamin.js";
+
   import { onMount, createEventDispatcher } from "svelte";
 
   import { StreamLanguage } from "@codemirror/stream-parser"
@@ -24,6 +27,7 @@
   const dispatch = createEventDispatcher();
 
   export let doc = '';
+  export let isCodeBlock = false;
   export let showCharCount = true;
   export let showLineNumbers = true;
 
@@ -35,6 +39,12 @@
   $: if(advancedClickAddon){
     appendAtCursor();
   }
+
+  let luaminOptions = {
+      RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+      RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+      SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+    }
 
   function appendAtCursor(){
     if($focusedCodeEditor == index && editor != undefined){
@@ -111,8 +121,17 @@
 
   let widgets = [];
 
+  function beautifyLua(raw){
+    if(isCodeBlock){
+      let beauty = luamin.Beautify(raw, luaminOptions);
+      beauty = beauty.trim()
+      return beauty;
+    }
+    return raw;
+  }
+
   const initialState = EditorState.create({
-    doc: doc,
+    doc: beautifyLua(doc),
     extensions: [
       basicSetup({showLineNumbers}),
       wordHover,
@@ -146,12 +165,11 @@
   });
 
   onMount(()=>{
+
     editor = new EditorView({
       state: initialState,
       parent: codeblock
     })
-
-    
 
   })
 

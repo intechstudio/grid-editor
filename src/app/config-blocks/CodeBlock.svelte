@@ -81,7 +81,7 @@
 {#if !advanced}
 <code-block   
   class="w-full flex flex-col p-4">
-    <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+    <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
     <div class="flex justify-between items-center mt-2">
       {#key commitState}
         <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
@@ -98,5 +98,5 @@
   {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
   <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
   </div>
-  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} isCodeBlock={true} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
 {/if}
