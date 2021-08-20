@@ -73,6 +73,9 @@
       "sign": false
     },
     "afterSign": "build/notarize.js",
+    "linux": {
+      "artifactName": "${name}-Setup-${version}-${env.MODE}.${ext}"
+    },
     "win": {
       "publish": [
         {
