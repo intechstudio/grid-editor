@@ -134,7 +134,7 @@
       class:border-yellow-600={setBorderColor(logs[logs.length-1] , 'alert')}
       class:border-red-600={setBorderColor(logs[logs.length-1], 'fail')}
       class:border-blue-600={setBorderColor(logs[logs.length-1], 'progress')}
-      class="flex flex-col w-full rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
+      class="flex flex-col w-72 rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
 
       <div class="py-2 mb-2 border-b border-gray-500">
         {#if engine_state == 'DISABLED'}

@@ -81,7 +81,7 @@
           "repo": "grid-editor"
         }
       ],
-      "artifactName": "${name}-Setup-${version}.${ext}",
+      "artifactName": "${name}-Setup-${version}-${env.MODE}.${ext}",
       "target": [
         "nsis"
       ],
@@ -92,7 +92,7 @@
         "zip",
         "dmg"
       ],
-      "artifactName": "${name}-Setup-${version}.${ext}",
+      "artifactName": "${name}-Setup-${version}-${env.MODE}.${ext}",
       "icon": "build/icon.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
@@ -101,9 +101,11 @@
     }
   },
   "scripts": {
-    "e:builder": "cross-env NODE_ENV=production NOTARIZE=true electron-builder --publish onTagOrDraft",
+    "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
+    "e:builder:nightly": "cross-env NODE_ENV=production NOTARIZE=true MODE=nightly electron-builder --publish onTagOrDraft",
     "e:builder:local": "cross-env NODE_ENV=production electron-builder --publish never",
     "export": "run-s s:build e:builder",
+    "export:nightly": "run-s s:build e:builder:nightly",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "export:local": "run-s s:build e:builder:local",
     "s:build": "cross-env NODE_ENV=production rollup -c",

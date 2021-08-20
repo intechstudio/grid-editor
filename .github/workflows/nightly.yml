@@ -27,13 +27,10 @@ jobs:
       - name: Install dependencies
         run: npm i
         env:
-          # email stuff
-          EMAIL: ${{ secrets.EMAIL }}
-          EMAIL_PASS: ${{secrets.EMAIL_PASS}}
           UA: ${{ secrets.UA }}
       
       - name: Build        
-        run: npm run export
+        run: npm run export:nightly
         if: ${{ always() }}
         env:     
           # gh repo token
