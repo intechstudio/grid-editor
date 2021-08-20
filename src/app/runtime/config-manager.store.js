@@ -41,18 +41,6 @@ export function configManagement() {
 
         function isDropZoneAvailable(drop_target, isMultiDrag){
           return 1;
-          /**
-          if(isMultiDrag){
-            if(drop_target < 0) drop_target += 1; // dont let negative drop target come into play
-            const found = get(dropStore).find(index => index == drop_target);
-            if(found){
-              return 0;
-            }
-            return 1;
-          } else {
-            return 1;
-          }
-           */
         }
 
         if(isDropZoneAvailable(drop_target, isMultiDrag)){
@@ -105,6 +93,13 @@ export function configManagement() {
 
       appActionClipboard.set(clipboard);
     };
+
+    this.paste = function(){
+      if(get(appActionClipboard).length){
+        const configs = [...get_configs(), ...get(appActionClipboard)];
+        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + configs.join('') + ' ?>'}).sendToGrid().trigger();
+      }
+    }
 
     this.cut = function() {
       this.copy();

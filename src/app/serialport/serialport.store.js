@@ -31,10 +31,15 @@ function createSerialComm(){
 
         let port = get(store).open;
         
-        if(typeof args == 'object')
-          port.write([...args, 10]);
-        else
-          port.write(args+'\n');
+        try {
+          if(typeof args == 'object')
+            port.write([...args, 10]);
+          else
+            port.write(args+'\n');
+        } catch (error) {
+          console.error('Serial write error', error)
+        }
+        
       }
       return;
     },

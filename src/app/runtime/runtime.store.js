@@ -7,6 +7,9 @@ import { serialComm } from '../serialport/serialport.store';
 import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
+// The controller which is added to runtime first, load a default config!
+let first_connection = true;
+
 export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
@@ -33,7 +36,7 @@ export const logger = createLogger();
 
 function createMultiSelect(){
 
-  const default_values = {multiselect: false, selection: [], enabled: false, all_selected: false};
+  const default_values = {multiselect: false, selection: [], all_selected: false};
 
   const store = writable(default_values);
 
@@ -44,7 +47,6 @@ function createMultiSelect(){
         s.multiselect = false; 
         s.all_selected = false;
         s.selection = []; 
-        s.enabled = false;
         return s;
       })
     }
@@ -288,6 +290,17 @@ function create_runtime () {
         if(!online){
           _runtime.push(controller);
           instructions.fetchPageCountFromGrid({brc: controller});
+          if(first_connection){
+            user_input.update((ui)=>{
+              ui.id = controller.id;
+              ui.dx = controller.dx;
+              ui.dy = controller.dy;
+              ui.event.elementnumber = 0;
+              ui.event.eventtype = 0;
+              return ui;
+            });
+            first_connection = false;
+          }
         }
         return _runtime;
       });

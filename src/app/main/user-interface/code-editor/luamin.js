@@ -2593,7 +2593,6 @@ function FormatAst(ast) {
     }
 
     formatStat = function(stat) {
-        console.log('STAT', stat);
         if (stat.Type == "StatList") {
             stat.StatementList.forEach((stat, index) => {
                 if (stat === null || stat.Type === null) {
@@ -2938,7 +2937,6 @@ function StripAst(ast) {
             expr.Token_SeperatorList[expr.EntryList.length-1] = null
             stript(expr.Token_CloseBrace)
         } else {
-            console.log('BEFORE UNREACh',expr)
             throw(`unreachable, type: ${expr.Type}:${expr}  ${console.trace()}`)
         }
     }

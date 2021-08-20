@@ -91,34 +91,26 @@
 
 </script>
 
-{#if (componentName == 'Locals' || componentName == 'CodeBlock') && !$appMultiSelect.enabled}
-  <show-advanced id="show-advanced" on:click={(e)=>{e.preventDefault(); actionPrefStore.showAdvanced(index); componentName == 'CodeBlock' ? toggle = false : null; }} class="flex pl-2 group justify-center  items-center bg-transparent">
-    <svg style="padding:0.125rem" class="{$actionPrefStore.advanced.visible && $actionPrefStore.advanced.index == index ? 'bg-select-desaturate-10' : ''} h-6 w-6 pointer-events-none group-hover:bg-select-desaturate-10 group-hover:cursor-pointer rounded-full" viewBox="0 0 8 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M8 4C8 6.20914 6.20914 8 4 8C1.79086 8 0 6.20914 0 4C0 1.79086 1.79086 0 4 0C6.20914 0 8 1.79086 8 4Z" fill="#ffffff"/>
-      <path d="M8 16C8 18.2091 6.20914 20 4 20C1.79086 20 0 18.2091 0 16C0 13.7909 1.79086 12 4 12C6.20914 12 8 13.7909 8 16Z" fill="#ffffff"/>
-      <path d="M8 28C8 30.2091 6.20914 32 4 32C1.79086 32 0 30.2091 0 28C0 25.7909 1.79086 24 4 24C6.20914 24 8 25.7909 8 28Z" fill="#ffffff"/>
-    </svg>
-  </show-advanced>
-{:else if (groupType == "standard" && $appMultiSelect.enabled) && showSelectBox}
-  <select-box class="flex pl-2 group justify-center items-center bg-transparent">
+{#if (groupType == "standard")  && true}
+  <select-box class="flex pl-2 justify-center items-center bg-transparent">
     <div 
-      on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index] /* appMultiSelect.select({config: configs[index], selected: selected})*/}}
-      class="{$appMultiSelect.selection[index]  ? 'bg-pick' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2  border-pick rounded-full text-white text-xs">
+      on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index] }}
+      class="{$appMultiSelect.selection[index]  ? 'bg-pick' : ''} flex items-center justify-center p-2 w-6 h-6 border-2 transition-opacity { !$appMultiSelect.selection[index] ? 'opacity-50 hover:opacity-100' : ''} border-pick rounded-full text-white text-xs cursor-pointer">
         {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
-{:else if (componentName == 'If' && $appMultiSelect.enabled) && showSelectBox}
-  <select-box class="flex pl-2 group justify-center items-center bg-transparent">
+{:else if (componentName == 'If' && true) && showSelectBox}
+  <select-box class="flex pl-2 justify-center items-center bg-transparent">
     <div 
       on:click={()=>{handleMultiSelect()}} 
-      class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 border-pink-500 rounded-full text-white text-xs">
+      class="{$appMultiSelect.selection[index]  ? 'bg-pink-500' : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 transition-opacity { !$appMultiSelect.selection[index] ? 'opacity-50 hover:opacity-100' : ''} border-pink-500 rounded-full text-white text-xs cursor-pointer">
       {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
 {:else }
-  <select-box class="flex pl-2 group justify-center items-center bg-transparent">
-    {#if $appMultiSelect.enabled}
-      <div class="{$appMultiSelect.selection[index]  ? 'bg-select border-2 border-select' : ''}  flex items-center justify-center p-2 w-6 h-6 rounded-full text-white text-xs">
+  <select-box class="flex pl-2 justify-center items-center bg-transparent">
+    {#if true}
+      <div class="{$appMultiSelect.selection[index]  ? 'bg-select border-2 border-select' : ''} transition-opacity flex items-center justify-center p-2 w-6 h-6 rounded-full text-white text-xs cursor-pointer">
         {$appMultiSelect.selection[index] ? '✔' : ''}
       </div>
     {:else}

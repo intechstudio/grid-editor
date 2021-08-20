@@ -183,7 +183,7 @@
         {#if $appActionClipboard.length}
           <button 
             on:click={()=>{paste()}}
-            class="flex items-center justify-center bg-purple-400 hover:bg-purple-500 text-sm mr-8 mb-2 py-0.5 px-4 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500">Paste</button>
+            class="flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-sm mr-8 mb-2 py-0.5 px-4 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500">Paste</button>
         {/if}
 
         <div class="py-1 w-full text-gray-500 text-sm mb-1">Presets</div> 

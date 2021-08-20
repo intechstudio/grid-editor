@@ -102,7 +102,9 @@
     SerialPort.list()
       .then(ports => {
 
-        serialComm.update((store) => { store.list = []; return store;})
+        // collect serial ports with type grid
+
+        serialComm.update((store) => { store.list = []; return store;});
 
         ports.forEach((port, i) => {  
           let isGrid = 0;
@@ -114,22 +116,46 @@
 
           // collect all ports in an array
           serialComm.update((store) => { 
-            store.selected = port.path;     
+            //store.selected = port.path;     
             store.list[i] = {isGrid: isGrid, port: port};
             return store;
           });       
-
-          if(isGrid && $serialComm.open == undefined){
-            selectedPort = port.path;
-            openSerialPort();
-          }
-
         });
 
+        // automatic open
+
+        const gridSerialPorts = get(serialComm).list; // these are already filtered from other than grid ports
+
+        const preferredPort = gridSerialPorts.find(p => p.port.path == $serialComm.preferredPort);
+
+        if($serialComm.open == undefined){
+          if(preferredPort){
+            // open the preferred port
+            closeSerialPort();
+            selectedPort = preferredPort.port.path;
+            openSerialPort();
+          } else if(gridSerialPorts.length) {
+            //open the first grid port found if preferred is not available but there are grid ports
+            selectedPort = gridSerialPorts[0].port.path;
+            openSerialPort(); 
+          } else {
+            // there is no grid serial port
+            closeSerialPort();
+          }     
+        }
+
+        // when changing cables on the fly
+        const isStillAvailable = gridSerialPorts.find(p => p.port.path == selectedPort);
+        if(!isStillAvailable){
+          closeSerialPort();
+        }
+
+        // if no grid found ,kill
         const thereIsGrid = ports.find(p => p.productId == 'ECAD' || p.productId == 'ecad' || p.productId == 'ECAC' || p.productId == 'ecac');
         if(!thereIsGrid){
           closeSerialPort();
         }
+
 
       })
 
@@ -140,11 +166,12 @@
   
   function openSerialPort() {
     const store = $serialComm;
-    // don't let reopen port if it's already opened!
-    if(!store.isEnabled){
-      const serial = store.list.find(serial => serial.port.path === selectedPort);
+    // don't let reopen port if it's already opened and dont let port open if serial array is empty!
+    if(!store.isEnabled && store.list.length > 0){
+      const serial = store.list.find(serial => serial.port.path == selectedPort);
       PORT = new SerialPort(serial.port.path, { autoOpen: false });
       serialComm.open(PORT);
+      serialComm.selected(selectedPort);
       serialComm.enabled(true);
       readSerialPort();
     }
