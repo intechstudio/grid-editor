@@ -239,7 +239,7 @@ function create_runtime () {
           const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
           events = elementNumbers[elementIndex].events;
         } catch (error) {
-          console.error(`Requested events at elementIndex: ${elementIndex0} not available, revert to events at 0 elem!`);
+          console.error(`Requested events at elementIndex: ${elementIndex} not available, revert to events at 0 elem!`);
           events = elementNumbers[0].events;
         }
         

@@ -33,18 +33,29 @@
 
   export let advancedClickAddon;
   export let index;
+  
+  export let beautify = 0;
 
   let dataAtCursor;
+
+  $: beautiyOnCommit(beautify);
+
+  function beautiyOnCommit(b){
+    if(editor != undefined){
+      const code = editor.viewState.state.doc.toString();
+      const beauty = beautifyLua(code);
+      editor.dispatch({
+        changes: {from: 0, to: editor.viewState.state.doc.length, insert: beauty}
+      });
+      dispatch('format-done');
+    }
+  }
 
   $: if(advancedClickAddon){
     appendAtCursor();
   }
 
-  let luaminOptions = {
-      RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-      RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-      SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-    }
+  
 
   function appendAtCursor(){
     if($focusedCodeEditor == index && editor != undefined){
@@ -87,54 +98,27 @@
     return showPanel.of(charCountPanel)
   }
 
-
-  function luaParser(code){
-    ast = parser.parse(code);
-    return 1
-  }
-
-
-  let ast = undefined;
-
-  const wordHover = hoverTooltip((view, pos, side) => {
-    let {from, to, text} = view.state.doc.lineAt(pos)
-    let start = pos, end = pos
-    while (start > from && /[a-zA-Z_]/.test(text[start - from - 1])) start--
-    while (end < to && /[a-zA-Z_]/.test(text[end - from])) end++
-    if (start == pos && side < 0 || end == pos && side > 0)
-      return null
-    return {
-      pos: start,
-      end,
-      above: true,
-      create(view) {
-        let dom = document.createElement("div")
-        dom.textContent = text.slice(start-from, end-from)
-        return {dom}
-      }
-    }
-  })
-
   let codeblock;
 
   let editor;
 
-  let widgets = [];
-
   function beautifyLua(raw){
     if(isCodeBlock){
-      let beauty = luamin.Beautify(raw, luaminOptions);
-      beauty = beauty.trim()
-      return beauty;
+      try {
+        let beauty = luamin.Beautify(raw, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+        beauty = beauty.trim();
+        return beauty;
+      } catch (error) {
+        console.error('Beautify was unsuccessful.', error)
+      }
     }
     return raw;
   }
 
   const initialState = EditorState.create({
-    doc: beautifyLua(doc),
+    doc: doc,
     extensions: [
       basicSetup({showLineNumbers}),
-      wordHover,
       charCounter(),
       lua(),
       EditorView.updateListener.of((v) => {
@@ -152,13 +136,13 @@
 
           // Document changed
           const code = v.state.doc.toString();
+
           // add a whitespace before 'e'
           dispatch('output', {short: 'cb', script: ` ${code.replace(/\n/g, " ")}`});
           
         }
         
       }),
-      //linter(luaLint()),
       oneDarkTheme,
       oneDarkHighlightStyle,
     ],

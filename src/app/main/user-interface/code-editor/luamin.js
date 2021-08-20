@@ -137,7 +137,7 @@ let Symbols = [
     '+', '-', '*', ')', ';',  
     '/', '^', '%', '#',
     ',', '{', '}', ':',
-    '[', ']', '(','.',
+    '[', ']', '(', '.',
 ]
 
 let EqualSymbols = [
@@ -145,7 +145,7 @@ let EqualSymbols = [
 ]
 
 let CompoundSymbols = [
-    '+', '-', '*', '/', '^', '..', '%'
+    '+', '-', '*', '/', '^', '..', '%', '//'
 ]
 
 let Compounds = [
@@ -171,7 +171,7 @@ let UnopSet = [
 ]
 
 let BinopSet = [
-    '+',    '-',     '*',   '/',    '%',    '^',    '#',    //algorithmic
+    '+',    '-',     '*',   '/',    '%',    '^',    '#',  '//',    //algorithmic
     
     '..',   '.',     ':',   //dots / colons
     
@@ -189,6 +189,7 @@ let BinaryPriority = {
     '-': [6, 6],
     '*': [7, 7],
     '/': [7, 7],
+    '//': [7,7],
     '%': [7, 7],
     '^': [10, 9],
     '..': [5, 4],
@@ -532,7 +533,14 @@ function CreateLuaTokenStream(text) {
         } else if(CompoundSymbols.includes(c1) && look() == '=') {
             get()
             token('Symbol')
-        } else if(Symbols.includes(c1)) {
+
+        // magic '//' symbol handling
+        } else if(CompoundSymbols.includes(c1) && look() == '/'){
+            get()
+            token("Symbol")
+        } 
+
+        else if(Symbols.includes(c1)) {
             token("Symbol")
         } else {
             throw(`Bad symbol \`${c1}\` in source. ${p}`)
@@ -2585,6 +2593,7 @@ function FormatAst(ast) {
     }
 
     formatStat = function(stat) {
+        console.log('STAT', stat);
         if (stat.Type == "StatList") {
             stat.StatementList.forEach((stat, index) => {
                 if (stat === null || stat.Type === null) {
@@ -2929,6 +2938,7 @@ function StripAst(ast) {
             expr.Token_SeperatorList[expr.EntryList.length-1] = null
             stript(expr.Token_CloseBrace)
         } else {
+            console.log('BEFORE UNREACh',expr)
             throw(`unreachable, type: ${expr.Type}:${expr}  ${console.trace()}`)
         }
     }

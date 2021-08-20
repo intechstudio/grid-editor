@@ -20,6 +20,8 @@
 
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
+  import * as luamin from "../main/user-interface/code-editor/luamin.js";
+
   import {createEventDispatcher, onMount} from 'svelte';
 
   import {fly} from 'svelte/transition';
@@ -29,9 +31,10 @@
   import { engine, logger } from '../runtime/runtime.store';
   import { clickOutside } from '../main/_actions/click-outside.action';
 
+  const dispatch = createEventDispatcher();
+
   export let config;
   export let index;
-  export let humanScript;
   export let advanced;
   export let advancedClickAddon;
 
@@ -41,7 +44,23 @@
 
   export let commitState = 1;
 
-  const dispatch = createEventDispatcher();
+  let doc = '';
+
+  $: prepareDoc(config.script);
+
+  let luaminOptions = {
+    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+  }
+
+  function prepareDoc(script){
+    let code = '';
+    code = luamin.Beautify(script, luaminOptions);
+    code = stringManipulation.humanize(code);
+    code = luamin.Beautify(code, luaminOptions);
+    doc = code.trim();
+  }
 
   function stringFromCodeEditor(code){
     codeEditorContent = code;
@@ -52,13 +71,25 @@
     }
   }
 
+  let f = 0;
+  function prepareSendData(){
+    f++;
+  }
+
+
   function sendData(){
     let outputCode = codeEditorContent;
     if(parenthesis(outputCode)){
-      committedCode = outputCode;
-      outputCode = stringManipulation.shortify(outputCode);
-      dispatch('output', {short: 'cb', script: outputCode});
-      commitState = 0;
+      try {
+        committedCode = outputCode;
+        outputCode = stringManipulation.shortify(outputCode);
+        outputCode = luamin.Minify(outputCode, luaminOptions)
+        dispatch('output', {short: 'cb', script: outputCode});
+        commitState = 0;
+      } catch (error) {
+        console.error('CodeBlock data dispatch unsuccessful.', JSON.stringify(error));
+      }
+      
     }
   }
 
@@ -81,13 +112,13 @@
 {#if !advanced}
 <code-block   
   class="w-full flex flex-col p-4">
-    <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+    <CodeEditor {doc} beautify={f} on:format-done={sendData} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
     <div class="flex justify-between items-center mt-2">
       {#key commitState}
         <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
       {/key}
       {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-      <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+      <button on:click={prepareSendData} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
     </div>
 </code-block>
 {:else}
@@ -98,5 +129,5 @@
   {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
   <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
   </div>
-  <CodeEditor doc={`${stringManipulation.humanize(config.script)}`} isCodeBlock={true} showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+  <CodeEditor {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
 {/if}
