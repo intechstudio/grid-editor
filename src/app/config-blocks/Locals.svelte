@@ -14,11 +14,10 @@
   import { fly } from 'svelte/transition';
   import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
   import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
-  import { clickOutside } from '../main/_actions/click-outside.action';
-  import { engine, logger } from '../runtime/runtime.store';
-  import { luaParser } from '../runtime/_utils';
 
-  import { parenthesis } from './_validators';
+  import { parenthesis } from './_validators.js';
+
+  import { checkVariableName } from '../validators/local_validator.mjs';
 
   export let config = '';
   export let index;
@@ -41,6 +40,7 @@
   let codeEditorContent = '';
   let committedCode = '';
   let parenthesisError = 0;
+  let variableNameError = 0;
   
   export let commitState = 1;
 
@@ -60,7 +60,18 @@
   function saveChangesOnInput(e, i, k){
     scriptSegments[i][k] = e;
 
-    codeEditorContent = localArrayToScript(scriptSegments);
+    codeEditorContent = localArrayToScript(scriptSegments);    
+
+    let variableNameValidity = [];
+    scriptSegments.forEach(s => {
+      variableNameValidity.push(checkVariableName(s.variable));
+    })
+
+    if(variableNameValidity.includes(false)){
+      variableNameError = 1;
+    } else {
+      variableNameError = 0;
+    };
 
     if(parenthesis(codeEditorContent)){
       parenthesisError = 0;
@@ -80,6 +91,8 @@
   function sendData(){
 
     let outputCode = codeEditorContent;
+
+    console.log('validate...',outputCode);
 
     if(parenthesis(outputCode)){
       committedCode = outputCode;
@@ -169,11 +182,12 @@
   class="flex flex-col w-full p-2 ">
 
   <div class="flex justify-between items-center my-2 px-2">
+    {#if variableNameError} <div class="text-sm text-red-500">Variable name error!</div> {/if}
     {#key commitState}
       <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
     {/key}
-    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}  
+    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError && variableNameError} class="{ commitState && !parenthesisError && !variableNameError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
   </div>
 
   <div class="w-full flex flex-col p-2">
