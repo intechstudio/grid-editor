@@ -25,7 +25,7 @@
 
   <BtnAndPopUp on:clicked={()=>{configManagement().on_click.paste(); appMultiSelect.reset();}} btnStyle={`bg-purple-500 hover:bg-purple-600 mr-2 rounded-full ${$appActionClipboard.length > 0 ? '' : 'opacity-50 pointer-events-none'}`} popStyle={'bg-purple-500 '}> 
     <span slot="popup">Pasted!</span>
-    <span slot="button">Pase</span>
+    <span slot="button">Paste</span>
   </BtnAndPopUp>
 
 
