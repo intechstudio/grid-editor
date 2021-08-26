@@ -23,7 +23,7 @@
 
   function changePreferredPort(path){
 
-    if(path !== 'select your preference...'){
+    if(path !== 'select your preference...' && path !== undefined){
 
       ipcRenderer.send('setStoreValue-message', { preferred_serial_port: path });
 

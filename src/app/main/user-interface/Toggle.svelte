@@ -4,7 +4,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let toggleValue = ''
+  export let toggleValue = false
   
   function handleChange(){
     dispatch('change',{})
@@ -29,8 +29,8 @@
   }
 
   .toggle{
-    height: 26px;
-    width: 42px;
+    height: 22px;
+    width: 36px;
     border-radius: 16px;
     display: inline-block;
     position: relative;
@@ -45,20 +45,25 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 18px;
-    height: 18px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
     background: white;
     box-shadow: 0 1px 2px rgba(44,44,44,.2);
     transition: all .2s cubic-bezier(.5,.1,.75,1.35);
   }
 
+  /**
+  pick: rgb(107, 122, 255)
+  commit: rgb(11, 164, 132)
+  */
+
   .toggle:checked{
-    border-color: #cc5b5b;
+    border-color: rgb(11, 164, 132);
   }
 
   .toggle:checked::after{
-      transform: translatex(16px)
+      transform: translatex(14px)
   }
 
 </style>

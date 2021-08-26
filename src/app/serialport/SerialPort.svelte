@@ -115,9 +115,10 @@
           }
 
           // collect all ports in an array
-          serialComm.update((store) => { 
-            //store.selected = port.path;     
-            store.list[i] = {isGrid: isGrid, port: port};
+          serialComm.update((store) => {   
+            if(isGrid){
+              store.list[i] = {isGrid: isGrid, port: port};
+            }
             return store;
           });       
         });

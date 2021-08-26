@@ -16,6 +16,7 @@
   import {onMount, createEventDispatcher, onDestroy} from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+  import Toggle from '../main/user-interface/Toggle.svelte';
 
 
   import validate from './_validators';
@@ -36,28 +37,48 @@
 
   let scriptSegments = [];
 
+  let beautyMode = 0;
+
+  let beautify = 1;
+
   // config.script cannot be undefined
   $: if(config.script && !loaded){
-    scriptSegments = _utils.scriptToSegments({human: config.human, short: config.short, script: config.script});
+
+    const _segments = _utils.scriptToSegments({human: config.human, short: config.short, script: config.script});
+
+    // handle legacy and new beautify command
+    if(_segments.length == 6){
+      beautify = +_segments[5] == 1 ? 0 : 1; // check on number instead of string!
+      scriptSegments = _segments.slice(0,-1);
+    } else {
+      scriptSegments = _segments;
+      beautify = 1;
+    }
+
     loaded = true;
-  };
+  };  
+
 
   onDestroy(()=>{
     loaded = false;
   })
 
+  
+  function changeBeautify(){
+    beautyMode = beautify ? 0 : 1;
+    sendData();
+  }
+
+
   function sendData(e, index){
-
-    let valid = 0;
-    
-    const validator = new validate.check(e);
-
-    const locals = $localDefinitions.map(l => l.value)
-    
+  
     scriptSegments[index] = e;
-    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
+
+    const _temp_segments = [...scriptSegments, beautyMode]
+
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: _temp_segments}); 
+
     dispatch('output', {short: config.short, script: script})
-    
     
   }
 
@@ -93,6 +114,7 @@
     });
     suggestions = suggestions;
   }
+
 
   onMount(()=>{
     suggestions = _suggestions;
@@ -142,8 +164,12 @@
       sendData(e.detail.value,e.detail.index)
     }}
   />
+  {/if}
 
-{/if}
+  <div class="p-2 flex items-center text-sm text-gray-500">
+    <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />
+    <div class="pl-2">Beautify is {beautify ? 'on' : 'off'}.</div>
+  </div>
 
 </config-led-color>
 
