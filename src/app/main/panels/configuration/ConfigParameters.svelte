@@ -2,6 +2,8 @@
   import { appSettings } from "../../_stores/app-helper.store.js";
 
   import { user_input } from '../../../runtime/runtime.store.js';
+import { configManagement } from "../../../runtime/config-manager.store.js";
+import { writeBuffer } from "../../../runtime/engine.store.js";
 
   export let events;
   export let elements;
@@ -16,6 +18,16 @@
   function handleSelectElement(element){
     user_input.update_elementnumber(element);
   }
+
+  function copyAllEventConfigsFromSelf(){
+    configManagement().element_operations.get_events_actions()
+  }
+
+  function overwriteAllEventConfigs(){
+   configManagement().element_operations.overwrite_events_actions(); 
+  }
+
+  writeBuffer.messages.subscribe(val => {console.log('writebuffer subscr',val)})
 
   $: selectedEvent = events.selected;
 
@@ -41,8 +53,20 @@
 
 
   <div class="pb-2">
-    <div class="text-gray-500 py-1 text-sm">
-      Events
+    <div class="py-2 text-sm flex justify-between items-center">
+      <div class="text-gray-500">Events</div>
+      <div class="flex text-gray-400">
+        <div 
+          class="px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1" 
+          on:click={()=>{copyAllEventConfigsFromSelf()}}>
+            Copy All
+        </div>
+        <div 
+          class="px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
+          on:click={()=>{overwriteAllEventConfigs()}}>
+            Overwrite
+        </div>
+      </div>
     </div>
 
     <div class="flex bg-secondary shadow overflow-x-auto">

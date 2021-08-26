@@ -10,6 +10,7 @@ import _utils from './_utils';
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
 
+export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
@@ -103,6 +104,20 @@ function create_user_input () {
     }
   }
 
+  function getControlElementTypeByElementNumber({brc,event}){
+    try {
+      const rt = get(runtime);
+      const moduleByBrc = rt.find(x => x.dx == brc.SX && x.dy == brc.SY);
+      const pageIndex = moduleByBrc.pages.findIndex(x => x.pageNumber == event.PAGENUMBER);
+      const elementIndex = moduleByBrc.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == event.ELEMENTNUMBER);
+      const element = moduleByBrc.pages[pageIndex].control_elements[elementIndex];
+      return element.controlElementType;
+    } catch (error) {
+      console.error('Sorry, controlElementType is not extracted!')
+      return "undefined";
+    }
+  }
+
   function process_incoming_from_grid({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
@@ -113,6 +128,7 @@ function create_user_input () {
           store.brc.rot = brc.ROT;
           store.id = getIdFromRuntimeByBrc(brc);
           if(event.ELEMENTNUMBER !== 255){
+            store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
             store.event.eventtype = event.EVENTTYPE;
             store.event.elementnumber = event.ELEMENTNUMBER;       
           }      
@@ -343,7 +359,37 @@ function create_runtime () {
 
   const _runtime_update = function() {
 
-    this.batch = function(array){
+    this.control_element = function ({controlElementType, events}){
+
+      const li = get(user_input);
+
+      console.log(li, events, controlElementType); 
+
+      if(li.event.elementtype == controlElementType){
+        events.forEach((ev) => {
+          const operation = new _update();
+          operation.status('EDITOR_OVERWRITE');
+          operation.event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: ev.event.value, PAGENUMBER: li.event.pagenumber});
+          operation.config({lua: ev.config});
+          operation.sendToGrid();
+          operation.trigger()
+        });
+
+        writeBuffer.add_last({
+          commandCb: function(){
+            writeBuffer.messages.set('overwrite done');                
+            logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
+          }
+        });
+
+      } else {
+        logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
+      }
+      
+      
+    };
+
+    this.page = function(array){
 
       const li = get(user_input);
 
@@ -420,15 +466,58 @@ function create_runtime () {
   
   const _runtime_fetch = function() {
 
-    const _li = get(user_input);
+    const _default_li = get(user_input);
 
     this.One = function(device, ui){
       instructions.fetchConfigFromGrid({device: device, inputStore: ui});
       return this;
     }
 
+    // fetches all event configs from a control element
+    this.ControlElement = function (){
+
+      writeBuffer.add_first({
+        commandCb: function(){
+          engine.set('DISABLED');
+          logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
+        }
+      });
+
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+
+      const events = device.pages[pageIndex].control_elements[elementIndex].events;
+      const controlElementType = device.pages[pageIndex].control_elements[elementIndex].controlElementType;
+
+      const array = [];
+
+      events.forEach(e => {
+        array.push({event: e.event.value, elementnumber: device.pages[pageIndex].control_elements[elementIndex].controlElementNumber})
+      })
+
+      array.forEach((elem, ind) => {
+        li.event.eventtype = elem.event;
+        li.event.elementnumber = elem.elementnumber;
+        fetchOrLoadConfig(rt, li);
+      })
+
+      writeBuffer.add_last({
+        commandCb: function(){
+          writeBuffer.messages.set('ready for overwrite');                
+          logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
+          engine.set('ENABLED');
+        }
+      });
+
+      return {events, controlElementType}; // this is a reference for the control elements in question
+    }
+
     // fetches all config from each action and event on current page + utility button
-    this.Many = function(){
+    this.FullPage = function(){
 
       writeBuffer.add_first({
         commandCb: function(){
@@ -439,7 +528,7 @@ function create_runtime () {
 
       const rt = get(runtime);
 
-      let li = Object.assign({}, _li);
+      let li = Object.assign({}, _default_li);
 
       const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
       const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);

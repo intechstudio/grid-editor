@@ -5,9 +5,9 @@ export function select(node, [moduleId, selectedDisplay]){
   function handleMousedown(e) {
     if(e.target.ownerSVGElement){
       
-      const controlNumber = e.target.ownerSVGElement.dataset.controlNumber;
+      const {controlNumber, controlElementType} = e.target.ownerSVGElement.dataset;
 
-      if(controlNumber !== undefined){
+      if(controlNumber !== undefined && controlElementType !== undefined){
         
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
@@ -17,6 +17,7 @@ export function select(node, [moduleId, selectedDisplay]){
           ui.brc.dx = +dx;
           ui.brc.dy = +dy;
           ui.event.elementnumber = +controlNumber;
+          ui.event.elementtype = controlElementType;
           return ui;
         });
   

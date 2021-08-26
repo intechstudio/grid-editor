@@ -180,7 +180,7 @@
     
     try {
 
-      runtime.fetch.Many();
+      runtime.fetch.FullPage();
       
       writeBuffer.messages.subscribe((value) => {
 
@@ -252,7 +252,7 @@
           }
         });
 
-        runtime.update.batch(profile.configs);
+        runtime.update.page(profile.configs);
 
         writeBuffer.add_last({
           commandCb: function(){

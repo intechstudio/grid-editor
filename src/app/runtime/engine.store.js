@@ -163,8 +163,6 @@ function createWriteBuffer (){
 
     if(isHeartbeat) return;    
 
-    //console.log(active_elem, data);
-
     let incomingValid = true;
 
     // validate BRC, must start with this as every input contains BRC!

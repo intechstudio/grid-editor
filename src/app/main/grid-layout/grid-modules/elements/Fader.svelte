@@ -99,6 +99,7 @@
     on:grabmove={handleGrabMove}
     on:grabend={handleGrabEnd}
     data-control-number={elementNumber}
+    data-control-element-type="potentiometer"
     id="fader-cap" 
     width={size * faderWidth + 'px'} 
     height={size * faderHeight + 'px'} 
