@@ -125,12 +125,14 @@
 
         // automatic open
 
+        console.log('gridserialports', get(serialComm).list);
+
         const gridSerialPorts = get(serialComm).list; // these are already filtered from other than grid ports
 
         const preferredPort = gridSerialPorts.find(p => p.port.path == $serialComm.preferredPort);
 
         if($serialComm.open == undefined){
-          if(preferredPort){
+          if(preferredPort !== undefined){
             // open the preferred port
             closeSerialPort();
             selectedPort = preferredPort.port.path;

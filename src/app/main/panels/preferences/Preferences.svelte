@@ -41,7 +41,9 @@
 
   onMount(async () => {
     preferredPort = await ipcRenderer.invoke('getStoreValue', 'preferred_serial_port');
-    serialComm.update((s)=>{s.preferredPort = preferredPort; return s;});
+    if(preferredPort !== undefined) {
+      serialComm.update((s)=>{s.preferredPort = preferredPort; return s;});
+    }
   })
 
 </script>
