@@ -363,12 +363,10 @@ function create_runtime () {
 
       const li = get(user_input);
 
-      console.log(li, events, controlElementType); 
-
       if(li.event.elementtype == controlElementType){
         events.forEach((ev) => {
           const operation = new _update();
-          operation.status('EDITOR_OVERWRITE');
+          operation.status('EDITOR_BACKGROUND');
           operation.event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: ev.event.value, PAGENUMBER: li.event.pagenumber});
           operation.config({lua: ev.config});
           operation.sendToGrid();
@@ -396,7 +394,7 @@ function create_runtime () {
       array.forEach((element) => {
         element.events.forEach((ev)=>{
           const operation = new _update();
-          operation.status('EDITOR_PROFILE_LOAD');
+          operation.status('EDITOR_BACKGROUND');
           operation.event({ELEMENTNUMBER: element.controlElementNumber, EVENTTYPE: ev.event, PAGENUMBER: li.event.pagenumber});
           operation.config({lua: ev.config});
           operation.sendToGrid();

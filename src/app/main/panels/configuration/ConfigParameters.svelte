@@ -27,8 +27,6 @@ import { writeBuffer } from "../../../runtime/engine.store.js";
    configManagement().element_operations.overwrite_events_actions(); 
   }
 
-  writeBuffer.messages.subscribe(val => {console.log('writebuffer subscr',val)})
-
   $: selectedEvent = events.selected;
 
 </script>
