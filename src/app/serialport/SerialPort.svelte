@@ -106,7 +106,7 @@
 
         serialComm.update((store) => { store.list = []; return store;});
 
-        ports.forEach((port, i) => {  
+        ports.forEach((port, i) => { 
           let isGrid = 0;
           if(port.productId){
             if(port.productId == 'ECAD' || port.productId == 'ecad' || port.productId == 'ECAC' || port.productId == 'ecac'){
@@ -125,9 +125,13 @@
 
         // automatic open
 
-        console.log('gridserialports', get(serialComm).list);
+        // pass the collection
+        let gridSerialPorts = get(serialComm).list; // these are already filtered from other than grid ports
 
-        const gridSerialPorts = get(serialComm).list; // these are already filtered from other than grid ports
+        // remove empty elements from array!
+        gridSerialPorts = gridSerialPorts.filter(function (el) { return el != null; });
+
+        console.log('ports', gridSerialPorts)
 
         const preferredPort = gridSerialPorts.find(p => p.port.path == $serialComm.preferredPort);
 
