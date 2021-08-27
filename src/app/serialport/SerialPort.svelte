@@ -175,12 +175,17 @@
     const store = $serialComm;
     // don't let reopen port if it's already opened and dont let port open if serial array is empty!
     if(!store.isEnabled && store.list.length > 0){
-      const serial = store.list.find(serial => serial.port.path == selectedPort);
-      PORT = new SerialPort(serial.port.path, { autoOpen: false });
-      serialComm.open(PORT);
-      serialComm.selected(selectedPort);
-      serialComm.enabled(true);
-      readSerialPort();
+      try {
+        const serial = store.list.find(serial => serial.port.path === selectedPort);
+        PORT = new SerialPort(serial.port.path, { autoOpen: false });
+        serialComm.open(PORT);
+        serialComm.selected(selectedPort);
+        serialComm.enabled(true);
+        readSerialPort();
+      } catch (error) {
+        console.error('readSerialPort() failed', error)
+      }
+      
     }
   }
 
