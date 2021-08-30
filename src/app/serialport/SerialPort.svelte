@@ -135,8 +135,6 @@
         // remove empty elements from array!
         gridSerialPorts = gridSerialPorts.filter(function (el) { return el != null; });
 
-        console.log('ports', gridSerialPorts)
-
         const preferredPort = gridSerialPorts.find(p => p.port.path == $serialComm.preferredPort);
 
         if($serialComm.open == undefined){
@@ -200,12 +198,15 @@
         console.warn('Port closed', err)
       })
 
+      // reset store
       serialComm.update((store)=>{
         store.open = undefined;
         store.isEnabled = false;
         store.list = [];
         return store
       });
+
+      
 
       // reset runtime and user input on closing the port
       runtime.set([]);
@@ -217,6 +218,8 @@
       // reset engine to enabled
       engine.set('ENABLED');
 
+      // reset port
+      selectedPort = "";
       PORT = {path: 0};
     }
   }

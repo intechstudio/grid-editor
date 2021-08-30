@@ -47,7 +47,7 @@ const stringManipulation = {
       //functions: functions
     }
 
-    console.log(this.VALIDATOR)
+    //console.log(this.VALIDATOR)
   },
 
   checkFn: function(text){
