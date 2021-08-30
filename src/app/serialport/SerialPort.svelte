@@ -107,27 +107,31 @@
         serialComm.update((store) => { store.list = []; return store;});
 
         ports.forEach((port, i) => { 
+
+          // check each port if it has productId with code ECAD or ecac...
+
           let isGrid = 0;
+          
           if(port.productId){
+
             if(port.productId == 'ECAD' || port.productId == 'ecad' || port.productId == 'ECAC' || port.productId == 'ecac'){
-              isGrid = 1 
+
+              isGrid = 1;
+
+              // add to serialComm store
+              serialComm.update((store) => {   
+                store.list = [...store.list, {isGrid: isGrid, port: port}]
+                return store;
+              });
             }
           }
-
-          // collect all ports in an array
-          serialComm.update((store) => {   
-            if(isGrid){
-              store.list[i] = {isGrid: isGrid, port: port};
-            }
-            return store;
-          });       
+ 
         });
 
         // automatic open
 
         // pass the collection
         let gridSerialPorts = get(serialComm).list; // these are already filtered from other than grid ports
-
         // remove empty elements from array!
         gridSerialPorts = gridSerialPorts.filter(function (el) { return el != null; });
 
@@ -172,10 +176,10 @@
   }
   
   function openSerialPort() {
-    const store = $serialComm;
+    const store = get(serialComm);
     // don't let reopen port if it's already opened and dont let port open if serial array is empty!
     if(!store.isEnabled && store.list.length > 0){
-      try {
+      try {      
         const serial = store.list.find(serial => serial.port.path === selectedPort);
         PORT = new SerialPort(serial.port.path, { autoOpen: false });
         serialComm.open(PORT);
