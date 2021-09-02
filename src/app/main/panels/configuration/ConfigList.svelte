@@ -22,6 +22,7 @@
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import ConfigBlock from './components/ConfigBlock.svelte';
+import AddAction from './config-picker/AddAction.svelte';
 
   export let configs = [];
 
@@ -113,7 +114,7 @@
       <config-list id="cfg-list" style="height:{scrollHeight}" use:configListScrollSize={configs} on:height={(e)=>{scrollHeight = e.detail}} class="flex flex-col w-full  h-auto overflow-y-auto">
         
         {#if !drag_start}
-          <ConfigPicker index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
+          <AddAction index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
         {:else}
           <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
         {/if}
@@ -128,7 +129,7 @@
             <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
             
             {#if !drag_start}
-              <ConfigPicker index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
+              <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
             {:else}
               <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
             {/if}
@@ -140,7 +141,7 @@
       <container class="flex flex-col w-full">
         {#if !drag_start}
           <div class="w-full flex justify-between mb-3">
-            <ConfigPicker userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
+            <AddAction userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
             <ExportConfigs/>
           </div>
         {:else}

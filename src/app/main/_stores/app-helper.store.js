@@ -1,4 +1,5 @@
-import { writable, get, derived } from 'svelte/store';
+import { writable, get, derived, readable } from 'svelte/store';
+import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
 
 function checkOS() {
@@ -18,6 +19,8 @@ function checkOS() {
 
   return 'browser';
 }
+
+export const current_tooltip_store = writable({key: '', bool: false});
 
 export const appSettings = writable({
   size: 2.1,
@@ -70,9 +73,15 @@ function createActionPrefStore(){
   }
 }
 
+
+
+export const action_collection = readable(Promise.all([getAllComponents()]))
+
 function createPresetManagement(){
 
   const _selected_preset = writable({sub: '', name: '', configs: ''});
+
+  const _selected_action = writable({name: '', configs: ''});
 
   const _quick_access = writable([]);
 
@@ -83,6 +92,12 @@ function createPresetManagement(){
       update: ({sub, name, configs}) => {
         _selected_preset.set({sub: sub, name: name, configs: configs});
       },
+    },
+    selected_action: {
+      subscribe: _selected_action.subscribe,
+      update: ({name, configs}) => {
+        _selected_action.set({name: name, configs: configs})
+      }
     },
     quick_access: {
       subscribe: _quick_access.subscribe,

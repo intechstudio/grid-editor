@@ -41,6 +41,7 @@
   import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
   import { appSettings } from './app/main/_stores/app-helper.store';
   import NotificationBar from './app/shared/notifications/NotificationBar.svelte';
+  import TooltipGetter from './app/main/user-interface/tooltip/TooltipGetter.svelte';
 
   onMount(()=>{
 
@@ -70,6 +71,8 @@
   <Updater/>
 
   <CursorLog/>
+
+  <TooltipGetter/>
 
   <div class="flex flex-col w-full h-full">
   

@@ -5,6 +5,8 @@
     name: 'SettingsButton',
     groupType: 'standard',
     desc: 'Button Settings',
+    color: '#065A82',
+    defaultLua: 'self:bmo(0)',
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
   }
 

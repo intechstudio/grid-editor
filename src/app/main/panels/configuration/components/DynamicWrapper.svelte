@@ -53,7 +53,7 @@
             <div 
               on:click={()=>{toggle = ! toggle;}}
               class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative ">
-              <icon style="" class="flex {`bg-configs-${config.information.short}`} group-hover:bg-opacity-75 items-center p-2">
+              <icon style="background-color:{config.information.color}" class="flex group-hover:bg-opacity-75 items-center p-2">
                 <div class="w-6 h-6">
                   {@html config.information.icon ? config.information.icon : ' '}         
                 </div>              

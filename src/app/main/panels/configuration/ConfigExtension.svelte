@@ -7,6 +7,7 @@
   import { onMount, createEventDispatcher } from 'svelte';
 
   import grid from '../../../protocol/grid-protocol.js';
+  
   import { logger, user_input } from '../../../runtime/runtime.store.js';
 
   let advancedClickAddon;

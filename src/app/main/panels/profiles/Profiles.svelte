@@ -19,6 +19,8 @@
   import { isJson } from '../../../runtime/_utils.js';
   import { appSettings } from '../../_stores/app-helper.store.js';
 
+  import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+
   let selected = {
     name: '',
     description: '',
@@ -296,7 +298,10 @@
 <profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
     <div class="w-full flex flex-col justify-between pb-2 px-2">
-      <button on:click={openDirectory} class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none">Select Local Folder</button>
+      <button on:click={openDirectory} class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+        <div>Select Local Folder</div> 
+        <TooltipSetter key={"profile_select_local_folder"}/>
+      </button>
       <div class="text-gray-400 py-1 mt-1 text-sm break-all">Selected folder: {PROFILE_PATH}</div>
     </div>
 
@@ -338,8 +343,10 @@
 
     <div in:fade={{delay:200}} class="primary rounded-lg bg-opacity-25 bg-secondary px-4 py-2 h-full mt-4 flex flex-col justify-start items-start overflow-hidden">
 
-      <div class="pt-2 text-white">Load Profile</div>
-
+      <div class="pt-2 text-white relative w-full">
+        <div>Load Profile</div>
+        <TooltipSetter key={"profile_selection"}/>
+      </div>
       <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
   
         <div id="zero-level" class="w-full h-full flex overflow-y-scroll text-white mt-4">
@@ -384,7 +391,12 @@
 
       </div>
 
-      <button on:click={loadProfile} class="bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">Load Profile To Module</button>
+      <button 
+        on:click={loadProfile} 
+        class="bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none relative">
+        <div>Load Profile To Module</div>
+        <TooltipSetter key={"profile_load_to_module"}/>
+      </button>
 
     </div>
 

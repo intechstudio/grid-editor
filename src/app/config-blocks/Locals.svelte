@@ -4,6 +4,8 @@
     name: 'Locals',
     groupType: 'standard',
     desc: 'Local Variables',
+    defaultLua: 'local num = self:ind()',
+    color: '#EF8275',
     icon: `<span class="block w-full text-center italic font-gt-pressura">L</span>`,
   }
 </script>

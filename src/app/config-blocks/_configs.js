@@ -36,3 +36,12 @@ export async function getComponentInformation({short}){
 
   return component;
 }
+
+export async function getAllComponents(){
+  
+  const files = await scanConfigBlockDirectory();
+  const components = await importComponents(files)
+    .then(components => components.map(c => c = {component: c.default, information: c.information}))
+
+  return components;
+}
