@@ -6,8 +6,6 @@
 
   import { menuBoundaries } from '../../../_actions/boundaries.action.js';
 
-  import { quick_action_collection } from '../../config-library/built-in-configs.js'
-
   import _utils from '../../../../runtime/_utils';
 
   import Folder from './Folder.svelte';
@@ -156,11 +154,11 @@
         <div class="w-full flex justify-start py-1 h-full flex-wrap">   
           {#each action_collection as action}
             <div 
-              style="background-color:{action.color}"
+              style="--action-color: {action.color};"
               use:addOnDoubleClick 
               on:click={()=>{pickAction(action)}}
               on:double-click={()=>{initConfig()}} 
-              class="{selected_action == action.desc ? 'bg-select' : ''}  flex-auto py-0.5 px-1 m-1 flex items-center bg-secondary rounded text-white hover:bg-select-saturate-10">
+              class="action-card {selected_action == action.desc ? 'bg-select' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 m-1 flex items-center rounded-md text-white">
                 <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                 <div class="py-0.5 px-1 bg-secondary rounded bg-opacity-10">{action.desc}</div> 
             </div>
@@ -195,6 +193,15 @@
 {/if}
 
 <style>
+
+  .action-card{
+    background-color: var(--action-color);
+  }
+
+  .action-card:hover{
+    background-color: rgba(95, 120, 133, 0.5);
+   
+  }
 
   ::-webkit-scrollbar {
       height: 6px;

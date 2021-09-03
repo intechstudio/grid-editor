@@ -29,7 +29,6 @@ export const config_collection = [
 ];
 
 export const quick_action_collection = [
-    { name: "Timer Start",           configs: "--[[@gtt]] gtt()" },
-    { name: "Timer Stop",            configs: "--[[@gtp]] gtp()" },
+
 ]
 

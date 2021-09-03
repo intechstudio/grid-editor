@@ -5,7 +5,8 @@
     name: 'MouseMove',
     groupType: 'standard',
     desc: 'Mouse Move',
-    color: 'gmms()',
+    defaultLua: 'gmms(,)',
+    color: '',
     icon: `
     x
     `
@@ -27,7 +28,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = ['LED Number', 'Layer', 'Intensity'];
+  const parameterNames = ['Axis', 'Position'];
 
   let scriptSegments = [];
 
@@ -50,13 +51,33 @@
     
   }
 
-  const _suggestions = [];
-
   let suggestions = [];
 
+  const _suggestions = [
+    [
+      {value: '1', info: 'X'},
+      {value: '2', info: 'Y'},
+      {value: '3', info: 'Mouse Wheel'},
+    ],
+    [
+      {value: '1', info: 'Help'},
+      {value: '2', info: 'Help'}
+    ],
+
+  ];
+
   $: if($localDefinitions){
-   
+    suggestions = _suggestions.map((s,i) => {
+      // SKIP LAYER
+      if(i != 1){
+        return [...$localDefinitions, ...s]
+      } else {
+        return [ ...s, ...$localDefinitions]
+      }
+    });
+    suggestions = suggestions;
   }
+
 
   onMount(()=>{
     suggestions = _suggestions;
