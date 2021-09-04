@@ -3,7 +3,8 @@
   export const information = {
     short: 'cb',
     name: 'CodeBlock',
-    groupType: 'standard',
+    rendering: 'standard',
+    category: 'code',
     desc: 'Code Block',
     color: '#887880',
     defaultLua: 'print("hello")',

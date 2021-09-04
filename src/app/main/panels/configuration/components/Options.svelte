@@ -4,7 +4,7 @@
   import { actionPrefStore, configNodeBinding } from '../../../_stores/app-helper.store.js';
 
   export let index;
-  export let groupType;
+  export let rendering;
   export let configs;
   export let componentName;
 
@@ -91,7 +91,7 @@
 
 </script>
 
-{#if (groupType == "standard")  && true}
+{#if (rendering == "standard" || rendering == 'fixed')  && true}
   <select-box class="flex pl-2 justify-center items-center bg-transparent">
     <div 
       on:click={()=>{$appMultiSelect.selection[index] = !$appMultiSelect.selection[index] }}

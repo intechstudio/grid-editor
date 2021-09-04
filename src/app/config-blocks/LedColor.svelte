@@ -3,9 +3,10 @@
   export const information = {
     short: 'glc',
     name: 'LedColor',
-    groupType: 'standard',
-    color: '#88A096',
-    desc: 'LED Color',
+    category: 'led',
+    rendering: 'standard',
+    color: '#726E60',
+    desc: 'Color',
     defaultLua: 'glc(,,,,)',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 404 404" fill="none" xmlns="http://www.w3.org/2000/svg">

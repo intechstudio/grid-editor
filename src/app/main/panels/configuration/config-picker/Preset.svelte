@@ -34,8 +34,8 @@
     let validPlacement = true;
 
     if(type == 'modifier'){
-      const fmlb = lookbefore.find(a => a.information.groupType == 'modifier'); //firstModifierLookBefore
-      const fmla = lookafter.find(a => a.information.groupType == 'modifier'); //firstModifierLookAfter
+      const fmlb = lookbefore.find(a => a.information.rendering == 'modifier'); //firstModifierLookBefore
+      const fmla = lookafter.find(a => a.information.rendering == 'modifier'); //firstModifierLookAfter
 
       if(name == 'Else'){
         try {     

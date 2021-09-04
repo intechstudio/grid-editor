@@ -3,9 +3,10 @@
   export const information = {
     short: 'sbc',
     name: 'SettingsButton',
-    groupType: 'standard',
-    desc: 'Button Settings',
-    color: '#065A82',
+    rendering: 'standard',
+    category: 'element settings',
+    desc: 'Button Mode',
+    color: '#5F416D',
     defaultLua: 'self:bmo(0)',
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
   }

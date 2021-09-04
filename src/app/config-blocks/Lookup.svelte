@@ -2,7 +2,8 @@
   export const information = {
     short: 'glut',
     name: 'Lookup',
-    groupType: 'standard',
+    rendering: 'standard',
+    category: 'variables',
     desc: 'Lookup',
     color: '#78BC61',
     defaultLua: 'glut(param1,36,0,37,1)',

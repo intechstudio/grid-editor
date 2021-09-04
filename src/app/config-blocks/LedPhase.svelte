@@ -3,9 +3,10 @@
   export const information = {
     short: 'glp',
     name: 'LedPhase',
-    groupType: 'standard',
-    desc: 'LED Value',
-    color: '#BBAB8B',
+    rendering: 'standard',
+    category: 'led',
+    desc: 'Intensity',
+    color: '#726E60',
     defaultLua: 'glp(,,)',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 303 303" fill="none" xmlns="http://www.w3.org/2000/svg">

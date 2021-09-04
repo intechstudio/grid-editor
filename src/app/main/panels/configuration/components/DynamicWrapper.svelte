@@ -5,7 +5,7 @@
 
   import { actionPrefStore, configNodeBinding } from '../../../_stores/app-helper.store.js';
 
-  export let config = '' //{desc: 'unnamed', groupType: 'standard', id: ''};
+  export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let index = undefined;
   export let disable_pointer_events = false;
 
@@ -41,12 +41,12 @@
 
 <wrapper bind:this={$configNodeBinding[config.id]} class="flex border-none outline-none transition-opacity duration-300">
 
-    {#if config.information.groupType == 'standard'}
+    {#if config.information.rendering == 'standard'}
 
       <carousel 
           class="flex flex-grow text-white cursor-pointer group"
           id="cfg-{index}" 
-          movable={config.information.groupType == 'standard' || config.information.name == 'If' ? true : false } 
+          movable={config.information.rendering == 'standard' || config.information.name == 'If' ? true : false } 
           config-component={config.information.name} 
           config-id={config.id}>
 
@@ -86,11 +86,11 @@
 -->
       {/if}
       
-    {:else}
+    {:else if config.information.rendering == 'modifier'}
 
       <div 
         id="cfg-{index}" 
-        movable={config.information.groupType == 'standard' || config.information.name == 'If' ? true : false } 
+        movable={config.information.rendering == 'standard' || config.information.name == 'If' ? true : false } 
         config-component={config.information.name} 
         config-id={config.id}
         class="flex w-full flex-col">
@@ -98,6 +98,31 @@
         <div class="{disable_pointer_events ? 'pointer-events-none' : ''} w-full flex relative">
           <slot name="humanify"></slot>
         </div>
+
+      </div>
+
+      {:else if config.information.rendering == 'fixed'}
+
+      <div 
+        id="cfg-{index}" 
+        movable={true} 
+        config-component={config.information.name} 
+        config-id={config.id}
+        class="flex w-full flex-grow">
+
+        <div 
+          class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative ">
+          <icon style="background-color:{config.information.color}" class="flex group-hover:bg-opacity-75 items-center p-2">
+            <div class="w-6 h-6">
+              {@html config.information.icon ? config.information.icon : ' '}         
+            </div>              
+          </icon>
+        </div>
+
+        <div class="{disable_pointer_events ? 'pointer-events-none' : ''} w-full flex relative">
+          <slot name="humanify"></slot>
+        </div>
+
       </div>
 
     {/if}

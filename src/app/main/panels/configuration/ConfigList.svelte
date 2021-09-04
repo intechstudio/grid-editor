@@ -123,7 +123,7 @@ import AddAction from './config-picker/AddAction.svelte';
           <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="block select-none">
             <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
                 <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
-                <Options slot="options" {toggle} {index} {configs} groupType={config.information.groupType} componentName={config.information.name} />
+                <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
             </DynamicWrapper>
 
             <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>

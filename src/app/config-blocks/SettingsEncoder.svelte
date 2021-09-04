@@ -3,9 +3,10 @@
   export const information = {
     short: 'sec',
     name: 'SettingsEncoder',
-    groupType: 'standard',
-    color: '#963D5A',
-    desc: 'Encoder Settings',
+    rendering: 'standard',
+    category: 'element settings',
+    color: '#5F416D',
+    desc: 'Encoder Mode',
     defaultLua: 'self:emo(0) self:ev0(100)',
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
   }

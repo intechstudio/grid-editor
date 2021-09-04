@@ -3,8 +3,9 @@
   export const information = {
     short: 'gks',
     name: 'Macro',
-    groupType: 'standard',
-    color: '#9AD4D6',
+    rendering: 'standard',
+    category: 'keyboard',
+    color: '#9D95AD',
     desc: 'Keyboard',
     defaultLua: 'gks()',
     icon:`

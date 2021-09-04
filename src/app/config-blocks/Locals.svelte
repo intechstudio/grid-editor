@@ -2,11 +2,12 @@
   export const information = {
     short: 'l',
     name: 'Locals',
-    groupType: 'standard',
-    desc: 'Local Variables',
+    rendering: 'standard',
+    category: 'variables',
+    desc: 'Locals',
     defaultLua: 'local num = self:ind()',
-    color: '#EF8275',
-    icon: `<span class="block w-full text-center italic font-gt-pressura">L</span>`,
+    color: '#78BC61',
+    icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
   }
 </script>
 

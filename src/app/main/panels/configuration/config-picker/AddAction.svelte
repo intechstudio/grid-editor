@@ -7,10 +7,6 @@
   import { menuBoundaries } from '../../../_actions/boundaries.action.js';
 
   import _utils from '../../../../runtime/_utils';
-
-  import Folder from './Folder.svelte';
-  
-  import { createNestedObject, returnDeepestObjects } from '../../../../protocol/_utils.js';
   
   import { presetManagement } from '../../../_stores/app-helper.store';
 
@@ -29,7 +25,7 @@
 
   const dispatch = createEventDispatcher();
 
-  let configSelection;
+  let configSelection = false;
   let visible;
       
   let selectedConfig = [];
@@ -73,10 +69,46 @@
     visible = false;
   }
 
-  let action_collection = [];
+  let action_options = [];
   onMount(async ()=>{
     try {
-      action_collection = await getAllComponents().then(res => res.map(x => x.information));  
+
+      const sorting_array = ['variables', 'element settings', 'condition', 'led', 'midi', 'keyboard', 'mouse', 'timer', 'code'];
+
+      const blocks = await getAllComponents().then(res => res.map(x => x.information));  
+
+      let object = {};
+
+      blocks.forEach((elem)=>{
+
+        // check if we already got this type of category in obj
+        if (!(elem.category in object)){
+          object[elem.category] = [];
+        }
+
+        // push to category
+        object[elem.category].push(elem);
+
+      });
+
+      let _action_collection = [];
+
+      for (const key in object) {
+        if (Object.hasOwnProperty.call(object, key)) {
+          let _obj = {
+            category: key,
+            collection: object[key]
+          }
+          _action_collection.push(_obj)
+        }
+      }
+
+      _action_collection.sort(function(a, b){
+        return sorting_array.indexOf(Object.keys(a)[0]) - sorting_array.indexOf(Object.keys(b)[0]);
+      });
+
+      action_options = _action_collection;
+
     } catch (error) {
       console.log(error);
     }
@@ -127,7 +159,7 @@
       use:menuBoundaries={'init'} 
       on:offset-top={(e)=>{topOffset = e.detail;}} 
       style="right: calc(100% + 2rem);top:{-250 + topOffset}px;width:300px;height:500px;z-index:9999" 
-      class="absolute shadow-md rounded-md bg-primary p-4">
+      class="absolute shadow-md rounded-md bg-primary border border-gray-700 p-4 ">
       
       <wrapper 
         use:clickOutside={{useCapture: true}}
@@ -149,37 +181,52 @@
           </button>
         {/if}
 
-        <div class="py-1 w-full text-gray-500 text-sm mb-1">Presets</div> 
 
-        <div class="w-full flex justify-start py-1 h-full flex-wrap">   
-          {#each action_collection as action}
-            <div 
-              style="--action-color: {action.color};"
-              use:addOnDoubleClick 
-              on:click={()=>{pickAction(action)}}
-              on:double-click={()=>{initConfig()}} 
-              class="action-card {selected_action == action.desc ? 'bg-select' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 m-1 flex items-center rounded-md text-white">
-                <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
-                <div class="py-0.5 px-1 bg-secondary rounded bg-opacity-10">{action.desc}</div> 
+        
+        <div class="flex flex-col w-full overflow-y-auto">
+
+          {#each action_options as option }
+
+            <div class="text-gray-500 text-sm">{option.category}</div>
+            
+            <div class="w-full flex justify-start py-1 h-full flex-wrap">   
+
+              {#each option.collection as action}
+
+                <div 
+                  style="--action-color: {action.color};"
+                  use:addOnDoubleClick 
+                  on:click={()=>{pickAction(action)}}
+                  on:double-click={()=>{initConfig()}} 
+                  class="action-card {selected_action == action.desc ? ' border-pick' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white">
+                    <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
+                    <div class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25">{action.desc}</div> 
+                </div>
+
+              {/each}
+
             </div>
+
           {/each}
+
         </div>
         
 
-        <div class="flex flex-col">
-          <div class="py-1 text-gray-500 text-sm w-full">Prompt Input</div>
-          <input class="my-1 px-1 py-2 rounded bg-secondary focus:ring-1 focus:outline-none text-white font-mono" bind:value={promptValue} >
-        </div>
 
         <div class="w-full mt-2 flex items-end">
           <button 
             disabled={selectedConfig === undefined} 
             class:disabled={selectedConfig === undefined} 
             on:click={initConfig} 
-            class="bg-commit hover:bg-commit-saturate-20 w-full text-white py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+            class="bg-commit hover:bg-commit-saturate-20 w-full mr-1 text-white py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
             >
             Add Action
           </button>
+
+          <div class="flex flex-col ml-1">
+            <input placeholder="prompt" class="px-1 py-2 w-16 rounded bg-secondary focus:ring-1 focus:outline-none text-white font-mono" bind:value={promptValue} >
+          </div> 
+          
         </div>
 
       </wrapper>
@@ -199,7 +246,7 @@
   }
 
   .action-card:hover{
-    background-color: rgba(95, 120, 133, 0.5);
+    background-color: rgba(95, 120, 133, 1);
    
   }
 
