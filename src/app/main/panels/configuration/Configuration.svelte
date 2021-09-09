@@ -28,6 +28,7 @@
   if x == 1 then gms(1,176,7,this.element[0]) end`
   ;
 
+  let init = [];
   let configs = [];
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
@@ -46,14 +47,13 @@
   }
 
   runtime.active_config(active => {
-
     _utils.gridLuaToEditorLua(active.config).then(res => { 
       configs = res;
       dropStore.update(res);
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
     }).catch(err => {console.error(err); configs = [];})
-
+    
     // let use of default dummy parameters
     if(active.elements.selected !== ""){
       events = active.events;
@@ -102,7 +102,7 @@
   {#key $appSettings.configType == 'uiEvents'}
     <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
-      <ConfigParameters {events} {elements}/>
+      <ConfigParameters {configs} {events} {elements}/>
 
       <ConfigList {pages} {events} {configs}/>
 

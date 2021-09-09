@@ -91,6 +91,7 @@ function createWriteBuffer (){
       active_elem = undefined;
       _write_buffer.shift();
       write_buffer_busy = false;
+      //writeBufferTryNext();
       return;
     }
 
@@ -146,7 +147,6 @@ function createWriteBuffer (){
 
   function validateIncoming(data) {
 
-
     // compare data and filter key - value pairs
     if(!active_elem) return
 
@@ -178,7 +178,6 @@ function createWriteBuffer (){
         if(data[active_elem.filter.className][parameter] != active_elem.filter[active_elem.filter.className][parameter]){
           incomingValid = false;
         }
-
       }
 
     } else {
@@ -188,7 +187,7 @@ function createWriteBuffer (){
     }
  
     if(incomingValid){
-      active_elem.successCb();
+      active_elem.successCb(data);
       active_elem = undefined;
       write_buffer_busy = false;
       clearInterval(_fetch_timeout);

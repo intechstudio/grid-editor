@@ -22,7 +22,9 @@ function createMessageStream(){
 
     // enable user input from grid only if engine is enabled
     if(get(engine) == 'ENABLED'){
+      
       if(DATA.EVENT){
+        console.log(DATA.EVENT)
         // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
         if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6){
           user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
@@ -52,9 +54,10 @@ function createMessageStream(){
 
     if(DATA.LUA){
       if(get(engine) == 'ENABLED'){
-        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
+        //console.log(DATA);
+        //runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
       } else {
-        runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
+        //runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
       }
     }
 

@@ -1,6 +1,6 @@
 import { writable, get, derived } from 'svelte/store';
 import stringManipulation from '../main/user-interface/_string-operations';
-import { actionPrefStore } from '../main/_stores/app-helper.store';
+import { actionPrefStore, appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import { serialComm } from '../serialport/serialport.store';
@@ -121,19 +121,21 @@ function create_user_input () {
   function process_incoming_from_grid({brc, event}){
     if(event.EVENTTYPE !== 12){
       const store = get(_event);
-      if(store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE) {
-        _event.update((store)=>{
-          store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
-          store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
-          store.brc.rot = brc.ROT;
-          store.id = getIdFromRuntimeByBrc(brc);
-          if(event.ELEMENTNUMBER !== 255){
-            store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
-            store.event.eventtype = event.EVENTTYPE;
-            store.event.elementnumber = event.ELEMENTNUMBER;       
-          }      
-          return store;
-        });
+      if((store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE )) {
+        if((event.EVENTPARAM !== 127 || event.EVENTTYPE !== 3 )){
+          _event.update((store) => {
+            store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
+            store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
+            store.brc.rot = brc.ROT;
+            store.id = getIdFromRuntimeByBrc(brc);
+            if(event.ELEMENTNUMBER !== 255){
+              store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
+              store.event.eventtype = event.EVENTTYPE;
+              store.event.elementnumber = event.ELEMENTNUMBER;       
+            }      
+            return store;
+          });
+        }
       }
     }
   }
@@ -227,10 +229,12 @@ function create_runtime () {
     return _event;
   }
 
-  const fetchOrLoadConfig = (rt, ui) => {
+
+  const fetchOrLoadConfig = (rt, ui, trigger) => {
     
     let pages = [];
 
+    let init = [];
     let config = [];
     let events = [];
     let elementNumbers = [];
@@ -280,14 +284,17 @@ function create_runtime () {
         // ui elementnumber 255 (utility fetch) is handles in instructions.js
         if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
           selectedEvent.cfgStatus = 'FETCHED';
-          runtime.fetch.One(device, ui);  
+          runtime.fetch.One(device, ui, trigger);  
         }
+
       }
     });
 
     return {pages, config, events, elementNumbers, selectedEvent, selectedNumber};
 
   }
+
+  
 
   const _device_update = function(){
 
@@ -305,6 +312,8 @@ function create_runtime () {
         // device not found, add it to runtime and get page count from grid
         if(!online){
           _runtime.push(controller);
+          // this is not working because it fetches all and blocks ui
+          //runtime.fetch.HiddenActions();
           instructions.fetchPageCountFromGrid({brc: controller});
           if(first_connection){
             user_input.update((ui)=>{
@@ -325,7 +334,7 @@ function create_runtime () {
     this.update_pages = function({brc, pagenumber}){
       // this is called as many modules there are, because the pagecount fetch is global.
       // we should device which pagenumber is the meta
-      _runtime.update(_runtime => {
+      _runtime.update((_runtime) => {
         _runtime.forEach((device)=>{
           // don't make pages if there are already same amount of pages...
           if(device.dx == brc.SX && device.dy == brc.SY && pagenumber !== device.pages.length){
@@ -466,8 +475,49 @@ function create_runtime () {
 
     const _default_li = get(user_input);
 
-    this.One = function(device, ui){
-      instructions.fetchConfigFromGrid({device: device, inputStore: ui});
+    // fetches only one element's selected event
+    this.One = function(device, ui, trigger){
+      instructions.fetchConfigFromGrid({device: device, inputStore: ui, ui_trigger: trigger});
+      return this;
+    }
+
+    // get all hidden actions for init on module
+    this.HiddenActions = function (){
+      writeBuffer.add_first({
+        commandCb: function(){
+          console.log('hidden actions disable engine')
+          engine.set('DISABLED');
+          logger.set({type: 'progress', mode: 0, classname: 'background', message: `Loading config...`})
+        }
+      });
+
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const controlElements = device.pages[pageIndex].control_elements;
+
+      const array = [];
+
+      controlElements.forEach((controlElement) => {
+        array.push({event: '0', elementnumber: controlElement.controlElementNumber})
+      })
+
+
+      array.forEach((elem, ind) => {
+        li.event.eventtype = elem.event;
+        li.event.elementnumber = elem.elementnumber;
+        fetchOrLoadConfig(rt, li, false);
+      })
+
+      writeBuffer.add_last({
+        commandCb: function(){
+          logger.set({type: 'success', mode: 0, classname: 'background', message: `Complete!`});
+          engine.set('ENABLED');
+        }
+      });
+
       return this;
     }
 
@@ -500,7 +550,7 @@ function create_runtime () {
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li);
+        fetchOrLoadConfig(rt, li, false);
       })
 
       writeBuffer.add_last({
@@ -544,10 +594,8 @@ function create_runtime () {
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li);
+        fetchOrLoadConfig(rt, li, false);
       })
-
-      //console.log(array);
 
       writeBuffer.add_last({
         //responseRequired: true,
@@ -612,10 +660,12 @@ function create_runtime () {
 
     const rt = get(_runtime);
 
-    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers } = fetchOrLoadConfig(rt, ui);
+    console.log('_active_config', ui.event.eventtype)
+
+    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers } = fetchOrLoadConfig(rt, ui, true);
 
     return {
-      config: config, 
+      config: config,
       events: {
         selected: selectedEvent.event,
         options: events.map(e => e.event)
@@ -629,12 +679,49 @@ function create_runtime () {
         options: pages.map((n) => n.pageNumber)
       }
     }
-  })
+  });
+
+  const _trigger_hidden = writable(0);
+
+  const hidden = derived([user_input, _trigger_hidden], ([ui, chng]) => {
+
+    console.log('hidden', ui.event.eventtype)
+    
+    const rt = get(_runtime);
+
+    const li = Object.assign({}, ui);
+    li.event.eventtype = '0';
+
+    const { config } = fetchOrLoadConfig(rt, li, false);
+
+    let stringname = '';
+
+    if(config.length){
+      try {
+        stringname = config.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1)
+      } catch (error) {
+        stringname = '';
+      }
+    }  
+
+    return {
+      stringname
+    }
+
+  });  
+
+  const _hidden_update = function(){
+    this.trigger = function(){
+      _trigger_hidden.update(n => n + 1);
+    }
+  }
 
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
     active_config: _active_config.subscribe,
+    hidden: hidden.subscribe,
+    hidden_update: new _hidden_update(),
     update: new _runtime_update(),
     fetch: new _runtime_fetch(),
     device: new _device_update(),

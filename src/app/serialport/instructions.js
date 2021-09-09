@@ -8,7 +8,7 @@ import { engine, logger, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
 
-  fetchConfigFromGrid: ({device, inputStore}) => {
+  fetchConfigFromGrid: ({device, inputStore, ui_trigger}) => {
 
     let enumber = undefined;
 
@@ -51,11 +51,17 @@ const instructions = {
       failCb: function(){
         //console.log('config fetch - fail')
       }, 
-      successCb: function(){
-        //console.log('config fetch - success')
+      successCb: function(DATA){
+        console.log(ui_trigger, DATA)
+        if(ui_trigger){
+          runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
+        } else {
+          runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA});
+          runtime.hidden_update.trigger();
+        }
+        //console.log('config fetch - success', inputStore.event.eventtype)
       }
     }
-
 
     writeBuffer.add_first(buffer_element);
 

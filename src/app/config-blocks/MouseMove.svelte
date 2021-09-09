@@ -48,7 +48,6 @@
   function sendData(e, index){
 
     scriptSegments[index] = e;
-    // important to set the function name = human readable for now
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
     dispatch('output', {short: config.short, script: script})
     
@@ -104,7 +103,7 @@
 </script>
 
 
-<config-led-phase class="flex flex-col w-full p-2">
+<mouse-move class="flex flex-col w-full p-2">
 
   <div class="w-full flex">
     {#each scriptSegments as script, i}
@@ -132,7 +131,7 @@
     />
 
   {/if}
-</config-led-phase>
+</mouse-move>
 
 <style>
   .atomicInput{

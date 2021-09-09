@@ -25,7 +25,10 @@
 
   runtime.subscribe(runtime => {
     const settings = runtime.find(controller => controller.id == id);
-    if(settings !== undefined) controlElementSettings = settings.banks[bankActive];
+    if(settings !== undefined) {
+      console.log(settings.pages[bankActive])
+      controlElementSettings = settings.pages[0];
+    }
   })
 
  

@@ -6,7 +6,7 @@
     rendering: 'standard',
     category: 'mouse',
     desc: 'Button',
-    defaultLua: 'gmbs()',
+    defaultLua: 'gmbs(,)',
     color: '#9C92A4',
     icon: `
     <svg width="100%" height="100%" viewBox="-96 0 512 512"  xmlns="http://www.w3.org/2000/svg">
@@ -21,27 +21,22 @@
   import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+  import _utils from '../runtime/_utils';
 
   export let config = ''
   export let index;
 
   const dispatch = createEventDispatcher();
 
-  let scriptValue = ''; // local script part
+  const parameterNames = ['Button', 'State'];
 
-  const whatsInParenthesis = /\(([^)]+)\)/;
+  let scriptSegments = [];
 
   let loaded = false;
 
   $: if(config.script && !loaded){
     
-    const matches = whatsInParenthesis.exec(config.script);
-
-    if(matches){
-      scriptValue = matches[1];
-    } else {
-      scriptValue = '';
-    }
+    scriptSegments = _utils.scriptToSegments({short: config.short, script: config.script});
 
     loaded = true;
   }
@@ -50,12 +45,10 @@
     loaded = false;
   })
 
-  $: if(scriptValue){
-    sendData(scriptValue);
-  }
-
   function sendData(e){
-    dispatch('output', {short: `gmbs`, script:`gmbs(${e})`})
+    scriptSegments[index] = e;
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
+    dispatch('output', {short: config.short, script: script})
   }
 
   let showSuggestions = false;
@@ -77,6 +70,11 @@
       {value: '1', info: 'Left Click'}, 
       {value: '2', info: 'Right Click'},
       {value: '4', info: 'Middle Click'},
+    ],
+    [
+      {value: '1', info: 'X'}, 
+      {value: '2', info: 'Y'},
+      {value: '4', info: 'Z'},
     ]
   ]
 
@@ -84,21 +82,40 @@
 
 
 <mouse-button class="flex flex-col w-full p-2">
-  <div class="w-full px-2">
-    <div class="text-gray-500 text-sm pb-1">Mouse Button</div>
-    <AtomicInput 
-      suggestions={suggestions[0]}
-      bind:inputValue={scriptValue} 
-      on:active-focus={(e)=>{onActiveFocus(e,0)}} 
-      on:loose-focus={(e)=>{onLooseFocus(e,0)}}/>
+  <div class="w-full flex">
+    {#each scriptSegments as script, i}
+      <div class={'w-1/'+scriptSegments.length + ' atomicInput'}>
+        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+        <AtomicInput 
+          inputValue={script} 
+          suggestions={suggestions[i]} 
+          on:active-focus={(e)=>{onActiveFocus(e,i)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,i)}} 
+          on:change={(e)=>{sendData(e.detail,i)}}/>
+      </div>
+    {/each}
   </div>
 
-  {#if focusGroup[0]}
+  {#if showSuggestions}
+
     <AtomicSuggestions 
-      suggestions={suggestions}  
+      {suggestions} 
+      {focusedInput} 
       on:select={(e)=>{
-      scriptValue = e.detail.value;
-    }}/>
+        scriptSegments[e.detail.index] = e.detail.value; 
+        sendData(e.detail.value,e.detail.index)
+      }}
+    />
 
   {/if}
 </mouse-button>
+
+<style>
+  .atomicInput{
+    padding-right:0.5rem;
+  }
+
+  .atomicInput:first-child{
+    padding-left: 0.5rem;
+  }
+</style>

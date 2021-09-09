@@ -56,15 +56,9 @@
 {#if selected}
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement} {eventParam}>
 
-    {#if $appSettings.overlays.controlName}
+    {#if $appSettings.stringNameOverlay}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation}/>
-    {/if}
-
-    <!--    
-    {#if $appSettings.selectedDisplay == 'profiles'}
-      <ProfileLoadOverlay {id} {moduleWidth} {bank} {rotation}/>
-    {/if}
-    -->
+    {/if} 
 
   </svelte:component>
 {/if}

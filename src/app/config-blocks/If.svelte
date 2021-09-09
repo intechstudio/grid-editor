@@ -3,8 +3,8 @@
   export const information = {
     short: 'if',
     name: 'If',
+    rendering: 'modifier',
     category: 'condition',
-    rendering: 'standard',
     desc: 'If',
     defaultLua: 'if  then --[[@en]] end',
     icon: `

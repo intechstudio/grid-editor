@@ -73,7 +73,9 @@
   onMount(async ()=>{
     try {
 
-      const sorting_array = ['variables', 'element settings', 'condition', 'led', 'midi', 'keyboard', 'mouse', 'timer', 'code'];
+      const sorting_array = ['variables', 'led', 'midi', 'keyboard', 'mouse', 'element settings', 'condition', 'code', 'timer' ];
+
+      const condition_sorting = ['if', 'ei', 'el', 'en'];
 
       const blocks = await getAllComponents().then(res => res.map(x => x.information));  
 
@@ -104,10 +106,17 @@
       }
 
       _action_collection.sort(function(a, b){
-        return sorting_array.indexOf(Object.keys(a)[0]) - sorting_array.indexOf(Object.keys(b)[0]);
+        return sorting_array.indexOf(a.category) - sorting_array.indexOf(b.category);
+      });
+
+      // custom sorting array
+      let change_condition_order = _action_collection.find(x => x.category == 'condition');
+      change_condition_order.collection = change_condition_order.collection.sort(function(a,b){
+        return condition_sorting.indexOf(a.short) - condition_sorting.indexOf(b.short);
       });
 
       action_options = _action_collection;
+
 
     } catch (error) {
       console.log(error);
