@@ -37,12 +37,11 @@
     const name = e.target.value;
     let snAction = configs.find(x => x.short == 'sn');
 
-    if(!snAction){
-      
+    if(snAction){
+      snAction.script = `self.sn='${name}'`;
+      runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
     }
-
-    snAction.script = `self.sn='${name}'`;
-    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    
   }
 
   onMount(()=>{
