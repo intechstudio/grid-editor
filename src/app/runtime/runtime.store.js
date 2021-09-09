@@ -711,6 +711,47 @@ function create_runtime () {
   });  
 
   const _hidden_update = function(){
+
+    this.writeStringName = function(inputname){
+
+      const stringname = inputname;
+
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+
+      const events = device.pages[pageIndex].control_elements[elementIndex].events;
+
+      const i_event = events.find(x => x.event.value == '0');
+
+      let configList = _utils.rawLuaToConfigList(i_event.config);
+
+      let snPos = configList.indexOf('--[[@sn]]');
+
+      // not found, add it
+      if(snPos == -1){
+        configList = ['--[[@sn]]','', ...configList];
+        snPos = 0;
+      } 
+
+      configList[snPos+1] = `self.sn='${stringname}'`;
+
+      console.log(configList);
+
+      let configs = '';
+      for (let i = 0; i < configList.length; i+=2) {
+        configs += (`${configList[i]}${configList[i+1]}`.trim())
+      }
+
+      if(configs){
+        runtime.update.one().status('EDITOR_EXECUTE').event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: 0, PAGENUMBER: li.event.pagenumber}).config({lua: '<?lua ' + configs + ' ?>'}).sendToGrid();
+      }
+
+    }
+
     this.trigger = function(){
       _trigger_hidden.update(n => n + 1);
     }

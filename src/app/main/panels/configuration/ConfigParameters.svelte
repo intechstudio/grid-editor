@@ -35,12 +35,7 @@
 
   function updateStringName(e){
     const name = e.target.value;
-    let snAction = configs.find(x => x.short == 'sn');
-
-    if(snAction){
-      snAction.script = `self.sn='${name}'`;
-      runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
-    }
+    runtime.hidden_update.writeStringName(name);
     
   }
 
