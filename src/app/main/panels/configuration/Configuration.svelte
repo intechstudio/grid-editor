@@ -9,7 +9,8 @@
   import ConfigList from './ConfigList.svelte';
 
   import Pages from './Pages.svelte';
-
+  
+  import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
   import { runtime, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
@@ -88,17 +89,19 @@
   <tabs class="flex flex-row items-start mt-4">
     <tab 
       on:click={()=>{changeSelectedConfig('uiEvents')}} 
-      class="{$appSettings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         UI Events
       </span>
+      <TooltipSetter mode={1} key={"configuration_ui_events"}/>
     </tab>
     <tab 
       on:click={()=>{changeSelectedConfig('systemEvents')}} 
-      class="{$appSettings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         System Events
       </span>
+      <TooltipSetter mode={1} key={"configuration_system_events"}/>
     </tab>
   </tabs>
 

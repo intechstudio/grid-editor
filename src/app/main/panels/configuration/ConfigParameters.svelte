@@ -6,6 +6,8 @@
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 
+  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+
   export let events;
   export let elements;
   export let stringname;
@@ -40,7 +42,6 @@
   function overwriteAllEventConfigs(){
    configManagement().element_operations.overwrite_events_actions(); 
   }
-
 
   function updateStringName(e){
     const name = e.target.value;
@@ -102,16 +103,19 @@
   <div class="pb-2">
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
+      
       <div class="flex text-gray-400">
         <div 
-          class="px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1" 
+          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1" 
           on:click={()=>{copyAllEventConfigsFromSelf()}}>
-            Copy All
+            <div>Copy All</div>
+            <TooltipSetter mode={1} key={"configuration_copy_all"}/>
         </div>
         <div 
-          class="px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
+          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
           on:click={()=>{overwriteAllEventConfigs()}}>
-            Overwrite
+            <div>Overwrite</div>
+            <TooltipSetter mode={1} key={"configuration_overwrite"}/>
         </div>
       </div>
     </div>
@@ -121,8 +125,9 @@
         <button 
           on:click={()=>{handleSelectEvent(event)}} 
           class:dummy={event.desc == undefined}
-          class="{(selectedEvent === event) && (event.desc !== undefined) ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} m-2 p-1 flex-grow border-0 rounded focus:outline-none">
+          class="{(selectedEvent === event) && (event.desc !== undefined) ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none">
           {@html event.desc ? event.desc : `<span class="invisible">null</span>`}
+          <TooltipSetter mode={1} key={`event_${event.desc}`}/>
         </button>
       {/each}
     </div>

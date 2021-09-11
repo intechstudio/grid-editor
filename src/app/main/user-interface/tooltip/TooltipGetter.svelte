@@ -89,7 +89,7 @@
 <div id="cursor-tooltip" style="z-index:9999;" use:cursorLog={{tooltip}} class="absolute">
   {#if tooltip}
     <div 
-      in:fade={{duration: 100, delay:200}} 
+      in:fade={{duration: 100, delay: 500}} 
       class="border-primary flex flex-col w-72 rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
       {tooltip_text}
     </div>

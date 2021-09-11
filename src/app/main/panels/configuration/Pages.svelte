@@ -6,6 +6,8 @@
 
   import { logger, runtime, user_input } from '../../../runtime/runtime.store.js';
 
+  import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+
   export let pages;
 
   let alert = false;
@@ -47,18 +49,9 @@
 
 <page-controller class="{pages.options.includes('') && 'pointer-events-none'} relative rounded-tl-lg px-4 pb-4 pt-2 mt-4 flex flex-col w-full bg-primary">
 
-
-  {#if alert}
-  
-  <div class="absolute left-0 mt-4 w-56 -ml-60 text-center text-white bg-red-500 p-4 rounded">
-    Store your config before changing pages!
-  </div>
-  
-
-  {/if}
-
-  <div class="text-gray-500 py-1 text-sm">
-    Pages
+  <div class="text-gray-500 flex items-center py-1 text-sm">
+    <div>Pages</div>
+    <TooltipSetter mode={2} key={"configuration_pages"}/>
   </div>
 
   <div class="flex bg-secondary shadow overflow-x-auto">
@@ -86,14 +79,6 @@
 
     {/each}
   </div>
-
-  <!--
-  <button 
-    on:click={managePages} 
-    class="text-sm py-0.5 px-4 text-white rounded-full hover:bg-select focus:ring-0 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500">
-    Select
-  </button>
-  -->
 
 </page-controller>
 

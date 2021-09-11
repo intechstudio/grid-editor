@@ -300,7 +300,7 @@
     <div class="w-full flex flex-col justify-between pb-2 px-2">
       <button on:click={openDirectory} class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
         <div>Select Local Folder</div> 
-        <TooltipSetter key={"profile_select_local_folder"}/>
+        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
       </button>
       <div class="text-gray-400 py-1 mt-1 text-sm break-all">Selected folder: {PROFILE_PATH}</div>
     </div>
@@ -336,16 +336,19 @@
           class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
       </div>
 
-      <button on:click={prepareSave} disabled={!checkIfOk(newProfile)} class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit  border-none focus:outline-none">Save</button>
+      <button on:click={prepareSave} disabled={!checkIfOk(newProfile)} class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit relative  border-none focus:outline-none">
+        <div>Save</div>
+        <TooltipSetter mode={1} key={"profile_save"}/>
+      </button>
 
     </div>
 
 
     <div in:fade={{delay:200}} class="primary rounded-lg bg-opacity-25 bg-secondary px-4 py-2 h-full mt-4 flex flex-col justify-start items-start overflow-hidden">
 
-      <div class="pt-2 text-white relative w-full">
-        <div>Load Profile</div>
-        <TooltipSetter key={"profile_selection"}/>
+      <div class="pt-2 text-white flex items-center relative">
+        <div class="">Load Profile</div>
+        <TooltipSetter mode={2} key={"profile_load_profile"}/>
       </div>
       <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
   
@@ -361,7 +364,10 @@
 
       </div>
   
-      <div class="py-2 text-white">Selected Profile</div>
+      <div class="py-2 text-white flex items-center relative">
+        <div class="">Selected Profile</div>
+        <TooltipSetter mode={2} key={"profile_selected_profile"}/>
+      </div>
 
       <div class="text-gray-200 flex flex-col pointer-events-none w-full">
 
@@ -395,7 +401,7 @@
         on:click={loadProfile} 
         class="bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none relative">
         <div>Load Profile To Module</div>
-        <TooltipSetter key={"profile_load_to_module"}/>
+        <TooltipSetter mode={1} key={"profile_load_to_module"}/>
       </button>
 
     </div>
