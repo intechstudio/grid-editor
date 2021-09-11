@@ -24,10 +24,9 @@
   }
 
   runtime.subscribe(runtime => {
-    const settings = runtime.find(controller => controller.id == id);
-    if(settings !== undefined) {
-      console.log(settings.pages[bankActive])
-      controlElementSettings = settings.pages[0];
+    const device = runtime.find(controller => controller.id == id);
+    if(device !== undefined) {
+      controlElementSettings = device.pages[0].control_elements;
     }
   })
 

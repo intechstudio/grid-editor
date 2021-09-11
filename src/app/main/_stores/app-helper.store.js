@@ -29,7 +29,7 @@ export const appSettings = writable({
     minor: grid.properties.VERSION.MINOR,
     patch: grid.properties.VERSION.PATCH
   },
-  overlays: {controlName: false},
+  overlays: {controlElementName: false},
   debugMode: false,
   selectedDisplay: '',
   changeOnContact: true,

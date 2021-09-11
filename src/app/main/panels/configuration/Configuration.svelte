@@ -28,8 +28,9 @@
   if x == 1 then gms(1,176,7,this.element[0]) end`
   ;
 
-  let init = [];
+  
   let configs = [];
+  let stringname = "";
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
@@ -59,6 +60,7 @@
       events = active.events;
       elements = active.elements;
       pages = active.pages;
+      stringname = active.stringname;
     }
 
     // set UI to uiEvents, if its not system events
@@ -67,6 +69,7 @@
     }
   });
 
+  
 
   onMount(()=>{
 
@@ -102,7 +105,7 @@
   {#key $appSettings.configType == 'uiEvents'}
     <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
-      <ConfigParameters {configs} {events} {elements}/>
+      <ConfigParameters {stringname} {configs} {events} {elements}/>
 
       <ConfigList {pages} {events} {configs}/>
 

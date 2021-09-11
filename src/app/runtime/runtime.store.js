@@ -119,23 +119,37 @@ function create_user_input () {
   }
 
   function process_incoming_from_grid({brc, event}){
-    if(event.EVENTTYPE !== 12){
+    if(event.EVENTTYPE !== 12 && event.EVENTTYPE !== 0){
+
       const store = get(_event);
-      if((store.event.elementnumber !== event.ELEMENTNUMBER || store.event.eventtype !== event.EVENTTYPE )) {
-        if((event.EVENTPARAM !== 127 || event.EVENTTYPE !== 3 )){
-          _event.update((store) => {
-            store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
-            store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
-            store.brc.rot = brc.ROT;
-            store.id = getIdFromRuntimeByBrc(brc);
-            if(event.ELEMENTNUMBER !== 255){
-              store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
-              store.event.eventtype = event.EVENTTYPE;
-              store.event.elementnumber = event.ELEMENTNUMBER;       
-            }      
-            return store;
-          });
-        }
+      
+      let [elementDifferent, eventDifferent] = [true, true];
+      // filter same control element had multiple interactions
+      if(store.event.elementnumber == event.ELEMENTNUMBER){
+        elementDifferent = false;
+      }
+      if(store.event.eventtype == event.EVENTTYPE){
+        eventDifferent = false;
+      }
+
+     // console.log(elementDifferent, eventDifferent);
+      //console.log('stored event', store.event.eventtype, 'incoming event', event.EVENTTYPE);
+      //console.log('stored elementnumber', store.event.elementnumber, 'incoming elementnumber', event.ELEMENTNUMBER);
+
+
+      if(eventDifferent || elementDifferent) {
+        _event.update((store) => {
+          store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
+          store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
+          store.brc.rot = brc.ROT;
+          store.id = getIdFromRuntimeByBrc(brc);
+          if(event.ELEMENTNUMBER !== 255){
+            store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
+            store.event.eventtype = event.EVENTTYPE;
+            store.event.elementnumber = event.ELEMENTNUMBER;       
+          }  
+          return store;
+        });
       }
     }
   }
@@ -166,11 +180,17 @@ function create_user_input () {
   }
 
   function update_eventtype(value){
-    _event.update(s => {s.event.eventtype = value; return s});
+    const eventtype = get(user_input).event.eventtype;
+    if(eventtype != value){
+      _event.update(s => {s.event.eventtype = value; return s});
+    }
   }
 
   function update_elementnumber(value){
-    _event.update(s => {s.event.elementnumber = value; return s});
+    const elementnumber = get(user_input).event.elementnumber;
+    if(elementnumber != value){
+      _event.update(s => {s.event.elementnumber = value; return s});
+    }
   }
 
   function reset_disconnected(removed = 'reset'){
@@ -210,7 +230,7 @@ function create_runtime () {
 
   const _runtime = writable([]);
 
-  const findUpdateDestination = (_runtime, li) =>{
+  const findUpdateDestEvent = (_runtime, li) =>{
     let _event = undefined;
     // this elementnumber check refers to uninitialized UI...
     if(li.event.elementnumber !== -1){
@@ -229,15 +249,13 @@ function create_runtime () {
     return _event;
   }
 
-
-  const fetchOrLoadConfig = (rt, ui, trigger) => {
+  function fetchOrLoadConfig (rt, ui, trigger, callback) {
     
     let pages = [];
-
-    let init = [];
     let config = [];
     let events = [];
     let elementNumbers = [];
+    let stringname = "";
     let selectedNumber = "";
     let selectedEvent = "";
 
@@ -268,7 +286,10 @@ function create_runtime () {
 
         // don't let selection of event, which is not on that control element
         let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        selectedEvent = f_event ? f_event : events[events.length - 1];     
+        selectedEvent = f_event ? f_event : events[events.length - 1];    
+        
+        // init event check for hidden configs
+        let initEvent = events.find(e => e.event.value == 0);
         
         // on switching between system and ui events, set proper eventtype for fetching config
         // f_event is undefined, if currently stored ui eventtype is not found on control element
@@ -278,19 +299,47 @@ function create_runtime () {
 
         if(selectedEvent.config.length){
           config = selectedEvent.config.trim();
-          //console.log('CONFIG TO RETURN', config)
         }
-        
+
+        const init_li = {
+          brc: {
+            dx: ui.brc.dx,
+            dy: ui.brc.dy
+          },
+          event: {
+            eventtype: 0,
+            elementnumber: ui.event.elementnumber,
+            pagenumber: ui.event.pagenumber
+          }
+        }
+
+        if(initEvent.config.length){
+          try {
+            stringname = initEvent.config.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1); 
+            console.log(stringname);
+            runtime.hidden_update.addToControlElement(stringname, init_li);
+          } catch (error) {
+            console.error('init event sn read error')
+            //stringname = '';
+          }
+        }
+
+        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(initEvent.cfgStatus)){
+          initEvent.cfgStatus = 'FETCHED';
+          runtime.fetch.One(device, init_li, false, callback);
+        }
+
         // ui elementnumber 255 (utility fetch) is handles in instructions.js
         if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
           selectedEvent.cfgStatus = 'FETCHED';
-          runtime.fetch.One(device, ui, trigger);  
+          runtime.fetch.One(device, ui, trigger, callback);  
         }
+
 
       }
     });
 
-    return {pages, config, events, elementNumbers, selectedEvent, selectedNumber};
+    return {pages, config, events, elementNumbers, selectedEvent, selectedNumber, stringname};
 
   }
 
@@ -313,7 +362,6 @@ function create_runtime () {
         if(!online){
           _runtime.push(controller);
           // this is not working because it fetches all and blocks ui
-          //runtime.fetch.HiddenActions();
           instructions.fetchPageCountFromGrid({brc: controller});
           if(first_connection){
             user_input.update((ui)=>{
@@ -446,7 +494,7 @@ function create_runtime () {
       this.config = function({lua}) {
         code = lua;
         _runtime.update(_runtime => {
-          let dest = findUpdateDestination(_runtime, li);
+          let dest = findUpdateDestEvent(_runtime, li);
           if (dest) {
             dest.config = lua.trim();
             dest.cfgStatus = cfgStatus;
@@ -471,23 +519,55 @@ function create_runtime () {
 
   }
   
+  function load_stringname(DATA){
+    let stringname = '';
+
+    // only for init
+    if(DATA.CONFIG_REPORT.EVENTTYPE == 0){
+    
+      if(DATA.LUA.length){
+        try {
+
+          stringname = DATA.LUA.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1);
+          
+          const li = {
+            event: {
+              eventtype: 0,
+              elementnumber: DATA.CONFIG_REPORT.ELEMENTNUMBER,
+              pagenumber: DATA.CONFIG_REPORT.PAGENUMBER
+            },
+            brc: {
+              dx: DATA.BRC.SX,
+              dy: DATA.BRC.SY
+            }
+          }
+
+          runtime.hidden_update.addToControlElement(stringname, li);
+
+        } catch (error) {
+          console.error('init event sn read error')
+          //stringname = '';
+        }
+      }
+
+    }
+  }
+
   const _runtime_fetch = function() {
 
     const _default_li = get(user_input);
 
     // fetches only one element's selected event
-    this.One = function(device, ui, trigger){
-      instructions.fetchConfigFromGrid({device: device, inputStore: ui, ui_trigger: trigger});
-      return this;
+    this.One = function(device, ui, trigger, callback){
+      instructions.fetchConfigFromGrid({device: device, inputStore: ui, ui_trigger: trigger,callback: callback});
+      return 1;
     }
 
     // get all hidden actions for init on module
     this.HiddenActions = function (){
       writeBuffer.add_first({
         commandCb: function(){
-          console.log('hidden actions disable engine')
-          engine.set('DISABLED');
-          logger.set({type: 'progress', mode: 0, classname: 'background', message: `Loading config...`})
+          logger.set({type: 'progress', mode: 0, classname: 'background', message: `Loading element names...`})
         }
       });
 
@@ -504,17 +584,15 @@ function create_runtime () {
         array.push({event: '0', elementnumber: controlElement.controlElementNumber})
       })
 
-
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li, false);
+        fetchOrLoadConfig(rt, li, false, load_stringname);
       })
 
       writeBuffer.add_last({
         commandCb: function(){
           logger.set({type: 'success', mode: 0, classname: 'background', message: `Complete!`});
-          engine.set('ENABLED');
         }
       });
 
@@ -647,8 +725,6 @@ function create_runtime () {
 
   }
 
-  // this is used to refresh the user interface in the active right panel
-  // also used for config management, copy paste etc
 
   const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
 
@@ -660,12 +736,13 @@ function create_runtime () {
 
     const rt = get(_runtime);
 
-    console.log('_active_config', ui.event.eventtype)
+    const li = Object.create(ui);
 
-    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers } = fetchOrLoadConfig(rt, ui, true);
+    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers, stringname } = fetchOrLoadConfig(rt, li, true);
 
     return {
       config: config,
+      stringname: stringname,
       events: {
         selected: selectedEvent.event,
         options: events.map(e => e.event)
@@ -681,34 +758,8 @@ function create_runtime () {
     }
   });
 
-  const _trigger_hidden = writable(0);
-
-  const hidden = derived([user_input, _trigger_hidden], ([ui, chng]) => {
-
-    console.log('hidden', ui.event.eventtype)
+  
     
-    const rt = get(_runtime);
-
-    const li = Object.assign({}, ui);
-    li.event.eventtype = '0';
-
-    const { config } = fetchOrLoadConfig(rt, li, false);
-
-    let stringname = '';
-
-    if(config.length){
-      try {
-        stringname = config.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1)
-      } catch (error) {
-        stringname = '';
-      }
-    }  
-
-    return {
-      stringname
-    }
-
-  });  
 
   const _hidden_update = function(){
 
@@ -739,8 +790,6 @@ function create_runtime () {
 
       configList[snPos+1] = `self.sn='${stringname}'`;
 
-      console.log(configList);
-
       let configs = '';
       for (let i = 0; i < configList.length; i+=2) {
         configs += (`${configList[i]}${configList[i+1]}`.trim())
@@ -750,18 +799,33 @@ function create_runtime () {
         runtime.update.one().status('EDITOR_EXECUTE').event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: 0, PAGENUMBER: li.event.pagenumber}).config({lua: '<?lua ' + configs + ' ?>'}).sendToGrid();
       }
 
+      this.addToControlElement(stringname, li);
+
     }
 
-    this.trigger = function(){
-      _trigger_hidden.update(n => n + 1);
+    this.addToControlElement = function(stringname, li){
+
+      _runtime.update((rt)=>{
+        rt.forEach((device)=>{
+          if(device.dx == li.brc.dx && device.dy == li.brc.dy){
+            const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+            const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+            let controlElement = device.pages[pageIndex].control_elements[elementIndex];
+            controlElement.controlElementName = stringname;
+          }
+        })
+        return rt;
+      })
+
+      return this;
     }
+
   }
 
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
     active_config: _active_config.subscribe,
-    hidden: hidden.subscribe,
     hidden_update: new _hidden_update(),
     update: new _runtime_update(),
     fetch: new _runtime_fetch(),

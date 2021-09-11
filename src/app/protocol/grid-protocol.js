@@ -703,7 +703,7 @@ const grid = {
                   cfgStatus: "NULL"
                 })
               }
-              control_elements[i] = {events: events, controlElementNumber: i, controlElementType: moduleElements[moduleType][i]};
+              control_elements[i] = {events: events, controlElementNumber: i, controlElementType: moduleElements[moduleType][i], controlElementName: ''};
             }
           }
 

@@ -56,7 +56,7 @@
 {#if selected}
   <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement} {eventParam}>
 
-    {#if $appSettings.stringNameOverlay}
+    {#if $appSettings.overlays.controlElementName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation}/>
     {/if} 
 

@@ -66,6 +66,11 @@
           </div>
         </div>
       </div>
+
+      <div class="flex w-40 flex-col my-1 relative text-white"> 
+        <div class="mb-1">Controller Scaling</div>
+        <input type="range" min="1.7" max="2.6" step="0.1" bind:value={$appSettings.size}/>
+      </div>
       
     </div>
 

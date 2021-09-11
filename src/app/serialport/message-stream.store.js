@@ -11,7 +11,6 @@ function createMessageStream(){
 
   const _on_data = function(DATA) {
 
-
     if(DATA.HEARTBEAT){
       runtime.device.is_online(grid.device.make(DATA.BRC, DATA.HEARTBEAT, false));
     }
@@ -24,7 +23,6 @@ function createMessageStream(){
     if(get(engine) == 'ENABLED'){
       
       if(DATA.EVENT){
-        console.log(DATA.EVENT)
         // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
         if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6){
           user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
@@ -52,33 +50,10 @@ function createMessageStream(){
       logger.set(DATA.LOG);
     }
 
-    if(DATA.LUA){
-      if(get(engine) == 'ENABLED'){
-        //console.log(DATA);
-        //runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
-      } else {
-        //runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}); // USED ON MULTI FETCH BEFORE PAGE SAVE!
-      }
-    }
-
-    if(DATA.CONFIG_ACKNOWLEDGE){
-      //console.log('CONFIG ACK: ', DATA.CONFIG_ACKNOWLEDGE)
-    }
-
-    if(DATA.CONFIG_NACKNOWLEDGE){
-      //console.log('CONFIG NACK: ', DATA.CONFIG_NACKNOWLEDGE)
-    }
-
-    if(DATA.PAGESTORE_ACKNOWLEDGE){
-      //engine.strict.compare({brc: DATA.BRC, lastheader: DATA.PAGESTORE_ACKNOWLEDGE.LASTHEADER})
-    }
-
-    if(DATA.NVMERASE_ACKNOWLEDGE){
-      //engine.strict.compare({brc: DATA.BRC, lastheader: DATA.NVMERASE_ACKNOWLEDGE.LASTHEADER})
-    }
-
+    
     writeBuffer.validate_incoming(DATA);
-   
+
+    
     _message_stream.set(DATA);
 
   }

@@ -22,7 +22,7 @@
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import ConfigBlock from './components/ConfigBlock.svelte';
-import AddAction from './config-picker/AddAction.svelte';
+  import AddAction from './config-picker/AddAction.svelte';
 
   export let configs = [];
 
