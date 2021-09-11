@@ -316,7 +316,6 @@ function create_runtime () {
         if(initEvent.config.length){
           try {
             stringname = initEvent.config.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1); 
-            console.log(stringname);
             runtime.hidden_update.addToControlElement(stringname, init_li);
           } catch (error) {
             console.error('init event sn read error')
