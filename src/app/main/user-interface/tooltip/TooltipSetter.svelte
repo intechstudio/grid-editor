@@ -32,7 +32,7 @@
 {/if}
 
 {#if mode == 1}
-  <div on:mouseenter={()=>{tooltip = true}} on:mouseleave={()=>{tooltip = false}} style="z-index: 8888;" class="w-full flex h-full absolute right-0 top-0"></div>
+  <div on:click|preventDefault={()=>{}} on:mouseenter={()=>{tooltip = true}} on:mouseleave={()=>{tooltip = false}} style="z-index: 9999;" class="w-full flex h-full absolute right-0 top-0"></div>
 {/if}
 
 {#if mode == 2}

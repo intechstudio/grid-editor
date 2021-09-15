@@ -3,7 +3,7 @@
   export const information = {
     short: 'gtp',
     name: 'TimerStop',
-    rendering: 'fixed',
+    rendering: 'standard',
     category: 'timer',
     desc: 'Stop',
     color: '#95638D',
@@ -17,22 +17,99 @@
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from 'svelte'; 
+  import { onMount, createEventDispatcher, onDestroy } from 'svelte'; 
+  import AtomicInput from '../main/user-interface/AtomicInput.svelte';
+  import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+  import { localDefinitions } from '../runtime/runtime.store';
+
+  export let config;
+
+  let loaded;
 
   const dispatch = createEventDispatcher();
 
-  function sendData(){
-    dispatch('output', {short: 'gtp', script: 'gtp()'})
+  const whatsInParenthesis = /\(([^)]+)\)/;
+  let scriptValue = '';
+
+  $: if(config.script && !loaded){
+ 
+    const matches = whatsInParenthesis.exec(config.script);
+
+    if(matches){
+      scriptValue = matches[1];
+    } else {
+      scriptValue = '';
+    }
+
+    loaded = true;
+
+  }
+
+  $: if(scriptValue){
+    sendData(scriptValue);
+  }
+
+  function sendData(e){
+    dispatch('output', {short: 'gtp', script: `gtp(${e})`})
   }
 
   onMount(()=>{
-    sendData();
+    loaded = true;
   })
+
+  onDestroy(()=>{
+    loaded = false;
+  })
+
+  let showSuggestions = false;
+  let focusedInput = undefined;
+  let focusGroup = [];
+
+  function onActiveFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    focusedInput = index;
+  }
+
+  function onLooseFocus(event,index){
+    focusGroup[index] = event.detail.focus;
+    showSuggestions = focusGroup.includes(true);
+  }
+
+  let suggestions = [];
+
+  const _suggestions = [
+    []
+  ];
+
+  $: if($localDefinitions){
+    suggestions = _suggestions.map((s,i) => {
+      // SKIP LAYER
+        return [ ...s, ...$localDefinitions]
+      
+    });
+    suggestions = suggestions;
+  }
+
+
 </script>
 
 
-<timer-stop class="w-full h-full flex flex-col text-white p-2 bg-secondary">
+<timer-stop class="flex flex-col w-full p-2">
 
-  <div class="pl-2">Stop</div>
+  <div class="w-full px-2">
+    <div class="text-gray-500 text-sm pb-1">Element Number</div>
+    <AtomicInput 
+      suggestions={suggestions[0]}
+      bind:inputValue={scriptValue} 
+      on:active-focus={(e)=>{onActiveFocus(e,0)}} 
+      on:loose-focus={(e)=>{onLooseFocus(e,0)}}/>
+  </div>
 
+  {#if focusGroup[0]}
+    <AtomicSuggestions 
+      suggestions={suggestions}  
+      on:select={(e)=>{
+      scriptValue = e.detail.value;
+    }}/>
+  {/if}
 </timer-stop>

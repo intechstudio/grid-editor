@@ -2,7 +2,6 @@
 
   import { onMount } from "svelte";
   import { fly, fade } from 'svelte/transition';
-  import { engine, logger } from "../../../runtime/runtime.store";
   import { current_tooltip_store } from "../../_stores/app-helper.store";
   import { tooltip_content } from "./tooltip-content.json.js";
 
@@ -39,18 +38,14 @@
 
       let [placeleft_X, placeleft_Y] = [ width - mouseX, height - mouseY ]; // the place left before going out of frame
 
-      if((placeleft_X - rect.width) < 0 ){
-        
+      if((placeleft_X - rect.width) < 0 ){  
         LEFT = mouseX + (placeleft_X - rect.width);
-     } else {
+      } else {
         LEFT = mouseX;
       }
 
-      
-
-
       if((placeleft_Y - rect.height) < 0){
-        TOP = mouseY + (placeleft_Y - rect.height - 30);
+        TOP = mouseY + (placeleft_Y - rect.height - 30) ;
       } else {
         TOP = mouseY;
       }
@@ -81,10 +76,7 @@
     }
   }
 
-
 </script>
-
-
 
 <div id="cursor-tooltip" style="z-index:9999;" use:cursorLog={{tooltip}} class="absolute">
   {#if tooltip}

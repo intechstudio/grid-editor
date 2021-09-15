@@ -24,7 +24,8 @@ function createMessageStream(){
       
       if(DATA.EVENT){
         // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
-        if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6){
+        // filter midi rx and timer!
+        if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6 && DATA.EVENT[0].EVENTTYPE != 5){
           user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
         }
       }

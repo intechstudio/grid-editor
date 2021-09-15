@@ -18,9 +18,10 @@
 
 <script>
 
-  import { createEventDispatcher, onDestroy } from 'svelte';
+  import { createEventDispatcher, onDestroy, onMount } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
+  import { localDefinitions } from '../runtime/runtime.store';
   import _utils from '../runtime/_utils';
 
   export let config = ''
@@ -43,6 +44,7 @@
 
   onDestroy(()=>{
     loaded = false;
+    
   })
 
   function sendData(e){
@@ -65,18 +67,24 @@
     showSuggestions = focusGroup.includes(true);
   }
 
-  const suggestions = [
+  let suggestions = [];
+
+  const _suggestions = [
     [
       {value: '1', info: 'Left Click'}, 
       {value: '2', info: 'Right Click'},
       {value: '4', info: 'Middle Click'},
     ],
     [
-      {value: '1', info: 'X'}, 
-      {value: '2', info: 'Y'},
-      {value: '4', info: 'Z'},
+      {value: '1', info: 'Press'},
+      {value: '0', info: 'Release'}, 
     ]
-  ]
+  ];
+
+  onMount(()=>{
+    suggestions = _suggestions;
+  })
+
 
 </script>
 

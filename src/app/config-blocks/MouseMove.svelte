@@ -62,20 +62,14 @@
       {value: '3', info: 'Mouse Wheel'},
     ],
     [
-      {value: '1', info: 'Help'},
-      {value: '2', info: 'Help'}
+    
     ],
 
   ];
 
   $: if($localDefinitions){
     suggestions = _suggestions.map((s,i) => {
-      // SKIP LAYER
-      if(i != 1){
-        return [...$localDefinitions, ...s]
-      } else {
-        return [ ...s, ...$localDefinitions]
-      }
+      return [ ...s, ...$localDefinitions]
     });
     suggestions = suggestions;
   }

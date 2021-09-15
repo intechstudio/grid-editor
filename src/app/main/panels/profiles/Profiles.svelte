@@ -336,7 +336,10 @@
           class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
       </div>
 
-      <button on:click={prepareSave} disabled={!checkIfOk(newProfile)} class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit relative  border-none focus:outline-none">
+      <button 
+      on:click={prepareSave} 
+      disabled={!checkIfOk(newProfile)} 
+      class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit relative  border-none focus:outline-none">
         <div>Save</div>
         <TooltipSetter mode={1} key={"profile_save"}/>
       </button>
@@ -399,7 +402,8 @@
 
       <button 
         on:click={loadProfile} 
-        class="bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none relative">
+        disabled={selectedIndex === undefined} 
+        class="relative bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
         <div>Load Profile To Module</div>
         <TooltipSetter mode={1} key={"profile_load_to_module"}/>
       </button>
