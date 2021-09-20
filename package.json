@@ -106,7 +106,7 @@
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
     "e:builder:nightly": "cross-env NODE_ENV=production NOTARIZE=true MODE=nightly electron-builder --publish onTagOrDraft",
-    "e:builder:local": "cross-env NODE_ENV=production electron-builder --publish never",
+    "e:builder:local": "cross-env NODE_ENV=production MODE=nightly electron-builder --publish never",
     "export": "run-s s:build e:builder",
     "export:nightly": "run-s s:build e:builder:nightly",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
