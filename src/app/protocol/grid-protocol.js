@@ -3,11 +3,34 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol_night
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';
 import { sendDataToClient } from '../debug/tower.js';
+import { isInteger } from 'lodash';
 
 
 // global id for serial message generation
 let global_id = 0;
 
+
+function read_integer_from_asciicode_array(array, offset, length){
+
+  // check is parameters are valid, make sure we don't overrun the buffer
+  if (array.length < offset+length){
+    console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
+    return undefined;
+  }
+
+  let ret_value = 0;
+  for (let i=0; i<length; i++){
+    
+    ret_value += parseInt('0x'+String.fromCharCode(array[offset+i]))*Math.pow(16, length-1-i);
+  }
+
+  // if elemnt in ascii array was not valid hex character (0...9 or a...f)
+  if (ret_value === NaN){
+    return undefined;
+  }
+
+  return ret_value;
+}
 
 // helper functions
 const utility_genId  = () => {
@@ -400,9 +423,112 @@ const grid = {
   
       message = message + checksum;
   
-      return message;
+      return message;    
     },
-  
+    parse_to_class_stream_suku: function(incoming_hex_string){
+   
+      // conver incoming data from hex blob to array of ascii codes
+      let incoming_hex_array = Array.from(incoming_hex_string);
+      let asciicode_array = [];
+
+      for (let i = 0; i < incoming_hex_array.length; i+=2) {
+        asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
+      }
+
+      // use the last two characters to determine the received checksum
+      let received_checksum = parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-1]))*1 + parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-2]))*16;
+     
+      // use the whole packet except the last two characters to determine the calculated checksum
+      let calculated_checksum = 0;
+      
+      for(let i=0; i<asciicode_array.length - 2; i++){
+        calculated_checksum ^= asciicode_array[i];
+      }
+      calculated_checksum%=256;
+
+      // drop the packet if there was a checksum mismatch, otherwise continue parsing it
+      if (received_checksum !== calculated_checksum){
+        console.log("Checksum mismatch, packet dropped! Received: "+received_checksum + " Calculated: " + calculated_checksum);
+        return undefined;
+      }
+
+      // check if SOH character is found
+      if (asciicode_array[0] !== parseInt(grid_protocol.GRID_CONST_SOH)) {
+        console.log("Frame error: SOH not found!");
+        return undefined;        
+      } 
+
+      // check if BRC character is found
+      if (asciicode_array[1] !== parseInt(grid_protocol.GRID_CONST_BRC)) {
+        console.log("Frame error: BRC not found!");
+        return undefined;        
+      } 
+
+      // check if EOB character is found
+      if (asciicode_array[asciicode_array.length-3] !== parseInt(grid_protocol.GRID_CONST_EOT)) {
+        console.log("Frame error: EOT not found!");
+        return undefined;        
+      } 
+
+      // decode all of the BRC parameters
+      let brc = {};
+
+      brc.len     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_LEN_offset),     parseInt(grid_protocol.GRID_BRC_LEN_length));
+      brc.id      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_ID_offset),      parseInt(grid_protocol.GRID_BRC_ID_length));
+      brc.session = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SESSION_offset), parseInt(grid_protocol.GRID_BRC_SESSION_length));
+      brc.sx      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SX_offset),      parseInt(grid_protocol.GRID_BRC_SX_length));
+      brc.sy      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SY_offset),      parseInt(grid_protocol.GRID_BRC_SY_length));
+      brc.dx      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_DX_offset),      parseInt(grid_protocol.GRID_BRC_DX_length));
+      brc.dy      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_DY_offset),      parseInt(grid_protocol.GRID_BRC_DY_length));
+      brc.rot     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_ROT_offset),     parseInt(grid_protocol.GRID_BRC_ROT_length));
+      brc.portrot = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_PORTROT_offset), parseInt(grid_protocol.GRID_BRC_PORTROT_length)); // portrot not needed
+      brc.age     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_AGE_offset),      parseInt(grid_protocol.GRID_BRC_AGE_length));
+      
+      // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
+      if (asciicode_array.length-2 !== brc.len){
+        console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc_len: ${brc.len}, brc_len should be: ${asciicode_array.length-2}`);
+      }
+
+      // check if EOB character is found
+      if (asciicode_array[22] !== parseInt(grid_protocol.GRID_CONST_EOB)) {
+        console.log("Frame error: EOB not found!");
+        return undefined;        
+      } 
+
+      let class_asciicode_array = asciicode_array.slice(23,-3);
+      
+      let class_blocks = [];
+
+      for(let i=0, start_index = 0; i<class_asciicode_array.length; i++){
+        if (class_asciicode_array[i] === parseInt(grid_protocol.GRID_CONST_ETX)){
+          class_blocks.push(class_asciicode_array.slice(start_index, i+1));
+          start_index = i+1;
+        }
+      }
+
+      let return_array = [];
+
+      for (let i=0; i<class_blocks.length; i++){
+        // check first and last charaters, make sure they are STX and ETX
+        if (class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) && class_blocks[i][class_blocks[i].length-1] === parseInt(grid_protocol.GRID_CONST_ETX) ){
+          let current = {};
+          current.raw = class_blocks[i].slice(1,-1); 
+          current.brc = brc;
+
+          return_array.push(current);
+        }
+        else{
+          console.log("Frame error: STX ETX mismatch!");
+          return undefined;
+        }
+      }
+
+      return return_array;
+
+    },
+    decode_to_class_stream_suku: function(raw_class_array){
+      
+    },
     decode: function(data){
 
       function check_checksum(data){
@@ -575,14 +701,14 @@ const grid = {
               DATA.LOG = {type: 'alert', classname: 'pagechange', message: 'Store your config before switching pages!'}
             }
 
-/*          if(DATA.DEBUGTEXT.includes('store complete')){
+            /*          if(DATA.DEBUGTEXT.includes('store complete')){
               DATA.LOG = {type: 'success', message: 'Store complete!'}
             }
 
             if(DATA.DEBUGTEXT.includes('clear complete')){
               DATA.LOG = {type: 'success', message: 'Clear complete!'}
             }
- */
+            */
           }
 
           if(obj.class == "MIDI"){
