@@ -11,6 +11,8 @@ function createMessageStream(){
 
   const _on_data = function(DATA) {
 
+
+
     if(DATA.HEARTBEAT){
       runtime.device.is_online(grid.device.make(DATA.BRC, DATA.HEARTBEAT, false));
     }
@@ -44,7 +46,10 @@ function createMessageStream(){
     }
 
     if(DATA.MIDI){
-      midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI});
+      for(let i=0; i<DATA.MIDI.length; i++){
+        midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI[i]});
+      }
+
     }
 
     if(DATA.LOG){

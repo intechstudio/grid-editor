@@ -586,8 +586,13 @@ const grid = {
           }
 
           if(obj.class == "MIDI"){
-            DATA.MIDI = decode_by_code(array, obj.class);
-            DATA.MIDI.INSTR = obj.instr;
+            if (DATA.MIDI === undefined){
+              DATA.MIDI = [];
+            }
+            
+            let temp = decode_by_code(array, obj.class)
+            temp.INSTR = obj.instr;
+            DATA.MIDI.push(temp);
           }
 
           if(obj.class == "PAGESTORE"){
