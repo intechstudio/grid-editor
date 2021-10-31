@@ -47,8 +47,7 @@ function createMessageStream(){
 
     if(DATA.MIDI){
       for(let i=0; i<DATA.MIDI.length; i++){
-        midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI[i]});     
-        console.log(DATA.MIDI[i])
+        midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI[i]});
       }
 
     }
