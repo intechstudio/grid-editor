@@ -9,6 +9,22 @@ import { isInteger } from 'lodash';
 // global id for serial message generation
 let global_id = 0;
 
+let class_codes = {};
+
+function parse_classes_from_protocol(){
+  
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if(key.startsWith('GRID_CLASS_') && key.endsWith('code')){
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-2];
+        class_codes[grid_protocol[key]] = class_name;
+           
+      }
+    }
+  }
+}
 
 function read_integer_from_asciicode_array(array, offset, length){
 
@@ -527,7 +543,20 @@ const grid = {
 
     },
     decode_to_class_stream_suku: function(raw_class_array){
+
       
+
+      parse_classes_from_protocol()
+
+      raw_class_array.forEach((raw_class, i) => { 
+
+        let class_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
+        if (class_codes[class_string] !== undefined){
+          console.log(class_codes[class_string])
+        }
+
+      });
+
     },
     decode: function(data){
 

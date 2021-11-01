@@ -241,7 +241,7 @@
     });
 
     PORT.on('open', function() {
-      console.log('Port is open.', PORT.path);    
+      console.log('Port is open.', PORT.path);  
       runSerialParser(PORT);
     }); 
   }
@@ -254,12 +254,11 @@
     parser.on('data', function(data) {
 
       let class_array = grid.translate.parse_to_class_stream_suku(data);
-      let class_decoded = grid.translate.decode_to_class_stream_suku(class_array);
+      let temp =  grid.translate.decode_to_class_stream_suku(class_array);
 
 
       const decoded = grid.translate.decode(data);
       if(decoded !== false){
-        console.log(decoded);
         messageStream.set(decoded);   
       }
     })
