@@ -245,7 +245,6 @@
       runSerialParser(PORT);
     }); 
   }
-
   
   function runSerialParser(port){
 
