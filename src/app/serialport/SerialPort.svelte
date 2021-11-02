@@ -256,7 +256,6 @@
       let class_array = grid.translate.parse_to_class_stream_suku(data);
       let temp =  grid.translate.decode_to_class_stream_suku(class_array);
 
-
       const decoded = grid.translate.decode(data);
       if(decoded !== false){
         messageStream.set(decoded);   

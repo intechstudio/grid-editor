@@ -10,6 +10,44 @@ import { isInteger } from 'lodash';
 let global_id = 0;
 
 let class_codes = {};
+let class_parameters = {};
+let brc_parameters = {};
+
+let init = parse_classes_from_protocol()
+let init2 = parse_brc_from_protocol()
+
+function parse_brc_from_protocol(){
+  
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if(key.startsWith('GRID_BRC_') && key.endsWith('length')){
+        let splitted = key.split("_");
+        let parameter_name = splitted[splitted.length-2];
+
+        if (brc_parameters[parameter_name] === undefined){
+          brc_parameters[parameter_name] = {};
+        }
+
+        brc_parameters[parameter_name].name = parameter_name;
+        brc_parameters[parameter_name].length = parseInt(grid_protocol[key]);   
+      }
+      else if (key.startsWith('GRID_BRC_') && key.endsWith('offset')){
+        let splitted = key.split("_");
+        let parameter_name = splitted[splitted.length-2];
+
+        if (brc_parameters[parameter_name] === undefined){
+          brc_parameters[parameter_name] = {};
+        }
+
+        brc_parameters[parameter_name].offset = parseInt(grid_protocol[key]);   
+      }
+    }
+  }
+
+}
+
 
 function parse_classes_from_protocol(){
   
@@ -22,9 +60,58 @@ function parse_classes_from_protocol(){
         class_codes[grid_protocol[key]] = class_name;
            
       }
+      else if (key === "GRID_CLASS_length" || key ===  "GRID_CLASS_offset"){
+
+        // they keys should have been depricated, are not useful, even in firmware
+
+      }
+      else if(key.startsWith('GRID_CLASS_') && key.endsWith('length')){
+
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-3];
+
+        let parameter_name = splitted[splitted.length-2];
+        let parameter_length = parseInt(grid_protocol[key]);
+
+        if (class_parameters[class_name] === undefined){
+          class_parameters[class_name] = {};
+        }
+        if (class_parameters[class_name][parameter_name] === undefined){
+          class_parameters[class_name][parameter_name] = {};
+        }
+        
+
+        class_parameters[class_name][parameter_name].name = parameter_name;
+        class_parameters[class_name][parameter_name].length = parameter_length;
+
+
+      }
+      else if (key.startsWith('GRID_CLASS_') && key.endsWith('offset')){
+
+
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-3];
+
+        let parameter_name = splitted[splitted.length-2];
+        let parameter_offset = parseInt(grid_protocol[key]);
+        
+        if (class_parameters[class_name] === undefined){
+          class_parameters[class_name] = {};
+        }
+        if (class_parameters[class_name][parameter_name] === undefined){
+          class_parameters[class_name][parameter_name] = {};
+        }
+
+        class_parameters[class_name][parameter_name].name = parameter_name;
+        class_parameters[class_name][parameter_name].offset = parameter_offset;
+
+      }
     }
+
+
   }
 }
+
 
 function read_integer_from_asciicode_array(array, offset, length){
 
@@ -489,20 +576,14 @@ const grid = {
       // decode all of the BRC parameters
       let brc = {};
 
-      brc.len     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_LEN_offset),     parseInt(grid_protocol.GRID_BRC_LEN_length));
-      brc.id      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_ID_offset),      parseInt(grid_protocol.GRID_BRC_ID_length));
-      brc.session = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SESSION_offset), parseInt(grid_protocol.GRID_BRC_SESSION_length));
-      brc.sx      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SX_offset),      parseInt(grid_protocol.GRID_BRC_SX_length));
-      brc.sy      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_SY_offset),      parseInt(grid_protocol.GRID_BRC_SY_length));
-      brc.dx      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_DX_offset),      parseInt(grid_protocol.GRID_BRC_DX_length));
-      brc.dy      = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_DY_offset),      parseInt(grid_protocol.GRID_BRC_DY_length));
-      brc.rot     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_ROT_offset),     parseInt(grid_protocol.GRID_BRC_ROT_length));
-      brc.portrot = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_PORTROT_offset), parseInt(grid_protocol.GRID_BRC_PORTROT_length)); // portrot not needed
-      brc.age     = read_integer_from_asciicode_array(asciicode_array, parseInt(grid_protocol.GRID_BRC_AGE_offset),      parseInt(grid_protocol.GRID_BRC_AGE_length));
-      
+      for (const key in brc_parameters) {
+        brc[brc_parameters[key].name] = read_integer_from_asciicode_array(asciicode_array, brc_parameters[key].offset, brc_parameters[key].length);
+      }
+
       // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
-      if (asciicode_array.length-2 !== brc.len){
-        console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc_len: ${brc.len}, brc_len should be: ${asciicode_array.length-2}`);
+      if (asciicode_array.length-2 !== brc.LEN){
+        console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc.LEN: ${brc.LEN}, brc_len should be: ${asciicode_array.length-2}`);
+        return undefined;         
       }
 
       // check if EOB character is found
@@ -522,6 +603,7 @@ const grid = {
         }
       }
 
+
       let return_array = [];
 
       for (let i=0; i<class_blocks.length; i++){
@@ -529,7 +611,7 @@ const grid = {
         if (class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) && class_blocks[i][class_blocks[i].length-1] === parseInt(grid_protocol.GRID_CONST_ETX) ){
           let current = {};
           current.raw = class_blocks[i].slice(1,-1); 
-          current.brc = brc;
+          current.brc_parameters = brc;
 
           return_array.push(current);
         }
@@ -544,15 +626,32 @@ const grid = {
     },
     decode_to_class_stream_suku: function(raw_class_array){
 
-      
-
-      parse_classes_from_protocol()
 
       raw_class_array.forEach((raw_class, i) => { 
 
-        let class_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
-        if (class_codes[class_string] !== undefined){
-          console.log(class_codes[class_string])
+        let class_code_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
+        if (class_codes[class_code_string] !== undefined){
+
+          raw_class.class_name = class_codes[class_code_string]
+
+          raw_class.class_parameters = {};
+
+          for (const key in class_parameters[raw_class.class_name]) {
+
+            let current_parameter = class_parameters[raw_class.class_name][key];
+
+            let parameter_offset = class_parameters[raw_class.class_name][key].offset-1;
+            let parameter_length = class_parameters[raw_class.class_name][key].length;
+            
+            let parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+
+            raw_class.class_parameters[current_parameter.name] = {}
+            
+            raw_class.class_parameters[current_parameter.name] = parameter_value;
+
+          }
+
+
         }
 
       });
