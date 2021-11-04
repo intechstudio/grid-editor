@@ -31,18 +31,12 @@
 
   function handleEventParamChange(static_elementNumber, eventParam){
     if(eventParam.length){
-      let v = 0;
-      eventParam[1].forEach((e)=>{
-        if(eventParam[0].SX == dx && eventParam[0].SY == dy){
-          if(static_elementNumber == e.ELEMENTNUMBER){
-            v =  e.EVENTPARAM;
-            return;
-          }
-        }
-      })
       
-      if(v){
-        return v;
+      if(eventParam[0].SX == dx && eventParam[0].SY == dy){
+        if(static_elementNumber == eventParam[1].ELEMENTNUMBER){
+
+          return eventParam[1].EVENTPARAM;
+        }
       }
     }
   }

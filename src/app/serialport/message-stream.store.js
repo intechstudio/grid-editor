@@ -23,12 +23,28 @@ function createMessageStream(){
       }
 
       if (class_descr.class_name === "PAGECOUNT"){
-        runtime.device.update_pages(class_descr)        
+  
+        runtime.device.update_pages(class_descr);        
       }
 
-      if(DATA.DEBUGTEXT){
-        
+      if(class_descr.class_name === "DEBUGTEXT"){
+  
         debug_store.update_debugtext(class_descr);
+      }
+
+      if(class_descr.class_name === "MIDI"){
+      
+        midi_monitor_store.update_midi(class_descr);
+      }
+
+      if (class_descr.class_name === "EVENT"){
+
+        // update active element selection
+        user_input.process_incoming_from_grid(class_descr);
+
+        // update control element rotation
+        user_input.update_eventparam(class_descr);  
+
       }
 
     });
@@ -37,31 +53,19 @@ function createMessageStream(){
     // enable user input from grid only if engine is enabled
     if(get(engine) == 'ENABLED'){
       
-      if(DATA.EVENT){
-        // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
-        // filter midi rx and timer!
-        if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6 && DATA.EVENT[0].EVENTTYPE != 5){
-          user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
-        }
-      }
-
-      if(DATA.EVENTPARAM){
-        user_input.update_eventparam({brc: DATA.BRC, event: DATA.EVENT});
-      }
+      // if(DATA.EVENT){ // event class
+      //   // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
+      //   // filter midi rx and timer!
+      //   if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6 && DATA.EVENT[0].EVENTTYPE != 5){
+      //     user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
+      //   }
+      // }
 
       if(DATA.PAGEACTIVE){
         user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
       }
     }
 
-
-
-    if(DATA.MIDI){
-      for(let i=0; i<DATA.MIDI.length; i++){
-        midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI[i]});
-      }
-
-    }
 
     if(DATA.LOG){
       logger.set(DATA.LOG);

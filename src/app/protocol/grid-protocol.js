@@ -10,6 +10,7 @@ import { isInteger } from 'lodash';
 let global_id = 0;
 
 let class_codes = parse_class_codes_from_protocol()
+let instr_codes = parse_instr_codes_from_protocol()
 let class_parameters = parse_class_parameters_from_protocol()
 let brc_parameters = parse_brc_parameters_from_protocol()
 
@@ -66,6 +67,26 @@ function parse_class_codes_from_protocol(){
 
   return classcodes;
 }
+
+function parse_instr_codes_from_protocol(){
+  
+  let instrcodes = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+      if(key.startsWith('GRID_INSTR_') && key.endsWith('code')){
+        let splitted = key.split("_");
+        let instr_name = splitted[splitted.length-2].toUpperCase();
+        instrcodes[grid_protocol[key].toLowerCase()] = instr_name;    
+      }
+    }
+  }
+
+  console.log(instrcodes)
+
+  return instrcodes;
+}
+
 
 function parse_class_parameters_from_protocol(){
   
@@ -683,9 +704,13 @@ const grid = {
       raw_class_array.forEach((raw_class, i) => { 
 
         let class_code_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
+        let class_instr_string =("0x"+String.fromCharCode(raw_class.raw[3]));
+        
+
         if (class_codes[class_code_string] !== undefined){
 
-          raw_class.class_name = class_codes[class_code_string]
+          raw_class.class_name = class_codes[class_code_string];
+          raw_class.class_instr = instr_codes[class_instr_string];
 
           raw_class.class_parameters = {};
 

@@ -85,73 +85,65 @@ function create_user_input () {
 
   });
 
-  function update_eventparam({brc, event}){
-    // update more than one user input eventparam for cool ui tweaks!
+  function update_eventparam(descr){
+
     _param.update((s)=>{
-      s = [brc, event];
+      s = [descr.brc_parameters, descr.class_parameters];
       return s;
     })
   }
 
-  function getIdFromRuntimeByBrc(brc){
-    try {
-      const rt = get(runtime);
-      const moduleByBrc = rt.find(x => x.dx == brc.SX && x.dy == brc.SY);
-      return moduleByBrc.id.substr(0,4);
-    } catch (error) {
-      console.error('Sorry, module ID is not extracted!')
-      return "undefined";
+
+
+  function process_incoming_from_grid(descr){
+
+    // engine is disabled
+    if ( get(engine) === "DISABLED"){
+      return;
     }
-  }
 
-  function getControlElementTypeByElementNumber({brc,event}){
-    try {
-      const rt = get(runtime);
-      const moduleByBrc = rt.find(x => x.dx == brc.SX && x.dy == brc.SY);
-      const pageIndex = moduleByBrc.pages.findIndex(x => x.pageNumber == event.PAGENUMBER);
-      const elementIndex = moduleByBrc.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == event.ELEMENTNUMBER);
-      const element = moduleByBrc.pages[pageIndex].control_elements[elementIndex];
-      return element.controlElementType;
-    } catch (error) {
-      console.error('Sorry, controlElementType is not extracted!')
-      return "undefined";
+    // track physical interaction
+    if (!get(appSettings).changeOnContact){
+      return;
     }
-  }
-
-  function process_incoming_from_grid({brc, event}){
-    if(event.EVENTTYPE !== 12 && event.EVENTTYPE !== 0){
-
-      const store = get(_event);
-      
-      let [elementDifferent, eventDifferent] = [true, true];
-      // filter same control element had multiple interactions
-      if(store.event.elementnumber == event.ELEMENTNUMBER){
-        elementDifferent = false;
-      }
-      if(store.event.eventtype == event.EVENTTYPE){
-        eventDifferent = false;
-      }
-
-     // console.log(elementDifferent, eventDifferent);
-      //console.log('stored event', store.event.eventtype, 'incoming event', event.EVENTTYPE);
-      //console.log('stored elementnumber', store.event.elementnumber, 'incoming elementnumber', event.ELEMENTNUMBER);
 
 
-      if(eventDifferent || elementDifferent) {
-        _event.update((store) => {
-          store.brc.dx = brc.SX; // coming from source x, will send data back to destination x
-          store.brc.dy = brc.SY; // coming from source y, will send data back to destination y
-          store.brc.rot = brc.ROT;
-          store.id = getIdFromRuntimeByBrc(brc);
-          if(event.ELEMENTNUMBER !== 255){
-            store.event.elementtype = getControlElementTypeByElementNumber({brc, event})
-            store.event.eventtype = event.EVENTTYPE;
-            store.event.elementnumber = event.ELEMENTNUMBER;       
-          }  
-          return store;
-        });
-      }
+    // event is init, mapmode, midirx, timer
+    if (descr.class_parameters.EVENTTYPE == 0 || descr.class_parameters.EVENTTYPE == 4 || descr.class_parameters.EVENTTYPE == 5 || descr.class_parameters.EVENTTYPE == 6 ){
+      return;
     }
+
+    // system element
+    if(descr.class_parameters.ELEMENTNUMBER == 255){
+      return; 
+    }
+
+    const store = get(_event);
+    
+    // filter same control element had multiple interactions
+    let elementDifferent = (store.event.elementnumber != descr.class_parameters.ELEMENTNUMBER);
+    let eventDifferent = (store.event.eventtype != descr.class_parameters.EVENTTYPE);
+    let sxDifferent = (store.brc.dx != descr.brc_parameters.SX);
+    let syDifferent = (store.brc.dy != descr.brc_parameters.SY);
+
+    if(eventDifferent || elementDifferent || sxDifferent || syDifferent) {
+
+      _event.update((store) => {
+        
+        // lets find out what type of module this is....
+
+        store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
+        store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
+        store.brc.rot = descr.brc_parameters.ROT;
+        
+        store.event.elementtype = descr.class_parameters.ELEMENTTYPE;
+        store.event.eventtype = descr.class_parameters.EVENTTYPE;
+        store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;       
+        
+        return store;
+      });
+    }
+  
   }
 
   const _update = function(){
@@ -894,16 +886,14 @@ function createMidiMonitor(){
 
   return {
     ...store,
-    update_midi: ({brc,midi}) => {
+    update_midi: (descr) => {
+
       store.update(s => {
         if(s.length >= 30){
           s.shift()
         };
 
-        midi.sx = brc.SX;
-        midi.sy = brc.SY;
-
-        s = [...s, midi];
+        s = [...s, descr];
         return s;
       })
     }

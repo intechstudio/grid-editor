@@ -33,15 +33,15 @@ import { onMount } from "svelte";
     </div>
 
   {#each midiArray as midi}
-    <div class="{midi.INSTR == 'REPORT' ? 'text-blue-400' : 'text-green-400'} flex items-center justify-between w-full font-mono">
+    <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} flex items-center justify-between w-full font-mono">
       <div class="w-full grid grid-cols-6 ">
-        <div>[{midi.sx},{midi.sy}]</div>
-        <div>{midi.CHANNEL} </div> 
-        <div>{midi.COMMAND} </div> 
-        <div>{midi.PARAM1} </div> 
-        <div>{midi.PARAM2}</div>
+        <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
+        <div>{midi.class_parameters.CHANNEL} </div> 
+        <div>{midi.class_parameters.COMMAND} </div> 
+        <div>{midi.class_parameters.PARAM1} </div> 
+        <div>{midi.class_parameters.PARAM2}</div>
         <div class="flex items-center">
-          {#if midi.INSTR == 'REPORT'}
+          {#if midi.class_instr == 'REPORT'}
             <div>RX</div>
             <svg class="ml-1 w-5 h-5 fill-current text-blue-400" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
               viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
