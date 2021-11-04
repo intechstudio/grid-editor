@@ -378,14 +378,21 @@ function create_runtime () {
       });
     }
 
-    this.update_pages = function({brc, pagenumber}){
+    this.update_pages = function(descr){
+
+
+      let sx = descr.brc_parameters.SX;
+      let sy = descr.brc_parameters.SY;
+      let pagecount = descr.class_parameters.PAGENUMBER;
+
+
       // this is called as many modules there are, because the pagecount fetch is global.
       // we should device which pagenumber is the meta
       _runtime.update((_runtime) => {
         _runtime.forEach((device)=>{
           // don't make pages if there are already same amount of pages...
-          if(device.dx == brc.SX && device.dy == brc.SY && pagenumber !== device.pages.length){
-            for (let i = 0; i < pagenumber - 1; i++) {
+          if(device.dx == sx && device.dy == sy && pagecount !== device.pages.length){
+            for (let i = 0; i < pagecount - 1; i++) {
               device.pages = [...device.pages, grid.device.createPage(device.id, 'GRID_REPORT', i+1)];
             }
           }
@@ -858,13 +865,21 @@ function createDebug(){
     update_config: (value) => {
       store.update(s => {s.config = value; return s})
     },
-    update_debugtext: ({brc,text}) => {
+    update_debugtext: (descr) => {
+
+      console.log(descr)
+
+      let sx = descr.brc_parameters.SX;
+      let sy = descr.brc_parameters.SY;
+      let text = descr.class_parameters.TEXT;
+
+
       store.update(d => {
         if(d.enabled){
           if(d.data.length >= 15){
             d.data.shift()
           }
-          d.data = [...d.data, `[${brc.SX},${brc.SY}] ${text}`];
+          d.data = [...d.data, `[${sy},${sx}] ${text}`];
         }
         return d;
       })

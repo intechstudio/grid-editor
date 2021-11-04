@@ -9,15 +9,13 @@ import { isInteger } from 'lodash';
 // global id for serial message generation
 let global_id = 0;
 
-let class_codes = {};
-let class_parameters = {};
-let brc_parameters = {};
+let class_codes = parse_class_codes_from_protocol()
+let class_parameters = parse_class_parameters_from_protocol()
+let brc_parameters = parse_brc_parameters_from_protocol()
 
-let init = parse_classes_from_protocol()
-let init2 = parse_brc_from_protocol()
-
-function parse_brc_from_protocol(){
+function parse_brc_parameters_from_protocol(){
   
+  let brcparams = {};
 
   for (const key in grid_protocol) {
     if(typeof grid_protocol[key] !== 'object'){
@@ -26,41 +24,57 @@ function parse_brc_from_protocol(){
         let splitted = key.split("_");
         let parameter_name = splitted[splitted.length-2];
 
-        if (brc_parameters[parameter_name] === undefined){
-          brc_parameters[parameter_name] = {};
+        if (brcparams[parameter_name] === undefined){
+          brcparams[parameter_name] = {};
         }
 
-        brc_parameters[parameter_name].name = parameter_name;
-        brc_parameters[parameter_name].length = parseInt(grid_protocol[key]);   
+        brcparams[parameter_name].name = parameter_name;
+        brcparams[parameter_name].length = parseInt(grid_protocol[key]);   
       }
       else if (key.startsWith('GRID_BRC_') && key.endsWith('offset')){
         let splitted = key.split("_");
         let parameter_name = splitted[splitted.length-2];
 
-        if (brc_parameters[parameter_name] === undefined){
-          brc_parameters[parameter_name] = {};
+        if (brcparams[parameter_name] === undefined){
+          brcparams[parameter_name] = {};
         }
 
-        brc_parameters[parameter_name].offset = parseInt(grid_protocol[key]);   
+        brcparams[parameter_name].offset = parseInt(grid_protocol[key]);   
       }
     }
   }
 
+  return brcparams;
+
 }
 
 
-function parse_classes_from_protocol(){
+function parse_class_codes_from_protocol(){
   
+  let classcodes = {};
+
   for (const key in grid_protocol) {
     if(typeof grid_protocol[key] !== 'object'){
 
       if(key.startsWith('GRID_CLASS_') && key.endsWith('code')){
         let splitted = key.split("_");
         let class_name = splitted[splitted.length-2];
-        class_codes[grid_protocol[key]] = class_name;
-           
+        classcodes[grid_protocol[key]] = class_name;    
       }
-      else if (key === "GRID_CLASS_length" || key ===  "GRID_CLASS_offset"){
+    }
+  }
+
+  return classcodes;
+}
+
+function parse_class_parameters_from_protocol(){
+  
+  let classparams = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if (key === "GRID_CLASS_length" || key ===  "GRID_CLASS_offset"){
 
         // they keys should have been depricated, are not useful, even in firmware
 
@@ -73,16 +87,16 @@ function parse_classes_from_protocol(){
         let parameter_name = splitted[splitted.length-2];
         let parameter_length = parseInt(grid_protocol[key]);
 
-        if (class_parameters[class_name] === undefined){
-          class_parameters[class_name] = {};
+        if (classparams[class_name] === undefined){
+          classparams[class_name] = {};
         }
-        if (class_parameters[class_name][parameter_name] === undefined){
-          class_parameters[class_name][parameter_name] = {};
+        if (classparams[class_name][parameter_name] === undefined){
+          classparams[class_name][parameter_name] = {};
         }
         
 
-        class_parameters[class_name][parameter_name].name = parameter_name;
-        class_parameters[class_name][parameter_name].length = parameter_length;
+        classparams[class_name][parameter_name].name = parameter_name;
+        classparams[class_name][parameter_name].length = parameter_length;
 
 
       }
@@ -95,21 +109,22 @@ function parse_classes_from_protocol(){
         let parameter_name = splitted[splitted.length-2];
         let parameter_offset = parseInt(grid_protocol[key]);
         
-        if (class_parameters[class_name] === undefined){
-          class_parameters[class_name] = {};
+        if (classparams[class_name] === undefined){
+          classparams[class_name] = {};
         }
-        if (class_parameters[class_name][parameter_name] === undefined){
-          class_parameters[class_name][parameter_name] = {};
+        if (classparams[class_name][parameter_name] === undefined){
+          classparams[class_name][parameter_name] = {};
         }
 
-        class_parameters[class_name][parameter_name].name = parameter_name;
-        class_parameters[class_name][parameter_name].offset = parameter_offset;
+        classparams[class_name][parameter_name].name = parameter_name;
+        classparams[class_name][parameter_name].offset = parameter_offset;
 
       }
     }
 
-
   }
+
+  return classparams;
 }
 
 
@@ -131,6 +146,35 @@ function read_integer_from_asciicode_array(array, offset, length){
   if (ret_value === NaN){
     return undefined;
   }
+
+  return ret_value;
+}
+
+function read_string_from_asciicode_array(array, offset, length){
+
+  // check is parameters are valid, make sure we don't overrun the buffer
+  if (array.length>0 && array.length < offset+length){
+    console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
+    return undefined;
+  }
+
+  let ret_array = [];
+  let ret_value = "";
+
+
+  if (length>0){ // fixed length
+    // not implemented
+  }
+  else{ // variable length
+
+    for (let i=offset; i<array.length; i++){
+      ret_array[i-offset] = array[i];
+      ret_value += String.fromCharCode(array[i]);
+    }
+
+  }
+  
+  //console.log(String.fromCharCode(array),ret_value);
 
   return ret_value;
 }
@@ -577,8 +621,17 @@ const grid = {
       let brc = {};
 
       for (const key in brc_parameters) {
+
+
         brc[brc_parameters[key].name] = read_integer_from_asciicode_array(asciicode_array, brc_parameters[key].offset, brc_parameters[key].length);
+        
+        
       }
+
+      brc.SX -= 127;
+      brc.SY -= 127;
+      brc.DX -= 127;
+      brc.DY -= 127;
 
       // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
       if (asciicode_array.length-2 !== brc.LEN){
@@ -643,7 +696,15 @@ const grid = {
             let parameter_offset = class_parameters[raw_class.class_name][key].offset-1;
             let parameter_length = class_parameters[raw_class.class_name][key].length;
             
-            let parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+            let parameter_value;
+
+            if (parameter_length>0){
+              parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+            }
+            else{ // variable length string
+              parameter_value = read_string_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+            }
+
 
             raw_class.class_parameters[current_parameter.name] = {}
             
@@ -653,8 +714,10 @@ const grid = {
 
 
         }
-
+        
       });
+
+
 
     },
     decode: function(data){

@@ -11,15 +11,28 @@ function createMessageStream(){
 
   const _on_data = function(DATA) {
 
+    let class_array = DATA.class_array;
 
+    class_array.forEach((class_descr, i) => {
+      
+      //console.log(class_descr);
 
-    if(DATA.HEARTBEAT){
-      runtime.device.is_online(grid.device.make(DATA.BRC, DATA.HEARTBEAT, false));
-    }
+      if (class_descr.class_name === "HEARTBEAT"){
+        // check if it is online and if not then create a new module
+        runtime.device.is_online(grid.device.make(class_descr.brc_parameters, class_descr.class_parameters, false));
+      }
 
-    if(DATA.PAGECOUNT){
-      runtime.device.update_pages({brc: DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
-    }
+      if (class_descr.class_name === "PAGECOUNT"){
+        runtime.device.update_pages(class_descr)        
+      }
+
+      if(DATA.DEBUGTEXT){
+        
+        debug_store.update_debugtext(class_descr);
+      }
+
+    });
+
 
     // enable user input from grid only if engine is enabled
     if(get(engine) == 'ENABLED'){
@@ -41,9 +54,7 @@ function createMessageStream(){
       }
     }
 
-    if(DATA.DEBUGTEXT){
-      debug_store.update_debugtext({brc: DATA.BRC, text: DATA.DEBUGTEXT});
-    }
+
 
     if(DATA.MIDI){
       for(let i=0; i<DATA.MIDI.length; i++){
