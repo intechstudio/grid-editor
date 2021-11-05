@@ -17,7 +17,7 @@ export function select(node, [moduleId, selectedDisplay]){
         // should be probably put into user_input store's functions
         const ui = get(user_input);
 
-        if(ui.event.elementnumber != +controlNumber){
+        if(ui.event.elementnumber != +controlNumber || ui.id != moduleId){
 
           user_input.update((ui) =>{
             ui.id = moduleId;
