@@ -19,7 +19,7 @@ function createMessageStream(){
 
       if (class_descr.class_name === "HEARTBEAT"){
         // check if it is online and if not then create a new module
-        runtime.device.is_online(grid.device.make(class_descr.brc_parameters, class_descr.class_parameters, false));
+        runtime.device.is_online(class_descr, grid.device.make(class_descr.brc_parameters, class_descr.class_parameters, false));
       }
 
       if (class_descr.class_name === "PAGECOUNT"){
@@ -28,7 +28,6 @@ function createMessageStream(){
       }
 
       if(class_descr.class_name === "DEBUGTEXT"){
-  
         debug_store.update_debugtext(class_descr);
       }
 
@@ -39,11 +38,12 @@ function createMessageStream(){
 
       if (class_descr.class_name === "EVENT"){
 
+        // update control element rotation
+        user_input.update_eventparam(class_descr);  
+
         // update active element selection
         user_input.process_incoming_from_grid(class_descr);
 
-        // update control element rotation
-        user_input.update_eventparam(class_descr);  
 
       }
 

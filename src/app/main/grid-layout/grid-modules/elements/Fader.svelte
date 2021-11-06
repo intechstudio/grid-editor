@@ -13,6 +13,8 @@
   const faderWidth = 16;
   const faderHeight = 37;
 
+  export let userInput;
+
   let move = 0;
   let startValue = 0;
   let initMove = 0;
@@ -26,6 +28,7 @@
   $: if(eventInput){
     let faderPosition = (Math.round(eventInput / 2.887) - 22) * -1;
     move = faderPosition;
+    console.log(eventInput)
   }
 
   const rotMode = (rotation) => {
@@ -113,7 +116,7 @@
     </g>
     <g 
     class="fader-transform"
-    style="--translate-move: {'translateY('+ move +'px)'};">
+    style="--translate-move: {'translateY('+ ((Math.round(userInput/ 2.887) - 22) * -1) +'px)'};">
       <g id="bottom" filter="url(#filter1_i)">
         <rect y="22" width="24" height="16" rx="1" fill="#323232"/>
       </g>

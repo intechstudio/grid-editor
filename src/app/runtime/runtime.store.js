@@ -10,9 +10,14 @@ import _utils from './_utils';
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
 
+let selection_changed_timestamp = 0;
+
 export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
+
+export const eventparamstore = writable({});
+
 
 function createLogger(){
   const _log_store = writable({type:'', message: '', classname: ''});
@@ -86,6 +91,24 @@ function create_user_input () {
   });
 
   function update_eventparam(descr){
+    
+    let eps = get(eventparamstore);  
+
+    if (eps[descr.brc_parameters.SX] === undefined){
+      eps[descr.brc_parameters.SX] = {};
+    }
+    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+    }
+    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = -1;
+    }
+
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = descr.class_parameters.EVENTPARAM;
+ 
+    eventparamstore.set(eps);
+
+
 
     _param.update((s)=>{
       s = [descr.brc_parameters, descr.class_parameters];
@@ -117,7 +140,6 @@ function create_user_input () {
     if(descr.class_parameters.ELEMENTNUMBER == 255){
       return; 
     }
-
     const store = get(_event);
     
     // filter same control element had multiple interactions
@@ -128,10 +150,18 @@ function create_user_input () {
 
     if(eventDifferent || elementDifferent || sxDifferent || syDifferent) {
 
-      _event.update((store) => {
-        
-        // lets find out what type of module this is....
+      let current_timestamp = Date.now();
 
+      if (current_timestamp-100>selection_changed_timestamp){
+        selection_changed_timestamp = current_timestamp;
+      }
+      else{
+        return;
+      }
+
+      _event.update((store) => {
+
+        // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
         store.brc.rot = descr.brc_parameters.ROT;
@@ -142,6 +172,12 @@ function create_user_input () {
         
         return store;
       });
+    }
+    else{
+
+      let current_timestamp = Date.now();
+      //console.log(current_timestamp - selection_changed_timestamp);
+      selection_changed_timestamp = current_timestamp;
     }
   
   }
@@ -338,7 +374,7 @@ function create_runtime () {
 
   const _device_update = function(){
 
-    this.is_online = function(controller){
+    this.is_online = function(descr, controller){
       _runtime.update((_runtime) => {
         let online = false;
         _runtime.forEach(device => {
@@ -350,7 +386,8 @@ function create_runtime () {
           }
         });
         // device not found, add it to runtime and get page count from grid
-        if(!online){
+        if(!online){ 
+
           _runtime.push(controller);
           // this is not working because it fetches all and blocks ui
           instructions.fetchPageCountFromGrid({brc: controller});
@@ -858,8 +895,6 @@ function createDebug(){
       store.update(s => {s.config = value; return s})
     },
     update_debugtext: (descr) => {
-
-      console.log(descr)
 
       let sx = descr.brc_parameters.SX;
       let sy = descr.brc_parameters.SY;

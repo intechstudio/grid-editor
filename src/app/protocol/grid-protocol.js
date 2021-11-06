@@ -714,6 +714,8 @@ const grid = {
 
           raw_class.class_parameters = {};
 
+          raw_class.timestamp = Date.now();
+
           for (const key in class_parameters[raw_class.class_name]) {
 
             let current_parameter = class_parameters[raw_class.class_name][key];

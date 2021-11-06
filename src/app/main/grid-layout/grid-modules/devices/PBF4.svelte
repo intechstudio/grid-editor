@@ -11,31 +11,39 @@
   import Fader from '../elements/Fader.svelte';
   import Button from '../elements/Button.svelte';
 
+  import { eventparamstore } from '../../../../runtime/runtime.store';
+
   export let id = 'PBF4';
   export let selectedElement = {id: '', brc: {}, event: {}};
   export let rotation = 0;
   export let moduleWidth;
   export let color;
-  export let eventParam = [];
 
   let dx, dy; // local device's dx dy coords for self check
 
   let valueChange = [];
 
-  function handleEventParamChange(static_elementNumber, eventParam){
-    if(eventParam.length){
-      
-      if(eventParam[0].SX == dx && eventParam[0].SY == dy){
-        if(static_elementNumber == eventParam[1].ELEMENTNUMBER){
+  let potrotation_array = [0,0,0,0,0,0,0,0,0,0,0,0];
 
-          return eventParam[1].EVENTPARAM;
-        }
+  eventparamstore.subscribe(value => {
+
+    try {
+      let eps = $eventparamstore[dx][dy]
+
+      for (const key in eps) {
+        potrotation_array[key] = eps[key];
       }
+
+    } catch (error) {
+      return;
     }
-  }
+	});
+
+
 
   onMount(()=>{
 
+    console.log("ONMOUNT",id)
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
@@ -63,12 +71,12 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
+            eventInput={potrotation_array[elementNumber]} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Potentiometer 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
+            eventInput={potrotation_array[elementNumber]} 
             on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
             {elementNumber} 
             size={$appSettings.size}/>
@@ -82,12 +90,12 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
+            eventInput={potrotation_array[elementNumber]} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
           <Fader 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
+            userInput={(potrotation_array[elementNumber])} 
             on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
             {elementNumber} 
             size={$appSettings.size} 
@@ -102,7 +110,7 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
+            eventInput={potrotation_array[elementNumber]} 
             userInput={valueChange[elementNumber]} 
             size={$appSettings.size}
             {color}/>
