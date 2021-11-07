@@ -16,8 +16,8 @@ export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
-export const eventparamstore = writable({});
-
+export const elementPositionStore = writable({});
+export const ledColorStore = writable({});
 
 function createLogger(){
   const _log_store = writable({type:'', message: '', classname: ''});
@@ -92,7 +92,7 @@ function create_user_input () {
 
   function update_eventparam(descr){
     
-    let eps = get(eventparamstore);  
+    let eps = get(elementPositionStore);  
 
     if (eps[descr.brc_parameters.SX] === undefined){
       eps[descr.brc_parameters.SX] = {};
@@ -106,9 +106,28 @@ function create_user_input () {
 
     eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = descr.class_parameters.EVENTPARAM;
  
-    eventparamstore.set(eps);
+    elementPositionStore.set(eps);
 
+    // mocking led color values
 
+    let lcs = get(ledColorStore);
+    if (lcs[descr.brc_parameters.SX] === undefined){
+      lcs[descr.brc_parameters.SX] = {};
+    }
+    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+    }
+    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = [0,0,0];
+    }
+
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][0] = 0.1*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][1] = 0.4*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][2] = 0.8*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+
+    ledColorStore.set(lcs);
+
+    // old implementation
 
     _param.update((s)=>{
       s = [descr.brc_parameters, descr.class_parameters];

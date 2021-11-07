@@ -11,27 +11,26 @@
   import Fader from '../elements/Fader.svelte';
   import Button from '../elements/Button.svelte';
 
-  import { eventparamstore } from '../../../../runtime/runtime.store';
+  import { elementPositionStore } from '../../../../runtime/runtime.store';
+  import { ledColorStore } from '../../../../runtime/runtime.store';
 
   export let id = 'PBF4';
   export let selectedElement = {id: '', brc: {}, event: {}};
   export let rotation = 0;
   export let moduleWidth;
-  export let color;
 
   let dx, dy; // local device's dx dy coords for self check
 
-  let valueChange = [];
+  let elementposition_array = [0,0,0,0,0,0,0,0,0,0,0,0];
+  let ledcolor_array = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
 
-  let potrotation_array = [0,0,0,0,0,0,0,0,0,0,0,0];
-
-  eventparamstore.subscribe(value => {
+  elementPositionStore.subscribe(value => {
 
     try {
-      let eps = $eventparamstore[dx][dy]
+      let eps = value[dx][dy]
 
       for (const key in eps) {
-        potrotation_array[key] = eps[key];
+        elementposition_array[key] = eps[key];
       }
 
     } catch (error) {
@@ -39,6 +38,19 @@
     }
 	});
 
+  ledColorStore.subscribe(value => {
+    try {
+      let lcs = value[dx][dy]
+
+      for (const key in lcs) {
+        ledcolor_array[key] = lcs[key];
+
+      }
+
+    } catch (error) {
+      return;
+    }
+  });
 
 
   onMount(()=>{
@@ -71,14 +83,11 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={potrotation_array[elementNumber]} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
-          <Potentiometer 
-            eventInput={potrotation_array[elementNumber]} 
-            on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
-            {elementNumber} 
+            
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
+          <Potentiometer
+            position={elementposition_array[elementNumber]} 
             size={$appSettings.size}/>
         </div>
       {/each}
@@ -90,14 +99,10 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
           <Led 
-            eventInput={potrotation_array[elementNumber]} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
           <Fader 
-            userInput={(potrotation_array[elementNumber])} 
-            on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
-            {elementNumber} 
+            position={elementposition_array[elementNumber]}
             size={$appSettings.size} 
             rotation={rotation*-90}/>
         </div>
@@ -110,10 +115,8 @@
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
           <Led 
-            eventInput={potrotation_array[elementNumber]} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
           <Button {elementNumber} size={$appSettings.size}/>
         </div>
       {/each}
