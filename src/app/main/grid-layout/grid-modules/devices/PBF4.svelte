@@ -82,11 +82,10 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
-          <Led 
-            
+          <Led {elementNumber}
             color={ledcolor_array[elementNumber]} 
             size={$appSettings.size}/>
-          <Potentiometer
+          <Potentiometer {elementNumber}
             position={elementposition_array[elementNumber]} 
             size={$appSettings.size}/>
         </div>
@@ -98,10 +97,10 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
-          <Led 
+          <Led {elementNumber}
             color={ledcolor_array[elementNumber]} 
             size={$appSettings.size}/>
-          <Fader 
+          <Fader {elementNumber}
             position={elementposition_array[elementNumber]}
             size={$appSettings.size} 
             rotation={rotation*-90}/>
@@ -114,7 +113,7 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
-          <Led 
+          <Led {elementNumber}
             color={ledcolor_array[elementNumber]} 
             size={$appSettings.size}/>
           <Button {elementNumber} size={$appSettings.size}/>

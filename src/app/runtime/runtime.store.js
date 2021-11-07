@@ -204,6 +204,11 @@ function create_user_input () {
   const _update = function(){
 
     this.pagenumber = function(value){
+
+      if(get(engine) !== 'ENABLED'){
+        return this;
+      }
+
       const store = get(_event);
 
       // only update pagenumber if it differs from the runtime pagenumber

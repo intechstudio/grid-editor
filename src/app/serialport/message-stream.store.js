@@ -43,29 +43,14 @@ function createMessageStream(){
 
         // update active element selection
         user_input.process_incoming_from_grid(class_descr);
+      }
 
+      if (class_descr.class_name === "PAGEACTIVE"){
 
+        user_input.update_pagenumber.pagenumber(class_descr.class_parameters.PAGENUMBER);
       }
 
     });
-
-
-    // enable user input from grid only if engine is enabled
-    if(get(engine) == 'ENABLED'){
-      
-      // if(DATA.EVENT){ // event class
-      //   // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
-      //   // filter midi rx and timer!
-      //   if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6 && DATA.EVENT[0].EVENTTYPE != 5){
-      //     user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
-      //   }
-      // }
-
-      if(DATA.PAGEACTIVE){
-        user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
-      }
-    }
-
 
     if(DATA.LOG){
       logger.set(DATA.LOG);
