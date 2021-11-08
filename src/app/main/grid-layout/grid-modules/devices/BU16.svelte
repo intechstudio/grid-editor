@@ -9,31 +9,46 @@
   import Button from '../elements/Button.svelte';
   import Led from '../elements/Led.svelte';
 
+  import { elementPositionStore } from '../../../../runtime/runtime.store';
+  import { ledColorStore } from '../../../../runtime/runtime.store';
+
   export let moduleWidth;
   export let selectedElement = {id: '', brc: {}, event: {}};
   export let id = 'BU16';
   export let rotation = 0;
-  export let color;
-
-  let valueChange = [];
 
   let dx, dy
 
-  const control_block = (number) => {
-    let array = [];
-    for (let i = 0; i < number; i++) {
-      array.push(i);
-    }
-    return array;
-  }
+  let elementposition_array = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  let ledcolor_array = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
 
-  function handleEventParamChange(static_elementNumber, input_elementNumber){
-    if(static_elementNumber == input_elementNumber){
-      if(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy){
-        return selectedElement.event.eventParam;
+  elementPositionStore.subscribe(value => {
+
+    try {
+      let eps = value[dx][dy]
+
+      for (const key in eps) {
+        elementposition_array[key] = eps[key];
       }
+
+    } catch (error) {
+      return;
     }
-  }
+  });
+
+  ledColorStore.subscribe(value => {
+    try {
+      let lcs = value[dx][dy]
+
+      for (const key in lcs) {
+        ledcolor_array[key] = lcs[key];
+
+      }
+
+    } catch (error) {
+      return;
+    }
+  });
 
   onMount(()=>{
     if(id !== undefined && (id.length > 4)){
@@ -56,18 +71,16 @@
     style="--module-size: {moduleWidth+'px'}" 
     >
 
-    {#each control_block(4) as block }
+    {#each  [0,1,2,3] as row }
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
-        {#each control_block(4) as element}
-          <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == block * 4 + element} class="knob-and-led">
-            <Led 
-              eventInput={handleEventParamChange(block * 4 + element, selectedElement.event.elementnumber)} 
-              userInput={valueChange[(block * 4 + element)]}
-              size={$appSettings.size}
-              {color}/>
-            <Button 
-              on:click={valueChange[(block * 4 + element)] = ! true}
-              elementNumber={(block * 4) + element} size={$appSettings.size}/>
+        {#each  [0+4*row,1+4*row,2+4*row,3+4*row] as elementNumber}
+          <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} class="knob-and-led">
+            <Led {elementNumber}  
+              color={ledcolor_array[elementNumber]} 
+              size={$appSettings.size}/>
+            <Button {elementNumber}
+              position={elementposition_array[elementNumber]} 
+              size={$appSettings.size}/>
           </div>
         {/each}
       </div>
