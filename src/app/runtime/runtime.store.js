@@ -398,7 +398,10 @@ function create_runtime () {
 
   const _device_update = function(){
 
-    this.is_online = function(descr, controller){
+    this.heartbeat_incoming_handler = function(descr){
+
+      let controller = grid.device.make(descr.brc_parameters, descr.class_parameters, false);
+
       _runtime.update((_runtime) => {
         let online = false;
         _runtime.forEach(device => {
@@ -524,6 +527,7 @@ function create_runtime () {
       const operation = new _update();
 
       return {
+        set_config_descriptor: operation.set_config_descriptor,
         status: operation.status,
         event: operation.event,
         config: operation.config,
@@ -537,6 +541,28 @@ function create_runtime () {
       let li = get(user_input);
       let code = '';
       let cfgStatus = 'EDITOR_BACKGROUND';
+
+      this.set_config_descriptor = function(descr) {
+        // status
+        cfgStatus = 'GRID_REPORT';
+
+        // event
+        li.event.eventtype = descr.class_parameters.EVENTTYPE;
+        li.event.pagenumber = descr.class_parameters.PAGENUMBER;
+        li.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
+
+        // config
+        code = descr.class_parameters.ACTIONSTRING;
+        _runtime.update(_runtime => {
+          let dest = findUpdateDestEvent(_runtime, li);
+          if (dest) {
+            dest.config = code.trim();
+            dest.cfgStatus = cfgStatus;
+          }    
+          return _runtime;
+        })
+        return this;
+      };
 
       this.status = function(status) {
         cfgStatus = status;

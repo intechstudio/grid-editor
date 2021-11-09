@@ -3,14 +3,16 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol_night
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';
 import { sendDataToClient } from '../debug/tower.js';
-import { isInteger } from 'lodash';
+const lodash = require('lodash');
 
 
 // global id for serial message generation
 let global_id = 0;
 
-let class_codes = parse_class_codes_from_protocol()
-let instr_codes = parse_instr_codes_from_protocol()
+let [class_name_from_code, class_code_from_name] = class_code_decode_encode_init();
+let [instr_name_from_code, instr_code_from_name] = instr_code_decode_encode_init()
+
+
 let class_parameters = parse_class_parameters_from_protocol()
 let brc_parameters = parse_brc_parameters_from_protocol()
 
@@ -50,9 +52,10 @@ function parse_brc_parameters_from_protocol(){
 }
 
 
-function parse_class_codes_from_protocol(){
+function class_code_decode_encode_init(){
   
-  let classcodes = {};
+  let name_from_code = {};
+  let code_from_name = {};
 
   for (const key in grid_protocol) {
     if(typeof grid_protocol[key] !== 'object'){
@@ -60,17 +63,20 @@ function parse_class_codes_from_protocol(){
       if(key.startsWith('GRID_CLASS_') && key.endsWith('code')){
         let splitted = key.split("_");
         let class_name = splitted[splitted.length-2];
-        classcodes[grid_protocol[key]] = class_name;    
+        name_from_code[grid_protocol[key]] = class_name;  
+        code_from_name[class_name] = grid_protocol[key];   
       }
     }
   }
 
-  return classcodes;
+  return [name_from_code, code_from_name];
 }
 
-function parse_instr_codes_from_protocol(){
+
+function instr_code_decode_encode_init(){
   
   let instrcodes = {};
+  let instrnames = {};
 
   for (const key in grid_protocol) {
     if(typeof grid_protocol[key] !== 'object'){
@@ -78,13 +84,12 @@ function parse_instr_codes_from_protocol(){
         let splitted = key.split("_");
         let instr_name = splitted[splitted.length-2].toUpperCase();
         instrcodes[grid_protocol[key].toLowerCase()] = instr_name;    
+        instrnames[instr_name] = grid_protocol[key].toLowerCase();    
       }
     }
   }
 
-  console.log(instrcodes)
-
-  return instrcodes;
+  return [instrcodes, instrnames];
 }
 
 
@@ -171,6 +176,30 @@ function read_integer_from_asciicode_array(array, offset, length){
   return ret_value;
 }
 
+function write_integer_to_asciicode_array(array, offset, length, value){
+
+  let hex_value_array = value.toString(16).padStart(length, '0').split('');
+
+  for (let i=offset; i<offset+length; i++){
+    array[i] = hex_value_array[i-offset].charCodeAt(0);
+  }
+
+  return array;
+
+}
+
+function write_string_to_asciicode_array(array, offset, length, value){
+
+  let string_in_array = value.split('');
+
+  for (let i=offset; i<offset+length; i++){
+    array[i] = (string_in_array[i-offset]).charCodeAt(0);
+  }
+
+  return array;
+
+}
+
 function read_string_from_asciicode_array(array, offset, length){
 
   // check is parameters are valid, make sure we don't overrun the buffer
@@ -227,27 +256,7 @@ const param2lower = (parameters) => {
   return obj;
 }
 
-const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
 
-  // convert editor runtime module info to grid brc parameters
-
-  let DX = 0;
-  let DY = 0;
-  let SX = 0;
-  let SY = 0;
-  let ROT = 0;
-
-  if(MODULE_INFO !== ''){
-    if(DESTINATION == 'LOCAL'){
-      DX = +MODULE_INFO.dx + 127;
-      DY = +MODULE_INFO.dy + 127;
-      SX = 0; // +MODULE_INFO.sx + 127
-      SY = 0; // +MODULE_INFO.sy + 127;
-      ROT = MODULE_INFO.rot;
-    }
-  }
-  return {ROT, DX, DY, SX, SY};
-}
 
 // control element event assignment table.
 const CEEAT = { 
@@ -470,128 +479,115 @@ const grid = {
 
   translate: {
 
-    encode: function (HEADER, DESTINATION, CLASS_NAME, INSTR_CODE, PARAMETERS){
 
-      function encode_class_parameters(PARAMETERS, INFO){
-        let _parameters = [];
-        if(PARAMETERS !== ''){
-          PARAMETERS.forEach(CLASS => {     
-            for (const key in CLASS) {
-              let param = [];
-              if(key == 'ACTIONSTRING'){
-                for (let index = 0; index < CLASS[key].length; index++) {
-                  param[index] = CLASS[key].charCodeAt(index);
-                }
-              } else {
-                let p = CLASS[key].toString(16).padStart(INFO[key].length,'0');
-                for (let i = 0; i < INFO[key].length; i++) {
-                  param[i] = p.charCodeAt(i)            
-                }
-              } 
-              _parameters = [..._parameters, ...param];
-            }
-          })
+    // encodeParameters: [
+    //   brc, 
+    //   'LOCAL', 
+    //   'CONFIG', 
+    //   'EXECUTE',
+    //   parameters
+    // ],
+
+
+    encode_suku: function(descriptor){
+
+      if (descriptor === undefined){
+        return;
+      }
+
+      let descr = lodash.cloneDeep(descriptor);
+
+      const PROTOCOL = grid.properties; //old implementation
+
+      descr.brc_parameters.ID = utility_genId();
+      descr.brc_parameters.SX = 0;
+      descr.brc_parameters.SY = 0;
+      descr.brc_parameters.SESSION = PROTOCOL.SESSION;
+      descr.brc_parameters.MSGAGE = 0;
+
+     
+
+      if (descr.brc_parameters.DX !== undefined){
+        descr.brc_parameters.DX += 127;
+      }else{
+        descr.brc_parameters.DX = 0; // assume global
+      }
+      
+      if (descr.brc_parameters.DY !== undefined){
+        descr.brc_parameters.DY += 127;
+      }else{
+        descr.brc_parameters.DY = 0; // assume global
+      }
+
+      // put brc parameters into hexarray
+      let BRC_ARRAY = [];
+
+      BRC_ARRAY.push(PROTOCOL.CONST.SOH);
+      BRC_ARRAY.push(PROTOCOL.CONST.BRC);
+
+      for(const key in brc_parameters){
+
+        let offset = brc_parameters[key].offset;
+        let length = brc_parameters[key].length;
+        let value = descr.brc_parameters[key];
+
+        if (descr.brc_parameters[key] === undefined){
+          write_integer_to_asciicode_array(BRC_ARRAY, offset, length, 0);
         }
-        return _parameters;
+        else{
+          write_integer_to_asciicode_array(BRC_ARRAY, offset, length, value); 
+        }
       }
 
-      const BRC = convert_header_to_grid(HEADER, DESTINATION);
-  
-      const PROTOCOL = grid.properties;
-  
-      const prepend = [PROTOCOL.CONST.SOH, PROTOCOL.CONST.BRC];
+      BRC_ARRAY.push(PROTOCOL.CONST.EOB);
 
-      const ID = utility_genId()
-      
-      let BRC_PARAMETERS = [
-        {ID: ID}, 
-        {SESSION: PROTOCOL.SESSION}, // ON PROTOCOL INIT, THIS IS GENERATED!
-        {SX: 0},
-        {SY: 0},
-        {DX: BRC.DX}, 
-        {DY: BRC.DY}, 
-        {ROT: BRC.ROT},
-        {MSGAGE: 0}
-      ];
-  
-      BRC_PARAMETERS = encode_class_parameters(BRC_PARAMETERS, PROTOCOL['BRC']);
-  
-      let command = '';  
-      
-      // should build a generic error handler!
-      let CLASS = '';
-      try {
-        CLASS = PROTOCOL.CLASSES[CLASS_NAME].code.slice(2,)
-      } catch (error) {
-        console.error(`Cannot find CLASS code: ${CLASS_NAME} in protocol!`);
+
+      // put class parameters into hexarray
+      let CLASS_ARRAY = [];
+
+      CLASS_ARRAY.push(PROTOCOL.CONST.STX);
+
+      write_integer_to_asciicode_array(CLASS_ARRAY, 1, 3, parseInt(class_code_from_name[descr.class_name]));
+      write_integer_to_asciicode_array(CLASS_ARRAY, 4, 1, parseInt(instr_code_from_name[descr.class_instr]));
+
+      for(const key in class_parameters[descr.class_name]){
+
+        let offset = class_parameters[descr.class_name][key].offset;
+        let length = class_parameters[descr.class_name][key].length;
+        let value = descr.class_parameters[key];
+
+        if (length>0){
+          if (value === undefined){
+            // skip
+            console.log("MISSING CLASS PARAMETER!")
+          }
+          else{
+            write_integer_to_asciicode_array(CLASS_ARRAY, offset, length, value); 
+          }
+        }
+        else{
+          
+          if (value !== undefined){
+            write_string_to_asciicode_array(CLASS_ARRAY, offset, value.length, value);
+          }
+        }
+
       }
 
-      command = [
-        PROTOCOL.CONST.STX,
-        ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
-        PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
-        ...encode_class_parameters(PARAMETERS, PROTOCOL.CLASSES[CLASS_NAME]),
-        PROTOCOL.CONST.ETX
-      ]
-       
-      const append = [
-        PROTOCOL.CONST.EOB,
-        ...command ,
-        PROTOCOL.CONST.EOT
-      ]
-  
-      let message = prepend.concat(BRC_PARAMETERS, append);
-  
-      // maybe 4
-      let length = (message.length+2).toString(16).padStart(4,'0');
-      length = [length.charCodeAt(0), length.charCodeAt(1), length.charCodeAt(2), length.charCodeAt(3)]
-      message = [...message.slice(0,2), ...length, ...message.slice(2,)];
-  
-      let checksum = [...message].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
-  
-      message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
-  
-      return {serial: message, id: ID}; // return id for checking communication issues
-    },
+      CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
+      CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
 
-    encode_debugger: function (brc, command){
+      let MESSAGE_ARRAY = [...BRC_ARRAY, ...CLASS_ARRAY];
 
-      const PROTOCOL = grid.properties;
-  
-      const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
-  
-      const ID = utility_genId()
-      
-      let BRC_PARAMETERS = [
-        ID, 
-        PROTOCOL.SESSION, // ON PROTOCOL INIT, THIS IS GENERATED!
-        0,
-        0,
-        +brc.dx, 
-        +brc.dy, 
-        0,
-        0
-      ];
+      var len = MESSAGE_ARRAY.length;
+      write_integer_to_asciicode_array(MESSAGE_ARRAY, brc_parameters.LEN.offset, brc_parameters.LEN.length, len); 
 
-      let params = '';
-      BRC_PARAMETERS.forEach(param => {
-        params += param.toString(16).padStart(2, '0');
-      })
-       
-      const append = 
-        String.fromCharCode(PROTOCOL.CONST.EOB) + 
-        command +
-        String.fromCharCode(PROTOCOL.CONST.EOT);
+      let checksum = [...MESSAGE_ARRAY].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
   
-      let message = prepend.concat(params, append);
-  
-      message = message.slice(0,2) + (message.length+2).toString(16).padStart(4, '0') + message.slice(2,);
-  
-      let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
-  
-      message = message + checksum;
-  
-      return message;    
+      MESSAGE_ARRAY.push(checksum.charCodeAt(0));
+      MESSAGE_ARRAY.push(checksum.charCodeAt(1));
+
+      return {serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID}; // return id for checking communication issues
     },
     parse_to_class_stream_suku: function(incoming_hex_string){
    
@@ -707,10 +703,10 @@ const grid = {
         let class_instr_string =("0x"+String.fromCharCode(raw_class.raw[3]));
         
 
-        if (class_codes[class_code_string] !== undefined){
+        if (class_name_from_code[class_code_string] !== undefined){
 
-          raw_class.class_name = class_codes[class_code_string];
-          raw_class.class_instr = instr_codes[class_instr_string];
+          raw_class.class_name = class_name_from_code[class_code_string];
+          raw_class.class_instr = instr_name_from_code[class_instr_string];
 
           raw_class.class_parameters = {};
 

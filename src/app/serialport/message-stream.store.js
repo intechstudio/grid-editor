@@ -1,25 +1,22 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
-import { appSettings } from '../main/_stores/app-helper.store';
-import grid from '../protocol/grid-protocol';
 import { writeBuffer } from '../runtime/engine.store';
 import { debug_store, runtime, user_input, logger, engine, midi_monitor_store } from '../runtime/runtime.store';
 
+
+
 function createMessageStream(){
 
-  const _message_stream = writable({});
-
-  const _on_data = function(DATA) {
+  const _deliver_inbound = function(DATA) {
 
     let class_array = DATA.class_array;
 
     class_array.forEach((class_descr, i) => {
-      
-      //console.log(class_descr);
 
       if (class_descr.class_name === "HEARTBEAT"){
         // check if it is online and if not then create a new module
-        runtime.device.is_online(class_descr, grid.device.make(class_descr.brc_parameters, class_descr.class_parameters, false));
+
+        runtime.device.heartbeat_incoming_handler(class_descr);
       }
 
       if (class_descr.class_name === "PAGECOUNT"){
@@ -50,22 +47,17 @@ function createMessageStream(){
         user_input.update_pagenumber.pagenumber(class_descr.class_parameters.PAGENUMBER);
       }
 
+
+      writeBuffer.validate_incoming(class_descr);
+
     });
 
-    if(DATA.LOG){
-      logger.set(DATA.LOG);
-    }
-
     
-    writeBuffer.validate_incoming(DATA);
-
-    
-    _message_stream.set(DATA);
 
   }
 
   return {
-    set: _on_data
+    deliver_inbound: _deliver_inbound
   }
 
 }

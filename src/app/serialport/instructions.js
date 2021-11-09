@@ -16,53 +16,55 @@ const instructions = {
     enumber = inputStore.event.elementnumber;
 
     let buffer_element = {
-      responseRequired: true,
-      encodeParameters: [
-        { 
-          dx: device.dx, 
-          dy: device.dy,
-          rot: device.rot
+
+      descr: {
+        brc_parameters: {
+          DX: device.dx, DY: device.dy, ROT: device.rot
         },
-        "LOCAL",
-        "CONFIG",
-        "FETCH",
-        [
-          { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
-          { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
-          { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
-          { PAGENUMBER: pParser(inputStore.event.pagenumber)}, 
-          { ELEMENTNUMBER: pParser(enumber)}, 
-          { EVENTTYPE: pParser(inputStore.event.eventtype)}, 
-          { ACTIONLENGTH: pParser(0)},
-        ]
-      ],
+        class_name: "CONFIG",
+        class_instr: "FETCH",
+        class_parameters: {
+          VERSIONMAJOR: grid.properties.VERSION.MAJOR,
+          VERSIONMINOR: grid.properties.VERSION.MINOR,
+          VERSIONPATCH: grid.properties.VERSION.PATCH,
+          PAGENUMBER: inputStore.event.pagenumber,
+          ELEMENTNUMBER: enumber,
+          EVENTTYPE: inputStore.event.eventtype,
+          ACTIONLENGTH: 0
+        }
+      },
+      responseRequired: true,
       filter: {
-        brc: { 
+        brc_parameters: { 
           'SX': device.dx, 
           'SY': device.dy,
         },
-        'CONFIG_REPORT': {
+        class_instr: 'REPORT',
+        class_name: 'CONFIG',
+        class_parameters: {
           'PAGENUMBER': inputStore.event.pagenumber,
           'ELEMENTNUMBER': enumber,
           'EVENTTYPE': inputStore.event.eventtype
-        },
-        className: 'CONFIG_REPORT'
+        }
       },
       failCb: function(){
         //console.log('config fetch - fail')
       }, 
-      successCb: function(DATA){
+      successCb: function(descr){
+
         if(ui_trigger){
-          runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA}).trigger();
+          runtime.update.one().set_config_descriptor(descr).trigger();
         } else {
-          runtime.update.one().status('GRID_REPORT').event(DATA.CONFIG_REPORT).config({lua: DATA.LUA});
+          runtime.update.one().set_config_descriptor(descr);
 
           if(callback){
-            callback(DATA);
+            console.log("CALLBACK")
+            callback(descr);
           }
         }
       }
     }
+
 
     writeBuffer.add_first(buffer_element);
 
@@ -73,40 +75,32 @@ const instructions = {
 
     const {event, brc} = li;
 
-    let enumber = undefined;
-
-    // configurations on the 255th element are system events...
-    enumber = event.elementnumber;
-
-    const parameters = [
-      { VERSIONMAJOR: pParser(grid.properties.VERSION.MAJOR) },
-      { VERSIONMINOR: pParser(grid.properties.VERSION.MINOR) },
-      { VERSIONPATCH: pParser(grid.properties.VERSION.PATCH) },
-      { PAGENUMBER: pParser(event.pagenumber) },
-      { ELEMENTNUMBER: pParser(enumber) },
-      { EVENTTYPE: pParser(event.eventtype) },
-      { ACTIONLENGTH: pParser(`${lua.trim()}`.length)},
-      { ACTIONSTRING: `${lua.trim()}`}
-    ]
-
     let buffer_element = {
+      descr: {
+        brc_parameters: {
+          DX: brc.dx, DY: brc.dy, ROT: brc.rot
+        },
+        class_name: "CONFIG",
+        class_instr: "EXECUTE",
+        class_parameters: {
+          VERSIONMAJOR: grid.properties.VERSION.MAJOR,
+          VERSIONMINOR: grid.properties.VERSION.MINOR,
+          VERSIONPATCH: grid.properties.VERSION.PATCH,
+          PAGENUMBER:   event.pagenumber,
+          ELEMENTNUMBER: event.elementnumber,
+          EVENTTYPE:    event.eventtype,
+          ACTIONLENGTH: lua.trim().length,
+          ACTIONSTRING: lua.trim()
+        }
+      },
       responseRequired: true,
-      encodeParameters: [
-        brc, 
-        'LOCAL', 
-        'CONFIG', 
-        'EXECUTE',
-        parameters
-      ],
       filter: {
-        brc: { 
+        brc_parameters: { 
           'SX': brc.dx, 
           'SY': brc.dy,
         },
-        'CONFIG_ACKNOWLEDGE': {
-          'LASTHEADER': null
-        },
-        className: 'CONFIG_ACKNOWLEDGE'
+        class_name: 'CONFIG',
+        class_instr: 'ACKNOWLEDGE'
       },
       failCb: function(){
         //console.log('config execute - fail')
@@ -116,8 +110,8 @@ const instructions = {
       }
     }
 
-    if(grid.properties.CONFIG_LENGTH <= parameters[7]['ACTIONSTRING'].length){
-      logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${parameters[7]['ACTIONSTRING'].length} characters`})
+    if(grid.properties.CONFIG_LENGTH <= lua.trim().length){
+      logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${lua.trim().length} characters`})
       return;
     }
 
@@ -130,25 +124,20 @@ const instructions = {
 
     const {event, brc} = li;
 
-    const parameters = [
-      { PAGENUMBER: pParser(event.pagenumber) },
-    ];
-
     let buffer_element = {
-      encodeParameters: [
-        '',
-        'GLOBAL', 
-        'PAGEACTIVE', 
-        'EXECUTE', 
-        parameters
-      ],
-      filter: { className: 'PAGEACTIVE' },
-      failCb: function(){
-        //console.log('change page - fail')
-      }, 
-      successCb: function(){
-        //console.log('change page - success')
+      descr: {
+
+        brc_parameters: {
+          DX: -127, DY: -127
+        },
+        class_name: "PAGEACTIVE",
+        class_instr: "EXECUTE",
+        class_parameters: {
+          PAGENUMBER: event.pagenumber
+        }
       }
+      
+      // no response required, so no fltr struct is defined
     }
 
     writeBuffer.add_first(buffer_element);
@@ -159,23 +148,18 @@ const instructions = {
   fetchPageCountFromGrid: ({brc}) => {
    
     let buffer_element = {
+      descr: {
+        brc_parameters: {
+          DX: brc.dx, DY: brc.dy, ROT: brc.rot
+        },
+        class_name: "PAGECOUNT",
+        class_instr: "FETCH",
+        class_parameters: {}
+      },
       responseRequired: true,
-      encodeParameters: [
-        {
-          dx: brc.dx, 
-          dy: brc.dy, 
-          rot: brc.rot
-        },
-        "LOCAL",
-        "PAGECOUNT",
-        "FETCH",
-        ""
-      ],
-      filter: { 
-        'PAGECOUNT': {
-          'LASTHEADER': null
-        },
-        className: 'PAGECOUNT' 
+      filter: {
+        class_name: 'PAGECOUNT',
+        class_instr: 'REPORT' 
       },
       failCb: function(){
         //console.log('fetch page count - fail')
@@ -192,27 +176,27 @@ const instructions = {
 
   sendPageStoreToGrid: () => {
 
-    writeBuffer.add_first({
-      commandCb: function(){
-        engine.set('DISABLED');
-        logger.set({type: 'progress', mode: 0, classname: 'pagestore', message: `Store configurations on page...`})
-      }
-    });
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'pagestore', message: `Store configurations on page...`})
 
     let buffer_element = {
-      responseRequired: true,
-      encodeParameters: [
-        '',
-        'GLOBAL',
-        'PAGESTORE',
-        'EXECUTE',
-        ''
-      ],
-      filter: { 
-        'PAGESTORE_ACKNOWLEDGE': {
-          'LASTHEADER': null,
+      descr: {
+        brc_parameters: {
+          DX: -127, DY: -127
         },
-        className: 'PAGESTORE_ACKNOWLEDGE'
+        class_name: "PAGESTORE",
+        class_instr: "EXECUTE",
+        class_parameters: {
+        }
+      },
+      responseRequired: true,
+      filter: { 
+        class_name: 'PAGESTORE',
+        class_instr: 'ACKNOWLEDGE',
+        class_parameters: {
+          'LASTHEADER': null,
+        }
+        
       },
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pagestore', message: `Retry page store...`})
@@ -234,30 +218,28 @@ const instructions = {
 
   sendNVMEraseToGrid: () => {
 
-    //engine.strict.store('erase', serial, id);
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'nvmerase', message: `Erasing all modules...`})
 
-    writeBuffer.add_first({
-      commandCb: function(){
-        engine.set('DISABLED');
-        logger.set({type: 'progress', mode: 0, classname: 'nvmerase', message: `Erasing all modules...`})
-      }
-    });
 
     let buffer_element = {
-      responseRequired: true,
       responseTimeout: 8000,
-      encodeParameters: [
-        '',
-        'GLOBAL',
-        'NVMERASE',
-        'EXECUTE',
-        ''
-      ],
-      filter: { 
-        'NVMERASE_ACKNOWLEDGE': {
-          'LASTHEADER': null,
+      descr: {
+        brc_parameters: {
+          DX: -127, DY: -127
         },
-        className: 'NVMERASE_ACKNOWLEDGE'
+        class_name: "NVMERASE",
+        class_instr: "EXECUTE",
+        class_parameters: {
+        }
+      },
+      responseRequired: true,
+      filter: {
+        class_name: 'NVMERASE',
+        class_instr: 'ACKNOWLEDGE',
+        class_parameters: {
+          'LASTHEADER': null,
+        }
       },
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'nvmerase', message: `Retry erase all modules...`});
@@ -279,18 +261,22 @@ const instructions = {
   sendNVMDefragToGrid: () => {
 
     let buffer_element = {
-      encodeParameters: [
-        '',
-        'GLOBAL',
-        'NVMDEFRAG',
-        'EXECUTE',
-        ''
-      ],
-      filter: { 
-        'NVMDEFRAG_ACKNOWLEDGE': {
-          'LASTHEADER': null,
+      descr: {
+        brc_parameters: {
+          DX: -127, DY: -127
         },
-        className: 'NVMDEFRAG_ACKNOWLEDGE'
+        class_name: "NVMDEFRAG",
+        class_instr: "EXECUTE",
+        class_parameters: {
+        }
+      },
+      responseRequired: true,
+      filter: { 
+        class_name: 'NVMDEFRAG',
+        class_instr: 'ACKNOWLEDGE',
+        class_parameters: {
+          'LASTHEADER': null,
+        }
       },
       failCb: function(){
         console.log('NVM defrag execute - fail')
@@ -307,28 +293,30 @@ const instructions = {
 
   sendPageDiscardToGrid: () => {
 
-    writeBuffer.add_first({
-      commandCb: function(){
-        engine.set('DISABLED');
-        logger.set({type: 'progress', mode: 0, classname: 'pagediscard', message: `Discarding configurations...`})
-      }
-    });
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'pagediscard', message: `Discarding configurations...`})
 
     let buffer_element = {
+      descr: {
+        brc_parameters: {
+          DX: -127, DY: -127
+        },
+        class_name: "PAGEDISCARD",
+        class_instr: "EXECUTE",
+        class_parameters: {
+        }
+      },
       responseRequired: true,
       filter: { 
         'PAGEDISCARD_ACKNOWLEDGE': {
           'LASTHEADER': null,
         },
-        className: 'PAGEDISCARD_ACKNOWLEDGE'
+        class_name: 'PAGEDISCARD',
+        class_instr: 'ACKNOWLEDGE',
+        class_parameters: {
+          'LASTHEADER': null,
+        },
       },
-      encodeParameters: [
-        '',
-        'GLOBAL',
-        'PAGEDISCARD',
-        'EXECUTE',
-        ''
-      ],
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pagediscard', message: `Retry configuration discard...`})
         //console.log('page discard execute - fail')
@@ -347,28 +335,28 @@ const instructions = {
 
   sendPageClearToGrid: () => {
 
-    writeBuffer.add_first({
-      commandCb: function(){
-        engine.set('DISABLED');
-        logger.set({type: 'progress', mode: 0, classname: 'pageclear', message: `Clearing configurations from page...`})
-      }
-    });
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'pageclear', message: `Clearing configurations from page...`})
 
     let buffer_element = {
+      descr: {
+        brc_parameters: {
+          DX: -127, DY: -127
+        },
+        class_name: "PAGECLEAR",
+        class_instr: "EXECUTE",
+        class_parameters: {
+        }
+      },
       responseRequired: true,
       filter: { 
-        'PAGECLEAR_ACKNOWLEDGE': {
+        class_name: 'PAGECLEAR',
+        class_instr: 'ACKNOWLEDGE',
+        class_parameters: {
           'LASTHEADER': null,
         },
-        className: 'PAGECLEAR_ACKNOWLEDGE'
+
       },
-      encodeParameters: [
-        '',
-        'GLOBAL',
-        'PAGECLEAR',
-        'EXECUTE',
-        ''
-      ],
       failCb: function(){
         logger.set({type: 'alert', mode: 0, classname: 'pageclear', message: `Retry clear page...`})
         //console.log('page clear execute - fail')

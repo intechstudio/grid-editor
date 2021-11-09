@@ -68,21 +68,25 @@
           type = 254
         }
 
-        const {serial, id} = grid.translate.encode(
-          {dx: 0, dy: 0, rot: 0},
-          'GLOBAL',
-          'HEARTBEAT',
-          'EXECUTE',
-          [
-            { TYPE: pParser(type)}, // if all good = 255, not guud = 254
-            { HWCFG: pParser(255)}, 
-            { VMAJOR: pParser($appSettings.version.major)}, 
-            { VMINOR: pParser($appSettings.version.minor)}, 
-            { VPATCH: pParser($appSettings.version.patch)}, 
-          ]
+        const retval = grid.translate.encode_suku(
+          {
+            brc_parameters:
+              {DX: -127, DY: -127}, // GLOBAL
+            class_name: "HEARTBEAT",
+            class_instr: "EXECUTE",
+            class_parameters: 
+              {
+                TYPE: type,
+                HWCFG: 255,
+                VMAJOR: $appSettings.version.major,
+                VMINOR: $appSettings.version.minor,
+                VPATCH: $appSettings.version.patch,
+              }
+          }
         );
 
-        serialComm.write(serial);
+  
+        serialComm.write(retval.serial);
         
     }, interval);
 
@@ -259,7 +263,7 @@
       const decoded = grid.translate.decode(data);
       if(decoded !== false){
         decoded.class_array = class_array;
-        messageStream.set(decoded);   
+        messageStream.deliver_inbound(decoded);   
       }
     })
 
