@@ -301,96 +301,29 @@ function create_runtime () {
     return _event;
   }
 
-  function fetchOrLoadConfig (rt, ui, trigger, callback) {
+  function fetchOrLoadConfig (ui, callback) {
     
-    let pages = [];
-    let config = [];
-    let events = [];
-    let elementNumbers = [];
-    let stringname = "";
-    let selectedNumber = "";
-    let selectedEvent = "";
 
-    rt.forEach(device => {
-  
-      if(device.dx == ui.brc.dx && device.dy == ui.brc.dy && ui.event.elementnumber !== -1){
+    const rt = get(runtime);
 
-        pages = device.pages;
-        selectedNumber = ui.event.elementnumber;
-
-        try {
-          const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
-          elementNumbers = device.pages[pageIndex].control_elements;
-        } catch (error) {
-          console.error(`Requested page ${ui.event.pagenumber} is not loaded, revert to page 0. -> _active_config`)
-          elementNumbers = device.pages[0].control_elements;
-          instructions.fetchPageCountFromGrid({brc: ui.brc});
-        }
-
-        try {
-          const elementIndex = elementNumbers.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
-          events = elementNumbers[elementIndex].events;
-        } catch (error) {
-          console.error(`Requested events at elementIndex: ${elementIndex} not available, revert to events at 0 elem!`);
-          events = elementNumbers[0].events;
-        }
-        
-
-        // don't let selection of event, which is not on that control element
-        let f_event = events.find(e => e.event.value == ui.event.eventtype);
-        selectedEvent = f_event ? f_event : events[events.length - 1];    
-        
-        // init event check for hidden configs
-        let initEvent = events.find(e => e.event.value == 0);
-        
-        // on switching between system and ui events, set proper eventtype for fetching config
-        // f_event is undefined, if currently stored ui eventtype is not found on control element
-        if(!f_event){
-          ui.event.eventtype = events[events.length - 1].event.value;
-        }
-
-        if(selectedEvent.config.length){
-          config = selectedEvent.config.trim();
-        }
-
-        const init_li = {
-          brc: {
-            dx: ui.brc.dx,
-            dy: ui.brc.dy
-          },
-          event: {
-            eventtype: 0,
-            elementnumber: ui.event.elementnumber,
-            pagenumber: ui.event.pagenumber
-          }
-        }
-
-        if(initEvent.config.length){
-          try {
-            stringname = initEvent.config.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1); 
-            runtime.hidden_update.addToControlElement(stringname, init_li);
-          } catch (error) {
-            console.error('init event sn read error')
-            //stringname = '';
-          }
-        }
-
-        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(initEvent.cfgStatus)){
-          initEvent.cfgStatus = 'FETCHED';
-          runtime.fetch.One(device, init_li, false, callback);
-        }
-
-        // ui elementnumber 255 (utility fetch) is handles in instructions.js
-        if(!['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(selectedEvent.cfgStatus)){
-          selectedEvent.cfgStatus = 'FETCHED';
-          runtime.fetch.One(device, ui, trigger, callback);  
-        }
+    const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+    const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+    const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
 
-      }
-    });
+    const cfgstatus = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex].cfgStatus;
 
-    return {pages, config, events, elementNumbers, selectedEvent, selectedNumber, stringname};
+    if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
+      // its loaded
+    }
+    else{
+      // fetch
+
+      instructions.fetchConfigFromGrid(device, ui, callback);
+    }
+
+    return;
 
   }
 
@@ -434,28 +367,6 @@ function create_runtime () {
       });
     }
 
-    this.update_pages = function(descr){
-
-
-      let sx = descr.brc_parameters.SX;
-      let sy = descr.brc_parameters.SY;
-      let pagecount = descr.class_parameters.PAGENUMBER;
-
-
-      // this is called as many modules there are, because the pagecount fetch is global.
-      // we should device which pagenumber is the meta
-      _runtime.update((_runtime) => {
-        _runtime.forEach((device)=>{
-          // don't make pages if there are already same amount of pages...
-          if(device.dx == sx && device.dy == sy && pagecount !== device.pages.length){
-            for (let i = 0; i < pagecount - 1; i++) {
-              device.pages = [...device.pages, grid.device.createPage(device.id, 'GRID_REPORT', i+1)];
-            }
-          }
-        })
-        return _runtime;
-      })
-    }
   }
 
   function erase_all(){
@@ -478,26 +389,37 @@ function create_runtime () {
 
   const _runtime_update = function() {
 
+    // whole element overwrite
     this.control_element = function ({controlElementType, events}){
 
       const li = get(user_input);
 
       if(li.event.elementtype == controlElementType){
-        events.forEach((ev) => {
+        events.forEach((ev, index) => {
+
+          let callback;
+          if (index === events.length-1){ // last element
+            callback = function(){
+              writeBuffer.messages.set('overwrite done');                
+              logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
+            };
+          }
+          else{
+            callback = undefined;
+          }
+
+
           const operation = new _update();
           operation.status('EDITOR_BACKGROUND');
           operation.event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: ev.event.value, PAGENUMBER: li.event.pagenumber});
           operation.config({lua: ev.config});
-          operation.sendToGrid();
+          operation.sendToGrid(callback);
           operation.trigger()
         });
 
-        writeBuffer.add_last({
-          commandCb: function(){
-            writeBuffer.messages.set('overwrite done');                
-            logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
-          }
-        });
+
+
+        console.log("PARA1", controlElementType, events);
 
       } else {
         logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
@@ -589,9 +511,9 @@ function create_runtime () {
         return this;
       };
 
-      this.sendToGrid = function(){
+      this.sendToGrid = function(callback){
         _unsaved_changes.update(n => n + 1);
-        instructions.sendConfigToGrid({lua: code, li: li});
+        instructions.sendConfigToGrid(code, li, callback);
         return this;
       };
 
@@ -642,57 +564,13 @@ function create_runtime () {
 
     const _default_li = get(user_input);
 
-    // fetches only one element's selected event
-    this.One = function(device, ui, trigger, callback){
-      instructions.fetchConfigFromGrid({device: device, inputStore: ui, ui_trigger: trigger,callback: callback});
-      return 1;
-    }
 
-    // get all hidden actions for init on module
-    this.HiddenActions = function (){
-      writeBuffer.add_first({
-        commandCb: function(){
-          logger.set({type: 'progress', mode: 0, classname: 'background', message: `Loading element names...`})
-        }
-      });
-
-      const li = get(user_input);
-      const rt = get(runtime);
-
-      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
-      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-      const controlElements = device.pages[pageIndex].control_elements;
-
-      const array = [];
-
-      controlElements.forEach((controlElement) => {
-        array.push({event: '0', elementnumber: controlElement.controlElementNumber})
-      })
-
-      array.forEach((elem, ind) => {
-        li.event.eventtype = elem.event;
-        li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li, false, load_stringname);
-      })
-
-      writeBuffer.add_last({
-        commandCb: function(){
-          logger.set({type: 'success', mode: 0, classname: 'background', message: `Complete!`});
-        }
-      });
-
-      return this;
-    }
-
-    // fetches all event configs from a control element
+    // whole element copy: fetches all event configs from a control element
     this.ControlElement = function (){
 
-      writeBuffer.add_first({
-        commandCb: function(){
-          engine.set('DISABLED');
-          logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
-        }
-      });
+      engine.set('DISABLED');
+      logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
+      
 
       const li = get(user_input);
       const rt = get(runtime);
@@ -713,16 +591,26 @@ function create_runtime () {
       array.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li, false);
-      })
 
-      writeBuffer.add_last({
-        commandCb: function(){
-          writeBuffer.messages.set('ready for overwrite');                
-          logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
-          engine.set('ENABLED');
+        if (ind == array.length-1){ // is this the last?
+
+          let callback = function(){
+            writeBuffer.messages.set('ready for overwrite');                
+            logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
+            engine.set('ENABLED');
+
+            controlElementClipboard.set({controlElementType, events});
+            console.log("WHOLE ELEMENT COPY", controlElementType, events);
+          };
+
+
+          fetchOrLoadConfig(li, callback);
         }
-      });
+        else{
+          fetchOrLoadConfig(li);
+        }
+        
+      })
 
       return {events, controlElementType}; // this is a reference for the control elements in question
     }
@@ -730,12 +618,8 @@ function create_runtime () {
     // fetches all config from each action and event on current page + utility button
     this.FullPage = function(){
 
-      writeBuffer.add_first({
-        commandCb: function(){
-          engine.set('DISABLED');
-          logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
-        }
-      });
+      engine.set('DISABLED');
+      logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
 
       const rt = get(runtime);
 
@@ -755,19 +639,25 @@ function create_runtime () {
 
 
       array.forEach((elem, ind) => {
+
+
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
-        fetchOrLoadConfig(rt, li, false);
-      })
 
-      writeBuffer.add_last({
-        //responseRequired: true,
-        commandCb: function(){
-          writeBuffer.messages.set('ready to save');                
-          logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
-          engine.set('ENABLED');
+        if (ind === array.length-1){ // last element
+          let callback = function(){
+            writeBuffer.messages.set('ready to save');                
+            logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
+            engine.set('ENABLED');
+          };
+          fetchOrLoadConfig(li, callback);
         }
-      });
+        else{
+          fetchOrLoadConfig(li);
+        }
+
+
+      })
      
       return this;
     }
@@ -821,97 +711,72 @@ function create_runtime () {
 
     const rt = get(_runtime);
 
-    const li = Object.create(ui);
 
-    const {config, events, selectedEvent, selectedNumber, pages, elementNumbers, stringname } = fetchOrLoadConfig(rt, li, true);
+    // fetch or load config now inline
+    
+    let config = [];
+    let selectedEvent = "";
+
+
+    const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+    if (device === undefined){
+      return;
+    }
+
+    const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+    const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
+
+
+    selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex];
+
+    if(selectedEvent.config.length){
+      config = selectedEvent.config.trim();
+    }
+
+    const cfgstatus = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex].cfgStatus;
+
+    if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
+      // its loaded
+    }
+    else{
+      // fetch      
+      selectedEvent.cfgStatus = 'FETCHED';
+      
+
+      const callback = function(){
+        runtime.update.one().trigger();
+      }
+
+      instructions.fetchConfigFromGrid(device, ui, callback);
+
+    }
+
+
 
     return {
       config: config,
-      stringname: stringname,
+      stringname: "",
       events: {
         selected: selectedEvent.event,
-        options: events.map(e => e.event)
+        options: device.pages[pageIndex].control_elements[elementIndex].events.map(e => e.event)
       }, 
       elements: {
-        selected: selectedNumber,
-        options: elementNumbers.map((n) => n.controlElementNumber)
+        selected: ui.event.elementnumber,
+        options: device.pages[pageIndex].control_elements.map((n) => n.controlElementNumber)
       },
       pages: {
         selected: ui.event.pagenumber,
-        options: pages.map((n) => n.pageNumber)
+        options: device.pages.map((n) => n.pageNumber)
       }
     }
   });
-
-  
-    
-
-  const _hidden_update = function(){
-
-    this.writeStringName = function(inputname){
-
-      const stringname = inputname;
-
-      const li = get(user_input);
-      const rt = get(runtime);
-
-      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
-      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
-
-      const events = device.pages[pageIndex].control_elements[elementIndex].events;
-
-      const i_event = events.find(x => x.event.value == '0');
-
-      let configList = _utils.rawLuaToConfigList(i_event.config);
-
-      let snPos = configList.indexOf('--[[@sn]]');
-
-      // not found, add it
-      if(snPos == -1){
-        configList = ['--[[@sn]]','', ...configList];
-        snPos = 0;
-      } 
-
-      configList[snPos+1] = `self.sn='${stringname}'`;
-
-      let configs = '';
-      for (let i = 0; i < configList.length; i+=2) {
-        configs += (`${configList[i]}${configList[i+1]}`.trim())
-      }
-
-      if(configs){
-        runtime.update.one().status('EDITOR_EXECUTE').event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: 0, PAGENUMBER: li.event.pagenumber}).config({lua: '<?lua ' + configs + ' ?>'}).sendToGrid();
-      }
-
-      this.addToControlElement(stringname, li);
-
-    }
-
-    this.addToControlElement = function(stringname, li){
-
-      _runtime.update((rt)=>{
-        rt.forEach((device)=>{
-          if(device.dx == li.brc.dx && device.dy == li.brc.dy){
-            const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-            const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
-            let controlElement = device.pages[pageIndex].control_elements[elementIndex];
-            controlElement.controlElementName = stringname;
-          }
-        })
-        return rt;
-      })
-
-      return this;
-    }
-
-  }
 
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
     active_config: _active_config.subscribe,
-    hidden_update: new _hidden_update(),
     update: new _runtime_update(),
     fetch: new _runtime_fetch(),
     device: new _device_update(),

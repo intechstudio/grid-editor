@@ -8,7 +8,7 @@ import { engine, logger, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
 
-  fetchConfigFromGrid: ({device, inputStore, ui_trigger, callback}) => {
+  fetchConfigFromGrid: (device, inputStore, callback) => {
 
     let enumber = undefined;
 
@@ -52,16 +52,13 @@ const instructions = {
       }, 
       successCb: function(descr){
 
-        if(ui_trigger){
-          runtime.update.one().set_config_descriptor(descr).trigger();
-        } else {
-          runtime.update.one().set_config_descriptor(descr);
+        runtime.update.one().set_config_descriptor(descr);
 
-          if(callback){
-            console.log("CALLBACK")
-            callback(descr);
-          }
+        if(callback){
+          console.log("CALLBACK")
+          callback(descr);
         }
+        
       }
     }
 
@@ -71,7 +68,7 @@ const instructions = {
     return 1;
   },
 
-  sendConfigToGrid: ({lua, li}) => {
+  sendConfigToGrid: (lua, li, callback) => {
 
     const {event, brc} = li;
 
@@ -105,9 +102,7 @@ const instructions = {
       failCb: function(){
         //console.log('config execute - fail')
       }, 
-      successCb: function(){
-        //console.log('config execute - success')
-      }
+      successCb: callback
     }
 
     if(grid.properties.CONFIG_LENGTH <= lua.trim().length){

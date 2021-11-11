@@ -140,40 +140,6 @@
     }); 
   }
 
-  function saveProfileDialog(profileName, profile) {
-    // Resolves to a Promise<Object> 
-    dialog.showSaveDialog({ 
-          title: 'Select the File Path to save', 
-          defaultPath: path.join(__dirname, `../assets/${profileName}.json`), 
-          // defaultPath: path.join(__dirname, '../assets/'), 
-          buttonLabel: 'Save', 
-          // Restricting the user to only JSON Files. 
-          filters: [ 
-              { 
-                  name: 'JSON Files', 
-                  extensions: ['json'] 
-              }, ], 
-          properties: [] 
-        }).then(file => { 
-            // Stating whether dialog operation was cancelled or not. 
-            if (!file.canceled) { 
-                const path = file.filePath.toString(); 
-                  
-                // Creating and Writing to the sample.txt file 
-                fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
-                    if (err) throw err; 
-                    console.log('Saved!');                
-                    loadFilesFromDirectory(PROFILE_PATH);
-                }); 
-            } 
-
-            
-
-        }).catch(err => { 
-            console.log(err) 
-        }); 
-  }
-
   function prepareSave() { 
 
     let _user_input = undefined;

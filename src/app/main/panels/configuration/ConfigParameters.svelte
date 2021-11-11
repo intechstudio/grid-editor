@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../_stores/app-helper.store.js";
-
-  import { runtime, user_input, _runtime_modules } from '../../../runtime/runtime.store.js';
+  import { get } from 'svelte/store';
+  import { runtime, user_input, _runtime_modules, controlElementClipboard} from '../../../runtime/runtime.store.js';
   import { configManagement } from "../../../runtime/config-manager.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
@@ -36,23 +36,27 @@
   }
 
   function copyAllEventConfigsFromSelf(){
-    configManagement().element_operations.get_events_actions()
+
+    runtime.fetch.ControlElement();
   }
 
   function overwriteAllEventConfigs(){
-   configManagement().element_operations.overwrite_events_actions(); 
+
+   let clipboard = get(controlElementClipboard);
+    runtime.update.control_element(clipboard);
+
   }
 
   function updateStringName(e){
     const name = e.target.value;
-    runtime.hidden_update.writeStringName(name);
+    console.error("SORRY");
   }
 
   function showControlElementNameOverlay(){
     $appSettings.overlays.controlElementName = !$appSettings.overlays.controlElementName;
     // fetch once, although on page changes this may be retriggered;
     //if(!loaded){
-      runtime.fetch.HiddenActions();
+      console.error("SORRY");
       loaded = true;
     //}
   }

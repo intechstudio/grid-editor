@@ -69,7 +69,9 @@ function createWriteBuffer (){
 
     let retval = grid.translate.encode_suku(descr);
 
+
     serialComm.write(retval.serial);
+
 
     return {id: retval.id};
  
@@ -182,11 +184,9 @@ function createWriteBuffer (){
 
  
     if(incomingValid){
-
-      
-      console.log("VALID!!!");
-
-      active_elem.successCb(descr);
+      if (active_elem.successCb!== undefined){
+        active_elem.successCb(descr);
+      }
       active_elem = undefined;
       write_buffer_busy = false;
       clearInterval(_fetch_timeout);

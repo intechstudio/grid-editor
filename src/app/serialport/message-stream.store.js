@@ -21,7 +21,7 @@ function createMessageStream(){
 
       if (class_descr.class_name === "PAGECOUNT"){
   
-        runtime.device.update_pages(class_descr);        
+        // update page count, now not used because it is constant 4      
       }
 
       if(class_descr.class_name === "DEBUGTEXT"){

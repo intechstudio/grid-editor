@@ -1025,13 +1025,14 @@ const grid = {
 
   device: {
   
-    createPage: function(moduleType, pageStatus = 'INIT', pageNumber = 0){
+    createPage: function(moduleType, pageNumber){
+
 
         moduleType = moduleType.substr(0,4);
       
         let control_elements = [];
 
-        let status = pageStatus;
+        let status = 'INIT';
 
         try {
 
@@ -1121,7 +1122,7 @@ const grid = {
           },
           isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
           isLanding: false,
-          pages: [this.createPage(moduleType)],
+          pages: [this.createPage(moduleType,0), this.createPage(moduleType,1), this.createPage(moduleType,2), this.createPage(moduleType,3)],
           global: {  
             bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
             bankEnabled: [true,true,true,true],
@@ -1130,7 +1131,6 @@ const grid = {
         }
         
       }
-
       
       return controller;
   

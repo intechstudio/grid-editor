@@ -131,33 +131,10 @@ export function configManagement() {
     };
   }
   
-  const element_operations = function(){
-    this.get_events_actions = function(){
-
-      const { events, controlElementType } = runtime.fetch.ControlElement();
-      
-      writeBuffer.messages.subscribe((msg) => {
-        if(msg == 'ready for overwrite'){
-          controlElementClipboard.set({controlElementType, events});
-          writeBuffer.messages.set('nullish'); 
-        }
-      })
-      
-    }
-
-    this.overwrite_events_actions = function(){
-
-      let clipboard = get(controlElementClipboard);
-
-      runtime.update.control_element(clipboard);
-      
-    }
-  }
 
   return {
     drag_and_drop: new drag_and_drop(),
-    on_click: new on_click(),
-    element_operations: new element_operations()
+    on_click: new on_click()
   }
 };
 
