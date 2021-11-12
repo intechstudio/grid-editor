@@ -31,7 +31,16 @@ function createMessageStream(){
       if(class_descr.class_name === "MIDI"){
       
         midi_monitor_store.update_midi(class_descr);
+      }      
+      
+      if(class_descr.class_name === "CONFIG"){
+      
+        console.log(class_descr)
       }
+
+
+
+    
 
       if (class_descr.class_name === "EVENT"){
 
@@ -44,7 +53,7 @@ function createMessageStream(){
 
       if (class_descr.class_name === "PAGEACTIVE"){
 
-        user_input.update_pagenumber.pagenumber(class_descr.class_parameters.PAGENUMBER);
+        user_input.update_pagenumber.change_page(class_descr.class_parameters.PAGENUMBER);
       }
 
 

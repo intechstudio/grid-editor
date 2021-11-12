@@ -8,18 +8,14 @@ import { engine, logger, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
 
-  fetchConfigFromGrid: (device, inputStore, callback) => {
+  fetchConfigFromGrid: (dx, dy, page, element, event, callback) => {
 
-    let enumber = undefined;
-
-    // configurations on the 16th element, which is the utility button
-    enumber = inputStore.event.elementnumber;
 
     let buffer_element = {
 
       descr: {
         brc_parameters: {
-          DX: device.dx, DY: device.dy, ROT: device.rot
+          DX: dx, DY: dy
         },
         class_name: "CONFIG",
         class_instr: "FETCH",
@@ -27,24 +23,24 @@ const instructions = {
           VERSIONMAJOR: grid.properties.VERSION.MAJOR,
           VERSIONMINOR: grid.properties.VERSION.MINOR,
           VERSIONPATCH: grid.properties.VERSION.PATCH,
-          PAGENUMBER: inputStore.event.pagenumber,
-          ELEMENTNUMBER: enumber,
-          EVENTTYPE: inputStore.event.eventtype,
+          PAGENUMBER: page,
+          ELEMENTNUMBER: element,
+          EVENTTYPE: event,
           ACTIONLENGTH: 0
         }
       },
       responseRequired: true,
       filter: {
         brc_parameters: { 
-          'SX': device.dx, 
-          'SY': device.dy,
+          'SX': dx, 
+          'SY': dy,
         },
         class_instr: 'REPORT',
         class_name: 'CONFIG',
         class_parameters: {
-          'PAGENUMBER': inputStore.event.pagenumber,
-          'ELEMENTNUMBER': enumber,
-          'EVENTTYPE': inputStore.event.eventtype
+          'PAGENUMBER': page,
+          'ELEMENTNUMBER': element,
+          'EVENTTYPE': event
         }
       },
       failCb: function(){
@@ -52,7 +48,14 @@ const instructions = {
       }, 
       successCb: function(descr){
 
-        runtime.update.one().set_config_descriptor(descr);
+        const dx = descr.brc_parameters.SX; 
+        const dy = descr.brc_parameters.SY;
+        const page =  descr.class_parameters.PAGENUMBER;
+        const element = descr.class_parameters.ELEMENTNUMBER;
+        const event = descr.class_parameters.EVENTTYPE;
+        const actionstring = descr.class_parameters.ACTIONSTRING;
+
+        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'GRID_REPORT');
 
         if(callback){
           console.log("CALLBACK")
@@ -68,17 +71,16 @@ const instructions = {
     return 1;
   },
 
-  sendConfigToGrid: (lua, li, callback) => {
+  sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
 
-    const {event, brc} = li;
-
+    runtime.unsaved.update(n => n + 1);
 
     console.log(event.elementnumber, event.eventtype)
 
     let buffer_element = {
       descr: {
         brc_parameters: {
-          DX: brc.dx, DY: brc.dy, ROT: brc.rot
+          DX: dx, DY: dy
         },
         class_name: "CONFIG",
         class_instr: "EXECUTE",
@@ -86,18 +88,18 @@ const instructions = {
           VERSIONMAJOR: grid.properties.VERSION.MAJOR,
           VERSIONMINOR: grid.properties.VERSION.MINOR,
           VERSIONPATCH: grid.properties.VERSION.PATCH,
-          PAGENUMBER:   event.pagenumber,
-          ELEMENTNUMBER: event.elementnumber,
-          EVENTTYPE:    event.eventtype,
-          ACTIONLENGTH: lua.trim().length,
-          ACTIONSTRING: lua.trim()
+          PAGENUMBER:   page,
+          ELEMENTNUMBER: element,
+          EVENTTYPE:    event,
+          ACTIONLENGTH: actionstring.length,
+          ACTIONSTRING: actionstring
         }
       },
       responseRequired: true,
       filter: {
         brc_parameters: { 
-          'SX': brc.dx, 
-          'SY': brc.dy,
+          'SX': dx, 
+          'SY': dy,
         },
         class_name: 'CONFIG',
         class_instr: 'ACKNOWLEDGE'
@@ -118,9 +120,8 @@ const instructions = {
     return 1;
   },
 
-  changeActivePage: ({li}) => {
+  changeActivePage: (pagenumber) => {
 
-    const {event, brc} = li;
 
     let buffer_element = {
       descr: {
@@ -131,7 +132,7 @@ const instructions = {
         class_name: "PAGEACTIVE",
         class_instr: "EXECUTE",
         class_parameters: {
-          PAGENUMBER: event.pagenumber
+          PAGENUMBER: pagenumber
         }
       }
       

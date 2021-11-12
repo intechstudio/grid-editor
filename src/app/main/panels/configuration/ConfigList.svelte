@@ -17,8 +17,10 @@
 
   import { changeOrder } from '../../_actions/move.action.js';
 
+  import { writable, get } from 'svelte/store';
+
   import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
-  import { runtime, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
+  import { runtime, user_input, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import ConfigBlock from './components/ConfigBlock.svelte';
@@ -43,8 +45,18 @@
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
-    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
-  
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
+    runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+    
   }
 
   function handleDrop(e){
@@ -70,17 +82,40 @@
 
     }
 
-    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
+    runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
 
   }
 
   function handleConfigChange({configName}){
+
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
+ 
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
     if(configName == 'End' || configName == 'Else'){
-      runtime.update.one().status('EDITOR_BACKGROUND').config({lua: _utils.configMerge({config: configs})});
+      runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+
     } else {
-      runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+      runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
     }
 
     localDefinitions.update(configs);

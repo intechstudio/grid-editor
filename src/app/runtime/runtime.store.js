@@ -203,7 +203,7 @@ function create_user_input () {
 
   const _update = function(){
 
-    this.pagenumber = function(value){
+    this.change_page = function(new_page_number){
 
       if(get(engine) !== 'ENABLED'){
         return this;
@@ -212,20 +212,17 @@ function create_user_input () {
       const store = get(_event);
 
       // only update pagenumber if it differs from the runtime pagenumber
-      if(store.event.pagenumber !== value){ 
+      if(store.event.pagenumber !== new_page_number){ 
 
-        _event.update(s => {s.event.pagenumber = value; return s});
+        _event.update(s => {s.event.pagenumber = new_page_number; return s});
 
         // clean up the writebuffer if pagenumber changes!
         writeBuffer.clean_up.all();
 
+        instructions.changeActivePage(new_page_number);
+
       }
 
-      return this;
-    }
-
-    this.sendToGrid = function(){
-      instructions.changeActivePage({li: get(_event)});
       return this;
     }
 
@@ -282,16 +279,17 @@ function create_runtime () {
 
   const _runtime = writable([]);
 
-  const findUpdateDestEvent = (_runtime, li) =>{
+  const findUpdateDestEvent = (_runtime, dx, dy, page, element, event) =>{
+
     let _event = undefined;
     // this elementnumber check refers to uninitialized UI...
-    if(li.event.elementnumber !== -1){
+    if(element !== -1){
       _runtime.forEach((device) => {
-        if(device.dx == li.brc.dx && device.dy == li.brc.dy){
+        if(device.dx == dx && device.dy == dy){
           try {
-            const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-            const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
-            _event = device.pages[pageIndex].control_elements[elementIndex].events.find(e => e.event.value == li.event.eventtype);
+            const pageIndex = device.pages.findIndex(x => x.pageNumber == page);
+            const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == element);
+            _event = device.pages[pageIndex].control_elements[elementIndex].events.find(e => e.event.value == event);
           } catch (error) {    
             console.error('Couldn\'t update in destination: ', li)
           }
@@ -323,7 +321,14 @@ function create_runtime () {
     }
     else{
       // fetch
-      instructions.fetchConfigFromGrid(device, ui, callback);
+      const dx = ui.brc.dx;
+      const dy = ui.brc.dy;
+      const page =  ui.event.pagenumber;
+      const element = ui.event.elementnumber;
+      const event = ui.event.eventtype;
+
+      console.log("fetchOrLoad")
+      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
     }
 
     return;
@@ -411,12 +416,33 @@ function create_runtime () {
           }
 
 
-          const operation = new _update();
-          operation.status('EDITOR_BACKGROUND');
-          operation.event({ELEMENTNUMBER: li.event.elementnumber, EVENTTYPE: ev.event.value, PAGENUMBER: li.event.pagenumber});
-          operation.config({lua: ev.config});
-          operation.sendToGrid(callback);
-          operation.trigger()
+          let li = get(user_input);
+
+          li.event.pagenumber = li.event.pagenumber;
+          li.event.elementnumber = li.event.elementnumber;
+          li.event.eventtype = ev.event.value;
+
+          const dx = li.brc.dx;
+          const dy = li.brc.dx;
+          const page =  li.event.pagenumber;
+          const element = li.event.elementnumber;
+          const event = li.event.eventtype;
+
+          console.log(dx, dy, page, element, event)
+
+          _runtime.update(_runtime => {
+            let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+            if (dest) {
+              dest.config = ev.config.trim();
+              dest.cfgStatus = 'EDITOR_BACKGROUND';
+            }    
+            return _runtime;
+          })
+
+          const lua = ev.config;
+          instructions.sendConfigToGrid(lua, li, callback);
+          runtime.update.one().trigger();
+
         });
 
       } else {
@@ -443,19 +469,22 @@ function create_runtime () {
           li.event.elementnumber = element.controlElementNumber;
           li.event.eventtype = ev.event;
 
+          const dx = li.brc.dx;
+          const dy = li.brc.dx;
+          const page =  li.event.pagenumber;
+          const element = li.event.elementnumber;
+          const event = li.event.eventtype;
+
+          console.log(dx, dy, page, element, event)
 
           _runtime.update(_runtime => {
-            let dest = findUpdateDestEvent(_runtime, li);
+            let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
             if (dest) {
               dest.config = ev.config.trim();
               dest.cfgStatus = 'EDITOR_BACKGROUND';
             }    
             return _runtime;
           })
-
-
-
-          _unsaved_changes.update(n => n + 1);
 
           let callback;
 
@@ -481,71 +510,42 @@ function create_runtime () {
       const operation = new _update();
 
       return {
-        set_config_descriptor: operation.set_config_descriptor,
-        status: operation.status,
-        event: operation.event,
-        config: operation.config,
-        sendToGrid: operation.sendToGrid,
+        set_configuration: operation.set_configuration,
+        send_configuration_to_grid: operation.send_configuration_to_grid,
         trigger: operation.trigger
       };
     }
 
     const _update = function(){
-    
-      let li = get(user_input);
-      let code = '';
-      let cfgStatus = 'EDITOR_BACKGROUND';
 
-      this.set_config_descriptor = function(descr) {
-        // status
-        cfgStatus = 'GRID_REPORT';
-
-        // event
-        li.event.eventtype = descr.class_parameters.EVENTTYPE;
-        li.event.pagenumber = descr.class_parameters.PAGENUMBER;
-        li.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
+      this.set_configuration = function(dx, dy, page, element, event, actionstring, status) {
 
         // config
-        code = descr.class_parameters.ACTIONSTRING;
         _runtime.update(_runtime => {
-          let dest = findUpdateDestEvent(_runtime, li);
+          
+
+          console.log(dx, dy, page, element, event)
+
+          let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
           if (dest) {
-            dest.config = code.trim();
-            dest.cfgStatus = cfgStatus;
+            dest.config = actionstring;
+            dest.cfgStatus = status;
           }    
           return _runtime;
         })
         return this;
       };
 
-      this.status = function(status) {
-        cfgStatus = status;
-        return this;
-      };
+      this.send_configuration_to_grid = function(dx, dy, page, element, event, callback){
 
-      this.event = function(evt){
-        li.event.eventtype = evt.EVENTTYPE;
-        li.event.pagenumber = evt.PAGENUMBER;
-        li.event.elementnumber = evt.ELEMENTNUMBER;
-        return this;
-      };
-
-      this.config = function({lua}) {
-        code = lua;
-        _runtime.update(_runtime => {
-          let dest = findUpdateDestEvent(_runtime, li);
-          if (dest) {
-            dest.config = lua.trim();
-            dest.cfgStatus = cfgStatus;
-          }    
-          return _runtime;
-        })
-        return this;
-      };
-
-      this.sendToGrid = function(callback){
-        _unsaved_changes.update(n => n + 1);
-        instructions.sendConfigToGrid(code, li, callback);
+        let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+        if (dest) {
+          instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+        } 
+        else{
+          console.error("DEST not found!")
+        } 
+        
         return this;
       };
 
@@ -716,6 +716,7 @@ function create_runtime () {
       return;
     }
 
+
     const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
@@ -735,13 +736,23 @@ function create_runtime () {
     else{
       // fetch      
       selectedEvent.cfgStatus = 'FETCHED';
-      
 
       const callback = function(){
+        
+        
+        console.log("_active_element callback");
         runtime.update.one().trigger();
+
       }
 
-      instructions.fetchConfigFromGrid(device, ui, callback);
+      const dx = ui.brc.dx;
+      const dy = ui.brc.dy;
+      const page =  ui.event.pagenumber;
+      const element = ui.event.elementnumber;
+      const event = ui.event.eventtype;
+
+      console.log("_active_element");
+      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
 
     }
 

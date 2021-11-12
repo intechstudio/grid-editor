@@ -27,26 +27,7 @@ function createWriteBuffer (){
 
     this.one = function(device){
 
-      let arr = [];
-      
-      _write_buffer = _write_buffer.filter((e) => {
-        let bool = true;
-        if(e.encodeParameters){
-          if(device.dx == e.encodeParameters[0].dx && device.dy == e.encodeParameters[0].dy){
-            bool = false
-          }
-        }
-        return bool;
-      });
-
-      if(active_elem !== undefined && active_elem.encodeParameters[1] == 'LOCAL'){
-        if(active_elem.filter.brc_parameters.SX == active_elem.encodeParameters[0].dx && active_elem.filter.brc_parameters.SY == active_elem.encodeParameters[0].dy){
-          active_elem = undefined;
-          write_buffer_busy = false;
-        }
-      }
-
-      console.info('Clean up >one< writeBuffer!', active_elem, _write_buffer);
+      console.error("clean_up");
 
       writeBufferTryNext();
 
@@ -67,11 +48,19 @@ function createWriteBuffer (){
   function sendDataToGrid(descr) {
 
 
+    console.log("SEND", descr)
+
     let retval = grid.translate.encode_suku(descr);
 
 
     serialComm.write(retval.serial);
 
+
+    let str = "";
+    for (let i=0; i<retval.serial.length; i++){
+      str += String.fromCharCode(retval.serial[i]);
+    }
+    console.log("SEND", descr, str)
 
     return {id: retval.id};
  
@@ -150,7 +139,6 @@ function createWriteBuffer (){
   function validateIncoming(descr) {
 
 
-
     // check if there is an active_elem availabe
     if(!active_elem) return
 
@@ -160,7 +148,6 @@ function createWriteBuffer (){
     if(descr.class_name === 'HEARTBEAT'){
       return;
     }
-    
     let incomingValid = true;
 
     // validate BRC, must start with this as every input contains BRC!
@@ -171,7 +158,7 @@ function createWriteBuffer (){
     }
 
     if(descr.class_name === active_elem.filter.class_name){
-
+      
       for (const parameter in active_elem.filter.class_parameters) {
         if(descr.class_parameters[parameter] != active_elem.filter.class_parameters[parameter]){
           incomingValid = false;

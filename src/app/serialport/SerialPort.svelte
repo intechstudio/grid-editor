@@ -216,7 +216,7 @@
       runtime.set([]);
       user_input.reset();
       runtime.unsaved.set(0);
-      runtime.update.one().trigger();
+      
       appSettings.update(s => {s.overlays.controlElementName = false; return s})
       // clearup fifo writebuffer
       writeBuffer.clean_up.all();

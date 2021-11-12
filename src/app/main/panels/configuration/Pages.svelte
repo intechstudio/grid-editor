@@ -21,7 +21,8 @@
   function handleSelectPage(page) {
     if(get(runtime.unsaved) == 0){
       selectedPage = page;
-      user_input.update_pagenumber.pagenumber(selectedPage).sendToGrid();
+      user_input.update_pagenumber.change_page(selectedPage);
+
     }
     else{
       logger.set({type: 'alert', classname: 'pagechange', mode: 0, message: 'Store your config before switching pages!'});

@@ -98,7 +98,19 @@ export function configManagement() {
     this.paste = function(){
       if(get(appActionClipboard).length){
         const configs = [...get_configs(), ...get(appActionClipboard)];
-        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + configs.join('') + ' ?>'}).sendToGrid().trigger();
+
+        const li = get(user_input);
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dy;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
+        const actionstring = '<?lua ' + configs.join('') + ' ?>'
+    
+        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+        runtime.update.one().trigger();
       }
     }
 
@@ -125,7 +137,19 @@ export function configManagement() {
           }
         }
 
-        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + filtered.join('') + ' ?>'}).sendToGrid().trigger();
+        const li = get(user_input);
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dy;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
+        const actionstring = '<?lua ' + filtered.join('') + ' ?>'
+    
+        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+        runtime.update.one().trigger();
+
       }
 
     };
