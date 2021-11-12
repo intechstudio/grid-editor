@@ -316,10 +316,13 @@ function create_runtime () {
 
     if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
       // its loaded
+      if (callback !== undefined){
+        callback();
+      }
+
     }
     else{
       // fetch
-
       instructions.fetchConfigFromGrid(device, ui, callback);
     }
 
@@ -399,8 +402,7 @@ function create_runtime () {
 
           let callback;
           if (index === events.length-1){ // last element
-            callback = function(){
-              writeBuffer.messages.set('overwrite done');                
+            callback = function(){               
               logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
             };
           }
@@ -417,10 +419,6 @@ function create_runtime () {
           operation.trigger()
         });
 
-
-
-        console.log("PARA1", controlElementType, events);
-
       } else {
         logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
       }
@@ -430,15 +428,49 @@ function create_runtime () {
 
     this.page = function(array){
 
-      const li = get(user_input);
 
-      array.forEach((element) => {
-        element.events.forEach((ev)=>{
-          const operation = new _update();
-          operation.status('EDITOR_BACKGROUND');
-          operation.event({ELEMENTNUMBER: element.controlElementNumber, EVENTTYPE: ev.event, PAGENUMBER: li.event.pagenumber});
-          operation.config({lua: ev.config});
-          operation.sendToGrid();
+      engine.set('DISABLED');
+      logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
+
+      array.forEach((element, elementIndex) => {
+
+        element.events.forEach((ev, eventIndex)=>{
+
+          // ============ const operation = new _update();
+          let li = get(user_input);
+
+          li.event.pagenumber = li.event.pagenumber;
+          li.event.elementnumber = element.controlElementNumber;
+          li.event.eventtype = ev.event;
+
+
+          _runtime.update(_runtime => {
+            let dest = findUpdateDestEvent(_runtime, li);
+            if (dest) {
+              dest.config = ev.config.trim();
+              dest.cfgStatus = 'EDITOR_BACKGROUND';
+            }    
+            return _runtime;
+          })
+
+
+
+          _unsaved_changes.update(n => n + 1);
+
+          let callback;
+
+          if (elementIndex === array.length-1 && eventIndex === element.events.length-1){
+            // this is last element so we need to add the callback
+            callback = function(){
+              engine.set('ENABLED');
+              logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
+              runtime.update.one().trigger();
+            };
+          }
+
+          const lua = ev.config;
+          instructions.sendConfigToGrid(lua, li, callback);
+
         });
       });
 
@@ -526,44 +558,9 @@ function create_runtime () {
 
   }
   
-  function load_stringname(DATA){
-    let stringname = '';
 
-    // only for init
-    if(DATA.CONFIG_REPORT.EVENTTYPE == 0){
-    
-      if(DATA.LUA.length){
-        try {
-
-          stringname = DATA.LUA.split('--[[@sn]]')[1].split('--[[@')[0].split('?>')[0].trim().slice(9,-1);
-          
-          const li = {
-            event: {
-              eventtype: 0,
-              elementnumber: DATA.CONFIG_REPORT.ELEMENTNUMBER,
-              pagenumber: DATA.CONFIG_REPORT.PAGENUMBER
-            },
-            brc: {
-              dx: DATA.BRC.SX,
-              dy: DATA.BRC.SY
-            }
-          }
-
-          runtime.hidden_update.addToControlElement(stringname, li);
-
-        } catch (error) {
-          console.error('init event sn read error')
-          //stringname = '';
-        }
-      }
-
-    }
-  }
 
   const _runtime_fetch = function() {
-
-    const _default_li = get(user_input);
-
 
     // whole element copy: fetches all event configs from a control element
     this.ControlElement = function (){
@@ -592,13 +589,13 @@ function create_runtime () {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
 
+        console.log("WholeElement", li);
+
         if (ind == array.length-1){ // is this the last?
 
-          let callback = function(){
-            writeBuffer.messages.set('ready for overwrite');                
+          let callback = function(){            
             logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
             engine.set('ENABLED');
-
             controlElementClipboard.set({controlElementType, events});
             console.log("WHOLE ELEMENT COPY", controlElementType, events);
           };
@@ -616,14 +613,14 @@ function create_runtime () {
     }
 
     // fetches all config from each action and event on current page + utility button
-    this.FullPage = function(){
+    this.FullPage = function(callback){
 
       engine.set('DISABLED');
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
 
       const rt = get(runtime);
 
-      let li = Object.assign({}, _default_li);
+      let li = Object.assign({}, get(user_input));
 
       const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
       const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
@@ -640,16 +637,11 @@ function create_runtime () {
 
       array.forEach((elem, ind) => {
 
-
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
 
         if (ind === array.length-1){ // last element
-          let callback = function(){
-            writeBuffer.messages.set('ready to save');                
-            logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
-            engine.set('ENABLED');
-          };
+
           fetchOrLoadConfig(li, callback);
         }
         else{

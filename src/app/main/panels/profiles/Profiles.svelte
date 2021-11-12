@@ -142,62 +142,53 @@
 
   function prepareSave() { 
 
-    let _user_input = undefined;
-    const _active_user_input = user_input.active_input(value => _user_input = value.selected);
-    _active_user_input();
-    
-    try {
+    let callback = function(){           
+      logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
 
-      runtime.fetch.FullPage();
-      
-      writeBuffer.messages.subscribe((value) => {
-
-        if(value == 'ready to save'){
-
-          const configs = get(runtime);
-
-          let profile = {
-            ...newProfile, 
-            isGridProfile: true,  // differentiator from different JSON files!
-            version: {
-              major: $appSettings.version.major, 
-              minor: $appSettings.version.minor, 
-              patch: $appSettings.version.patch
-            }
-          }
-
-
-          configs.forEach(d => {
-
-            if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
-
-              const page = d.pages.find(x => x.pageNumber == _user_input.event.pagenumber);
-
-              profile.configs = page.control_elements.map(cfg => {
-                  return {
-                    controlElementNumber: cfg.controlElementNumber,
-                    events: cfg.events.map(ev => {
-                      return {
-                        event: ev.event.value,
-                        config: ev.config || "<?lua ?>"
-                      }
-                    })
-                  }
-              });
-
-            }
-
-          })    
-
-          saveProfile(PROFILE_PATH, newProfile.name, profile);
-          
+      let _user_input = undefined;
+      const _active_user_input = user_input.active_input(value => _user_input = value.selected);
+      _active_user_input();
+  
+      const configs = get(runtime);
+  
+      let profile = {
+        ...newProfile, 
+        isGridProfile: true,  // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major, 
+          minor: $appSettings.version.minor, 
+          patch: $appSettings.version.patch
         }
-      });
+      }
+  
+      configs.forEach(d => {
+  
+        if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
+  
+          const page = d.pages.find(x => x.pageNumber == _user_input.event.pagenumber);
+  
+          profile.configs = page.control_elements.map(cfg => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map(ev => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config
+                  }
+                })
+              }
+          });
+  
+        }
+  
+      })    
+  
+      saveProfile(PROFILE_PATH, newProfile.name, profile);
 
+      engine.set('ENABLED');
+    };
 
-    } catch (error) {
-      console.error('Error while saving a profile!', error); 
-    }
+    runtime.fetch.FullPage(callback);
 
   }
 
@@ -213,22 +204,11 @@
 
       if(currentModule.id.substr(0,4) == profile.type){
 
-        writeBuffer.add_first({
-          commandCb: function(){
-            engine.set('DISABLED');
-            logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
-          }
-        });
+
 
         runtime.update.page(profile.configs);
 
-        writeBuffer.add_last({
-          commandCb: function(){
-            engine.set('ENABLED');
-            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
-            runtime.update.one().trigger();
-          }
-        });
+
 
       } else {
 

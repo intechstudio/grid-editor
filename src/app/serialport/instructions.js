@@ -63,7 +63,7 @@ const instructions = {
     }
 
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
     return 1;
   },
@@ -71,6 +71,9 @@ const instructions = {
   sendConfigToGrid: (lua, li, callback) => {
 
     const {event, brc} = li;
+
+
+    console.log(event.elementnumber, event.eventtype)
 
     let buffer_element = {
       descr: {
@@ -110,7 +113,7 @@ const instructions = {
       return;
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
     return 1;
   },
@@ -135,7 +138,7 @@ const instructions = {
       // no response required, so no fltr struct is defined
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
     return 1;
   },
@@ -207,7 +210,7 @@ const instructions = {
 
     //engine.strict.store('store', serial, id);
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
   },
 
@@ -249,7 +252,7 @@ const instructions = {
       }
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
   },
 
@@ -282,7 +285,7 @@ const instructions = {
       }
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
 
   },
 
@@ -324,7 +327,7 @@ const instructions = {
       }
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
     
   },
 
@@ -364,7 +367,7 @@ const instructions = {
       }
     }
 
-    writeBuffer.add_first(buffer_element);
+    writeBuffer.add_last(buffer_element);
     
   }
 
