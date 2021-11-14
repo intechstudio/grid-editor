@@ -1,15 +1,10 @@
 <script>
 
   import { onMount, onDestroy } from 'svelte';
-
   import { get } from 'svelte/store';
-
   import { appSettings } from '../main/_stores/app-helper.store.js';
-
-  import { runtime, user_input, heartbeat, engine } from '../runtime/runtime.store.js';
-
+  import { runtime, user_input, engine } from '../runtime/runtime.store.js';
   import { serialComm } from './serialport.store.js';
-
   import grid from '../protocol/grid-protocol.js';
 
   const SerialPort = require('serialport')
@@ -20,83 +15,17 @@
   import { writeBuffer } from '../runtime/engine.store.js';
 
   let PORT = {path: 0};
-
   let selectedPort = "";
-
   let _runtime = []
 
   runtime.subscribe(rt => {_runtime = rt; return 1});
 
-  $: if($heartbeat.editor){ clearInterval(editor_heartbeat_interval); editorHeartbeat()}
-
-  $: if($heartbeat.grid){ clearInterval(grid_heartbeat_interval); gridHeartbeat()}
-
-  // Main serial intervals
-
-  let grid_heartbeat_interval;
-  function gridHeartbeat(){ 
-    const interval = get(heartbeat).grid;
-    grid_heartbeat_interval = setInterval(()=>{
-      let _removed = _runtime.find(g => (Date.now() - g.alive > ($heartbeat.grid * 2)) && !g.virtual);
-      let _processgrid = _runtime.map(g => {
-        if(Date.now() - g.alive > ($heartbeat.grid *2) && !g.virtual){
-          g.alive = 'dead';
-        }
-        return g;
-      })
-      let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
-
-      if(_removed !== undefined && _usedgrid.length !== undefined){    
-        // re-initialize configuration panel, if the module has been removed which had it's settings opened.
-        user_input.reset(_removed);
-        runtime.set(_usedgrid); 
-        writeBuffer.clean_up.one(_removed);
-     
-      }
-
-    }, interval)
-  }
-
-  let editor_heartbeat_interval;
-  function editorHeartbeat(){ 
-
-    const interval = get(heartbeat).editor;
-    
-    editor_heartbeat_interval = setInterval(()=>{
-        let type = 255
-        if(get(runtime.unsaved) != 0){
-          type = 254
-        }
-
-        const retval = grid.translate.encode_suku(
-          {
-            brc_parameters:
-              {DX: -127, DY: -127}, // GLOBAL
-            class_name: "HEARTBEAT",
-            class_instr: "EXECUTE",
-            class_parameters: 
-              {
-                TYPE: type,
-                HWCFG: 255,
-                VMAJOR: $appSettings.version.major,
-                VMINOR: $appSettings.version.minor,
-                VPATCH: $appSettings.version.patch,
-              }
-          }
-        );
-
-  
-        serialComm.write(retval.serial);
-        
-    }, interval);
-
-  }
 
   let port_disovery_interval;
   function discoverPorts(){
     port_disovery_interval = setInterval(() => {
       listSerialPorts();
-    }, grid.properties.HEARTBEAT_INTERVAL )
+    }, 300 ) // 300ms
   }
 
   // Basic serial usage
@@ -259,11 +188,8 @@
       let class_array = grid.translate.parse_to_class_stream_suku(data);
       grid.translate.decode_to_class_stream_suku(class_array);
 
-
-      const decoded = grid.translate.decode(data);
-      if(decoded !== false){
-        decoded.class_array = class_array;
-        messageStream.deliver_inbound(decoded);   
+      if(class_array !== false){
+        messageStream.deliver_inbound(class_array);   
       }
     })
 
@@ -272,15 +198,11 @@
 
   onDestroy(()=>{
     clearInterval(port_disovery_interval);
-    clearInterval(grid_heartbeat_interval);
-    clearInterval(editor_heartbeat_interval);
     closeSerialPort();
   })
 
   onMount(() => {
     discoverPorts();
-    editorHeartbeat();
-    gridHeartbeat();
   })
     
 </script>

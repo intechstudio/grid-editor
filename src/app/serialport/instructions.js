@@ -10,7 +10,6 @@ const instructions = {
 
   fetchConfigFromGrid: (dx, dy, page, element, event, callback) => {
 
-
     let buffer_element = {
 
       descr: {
@@ -58,7 +57,6 @@ const instructions = {
         runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'GRID_REPORT');
 
         if(callback){
-          console.log("CALLBACK")
           callback(descr);
         }
         
@@ -74,8 +72,6 @@ const instructions = {
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
 
     runtime.unsaved.update(n => n + 1);
-
-    console.log(event.elementnumber, event.eventtype)
 
     let buffer_element = {
       descr: {

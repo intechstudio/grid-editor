@@ -7,9 +7,7 @@ import { debug_store, runtime, user_input, logger, engine, midi_monitor_store } 
 
 function createMessageStream(){
 
-  const _deliver_inbound = function(DATA) {
-
-    let class_array = DATA.class_array;
+  const _deliver_inbound = function(class_array) {
 
     class_array.forEach((class_descr, i) => {
 
@@ -35,12 +33,7 @@ function createMessageStream(){
       
       if(class_descr.class_name === "CONFIG"){
       
-        console.log(class_descr)
       }
-
-
-
-    
 
       if (class_descr.class_name === "EVENT"){
 

@@ -479,16 +479,6 @@ const grid = {
 
   translate: {
 
-
-    // encodeParameters: [
-    //   brc, 
-    //   'LOCAL', 
-    //   'CONFIG', 
-    //   'EXECUTE',
-    //   parameters
-    // ],
-
-
     encode_suku: function(descriptor){
 
       if (descriptor === undefined){
@@ -505,16 +495,15 @@ const grid = {
       descr.brc_parameters.SESSION = PROTOCOL.SESSION;
       descr.brc_parameters.MSGAGE = 0;
 
-     
-
       if (descr.brc_parameters.DX !== undefined){
-        descr.brc_parameters.DX += 127;
+
+        descr.brc_parameters.DX = parseInt(descr.brc_parameters.DX)+127;
       }else{
         descr.brc_parameters.DX = 0; // assume global
       }
       
       if (descr.brc_parameters.DY !== undefined){
-        descr.brc_parameters.DY += 127;
+        descr.brc_parameters.DY = parseInt(descr.brc_parameters.DY)+127;
       }else{
         descr.brc_parameters.DY = 0; // assume global
       }
@@ -540,7 +529,6 @@ const grid = {
       }
 
       BRC_ARRAY.push(PROTOCOL.CONST.EOB);
-
 
       // put class parameters into hexarray
       let CLASS_ARRAY = [];
@@ -740,287 +728,8 @@ const grid = {
         
       });
 
-
-
     },
-    decode: function(data){
 
-      function check_checksum(data){
-
-        let first_section = data.slice(0,-2);
-
-        let last_two_char = data.slice(-2);
-
-        last_two_char[0] = String.fromCharCode(last_two_char[0]);
-        last_two_char[1] = String.fromCharCode(last_two_char[1]);
-
-        let str = last_two_char[0] + last_two_char[1];
-
-        let cross_math = 0;
-
-        first_section.forEach(e => { cross_math ^= e});
-
-        cross_math = cross_math % 256;
-
-        cross_math = parseInt(cross_math).toString(16).padStart(2,'0');
-
-        let bool = cross_math === str;
-
-        if(!bool){
-          console.error('Checksum mismatch!', cross_math, str)
-        }
-
-        return bool;
-      }
-
-      function prepare_serial_data(data) {
-
-        let temp_array = Array.from(data);
-        let array = [];
-
-        for (let index = 0; index < temp_array.length; index+=2) {
-          array.push((temp_array[index] + '' + temp_array[index+1])) 
-        }
-
-        let _array = [];
-
-        array.forEach((element, i) => {
-          _array[i] = parseInt('0x'+element);
-        });   
-
-        // websocket debug info to client
-        sendDataToClient('input', _array);
-
-        return _array;
-      }
-
-      function build_decoder(mode, array, id, data, index){
-        const CLASSES = grid.properties.CLASSES;
-        const INSTR = grid.properties.INSTR;
-        
-        // CLASS BUILD
-        let class_name = '';
-        if(data.length > 3 && mode == 'config'){
-          class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
-        }
-    
-        if(mode == 'main' && !(data[index] == 2 && data[index+1] == 48 && data[index+2] == 3)){      
-          class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
-        }
-    
-        // INSTR DETECTION
-        let instr = parseInt('0x'+String.fromCharCode(data[index+4]));
-    
-        let rawFlag = true;
-        for (const key in INSTR){
-          if(INSTR[key] == instr){ 
-            instr = key;
-          }
-        }       
-
-        //console.log(class_name)
-    
-        for (const key in CLASSES){
-          if(parseInt(CLASSES[key].code, 16) == class_name){ 
-            array.push({id: id, class: key, offset: index, instr: instr});  
-            rawFlag = false;   
-          }
-        }    
-    
-        if(rawFlag){
-          array.push({id: id, class: "RAW", offset: index, instr: instr}); 
-        }
-          
-        return array;
-      }
-
-      function decode_by_code(serialData, classCode){
-
-        // BRC AND CLASSES ARE IN DIFFERENT HIERARCHY
-        const CLASS = classCode == 'BRC' ? grid.properties.BRC : grid.properties.CLASSES[classCode];
-        
-        let object = {}
-
-        for (const param in CLASS) {
-          // offset and length are numbers, handle them accordingly!
-          let _value = serialData.slice(
-            +CLASS[param].offset, +CLASS[param].length + +CLASS[param].offset
-          );    
-          let value;
-          
-          if (_value[0] < 91 && _value[0] > 64 ){
-            value = String.fromCharCode(..._value);
-          }else{
-            value = parseInt("0x"+String.fromCharCode(..._value));    
-          }
-           
-          if(param == 'DX' || param == 'DY' || param == 'SX' || param == 'SY' ){
-            object[param] = value - 127;
-          } else {
-            object[param] = value;
-          }
-        }
-
-        return object;
-        
-      }
-
-      function decode_by_class(serialData, decoded){
-
-        let DATA = {};
-    
-        DATA.BRC = decode_by_code(serialData, 'BRC');
-    
-        // grid protocol specific parsing and data manipulation
-
-        decoded.forEach((obj)=>{
-
-          let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
-                 
-
-          if(obj.class == "EVENT"){
-
-            if(DATA.EVENT){
-              DATA.EVENT = [...DATA.EVENT, decode_by_code(array, obj.class)];
-            } else {
-              DATA.EVENT = [decode_by_code(array, obj.class)]
-            }
-
-            if(DATA.EVENT[DATA.EVENT.length-1].EVENTTYPE == 1){
-              DATA.EVENTPARAM = DATA.EVENT;
-            }
-          }
-                
-          if(obj.class == "HEARTBEAT"){
-            if(!(DATA.BRC.SX == -127 && DATA.BRC.SY == -127)){
-              DATA.HEARTBEAT = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "PAGEACTIVE"){
-            DATA.PAGEACTIVE = decode_by_code(array, obj.class);
-          }
-
-          if(obj.class == "PAGECOUNT"){
-            DATA.PAGECOUNT = decode_by_code(array, obj.class);
-          }
-
-          if(obj.class == "DEBUGTEXT"){
-
-            const arr = array.slice(5,);
-
-            DATA.DEBUGTEXT = String.fromCharCode(...arr);
-
-            if(DATA.DEBUGTEXT.includes('page change is disabled')){
-              DATA.LOG = {type: 'alert', classname: 'pagechange', message: 'Store your config before switching pages!'}
-            }
-
-            /*          if(DATA.DEBUGTEXT.includes('store complete')){
-              DATA.LOG = {type: 'success', message: 'Store complete!'}
-            }
-
-            if(DATA.DEBUGTEXT.includes('clear complete')){
-              DATA.LOG = {type: 'success', message: 'Clear complete!'}
-            }
-            */
-          }
-
-          if(obj.class == "MIDI"){
-            if (DATA.MIDI === undefined){
-              DATA.MIDI = [];
-            }
-            
-            let temp = decode_by_code(array, obj.class)
-            temp.INSTR = obj.instr;
-            DATA.MIDI.push(temp);
-          }
-
-          if(obj.class == "PAGESTORE"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGESTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "PAGECLEAR"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGECLEAR_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "PAGEDISCARD"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGEDISCARD_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "NVMERASE"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.NVMERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "CONFIG"){
-
-            // if config report is not coming in after a fetch -> check
-            // if check return with different id, refetch and restart the sync
-
-            if(obj.instr == "REPORT"){
-              try {
-                DATA.CONFIG_REPORT = decode_by_code(array, obj.class);
-                DATA.LUA = '<?lua' + String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0] + '?>'
-              } catch (error) {
-                console.error("Probably an 'expr' in CONFIG REPORT!");
-              }
-            }
-
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.CONFIG_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-
-            if(obj.instr == "NACKNOWLEDGE"){
-              DATA.CONFIG_NACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-
-          }    
-        });
-
-    
-        return DATA;
-      }
-   
-      let _decoded = [];
-      let id = 0; 
-
-      let serialData = prepare_serial_data(data);
-
-      if(check_checksum(serialData)){
-
-        serialData.forEach((element,i) => {  
-      
-          // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
-          if(element == 2){ 
-            id = ""+ i +"";
-            _decoded = build_decoder('main', _decoded, id, serialData, i);    
-          }
-    
-          // GRID_CONST_ETX
-          if(element == 3){
-            let obj = _decoded.find(o => o.id === id);
-            if(obj !== undefined){
-              obj.length = i - obj.offset;
-            }
-          }
-        });
-
-        return decode_by_class(serialData, _decoded)
-
-      } else {
-        
-        return false;
-
-      }
-      
-    }
   },
 
   device: {
@@ -1138,7 +847,5 @@ const grid = {
 
   }
 }
-
-console.log(grid.properties)
 
 export default grid;

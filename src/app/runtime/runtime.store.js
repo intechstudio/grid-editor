@@ -7,6 +7,8 @@ import { serialComm } from '../serialport/serialport.store';
 import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
+
+
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
 
@@ -428,8 +430,6 @@ function create_runtime () {
           const element = li.event.elementnumber;
           const event = li.event.eventtype;
 
-          console.log(dx, dy, page, element, event)
-
           _runtime.update(_runtime => {
             let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
             if (dest) {
@@ -474,8 +474,6 @@ function create_runtime () {
           const page =  li.event.pagenumber;
           const element = li.event.elementnumber;
           const event = li.event.eventtype;
-
-          console.log(dx, dy, page, element, event)
 
           _runtime.update(_runtime => {
             let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
@@ -523,8 +521,6 @@ function create_runtime () {
         // config
         _runtime.update(_runtime => {
           
-
-          console.log(dx, dy, page, element, event)
 
           let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
           if (dest) {
@@ -739,8 +735,6 @@ function create_runtime () {
 
       const callback = function(){
         
-        
-        console.log("_active_element callback");
         runtime.update.one().trigger();
 
       }
@@ -751,7 +745,6 @@ function create_runtime () {
       const element = ui.event.elementnumber;
       const event = ui.event.eventtype;
 
-      console.log("_active_element");
       instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
 
     }
@@ -861,6 +854,73 @@ export const heartbeat = writable({
   editor: 300,
   grid: 300
 })
+
+// Main serial intervals
+
+let rt = get(runtime);
+
+let grid_heartbeat_interval;
+function gridHeartbeat(){ 
+  const interval = get(heartbeat).grid;
+  grid_heartbeat_interval = setInterval(()=>{
+    let _removed = rt.find(g => (Date.now() - g.alive > (heartbeat.grid * 2)) && !g.virtual);
+    let _processgrid = rt.map(g => {
+      if(Date.now() - g.alive > (heartbeat.grid *2) && !g.virtual){
+        g.alive = 'dead';
+      }
+      return g;
+    })
+    let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
+
+    if(_removed !== undefined && _usedgrid.length !== undefined){    
+      // re-initialize configuration panel, if the module has been removed which had it's settings opened.
+      user_input.reset(_removed);
+      runtime.set(_usedgrid); 
+      writeBuffer.clean_up.one(_removed);
+    }
+
+  }, interval)
+}
+
+let editor_heartbeat_interval;
+function editorHeartbeat(){ 
+
+  const interval = get(heartbeat).editor;
+  
+  editor_heartbeat_interval = setInterval(()=>{
+
+      let type = 255
+      if(get(runtime.unsaved) != 0){
+        type = 254
+      }
+
+      const retval = grid.translate.encode_suku(
+        {
+          brc_parameters:
+            {DX: -127, DY: -127}, // GLOBAL
+          class_name: "HEARTBEAT",
+          class_instr: "EXECUTE",
+          class_parameters: 
+            {
+              TYPE: type,
+              HWCFG: 255,
+              VMAJOR: get(appSettings).version.major,
+              VMINOR: get(appSettings).version.minor,
+              VPATCH: get(appSettings).version.patch,
+            }
+        }
+      );
+
+      serialComm.write(retval.serial);
+      
+  }, interval);
+
+}
+
+
+editorHeartbeat();
+gridHeartbeat();  
+
 
 
 

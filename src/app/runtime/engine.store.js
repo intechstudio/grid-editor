@@ -48,19 +48,17 @@ function createWriteBuffer (){
   function sendDataToGrid(descr) {
 
 
-    console.log("SEND", descr)
-
     let retval = grid.translate.encode_suku(descr);
 
 
     serialComm.write(retval.serial);
 
-
+    // debugger for message ASCII frames
     let str = "";
     for (let i=0; i<retval.serial.length; i++){
       str += String.fromCharCode(retval.serial[i]);
     }
-    console.log("SEND", descr, str)
+    
 
     return {id: retval.id};
  
@@ -89,7 +87,7 @@ function createWriteBuffer (){
             if (active_elem.filter.class_parameters['LASTHEADER'] !== undefined){
             
               active_elem.filter.class_parameters['LASTHEADER'] = id;
-              console.log("LASTHEADER SET TO", id)
+              //console.log("LASTHEADER SET TO", id)
 
             }
           }
