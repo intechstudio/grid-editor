@@ -106,8 +106,8 @@ const instructions = {
       successCb: callback
     }
 
-    if(grid.properties.CONFIG_LENGTH <= lua.trim().length){
-      logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${lua.trim().length} characters`})
+    if(actionstring.length >= grid.properties.CONFIG_LENGTH){
+      logger.set({type: 'alert', mode: 0, classname: 'configlength', message: `Config is too long! ${actionstring.length} characters`})
       return;
     }
 
