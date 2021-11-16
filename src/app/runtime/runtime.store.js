@@ -533,8 +533,10 @@ function create_runtime () {
       };
 
       this.send_configuration_to_grid = function(dx, dy, page, element, event, callback){
+        
+        let rt = get(_runtime);
 
-        let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+        let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
         if (dest) {
           instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
         } 
