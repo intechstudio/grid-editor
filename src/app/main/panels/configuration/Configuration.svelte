@@ -1,8 +1,11 @@
 <script>
-
+  import { writable, get, derived } from 'svelte/store';
+  
   import { fly } from 'svelte/transition';
-  import { appSettings } from '../../_stores/app-helper.store.js';
+  import { actionPrefStore, appSettings } from '../../_stores/app-helper.store.js';
 
+
+  import instructions from '../../../serialport/instructions';
 
   import Debug from '../../../debug/Debug.svelte';
   import ConfigParameters from './ConfigParameters.svelte';
@@ -12,7 +15,7 @@
   
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
-  import { runtime, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
+  import { runtime, appMultiSelect, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -48,8 +51,91 @@
     }
   }
 
-  // if runtime.active_config changes then...
-  runtime.active_config(active => {
+
+
+  const active_config = derived([user_input], ([ui]) => {
+
+
+    // whenever the UI changes, reset multiselect
+    appMultiSelect.reset();
+
+    // close advanced views
+    actionPrefStore.reset();
+
+    const rt = get(runtime);
+
+
+    // fetch or load config now inline
+
+    let config = [];
+    let selectedEvent = "";
+
+    const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+    if (device === undefined){
+      return;
+    }
+
+    const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+    const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
+
+    if (eventIndex === -1){
+      selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[0];
+      ui.event.eventtype = 0;
+    }
+    else{
+      selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex];
+    }
+
+    if (selectedEvent === undefined){
+      console.log("SORRY", pageIndex, elementIndex, eventIndex);
+      return;
+    }
+
+    if(selectedEvent.config.length){
+      config = selectedEvent.config.trim();
+    }
+
+    const cfgstatus = selectedEvent.cfgStatus;
+
+    if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
+      // its loaded
+    }
+    else{
+      // fetch      
+      const callback = function(){
+        runtime.update.one().trigger();
+      }
+
+      runtime.fetchOrLoadConfig(ui, callback);
+
+    }
+
+    console.log("ACTIVE_CONFIG change")
+
+    return {
+      config: config,
+      stringname: "",
+      events: {
+        selected: selectedEvent.event,
+        options: device.pages[pageIndex].control_elements[elementIndex].events.map(e => e.event)
+      }, 
+      elements: {
+        selected: ui.event.elementnumber,
+        options: device.pages[pageIndex].control_elements.map((n) => n.controlElementNumber)
+      },
+      pages: {
+        selected: ui.event.pagenumber,
+        options: device.pages.map((n) => n.pageNumber)
+      }
+    }
+  });
+
+
+
+  // if active_config changes then...
+  active_config.subscribe(active => {
 
     try{
       _utils.gridLuaToEditorLua(active.config).then(res => { 

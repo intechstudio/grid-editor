@@ -20,11 +20,13 @@ export function select(node, [moduleId, selectedDisplay]){
         if(ui.event.elementnumber != +controlNumber || ui.id != moduleId){
 
           user_input.update((ui) =>{
+            console.log("SELECT!!!")
             ui.id = moduleId;
             ui.brc.dx = +dx;
             ui.brc.dy = +dy;
             ui.event.elementnumber = +controlNumber;
             ui.event.elementtype = controlElementType;
+
             return ui;
           });
 

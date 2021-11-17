@@ -273,11 +273,18 @@ function create_user_input () {
 
 export const user_input = create_user_input();
 
+
+user_input.subscribe(user => {
+
+
+
+
+
+});
+
 function create_runtime () {
 
   const _unsaved_changes = writable(0);
-
-  const _trigger_ui_change = writable(0);
 
   const _runtime = writable([]);
 
@@ -548,7 +555,7 @@ function create_runtime () {
       };
 
       this.trigger = function(){
-        _trigger_ui_change.update(n => n + 1);
+        user_input.update(n => n);
         return this;
       };
 
@@ -659,11 +666,7 @@ function create_runtime () {
     const li = get(user_input);
 
     this.setToZero = function(){
-      _unsaved_changes.set(0);
-      return this;
-    }
 
-    this.throw = function(){
       _runtime.update(_runtime => {
         _runtime.forEach((device)=>{
           device.pages[li.event.pagenumber].control_elements.forEach(control_element =>{
@@ -677,13 +680,17 @@ function create_runtime () {
         });
         return _runtime;
       })
-      return this
+
+      _unsaved_changes.set(0);
+
+      return this;
     }
 
     this.trigger = function(){
       // epicly shitty workaround before implementing acknowledge state management
       setTimeout(()=>{
-        _trigger_ui_change.update(n => n + 1);
+        //do nothing just trigger change detection
+        user_input.update(n => n);
         return this;
       }, 150)
     }
@@ -691,95 +698,17 @@ function create_runtime () {
   }
 
 
-  const _active_config = derived([user_input, _trigger_ui_change], ([ui, chng]) => {
 
-    // whenever the UI changes, reset multiselect
-    appMultiSelect.reset();
-
-    // close advanced views
-    actionPrefStore.reset();
-
-    const rt = get(_runtime);
-
-
-    // fetch or load config now inline
-    
-    let config = [];
-    let selectedEvent = "";
-
-
-    const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
-
-    if (device === undefined){
-      return;
-    }
-
-
-    const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
-    const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
-
-
-    selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex];
-
-    if(selectedEvent.config.length){
-      config = selectedEvent.config.trim();
-    }
-
-    const cfgstatus = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex].cfgStatus;
-
-    if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
-      // its loaded
-    }
-    else{
-      // fetch      
-      selectedEvent.cfgStatus = 'FETCHED';
-
-      const callback = function(){
-        
-        runtime.update.one().trigger();
-
-      }
-
-      const dx = ui.brc.dx;
-      const dy = ui.brc.dy;
-      const page =  ui.event.pagenumber;
-      const element = ui.event.elementnumber;
-      const event = ui.event.eventtype;
-
-      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
-
-    }
-
-
-
-    return {
-      config: config,
-      stringname: "",
-      events: {
-        selected: selectedEvent.event,
-        options: device.pages[pageIndex].control_elements[elementIndex].events.map(e => e.event)
-      }, 
-      elements: {
-        selected: ui.event.elementnumber,
-        options: device.pages[pageIndex].control_elements.map((n) => n.controlElementNumber)
-      },
-      pages: {
-        selected: ui.event.pagenumber,
-        options: device.pages.map((n) => n.pageNumber)
-      }
-    }
-  });
 
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
-    active_config: _active_config.subscribe,
     update: new _runtime_update(),
     fetch: new _runtime_fetch(),
     device: new _device_update(),
     changes: new _runtime_changes(),
     erase: erase_all,
+    fetchOrLoadConfig: fetchOrLoadConfig,
     unsaved: _unsaved_changes,
   }
 }

@@ -317,7 +317,7 @@ const instructions = {
         //console.log('page discard execute - fail')
       }, 
       successCb: function(){
-        runtime.changes.throw().setToZero().trigger();  
+        runtime.changes.setToZero().trigger();  
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'pagediscard', message: `Discard complete!`});
         //console.log('page discard execute - success');
@@ -357,7 +357,7 @@ const instructions = {
         //console.log('page clear execute - fail')
       }, 
       successCb: function(){
-        runtime.changes.throw().setToZero().trigger(); 
+        runtime.changes.setToZero().trigger(); 
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'pageclear', message: `Page clear complete!`})
         //console.log('page clear execute - success')
