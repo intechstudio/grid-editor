@@ -14,7 +14,7 @@ function createMessageStream(){
       if (class_descr.class_name === "HEARTBEAT"){
         // check if it is online and if not then create a new module
 
-        runtime.device.heartbeat_incoming_handler(class_descr);
+        runtime.incoming_heartbeat_handler(class_descr);
       }
 
       if (class_descr.class_name === "PAGECOUNT"){

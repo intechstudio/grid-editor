@@ -346,44 +346,40 @@ function create_runtime () {
 
   
 
-  const _device_update = function(){
+  function incoming_heartbeat_handler(descr){
 
-    this.heartbeat_incoming_handler = function(descr){
+    let controller = grid.device.make(descr.brc_parameters, descr.class_parameters, false);
 
-      let controller = grid.device.make(descr.brc_parameters, descr.class_parameters, false);
-
-      _runtime.update((_runtime) => {
-        let online = false;
-        _runtime.forEach(device => {
-          // device is online, update the uptime
-          if(device.id == controller.id){
-            online = true;
-            device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
-            device.alive = Date.now();
-          }
-        });
-        // device not found, add it to runtime and get page count from grid
-        if(!online){ 
-
-          _runtime.push(controller);
-          // this is not working because it fetches all and blocks ui
-          instructions.fetchPageCountFromGrid({brc: controller});
-          if(first_connection){
-            user_input.update((ui)=>{
-              ui.id = controller.id;
-              ui.dx = controller.dx;
-              ui.dy = controller.dy;
-              ui.event.elementnumber = 0;
-              ui.event.eventtype = 0;
-              return ui;
-            });
-            first_connection = false;
-          }
+    _runtime.update((_runtime) => {
+      let online = false;
+      _runtime.forEach(device => {
+        // device is online, update the uptime
+        if(device.id == controller.id){
+          online = true;
+          device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
+          device.alive = Date.now();
         }
-        return _runtime;
       });
-    }
+      // device not found, add it to runtime and get page count from grid
+      if(!online){ 
 
+        _runtime.push(controller);
+        // this is not working because it fetches all and blocks ui
+        instructions.fetchPageCountFromGrid({brc: controller});
+        if(first_connection){
+          user_input.update((ui)=>{
+            ui.id = controller.id;
+            ui.dx = controller.dx;
+            ui.dy = controller.dy;
+            ui.event.elementnumber = 0;
+            ui.event.eventtype = 0;
+            return ui;
+          });
+          first_connection = false;
+        }
+      }
+      return _runtime;
+    });
   }
 
   function erase_all(){
@@ -615,39 +611,32 @@ function create_runtime () {
     return this;
   }
 
-  const _runtime_changes = function() {
+  function clear_page_configuration(){
 
     const li = get(user_input);
 
-    this.setToZero = function(){
-
-      _runtime.update(_runtime => {
-        _runtime.forEach((device)=>{
-          device.pages[li.event.pagenumber].control_elements.forEach(control_element =>{
-            control_element.events.forEach((event)=>{
-              if(['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(event.cfgStatus)){
-                event.config = '';
-                event.cfgStatus = 'NULL';
-              }
-            })
+    _runtime.update(_runtime => {
+      _runtime.forEach((device)=>{
+        device.pages[li.event.pagenumber].control_elements.forEach(control_element =>{
+          control_element.events.forEach((event)=>{
+            if(['GRID_REPORT', 'EDITOR_EXECUTE', 'EDITOR_BACKGROUND'].includes(event.cfgStatus)){
+              event.config = '';
+              event.cfgStatus = 'NULL';
+            }
           })
-        });
-        return _runtime;
-      })
+        })
+      });
+      return _runtime;
+    })
 
-      _unsaved_changes.set(0);
+    _unsaved_changes.set(0);
 
+    // epicly shitty workaround before implementing acknowledge state management
+    setTimeout(()=>{
+      //do nothing just trigger change detection
+      user_input.update(n => n);
       return this;
-    }
-
-    this.trigger = function(){
-      // epicly shitty workaround before implementing acknowledge state management
-      setTimeout(()=>{
-        //do nothing just trigger change detection
-        user_input.update(n => n);
-        return this;
-      }, 150)
-    }
+    }, 150);
 
   }
 
@@ -665,8 +654,10 @@ function create_runtime () {
     fetch_element_configuration_from_grid: fetch_element_configuration_from_grid,
     fetch_page_configuration_from_grid: fetch_page_configuration_from_grid,
 
-    device: new _device_update(),
-    changes: new _runtime_changes(),
+    incoming_heartbeat_handler: incoming_heartbeat_handler,
+
+    clear_page_configuration: clear_page_configuration,
+    
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
     unsaved: _unsaved_changes,
