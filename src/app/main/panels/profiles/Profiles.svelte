@@ -188,7 +188,7 @@
       engine.set('ENABLED');
     };
 
-    runtime.fetch.FullPage(callback);
+    runtime.fetch_page_configuration_from_grid(callback);
 
   }
 

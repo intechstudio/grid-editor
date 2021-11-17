@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../_stores/app-helper.store.js";
   import { get } from 'svelte/store';
-  import { runtime, user_input, _runtime_modules, controlElementClipboard} from '../../../runtime/runtime.store.js';
+  import { runtime, engine, logger, user_input, _runtime_modules, controlElementClipboard} from '../../../runtime/runtime.store.js';
   import { configManagement } from "../../../runtime/config-manager.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
@@ -37,7 +37,28 @@
 
   function copyAllEventConfigsFromSelf(){
 
-    runtime.fetch.ControlElement();
+    let callback = function(){
+      
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+
+      const events = device.pages[pageIndex].control_elements[elementIndex].events;
+      const controlElementType = device.pages[pageIndex].control_elements[elementIndex].controlElementType;
+
+
+      logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
+      engine.set('ENABLED');
+      controlElementClipboard.set({controlElementType, events});
+    };
+
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
+
+    runtime.fetch_element_configuration_from_grid(callback);
   }
 
   function overwriteAllEventConfigs(){

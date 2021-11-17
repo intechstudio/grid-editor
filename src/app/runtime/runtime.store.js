@@ -404,7 +404,9 @@ function create_runtime () {
 
   }
 
-  function whole_element_overwrite(){
+  function whole_element_overwrite({controlElementType, events}){
+
+    console.log(controlElementType, events)
 
     const li = get(user_input);
 
@@ -537,98 +539,80 @@ function create_runtime () {
   }
 
 
+  // whole element copy: fetches all event configs from a control element
+  function fetch_element_configuration_from_grid(callback){
 
-  const _runtime_fetch = function() {
+    const li = get(user_input);
+    const rt = get(runtime);
 
-    // whole element copy: fetches all event configs from a control element
-    this.ControlElement = function (){
+    const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+    const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
 
-      engine.set('DISABLED');
-      logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
+    const events = device.pages[pageIndex].control_elements[elementIndex].events;
+    const controlElementType = device.pages[pageIndex].control_elements[elementIndex].controlElementType;
+
+    const array = [];
+
+    events.forEach(e => {
+      array.push({event: e.event.value, elementnumber: device.pages[pageIndex].control_elements[elementIndex].controlElementNumber})
+    })
+
+    array.forEach((elem, ind) => {
+      li.event.eventtype = elem.event;
+      li.event.elementnumber = elem.elementnumber;
+
+      if (ind == array.length-1 && callback !== undefined){ // this is last and callback is defined
+
+        fetchOrLoadConfig(li, callback);
+      }
+      else{
+        fetchOrLoadConfig(li);
+      }
       
+    })
 
-      const li = get(user_input);
-      const rt = get(runtime);
+  }
 
-      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
-      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+  function fetch_page_configuration_from_grid(callback){
 
-      const events = device.pages[pageIndex].control_elements[elementIndex].events;
-      const controlElementType = device.pages[pageIndex].control_elements[elementIndex].controlElementType;
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
 
-      const array = [];
+    const rt = get(runtime);
 
-      events.forEach(e => {
-        array.push({event: e.event.value, elementnumber: device.pages[pageIndex].control_elements[elementIndex].controlElementNumber})
+    let li = Object.assign({}, get(user_input));
+
+    const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+    const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+    const controlElements = device.pages[pageIndex].control_elements;
+
+    const array = [];
+
+    controlElements.forEach((controlElement) => {
+      controlElement.events.forEach((elem) => {
+        array.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
       })
-
-      array.forEach((elem, ind) => {
-        li.event.eventtype = elem.event;
-        li.event.elementnumber = elem.elementnumber;
-
-        if (ind == array.length-1){ // is this the last?
-
-          let callback = function(){            
-            logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
-            engine.set('ENABLED');
-            controlElementClipboard.set({controlElementType, events});
-          };
+    })
 
 
-          fetchOrLoadConfig(li, callback);
-        }
-        else{
-          fetchOrLoadConfig(li);
-        }
-        
-      })
+    array.forEach((elem, ind) => {
 
-      return {events, controlElementType}; // this is a reference for the control elements in question
-    }
+      li.event.eventtype = elem.event;
+      li.event.elementnumber = elem.elementnumber;
 
-    // fetches all config from each action and event on current page + utility button
-    this.FullPage = function(callback){
+      if (ind === array.length-1){ // last element
 
-      engine.set('DISABLED');
-      logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Preparing configs...`})
-
-      const rt = get(runtime);
-
-      let li = Object.assign({}, get(user_input));
-
-      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
-      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
-      const controlElements = device.pages[pageIndex].control_elements;
-
-      const array = [];
-
-      controlElements.forEach((controlElement) => {
-        controlElement.events.forEach((elem) => {
-          array.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
-        })
-      })
+        fetchOrLoadConfig(li, callback);
+      }
+      else{
+        fetchOrLoadConfig(li);
+      }
 
 
-      array.forEach((elem, ind) => {
-
-        li.event.eventtype = elem.event;
-        li.event.elementnumber = elem.elementnumber;
-
-        if (ind === array.length-1){ // last element
-
-          fetchOrLoadConfig(li, callback);
-        }
-        else{
-          fetchOrLoadConfig(li);
-        }
-
-
-      })
-     
-      return this;
-    }
-
+    })
+   
+    return this;
   }
 
   const _runtime_changes = function() {
@@ -671,13 +655,16 @@ function create_runtime () {
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
-    
+
     whole_element_overwrite: whole_element_overwrite,
     whole_page_overwrite: whole_page_overwrite,
+
     update_event_configuration: update_event_configuration,
     send_event_configuration_to_grid: send_event_configuration_to_grid,
 
-    fetch: new _runtime_fetch(),
+    fetch_element_configuration_from_grid: fetch_element_configuration_from_grid,
+    fetch_page_configuration_from_grid: fetch_page_configuration_from_grid,
+
     device: new _device_update(),
     changes: new _runtime_changes(),
     erase: erase_all,
