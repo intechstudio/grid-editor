@@ -54,8 +54,8 @@
     const event = li.event.eventtype;
     const actionstring = _utils.configMerge({config: configs});
 
-    runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-    runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
     
   }
 
@@ -91,8 +91,8 @@
     const event = li.event.eventtype;
     const actionstring = _utils.configMerge({config: configs});
 
-    runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-    runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
   }
 
@@ -111,11 +111,11 @@
     const actionstring = _utils.configMerge({config: configs});
 
     if(configName == 'End' || configName == 'Else'){
-      runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
 
     } else {
-      runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-      runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
     }
 
     localDefinitions.update(configs);

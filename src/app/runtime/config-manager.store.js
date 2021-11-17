@@ -107,10 +107,12 @@ export function configManagement() {
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
         const actionstring = '<?lua ' + configs.join('') + ' ?>'
-    
-        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-        runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
-        runtime.update.one().trigger();
+  
+        runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);            
+        
+        // trigger change detection
+        user_input.update(n => n);
       }
     }
 
@@ -146,9 +148,11 @@ export function configManagement() {
         const event = li.event.eventtype;
         const actionstring = '<?lua ' + filtered.join('') + ' ?>'
     
-        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-        runtime.update.one().send_configuration_to_grid(dx, dy, page, element, event);
-        runtime.update.one().trigger();
+        runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+        // trigger change detection
+        user_input.update(n => n);
 
       }
 

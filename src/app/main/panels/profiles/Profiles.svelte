@@ -205,8 +205,7 @@
       if(currentModule.id.substr(0,4) == profile.type){
 
 
-
-        runtime.update.page(profile.configs);
+        runtime.whole_page_overwrite(profile.configs);
 
 
 

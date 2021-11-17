@@ -404,168 +404,138 @@ function create_runtime () {
 
   }
 
-  const _runtime_update = function() {
+  function whole_element_overwrite(){
 
-    // whole element overwrite
-    this.control_element = function ({controlElementType, events}){
+    const li = get(user_input);
 
-      const li = get(user_input);
+    if(li.event.elementtype == controlElementType){
+      events.forEach((ev, index) => {
 
-
-      console.log("WHOLE ELEMENT OVERWRITE", li.event.elementtype, controlElementType);
-
-      if(li.event.elementtype == controlElementType){
-        events.forEach((ev, index) => {
-
-          let callback;
-          if (index === events.length-1){ // last element
-            callback = function(){               
-              logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
-            };
-          }
-          else{
-            callback = undefined;
-          }
+        let callback;
+        if (index === events.length-1){ // last element
+          callback = function(){               
+            logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
+          };
+        }
+        else{
+          callback = undefined;
+        }
 
 
-          let li = get(user_input);
+        let li = get(user_input);
 
-          li.event.pagenumber = li.event.pagenumber;
-          li.event.elementnumber = li.event.elementnumber;
-          li.event.eventtype = ev.event.value;
+        li.event.pagenumber = li.event.pagenumber;
+        li.event.elementnumber = li.event.elementnumber;
+        li.event.eventtype = ev.event.value;
 
-          const dx = li.brc.dx;
-          const dy = li.brc.dx;
-          const page =  li.event.pagenumber;
-          const element = li.event.elementnumber;
-          const event = li.event.eventtype;
+        const dx = li.brc.dx;
+        const dy = li.brc.dx;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
 
-          _runtime.update(_runtime => {
-            let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
-            if (dest) {
-              dest.config = ev.config.trim();
-              dest.cfgStatus = 'EDITOR_BACKGROUND';          
-          
-              instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
-              runtime.update.one().trigger();
-            }    
-            return _runtime;
-          })
-
-
-
-        });
-
-      } else {
-        logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
-      }
-      
-      
-    };
-
-    this.page = function(array){
-
-
-      engine.set('DISABLED');
-      logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
-
-      array.forEach((element, elementIndex) => {
-
-        element.events.forEach((ev, eventIndex)=>{
-
-          // ============ const operation = new _update();
-          let li = get(user_input);
-
-          li.event.pagenumber = li.event.pagenumber;
-          li.event.elementnumber = element.controlElementNumber;
-          li.event.eventtype = ev.event;
-
-          const dx = li.brc.dx;
-          const dy = li.brc.dx;
-          const page =  li.event.pagenumber;
-          const element = li.event.elementnumber;
-          const event = li.event.eventtype;
-
-          _runtime.update(_runtime => {
-            let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
-            if (dest) {
-              dest.config = ev.config.trim();
-              dest.cfgStatus = 'EDITOR_BACKGROUND';
-            }    
-            return _runtime;
-          })
-
-          let callback;
-
-          if (elementIndex === array.length-1 && eventIndex === element.events.length-1){
-            // this is last element so we need to add the callback
-            callback = function(){
-              engine.set('ENABLED');
-              logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
-              runtime.update.one().trigger();
-            };
-          }
-
-          instructions.sendConfigToGrid( dx, dy, page, element, event, ev.config, callback);
-
-        });
-      });
-
-    };
-
-    this.one = function(){
-
-      const operation = new _update();
-
-      return {
-        set_configuration: operation.set_configuration,
-        send_configuration_to_grid: operation.send_configuration_to_grid,
-        trigger: operation.trigger
-      };
-    }
-
-    const _update = function(){
-
-      this.set_configuration = function(dx, dy, page, element, event, actionstring, status) {
-
-        // config
         _runtime.update(_runtime => {
-          
-
           let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
           if (dest) {
-            dest.config = actionstring;
-            dest.cfgStatus = status;
+            dest.config = ev.config.trim();
+            dest.cfgStatus = 'EDITOR_BACKGROUND';          
+        
+            instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+            // trigger change detection
+            user_input.update(n => n);
           }    
           return _runtime;
         })
-        return this;
-      };
 
-      this.send_configuration_to_grid = function(dx, dy, page, element, event, callback){
-        
-        let rt = get(_runtime);
 
-        let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
-        if (dest) {
-          instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
-        } 
-        else{
-          console.error("DEST not found!")
-        } 
-        
-        return this;
-      };
 
-      this.trigger = function(){
-        user_input.update(n => n);
-        return this;
-      };
+      });
 
+    } else {
+      logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
     }
+    
+  }
+
+
+  function whole_page_overwrite(array){
+
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
+
+    array.forEach((element, elementIndex) => {
+
+      element.events.forEach((ev, eventIndex)=>{
+
+        // ============ const operation = new _update();
+        let li = get(user_input);
+
+        li.event.pagenumber = li.event.pagenumber;
+        li.event.elementnumber = element.controlElementNumber;
+        li.event.eventtype = ev.event;
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dx;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
+
+        _runtime.update(_runtime => {
+          let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+          if (dest) {
+            dest.config = ev.config.trim();
+            dest.cfgStatus = 'EDITOR_BACKGROUND';
+          }    
+          return _runtime;
+        })
+
+        let callback;
+
+        if (elementIndex === array.length-1 && eventIndex === element.events.length-1){
+          // this is last element so we need to add the callback
+          callback = function(){
+            engine.set('ENABLED');
+            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
+            // trigger change detection
+            user_input.update(n => n);
+          };
+        }
+
+        instructions.sendConfigToGrid( dx, dy, page, element, event, ev.config, callback);
+
+      });
+    });
+    
+  }  
+
+  function update_event_configuration(dx, dy, page, element, event, actionstring, status) { 
+
+    // config
+    _runtime.update(_runtime => {
+  
+      let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+      if (dest) {
+        dest.config = actionstring;
+        dest.cfgStatus = status;
+      }    
+      return _runtime;
+    })
 
   }
-  
+  function send_event_configuration_to_grid(dx, dy, page, element, event, callback){
+        
+    let rt = get(_runtime);
+
+    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
+    if (dest) {
+      instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+    } 
+    else{
+      console.error("DEST not found!")
+    } 
+
+  }
+
 
 
   const _runtime_fetch = function() {
@@ -597,15 +567,12 @@ function create_runtime () {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
 
-        console.log("WholeElement", li);
-
         if (ind == array.length-1){ // is this the last?
 
           let callback = function(){            
             logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
             engine.set('ENABLED');
             controlElementClipboard.set({controlElementType, events});
-            console.log("WHOLE ELEMENT COPY", controlElementType, events);
           };
 
 
@@ -701,12 +668,15 @@ function create_runtime () {
   }
 
 
-
-
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
-    update: new _runtime_update(),
+    
+    whole_element_overwrite: whole_element_overwrite,
+    whole_page_overwrite: whole_page_overwrite,
+    update_event_configuration: update_event_configuration,
+    send_event_configuration_to_grid: send_event_configuration_to_grid,
+
     fetch: new _runtime_fetch(),
     device: new _device_update(),
     changes: new _runtime_changes(),

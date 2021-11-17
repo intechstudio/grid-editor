@@ -105,7 +105,8 @@
     else{
       // fetch      
       const callback = function(){
-        runtime.update.one().trigger();
+        // trigger change detection
+        user_input.update(n => n);
       }
 
       runtime.fetchOrLoadConfig(ui, callback);

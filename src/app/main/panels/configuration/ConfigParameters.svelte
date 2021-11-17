@@ -43,7 +43,7 @@
   function overwriteAllEventConfigs(){
 
    let clipboard = get(controlElementClipboard);
-    runtime.update.control_element(clipboard);
+    runtime.whole_element_overwrite(clipboard);
 
   }
 

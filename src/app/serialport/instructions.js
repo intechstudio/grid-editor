@@ -54,7 +54,7 @@ const instructions = {
         const event = descr.class_parameters.EVENTTYPE;
         const actionstring = descr.class_parameters.ACTIONSTRING;
 
-        runtime.update.one().set_configuration(dx, dy, page, element, event, actionstring, 'GRID_REPORT');
+        runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'GRID_REPORT');
 
         if(callback){
           callback(descr);
