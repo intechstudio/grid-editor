@@ -411,6 +411,9 @@ function create_runtime () {
 
       const li = get(user_input);
 
+
+      console.log("WHOLE ELEMENT OVERWRITE", li.event.elementtype, controlElementType);
+
       if(li.event.elementtype == controlElementType){
         events.forEach((ev, index) => {
 
@@ -441,14 +444,15 @@ function create_runtime () {
             let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
             if (dest) {
               dest.config = ev.config.trim();
-              dest.cfgStatus = 'EDITOR_BACKGROUND';
+              dest.cfgStatus = 'EDITOR_BACKGROUND';          
+          
+              instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+              runtime.update.one().trigger();
             }    
             return _runtime;
           })
 
-          const lua = ev.config;
-          instructions.sendConfigToGrid(lua, li, callback);
-          runtime.update.one().trigger();
+
 
         });
 
@@ -502,8 +506,7 @@ function create_runtime () {
             };
           }
 
-          const lua = ev.config;
-          instructions.sendConfigToGrid(lua, li, callback);
+          instructions.sendConfigToGrid( dx, dy, page, element, event, ev.config, callback);
 
         });
       });
