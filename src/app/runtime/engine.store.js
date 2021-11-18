@@ -48,7 +48,7 @@ function createWriteBuffer (){
   function sendDataToGrid(descr) {
 
 
-    let retval = grid.translate.encode_suku(descr);
+    let retval = grid.encode_packet(descr);
 
 
     serialComm.write(retval.serial);

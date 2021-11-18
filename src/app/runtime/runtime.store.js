@@ -41,6 +41,26 @@ function createLogger(){
 
 export const logger = createLogger();
 
+
+
+//debug monitor lua section
+function create_luadebug_store(){
+  const store = writable({config: '', enabled: true, data: []});
+
+  return {
+    ...store,
+    update_config: (value) => {
+      store.update(s => {s.config = value; return s})
+    }
+  }
+}
+
+export const luadebug_store = create_luadebug_store();
+
+
+
+
+
 function createMultiSelect(){
 
   const default_values = {multiselect: false, selection: [], all_selected: false};
@@ -771,58 +791,6 @@ function createEngine(){
 
 export const engine = createEngine();
 
-function createDebug(){
-  const store = writable({config: '', enabled: true, data: []});
-
-  return {
-    ...store,
-    update_config: (value) => {
-      store.update(s => {s.config = value; return s})
-    },
-    update_debugtext: (descr) => {
-
-      let sx = descr.brc_parameters.SX;
-      let sy = descr.brc_parameters.SY;
-      let text = descr.class_parameters.TEXT;
-
-
-      store.update(d => {
-        if(d.enabled){
-          if(d.data.length >= 15){
-            d.data.shift()
-          }
-          d.data = [...d.data, `[${sy},${sx}] ${text}`];
-        }
-        return d;
-      })
-    }
-  }
-}
-
-
-function createMidiMonitor(){
-
-  const store = writable([]);
-
-  return {
-    ...store,
-    update_midi: (descr) => {
-
-      store.update(s => {
-        if(s.length >= 30){
-          s.shift()
-        };
-
-        s = [...s, descr];
-        return s;
-      })
-    }
-  }
-}
-
-export const midi_monitor_store = createMidiMonitor();
-
-export const debug_store = createDebug();
 
 export const heartbeat = writable({
   editor: 300,

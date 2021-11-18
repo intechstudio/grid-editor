@@ -20,11 +20,13 @@
   import { writable, get } from 'svelte/store';
 
   import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
-  import { runtime, user_input, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
+  import { runtime, user_input, localDefinitions, luadebug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import ConfigBlock from './components/ConfigBlock.svelte';
   import AddAction from './config-picker/AddAction.svelte';
+
+  
 
   export let configs = [];
 
@@ -122,7 +124,7 @@
 
   }
 
-  $: debug_store.update_config(_utils.configMerge({config: configs}));
+  $: luadebug_store.update_config(_utils.configMerge({config: configs}));
 
 </script>
 

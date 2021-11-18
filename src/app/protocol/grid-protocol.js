@@ -2,7 +2,6 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol_night
 
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';
-import { sendDataToClient } from '../debug/tower.js';
 const lodash = require('lodash');
 
 
@@ -475,260 +474,258 @@ const grid = {
 
   }()),
 
-  translate: {
 
-    encode_suku: function(descriptor){
+  encode_packet: function(descriptor){
 
-      if (descriptor === undefined){
-        return;
+    if (descriptor === undefined){
+      return;
+    }
+
+    let descr = lodash.cloneDeep(descriptor);
+
+    const PROTOCOL = grid.properties; //old implementation
+
+    descr.brc_parameters.ID = utility_genId();
+    descr.brc_parameters.SX = 0;
+    descr.brc_parameters.SY = 0;
+    descr.brc_parameters.SESSION = PROTOCOL.SESSION;
+    descr.brc_parameters.MSGAGE = 0;
+
+    if (descr.brc_parameters.DX !== undefined){
+
+      descr.brc_parameters.DX = parseInt(descr.brc_parameters.DX)+127;
+    }else{
+      descr.brc_parameters.DX = 0; // assume global
+    }
+    
+    if (descr.brc_parameters.DY !== undefined){
+      descr.brc_parameters.DY = parseInt(descr.brc_parameters.DY)+127;
+    }else{
+      descr.brc_parameters.DY = 0; // assume global
+    }
+
+    // put brc parameters into hexarray
+    let BRC_ARRAY = [];
+
+    BRC_ARRAY.push(PROTOCOL.CONST.SOH);
+    BRC_ARRAY.push(PROTOCOL.CONST.BRC);
+
+    for(const key in brc_parameters){
+
+      let offset = brc_parameters[key].offset;
+      let length = brc_parameters[key].length;
+      let value = descr.brc_parameters[key];
+
+      if (descr.brc_parameters[key] === undefined){
+        write_integer_to_asciicode_array(BRC_ARRAY, offset, length, 0);
       }
-
-      let descr = lodash.cloneDeep(descriptor);
-
-      const PROTOCOL = grid.properties; //old implementation
-
-      descr.brc_parameters.ID = utility_genId();
-      descr.brc_parameters.SX = 0;
-      descr.brc_parameters.SY = 0;
-      descr.brc_parameters.SESSION = PROTOCOL.SESSION;
-      descr.brc_parameters.MSGAGE = 0;
-
-      if (descr.brc_parameters.DX !== undefined){
-
-        descr.brc_parameters.DX = parseInt(descr.brc_parameters.DX)+127;
-      }else{
-        descr.brc_parameters.DX = 0; // assume global
+      else{
+        write_integer_to_asciicode_array(BRC_ARRAY, offset, length, value); 
       }
-      
-      if (descr.brc_parameters.DY !== undefined){
-        descr.brc_parameters.DY = parseInt(descr.brc_parameters.DY)+127;
-      }else{
-        descr.brc_parameters.DY = 0; // assume global
-      }
+    }
 
-      // put brc parameters into hexarray
-      let BRC_ARRAY = [];
+    BRC_ARRAY.push(PROTOCOL.CONST.EOB);
 
-      BRC_ARRAY.push(PROTOCOL.CONST.SOH);
-      BRC_ARRAY.push(PROTOCOL.CONST.BRC);
+    // put class parameters into hexarray
+    let CLASS_ARRAY = [];
 
-      for(const key in brc_parameters){
+    CLASS_ARRAY.push(PROTOCOL.CONST.STX);
 
-        let offset = brc_parameters[key].offset;
-        let length = brc_parameters[key].length;
-        let value = descr.brc_parameters[key];
+    write_integer_to_asciicode_array(CLASS_ARRAY, 1, 3, parseInt(class_code_from_name[descr.class_name]));
+    write_integer_to_asciicode_array(CLASS_ARRAY, 4, 1, parseInt(instr_code_from_name[descr.class_instr]));
 
-        if (descr.brc_parameters[key] === undefined){
-          write_integer_to_asciicode_array(BRC_ARRAY, offset, length, 0);
+    for(const key in class_parameters[descr.class_name]){
+
+      let offset = class_parameters[descr.class_name][key].offset;
+      let length = class_parameters[descr.class_name][key].length;
+      let value = descr.class_parameters[key];
+
+      if (length>0){
+        if (value === undefined){
+          // skip
+          console.log("MISSING CLASS PARAMETER!")
         }
         else{
-          write_integer_to_asciicode_array(BRC_ARRAY, offset, length, value); 
+          write_integer_to_asciicode_array(CLASS_ARRAY, offset, length, value); 
+        }
+      }
+      else{
+        
+        if (value !== undefined){
+          write_string_to_asciicode_array(CLASS_ARRAY, offset, value.length, value);
         }
       }
 
-      BRC_ARRAY.push(PROTOCOL.CONST.EOB);
+    }
 
-      // put class parameters into hexarray
-      let CLASS_ARRAY = [];
+    CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
+    CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
 
-      CLASS_ARRAY.push(PROTOCOL.CONST.STX);
+    let MESSAGE_ARRAY = [...BRC_ARRAY, ...CLASS_ARRAY];
 
-      write_integer_to_asciicode_array(CLASS_ARRAY, 1, 3, parseInt(class_code_from_name[descr.class_name]));
-      write_integer_to_asciicode_array(CLASS_ARRAY, 4, 1, parseInt(instr_code_from_name[descr.class_instr]));
+    var len = MESSAGE_ARRAY.length;
+    write_integer_to_asciicode_array(MESSAGE_ARRAY, brc_parameters.LEN.offset, brc_parameters.LEN.length, len); 
 
-      for(const key in class_parameters[descr.class_name]){
+    let checksum = [...MESSAGE_ARRAY].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
 
-        let offset = class_parameters[descr.class_name][key].offset;
-        let length = class_parameters[descr.class_name][key].length;
-        let value = descr.class_parameters[key];
+    MESSAGE_ARRAY.push(checksum.charCodeAt(0));
+    MESSAGE_ARRAY.push(checksum.charCodeAt(1));
 
-        if (length>0){
-          if (value === undefined){
-            // skip
-            console.log("MISSING CLASS PARAMETER!")
-          }
-          else{
-            write_integer_to_asciicode_array(CLASS_ARRAY, offset, length, value); 
-          }
-        }
-        else{
-          
-          if (value !== undefined){
-            write_string_to_asciicode_array(CLASS_ARRAY, offset, value.length, value);
-          }
-        }
-
-      }
-
-      CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
-      CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
-
-      let MESSAGE_ARRAY = [...BRC_ARRAY, ...CLASS_ARRAY];
-
-      var len = MESSAGE_ARRAY.length;
-      write_integer_to_asciicode_array(MESSAGE_ARRAY, brc_parameters.LEN.offset, brc_parameters.LEN.length, len); 
-
-      let checksum = [...MESSAGE_ARRAY].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
+    return {serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID}; // return id for checking communication issues
+  },
+  decode_packet_frame: function(incoming_hex_string){
   
-      MESSAGE_ARRAY.push(checksum.charCodeAt(0));
-      MESSAGE_ARRAY.push(checksum.charCodeAt(1));
+    // conver incoming data from hex blob to array of ascii codes
+    let incoming_hex_array = Array.from(incoming_hex_string);
+    let asciicode_array = [];
 
-      return {serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID}; // return id for checking communication issues
-    },
-    parse_to_class_stream_suku: function(incoming_hex_string){
-   
-      // conver incoming data from hex blob to array of ascii codes
-      let incoming_hex_array = Array.from(incoming_hex_string);
-      let asciicode_array = [];
+    for (let i = 0; i < incoming_hex_array.length; i+=2) {
+      asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
+    }
 
-      for (let i = 0; i < incoming_hex_array.length; i+=2) {
-        asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
-      }
+    // use the last two characters to determine the received checksum
+    let received_checksum = parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-1]))*1 + parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-2]))*16;
+    
+    // use the whole packet except the last two characters to determine the calculated checksum
+    let calculated_checksum = 0;
+    
+    for(let i=0; i<asciicode_array.length - 2; i++){
+      calculated_checksum ^= asciicode_array[i];
+    }
+    calculated_checksum%=256;
 
-      // use the last two characters to determine the received checksum
-      let received_checksum = parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-1]))*1 + parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-2]))*16;
-     
-      // use the whole packet except the last two characters to determine the calculated checksum
-      let calculated_checksum = 0;
+    // drop the packet if there was a checksum mismatch, otherwise continue parsing it
+    if (received_checksum !== calculated_checksum){
+      console.log("Checksum mismatch, packet dropped! Received: "+received_checksum + " Calculated: " + calculated_checksum);
+      return undefined;
+    }
+
+    // check if SOH character is found
+    if (asciicode_array[0] !== parseInt(grid_protocol.GRID_CONST_SOH)) {
+      console.log("Frame error: SOH not found!");
+      return undefined;        
+    } 
+
+    // check if BRC character is found
+    if (asciicode_array[1] !== parseInt(grid_protocol.GRID_CONST_BRC)) {
+      console.log("Frame error: BRC not found!");
+      return undefined;        
+    } 
+
+    // check if EOB character is found
+    if (asciicode_array[asciicode_array.length-3] !== parseInt(grid_protocol.GRID_CONST_EOT)) {
+      console.log("Frame error: EOT not found!");
+      return undefined;        
+    } 
+
+    // decode all of the BRC parameters
+    let brc = {};
+
+    for (const key in brc_parameters) {
+
+
+      brc[brc_parameters[key].name] = read_integer_from_asciicode_array(asciicode_array, brc_parameters[key].offset, brc_parameters[key].length);
       
-      for(let i=0; i<asciicode_array.length - 2; i++){
-        calculated_checksum ^= asciicode_array[i];
-      }
-      calculated_checksum%=256;
+      
+    }
 
-      // drop the packet if there was a checksum mismatch, otherwise continue parsing it
-      if (received_checksum !== calculated_checksum){
-        console.log("Checksum mismatch, packet dropped! Received: "+received_checksum + " Calculated: " + calculated_checksum);
+    brc.SX -= 127;
+    brc.SY -= 127;
+    brc.DX -= 127;
+    brc.DY -= 127;
+
+    // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
+    if (asciicode_array.length-2 !== brc.LEN){
+      console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc.LEN: ${brc.LEN}, brc_len should be: ${asciicode_array.length-2}`);
+      return undefined;         
+    }
+
+    // check if EOB character is found
+    if (asciicode_array[22] !== parseInt(grid_protocol.GRID_CONST_EOB)) {
+      console.log("Frame error: EOB not found!");
+      return undefined;        
+    } 
+
+    let class_asciicode_array = asciicode_array.slice(23,-3);
+    
+    let class_blocks = [];
+
+    for(let i=0, start_index = 0; i<class_asciicode_array.length; i++){
+      if (class_asciicode_array[i] === parseInt(grid_protocol.GRID_CONST_ETX)){
+        class_blocks.push(class_asciicode_array.slice(start_index, i+1));
+        start_index = i+1;
+      }
+    }
+
+
+    let return_array = [];
+
+    for (let i=0; i<class_blocks.length; i++){
+      // check first and last charaters, make sure they are STX and ETX
+      if (class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) && class_blocks[i][class_blocks[i].length-1] === parseInt(grid_protocol.GRID_CONST_ETX) ){
+        let current = {};
+        current.raw = class_blocks[i].slice(1,-1); 
+        current.brc_parameters = brc;
+
+        return_array.push(current);
+      }
+      else{
+        console.log("Frame error: STX ETX mismatch!");
         return undefined;
       }
+    }
 
-      // check if SOH character is found
-      if (asciicode_array[0] !== parseInt(grid_protocol.GRID_CONST_SOH)) {
-        console.log("Frame error: SOH not found!");
-        return undefined;        
-      } 
+    return return_array;
 
-      // check if BRC character is found
-      if (asciicode_array[1] !== parseInt(grid_protocol.GRID_CONST_BRC)) {
-        console.log("Frame error: BRC not found!");
-        return undefined;        
-      } 
-
-      // check if EOB character is found
-      if (asciicode_array[asciicode_array.length-3] !== parseInt(grid_protocol.GRID_CONST_EOT)) {
-        console.log("Frame error: EOT not found!");
-        return undefined;        
-      } 
-
-      // decode all of the BRC parameters
-      let brc = {};
-
-      for (const key in brc_parameters) {
+  },
+  decode_packet_classes: function(raw_class_array){
 
 
-        brc[brc_parameters[key].name] = read_integer_from_asciicode_array(asciicode_array, brc_parameters[key].offset, brc_parameters[key].length);
-        
-        
-      }
+    raw_class_array.forEach((raw_class, i) => { 
 
-      brc.SX -= 127;
-      brc.SY -= 127;
-      brc.DX -= 127;
-      brc.DY -= 127;
-
-      // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
-      if (asciicode_array.length-2 !== brc.LEN){
-        console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc.LEN: ${brc.LEN}, brc_len should be: ${asciicode_array.length-2}`);
-        return undefined;         
-      }
-
-      // check if EOB character is found
-      if (asciicode_array[22] !== parseInt(grid_protocol.GRID_CONST_EOB)) {
-        console.log("Frame error: EOB not found!");
-        return undefined;        
-      } 
-
-      let class_asciicode_array = asciicode_array.slice(23,-3);
+      let class_code_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
+      let class_instr_string =("0x"+String.fromCharCode(raw_class.raw[3]));
       
-      let class_blocks = [];
 
-      for(let i=0, start_index = 0; i<class_asciicode_array.length; i++){
-        if (class_asciicode_array[i] === parseInt(grid_protocol.GRID_CONST_ETX)){
-          class_blocks.push(class_asciicode_array.slice(start_index, i+1));
-          start_index = i+1;
-        }
-      }
+      if (class_name_from_code[class_code_string] !== undefined){
 
+        raw_class.class_name = class_name_from_code[class_code_string];
+        raw_class.class_instr = instr_name_from_code[class_instr_string];
 
-      let return_array = [];
+        raw_class.class_parameters = {};
 
-      for (let i=0; i<class_blocks.length; i++){
-        // check first and last charaters, make sure they are STX and ETX
-        if (class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) && class_blocks[i][class_blocks[i].length-1] === parseInt(grid_protocol.GRID_CONST_ETX) ){
-          let current = {};
-          current.raw = class_blocks[i].slice(1,-1); 
-          current.brc_parameters = brc;
+        raw_class.timestamp = Date.now();
 
-          return_array.push(current);
-        }
-        else{
-          console.log("Frame error: STX ETX mismatch!");
-          return undefined;
-        }
-      }
+        for (const key in class_parameters[raw_class.class_name]) {
 
-      return return_array;
+          let current_parameter = class_parameters[raw_class.class_name][key];
 
-    },
-    decode_to_class_stream_suku: function(raw_class_array){
+          let parameter_offset = class_parameters[raw_class.class_name][key].offset-1;
+          let parameter_length = class_parameters[raw_class.class_name][key].length;
+          
+          let parameter_value;
 
-
-      raw_class_array.forEach((raw_class, i) => { 
-
-        let class_code_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
-        let class_instr_string =("0x"+String.fromCharCode(raw_class.raw[3]));
-        
-
-        if (class_name_from_code[class_code_string] !== undefined){
-
-          raw_class.class_name = class_name_from_code[class_code_string];
-          raw_class.class_instr = instr_name_from_code[class_instr_string];
-
-          raw_class.class_parameters = {};
-
-          raw_class.timestamp = Date.now();
-
-          for (const key in class_parameters[raw_class.class_name]) {
-
-            let current_parameter = class_parameters[raw_class.class_name][key];
-
-            let parameter_offset = class_parameters[raw_class.class_name][key].offset-1;
-            let parameter_length = class_parameters[raw_class.class_name][key].length;
-            
-            let parameter_value;
-
-            if (parameter_length>0){
-              parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
-            }
-            else{ // variable length string
-              parameter_value = read_string_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
-            }
-
-
-            raw_class.class_parameters[current_parameter.name] = {}
-            
-            raw_class.class_parameters[current_parameter.name] = parameter_value;
-
+          if (parameter_length>0){
+            parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+          }
+          else{ // variable length string
+            parameter_value = read_string_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
           }
 
 
-        }
-        
-      });
+          raw_class.class_parameters[current_parameter.name] = {}
+          
+          raw_class.class_parameters[current_parameter.name] = parameter_value;
 
-    },
+        }
+
+
+      }
+      
+    });
 
   },
+
 
 
 }

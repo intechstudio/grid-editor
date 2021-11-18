@@ -1,14 +1,14 @@
 import { writable, get, derived } from 'svelte/store';
-import { writeBuffer } from './engine.store';
 
-import {runtime, appMultiSelect, appActionClipboard, debug_store, user_input, controlElementClipboard} from './runtime.store';
+import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from './runtime.store';
 
 import _utils from './_utils.js';
 
 
 function get_configs () {
   let configs = '';
-  const unsubscribe = debug_store.subscribe(data => {
+  const unsubscribe = luadebug_store.subscribe(data => {
+
     let arr = [];
     configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i+=2) {

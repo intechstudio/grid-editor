@@ -11,7 +11,7 @@ const instructions = {
 
   sendEditorHeartbeat_immediate: (type) => {
 
-    const retval = grid.translate.encode_suku(
+    const retval = grid.encode_packet(
       {
         brc_parameters:
           {DX: -127, DY: -127}, // GLOBAL

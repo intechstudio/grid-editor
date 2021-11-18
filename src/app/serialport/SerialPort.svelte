@@ -183,8 +183,8 @@
 
     parser.on('data', function(data) {
 
-      let class_array = grid.translate.parse_to_class_stream_suku(data);
-      grid.translate.decode_to_class_stream_suku(class_array);
+      let class_array = grid.decode_packet_frame(data);
+      grid.decode_packet_classes(class_array);
 
       if(class_array !== false){
         messageStream.deliver_inbound(class_array);   

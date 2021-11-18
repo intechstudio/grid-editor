@@ -1,7 +1,7 @@
 <script>
 import { onMount } from "svelte";
 
-  import { midi_monitor_store } from "../../../runtime/runtime.store";
+  import { midi_monitor_store } from "./MidiMonitor.store";
 
   let midiArray = [];
 

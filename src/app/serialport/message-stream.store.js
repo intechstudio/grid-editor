@@ -1,7 +1,10 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
 import { writeBuffer } from '../runtime/engine.store';
-import { debug_store, runtime, user_input, logger, engine, midi_monitor_store } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input } from '../runtime/runtime.store';
+
+import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
+import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
 
 
 
@@ -23,7 +26,7 @@ function createMessageStream(){
       }
 
       if(class_descr.class_name === "DEBUGTEXT"){
-        debug_store.update_debugtext(class_descr);
+        debug_monitor_store.update_debugtext(class_descr);
       }
 
       if(class_descr.class_name === "MIDI"){

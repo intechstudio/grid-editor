@@ -4,10 +4,6 @@
   import { fly } from 'svelte/transition';
   import { actionPrefStore, appSettings } from '../../_stores/app-helper.store.js';
 
-
-  import instructions from '../../../serialport/instructions';
-
-  import Debug from '../../../debug/Debug.svelte';
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
