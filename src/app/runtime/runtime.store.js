@@ -1,8 +1,7 @@
 import { writable, get, derived } from 'svelte/store';
-import { actionPrefStore, appSettings } from '../main/_stores/app-helper.store';
+import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
-import { serialComm } from '../serialport/serialport.store';
 import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
@@ -19,6 +18,44 @@ export const conditionalConfigPlacement = writable();
 
 export const elementPositionStore = writable({});
 export const ledColorStore = writable({});
+
+export function update_elementPositionStore(descr){
+    
+  let eps = get(elementPositionStore);  
+
+  if (eps[descr.brc_parameters.SX] === undefined){
+    eps[descr.brc_parameters.SX] = {};
+  }
+  if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+  }
+  if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = -1;
+  }
+
+  eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = descr.class_parameters.EVENTPARAM;
+
+  elementPositionStore.set(eps);
+
+  // mocking led color values
+
+  let lcs = get(ledColorStore);
+  if (lcs[descr.brc_parameters.SX] === undefined){
+    lcs[descr.brc_parameters.SX] = {};
+  }
+  if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+  }
+  if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = [0,0,0];
+  }
+
+  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][0] = 0.1*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][1] = 0.4*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][2] = 0.8*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
+
+  ledColorStore.set(lcs);
+}
 
 function createLogger(){
   const _log_store = writable({type:'', message: '', classname: ''});
@@ -100,63 +137,6 @@ function create_user_input () {
 
   const _event = writable({...defaultValues});
   
-  const _param = writable([]);
-
-  const _active_input = derived([_event, _param], ([$e, $p]) => { 
-
-    return {
-      selected: $e,
-      eventparams: $p
-    }
-
-  });
-
-  function update_eventparam(descr){
-    
-    let eps = get(elementPositionStore);  
-
-    if (eps[descr.brc_parameters.SX] === undefined){
-      eps[descr.brc_parameters.SX] = {};
-    }
-    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
-      eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
-    }
-    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
-      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = -1;
-    }
-
-    eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = descr.class_parameters.EVENTPARAM;
- 
-    elementPositionStore.set(eps);
-
-    // mocking led color values
-
-    let lcs = get(ledColorStore);
-    if (lcs[descr.brc_parameters.SX] === undefined){
-      lcs[descr.brc_parameters.SX] = {};
-    }
-    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
-      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
-    }
-    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
-      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = [0,0,0];
-    }
-
-    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][0] = 0.1*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][1] = 0.4*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][2] = 0.8*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-
-    ledColorStore.set(lcs);
-
-    // old implementation
-
-    _param.update((s)=>{
-      s = [descr.brc_parameters, descr.class_parameters];
-      return s;
-    })
-  }
-
-
 
   function process_incoming_from_grid(descr){
 
@@ -222,32 +202,7 @@ function create_user_input () {
   
   }
 
-  const _update = function(){
 
-    this.change_page = function(new_page_number){
-
-      if(get(engine) !== 'ENABLED'){
-        return this;
-      }
-
-      const store = get(_event);
-
-      // only update pagenumber if it differs from the runtime pagenumber
-      if(store.event.pagenumber !== new_page_number){ 
-
-        _event.update(s => {s.event.pagenumber = new_page_number; return s});
-
-        // clean up the writebuffer if pagenumber changes!
-        writeBuffer.clear();
-
-        instructions.changeActivePage(new_page_number);
-
-      }
-
-      return this;
-    }
-
-  }
 
   function update_eventtype(value){
     const eventtype = get(user_input).event.eventtype;
@@ -286,9 +241,6 @@ function create_user_input () {
     process_incoming_from_grid: process_incoming_from_grid,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
-    update_pagenumber: new _update(),
-    update_eventparam: update_eventparam,
-    active_input: _active_input.subscribe,
     module_destroy_handler: module_destroy_handler,
     reset: reset
   }
@@ -471,18 +423,19 @@ function create_runtime () {
 
   function whole_page_overwrite(array){
 
+
     engine.set('DISABLED');
     logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
 
-    array.forEach((element, elementIndex) => {
+    array.forEach((elem, elementIndex) => {
 
-      element.events.forEach((ev, eventIndex)=>{
+      
+      elem.events.forEach((ev, eventIndex)=>{
 
-        // ============ const operation = new _update();
         let li = get(user_input);
 
         li.event.pagenumber = li.event.pagenumber;
-        li.event.elementnumber = element.controlElementNumber;
+        li.event.elementnumber = elem.controlElementNumber;
         li.event.eventtype = ev.event;
 
         const dx = li.brc.dx;
@@ -502,7 +455,7 @@ function create_runtime () {
 
         let callback;
 
-        if (elementIndex === array.length-1 && eventIndex === element.events.length-1){
+        if (elementIndex === array.length-1 && eventIndex === elem.events.length-1){
           // this is last element so we need to add the callback
           callback = function(){
             engine.set('ENABLED');
@@ -755,6 +708,34 @@ function create_runtime () {
     writeBuffer.clear();
   }
 
+  function change_page(new_page_number){
+
+    if(get(engine) !== 'ENABLED'){
+      return;
+    }
+
+    let li = get(user_input);
+
+    // only update pagenumber if it differs from the runtime pagenumber
+    if(li.event.pagenumber !== new_page_number){ 
+
+
+      // clean up the writebuffer if pagenumber changes!
+      writeBuffer.clear();
+
+      instructions.changeActivePage(new_page_number);
+
+      //After page change set user_input so it does not get cleared from writebuffer
+      li.event.pagenumber = new_page_number;
+
+      user_input.set(li);
+
+
+    }
+ 
+
+  }
+
 
   return {
     reset: reset,
@@ -776,6 +757,8 @@ function create_runtime () {
     create_page: create_page,
     create_module: create_module,
     destroy_module: destroy_module,
+
+    change_page: change_page,
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig

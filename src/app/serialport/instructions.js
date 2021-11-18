@@ -78,6 +78,8 @@ const instructions = {
         const event = descr.class_parameters.EVENTTYPE;
         const actionstring = descr.class_parameters.ACTIONSTRING;
 
+        // console.log("SUCCESS: ", descr.class_parameters.PAGENUMBER, descr.class_parameters.ELEMENTNUMBER, descr.class_parameters.EVENTTYPE );
+
         runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'GRID_REPORT');
 
         if(callback){
@@ -87,6 +89,8 @@ const instructions = {
       }
     }
 
+
+    // console.log("FETCH: ", buffer_element.descr.class_parameters.PAGENUMBER, buffer_element.descr.class_parameters.ELEMENTNUMBER, buffer_element.descr.class_parameters.EVENTTYPE );
 
     writeBuffer.add_last(buffer_element);
 

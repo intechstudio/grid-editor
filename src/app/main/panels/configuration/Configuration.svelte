@@ -138,7 +138,10 @@
         dropStore.update(res);
         conditionalConfigPlacement.set(configs);
         localDefinitions.update(configs);
-      }).catch(err => {console.error(err); configs = [];})
+      }).catch(err => {
+        console.error(err); 
+        configs = [];
+      })
       
       // let use of default dummy parameters
       if(active.elements.selected !== ""){

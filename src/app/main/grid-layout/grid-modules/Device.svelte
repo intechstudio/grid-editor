@@ -36,8 +36,8 @@
 
   onMount(()=>{
 
-    user_input.active_input(store => {
-      selectedElement = store.selected;
+    user_input.subscribe(store => {
+      selectedElement = store;
     })
     
   })

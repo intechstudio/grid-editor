@@ -1,4 +1,4 @@
-import { writable, get, derived } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 
 import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from './runtime.store';
 

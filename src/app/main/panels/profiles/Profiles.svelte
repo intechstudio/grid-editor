@@ -39,9 +39,9 @@
 
   let PROFILES = [];
 
-  user_input.active_input(val => {
-    if(val.selected.id){
-      newProfile.type = val.selected.id.substr(0,4);
+  user_input.subscribe(val => {
+    if(val.id){
+      newProfile.type = val.id.substr(0,4);
     }
   })
 
@@ -145,9 +145,7 @@
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
 
-      let _user_input = undefined;
-      const _active_user_input = user_input.active_input(value => _user_input = value.selected);
-      _active_user_input();
+      const li = get(user_input);
   
       const configs = get(runtime);
   
@@ -163,9 +161,9 @@
   
       configs.forEach(d => {
   
-        if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
+        if(d.dx == li.brc.dx && d.dy == li.brc.dy){
   
-          const page = d.pages.find(x => x.pageNumber == _user_input.event.pagenumber);
+          const page = d.pages.find(x => x.pageNumber == li.event.pagenumber);
   
           profile.configs = page.control_elements.map(cfg => {
               return {
