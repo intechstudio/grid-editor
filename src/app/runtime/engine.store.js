@@ -23,25 +23,25 @@ function createWriteBuffer (){
 
   let active_elem = undefined;
 
-  const clean_up = function (){
+  function module_destroy_handler(dx, dy){
 
-    this.one = function(device){
+    // remove all of the elements that match the destroyed module's dx dy
+    _write_buffer = _write_buffer.filter(g => (g.descr.brc_parameters.DX!= dx || g.descr.brc_parameters.DY != dy));
 
-      console.error("clean_up");
-
-      writeBufferTryNext();
-
-    }
-
-    this.all = function(){
-      _write_buffer = [];
+    // clear the active element if it matches the destroyed module's dx dy
+    if (active_elem.descr.brc_parameters.DX == dx && active_elem.descr.brc_parameters.DY == dy){
       active_elem = undefined;
-      write_buffer_busy = false;
-      clearInterval(_fetch_timeout);
-
-      console.info('Clean up >all< writeBuffer!', active_elem, _write_buffer);
-
+      writeBufferTryNext();
     }
+
+  }
+
+  function clear(){
+
+    _write_buffer = [];
+    active_elem = undefined;
+    write_buffer_busy = false;
+    clearInterval(_fetch_timeout);
     
   }
 
@@ -192,13 +192,15 @@ function createWriteBuffer (){
     writeBufferTryNext();
   }
 
+  
 
   return {
     messages: messages,
     add_first: add_first,
     add_last: add_last,
     validate_incoming: validateIncoming,
-    clean_up: new clean_up()
+    clear: clear,
+    module_destroy_handler, module_destroy_handler
   }
 
 }

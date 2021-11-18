@@ -27,19 +27,12 @@
 
   let selected;
   let color;
-  let bankColors;
-  let bankActive = 0; // future page!
+
   let selectedElement;
 
   $: moduleWidth = $appSettings.size * 106.6 + 2;
 
   $: selected = components.find(component => component.type === type);
-
-  $: if(bankColors){
-    color = bankColors[bankActive];
-  }
-
-  let ready = false;
 
   onMount(()=>{
 

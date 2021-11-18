@@ -1,12 +1,36 @@
 import { serialComm } from './serialport.store.js';
+import { get } from 'svelte/store';
+import { appSettings } from '../main/_stores/app-helper.store';
 
 import grid from '../protocol/grid-protocol.js';
 
-import { pParser } from '../protocol/_utils.js';
 import { writeBuffer } from '../runtime/engine.store.js';
-import { engine, logger, runtime } from '../runtime/runtime.store.js';
+import { engine, logger, unsaved_changes, runtime } from '../runtime/runtime.store.js';
 
 const instructions = {
+
+  sendEditorHeartbeat_immediate: (type) => {
+
+    const retval = grid.translate.encode_suku(
+      {
+        brc_parameters:
+          {DX: -127, DY: -127}, // GLOBAL
+        class_name: "HEARTBEAT",
+        class_instr: "EXECUTE",
+        class_parameters: 
+          {
+            TYPE: type,
+            HWCFG: 255,
+            VMAJOR: get(appSettings).version.major,
+            VMINOR: get(appSettings).version.minor,
+            VPATCH: get(appSettings).version.patch,
+          }
+      }
+    );
+
+    serialComm.write(retval.serial);
+
+  },
 
   fetchConfigFromGrid: (dx, dy, page, element, event, callback) => {
 
@@ -71,7 +95,7 @@ const instructions = {
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
 
-    runtime.unsaved.update(n => n + 1);
+    unsaved_changes.update(n => n + 1);
 
     let buffer_element = {
       descr: {
@@ -199,7 +223,7 @@ const instructions = {
       }, 
       successCb: function(){
         engine.set('ENABLED');
-        runtime.unsaved.set(0);
+        unsaved_changes.set(0);
         logger.set({type: 'success', mode: 0, classname: 'pagestore', message: `Store complete!`})
         //console.log('page store execute - success')
       }
@@ -241,7 +265,7 @@ const instructions = {
         //console.log('NVM erase execute - fail')
       }, 
       successCb: function(){
-        runtime.unsaved.set(0);
+        unsaved_changes.set(0);
         runtime.erase();
         engine.set('ENABLED');
         logger.set({type: 'success', mode: 0, classname: 'nvmerase', message: `Erase complete!`});

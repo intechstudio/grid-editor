@@ -1,7 +1,7 @@
 <script>
 
   import { appSettings } from '../main/_stores/app-helper.store';
-  import { engine, logger, runtime } from '../runtime/runtime.store';
+  import { engine, unsaved_changes } from '../runtime/runtime.store';
   import NVMErase from './NVMErase.svelte';
   import PageStore from './PageStore.svelte';
 
@@ -9,9 +9,6 @@
   import PageDiscard from './PageDiscard.svelte';
   import PageClear from './PageClear.svelte';
 
-  let unsaved = 0;
-
-  runtime.unsaved.subscribe(v => unsaved = v);
 
 </script>
 
@@ -22,10 +19,10 @@
 
     <div class="px-4">{$appSettings.rightPanel}</div>
 
-    {#if unsaved}
+    {#if $unsaved_changes}
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>
-        <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{unsaved}</div>
+        <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{$unsaved_changes}</div>
         <PageDiscard classes={'ml-4'}/>
       </div>
     {/if}

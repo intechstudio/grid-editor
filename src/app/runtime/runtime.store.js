@@ -1,5 +1,4 @@
 import { writable, get, derived } from 'svelte/store';
-import stringManipulation from '../main/user-interface/_string-operations';
 import { actionPrefStore, appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
@@ -219,7 +218,7 @@ function create_user_input () {
         _event.update(s => {s.event.pagenumber = new_page_number; return s});
 
         // clean up the writebuffer if pagenumber changes!
-        writeBuffer.clean_up.all();
+        writeBuffer.clear();
 
         instructions.changeActivePage(new_page_number);
 
@@ -244,17 +243,14 @@ function create_user_input () {
     }
   }
 
-  function reset_disconnected(removed = 'reset'){
+  function module_destroy_handler(dx, dy){
     // This is used to re-init local settings panel if a module is removed which values have been displayed
-    const current = get(_event);
+    const li = get(_event);
 
-    if(removed.dx == current.brc.dx && removed.dy == current.brc.dy){
+    if(dx == li.brc.dx && dy == li.brc.dy){
       _event.set({...defaultValues})
     }
 
-    if(removed == 'reset'){
-      _event.set({...defaultValues});
-    }
   }
 
   return {
@@ -267,24 +263,15 @@ function create_user_input () {
     update_pagenumber: new _update(),
     update_eventparam: update_eventparam,
     active_input: _active_input.subscribe,
-    reset: reset_disconnected
+    module_destroy_handler: module_destroy_handler
   }
 }
 
 export const user_input = create_user_input();
 
-
-user_input.subscribe(user => {
-
-
-
-
-
-});
+export const unsaved_changes = writable(0);
 
 function create_runtime () {
-
-  const _unsaved_changes = writable(0);
 
   const _runtime = writable([]);
 
@@ -629,7 +616,7 @@ function create_runtime () {
       return _runtime;
     })
 
-    _unsaved_changes.set(0);
+    unsaved_changes.set(0);
 
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(()=>{
@@ -680,7 +667,7 @@ function create_runtime () {
     
   } 
 
-  function create_module(header, heartbeat, virtual){
+  function create_module(header, heartbeat){
 
     let moduleType = grid.module_type_from_hwcfg(heartbeat.HWCFG);
 
@@ -703,21 +690,14 @@ function create_runtime () {
           patch: heartbeat.VPATCH,
         },
         alive: Date.now(),
-        virtual: virtual,
         map: {
           top:    {dx: header.SX,   dy: header.SY+1 },
           right:  {dx: header.SX+1, dy: header.SY   },
           bot:    {dx: header.SX,   dy: header.SY-1 },
           left:   {dx: header.SX-1, dy: header.SY   },
         },
-        isConnectedByUsb: (header.SX == 0 && header.SY == 0) ? true : false,
-        isLanding: false,
         pages: [this.create_page(moduleType,0), this.create_page(moduleType,1), this.create_page(moduleType,2), this.create_page(moduleType,3)],
-        global: {  
-          bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
-          bankEnabled: [true,true,true,true],
-          cfgStatus: virtual ? 'not_expected' : 'ok'
-        }
+
       }
       
     }
@@ -727,8 +707,31 @@ function create_runtime () {
   }
 
 
+  function destroy_module(dx, dy){
+
+    // remove the destroyed device from runtime
+    _runtime.update(rt => {
+      return rt.filter(g => (g.dx != dx || g.dy != dy));
+    });
+
+    user_input.module_destroy_handler(dx, dy);
+    writeBuffer.module_destroy_handler(dx, dy);
+    
+  }
+
+  function reset(){
+
+    console.log("runtime.reset")
+    _runtime.set([]);
+
+    user_input.reset();
+    unsaved_changes.set(0);
+    writeBuffer.reset();
+  }
+
+
   return {
-    set: _runtime.set,
+    reset: reset,
     subscribe: _runtime.subscribe,
 
     whole_element_overwrite: whole_element_overwrite,
@@ -746,10 +749,10 @@ function create_runtime () {
 
     create_page: create_page,
     create_module: create_module,
+    destroy_module: destroy_module,
 
     erase: erase_all,
-    fetchOrLoadConfig: fetchOrLoadConfig,
-    unsaved: _unsaved_changes,
+    fetchOrLoadConfig: fetchOrLoadConfig
   }
 }
 
@@ -826,71 +829,45 @@ export const heartbeat = writable({
   grid: 300
 })
 
-// Main serial intervals
 
-let rt = get(runtime);
+function start_grid_heartbeat(){ 
 
-let grid_heartbeat_interval;
-function gridHeartbeat(){ 
-  const interval = get(heartbeat).grid;
-  grid_heartbeat_interval = setInterval(()=>{
-    let _removed = rt.find(g => (Date.now() - g.alive > (heartbeat.grid * 2)) && !g.virtual);
-    let _processgrid = rt.map(g => {
-      if(Date.now() - g.alive > (heartbeat.grid *2) && !g.virtual){
-        g.alive = 'dead';
+  setInterval(()=>{
+
+    let rt = get(runtime);
+
+    rt.forEach((device, i) => {
+
+      if ((Date.now() - device.alive) > heartbeat.grid * 2){
+        // TIMEOUT! let's remove the device
+        
+        runtime.destroy_module(device.dx, device.dy);
+
       }
-      return g;
-    })
-    let _usedgrid = _processgrid.filter(g => g.alive !== 'dead');
+    });
 
-    if(_removed !== undefined && _usedgrid.length !== undefined){    
-      // re-initialize configuration panel, if the module has been removed which had it's settings opened.
-      user_input.reset(_removed);
-      runtime.set(_usedgrid); 
-      writeBuffer.clean_up.one(_removed);
-    }
 
-  }, interval)
+  }, get(heartbeat).grid)
 }
 
-let editor_heartbeat_interval;
-function editorHeartbeat(){ 
 
-  const interval = get(heartbeat).editor;
+function start_editor_heartbeat(){ 
   
-  editor_heartbeat_interval = setInterval(()=>{
+  setInterval(()=>{
 
       let type = 255
-      if(get(runtime.unsaved) != 0){
+      if(get(unsaved_changes) != 0){
         type = 254
       }
 
-      const retval = grid.translate.encode_suku(
-        {
-          brc_parameters:
-            {DX: -127, DY: -127}, // GLOBAL
-          class_name: "HEARTBEAT",
-          class_instr: "EXECUTE",
-          class_parameters: 
-            {
-              TYPE: type,
-              HWCFG: 255,
-              VMAJOR: get(appSettings).version.major,
-              VMINOR: get(appSettings).version.minor,
-              VPATCH: get(appSettings).version.patch,
-            }
-        }
-      );
-
-      serialComm.write(retval.serial);
+      instructions.sendEditorHeartbeat_immediate(type);
       
-  }, interval);
+  }, get(heartbeat).editor);
 
 }
 
-
-editorHeartbeat();
-gridHeartbeat();  
+start_editor_heartbeat();
+start_grid_heartbeat();  
 
 
 
@@ -923,10 +900,3 @@ function createLocalDefinitions(){
 
 export const localDefinitions = createLocalDefinitions();
 
-export const _runtime_modules = derived(runtime, $rt => {
-  let arr = [];
-  $rt.forEach(device => {
-    arr.push({device: device.id, sx: device.dx, sy: device.dy});
-  })
-  return arr;
-});

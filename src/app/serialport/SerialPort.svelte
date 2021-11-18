@@ -142,13 +142,11 @@
       
 
       // reset runtime and user input on closing the port
-      runtime.set([]);
-      user_input.reset();
-      runtime.unsaved.set(0);
+      runtime.reset();
+
       
       appSettings.update(s => {s.overlays.controlElementName = false; return s})
       // clearup fifo writebuffer
-      writeBuffer.clean_up.all();
       // reset engine to enabled
       engine.set('ENABLED');
 
