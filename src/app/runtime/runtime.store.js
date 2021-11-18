@@ -273,6 +273,12 @@ function create_user_input () {
 
   }
 
+  function reset(){
+
+    _event.set({...defaultValues})
+    
+  }
+
   return {
     ..._event,
     subscribe: _event.subscribe,
@@ -283,7 +289,8 @@ function create_user_input () {
     update_pagenumber: new _update(),
     update_eventparam: update_eventparam,
     active_input: _active_input.subscribe,
-    module_destroy_handler: module_destroy_handler
+    module_destroy_handler: module_destroy_handler,
+    reset: reset
   }
 }
 
@@ -343,7 +350,6 @@ function create_runtime () {
       const element = ui.event.elementnumber;
       const event = ui.event.eventtype;
 
-      console.log("fetchOrLoad")
       instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
     }
 
@@ -746,7 +752,7 @@ function create_runtime () {
 
     user_input.reset();
     unsaved_changes.set(0);
-    writeBuffer.reset();
+    writeBuffer.clear();
   }
 
 

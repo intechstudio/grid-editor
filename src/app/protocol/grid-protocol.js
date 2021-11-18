@@ -543,7 +543,7 @@ const grid = {
       if (length>0){
         if (value === undefined){
           // skip
-          console.log("MISSING CLASS PARAMETER!")
+          //console.log("MISSING CLASS PARAMETER!")
         }
         else{
           write_integer_to_asciicode_array(CLASS_ARRAY, offset, length, value); 

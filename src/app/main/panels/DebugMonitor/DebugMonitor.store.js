@@ -9,8 +9,6 @@ function createDebugMonitor(){
     ...store,
     update_debugtext: (descr) => {
 
-      console.log(descr);
-
       let sx = descr.brc_parameters.SX;
       let sy = descr.brc_parameters.SY;
       let text = descr.class_parameters.TEXT;

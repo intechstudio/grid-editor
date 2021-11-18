@@ -200,7 +200,7 @@ function createWriteBuffer (){
     add_last: add_last,
     validate_incoming: validateIncoming,
     clear: clear,
-    module_destroy_handler, module_destroy_handler
+    module_destroy_handler: module_destroy_handler,
   }
 
 }

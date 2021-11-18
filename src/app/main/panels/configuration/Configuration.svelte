@@ -109,8 +109,6 @@
 
     }
 
-    console.log("ACTIVE_CONFIG change")
-
     return {
       config: config,
       stringname: "",
