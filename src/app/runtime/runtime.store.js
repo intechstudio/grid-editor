@@ -348,7 +348,7 @@ function create_runtime () {
 
   function incoming_heartbeat_handler(descr){
 
-    let controller = grid.device.make(descr.brc_parameters, descr.class_parameters, false);
+    let controller = this.create_module(descr.brc_parameters, descr.class_parameters, false);
 
     _runtime.update((_runtime) => {
       let online = false;
@@ -641,6 +641,92 @@ function create_runtime () {
   }
 
 
+  function create_page(moduleType, pageNumber){
+
+    moduleType = moduleType.substr(0,4);
+  
+    let control_elements = [];
+
+    let status = 'INIT';
+
+    try {
+
+      const elementsArrayLength = grid.moduleElements[moduleType].length;
+
+       // control elements
+      for (let i = 0; i < elementsArrayLength; i++) {
+        if(grid.moduleElements[moduleType][i]){
+          let events = [];
+          for (let j=0; j < grid.elementEvents[grid.moduleElements[moduleType][i]].length; j++) {
+            events.push({        
+              event: grid.elementEvents[grid.moduleElements[moduleType][i]][j], 
+              config: "",
+              cfgStatus: "NULL"
+            })
+          }
+          control_elements[i] = {events: events, controlElementNumber: i, controlElementType: grid.moduleElements[moduleType][i], controlElementName: ''};
+        }
+      }
+
+      control_elements = control_elements.filter(x => x); // filter null or invalid items!
+
+      return {status, pageNumber: pageNumber, control_elements};
+      
+    } catch (error) {
+      
+      console.error('Error while creating page for ', moduleType, error)
+
+    }
+    
+  } 
+
+  function create_module(header, heartbeat, virtual){
+
+    let moduleType = grid.module_type_from_hwcfg(heartbeat.HWCFG);
+
+    let controller = undefined;
+
+    // generic check, code below if works only if all parameters are provided
+    if(header !== undefined && moduleType !== undefined && heartbeat !== undefined){
+
+      moduleType = moduleType.substr(0,4);
+
+      controller = {
+        // implement the module id rep / req
+        id: moduleType + '_' + 'dx:' + header.SX + ';dy:' + header.SY,
+        dx: header.SX,
+        dy: header.SY,
+        rot: header.ROT,
+        fwVersion: {
+          major: heartbeat.VMAJOR,
+          minor: heartbeat.VMINOR,
+          patch: heartbeat.VPATCH,
+        },
+        alive: Date.now(),
+        virtual: virtual,
+        map: {
+          top:    {dx: header.SX,   dy: header.SY+1 },
+          right:  {dx: header.SX+1, dy: header.SY   },
+          bot:    {dx: header.SX,   dy: header.SY-1 },
+          left:   {dx: header.SX-1, dy: header.SY   },
+        },
+        isConnectedByUsb: (header.SX == 0 && header.SY == 0) ? true : false,
+        isLanding: false,
+        pages: [this.create_page(moduleType,0), this.create_page(moduleType,1), this.create_page(moduleType,2), this.create_page(moduleType,3)],
+        global: {  
+          bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
+          bankEnabled: [true,true,true,true],
+          cfgStatus: virtual ? 'not_expected' : 'ok'
+        }
+      }
+      
+    }
+    
+    return controller;
+
+  }
+
+
   return {
     set: _runtime.set,
     subscribe: _runtime.subscribe,
@@ -657,7 +743,10 @@ function create_runtime () {
     incoming_heartbeat_handler: incoming_heartbeat_handler,
 
     clear_page_configuration: clear_page_configuration,
-    
+
+    create_page: create_page,
+    create_module: create_module,
+
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
     unsaved: _unsaved_changes,

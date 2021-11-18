@@ -237,24 +237,8 @@ const utility_genId  = () => {
   return global_id += 1;
 }
 
-const moduleLookup = (hwcfg) => {
-  var HWCFG = grid.properties.HWCFG;
-  let type = '';
-  for (const key in HWCFG) {
-    if(HWCFG[key] == hwcfg){
-      return type = key;
-    }
-  }
-}
 
-const param2lower = (parameters) => {
-  let obj = {}
-  for (const key in parameters) {
-    const _key = key.toLowerCase();
-    obj[_key] = parameters[key]
-  }
-  return obj;
-}
+
 
 
 
@@ -355,6 +339,20 @@ const elementEvents = {
 }
 
 const grid = {
+
+  moduleElements: moduleElements,
+  elementEvents: elementEvents,
+
+  module_type_from_hwcfg: function (hwcfg){
+    var HWCFG = grid.properties.HWCFG;
+    let type = '';
+    for (const key in HWCFG) {
+      if(HWCFG[key] == hwcfg){
+        return type = key;
+      }
+    }
+  },
+
   
   properties: (function (){
 
@@ -732,120 +730,7 @@ const grid = {
 
   },
 
-  device: {
-  
-    createPage: function(moduleType, pageNumber){
 
-
-        moduleType = moduleType.substr(0,4);
-      
-        let control_elements = [];
-
-        let status = 'INIT';
-
-        try {
-
-          const elementsArrayLength = moduleElements[moduleType].length;
-
-           // control elements
-          for (let i = 0; i < elementsArrayLength; i++) {
-            if(moduleElements[moduleType][i]){
-              let events = [];
-              for (let j=0; j < elementEvents[moduleElements[moduleType][i]].length; j++) {
-                events.push({        
-                  event: elementEvents[moduleElements[moduleType][i]][j], 
-                  config: "",
-                  cfgStatus: "NULL"
-                })
-              }
-              control_elements[i] = {events: events, controlElementNumber: i, controlElementType: moduleElements[moduleType][i], controlElementName: ''};
-            }
-          }
-
-          control_elements = control_elements.filter(x => x); // filter null or invalid items!
-
-          return {status, pageNumber: pageNumber, control_elements};
-          
-        } catch (error) {
-          
-          console.error('Error while creating page for ', moduleType, error)
-
-        }
-        
-    },
-
-    make: function(header, heartbeat, virtual){
-
-      let moduleType = moduleLookup(heartbeat.HWCFG);
-
-      let controller = {
-        // implement the module id rep / req
-        id: "",
-        dx: "",
-        dy: "",
-        fwVersion: {
-          major: "",
-          minor: "",
-          patch: ""
-        },
-        alive: Date.now(),
-        virtual: "",
-        map: {
-          top: {dx: "", dy: "",},
-          right: {dx: "", dy: ""},
-          bot: {dx: "", dy: ""},
-          left: {dx: "", dy: ""},
-        },
-        rot: "",
-        isConnectedByUsb: "",
-        isLanding: "",
-        pages: [], // consider naming to "local"
-        global: {}
-      }
-
-      // generic check, code below if works only if all parameters are provided
-      if(header !== undefined && moduleType !== undefined && heartbeat !== undefined){
-        
-        header = param2lower(header);
-
-        moduleType = moduleType.substr(0,4);
-
-        controller = {
-          // implement the module id rep / req
-          id: moduleType + '_' + 'dx:' + header.sx + ';dy:' + header.sy,
-          dx: header.sx,
-          dy: header.sy,
-          rot: header.rot,
-          fwVersion: {
-            major: heartbeat.VMAJOR,
-            minor: heartbeat.VMINOR,
-            patch: heartbeat.VPATCH,
-          },
-          alive: Date.now(),
-          virtual: virtual,
-          map: {
-            top: {dx: header.sx, dy: header.sy+1},
-            right: {dx: header.sx+1, dy: header.sy},
-            bot: {dx: header.sx, dy: header.sy-1},
-            left: {dx: header.sx-1, dy: header.sy},
-          },
-          isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
-          isLanding: false,
-          pages: [this.createPage(moduleType,0), this.createPage(moduleType,1), this.createPage(moduleType,2), this.createPage(moduleType,3)],
-          global: {  
-            bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
-            bankEnabled: [true,true,true,true],
-            cfgStatus: virtual ? 'not_expected' : 'ok'
-          }
-        }
-        
-      }
-      
-      return controller;
-  
-    }
-
-  }
 }
 
 export default grid;
