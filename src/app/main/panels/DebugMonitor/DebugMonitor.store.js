@@ -17,7 +17,7 @@ function createDebugMonitor(){
       store.update(d => {
        
           if(d.length >= 15){
-            d.data.shift()
+            d.shift()
           }
           d = [...d, `[${sy},${sx}] ${text}`];
         
