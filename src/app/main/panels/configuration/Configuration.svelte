@@ -69,6 +69,28 @@
     const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
 
     if (device === undefined){
+
+      if (rt.length === 0){
+        console.log("ACTIVE_CONFIG: disconnect")
+        return{
+          config: "",
+          stringname: "",
+          events: {
+            selected: "",
+            options: ""
+          }, 
+          elements: {
+            selected:"",
+            options: ""
+          },
+          pages: {
+            selected: "",
+            options: ""
+          }
+        }
+
+      }
+
       return;
     }
 

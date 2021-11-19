@@ -77,7 +77,7 @@
 
       const condition_sorting = ['if', 'ei', 'el', 'en'];
 
-      const blocks = await getAllComponents().then(res => res.map(x => x.information));  
+      const blocks = getAllComponents().map(x => x.information);  
 
       let object = {};
 
@@ -119,7 +119,7 @@
 
 
     } catch (error) {
-      console.log(error);
+      
     }
   })
 
