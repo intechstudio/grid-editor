@@ -549,32 +549,50 @@ function create_runtime () {
     const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
     const controlElements = device.pages[pageIndex].control_elements;
 
-    const array = [];
+    const fetchArray = [];
 
     controlElements.forEach((controlElement) => {
       controlElement.events.forEach((elem) => {
-        array.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
+
+
+        const cfgstatus = elem.cfgStatus;
+
+        if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
+          //alreade loaded config
+        }
+        else{
+          // put it into the fetchArray
+          fetchArray.push({event: elem.event.value, elementnumber: controlElement.controlElementNumber})
+        }
+
       })
     })
 
+    console.log("Fetch operations required: ", fetchArray.length);
+    
+    // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
+    writeBuffer.clear();
 
-    array.forEach((elem, ind) => {
+    fetchArray.forEach((elem, ind) => {
 
       li.event.eventtype = elem.event;
       li.event.elementnumber = elem.elementnumber;
 
-      if (ind === array.length-1){ // last element
+      if (ind === fetchArray.length-1){ // last element
 
+        console.log("FETCH W/ CALLBACK")
         fetchOrLoadConfig(li, callback);
       }
       else{
+
+        console.log("FETCH")
         fetchOrLoadConfig(li);
       }
 
 
     })
    
-    return this;
+    return;
   }
 
   function clear_page_configuration(){
