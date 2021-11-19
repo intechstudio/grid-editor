@@ -3,15 +3,14 @@
 
   import { createEventDispatcher } from 'svelte';
 
-  const dispatch = createEventDispatcher();
-
   export let elementNumber;
   export let size = 1;
   export let rotation = 0;
-  export let eventInput;
 
   const faderWidth = 16;
   const faderHeight = 37;
+
+  export let position;
 
   let move = 0;
   let startValue = 0;
@@ -22,11 +21,6 @@
   let svgMove;
 
   $: range = faderHeight*size;
-
-  $: if(eventInput){
-    let faderPosition = (Math.round(eventInput / 2.887) - 22) * -1;
-    move = faderPosition;
-  }
 
   const rotMode = (rotation) => {
     rotation == undefined ? rotation = 0 : null;
@@ -52,10 +46,16 @@
     var coord = getMousePosition(event);
     const rot = rotMode(rotation).toLowerCase();
     let value = (startValue - (initMove + coord[rot])) * inverse();
-    if(-22 <= value && value <= 22){
-      move = value;
-      dispatch('user-interaction',move)
+    
+    if(value < -22){
+      value = -22;
     }
+    if (value > 22){
+      value = 22;
+    }
+
+    move = value;
+    position = (move/(-1)+22)*2.887;
   }
 
   function handleGrabEnd(event){
@@ -99,7 +99,7 @@
     on:grabmove={handleGrabMove}
     on:grabend={handleGrabEnd}
     data-control-number={elementNumber}
-    data-control-element-type="potentiometer"
+    data-control-element-type="fader"
     id="fader-cap" 
     width={size * faderWidth + 'px'} 
     height={size * faderHeight + 'px'} 
@@ -113,7 +113,7 @@
     </g>
     <g 
     class="fader-transform"
-    style="--translate-move: {'translateY('+ move +'px)'};">
+    style="--translate-move: {'translateY('+ ((Math.round(position/ 2.887) - 22) * -1) +'px)'};">
       <g id="bottom" filter="url(#filter1_i)">
         <rect y="22" width="24" height="16" rx="1" fill="#323232"/>
       </g>

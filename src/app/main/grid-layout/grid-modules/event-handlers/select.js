@@ -6,6 +6,7 @@ export function select(node, [moduleId, selectedDisplay]){
   function handleMousedown(e) {
     if(e.target.ownerSVGElement){
       
+      // get controlnumber and eventtype from DOM elemenet
       const {controlNumber, controlElementType} = e.target.ownerSVGElement.dataset;
 
       if(controlNumber !== undefined && controlElementType !== undefined){
@@ -17,7 +18,7 @@ export function select(node, [moduleId, selectedDisplay]){
         // should be probably put into user_input store's functions
         const ui = get(user_input);
 
-        if(ui.event.elementnumber != +controlNumber){
+        if(ui.event.elementnumber != +controlNumber || ui.id != moduleId){
 
           user_input.update((ui) =>{
             ui.id = moduleId;
@@ -25,6 +26,7 @@ export function select(node, [moduleId, selectedDisplay]){
             ui.brc.dy = +dy;
             ui.event.elementnumber = +controlNumber;
             ui.event.elementtype = controlElementType;
+
             return ui;
           });
 

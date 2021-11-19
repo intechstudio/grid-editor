@@ -1,71 +1,69 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
-import { appSettings } from '../main/_stores/app-helper.store';
-import grid from '../protocol/grid-protocol';
 import { writeBuffer } from '../runtime/engine.store';
-import { debug_store, runtime, user_input, logger, engine, midi_monitor_store } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input, update_elementPositionStore } from '../runtime/runtime.store';
+
+import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
+import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
+
+
 
 function createMessageStream(){
 
-  const _message_stream = writable({});
+  const _deliver_inbound = function(class_array) {
 
-  const _on_data = function(DATA) {
+    class_array.forEach((class_descr, i) => {
 
+      if (class_descr.class_name === "HEARTBEAT"){
+        // check if it is online and if not then create a new module
 
+        runtime.incoming_heartbeat_handler(class_descr);
+      }
 
-    if(DATA.HEARTBEAT){
-      runtime.device.is_online(grid.device.make(DATA.BRC, DATA.HEARTBEAT, false));
-    }
+      if (class_descr.class_name === "PAGECOUNT"){
+  
+        // update page count, now not used because it is constant 4      
+      }
 
-    if(DATA.PAGECOUNT){
-      runtime.device.update_pages({brc: DATA.BRC, pagenumber: DATA.PAGECOUNT.PAGENUMBER})
-    }
+      if(class_descr.class_name === "DEBUGTEXT"){
+        debug_monitor_store.update_debugtext(class_descr);
+      }
 
-    // enable user input from grid only if engine is enabled
-    if(get(engine) == 'ENABLED'){
+      if(class_descr.class_name === "MIDI"){
       
-      if(DATA.EVENT){
-        // enable event tracking only, if changeOnContact is enabled and event is NOT timer!
-        // filter midi rx and timer!
-        if(get(appSettings).changeOnContact && DATA.EVENT[0].EVENTTYPE != 6 && DATA.EVENT[0].EVENTTYPE != 5){
-          user_input.process_incoming_from_grid({brc: DATA.BRC, event: DATA.EVENT[0]}); // only one element should be set as target ui
-        }
+        midi_monitor_store.update_midi(class_descr);
+      }      
+      
+      if(class_descr.class_name === "CONFIG"){
+      
       }
 
-      if(DATA.EVENTPARAM){
-        user_input.update_eventparam({brc: DATA.BRC, event: DATA.EVENT});
+      if (class_descr.class_name === "EVENT"){
+
+        // update control element rotation
+        update_elementPositionStore(class_descr);
+
+
+        // update active element selection
+        user_input.process_incoming_from_grid(class_descr);
       }
 
-      if(DATA.PAGEACTIVE){
-        user_input.update_pagenumber.pagenumber(DATA.PAGEACTIVE.PAGENUMBER);
-      }
-    }
+      if (class_descr.class_name === "PAGEACTIVE"){
 
-    if(DATA.DEBUGTEXT){
-      debug_store.update_debugtext({brc: DATA.BRC, text: DATA.DEBUGTEXT});
-    }
-
-    if(DATA.MIDI){
-      for(let i=0; i<DATA.MIDI.length; i++){
-        midi_monitor_store.update_midi({brc: DATA.BRC, midi: DATA.MIDI[i]});
+        runtime.change_page(class_descr.class_parameters.PAGENUMBER);
       }
 
-    }
 
-    if(DATA.LOG){
-      logger.set(DATA.LOG);
-    }
+      writeBuffer.validate_incoming(class_descr);
+
+    });
 
     
-    writeBuffer.validate_incoming(DATA);
-
-    
-    _message_stream.set(DATA);
 
   }
 
   return {
-    set: _on_data
+    deliver_inbound: _deliver_inbound
   }
 
 }

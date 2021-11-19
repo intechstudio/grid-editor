@@ -11,37 +11,51 @@
   import Fader from '../elements/Fader.svelte';
   import Button from '../elements/Button.svelte';
 
+  import { elementPositionStore } from '../../../../runtime/runtime.store';
+  import { ledColorStore } from '../../../../runtime/runtime.store';
+
   export let id = 'PBF4';
   export let selectedElement = {id: '', brc: {}, event: {}};
   export let rotation = 0;
   export let moduleWidth;
-  export let color;
-  export let eventParam = [];
 
   let dx, dy; // local device's dx dy coords for self check
 
-  let valueChange = [];
+  let elementposition_array = [0,0,0,0,0,0,0,0,0,0,0,0];
+  let ledcolor_array = [[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0]];
 
-  function handleEventParamChange(static_elementNumber, eventParam){
-    if(eventParam.length){
-      let v = 0;
-      eventParam[1].forEach((e)=>{
-        if(eventParam[0].SX == dx && eventParam[0].SY == dy){
-          if(static_elementNumber == e.ELEMENTNUMBER){
-            v =  e.EVENTPARAM;
-            return;
-          }
-        }
-      })
-      
-      if(v){
-        return v;
+  elementPositionStore.subscribe(value => {
+
+    try {
+      let eps = value[dx][dy]
+
+      for (const key in eps) {
+        elementposition_array[key] = eps[key];
       }
+
+    } catch (error) {
+      return;
     }
-  }
+	});
+
+  ledColorStore.subscribe(value => {
+    try {
+      let lcs = value[dx][dy]
+
+      for (const key in lcs) {
+        ledcolor_array[key] = lcs[key];
+
+      }
+
+    } catch (error) {
+      return;
+    }
+  });
+
 
   onMount(()=>{
 
+    console.log("ONMOUNT",id)
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
@@ -68,15 +82,11 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
-          <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
-          <Potentiometer 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
-            on:user-interaction={(e)=>{valueChange[elementNumber] = e.detail}}
-            {elementNumber} 
+          <Led {elementNumber}
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
+          <Potentiometer {elementNumber}
+            position={elementposition_array[elementNumber]} 
             size={$appSettings.size}/>
         </div>
       {/each}
@@ -87,15 +97,11 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} 
           class="knob-and-led">
-          <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
-          <Fader 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
-            on:user-interaction={(e)=>{ valueChange[elementNumber] = Math.round(((e.detail + 22) * 2.886) - 127) * -1 }}
-            {elementNumber} 
+          <Led {elementNumber}
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
+          <Fader {elementNumber}
+            position={elementposition_array[elementNumber]}
             size={$appSettings.size} 
             rotation={rotation*-90}/>
         </div>
@@ -107,11 +113,9 @@
         <div 
           class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led">
-          <Led 
-            eventInput={handleEventParamChange(elementNumber, eventParam)} 
-            userInput={valueChange[elementNumber]} 
-            size={$appSettings.size}
-            {color}/>
+          <Led {elementNumber}
+            color={ledcolor_array[elementNumber]} 
+            size={$appSettings.size}/>
           <Button {elementNumber} size={$appSettings.size}/>
         </div>
       {/each}

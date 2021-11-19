@@ -2,12 +2,231 @@ import * as grid_protocol from '../../external/grid-protocol/grid_protocol_night
 
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';
-import { sendDataToClient } from '../debug/tower.js';
+const lodash = require('lodash');
 
 
 // global id for serial message generation
 let global_id = 0;
 
+let [class_name_from_code, class_code_from_name] = class_code_decode_encode_init();
+let [instr_name_from_code, instr_code_from_name] = instr_code_decode_encode_init()
+
+
+let class_parameters = parse_class_parameters_from_protocol()
+let brc_parameters = parse_brc_parameters_from_protocol()
+
+function parse_brc_parameters_from_protocol(){
+  
+  let brcparams = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if(key.startsWith('GRID_BRC_') && key.endsWith('length')){
+        let splitted = key.split("_");
+        let parameter_name = splitted[splitted.length-2];
+
+        if (brcparams[parameter_name] === undefined){
+          brcparams[parameter_name] = {};
+        }
+
+        brcparams[parameter_name].name = parameter_name;
+        brcparams[parameter_name].length = parseInt(grid_protocol[key]);   
+      }
+      else if (key.startsWith('GRID_BRC_') && key.endsWith('offset')){
+        let splitted = key.split("_");
+        let parameter_name = splitted[splitted.length-2];
+
+        if (brcparams[parameter_name] === undefined){
+          brcparams[parameter_name] = {};
+        }
+
+        brcparams[parameter_name].offset = parseInt(grid_protocol[key]);   
+      }
+    }
+  }
+
+  return brcparams;
+
+}
+
+
+function class_code_decode_encode_init(){
+  
+  let name_from_code = {};
+  let code_from_name = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if(key.startsWith('GRID_CLASS_') && key.endsWith('code')){
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-2];
+        name_from_code[grid_protocol[key]] = class_name;  
+        code_from_name[class_name] = grid_protocol[key];   
+      }
+    }
+  }
+
+  return [name_from_code, code_from_name];
+}
+
+
+function instr_code_decode_encode_init(){
+  
+  let instrcodes = {};
+  let instrnames = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+      if(key.startsWith('GRID_INSTR_') && key.endsWith('code')){
+        let splitted = key.split("_");
+        let instr_name = splitted[splitted.length-2].toUpperCase();
+        instrcodes[grid_protocol[key].toLowerCase()] = instr_name;    
+        instrnames[instr_name] = grid_protocol[key].toLowerCase();    
+      }
+    }
+  }
+
+  return [instrcodes, instrnames];
+}
+
+
+function parse_class_parameters_from_protocol(){
+  
+  let classparams = {};
+
+  for (const key in grid_protocol) {
+    if(typeof grid_protocol[key] !== 'object'){
+
+      if (key === "GRID_CLASS_length" || key ===  "GRID_CLASS_offset"){
+
+        // they keys should have been depricated, are not useful, even in firmware
+
+      }
+      else if(key.startsWith('GRID_CLASS_') && key.endsWith('length')){
+
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-3];
+
+        let parameter_name = splitted[splitted.length-2];
+        let parameter_length = parseInt(grid_protocol[key]);
+
+        if (classparams[class_name] === undefined){
+          classparams[class_name] = {};
+        }
+        if (classparams[class_name][parameter_name] === undefined){
+          classparams[class_name][parameter_name] = {};
+        }
+        
+
+        classparams[class_name][parameter_name].name = parameter_name;
+        classparams[class_name][parameter_name].length = parameter_length;
+
+
+      }
+      else if (key.startsWith('GRID_CLASS_') && key.endsWith('offset')){
+
+
+        let splitted = key.split("_");
+        let class_name = splitted[splitted.length-3];
+
+        let parameter_name = splitted[splitted.length-2];
+        let parameter_offset = parseInt(grid_protocol[key]);
+        
+        if (classparams[class_name] === undefined){
+          classparams[class_name] = {};
+        }
+        if (classparams[class_name][parameter_name] === undefined){
+          classparams[class_name][parameter_name] = {};
+        }
+
+        classparams[class_name][parameter_name].name = parameter_name;
+        classparams[class_name][parameter_name].offset = parameter_offset;
+
+      }
+    }
+
+  }
+
+  return classparams;
+}
+
+
+function read_integer_from_asciicode_array(array, offset, length){
+
+  // check is parameters are valid, make sure we don't overrun the buffer
+  if (array.length < offset+length){
+    //console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
+    return undefined;
+  }
+
+  let ret_value = 0;
+  for (let i=0; i<length; i++){
+    
+    ret_value += parseInt('0x'+String.fromCharCode(array[offset+i]))*Math.pow(16, length-1-i);
+  }
+
+  // if elemnt in ascii array was not valid hex character (0...9 or a...f)
+  if (ret_value === NaN){
+    return undefined;
+  }
+
+  return ret_value;
+}
+
+function write_integer_to_asciicode_array(array, offset, length, value){
+
+  let hex_value_array = value.toString(16).padStart(length, '0').split('');
+
+  for (let i=offset; i<offset+length; i++){
+    array[i] = hex_value_array[i-offset].charCodeAt(0);
+  }
+
+  return array;
+
+}
+
+function write_string_to_asciicode_array(array, offset, length, value){
+
+  let string_in_array = value.split('');
+
+  for (let i=offset; i<offset+length; i++){
+    array[i] = (string_in_array[i-offset]).charCodeAt(0);
+  }
+
+  return array;
+
+}
+
+function read_string_from_asciicode_array(array, offset, length){
+
+  // check is parameters are valid, make sure we don't overrun the buffer
+  if (array.length>0 && array.length < offset+length){
+    console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
+    return undefined;
+  }
+
+  let ret_array = [];
+  let ret_value = "";
+
+
+  if (length>0){ // fixed length
+    // not implemented
+  }
+  else{ // variable length
+
+    for (let i=offset; i<array.length; i++){
+      ret_array[i-offset] = array[i];
+      ret_value += String.fromCharCode(array[i]);
+    }
+
+  }
+  
+  //console.log(String.fromCharCode(array),ret_value);
+
+  return ret_value;
+}
 
 // helper functions
 const utility_genId  = () => {
@@ -17,46 +236,10 @@ const utility_genId  = () => {
   return global_id += 1;
 }
 
-const moduleLookup = (hwcfg) => {
-  var HWCFG = grid.properties.HWCFG;
-  let type = '';
-  for (const key in HWCFG) {
-    if(HWCFG[key] == hwcfg){
-      return type = key;
-    }
-  }
-}
 
-const param2lower = (parameters) => {
-  let obj = {}
-  for (const key in parameters) {
-    const _key = key.toLowerCase();
-    obj[_key] = parameters[key]
-  }
-  return obj;
-}
 
-const convert_header_to_grid = (MODULE_INFO, DESTINATION) => {
 
-  // convert editor runtime module info to grid brc parameters
 
-  let DX = 0;
-  let DY = 0;
-  let SX = 0;
-  let SY = 0;
-  let ROT = 0;
-
-  if(MODULE_INFO !== ''){
-    if(DESTINATION == 'LOCAL'){
-      DX = +MODULE_INFO.dx + 127;
-      DY = +MODULE_INFO.dy + 127;
-      SX = 0; // +MODULE_INFO.sx + 127
-      SY = 0; // +MODULE_INFO.sy + 127;
-      ROT = MODULE_INFO.rot;
-    }
-  }
-  return {ROT, DX, DY, SX, SY};
-}
 
 // control element event assignment table.
 const CEEAT = { 
@@ -155,6 +338,20 @@ const elementEvents = {
 }
 
 const grid = {
+
+  moduleElements: moduleElements,
+  elementEvents: elementEvents,
+
+  module_type_from_hwcfg: function (hwcfg){
+    var HWCFG = grid.properties.HWCFG;
+    let type = '';
+    for (const key in HWCFG) {
+      if(HWCFG[key] == hwcfg){
+        return type = key;
+      }
+    }
+  },
+
   
   properties: (function (){
 
@@ -277,528 +474,260 @@ const grid = {
 
   }()),
 
-  translate: {
 
-    encode: function (HEADER, DESTINATION, CLASS_NAME, INSTR_CODE, PARAMETERS){
+  encode_packet: function(descriptor){
 
-      function encode_class_parameters(PARAMETERS, INFO){
-        let _parameters = [];
-        if(PARAMETERS !== ''){
-          PARAMETERS.forEach(CLASS => {     
-            for (const key in CLASS) {
-              let param = [];
-              if(key == 'ACTIONSTRING'){
-                for (let index = 0; index < CLASS[key].length; index++) {
-                  param[index] = CLASS[key].charCodeAt(index);
-                }
-              } else {
-                let p = CLASS[key].toString(16).padStart(INFO[key].length,'0');
-                for (let i = 0; i < INFO[key].length; i++) {
-                  param[i] = p.charCodeAt(i)            
-                }
-              } 
-              _parameters = [..._parameters, ...param];
-            }
-          })
+    if (descriptor === undefined){
+      return;
+    }
+
+    let descr = lodash.cloneDeep(descriptor);
+
+    const PROTOCOL = grid.properties; //old implementation
+
+    descr.brc_parameters.ID = utility_genId();
+    descr.brc_parameters.SX = 0;
+    descr.brc_parameters.SY = 0;
+    descr.brc_parameters.SESSION = PROTOCOL.SESSION;
+    descr.brc_parameters.MSGAGE = 0;
+
+    if (descr.brc_parameters.DX !== undefined){
+
+      descr.brc_parameters.DX = parseInt(descr.brc_parameters.DX)+127;
+    }else{
+      descr.brc_parameters.DX = 0; // assume global
+    }
+    
+    if (descr.brc_parameters.DY !== undefined){
+      descr.brc_parameters.DY = parseInt(descr.brc_parameters.DY)+127;
+    }else{
+      descr.brc_parameters.DY = 0; // assume global
+    }
+
+    // put brc parameters into hexarray
+    let BRC_ARRAY = [];
+
+    BRC_ARRAY.push(PROTOCOL.CONST.SOH);
+    BRC_ARRAY.push(PROTOCOL.CONST.BRC);
+
+    for(const key in brc_parameters){
+
+      let offset = brc_parameters[key].offset;
+      let length = brc_parameters[key].length;
+      let value = descr.brc_parameters[key];
+
+      if (descr.brc_parameters[key] === undefined){
+        write_integer_to_asciicode_array(BRC_ARRAY, offset, length, 0);
+      }
+      else{
+        write_integer_to_asciicode_array(BRC_ARRAY, offset, length, value); 
+      }
+    }
+
+    BRC_ARRAY.push(PROTOCOL.CONST.EOB);
+
+    // put class parameters into hexarray
+    let CLASS_ARRAY = [];
+
+    CLASS_ARRAY.push(PROTOCOL.CONST.STX);
+
+    write_integer_to_asciicode_array(CLASS_ARRAY, 1, 3, parseInt(class_code_from_name[descr.class_name]));
+    write_integer_to_asciicode_array(CLASS_ARRAY, 4, 1, parseInt(instr_code_from_name[descr.class_instr]));
+
+    for(const key in class_parameters[descr.class_name]){
+
+      let offset = class_parameters[descr.class_name][key].offset;
+      let length = class_parameters[descr.class_name][key].length;
+      let value = descr.class_parameters[key];
+
+      if (length>0){
+        if (value === undefined){
+          // skip
+          //console.log("MISSING CLASS PARAMETER!")
         }
-        return _parameters;
-      }
-
-      const BRC = convert_header_to_grid(HEADER, DESTINATION);
-  
-      const PROTOCOL = grid.properties;
-  
-      const prepend = [PROTOCOL.CONST.SOH, PROTOCOL.CONST.BRC];
-
-      const ID = utility_genId()
-      
-      let BRC_PARAMETERS = [
-        {ID: ID}, 
-        {SESSION: PROTOCOL.SESSION}, // ON PROTOCOL INIT, THIS IS GENERATED!
-        {SX: 0},
-        {SY: 0},
-        {DX: BRC.DX}, 
-        {DY: BRC.DY}, 
-        {ROT: BRC.ROT},
-        {MSGAGE: 0}
-      ];
-  
-      BRC_PARAMETERS = encode_class_parameters(BRC_PARAMETERS, PROTOCOL['BRC']);
-  
-      let command = '';  
-      
-      // should build a generic error handler!
-      let CLASS = '';
-      try {
-        CLASS = PROTOCOL.CLASSES[CLASS_NAME].code.slice(2,)
-      } catch (error) {
-        console.error(`Cannot find CLASS code: ${CLASS_NAME} in protocol!`);
-      }
-
-      command = [
-        PROTOCOL.CONST.STX,
-        ...[CLASS.charCodeAt(0), CLASS.charCodeAt(1), CLASS.charCodeAt(2)],
-        PROTOCOL.INSTR[INSTR_CODE].toString(16).charCodeAt(0),
-        ...encode_class_parameters(PARAMETERS, PROTOCOL.CLASSES[CLASS_NAME]),
-        PROTOCOL.CONST.ETX
-      ]
-       
-      const append = [
-        PROTOCOL.CONST.EOB,
-        ...command ,
-        PROTOCOL.CONST.EOT
-      ]
-  
-      let message = prepend.concat(BRC_PARAMETERS, append);
-  
-      // maybe 4
-      let length = (message.length+2).toString(16).padStart(4,'0');
-      length = [length.charCodeAt(0), length.charCodeAt(1), length.charCodeAt(2), length.charCodeAt(3)]
-      message = [...message.slice(0,2), ...length, ...message.slice(2,)];
-  
-      let checksum = [...message].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
-  
-      message = [...message, checksum.charCodeAt(0), checksum.charCodeAt(1)];
-  
-      return {serial: message, id: ID}; // return id for checking communication issues
-    },
-
-    encode_debugger: function (brc, command){
-
-      const PROTOCOL = grid.properties;
-  
-      const prepend = String.fromCharCode(PROTOCOL.CONST.SOH) + String.fromCharCode(PROTOCOL.CONST.BRC);
-  
-      const ID = utility_genId()
-      
-      let BRC_PARAMETERS = [
-        ID, 
-        PROTOCOL.SESSION, // ON PROTOCOL INIT, THIS IS GENERATED!
-        0,
-        0,
-        +brc.dx, 
-        +brc.dy, 
-        0,
-        0
-      ];
-
-      let params = '';
-      BRC_PARAMETERS.forEach(param => {
-        params += param.toString(16).padStart(2, '0');
-      })
-       
-      const append = 
-        String.fromCharCode(PROTOCOL.CONST.EOB) + 
-        command +
-        String.fromCharCode(PROTOCOL.CONST.EOT);
-  
-      let message = prepend.concat(params, append);
-  
-      message = message.slice(0,2) + (message.length+2).toString(16).padStart(4, '0') + message.slice(2,);
-  
-      let checksum = [...message].map(a => a.charCodeAt(0)).reduce((a, b) => a ^ b).toString(16); 
-  
-      message = message + checksum;
-  
-      return message;
-    },
-  
-    decode: function(data){
-
-      function check_checksum(data){
-
-        let first_section = data.slice(0,-2);
-
-        let last_two_char = data.slice(-2);
-
-        last_two_char[0] = String.fromCharCode(last_two_char[0]);
-        last_two_char[1] = String.fromCharCode(last_two_char[1]);
-
-        let str = last_two_char[0] + last_two_char[1];
-
-        let cross_math = 0;
-
-        first_section.forEach(e => { cross_math ^= e});
-
-        cross_math = cross_math % 256;
-
-        cross_math = parseInt(cross_math).toString(16).padStart(2,'0');
-
-        let bool = cross_math === str;
-
-        if(!bool){
-          console.error('Checksum mismatch!', cross_math, str)
+        else{
+          write_integer_to_asciicode_array(CLASS_ARRAY, offset, length, value); 
         }
-
-        return bool;
       }
-
-      function prepare_serial_data(data) {
-
-        let temp_array = Array.from(data);
-        let array = [];
-
-        for (let index = 0; index < temp_array.length; index+=2) {
-          array.push((temp_array[index] + '' + temp_array[index+1])) 
-        }
-
-        let _array = [];
-
-        array.forEach((element, i) => {
-          _array[i] = parseInt('0x'+element);
-        });   
-
-        // websocket debug info to client
-        sendDataToClient('input', _array);
-
-        return _array;
-      }
-
-      function build_decoder(mode, array, id, data, index){
-        const CLASSES = grid.properties.CLASSES;
-        const INSTR = grid.properties.INSTR;
+      else{
         
-        // CLASS BUILD
-        let class_name = '';
-        if(data.length > 3 && mode == 'config'){
-          class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
+        if (value !== undefined){
+          write_string_to_asciicode_array(CLASS_ARRAY, offset, value.length, value);
         }
-    
-        if(mode == 'main' && !(data[index] == 2 && data[index+1] == 48 && data[index+2] == 3)){      
-          class_name = parseInt("0x"+String.fromCharCode(data[index+1], data[index+2], data[index+3]));
-        }
-    
-        // INSTR DETECTION
-        let instr = parseInt('0x'+String.fromCharCode(data[index+4]));
-    
-        let rawFlag = true;
-        for (const key in INSTR){
-          if(INSTR[key] == instr){ 
-            instr = key;
-          }
-        }       
-
-        //console.log(class_name)
-    
-        for (const key in CLASSES){
-          if(parseInt(CLASSES[key].code, 16) == class_name){ 
-            array.push({id: id, class: key, offset: index, instr: instr});  
-            rawFlag = false;   
-          }
-        }    
-    
-        if(rawFlag){
-          array.push({id: id, class: "RAW", offset: index, instr: instr}); 
-        }
-          
-        return array;
       }
 
-      function decode_by_code(serialData, classCode){
+    }
 
-        // BRC AND CLASSES ARE IN DIFFERENT HIERARCHY
-        const CLASS = classCode == 'BRC' ? grid.properties.BRC : grid.properties.CLASSES[classCode];
-        
-        let object = {}
+    CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
+    CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
 
-        for (const param in CLASS) {
-          // offset and length are numbers, handle them accordingly!
-          let _value = serialData.slice(
-            +CLASS[param].offset, +CLASS[param].length + +CLASS[param].offset
-          );    
-          let value;
-          
-          if (_value[0] < 91 && _value[0] > 64 ){
-            value = String.fromCharCode(..._value);
-          }else{
-            value = parseInt("0x"+String.fromCharCode(..._value));    
-          }
-           
-          if(param == 'DX' || param == 'DY' || param == 'SX' || param == 'SY' ){
-            object[param] = value - 127;
-          } else {
-            object[param] = value;
-          }
-        }
+    let MESSAGE_ARRAY = [...BRC_ARRAY, ...CLASS_ARRAY];
 
-        return object;
-        
-      }
+    var len = MESSAGE_ARRAY.length;
+    write_integer_to_asciicode_array(MESSAGE_ARRAY, brc_parameters.LEN.offset, brc_parameters.LEN.length, len); 
 
-      function decode_by_class(serialData, decoded){
+    let checksum = [...MESSAGE_ARRAY].reduce((a, b) => a ^ b).toString(16).padStart(2,'0');
 
-        let DATA = {};
+    MESSAGE_ARRAY.push(checksum.charCodeAt(0));
+    MESSAGE_ARRAY.push(checksum.charCodeAt(1));
+
+    return {serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID}; // return id for checking communication issues
+  },
+  decode_packet_frame: function(incoming_hex_string){
+  
+    // conver incoming data from hex blob to array of ascii codes
+    let incoming_hex_array = Array.from(incoming_hex_string);
+    let asciicode_array = [];
+
+    for (let i = 0; i < incoming_hex_array.length; i+=2) {
+      asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
+    }
+
+    // use the last two characters to determine the received checksum
+    let received_checksum = parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-1]))*1 + parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-2]))*16;
     
-        DATA.BRC = decode_by_code(serialData, 'BRC');
+    // use the whole packet except the last two characters to determine the calculated checksum
+    let calculated_checksum = 0;
     
-        // grid protocol specific parsing and data manipulation
+    for(let i=0; i<asciicode_array.length - 2; i++){
+      calculated_checksum ^= asciicode_array[i];
+    }
+    calculated_checksum%=256;
 
-        decoded.forEach((obj)=>{
+    // drop the packet if there was a checksum mismatch, otherwise continue parsing it
+    if (received_checksum !== calculated_checksum){
+      console.log("Checksum mismatch, packet dropped! Received: "+received_checksum + " Calculated: " + calculated_checksum);
+      return undefined;
+    }
 
-          let array = serialData.slice(+obj.offset, +obj.length + +obj.offset);
-                 
+    // check if SOH character is found
+    if (asciicode_array[0] !== parseInt(grid_protocol.GRID_CONST_SOH)) {
+      console.log("Frame error: SOH not found!");
+      return undefined;        
+    } 
 
-          if(obj.class == "EVENT"){
+    // check if BRC character is found
+    if (asciicode_array[1] !== parseInt(grid_protocol.GRID_CONST_BRC)) {
+      console.log("Frame error: BRC not found!");
+      return undefined;        
+    } 
 
-            if(DATA.EVENT){
-              DATA.EVENT = [...DATA.EVENT, decode_by_code(array, obj.class)];
-            } else {
-              DATA.EVENT = [decode_by_code(array, obj.class)]
-            }
+    // check if EOB character is found
+    if (asciicode_array[asciicode_array.length-3] !== parseInt(grid_protocol.GRID_CONST_EOT)) {
+      console.log("Frame error: EOT not found!");
+      return undefined;        
+    } 
 
-            if(DATA.EVENT[DATA.EVENT.length-1].EVENTTYPE == 1){
-              DATA.EVENTPARAM = DATA.EVENT;
-            }
-          }
-                
-          if(obj.class == "HEARTBEAT"){
-            if(!(DATA.BRC.SX == -127 && DATA.BRC.SY == -127)){
-              DATA.HEARTBEAT = decode_by_code(array, obj.class);
-            }
-          }
+    // decode all of the BRC parameters
+    let brc = {};
 
-          if(obj.class == "PAGEACTIVE"){
-            DATA.PAGEACTIVE = decode_by_code(array, obj.class);
-          }
+    for (const key in brc_parameters) {
 
-          if(obj.class == "PAGECOUNT"){
-            DATA.PAGECOUNT = decode_by_code(array, obj.class);
-          }
 
-          if(obj.class == "DEBUGTEXT"){
-
-            const arr = array.slice(5,);
-
-            DATA.DEBUGTEXT = String.fromCharCode(...arr);
-
-            if(DATA.DEBUGTEXT.includes('page change is disabled')){
-              DATA.LOG = {type: 'alert', classname: 'pagechange', message: 'Store your config before switching pages!'}
-            }
-
-/*          if(DATA.DEBUGTEXT.includes('store complete')){
-              DATA.LOG = {type: 'success', message: 'Store complete!'}
-            }
-
-            if(DATA.DEBUGTEXT.includes('clear complete')){
-              DATA.LOG = {type: 'success', message: 'Clear complete!'}
-            }
- */
-          }
-
-          if(obj.class == "MIDI"){
-            if (DATA.MIDI === undefined){
-              DATA.MIDI = [];
-            }
-            
-            let temp = decode_by_code(array, obj.class)
-            temp.INSTR = obj.instr;
-            DATA.MIDI.push(temp);
-          }
-
-          if(obj.class == "PAGESTORE"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGESTORE_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "PAGECLEAR"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGECLEAR_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "PAGEDISCARD"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.PAGEDISCARD_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "NVMERASE"){
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.NVMERASE_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-          }
-
-          if(obj.class == "CONFIG"){
-
-            // if config report is not coming in after a fetch -> check
-            // if check return with different id, refetch and restart the sync
-
-            if(obj.instr == "REPORT"){
-              try {
-                DATA.CONFIG_REPORT = decode_by_code(array, obj.class);
-                DATA.LUA = '<?lua' + String.fromCharCode.apply(String, serialData).split('<?lua')[1].split('?>')[0] + '?>'
-              } catch (error) {
-                console.error("Probably an 'expr' in CONFIG REPORT!");
-              }
-            }
-
-            if(obj.instr == "ACKNOWLEDGE"){
-              DATA.CONFIG_ACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-
-            if(obj.instr == "NACKNOWLEDGE"){
-              DATA.CONFIG_NACKNOWLEDGE = decode_by_code(array, obj.class);
-            }
-
-          }    
-        });
-
-    
-        return DATA;
-      }
-   
-      let _decoded = [];
-      let id = 0; 
-
-      let serialData = prepare_serial_data(data);
-
-      if(check_checksum(serialData)){
-
-        serialData.forEach((element,i) => {  
+      brc[brc_parameters[key].name] = read_integer_from_asciicode_array(asciicode_array, brc_parameters[key].offset, brc_parameters[key].length);
       
-          // GRID_CONST_STX -> LENGTH:3 CLASS_code 0xYYY
-          if(element == 2){ 
-            id = ""+ i +"";
-            _decoded = build_decoder('main', _decoded, id, serialData, i);    
-          }
-    
-          // GRID_CONST_ETX
-          if(element == 3){
-            let obj = _decoded.find(o => o.id === id);
-            if(obj !== undefined){
-              obj.length = i - obj.offset;
-            }
-          }
-        });
-
-        return decode_by_class(serialData, _decoded)
-
-      } else {
-        
-        return false;
-
-      }
       
     }
+
+    brc.SX -= 127;
+    brc.SY -= 127;
+    brc.DX -= 127;
+    brc.DY -= 127;
+
+    // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
+    if (asciicode_array.length-2 !== brc.LEN){
+      console.log(`Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length}, brc.LEN: ${brc.LEN}, brc_len should be: ${asciicode_array.length-2}`);
+      return undefined;         
+    }
+
+    // check if EOB character is found
+    if (asciicode_array[22] !== parseInt(grid_protocol.GRID_CONST_EOB)) {
+      console.log("Frame error: EOB not found!");
+      return undefined;        
+    } 
+
+    let class_asciicode_array = asciicode_array.slice(23,-3);
+    
+    let class_blocks = [];
+
+    for(let i=0, start_index = 0; i<class_asciicode_array.length; i++){
+      if (class_asciicode_array[i] === parseInt(grid_protocol.GRID_CONST_ETX)){
+        class_blocks.push(class_asciicode_array.slice(start_index, i+1));
+        start_index = i+1;
+      }
+    }
+
+
+    let return_array = [];
+
+    for (let i=0; i<class_blocks.length; i++){
+      // check first and last charaters, make sure they are STX and ETX
+      if (class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) && class_blocks[i][class_blocks[i].length-1] === parseInt(grid_protocol.GRID_CONST_ETX) ){
+        let current = {};
+        current.raw = class_blocks[i].slice(1,-1); 
+        current.brc_parameters = brc;
+
+        return_array.push(current);
+      }
+      else{
+        console.log("Frame error: STX ETX mismatch!");
+        return undefined;
+      }
+    }
+
+    return return_array;
+
+  },
+  decode_packet_classes: function(raw_class_array){
+
+
+    raw_class_array.forEach((raw_class, i) => { 
+
+      let class_code_string = ("0x"+String.fromCharCode(raw_class.raw[0]) + String.fromCharCode(raw_class.raw[1]) + String.fromCharCode(raw_class.raw[2]));
+      let class_instr_string =("0x"+String.fromCharCode(raw_class.raw[3]));
+      
+
+      if (class_name_from_code[class_code_string] !== undefined){
+
+        raw_class.class_name = class_name_from_code[class_code_string];
+        raw_class.class_instr = instr_name_from_code[class_instr_string];
+
+        raw_class.class_parameters = {};
+
+        raw_class.timestamp = Date.now();
+
+        for (const key in class_parameters[raw_class.class_name]) {
+
+          let current_parameter = class_parameters[raw_class.class_name][key];
+
+          let parameter_offset = class_parameters[raw_class.class_name][key].offset-1;
+          let parameter_length = class_parameters[raw_class.class_name][key].length;
+          
+          let parameter_value;
+
+          if (parameter_length>0){
+            parameter_value = read_integer_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+          }
+          else{ // variable length string
+            parameter_value = read_string_from_asciicode_array(raw_class.raw, parameter_offset, parameter_length);
+          }
+
+
+          raw_class.class_parameters[current_parameter.name] = {}
+          
+          raw_class.class_parameters[current_parameter.name] = parameter_value;
+
+        }
+
+
+      }
+      
+    });
+
   },
 
-  device: {
-  
-    createPage: function(moduleType, pageStatus = 'INIT', pageNumber = 0){
 
-        moduleType = moduleType.substr(0,4);
-      
-        let control_elements = [];
 
-        let status = pageStatus;
-
-        try {
-
-          const elementsArrayLength = moduleElements[moduleType].length;
-
-           // control elements
-          for (let i = 0; i < elementsArrayLength; i++) {
-            if(moduleElements[moduleType][i]){
-              let events = [];
-              for (let j=0; j < elementEvents[moduleElements[moduleType][i]].length; j++) {
-                events.push({        
-                  event: elementEvents[moduleElements[moduleType][i]][j], 
-                  config: "",
-                  cfgStatus: "NULL"
-                })
-              }
-              control_elements[i] = {events: events, controlElementNumber: i, controlElementType: moduleElements[moduleType][i], controlElementName: ''};
-            }
-          }
-
-          control_elements = control_elements.filter(x => x); // filter null or invalid items!
-
-          return {status, pageNumber: pageNumber, control_elements};
-          
-        } catch (error) {
-          
-          console.error('Error while creating page for ', moduleType, error)
-
-        }
-        
-    },
-
-    make: function(header, heartbeat, virtual){
-
-      let moduleType = moduleLookup(heartbeat.HWCFG);
-
-      let controller = {
-        // implement the module id rep / req
-        id: "",
-        dx: "",
-        dy: "",
-        fwVersion: {
-          major: "",
-          minor: "",
-          patch: ""
-        },
-        alive: Date.now(),
-        virtual: "",
-        map: {
-          top: {dx: "", dy: "",},
-          right: {dx: "", dy: ""},
-          bot: {dx: "", dy: ""},
-          left: {dx: "", dy: ""},
-        },
-        rot: "",
-        isConnectedByUsb: "",
-        isLanding: "",
-        pages: [], // consider naming to "local"
-        global: {}
-      }
-
-      // generic check, code below if works only if all parameters are provided
-      if(header !== undefined && moduleType !== undefined && heartbeat !== undefined){
-        
-        header = param2lower(header);
-
-        moduleType = moduleType.substr(0,4);
-
-        controller = {
-          // implement the module id rep / req
-          id: moduleType + '_' + 'dx:' + header.sx + ';dy:' + header.sy,
-          dx: header.sx,
-          dy: header.sy,
-          rot: header.rot,
-          fwVersion: {
-            major: heartbeat.VMAJOR,
-            minor: heartbeat.VMINOR,
-            patch: heartbeat.VPATCH,
-          },
-          alive: Date.now(),
-          virtual: virtual,
-          map: {
-            top: {dx: header.sx, dy: header.sy+1},
-            right: {dx: header.sx+1, dy: header.sy},
-            bot: {dx: header.sx, dy: header.sy-1},
-            left: {dx: header.sx-1, dy: header.sy},
-          },
-          isConnectedByUsb: (header.sx == 0 && header.sy == 0) ? true : false,
-          isLanding: false,
-          pages: [this.createPage(moduleType)],
-          global: {  
-            bankColors: [[255,0,0],[255,0,0],[255,0,0],[255,0,0]],
-            bankEnabled: [true,true,true,true],
-            cfgStatus: virtual ? 'not_expected' : 'ok'
-          }
-        }
-        
-      }
-
-      
-      return controller;
-  
-    }
-
-  }
 }
-
-console.log(grid.properties)
 
 export default grid;

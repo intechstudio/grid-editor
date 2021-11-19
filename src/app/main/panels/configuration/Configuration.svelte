@@ -1,10 +1,9 @@
 <script>
-
+  import { writable, get, derived } from 'svelte/store';
+  
   import { fly } from 'svelte/transition';
-  import { appSettings } from '../../_stores/app-helper.store.js';
+  import { actionPrefStore, appSettings } from '../../_stores/app-helper.store.js';
 
-
-  import Debug from '../../../debug/Debug.svelte';
   import ConfigParameters from './ConfigParameters.svelte';
   import ConfigList from './ConfigList.svelte';
 
@@ -12,7 +11,7 @@
   
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
-  import { runtime, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
+  import { runtime, appMultiSelect, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from '../../../runtime/config-manager.store.js';
 
@@ -36,6 +35,17 @@
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
 
+  function configuration_panel_reset(){
+
+    configs = [];
+    stringname = "";
+    events = {options: ['', '', ''], selected: ""};
+    elements = {options: [], selected: ""};
+    pages =  {options: ['', '', '', ''], selected: ""};
+
+  }
+
+
   function changeSelectedConfig(arg){
     $appSettings.configType = arg;
 
@@ -48,13 +58,117 @@
     }
   }
 
-  runtime.active_config(active => {
-    _utils.gridLuaToEditorLua(active.config).then(res => { 
+
+
+  const active_config = derived([user_input], ([ui]) => {
+
+
+    // whenever the UI changes, reset multiselect
+    appMultiSelect.reset();
+
+    // close advanced views
+    actionPrefStore.reset();
+
+    const rt = get(runtime);
+
+
+    // fetch or load config now inline
+
+    let config = [];
+    let selectedEvent = "";
+
+    const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+    if (device === undefined){
+
+      if (rt.length === 0){
+        console.log("ACTIVE_CONFIG: disconnect")
+        configuration_panel_reset()
+        return;
+      }
+
+      return;
+    }
+
+    let pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+    let elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+
+    if (elementIndex === -1){
+      //console.log("MAXOS PARA")
+      elementIndex = 0;
+    }
+
+    const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
+
+    if (eventIndex === -1){
+      selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[0];
+      ui.event.eventtype = 0;
+    }
+    else{
+      selectedEvent = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex];
+    }
+
+    if (selectedEvent === undefined){
+      //console.log("SORRY", pageIndex, elementIndex, eventIndex);
+      return;
+    }
+
+    if(selectedEvent.config.length){
+      config = selectedEvent.config.trim();
+    }
+
+    const cfgstatus = selectedEvent.cfgStatus;
+
+    if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){
+      // its loaded
+    }
+    else{
+      // fetch      
+      const callback = function(){
+        // trigger change detection
+        user_input.update(n => n);
+      }
+
+      runtime.fetchOrLoadConfig(ui, callback);
+
+    }
+
+    return {
+      config: config,
+      stringname: "",
+      events: {
+        selected: selectedEvent.event,
+        options: device.pages[pageIndex].control_elements[elementIndex].events.map(e => e.event)
+      }, 
+      elements: {
+        selected: ui.event.elementnumber,
+        options: device.pages[pageIndex].control_elements.map((n) => n.controlElementNumber)
+      },
+      pages: {
+        selected: ui.event.pagenumber,
+        options: device.pages.map((n) => n.pageNumber)
+      }
+    }
+  });
+
+
+
+  // if active_config changes then...
+  active_config.subscribe(active => {
+
+    if (active === undefined){
+      return;
+    }
+ 
+    let res = _utils.gridLuaToEditorLua(active.config)
+
+    if (res !== undefined){ 
       configs = res;
       dropStore.update(res);
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
-    }).catch(err => {console.error(err); configs = [];})
+    }
+
     
     // let use of default dummy parameters
     if(active.elements.selected !== ""){
@@ -68,6 +182,8 @@
     if(elements.selected !== 255){
       $appSettings.configType = 'uiEvents';
     }
+   
+
   });
 
   

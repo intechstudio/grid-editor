@@ -23,59 +23,51 @@ function createWriteBuffer (){
 
   let active_elem = undefined;
 
-  const clean_up = function (){
+  function module_destroy_handler(dx, dy){
 
-    this.one = function(device){
+    // remove all of the elements that match the destroyed module's dx dy
+    _write_buffer = _write_buffer.filter(g => (g.descr.brc_parameters.DX!= dx || g.descr.brc_parameters.DY != dy));
 
-      let arr = [];
-      
-      _write_buffer = _write_buffer.filter((e) => {
-        let bool = true;
-        if(e.encodeParameters){
-          if(device.dx == e.encodeParameters[0].dx && device.dy == e.encodeParameters[0].dy){
-            bool = false
-          }
-        }
-        return bool;
-      });
+    // clear the active element if it matches the destroyed module's dx dy
+    if (active_elem !== undefined){
 
-      if(active_elem !== undefined && active_elem.encodeParameters[1] == 'LOCAL'){
-        if(active_elem.filter.brc.SX == active_elem.encodeParameters[0].dx && active_elem.filter.brc.SY == active_elem.encodeParameters[0].dy){
-          active_elem = undefined;
-          write_buffer_busy = false;
-        }
+      if (active_elem.descr.brc_parameters.DX == dx && active_elem.descr.brc_parameters.DY == dy){
+        active_elem = undefined;
+        writeBufferTryNext();
       }
 
-      console.info('Clean up >one< writeBuffer!', active_elem, _write_buffer);
-
-      writeBufferTryNext();
-
     }
 
-    this.all = function(){
-      _write_buffer = [];
-      active_elem = undefined;
-      write_buffer_busy = false;
-      clearInterval(_fetch_timeout);
 
-      console.info('Clean up >all< writeBuffer!', active_elem, _write_buffer);
-
-    }
-    
 
   }
 
-  function checkIfAckNack(className){
+  function clear(){
 
-    // className can be CONFIG_ACKNOWLEDGE, CONFIG_NACKNOWLEDGE, both are valid!
-    return className.includes('ACKNOWLEDGE');
+    _write_buffer = [];
+    active_elem = undefined;
+    write_buffer_busy = false;
+    clearInterval(_fetch_timeout);
     
   }
 
-  function sendDataToGrid(encodeParameters) {
-    const {serial, id} = grid.translate.encode(...encodeParameters);
-    serialComm.write(serial);
-    return {id: id};
+  function sendDataToGrid(descr) {
+
+
+    let retval = grid.encode_packet(descr);
+
+
+    serialComm.write(retval.serial);
+
+    // debugger for message ASCII frames
+    let str = "";
+    for (let i=0; i<retval.serial.length; i++){
+      str += String.fromCharCode(retval.serial[i]);
+    }
+    
+
+    return {id: retval.id};
+ 
   }
 
   function writeBufferTryNext() {
@@ -86,15 +78,6 @@ function createWriteBuffer (){
 
     active_elem = _write_buffer[0];
 
-    if(active_elem.hasOwnProperty('commandCb')){
-      active_elem.commandCb();
-      active_elem = undefined;
-      _write_buffer.shift();
-      write_buffer_busy = false;
-      //writeBufferTryNext();
-      return;
-    }
-
     if(get(appSettings).debugMode)
       if(Math.random() > 0.3){
         serialComm.write(active_elem.serial);
@@ -102,10 +85,22 @@ function createWriteBuffer (){
         console.error('GLITCH')
     } else {
       // create and send serial, save the ID for validation
-      const { id } = sendDataToGrid(active_elem.encodeParameters);
-      if(active_elem.responseRequired && checkIfAckNack(active_elem.filter.className)){
-        active_elem.filter[active_elem.filter.className]['LASTHEADER'] = id;
+      const { id } = sendDataToGrid(active_elem.descr);
+      if(active_elem.responseRequired){
+
+        if (active_elem.filter !== undefined){
+          if (active_elem.filter.class_parameters !== undefined){
+            if (active_elem.filter.class_parameters['LASTHEADER'] !== undefined){
+            
+              active_elem.filter.class_parameters['LASTHEADER'] = id;
+              //console.log("LASTHEADER SET TO", id)
+
+            }
+          }
+        }
+
       }
+
     }
 
     _write_buffer.shift();
@@ -145,54 +140,50 @@ function createWriteBuffer (){
 
   }
 
-  function validateIncoming(data) {
+  function validateIncoming(descr) {
 
-    // compare data and filter key - value pairs
+
+    // check if there is an active_elem availabe
     if(!active_elem) return
 
     // check if active_elem has filter
     if(!active_elem.hasOwnProperty('filter')) return;
 
-
-    let isHeartbeat = false;
-    for (const _class in data) {
-      if(_class == 'HEARTBEAT'){
-        isHeartbeat = true;
-      }
+    if(descr.class_name === 'HEARTBEAT'){
+      return;
     }
-
-    if(isHeartbeat) return;    
-
     let incomingValid = true;
 
     // validate BRC, must start with this as every input contains BRC!
-    for (const parameter in active_elem.filter.brc) {
-      if(data.BRC[parameter] != active_elem.filter.brc[parameter]){
+    for (const parameter in active_elem.filter.brc_parameters) {
+      if(descr.brc_parameters[parameter] != active_elem.filter.brc_parameters[parameter]){
         incomingValid = false;
       }
     }
-    
-    if(data.hasOwnProperty(active_elem.filter.className)){
 
-      for (const parameter in active_elem.filter[active_elem.filter.className]) {
-        if(data[active_elem.filter.className][parameter] != active_elem.filter[active_elem.filter.className][parameter]){
+    if(descr.class_name === active_elem.filter.class_name){
+      
+      for (const parameter in active_elem.filter.class_parameters) {
+        if(descr.class_parameters[parameter] != active_elem.filter.class_parameters[parameter]){
           incomingValid = false;
         }
       }
 
     } else {
-
       incomingValid = false;
-
     }
+
  
     if(incomingValid){
-      active_elem.successCb(data);
+      if (active_elem.successCb!== undefined){
+        active_elem.successCb(descr);
+      }
       active_elem = undefined;
       write_buffer_busy = false;
       clearInterval(_fetch_timeout);
       writeBufferTryNext();
     } else {
+
       // not matched, maybe later
     }
   }
@@ -207,13 +198,15 @@ function createWriteBuffer (){
     writeBufferTryNext();
   }
 
+  
 
   return {
     messages: messages,
     add_first: add_first,
     add_last: add_last,
     validate_incoming: validateIncoming,
-    clean_up: new clean_up()
+    clear: clear,
+    module_destroy_handler: module_destroy_handler,
   }
 
 }

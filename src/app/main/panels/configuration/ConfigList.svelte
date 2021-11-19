@@ -17,12 +17,16 @@
 
   import { changeOrder } from '../../_actions/move.action.js';
 
+  import { writable, get } from 'svelte/store';
+
   import { actionIsDragged, appSettings, configNodeBinding } from '../../_stores/app-helper.store.js';
-  import { runtime, localDefinitions, debug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
+  import { runtime, user_input, localDefinitions, luadebug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
   import ConfigBlock from './components/ConfigBlock.svelte';
   import AddAction from './config-picker/AddAction.svelte';
+
+  
 
   export let configs = [];
 
@@ -43,8 +47,18 @@
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
-    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
-  
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
+    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    
   }
 
   function handleDrop(e){
@@ -70,24 +84,47 @@
 
     }
 
-    runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
+    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
   }
 
   function handleConfigChange({configName}){
+
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
+ 
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page =  li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionstring = _utils.configMerge({config: configs});
+
     if(configName == 'End' || configName == 'Else'){
-      runtime.update.one().status('EDITOR_BACKGROUND').config({lua: _utils.configMerge({config: configs})});
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+
     } else {
-      runtime.update.one().status('EDITOR_EXECUTE').config({lua: _utils.configMerge({config: configs})}).sendToGrid();
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
     }
 
     localDefinitions.update(configs);
 
   }
 
-  $: debug_store.update_config(_utils.configMerge({config: configs}));
+  $: luadebug_store.update_config(_utils.configMerge({config: configs}));
 
 </script>
 
@@ -119,23 +156,25 @@
           <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
         {/if}
 
-        {#each configs as config, index (config.id)}
-          <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
-            <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
-                <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
-                <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
-            </DynamicWrapper>
+        {#if configs !== undefined}
+          {#each configs as config, index (config.id)}
+            <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
+              <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
+                  <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
+                  <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
+              </DynamicWrapper>
 
-            <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
-            
-            {#if !drag_start}
-              <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
-            {:else}
-              <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
-            {/if}
-                  
-          </anim-block>
-        {/each}
+              <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
+              
+              {#if !drag_start}
+                <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
+              {:else}
+                <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
+              {/if}
+                    
+            </anim-block>
+          {/each}
+        {/if}
       </config-list>
 
       <container class="flex flex-col w-full">

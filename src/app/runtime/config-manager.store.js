@@ -1,14 +1,14 @@
-import { writable, get, derived } from 'svelte/store';
-import { writeBuffer } from './engine.store';
+import { writable, get } from 'svelte/store';
 
-import {runtime, appMultiSelect, appActionClipboard, debug_store, user_input, controlElementClipboard} from './runtime.store';
+import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from './runtime.store';
 
 import _utils from './_utils.js';
 
 
 function get_configs () {
   let configs = '';
-  const unsubscribe = debug_store.subscribe(data => {
+  const unsubscribe = luadebug_store.subscribe(data => {
+
     let arr = [];
     configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i+=2) {
@@ -24,11 +24,18 @@ export function configManagement() {
 
   const drag_and_drop = function(){
 
-      this.add = async ({configs, index, newConfig}) => {
-        return await _utils.gridLuaToEditorLua(newConfig).then(res => {
-          configs.splice(index, 0, ...res);  
-          return configs;    
-        })
+      this.add = ({configs, index, newConfig}) => {
+        
+        let res = _utils.gridLuaToEditorLua(newConfig)
+
+        if (res === undefined){
+          console.log("NO CONFIG PASSED")
+          return undefined;
+        }
+
+        configs.splice(index, 0, ...res);  
+        return configs;    
+        
       };
 
       this.remove = ({configs, array}) => {
@@ -98,7 +105,21 @@ export function configManagement() {
     this.paste = function(){
       if(get(appActionClipboard).length){
         const configs = [...get_configs(), ...get(appActionClipboard)];
-        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + configs.join('') + ' ?>'}).sendToGrid().trigger();
+
+        const li = get(user_input);
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dy;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
+        const actionstring = '<?lua ' + configs.join('') + ' ?>'
+  
+        runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);            
+        
+        // trigger change detection
+        user_input.update(n => n);
       }
     }
 
@@ -125,39 +146,30 @@ export function configManagement() {
           }
         }
 
-        runtime.update.one().status('EDITOR_EXECUTE').config({lua: '<?lua ' + filtered.join('') + ' ?>'}).sendToGrid().trigger();
+        const li = get(user_input);
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dy;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = li.event.eventtype;
+        const actionstring = '<?lua ' + filtered.join('') + ' ?>'
+    
+        runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+        // trigger change detection
+        user_input.update(n => n);
+
       }
 
     };
   }
   
-  const element_operations = function(){
-    this.get_events_actions = function(){
-
-      const { events, controlElementType } = runtime.fetch.ControlElement();
-      
-      writeBuffer.messages.subscribe((msg) => {
-        if(msg == 'ready for overwrite'){
-          controlElementClipboard.set({controlElementType, events});
-          writeBuffer.messages.set('nullish'); 
-        }
-      })
-      
-    }
-
-    this.overwrite_events_actions = function(){
-
-      let clipboard = get(controlElementClipboard);
-
-      runtime.update.control_element(clipboard);
-      
-    }
-  }
 
   return {
     drag_and_drop: new drag_and_drop(),
-    on_click: new on_click(),
-    element_operations: new element_operations()
+    on_click: new on_click()
   }
 };
 

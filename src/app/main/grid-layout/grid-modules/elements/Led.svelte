@@ -1,25 +1,25 @@
 <script>
 
   export let size = 1;
-  export let eventInput = 0;
-  export let userInput;
   export let color = [255, 255, 0];
-  
+  let rgb = [255, 255, 0];
+  let alpha = 1;
+  $: if (color !== undefined){
+
+    let maximum = Math.max(color[0], color[1], color[2]);
+
+
+    alpha = (color[0] + color[1] + color[2]) / (2*256);
+    if (alpha>1){alpha = 1;}
+
+    rgb[0] = color[0]/maximum*255;  
+    rgb[1] = color[1]/maximum*255;
+    rgb[2] = color[2]/maximum*255;
+
+  }
+
   let ledSize = 6;
 
-  let alpha;
-
-  let rgb;
-
-  $: {color ? rgb = color : rgb = [255,255,0];}
-  
-  $: if(userInput !== undefined){
-    alpha = userInput / 127;
-  }
-
-  $: if(eventInput !== undefined){
-    alpha = eventInput / 127;
-  }
 
 </script>
 

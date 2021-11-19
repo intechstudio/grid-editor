@@ -1,4 +1,4 @@
-import { writable, get, derived, readable } from 'svelte/store';
+import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
 

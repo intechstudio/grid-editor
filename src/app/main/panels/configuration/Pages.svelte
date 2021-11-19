@@ -4,7 +4,7 @@
 
   import { get } from 'svelte/store';
 
-  import { logger, runtime, user_input } from '../../../runtime/runtime.store.js';
+  import { logger, unsaved_changes, runtime } from '../../../runtime/runtime.store.js';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
@@ -19,9 +19,10 @@
 
   let selectedPage = undefined;
   function handleSelectPage(page) {
-    if(get(runtime.unsaved) == 0){
+    if(get(unsaved_changes) == 0){
       selectedPage = page;
-      user_input.update_pagenumber.pagenumber(selectedPage).sendToGrid();
+      runtime.change_page(selectedPage);
+
     }
     else{
       logger.set({type: 'alert', classname: 'pagechange', mode: 0, message: 'Store your config before switching pages!'});

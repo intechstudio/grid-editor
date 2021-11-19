@@ -39,9 +39,9 @@
 
   let PROFILES = [];
 
-  user_input.active_input(val => {
-    if(val.selected.id){
-      newProfile.type = val.selected.id.substr(0,4);
+  user_input.subscribe(val => {
+    if(val.id){
+      newProfile.type = val.id.substr(0,4);
     }
   })
 
@@ -140,98 +140,53 @@
     }); 
   }
 
-  function saveProfileDialog(profileName, profile) {
-    // Resolves to a Promise<Object> 
-    dialog.showSaveDialog({ 
-          title: 'Select the File Path to save', 
-          defaultPath: path.join(__dirname, `../assets/${profileName}.json`), 
-          // defaultPath: path.join(__dirname, '../assets/'), 
-          buttonLabel: 'Save', 
-          // Restricting the user to only JSON Files. 
-          filters: [ 
-              { 
-                  name: 'JSON Files', 
-                  extensions: ['json'] 
-              }, ], 
-          properties: [] 
-        }).then(file => { 
-            // Stating whether dialog operation was cancelled or not. 
-            if (!file.canceled) { 
-                const path = file.filePath.toString(); 
-                  
-                // Creating and Writing to the sample.txt file 
-                fs.writeFile(path, JSON.stringify(profile, null, 4), function (err) { 
-                    if (err) throw err; 
-                    console.log('Saved!');                
-                    loadFilesFromDirectory(PROFILE_PATH);
-                }); 
-            } 
-
-            
-
-        }).catch(err => { 
-            console.log(err) 
-        }); 
-  }
-
   function prepareSave() { 
 
-    let _user_input = undefined;
-    const _active_user_input = user_input.active_input(value => _user_input = value.selected);
-    _active_user_input();
-    
-    try {
+    let callback = function(){           
+      logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
 
-      runtime.fetch.FullPage();
-      
-      writeBuffer.messages.subscribe((value) => {
-
-        if(value == 'ready to save'){
-
-          const configs = get(runtime);
-
-          let profile = {
-            ...newProfile, 
-            isGridProfile: true,  // differentiator from different JSON files!
-            version: {
-              major: $appSettings.version.major, 
-              minor: $appSettings.version.minor, 
-              patch: $appSettings.version.patch
-            }
-          }
-
-
-          configs.forEach(d => {
-
-            if(d.dx == _user_input.brc.dx && d.dy == _user_input.brc.dy){
-
-              const page = d.pages.find(x => x.pageNumber == _user_input.event.pagenumber);
-
-              profile.configs = page.control_elements.map(cfg => {
-                  return {
-                    controlElementNumber: cfg.controlElementNumber,
-                    events: cfg.events.map(ev => {
-                      return {
-                        event: ev.event.value,
-                        config: ev.config || "<?lua ?>"
-                      }
-                    })
-                  }
-              });
-
-            }
-
-          })    
-
-          saveProfile(PROFILE_PATH, newProfile.name, profile);
-          
+      const li = get(user_input);
+  
+      const configs = get(runtime);
+  
+      let profile = {
+        ...newProfile, 
+        isGridProfile: true,  // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major, 
+          minor: $appSettings.version.minor, 
+          patch: $appSettings.version.patch
         }
-      });
+      }
+  
+      configs.forEach(d => {
+  
+        if(d.dx == li.brc.dx && d.dy == li.brc.dy){
+  
+          const page = d.pages.find(x => x.pageNumber == li.event.pagenumber);
+  
+          profile.configs = page.control_elements.map(cfg => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map(ev => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config
+                  }
+                })
+              }
+          });
+  
+        }
+  
+      })    
+  
+      saveProfile(PROFILE_PATH, newProfile.name, profile);
 
+      engine.set('ENABLED');
+    };
 
-    } catch (error) {
-      console.error('Error while saving a profile!', error); 
-    }
+    runtime.fetch_page_configuration_from_grid(callback);
 
   }
 
@@ -247,22 +202,10 @@
 
       if(currentModule.id.substr(0,4) == profile.type){
 
-        writeBuffer.add_first({
-          commandCb: function(){
-            engine.set('DISABLED');
-            logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
-          }
-        });
 
-        runtime.update.page(profile.configs);
+        runtime.whole_page_overwrite(profile.configs);
 
-        writeBuffer.add_last({
-          commandCb: function(){
-            engine.set('ENABLED');
-            logger.set({type: 'success', mode: 0, classname: 'profileload', message: `Profile load complete!`});
-            runtime.update.one().trigger();
-          }
-        });
+
 
       } else {
 

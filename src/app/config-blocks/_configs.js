@@ -2,46 +2,69 @@ const fs = require('fs');
 const path = require('path');
 const fsPromises = fs.promises;
 
-async function scanConfigBlockDirectory(){
 
+export let config_components;
+
+async function init_config_block_library(){
+
+  console.log("Init config block library!");
+
+  let files;
+
+  // scanCofigBlockDirectory()
   try {
-    let files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
-    files = (await files).filter(f => f.slice(-6) == 'svelte');
-    return files;
-  } catch (err) {
+    let _files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
+    _files = (await _files).filter(f => f.slice(-6) == 'svelte');
+    files = _files;
+  } 
+  catch (err) {
     console.error('Error occured while reading directory!', err);
   }
-}
 
-async function importComponents(files){
+  console.log("List of files: ", files);
+  
+  // importComponents()
+
+  let components = undefined;
+
   try {  
-    const components = Promise.all(
+    let _components = Promise.all(
       files.map(async file => {
         const name = file.slice(0,-7)
         return await import(`../config-blocks/${name}.svelte`)
       })
     );
-    return components;
-  } catch (err) {
+    _components.then(value => {
+      console.log("Components: ", value);
+      config_components = value
+    });
+  } 
+  catch (err) {
     console.error('Failed to import!', err)
   }
+
 }
 
-export async function getComponentInformation({short}){
+init_config_block_library();
 
-  const files = await scanConfigBlockDirectory();
-  const component = await importComponents(files)
-    .then(components => components.map(c => c = {component: c.default, information: c.information}))
-    .then(components => components.find(c => c.information.short == short))
 
-  return component;
-}
+export function getComponentInformation({short}){
 
-export async function getAllComponents(){
+  if (config_components === undefined){
+    console.log("config_components status is undefined")
+    return undefined;
+  }
+
+  return config_components.map(c => c = {component: c.default, information: c.information}).find(c => c.information.short == short)
   
-  const files = await scanConfigBlockDirectory();
-  const components = await importComponents(files)
-    .then(components => components.map(c => c = {component: c.default, information: c.information}))
+}
 
-  return components;
+export function getAllComponents(){
+  
+  if (config_components === undefined){
+    console.log("config_components status is undefined")
+    return undefined;
+  }
+
+  return config_components.map(c => c = {component: c.default, information: c.information});
 }

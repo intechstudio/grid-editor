@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../_stores/app-helper.store.js";
-
-  import { runtime, user_input, _runtime_modules } from '../../../runtime/runtime.store.js';
+  import { get } from 'svelte/store';
+  import { runtime, engine, logger, user_input, controlElementClipboard} from '../../../runtime/runtime.store.js';
   import { configManagement } from "../../../runtime/config-manager.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
@@ -36,23 +36,48 @@
   }
 
   function copyAllEventConfigsFromSelf(){
-    configManagement().element_operations.get_events_actions()
+
+    let callback = function(){
+      
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(device => device.dx == li.brc.dx && device.dy == li.brc.dy);
+      const pageIndex = device.pages.findIndex(x => x.pageNumber == li.event.pagenumber);
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == li.event.elementnumber);
+
+      const events = device.pages[pageIndex].control_elements[elementIndex].events;
+      const controlElementType = device.pages[pageIndex].control_elements[elementIndex].controlElementType;
+
+
+      logger.set({type: 'success', mode: 0, classname: 'elementcopy', message: `Events are copied!`});
+      engine.set('ENABLED');
+      controlElementClipboard.set({controlElementType, events});
+    };
+
+    engine.set('DISABLED');
+    logger.set({type: 'progress', mode: 0, classname: 'elementcopy', message: `Copy events from element...`})
+
+    runtime.fetch_element_configuration_from_grid(callback);
   }
 
   function overwriteAllEventConfigs(){
-   configManagement().element_operations.overwrite_events_actions(); 
+
+   let clipboard = get(controlElementClipboard);
+    runtime.whole_element_overwrite(clipboard);
+
   }
 
   function updateStringName(e){
     const name = e.target.value;
-    runtime.hidden_update.writeStringName(name);
+    console.error("SORRY");
   }
 
   function showControlElementNameOverlay(){
     $appSettings.overlays.controlElementName = !$appSettings.overlays.controlElementName;
     // fetch once, although on page changes this may be retriggered;
     //if(!loaded){
-      runtime.fetch.HiddenActions();
+      console.error("SORRY");
       loaded = true;
     //}
   }
