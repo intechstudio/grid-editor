@@ -28,7 +28,7 @@ export function configManagement() {
         
         let res = _utils.gridLuaToEditorLua(newConfig)
 
-        if (res = undefined){
+        if (res === undefined){
           console.log("NO CONFIG PASSED")
           return undefined;
         }
