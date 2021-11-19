@@ -35,6 +35,17 @@
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
 
+  function configuration_panel_reset(){
+
+    configs = [];
+    stringname = "";
+    events = {options: ['', '', ''], selected: ""};
+    elements = {options: [], selected: ""};
+    pages =  {options: ['', '', '', ''], selected: ""};
+
+  }
+
+
   function changeSelectedConfig(arg){
     $appSettings.configType = arg;
 
@@ -72,30 +83,21 @@
 
       if (rt.length === 0){
         console.log("ACTIVE_CONFIG: disconnect")
-        return{
-          config: "",
-          stringname: "",
-          events: {
-            selected: "",
-            options: ""
-          }, 
-          elements: {
-            selected:"",
-            options: ""
-          },
-          pages: {
-            selected: "",
-            options: ""
-          }
-        }
-
+        configuration_panel_reset()
+        return;
       }
 
       return;
     }
 
-    const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+    let pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
+    let elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+
+    if (elementIndex === -1){
+      //console.log("MAXOS PARA")
+      elementIndex = 0;
+    }
+
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
     if (eventIndex === -1){
@@ -107,7 +109,7 @@
     }
 
     if (selectedEvent === undefined){
-      console.log("SORRY", pageIndex, elementIndex, eventIndex);
+      //console.log("SORRY", pageIndex, elementIndex, eventIndex);
       return;
     }
 
@@ -154,11 +156,10 @@
   // if active_config changes then...
   active_config.subscribe(active => {
 
-    if (active.config.length === 0 || active === undefined){
+    if (active === undefined){
       return;
     }
-
-
+ 
     let res = _utils.gridLuaToEditorLua(active.config)
 
     if (res !== undefined){ 

@@ -119,7 +119,7 @@
 
 
     } catch (error) {
-      
+      console.log("PARA",error);
     }
   })
 

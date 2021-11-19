@@ -813,9 +813,8 @@ function start_grid_heartbeat(){
 
     rt.forEach((device, i) => {
 
-      if ((Date.now() - device.alive) > heartbeat.grid * 2){
+      if ((Date.now() - device.alive) > get(heartbeat).grid * 2){
         // TIMEOUT! let's remove the device
-        
         runtime.destroy_module(device.dx, device.dy);
 
       }
