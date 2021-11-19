@@ -22,11 +22,14 @@ const _utils = {
    * @config = --[[@ @short ]] + @script
    */
 
-  gridLuaToEditorLua: async function(fullConfig){
-    if(fullConfig.length == 0) return Promise.reject("No config passed!");
+  gridLuaToEditorLua: function(fullConfig){
+    if(fullConfig.length == 0){
+      return undefined;
+    } 
+
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
-    return await this.extendProperties(configs);
+    return this.extendProperties(configs);
   },
 
   // make smaller chunks from <?lua ... ?>, huge raw lua
@@ -78,7 +81,7 @@ const _utils = {
 
   // add extra properties used in the app, like the id for listing and component
   extendProperties: function(configList){
-    return Promise.all(configList.map(async (element,index) => {
+    return configList.map((element,index) => {
 
       // if short is not in lua... revert to codeblock!
       if(!grid.properties.LUA.find(l => l.short == element.short)){
@@ -90,9 +93,9 @@ const _utils = {
         script: element.script, 
         id: uuidv4(), 
         human: getHumanFunctionName({short: element.short}),
-        ...await getComponentInformation({short: element.short})
+        ... getComponentInformation({short: element.short})
       }
-    }));
+    });
   },
 
   scriptToSegments: function({script, short}){

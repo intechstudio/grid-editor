@@ -48,33 +48,6 @@ async function init_config_block_library(){
 init_config_block_library();
 
 
-
-async function scanConfigBlockDirectory(){
-
-  try {
-    let files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
-    files = (await files).filter(f => f.slice(-6) == 'svelte');
-    return files;
-  } catch (err) {
-    console.error('Error occured while reading directory!', err);
-  }
-
-}
-
-async function importComponents(files){
-  try {  
-    const components = Promise.all(
-      files.map(async file => {
-        const name = file.slice(0,-7)
-        return await import(`../config-blocks/${name}.svelte`)
-      })
-    );
-    return components;
-  } catch (err) {
-    console.error('Failed to import!', err)
-  }
-}
-
 export function getComponentInformation({short}){
 
   if (config_components === undefined){

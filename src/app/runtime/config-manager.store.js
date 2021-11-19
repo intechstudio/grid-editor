@@ -24,11 +24,18 @@ export function configManagement() {
 
   const drag_and_drop = function(){
 
-      this.add = async ({configs, index, newConfig}) => {
-        return await _utils.gridLuaToEditorLua(newConfig).then(res => {
-          configs.splice(index, 0, ...res);  
-          return configs;    
-        })
+      this.add = ({configs, index, newConfig}) => {
+        
+        let res = _utils.gridLuaToEditorLua(newConfig)
+
+        if (res = undefined){
+          console.log("NO CONFIG PASSED")
+          return undefined;
+        }
+
+        configs.splice(index, 0, ...res);  
+        return configs;    
+        
       };
 
       this.remove = ({configs, array}) => {

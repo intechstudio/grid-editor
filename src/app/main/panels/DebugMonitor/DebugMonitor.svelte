@@ -11,15 +11,16 @@
   let configs = [];
 
   luadebug_store.subscribe(active => {
-    _utils.gridLuaToEditorLua(active.config).then(res => { 
-      configs = res;
-      let code = '';
-      configs.forEach((e,i) => {
-        code += `--[[@${e.short}]] ` + e.script + "\n";  
-      }); 
-      runtimeScript = '<?lua ' + '\n' + code + '?>';
-      runtimeParser = luaParser(code, {comments: true});
-    })
+    let res = _utils.gridLuaToEditorLua(active.config)
+     
+    configs = res;
+    let code = '';
+    configs.forEach((e,i) => {
+      code += `--[[@${e.short}]] ` + e.script + "\n";  
+    }); 
+    runtimeScript = '<?lua ' + '\n' + code + '?>';
+    runtimeParser = luaParser(code, {comments: true});
+    
   });
 
 

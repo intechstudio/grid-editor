@@ -154,32 +154,34 @@
   // if active_config changes then...
   active_config.subscribe(active => {
 
-    try{
-      _utils.gridLuaToEditorLua(active.config).then(res => { 
-        configs = res;
-        dropStore.update(res);
-        conditionalConfigPlacement.set(configs);
-        localDefinitions.update(configs);
-      }).catch(err => {
-        console.error(err); 
-        configs = [];
-      })
-      
-      // let use of default dummy parameters
-      if(active.elements.selected !== ""){
-        events = active.events;
-        elements = active.elements;
-        pages = active.pages;
-        stringname = active.stringname;
-      }
-
-      // set UI to uiEvents, if its not system events
-      if(elements.selected !== 255){
-        $appSettings.configType = 'uiEvents';
-      }
-    }catch(e){
-      //SORRY
+    if (active.config.length === 0 || active === undefined){
+      return;
     }
+
+
+    let res = _utils.gridLuaToEditorLua(active.config)
+
+    if (res !== undefined){ 
+      configs = res;
+      dropStore.update(res);
+      conditionalConfigPlacement.set(configs);
+      localDefinitions.update(configs);
+    }
+
+    
+    // let use of default dummy parameters
+    if(active.elements.selected !== ""){
+      events = active.events;
+      elements = active.elements;
+      pages = active.pages;
+      stringname = active.stringname;
+    }
+
+    // set UI to uiEvents, if its not system events
+    if(elements.selected !== 255){
+      $appSettings.configType = 'uiEvents';
+    }
+   
 
   });
 
