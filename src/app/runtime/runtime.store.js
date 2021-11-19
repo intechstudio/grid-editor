@@ -228,6 +228,7 @@ function create_user_input () {
 
   }
 
+
   function reset(){
 
     _event.set({...defaultValues})
@@ -247,6 +248,8 @@ function create_user_input () {
 }
 
 export const user_input = create_user_input();
+
+
 
 export const unsaved_changes = writable(0);
 
@@ -426,6 +429,8 @@ function create_runtime () {
 
     engine.set('DISABLED');
     logger.set({type: 'progress', mode: 0, classname: 'profileload', message: `Profile load started...`})
+  
+
 
     array.forEach((elem, elementIndex) => {
 
@@ -439,7 +444,7 @@ function create_runtime () {
         li.event.eventtype = ev.event;
 
         const dx = li.brc.dx;
-        const dy = li.brc.dx;
+        const dy = li.brc.dy;
         const page =  li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
