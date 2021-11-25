@@ -196,7 +196,6 @@ function create_user_input () {
     else{
 
       let current_timestamp = Date.now();
-      //console.log(current_timestamp - selection_changed_timestamp);
       selection_changed_timestamp = current_timestamp;
     }
   
@@ -369,8 +368,6 @@ function create_runtime () {
   }
 
   function whole_element_overwrite({controlElementType, events}){
-
-    console.log(controlElementType, events)
 
     const li = get(user_input);
 
@@ -572,8 +569,6 @@ function create_runtime () {
 
       })
     })
-
-    console.log("Fetch operations required: ", fetchArray.length);
     
     // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
     writeBuffer.clear();
@@ -585,12 +580,10 @@ function create_runtime () {
 
       if (ind === fetchArray.length-1){ // last element
 
-        console.log("FETCH W/ CALLBACK")
         fetchOrLoadConfig(li, callback);
       }
       else{
 
-        console.log("FETCH")
         fetchOrLoadConfig(li);
       }
 
@@ -723,7 +716,6 @@ function create_runtime () {
 
   function reset(){
 
-    console.log("runtime.reset")
     _runtime.set([]);
 
     user_input.reset();
