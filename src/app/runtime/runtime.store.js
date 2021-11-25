@@ -378,34 +378,32 @@ function create_runtime () {
         if (index === events.length-1){ // last element
           callback = function(){               
             logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
+            user_input.update(n => n);
           };
         }
         else{
           callback = undefined;
         }
 
-
         let li = get(user_input);
 
-        li.event.pagenumber = li.event.pagenumber;
-        li.event.elementnumber = li.event.elementnumber;
-        li.event.eventtype = ev.event.value;
-
         const dx = li.brc.dx;
-        const dy = li.brc.dx;
+        const dy = li.brc.dy;
         const page =  li.event.pagenumber;
         const element = li.event.elementnumber;
-        const event = li.event.eventtype;
+        const event = ev.event.value;
 
         _runtime.update(_runtime => {
           let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
           if (dest) {
-            dest.config = ev.config.trim();
+            dest.config = ev.config;
             dest.cfgStatus = 'EDITOR_BACKGROUND';          
-        
+            
+            console.log("CONFIG:", dest.config);
+
             instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
             // trigger change detection
-            user_input.update(n => n);
+            
           }    
           return _runtime;
         })

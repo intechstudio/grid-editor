@@ -12,6 +12,10 @@ function createMessageStream(){
 
   const _deliver_inbound = function(class_array) {
 
+    if (class_array === undefined){
+      return;
+    }
+
     class_array.forEach((class_descr, i) => {
 
       if (class_descr.class_name === "HEARTBEAT"){

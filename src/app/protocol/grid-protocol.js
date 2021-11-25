@@ -680,6 +680,10 @@ const grid = {
   },
   decode_packet_classes: function(raw_class_array){
 
+    if (raw_class_array === undefined){
+      return undefined;
+    }
+
 
     raw_class_array.forEach((raw_class, i) => { 
 
