@@ -31,7 +31,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = ['Axis', 'Position'];
+  const parameterNames = ['Position', 'Axis'];
 
   let scriptSegments = [];
 
@@ -57,13 +57,13 @@
 
   const _suggestions = [
     [
-      {value: '1', info: 'X'},
-      {value: '2', info: 'Y'},
-      {value: '3', info: 'Mouse Wheel'},
-    ],
-    [
     
     ],
+    [
+      {value: '1', info: 'X Axis'},
+      {value: '2', info: 'Y Axis'},
+      {value: '3', info: 'Mouse Wheel'},
+    ]
 
   ];
 

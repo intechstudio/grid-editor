@@ -29,7 +29,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = ['Button', 'State'];
+  const parameterNames = ['State', 'Button'];
 
   let scriptSegments = [];
 
@@ -48,7 +48,9 @@
   })
 
   function sendData(e){
-    scriptSegments[index] = e;
+
+    scriptSegments[e.detail.index] = e.detail.value; 
+
     const script = _utils.segmentsToScript({human: config.human, short: config.short, array: scriptSegments}); 
     dispatch('output', {short: config.short, script: script})
   }
@@ -70,14 +72,15 @@
   let suggestions = [];
 
   const _suggestions = [
-    [
-      {value: '1', info: 'Left Click'}, 
-      {value: '2', info: 'Right Click'},
-      {value: '4', info: 'Middle Click'},
-    ],
+
     [
       {value: '1', info: 'Press'},
       {value: '0', info: 'Release'}, 
+    ],
+    [
+      {value: '1', info: 'Left Button'}, 
+      {value: '2', info: 'Right Button'},
+      {value: '4', info: 'Middle Button'},
     ]
   ];
 
@@ -110,8 +113,8 @@
       {suggestions} 
       {focusedInput} 
       on:select={(e)=>{
-        scriptSegments[e.detail.index] = e.detail.value; 
-        sendData(e.detail.value,e.detail.index)
+        
+        sendData(e);
       }}
     />
 
