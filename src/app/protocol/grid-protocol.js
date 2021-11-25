@@ -1,4 +1,4 @@
-import * as grid_protocol from '../../external/grid-protocol/grid_protocol_nightly.json';
+import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json';
 
 import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
 import { editor_lua_properties } from './editor-properties.js';

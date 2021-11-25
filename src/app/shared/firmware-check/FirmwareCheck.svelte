@@ -43,7 +43,7 @@ import UrlButton from '../../main/user-interface/UrlButton.svelte';
 {#if fwMismatch}
   <div  class="w-full bg-red-500 text-white justify-center flex items-center text-center p-4">
     <span class="mx-2">Oops, firmware mismatch is detected!</span>
-    <span class="mx-2">Once you updated the firmware hit <span class="font-mono text-sm mx-2 bg-white text-gray-700 px-2 py-1 rounded">{@html text}</span> to reload app!</span>
+    <span class="mx-2">Once you updated the firmware to v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch} hit <span class="font-mono text-sm mx-2 bg-white text-gray-700 px-2 py-1 rounded">{@html text}</span> to reload app!</span>
     <UrlButton url={"https://intech.studio/downloads#firmware"}>
       <div slot="button-label">Update</div>
     </UrlButton>

@@ -1,8 +1,8 @@
 <script>
-  
+  import { get } from 'svelte/store';
   import { debug_monitor_store } from "./DebugMonitor.store";
   import _utils, { luaParser } from "../../../runtime/_utils";
-
+  import { appSettings } from '../../../main/_stores/app-helper.store';
   import {luadebug_store} from "../../../runtime/runtime.store"
 
   let runtimeScript = '';
@@ -33,6 +33,9 @@
 
 <config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
 
+  <div class="text-white">
+    Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}  
+  </div>
   <textarea spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
