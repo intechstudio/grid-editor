@@ -6,14 +6,13 @@
 
   import { fade } from 'svelte/transition'
   import { writeBuffer } from '../../../runtime/engine.store.js';
-  
+
+
   const electron = require('electron'); 
   const fs = require('fs'); 
 
   const { ipcRenderer } = require('electron');
 
-  // Importing dialog module using remote 
-  const dialog = electron.remote.dialog; 
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
@@ -45,20 +44,6 @@
     }
   })
 
-  function openDirectory(){
-    dialog.showOpenDialog({
-        properties: ['openDirectory']
-    }).then(dir => {
-      if(!dir.canceled){
-        PROFILE_PATH = dir.filePaths.toString();
-        ipcRenderer.send('setStoreValue-message', { profiles_folder: PROFILE_PATH } );
-        loadFilesFromDirectory(PROFILE_PATH);
-      }
-    }).catch(err => {
-        console.log(err)
-    });
-  }
-
   async function checkIfWritableDirectory(path){
 
     const stats = fs.promises.stat(path).then(res => {return {isFile: res.isFile(), isDirectory: res.isDirectory()}});
@@ -66,6 +51,17 @@
     return await Promise.all([stats])
 
   }
+
+  appSettings.subscribe(store => {
+
+    let new_folder = store.profileFolder;
+
+    if (new_folder !== PROFILE_PATH){
+      PROFILE_PATH = new_folder;
+      loadFilesFromDirectory(PROFILE_PATH)
+    }
+
+  })
 
 
   async function loadFilesFromDirectory(path){
@@ -123,7 +119,7 @@
       }
 
     } catch (error) {
-
+      
       console.error(error);
 
     }
@@ -240,13 +236,7 @@
 
 <profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
-    <div class="w-full flex flex-col justify-between pb-2 px-2">
-      <button on:click={openDirectory} class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
-        <div>Select Local Folder</div> 
-        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
-      </button>
-      <div class="text-gray-400 py-1 mt-1 text-sm break-all">Selected folder: {PROFILE_PATH}</div>
-    </div>
+
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 
@@ -268,15 +258,6 @@
           type="text" 
           placeholder="What does this profile do?"
           class="w-full bg-secondary text-white py-1 pl-2 rounded-none"/>
-      </div>
-
-      <div class="flex flex-col w-full py-2">
-        <div class="text-sm text-gray-500 pb-1">Module Type</div>
-        <input 
-          bind:value={newProfile.type}
-          placeholder="Select control element..."
-          type="text" 
-          class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
       </div>
 
       <button 
@@ -301,9 +282,15 @@
         <div id="zero-level" class="w-full h-full flex overflow-y-scroll text-white mt-4">
           <ul class="w-full">
             {#each PROFILES as profile, i}
-              <li 
+              <li
                 on:click={()=>{selected = profile; selectedIndex = i}} 
-              class="{(i % 2) && (selectedIndex !== i) ? 'bg-opacity-50' : ''} {selectedIndex == i ? 'bg-pick' : 'bg-secondary hover:bg-pick-desaturate-10'} profile p-1 my-1 cursor-pointer ">{profile.name}</li>
+                class="{(i % 2) && (selectedIndex !== i) ? 'bg-opacity-50' : ''} {selectedIndex == i ? 'bg-pick' : 'bg-secondary hover:bg-pick-desaturate-10'} profile p-1 my-1 cursor-pointer ">
+                <div class="w-full">{profile.name}</div> 
+                <div class="flex text-xs opacity-80 font-semibold">
+                  <div class="ml-2 text-center rounded-full w-12 {newProfile.type==profile.type?"bg-green-500":"bg-gray-600"} ">{profile.type}</div>
+                  <div class="ml-2 text-center rounded-full w-12 bg-gray-900"> v{profile.version.major}.{profile.version.minor}.{profile.version.patch}</div>
+                </div>
+              </li>
             {/each}
           </ul>
         </div>
@@ -331,14 +318,6 @@
             type="text" 
             placeholder="What this profile does"
             class="w-full bg-secondary py-1 pl-2 rounded-none"/>
-        </div>
-
-        <div class="flex flex-col w-full py-2">
-          <input 
-            bind:value={selected.type}
-            placeholder="Select a profile first"
-            type="text" 
-            class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
         </div>
 
       </div>

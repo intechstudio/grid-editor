@@ -1,7 +1,7 @@
 
 <script>
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
-
+  import { writable, get } from 'svelte/store';
   import { appSettings, preferenceStore } from '../../_stores/app-helper.store.js';
 
   import NVMDefrag from '../../NVMDefrag.svelte';
@@ -9,8 +9,40 @@
   import { serialComm } from '../../../serialport/serialport.store.js';
   import { onMount } from 'svelte';
 
+  import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+    
+  const os = require ('os');
+  const username = os.userInfo ().username;
+  console.log("Username:", username);
+
+  const electron = require('electron'); 
+  const {shell} = require('electron') // deconstructing assignment
+  const fs = require('fs'); 
+
   const { ipcRenderer } = require('electron');
 
+
+  // Importing dialog module using remote 
+  const dialog = electron.remote.dialog; 
+
+  let PROFILE_PATH = '';
+  let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
+  
+ 
+
+  onMount(async ()=> {
+    PROFILE_PATH = get(appSettings).profileFolder;
+    
+  })
+
+  appSettings.subscribe(s => {
+
+    if (PROFILE_PATH !== s.profileFolder){
+      PROFILE_PATH = s.profileFolder;
+
+    }
+
+  })
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -20,6 +52,39 @@
   })
 
   let preferredPort;
+
+
+  function openDirectory(){
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(dir => {
+      if(!dir.canceled){
+
+        appSettings.update(s => {
+          s.profileFolder = dir.filePaths.toString();
+          return s;
+        })
+
+      }
+    }).catch(err => {
+        console.log(err)
+    });
+  }
+
+  function viewDirectory(){
+
+   shell.openPath(PROFILE_PATH) 
+  }  
+
+  function resetDirectory(){
+
+    appSettings.update(s => {
+
+      s.profileFolder = DEFAULT_PATH;
+      return s;
+    })
+  }
+
 
   function changePreferredPort(path){
 
@@ -50,8 +115,8 @@
 
   <preferences class="bg-primary flex flex-col h-full w-full text-white p-4">
 
-    <div class="p-4 bg-secondary rounded-lg flex flex-col">
-
+    <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+      <div class="pb-2">General Settings</div>
       <div class="flex my-1 relative text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
         <div class="mx-1">Track Physical Grid interaction</div>
@@ -74,7 +139,31 @@
       
     </div>
 
-    <div class="bg-secondary bg-opacity-25 p-4 mt-4 rounded-lg my-2">
+
+    <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+      <div class="pb-2">Profile Library</div>  
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Selected folder:</b> {PROFILE_PATH}</div>
+     
+      <div class="flex">
+        <button on:click={viewDirectory} class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+          <div>View in explorer</div> 
+          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+        </button>
+        <button on:click={openDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+          <div>Select Folder</div> 
+          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+        </button>
+      </div>
+      
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default folder:</b> {DEFAULT_PATH}</div>
+      <button on:click={resetDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+        <div>Reset to Default</div> 
+        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+      </button>
+
+    </div>
+
+    <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
 
       <div class="pb-2">Developer Settings</div>
 

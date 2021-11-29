@@ -1,6 +1,9 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
+const fs = require('fs'); 
+
+const { ipcRenderer } = require('electron');
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -19,6 +22,9 @@ function checkOS() {
 
   return 'browser';
 }
+
+
+
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
@@ -40,8 +46,77 @@ export const appSettings = writable({
   stringNameOverlay: false,
   preferences: false,
   modal: '',
-  os: checkOS()
+  os: checkOS(),
+  profileFolder: ''
+
 });
+
+let profile_folder = '';
+
+appSettings.subscribe(store => {
+
+  let new_folder = store.profileFolder;
+
+  if (new_folder !== profile_folder){
+    profile_folder = new_folder;
+    ipcRenderer.send('setStoreValue-message', { profiles_folder: new_folder } );
+    console.log("Profile folder set to: ", new_folder)
+
+
+    if (!fs.existsSync(profile_folder)){
+        
+      fs.mkdir(profile_folder, (err) => {
+        if (err) {
+            return console.error(err);
+        }
+        console.log('Directory created successfully!');
+      });
+    }
+
+
+  }
+
+})
+
+ipcRenderer.invoke('getStoreValue', 'profiles_folder').then((value) => {
+
+  if (value === undefined || value === ""){
+
+    value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
+    console.log("Folder undefined");
+
+  }
+
+  console.log("Folder is: ", value)
+
+  if (!fs.existsSync(value)){
+        
+    fs.mkdir(value, (err) => {
+      if (err) {
+          return console.error(err);
+      }
+      console.log('Directory created successfully!');
+      appSettings.update(s =>{
+        profile_folder = value;
+        s.profileFolder = value;
+        return s;
+      });
+      
+    });
+  }
+  else{
+    console.log('Directory already exists!');
+    appSettings.update(s =>{
+      profile_folder = value;
+      s.profileFolder = value;
+      return s;
+  
+    });
+  }
+
+
+});
+
 
 export const preferenceStore = writable();
 

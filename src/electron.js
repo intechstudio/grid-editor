@@ -138,6 +138,11 @@ ipcMain.on('profiles-directory', () => {
   log.info('default profiles folder is ', store.get('profiles_folder'))
 })
 
+// profile save and user config saves
+ipcMain.on('getProfileDefaultDirectory', (event, arg) => {
+
+  event.returnValue = app.getPath('documents') + '/grid-userdata'
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -155,3 +160,8 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+
+
+
+

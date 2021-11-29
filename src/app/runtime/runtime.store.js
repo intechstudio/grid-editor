@@ -180,7 +180,11 @@ function create_user_input () {
       }
 
       _event.update((store) => {
+        const rt = get(runtime);
 
+        store.id = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY).id
+    
+        console.log(store.id )
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y

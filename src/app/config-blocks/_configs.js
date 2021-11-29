@@ -7,7 +7,7 @@ export let config_components;
 
 async function init_config_block_library(){
 
-  console.log("Init config block library!");
+  //console.log("Init config block library!");
 
   let files;
 
@@ -21,7 +21,7 @@ async function init_config_block_library(){
     console.error('Error occured while reading directory!', err);
   }
 
-  console.log("List of files: ", files);
+  //console.log("List of files: ", files);
   
   // importComponents()
 
@@ -35,7 +35,7 @@ async function init_config_block_library(){
       })
     );
     _components.then(value => {
-      console.log("Components: ", value);
+      //console.log("Components: ", value);
       config_components = value
     });
   } 
@@ -51,7 +51,7 @@ init_config_block_library();
 export function getComponentInformation({short}){
 
   if (config_components === undefined){
-    console.log("config_components status is undefined")
+    //console.log("config_components status is undefined")
     return undefined;
   }
 
@@ -62,7 +62,7 @@ export function getComponentInformation({short}){
 export function getAllComponents(){
   
   if (config_components === undefined){
-    console.log("config_components status is undefined")
+    //console.log("config_components status is undefined")
     return undefined;
   }
 
