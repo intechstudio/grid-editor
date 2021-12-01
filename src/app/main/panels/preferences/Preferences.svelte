@@ -27,7 +27,11 @@
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
   
+  function firmwareDownload(){
 
+    ipcRenderer.send('download', 'foo');
+
+  }
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -220,6 +224,12 @@
         on:click={()=>{engine.set('ENABLED')}} 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
         Enable Engine and User Inputs
+      </button>
+
+      <button 
+        on:click={firmwareDownload} 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
+        firmwareDownload
       </button>
 
     </div>

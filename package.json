@@ -47,6 +47,7 @@
     "body-parser": "^1.19.0",
     "detect-active-title": "^1.0.1",
     "dotenv": "^9.0.1",
+    "electron-dl": "^3.3.0",
     "electron-log": "^4.2.4",
     "electron-store": "^6.0.1",
     "electron-updater": "^4.3.5",

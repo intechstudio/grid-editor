@@ -8,6 +8,8 @@ global.trackEvent = trackEvent;
 const path = require('path');
 const log = require('electron-log');
 
+const {download} = require('electron-dl');
+
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
@@ -107,6 +109,19 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
   event.reply('setStoreValue-reply', 'saved');
 })
 
+
+ipcMain.on('download', (event, url) => {
+  console.log('attempt to download..', url);
+  const win = BrowserWindow.getFocusedWindow();
+  url = "http://example.com/index.html"
+  const savelocation = store.get("profileFolder");
+  let result = download(win, url, {
+                                  directory: savelocation
+                              });
+  console.log(result);
+
+})
+
 ipcMain.handle('getStoreValue', (event, key) => {
   const result = store.get(key);
   return result;
@@ -128,6 +143,8 @@ ipcMain.handle('get_uuid', (event,arg) => {
 ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
+
+
 
 autoUpdater.on('error', (error) => {
   log.info('Error..', error);
