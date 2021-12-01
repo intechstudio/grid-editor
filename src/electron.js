@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
@@ -19,6 +19,7 @@ let mainWindow;
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false;
 
+let tray;
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -29,6 +30,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 function createWindow() {
+
+
     const mode = process.env.NODE_ENV;
 
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
@@ -46,7 +49,8 @@ function createWindow() {
           contextIsolation: false,
           enableRemoteModule: true,
           backgroundThrottling: false
-        }
+        },
+        icon:'./icon.png'
     });
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
@@ -66,6 +70,22 @@ function createWindow() {
     if (process.env.NODE_ENV === 'development') {
       mainWindow.webContents.openDevTools();
     }
+
+  
+    tray = new Tray(path.join(__dirname, 'icon.png'));
+    tray.setContextMenu(Menu.buildFromTemplate([
+      {
+        label: 'Show App', click: function () {
+          mainWindow.show();
+        }
+      },
+      {
+        label: 'Quit', click: function () {
+          isQuiting = true;
+          app.quit();
+        }
+      }
+    ]));  
     
 }
 
