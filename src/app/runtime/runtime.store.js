@@ -6,6 +6,59 @@ import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 
+const activeWindow = require('active-win');
+
+let lastPageActivator = "";  
+
+setInterval(() => {
+
+  if (get(appSettings).intervalPause) return;
+
+  (async () => {
+
+    let result = (await activeWindow());
+
+    if (get(appSettings).intervalPause) return;
+
+    appSettings.update(s => {s.activeWindowResult = result; return s;});
+    
+
+    if (get(appSettings).persistant.pageActivatorEnabled !== true){
+
+      return;
+    }
+
+    if (lastPageActivator === result.owner.name){
+      return;
+    }
+
+    let criteria = [
+                    get(appSettings).persistant.pageActivatorCriteria_0,
+                    get(appSettings).persistant.pageActivatorCriteria_1,
+                    get(appSettings).persistant.pageActivatorCriteria_2,
+                    get(appSettings).persistant.pageActivatorCriteria_3];
+
+    for (let i=0; i<4; i++){
+
+      if (criteria[i] === result.owner.name){
+        lastPageActivator = result.owner.name;
+
+        runtime.change_page(i);
+        return;
+      }
+
+    }
+
+    // default to page 0 if not found
+    lastPageActivator = result.owner.name;
+    runtime.change_page(0);
+
+  })();
+  
+}, 250);
+
+
+
 
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;

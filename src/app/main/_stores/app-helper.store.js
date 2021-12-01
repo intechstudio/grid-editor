@@ -1,3 +1,4 @@
+import { update } from 'lodash';
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
@@ -47,75 +48,86 @@ export const appSettings = writable({
   preferences: false,
   modal: '',
   os: checkOS(),
-  profileFolder: ''
+  intervalPause: false,
+  activeWindowResult: {
+    title: undefined,
+    owner: {neme: undefined}},
+  
+  persistant: {
+    profileFolder: '',
+    pageActivatorEnabled: false,
+    pageActivatorCriteria_0 : "",
+    pageActivatorCriteria_1 : "",
+    pageActivatorCriteria_2 : "",
+    pageActivatorCriteria_3 : "",
+  }
+
 
 });
 
-let profile_folder = '';
+let persistant = {
+  profileFolder: '',
+  pageActivatorEnabled: false,
+  pageActivatorCriteria_0 : "",
+  pageActivatorCriteria_1 : "",
+  pageActivatorCriteria_2 : "",
+  pageActivatorCriteria_3 : "",
+}
+
+
 
 appSettings.subscribe(store => {
 
-  let new_folder = store.profileFolder;
 
-  if (new_folder !== profile_folder){
-    profile_folder = new_folder;
-    ipcRenderer.send('setStoreValue-message', { profiles_folder: new_folder } );
-    console.log("Profile folder set to: ", new_folder)
+  let instore = store.persistant;
+
+  Object.entries(persistant).forEach(entry => {
+    const [key, value] = entry;
 
 
-    if (!fs.existsSync(profile_folder)){
-        
-      fs.mkdir(profile_folder, (err) => {
-        if (err) {
-            return console.error(err);
-        }
-        console.log('Directory created successfully!');
-      });
+
+    if (persistant[key] !== instore[key]){
+
+      persistant[key] = instore[key];
+
+      let foo = {};
+      foo[key] = instore[key];
+      ipcRenderer.send('setStoreValue-message', foo);
     }
 
 
-  }
+  });
+
 
 })
 
-ipcRenderer.invoke('getStoreValue', 'profiles_folder').then((value) => {
+function init_appsettings(){
 
-  if (value === undefined || value === ""){
+  Object.entries(persistant).forEach(entry => {
+    const [key, value] = entry;
 
-    value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
-    console.log("Folder undefined");
+    ipcRenderer.invoke('getStoreValue', key).then((value) => {
 
-  }
-
-  console.log("Folder is: ", value)
-
-  if (!fs.existsSync(value)){
-        
-    fs.mkdir(value, (err) => {
-      if (err) {
-          return console.error(err);
+      if (value === undefined){
+        value = "";
       }
-      console.log('Directory created successfully!');
-      appSettings.update(s =>{
-        profile_folder = value;
-        s.profileFolder = value;
+
+      appSettings.update(s => {
+        console.log("init", key, value);
+        s.persistant[key] = value;
         return s;
       });
-      
+    
     });
-  }
-  else{
-    console.log('Directory already exists!');
-    appSettings.update(s =>{
-      profile_folder = value;
-      s.profileFolder = value;
-      return s;
-  
-    });
-  }
+
+  });
+
+}
+
+init_appsettings();
 
 
-});
+
 
 
 export const preferenceStore = writable();

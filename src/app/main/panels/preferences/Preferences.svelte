@@ -7,7 +7,7 @@
   import NVMDefrag from '../../NVMDefrag.svelte';
   import NVMErase from '../../NVMErase.svelte';
   import { serialComm } from '../../../serialport/serialport.store.js';
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
     
@@ -25,24 +25,9 @@
   // Importing dialog module using remote 
   const dialog = electron.remote.dialog; 
 
-  let PROFILE_PATH = '';
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
   
- 
 
-  onMount(async ()=> {
-    PROFILE_PATH = get(appSettings).profileFolder;
-    
-  })
-
-  appSettings.subscribe(s => {
-
-    if (PROFILE_PATH !== s.profileFolder){
-      PROFILE_PATH = s.profileFolder;
-
-    }
-
-  })
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -55,32 +40,44 @@
 
 
   function openDirectory(){
+
+    appSettings.update(s=>{ s.intervalPause = true; return s;});
+
     dialog.showOpenDialog({
         properties: ['openDirectory']
     }).then(dir => {
       if(!dir.canceled){
 
         appSettings.update(s => {
-          s.profileFolder = dir.filePaths.toString();
+          s.persistant.profileFolder = dir.filePaths.toString();
+          
+          
+          appSettings.update(s=>{ s.intervalPause = false; return s; });
           return s;
         })
 
       }
+      appSettings.update(s=>{ s.intervalPause = false; return s; });
     }).catch(err => {
         console.log(err)
+        appSettings.update(s=>{ s.intervalPause = false; return s; });
     });
+
+
+   
+
   }
 
   function viewDirectory(){
 
-   shell.openPath(PROFILE_PATH) 
+   shell.openPath(get(appSettings).persistant.profileFolder) 
   }  
 
   function resetDirectory(){
 
     appSettings.update(s => {
 
-      s.profileFolder = DEFAULT_PATH;
+      s.persistant.profileFolder = DEFAULT_PATH;
       return s;
     })
   }
@@ -142,7 +139,7 @@
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
       <div class="pb-2">Profile Library</div>  
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Selected folder:</b> {PROFILE_PATH}</div>
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Selected folder:</b> {$appSettings.persistant.profileFolder}</div>
      
       <div class="flex">
         <button on:click={viewDirectory} class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
@@ -162,6 +159,29 @@
       </button>
 
     </div>
+
+
+
+    <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+      <div class="pb-2">Page Activator</div>  
+      <div class="flex py-2 text-white items-center"> 
+        <input class="mr-1" type="checkbox" bind:checked={$appSettings.persistant.pageActivatorEnabled}>
+        <div class="mx-1">Enable/Disable page activator</div>
+      </div>
+
+
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active window:</b> {$appSettings.activeWindowResult.owner.name}</div>
+
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {$appSettings.activeWindowResult.title}</div>
+      
+      <input type="text" placeholder="Page 0 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
+      <input type="text" placeholder="Page 1 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
+      <input type="text" placeholder="Page 2 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_2}/>
+      <input type="text" placeholder="Page 3 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_3}/>
+
+
+    </div>
+
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
 
