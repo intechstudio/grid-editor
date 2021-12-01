@@ -52,8 +52,7 @@ function createMessageStream(){
         user_input.process_incoming_from_grid(class_descr);
       }
 
-      if (class_descr.class_name === "PAGEACTIVE"){
-
+      if (class_descr.class_name === "PAGEACTIVE" &&  class_descr.class_instr === "EXECUTE"){
         runtime.change_page(class_descr.class_parameters.PAGENUMBER);
       }
 
