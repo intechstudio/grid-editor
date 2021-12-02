@@ -11,7 +11,6 @@ const log = require('electron-log');
 const {download} = require('electron-dl');
 const fs = require('fs-extra');  
 var AdmZip = require("adm-zip");
-
 const drivelist = require('drivelist');
 
 
@@ -124,40 +123,8 @@ ipcMain.on('download', async (event, url) => {
   let result = await download(win, url, {
                                   directory: folder
                               });
-  console.log(result.getFilename(), result.getSavePath());
-  log.info("File Downloaded to ", result.getSavePath())
 
-  //const drivelist = require('drivelist');
-
-  let zip = new AdmZip(result.getSavePath());
-
-  let zipEntries = zip.getEntries(); // an array of ZipEntry records
-
-  let firmwareFileName;
-
-  zipEntries.forEach(function (zipEntry) {
-      console.log(zipEntry.toString()); // outputs zip entries information
-      if (zipEntry.entryName.endsWith(".uf2")) {
-        firmwareFileName = zipEntry.entryName;
-      }
-  });
-
-  zip.extractAllTo(folder, /*overwrite*/ true);
-
-  log.info(firmwareFileName)
-
-  const drives = await drivelist.list();
-
-  let grid = drives.find(a => a.description.startsWith("GRID Boot"))
-
-
-  let flash_path = grid.mountpoints[0].path
-
-
-  console.log(grid);  
-  log.info(flash_path)
-
-  fs.copySync(folder + "/" + firmwareFileName, flash_path + "/" + firmwareFileName)
+  event.returnValue = result.getSavePath();
 
 })
 
