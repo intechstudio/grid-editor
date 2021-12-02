@@ -10,18 +10,23 @@ const activeWindow = require('active-win');
 
 let lastPageActivator = "";  
 
-setInterval(() => {
 
-  if (get(appSettings).intervalPause) return;
+async function detectActiveWindow(){
 
-  (async () => {
+  try{
+
+    if (get(appSettings).intervalPause) return;
 
     let result = (await activeWindow());
 
     if (get(appSettings).intervalPause) return;
+    if (get(unsaved_changes) !== 0) return;
+    
 
     appSettings.update(s => {s.activeWindowResult = result; return s;});
     
+  
+
 
     if (get(appSettings).persistant.pageActivatorEnabled !== true){
 
@@ -53,12 +58,21 @@ setInterval(() => {
     lastPageActivator = result.owner.name;
     runtime.change_page(0);
 
-  })();
-  
-}, 250);
 
+  }
+  catch(e){
+    console.error("detectActiveWindow", e)
+  }
 
+}
 
+const setIntervalAsync = (fn, ms) => {
+  fn().then(() => {
+    setTimeout(() => setIntervalAsync(fn, ms), ms);
+  });
+};
+
+setIntervalAsync(detectActiveWindow, 250);
 
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;

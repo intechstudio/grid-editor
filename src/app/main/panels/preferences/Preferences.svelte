@@ -10,10 +10,7 @@
   import { onMount, onDestroy } from 'svelte';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
-    
-  const os = require ('os');
-  const username = os.userInfo ().username;
-  console.log("Username:", username);
+
 
   const electron = require('electron'); 
   const {shell} = require('electron') // deconstructing assignment
@@ -26,10 +23,39 @@
   const dialog = electron.remote.dialog; 
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
-  
-  function firmwareDownload(){
 
-    ipcRenderer.send('download', 'foo');
+  const downloadFile = (async (url, path) => {
+    const res = await fetch(url);
+    const fileStream = fs.createWriteStream(path);
+    await new Promise((resolve, reject) => {
+        res.body.pipe(fileStream);
+        res.body.on("error", reject);
+        fileStream.on("finish", resolve);
+      });
+  });
+
+  async function firmwareDownload(){
+  
+    fetch("https://intech.studio/common/github/releases").then(async e => {
+
+      let res = await e.json();
+
+      console.log(res.firmware.url)
+
+
+      //ipcRenderer.send('download', res.firmware.url);
+
+      let url = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.9/grid_release_2021-11-25-1515.zip"
+      ipcRenderer.send('download', url);
+      
+    });
+
+  }
+
+  async  function firmwareCopy(){
+
+    // const drives = await drivelist.list();
+    // console.log(drives);
 
   }
 
@@ -232,6 +258,13 @@
         firmwareDownload
       </button>
 
+      <button 
+        on:click={firmwareCopy} 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
+        firmwareCopy
+      </button>
+
+      
     </div>
 
   </preferences>

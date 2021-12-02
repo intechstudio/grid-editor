@@ -9,6 +9,11 @@ const path = require('path');
 const log = require('electron-log');
 
 const {download} = require('electron-dl');
+const fs = require('fs-extra');  
+var AdmZip = require("adm-zip");
+
+const drivelist = require('drivelist');
+
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -110,15 +115,49 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 })
 
 
-ipcMain.on('download', (event, url) => {
+ipcMain.on('download', async (event, url) => {
   console.log('attempt to download..', url);
   const win = BrowserWindow.getFocusedWindow();
-  url = "http://example.com/index.html"
-  const savelocation = store.get("profileFolder");
-  let result = download(win, url, {
-                                  directory: savelocation
+
+  let folder = store.get("profileFolder") + "/firmware";
+
+  let result = await download(win, url, {
+                                  directory: folder
                               });
-  console.log(result);
+  console.log(result.getFilename(), result.getSavePath());
+  log.info("File Downloaded to ", result.getSavePath())
+
+  //const drivelist = require('drivelist');
+
+  let zip = new AdmZip(result.getSavePath());
+
+  let zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+  let firmwareFileName;
+
+  zipEntries.forEach(function (zipEntry) {
+      console.log(zipEntry.toString()); // outputs zip entries information
+      if (zipEntry.entryName.endsWith(".uf2")) {
+        firmwareFileName = zipEntry.entryName;
+      }
+  });
+
+  zip.extractAllTo(folder, /*overwrite*/ true);
+
+  log.info(firmwareFileName)
+
+  const drives = await drivelist.list();
+
+  let grid = drives.find(a => a.description.startsWith("GRID Boot"))
+
+
+  let flash_path = grid.mountpoints[0].path
+
+
+  console.log(grid);  
+  log.info(flash_path)
+
+  fs.copySync(folder + "/" + firmwareFileName, flash_path + "/" + firmwareFileName)
 
 })
 
