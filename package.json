@@ -125,7 +125,7 @@
     "start": "sirv public --single",
     "start:dev": "sirv public --single --dev --host 0.0.0.0",
     "electron": "run-s build pure-electron",
-    "postinstall": "electron-builder install-app-deps && ./node_modules/.bin/electron-rebuild",
+    "postinstall": "electron-builder install-app-deps && electron-rebuild --module-dir ./",
     "pure-electron": "electron .",
     "electron-dev": "run-p dev pure-electron-dev",
     "pure-electron-dev": "cross-env DEBUG=universal-analytics NODE_ENV=development electron ."
