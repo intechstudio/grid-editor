@@ -28,12 +28,12 @@
       smoothScroll: false, // disable the smoothing effect
       beforeMouseDown: function(e) {
         // allow mouse-down panning only if altKey is down. Otherwise - ignore
-        var shouldIgnore = !e.altKey;
+        var shouldIgnore = !e.ctrlKey;
         return shouldIgnore;
       },
       beforeWheel: function(e) {
         // ignore wheel zoom
-        var shouldIgnore = true //!e.altKey;
+        var shouldIgnore = !e.ctrlKey //!e.altKey;
         return shouldIgnore;
       }
     });

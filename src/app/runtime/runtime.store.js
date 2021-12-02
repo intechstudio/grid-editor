@@ -6,6 +6,73 @@ import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 
+const activeWindow = require('active-win');
+
+let lastPageActivator = "";  
+
+
+async function detectActiveWindow(){
+
+  try{
+
+    if (get(appSettings).intervalPause) return;
+
+    let result = (await activeWindow());
+
+    if (get(appSettings).intervalPause) return;
+    if (get(unsaved_changes) !== 0) return;
+    
+
+    appSettings.update(s => {s.activeWindowResult = result; return s;});
+    
+  
+
+
+    if (get(appSettings).persistant.pageActivatorEnabled !== true){
+
+      return;
+    }
+
+    if (lastPageActivator === result.owner.name){
+      return;
+    }
+
+    let criteria = [
+                    get(appSettings).persistant.pageActivatorCriteria_0,
+                    get(appSettings).persistant.pageActivatorCriteria_1,
+                    get(appSettings).persistant.pageActivatorCriteria_2,
+                    get(appSettings).persistant.pageActivatorCriteria_3];
+
+    for (let i=0; i<4; i++){
+
+      if (criteria[i] === result.owner.name){
+        lastPageActivator = result.owner.name;
+
+        runtime.change_page(i);
+        return;
+      }
+
+    }
+
+    // default to page 0 if not found
+    lastPageActivator = result.owner.name;
+    runtime.change_page(0);
+
+
+  }
+  catch(e){
+    console.error("detectActiveWindow", e)
+  }
+
+}
+
+const setIntervalAsync = (fn, ms) => {
+  fn().then(() => {
+    setTimeout(() => setIntervalAsync(fn, ms), ms);
+  });
+};
+
+setIntervalAsync(detectActiveWindow, 250);
 
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
@@ -180,7 +247,11 @@ function create_user_input () {
       }
 
       _event.update((store) => {
+        const rt = get(runtime);
 
+        store.id = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY).id
+    
+        console.log(store.id )
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y

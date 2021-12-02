@@ -4,16 +4,14 @@
 
   import { get } from 'svelte/store'
 
-  import { fade } from 'svelte/transition'
   import { writeBuffer } from '../../../runtime/engine.store.js';
-  
+  import { fade, blur, fly, slide, scale } from "svelte/transition";
+
   const electron = require('electron'); 
   const fs = require('fs'); 
 
   const { ipcRenderer } = require('electron');
 
-  // Importing dialog module using remote 
-  const dialog = electron.remote.dialog; 
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
@@ -35,6 +33,8 @@
 
   let selectedIndex = undefined;
   
+  let selectedShowMore = false;
+
   let PROFILE_PATH = '';
 
   let PROFILES = [];
@@ -45,20 +45,6 @@
     }
   })
 
-  function openDirectory(){
-    dialog.showOpenDialog({
-        properties: ['openDirectory']
-    }).then(dir => {
-      if(!dir.canceled){
-        PROFILE_PATH = dir.filePaths.toString();
-        ipcRenderer.send('setStoreValue-message', { profiles_folder: PROFILE_PATH } );
-        loadFilesFromDirectory(PROFILE_PATH);
-      }
-    }).catch(err => {
-        console.log(err)
-    });
-  }
-
   async function checkIfWritableDirectory(path){
 
     const stats = fs.promises.stat(path).then(res => {return {isFile: res.isFile(), isDirectory: res.isDirectory()}});
@@ -66,6 +52,17 @@
     return await Promise.all([stats])
 
   }
+
+  appSettings.subscribe(store => {
+
+    let new_folder = store.persistant.profileFolder;
+
+    if (new_folder !== PROFILE_PATH){
+      PROFILE_PATH = new_folder;
+      loadFilesFromDirectory(PROFILE_PATH)
+    }
+
+  })
 
 
   async function loadFilesFromDirectory(path){
@@ -123,7 +120,7 @@
       }
 
     } catch (error) {
-
+      
       console.error(error);
 
     }
@@ -240,13 +237,7 @@
 
 <profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
-    <div class="w-full flex flex-col justify-between pb-2 px-2">
-      <button on:click={openDirectory} class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
-        <div>Select Local Folder</div> 
-        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
-      </button>
-      <div class="text-gray-400 py-1 mt-1 text-sm break-all">Selected folder: {PROFILE_PATH}</div>
-    </div>
+
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 
@@ -270,15 +261,6 @@
           class="w-full bg-secondary text-white py-1 pl-2 rounded-none"/>
       </div>
 
-      <div class="flex flex-col w-full py-2">
-        <div class="text-sm text-gray-500 pb-1">Module Type</div>
-        <input 
-          bind:value={newProfile.type}
-          placeholder="Select control element..."
-          type="text" 
-          class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
-      </div>
-
       <button 
       on:click={prepareSave} 
       disabled={!checkIfOk(newProfile)} 
@@ -290,68 +272,58 @@
     </div>
 
 
-    <div in:fade={{delay:200}} class="primary rounded-lg bg-opacity-25 bg-secondary px-4 py-2 h-full mt-4 flex flex-col justify-start items-start overflow-hidden">
 
-      <div class="pt-2 text-white flex items-center relative">
-        <div class="">Load Profile</div>
-        <TooltipSetter mode={2} key={"profile_load_profile"}/>
+    <div class="pt-2 text-white flex items-center relative">
+      <div class="">Load Profile</div>
+      <TooltipSetter mode={2} key={"profile_load_profile"}/>
+    </div>
+    <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
+
+      <div id="zero-level" class="w-full h-full flex overflow-y-scroll text-white mt-4">
+        <ul class="w-full">
+          {#each PROFILES as profile, i}
+            <li
+              on:click={()=>{if (selected !== profile){selectedShowMore = false} selected = profile; selectedIndex = i;}} 
+              class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 mr-2 cursor-pointer ">
+              <div class="w-full">{profile.name}</div> 
+             
+             
+              {#if (selectedIndex === i)}
+                  <textarea 
+                    
+                    in:slide out:slide
+                    bind:value={profile.description}
+                    type="text" 
+                    placeholder="No description available"
+                    class="w-full bg-primary p-1 rounded-none h-36 resize-none "/>
+            
+
+              {/if}
+             
+              <div class="flex text-xs opacity-80 font-semibold">
+                <div class="m-1 text-center rounded-full w-12 {newProfile.type==profile.type?"bg-green-500":"bg-gray-600"} ">{profile.type}</div>
+                <div class="m-1 text-center rounded-full w-12 bg-gray-900"> v{profile.version.major}.{profile.version.minor}.{profile.version.patch}</div>
+              
+              </div>
+
+
+
+            </li>
+          {/each}
+        </ul>
       </div>
-      <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
-  
-        <div id="zero-level" class="w-full h-full flex overflow-y-scroll text-white mt-4">
-          <ul class="w-full">
-            {#each PROFILES as profile, i}
-              <li 
-                on:click={()=>{selected = profile; selectedIndex = i}} 
-              class="{(i % 2) && (selectedIndex !== i) ? 'bg-opacity-50' : ''} {selectedIndex == i ? 'bg-pick' : 'bg-secondary hover:bg-pick-desaturate-10'} profile p-1 my-1 cursor-pointer ">{profile.name}</li>
-            {/each}
-          </ul>
-        </div>
-
-      </div>
-  
-      <div class="py-2 text-white flex items-center relative">
-        <div class="">Selected Profile</div>
-        <TooltipSetter mode={2} key={"profile_selected_profile"}/>
-      </div>
-
-      <div class="text-gray-200 flex flex-col pointer-events-none w-full">
-
-        <div class="flex flex-col w-full py-2">
-          <input 
-            bind:value={selected.name}
-            type="text" 
-            placeholder="Name of this profile"
-            class="w-full bg-secondary py-1 pl-2 rounded-none">
-        </div>
-
-        <div class="flex flex-col w-full py-2">
-          <textarea 
-            bind:value={selected.description}
-            type="text" 
-            placeholder="What this profile does"
-            class="w-full bg-secondary py-1 pl-2 rounded-none"/>
-        </div>
-
-        <div class="flex flex-col w-full py-2">
-          <input 
-            bind:value={selected.type}
-            placeholder="Select a profile first"
-            type="text" 
-            class="w-full bg-secondary text-gray-200 py-1 pl-2 rounded-none pointer-events-none"/>
-        </div>
-
-      </div>
-
-      <button 
-        on:click={loadProfile} 
-        disabled={selectedIndex === undefined} 
-        class="relative bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
-        <div>Load Profile To Module</div>
-        <TooltipSetter mode={1} key={"profile_load_to_module"}/>
-      </button>
 
     </div>
+
+    <button 
+      on:click={loadProfile} 
+      disabled={selectedIndex === undefined} 
+      class="relative bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
+      <div>Load Profile To Module</div>
+      <TooltipSetter mode={1} key={"profile_load_to_module"}/>
+    </button>
+
+
 
 
 </profiles>

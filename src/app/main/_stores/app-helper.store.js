@@ -1,6 +1,10 @@
+import { update } from 'lodash';
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
+const fs = require('fs'); 
+
+const { ipcRenderer } = require('electron');
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -19,6 +23,9 @@ function checkOS() {
 
   return 'browser';
 }
+
+
+
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
@@ -40,8 +47,88 @@ export const appSettings = writable({
   stringNameOverlay: false,
   preferences: false,
   modal: '',
-  os: checkOS()
+  os: checkOS(),
+  intervalPause: false,
+  activeWindowResult: {
+    title: undefined,
+    owner: {neme: undefined}},
+  
+  persistant: {
+    profileFolder: '',
+    pageActivatorEnabled: false,
+    pageActivatorCriteria_0 : "",
+    pageActivatorCriteria_1 : "",
+    pageActivatorCriteria_2 : "",
+    pageActivatorCriteria_3 : "",
+  }
+
+
 });
+
+let persistant = {
+  profileFolder: '',
+  pageActivatorEnabled: false,
+  pageActivatorCriteria_0 : "",
+  pageActivatorCriteria_1 : "",
+  pageActivatorCriteria_2 : "",
+  pageActivatorCriteria_3 : "",
+}
+
+
+
+appSettings.subscribe(store => {
+
+
+  let instore = store.persistant;
+
+  Object.entries(persistant).forEach(entry => {
+    const [key, value] = entry;
+
+
+
+    if (persistant[key] !== instore[key]){
+
+      persistant[key] = instore[key];
+
+      let foo = {};
+      foo[key] = instore[key];
+      ipcRenderer.send('setStoreValue-message', foo);
+    }
+
+
+  });
+
+
+})
+
+function init_appsettings(){
+
+  Object.entries(persistant).forEach(entry => {
+    const [key, value] = entry;
+
+    ipcRenderer.invoke('getStoreValue', key).then((value) => {
+
+      if (value === undefined){
+        value = "";
+      }
+
+      appSettings.update(s => {
+        console.log("init", key, value);
+        s.persistant[key] = value;
+        return s;
+      });
+    
+    });
+
+  });
+
+}
+
+init_appsettings();
+
+
+
+
 
 export const preferenceStore = writable();
 

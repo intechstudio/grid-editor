@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
@@ -7,6 +7,13 @@ global.trackEvent = trackEvent;
 
 const path = require('path');
 const log = require('electron-log');
+
+const {download} = require('electron-dl');
+const fs = require('fs-extra');  
+var AdmZip = require("adm-zip");
+
+const drivelist = require('drivelist');
+
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -19,6 +26,7 @@ let mainWindow;
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false;
 
+let tray;
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -29,6 +37,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 function createWindow() {
+
+
     const mode = process.env.NODE_ENV;
 
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
@@ -46,7 +56,8 @@ function createWindow() {
           contextIsolation: false,
           enableRemoteModule: true,
           backgroundThrottling: false
-        }
+        },
+        icon:'./icon.png'
     });
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
@@ -66,6 +77,22 @@ function createWindow() {
     if (process.env.NODE_ENV === 'development') {
       mainWindow.webContents.openDevTools();
     }
+
+  
+    tray = new Tray(path.join(__dirname, 'icon.png'));
+    tray.setContextMenu(Menu.buildFromTemplate([
+      {
+        label: 'Show App', click: function () {
+          mainWindow.show();
+        }
+      },
+      {
+        label: 'Quit', click: function () {
+          isQuiting = true;
+          app.quit();
+        }
+      }
+    ]));  
     
 }
 
@@ -85,6 +112,53 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
   console.log('attempt to store..',arg);
   store.set(arg)
   event.reply('setStoreValue-reply', 'saved');
+})
+
+
+ipcMain.on('download', async (event, url) => {
+  console.log('attempt to download..', url);
+  const win = BrowserWindow.getFocusedWindow();
+
+  let folder = store.get("profileFolder") + "/firmware";
+
+  let result = await download(win, url, {
+                                  directory: folder
+                              });
+  console.log(result.getFilename(), result.getSavePath());
+  log.info("File Downloaded to ", result.getSavePath())
+
+  //const drivelist = require('drivelist');
+
+  let zip = new AdmZip(result.getSavePath());
+
+  let zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+  let firmwareFileName;
+
+  zipEntries.forEach(function (zipEntry) {
+      console.log(zipEntry.toString()); // outputs zip entries information
+      if (zipEntry.entryName.endsWith(".uf2")) {
+        firmwareFileName = zipEntry.entryName;
+      }
+  });
+
+  zip.extractAllTo(folder, /*overwrite*/ true);
+
+  log.info(firmwareFileName)
+
+  const drives = await drivelist.list();
+
+  let grid = drives.find(a => a.description.startsWith("GRID Boot"))
+
+
+  let flash_path = grid.mountpoints[0].path
+
+
+  console.log(grid);  
+  log.info(flash_path)
+
+  fs.copySync(folder + "/" + firmwareFileName, flash_path + "/" + firmwareFileName)
+
 })
 
 ipcMain.handle('getStoreValue', (event, key) => {
@@ -108,6 +182,8 @@ ipcMain.handle('get_uuid', (event,arg) => {
 ipcMain.on('app_version', (event) => {
   event.sender.send('app_version', { version: app.getVersion() });
 });
+
+
 
 autoUpdater.on('error', (error) => {
   log.info('Error..', error);
@@ -138,6 +214,11 @@ ipcMain.on('profiles-directory', () => {
   log.info('default profiles folder is ', store.get('profiles_folder'))
 })
 
+// profile save and user config saves
+ipcMain.on('getProfileDefaultDirectory', (event, arg) => {
+
+  event.returnValue = app.getPath('documents') + '/grid-userdata'
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
@@ -155,3 +236,8 @@ app.on('activate', () => {
         createWindow();
     }
 });
+
+
+
+
+

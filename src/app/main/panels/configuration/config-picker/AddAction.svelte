@@ -77,7 +77,13 @@
 
       const condition_sorting = ['if', 'ei', 'el', 'en'];
 
-      const blocks = getAllComponents().map(x => x.information);  
+      const allcomponents = getAllComponents();
+
+      if (allcomponents === undefined){
+        return undefined;
+      }
+      
+      const blocks = allcomponents.map(x => x.information);  
 
       let object = {};
 
