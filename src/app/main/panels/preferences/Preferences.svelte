@@ -15,8 +15,6 @@
   const electron = require('electron'); 
   const {shell} = require('electron') // deconstructing assignment
   const fs = require('fs-extra');  
-  const AdmZip = require("adm-zip");
-  const drivelist = require('drivelist');
 
   const { ipcRenderer } = require('electron');
 
@@ -28,74 +26,6 @@
 
 
 
-  async function firmwareDownload(){
-  
-    fetch("https://intech.studio/common/github/releases").then(async e => {
-
-      let res = await e.json();
-
-      console.log(res.firmware.url)
-
-
-      //ipcRenderer.send('download', res.firmware.url);
-
-      let url = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.9/grid_release_2021-11-25-1515.zip"
-      let result = ipcRenderer.sendSync('download', url);
-
-      console.log(result);
-
-
-
-      let zip = new AdmZip(result);
-
-      let zipEntries = zip.getEntries(); // an array of ZipEntry records
-
-      let firmwareFileName;
-
-      zipEntries.forEach(function (zipEntry) {
-          console.log(zipEntry.toString()); // outputs zip entries information
-          if (zipEntry.entryName.endsWith(".uf2")) {
-            firmwareFileName = zipEntry.entryName;
-          }
-      });
-
-      let folder = get(appSettings).persistant.profileFolder + "/firmware";
-
-
-      zip.extractAllTo(folder, /*overwrite*/ true);
-
-      console.log(firmwareFileName)
-
-      const drives = await drivelist.list();
-      console.log(drives); 
-
-      // "GRID Boot" on linux, "Boot" on windows
-      let grid = drives.find(a => a.description.startsWith("GRID Boot") || a.description.startsWith("Boot"))
-
-      if (grid !== undefined){
-
-        let flash_path = grid.mountpoints[0].path
-      
-        console.log(grid);  
-        console.log(flash_path)
-
-        fs.copySync(folder + "/" + firmwareFileName, flash_path + "/" + firmwareFileName)
-
-      }
-      else{
-        console.log("GRID_NOT_FOUND")
-      }
-
-    });
-
-  }
-
-  async  function firmwareCopy(){
-
-    // const drives = await drivelist.list();
-    // console.log(drives);
-
-  }
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -106,6 +36,23 @@
 
   let preferredPort;
 
+
+  let window_name = "";
+  let window_title = "";
+
+  appSettings.subscribe(s => {
+
+    try{
+      window_name = s.activeWindowResult.owner.name;
+      window_title = s.activeWindowResult.title;
+    }catch(e){
+
+      window_name = "";
+      window_title = "";
+    }
+
+
+  })
 
   function openDirectory(){
 
@@ -119,7 +66,9 @@
         appSettings.update(s => {
           s.persistant.profileFolder = dir.filePaths.toString();
           
-          
+          // Create the folder if it does not exist
+          if(!fs.existsSync(s.persistant.profileFolder)) fs.mkdirSync(s.persistant.profileFolder);
+
           appSettings.update(s=>{ s.intervalPause = false; return s; });
           return s;
         })
@@ -146,6 +95,8 @@
     appSettings.update(s => {
 
       s.persistant.profileFolder = DEFAULT_PATH;
+      // Create the folder if it does not exist
+      if(!fs.existsSync(s.persistant.profileFolder)) fs.mkdirSync(s.persistant.profileFolder);
       return s;
     })
   }
@@ -238,9 +189,9 @@
       </div>
 
 
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active window:</b> {$appSettings.activeWindowResult.owner.name}</div>
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active window:</b> {window_name}</div>
 
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {$appSettings.activeWindowResult.title}</div>
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {window_title}</div>
       
       <input type="text" placeholder="Page 0 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
       <input type="text" placeholder="Page 1 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
@@ -289,19 +240,6 @@
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
         Enable Engine and User Inputs
       </button>
-
-      <button 
-        on:click={firmwareDownload} 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
-        firmwareDownload
-      </button>
-
-      <button 
-        on:click={firmwareCopy} 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
-        firmwareCopy
-      </button>
-
       
     </div>
 

@@ -871,44 +871,37 @@ export const heartbeat = writable({
 })
 
 
-function start_grid_heartbeat(){ 
+const grid_heartbeat_interval_handler = async function(){
 
-  setInterval(()=>{
+  let rt = get(runtime);
 
-    let rt = get(runtime);
+  rt.forEach((device, i) => {
 
-    rt.forEach((device, i) => {
+    if ((Date.now() - device.alive) > get(heartbeat).grid * 2){
+      // TIMEOUT! let's remove the device
+      runtime.destroy_module(device.dx, device.dy);
 
-      if ((Date.now() - device.alive) > get(heartbeat).grid * 2){
-        // TIMEOUT! let's remove the device
-        runtime.destroy_module(device.dx, device.dy);
+    }
+  });
 
-      }
-    });
-
-
-  }, get(heartbeat).grid)
 }
 
+setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 
-function start_editor_heartbeat(){ 
+
+
+const editor_heartbeat_interval_handler = async function(){ 
   
-  setInterval(()=>{
+  let type = 255
+  if(get(unsaved_changes) != 0){
+    type = 254
+  }
 
-      let type = 255
-      if(get(unsaved_changes) != 0){
-        type = 254
-      }
-
-      instructions.sendEditorHeartbeat_immediate(type);
-      
-  }, get(heartbeat).editor);
+  instructions.sendEditorHeartbeat_immediate(type);
 
 }
 
-start_editor_heartbeat();
-start_grid_heartbeat();  
-
+setIntervalAsync(editor_heartbeat_interval_handler, get(heartbeat).editor);
 
 
 
