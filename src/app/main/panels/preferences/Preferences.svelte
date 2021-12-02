@@ -68,7 +68,9 @@
 
       const drives = await drivelist.list();
       console.log(drives); 
-      let grid = drives.find(a => a.description.startsWith("GRID Boot"))
+
+      // "GRID Boot" on linux, "Boot" on windows
+      let grid = drives.find(a => a.description.startsWith("GRID Boot") || a.description.startsWith("Boot"))
 
       if (grid !== undefined){
 
@@ -83,9 +85,6 @@
       else{
         console.log("GRID_NOT_FOUND")
       }
-
-
-
 
     });
 
