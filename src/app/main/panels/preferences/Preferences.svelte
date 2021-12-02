@@ -14,7 +14,9 @@
 
   const electron = require('electron'); 
   const {shell} = require('electron') // deconstructing assignment
-  const fs = require('fs'); 
+  const fs = require('fs-extra');  
+  const AdmZip = require("adm-zip");
+  const drivelist = require('drivelist');
 
   const { ipcRenderer } = require('electron');
 
@@ -24,15 +26,7 @@
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
 
-  const downloadFile = (async (url, path) => {
-    const res = await fetch(url);
-    const fileStream = fs.createWriteStream(path);
-    await new Promise((resolve, reject) => {
-        res.body.pipe(fileStream);
-        res.body.on("error", reject);
-        fileStream.on("finish", resolve);
-      });
-  });
+
 
   async function firmwareDownload(){
   
@@ -46,8 +40,53 @@
       //ipcRenderer.send('download', res.firmware.url);
 
       let url = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.9/grid_release_2021-11-25-1515.zip"
-      ipcRenderer.send('download', url);
+      let result = ipcRenderer.sendSync('download', url);
+
+      console.log(result);
+
+
+
+      let zip = new AdmZip(result);
+
+      let zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+      let firmwareFileName;
+
+      zipEntries.forEach(function (zipEntry) {
+          console.log(zipEntry.toString()); // outputs zip entries information
+          if (zipEntry.entryName.endsWith(".uf2")) {
+            firmwareFileName = zipEntry.entryName;
+          }
+      });
+
+      let folder = get(appSettings).persistant.profileFolder + "/firmware";
+
+
+      zip.extractAllTo(folder, /*overwrite*/ true);
+
+      console.log(firmwareFileName)
+
+      const drives = await drivelist.list();
+      console.log(drives); 
+      let grid = drives.find(a => a.description.startsWith("GRID Boot"))
+
+      if (grid !== undefined){
+
+        let flash_path = grid.mountpoints[0].path
       
+        console.log(grid);  
+        console.log(flash_path)
+
+        fs.copySync(folder + "/" + firmwareFileName, flash_path + "/" + firmwareFileName)
+
+      }
+      else{
+        console.log("GRID_NOT_FOUND")
+      }
+
+
+
+
     });
 
   }
