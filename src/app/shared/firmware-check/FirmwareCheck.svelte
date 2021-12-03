@@ -118,7 +118,7 @@
 
   }
 
-  setIntervalAsync(find_bootloader_path, 500);
+  setIntervalAsync(find_bootloader_path, 750);
 
   async function firmwareDownload(){
 
