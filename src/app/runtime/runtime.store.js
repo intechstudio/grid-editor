@@ -72,7 +72,7 @@ const setIntervalAsync = (fn, ms) => {
   });
 };
 
-setIntervalAsync(detectActiveWindow, 250);
+setIntervalAsync(detectActiveWindow, 500);
 
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
@@ -877,7 +877,7 @@ const grid_heartbeat_interval_handler = async function(){
 
   rt.forEach((device, i) => {
 
-    if ((Date.now() - device.alive) > get(heartbeat).grid * 2){
+    if ((Date.now() - device.alive) > get(heartbeat).grid * 3){
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
 
