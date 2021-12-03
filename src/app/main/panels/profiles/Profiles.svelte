@@ -67,6 +67,9 @@
 
   async function loadFilesFromDirectory(path){
 
+    // Create the folder if it does not exist
+    if(!fs.existsSync(path)) fs.mkdirSync(path);
+
     try {
 
       PROFILES = [];
