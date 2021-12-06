@@ -127,16 +127,23 @@
 
 
     uploadProgressText = "Fetching firmware download URL "
-    fetch("https://intech.studio/common/github/releases").then(async e => {
+    fetch("https://intech.studio/common/software/grid-firmware").then(async e => {
 
-      let res = await e.json();
+      let link = "";
+      try{
+        let res = await e.json();
+        link = res.url;
+
+      }catch(e){
+
+        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.10/grid_release.zip"
+      }
 
       uploadProgressText = "Downloading firmware image "
 
       //ipcRenderer.send('download', res.firmware.url);
       uploadProgressText = "Downloading firmware image "
-      let url = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.9/grid_release_2021-11-25-1515.zip"
-      let result = ipcRenderer.sendSync('download', url);
+      let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
 
       console.log(result);
 
@@ -157,7 +164,7 @@
           }
       });
 
-      let folder = get(appSettings).persistant.profileFolder + "/firmware";
+      let folder = get(appSettings).persistant.profileFolder + "/temp";
 
 
       uploadProgressText = "Decompressing image "

@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import MinMaxClose from './MinMaxClose.svelte';
 
+  import {appSettings} from "./../../../app/main/_stores/app-helper.store"
+
   onMount(()=>{
 
   })
@@ -22,6 +24,7 @@
       </svg>
     </div>
     
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
     <MinMaxClose/>
         
   </div>

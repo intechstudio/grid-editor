@@ -1,6 +1,6 @@
 <script>
 
-  import { onMount } from 'svelte';
+  import { createEventDispatcher, onMount } from 'svelte';
 
   import { get } from 'svelte/store'
 
@@ -15,7 +15,7 @@
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
-  import { appSettings } from '../../_stores/app-helper.store.js';
+  import { appSettings, profileListRefresh } from '../../_stores/app-helper.store.js';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
@@ -35,7 +35,7 @@
   
   let selectedShowMore = false;
 
-  let PROFILE_PATH = '';
+  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
 
   let PROFILES = [];
 
@@ -53,72 +53,183 @@
 
   }
 
+  const moveOldProfiles = async function(){
+
+    let path = PROFILE_PATH;
+
+    console.log("Checking for profiles", path)
+
+    if(!fs.existsSync(path)) fs.mkdirSync(path);
+    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
+    if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
+
+    fs.readdir(path, (err, files) => {
+
+      files.forEach(async file => {
+
+        try {
+
+          let filepath = path + "/" + file;
+          
+          const [stats] = await checkIfWritableDirectory(filepath);
+
+          if(stats.isFile){
+
+            fs.renameSync(path + "/" + file, path + "/profiles/user/" + file);
+            console.log("moving: ", file);
+
+          } else {
+
+            //console.info('Not a file!');
+
+          }
+
+        } catch (error) {
+
+          console.error('readFile error...',error)
+
+        }
+        
+      })
+
+      loadFilesFromDirectory()
+
+    });
+
+  }
+
   appSettings.subscribe(store => {
 
     let new_folder = store.persistant.profileFolder;
 
     if (new_folder !== PROFILE_PATH){
+
       PROFILE_PATH = new_folder;
-      loadFilesFromDirectory(PROFILE_PATH)
+      moveOldProfiles();
     }
 
   })
 
+  profileListRefresh.subscribe(store => {
+    console.log("REFRESH")
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
+      console.log("Profilepath", PROFILE_PATH)
+      loadFilesFromDirectory();
+    }
+  })
 
-  async function loadFilesFromDirectory(path){
+  function stringToColor(string) {
 
+    // Generte Hash
+
+    var hash = 0;
+    if (string.length == 0)
+        return hash;
+    for (let i = 0; i < string.length; i++) {
+        var charCode = string.charCodeAt(i);
+        hash = ((hash << 7) - hash) + charCode;
+        hash = hash & hash;
+    }
+
+    // define the color params
+
+    var hue = Math.abs(hash)%360; // degrees
+    var sat = 65; // percentage
+    var lum = 50; // percentage
+
+    // convert from HSL to RGB
+
+    lum /= 100;
+    const a = sat * Math.min(lum, 1 - lum) / 100;
+    const f = n => {
+      const k = (n + hue / 30) % 12;
+      const col = lum - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * col).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+    };
+
+    var color = `#${f(0)}${f(8)}${f(4)}`;
+
+    return color;
+  }
+
+
+
+  async function loadFilesFromDirectory(){
+
+    let path = PROFILE_PATH;
     // Create the folder if it does not exist
     if(!fs.existsSync(path)) fs.mkdirSync(path);
+    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
 
     try {
 
       PROFILES = [];
 
-      const [stats] = await checkIfWritableDirectory(path);
+      const [stats] = await checkIfWritableDirectory(path+"/profiles");
 
       if(stats.isDirectory){
 
-        fs.readdir(path, (err, files) => {
+        // get list of directories
+        let dirs = fs.readdirSync(path+"/profiles", { withFileTypes: true })
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => dirent.name)
 
-          files.forEach(async file => {
+        console.log("dirs", dirs)
 
-            try {
-              
-              const [stats] = await checkIfWritableDirectory(`${path + "/" + file}`);
+        // for all directories...
+        dirs.forEach(dir => {
 
-              if(stats.isFile){
+          // read all files from dir
+          fs.readdir(path + "/profiles/" + dir, (err, files) => {
 
-                fs.readFile(`${path + "/" + file}`,'utf-8', function (err, data) { 
+            files.forEach(async file => {
 
-                    if (err) {
-                      throw err
-                    }; 
+              try {
 
-                    if(isJson(data)){                
-                      let obj = JSON.parse(data);
-                      if(obj.isGridProfile){
-                        PROFILES = [...PROFILES, obj];
-                      } else {
-                        console.info('JSON is not a grid profile!') ;
+                let filepath = path + "/profiles/" + dir + "/" + file;
+                
+                const [stats] = await checkIfWritableDirectory(filepath);
+
+                if(stats.isFile){
+
+                  fs.readFile(filepath,'utf-8', function (err, data) { 
+
+                      if (err) {
+                        throw err
+                      }; 
+
+                      if(isJson(data)){                
+                        let obj = JSON.parse(data);
+                        if(obj.isGridProfile){
+                          obj.folder = dir;
+                          obj.color = stringToColor(dir)
+                          PROFILES = [...PROFILES, obj];
+                        } else {
+                          console.info('JSON is not a grid profile!') ;
+                        }
                       }
-                    }
 
-                });
+                  });
 
-              } else {
+                } else {
 
-                //console.info('Not a file!');
+                  //console.info('Not a file!');
+
+                }
+
+              } catch (error) {
+
+                console.error('readFile error...',error)
 
               }
+              
+            })
+          });
 
-            } catch (error) {
 
-              console.error('readFile error...',error)
+        })
 
-            }
-            
-          })
-        });
+
 
       }
 
@@ -130,13 +241,18 @@
    
   }
 
-  function saveProfile(path, name, profile){                  
+  function saveProfile(path, name, profile){         
+    
+    if(!fs.existsSync(path)) fs.mkdirSync(path);
+    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
+    if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
+
     // Creating and Writing to the sample.txt file 
-    fs.writeFile(`${path}/${name}.json`, JSON.stringify(profile, null, 4), function (err) { 
+    fs.writeFile(`${path}/profiles/user/${name}.json`, JSON.stringify(profile, null, 4), function (err) { 
         if (err) throw err; 
         console.log('Saved!'); 
         logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
-        loadFilesFromDirectory(PROFILE_PATH);
+        loadFilesFromDirectory();
     }); 
   }
 
@@ -215,12 +331,6 @@
     }
   }
 
-
-  onMount(async ()=> {
-    PROFILE_PATH = await ipcRenderer.invoke('getStoreValue', 'profiles_folder'); 
-    if(PROFILE_PATH) loadFilesFromDirectory(PROFILE_PATH);
-  })
-
   function checkIfOk(profile){
 
     let ok = true;
@@ -277,17 +387,31 @@
 
 
     <div class="pt-2 text-white flex items-center relative">
-      <div class="">Load Profile</div>
+      <div class="">Profile Library</div>
       <TooltipSetter mode={2} key={"profile_load_profile"}/>
+      <button 
+        on:click={loadFilesFromDirectory} 
+        class="relative inline-block bg-secondary ml-auto p-1 text-white rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
+        <div>Refresh List</div>
+      </button>    
     </div>
     <div id="browse-profiles" class="overflow-hidden w-full h-full flex flex-col">
 
-      <div id="zero-level" class="w-full h-full flex overflow-y-scroll text-white mt-4">
+      <div id="zero-level" class="w-full h-full flex overflow-y-auto text-white mt-2">
         <ul class="w-full">
+
+          {#if PROFILES.length === 0}
+
+            <div in:fade={{delay:500}} class="text-yellow-500"><b>Profiles not found!</b></div>           
+            <div in:fade={{delay:1000}} class="text-yellow-500">Setup profile folder and download the default profile library in the Preferences menu...</div>
+            
+          {/if}
+          
+
           {#each PROFILES as profile, i}
             <li
               on:click={()=>{if (selected !== profile){selectedShowMore = false} selected = profile; selectedIndex = i;}} 
-              class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 mr-2 cursor-pointer ">
+              class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 cursor-pointer ">
               <div class="w-full">{profile.name}</div> 
              
              
@@ -304,12 +428,11 @@
               {/if}
              
               <div class="flex text-xs opacity-80 font-semibold">
-                <div class="m-1 text-center rounded-full w-12 {newProfile.type==profile.type?"bg-green-500":"bg-gray-600"} ">{profile.type}</div>
-                <div class="m-1 text-center rounded-full w-12 bg-gray-900"> v{profile.version.major}.{profile.version.minor}.{profile.version.patch}</div>
+                <div class="m-1 flex justify-center text-center rounded-full px-2 inline-block {newProfile.type==profile.type?"bg-green-500":"bg-gray-600"} ">{profile.type}</div>
+                <div class="m-1 flex justify-center text-center rounded-full px-2 inline-block bg-gray-900"> v{profile.version.major}.{profile.version.minor}.{profile.version.patch}</div>
+                <div class="m-1 flex justify-center text-center rounded-full px-2 inline-block" style="background-color: {profile.color}"> by {profile.folder}</div>
               
               </div>
-
-
 
             </li>
           {/each}

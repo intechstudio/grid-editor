@@ -2,12 +2,15 @@
 <script>
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
-  import { appSettings, preferenceStore } from '../../_stores/app-helper.store.js';
+  import { appSettings, profileListRefresh } from '../../_stores/app-helper.store.js';
 
   import NVMDefrag from '../../NVMDefrag.svelte';
   import NVMErase from '../../NVMErase.svelte';
   import { serialComm } from '../../../serialport/serialport.store.js';
   import { onMount, onDestroy } from 'svelte';
+
+
+  import loadFilesFromDirectory from '../../panels/profiles/Profiles.svelte';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
@@ -15,6 +18,7 @@
   const electron = require('electron'); 
   const {shell} = require('electron') // deconstructing assignment
   const fs = require('fs-extra');  
+  const AdmZip = require("adm-zip");
 
   const { ipcRenderer } = require('electron');
 
@@ -24,8 +28,8 @@
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
 
-
-
+  let download_status = "";
+  let download_status_interval;
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
@@ -101,6 +105,75 @@
     })
   }
 
+  async function libraryDownload(){
+
+    clearTimeout(download_status_interval)
+
+    download_status = "Starting the download..."
+    fetch("https://intech.studio/common/github/releases").then(async e => {
+
+      let res = await e.json();
+
+      let link = "https://github.com/intechstudio/grid-profiles/archive/refs/heads/main.zip"
+      let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
+      download_status = "Download completed!"
+      let zip = new AdmZip(result);
+
+      let zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+      let profileFilePaths = [];
+
+      zipEntries.forEach(function (zipEntry) {
+
+        if (zipEntry.entryName.endsWith(".json")) {
+
+          profileFilePaths.push(zipEntry.entryName);
+        }
+      });
+
+      let folder = get(appSettings).persistant.profileFolder;
+
+      zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
+
+      download_status = "Archive extracted!"
+      // console.log(profileFilePaths)
+
+      if (profileFilePaths.length !== 0){
+
+        profileFilePaths.forEach(path => {
+
+
+          let parts = path.split("/")
+          let filename = parts[parts.length-1]
+
+          // console.log(path)
+          fs.copySync(folder + "/temp/" + path, folder+"/profiles/intech/" + filename)
+
+        })
+
+        download_status = "Profiles copied!"
+
+        profileListRefresh.update(s => {return s+1});
+        download_status = "Library updated!"
+        download_status_interval = setTimeout(() => {
+          download_status = ""
+        }, 2500);
+      }
+      else{
+        console.log("GRID_NOT_FOUND")
+      }
+
+    });
+
+  }
+
+  function resetAppSettings(){
+
+    let path = ipcRenderer.sendSync('resetAppSettings', 'foo');
+
+    console.log("App settings cleared");
+
+  }
 
   function changePreferredPort(path){
 
@@ -129,7 +202,7 @@
 
 </script>
 
-  <preferences class="bg-primary flex flex-col h-full w-full text-white p-4">
+  <preferences class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto">
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
       <div class="pb-2">General Settings</div>
@@ -157,7 +230,7 @@
 
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-      <div class="pb-2">Profile Library</div>  
+      <div class="pb-2">User Library</div>  
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Selected folder:</b> {$appSettings.persistant.profileFolder}</div>
      
       <div class="flex">
@@ -177,6 +250,13 @@
         <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
       </button>
 
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default profile library:</b> {download_status}</div>
+      <button 
+        on:click={()=>{libraryDownload()}} 
+        class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+        Download Profile Library
+      </button>
+
     </div>
 
 
@@ -187,11 +267,15 @@
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.persistant.pageActivatorEnabled}>
         <div class="mx-1">Enable/Disable page activator</div>
       </div>
+      <div class="flex py-2 text-white items-center"> 
+        <div class="mx-1">Poll interval</div>
+        <input class="bg-primary m-1" type="range" min="200" max="2000" step="50" bind:value={$appSettings.persistant.pageActivatorInterval}>
+        <div class="mx-1">{$appSettings.persistant.pageActivatorInterval} ms</div>
+      </div>
 
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active window:</b> {$appSettings.persistant.pageActivatorEnabled?window_name:"N/A"}</div>
 
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active window:</b> {window_name}</div>
-
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {window_title}</div>
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {$appSettings.persistant.pageActivatorEnabled?window_title:"N/A"}</div>
       
       <input type="text" placeholder="Page 0 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
       <input type="text" placeholder="Page 1 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
@@ -239,6 +323,12 @@
         on:click={()=>{engine.set('ENABLED')}} 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
         Enable Engine and User Inputs
+      </button>
+
+      <button 
+        on:click={resetAppSettings} 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
+        Reset App Settings
       </button>
       
     </div>

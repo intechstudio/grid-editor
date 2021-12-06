@@ -82,7 +82,7 @@
 
     <div class="flex w-full h-full overflow-hidden">
 
-      <LeftPanelContainer classes={"w-3/12"}/>
+      <LeftPanelContainer classes={"w-4/12"}/>
       
       <!-- This is the (mostly) Layout part of the code. -->
       <GridLayout classes={"w-6/12"}/>

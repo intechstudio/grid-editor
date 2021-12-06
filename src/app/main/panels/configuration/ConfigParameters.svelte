@@ -122,9 +122,6 @@
     </div>
   </div>
 
-  
-
-
   <div class="pb-2">
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
