@@ -36,7 +36,7 @@
   <div class="text-white">
     Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}  
   </div>
-  <textarea spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default bg-secondary rounded px-1 my-2 text-white font-mono"/>
+  <textarea spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default h-1/4 bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
   <div class="flex justify-between items-center overflow-y-auto">  

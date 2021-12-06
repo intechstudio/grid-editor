@@ -37,7 +37,6 @@ if (process.env.NODE_ENV === 'development') {
 
 function createWindow() {
 
-
     const mode = process.env.NODE_ENV;
 
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
@@ -114,13 +113,16 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 })
 
 
-ipcMain.on('download', async (event, url) => {
-  console.log('attempt to download..', url);
+ipcMain.on('download', async (event, arg) => {
+  
+
+
+  console.log('attempt to download..', arg.url);
   const win = BrowserWindow.getFocusedWindow();
 
-  let folder = store.get("profileFolder") + "/firmware";
+  let folder = store.get("profileFolder") + "/" + arg.folder;
 
-  let result = await download(win, url, {
+  let result = await download(win, arg.url, {
                                   directory: folder
                               });
 
@@ -176,16 +178,20 @@ ipcMain.on('restart_app', () => {
   autoUpdater.quitAndInstall();
 });
 
-// profile save and user config saves
-ipcMain.on('profiles-directory', () => {
-  log.info('default profiles folder is ', store.get('profiles_folder'))
-})
 
 // profile save and user config saves
 ipcMain.on('getProfileDefaultDirectory', (event, arg) => {
 
   event.returnValue = app.getPath('documents') + '/grid-userdata'
 })
+
+ipcMain.on('resetAppSettings', (event, arg) => {
+
+  event.returnValue = store.clear();
+  app.relaunch()
+  app.exit()
+})
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

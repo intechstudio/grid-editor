@@ -60,10 +60,13 @@ export const appSettings = writable({
     pageActivatorCriteria_1 : "",
     pageActivatorCriteria_2 : "",
     pageActivatorCriteria_3 : "",
+    pageActivatorInterval: 1000
   }
 
 
 });
+
+export const profileListRefresh = writable(0);
 
 let persistant = {
   profileFolder: '',
@@ -72,6 +75,7 @@ let persistant = {
   pageActivatorCriteria_1 : "",
   pageActivatorCriteria_2 : "",
   pageActivatorCriteria_3 : "",
+  pageActivatorInterval: 1000
 }
 
 
@@ -110,7 +114,17 @@ function init_appsettings(){
 
       if (value === undefined){
         value = "";
+
+        if (key === "profileFolder"){
+          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+        }
+      
+        if (key === "pageActivatorInterval"){
+          value = 1000;
+        }
+
       }
+
 
       appSettings.update(s => {
         console.log("init", key, value);

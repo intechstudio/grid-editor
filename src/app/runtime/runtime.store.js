@@ -13,6 +13,10 @@ let lastPageActivator = "";
 
 async function detectActiveWindow(){
 
+  if (get(appSettings).persistant.pageActivatorEnabled !== true){
+    return;
+  }
+
   try{
 
     if (get(appSettings).intervalPause) return;
@@ -72,7 +76,14 @@ const setIntervalAsync = (fn, ms) => {
   });
 };
 
-setIntervalAsync(detectActiveWindow, 500);
+const setIntervalAsyncActiveWindow = (fn) => {
+  fn().then(() => {
+    let interval = get(appSettings).persistant.pageActivatorInterval;
+    setTimeout(() => setIntervalAsyncActiveWindow(fn), interval);
+  });
+};
+
+setIntervalAsyncActiveWindow(detectActiveWindow);
 
 // The controller which is added to runtime first, load a default config!
 let first_connection = true;
@@ -187,6 +198,7 @@ function createMultiSelect(){
 
 export const appMultiSelect = createMultiSelect();
 
+
 function create_user_input () {
 
   const defaultValues = { 
@@ -251,16 +263,18 @@ function create_user_input () {
 
         store.id = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY).id
     
-        console.log(store.id )
+        console.log(store.id)
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
         store.brc.rot = descr.brc_parameters.ROT;
-        
-        store.event.elementtype = descr.class_parameters.ELEMENTTYPE;
+      
         store.event.eventtype = descr.class_parameters.EVENTTYPE;
-        store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;       
-        
+        store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;   
+
+        let elementtype = grid.moduleElements[store.id.split("_")[0]][store.event.elementnumber]  
+        store.event.elementtype = elementtype;
+
         return store;
       });
     }
@@ -318,7 +332,6 @@ function create_user_input () {
 }
 
 export const user_input = create_user_input();
-
 
 
 export const unsaved_changes = writable(0);

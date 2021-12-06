@@ -67,6 +67,7 @@ module.exports = {
         yellow: colors.amber,
         pink: colors.pink,
         purple: colors.purple,
+        orange: colors.orange,
         primary: {
           'DEFAULT': '#1e2628',
           '100':'#d3dcde',
