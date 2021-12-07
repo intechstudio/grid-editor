@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
@@ -26,10 +26,13 @@ let mainWindow;
 app.allowRendererProcessReuse = false;
 
 let tray = null
-
+const iconPath = path.join(__dirname, './icon.png');
 
 app.whenReady().then(() => {
-  tray = new Tray('./icon.png')
+
+  const buf = Buffer.from([255,0,0,255, 0,255,0,255, 0,0,255,255, 0,0,0,255])
+  const img = nativeImage.createFromBuffer(buf, {width: 2, height: 2})
+  tray = new Tray(img)
 
   const contextMenu = Menu.buildFromTemplate([
     {
