@@ -31,10 +31,33 @@ const iconPath = path.join(__dirname, './icon.png');
 app.whenReady().then(() => {
 
   const buf = Buffer.from([255,0,0,255, 0,255,0,255, 0,0,255,255, 0,0,0,255])
-  const img = nativeImage.createFromBuffer(buf, {width: 2, height: 2})
+
+  let debug = "# ";
+
+  let img;
+  try{
+    let iconpath = path.join(__dirname,'resources','icon.png')
+    console.log(iconpath)
+    img = nativeImage.createFromPath(iconpath)
+    if (img.isEmpty()){
+      debug += iconpath;
+      throw("resource not found")
+    }
+  }catch(e){
+    try{
+      img = nativeImage.createFromBuffer(buf, {width: 2, height: 2})
+    }catch(e){
+    }
+  }
+
   tray = new Tray(img)
 
   const contextMenu = Menu.buildFromTemplate([
+    {
+      label: debug, click: function () {
+
+      }
+    },   
     {
       label: 'Show', click: function () {
         mainWindow.setSkipTaskbar(false);

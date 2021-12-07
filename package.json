@@ -75,6 +75,7 @@
     "directories": {
       "output": "dist/"
     },
+    "files": ["resource/*", "src/resource/*"],
     "extraResources": "src/app/elements/config-block/*",
     "dmg": {
       "sign": false
