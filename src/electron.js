@@ -25,7 +25,31 @@ let mainWindow;
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false;
 
-let tray;
+let tray = null
+
+
+app.whenReady().then(() => {
+  tray = new Tray('icon.png')
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Show', click: function () {
+        mainWindow.setSkipTaskbar(false);
+        mainWindow.show();
+      }
+    },
+    {
+        label: 'Exit', click: function () {
+            app.isQuiting = true;
+            app.quit();
+        }
+    }
+    ])
+  tray.setToolTip('This is my application.')
+  tray.setContextMenu(contextMenu)
+  tray.setTitle("Grid Editor")
+  console.log("TRAY")
+})
+
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -61,14 +85,17 @@ function createWindow() {
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
     mainWindow.on('closed', () => {
-        mainWindow = null;
-        if (watcher) {
-          watcher.close();
-        }         
+      mainWindow = null;
+      if (watcher) {
+        watcher.close();
+      }         
     });
+
+
 
     mainWindow.on('resize', () => {
       let { width, height } = mainWindow.getBounds();
+
       store.set('windowBounds', { width, height });
     })
 
@@ -76,21 +103,7 @@ function createWindow() {
       mainWindow.webContents.openDevTools();
     }
 
-  
-    tray = new Tray(path.join(__dirname, 'icon.png'));
-    tray.setContextMenu(Menu.buildFromTemplate([
-      {
-        label: 'Show App', click: function () {
-          mainWindow.show();
-        }
-      },
-      {
-        label: 'Quit', click: function () {
-          isQuiting = true;
-          app.quit();
-        }
-      }
-    ]));  
+
     
 }
 
