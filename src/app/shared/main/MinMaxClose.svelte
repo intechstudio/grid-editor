@@ -8,11 +8,8 @@
   function init() { 
     document.getElementById("minimize-btn").addEventListener("click", function (e) {
           
-        e.preventDefault();
         const window = BrowserWindow.getFocusedWindow();
-        window.setSkipTaskbar(true);
-        window.hide(); 
-        //  window.minimize(); 
+        window.minimize(); 
     });
 
     document.getElementById("maximize-btn").addEventListener("click", function (e) {

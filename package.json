@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",

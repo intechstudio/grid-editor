@@ -29,12 +29,19 @@ let tray = null
 
 
 app.whenReady().then(() => {
-  tray = new Tray('icon.png')
+  tray = new Tray('./icon.png')
+
   const contextMenu = Menu.buildFromTemplate([
     {
       label: 'Show', click: function () {
         mainWindow.setSkipTaskbar(false);
         mainWindow.show();
+      }
+    },    
+    {
+      label: 'Hide', click: function () {
+        mainWindow.hide(); 
+        mainWindow.setSkipTaskbar(true);
       }
     },
     {
@@ -44,7 +51,8 @@ app.whenReady().then(() => {
         }
     }
     ])
-  tray.setToolTip('This is my application.')
+
+  tray.setToolTip('Grid Editor')
   tray.setContextMenu(contextMenu)
   tray.setTitle("Grid Editor")
   console.log("TRAY")
