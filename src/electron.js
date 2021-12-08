@@ -3,6 +3,8 @@ const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
 
+const { iconBuffer, iconSize } = require('./icon')
+
 global.trackEvent = trackEvent;
 
 const path = require('path');
@@ -26,38 +28,23 @@ let mainWindow;
 app.allowRendererProcessReuse = false;
 
 let tray = null
-const iconPath = path.join(__dirname, './icon.png');
 
 app.whenReady().then(() => {
 
-  const buf = Buffer.from([255,0,0,255, 0,255,0,255, 0,0,255,255, 0,0,0,255])
+/* ===============================================================================
+// Conde snippet to generate JSON file from PNG. Use this when creating a new icon
+// ./icon.js holds de raw data in PNG encoding
 
-  let debug = "# ";
+  let iconLoad = fs.readFileSync(path.join(__dirname, './icon.png'),null)
+  const iconLoadJson = JSON.stringify(iconLoad);
+  fs.writeFileSync(path.join(__dirname, './iconpng.txt'), iconLoadJson)  
+*/ 
 
-  let img;
-  try{
-    let iconpath = path.join(__dirname,'resources','icon.png')
-    console.log(iconpath)
-    img = nativeImage.createFromPath(iconpath)
-    if (img.isEmpty()){
-      debug += iconpath;
-      throw("resource not found")
-    }
-  }catch(e){
-    try{
-      img = nativeImage.createFromBuffer(buf, {width: 2, height: 2})
-    }catch(e){
-    }
-  }
+  const icon = nativeImage.createFromBuffer(Buffer.from( iconBuffer.data ), {width: iconSize, height: iconSize})
 
-  tray = new Tray(img)
+  tray = new Tray(icon)
 
   const contextMenu = Menu.buildFromTemplate([
-    {
-      label: debug, click: function () {
-
-      }
-    },   
     {
       label: 'Show', click: function () {
         mainWindow.setSkipTaskbar(false);
