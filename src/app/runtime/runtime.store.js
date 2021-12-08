@@ -8,6 +8,9 @@ import _utils from './_utils';
 
 const activeWindow = require('active-win');
 
+
+
+
 let lastPageActivator = "";  
 
 
@@ -22,6 +25,10 @@ async function detectActiveWindow(){
     if (get(appSettings).intervalPause) return;
 
     let result = (await activeWindow());
+
+    if (result === undefined){
+      result = {owner: {name: "Unknown!"}, title: "Invalid title!"}
+    }
 
     if (get(appSettings).intervalPause) return;
     if (get(unsaved_changes) !== 0) return;
@@ -65,7 +72,7 @@ async function detectActiveWindow(){
 
   }
   catch(e){
-    console.error("detectActiveWindow", e)
+    console.error("detectActiveWindow failed")
   }
 
 }
