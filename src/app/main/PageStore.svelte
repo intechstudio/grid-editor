@@ -6,10 +6,14 @@
   import { serialComm } from "../serialport/serialport.store";
 import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
+  const { getGlobal } = require('electron').remote; 
+  const trackEvent = getGlobal('trackEvent');
+
   export let classes;
 
   function store() {
     instructions.sendPageStoreToGrid();
+    trackEvent('page-config', 'page-config: store')
   }
 
 </script>

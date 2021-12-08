@@ -5,10 +5,15 @@
   import { serialComm } from "../serialport/serialport.store";
 import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
+
   export let classes;
 
   function erase() {
     instructions.sendPageClearToGrid();
+    trackEvent('page-config', 'page-config: clear')
+
   }
 
 </script>

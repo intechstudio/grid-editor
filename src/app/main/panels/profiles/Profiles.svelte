@@ -12,6 +12,8 @@
 
   const { ipcRenderer } = require('electron');
 
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
@@ -74,9 +76,13 @@
           const [stats] = await checkIfWritableDirectory(filepath);
 
           if(stats.isFile){
+            let filenameparts = file.split(".");
+            let extension = filenameparts[filenameparts.length-1];
+            if (extension === "json"){
+              fs.renameSync(path + "/" + file, path + "/profiles/user/" + file);
+              console.log("moving: ", file);
+            }
 
-            fs.renameSync(path + "/" + file, path + "/profiles/user/" + file);
-            console.log("moving: ", file);
 
           } else {
 
@@ -252,11 +258,15 @@
         if (err) throw err; 
         console.log('Saved!'); 
         logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
+
+        trackEvent('profile-library', 'profile-library: save success')
         loadFilesFromDirectory();
     }); 
   }
 
   function prepareSave() { 
+
+    trackEvent('profile-library', 'profile-library: save start')
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -308,6 +318,9 @@
 
   function loadProfile(){
 
+    
+    trackEvent('profile-library', 'profile-library: load start')
+
     if(selected !== undefined){
 
       const profile = selected;
@@ -321,10 +334,13 @@
 
         runtime.whole_page_overwrite(profile.configs);
 
+        trackEvent('profile-library', 'profile-library: save success')
 
 
       } else {
 
+
+        trackEvent('profile-library', 'profile-library: load mismatch')
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }
