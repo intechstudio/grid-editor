@@ -15,7 +15,13 @@
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
 
+
   const electron = require('electron'); 
+
+
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
+
   const {shell} = require('electron') // deconstructing assignment
   const fs = require('fs-extra');  
   const AdmZip = require("adm-zip");
@@ -107,6 +113,9 @@
 
   async function libraryDownload(){
 
+
+    trackEvent('library-download', 'library-download: download start')
+
     clearTimeout(download_status_interval)
 
     download_status = "Starting the download..."
@@ -155,11 +164,15 @@
 
         profileListRefresh.update(s => {return s+1});
         download_status = "Library updated!"
+
+        trackEvent('library-download', 'library-download: download success')
         download_status_interval = setTimeout(() => {
           download_status = ""
         }, 2500);
       }
       else{
+     
+        trackEvent('library-download', 'library-download: download failed')   
         console.log("GRID_NOT_FOUND")
       }
 

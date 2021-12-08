@@ -662,23 +662,30 @@ function create_runtime () {
     // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
     writeBuffer.clear();
 
-    fetchArray.forEach((elem, ind) => {
+    if (fetchArray.length === 0){
 
-      li.event.eventtype = elem.event;
-      li.event.elementnumber = elem.elementnumber;
+      //nothing to do, let's do calback
+      callback();
 
-      if (ind === fetchArray.length-1){ // last element
+    }
+    else{
 
-        fetchOrLoadConfig(li, callback);
-      }
-      else{
+      fetchArray.forEach((elem, ind) => {
 
-        fetchOrLoadConfig(li);
-      }
-
-
-    })
-   
+        li.event.eventtype = elem.event;
+        li.event.elementnumber = elem.elementnumber;
+  
+        if (ind === fetchArray.length-1){ // last element
+  
+          fetchOrLoadConfig(li, callback);
+        }
+        else{
+  
+          fetchOrLoadConfig(li);
+        }
+      });
+    }
+       
     return;
   }
 

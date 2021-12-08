@@ -8,7 +8,11 @@
 
   export let classes;
 
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
+
   function discard() {
+    trackEvent('page-config', 'page-config: discard')
     instructions.sendPageDiscardToGrid();
   }
 

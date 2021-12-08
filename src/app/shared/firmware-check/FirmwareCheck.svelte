@@ -8,6 +8,9 @@
 
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
+  const { getGlobal } = require('electron').remote;
+  const trackEvent = getGlobal('trackEvent');
+
   let fwMismatch = false; 
   let fwVersion;
 
@@ -37,6 +40,8 @@
       if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
         fwMismatch = true;
         notificationState = 1;
+
+        trackEvent('firmware-download', 'firmware-download: mismatch detected')
       }
     });
   })
@@ -100,6 +105,8 @@
       if (uploadProgressText == ""){
         notificationState = 3;
         uploadProgressText = "Grid bootloader is detected! ";
+
+        trackEvent('firmware-download', 'firmware-download: bootloader detected')
       }
 
     }
@@ -125,6 +132,8 @@
 
     notificationState = 4;
 
+
+    trackEvent('firmware-download', 'firmware-download: update start')
 
     uploadProgressText = "Fetching firmware download URL "
     fetch("https://intech.studio/common/software/grid-firmware").then(async e => {
@@ -185,12 +194,15 @@
 
         uploadProgressText = "Update completed successfully!";
 
+        trackEvent('firmware-download', 'firmware-download: update success')
 
         notificationState = 5;
         
       }
       else{
         console.log("GRID_NOT_FOUND")
+
+        trackEvent('firmware-download', 'firmware-download: update fail')
       }
 
     });

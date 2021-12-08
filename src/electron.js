@@ -49,12 +49,14 @@ app.whenReady().then(() => {
       label: 'Show', click: function () {
         mainWindow.setSkipTaskbar(false);
         mainWindow.show();
+        trackEvent('tray', 'tray: show window')
       }
     },    
     {
       label: 'Hide', click: function () {
         mainWindow.hide(); 
         mainWindow.setSkipTaskbar(true);
+        trackEvent('tray', 'tray: hide window')
       }
     },
     {
