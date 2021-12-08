@@ -29,7 +29,7 @@ app.allowRendererProcessReuse = false;
 
 let tray = null
 
-app.whenReady().then(() => {
+function create_tray(){
 
 /* ===============================================================================
 // Conde snippet to generate JSON file from PNG. Use this when creating a new icon
@@ -70,7 +70,15 @@ app.whenReady().then(() => {
   tray.setToolTip('Grid Editor')
   tray.setContextMenu(contextMenu)
   tray.setTitle("Grid Editor")
-  console.log("TRAY")
+}
+
+app.whenReady().then(() => {
+
+  if (process.platform !== 'darwin') {
+    create_tray();
+  }
+  
+
 })
 
 
