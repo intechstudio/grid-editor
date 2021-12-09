@@ -25,8 +25,6 @@ function checkOS() {
 }
 
 
-
-
 export const current_tooltip_store = writable({key: '', bool: false});
 
 export const appSettings = writable({
@@ -49,6 +47,7 @@ export const appSettings = writable({
   modal: '',
   os: checkOS(),
   intervalPause: false,
+  firmwareNotificationState: 0,
   activeWindowResult: {
     title: undefined,
     owner: {neme: undefined}},

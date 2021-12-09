@@ -236,6 +236,12 @@ ipcMain.on('resetAppSettings', (event, arg) => {
   app.exit()
 })
 
+ipcMain.on('restart', (event, arg) => {
+
+  app.relaunch()
+  app.exit()
+})
+
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {

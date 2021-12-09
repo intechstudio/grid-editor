@@ -182,7 +182,7 @@
 
   function resetAppSettings(){
 
-    let path = ipcRenderer.sendSync('resetAppSettings', 'foo');
+    ipcRenderer.sendSync('resetAppSettings', 'foo');
 
     console.log("App settings cleared");
 
