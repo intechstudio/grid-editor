@@ -10,27 +10,28 @@
   const SerialPort = require('serialport')
   const Readline = SerialPort.parsers.Readline;
 
-  import { pParser } from '../protocol/_utils.js';
   import { messageStream } from './message-stream.store.js';  
-  import { writeBuffer } from '../runtime/engine.store.js';
-
-  let PORT = {path: 0};
-  let selectedPort = "";
-  let _runtime = []
-
-  runtime.subscribe(rt => {_runtime = rt; return 1});
 
 
   let port_disovery_interval;
-  function discoverPorts(){
-    port_disovery_interval = setInterval(() => {
-      listSerialPorts();
-    }, 300 ) // 300ms
-  }
+
+  const setIntervalAsync = (fn, ms) => {
+    fn().then(() => {
+      port_disovery_interval = setTimeout(() => setIntervalAsync(fn, ms), ms);
+    });
+  };
+
+
+  let PORT = {path: 0};
+  let selectedPort = "";
+
+
+
+
 
   // Basic serial usage
 
-  function listSerialPorts(){
+  async function listSerialPorts(){
 
     SerialPort.list()
       .then(ports => {
@@ -125,35 +126,39 @@
   }
 
   function closeSerialPort() {
+    try{
+      if(PORT.path !== 0){
+        PORT.close(function(err){
+          console.warn('Port closed', err)
+        })
 
-    if(PORT.path !== 0){
-      PORT.close(function(err){
-        console.warn('Port closed', err)
-      })
+        // reset store
+        serialComm.update((store)=>{
+          store.open = undefined;
+          store.isEnabled = false;
+          store.list = [];
+          return store
+        });
 
-      // reset store
-      serialComm.update((store)=>{
-        store.open = undefined;
-        store.isEnabled = false;
-        store.list = [];
-        return store
-      });
+        
 
-      
+        // reset runtime and user input on closing the port
+        runtime.reset();
 
-      // reset runtime and user input on closing the port
-      runtime.reset();
+        
+        appSettings.update(s => {s.overlays.controlElementName = false; return s})
+        // clearup fifo writebuffer
+        // reset engine to enabled
+        engine.set('ENABLED');
 
-      
-      appSettings.update(s => {s.overlays.controlElementName = false; return s})
-      // clearup fifo writebuffer
-      // reset engine to enabled
-      engine.set('ENABLED');
-
-      // reset port
-      selectedPort = "";
-      PORT = {path: 0};
+        // reset port
+        selectedPort = "";
+        PORT = {path: 0};
+      }
+    }catch(e){
+      console.log("SERIALPORT", e)
     }
+
   }
 
   function readSerialPort() {
@@ -193,14 +198,15 @@
 
   }
 
+  onMount(() => {
+
+    setIntervalAsync(listSerialPorts, 500)
+  })
 
   onDestroy(()=>{
     clearInterval(port_disovery_interval);
     closeSerialPort();
   })
 
-  onMount(() => {
-    discoverPorts();
-  })
     
 </script>

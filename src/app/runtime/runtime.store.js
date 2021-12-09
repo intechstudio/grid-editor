@@ -406,7 +406,13 @@ function create_runtime () {
 
   function incoming_heartbeat_handler(descr){
 
+    
+
     let controller = this.create_module(descr.brc_parameters, descr.class_parameters, false);
+
+    if (controller === undefined){
+      return;
+    }
 
     _runtime.update((_runtime) => {
       let online = false;

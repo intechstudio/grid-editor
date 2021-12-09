@@ -22,25 +22,27 @@
 
   let notificationState = 0; // 1: Mismatch detected, 2: Waiting for enumeration, 3: Bootloader detected, 4: Updating... , 5: Update completed
 
+  appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
+
   runtime.subscribe((store)=>{
 
     if (store.length !== 0){
       fwMismatch = false;
-      if (notificationState !==5){
-        notificationState = 0;
+      if ($appSettings.firmwareNotificationState !==5){
+        appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
       }
     }
     else{
-      if (notificationState == 1){
-        notificationState = 2;
+      if ($appSettings.firmwareNotificationState === 1){
+        appSettings.update(s => {s.firmwareNotificationState = 2; return s;})
       }
     }
 
     store.forEach(device=>{
       if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
         fwMismatch = true;
-        notificationState = 1;
 
+        appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
         trackEvent('firmware-download', 'firmware-download: mismatch detected')
       }
     });
@@ -103,7 +105,7 @@
       bootloader_path = flash_path;
 
       if (uploadProgressText == ""){
-        notificationState = 3;
+        appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
         uploadProgressText = "Grid bootloader is detected! ";
 
         trackEvent('firmware-download', 'firmware-download: bootloader detected')
@@ -116,7 +118,7 @@
         bootloader_path = undefined;
         setTimeout(() => {
           uploadProgressText = "";
-          notificationState = 0;
+          appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
         }, 2000);
 
       }
@@ -130,8 +132,7 @@
   async function firmwareDownload(){
 
 
-    notificationState = 4;
-
+    appSettings.update(s => {s.firmwareNotificationState = 4; return s;})
 
     trackEvent('firmware-download', 'firmware-download: update start')
 
@@ -152,6 +153,7 @@
 
       //ipcRenderer.send('download', res.firmware.url);
       uploadProgressText = "Downloading firmware image "
+      
       let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
 
       console.log(result);
@@ -196,7 +198,7 @@
 
         trackEvent('firmware-download', 'firmware-download: update success')
 
-        notificationState = 5;
+        appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
         
       }
       else{
@@ -220,7 +222,8 @@
 </style>
 
 
-{#if notificationState === 1}
+
+{#if $appSettings.firmwareNotificationState === 1}
   <div  class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4">
     <div class="flex-col">
       <div class="mx-2"><b>Oops, firmware mismatch is detected! </b> </div>
@@ -230,7 +233,7 @@
 {/if}
 
 
-{#if notificationState === 2}
+{#if $appSettings.firmwareNotificationState === 2}
 
   <div  class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4">
     <div class="flex-col">
@@ -238,16 +241,19 @@
       <div class="mx-2">Connect the module in bootloader mode! </div>
     </div>
     <div in:fade={{delay: 8000}}>
-      <UrlButton url={"https://intech.studio/support/docs/firmware-update"}>
-        <div slot="button-label">Troubleshooting Options</div>
-      </UrlButton>
+      <button 
+        on:click={e =>{trackEvent('firmware-download', 'firmware-download: troubleshooting'); openInBrowser("https://intech.studio/support/docs/firmware-update")}} 
+        class="bg-red-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded">
+        <div>Troubleshooting Options</div>
+      </button>
+
     </div>
   </div>
 
 {/if}
 
 
-{#if notificationState === 3}
+{#if $appSettings.firmwareNotificationState === 3}
 
   <div  class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4">
 
@@ -267,7 +273,7 @@
 
 {/if}
 
-{#if notificationState === 4}
+{#if $appSettings.firmwareNotificationState === 4}
 
   <div  class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4">
     <div class="flex-col">
@@ -279,7 +285,7 @@
 
 {/if}
 
-{#if notificationState === 5}
+{#if $appSettings.firmwareNotificationState === 5}
 
   <div  class="w-full bg-green-500 text-white justify-center flex items-center text-center p-4">
     <div class="flex-col">
