@@ -25,6 +25,7 @@ function checkOS() {
 }
 
 
+
 export const current_tooltip_store = writable({key: '', bool: false});
 
 export const appSettings = writable({
@@ -228,3 +229,67 @@ export const actionIsDragged = writable(false);
 
 
 
+
+
+const {InfluxDB} = require('@influxdata/influxdb-client')
+
+// You can generate an API token from the "API Tokens Tab" in the UI
+const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
+const org = 'sukuwc@riseup.net'
+const bucket = "sukuwc's Bucket"
+
+const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
+
+const sessionid = Date.now();
+
+const {Point} = require('@influxdata/influxdb-client')
+
+
+const userId = ipcRenderer.sendSync('analytics_uuid');
+
+
+function analytics_track_string_event(measurement, field, value){
+
+  console.log("Analytics", measurement, field, value)
+  const writeApi = client.getWriteApi(org, bucket)
+  writeApi.useDefaultTags({uuid: userId, sessionid: sessionid, timestamp: Date.now()-sessionid})
+  
+  const point = new Point(measurement).stringField(field, value)
+
+  writeApi.writePoint(point)
+  
+  writeApi
+      .close()
+      .then(() => {
+          console.log('FINISHED')
+      })
+      .catch(e => {
+          console.error(e)
+          console.log('Finished ERROR')
+      })
+  
+}
+
+function analytics_track_number_event(measurement, field, value){
+
+  console.log("Analytics", userId, measurement, field, value)
+  const writeApi = client.getWriteApi(org, bucket)
+  writeApi.useDefaultTags({uuid: userId, sessionid: sessionid, timestamp: Date.now()-sessionid})
+ 
+  const point = new Point(measurement).floatField(field, parseFloat(value))
+
+  writeApi.writePoint(point)
+  
+  writeApi
+      .close()
+      .then(() => {
+          console.log('FINISHED')
+      })
+      .catch(e => {
+          console.error(e)
+          console.log('Finished ERROR')
+      })
+  
+}
+
+export {analytics_track_string_event, analytics_track_number_event}
