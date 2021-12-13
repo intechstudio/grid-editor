@@ -3,6 +3,7 @@ import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
 const fs = require('fs'); 
+require('dotenv').config();
 
 const { ipcRenderer } = require('electron');
 
@@ -244,51 +245,37 @@ const sessionid = Date.now();
 
 const {Point} = require('@influxdata/influxdb-client')
 
-
 const userId = ipcRenderer.sendSync('analytics_uuid');
+const editor_version = "v" + grid.properties.VERSION.MAJOR + "." + grid.properties.VERSION.MINOR + "." + grid.properties.VERSION.PATCH;
+const node_env = process.env.NODE_ENV;
 
+const writeApi = client.getWriteApi(org, bucket)
 
 function analytics_track_string_event(measurement, field, value){
 
-  console.log("Analytics", measurement, field, value)
-  const writeApi = client.getWriteApi(org, bucket)
-  writeApi.useDefaultTags({uuid: userId, sessionid: sessionid, timestamp: Date.now()-sessionid})
-  
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid})
+ 
   const point = new Point(measurement).stringField(field, value)
 
-  writeApi.writePoint(point)
-  
-  writeApi
-      .close()
-      .then(() => {
-          console.log('FINISHED')
-      })
-      .catch(e => {
-          console.error(e)
-          console.log('Finished ERROR')
-      })
-  
+  try{
+    writeApi.writePoint(point)
+  }catch(e){
+    console.log("Analytics: ", e)
+  }
+
 }
 
 function analytics_track_number_event(measurement, field, value){
 
-  console.log("Analytics", userId, measurement, field, value)
-  const writeApi = client.getWriteApi(org, bucket)
-  writeApi.useDefaultTags({uuid: userId, sessionid: sessionid, timestamp: Date.now()-sessionid})
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid})
  
   const point = new Point(measurement).floatField(field, parseFloat(value))
 
-  writeApi.writePoint(point)
-  
-  writeApi
-      .close()
-      .then(() => {
-          console.log('FINISHED')
-      })
-      .catch(e => {
-          console.error(e)
-          console.log('Finished ERROR')
-      })
+  try{
+    writeApi.writePoint(point)
+  }catch(e){
+    console.log("Analytics: ", e)
+  }
   
 }
 

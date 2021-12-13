@@ -933,7 +933,7 @@ setInterval(function(){
 
   analytics_track_number_event("runtime", "connected_module_count", get(runtime).length);
 
-}, 5000);
+}, 10000);
 
 const editor_heartbeat_interval_handler = async function(){ 
   

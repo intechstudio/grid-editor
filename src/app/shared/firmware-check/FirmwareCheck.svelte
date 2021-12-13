@@ -40,10 +40,12 @@
 
     store.forEach(device=>{
       if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
-        fwMismatch = true;
-
+        
         appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
-        trackEvent('firmware-download', 'firmware-download: mismatch detected')
+        if (fwMismatch === false){
+          trackEvent('firmware-download', 'firmware-download: mismatch detected')
+        }
+        fwMismatch = true;
       }
     });
   })
