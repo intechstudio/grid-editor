@@ -6,14 +6,21 @@
 
   import TooltipSetter from '../main/user-interface/tooltip/TooltipSetter.svelte';
 
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from "../main/_stores/app-helper.store"
+
+
   export let classes;
 
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
 
   function discard() {
-    trackEvent('page-config', 'page-config: discard')
+
     instructions.sendPageDiscardToGrid();
+
+    trackEvent('page-config', 'page-config: discard')
+    analytics_track_string_event("pageconfig", "command", "discard")
+    
   }
 
 </script>

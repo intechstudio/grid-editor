@@ -2,7 +2,7 @@
 <script>
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
-  import { appSettings, profileListRefresh } from '../../_stores/app-helper.store.js';
+  import { profileListRefresh } from '../../_stores/app-helper.store.js';
 
   import NVMDefrag from '../../NVMDefrag.svelte';
   import NVMErase from '../../NVMErase.svelte';
@@ -13,6 +13,8 @@
   import loadFilesFromDirectory from '../../panels/profiles/Profiles.svelte';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../../main/_stores/app-helper.store';
 
 
 
@@ -115,6 +117,7 @@
 
 
     trackEvent('library-download', 'library-download: download start')
+    analytics_track_string_event("library", "factory profiles", "download start")
 
     clearTimeout(download_status_interval)
 
@@ -166,6 +169,7 @@
         download_status = "Library updated!"
 
         trackEvent('library-download', 'library-download: download success')
+        analytics_track_string_event("library", "factory profiles", "download success")
         download_status_interval = setTimeout(() => {
           download_status = ""
         }, 2500);
@@ -173,6 +177,7 @@
       else{
      
         trackEvent('library-download', 'library-download: download failed')   
+        analytics_track_string_event("library", "factory profiles", "download fail")
         console.log("GRID_NOT_FOUND")
       }
 

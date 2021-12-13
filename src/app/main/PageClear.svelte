@@ -3,16 +3,20 @@
   import { engine, logger, runtime } from "../runtime/runtime.store";
   import instructions from "../serialport/instructions";
   import { serialComm } from "../serialport/serialport.store";
-import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from "../main/_stores/app-helper.store"
+
 
   export let classes;
 
   function erase() {
     instructions.sendPageClearToGrid();
+    
     trackEvent('page-config', 'page-config: clear')
+    analytics_track_string_event("pageconfig", "command", "clear")
 
   }
 

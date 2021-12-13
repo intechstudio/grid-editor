@@ -242,6 +242,7 @@ const bucket = "sukuwc's Bucket"
 const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
 
 const sessionid = Date.now();
+const user_platform = checkOS();
 
 const {Point} = require('@influxdata/influxdb-client')
 
@@ -253,7 +254,7 @@ const writeApi = client.getWriteApi(org, bucket)
 
 function analytics_track_string_event(measurement, field, value){
 
-  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid})
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "string"})
  
   const point = new Point(measurement).stringField(field, value)
 
@@ -267,7 +268,7 @@ function analytics_track_string_event(measurement, field, value){
 
 function analytics_track_number_event(measurement, field, value){
 
-  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid})
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "float"})
  
   const point = new Point(measurement).floatField(field, parseFloat(value))
 
