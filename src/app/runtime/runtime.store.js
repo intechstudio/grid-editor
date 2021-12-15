@@ -774,6 +774,8 @@ function create_runtime () {
 
     let moduleType = grid.module_type_from_hwcfg(heartbeat.HWCFG);
 
+    console.log(moduleType)
+
     let controller = undefined;
 
     // generic check, code below if works only if all parameters are provided
