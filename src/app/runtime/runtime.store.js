@@ -1,10 +1,12 @@
 import { writable, get, derived } from 'svelte/store';
-import { appSettings } from '../main/_stores/app-helper.store';
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
+
+import { appSettings, analytics_track_number_event } from '../main/_stores/app-helper.store';
+//function analytics_track_number_event(){}
 
 const activeWindow = require('active-win');
 
@@ -270,7 +272,6 @@ function create_user_input () {
 
         store.id = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY).id
     
-        console.log(store.id)
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
@@ -441,7 +442,11 @@ function create_runtime () {
           });
           first_connection = false;
         }
+
+        analytics_track_number_event("runtime", "connected_module_count", _runtime.length);
       }
+
+
       return _runtime;
     });
   }
@@ -814,6 +819,8 @@ function create_runtime () {
     user_input.module_destroy_handler(dx, dy);
     writeBuffer.module_destroy_handler(dx, dy);
     
+
+    analytics_track_number_event("runtime", "connected_module_count", get(_runtime).length);
   }
 
   function reset(){
@@ -921,7 +928,11 @@ const grid_heartbeat_interval_handler = async function(){
 
 setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 
+setInterval(function(){
 
+  analytics_track_number_event("runtime", "connected_module_count", get(runtime).length);
+
+}, 10000);
 
 const editor_heartbeat_interval_handler = async function(){ 
   

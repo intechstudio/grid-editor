@@ -3,6 +3,7 @@ import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../../config-blocks/_configs';
 import grid from '../../protocol/grid-protocol';
 const fs = require('fs'); 
+require('dotenv').config();
 
 const { ipcRenderer } = require('electron');
 
@@ -23,6 +24,7 @@ function checkOS() {
 
   return 'browser';
 }
+
 
 
 export const current_tooltip_store = writable({key: '', bool: false});
@@ -228,3 +230,54 @@ export const actionIsDragged = writable(false);
 
 
 
+
+
+const {InfluxDB} = require('@influxdata/influxdb-client')
+
+// You can generate an API token from the "API Tokens Tab" in the UI
+const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
+const org = 'sukuwc@riseup.net'
+const bucket = "sukuwc's Bucket"
+
+const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
+
+const sessionid = Date.now();
+const user_platform = checkOS();
+
+const {Point} = require('@influxdata/influxdb-client')
+
+const userId = ipcRenderer.sendSync('analytics_uuid');
+const editor_version = "v" + grid.properties.VERSION.MAJOR + "." + grid.properties.VERSION.MINOR + "." + grid.properties.VERSION.PATCH;
+const node_env = process.env.NODE_ENV;
+
+const writeApi = client.getWriteApi(org, bucket)
+
+function analytics_track_string_event(measurement, field, value){
+
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "string"})
+ 
+  const point = new Point(measurement).stringField(field, value)
+
+  try{
+    writeApi.writePoint(point)
+  }catch(e){
+    console.log("Analytics: ", e)
+  }
+
+}
+
+function analytics_track_number_event(measurement, field, value){
+
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "float"})
+ 
+  const point = new Point(measurement).floatField(field, parseFloat(value))
+
+  try{
+    writeApi.writePoint(point)
+  }catch(e){
+    console.log("Analytics: ", e)
+  }
+  
+}
+
+export {analytics_track_string_event, analytics_track_number_event}

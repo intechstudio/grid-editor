@@ -6,7 +6,6 @@
 
   import { onMount } from 'svelte';
 
-  import { appSettings } from '../_stores/app-helper.store.js';
 
   import { engine, runtime } from '../../runtime/runtime.store.js';
 
@@ -23,6 +22,9 @@
 
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
+
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../main/_stores/app-helper.store';
+
 
   const { ipcRenderer } = require('electron');
 
@@ -149,12 +151,23 @@
 
   function refresh(){
 
-    console.log(1);
     trackEvent('no-module', 'no-module: restart app') 
+    analytics_track_string_event("gridlayout", "no module", "app restart")
+
+
     setTimeout(() => {
       ipcRenderer.sendSync('restart', "foo");
     }, 500);
 
+
+  }
+
+  function troubleshoot(){
+
+    openInBrowser("https://intech.studio/support/docs/troubleshooting")
+
+    trackEvent('no-module', 'no-module: troubleshooting'); 
+    analytics_track_string_event("gridlayout", "no module", "troubleshoot")
 
   }
 
@@ -179,7 +192,7 @@
         </button>
       
         <button 
-          on:click={e =>{trackEvent('no-module', 'no-module: troubleshooting'); openInBrowser("https://intech.studio/support/docs/troubleshooting")}} 
+          on:click={troubleshoot} 
           class="relative border block hover:bg-commit-saturate-20 text-white mt-3 mb-1 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
           <div>Troubleshooting</div>
         </button>

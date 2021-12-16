@@ -26,6 +26,9 @@ function trackEvent(category, action, label, value) {
   }
 }
 
-module.exports = { trackEvent };
 
 global.trackEvent = trackEvent;
+
+
+
+module.exports = { trackEvent};

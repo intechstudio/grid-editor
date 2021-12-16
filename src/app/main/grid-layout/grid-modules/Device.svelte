@@ -6,6 +6,7 @@
   import PO16 from './devices/PO16.svelte';
   import PBF4 from './devices/PBF4.svelte';
   import EN16 from './devices/EN16.svelte';
+  import EF44 from './devices/EF44.svelte';
 
   import ControlNameOverlay from './overlays/ControlNameOverlay.svelte';
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
@@ -19,6 +20,7 @@
 		{ type: 'PO16', component: PO16 },
     { type: 'PBF4', component: PBF4 },
     { type: 'EN16', component: EN16 },
+    { type: 'EF44', component: EF44 },
 	];
 
   export let type;

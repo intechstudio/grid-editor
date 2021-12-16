@@ -318,6 +318,10 @@ let moduleElements = {
     'encoder', 'encoder', 'encoder', 'encoder',
     'encoder', 'encoder', 'encoder', 'encoder',
     'encoder', 'encoder', 'encoder', 'encoder'        
+  ],
+  EF44: [
+    'encoder', 'encoder', 'encoder', 'encoder',
+    'fader', 'fader', 'fader', 'fader'  
   ]
 }
 

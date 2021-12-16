@@ -42,6 +42,7 @@
     "@codemirror/legacy-modes": "^0.18.0",
     "@codemirror/stream-parser": "^0.18.1",
     "@codemirror/tooltip": "^0.18.4",
+    "@influxdata/influxdb-client": "^1.21.0",
     "@sveltejs/pancake": "0.0.16",
     "active-win": "^7.6.1",
     "adm-zip": "^0.5.9",

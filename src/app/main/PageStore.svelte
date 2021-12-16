@@ -9,11 +9,16 @@ import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
   const { getGlobal } = require('electron').remote; 
   const trackEvent = getGlobal('trackEvent');
 
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from "../main/_stores/app-helper.store"
+
   export let classes;
 
   function store() {
+
+    trackEvent('page-config', 'page-config: store') 
+    analytics_track_string_event("pageconfig", "command", "store")
+
     instructions.sendPageStoreToGrid();
-    trackEvent('page-config', 'page-config: store')
   }
 
 </script>

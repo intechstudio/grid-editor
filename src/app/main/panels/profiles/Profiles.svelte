@@ -17,7 +17,9 @@
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
-  import { appSettings, profileListRefresh } from '../../_stores/app-helper.store.js';
+  import { profileListRefresh } from '../../_stores/app-helper.store.js';
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../../main/_stores/app-helper.store';
+
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
@@ -259,14 +261,18 @@
         console.log('Saved!'); 
         logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
 
-        trackEvent('profile-library', 'profile-library: save success')
         loadFilesFromDirectory();
+
+        trackEvent('profile-library', 'profile-library: save success')
+        analytics_track_string_event("library", "profile", "save success")
+
     }); 
   }
 
   function prepareSave() { 
 
     trackEvent('profile-library', 'profile-library: save start')
+    analytics_track_string_event("library", "profile", "save start")
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -320,6 +326,7 @@
 
     
     trackEvent('profile-library', 'profile-library: load start')
+    analytics_track_string_event("library", "profile", "load start")
 
     if(selected !== undefined){
 
@@ -334,13 +341,15 @@
 
         runtime.whole_page_overwrite(profile.configs);
 
-        trackEvent('profile-library', 'profile-library: save success')
+        trackEvent('profile-library', 'profile-library: load success')
+        analytics_track_string_event("library", "profile", "load success")
 
 
       } else {
 
 
         trackEvent('profile-library', 'profile-library: load mismatch')
+        analytics_track_string_event("library", "profile", "load mismatch")
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }

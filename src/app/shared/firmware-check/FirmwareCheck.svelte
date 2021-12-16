@@ -2,7 +2,7 @@
   import { onMount } from 'svelte';
   import UrlButton from '../../main/user-interface/UrlButton.svelte';
   import { writable, get } from 'svelte/store';
-  import { appSettings } from '../../main/_stores/app-helper.store';
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../main/_stores/app-helper.store';
   import { runtime } from '../../runtime/runtime.store';
   import { openInBrowser } from '../helpers/global-helper.js';
 
@@ -40,10 +40,13 @@
 
     store.forEach(device=>{
       if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
-        fwMismatch = true;
-
+        
         appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
-        trackEvent('firmware-download', 'firmware-download: mismatch detected')
+        if (fwMismatch === false){
+          trackEvent('firmware-download', 'firmware-download: mismatch detected')
+          analytics_track_string_event("firmware", "auto_update", "mismatch detected")
+        }
+        fwMismatch = true;
       }
     });
   })
@@ -108,7 +111,9 @@
         appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
         uploadProgressText = "Grid bootloader is detected! ";
 
+        
         trackEvent('firmware-download', 'firmware-download: bootloader detected')
+        analytics_track_string_event("firmware", "auto_update", "bootloader detected")
       }
 
     }
@@ -135,6 +140,7 @@
     appSettings.update(s => {s.firmwareNotificationState = 4; return s;})
 
     trackEvent('firmware-download', 'firmware-download: update start')
+    analytics_track_string_event("firmware", "auto_update", "update start")
 
     uploadProgressText = "Fetching firmware download URL "
     fetch("https://intech.studio/common/software/grid-firmware").then(async e => {
@@ -197,6 +203,7 @@
         uploadProgressText = "Update completed successfully!";
 
         trackEvent('firmware-download', 'firmware-download: update success')
+        analytics_track_string_event("firmware", "auto_update", "update success")
 
         appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
         
@@ -205,13 +212,21 @@
         console.log("GRID_NOT_FOUND")
 
         trackEvent('firmware-download', 'firmware-download: update fail')
+        analytics_track_string_event("firmware", "auto_update", "update fail")
       }
 
     });
 
   }
 
+  function firmwareTroubleshooting(){
 
+    trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
+    analytics_track_string_event("firmware", "auto_update", "troubleshooting")
+    
+    openInBrowser("https://intech.studio/support/docs/firmware-update")
+
+  }
 
 
 </script>
@@ -242,7 +257,7 @@
     </div>
     <div in:fade={{delay: 8000}}>
       <button 
-        on:click={e =>{trackEvent('firmware-download', 'firmware-download: troubleshooting'); openInBrowser("https://intech.studio/support/docs/firmware-update")}} 
+        on:click={firmwareTroubleshooting} 
         class="bg-red-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded">
         <div>Troubleshooting Options</div>
       </button>

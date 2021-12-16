@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
 
+
 const { iconBuffer, iconSize } = require('./icon')
 
 global.trackEvent = trackEvent;
@@ -82,6 +83,7 @@ app.whenReady().then(() => {
 })
 
 
+
 let watcher;
 if (process.env.NODE_ENV === 'development') {
  watcher = require('chokidar').watch(path.join(__dirname, '../public/build/*'), { ignoreInitial: true });
@@ -134,7 +136,6 @@ function createWindow() {
       mainWindow.webContents.openDevTools();
     }
 
-
     
 }
 
@@ -158,6 +159,8 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 
 
 ipcMain.on('download', async (event, arg) => {
+
+  
   
 
 
@@ -179,16 +182,19 @@ ipcMain.handle('getStoreValue', (event, key) => {
   return result;
 })
 
-// uuid for google analytics
 
-ipcMain.on('set_uuid', (event,arg) => {
-  console.log('Storing UUID!');
-  store.set(arg);
+
+
+ipcMain.on('analytics_uuid', (event) => {
+  console.log("UUID", store.get('userId'))
+
+  event.returnValue = store.get('userId');
 });
 
-ipcMain.handle('get_uuid', (event,arg) => {
-  return store.get('uuid');
-})
+
+
+
+
 
 // auto-update features
 

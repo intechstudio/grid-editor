@@ -8,7 +8,9 @@
   export let rotation = 0;
 
   const faderWidth = 16;
-  const faderHeight = 37;
+
+  
+  export let faderHeight; // was 37 or 68
 
   export let position;
 
@@ -43,19 +45,22 @@
 
   // with all these functions, this could be much more performant.
   function handleGrabMove(event){
+
+    return;
     var coord = getMousePosition(event);
     const rot = rotMode(rotation).toLowerCase();
     let value = (startValue - (initMove + coord[rot])) * inverse();
     
-    if(value < -22){
-      value = -22;
+    if(value < -(22/faderHeight*37)){
+      value = -(22/faderHeight*37);
     }
-    if (value > 22){
-      value = 22;
+    if (value > (22/faderHeight*37)){
+      value = (22/faderHeight*37);
     }
 
     move = value;
-    position = (move/(-1)+22)*2.887;
+    position = move*(-1);
+    console.log(value)
   }
 
   function handleGrabEnd(event){
@@ -103,17 +108,17 @@
     id="fader-cap" 
     width={size * faderWidth + 'px'} 
     height={size * faderHeight + 'px'} 
-    viewBox="0 0 24 60" 
+    viewBox="0 0 24 {faderHeight + 23}" 
     fill="none" 
     xmlns="http://www.w3.org/2000/svg"
     style="overflow:visible;">
   <g id="fader">
     <g id="fader-path" filter="url(#filter0_i)">
-      <rect x="9" width="6" height="60" rx="3" fill="white"/>
+      <rect x="9" width="6" height="{faderHeight + 23}" rx="3" fill="white"/>
     </g>
     <g 
     class="fader-transform"
-    style="--translate-move: {'translateY('+ ((Math.round(position/ 2.887) - 22) * -1) +'px)'};">
+    style="--translate-move: {'translateY('+Math.floor( (position*(-1) + 90)*(0.6/68*faderHeight - (faderHeight-37)/700) - (68-faderHeight)*0.27 - (37-faderHeight)*0.05 )+'px)'};">
       <g id="bottom" filter="url(#filter1_i)">
         <rect y="22" width="24" height="16" rx="1" fill="#323232"/>
       </g>
@@ -124,7 +129,7 @@
       </g>
     </g>
   <defs>
-    <filter id="filter0_i" x="9" y="-4" width="8" height="64" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+    <filter id="filter0_i" x="9" y="-4" width="8" height="{faderHeight + 23 + 4}" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
       <feFlood flood-opacity="0" result="BackgroundImageFix"/>
       <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
       <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
