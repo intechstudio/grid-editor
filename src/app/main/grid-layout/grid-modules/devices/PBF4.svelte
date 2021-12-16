@@ -103,7 +103,8 @@
           <Fader {elementNumber}
             position={elementposition_array[elementNumber]}
             size={$appSettings.size} 
-            rotation={rotation*-90}/>
+            rotation={rotation*-90}
+            faderHeight={37}/>
         </div>
       {/each}
     </div>
