@@ -11,7 +11,6 @@
   import Options from './components/Options.svelte';
 
   import ConfigExtension from './ConfigExtension.svelte';
-  import ConfigPicker from './config-picker/ConfigPicker.svelte';
   import ExportConfigs from './components/ExportConfigs.svelte';
 
 
@@ -43,7 +42,12 @@
 
   async function addConfigAtPosition(arg, index){
 
+
     const { config } = arg.detail;
+
+    if (config === undefined || config === ""){
+      return;
+    }
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 

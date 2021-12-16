@@ -55,7 +55,7 @@
   }
 
   function pickAction(action){
-    console.log(action);
+  
     selected_action = action.desc;
     presetManagement.selected_action.update({name: action.desc, configs: `--[[@${action.short}]] ${action.defaultLua}`});
   }
@@ -70,7 +70,14 @@
   }
 
   let action_options = [];
-  onMount(async ()=>{
+  onMount(()=>{
+
+  })
+
+
+  function openActionPicker(){
+
+
     try {
 
       const sorting_array = ['variables', 'led', 'midi', 'keyboard', 'mouse', 'element settings', 'condition', 'code', 'timer' ];
@@ -127,7 +134,16 @@
     } catch (error) {
       console.log("PARA",error);
     }
-  })
+
+
+
+
+
+    configSelection = ! configSelection; appMultiSelect.reset();
+
+
+  }
+
 
 
 </script>
@@ -135,7 +151,7 @@
 {#if !userHelper}
 
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
+    on:click={openActionPicker}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class="{((visible || configSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center">
@@ -153,7 +169,7 @@
 {:else}
   
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
+    on:click={openActionPicker}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class=" cursor-pointer flex w-full items-center">
@@ -207,7 +223,6 @@
             <div class="w-full flex justify-start py-1 h-full flex-wrap">   
 
               {#each option.collection as action}
-
                 <div 
                   style="--action-color: {action.color};"
                   use:addOnDoubleClick 

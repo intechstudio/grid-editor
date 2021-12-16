@@ -203,7 +203,7 @@ function read_string_from_asciicode_array(array, offset, length){
 
   // check is parameters are valid, make sure we don't overrun the buffer
   if (array.length>0 && array.length < offset+length){
-    console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
+    // console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`); 
     return undefined;
   }
 
