@@ -5,7 +5,7 @@ import grid from '../../protocol/grid-protocol';
 const fs = require('fs'); 
 require('dotenv').config();
 
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, app } = require('electron');
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -47,6 +47,7 @@ export const appSettings = writable({
   stringNameOverlay: false,
   preferences: false,
   modal: '',
+  trayState: false,
   os: checkOS(),
   intervalPause: false,
   firmwareNotificationState: 0,
@@ -106,7 +107,22 @@ appSettings.subscribe(store => {
 
 })
 
+
+
+ipcRenderer.on('trayState', (event, args) => {
+
+  if (get(appSettings).trayState === true && args === false){
+    // restart session
+    sessionid = Date.now();
+  }
+
+  console.log("traystate: ", args)
+  appSettings.update(s => {s.trayState = args; return s;})  
+})
+
+
 function init_appsettings(){
+
 
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
@@ -241,7 +257,7 @@ const bucket = "sukuwc's Bucket"
 
 const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
 
-const sessionid = Date.now();
+let sessionid = Date.now();
 const user_platform = checkOS();
 
 const {Point} = require('@influxdata/influxdb-client')

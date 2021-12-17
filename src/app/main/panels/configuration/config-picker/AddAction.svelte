@@ -17,6 +17,10 @@
   import { addOnDoubleClick } from '../../../_actions/add-on-double-click';
   
   import { getAllComponents } from '../../../../config-blocks/_configs';
+ 
+  import { appSettings, analytics_track_string_event, analytics_track_number_event } from "../../../../main/_stores/app-helper.store"
+ 
+
 
   export let animation = false;
   export let actions;
@@ -36,6 +40,8 @@
 
   let selected_action = '';
 
+  let actionPickerTimestamp = 0;
+
   function initConfig(){
 
     let cfg = '';
@@ -46,6 +52,11 @@
       cfg = get(presetManagement.selected_action).configs;
     }
 
+    let action_name = get(presetManagement.selected_action).name;
+
+    analytics_track_string_event("configpicker", "added_action", action_name)
+
+
     dispatch('new-config', {
       config: cfg
     });
@@ -55,7 +66,7 @@
   }
 
   function pickAction(action){
-    console.log(action);
+  
     selected_action = action.desc;
     presetManagement.selected_action.update({name: action.desc, configs: `--[[@${action.short}]] ${action.defaultLua}`});
   }
@@ -67,10 +78,19 @@
     });
     configSelection = false;
     visible = false;
+
+    analytics_track_string_event("config", "multiselect", "paste_from_add_action")
   }
 
   let action_options = [];
-  onMount(async ()=>{
+  onMount(()=>{
+
+  })
+
+
+  function openActionPicker(){
+
+
     try {
 
       const sorting_array = ['variables', 'led', 'midi', 'keyboard', 'mouse', 'element settings', 'condition', 'code', 'timer' ];
@@ -127,7 +147,31 @@
     } catch (error) {
       console.log("PARA",error);
     }
-  })
+
+
+
+
+
+    configSelection = ! configSelection; appMultiSelect.reset();
+
+    console.log("Open Picker")
+    actionPickerTimestamp = Date.now();
+
+  }
+
+
+  function closeActionPicker(){
+
+    let actionPickerDuration = Date.now() - actionPickerTimestamp;
+
+    console.log("Close Picker", actionPickerDuration/1000.0)
+
+    analytics_track_number_event("configpicker", "action_picker_duration", actionPickerDuration)
+
+
+    initConfig();
+
+  }
 
 
 </script>
@@ -135,7 +179,7 @@
 {#if !userHelper}
 
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
+    on:click={openActionPicker}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class="{((visible || configSelection) && !animation) ? 'opacity-100' : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center">
@@ -153,7 +197,7 @@
 {:else}
   
   <action-placeholder 
-    on:click={()=>{configSelection = ! configSelection; appMultiSelect.reset();}}  
+    on:click={openActionPicker}  
     on:mouseenter={()=>{visible = true;}} 
     on:mouseleave={()=>{visible = false;}} 
     class=" cursor-pointer flex w-full items-center">
@@ -207,12 +251,11 @@
             <div class="w-full flex justify-start py-1 h-full flex-wrap">   
 
               {#each option.collection as action}
-
                 <div 
                   style="--action-color: {action.color};"
                   use:addOnDoubleClick 
                   on:click={()=>{pickAction(action)}}
-                  on:double-click={()=>{initConfig()}} 
+                  on:double-click={closeActionPicker} 
                   class="action-card {selected_action == action.desc ? ' border-pick' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white">
                     <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                     <div class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25">{action.desc}</div> 
@@ -232,7 +275,7 @@
           <button 
             disabled={selectedConfig === undefined} 
             class:disabled={selectedConfig === undefined} 
-            on:click={initConfig} 
+            on:click={closeActionPicker} 
             class="bg-commit hover:bg-commit-saturate-20 w-full mr-1 text-white py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
             >
             Add Action

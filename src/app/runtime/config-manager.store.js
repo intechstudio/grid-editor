@@ -2,6 +2,9 @@ import { writable, get } from 'svelte/store';
 
 import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from './runtime.store';
 
+
+import { analytics_track_string_event } from '../main/_stores/app-helper.store';
+
 import _utils from './_utils.js';
 
 
@@ -86,7 +89,8 @@ export function configManagement() {
       })
     };
 
-    this.copy = function() {
+    this.copy = function(isCut = false) {
+
       const selection = get(appMultiSelect).selection;
       
       const configs = get_configs();
@@ -100,6 +104,11 @@ export function configManagement() {
       });
 
       appActionClipboard.set(clipboard);
+      
+      if (isCut === false){
+        analytics_track_string_event("config", "multiselect", "copy")
+      }
+
     };
 
     this.paste = function(){
@@ -120,11 +129,14 @@ export function configManagement() {
         
         // trigger change detection
         user_input.update(n => n);
+
+        analytics_track_string_event("config", "multiselect", "paste")
       }
     }
 
     this.cut = function() {
-      this.copy();
+      analytics_track_string_event("config", "multiselect", "cut")
+      this.copy(true);
       this.remove();
     };
 
@@ -160,6 +172,8 @@ export function configManagement() {
 
         // trigger change detection
         user_input.update(n => n);
+
+        analytics_track_string_event("config", "multiselect", "remove")
 
       }
 

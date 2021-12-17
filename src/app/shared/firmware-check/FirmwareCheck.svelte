@@ -27,7 +27,7 @@
   runtime.subscribe((store)=>{
 
     if (store.length !== 0){
-      fwMismatch = false;
+      
       if ($appSettings.firmwareNotificationState !==5){
         appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
       }
@@ -38,17 +38,31 @@
       }
     }
 
+    let gotMismatch = false;
+
     store.forEach(device=>{
       if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
-        
-        appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
-        if (fwMismatch === false){
-          trackEvent('firmware-download', 'firmware-download: mismatch detected')
-          analytics_track_string_event("firmware", "auto_update", "mismatch detected")
-        }
-        fwMismatch = true;
+        gotMismatch = true;
       }
     });
+
+    if (gotMismatch === true){
+
+
+      appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
+
+      if (fwMismatch === false){
+        trackEvent('firmware-download', 'firmware-download: mismatch detected')
+        analytics_track_string_event("firmware", "auto_update", "mismatch detected")
+        fwMismatch = true;
+      }
+      
+    }
+    else{
+      fwMismatch = false;
+    }
+
+    
   })
 
   appSettings.subscribe((store)=>{
