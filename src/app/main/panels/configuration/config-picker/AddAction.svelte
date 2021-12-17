@@ -78,6 +78,8 @@
     });
     configSelection = false;
     visible = false;
+
+    analytics_track_string_event("config", "multiselect", "paste_from_add_action")
   }
 
   let action_options = [];

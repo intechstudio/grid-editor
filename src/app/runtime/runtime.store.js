@@ -6,7 +6,6 @@ import _utils from './_utils';
 
 
 import { appSettings, analytics_track_number_event } from '../main/_stores/app-helper.store';
-//function analytics_track_number_event(){}
 
 const activeWindow = require('active-win');
 
@@ -930,7 +929,15 @@ setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 
 setInterval(function(){
 
+  if (!get(appSettings).trayState){
+    analytics_track_number_event("runtime", "session_heartbeat", 1);
+  }
+  else{
+    analytics_track_number_event("runtime", "session_heartbeat", 0);
+  }
+
   analytics_track_number_event("runtime", "connected_module_count", get(runtime).length);
+
 
 }, 10000);
 

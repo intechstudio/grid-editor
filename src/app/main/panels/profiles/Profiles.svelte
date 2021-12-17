@@ -20,6 +20,8 @@
   import { profileListRefresh } from '../../_stores/app-helper.store.js';
   import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../../main/_stores/app-helper.store';
 
+  import { clickOutside } from '../../_actions/click-outside.action';
+  import { addOnDoubleClick } from '../../_actions/add-on-double-click';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
@@ -37,7 +39,6 @@
 
   let selectedIndex = undefined;
   
-  let selectedShowMore = false;
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder;
 
@@ -210,6 +211,7 @@
                         let obj = JSON.parse(data);
                         if(obj.isGridProfile){
                           obj.folder = dir;
+                          obj.showMore = false;
                           obj.color = stringToColor(dir)
                           PROFILES = [...PROFILES, obj];
                         } else {
@@ -371,9 +373,13 @@
     return ok;
   }
 
+  // use:clickOutside={{useCapture: true}}
+  // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
 </script>
 
-<profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+<profiles
+
+  class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
 
 
@@ -435,21 +441,23 @@
 
           {#each PROFILES as profile, i}
             <li
-              on:click={()=>{if (selected !== profile){selectedShowMore = false} selected = profile; selectedIndex = i;}} 
-              class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 cursor-pointer ">
+              on:click={()=>{selected = profile; selectedIndex = i;}}                   
+              use:addOnDoubleClick 
+              on:double-click={()=>{profile.showMore = !profile.showMore;}} 
+              class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 cursor-pointer relative">
               <div class="w-full">{profile.name}</div> 
-             
-             
-              {#if (selectedIndex === i)}
-                  <textarea 
-                    
-                    in:slide out:slide
-                    bind:value={profile.description}
-                    type="text" 
-                    placeholder="No description available"
-                    class="w-full bg-primary p-1 rounded-none h-36 resize-none "/>
+              
+              <div
+                in:fade out:fade
+                class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0 z-40 " on:click={()=>{profile.showMore = !profile.showMore;}}>{profile.showMore?"▲":"▼"}</div>
             
-
+              {#if (profile.showMore === true)}
+                <textarea                   
+                  in:slide out:slide
+                  bind:value={profile.description}
+                  type="text" 
+                  placeholder="No description available"
+                  class="w-full bg-primary p-1 rounded-none h-36 resize-none "/>
               {/if}
              
               <div class="flex text-xs opacity-80 font-semibold">

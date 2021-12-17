@@ -29,7 +29,8 @@ let mainWindow;
 app.allowRendererProcessReuse = false;
 
 let tray = null
-
+let trayStateChangeCB;
+  
 function create_tray(){
 
 /* ===============================================================================
@@ -50,6 +51,9 @@ function create_tray(){
       label: 'Show', click: function () {
         mainWindow.setSkipTaskbar(false);
         mainWindow.show();
+
+        mainWindow.webContents.send('trayState', false)
+
         trackEvent('tray', 'tray: show window')
       }
     },    
@@ -57,6 +61,9 @@ function create_tray(){
       label: 'Hide', click: function () {
         mainWindow.hide(); 
         mainWindow.setSkipTaskbar(true);
+
+        mainWindow.webContents.send('trayState', true)
+
         trackEvent('tray', 'tray: hide window')
       }
     },
@@ -81,8 +88,6 @@ app.whenReady().then(() => {
   
 
 })
-
-
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -156,6 +161,14 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
   store.set(arg)
   event.reply('setStoreValue-reply', 'saved');
 })
+
+
+ipcMain.on('set_trayStateChangeCB', (event, arg) => {
+  console.log('set_trayStateChangeCB..');
+  trayStateChangeCB = arg;
+
+})
+
 
 
 ipcMain.on('download', async (event, arg) => {
