@@ -61,7 +61,7 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    analytics_track_string_event("configparameters", "whole_element", "copy")
+    analytics_track_string_event("config", "whole_element", "copy")
   }
 
   function overwriteAllEventConfigs(){
@@ -69,7 +69,7 @@
    let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    analytics_track_string_event("configparameters", "whole_element", "overwrite")
+    analytics_track_string_event("config", "whole_element", "overwrite")
 
   }
 
