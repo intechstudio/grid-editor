@@ -13,7 +13,6 @@ var usr = ua("UA-151670067-3", userId);
 
 function trackEvent(category, action, label, value) {
 
-  console.log(category, action, label, value)
 
   if(process.env.NODE_ENV !== "development"){
     usr
