@@ -10,7 +10,7 @@ import { appSettings, analytics_track_number_event } from '../main/_stores/app-h
 const activeWindow = require('active-win');
 
 
-let fwAcceptable = [{major: 1, minor: 2, patch: 11}]
+let fwAcceptable = [{major: 1, minor: 2, patch: 11}];
 
 
 let lastPageActivator = "";  
