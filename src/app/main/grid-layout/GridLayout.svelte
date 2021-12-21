@@ -32,8 +32,6 @@
 
   let map;
 
-  // code base versions
-  let fwVersion;
 
   let surface_width = 0;
   let surface_height = 0;
@@ -73,8 +71,6 @@
         return shouldIgnore;
       }
     });
-
-    appSettings.subscribe(s => fwVersion = s.version);
 
     ready = true;
   })
@@ -218,7 +214,7 @@
           id="grid-device-{'dx:'+device.dx+';dy:'+device.dy}" 
           style="--device-size: {gridsize + 'px'}; top:{-1*((device.dy-$surface_origin_y)*106.6*$appSettings.size*1.1) +'px'};left:{((device.dx-$surface_origin_x)*106.6*$appSettings.size*1.1) +'px'};"
           class="device"
-          class:fwMismatch={JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)}>
+          class:fwMismatch={device.fwMismatch}>
         
             <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot} />
 

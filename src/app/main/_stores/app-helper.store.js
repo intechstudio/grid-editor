@@ -32,9 +32,9 @@ export const current_tooltip_store = writable({key: '', bool: false});
 export const appSettings = writable({
   size: 2.1,
   version: {
-    major: grid.properties.VERSION.MAJOR,
-    minor: grid.properties.VERSION.MINOR,
-    patch: grid.properties.VERSION.PATCH
+    major: ipcRenderer.sendSync('app_version').split('.')[0],
+    minor: ipcRenderer.sendSync('app_version').split('.')[1],
+    patch: ipcRenderer.sendSync('app_version').split('.')[2]
   },
   overlays: {controlElementName: false},
   debugMode: false,
@@ -79,7 +79,6 @@ let persistant = {
   pageActivatorCriteria_3 : "",
   pageActivatorInterval: 1000
 }
-
 
 
 appSettings.subscribe(store => {
@@ -243,17 +242,12 @@ export const actionPrefStore = createActionPrefStore();
 
 export const actionIsDragged = writable(false);
 
-
-
-
-
-
 const {InfluxDB} = require('@influxdata/influxdb-client')
 
 // You can generate an API token from the "API Tokens Tab" in the UI
 const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
 const org = 'sukuwc@riseup.net'
-const bucket = "sukuwc's Bucket"
+const bucket = "editor_analytics"
 
 const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
 
@@ -270,9 +264,9 @@ const writeApi = client.getWriteApi(org, bucket)
 
 function analytics_track_string_event(measurement, field, value){
 
-  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "string"})
+  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
  
-  const point = new Point(measurement).stringField(field, value)
+  const point = new Point(measurement).stringField(field, value).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
 
   try{
     writeApi.writePoint(point)
@@ -284,9 +278,9 @@ function analytics_track_string_event(measurement, field, value){
 
 function analytics_track_number_event(measurement, field, value){
 
-  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, timestamp: Date.now()-sessionid, type: "float"})
+  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, type: "float"})
  
-  const point = new Point(measurement).floatField(field, parseFloat(value))
+  const point = new Point(measurement).floatField(field, parseFloat(value)).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
 
   try{
     writeApi.writePoint(point)

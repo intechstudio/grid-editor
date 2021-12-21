@@ -12,7 +12,8 @@
   const trackEvent = getGlobal('trackEvent');
 
   let fwMismatch = false; 
-  let fwVersion;
+
+
 
   const fs = require('fs-extra');  
   const AdmZip = require("adm-zip");
@@ -41,9 +42,12 @@
     let gotMismatch = false;
 
     store.forEach(device=>{
-      if(JSON.stringify(device.fwVersion) !== JSON.stringify(fwVersion)){
+
+      if (device.fwMismatch === true){
         gotMismatch = true;
       }
+
+      
     });
 
     if (gotMismatch === true){
@@ -65,9 +69,6 @@
     
   })
 
-  appSettings.subscribe((store)=>{
-    fwVersion = store.version;
-  });
 
 
   let text = '';
