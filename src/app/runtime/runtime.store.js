@@ -10,6 +10,7 @@ import { appSettings, analytics_track_number_event } from '../main/_stores/app-h
 const activeWindow = require('active-win');
 
 
+let fwAcceptable = [{major: 1, minor: 2, patch: 11}]
 
 
 let lastPageActivator = "";  
@@ -427,6 +428,32 @@ function create_runtime () {
       // device not found, add it to runtime and get page count from grid
       if(!online){ 
 
+        
+
+        // check if the firmware version of the newly connected device is acceptable
+        let moduleMismatch = true
+
+        fwAcceptable.forEach(fw=>{
+  
+          if (JSON.stringify(controller.fwVersion) === JSON.stringify(fw)){
+  
+            moduleMismatch = false;
+          
+          }
+  
+        })
+  
+        if(JSON.stringify(controller.fwVersion) === JSON.stringify(get(appSettings).version)){
+  
+          moduleMismatch = false;
+        }
+  
+        if (moduleMismatch === true){
+          
+          controller.fwMismatch = true;
+        }
+  
+
         _runtime.push(controller);
         // this is not working because it fetches all and blocks ui
         instructions.fetchPageCountFromGrid({brc: controller});
@@ -790,6 +817,7 @@ function create_runtime () {
           minor: heartbeat.VMINOR,
           patch: heartbeat.VPATCH,
         },
+        fwMismatch: false,
         alive: Date.now(),
         map: {
           top:    {dx: header.SX,   dy: header.SY+1 },

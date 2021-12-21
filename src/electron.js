@@ -29,7 +29,6 @@ let mainWindow;
 app.allowRendererProcessReuse = false;
 
 let tray = null
-let trayStateChangeCB;
   
 function create_tray(){
 
@@ -163,12 +162,6 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 })
 
 
-ipcMain.on('set_trayStateChangeCB', (event, arg) => {
-  console.log('set_trayStateChangeCB..');
-  trayStateChangeCB = arg;
-
-})
-
 
 
 ipcMain.on('download', async (event, arg) => {
@@ -206,13 +199,8 @@ ipcMain.on('analytics_uuid', (event) => {
 
 
 
-
-
-
-// auto-update features
-
 ipcMain.on('app_version', (event) => {
-  event.sender.send('app_version', { version: app.getVersion() });
+  event.returnValue = app.getVersion();
 });
 
 
