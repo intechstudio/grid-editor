@@ -6,6 +6,8 @@
   import { runtime } from '../../runtime/runtime.store';
   import { openInBrowser } from '../helpers/global-helper.js';
 
+  
+
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
   const { getGlobal } = require('electron').remote;
@@ -17,7 +19,8 @@
 
   const fs = require('fs-extra');  
   const AdmZip = require("adm-zip");
-  const drivelist = require('drivelist');
+  // const drivelist = require('drivelist');
+  const nodeDiskInfo = require('node-disk-info');
 
   let dotdotdot = "";
 
@@ -111,39 +114,89 @@
       dotdotdot = "";
     }
 
-    const drives = await drivelist.list();
+    const diskInfo = nodeDiskInfo.getDiskInfoSync()
 
-    // "GRID Boot" on linux, "Boot" on windows
-    let grid = drives.find(a => a.description.startsWith("GRID Boot") || a.description.startsWith("Boot"))
+    let gridDrive = diskInfo.find(a => a.blocks === 3965);
 
-    if (grid !== undefined && grid.mountpoints.length !== 0){
+    let data;
 
-      let flash_path = grid.mountpoints[0].path
+    if (gridDrive !== undefined ){
+      data = fs.readFileSync(gridDrive.mounted + "/INFO_UF2.TXT", {encoding:'utf8', flag:'r'})
+    }
 
-      bootloader_path = flash_path;
+    if (data!==undefined){
 
-      if (uploadProgressText == ""){
-        appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
-        uploadProgressText = "Grid bootloader is detected! ";
+      // isgrid
+      if (data.indexOf("SAMD51N20A-GRID") !== -1){
+
+        bootloader_path = gridDrive.mounted;
+
+        if (uploadProgressText == ""){
+          appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
+          uploadProgressText = "Grid bootloader is detected! ";
+
+          
+          trackEvent('firmware-download', 'firmware-download: bootloader detected')
+          analytics_track_string_event("firmware", "auto_update", "bootloader detected")
+        }  
+
+        return;
+
+      }
+
+ 
+
+    }
+    
+
+    // reset path
+    if (bootloader_path !== undefined){
+      bootloader_path = undefined;
+      setTimeout(() => {
+        uploadProgressText = "";
+        appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
+      }, 2000);
+
+    }
+
+
+    // const drives = await drivelist.list();
+
+    // // "GRID Boot" on linux, "Boot" on windows
+    // let grid = drives.find(a => a.description.startsWith("GRID Boot") || a.description.startsWith("Boot"))
+
+    // if (grid !== undefined && grid.mountpoints.length !== 0){
+
+    //   console.log("drivelist: ", grid)
+    //   console.log("diskinfo: ", diskInfo)
+    //   console.log("griddrive: ", gridDrive)
+
+    //   let flash_path = grid.mountpoints[0].path
+
+    //   bootloader_path = flash_path;
+
+    //   if (uploadProgressText == ""){
+    //     appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
+    //     uploadProgressText = "Grid bootloader is detected! ";
 
         
-        trackEvent('firmware-download', 'firmware-download: bootloader detected')
-        analytics_track_string_event("firmware", "auto_update", "bootloader detected")
-      }
+    //     trackEvent('firmware-download', 'firmware-download: bootloader detected')
+    //     analytics_track_string_event("firmware", "auto_update", "bootloader detected")
+    //   }
 
-    }
-    else{
+    // }
+    // else{
 
-      if (bootloader_path !== undefined){
-        bootloader_path = undefined;
-        setTimeout(() => {
-          uploadProgressText = "";
-          appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
-        }, 2000);
+    //   if (bootloader_path !== undefined){
+    //     bootloader_path = undefined;
+    //     setTimeout(() => {
+    //       uploadProgressText = "";
+    //       appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
+    //     }, 2000);
 
-      }
+    //   }
 
-    }
+    // }
 
   }
 

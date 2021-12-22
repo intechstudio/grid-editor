@@ -14,7 +14,6 @@ const log = require('electron-log');
 const {download} = require('electron-dl');
 const fs = require('fs-extra');  
 var AdmZip = require("adm-zip");
-const drivelist = require('drivelist');
 
 
 autoUpdater.logger = log;
