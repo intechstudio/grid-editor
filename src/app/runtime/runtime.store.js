@@ -453,6 +453,7 @@ function create_runtime () {
           controller.fwMismatch = true;
         }
   
+        console.log("Mismatch: ", moduleMismatch, "Firmware Version: ", controller.fwVersion)
 
         _runtime.push(controller);
         // this is not working because it fetches all and blocks ui
