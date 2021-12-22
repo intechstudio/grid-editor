@@ -290,4 +290,8 @@ function analytics_track_number_event(measurement, field, value){
   
 }
 
+// track session init event
+analytics_track_string_event("application", "version", "v"+ipcRenderer.sendSync('app_version'))
+
+
 export {analytics_track_string_event, analytics_track_number_event}
