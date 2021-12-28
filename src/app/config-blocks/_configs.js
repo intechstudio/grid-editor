@@ -7,7 +7,7 @@ export let config_components;
 
 async function init_config_block_library(){
 
-  //console.log("Init config block library!");
+  console.log("Init config block library!");
 
   let files;
 
@@ -21,7 +21,7 @@ async function init_config_block_library(){
     console.error('Error occured while reading directory!', err);
   }
 
-  //console.log("List of files: ", files);
+  console.log("List of files: ", files);
   
   // importComponents()
 

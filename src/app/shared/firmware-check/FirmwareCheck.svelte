@@ -116,7 +116,8 @@
 
     const diskInfo = nodeDiskInfo.getDiskInfoSync()
 
-    let gridDrive = diskInfo.find(a => a.blocks === 3965);
+    // 3965 for Linux and 4059648 for Windows
+    let gridDrive = diskInfo.find(a => a.blocks === 3965 || a.blocks === 4059648);
 
     let data;
 
