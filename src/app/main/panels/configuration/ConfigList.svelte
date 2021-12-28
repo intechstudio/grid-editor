@@ -42,6 +42,7 @@
 
   async function addConfigAtPosition(arg, index){
 
+   // console.log("addConfigAtPosition")
 
     const { config } = arg.detail;
 
@@ -66,6 +67,8 @@
   }
 
   function handleDrop(e){
+
+    //console.log("handleDrop")
 
     if(drop_target !== 'bin'){
       
@@ -104,6 +107,7 @@
 
   function handleConfigChange({configName}){
 
+    //console.log("handleConfigChange")
     // when rendering the Else and End config-blocks, they automatically send out their respective values
     // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
  

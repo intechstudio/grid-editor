@@ -197,20 +197,26 @@ function createDropStore(){
       let disabled_blocks = [];
       let if_block = false;
       configs.forEach((a,index) => {
-        // check if it's and if block
-        if(a.information.name == 'If'){
-          if_block = true;
+
+        try{
+          // check if it's and if block
+          if(a.information.name == 'If'){
+            if_block = true;
+          }
+      
+          // don't add +1 id in the array (end)
+          if(if_block && a.information.name !== 'End'){
+            disabled_blocks.push(index);
+          }
+          
+          // this is the last, as END has to be disabled too!
+          if (a.information.name == 'End'){
+            if_block = false;
+          }
+        }catch(e){
+          console.log(e)
         }
-    
-        // don't add +1 id in the array (end)
-        if(if_block && a.information.name !== 'End'){
-          disabled_blocks.push(index);
-        }
-        
-        // this is the last, as END has to be disabled too!
-        if (a.information.name == 'End'){
-          if_block = false;
-        }
+
       });
 
       store.set(disabled_blocks);

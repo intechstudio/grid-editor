@@ -162,12 +162,26 @@
  
     let res = _utils.gridLuaToEditorLua(active.config)
 
-    if (res !== undefined){ 
+    if (res === undefined){
+      return;
+    }
+
+    let res_is_valid = true;
+
+    res.forEach(element => {
+      if (element.information === undefined){
+        res_is_valid = false;
+      }
+    });
+
+
+    if (res !== undefined && res_is_valid){ 
       configs = res;
       dropStore.update(res);
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
     }
+
 
     
     // let use of default dummy parameters
@@ -221,15 +235,18 @@
     </tab>
   </tabs>
 
-  {#key $appSettings.configType == 'uiEvents'}
-    <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
+  {#if configs.length !==0}
 
-      <ConfigParameters {stringname} {configs} {events} {elements}/>
+    {#key $appSettings.configType == 'uiEvents'}
+      <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
-      <ConfigList {pages} {events} {configs}/>
+        <ConfigParameters {stringname} {configs} {events} {elements}/>
 
-    </container>
-  {/key}
+        <ConfigList {pages} {events} {configs}/>
+
+      </container>
+    {/key}
+  {/if}
 </configuration>
 
 
