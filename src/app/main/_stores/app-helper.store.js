@@ -278,8 +278,9 @@ function analytics_track_string_event(measurement, field, value){
 
 function analytics_track_number_event(measurement, field, value){
 
-  writeApi.useDefaultTags({uuid: userId, nodeenv: node_env, platform: user_platform, version: editor_version, sessionid: sessionid, type: "float"})
- 
+
+  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
+  
   const point = new Point(measurement).floatField(field, parseFloat(value)).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
 
   try{
