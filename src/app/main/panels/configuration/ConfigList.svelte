@@ -158,31 +158,38 @@
 
       <config-list id="cfg-list" style="height:{scrollHeight}" use:configListScrollSize={configs} on:height={(e)=>{scrollHeight = e.detail}} class="flex flex-col w-full  h-auto overflow-y-auto">
         
-        {#if !drag_start}
-          <AddAction index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
-        {:else}
-          <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
+
+        {#if configs.length !==0}
+
+          {#if !drag_start}
+            <AddAction index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
+          {:else}
+            <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
+          {/if}
+
+          {#if configs !== undefined}
+            {#each configs as config, index (config.id)}
+              <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
+                <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
+                    <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
+                    <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
+                </DynamicWrapper>
+
+                <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
+                
+                {#if !drag_start}
+                  <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
+                {:else}
+                  <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
+                {/if}
+                      
+              </anim-block>
+            {/each}
+          {/if}
+
+
         {/if}
 
-        {#if configs !== undefined}
-          {#each configs as config, index (config.id)}
-            <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
-              <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
-                  <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
-                  <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
-              </DynamicWrapper>
-
-              <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>
-              
-              {#if !drag_start}
-                <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
-              {:else}
-                <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
-              {/if}
-                    
-            </anim-block>
-          {/each}
-        {/if}
       </config-list>
 
       <container class="flex flex-col w-full">

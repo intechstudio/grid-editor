@@ -235,7 +235,6 @@
     </tab>
   </tabs>
 
-  {#if configs.length !==0}
 
     {#key $appSettings.configType == 'uiEvents'}
       <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
@@ -246,7 +245,6 @@
 
       </container>
     {/key}
-  {/if}
 </configuration>
 
 
