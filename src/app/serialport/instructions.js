@@ -1,6 +1,6 @@
 import { serialComm } from './serialport.store.js';
 import { get } from 'svelte/store';
-import { appSettings } from '../main/_stores/app-helper.store';
+import { appSettings } from '../runtime/app-helper.store';
 
 import grid from '../protocol/grid-protocol.js';
 

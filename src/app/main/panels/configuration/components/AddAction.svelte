@@ -8,7 +8,7 @@
 
   import _utils from '../../../../runtime/_utils';
   
-  import { presetManagement } from '../../../_stores/app-helper.store';
+  import { presetManagement } from '../../../../runtime/app-helper.store';
 
   import { get } from 'svelte/store';
   
@@ -18,7 +18,7 @@
   
   import { getAllComponents } from '../../../../config-blocks/_configs';
  
-  import { appSettings, analytics_track_string_event, analytics_track_number_event } from "../../../../main/_stores/app-helper.store"
+  import { analytics } from "../../../../runtime/analytics_influx"
  
 
 
@@ -54,7 +54,7 @@
 
     let action_name = get(presetManagement.selected_action).name;
 
-    analytics_track_string_event("configpicker", "added_action", action_name)
+    analytics.track_string_event("configpicker", "added_action", action_name)
 
 
     dispatch('new-config', {
@@ -79,7 +79,7 @@
     configSelection = false;
     visible = false;
 
-    analytics_track_string_event("config", "multiselect", "paste_from_add_action")
+    analytics.track_string_event("config", "multiselect", "paste_from_add_action")
   }
 
   let action_options = [];
@@ -166,7 +166,7 @@
 
     console.log("Close Picker", actionPickerDuration/1000.0)
 
-    analytics_track_number_event("configpicker", "action_picker_duration", actionPickerDuration)
+    analytics.track_number_event("configpicker", "action_picker_duration", actionPickerDuration)
 
 
     initConfig();

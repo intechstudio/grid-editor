@@ -1,5 +1,5 @@
 import { get, writable } from 'svelte/store';
-import { appSettings } from '../main/_stores/app-helper.store';
+import { appSettings } from './app-helper.store';
 import grid from '../protocol/grid-protocol';
 import { serialComm } from '../serialport/serialport.store';
 

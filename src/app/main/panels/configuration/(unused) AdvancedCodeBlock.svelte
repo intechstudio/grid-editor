@@ -1,5 +1,5 @@
 <script>
-  import { configNodeBinding, actionPrefStore } from '../../_stores/app-helper.store.js';
+  import { configNodeBinding } from '../../runtime/app-helper.store.js';
 
   import { clickOutside } from '../../_actions/click-outside.action.js';
   import { menuBoundaries } from '../../_actions/boundaries.action.js';
@@ -16,6 +16,46 @@
   export let config = undefined;
 
   let topOffset = 0;
+
+
+
+  import { writable, get, derived } from 'svelte/store';
+
+
+
+
+  function createActionPrefStore(){
+
+    const default_values = {
+      advanced: {
+        index: undefined, 
+        visible: false,
+      }
+    }
+
+    const store = writable(default_values);
+
+    return {
+      ...store,
+      showAdvanced: (index, bool) => {
+          store.update(s => {
+              s.advanced = {
+                index: index, 
+                visible: s.advanced.visible = ! s.advanced.visible,
+              }
+
+            return s
+          });
+      },
+      reset: () => {
+        store.update(s => {s = default_values; return s;});
+      }
+    }
+  }
+
+
+  actionPrefStore = createActionPrefStore()
+
 
   function filterDuplicateTypes() {
     let arr = grid.properties.LUA;

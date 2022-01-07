@@ -11,7 +11,7 @@
   import ControlNameOverlay from './overlays/ControlNameOverlay.svelte';
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte';
 
-  import { appSettings } from '../../../main/_stores/app-helper.store.js';
+  import { appSettings } from '../../../runtime/app-helper.store.js';
   import { runtime, user_input} from '../../../runtime/runtime.store.js';
 
 

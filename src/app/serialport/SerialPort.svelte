@@ -2,7 +2,7 @@
 
   import { onMount, onDestroy } from 'svelte';
   import { get } from 'svelte/store';
-  import { appSettings } from '../main/_stores/app-helper.store.js';
+  import { appSettings } from '../runtime/app-helper.store.js';
   import { runtime, user_input, engine } from '../runtime/runtime.store.js';
   import { serialComm } from './serialport.store.js';
   import grid from '../protocol/grid-protocol.js';
@@ -21,13 +21,8 @@
     });
   };
 
-
   let PORT = {path: 0};
   let selectedPort = "";
-
-
-
-
 
   // Basic serial usage
 

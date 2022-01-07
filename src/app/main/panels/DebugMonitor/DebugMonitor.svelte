@@ -2,7 +2,7 @@
   import { get } from 'svelte/store';
   import { debug_monitor_store } from "./DebugMonitor.store";
   import _utils, { luaParser } from "../../../runtime/_utils";
-  import { appSettings } from '../../../main/_stores/app-helper.store';
+  import { appSettings } from '../../../runtime/app-helper.store';
   import {luadebug_store} from "../../../runtime/runtime.store"
 
   let runtimeScript = '';

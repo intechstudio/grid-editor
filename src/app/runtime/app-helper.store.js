@@ -1,11 +1,17 @@
-import { update } from 'lodash';
 import { writable, get, readable } from 'svelte/store';
-import { getAllComponents } from '../../config-blocks/_configs';
-import grid from '../../protocol/grid-protocol';
+import { getAllComponents } from '../config-blocks/_configs';
+import grid from '../protocol/grid-protocol';
 const fs = require('fs'); 
 require('dotenv').config();
 
 const { ipcRenderer, app } = require('electron');
+
+const shell = require('electron').shell
+
+export function openInBrowser(url){
+  shell.openExternal(url)
+}
+
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -162,35 +168,6 @@ init_appsettings();
 
 export const preferenceStore = writable();
 
-function createActionPrefStore(){
-
-  const default_values = {
-    advanced: {
-      index: undefined, 
-      visible: false,
-    }
-  }
-
-  const store = writable(default_values);
-
-  return {
-    ...store,
-    showAdvanced: (index, bool) => {
-        store.update(s => {
-            s.advanced = {
-              index: index, 
-              visible: s.advanced.visible = ! s.advanced.visible,
-            }
-
-          return s
-        });
-    },
-    reset: () => {
-      store.update(s => {s = default_values; return s;});
-    }
-  }
-}
-
 
 
 export const action_collection = readable(Promise.all([getAllComponents()]))
@@ -237,62 +214,3 @@ export const numberOfModulesStore = writable();
 export const focusedCodeEditor = writable();
 
 export const configNodeBinding = writable([]);
-
-export const actionPrefStore = createActionPrefStore();
-
-export const actionIsDragged = writable(false);
-
-const {InfluxDB} = require('@influxdata/influxdb-client')
-
-// You can generate an API token from the "API Tokens Tab" in the UI
-const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
-const org = 'sukuwc@riseup.net'
-const bucket = "editor_analytics"
-
-const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
-
-let sessionid = Date.now();
-const user_platform = checkOS();
-
-const {Point} = require('@influxdata/influxdb-client')
-
-const userId = ipcRenderer.sendSync('analytics_uuid');
-const editor_version = "v" + grid.properties.VERSION.MAJOR + "." + grid.properties.VERSION.MINOR + "." + grid.properties.VERSION.PATCH;
-const node_env = process.env.NODE_ENV;
-
-const writeApi = client.getWriteApi(org, bucket)
-
-function analytics_track_string_event(measurement, field, value){
-
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
- 
-  const point = new Point(measurement).stringField(field, value).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
-
-  try{
-    writeApi.writePoint(point)
-  }catch(e){
-    console.log("Analytics: ", e)
-  }
-
-}
-
-function analytics_track_number_event(measurement, field, value){
-
-
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
-  
-  const point = new Point(measurement).floatField(field, parseFloat(value)).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
-
-  try{
-    writeApi.writePoint(point)
-  }catch(e){
-    console.log("Analytics: ", e)
-  }
-  
-}
-
-// track session init event
-analytics_track_string_event("application", "version", "v"+ipcRenderer.sendSync('app_version'))
-
-
-export {analytics_track_string_event, analytics_track_number_event}

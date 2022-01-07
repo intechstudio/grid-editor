@@ -2,10 +2,10 @@
 <script>
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
-  import { profileListRefresh } from '../../_stores/app-helper.store.js';
+  import { profileListRefresh } from '../../../runtime/app-helper.store.js';
 
-  import NVMDefrag from '../../NVMDefrag.svelte';
-  import NVMErase from '../../NVMErase.svelte';
+  import instructions from "../../../serialport/instructions";
+
   import { serialComm } from '../../../serialport/serialport.store.js';
   import { onMount, onDestroy } from 'svelte';
 
@@ -14,7 +14,8 @@
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
 
-  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../../main/_stores/app-helper.store';
+  import { appSettings } from '../../../runtime/app-helper.store';
+  import { analytics } from '../../../runtime/analytics_influx';
 
 
 
@@ -117,7 +118,7 @@
 
 
     trackEvent('library-download', 'library-download: download start')
-    analytics_track_string_event("library", "factory profiles", "download start")
+    analytics.track_string_event("library", "factory profiles", "download start")
 
     clearTimeout(download_status_interval)
 
@@ -169,7 +170,7 @@
         download_status = "Library updated!"
 
         trackEvent('library-download', 'library-download: download success')
-        analytics_track_string_event("library", "factory profiles", "download success")
+        analytics.track_string_event("library", "factory profiles", "download success")
         download_status_interval = setTimeout(() => {
           download_status = ""
         }, 2500);
@@ -177,7 +178,7 @@
       else{
      
         trackEvent('library-download', 'library-download: download failed')   
-        analytics_track_string_event("library", "factory profiles", "download fail")
+        analytics.track_string_event("library", "factory profiles", "download fail")
         console.log("GRID_NOT_FOUND")
       }
 
@@ -333,8 +334,21 @@
       </div>
 
       <div class="flex flex-col items-start">
-        <NVMDefrag/>
-        <NVMErase/>
+        <button 
+          on:click={()=>{instructions.sendNVMDefragToGrid()}} 
+          disabled={$engine != 'ENABLED'} 
+          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5 ">
+          NVM Defrag
+        </button>
+        
+        <button 
+          on:click={()=>{instructions.sendNVMEraseToGrid()}} 
+          disabled={$engine != 'ENABLED'} 
+          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5 {classes}">
+          NVM Erase
+        </button>
+        
+
       </div>
 
       <button 

@@ -28,20 +28,20 @@
 
   import { onMount } from 'svelte';
 
-  import Titlebar from './app/shared/main/Titlebar.svelte';
-  import NavTabs from './app/shared/main/NavTabs.svelte';
-  import RightPanelContainer from './app/main/RightPanelContainer.svelte';
-  import LeftPanelContainer from './app/main/LeftPanelContainer.svelte';
-  import GridLayout from './app/main/grid-layout/GridLayout.svelte';
-  import ConfigLibrary from './app/main/panels/config-library/ConfigLibrary.svelte';
-  import TopSubMenu from './app/main/TopSubMenu.svelte';
-  import Modal from './app/main/Modal.svelte';
-  import Updater from './app/shared/updater/Updater.svelte';
-  import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
-  import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
-  import { appSettings } from './app/main/_stores/app-helper.store';
-  import NotificationBar from './app/shared/notifications/NotificationBar.svelte';
-  import TooltipGetter from './app/main/user-interface/tooltip/TooltipGetter.svelte';
+  import Titlebar from              './app/main/Titlebar.svelte';
+  import NavTabs from               './app/main/NavTabs.svelte';
+
+  import RightPanelContainer from   './app/main/RightPanelContainer.svelte';
+  import LeftPanelContainer from    './app/main/LeftPanelContainer.svelte';
+  import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
+  import TopSubMenu from            './app/main/TopSubMenu.svelte';
+  import Modal from                 './app/main/Modal.svelte';
+  import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
+  import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+  import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
+
+  import Updater from               './app/shared/updater/Updater.svelte';
+  import { appSettings } from       './app/runtime/app-helper.store'
 
   onMount(()=>{
 

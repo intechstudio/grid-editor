@@ -1,13 +1,44 @@
 <script>
 
-  import { appSettings } from '../main/_stores/app-helper.store';
+  import { appSettings } from '../runtime/app-helper.store';
   import { engine, unsaved_changes } from '../runtime/runtime.store';
   import NVMErase from './NVMErase.svelte';
-  import PageStore from './PageStore.svelte';
 
   import {fade} from 'svelte/transition';
-  import PageDiscard from './PageDiscard.svelte';
-  import PageClear from './PageClear.svelte';
+
+
+  import instructions from "../serialport/instructions";
+  import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+
+  const { getGlobal } = require('electron').remote; 
+  const trackEvent = getGlobal('trackEvent');
+
+  import { analytics } from "../runtime/analytics_influx"
+
+  function store() {
+
+    trackEvent('page-config', 'page-config: store') 
+    analytics.track_string_event("pageconfig", "command", "store")
+
+    instructions.sendPageStoreToGrid();
+  }
+
+  function discard() {
+
+    instructions.sendPageDiscardToGrid();
+
+    trackEvent('page-config', 'page-config: discard')
+    analytics.track_string_event("pageconfig", "command", "discard")
+
+  }
+
+  function clear() {
+    instructions.sendPageClearToGrid();
+    
+    trackEvent('page-config', 'page-config: clear')
+    analytics.track_string_event("pageconfig", "command", "clear")
+
+  }
 
 
 </script>
@@ -23,8 +54,15 @@
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>
         <div class="px-4 py-1 flex items-center justify-center rounded-md bg-select-saturate-20 text-yellow-300">{$unsaved_changes}</div>
-        <PageDiscard classes={'ml-4'}/>
-      </div>
+        
+        <button 
+          on:click={()=>{discard()}} 
+          class="relative flex items-center justify-center focus:outline-none rounded my-2 border-select bg-select border-2 hover:bg-yellow-600 hover:border-yellow-600 text-white px-2 py-0.5 ml-4">
+          <div>Discard</div>
+          <TooltipSetter mode={1} key={"configuration_header_clear"}/>
+        </button>
+
+        </div>
     {/if}
 
     <div class="px-4">
@@ -50,10 +88,24 @@
             </p>
           </div>
         </div>
-        
-        <PageClear classes={'mx-1 w-24'}/>
 
-        <PageStore classes={'ml-1 w-24'}/>        
+        <button 
+          on:click={()=>{clear()}} 
+          disabled={$engine != 'ENABLED'} 
+          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'} relative flex items-center focus:outline-none justify-center rounded my-2 border-select bg-select border-2  text-white px-2 py-0.5 mx-1 w-24">
+          <div>Clear</div>
+          <TooltipSetter mode={1} key={"configuration_header_clear"}/>
+        </button>
+      
+
+        
+        <button 
+          on:click={()=>{store()}} 
+          disabled={$engine != 'ENABLED'}
+          class="{$engine == 'ENABLED' ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20' : 'opacity-75'} relative flex items-center justify-center rounded my-2 focus:outline-none border-2 border-commit bg-commit hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white px-2 py-0.5 ml-1 w-24">
+          <div> Store</div>
+          <TooltipSetter mode={1} key={"configuration_header_store"}/>
+        </button>
 
       </div> 
 

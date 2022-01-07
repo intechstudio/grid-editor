@@ -1,11 +1,13 @@
 import { writable, get, derived } from 'svelte/store';
+
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
 import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 
-import { appSettings, analytics_track_number_event } from '../main/_stores/app-helper.store';
+import { appSettings } from './app-helper.store';
+import { analytics } from './analytics_influx';
 
 const activeWindow = require('active-win');
 
@@ -470,7 +472,7 @@ function create_runtime () {
           first_connection = false;
         }
 
-        analytics_track_number_event("runtime", "connected_module_count", _runtime.length);
+        analytics.track_number_event("runtime", "connected_module_count", _runtime.length);
       }
 
 
@@ -848,7 +850,7 @@ function create_runtime () {
     writeBuffer.module_destroy_handler(dx, dy);
     
 
-    analytics_track_number_event("runtime", "connected_module_count", get(_runtime).length);
+    analytics.track_number_event("runtime", "connected_module_count", get(_runtime).length);
   }
 
   function reset(){
@@ -959,13 +961,13 @@ setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 setInterval(function(){
 
   if (!get(appSettings).trayState){
-    analytics_track_number_event("runtime", "session_heartbeat", 1);
+    analytics.track_number_event("runtime", "session_heartbeat", 1);
   }
   else{
-    analytics_track_number_event("runtime", "session_heartbeat", 0);
+    analytics.track_number_event("runtime", "session_heartbeat", 0);
   }
 
-  analytics_track_number_event("runtime", "connected_module_count", get(runtime).length);
+  analytics.track_number_event("runtime", "connected_module_count", get(runtime).length);
 
 
 }, 10000);

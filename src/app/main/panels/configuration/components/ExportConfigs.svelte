@@ -1,6 +1,6 @@
 <script>
 
-  import { appSettings } from "../../../_stores/app-helper.store";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   
 </script>
 

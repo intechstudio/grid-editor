@@ -2,7 +2,7 @@
   import { onDestroy, onMount } from "svelte";
   import { luadebug_store } from "../runtime/runtime.store";
   import BtnAndPopUp from "./user-interface/BtnAndPopUp.svelte";
-  import { appSettings } from "./_stores/app-helper.store";
+  import { appSettings } from "../runtime/app-helper.store";
 
   import {clickOutside} from './_actions/click-outside.action'
 
