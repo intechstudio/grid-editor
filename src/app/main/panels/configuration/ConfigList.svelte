@@ -8,7 +8,6 @@
   import Bin from './components/Bin.svelte';
   import DropZone from './components/DropZone.svelte';
   import DynamicWrapper from './components/DynamicWrapper.svelte';
-  import Options from './components/Options.svelte';
 
   import ConfigExtension from './ConfigExtension.svelte';
   import ExportConfigs from './components/ExportConfigs.svelte';
@@ -22,7 +21,6 @@
   import { runtime, user_input, localDefinitions, luadebug_store, appMultiSelect } from '../../../runtime/runtime.store.js';
   import { configManagement } from '../../../runtime/config-manager.store.js';
   import _utils from '../../../runtime/_utils';
-  import ConfigBlock from './components/ConfigBlock.svelte';
   import AddAction from './config-picker/AddAction.svelte';
 
   
@@ -170,9 +168,8 @@
           {#if configs !== undefined}
             {#each configs as config, index (config.id)}
               <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
-                <DynamicWrapper let:toggle {disable_pointer_events} {index} {config}>
-                    <ConfigBlock slot="humanify" {config} {index} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
-                    <Options slot="options" {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
+                <DynamicWrapper let:toggle {disable_pointer_events} {index} {config} {configs}>
+
                 </DynamicWrapper>
 
                 <ConfigExtension {index} {config} on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs; }}/>

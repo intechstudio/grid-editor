@@ -19,16 +19,6 @@
 
   import { onMount } from 'svelte';
 
-  const grid_raw_actions = `
-  --[[@l]]
-  local x = 1 local y = -12 + elem_num(1 + 2)
-  --[[@glp]]
-  glp(0,1,2)
-  --[[@cb]]
-  if x == 1 then gms(1,176,7,this.element[0]) end`
-  ;
-
-  
   let configs = [];
   let stringname = "";
   let events = {options: ['', '', ''], selected: ""};

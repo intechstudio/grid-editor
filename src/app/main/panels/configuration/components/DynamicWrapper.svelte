@@ -3,9 +3,12 @@
 
   import { fade } from 'svelte/transition';
 
+  import Options from './Options.svelte';
+
   import { actionPrefStore, configNodeBinding } from '../../../_stores/app-helper.store.js';
 
   export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};
+  export let configs
   export let index = undefined;
   export let disable_pointer_events = false;
 
@@ -73,7 +76,14 @@
 
       <container in:heightChange class="{advancedView ? 'opacity-50 pointer-events-none' : ''} w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
         <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
-          <slot name="humanify"></slot>
+
+          <svelte:component 
+          this={config.component} 
+          {index} 
+          {config}
+          slot="humanify"
+          on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
+
         </fader-transition>
       </container>
 <!--
@@ -96,7 +106,14 @@
         class="flex w-full flex-col">
 
         <div class="{disable_pointer_events ? 'pointer-events-none' : ''} w-full flex relative">
-          <slot name="humanify"></slot>
+
+          <svelte:component 
+          this={config.component} 
+          {index} 
+          {config}
+          slot="humanify"
+          on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
+
         </div>
 
       </div>
@@ -120,16 +137,24 @@
         </div>
 
         <div class="{disable_pointer_events ? 'pointer-events-none' : ''} w-full flex relative">
-          <slot name="humanify"></slot>
+
+          <svelte:component 
+          this={config.component} 
+          {index} 
+          {config}
+          slot="humanify"
+          on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}/>
+       
         </div>
 
       </div>
 
     {/if}
 
-    <slot name="options" {toggle}>
 
-    </slot>
+    <Options {toggle} {index} {configs} rendering={config.information.rendering} componentName={config.information.name} />
+
+
 
 </wrapper>
 
