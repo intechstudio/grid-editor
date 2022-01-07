@@ -1,12 +1,5 @@
 <script>
 
-  /**
-  *   Analytics 
-  */
-
-  const { getGlobal } = require('electron').remote;
-  const trackEvent = getGlobal('trackEvent');
-  require('dotenv').config();
 
   /*
   *   tailwindcss
@@ -36,12 +29,7 @@
   import Updater from               './app/shared/updater/Updater.svelte';
   import { appSettings } from       './app/runtime/app-helper.store'
 
-  onMount(()=>{
 
-    trackEvent('fw-editor-version', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
-    trackEvent('operating-system', process.platform)
-    
-  });
 
 </script>
 

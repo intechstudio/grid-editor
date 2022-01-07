@@ -12,6 +12,11 @@ export function openInBrowser(url){
   shell.openExternal(url)
 }
 
+const { getGlobal } = require('electron').remote;
+const trackEvent = getGlobal('trackEvent');
+
+
+
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -202,6 +207,9 @@ function createPresetManagement(){
     }
   }
 }
+
+trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
+trackEvent('operating-system', process.platform)
 
 export const activeDropDown = writable({config_index: undefined, input_index: undefined})
 
