@@ -1,11 +1,11 @@
 import { writable, get } from 'svelte/store';
 
-import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from './runtime.store';
+import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from '../../../runtime/runtime.store';
 
 
-import { analytics } from '../runtime/analytics_influx';
+import { analytics } from '../../../runtime/analytics_influx';
 
-import _utils from './_utils.js';
+import _utils from '../../../runtime/_utils.js';
 
 
 function get_configs () {

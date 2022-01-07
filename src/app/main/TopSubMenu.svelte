@@ -2,7 +2,6 @@
 
   import { appSettings } from '../runtime/app-helper.store';
   import { engine, unsaved_changes } from '../runtime/runtime.store';
-  import NVMErase from './NVMErase.svelte';
 
   import {fade} from 'svelte/transition';
 

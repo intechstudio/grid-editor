@@ -1,8 +1,127 @@
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json';
 
-import { createNestedObject, returnDeepestObjects, mapObjectsToArray } from './_utils.js';
-import { editor_lua_properties } from './editor-properties.js';
 const lodash = require('lodash');
+
+
+const editor_lua_properties = [
+  // code OPERATORS https://www.tutorialspoint.com/code/code_operators.html
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\*',  human:'*'}, 
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\+',  human:'+'}, 
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\-',  human:'-'}, 
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\%',  human:'%'},
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\/\/', human:'//'},
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\/',  human:'/'},
+  {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\^',  human:'^'},
+
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\=\=',   human:'=='},
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\~\=',   human:'~='},
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\>',    human:'>'},
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\<',    human:'<'},
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\>\=',   human:'>='},
+  {type: 'relational_operator', allowed: ['2', '1', '3'], short: '\<\=',   human:'<='},
+
+  {type: 'logical_operator', allowed: ['2', '1', '3'],  short: 'and',  human:'and'},
+  {type: 'logical_operator', allowed: ['2', '1', '3'],  short: 'or',   human:'or'},
+  {type: 'logical_operator', allowed: ['2', '1', '3'],  short: 'not',  human:'not'},
+
+  {type: 'global', allowed: ['2', '1', '3'], short: 'l', human: 'locals'},
+  {type: 'global', allowed: ['2', '1', '3'], short: 'sn', human: 'stringname'},
+  
+  {type: 'global', allowed: ['2', '1', '3'], short: 'if', human: 'if'},
+  {type: 'global', allowed: ['2', '1', '3'], short: 'el', human: 'else'},
+  {type: 'global', allowed: ['2', '1', '3'], short: 'ei', human: 'else if'},
+  {type: 'global', allowed: ['2', '1', '3'], short: 'en', human: 'end'},
+ 
+  {type: 'encoder', allowed: ['2'], short: 'sec', human: 'encoder_settings'},
+
+  {type: 'button', allowed: ['3'], short: 'sbc', human: 'button_settings'}
+]
+
+
+
+function returnDeepestObjects (obj){
+  var found = {};                
+  let parent = '';
+
+  function _find(obj, d) {       
+      for (var key in obj) {     
+          if(d == 0){
+            parent = key;
+            found[parent] = [];
+          }
+          
+          if (typeof obj[key] === 'object') { 
+              _find(obj[key], d + 1);
+          } else{
+        
+          if(found[parent].indexOf(obj) == -1){
+            found[parent].push(obj)
+          }
+        }
+      }
+  }
+  _find(obj, 0);                 
+
+  return found;
+}
+
+function mapObjectsToArray (array, object){
+
+  function mapper(baseArray, type, allowed){
+    return baseArray = baseArray.map((e, i) => {
+      return {type: type, allowed: allowed, ...e }
+    })
+  }
+
+  for (const key in object) {
+
+    if(key == 'B'){
+      array = [...array, ...mapper(object[key], 'button', ['3'])]
+    }
+
+    if(key == 'E'){
+      array = [...array, ...mapper(object[key], 'encoder', ['2'])]
+    }
+
+    if(key == 'G'){
+      array = [...array, ...mapper(object[key], 'global', ['2', '3', '1'])]
+    }
+
+    if(key == 'P'){
+      array = [...array, ...mapper(object[key], 'potmeter', ['1'])]
+    }
+
+    if(key == "KW"){
+      array = [...array, ...mapper(object[key], 'keyword', ['1','2','3'])]
+    }
+
+  }
+
+  return array;
+}
+
+function createNestedObject( base, names, value ) {
+
+  // to avoid array property overwriting
+  let _names = [...names]; 
+
+  // If a value is given, remove the last name and keep it for later:
+  var lastName = arguments.length === 3 ? _names.pop() : false;
+
+  // Walk the hierarchy, creating new objects where needed.
+  // If the lastName was removed, then the last object is not set yet:
+  for( var i = 0; i < _names.length; i++ ) {
+      base = base[ _names[i] ] = base[ _names[i] ] || {};
+  }
+
+  // If a value was given, set it to the last name:
+  if( lastName ) base = base[ lastName ] = value;
+
+
+  // Return the last object in the hierarchy:
+  return base;
+};
+
 
 
 // global id for serial message generation

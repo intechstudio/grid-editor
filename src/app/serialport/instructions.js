@@ -1,4 +1,4 @@
-import { serialComm } from './serialport.store.js';
+import { serialComm } from './serialport.js';
 import { get } from 'svelte/store';
 import { appSettings } from '../runtime/app-helper.store';
 

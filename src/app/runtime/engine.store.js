@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { appSettings } from './app-helper.store';
 import grid from '../protocol/grid-protocol';
-import { serialComm } from '../serialport/serialport.store';
+import { serialComm } from '../serialport/serialport';
 
 const buffer_element = {
   responseRequired: true,

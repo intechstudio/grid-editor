@@ -15,13 +15,6 @@
   import Tailwindcss from './Tailwindcss.svelte';
 
 
-  /*
-  *   serialport and nodejs
-  */
-
-  import SerialPort from './app/serialport/SerialPort.svelte';
-
-
   /**
    *  svelte UI parts and components
   */
@@ -55,9 +48,6 @@
 <Tailwindcss />
 
 <Titlebar/>
-
-<SerialPort/>
-
 
 <main id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 

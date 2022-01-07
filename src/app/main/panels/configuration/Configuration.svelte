@@ -16,7 +16,7 @@
 
   import { runtime, appMultiSelect, luadebug_store, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
-  import { dropStore } from '../../../runtime/config-manager.store.js';
+  import { dropStore } from './Configuration.store.js';
 
   import _utils from '../../../runtime/_utils.js';
 
@@ -35,7 +35,7 @@
 
   import { changeOrder } from '../../_actions/move.action.js';
 
-  import { configManagement} from '../../../runtime/config-manager.store.js'
+  import { configManagement} from './Configuration.store.js'
   import AddAction from './components/AddAction.svelte';
 
 

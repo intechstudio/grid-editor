@@ -14,6 +14,7 @@ const activeWindow = require('active-win');
 
 let fwAcceptable = [{major: 1, minor: 2, patch: 11}];
 
+console.log("hello")
 
 let lastPageActivator = "";  
 

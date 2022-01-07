@@ -6,7 +6,7 @@
 
   import instructions from "../../../serialport/instructions";
 
-  import { serialComm } from '../../../serialport/serialport.store.js';
+  import { serialComm } from '../../../serialport/serialport.js';
   import { onMount, onDestroy } from 'svelte';
 
 
@@ -344,7 +344,7 @@
         <button 
           on:click={()=>{instructions.sendNVMEraseToGrid()}} 
           disabled={$engine != 'ENABLED'} 
-          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5 {classes}">
+          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5">
           NVM Erase
         </button>
         
