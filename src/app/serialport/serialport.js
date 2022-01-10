@@ -9,6 +9,8 @@ const Readline = SerialPort.parsers.Readline;
 
 import { messageStream } from './message-stream.store.js';  
 
+import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.store.js';
+
 export const serialComm = createSerialComm();
 
 let port_disovery_interval;
@@ -181,7 +183,17 @@ function runSerialParser(port){
 
   parser.on('data', function(data) {
 
-    let class_array = grid.decode_packet_frame(data);
+    // conver incoming data from hex blob to array of ascii codes
+    let incoming_hex_array = Array.from(data);
+    let asciicode_array = [];
+
+    for (let i = 0; i < incoming_hex_array.length; i+=2) {
+      asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
+    }
+
+    debug_lowlevel_store.push_inbound(asciicode_array)
+
+    let class_array = grid.decode_packet_frame(asciicode_array);
     grid.decode_packet_classes(class_array);
 
     if(class_array !== false){
@@ -213,6 +225,8 @@ function createSerialComm(){
     },
     write: (args) => { 
       if(get(store).isEnabled){
+
+        debug_lowlevel_store.push_outbound(args)
 
         let port = get(store).open;
         

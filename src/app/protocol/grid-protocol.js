@@ -696,15 +696,8 @@ const grid = {
 
     return {serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID}; // return id for checking communication issues
   },
-  decode_packet_frame: function(incoming_hex_string){
+  decode_packet_frame: function(asciicode_array){
   
-    // conver incoming data from hex blob to array of ascii codes
-    let incoming_hex_array = Array.from(incoming_hex_string);
-    let asciicode_array = [];
-
-    for (let i = 0; i < incoming_hex_array.length; i+=2) {
-      asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
-    }
 
     // use the last two characters to determine the received checksum
     let received_checksum = parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-1]))*1 + parseInt('0x'+String.fromCharCode(asciicode_array[asciicode_array.length-2]))*16;

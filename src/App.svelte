@@ -22,6 +22,7 @@
   import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
   import TopSubMenu from            './app/main/TopSubMenu.svelte';
   import Modal from                 './app/main/Modal.svelte';
+  import Welcome from                 './app/main/Welcome.svelte';
   import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
@@ -43,7 +44,8 @@
   <NavTabs/> 
 
   <!-- The modal pages views -->
-  <Modal/>
+  <Modal/>  
+  <Welcome/>
 
   <!-- Update notification -->
   <Updater/>
