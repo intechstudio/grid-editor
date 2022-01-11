@@ -1,6 +1,6 @@
 <script>
   import { get } from 'svelte/store';
-  import { debug_monitor_store, debug_lowlevel_store } from "./DebugMonitor.store";
+  import { debug_monitor_store, debug_lowlevel_store, inbound_data_rate_points, outbound_data_rate_points, inbound_data_rate_history, outbound_data_rate_history } from "./DebugMonitor.store";
   import _utils, { luaParser } from "../../../runtime/_utils";
   import { appSettings } from '../../../runtime/app-helper.store';
   import {luadebug_store} from "../../../runtime/runtime.store"
@@ -52,6 +52,64 @@
   }
 
   let display = "CHAR"
+
+  function average(arr) {
+    
+    let sum = 0;
+    let len = arr.length
+
+    if (len == 0){
+      return 0;
+    }
+
+    arr.forEach(element => {
+      sum += element
+    });
+
+    return Math.floor(sum/len*100)/100;
+
+  }
+
+  function minimum(arr) {
+    
+    let len = arr.length
+
+    if (len == 0){
+      return 0;
+    }
+
+    let min = arr[0];
+
+
+    arr.forEach(element => {
+      if (element<min){
+        min = element
+      }
+    });
+
+    return Math.floor(min*100)/100;
+
+  }
+  function maximum(arr) {
+    
+    let len = arr.length
+
+    if (len == 0){
+      return 0;
+    }
+
+    let max = arr[0];
+
+
+    arr.forEach(element => {
+      if (element>max){
+        max = element
+      }
+    });
+
+    return Math.floor(max*100)/100;
+
+  }
 
 </script>
 
@@ -140,11 +198,87 @@
     </div>
   {/if}
 
+  <div class="inline-flex  flex-row"> 
+    <svg width="50%" height="50" viewBox="0 0 100 50">
+      <polyline id="chart_testchart_0" class="outbound chart"
+      fill="none"
+      points="{$outbound_data_rate_points}"/>
+    
+      <text alignment-baseline="middle" text-anchor="middle" class="outbound bigsvgtext" x="50%" y="50%">{Math.floor($outbound_data_rate_history[$inbound_data_rate_history.length-1]*100)/100}</text>
+      <text alignment-baseline="middle" text-anchor="middle" class="outbound unitsvgtext" x="50%" y="80%">kbps (TX)</text>
+      
+      <text alignment-baseline="middle"  class="outbound smallsvgtext" x="0" y="25%">{maximum($outbound_data_rate_history)}</text>
+      <text alignment-baseline="middle"  class="outbound smallsvgtext" x="0" y="50%">{average($outbound_data_rate_history)}</text>
+      <text alignment-baseline="middle"  class="outbound smallsvgtext" x="0" y="75%">{minimum($outbound_data_rate_history)}</text>
+    </svg>
 
+    <svg width="50%" height="50" viewBox="0 0 100 50">
+      <polyline id="chart_testchart_0" class="inbound chart"
+      fill="none"
+      points="{$inbound_data_rate_points}"/>
+    
+      <text alignment-baseline="middle" text-anchor="middle" class="inbound bigsvgtext" x="50%" y="50%">{Math.floor($inbound_data_rate_history[$inbound_data_rate_history.length-1]*100)/100}</text>
+      <text alignment-baseline="middle" text-anchor="middle" class="inbound unitsvgtext" x="50%" y="80%">kbps (RX)</text>
+      
+      <text alignment-baseline="middle"  class="inbound smallsvgtext" x="0" y="25%">{maximum($inbound_data_rate_history)}</text>
+      <text alignment-baseline="middle"  class="inbound smallsvgtext" x="0" y="50%">{average($inbound_data_rate_history)}</text>
+      <text alignment-baseline="middle"  class="inbound smallsvgtext" x="0" y="75%">{minimum($inbound_data_rate_history)}</text>
+    </svg>
+  </div>
 
 </config-debug>
 
 <style>
+
+  .chart{
+    stroke-width: 1;
+  }
+
+  .inbound.chart{
+    stroke: rgba(39, 87, 50, 1);
+  }
+
+  .outbound.chart{
+    stroke: rgba(44, 44, 80, 1);
+  }
+
+  .bigsvgtext{
+
+  font-size: 200%;
+  font-weight: bolder;
+
+  }
+  .inbound.bigsvgtext{
+    fill: rgb(83, 191, 108)
+  }
+  .outbound.bigsvgtext{
+    fill: rgb(84, 84, 150);
+  }
+
+  .unitsvgtext{
+    font-size: 75%;
+    font-weight: bolder;
+  }
+  .inbound.unitsvgtext{
+    fill: rgb(83, 191, 108)
+  }
+  .outbound.unitsvgtext{
+    fill: rgb(84, 84, 150);
+  }
+
+  .smallsvgtext{
+    font-size: 75%;
+  }
+  .inbound.smallsvgtext{
+    fill: rgba(39, 87, 50, 1)
+  }
+  .outbound.smallsvgtext{
+    fill: rgba(44, 44, 80, 1);
+  }
+
+
+
+
 
   .debugtexty:nth-child(even){
     @apply bg-select;
