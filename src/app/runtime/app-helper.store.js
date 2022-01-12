@@ -67,6 +67,7 @@ export const appSettings = writable({
     owner: {neme: undefined}},
   
   persistant: {
+    welcomeOnStartup: true,
     profileFolder: '',
     pageActivatorEnabled: false,
     pageActivatorCriteria_0 : "",
@@ -82,6 +83,7 @@ export const appSettings = writable({
 export const profileListRefresh = writable(0);
 
 let persistant = {
+  welcomeOnStartup: true,
   profileFolder: '',
   pageActivatorEnabled: false,
   pageActivatorCriteria_0 : "",
@@ -91,6 +93,7 @@ let persistant = {
   pageActivatorInterval: 1000
 }
 
+init_appsettings();
 
 appSettings.subscribe(store => {
 
@@ -150,6 +153,11 @@ function init_appsettings(){
           value = 1000;
         }
 
+        if (key === "welcomeOnStartup"){
+          value = true
+          appSettings.update(s => {s.modal = 'welcome'; return s;})  
+        }
+
       }
 
 
@@ -159,13 +167,19 @@ function init_appsettings(){
         return s;
       });
     
+
+      if (key === "welcomeOnStartup" && value === true){
+        
+        appSettings.update(s => {s.modal = 'welcome'; return s;})  
+      }
+
     });
 
   });
 
 }
 
-init_appsettings();
+
 
 
 

@@ -307,7 +307,11 @@
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
 
-      <div class="pb-2">Developer Settings</div>
+      <div class="flex py-2 text-white items-center"> 
+        <input class="mr-1" type="checkbox" bind:checked={$appSettings.persistant.welcomeOnStartup}>
+        <div class="ml-1">Show welcome on startup</div>
+      </div>
+
 
       <div class="flex py-2 text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.debugMode}>
