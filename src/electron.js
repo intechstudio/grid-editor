@@ -155,8 +155,21 @@ autoUpdater.checkForUpdatesAndNotify();
 
 
 ipcMain.on('setStoreValue-message', (event, arg) => {
-  console.log('attempt to store..',arg);
-  store.set(arg)
+  
+  Object.entries(arg).forEach(entry => {
+
+    let [key, value] = entry;
+    if (value !== undefined){
+      store.set(arg)
+      console.log('attempt to store..',arg);
+    }
+    else{
+      store.delete(key)
+      console.log('delete from store..',arg);
+    }
+
+  });
+
   event.reply('setStoreValue-reply', 'saved');
 })
 
@@ -187,6 +200,18 @@ ipcMain.handle('getStoreValue', (event, key) => {
   return result;
 })
 
+ipcMain.handle('getStoreValues', (event, keys) => {
+  
+  let result = {}
+  keys.forEach(key => {
+
+    let value = store.get(key);
+    result[key] = value;
+    
+  });
+
+  return result;
+})
 
 
 

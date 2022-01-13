@@ -12,7 +12,7 @@ import { analytics } from './analytics_influx';
 const activeWindow = require('active-win');
 
 
-let fwAcceptable = [{major: 1, minor: 2, patch: 11}];
+let fwAcceptable = [{major: 1, minor: 2, patch: 12}];
 
 console.log("hello")
 
@@ -436,20 +436,31 @@ function create_runtime () {
         // check if the firmware version of the newly connected device is acceptable
         let moduleMismatch = true
 
-        fwAcceptable.forEach(fw=>{
+        fwAcceptable.forEach(required=>{
   
-          if (JSON.stringify(controller.fwVersion) === JSON.stringify(fw)){
+          if (JSON.stringify(controller.fwVersion) === JSON.stringify(required)){
   
             moduleMismatch = false;
           
           }
+          else if (controller.fwVersion.major > required.major){
+            moduleMismatch = false;
+          }
+          else if (controller.fwVersion.major == required.major && 
+                  controller.fwVersion.minor > required.minor){
+
+            moduleMismatch = false;
+          }
+          else if (controller.fwVersion.major == required.major && 
+                  controller.fwVersion.minor == required.minor && 
+                  controller.fwVersion.patch > required.patch){
+
+            moduleMismatch = false;
+          }
+
   
         })
-  
-        if(JSON.stringify(controller.fwVersion) === JSON.stringify(get(appSettings).version)){
-  
-          moduleMismatch = false;
-        }
+
   
         if (moduleMismatch === true){
           

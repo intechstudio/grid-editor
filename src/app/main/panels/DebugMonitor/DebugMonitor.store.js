@@ -158,7 +158,7 @@ function createDebugLowlevel(){
           obj.data = arr;
           obj.direction = "IN";
 
-          if(d.length >= 30){
+          if(d.length >= 15){
             d.pop()
           }
           d = [obj, ...d];
@@ -177,7 +177,7 @@ function createDebugLowlevel(){
           obj.data = arr;
           obj.direction = "OUT";
 
-          if(d.length >= 30){
+          if(d.length >= 15){
             d.pop()
           }
           d = [obj, ...d];

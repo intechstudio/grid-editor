@@ -36,16 +36,16 @@ function checkOS() {
   return 'browser';
 }
 
-
+const versionstring =  ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
 export const appSettings = writable({
   size: 2.1,
   version: {
-    major: ipcRenderer.sendSync('app_version').split('.')[0],
-    minor: ipcRenderer.sendSync('app_version').split('.')[1],
-    patch: ipcRenderer.sendSync('app_version').split('.')[2]
+    major: versionstring.split('.')[0],
+    minor: versionstring.split('.')[1],
+    patch: versionstring.split('.')[2]
   },
   overlays: {controlElementName: false},
   debugMode: false,
@@ -64,10 +64,11 @@ export const appSettings = writable({
   firmwareNotificationState: 0,
   activeWindowResult: {
     title: undefined,
-    owner: {neme: undefined}},
-  
+    owner: {neme: undefined}
+  },
   persistant: {
     welcomeOnStartup: true,
+    lastVersion: '',
     profileFolder: '',
     pageActivatorEnabled: false,
     pageActivatorCriteria_0 : "",
@@ -84,6 +85,7 @@ export const profileListRefresh = writable(0);
 
 let persistant = {
   welcomeOnStartup: true,
+  lastVersion: '',
   profileFolder: '',
   pageActivatorEnabled: false,
   pageActivatorCriteria_0 : "",
@@ -97,13 +99,10 @@ init_appsettings();
 
 appSettings.subscribe(store => {
 
-
   let instore = store.persistant;
 
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
-
-
 
     if (persistant[key] !== instore[key]){
 
@@ -137,41 +136,65 @@ ipcRenderer.on('trayState', (event, args) => {
 function init_appsettings(){
 
 
+
+  let request = []
+  Object.entries(persistant).forEach(entry => {
+
+    const [key, value] = entry;
+    request.push(key)
+
+  });
+
+  ipcRenderer.invoke('getStoreValues', request).then((response) => {
+
+    appSettings.update(s => {
+
+      Object.entries(response).forEach(entry => {
+
+        let [key, value] = entry;
+
+        // validate values, append default behavior
+
+        if (key === "profileFolder" && value === undefined){
+          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+        }
+      
+        if (key === "pageActivatorInterval" && value === undefined){
+          value = 1000;
+        }
+
+        s.persistant[key] = value;
+        console.log("init", key, value);
+    
+      });
+
+      return s;
+
+    });
+
+
+    // show welcome modal if it is not disabled, but always show after version update
+    if (get(appSettings).persistant.welcomeOnStartup === undefined ||
+        get(appSettings).persistant.welcomeOnStartup === true ||
+        get(appSettings).persistant.lastVersion === undefined ||
+        get(appSettings).persistant.lastVersion != versionstring){
+
+      appSettings.update(s => {
+        s.persistant.lastVersion = versionstring
+        s.persistant.welcomeOnStartup = true
+        s.modal = 'welcome'
+        return s;
+      });
+
+    }  
+  
+  });
+
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
 
     ipcRenderer.invoke('getStoreValue', key).then((value) => {
 
-      if (value === undefined){
-        value = "";
-
-        if (key === "profileFolder"){
-          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
-        }
-      
-        if (key === "pageActivatorInterval"){
-          value = 1000;
-        }
-
-        if (key === "welcomeOnStartup"){
-          value = true
-          appSettings.update(s => {s.modal = 'welcome'; return s;})  
-        }
-
-      }
-
-
-      appSettings.update(s => {
-        console.log("init", key, value);
-        s.persistant[key] = value;
-        return s;
-      });
-    
-
-      if (key === "welcomeOnStartup" && value === true){
-        
-        appSettings.update(s => {s.modal = 'welcome'; return s;})  
-      }
 
     });
 

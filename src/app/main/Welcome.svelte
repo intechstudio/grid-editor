@@ -41,43 +41,37 @@
 
       </div>
 
-      <div class="p-8 flex-col w-5/12 flex justify-between ml-auto mt-8">
+      <div class="p-8 flex-col w-5/12 min-w-max flex justify-between ml-auto mt-8">
 
         <div class="flex w-full text-xl opacity-70 ">Getting started</div>
         
         <div 
-          on:click={e => openInBrowser("http://example.com")} 
+          on:click={e => openInBrowser("https://intech.studio/support/docs/reference-manual")} 
           class="flex w-full text-blue-500 cursor-pointer">
-          Connecting your module...
+          Editor reference manual...
         </div>
         <div 
-          on:click={e => openInBrowser("http://example.com")} 
-          class="flex w-full text-blue-500 cursor-pointer">
-          Setting up a profile...
-        </div>
-        <div 
-          on:click={e => openInBrowser("http://example.com")} 
-          class="flex w-full text-blue-500 cursor-pointer">
-          Customize the settings...
-        </div>
-
-        <br><br>
-        <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
-
-        <div 
-          on:click={e => openInBrowser("http://example.com")} 
-          class="flex w-full text-blue-500 cursor-pointer">
-          Upgrading the firmware...
-        </div>
-        <div 
-          on:click={e => openInBrowser("http://example.com")} 
-          class="flex w-full text-blue-500 cursor-pointer">
-          Taking care of grid modules...
-        </div>
-        <div 
-          on:click={e => openInBrowser("http://example.com")} 
+          on:click={e => openInBrowser("https://discord.gg/GRUdF2R")} 
           class="flex w-full text-blue-500 cursor-pointer">
           Join the Discord community...
+        </div>
+
+        <br>
+        <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
+        <div 
+          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/troubleshooting")} 
+          class="flex w-full text-blue-500 cursor-pointer">
+          Grid does not connect...
+        </div>
+        <div 
+          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/firmware-update")} 
+          class="flex w-full text-blue-500 cursor-pointer">
+          Updating the firmware...
+        </div>
+        <div 
+          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/cleaning-kit")} 
+          class="flex w-full text-blue-500 cursor-pointer">
+          Taking care of grid modules...
         </div>
 
       </div>

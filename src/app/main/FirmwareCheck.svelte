@@ -222,7 +222,7 @@
 
       }catch(e){
 
-        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.10/grid_release.zip"
+        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.12/grid_release.zip"
       }
 
       uploadProgressText = "Downloading firmware image "
