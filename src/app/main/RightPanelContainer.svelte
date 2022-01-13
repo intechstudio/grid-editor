@@ -1,6 +1,6 @@
 <script>
 
-  import { appSettings } from './_stores/app-helper.store.js';
+  import { appSettings } from '../runtime/app-helper.store.js';
 
   import Configuration from './panels/configuration/Configuration.svelte';
   import Preferences from './panels/preferences/Preferences.svelte';

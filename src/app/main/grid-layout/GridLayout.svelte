@@ -16,14 +16,15 @@
 
   import { fade, fly } from 'svelte/transition';
 
-  import { openInBrowser } from '../../shared/helpers/global-helper';
+  import { openInBrowser } from '../../runtime/app-helper.store';
 
 
 
   const { getGlobal } = require('electron').remote;
   const trackEvent = getGlobal('trackEvent');
 
-  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../main/_stores/app-helper.store';
+  import { analytics } from '../../runtime/analytics_influx';
+  import { appSettings } from '../../runtime/app-helper.store';
 
 
   const { ipcRenderer } = require('electron');
@@ -148,7 +149,7 @@
   function refresh(){
 
     trackEvent('no-module', 'no-module: restart app') 
-    analytics_track_string_event("gridlayout", "no module", "app restart")
+    analytics.track_string_event("gridlayout", "no module", "app restart")
 
 
     setTimeout(() => {
@@ -163,7 +164,7 @@
     openInBrowser("https://intech.studio/support/docs/troubleshooting")
 
     trackEvent('no-module', 'no-module: troubleshooting'); 
-    analytics_track_string_event("gridlayout", "no module", "troubleshoot")
+    analytics.track_string_event("gridlayout", "no module", "troubleshoot")
 
   }
 

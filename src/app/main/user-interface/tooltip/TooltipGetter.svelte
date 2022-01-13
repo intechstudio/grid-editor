@@ -2,7 +2,7 @@
 
   import { onMount } from "svelte";
   import { fly, fade } from 'svelte/transition';
-  import { current_tooltip_store } from "../../_stores/app-helper.store";
+  import { current_tooltip_store } from "../../../runtime/app-helper.store";
   import { tooltip_content } from "./tooltip-content.json.js";
 
   let tooltip = false;

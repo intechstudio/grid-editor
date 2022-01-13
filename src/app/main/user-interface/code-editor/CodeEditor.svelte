@@ -21,7 +21,7 @@
   import { lintGutter } from "./lang-lua/LintGutter";
   import { luaLint } from './lang-lua/luaLint';
 
-  import { focusedCodeEditor } from '../../_stores/app-helper.store.js';
+  import { focusedCodeEditor } from '../../../runtime/app-helper.store.js';
 
 
   const dispatch = createEventDispatcher();

@@ -2,7 +2,7 @@
 
   import { onMount } from 'svelte';
 
-  import { appSettings } from '../../../_stores/app-helper.store.js';
+  import { appSettings } from '../../../../runtime/app-helper.store.js';
 
   import { select } from '../event-handlers/select.js';  
 

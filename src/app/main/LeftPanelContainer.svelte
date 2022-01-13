@@ -3,7 +3,7 @@
   import MidiMonitor from "./panels/MidiMonitor/MidiMonitor.svelte";
   import DebugMonitor from "./panels/DebugMonitor/DebugMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
-  import { appSettings } from "./_stores/app-helper.store";
+  import { appSettings } from "../runtime/app-helper.store";
 
   export let classes;
 </script>

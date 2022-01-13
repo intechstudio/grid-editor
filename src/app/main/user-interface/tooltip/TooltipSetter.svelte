@@ -6,11 +6,8 @@
    * 
    */
 
-  import { tooltip_content } from './tooltip-content.json.js';
 
-  import { fade } from 'svelte/transition';
-
-  import { current_tooltip_store } from '../../_stores/app-helper.store.js';
+  import { current_tooltip_store } from '../../../runtime/app-helper.store.js';
 
   export let key = '';
   export let mode = 0;

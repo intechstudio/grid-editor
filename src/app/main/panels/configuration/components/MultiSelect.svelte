@@ -1,5 +1,5 @@
 <script>
-  import { configManagement } from '../../../../runtime/config-manager.store.js';
+  import { configManagement } from '../Configuration.store.js';
 
   import { appActionClipboard, appMultiSelect } from '../../../../runtime/runtime.store.js';
   import BtnAndPopUp from '../../../user-interface/BtnAndPopUp.svelte';

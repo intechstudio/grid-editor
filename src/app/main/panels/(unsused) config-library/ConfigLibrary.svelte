@@ -10,11 +10,11 @@
 
   import _utils from '../../../runtime/_utils';
 
-  import Folder from '../configuration/config-picker/Folder.svelte';
+  import Folder from './config-picker/Folder.svelte';
   
   import { createNestedObject, returnDeepestObjects } from '../../../protocol/_utils.js';
   
-  import { presetManagement } from '../../_stores/app-helper.store';
+  import { presetManagement } from '../../runtime/app-helper.store';
 
   import { get } from 'svelte/store';
 

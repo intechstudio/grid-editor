@@ -1,11 +1,22 @@
-import { update } from 'lodash';
 import { writable, get, readable } from 'svelte/store';
-import { getAllComponents } from '../../config-blocks/_configs';
-import grid from '../../protocol/grid-protocol';
+import { getAllComponents } from '../config-blocks/_configs';
+import grid from '../protocol/grid-protocol';
 const fs = require('fs'); 
 require('dotenv').config();
 
 const { ipcRenderer, app } = require('electron');
+
+const shell = require('electron').shell
+
+export function openInBrowser(url){
+  shell.openExternal(url)
+}
+
+const { getGlobal } = require('electron').remote;
+const trackEvent = getGlobal('trackEvent');
+
+
+
 
 function checkOS() {
   if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
@@ -25,16 +36,16 @@ function checkOS() {
   return 'browser';
 }
 
-
+const versionstring =  ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
 export const appSettings = writable({
   size: 2.1,
   version: {
-    major: ipcRenderer.sendSync('app_version').split('.')[0],
-    minor: ipcRenderer.sendSync('app_version').split('.')[1],
-    patch: ipcRenderer.sendSync('app_version').split('.')[2]
+    major: versionstring.split('.')[0],
+    minor: versionstring.split('.')[1],
+    patch: versionstring.split('.')[2]
   },
   overlays: {controlElementName: false},
   debugMode: false,
@@ -53,9 +64,11 @@ export const appSettings = writable({
   firmwareNotificationState: 0,
   activeWindowResult: {
     title: undefined,
-    owner: {neme: undefined}},
-  
+    owner: {neme: undefined}
+  },
   persistant: {
+    welcomeOnStartup: true,
+    lastVersion: '',
     profileFolder: '',
     pageActivatorEnabled: false,
     pageActivatorCriteria_0 : "",
@@ -71,6 +84,8 @@ export const appSettings = writable({
 export const profileListRefresh = writable(0);
 
 let persistant = {
+  welcomeOnStartup: true,
+  lastVersion: '',
   profileFolder: '',
   pageActivatorEnabled: false,
   pageActivatorCriteria_0 : "",
@@ -80,16 +95,14 @@ let persistant = {
   pageActivatorInterval: 1000
 }
 
+init_appsettings();
 
 appSettings.subscribe(store => {
-
 
   let instore = store.persistant;
 
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
-
-
 
     if (persistant[key] !== instore[key]){
 
@@ -123,73 +136,79 @@ ipcRenderer.on('trayState', (event, args) => {
 function init_appsettings(){
 
 
+
+  let request = []
+  Object.entries(persistant).forEach(entry => {
+
+    const [key, value] = entry;
+    request.push(key)
+
+  });
+
+  ipcRenderer.invoke('getStoreValues', request).then((response) => {
+
+    appSettings.update(s => {
+
+      Object.entries(response).forEach(entry => {
+
+        let [key, value] = entry;
+
+        // validate values, append default behavior
+
+        if (key === "profileFolder" && value === undefined){
+          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+        }
+      
+        if (key === "pageActivatorInterval" && value === undefined){
+          value = 1000;
+        }
+
+        s.persistant[key] = value;
+        console.log("init", key, value);
+    
+      });
+
+      return s;
+
+    });
+
+
+    // show welcome modal if it is not disabled, but always show after version update
+    if (get(appSettings).persistant.welcomeOnStartup === undefined ||
+        get(appSettings).persistant.welcomeOnStartup === true ||
+        get(appSettings).persistant.lastVersion === undefined ||
+        get(appSettings).persistant.lastVersion != versionstring){
+
+      appSettings.update(s => {
+        s.persistant.lastVersion = versionstring
+        s.persistant.welcomeOnStartup = true
+        s.modal = 'welcome'
+        return s;
+      });
+
+    }  
+  
+  });
+
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
 
     ipcRenderer.invoke('getStoreValue', key).then((value) => {
 
-      if (value === undefined){
-        value = "";
 
-        if (key === "profileFolder"){
-          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
-        }
-      
-        if (key === "pageActivatorInterval"){
-          value = 1000;
-        }
-
-      }
-
-
-      appSettings.update(s => {
-        console.log("init", key, value);
-        s.persistant[key] = value;
-        return s;
-      });
-    
     });
 
   });
 
 }
 
-init_appsettings();
+
 
 
 
 
 
 export const preferenceStore = writable();
-
-function createActionPrefStore(){
-
-  const default_values = {
-    advanced: {
-      index: undefined, 
-      visible: false,
-    }
-  }
-
-  const store = writable(default_values);
-
-  return {
-    ...store,
-    showAdvanced: (index, bool) => {
-        store.update(s => {
-            s.advanced = {
-              index: index, 
-              visible: s.advanced.visible = ! s.advanced.visible,
-            }
-
-          return s
-        });
-    },
-    reset: () => {
-      store.update(s => {s = default_values; return s;});
-    }
-  }
-}
 
 
 
@@ -226,6 +245,9 @@ function createPresetManagement(){
   }
 }
 
+trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
+trackEvent('operating-system', process.platform)
+
 export const activeDropDown = writable({config_index: undefined, input_index: undefined})
 
 export const presetManagement = createPresetManagement();
@@ -237,62 +259,3 @@ export const numberOfModulesStore = writable();
 export const focusedCodeEditor = writable();
 
 export const configNodeBinding = writable([]);
-
-export const actionPrefStore = createActionPrefStore();
-
-export const actionIsDragged = writable(false);
-
-const {InfluxDB} = require('@influxdata/influxdb-client')
-
-// You can generate an API token from the "API Tokens Tab" in the UI
-const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
-const org = 'sukuwc@riseup.net'
-const bucket = "editor_analytics"
-
-const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
-
-let sessionid = Date.now();
-const user_platform = checkOS();
-
-const {Point} = require('@influxdata/influxdb-client')
-
-const userId = ipcRenderer.sendSync('analytics_uuid');
-const editor_version = "v" + grid.properties.VERSION.MAJOR + "." + grid.properties.VERSION.MINOR + "." + grid.properties.VERSION.PATCH;
-const node_env = process.env.NODE_ENV;
-
-const writeApi = client.getWriteApi(org, bucket)
-
-function analytics_track_string_event(measurement, field, value){
-
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
- 
-  const point = new Point(measurement).stringField(field, value).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
-
-  try{
-    writeApi.writePoint(point)
-  }catch(e){
-    console.log("Analytics: ", e)
-  }
-
-}
-
-function analytics_track_number_event(measurement, field, value){
-
-
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
-  
-  const point = new Point(measurement).floatField(field, parseFloat(value)).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
-
-  try{
-    writeApi.writePoint(point)
-  }catch(e){
-    console.log("Analytics: ", e)
-  }
-  
-}
-
-// track session init event
-analytics_track_string_event("application", "version", "v"+ipcRenderer.sendSync('app_version'))
-
-
-export {analytics_track_string_event, analytics_track_number_event}

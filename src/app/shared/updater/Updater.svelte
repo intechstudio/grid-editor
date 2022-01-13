@@ -1,7 +1,7 @@
 <script>
   const { ipcRenderer, app } = require('electron');
 
-  import { openInBrowser } from '../helpers/global-helper.js';
+  import { openInBrowser } from '../../runtime/app-helper.store';
 
   // self update
   let updateNotification = false;

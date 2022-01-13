@@ -1,8 +1,8 @@
 <script>
 
-  import {appSettings} from '../../main/_stores/app-helper.store.js';
+import { appSettings } from "../runtime/app-helper.store";
 
-  import TooltipSetter from '../../main/user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte';
 
   let selectedRightTab = 'Configuration';
 

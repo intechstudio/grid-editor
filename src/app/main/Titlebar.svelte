@@ -1,17 +1,58 @@
 <script>
   import { onMount } from 'svelte';
-  import MinMaxClose from './MinMaxClose.svelte';
+import { appSettings } from "../runtime/app-helper.store";
 
-  import {appSettings} from "./../../../app/main/_stores/app-helper.store"
 
-  onMount(()=>{
 
-  })
+  const { remote } = require("electron");
+  const BrowserWindow = remote.BrowserWindow;
+
+  function init() { 
+    document.getElementById("minimize-btn").addEventListener("click", function (e) {
+          
+      const window = BrowserWindow.getFocusedWindow();
+      window.minimize(); 
+    });
+
+    document.getElementById("maximize-btn").addEventListener("click", function (e) {
+      var window = BrowserWindow.getFocusedWindow(); 
+      isMaximized = true;
+      window.maximize(); 
+    });
+
+    document.getElementById("restore-down-btn").addEventListener("click", function (e) {
+      const window = BrowserWindow.getFocusedWindow(); 
+      isMaximized = false;
+      window.restore()
+    });
+
+    document.getElementById("close-btn").addEventListener("click", function (e) {
+      const window = BrowserWindow.getFocusedWindow();
+      window.close();
+    }); 
+  }; 
+
+  let isMaximized;
+
+  onMount(()=> {
+
+    init();
+
+    let startingWindow = remote.getCurrentWindow();
+    startingWindow.isMaximized() ? isMaximized = true : false;
+
+  });
+
 
 </script>
 
+
+
 <top-bar style="background-color:rgb(25, 26, 32)" class="text-white static top-0 w-full p-1">
   
+
+  <!-- Editor logo text svg -->
+
   <div class="draggable flex justify-between">
     <div class="flex items-center pl-2">
       <svg class="w-12 fill-current text-gray-500" viewBox="0 0 58 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,9 +64,45 @@
         <path d="M50.4262 13H51.4162C51.6142 13 51.7762 12.838 51.7762 12.64V8.14C51.7762 8.032 51.8482 7.96 51.9562 7.96H53.0542C53.2522 7.96 53.3422 8.068 53.3962 8.176L55.5562 12.712C55.6282 12.856 55.7542 13 55.9882 13H57.0862C57.3382 13 57.4462 12.838 57.4462 12.676C57.4462 12.55 57.4102 12.46 57.3742 12.388L55.2862 8.14C55.2322 8.032 55.1962 7.942 55.1962 7.834C55.1962 7.672 55.3402 7.546 55.5742 7.402C56.6542 6.736 57.4462 5.728 57.4462 4.18C57.4462 1.912 55.7542 0.400002 53.6662 0.400002H50.4262C50.2282 0.400002 50.0662 0.562001 50.0662 0.760002V12.64C50.0662 12.838 50.2282 13 50.4262 13ZM53.6662 6.25H51.9562C51.8482 6.25 51.7762 6.178 51.7762 6.07V2.29C51.7762 2.182 51.8482 2.11 51.9562 2.11H53.6662C54.7642 2.11 55.6822 2.866 55.6822 4.18C55.6822 5.494 54.7642 6.25 53.6662 6.25Z" />
       </svg>
     </div>
+
+    <!-- Title Text + version -->
     
     <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
-    <MinMaxClose/>
+
+    <!-- Min Max Close -->
+
+    <div class="flex text-gray-300 not-draggable">
+
+      <div id="minimize-btn" class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">
+        <svg class="w-5 h-5 p-1 fill-current text-gray-500"  viewBox="0 0 20 3" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="20" height="3" />
+        </svg>
+      </div>
+    
+      <div id="maximize-btn" class:hidden={isMaximized} class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">
+        <svg class="w-5 h-5 p-1 fill-current text-gray-500"  viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M0 0H26V26H0V0ZM3 3V23H23V3H3Z"/>
+        </svg>  
+      </div>
+    
+      <div id="restore-down-btn" class:hidden={!isMaximized} class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">
+        <svg class="w-5 h-5 p-1 fill-current text-gray-500" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M20 5H0V25H20V5ZM2.30769 7.30769V22.6923H17.6923V7.30769H2.30769Z" />
+          <path d="M5 5H7.30769V2.30769H22.6923V17.6923H20V20H25V0H5V5Z" />
+        </svg>
+      </div>
+     
+    
+      <div id="close-btn" class="p-1 mx-1 cursor-pointer not-draggable hover:bg-secondary">
+        <svg class="w-5 h-5 p-1 fill-current text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
+          <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
+        </svg>
+      </div>
+    
+    </div>
+
+
         
   </div>
   

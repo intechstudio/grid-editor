@@ -17,8 +17,8 @@
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { isJson } from '../../../runtime/_utils.js';
-  import { profileListRefresh } from '../../_stores/app-helper.store.js';
-  import { appSettings, analytics_track_string_event, analytics_track_number_event } from '../../../main/_stores/app-helper.store';
+  import { appSettings, profileListRefresh } from '../../../runtime/app-helper.store.js';
+  import { analytics } from '../../../runtime/analytics_influx';
 
   import { clickOutside } from '../../_actions/click-outside.action';
   import { addOnDoubleClick } from '../../_actions/add-on-double-click';
@@ -266,7 +266,7 @@
         loadFilesFromDirectory();
 
         trackEvent('profile-library', 'profile-library: save success')
-        analytics_track_string_event("library", "profile", "save success")
+        analytics.track_string_event("library", "profile", "save success")
 
     }); 
   }
@@ -274,7 +274,7 @@
   function prepareSave() { 
 
     trackEvent('profile-library', 'profile-library: save start')
-    analytics_track_string_event("library", "profile", "save start")
+    analytics.track_string_event("library", "profile", "save start")
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -328,7 +328,7 @@
 
     
     trackEvent('profile-library', 'profile-library: load start')
-    analytics_track_string_event("library", "profile", "load start")
+    analytics.track_string_event("library", "profile", "load start")
 
     if(selected !== undefined){
 
@@ -344,14 +344,14 @@
         runtime.whole_page_overwrite(profile.configs);
 
         trackEvent('profile-library', 'profile-library: load success')
-        analytics_track_string_event("library", "profile", "load success")
+        analytics.track_string_event("library", "profile", "load success")
 
 
       } else {
 
 
         trackEvent('profile-library', 'profile-library: load mismatch')
-        analytics_track_string_event("library", "profile", "load mismatch")
+        analytics.track_string_event("library", "profile", "load mismatch")
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }
@@ -449,7 +449,7 @@
               
               <div
                 in:fade out:fade
-                class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0 z-40 " on:click={()=>{profile.showMore = !profile.showMore;}}>{profile.showMore?"▲":"▼"}</div>
+                class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0" on:click={()=>{profile.showMore = !profile.showMore;}}>{profile.showMore?"▲":"▼"}</div>
             
               {#if (profile.showMore === true)}
                 <textarea                   

@@ -1,7 +1,6 @@
 <script>
 
-  import { appMultiSelect, runtime } from '../../../../runtime/runtime.store.js';
-  import { actionPrefStore, configNodeBinding } from '../../../_stores/app-helper.store.js';
+  import { appMultiSelect } from '../../../../runtime/runtime.store.js';
 
   export let index;
   export let rendering;

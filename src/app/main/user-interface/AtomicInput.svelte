@@ -1,7 +1,5 @@
 <script>
 
-  import { activeDropDown } from '../_stores/app-helper.store.js';
-
   import { clickOutside } from '../_actions/click-outside.action.js'
 
   import { createEventDispatcher } from 'svelte';

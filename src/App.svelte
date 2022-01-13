@@ -1,12 +1,5 @@
 <script>
 
-  /**
-  *   Analytics 
-  */
-
-  const { getGlobal } = require('electron').remote;
-  const trackEvent = getGlobal('trackEvent');
-  require('dotenv').config();
 
   /*
   *   tailwindcss
@@ -15,40 +8,29 @@
   import Tailwindcss from './Tailwindcss.svelte';
 
 
-  /*
-  *   serialport and nodejs
-  */
-
-  import SerialPort from './app/serialport/SerialPort.svelte';
-
-
   /**
    *  svelte UI parts and components
   */
 
   import { onMount } from 'svelte';
 
-  import Titlebar from './app/shared/main/Titlebar.svelte';
-  import NavTabs from './app/shared/main/NavTabs.svelte';
-  import RightPanelContainer from './app/main/RightPanelContainer.svelte';
-  import LeftPanelContainer from './app/main/LeftPanelContainer.svelte';
-  import GridLayout from './app/main/grid-layout/GridLayout.svelte';
-  import ConfigLibrary from './app/main/panels/config-library/ConfigLibrary.svelte';
-  import TopSubMenu from './app/main/TopSubMenu.svelte';
-  import Modal from './app/main/Modal.svelte';
-  import Updater from './app/shared/updater/Updater.svelte';
-  import CursorLog from './app/main/user-interface/cursor-log/CursorLog.svelte';
-  import FirmwareCheck from './app/shared/firmware-check/FirmwareCheck.svelte';
-  import { appSettings } from './app/main/_stores/app-helper.store';
-  import NotificationBar from './app/shared/notifications/NotificationBar.svelte';
-  import TooltipGetter from './app/main/user-interface/tooltip/TooltipGetter.svelte';
+  import Titlebar from              './app/main/Titlebar.svelte';
+  import NavTabs from               './app/main/NavTabs.svelte';
 
-  onMount(()=>{
+  import RightPanelContainer from   './app/main/RightPanelContainer.svelte';
+  import LeftPanelContainer from    './app/main/LeftPanelContainer.svelte';
+  import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
+  import TopSubMenu from            './app/main/TopSubMenu.svelte';
+  import Modal from                 './app/main/Modal.svelte';
+  import Welcome from                 './app/main/Welcome.svelte';
+  import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
+  import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+  import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
 
-    trackEvent('fw-editor-version', `v${$appSettings.version.major}.${$appSettings.version.minor}.${$appSettings.version.patch}`);
-    trackEvent('operating-system', process.platform)
-    
-  });
+  import Updater from               './app/shared/updater/Updater.svelte';
+  import { appSettings } from       './app/runtime/app-helper.store'
+
+
 
 </script>
 
@@ -56,16 +38,14 @@
 
 <Titlebar/>
 
-<SerialPort/>
-
-
 <main id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
   <NavTabs/> 
 
   <!-- The modal pages views -->
-  <Modal/>
+  <Modal/>  
+  <Welcome/>
 
   <!-- Update notification -->
   <Updater/>
