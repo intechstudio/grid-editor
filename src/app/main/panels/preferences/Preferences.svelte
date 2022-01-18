@@ -118,7 +118,7 @@
 
 
     trackEvent('library-download', 'library-download: download start')
-    analytics.track_string_event("library", "factory profiles", "download start")
+    analytics.track_event("application", "preferences", "profile downloader status", "download started")
 
     clearTimeout(download_status_interval)
 
@@ -170,7 +170,8 @@
         download_status = "Library updated!"
 
         trackEvent('library-download', 'library-download: download success')
-        analytics.track_string_event("library", "factory profiles", "download success")
+        analytics.track_event("application", "preferences", "profile downloader status", "download success")
+
         download_status_interval = setTimeout(() => {
           download_status = ""
         }, 2500);
@@ -178,7 +179,7 @@
       else{
      
         trackEvent('library-download', 'library-download: download failed')   
-        analytics.track_string_event("library", "factory profiles", "download fail")
+        analytics.track_event("application", "preferences", "profile downloader status", "download fail")
         console.log("GRID_NOT_FOUND")
       }
 

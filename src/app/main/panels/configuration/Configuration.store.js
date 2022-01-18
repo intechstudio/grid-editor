@@ -106,7 +106,7 @@ export function configManagement() {
       appActionClipboard.set(clipboard);
       
       if (isCut === false){
-        analytics.track_string_event("config", "multiselect", "copy")
+        analytics.track_event("application", "configuration", "multiselect", "copy")
       }
 
     };
@@ -130,12 +130,12 @@ export function configManagement() {
         // trigger change detection
         user_input.update(n => n);
 
-        analytics.track_string_event("config", "multiselect", "paste")
+        analytics.track_event("application", "configuration", "multiselect", "paste")
       }
     }
 
     this.cut = function() {
-      analytics.track_string_event("config", "multiselect", "cut")
+      analytics.track_event("application", "configuration", "multiselect", "cut")
       this.copy(true);
       this.remove();
     };
@@ -173,7 +173,7 @@ export function configManagement() {
         // trigger change detection
         user_input.update(n => n);
 
-        analytics.track_string_event("config", "multiselect", "remove")
+        analytics.track_event("application", "configuration", "multiselect", "remove")
 
       }
 

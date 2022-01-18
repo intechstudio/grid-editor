@@ -266,7 +266,7 @@
         loadFilesFromDirectory();
 
         trackEvent('profile-library', 'profile-library: save success')
-        analytics.track_string_event("library", "profile", "save success")
+        analytics.track_event("application", "profiles", "profile", "save success")
 
     }); 
   }
@@ -274,7 +274,7 @@
   function prepareSave() { 
 
     trackEvent('profile-library', 'profile-library: save start')
-    analytics.track_string_event("library", "profile", "save start")
+    analytics.track_event("application", "profiles", "profile", "save start")
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -328,7 +328,7 @@
 
     
     trackEvent('profile-library', 'profile-library: load start')
-    analytics.track_string_event("library", "profile", "load start")
+    analytics.track_event("application", "profiles", "profile", "load start")
 
     if(selected !== undefined){
 
@@ -344,14 +344,14 @@
         runtime.whole_page_overwrite(profile.configs);
 
         trackEvent('profile-library', 'profile-library: load success')
-        analytics.track_string_event("library", "profile", "load success")
+        analytics.track_event("application", "profiles", "profile", "load success")
 
 
       } else {
 
 
         trackEvent('profile-library', 'profile-library: load mismatch')
-        analytics.track_string_event("library", "profile", "load mismatch")
+        analytics.track_event("application", "profiles", "profile", "load mismatch")
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }

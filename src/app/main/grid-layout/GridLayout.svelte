@@ -149,7 +149,7 @@
   function refresh(){
 
     trackEvent('no-module', 'no-module: restart app') 
-    analytics.track_string_event("gridlayout", "no module", "app restart")
+    analytics.track_event("application", "gridlayout", "no module", "app restart")
 
 
     setTimeout(() => {
@@ -164,7 +164,7 @@
     openInBrowser("https://intech.studio/support/docs/troubleshooting")
 
     trackEvent('no-module', 'no-module: troubleshooting'); 
-    analytics.track_string_event("gridlayout", "no module", "troubleshoot")
+    analytics.track_event("application", "gridlayout", "no module", "open troubleshooting")
 
   }
 

@@ -61,7 +61,7 @@
 
       if (fwMismatch === false){
         trackEvent('firmware-download', 'firmware-download: mismatch detected')
-        analytics.track_string_event("firmware", "auto_update", "mismatch detected")
+        analytics.track_event("application", "firmwarecheck", "firmware update status", "mismatch detected")
         fwMismatch = true;
       }
       
@@ -139,7 +139,7 @@
 
           
           trackEvent('firmware-download', 'firmware-download: bootloader detected')
-          analytics.track_string_event("firmware", "auto_update", "bootloader detected")
+          analytics.track_event("application", "firmwarecheck", "firmware update status", "bootloader detected")
         }  
 
         return;
@@ -162,44 +162,6 @@
     }
 
 
-    // const drives = await drivelist.list();
-
-    // // "GRID Boot" on linux, "Boot" on windows
-    // let grid = drives.find(a => a.description.startsWith("GRID Boot") || a.description.startsWith("Boot"))
-
-    // if (grid !== undefined && grid.mountpoints.length !== 0){
-
-    //   console.log("drivelist: ", grid)
-    //   console.log("diskinfo: ", diskInfo)
-    //   console.log("griddrive: ", gridDrive)
-
-    //   let flash_path = grid.mountpoints[0].path
-
-    //   bootloader_path = flash_path;
-
-    //   if (uploadProgressText == ""){
-    //     appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
-    //     uploadProgressText = "Grid bootloader is detected! ";
-
-        
-    //     trackEvent('firmware-download', 'firmware-download: bootloader detected')
-    //     analytics.track_string_event("firmware", "auto_update", "bootloader detected")
-    //   }
-
-    // }
-    // else{
-
-    //   if (bootloader_path !== undefined){
-    //     bootloader_path = undefined;
-    //     setTimeout(() => {
-    //       uploadProgressText = "";
-    //       appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
-    //     }, 2000);
-
-    //   }
-
-    // }
-
   }
 
   setIntervalAsync(find_bootloader_path, 750);
@@ -210,7 +172,7 @@
     appSettings.update(s => {s.firmwareNotificationState = 4; return s;})
 
     trackEvent('firmware-download', 'firmware-download: update start')
-    analytics.track_string_event("firmware", "auto_update", "update start")
+    analytics.track_event("application", "firmwarecheck", "firmware update status", "update started")
 
     uploadProgressText = "Fetching firmware download URL "
     fetch("https://intech.studio/common/software/grid-firmware").then(async e => {
@@ -222,7 +184,7 @@
 
       }catch(e){
 
-        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.12/grid_release.zip"
+        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.13/grid_release.zip"
       }
 
       uploadProgressText = "Downloading firmware image "
@@ -273,7 +235,7 @@
         uploadProgressText = "Update completed successfully!";
 
         trackEvent('firmware-download', 'firmware-download: update success')
-        analytics.track_string_event("firmware", "auto_update", "update success")
+        analytics.track_event("application", "firmwarecheck", "firmware update status", "update success")
 
         appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
         
@@ -282,7 +244,7 @@
         console.log("GRID_NOT_FOUND")
 
         trackEvent('firmware-download', 'firmware-download: update fail')
-        analytics.track_string_event("firmware", "auto_update", "update fail")
+        analytics.track_event("application", "firmwarecheck", "firmware update status", "update fail")
       }
 
     });
@@ -292,7 +254,7 @@
   function firmwareTroubleshooting(){
 
     trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
-    analytics.track_string_event("firmware", "auto_update", "troubleshooting")
+    analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
     
     openInBrowser("https://intech.studio/support/docs/firmware-update")
 

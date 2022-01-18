@@ -12,7 +12,7 @@ import { analytics } from './analytics_influx';
 const activeWindow = require('active-win');
 
 
-let fwAcceptable = [{major: 1, minor: 2, patch: 12}];
+let fwAcceptable = [{major: 1, minor: 2, patch: 13}];
 
 console.log("hello")
 
@@ -484,7 +484,8 @@ function create_runtime () {
           first_connection = false;
         }
 
-        analytics.track_number_event("runtime", "connected_module_count", _runtime.length);
+        analytics.track_event("application", "runtime", "module count", _runtime.lengt)
+
       }
 
 
@@ -861,8 +862,7 @@ function create_runtime () {
     user_input.module_destroy_handler(dx, dy);
     writeBuffer.module_destroy_handler(dx, dy);
     
-
-    analytics.track_number_event("runtime", "connected_module_count", get(_runtime).length);
+    analytics.track_event("application", "runtime", "module count", get(runtime).length)
   }
 
   function reset(){
@@ -973,13 +973,15 @@ setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 setInterval(function(){
 
   if (!get(appSettings).trayState){
-    analytics.track_number_event("runtime", "session_heartbeat", 1);
+
+    analytics.track_event("application", "runtime", "tray state", 1)
   }
   else{
-    analytics.track_number_event("runtime", "session_heartbeat", 0);
+    analytics.track_event("application", "runtime", "tray state", 0)
   }
 
-  analytics.track_number_event("runtime", "connected_module_count", get(runtime).length);
+
+  analytics.track_event("application", "runtime", "module count", get(runtime).length)
 
 
 }, 10000);
