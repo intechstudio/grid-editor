@@ -79,6 +79,7 @@ export const lua_completion = lua_language.data.of({
     {label: "led_animation_phase_rate_type(number,layer,phase,frequency,shape)", type: "function"},
 
     {label: "midi_send(ch,cmd,p1,p2)", type: "function"},
+    {label: "midi_sysex_send()", type: "function"},
 
     {label: "keyboard_send(def_delay,is_modifier,keystate,key_code)", type: "function"},
 
