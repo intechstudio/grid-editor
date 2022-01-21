@@ -1,4 +1,3 @@
-require('dotenv').config();
 
 const { ipcRenderer } = require('electron');
 
@@ -10,13 +9,22 @@ const {InfluxDB} = require('@influxdata/influxdb-client')
 
 
 
-
 // You can generate an API token from the "API Tokens Tab" in the UI
-const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
-const org = 'sukuwc@riseup.net'
-const bucket = "editor_analytics"
+const token = process.env.INFLUX_TOKEN
+const org = process.env.INFLUX_ORG
+const bucket = process.env.INFLUX_BUCKET
+const server = process.env.INFLUX_SERVER
 
-const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
+if (token && org && bucket && server){
+
+  console.log("Analytics Ready!")
+}
+else{
+  
+  console.log("Analytics ENV Failed")
+}
+
+const client = new InfluxDB({url: server, token: token})
 
 let sessionid = Date.now();
 const user_platform = get(appSettings).os;

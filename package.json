@@ -71,7 +71,7 @@
     "asar": true,
     "appId": "com.Grid-Editor.app",
     "productName": "Grid Editor",
-    "copyright": "Copyright © 2021 Intech Studio Ltd.",
+    "copyright": "Copyright © 2022 Intech Studio Ltd.",
     "directories": {
       "output": "dist/"
     },

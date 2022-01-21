@@ -2,7 +2,6 @@ import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../config-blocks/_configs';
 import grid from '../protocol/grid-protocol';
 const fs = require('fs'); 
-require('dotenv').config();
 
 const { ipcRenderer, app } = require('electron');
 

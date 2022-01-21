@@ -174,80 +174,75 @@
     trackEvent('firmware-download', 'firmware-download: update start')
     analytics.track_event("application", "firmwarecheck", "firmware update status", "update started")
 
-    uploadProgressText = "Fetching firmware download URL "
-    fetch("https://intech.studio/common/software/grid-firmware").then(async e => {
 
-      let link = "";
-      try{
-        let res = await e.json();
-        link = res.url;
+    const version = "v"+process.env.FIRMWARE_REQUIRED_MAJOR+"."+process.env.FIRMWARE_REQUIRED_MINOR+"."+process.env.FIRMWARE_REQUIRED_PATCH
+    let link = process.env.FIRMWARE_URL_BEGINING + version + process.env.FIRMWARE_URL_END;
 
-      }catch(e){
+    uploadProgressText = "Downloading firmware image "
+    
+    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
 
-        link = "https://github.com/intechstudio/grid-fw/releases/download/v1.2.13/grid_release.zip"
-      }
+    await delay(1000);
 
-      uploadProgressText = "Downloading firmware image "
-
-      //ipcRenderer.send('download', res.firmware.url);
-      uploadProgressText = "Downloading firmware image "
+    if (result === undefined){
+      uploadProgressText = "Error: Download failed"
       
-      let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
+      trackEvent('firmware-download', 'firmware-download: download fail')
+      analytics.track_event("application", "firmwarecheck", "firmware update status", "download fail")
+      await delay(2500);
+      
+      appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
+      return;
+    }
 
-      console.log(result);
+    let zip = new AdmZip(result);
 
+    let zipEntries = zip.getEntries(); // an array of ZipEntry records
 
-      await delay(1000);
+    let firmwareFileName;
 
-
-      let zip = new AdmZip(result);
-
-      let zipEntries = zip.getEntries(); // an array of ZipEntry records
-
-      let firmwareFileName;
-
-      zipEntries.forEach(function (zipEntry) {
-          console.log(zipEntry.toString()); // outputs zip entries information
-          if (zipEntry.entryName.endsWith(".uf2")) {
-            firmwareFileName = zipEntry.entryName;
-          }
-      });
-
-      let folder = get(appSettings).persistant.profileFolder + "/temp";
-
-
-      uploadProgressText = "Decompressing image "
-      await delay(1500);
-
-      zip.extractAllTo(folder, /*overwrite*/ true);
-
-      console.log(firmwareFileName)
-
-
-
-      uploadProgressText = "Uploading firmware "
-      await delay(1500);
-
-      if (bootloader_path !== undefined){
-
-        fs.copySync(folder + "/" + firmwareFileName, bootloader_path + "/" + firmwareFileName)
-
-        uploadProgressText = "Update completed successfully!";
-
-        trackEvent('firmware-download', 'firmware-download: update success')
-        analytics.track_event("application", "firmwarecheck", "firmware update status", "update success")
-
-        appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
-        
-      }
-      else{
-        console.log("GRID_NOT_FOUND")
-
-        trackEvent('firmware-download', 'firmware-download: update fail')
-        analytics.track_event("application", "firmwarecheck", "firmware update status", "update fail")
-      }
-
+    zipEntries.forEach(function (zipEntry) {
+        console.log(zipEntry.toString()); // outputs zip entries information
+        if (zipEntry.entryName.endsWith(".uf2")) {
+          firmwareFileName = zipEntry.entryName;
+        }
     });
+
+    let folder = get(appSettings).persistant.profileFolder + "/temp";
+
+
+    uploadProgressText = "Decompressing image "
+    await delay(1500);
+
+    zip.extractAllTo(folder, /*overwrite*/ true);
+
+    console.log(firmwareFileName)
+
+
+
+    uploadProgressText = "Uploading firmware "
+    await delay(1500);
+
+    if (bootloader_path !== undefined){
+
+      fs.copySync(folder + "/" + firmwareFileName, bootloader_path + "/" + firmwareFileName)
+
+      uploadProgressText = "Update completed successfully!";
+
+      trackEvent('firmware-download', 'firmware-download: update success')
+      analytics.track_event("application", "firmwarecheck", "firmware update status", "update success")
+
+      appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
+      
+    }
+    else{
+      console.log("GRID_NOT_FOUND")
+
+      trackEvent('firmware-download', 'firmware-download: update fail')
+      analytics.track_event("application", "firmwarecheck", "firmware update status", "update fail")
+    }
+
+
 
   }
 
