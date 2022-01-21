@@ -9,8 +9,7 @@ const grid_env = require('../configuration.json')
 
 for (const key in grid_env) {
 
-  console.log(key, grid_env[key])
-
+  //console.log(key, grid_env[key])
   process.env[key] = grid_env[key]
 
 }
