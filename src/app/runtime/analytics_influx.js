@@ -7,6 +7,8 @@ import { get } from 'svelte/store';
 
 const {InfluxDB} = require('@influxdata/influxdb-client')
 
+const version = ipcRenderer.sendSync('app_version')
+
 // You can generate an API token from the "API Tokens Tab" in the UI
 const token = process.env.INFLUX_TOKEN
 const org = process.env.INFLUX_ORG
@@ -41,7 +43,8 @@ function track_event(category, action, label, value){
   writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
  
   const point = new Point(measurement)
-  .stringField("uuid", userId)
+  .stringField("uuid", userId)  
+  .stringField("version", version)
   .uintField("sessionid", sessionid)
   .uintField("timestamp", Date.now() - sessionid)
   .stringField("category", category)
@@ -62,8 +65,5 @@ function track_event(category, action, label, value){
 
 
 let analytics = {track_event}
-
-// track session init event
-analytics.track_event("application", "version report", "version", ipcRenderer.sendSync('app_version'))
 
 export {analytics}
