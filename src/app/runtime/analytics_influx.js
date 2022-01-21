@@ -7,8 +7,6 @@ import { get } from 'svelte/store';
 
 const {InfluxDB} = require('@influxdata/influxdb-client')
 
-
-
 // You can generate an API token from the "API Tokens Tab" in the UI
 const token = process.env.INFLUX_TOKEN
 const org = process.env.INFLUX_ORG

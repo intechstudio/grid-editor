@@ -3,9 +3,17 @@ const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
 
-require('dotenv').config()
-
 const { iconBuffer, iconSize } = require('./icon')
+
+const grid_env = require('../configuration.json')
+
+for (const key in grid_env) {
+
+  console.log(key, grid_env[key])
+
+  process.env[key] = grid_env[key]
+
+}
 
 global.trackEvent = trackEvent;
 
