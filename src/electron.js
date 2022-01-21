@@ -3,6 +3,7 @@ const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 const { store } = require('./main-store');
 
+require('dotenv').config()
 
 const { iconBuffer, iconSize } = require('./icon')
 
@@ -95,6 +96,7 @@ if (process.env.NODE_ENV === 'development') {
  });
 }
 
+
 function createWindow() {
 
     const mode = process.env.NODE_ENV;
@@ -178,20 +180,25 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 
 ipcMain.on('download', async (event, arg) => {
 
+
+  try{
+
+    console.log('attempt to download..', arg.url);
+    const win = BrowserWindow.getFocusedWindow();
   
+    let folder = store.get("profileFolder") + "/" + arg.folder;
   
+    let result = await download(win, arg.url, {
+                                    directory: folder
+                                });
 
+    event.returnValue = result.getSavePath();
 
-  console.log('attempt to download..', arg.url);
-  const win = BrowserWindow.getFocusedWindow();
+  }catch(e){
 
-  let folder = store.get("profileFolder") + "/" + arg.folder;
+    event.returnValue = undefined;
+  }
 
-  let result = await download(win, arg.url, {
-                                  directory: folder
-                              });
-
-  event.returnValue = result.getSavePath();
 
 })
 

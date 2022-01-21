@@ -1,4 +1,3 @@
-require('dotenv').config();
 
 const { ipcRenderer } = require('electron');
 
@@ -10,13 +9,22 @@ const {InfluxDB} = require('@influxdata/influxdb-client')
 
 
 
-
 // You can generate an API token from the "API Tokens Tab" in the UI
-const token = '7ABXsBiTxyxEFSwbdlZRKq5T7sAEQnUoHIaxvAwy_EfwUSJ19xXw7hEhvTltSaFpZJbGzug3mseZbjOfLL7-sg=='
-const org = 'sukuwc@riseup.net'
-const bucket = "editor_analytics"
+const token = process.env.INFLUX_TOKEN
+const org = process.env.INFLUX_ORG
+const bucket = process.env.INFLUX_BUCKET
+const server = process.env.INFLUX_SERVER
 
-const client = new InfluxDB({url: 'https://europe-west1-1.gcp.cloud2.influxdata.com', token: token})
+if (token && org && bucket && server){
+
+  console.log("Analytics Ready!")
+}
+else{
+  
+  console.log("Analytics ENV Failed")
+}
+
+const client = new InfluxDB({url: server, token: token})
 
 let sessionid = Date.now();
 const user_platform = get(appSettings).os;
@@ -28,11 +36,20 @@ const node_env = process.env.NODE_ENV;
 
 const writeApi = client.getWriteApi(org, bucket)
 
-function track_string_event(measurement, field, value){
+function track_event(category, action, label, value){
+
+  let measurement = "AppUsage"
 
   writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
  
-  const point = new Point(measurement).stringField(field, value).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
+  const point = new Point(measurement)
+  .stringField("uuid", userId)
+  .uintField("sessionid", sessionid)
+  .uintField("timestamp", Date.now() - sessionid)
+  .stringField("category", category)
+  .stringField("action", action)
+  .stringField("label", label)
+  .stringField("value", value)
 
   try{
     writeApi.writePoint(point)
@@ -42,27 +59,13 @@ function track_string_event(measurement, field, value){
 
 }
 
-function track_number_event(measurement, field, value){
 
 
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
-  
-  const point = new Point(measurement).floatField(field, parseFloat(value)).stringField("uuid", userId).uintField("sessionid", sessionid).uintField("timestamp", Date.now() - sessionid)
 
-  try{
-    writeApi.writePoint(point)
-  }catch(e){
-    console.log("Analytics: ", e)
-  }
-  
-}
+
+let analytics = {track_event}
 
 // track session init event
-track_string_event("application", "version", "v"+ipcRenderer.sendSync('app_version'))
-
-
-
-let analytics = {track_string_event, track_number_event}
-
+analytics.track_event("application", "version report", "version", ipcRenderer.sendSync('app_version'))
 
 export {analytics}

@@ -17,7 +17,7 @@
   function store() {
 
     trackEvent('page-config', 'page-config: store') 
-    analytics.track_string_event("pageconfig", "command", "store")
+    analytics.track_event("application", "topsubmenu", "pageconfig", "store")
 
     instructions.sendPageStoreToGrid();
   }
@@ -27,7 +27,7 @@
     instructions.sendPageDiscardToGrid();
 
     trackEvent('page-config', 'page-config: discard')
-    analytics.track_string_event("pageconfig", "command", "discard")
+    analytics.track_event("application", "topsubmenu", "pageconfig", "discard")
 
   }
 
@@ -35,7 +35,7 @@
     instructions.sendPageClearToGrid();
     
     trackEvent('page-config', 'page-config: clear')
-    analytics.track_string_event("pageconfig", "command", "clear")
+    analytics.track_event("application", "topsubmenu", "pageconfig", "clear")
 
   }
 

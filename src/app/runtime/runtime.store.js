@@ -12,9 +12,9 @@ import { analytics } from './analytics_influx';
 const activeWindow = require('active-win');
 
 
-let fwAcceptable = [{major: 1, minor: 2, patch: 12}];
+let firmware_required = {major: parseInt(process.env.FIRMWARE_REQUIRED_MAJOR), minor: parseInt(process.env.FIRMWARE_REQUIRED_MINOR), patch: parseInt(process.env.FIRMWARE_REQUIRED_PATCH)};
 
-console.log("hello")
+console.log("Minimum Firmware Version Required: ", firmware_required)
 
 let lastPageActivator = "";  
 
@@ -436,32 +436,28 @@ function create_runtime () {
         // check if the firmware version of the newly connected device is acceptable
         let moduleMismatch = true
 
-        fwAcceptable.forEach(required=>{
-  
-          if (JSON.stringify(controller.fwVersion) === JSON.stringify(required)){
-  
-            moduleMismatch = false;
-          
-          }
-          else if (controller.fwVersion.major > required.major){
-            moduleMismatch = false;
-          }
-          else if (controller.fwVersion.major == required.major && 
-                  controller.fwVersion.minor > required.minor){
 
-            moduleMismatch = false;
-          }
-          else if (controller.fwVersion.major == required.major && 
-                  controller.fwVersion.minor == required.minor && 
-                  controller.fwVersion.patch > required.patch){
+        if (controller.fwVersion.major > firmware_required.major){
+          moduleMismatch = false;
+        }
+        else if (controller.fwVersion.major == firmware_required.major && 
+                controller.fwVersion.minor > firmware_required.minor){
 
-            moduleMismatch = false;
-          }
+          moduleMismatch = false;
+        }
+        else if (controller.fwVersion.major == firmware_required.major && 
+                controller.fwVersion.minor == firmware_required.minor && 
+                controller.fwVersion.patch > firmware_required.patch){
 
-  
-        })
+          moduleMismatch = false;
+        }
+        else if (controller.fwVersion.major == firmware_required.major && 
+          controller.fwVersion.minor == firmware_required.minor && 
+          controller.fwVersion.patch == firmware_required.patch){
 
-  
+          moduleMismatch = false;
+        }
+
         if (moduleMismatch === true){
           
           controller.fwMismatch = true;
@@ -484,7 +480,8 @@ function create_runtime () {
           first_connection = false;
         }
 
-        analytics.track_number_event("runtime", "connected_module_count", _runtime.length);
+        analytics.track_event("application", "runtime", "module count", _runtime.lengt)
+
       }
 
 
@@ -861,8 +858,7 @@ function create_runtime () {
     user_input.module_destroy_handler(dx, dy);
     writeBuffer.module_destroy_handler(dx, dy);
     
-
-    analytics.track_number_event("runtime", "connected_module_count", get(_runtime).length);
+    analytics.track_event("application", "runtime", "module count", get(runtime).length)
   }
 
   function reset(){
@@ -973,13 +969,15 @@ setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 setInterval(function(){
 
   if (!get(appSettings).trayState){
-    analytics.track_number_event("runtime", "session_heartbeat", 1);
+
+    analytics.track_event("application", "runtime", "tray state", 1)
   }
   else{
-    analytics.track_number_event("runtime", "session_heartbeat", 0);
+    analytics.track_event("application", "runtime", "tray state", 0)
   }
 
-  analytics.track_number_event("runtime", "connected_module_count", get(runtime).length);
+
+  analytics.track_event("application", "runtime", "module count", get(runtime).length)
 
 
 }, 10000);

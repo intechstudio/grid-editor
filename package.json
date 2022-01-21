@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "1.2.13",
+  "version": "1.2.14",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -71,7 +71,7 @@
     "asar": true,
     "appId": "com.Grid-Editor.app",
     "productName": "Grid Editor",
-    "copyright": "Copyright © 2021 Intech Studio Ltd.",
+    "copyright": "Copyright © 2022 Intech Studio Ltd.",
     "directories": {
       "output": "dist/"
     },

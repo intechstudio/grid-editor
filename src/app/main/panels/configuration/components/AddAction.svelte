@@ -54,8 +54,8 @@
 
     let action_name = get(presetManagement.selected_action).name;
 
-    analytics.track_string_event("configpicker", "added_action", action_name)
 
+    analytics.track_event("application", "configpicker", "added action", action_name)
 
     dispatch('new-config', {
       config: cfg
@@ -79,7 +79,7 @@
     configSelection = false;
     visible = false;
 
-    analytics.track_string_event("config", "multiselect", "paste_from_add_action")
+    analytics.track_event("application", "configpicker", "multiselect", "paste")
   }
 
   let action_options = [];
@@ -164,9 +164,8 @@
 
     let actionPickerDuration = Date.now() - actionPickerTimestamp;
 
-    console.log("Close Picker", actionPickerDuration/1000.0)
 
-    analytics.track_number_event("configpicker", "action_picker_duration", actionPickerDuration)
+    analytics.track_event("application", "configpicker", "time to pick", actionPickerDuration)
 
 
     initConfig();

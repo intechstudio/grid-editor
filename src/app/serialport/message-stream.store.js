@@ -33,7 +33,7 @@ function createMessageStream(){
         debug_monitor_store.update_debugtext(class_descr);
       }
 
-      if(class_descr.class_name === "MIDI"){
+      if(class_descr.class_name === "MIDI" || class_descr.class_name === "MIDISYSEX" ){
       
         midi_monitor_store.update_midi(class_descr);
       }      
