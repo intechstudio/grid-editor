@@ -382,6 +382,7 @@ function create_runtime () {
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
 
+
     const cfgstatus = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex].cfgStatus;
 
     if (cfgstatus == 'GRID_REPORT' || cfgstatus == 'EDITOR_EXECUTE' || cfgstatus == 'EDITOR_BACKGROUND' ){

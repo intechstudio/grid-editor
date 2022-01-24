@@ -449,6 +449,7 @@ moduleElements['BU16'][255] = 'utility';
 moduleElements['EN16'][255] = 'utility';
 moduleElements['PBF4'][255] = 'utility';
 moduleElements['PO16'][255] = 'utility';
+moduleElements['EF44'][255] = 'utility';
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
