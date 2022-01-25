@@ -121,22 +121,234 @@
 
   onMount(()=>{
     suggestions = _suggestions;
+    initColorPicker()
+
+    console.log(scriptSegments)
+    if (typeof parseInt(scriptSegments[2]) === 'number' && typeof parseInt(scriptSegments[3]) === 'number' && typeof parseInt(scriptSegments[4]) === 'number'){
+
+      // all color components are numbers so we can use the colorpicker
+
+      let hsv = RGBtoHSV(parseInt(scriptSegments[2]), parseInt(scriptSegments[3]), parseInt(scriptSegments[4]))
+      console.log(hsv)
+
+      var offsets = canvas.getBoundingClientRect();
+      var top = offsets.top;
+      var left = offsets.left;
+      var width = offsets.width;
+      var height = offsets.height;
+
+      let x = hsv.h*width;
+      let y = (1-hsv.s)*height;
+
+      if (x<0) x=0;
+      if (y<0) y=0;
+      if (x>width) x=width;
+      if (y>height) y=height;
+
+      hue = hsv.h*360
+      sat = hsv.s*100
+
+      picker.style.left = x- 3 + "px"
+      picker.style.top = y - 6 + "px"
+
+      let color = HSVtoRGB(hue/360, sat/100, 1)
+      red = color.r
+      gre = color.g
+      blu = color.b
+
+
+    }
+
   })
+
+  let suggestionPlaceMove = false
 
   let showSuggestions = false;
   let focusedInput = undefined;
   let focusGroup = [];
 
   function onActiveFocus(event,index){
+
+
+    if (index<2){
+      suggestionPlaceMove = true; 
+    }
+    else{
+
+      suggestionPlaceMove = false; 
+    }
+    
     focusGroup[index] = event.detail.focus;
     focusedInput = index;
   }
 
   function onLooseFocus(event,index){
+
+
     focusGroup[index] = event.detail.focus;
     showSuggestions = focusGroup.includes(true);
   }
 
+  
+
+
+  /* accepts parameters
+  * h  Object = {h:x, s:y, v:z}
+  * OR 
+  * h, s, v
+  */
+  function HSVtoRGB(h, s, v) {
+      var r, g, b, i, f, p, q, t;
+      if (arguments.length === 1) {
+          s = h.s, v = h.v, h = h.h;
+      }
+      i = Math.floor(h * 6);
+      f = h * 6 - i;
+      p = v * (1 - s);
+      q = v * (1 - f * s);
+      t = v * (1 - (1 - f) * s);
+      switch (i % 6) {
+          case 0: r = v, g = t, b = p; break;
+          case 1: r = q, g = v, b = p; break;
+          case 2: r = p, g = v, b = t; break;
+          case 3: r = p, g = q, b = v; break;
+          case 4: r = t, g = p, b = v; break;
+          case 5: r = v, g = p, b = q; break;
+      }
+      return {
+          r: Math.round(r * 255),
+          g: Math.round(g * 255),
+          b: Math.round(b * 255)
+      };
+  }
+
+
+  /* accepts parameters
+  * r  Object = {r:x, g:y, b:z}
+  * OR 
+  * r, g, b
+  */
+  function RGBtoHSV(r, g, b) {
+      if (arguments.length === 1) {
+          g = r.g, b = r.b, r = r.r;
+      }
+      var max = Math.max(r, g, b), min = Math.min(r, g, b),
+          d = max - min,
+          h,
+          s = (max === 0 ? 0 : d / max),
+          v = max / 255;
+
+      switch (max) {
+          case min: h = 0; break;
+          case r: h = (g - b) + d * (g < b ? 6: 0); h /= 6 * d; break;
+          case g: h = (b - r) + d * 2; h /= 6 * d; break;
+          case b: h = (r - g) + d * 4; h /= 6 * d; break;
+      }
+
+      return {
+          h: h,
+          s: s,
+          v: v
+      };
+  }
+
+  let canvas, picker;
+  let hue = 0;
+  let sat = 0;
+
+  let red = 0
+  let gre = 0
+  let blu = 0
+
+  function initColorPicker(){
+
+    var ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FF0000";
+    ctx.fillRect(0,0,150,75);
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    var hGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    hGrad.addColorStop(0 / 6, '#F00');
+    hGrad.addColorStop(1 / 6, '#FF0');
+    hGrad.addColorStop(2 / 6, '#0F0');
+    hGrad.addColorStop(3 / 6, '#0FF');
+    hGrad.addColorStop(4 / 6, '#00F');
+    hGrad.addColorStop(5 / 6, '#F0F');
+    hGrad.addColorStop(6 / 6, '#F00');
+
+    ctx.fillStyle = hGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    var vGrad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    
+    const type = 's'
+    
+    switch (type) {
+      case 's':
+        vGrad.addColorStop(0, 'rgba(255,255,255,0)');
+        vGrad.addColorStop(1, 'rgba(255,255,255,1)');
+        break;
+      case 'v':
+        vGrad.addColorStop(0, 'rgba(0,0,0,0)');
+        vGrad.addColorStop(1, 'rgba(0,0,0,1)');
+        break;
+                              }
+    ctx.fillStyle = vGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  }
+
+  function onMouseMove (e) {
+
+    var offsets = canvas.getBoundingClientRect();
+    var top = offsets.top;
+    var left = offsets.left;
+    var width = offsets.width;
+    var height = offsets.height;
+
+    let x = e.clientX - left;
+    let y = e.clientY - top;
+
+    if (x<0) x=0;
+    if (y<0) y=0;
+    if (x>width) x=width;
+    if (y>height) y=height;
+
+    hue = x/width*360
+    sat = (height-y)/height*100
+
+    picker.style.left = x- 3 + "px"
+    picker.style.top = y - 6 + "px"
+
+    let color = HSVtoRGB(hue/360, sat/100, 1)
+    red = color.r
+    gre = color.g
+    blu = color.b
+
+    scriptSegments[2] = red
+    scriptSegments[3] = gre
+    scriptSegments[4] = blu
+
+  }
+
+  function onMouseDown (event) {
+    onMouseMove(event)
+    addEventListener('mousemove', onMouseMove)
+    addEventListener('mouseup', onMouseUp)
+  }
+
+  function onMouseUp () {
+    removeEventListener('mousemove', onMouseMove)
+    removeEventListener('mouseup', onMouseUp)
+    
+    const _temp_segments = [...scriptSegments, beautyMode]
+
+    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: _temp_segments}); 
+
+    dispatch('output', {short: config.short, script: script})
+  }
+  
 
 </script>
 
@@ -144,8 +356,8 @@
 <config-led-color class="flex flex-col w-full p-2">
 
   <div class="w-full flex">
-    {#each scriptSegments as script, i}
-      <div class={'w-1/'+scriptSegments.length + ' atomicInput '}>
+    {#each [scriptSegments[0], scriptSegments[1]] as script, i}
+      <div class={'w-1/2 atomicInput '}>
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
         <AtomicInput 
           inputValue={script} 
@@ -155,10 +367,10 @@
           on:change={(e)=>{sendData(e.detail,i)}}/>    
       </div>
     {/each}
+
   </div>
 
-  {#if showSuggestions}
-
+  {#if (showSuggestions && suggestionPlaceMove==true)}
   <AtomicSuggestions 
     {suggestions} 
     {focusedInput} 
@@ -168,6 +380,43 @@
     }}
   />
   {/if}
+
+  <div class="inline-flex relative flex-row p-1 m-1">
+    <div bind:this={picker} on:mousedown={onMouseDown} class = "absolute top-0 left-0">🮻</div>
+    <canvas class="w-4/5 mr-1"  bind:this={canvas} on:mousedown={onMouseDown} id="myCanvas" height="50"></canvas>
+    <div class="w-1/5 ml-1" height="50" style="background-color: rgb({red}, {gre}, {blu})">Preview</div>
+  </div>
+
+
+
+  <div class="w-full flex">
+
+    {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
+      <div class={'w-1/3 atomicInput '}>
+        <div class="text-gray-500 text-sm pb-1">{parameterNames[i+2]}</div>
+        <AtomicInput 
+          inputValue={script} 
+          suggestions={suggestions[i+2]} 
+          on:active-focus={(e)=>{onActiveFocus(e,i+2)}} 
+          on:loose-focus={(e)=>{onLooseFocus(e,i+2)}} 
+          on:change={(e)=>{sendData(e.detail,i+2)}}/>    
+      </div>
+    {/each}
+  </div>
+
+
+  {#if (showSuggestions && suggestionPlaceMove==false)}
+  <AtomicSuggestions 
+    {suggestions} 
+    {focusedInput} 
+    on:select={(e)=>{
+      scriptSegments[e.detail.index] = e.detail.value; 
+      sendData(e.detail.value,e.detail.index)
+    }}
+  />
+  {/if}
+
+
 
   <div class="p-2 flex items-center text-sm text-gray-500">
     <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />
