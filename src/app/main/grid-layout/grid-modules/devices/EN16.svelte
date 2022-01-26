@@ -77,7 +77,7 @@
       <div class="control-row" style="--control-row-mt: {$appSettings.size * 3.235 +'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}" >
         {#each  [0+4*row,1+4*row,2+4*row,3+4*row] as elementNumber}
           <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} data-element-number={elementNumber} class="knob-and-led">
-            <Led {elementNumber}  
+            <Led
               color={ledcolor_array[elementNumber]} 
               size={$appSettings.size}/>
             <Encoder {elementNumber} 

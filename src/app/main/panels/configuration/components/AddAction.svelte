@@ -23,8 +23,6 @@
 
 
   export let animation = false;
-  export let actions;
-  export let index;
   export let userHelper = false;
 
   const dispatch = createEventDispatcher();

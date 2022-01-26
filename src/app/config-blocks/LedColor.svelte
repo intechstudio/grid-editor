@@ -16,6 +16,25 @@
 </script>
 
 <script>
+
+/*
+
+@startuml
+A -> B : AB-First step 
+B -> C : BC-Second step hi   
+D -> E : DE-Third step test
+@enduml
+
+
+@startuml
+A -> B : AB-First step 
+
+@enduml
+
+
+*/
+
+
   import {onMount, createEventDispatcher, onDestroy} from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
@@ -123,41 +142,7 @@
     suggestions = _suggestions;
     initColorPicker()
 
-    console.log(scriptSegments)
-    if (typeof parseInt(scriptSegments[2]) === 'number' && typeof parseInt(scriptSegments[3]) === 'number' && typeof parseInt(scriptSegments[4]) === 'number'){
-
-      // all color components are numbers so we can use the colorpicker
-
-      let hsv = RGBtoHSV(parseInt(scriptSegments[2]), parseInt(scriptSegments[3]), parseInt(scriptSegments[4]))
-      console.log(hsv)
-
-      var offsets = canvas.getBoundingClientRect();
-      var top = offsets.top;
-      var left = offsets.left;
-      var width = offsets.width;
-      var height = offsets.height;
-
-      let x = hsv.h*width;
-      let y = (1-hsv.s)*height;
-
-      if (x<0) x=0;
-      if (y<0) y=0;
-      if (x>width) x=width;
-      if (y>height) y=height;
-
-      hue = hsv.h*360
-      sat = hsv.s*100
-
-      picker.style.left = x- 3 + "px"
-      picker.style.top = y - 6 + "px"
-
-      let color = HSVtoRGB(hue/360, sat/100, 1)
-      red = color.r
-      gre = color.g
-      blu = color.b
-
-
-    }
+    updatePicker()
 
   })
 
@@ -252,13 +237,60 @@
       };
   }
 
-  let canvas, picker;
+  let canvas, picker, preview;
   let hue = 0;
   let sat = 0;
 
   let red = 0
   let gre = 0
   let blu = 0
+
+  function updatePicker(e){
+
+    if (isNaN(parseInt(scriptSegments[2])) || isNaN(parseInt(scriptSegments[3]))  || isNaN(parseInt(scriptSegments[4])) ){
+
+      red=255;
+      gre=255;
+      blu=255;
+
+      picker.style.left = -20 + "px"
+      picker.style.top = -20 + "px"
+
+
+    }
+    else{
+
+      // all color components are numbers so we can use the colorpicker
+
+      let hsv = RGBtoHSV(parseInt(scriptSegments[2]), parseInt(scriptSegments[3]), parseInt(scriptSegments[4]))
+
+      var offsets = canvas.getBoundingClientRect();
+      var top = offsets.top;
+      var left = offsets.left;
+      var width = offsets.width;
+      var height = offsets.height;
+
+      let x = hsv.h*width;
+      let y = (1-hsv.s)*height;
+
+      if (x<0) x=0;
+      if (y<0) y=0;
+      if (x>width) x=width;
+      if (y>height) y=height;
+
+      hue = hsv.h*360
+      sat = hsv.s*100
+
+      picker.style.left = x- 3 + "px"
+      picker.style.top = y - 6 + "px"
+
+      let color = HSVtoRGB(hue/360, sat/100, 1)
+      red = color.r
+      gre = color.g
+      blu = color.b
+    }
+
+  }
 
   function initColorPicker(){
 
@@ -342,13 +374,45 @@
     removeEventListener('mousemove', onMouseMove)
     removeEventListener('mouseup', onMouseUp)
     
-    const _temp_segments = [...scriptSegments, beautyMode]
-
-    const script = _utils.segmentsToScript({human: config.human, short: config.short, array: _temp_segments}); 
-
-    dispatch('output', {short: config.short, script: script})
+    sendData()
   }
   
+  function generateColor () {
+
+    let hsv = {h:Math.random(),s:1,v:1}
+
+    var offsets = canvas.getBoundingClientRect();
+    var top = offsets.top;
+    var left = offsets.left;
+    var width = offsets.width;
+    var height = offsets.height;
+
+    let x = hsv.h*width;
+    let y = (1-hsv.s)*height;
+
+    if (x<0) x=0;
+    if (y<0) y=0;
+    if (x>width) x=width;
+    if (y>height) y=height;
+
+    hue = hsv.h*360
+    sat = hsv.s*100
+
+    picker.style.left = x- 3 + "px"
+    picker.style.top = y - 6 + "px"
+
+    let color = HSVtoRGB(hue/360, sat/100, 1)
+    red = color.r
+    gre = color.g
+    blu = color.b
+
+    scriptSegments[2] = red
+    scriptSegments[3] = gre
+    scriptSegments[4] = blu
+
+    sendData()
+  }
+
 
 </script>
 
@@ -381,10 +445,10 @@
   />
   {/if}
 
-  <div class="inline-flex relative flex-row p-1 m-1">
-    <div bind:this={picker} on:mousedown={onMouseDown} class = "absolute top-0 left-0">🮻</div>
-    <canvas class="w-4/5 mr-1"  bind:this={canvas} on:mousedown={onMouseDown} id="myCanvas" height="50"></canvas>
-    <div class="w-1/5 ml-1" height="50" style="background-color: rgb({red}, {gre}, {blu})">Preview</div>
+  <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
+    <div bind:this={picker} on:mousedown={onMouseDown} class = "absolute -top-10 -left-10">🮻</div>
+    <canvas class="w-4/5 mr-1"  bind:this={canvas} on:mousedown={onMouseDown} style="min-height: 30px; height: 30px;" id="myCanvas"></canvas>
+    <div bind:this={preview} on:mouseup={generateColor}  class="w-1/5 ml-1 preview flex justify-center items-center" style="background-color: rgb({red}, {gre}, {blu}); min-height: 30px; height: 30px;"></div>
   </div>
 
 
@@ -399,7 +463,7 @@
           suggestions={suggestions[i+2]} 
           on:active-focus={(e)=>{onActiveFocus(e,i+2)}} 
           on:loose-focus={(e)=>{onLooseFocus(e,i+2)}} 
-          on:change={(e)=>{sendData(e.detail,i+2)}}/>    
+          on:change={(e)=>{sendData(e.detail,i+2); updatePicker(e)}}/>    
       </div>
     {/each}
   </div>
@@ -412,6 +476,7 @@
     on:select={(e)=>{
       scriptSegments[e.detail.index] = e.detail.value; 
       sendData(e.detail.value,e.detail.index)
+      updatePicker(e)
     }}
   />
   {/if}
@@ -426,11 +491,49 @@
 </config-led-color>
 
 <style>
+
+
+
+  @keyframes changeLetter {
+    0% {
+      content: "⚀";
+      transform: rotate(0deg);
+    }
+    18% {
+      content: "⚁";
+      transform: rotate(20deg);
+    }
+    36% {
+      content: "⚂";
+      transform: rotate(30deg);
+    }
+    52% {
+      content: "⚃";
+      transform: rotate(20deg);
+    }
+    69% {
+      content: "⚄";
+      transform: rotate(0deg);
+    }
+    86% {
+      content: "⚅";
+      transform: rotate(-10deg);
+    }
+  }
+
   .atomicInput{
     padding-right:0.5rem;
   }
 
   .atomicInput:first-child{
     padding-left: 0.5rem;
+  }
+  .preview:hover{
+    cursor: pointer;
+  }
+  .preview:hover::after{
+    animation: changeLetter 1s linear infinite;
+    content: "⚄";
+    font-size: 150%;
   }
 </style>

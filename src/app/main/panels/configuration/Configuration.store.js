@@ -95,6 +95,8 @@ export function configManagement() {
       
       const configs = get_configs();
 
+      console.log(configs)
+
       let clipboard = [];
 
       selection.forEach((elem,index) => {
