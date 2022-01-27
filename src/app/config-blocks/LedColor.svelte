@@ -80,6 +80,9 @@ A -> B : AB-First step
     loaded = true;
   };  
 
+  let sidebarWidth;
+
+  $: updatePicker(sidebarWidth)
 
   onDestroy(()=>{
     loaded = false;
@@ -246,6 +249,10 @@ A -> B : AB-First step
   let blu = 0
 
   function updatePicker(e){
+
+    if (canvas === undefined){
+      return; // not initialized yet
+    }
 
     if (isNaN(parseInt(scriptSegments[2])) || isNaN(parseInt(scriptSegments[3]))  || isNaN(parseInt(scriptSegments[4])) ){
 
@@ -416,8 +423,11 @@ A -> B : AB-First step
 
 </script>
 
+<svelte:window bind:innerWidth={sidebarWidth} />
 
 <config-led-color class="flex flex-col w-full p-2">
+
+  hello {sidebarWidth}
 
   <div class="w-full flex">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
