@@ -1,3 +1,5 @@
+import grid from '../../protocol/grid-protocol.js';
+
 const stringManipulation = {
  
   initialize: function(inputSet = []){
@@ -314,3 +316,6 @@ export function debounce( callback, delay ) {
       timeout = setTimeout( callback, delay );
   }
 }
+
+
+stringManipulation.initialize(grid.properties.LUA)

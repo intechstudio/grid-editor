@@ -55,6 +55,8 @@
 
     analytics.track_event("application", "configpicker", "added action", action_name)
 
+    console.log(cfg)
+
     dispatch('new-config', {
       config: cfg
     });

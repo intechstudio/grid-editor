@@ -427,7 +427,6 @@ A -> B : AB-First step
 
 <config-led-color class="flex flex-col w-full p-2">
 
-  hello {sidebarWidth}
 
   <div class="w-full flex">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}

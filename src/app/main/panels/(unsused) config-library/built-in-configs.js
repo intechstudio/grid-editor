@@ -11,7 +11,7 @@ export const config_collection = [
 
     {category: ["Code Block"],         name: 'Default',                   configs: "--[[@cb]] "}, // <-- imporant to let a space there!
     
-    {category: ["Element Settings"],   name: 'Encoder Settings',          configs: "--[[@sec]] self:emo(0) self:ev0(100)"}, 
+    {category: ["Element Settings"],   name: 'Potmeter Settings',          configs: "--[[@spc]] self:emo(0) self:ev0(100)"}, 
     {category: ["Element Settings"],   name: 'Button Settings',           configs: "--[[@sbc]] self:bmo(0)"}, 
 
     {category: ["LED Value"],           name: "Change LED intensity",     configs: "--[[@glp]] glp(,,)" },
