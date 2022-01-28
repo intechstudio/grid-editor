@@ -581,9 +581,9 @@ const grid = {
 
     function extendLua(propObject){
       const deepObjects = returnDeepestObjects(propObject);
-      console.log(deepObjects)
+      //console.log(deepObjects)
       const array = mapObjectsToArray(editor_lua_properties, deepObjects);
-      console.log(array)
+      //console.log(array)
       return array;
     }
 

@@ -30,8 +30,6 @@ const _utils = {
       return;
     }
 
-
-
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
 
@@ -102,6 +100,7 @@ const _utils = {
 
 
   scriptToSegments: function({script, short}){
+
     // get the part after function name with parenthesis
     let config = [];
     config = script.split(short)[1];
@@ -112,6 +111,7 @@ const _utils = {
     // trim whitespaces
     config = config.map(c => c.trim())
   
+    console.log(config)
     return config;
   },
 
