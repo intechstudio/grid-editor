@@ -53,22 +53,26 @@
   $: if(config.script && !loaded){
     
     const arr = config.script.split(' gms');
-    
-    console.log(arr)
 
-    midiLSB = whatsInParenthesis.exec(arr[0])[1];
-    //emo = emo[1];
-    midiMSB = whatsInParenthesis.exec(arr[1])[1];
-    //ev0 = ev0[1];
+    let lsb = whatsInParenthesis.exec(arr[0]);    
     
-    console.log(midiLSB, midiMSB)
+    if (lsb !== null){
+      if(lsb.length > 0){
+        midiLSB=lsb[1]
+      }
+    }
+
+    let msb = whatsInParenthesis.exec(arr[1]);    
+    
+    if (msb !== null){
+      if(msb.length > 0){
+        midiMSB=msb[1]
+      }
+    }
 
     let param_array = midiLSB.split(',').map(c => c.trim());
-    console.log(param_array)
 
     let value = param_array[3].split('//').slice(0,-1).join('//')
-
-    console.log(value)
 
     let param_object = {channel: param_array[0], base: param_array[2], value: value}
     console.log(param_object)
@@ -94,6 +98,7 @@
     
   }
   
+
 
   const channels = (length) => {
     let arr = [];
@@ -664,11 +669,24 @@
 
 
 
+  const tabs = [{name: "MIDI", component: "Midi"},
+              {name: "14 bit MIDI", component: "MidiFourteenBit"},
+              {name: "MIDI SysEX", component: "MidiSysEx"},]
+
 
 </script>
 
 
 <action-midi class="flex flex-col w-full p-2">
+
+  {#if tabs !== undefined}
+    <div class="ml-auto flex flex-row">
+      {#each tabs as element, i}  
+      <div on:click={(e) => {dispatch('replace',element.component)}} 
+        class="tab {config.information.name == element.component?"selected":""}" >{element.name}</div>
+      {/each}
+    </div>
+  {/if}
 
   <div class="w-full flex">
     {#each scriptSegments as script, i}
@@ -703,7 +721,76 @@
 
 
 
-<style>
+<style global>
+  :root {
+    --tab_left_color: #1e90ff;
+    --tab_right_color: #09ffff; 
+    --tab_selected_left_color: #1e9000;
+    --tab_selected_right_color: #09ff00; 
+    --tab_hover_left_color: #aaaaaa;
+    --tab_hover_right_color: #dddddd; 
+  }
+
+  .tab {
+    margin-top: -0.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+    position: relative;
+    margin-left: 6px;
+    margin-right: 6px;
+    height: 18px;
+    background-image: linear-gradient(to right, var(--tab_left_color) , var(--tab_right_color));
+    cursor: pointer;
+  }
+  .tab:last-of-type{
+
+    margin-right: 0px;
+  }
+  .tab::before{
+    position: absolute;
+    left: -8px;
+    content: "";
+    width: 0px;
+    border-top: 18px solid var(--tab_left_color);
+    border-left: 8px solid transparent;
+  }
+  .tab::after{
+    position: absolute;
+    right: -8px;
+    content: "";
+    width: 0px;
+    border-top: 18px solid var(--tab_right_color);
+    border-right: 8px solid transparent;
+  }
+  .tab:last-of-type:after{
+    border-top: 18px solid var(--tab_right_color);
+    right: -4px;
+    width: 4px;
+    border-right: 0px solid transparent;
+    border-left: 0px solid transparent;
+  }
+  .tab.selected{
+    background-image: linear-gradient(to right, var(--tab_selected_left_color) , var(--tab_selected_right_color));
+  }
+  .tab.selected:before{
+    border-top-color: var(--tab_selected_left_color);
+  }
+  .tab.selected:after{
+    border-top-color: var(--tab_selected_right_color);
+  }
+
+  .tab:hover{
+    background-image: linear-gradient(to right, var(--tab_hover_left_color) , var(--tab_hover_right_color));
+  }
+  .tab:hover:before{
+    border-top-color: var(--tab_hover_left_color);
+  }
+  .tab:hover:after{
+    border-top-color: var(--tab_hover_right_color);
+  }
+
+
+  
 
   .atomicInput{
     padding-right:0.5rem;

@@ -12,12 +12,34 @@
 
   import { configNodeBinding } from '../../../../runtime/app-helper.store.js';
 
+
+  import { getAllComponents } from '../../../../config-blocks/_configs';
+
+
   export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs
   export let index = undefined;
   export let disable_pointer_events = false;
 
   export let toggle = false;
+
+
+  function replace_me(e) {
+
+    appMultiSelect.reset()
+
+    let components = getAllComponents();
+
+    let new_config = components.find(c=>c.information.name == e.detail)
+
+    config.script = new_config.information.defaultLua
+    config.short = new_config.information.short
+
+    config.component = new_config.component
+    config.information = new_config.information
+
+    handleConfigChange({configName: config.information.name});
+  }
 
   function handleConfigChange({configName}){
 
@@ -98,13 +120,14 @@
       </carousel>
           
       {#if toggle}
-
+      
         <container in:heightChange class=" w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
           <fader-transition class="w-full" in:fade={{delay: 200}} out:fade={{delay:0,duration:0}}>
 
             <svelte:component 
               this={config.component} 
               {index} {config}
+              on:replace={(e)=>{replace_me(e)}}
               on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
             />
 

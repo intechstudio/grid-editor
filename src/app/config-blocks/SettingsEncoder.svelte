@@ -15,7 +15,7 @@
 
 <script>
 
-  import { createEventDispatcher, onDestroy } from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
 
@@ -34,13 +34,27 @@
   $: if(config.script && !loaded){
     const arr = config.script.split('self:').slice(1,);
     
-    emo = whatsInParenthesis.exec(arr[0])[1];
-    //emo = emo[1];
-    ev0 = whatsInParenthesis.exec(arr[1])[1];
-    //ev0 = ev0[1];
+    let param1 = whatsInParenthesis.exec(arr[0]);    
+    
+    if (param1 !== null){
+      if(param1.length > 0){
+        emo=param1[1]
+      }
+    }
+
+    let param2 = whatsInParenthesis.exec(arr[1]);    
+    
+    if (param2 !== null){
+      if(param2.length > 0){
+        ev0=param2[1]
+      }
+    }
+
+
     
     loaded = true;
   }
+
 
   onDestroy(()=>{
     loaded = false;

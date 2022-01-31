@@ -234,6 +234,10 @@
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
+    send_to_grid()
+  }
+
+  function send_to_grid(){
     const li = get(user_input);
 
     const dx = li.brc.dx;
@@ -245,7 +249,6 @@
 
     runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
     runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-    
   }
 
   function handleDrop(e){
@@ -272,18 +275,8 @@
       });
 
     }
-
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page =  li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({config: configs});
-
-    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    
+    send_to_grid()
 
   }
 
