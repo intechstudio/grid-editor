@@ -723,44 +723,45 @@
 
 <style global>
   :root {
-    --tab_left_color: #1e90ff;
-    --tab_right_color: #09ffff; 
-    --tab_selected_left_color: #1e9000;
-    --tab_selected_right_color: #09ff00; 
-    --tab_hover_left_color: #aaaaaa;
-    --tab_hover_right_color: #dddddd; 
+    --tab_left_color: #372c32;
+    --tab_right_color: #372c32; 
+    --tab_selected_left_color: #DA4167;
+    --tab_selected_right_color: #DA4167; 
+    --tab_hover_left_color: #7d3549;
+    --tab_hover_right_color: #7d3549; 
   }
 
   .tab {
+    color: rgba(0,0,0,0.5);
     margin-top: -0.5rem;
     margin-bottom: 0.5rem;
     text-align: center;
     position: relative;
-    margin-left: 6px;
-    margin-right: 6px;
+    margin-left: 4px;
+    margin-right: 4px;
     height: 18px;
     background-image: linear-gradient(to right, var(--tab_left_color) , var(--tab_right_color));
     cursor: pointer;
   }
   .tab:last-of-type{
 
-    margin-right: 0px;
+    margin-right: -2px;
   }
   .tab::before{
     position: absolute;
-    left: -8px;
+    left: -6px;
     content: "";
     width: 0px;
     border-top: 18px solid var(--tab_left_color);
-    border-left: 8px solid transparent;
+    border-left: 6px solid transparent;
   }
   .tab::after{
     position: absolute;
-    right: -8px;
+    right: -6px;
     content: "";
     width: 0px;
     border-top: 18px solid var(--tab_right_color);
-    border-right: 8px solid transparent;
+    border-right: 6px solid transparent;
   }
   .tab:last-of-type:after{
     border-top: 18px solid var(--tab_right_color);
@@ -770,16 +771,23 @@
     border-left: 0px solid transparent;
   }
   .tab.selected{
-    background-image: linear-gradient(to right, var(--tab_selected_left_color) , var(--tab_selected_right_color));
+    z-index: 2;
+    color: rgba(0,0,0,1) !important;
+    background-image: linear-gradient(to right, var(--tab_selected_left_color) , var(--tab_selected_right_color)) !important;
+
   }
   .tab.selected:before{
-    border-top-color: var(--tab_selected_left_color);
+    border-top-color: var(--tab_selected_left_color) !important;
+
   }
   .tab.selected:after{
-    border-top-color: var(--tab_selected_right_color);
+    border-top-color: var(--tab_selected_right_color) !important;
+
   }
 
   .tab:hover{
+    z-index: 1;
+    color: rgba(0,0,0,0.8);
     background-image: linear-gradient(to right, var(--tab_hover_left_color) , var(--tab_hover_right_color));
   }
   .tab:hover:before{

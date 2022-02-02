@@ -98,7 +98,7 @@
 
   <div class="w-full flex flex-col">
 
-    <div class="text-gray-500 text-sm pb-1">Enter comma separated sysex bytes or variables.</div>
+    <div class="text-gray-500 text-sm pb-1 font-bold">Enter comma separated sysex bytes or variables.</div>
     <div class="text-gray-500 text-sm pb-1">Example: 0xF0, 0x41, 0x10, val, 0xF7</div>
     
     <div class="w-full px-2 py-1 text-white bg-secondary "  contentEditable="true" bind:this={textarea} on:input={()=>{commitState=1}}></div>
