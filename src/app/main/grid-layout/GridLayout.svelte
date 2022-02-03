@@ -168,6 +168,29 @@
 
   }
 
+  function calculate_x(x0, y0){
+    
+    const rot = $appSettings.persistant.moduleRotation/180*Math.PI;
+
+    let x_rot = x0*Math.cos(rot) -y0*Math.sin(rot)
+
+    x_rot -= $surface_origin_x*Math.cos(rot) - $surface_origin_y*Math.sin(rot)
+
+    return ((x_rot)*106.6*$appSettings.size*1.1)
+      
+  }
+  function calculate_y(x0, y0){
+
+    const rot = $appSettings.persistant.moduleRotation/180*Math.PI;
+
+
+    let y_rot = x0*Math.sin(rot) + y0*Math.cos(rot)
+
+    y_rot -= $surface_origin_x*Math.sin(rot) + $surface_origin_y*Math.cos(rot)
+
+    return -1*((y_rot)*106.6*$appSettings.size*1.1)
+  }
+
 </script>
 
 <layout-container class="relative flex items-start {classes} h-full { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
@@ -207,14 +230,14 @@
 
       {#each $devices as device}
         <div 
-          in:fly="{{x: device.fly_x, y: device.fly_y, duration: 150 }}" out:fade="{{ duration: 150 }}"
+          in:fly="{{x: calculate_x(device.fly_x, device.fly_y), y: calculate_y(device.fly_x, device.fly_y), duration: 150 }}" out:fade="{{ duration: 150 }}"
 
           id="grid-device-{'dx:'+device.dx+';dy:'+device.dy}" 
-          style="--device-size: {gridsize + 'px'}; top:{-1*((device.dy-$surface_origin_y)*106.6*$appSettings.size*1.1) +'px'};left:{((device.dx-$surface_origin_x)*106.6*$appSettings.size*1.1) +'px'};"
+          style="--device-size: {gridsize + 'px'}; top:{calculate_y(device.dx, device.dy) +'px'};left:{calculate_x(device.dx, device.dy) +'px'};"
           class="device"
           class:fwMismatch={device.fwMismatch}>
         
-            <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot} />
+            <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot + $appSettings.persistant.moduleRotation/90} />
 
         </div>
       {/each}    

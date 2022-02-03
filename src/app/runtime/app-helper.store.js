@@ -66,6 +66,7 @@ export const appSettings = writable({
     owner: {neme: undefined}
   },
   persistant: {
+    moduleRotation: 0,
     welcomeOnStartup: true,
     lastVersion: '',
     profileFolder: '',
@@ -83,6 +84,7 @@ export const appSettings = writable({
 export const profileListRefresh = writable(0);
 
 let persistant = {
+  moduleRotation: 0,
   welcomeOnStartup: true,
   lastVersion: '',
   profileFolder: '',
@@ -156,6 +158,10 @@ function init_appsettings(){
 
         if (key === "profileFolder" && value === undefined){
           value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+        }        
+        
+        if (key === "moduleRotation" && value === undefined){
+          value = persistant[key]
         }
       
         if (key === "pageActivatorInterval" && value === undefined){
