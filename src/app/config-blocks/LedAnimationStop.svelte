@@ -1,13 +1,13 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'glat',
-    name: 'LedAnimationStart',
+    short: 'glap',
+    name: 'LedAnimationStop',
     rendering: 'standard',
     category: 'led',
-    desc: 'Start Animation',
+    desc: 'Stop Animation',
     color: '#726E60',
-    defaultLua: 'glpfs(num,1,val,1,1)',
+    defaultLua: 'glpfs(num,1,0,0,0)',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 303 303" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M204.8 97.6C191.2 84 172 75.2 151.2 75.2C130.4 75.2 111.2 83.6 97.6 97.6C84 111.2 75.2 130.4 75.2 151.2C75.2 172 84 191.2 97.6 204.8C111.2 218.4 130.4 227.2 151.2 227.2C172 227.2 191.2 218.8 204.8 204.8C218.4 191.2 227.2 172 227.2 151.2C227.2 130.4 218.8 111.2 204.8 97.6ZM190.4 190.4C180.4 200.4 166.4 206.4 151.2 206.4C136 206.4 122 200.4 112 190.4C102 180.4 96 166.4 96 151.2C96 136 102 122 112 112C122 102 136 96 151.2 96C166.4 96 180.4 102 190.4 112C200.4 122 206.4 136 206.4 151.2C206.4 166.4 200.4 180.4 190.4 190.4Z" fill="black"/>
@@ -173,7 +173,7 @@
 
   <div class="w-full flex flex-col p-2">
 
-    <div class="text-gray-500 text-sm pb-1 font-bold">Start a periodic animation on the LED</div>
+    <div class="text-gray-500 text-sm pb-1 font-bold">Stop the periodic animation on the LED</div>
     
  </div>
 
@@ -192,33 +192,6 @@
   </div>
 
   {#if showSuggestions  && suggestionPlaceMove==true}
-
-    <AtomicSuggestions 
-      {suggestions} 
-      {focusedInput} 
-      on:select={(e)=>{
-        scriptSegments[e.detail.index] = e.detail.value; 
-        sendData(e.detail.value,e.detail.index)
-      }}
-    />
-
-  {/if}
-
-  <div class="w-full flex">
-    {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
-      <div class={'w-1/3'+ ' atomicInput'}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i+2]}</div>
-        <AtomicInput 
-          inputValue={script} 
-          suggestions={suggestions[i+2]} 
-          on:active-focus={(e)=>{onActiveFocus(e,i+2)}} 
-          on:loose-focus={(e)=>{onLooseFocus(e,i+2)}} 
-          on:change={(e)=>{sendData(e.detail,i+2)}}/>
-      </div>
-    {/each}
-  </div>
-
-  {#if showSuggestions  && suggestionPlaceMove==false}
 
     <AtomicSuggestions 
       {suggestions} 
