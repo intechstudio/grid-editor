@@ -1,21 +1,21 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'sec',
-    name: 'SettingsEncoder',
+    short: 'spc',
+    name: 'SettingsPotmeter',
     rendering: 'standard',
     category: 'element settings',
     color: '#5F416D',
-    desc: 'Encoder Mode',
-    defaultLua: 'self:emo(0) self:ev0(100)',
-    icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
+    desc: 'Potmeter Mode',
+    defaultLua: 'self:pmo(7) self:pma(127)',
+    icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
   }
 
 </script>
 
 <script>
 
-  import { createEventDispatcher, onMount, onDestroy } from 'svelte';
+  import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
 
@@ -24,8 +24,8 @@
 
   const dispatch = createEventDispatcher();
 
-  let emo = ''; // local script part
-  let ev0 = '';
+  let pmo = ''; // local script part
+  let pma = '';
 
   const whatsInParenthesis = /\(([^)]+)\)/;
 
@@ -34,38 +34,24 @@
   $: if(config.script && !loaded){
     const arr = config.script.split('self:').slice(1,);
     
-    let param1 = whatsInParenthesis.exec(arr[0]);    
-    
-    if (param1 !== null){
-      if(param1.length > 0){
-        emo=param1[1]
-      }
-    }
-
-    let param2 = whatsInParenthesis.exec(arr[1]);    
-    
-    if (param2 !== null){
-      if(param2.length > 0){
-        ev0=param2[1]
-      }
-    }
-
-
+    pmo = whatsInParenthesis.exec(arr[0])[1];
+    //pmo = pmo[1];
+    pma = whatsInParenthesis.exec(arr[1])[1];
+    //pma = pma[1];
     
     loaded = true;
   }
-
 
   onDestroy(()=>{
     loaded = false;
   })
 
-  $: if(emo || ev0){
-    sendData(emo, ev0);
+  $: if(pmo || pma){
+    sendData(pmo, pma);
   }
 
   function sendData(p1, p2){
-    dispatch('output', {short: `sec`, script:`self:emo(${p1}) self:ev0(${p2})`})
+    dispatch('output', {short: 'spc', script:`self:pmo(${p1}) self:pma(${p2})`})
   }
 
   let showSuggestions = false;
@@ -84,30 +70,33 @@
 
   const suggestions = [
     [
-      {value: '0', info: 'Absolute'}, 
-      {value: '1', info: 'Relative BinOffset'},
-      {value: '2', info: 'Relative 2\'s Comp'}
+      {value: '7', info: '7 bit (default)'}, 
+      {value: '8', info: '8 bit'},
+      {value: '9', info: '9 bit'},
+      {value: '10', info: '10 bit'},
+      {value: '11', info: '11 bit (not recommended)'},
+      {value: '12', info: '12 bit (not recommended)'}
     ],
 
     [
-      {value: '0', info: 'No velocity (0%)'}, 
-      {value: '100', info: 'Default (100%)'},
+      {value: '127', info: '7 bit MIDI (default)'}, 
+      {value: '16383', info: '14 bit MIDI (high res)'},
     ]
   ]
 
 </script>
 
 
-<encoder-settings class="flex flex-col w-full p-2">
+<potmeter-settings class="flex flex-col w-full p-2">
 
   <div class="w-full flex">
     <div class="w-1/2 flex flex-col">
 
       <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Encoder Mode</div>
+        <div class="text-gray-500 text-sm pb-1">Bit depth</div>
         <AtomicInput 
           suggestions={suggestions[0]} 
-          bind:inputValue={emo} 
+          bind:inputValue={pmo} 
           on:active-focus={(e)=>{onActiveFocus(e,0)}} 
           on:loose-focus={(e)=>{onLooseFocus(e,0)}} />
       </div>
@@ -116,10 +105,10 @@
     <div class="w-1/2 flex flex-col">
 
       <div class="w-full px-2">
-        <div class="text-gray-500 text-sm pb-1">Encoder Velocity</div>
+        <div class="text-gray-500 text-sm pb-1">Max Value</div>
         <AtomicInput 
           suggestions={suggestions[1]} 
-          bind:inputValue={ev0} 
+          bind:inputValue={pma} 
           on:active-focus={(e)=>{onActiveFocus(e,1)}} 
           on:loose-focus={(e)=>{onLooseFocus(e,1)}} />
       </div>
@@ -133,13 +122,13 @@
       {focusedInput} 
       on:select={(e)=>{
         if(focusedInput == 1){
-          ev0 = e.detail.value;
+          pma = e.detail.value;
         }
         if(focusedInput == 0){
-          emo = e.detail.value;
+          pmo = e.detail.value;
         }
       }}
     />
   {/if}
 
-</encoder-settings>
+</potmeter-settings>

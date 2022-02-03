@@ -1,5 +1,5 @@
 // es6 import
-import { getComponentInformation } from '../config-blocks/_configs.js';
+import { getComponentInformation, config_components } from '../config-blocks/_configs.js';
 import grid from '../protocol/grid-protocol.js';
 import stringManipulation from '../main/user-interface/_string-operations.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,9 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 // commonjs node require
 const lua = require('luaparse');
 
-// init string converter
-const _convert = stringManipulation;
-_convert.initialize(grid.properties.LUA);
 
 const _utils = {
 
@@ -27,9 +24,31 @@ const _utils = {
       return undefined;
     } 
 
+    if (config_components === undefined){
+
+      console.warn("config_components not initialized yet")
+      return;
+    }
+
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
-    return this.extendProperties(configs);
+
+    return configs.map((element,index) => {
+
+      // if short is not in lua... revert to codeblock!
+      if(!config_components.find(l => l.information.short == element.short)){
+        element.short = 'cb'
+      }
+
+      return {
+        short: element.short, 
+        script: element.script, 
+        id: uuidv4(), 
+        human: getHumanFunctionName({short: element.short}),
+        ... getComponentInformation({short: element.short})
+      }
+    });
+
   },
 
   // make smaller chunks from <?lua ... ?>, huge raw lua
@@ -79,26 +98,9 @@ const _utils = {
     return configMatrix;
   },
 
-  // add extra properties used in the app, like the id for listing and component
-  extendProperties: function(configList){
-    return configList.map((element,index) => {
-
-      // if short is not in lua... revert to codeblock!
-      if(!grid.properties.LUA.find(l => l.short == element.short)){
-       element.short = 'cb'
-      }
-
-      return {
-        short: element.short, 
-        script: element.script, 
-        id: uuidv4(), 
-        human: getHumanFunctionName({short: element.short}),
-        ... getComponentInformation({short: element.short})
-      }
-    });
-  },
 
   scriptToSegments: function({script, short}){
+
     // get the part after function name with parenthesis
     let config = [];
     config = script.split(short)[1];
@@ -109,6 +111,7 @@ const _utils = {
     // trim whitespaces
     config = config.map(c => c.trim())
   
+    console.log(config)
     return config;
   },
 

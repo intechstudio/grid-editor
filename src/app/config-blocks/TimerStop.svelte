@@ -33,12 +33,14 @@
 
   $: if(config.script && !loaded){
  
-    const matches = whatsInParenthesis.exec(config.script);
+    scriptValue = '';
 
-    if(matches){
-      scriptValue = matches[1];
-    } else {
-      scriptValue = '';
+    let param1 = whatsInParenthesis.exec(config.script);    
+    
+    if (param1 !== null){
+      if(param1.length > 0){
+        scriptValue=param1[1]
+      }
     }
 
     loaded = true;

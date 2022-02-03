@@ -35,7 +35,6 @@ async function init_config_block_library(){
       })
     );
     _components.then(value => {
-      //console.log("Components: ", value);
       config_components = value
     });
   } 

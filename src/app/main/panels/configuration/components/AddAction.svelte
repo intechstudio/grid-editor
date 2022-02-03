@@ -23,8 +23,6 @@
 
 
   export let animation = false;
-  export let actions;
-  export let index;
   export let userHelper = false;
 
   const dispatch = createEventDispatcher();
@@ -56,6 +54,8 @@
 
 
     analytics.track_event("application", "configpicker", "added action", action_name)
+
+    console.log(cfg)
 
     dispatch('new-config', {
       config: cfg

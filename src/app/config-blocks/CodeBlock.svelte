@@ -58,6 +58,7 @@
   }
 
   function prepareDoc(script){
+
     let code = '';
     code = luamin.Beautify(script, luaminOptions);
     code = stringManipulation.humanize(code);

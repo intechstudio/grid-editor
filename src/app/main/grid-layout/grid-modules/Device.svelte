@@ -28,7 +28,6 @@
   export let rotation;
 
   let selected;
-  let color;
 
   let selectedElement;
 
@@ -47,7 +46,7 @@
 </script>
 
 {#if selected}
-  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {color} {selectedElement}>
+  <svelte:component this={selected.component} {moduleWidth} {id} {rotation} {selectedElement}>
 
     {#if $appSettings.overlays.controlElementName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation}/>

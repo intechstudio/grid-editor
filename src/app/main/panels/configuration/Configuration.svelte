@@ -234,6 +234,10 @@
 
     configs = await configManagement().drag_and_drop.add({configs: configs, index: index, newConfig: config});
 
+    send_to_grid()
+  }
+
+  function send_to_grid(){
     const li = get(user_input);
 
     const dx = li.brc.dx;
@@ -245,7 +249,6 @@
 
     runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
     runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-    
   }
 
   function handleDrop(e){
@@ -272,18 +275,8 @@
       });
 
     }
-
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page =  li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({config: configs});
-
-    runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    
+    send_to_grid()
 
   }
 
@@ -355,7 +348,7 @@
               {#if configs.length !==0}
         
                 {#if !drag_start}
-                  <AddAction index={0} {configs} {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
+                  <AddAction {animation} on:new-config={(e)=>{addConfigAtPosition(e, 0)}}/>
                 {:else}
                   <DropZone index={-1} {configs} {drop_target} {drag_target} {animation} {drag_start}/>
                 {/if}
@@ -368,7 +361,7 @@
                       </DynamicWrapper>
         
                       {#if !drag_start}
-                        <AddAction index={index + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
+                        <AddAction {animation} on:new-config={(e)=>{addConfigAtPosition(e, index + 1)}}/>
                       {:else}
                         <DropZone {configs} {index} {drag_target} {drop_target} {animation} {drag_start}/>
                       {/if}
@@ -385,7 +378,7 @@
             <container class="flex flex-col w-full">
               {#if !drag_start}
                 <div class="w-full flex justify-between mb-3">
-                  <AddAction userHelper={true} index={configs.length + 1} {animation} {configs} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
+                  <AddAction userHelper={true} {animation} on:new-config={(e)=>{addConfigAtPosition(e, configs.length + 1)}}/>
                   <ExportConfigs/>
                 </div>
               {:else}

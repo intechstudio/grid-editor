@@ -80,7 +80,7 @@
 
           {#if row == 0}
           <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} data-element-number={elementNumber} class="knob-and-led">
-            <Led {elementNumber}  
+            <Led
               color={ledcolor_array[elementNumber]} 
               size={$appSettings.size}/>
             <Encoder {elementNumber} 
@@ -89,7 +89,7 @@
           </div>
           {:else}
           <div class:active-element={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == elementNumber} data-element-number={elementNumber} class="knob-and-led">
-            <Led {elementNumber}  
+            <Led
               color={ledcolor_array[elementNumber]} 
               size={$appSettings.size}/>
             <Fader {elementNumber} 
