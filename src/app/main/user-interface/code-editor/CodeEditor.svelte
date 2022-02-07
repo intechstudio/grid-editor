@@ -4,15 +4,12 @@
 
   import { onMount, createEventDispatcher } from "svelte";
 
-  import { StreamLanguage } from "@codemirror/stream-parser"
   import { EditorView } from "@codemirror/view"
   import { EditorState } from "@codemirror/state"
 
   import { basicSetup } from './setup/setup.js';
 
-  import { javascript, esLint } from '@codemirror/lang-javascript';
-  import { linter, openLintPanel } from '@codemirror/lint';
-  import { lua } from './lang-lua/lang-package';
+  import { lua_highlight } from './lang-lua/lang-package';
   import { oneDarkTheme, oneDarkHighlightStyle } from "./setup/OneDark";
 
   import { hoverTooltip } from "@codemirror/tooltip"
@@ -30,6 +27,11 @@
   export let isCodeBlock = false;
   export let showCharCount = true;
   export let showLineNumbers = true;
+
+
+  export let access_tree;
+
+  console.log(access_tree)
 
   export let advancedClickAddon;
   export let index;
@@ -120,7 +122,7 @@
     extensions: [
       basicSetup({showLineNumbers}),
       charCounter(),
-      lua(),
+      lua_highlight(access_tree.elementtype),
       EditorView.updateListener.of((v) => {
         
         if(editor.hasFocus){

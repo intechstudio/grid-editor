@@ -40,6 +40,7 @@
   export let index;
   export let advanced;
   export let advancedClickAddon;
+  export let access_tree
 
   let codeEditorContent = '';
   let committedCode = '';
@@ -116,7 +117,7 @@
 {#if !advanced}
 <code-block   
   class="w-full flex flex-col p-4">
-    <CodeEditor {doc} beautify={f} on:format-done={sendData} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+    <CodeEditor {access_tree} {doc} beautify={f} on:format-done={sendData} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
     <div class="flex justify-between items-center mt-2">
       {#key commitState}
         <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
@@ -133,5 +134,5 @@
   {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
   <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
   </div>
-  <CodeEditor {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
+  <CodeEditor {access_tree} {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
 {/if}
