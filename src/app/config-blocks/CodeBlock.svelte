@@ -34,6 +34,21 @@
   import { engine, logger } from '../runtime/runtime.store';
   import { clickOutside } from '../main/_actions/click-outside.action';
 
+
+
+
+
+  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
+  //import * as monaco from 'monaco-editor'
+  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
+  import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+
+  let monaco_block;
+
+
+
+
+
   const dispatch = createEventDispatcher();
 
   export let config;
@@ -109,6 +124,12 @@
   onMount(()=>{
     committedCode = stringManipulation.humanize(config.script)
     codeEditorContent = committedCode;
+
+    var editor = monaco.editor.create(monaco_block, {
+      value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
+      language: 'lua'
+    });
+
   })
 
 </script>
@@ -136,3 +157,5 @@
   </div>
   <CodeEditor {access_tree} {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
 {/if}
+<h2>Monaco Editor Sample</h2>
+<div bind:this={monaco_block} id="container" style="width: 800px; height: 600px; border: 1px solid grey"></div>

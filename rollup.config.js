@@ -12,6 +12,10 @@ import { lezer } from "lezer-generator/rollup"
 
 import json from '@rollup/plugin-json';
 
+
+import path from 'path';
+import monaco from 'rollup-plugin-monaco-editor';
+
 const production = !process.env.ROLLUP_WATCH;
 
 
@@ -35,6 +39,9 @@ export default {
 			compilerOptions: {
 				dev: !production
 			}
+		}),        
+		monaco({
+			languages: ['javascript', 'lua'],
 		}),
 
 		// we'll extract any component CSS out into
