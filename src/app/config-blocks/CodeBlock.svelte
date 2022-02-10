@@ -34,20 +34,9 @@
   import { engine, logger } from '../runtime/runtime.store';
   import { clickOutside } from '../main/_actions/click-outside.action';
 
+  import {appSettings} from "../runtime/app-helper.store"
 
-
-
-
-  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
-  //import * as monaco from 'monaco-editor'
-  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
   import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
-
-  let monaco_block;
-
-
-
-
 
   const dispatch = createEventDispatcher();
 
@@ -59,11 +48,9 @@
 
   let codeEditorContent = '';
   let committedCode = '';
-  let parenthesisError = 0;
-
-  export let commitState = 1;
 
   let doc = '';
+  let codePreview;
 
   $: prepareDoc(config.script);
 
@@ -96,7 +83,6 @@
     f++;
   }
 
-
   function sendData(){
     let outputCode = codeEditorContent;
     if(parenthesis(outputCode)){
@@ -105,7 +91,6 @@
         outputCode = stringManipulation.shortify(outputCode);
         outputCode = luamin.Minify(outputCode, luaminOptions)
         dispatch('output', {short: 'cb', script: outputCode});
-        commitState = 0;
       } catch (error) {
         console.error('CodeBlock data dispatch unsuccessful.', JSON.stringify(error));
       }
@@ -113,49 +98,86 @@
     }
   }
 
-  $: {
-    if(codeEditorContent.trim() == committedCode.trim()){
-      commitState = 0;
-    } else {
-      commitState = 1;
+
+  const creation_timestamp = Date.now();
+
+  onMount(()=>{
+    let human = stringManipulation.humanize(config.script)
+
+    let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+       
+    if( beautified.charAt( 0 ) === '\n' )
+        beautified = beautified.slice( 1 );
+
+    committedCode = beautified
+    codePreview.innerHTML  = beautified
+
+    monaco.editor.defineTheme('my-theme', {
+      base: 'vs-dark',
+      inherit: true,
+      rules: [
+        { 
+          token: 'customClass', 
+          foreground: 'ffa500',
+          fontStyle: 'italic underline' 
+        }
+      ],
+      colors: {
+        'editor.background': '#1e2628',
+      }
+    });
+
+
+    monaco.editor.colorizeElement(codePreview, {theme: "my-theme"});
+
+  })
+
+  $: if(committedCode != $appSettings.monaco_code_committed && $appSettings.monaco_code_committed !== undefined){
+
+    if ($appSettings.monaco_timestamp == creation_timestamp){
+
+      codeEditorContent = $appSettings.monaco_code_committed;
+
+      let beautified = luamin.Beautify(codeEditorContent, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+   
+      if( beautified.charAt( 0 ) === '\n' )
+        beautified = beautified.slice( 1 );
+
+      codePreview.innerHTML = beautified
+      monaco.editor.colorizeElement(codePreview, {theme: "my-theme"});
+      sendData()
+      console.log("initbug")
+
     }
   }
 
-  onMount(()=>{
-    committedCode = stringManipulation.humanize(config.script)
-    codeEditorContent = committedCode;
+  function open_monaco(){
 
-    var editor = monaco.editor.create(monaco_block, {
-      value: ['function x() {', '\tconsole.log("Hello world!");', '}'].join('\n'),
-      language: 'lua'
-    });
+    $appSettings.monaco_element = "encoder";  
 
-  })
+    $appSettings.monaco_code_committed = committedCode
+    $appSettings.monaco_timestamp = creation_timestamp
+
+    $appSettings.modal = "code";
+
+  }
+
 
 </script>
 
 
-{#if !advanced}
 <code-block   
   class="w-full flex flex-col p-4">
-    <CodeEditor {access_tree} {doc} beautify={f} on:format-done={sendData} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
-    <div class="flex justify-between items-center mt-2">
-      {#key commitState}
-        <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-      {/key}
-      {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-      <button on:click={prepareSendData} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+
+    <div class="w-full flex flex-col">
+
+      <div class="text-gray-500 text-sm font-bold">Code preview:</div>
+      
     </div>
+   
+    <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2" bind:this={codePreview}  data-lang="lua" ></pre>
+   
+    <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
+   
 </code-block>
-{:else}
-<div class="flex justify-between items-center mb-2 font-roboto">
-  {#key commitState}
-    <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-  {/key}
-  {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-  <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
-  </div>
-  <CodeEditor {access_tree} {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
-{/if}
-<h2>Monaco Editor Sample</h2>
-<div bind:this={monaco_block} id="container" style="width: 800px; height: 600px; border: 1px solid grey"></div>
+

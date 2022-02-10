@@ -21,8 +21,11 @@
   import LeftPanelContainer from    './app/main/LeftPanelContainer.svelte';
   import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
   import TopSubMenu from            './app/main/TopSubMenu.svelte';
-  import Modal from                 './app/main/Modal.svelte';
-  import Welcome from                 './app/main/Welcome.svelte';
+
+  import Export from                 './app/main/modals/Export.svelte';
+  import Welcome from                 './app/main/modals/Welcome.svelte';
+  import Monaco from                 './app/main/modals/Monaco.svelte';
+
   import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
@@ -31,6 +34,12 @@
   import { appSettings } from       './app/runtime/app-helper.store'
 
 
+
+  let modalComponents = {}
+  modalComponents[""] = undefined;
+  modalComponents["welcome"] = Welcome;
+  modalComponents["export"] = Export;
+  modalComponents["code"] = Monaco;
 
 </script>
 
@@ -43,9 +52,9 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs/> 
 
-  <!-- The modal pages views -->
-  <Modal/>  
-  <Welcome/>
+  <svelte:component 
+    this={modalComponents[$appSettings.modal]}
+  />
 
   <!-- Update notification -->
   <Updater/>

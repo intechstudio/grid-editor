@@ -26,6 +26,7 @@
   export let index;
   export let advanced = false;
   export let advancedClickAddon;
+  export let access_tree;
 
   const dispatch = createEventDispatcher();
 
@@ -180,7 +181,6 @@
 
 </script>
 
-{#if !advanced}
 <config-local-definitions   
   class="flex flex-col w-full p-2 ">
 
@@ -206,6 +206,7 @@
         </div>
         <div class="w-9/12 pl-1">
           <CodeEditor doc={`${script.value}`} 
+          {access_tree} 
           showLineNumbers={false} 
           showCharCount={false} 
           index={i} 
@@ -239,63 +240,7 @@
   </div>
 
 </config-local-definitions>
-{:else}
-<advanced-local-definitions >
-  <div class="flex justify-between items-center my-2 font-roboto">
-    {#key commitState}
-      <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-    {/key}
-    {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-    <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
-  </div>
-  {#each scriptSegments as script, i}
-    <segment class="w-full block local-defs py-2">
-      <div class="w-full flex items-start">
-        <div class="w-11/12 flex items-start">
-          <div class="w-4/12 flex items-baseline">
-            <div class="pointer-events-none py-1 text-gray-500 px-1 bg-thirdery">local </div>
-            <input on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}} style="backround" class="py-0.5 mb-1 pl-1 w-20 bg-secondary text-white" value={script.variable}>
-            <div class="text-sm text-gray-500 px-1 py-1">=</div>
-          </div>
-          <div class="w-8/12 flex">
-            <CodeEditor doc={`${script.value}`} showLineNumbers={false} showCharCount={false} index={i} {advancedClickAddon} on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}/>
-          </div>
-        </div>
-        <div class="w-1/12 flex justify-center items-center">
-          {#if i !== 0}
-          <div on:click|preventDefault={()=>{removeLocalVariable(i)}} class="flex items-center group cursor-pointer pl-1 mt-1.5">
-            <svg class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
-              <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
-            </svg>
-          </div>
-          {:else}
-          <div class=" flex invisible items-center group cursor-pointer pl-1">
-            <div class="w-5 h-5 p-1">
-              x
-            </div>
-          </div>
-          {/if}
-        </div>
-      </div>
-    </segment>
-  {/each}
 
-  <div class="w-full flex group py-2">
-    <div on:click={()=>{addLocalVariable()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
-      Add local variable...
-    </div>
-  </div>
-
-  <div class="text-gray-300 flex flex-col py-2">
-    <div class="font-bold">Output:</div>
-    {#each scriptSegments as script}
-      <div>{`local ${script.variable} = ${script.value}`}</div>
-    {/each}
-  </div>
-
-</advanced-local-definitions>
-{/if}
 
 
 <style>
