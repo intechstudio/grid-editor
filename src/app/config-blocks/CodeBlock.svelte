@@ -123,7 +123,7 @@
         }
       ],
       colors: {
-        'editor.background': '#1e2628',
+        'editor.background': '#2a343900',
       }
     });
 

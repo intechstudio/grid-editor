@@ -31,7 +31,6 @@
 
   export let access_tree;
 
-  console.log(access_tree)
 
   export let advancedClickAddon;
   export let index;

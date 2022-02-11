@@ -28,6 +28,10 @@
   export let advancedClickAddon;
   export let access_tree;
 
+  import LineEditor from '../main/user-interface/LineEditor.svelte'
+
+ 
+
   const dispatch = createEventDispatcher();
 
   const regex = new RegExp(/\blocal\b\s*[a-zA-Z]\s*[=].*[a-zA-Z0-9\-\+\(\)].*/, 'g');
@@ -45,6 +49,7 @@
   let committedCode = '';
   let parenthesisError = 0;
   let variableNameError = 0;
+
   
   export let commitState = 1;
 
@@ -171,11 +176,9 @@
     sendData();
   }
 
+
   onMount(()=>{
 
-    /**
-     * To do: implement default code check, to see if we return to the starting point, just like in codeblock
-    */
 
   })
 
@@ -197,21 +200,25 @@
     {#each scriptSegments as script, i (i)}
       <div class="w-full flex local-defs py-2">
         <div class="w-2/12 pr-1">
+
           <input 
-          class="py-1 pl-1 w-full bg-secondary text-white" 
-          placeholder="variable name" 
-          value={script.variable}
-          on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}}
+            class="py-1 pl-1 w-full mr-2  bg-secondary text-white" 
+            placeholder="variable name" 
+            value={script.variable}
+            on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}}
           > 
+
         </div>
         <div class="w-9/12 pl-1">
-          <CodeEditor doc={`${script.value}`} 
-          {access_tree} 
-          showLineNumbers={false} 
-          showCharCount={false} 
-          index={i} 
-          {advancedClickAddon} 
-          on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}/>
+
+            <div class="w-full p-1 bg-secondary">
+                  
+              <LineEditor 
+                on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}
+                value={script.value}
+              />
+            </div>
+
         </div>
         <div class="w-1/12 pl-1 flex items-center justify-center">
           {#if i !== 0}
@@ -230,14 +237,22 @@
           {/if}
         </div>
       </div>
+
+
+
     {/each}
   </div>
+
+
+
+
 
   <div class="w-full flex group p-2">
     <div on:click={()=>{addLocalVariable()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
       Add local variable...
     </div>
   </div>
+
 
 </config-local-definitions>
 
