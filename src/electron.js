@@ -127,6 +127,9 @@ function createWindow() {
         icon:'./icon.png'
     });
 
+    require('@electron/remote/main').initialize();
+    require("@electron/remote/main").enable(mainWindow.webContents);
+
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
     mainWindow.on('closed', () => {

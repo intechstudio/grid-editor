@@ -67,12 +67,13 @@ export default {
 
 		// If building for production copy config svelte files to public
 
-		copy ({
+		production && copy ({
 			targets:[
 				{ src: 'src/app/config-blocks/*', dest: 'public/build/config-blocks'},
 				{ src: 'public/assets/fonts/*', dest: 'public/build/assets/fonts'}
 			],
-			copyOnce: true
+			copyOnce: true,
+			hook: "closeBundle"
 		}),
 
 		// If we're building for production (npm run build

@@ -4,8 +4,8 @@ import { appSettings } from '../runtime/app-helper.store.js';
 import { runtime, user_input, engine } from '../runtime/runtime.store.js';
 import grid from '../protocol/grid-protocol.js';
 
-const SerialPort = require('serialport')
-const Readline = SerialPort.parsers.Readline;
+const { SerialPort } = require('serialport');
+const { ReadlineParser } = require('@serialport/parser-readline');
 
 import { messageStream } from './message-stream.store.js';  
 
@@ -108,7 +108,7 @@ function openSerialPort() {
   if(!store.isEnabled && store.list.length > 0){
     try {      
       const serial = store.list.find(serial => serial.port.path === selectedPort);
-      PORT = new SerialPort(serial.port.path, { autoOpen: false });
+      PORT = new SerialPort({path: serial.port.path,baudRate: 2000000, autoOpen: false });
       serialComm.open(PORT);
       serialComm.selected(selectedPort);
       serialComm.enabled(true);
@@ -118,6 +118,7 @@ function openSerialPort() {
     }
     
   }
+
 }
 
 function closeSerialPort() {
@@ -179,7 +180,7 @@ function readSerialPort() {
 
 function runSerialParser(port){
 
-  const parser = port.pipe(new Readline({ encoding: 'hex' }));
+  const parser = port.pipe(new ReadlineParser({encoding: 'hex'}));
 
   parser.on('data', function(data) {
 

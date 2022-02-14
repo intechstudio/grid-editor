@@ -22,7 +22,7 @@
   const electron = require('electron'); 
 
 
-  const { getGlobal } = require('electron').remote;
+  const { getGlobal } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
 
   const {shell} = require('electron') // deconstructing assignment
