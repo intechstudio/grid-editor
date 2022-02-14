@@ -2,23 +2,33 @@
 
     import { createEventDispatcher, onDestroy, onMount } from 'svelte';
 
+    import {monaco_elementtype} from '../../runtime/monaco-helper'
+
     import * as monaco from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
   
     const dispatch = createEventDispatcher();
   
     export let value;
+    export let access_tree;
+    export let sidebarWidth;
 
     let monaco_block;
 
     let editor;
+
+    $: update_codeblock_height(sidebarWidth)
   
 
     function update_codeblock_height(){
 
+        if (editor === undefined){
+            return;
+        }
+        
         //console.log(editor._getViewModel().getLineCount(), editor._modelData.viewModel)
         //editor.viewModel.getViewLineCount()
 
-        const contentHeight = editor._getViewModel().getLineCount() * 19
+        const contentHeight = editor._getViewModel().getLineCount() * 16
         //const contentHeight = editor.getModel().getLineCount()* 19
 
         monaco_block.style.height = contentHeight +"px";
@@ -30,18 +40,23 @@
 
 
     onDestroy(()=>{
-        
+        editor.dispose();
     })
 
     onMount(()=>{
 
+
+
+        $monaco_elementtype = access_tree.elementtype
+        
         editor = monaco.editor.create(monaco_block, {
         value: value,
-        language: 'lua',
+        language: 'intech_lua',
         theme: "my-theme",
         minimap: {
             enabled: false
         },
+        fontSize: 12,
         lineNumbers: "off",
         lineNumbersMinChars: 0,
         lineDecorationsWidth: 0,

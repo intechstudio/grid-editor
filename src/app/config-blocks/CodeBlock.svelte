@@ -21,20 +21,22 @@
 
 <script>
 
-  import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
   import * as luamin from "../main/user-interface/code-editor/luamin.js";
+  import stringManipulation from '../main/user-interface/_string-operations';
+
+
+  let luaminOptions = {
+    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+  }
 
   import {createEventDispatcher, onMount} from 'svelte';
 
-  import {fly} from 'svelte/transition';
-
-  import { parenthesis } from './_validators';
-  import stringManipulation from '../main/user-interface/_string-operations';
-  import { engine, logger } from '../runtime/runtime.store';
-  import { clickOutside } from '../main/_actions/click-outside.action';
 
   import {appSettings} from "../runtime/app-helper.store"
+  import {monaco_elementtype} from "../runtime/monaco-helper"
 
   import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
@@ -49,86 +51,37 @@
   let codeEditorContent = '';
   let committedCode = '';
 
-  let doc = '';
   let codePreview;
 
-  $: prepareDoc(config.script);
 
-  let luaminOptions = {
-    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-  }
 
-  function prepareDoc(script){
-
-    let code = '';
-    code = luamin.Beautify(script, luaminOptions);
-    code = stringManipulation.humanize(code);
-    code = luamin.Beautify(code, luaminOptions);
-    doc = code.trim();
-  }
-
-  function stringFromCodeEditor(code){
-    codeEditorContent = code;
-    if(parenthesis(codeEditorContent)){
-      parenthesisError = 0;
-    } else {
-      parenthesisError = 1;
-    }
-  }
-
-  let f = 0;
-  function prepareSendData(){
-    f++;
-  }
+  
 
   function sendData(){
-    let outputCode = codeEditorContent;
-    if(parenthesis(outputCode)){
-      try {
-        committedCode = outputCode;
-        outputCode = stringManipulation.shortify(outputCode);
-        outputCode = luamin.Minify(outputCode, luaminOptions)
-        dispatch('output', {short: 'cb', script: outputCode});
-      } catch (error) {
-        console.error('CodeBlock data dispatch unsuccessful.', JSON.stringify(error));
-      }
-      
-    }
+    committedCode = codeEditorContent
+
+    dispatch('output', {short: 'cb', script: committedCode});
+
   }
 
 
   const creation_timestamp = Date.now();
 
   onMount(()=>{
-    let human = stringManipulation.humanize(config.script)
 
+
+    committedCode = config.script
+
+
+    let human = stringManipulation.humanize(committedCode)
     let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
-       
+  
     if( beautified.charAt( 0 ) === '\n' )
         beautified = beautified.slice( 1 );
 
-    committedCode = beautified
     codePreview.innerHTML  = beautified
 
-    monaco.editor.defineTheme('my-theme', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { 
-          token: 'customClass', 
-          foreground: 'ffa500',
-          fontStyle: 'italic underline' 
-        }
-      ],
-      colors: {
-        'editor.background': '#2a343900',
-      }
-    });
-
-
-    monaco.editor.colorizeElement(codePreview, {theme: "my-theme"});
+    monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
 
   })
 
@@ -144,9 +97,8 @@
         beautified = beautified.slice( 1 );
 
       codePreview.innerHTML = beautified
-      monaco.editor.colorizeElement(codePreview, {theme: "my-theme"});
+      monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
       sendData()
-      console.log("initbug")
 
     }
   }
@@ -158,6 +110,7 @@
     $appSettings.monaco_code_committed = committedCode
     $appSettings.monaco_timestamp = creation_timestamp
 
+    $monaco_elementtype = access_tree.elementtype
     $appSettings.modal = "code";
 
   }
@@ -175,7 +128,7 @@
       
     </div>
    
-    <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2" bind:this={codePreview}  data-lang="lua" ></pre>
+    <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2" bind:this={codePreview}  data-lang="intech_lua" ></pre>
    
     <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
    

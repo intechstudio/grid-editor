@@ -33,8 +33,6 @@
   import Updater from               './app/shared/updater/Updater.svelte';
   import { appSettings } from       './app/runtime/app-helper.store'
 
-
-
   let modalComponents = {}
   modalComponents[""] = undefined;
   modalComponents["welcome"] = Welcome;
@@ -81,6 +79,7 @@
 
     </div>
   </div>
+
 
 </main>
 

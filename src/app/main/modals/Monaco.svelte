@@ -6,7 +6,6 @@
 
   import { writable, get, readable } from 'svelte/store';
 
-  import * as grid_protocol from '../../../external/grid-protocol/grid_protocol_bot.json'
 
   let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
 
@@ -23,165 +22,62 @@
 
   let commitState = 0;
 
+  let error_messsage = ""
+
+  import * as luamin from "../../main/user-interface/code-editor/luamin.js";
+  import stringManipulation from '../../main/user-interface/_string-operations';
+
+
+  let luaminOptions = {
+    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+  }
 
   function commit(){
 
-    for(let i=0; i<monaco_disposables.length; i++){
-      monaco_disposables[i].dispose()
-    }
-    $appSettings.monaco_code_committed = editor.getValue() 
+    const editor_code = editor.getValue() 
+    const short_code = stringManipulation.shortify(editor_code);
 
-    commitState = 0;
+    try {
+      const minified_code = luamin.Minify(short_code, luaminOptions)
+      $appSettings.monaco_code_committed = minified_code
+      commitState = 0;
+      error_messsage = ''
+
+    } catch (error) {
+      error_messsage = 'Syntax Error: ' + error;
+    }
+    
+    
+
 
   }
 
   onDestroy(()=>{
 
-    commit();
+    monaco_disposables.forEach(element => {
+      element.dispose();
+    });
+
 
   })
 
-
-  let hoverTips = {};
-  let hoverDisposable = undefined;
 
   let toColorize;
 
   onMount(()=>{
 
-    (function init_autocomplete(){
+    let human = stringManipulation.humanize($appSettings.monaco_code_committed)
+    let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+  
+    if( beautified.charAt( 0 ) === '\n' )
+        beautified = beautified.slice( 1 );
 
-
-      function createDependencyProposals(range) {
-
-        let proposalList = []
-
-        for (const key in grid_protocol) {
-          if(typeof grid_protocol[key] !== 'object'){
-
-            let proposalItem = {
-              label: '',
-              kind: monaco.languages.CompletionItemKind.Function,
-              documentation: 'Documentation',
-              insertText: '',
-              range: range
-            }
-      
-            // AUTOCOMPLETE FUNCTIONS
-            if(key.startsWith('GRID_LUA_FNC_G') && key.endsWith("_human")){
-              proposalItem.label = grid_protocol[key]
-              proposalItem.insertText = grid_protocol[key] + "()"
-
-              hoverTips[grid_protocol[key]] = "Global function named " + grid_protocol[key]
-              
-            }        
-            
-            
-            if(key.startsWith('GRID_LUA_FNC_E') && key.endsWith("_human")){
-
-
-              hoverTips[grid_protocol[key]] = "Encoder function named " + grid_protocol[key]
-
-              if ($appSettings.monaco_element === 'encoder'){
-                proposalItem.label = "self:" + grid_protocol[key]
-                proposalItem.insertText = "self:" + grid_protocol[key] + "()"
-              }
-              else if ($appSettings.monaco_element === 'system'){
-                proposalItem.label = "element[0]:" + grid_protocol[key]
-                proposalItem.insertText = "element[0]:" + grid_protocol[key] + "()"
-              }
-            }            
-
-            if(key.startsWith('GRID_LUA_FNC_B') && key.endsWith("_human")){
-
-              hoverTips[grid_protocol[key]] = "Button function named " + grid_protocol[key]
-
-              if ($appSettings.monaco_element === 'button'){
-                proposalItem.label = "self:" + grid_protocol[key]
-                proposalItem.insertText = "self:" + grid_protocol[key] + "()"
-              }
-              else if ($appSettings.monaco_element === 'system'){
-                proposalItem.label = "element[0]:" + grid_protocol[key]
-                proposalItem.insertText = "element[0]:" + grid_protocol[key] + "()"
-              }
-            }
-
-            if(key.startsWith('GRID_LUA_FNC_P') && key.endsWith("_human")){
-
-              hoverTips[grid_protocol[key]] = "Potmeter function named " + grid_protocol[key]
-
-              if ($appSettings.monaco_element === 'potentiometer'){
-                proposalItem.label = "self:" + grid_protocol[key]
-                proposalItem.insertText = "self:" + grid_protocol[key] + "()"
-              }
-              else if ($appSettings.monaco_element === 'system'){
-                proposalItem.label = "element[0]:" + grid_protocol[key]
-                proposalItem.insertText = "element[0]:" + grid_protocol[key] + "()"
-              }
-            }
-
-            proposalList.push(proposalItem)
-          }
-        }
-
-        // returning a static list of proposals, not even looking at the prefix (filtering is done by the Monaco editor),
-        // here you could do a server side lookup
-        return [... proposalList];
-      }
-
-      let disposable = monaco.languages.registerCompletionItemProvider('lua', {
-        provideCompletionItems: function (model, position) {
-          // find out if we are completing a property in the 'dependencies' object.
-          var textUntilPosition = model.getValueInRange({
-            startLineNumber: 1,
-            startColumn: 1,
-            endLineNumber: position.lineNumber,
-            endColumn: position.column
-          });
-
-          var word = model.getWordUntilPosition(position);
-          var range = {
-            startLineNumber: position.lineNumber,
-            endLineNumber: position.lineNumber,
-            startColumn: word.startColumn,
-            endColumn: word.endColumn
-          };
-          return {
-            suggestions: createDependencyProposals(range)
-          };
-        }
-      });
-
-      monaco_disposables.push(disposable);
-
-
-    })()  
-
-    monaco_disposables.push(
-      monaco.languages.registerHoverProvider('lua', {
-        provideHover: function(model, position) { 
-
-          if (model.getWordAtPosition(position) !== null){
-
-            const word = model.getWordAtPosition(position).word;
-
-            if (hoverTips[word] !== undefined)
-            return {				
-              contents: [
-                { value: '**SOURCE**' },
-                { value: '```html\n' + hoverTips[word] + '\n```' }
-              ]
-            }
-
-          }
-
-        }
-      })
-    );
 
     editor = monaco.editor.create(monaco_block, {
-      value: $appSettings.monaco_code_committed,
-      language: 'lua',
+      value: beautified,
+      language: 'intech_lua',
       theme: "my-theme"
     });
 
@@ -240,8 +136,13 @@
 
         <div class="flex flex-row items-center h-full p-6">
 
-          {#key commitState}
-            <div class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+          {#key commitState + error_messsage}
+          <div class="flex flex-col">
+
+            <div class="text-right text-sm {commitState ? 'text-yellow-600' : 'text-green-500'} ">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
+            <div class="text-right text-sm text-red-600">{error_messsage}</div> 
+
+          </div>
           {/key}
           
           <button on:click={commit} disabled={!commitState} class="mx-2 p-2 { commitState ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded text-sm focus:outline-none">Commit</button>

@@ -30,7 +30,11 @@
 
   import LineEditor from '../main/user-interface/LineEditor.svelte'
 
+  console.log(access_tree)
  
+  let sidebarWidth;
+
+
 
   const dispatch = createEventDispatcher();
 
@@ -184,6 +188,8 @@
 
 </script>
 
+<svelte:window bind:innerWidth={sidebarWidth} />
+
 <config-local-definitions   
   class="flex flex-col w-full p-2 ">
 
@@ -198,11 +204,11 @@
 
   <div class="w-full flex flex-col p-2">
     {#each scriptSegments as script, i (i)}
-      <div class="w-full flex local-defs py-2">
+      <div class="w-full h-full flex local-defs py-2">
         <div class="w-2/12 pr-1">
 
           <input 
-            class="py-1 pl-1 w-full mr-2  bg-secondary text-white" 
+            class="py-1 pl-1 w-full h-full mr-2  bg-secondary text-white" 
             placeholder="variable name" 
             value={script.variable}
             on:input={(e)=>{saveChangesOnInput(e.target.value, i, 'variable')}}
@@ -215,6 +221,8 @@
                   
               <LineEditor 
                 on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}
+                {access_tree}
+                {sidebarWidth}
                 value={script.value}
               />
             </div>
