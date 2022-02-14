@@ -128,6 +128,7 @@
     "export:local": "run-s s:build e:builder:local",
     "s:build": "cross-env NODE_ENV=production rollup -c",
     "s:build:local": "cross-env NODE_ENV=production rollup -c",
+    "postinstall": "electron-builder install-app-deps && electron-rebuild --module-dir ./",
     "dev": "rollup -c -w",
     "test": "mocha",
     "start": "sirv public --single",
