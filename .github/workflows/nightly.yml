@@ -3,7 +3,8 @@ name: Build Nightly Grid Editor
 on: 
   push:
     branches:
-      - [stable, dev]
+      - stable
+      - dev
 
 jobs:
   job_1:
