@@ -1,10 +1,10 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { luadebug_store } from "../runtime/runtime.store";
-  import BtnAndPopUp from "./user-interface/BtnAndPopUp.svelte";
-  import { appSettings, openInBrowser} from "../runtime/app-helper.store";
+  import { luadebug_store } from "../../runtime/runtime.store";
+  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
+  import { appSettings, openInBrowser} from "../../runtime/app-helper.store";
 
-  import {clickOutside} from './_actions/click-outside.action'
+  import {clickOutside} from '../_actions/click-outside.action'
 
   import { writable, get, readable } from 'svelte/store';
 

@@ -226,7 +226,13 @@
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
       <div class="pb-2">General Settings</div>
+      <div class="flex my-1 flex-col relative text-white">
+        <div>Module Rotation</div>
+        <input class="bg-primary w-1/4" type="number" bind:value={$appSettings.persistant.moduleRotation} min="-180" max="180" step="90"/>
+      </div>
       <div class="flex my-1 relative text-white items-center"> 
+
+
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
         <div class="mx-1">Track Physical Grid interaction</div>
         <div class="group">

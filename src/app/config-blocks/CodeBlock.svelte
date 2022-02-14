@@ -21,35 +21,10 @@
 
 <script>
 
-  import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
 
   import * as luamin from "../main/user-interface/code-editor/luamin.js";
-
-  import {createEventDispatcher, onMount} from 'svelte';
-
-  import {fly} from 'svelte/transition';
-
-  import { parenthesis } from './_validators';
   import stringManipulation from '../main/user-interface/_string-operations';
-  import { engine, logger } from '../runtime/runtime.store';
-  import { clickOutside } from '../main/_actions/click-outside.action';
 
-  const dispatch = createEventDispatcher();
-
-  export let config;
-  export let index;
-  export let advanced;
-  export let advancedClickAddon;
-
-  let codeEditorContent = '';
-  let committedCode = '';
-  let parenthesisError = 0;
-
-  export let commitState = 1;
-
-  let doc = '';
-
-  $: prepareDoc(config.script);
 
   let luaminOptions = {
     RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -57,81 +32,105 @@
     SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
   }
 
-  function prepareDoc(script){
+  import {createEventDispatcher, onMount} from 'svelte';
 
-    let code = '';
-    code = luamin.Beautify(script, luaminOptions);
-    code = stringManipulation.humanize(code);
-    code = luamin.Beautify(code, luaminOptions);
-    doc = code.trim();
-  }
 
-  function stringFromCodeEditor(code){
-    codeEditorContent = code;
-    if(parenthesis(codeEditorContent)){
-      parenthesisError = 0;
-    } else {
-      parenthesisError = 1;
-    }
-  }
+  import {appSettings} from "../runtime/app-helper.store"
+  import {monaco_elementtype} from "../runtime/monaco-helper"
 
-  let f = 0;
-  function prepareSendData(){
-    f++;
-  }
+  import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
+  const dispatch = createEventDispatcher();
+
+  export let config;
+  export let index;
+  export let advanced;
+  export let advancedClickAddon;
+  export let access_tree
+
+  let codeEditorContent = '';
+  let committedCode = '';
+
+  let codePreview;
+
+
+
+  
 
   function sendData(){
-    let outputCode = codeEditorContent;
-    if(parenthesis(outputCode)){
-      try {
-        committedCode = outputCode;
-        outputCode = stringManipulation.shortify(outputCode);
-        outputCode = luamin.Minify(outputCode, luaminOptions)
-        dispatch('output', {short: 'cb', script: outputCode});
-        commitState = 0;
-      } catch (error) {
-        console.error('CodeBlock data dispatch unsuccessful.', JSON.stringify(error));
-      }
-      
-    }
+    committedCode = codeEditorContent
+
+    dispatch('output', {short: 'cb', script: committedCode});
+
   }
 
-  $: {
-    if(codeEditorContent.trim() == committedCode.trim()){
-      commitState = 0;
-    } else {
-      commitState = 1;
-    }
-  }
+
+  const creation_timestamp = Date.now();
 
   onMount(()=>{
-    committedCode = stringManipulation.humanize(config.script)
-    codeEditorContent = committedCode;
+
+
+    committedCode = config.script
+
+
+    let human = stringManipulation.humanize(committedCode)
+    let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+  
+    if( beautified.charAt( 0 ) === '\n' )
+        beautified = beautified.slice( 1 );
+
+    codePreview.innerHTML  = beautified
+
+    monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
+
   })
+
+  $: if(committedCode != $appSettings.monaco_code_committed && $appSettings.monaco_code_committed !== undefined){
+
+    if ($appSettings.monaco_timestamp == creation_timestamp){
+
+      codeEditorContent = $appSettings.monaco_code_committed;
+
+      let beautified = luamin.Beautify(codeEditorContent, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+   
+      if( beautified.charAt( 0 ) === '\n' )
+        beautified = beautified.slice( 1 );
+
+      codePreview.innerHTML = beautified
+      monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
+      sendData()
+
+    }
+  }
+
+  function open_monaco(){
+
+    $appSettings.monaco_element = "encoder";  
+
+    $appSettings.monaco_code_committed = committedCode
+    $appSettings.monaco_timestamp = creation_timestamp
+
+    $monaco_elementtype = access_tree.elementtype
+    $appSettings.modal = "code";
+
+  }
+
 
 </script>
 
 
-{#if !advanced}
 <code-block   
   class="w-full flex flex-col p-4">
-    <CodeEditor {doc} beautify={f} on:format-done={sendData} {index} isCodeBlock={true} showCharCount={false} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
-    <div class="flex justify-between items-center mt-2">
-      {#key commitState}
-        <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-      {/key}
-      {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-      <button on:click={prepareSendData} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
+
+    <div class="w-full flex flex-col">
+
+      <div class="text-gray-500 text-sm font-bold">Code preview:</div>
+      
     </div>
+   
+    <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2" bind:this={codePreview}  data-lang="intech_lua" ></pre>
+   
+    <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
+   
 </code-block>
-{:else}
-<div class="flex justify-between items-center mb-2 font-roboto">
-  {#key commitState}
-    <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
-  {/key}
-  {#if parenthesisError} <div class="text-sm text-red-500">Parenthesis must be closed!</div> {/if}
-  <button on:click={()=>{sendData()}} disabled={!commitState && parenthesisError} class="{ commitState && !parenthesisError ? 'opacity-100' : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Commit</button>
-  </div>
-  <CodeEditor {doc} isCodeBlock={true}  showLineNumbers={true} showCharCount={false} {advancedClickAddon} on:output={(e)=>{stringFromCodeEditor(e.detail.script)}}/>
-{/if}
+

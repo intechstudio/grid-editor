@@ -1,7 +1,11 @@
-import {parser} from "./syntax.grammar";
+
 import {LezerLanguage, LanguageSupport, indentNodeProp, foldNodeProp, foldInside, delimitedIndent} from "@codemirror/language";
 import {completeFromList} from "@codemirror/autocomplete"
 import {styleTags, tags as t} from "@codemirror/highlight";
+
+import grid from "../../../../protocol/grid-protocol"
+
+import {parser} from "./syntax.grammar";
 
 export const lua_language = LezerLanguage.define({
   parser: parser.configure({
@@ -16,6 +20,7 @@ export const lua_language = LezerLanguage.define({
         "if then else elseif end": [t.strong, t.processingInstruction],
         GridLed: t.special(t.variableName),
         GridMidi: [t.special(t.string)],
+        GridGlobal: t.string,
         Element: t.string,
         'self': t.function(t.variableName),
         kw: t.keyword,
@@ -33,85 +38,42 @@ export const lua_language = LezerLanguage.define({
   }
 });
 
-export const lua_completion = lua_language.data.of({
-  autocomplete: completeFromList([
-    {label: "local", type: "keyword"},
-    {label: "self:", type: "keyword"},
 
-    {label: "self:element_index()", type: "function"},
 
-    {label: "self:button_number()", type: "function"},
-    {label: "self:button_value()", type: "function"},
-    {label: "self:button_min()", type: "function"},
-    {label: "self:button_max()", type: "function"},
-    {label: "self:button_mode()", type: "function"},
-    {label: "self:button_elapsed_time()", type: "function"},
-    {label: "self:button_state()", type: "function"},
 
-    {label: "self:encoder_number()", type: "function"},
-    {label: "self:encoder_value()", type: "function"},
-    {label: "self:encoder_min()", type: "function"},
-    {label: "self:encoder_max()", type: "function"},
-    {label: "self:encoder_mode()", type: "function"},
-    {label: "self:encoder_elapsed_time()", type: "function"},
-    {label: "self:encoder_state()", type: "function"},
-    {label: "self:encoder_velocity()", type: "function"},
-    
-    {label: "self:potmeter_number()", type: "function"},
-    {label: "self:potmeter_value()", type: "function"},
-    {label: "self:potmeter_min()", type: "function"},
-    {label: "self:potmeter_max()", type: "function"},
-    {label: "self:potmeter_resolution()", type: "function"},
-    {label: "self:potmeter_elapsed_time()", type: "function"},
-    {label: "self:potmeter_state()", type: "function"},
+// Generate code mirror compatible highlight based on the function definitions in the grid protocol.
+// If parameter eventtype is provided then only the element specific and the global functions are included.
+export function lua_highlight(elementtype) {
 
-    {label: "led_default_red()", type: "function"},
-    {label: "led_default_green()", type: "function"},
-    {label: "led_default_blue()", type: "function"},
-    {label: "led_value(number,layer,value)", type: "function"},
-    {label: "led_timeout(number,layer,timeout)", type: "function"},
-    {label: "led_color_min(number,layer,red,green,blue)", type: "function"},
-    {label: "led_color_mid(number,layer,red,green,blue)", type: "function"},
-    {label: "led_color_max(number,layer,red,green,blue)", type: "function"},
-    {label: "led_color(number,layer,red,green,blue)", type: "function"},
-    {label: "led_animation_rate(number,layer,frequency)", type: "function"},
-    {label: "led_animation_type(number,layer,shape)", type: "function"},
-    {label: "led_animation_phase_rate_type(number,layer,phase,frequency,shape)", type: "function"},
 
-    {label: "midi_send(ch,cmd,p1,p2)", type: "function"},
-    {label: "midi_sysex_send()", type: "function"},
+  let grid_specific = []
 
-    {label: "keyboard_send(def_delay,is_modifier,keystate,key_code)", type: "function"},
+  if (elementtype === undefined){
 
-    {label: "mouse_move_send(position,axis)", type:"function"},
-    {label: "mouse_button_send(state,button)", type:"function"},
+    grid_specific = [...grid.properties.LUA_AUTOCOMPLETE]
 
-    {label: "random()", type: "function"},
-    {label: "hardware_configuration()", type: "function"},
-    {label: "version_major()", type: "function"},
-    {label: "version_minor()", type: "function"},
-    {label: "version_patch()", type: "function"},
-    {label: "module_position_x()", type: "function"},
-    {label: "module_position_y()", type: "function"},
-    {label: "module_rotation()", type: "function"},
+  }
+  else{
 
-    {label: "page_next()", type: "function"},
-    {label: "page_previous()", type: "function"},
-    {label: "page_current()", type: "function"},
-    {label: "page_load(page_number)", type: "function"},
+    for (let i=0; i<grid.properties.LUA_AUTOCOMPLETE.length; i++){
 
-    {label: "lookup(source,input,output)", type: "function"},
+      const item = grid.properties.LUA_AUTOCOMPLETE[i]
 
-    {label: "limit()", type: "function"},
+      if (item.elementtype === undefined || item.elementtype === elementtype){
+        grid_specific.push(item)
+      }
+    }
 
-    {label: "print()", type: "function"},
+  }
 
-    {label: "self:timer_start()", type: "function"},
-    {label: "self:timer_stop()", type: "function"}
-    
-  ])
-})
+  const lua_completion = lua_language.data.of({
+    autocomplete: completeFromList([
+  
+      ...grid_specific,
+      {label: "print", type: "function"}
+  
+    ])
+  })
 
-export function lua() {
   return new LanguageSupport(lua_language, [lua_completion])
 }

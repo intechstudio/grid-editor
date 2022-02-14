@@ -6,6 +6,7 @@ import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 
+import { initialize } from './monaco-helper';
 import { appSettings } from './app-helper.store';
 import { analytics } from './analytics_influx';
 
@@ -241,6 +242,10 @@ function create_user_input () {
       return;
     }
 
+    // modal block track physical interaction setting
+    if (get(appSettings).modal !== ""){
+      return;
+    }
 
     // event is init, mapmode, midirx, timer
     if (descr.class_parameters.EVENTTYPE == 0 || descr.class_parameters.EVENTTYPE == 4 || descr.class_parameters.EVENTTYPE == 5 || descr.class_parameters.EVENTTYPE == 6 ){
