@@ -9,7 +9,7 @@
   import instructions from "../serialport/instructions";
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
-  const { getGlobal } = require('electron').remote; 
+  const { getGlobal } = require('@electron/remote'); 
   const trackEvent = getGlobal('trackEvent');
 
   import { analytics } from "../runtime/analytics_influx"

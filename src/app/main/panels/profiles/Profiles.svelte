@@ -12,7 +12,7 @@
 
   const { ipcRenderer } = require('electron');
 
-  const { getGlobal } = require('electron').remote;
+  const { getGlobal } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';

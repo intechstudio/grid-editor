@@ -11,7 +11,7 @@
 
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-  const { getGlobal } = require('electron').remote;
+  const { getGlobal } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
 
   let fwMismatch = false; 
