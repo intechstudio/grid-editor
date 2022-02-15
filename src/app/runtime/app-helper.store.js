@@ -39,6 +39,15 @@ const versionstring =  ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
+export const statusReport = writable({
+
+  serialport: {
+    
+
+  }
+
+})
+
 export const appSettings = writable({
   size: 2.1,
   version: {

@@ -111,6 +111,31 @@
 
   }
 
+  function toHexString(byteArray) {
+    var s = '';
+    byteArray.forEach(function(byte) {
+      s += ('0x' + ('0'+(byte & 0xFF).toString(16)).slice(-2) + " ");
+    });
+    return s;
+  }
+
+  function toCharString(byteArray) {
+    let s = '';
+    byteArray.forEach(function(byte) {
+      s += String.fromCharCode(byte)
+    });
+    return s;
+  }
+
+  function toDecString(byteArray) {
+    let s = '';
+    byteArray.forEach(function(byte) {
+      s += byte + " "
+    });
+    return s;
+  }
+
+
 </script>
 
 <config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
@@ -183,15 +208,14 @@
       {#each $debug_lowlevel_store as debug, i}
         
         <span class="px-1 py-0.5 my-1 {debug.direction == "IN"?"input":"output"}">
-          {#each debug.data as char, i}
-            {#if display=="DEC"}
-            {char + " "}
-            {:else if display=="HEX"}
-            {"0x"+(char<16?"0":"")+char.toString(16).toUpperCase() + " "}
-            {:else}
-            {String.fromCharCode(char)}
-            {/if}
-          {/each}
+
+          {#if display=="DEC"}
+            {toDecString(debug.data)}
+          {:else if display=="HEX"}
+            {toHexString(debug.data)}
+          {:else}
+            {toCharString(debug.data)}
+          {/if}
 
         </span>
       {/each}
@@ -285,12 +309,12 @@
   }
 
 	.output{
-		background-color: rgb(44, 44, 80);
+		background-color: rgba(44, 44, 80, 0.5);
 		font-weight: bold;
 	}
 
 	.input{
-		background-color: rgb(39, 87, 50);
+		background-color: rgba(39, 87, 50, 0.5);
 		font-weight: bold;
 	}
 

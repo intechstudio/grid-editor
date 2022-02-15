@@ -5,7 +5,20 @@
   import {clickOutside} from '../_actions/click-outside.action'
 
   import { writable, get, readable } from 'svelte/store';
+  import { debug_monitor_store} from "../panels/DebugMonitor/DebugMonitor.store";
 
+
+	import { beforeUpdate, afterUpdate } from 'svelte';
+  let scrollDown;
+	let autoscroll;
+
+  beforeUpdate(() => {
+		autoscroll = scrollDown && (scrollDown.offsetHeight + scrollDown.scrollTop) > (scrollDown.scrollHeight - 20);
+	});
+
+	afterUpdate(() => {
+		if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
+	});
 
   let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
 
@@ -92,6 +105,9 @@
       
     });
 
+
+    scrollDown.scrollTo(0, scrollDown.scrollHeight)
+
   })
 
 
@@ -103,28 +119,9 @@
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
 
   <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
-    class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
+  class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
-      <div class=" bg-black bg-opacity-10  p-8 flex-col w-full flex justify-between items-center">
-
-        <div class="flex w-full text-4xl opacity-90">Grid Editor {version}</div>
-        <div class="flex w-full text-2xl opacity-70 ">Intech Studio</div>        
-
-        <div on:click={()=>{$appSettings.modal = ''}} id="close-btn" 
-          class="p-1  absolute top-6 right-6 cursor-pointer rounded not-draggable hover:bg-secondary">
-          <svg class="w-5 h-5 p-1 fill-current text-gray-300" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
-            <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
-          </svg>
-        </div>
-
-      </div>
-
-      <div class="flex-col w-full h-full min-w-max flex justify-between">  
-
-        <div bind:this={monaco_block} class="flex-col w-full h-full min-w-max flex justify-between"></div>
-
-      </div>
+    <div class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center">
 
  
       <div class="flex flex-row w-full h-content bg-black bg-opacity-10 flex justify-between items-center"> 
@@ -155,12 +152,36 @@
 
         </div>
 
-        
-
       </div>
 
     </div>
 
+    <div class="flex-col w-full h-full min-w-max flex justify-between">  
+
+      <div bind:this={monaco_block} class="flex-col w-full h-full min-w-max flex justify-between"></div>
+
+    </div>
+
+    <div bind:this={scrollDown} class="flex-col  w-full h-full flex overflow-y-scroll bg-secondary">  
+  
+        {#each $debug_monitor_store as debug, i}
+          <span class="debugtexty px-1 py-1 font-mono  text-white ">{debug}</span>
+        {/each}
+
+    </div>
+
+
+  </div>
+
 
 
 </modal>
+
+
+<style>
+
+  .debugtexty:nth-child(even){
+    @apply bg-select;
+  }
+
+</style>

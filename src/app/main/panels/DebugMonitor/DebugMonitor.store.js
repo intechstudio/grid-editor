@@ -36,37 +36,6 @@ function createDebugMonitor(){
 }
 
 
-function createDebugOutbound(){
-
-  const store = writable([]);
-  let freeze = false;
-
-  return {
-    ...store,
-    freeze: ()=>{
-      freeze = true
-    },
-    unfreeze: ()=>{
-      freeze = false
-    },
-    push: (arr) => {
-
-      store.update(d => {
-        if (freeze == false){
-
-          if(d.length >= 15){
-            d.shift()
-          }
-          d = [...d, arr];
-        
-        }
-        return d;
-      })
-    }
-
-  }
-}
-
 
 export let inbound_data_rate_points = writable("")
 export let outbound_data_rate_points = writable("")

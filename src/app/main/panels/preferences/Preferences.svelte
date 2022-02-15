@@ -6,7 +6,6 @@
 
   import instructions from "../../../serialport/instructions";
 
-  import { serialComm } from '../../../serialport/serialport.js';
   import { onMount, onDestroy } from 'svelte';
 
 
@@ -22,7 +21,7 @@
   const electron = require('electron'); 
 
 
-  const { getGlobal } = require('@electron/remote');
+  const { getGlobal, dialog } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
 
   const {shell} = require('electron') // deconstructing assignment
@@ -32,8 +31,6 @@
   const { ipcRenderer } = require('electron');
 
 
-  // Importing dialog module using remote 
-  const dialog = electron.remote.dialog; 
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
 
@@ -42,12 +39,6 @@
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
 
-  let serialList = [];
-  serialComm.subscribe(serial => {
-    serialList = serial.list;
-  })
-
-  let preferredPort;
 
 
   let window_name = "";
@@ -195,29 +186,10 @@
 
   }
 
-  function changePreferredPort(path){
 
-    if(path !== 'select your preference...' && path !== undefined){
-
-      ipcRenderer.send('setStoreValue-message', { preferred_serial_port: path });
-
-      if($serialComm.list.find(p => p.port.path == path)){
-        serialComm.update(s => {
-          s.open = undefined;
-          s.isEnabled = false;
-          s.preferredPort = path;
-          return s;
-        })
-      }
-    }
-    
-  }
 
   onMount(async () => {
-    preferredPort = await ipcRenderer.invoke('getStoreValue', 'preferred_serial_port');
-    if(preferredPort !== undefined) {
-      serialComm.update((s)=>{s.preferredPort = preferredPort; return s;});
-    }
+
   })
 
 </script>
@@ -323,25 +295,6 @@
       <div class="flex py-2 text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.debugMode}>
         <div class="ml-1">Glitch Debug Mode</div>
-      </div>
-
-      <div class="text-white flex flex-col items-start py-2">
-        <div class="pl-1">
-          Select serial port
-        </div>
-        <div class="pl-1 py-1 text-gray-500">
-          {'open: ' + $serialComm.selected}
-        </div>
-        <select bind:value={preferredPort} class="bg-secondary py-1">
-          {#each [{port: {path: 'select your preference...'}},...serialList] as serial}
-            <option value={serial.port.path} class="py-1 px-0.5">{serial.port.path}</option>
-          {/each}
-        </select>
-        <button 
-          on:click={()=>{changePreferredPort(preferredPort)}}
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2">
-          Change Serial Port
-        </button>      
       </div>
 
       <div class="flex flex-col items-start">
