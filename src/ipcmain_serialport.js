@@ -67,9 +67,6 @@ async function openGridPort(){
   
   
       serialport_instance = new SerialPort({path: serial_grid_port_list[0].path, baudRate: 2000000, autoOpen: false})
-        
-  
-        console.log(serialport_instance)
 
         serialport_instance.open(function(err){
   
@@ -114,6 +111,10 @@ async function openGridPort(){
   }
 
 ipcMain.on('serialport_tx', (event, arg) => {
+
+  if (serialport_instance === undefined){
+    return;
+  } 
 
   // console.log("tx", arg)
 

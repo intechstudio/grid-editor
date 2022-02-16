@@ -15,8 +15,7 @@
 
   import { createEventDispatcher, onDestroy, onMount } from 'svelte';
   import { fly } from 'svelte/transition';
-  import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-  import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
+  import stringManipulation from '../main/user-interface/_string-operations';
 
   import { parenthesis } from './_validators.js';
 
@@ -24,8 +23,6 @@
 
   export let config = '';
   export let index;
-  export let advanced = false;
-  export let advancedClickAddon;
   export let access_tree;
 
   import LineEditor from '../main/user-interface/LineEditor.svelte'

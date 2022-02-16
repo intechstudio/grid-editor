@@ -26,6 +26,12 @@
   export let config = ''
   export let index;
 
+  export let access_tree;
+
+  import LineEditor from '../main/user-interface/LineEditor.svelte'
+
+  let sidebarWidth;
+
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ''; // local script part
@@ -51,15 +57,23 @@
 </script>
 
 
+<svelte:window bind:innerWidth={sidebarWidth} />
+
 <if-block class="w-full flex flex-col text-white">
 
   <div class="pl-2 flex items-center bg-purple-400 rounded-t-lg">
     <span class="font-bold py-1">IF</span>
     <div class="pl-2 py-0.5 pr-1 w-full">
-      <CodeEditor doc={`${scriptSegment}`} 
-        showLineNumbers={false} 
-        showCharCount={false} 
-        on:output={(e)=>{sendData(e.detail.script)}}/>
+
+      <div class="bg-secondary p-1 m-1 rounded" >
+        <LineEditor
+          on:output={(e)=>{sendData(e.detail.script)}}
+          {access_tree}
+          {sidebarWidth}
+          value={scriptSegment}
+        />
+      </div>
+      
     </div>
   </div>
 
