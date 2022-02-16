@@ -19,6 +19,7 @@
 <script>
   import { onMount, createEventDispatcher } from 'svelte'; 
 
+  export let access_tree;
   const dispatch = createEventDispatcher();
 
   function sendData(){

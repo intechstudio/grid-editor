@@ -38,6 +38,7 @@
   import { configManagement} from './Configuration.store.js'
   import AddAction from './components/AddAction.svelte';
 
+  import grid from "../../../protocol/grid-protocol"
 
 
 
@@ -46,6 +47,8 @@
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
+
+  let access_tree = {};
 
   function configuration_panel_reset(){
 
@@ -100,6 +103,10 @@
       return;
     }
 
+
+    let module_type = ui.id.split("_")[0]
+    let element_type = grid.moduleElements[module_type][ui.event.elementnumber]
+
     let pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
     let elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
 
@@ -144,6 +151,7 @@
     }
 
     return {
+      elementtype: element_type,
       config: config,
       stringname: "",
       events: {
@@ -160,7 +168,6 @@
       }
     }
   });
-
 
 
   // if active_config changes then...
@@ -190,8 +197,9 @@
       dropStore.update(res);
       conditionalConfigPlacement.set(configs);
       localDefinitions.update(configs);
-    }
 
+      access_tree.elementtype = active.elementtype
+    }
 
     
     // let use of default dummy parameters
@@ -356,7 +364,7 @@
                 {#if configs !== undefined}
                   {#each configs as config, index (config.id)}
                     <anim-block animate:flip={{duration: 300}} in:fade={{delay: 0}} class="select-none {config.information.rendering == 'hidden' ? 'hidden' : 'block'}">
-                      <DynamicWrapper let:toggle {disable_pointer_events} {index} {config} {configs}>
+                      <DynamicWrapper let:toggle {disable_pointer_events} {index} {config} {configs} {access_tree}> 
         
                       </DynamicWrapper>
         

@@ -41,6 +41,8 @@ A -> B : AB-First step
   import Toggle from '../main/user-interface/Toggle.svelte';
 
 
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte"
+  
   import validate from './_validators';
 
   import _utils from '../runtime/_utils.js';
@@ -496,6 +498,8 @@ A -> B : AB-First step
     <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />
     <div class="pl-2">Beautify is {beautify ? 'on' : 'off'}.</div>
   </div>
+
+  <SendFeedback feedback_context="LedColor"/>
 
 </config-led-color>
 

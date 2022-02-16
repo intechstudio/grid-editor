@@ -1,6 +1,10 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
+
+const { serial } = require('./ipcmain_serialport');
+
+
 const { store } = require('./main-store');
 
 const { iconBuffer, iconSize } = require('./icon')
@@ -15,6 +19,11 @@ for (const key in grid_env) {
 }
 
 global.trackEvent = trackEvent;
+
+
+
+
+
 
 const path = require('path');
 const log = require('electron-log');
@@ -126,6 +135,11 @@ function createWindow() {
         },
         icon:'./icon.png'
     });
+
+    serial.mainWindow = mainWindow
+
+    require('@electron/remote/main').initialize();
+    require("@electron/remote/main").enable(mainWindow.webContents);
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
@@ -304,8 +318,6 @@ app.on('activate', () => {
         createWindow();
     }
 });
-
-
 
 
 

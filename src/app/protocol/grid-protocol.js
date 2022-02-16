@@ -434,11 +434,11 @@ let moduleElements = {
 }
 
 // add utility (system events) control element or map mode at 255 
-moduleElements['BU16'][255] = 'utility';
-moduleElements['EN16'][255] = 'utility';
-moduleElements['PBF4'][255] = 'utility';
-moduleElements['PO16'][255] = 'utility';
-moduleElements['EF44'][255] = 'utility';
+moduleElements['BU16'][255] = 'system';
+moduleElements['EN16'][255] = 'system';
+moduleElements['PBF4'][255] = 'system';
+moduleElements['PO16'][255] = 'system';
+moduleElements['EF44'][255] = 'system';
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
@@ -447,8 +447,9 @@ const elementEvents = {
   fader: [ CEEAT.init, CEEAT.potmeter,CEEAT.timer ],
   blank: [ CEEAT.undef ],
   encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer ],
-  utility: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer]
+  system: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer]
 }
+
 
 const grid = {
 
@@ -479,6 +480,7 @@ const grid = {
     let PARAMETERS = {};
     let HEARTBEAT_INTERVAL = 0;
     let CONFIG_LENGTH = 0;
+    let LUA_AUTOCOMPLETE = [];
 
     for (const key in grid_protocol) {
       if(typeof grid_protocol[key] !== 'object'){
@@ -546,6 +548,30 @@ const grid = {
           createNestedObject( LUA, paramSet.slice(3,), value )
         }
 
+        // AUTOCOMPLETE FUNCTIONS
+        if(key.startsWith('GRID_LUA_FNC_G') && key.endsWith("_human")){
+          let value = grid_protocol[key];
+          LUA_AUTOCOMPLETE.push({label: value, type: "function"})
+        }        
+        
+        if(key.startsWith('GRID_LUA_FNC_E') && key.endsWith("_human")){
+          let value = grid_protocol[key];
+          LUA_AUTOCOMPLETE.push({label: "self:"+value, type: "function", elementtype: "encoder"})
+          LUA_AUTOCOMPLETE.push({label: "element[0]:"+value, type: "function", elementtype: "system"})
+        }      
+        
+        if(key.startsWith('GRID_LUA_FNC_B') && key.endsWith("_human")){
+          let value = grid_protocol[key];
+          LUA_AUTOCOMPLETE.push({label: "self:"+value, type: "function", elementtype: "button"})
+          LUA_AUTOCOMPLETE.push({label: "element[0]:"+value, type: "function", elementtype: "system"})
+        }   
+        
+        if(key.startsWith('GRID_LUA_FNC_P') && key.endsWith("_human")){
+          let value = grid_protocol[key];
+          LUA_AUTOCOMPLETE.push({label: "self:"+value, type: "function", elementtype: "potentiometer"})
+          LUA_AUTOCOMPLETE.push({label: "element[0]:"+value, type: "function", elementtype: "system"})
+        }
+
         // GRID LUA KEYWORDS
         if(key.startsWith('GRID_LUA_KW_')){
           let paramSet = key.split('_');
@@ -567,6 +593,7 @@ const grid = {
     return {
       BRC: BRC , 
       LUA: extendLua(LUA),
+      LUA_AUTOCOMPLETE: LUA_AUTOCOMPLETE,
       CLASSES: CLASSES, 
       HWCFG: HWCFG, 
       EVENTS: EVENTS,

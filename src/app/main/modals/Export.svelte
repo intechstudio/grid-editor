@@ -1,10 +1,10 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { luadebug_store } from "../runtime/runtime.store";
-  import BtnAndPopUp from "./user-interface/BtnAndPopUp.svelte";
-  import { appSettings } from "../runtime/app-helper.store";
+  import { luadebug_store } from "../../runtime/runtime.store";
+  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
+  import { appSettings } from "../../runtime/app-helper.store";
 
-  import {clickOutside} from './_actions/click-outside.action'
+  import {clickOutside} from '../_actions/click-outside.action'
 
   let config = '';
 
@@ -28,13 +28,12 @@
 
 </script>
 
-{#if $appSettings.modal == 'export'}
 
 <div id="modal-copy-placeholder"></div>
 
 <modal class="flex z-40 absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
 
-  <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" class="text-white relative z-50 flex flex-col shadow p-4 border border-black bg-primary bg-opacity-100 rounded items-start w-1/3 opacity-100">
+  <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" class="text-white relative z-50 flex flex-col shadow p-4 border border-black bg-primary bg-opacity-100 rounded items-start w-1/2 h-1/2 opacity-100">
 
       <div class="w-full flex justify-between items-center">
         <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
@@ -59,4 +58,3 @@
 
 
 </modal>
-{/if}

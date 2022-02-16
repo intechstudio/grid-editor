@@ -18,6 +18,7 @@
 
   export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs
+  export let access_tree
   export let index = undefined;
   export let disable_pointer_events = false;
 
@@ -126,7 +127,7 @@
 
             <svelte:component 
               this={config.component} 
-              {index} {config}
+              {index} {config} {access_tree} 
               on:replace={(e)=>{replace_me(e)}}
               on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
             />
@@ -149,7 +150,7 @@
 
           <svelte:component 
             this={config.component} 
-            {index} {config}
+            {index} {config} {access_tree} 
             on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
           />
 

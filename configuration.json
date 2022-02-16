@@ -11,6 +11,8 @@
     "FIRMWARE_REQUIRED_PATCH":13,
 
     "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
-    "FIRMWARE_URL_END":"/grid_release.zip"
+    "FIRMWARE_URL_END":"/grid_release.zip",
+
+    "DISCORD_FEEDBACK_WEBHOOK": "https://discordapp.com/api/webhooks/943463496073478184/CjyGbGGVQnLzX20yEN9GJgedxZZkXmyf5BDEE5UsinjaTI_eSg2hMC91ailE8mod2hO1"
 
 }

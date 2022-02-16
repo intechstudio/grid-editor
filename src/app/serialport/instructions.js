@@ -1,4 +1,4 @@
-import { serialComm } from './serialport.js';
+import { serial_write } from './serialport.js';
 import { get } from 'svelte/store';
 import { appSettings } from '../runtime/app-helper.store';
 
@@ -28,7 +28,7 @@ const instructions = {
       }
     );
 
-    serialComm.write(retval.serial);
+    serial_write(retval.serial);
 
   },
 

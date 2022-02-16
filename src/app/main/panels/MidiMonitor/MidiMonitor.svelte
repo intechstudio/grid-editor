@@ -3,7 +3,7 @@ import { onMount } from "svelte";
 
   import { midi_monitor_store } from "./MidiMonitor.store";
 
-
+ // ok but slow nice
 </script>
 
 

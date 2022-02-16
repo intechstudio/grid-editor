@@ -11,7 +11,7 @@ export function openInBrowser(url){
   shell.openExternal(url)
 }
 
-const { getGlobal } = require('electron').remote;
+const { getGlobal } = require('@electron/remote');
 const trackEvent = getGlobal('trackEvent');
 
 
@@ -38,6 +38,15 @@ function checkOS() {
 const versionstring =  ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
+
+export const statusReport = writable({
+
+  serialport: {
+    
+
+  }
+
+})
 
 export const appSettings = writable({
   size: 2.1,
@@ -66,6 +75,7 @@ export const appSettings = writable({
     owner: {neme: undefined}
   },
   persistant: {
+    moduleRotation: 0,
     welcomeOnStartup: true,
     lastVersion: '',
     profileFolder: '',
@@ -83,6 +93,7 @@ export const appSettings = writable({
 export const profileListRefresh = writable(0);
 
 let persistant = {
+  moduleRotation: 0,
   welcomeOnStartup: true,
   lastVersion: '',
   profileFolder: '',
@@ -156,6 +167,10 @@ function init_appsettings(){
 
         if (key === "profileFolder" && value === undefined){
           value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+        }        
+        
+        if (key === "moduleRotation" && value === undefined){
+          value = persistant[key]
         }
       
         if (key === "pageActivatorInterval" && value === undefined){

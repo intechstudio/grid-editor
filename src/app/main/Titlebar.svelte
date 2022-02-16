@@ -3,9 +3,7 @@
 import { appSettings } from "../runtime/app-helper.store";
 
 
-
-  const { remote } = require("electron");
-  const BrowserWindow = remote.BrowserWindow;
+  const {BrowserWindow, getCurrentWindow} = require("@electron/remote");
 
   function init() { 
     document.getElementById("minimize-btn").addEventListener("click", function (e) {
@@ -38,7 +36,7 @@ import { appSettings } from "../runtime/app-helper.store";
 
     init();
 
-    let startingWindow = remote.getCurrentWindow();
+    let startingWindow = getCurrentWindow();
     startingWindow.isMaximized() ? isMaximized = true : false;
 
   });

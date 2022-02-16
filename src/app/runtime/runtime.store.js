@@ -6,6 +6,7 @@ import { writeBuffer } from './engine.store';
 import _utils from './_utils';
 
 
+import { initialize } from './monaco-helper';
 import { appSettings } from './app-helper.store';
 import { analytics } from './analytics_influx';
 
@@ -241,6 +242,10 @@ function create_user_input () {
       return;
     }
 
+    // modal block track physical interaction setting
+    if (get(appSettings).modal !== ""){
+      return;
+    }
 
     // event is init, mapmode, midirx, timer
     if (descr.class_parameters.EVENTTYPE == 0 || descr.class_parameters.EVENTTYPE == 4 || descr.class_parameters.EVENTTYPE == 5 || descr.class_parameters.EVENTTYPE == 6 ){
@@ -273,7 +278,13 @@ function create_user_input () {
       _event.update((store) => {
         const rt = get(runtime);
 
-        store.id = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY).id
+        let device = rt.find(device => device.dx == descr.brc_parameters.SX && device.dy == descr.brc_parameters.SY)
+
+        if (device === undefined){
+          return store;
+        }
+
+        store.id = device.id
     
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x

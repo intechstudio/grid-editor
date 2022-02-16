@@ -1,7 +1,7 @@
 import { get, writable } from 'svelte/store';
 import { appSettings } from './app-helper.store';
 import grid from '../protocol/grid-protocol';
-import { serialComm } from '../serialport/serialport';
+import { serial_write } from '../serialport/serialport';
 
 const buffer_element = {
   responseRequired: true,
@@ -57,7 +57,7 @@ function createWriteBuffer (){
     let retval = grid.encode_packet(descr);
 
 
-    serialComm.write(retval.serial);
+    serial_write(retval.serial);
 
     // debugger for message ASCII frames
     let str = "";
@@ -80,7 +80,7 @@ function createWriteBuffer (){
 
     if(get(appSettings).debugMode)
       if(Math.random() > 0.3){
-        serialComm.write(active_elem.serial);
+        serial_write(active_elem.serial);
       } else{
         console.error('GLITCH')
     } else {
