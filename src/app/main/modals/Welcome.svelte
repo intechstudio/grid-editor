@@ -17,7 +17,6 @@
 
 </script>
 
-{#if $appSettings.modal == 'welcome'}
 
 <div id="modal-copy-placeholder"></div>
 
@@ -102,4 +101,3 @@
 
 
 </modal>
-{/if}

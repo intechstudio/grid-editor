@@ -35,6 +35,8 @@
   import {createEventDispatcher, onMount} from 'svelte';
 
 
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte"
+
   import {appSettings} from "../runtime/app-helper.store"
   import {monaco_elementtype} from "../runtime/monaco-helper"
 
@@ -132,5 +134,7 @@
    
     <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
    
+    <SendFeedback feedback_context="CodeBlock"/>
+
 </code-block>
 

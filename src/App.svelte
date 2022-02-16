@@ -25,6 +25,7 @@
   import Export from                 './app/main/modals/Export.svelte';
   import Welcome from                 './app/main/modals/Welcome.svelte';
   import Monaco from                 './app/main/modals/Monaco.svelte';
+  import Feedback from                 './app/main/modals/Feedback.svelte';
 
   import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
@@ -38,6 +39,7 @@
   modalComponents["welcome"] = Welcome;
   modalComponents["export"] = Export;
   modalComponents["code"] = Monaco;
+  modalComponents["feedback"] = Feedback;
 
 </script>
 

@@ -19,6 +19,8 @@
 
   import { parenthesis } from './_validators.js';
 
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte"
+
   import { checkVariableName } from '../validators/local_validator.mjs';
 
   export let config = '';
@@ -258,6 +260,7 @@
     </div>
   </div>
 
+  <SendFeedback feedback_context="Locals"/>
 
 </config-local-definitions>
 

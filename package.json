@@ -1,6 +1,6 @@
 {
   "name": "grid_editor",
-  "version": "1.2.16",
+  "version": "1.2.17",
   "main": "./src/electron.js",
   "repository": {
     "type": "git",
@@ -53,6 +53,7 @@
     "adm-zip": "^0.5.9",
     "body-parser": "^1.19.0",
     "detect-active-title": "^1.0.1",
+    "discord.js": "^13.6.0",
     "electron-dl": "^3.3.0",
     "electron-log": "^4.2.4",
     "electron-store": "^6.0.1",
@@ -70,6 +71,7 @@
     "rollup-plugin-monaco-editor": "^0.2.0",
     "rollup-plugin-node-externals": "^4.0.0",
     "serialport": "^10.3.0",
+    "simple-discord-webhooks": "^1.1.1",
     "sirv-cli": "^0.4.6",
     "universal-analytics": "^0.4.23",
     "uuid": "^8.3.2",
