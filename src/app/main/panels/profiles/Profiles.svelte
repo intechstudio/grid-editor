@@ -479,7 +479,6 @@
       disabled={selectedIndex === undefined} 
       class="relative bg-commit block {selectedIndex !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'} w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
       <div>Load Profile To Module</div>
-      <TooltipSetter mode={1} key={"profile_load_to_module"}/>
     </button>
 
 

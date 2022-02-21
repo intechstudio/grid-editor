@@ -78,12 +78,14 @@
 
 </script>
 
-<div id="cursor-tooltip" style="z-index:9999;" use:cursorLog={{tooltip}} class="absolute">
-  {#if tooltip}
+
+{#if tooltip}
+  <div id="cursor-tooltip" style="z-index:20;" use:cursorLog={{tooltip}} class="absolute">
+
     <div 
       in:fade={{duration: 100, delay: 500}} 
       class="border-primary flex flex-col w-72 rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
       {tooltip_text}
     </div>
-  {/if}
-</div> 
+  </div> 
+{/if}
