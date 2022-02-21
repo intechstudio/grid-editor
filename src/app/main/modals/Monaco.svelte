@@ -37,6 +37,29 @@
 
   let error_messsage = ""
 
+  let modalWidth;
+  let modalHeight;
+
+  $: if(modalWidth || modalHeight){
+
+    if (editor !== undefined){
+      
+      editor.layout()
+    }
+
+  }
+
+
+  function clickOutsideHandler(){
+
+    if (!commitState){
+
+
+      $appSettings.modal = ''
+
+    }
+  }
+
   import * as luamin from "../../main/user-interface/code-editor/luamin.js";
   import stringManipulation from '../../main/user-interface/_string-operations';
 
@@ -91,9 +114,25 @@
     editor = monaco.editor.create(monaco_block, {
       value: beautified,
       language: 'intech_lua',
-      theme: "my-theme"
+      theme: "my-theme",
+      fontSize: 12,
+
+      folding: false,
+
+      renderLineHighlight: 'none',
+
+      contextmenu: false,
+      scrollBeyondLastLine: 0,
+      wordWrap: 'on',
+      suggest: {
+        showIcons: false,
+        showWords: true
+      }
     });
 
+    
+
+    
     editor.getModel().onDidChangeContent((event) => {
 
       if (editor.getValue() !== $appSettings.monaco_code_committed){
@@ -113,12 +152,15 @@
 
 </script>
 
+<svelte:window bind:innerWidth={modalWidth}  bind:innerHeight={modalHeight} />
+
+
 
 <div id="modal-copy-placeholder"></div>
 
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
 
-  <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
+  <div use:clickOutside={{useCapture:true}} on:click-outside={clickOutsideHandler}   id="clickbox" 
   class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
     <div class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center">
@@ -156,16 +198,16 @@
 
     </div>
 
-    <div class="flex-col w-full h-full min-w-max flex justify-between">  
+    <div class="flex-col w-full h-full flex justify-between">  
 
-      <div bind:this={monaco_block} class="flex-col w-full h-full min-w-max flex justify-between"></div>
+      <div bind:this={monaco_block} class="flex-col w-full h-full flex justify-between"></div>
 
     </div>
 
     <div bind:this={scrollDown} class="flex-col  w-full h-full flex overflow-y-scroll bg-secondary">  
   
         {#each $debug_monitor_store as debug, i}
-          <span class="debugtexty px-1 py-1 font-mono  text-white ">{debug}</span>
+          <span class="debugtexty px-1 py-1 font-mono text-white ">{debug}</span>
         {/each}
 
     </div>
@@ -178,10 +220,12 @@
 </modal>
 
 
-<style>
 
+<style global>
   .debugtexty:nth-child(even){
     @apply bg-select;
   }
+  .monaco-editor .suggest-widget { width: 300px !important; } 
+
 
 </style>
