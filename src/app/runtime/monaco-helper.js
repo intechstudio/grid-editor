@@ -233,6 +233,42 @@ function initialize_autocomplete(){
 
 			let proposalList = []
 
+
+			for (const element of language.operators){
+
+				let proposalItem = {
+					label: '',
+					kind: monaco.languages.CompletionItemKind.Keyword,
+					documentation: 'Documentation',
+					insertText: '',
+					range: range
+					}				
+
+
+				proposalItem.label = element
+				proposalItem.insertText = element
+
+				proposalList.push(proposalItem)
+			}
+
+			for (const element of language.keywords){
+
+				let proposalItem = {
+					label: '',
+					kind: monaco.languages.CompletionItemKind.Keyword,
+					documentation: 'Documentation',
+					insertText: '',
+					range: range
+					}				
+
+
+				proposalItem.label = element
+				proposalItem.insertText = element
+
+				proposalList.push(proposalItem)
+			}
+
+
 			for (const key in grid_protocol) {
 				if(typeof grid_protocol[key] !== 'object'){
 

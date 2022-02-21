@@ -73,6 +73,10 @@
         scrollPredominantAxis: false,
         scrollBeyondLastLine: 0,
         wordWrap: 'on',
+        suggest: {
+            showIcons: false,
+            showWords: true
+        }
         });
         update_codeblock_height();
 
@@ -101,5 +105,5 @@
 </script>
 
 
-<div bind:this={monaco_block} class="w-full min-w-max justify-between"></div>
+<div bind:this={monaco_block} class="w-full justify-between"></div>
 

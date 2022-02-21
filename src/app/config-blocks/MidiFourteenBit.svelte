@@ -35,6 +35,8 @@
   export let config = ''
   export let index;
 
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte"
+  
   let loaded = false;
 
   const dispatch = createEventDispatcher();
@@ -714,6 +716,9 @@
   />
 
   {/if}
+
+
+  <SendFeedback feedback_context="MidiFourteenBit"/>
 
 </action-midi>
 
