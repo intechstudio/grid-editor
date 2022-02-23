@@ -19,6 +19,26 @@
     "info": "MetaLeft",
     "is_modifier": true
   },
+  {
+    "value": "0x05",
+    "info": "ControlRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x04",
+    "info": "ShiftRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x07",
+    "info": "AltRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x08",
+    "info": "MetaRight",
+    "is_modifier": true
+  },
   
   {
     "value": "0x04",
@@ -506,8 +526,12 @@
   {
     "value": "0x64",
     "info": "IntlBackslash",
-    "js_value": 220,
+    "is_modifier": false
+  },
+  {
+    "value": "0x65",
+    "info": "ContextMenu",
     "is_modifier": false
   }
-  
+
 ]
