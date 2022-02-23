@@ -15,6 +15,15 @@
 
 <app-action-multi-select class=" flex items-center justify-end flex-wrap">
   <!-- When any of the array elements is true -->  
+
+  <BtnAndPopUp on:clicked={()=>{configManagement().on_click.converttocodeblock(); appMultiSelect.reset();}} btnStyle={`relative bg-gray-500 hover:bg-gray-600 mr-2 rounded-full ${$appMultiSelect.selection.includes(true) ? '' : 'opacity-50 pointer-events-none'}`} popStyle={'bg-gray-500 '}> 
+    <span slot="popup">Actions merged!</span>
+    <span slot="button">
+      <span>Merge as Code</span>
+    </span>
+  </BtnAndPopUp>
+
+
   <BtnAndPopUp on:clicked={()=>{configManagement().on_click.cut(); appMultiSelect.reset();}} btnStyle={`relative bg-yellow-500 hover:bg-yellow-600 mr-2 rounded-full ${$appMultiSelect.selection.includes(true) ? '' : 'opacity-50 pointer-events-none'}`} popStyle={'bg-yellow-500 '}> 
     <span slot="popup">Cutted!</span>
     <span slot="button">

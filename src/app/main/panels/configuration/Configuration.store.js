@@ -134,6 +134,55 @@ export function configManagement() {
       }
     }
 
+    this.converttocodeblock = function() {
+
+    
+      const selection = get(appMultiSelect).selection;
+      const configs = get_configs();
+
+
+      // EDIT
+
+      let edited = [];
+
+      let i=0;
+      let j=0;
+      for (; i < configs.length;) {
+        if(selection[i] !== true){
+          edited.push(configs[i]);
+          j++
+        } else {
+          // edit these
+          
+          if (i>0 && selection[i-1] == true){
+            edited[j-1] += configs[i].split("]]").splice(1).join();
+          }else{
+            edited.push("--[[@cb]]"+configs[i].split("]]").splice(1).join());
+            j++
+          }
+        }
+
+        i++;
+      }
+
+      const li = get(user_input);
+
+      const dx = li.brc.dx;
+      const dy = li.brc.dy;
+      const page =  li.event.pagenumber;
+      const element = li.event.elementnumber;
+      const event = li.event.eventtype;
+      const actionstring = '<?lua ' + edited.join('') + ' ?>'
+  
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+      // trigger change detection
+      user_input.update(n => n);
+
+    };
+
+
     this.cut = function() {
       analytics.track_event("application", "configuration", "multiselect", "cut")
       this.copy(true);

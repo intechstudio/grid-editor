@@ -50,21 +50,10 @@
   export let advancedClickAddon;
   export let access_tree
 
-  let codeEditorContent = '';
   let committedCode = '';
 
   let codePreview;
 
-
-
-  
-
-  function sendData(){
-    committedCode = codeEditorContent
-
-    dispatch('output', {short: 'cb', script: committedCode});
-
-  }
 
 
   const creation_timestamp = Date.now();
@@ -82,7 +71,6 @@
         beautified = beautified.slice( 1 );
 
     codePreview.innerHTML  = beautified
-
     monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
 
   })
@@ -91,16 +79,20 @@
 
     if ($appSettings.monaco_timestamp == creation_timestamp){
 
-      codeEditorContent = $appSettings.monaco_code_committed;
 
-      let beautified = luamin.Beautify(codeEditorContent, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
-   
+      committedCode = $appSettings.monaco_code_committed
+      dispatch('output', {short: 'cb', script: committedCode});
+
+      let human = stringManipulation.humanize(committedCode)
+      let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
+
       if( beautified.charAt( 0 ) === '\n' )
         beautified = beautified.slice( 1 );
 
       codePreview.innerHTML = beautified
       monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
-      sendData()
+
+
 
     }
   }
@@ -128,12 +120,12 @@
 
       <div class="text-gray-500 text-sm font-bold">Code preview:</div>
       
+      <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
+   
+      <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
+        
     </div>
-   
-    <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2" bind:this={codePreview}  data-lang="intech_lua" ></pre>
-   
-    <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
-   
+
     <SendFeedback feedback_context="CodeBlock"/>
 
 </code-block>

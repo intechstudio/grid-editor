@@ -997,7 +997,7 @@ setInterval(function(){
 const editor_heartbeat_interval_handler = async function(){ 
   
   let type = 255
-  if(get(unsaved_changes) != 0){
+  if(get(unsaved_changes) != 0 || get(appSettings).modal !==""){
     type = 254
   }
 
