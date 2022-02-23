@@ -69,8 +69,9 @@
       if(array[0] != ''){
         for (let i = 0; i < array.length; i+=3) {
           if(array[i] != 15){
-            const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toUpperCase();
+            const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toLowerCase();
             let f_key = keyMap.default.find(k => k.value == val && array[i] == k.is_modifier);
+            console.log(val, f_key)
             _keys.push({...f_key, type: array[i+1] == 0 ? 'keyup' : array[i+1] == 1 ? 'keydown' : array[i+1] == 2 ? 'keydownup' : undefined})
           } else {
             _keys.push({value: array[i+2], info: "delay", js_value: -1, is_modifier: 15, type: 'delay'})
@@ -83,6 +84,8 @@
     } catch (error) {
       console.warn('gsk can\'t be turned to config', script);
     }    
+
+    console.log(keyBuffer)
   }
 
   function sendData(parameters){

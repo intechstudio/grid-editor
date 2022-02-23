@@ -19,6 +19,26 @@
     "info": "MetaLeft",
     "is_modifier": true
   },
+  {
+    "value": "0x05",
+    "info": "ControlRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x04",
+    "info": "ShiftRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x07",
+    "info": "AltRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x08",
+    "info": "MetaRight",
+    "is_modifier": true
+  },
   
   {
     "value": "0x04",
@@ -355,7 +375,7 @@
   },
   {
     "value": "0x46",
-    "info": "?????? PrintScreen",
+    "info": "PrintScreen",
     "is_modifier": false
   },
   {
@@ -418,99 +438,100 @@
     "info": "ArrowUp",
     "is_modifier": false
   },
-
-
-
-
-
+  {
+    "value": "0x53",
+    "info": "NumLock",
+    "is_modifier": false
+  },
+  {
+    "value": "0x54",
+    "info": "NumpadDivide",
+    "is_modifier": false
+  },
+  {
+    "value": "0x55",
+    "info": "NumpadMultiply",
+    "is_modifier": false
+  },
+  {
+    "value": "0x56",
+    "info": "NumpadSubtract",
+    "is_modifier": false
+  },
+  {
+    "value": "0x57",
+    "info": "NumpadAdd",
+    "is_modifier": false
+  },
+  {
+    "value": "0x58",
+    "info": "NumpadEnter",
+    "is_modifier": false
+  },
+  {
+    "value": "0x59",
+    "info": "Numpad1",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5a",
+    "info": "Numpad2",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5b",
+    "info": "Numpad3",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5c",
+    "info": "Numpad4",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5d",
+    "info": "Numpad5",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5e",
+    "info": "Numpad6",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5f",
+    "info": "Numpad7",
+    "is_modifier": false
+  },
+  {
+    "value": "0x60",
+    "info": "Numpad8",
+    "is_modifier": false
+  },
+  {
+    "value": "0x61",
+    "info": "Numpad9",
+    "is_modifier": false
+  },
+  {
+    "value": "0x62",
+    "info": "Numpad0",
+    "is_modifier": false
+  },
+  {
+    "value": "0x63",
+    "info": "NumpadDecimal",
+    "is_modifier": false
+  },
   {
     "value": "0x64",
     "info": "IntlBackslash",
-    "js_value": 220,
     "is_modifier": false
   },
   {
-    "value": 84,
-    "info": "divide",
-    "js_value": 111,
-    "is_modifier": false
-  },
-  {
-    "value": 85,
-    "info": "multiply",
-    "js_value": 106,
-    "is_modifier": false
-  },
-  {
-    "value": 86,
-    "info": "subtract",
-    "js_value": 109,
-    "is_modifier": false
-  },
-  {
-    "value": 87,
-    "info": "add",
-    "js_value": 107,
-    "is_modifier": false
-  },
-  {
-    "value": 89,
-    "info": "numpad_1",
-    "js_value": 97,
-    "is_modifier": false
-  },
-  {
-    "value": 90,
-    "info": "numpad_2",
-    "js_value": 98,
-    "is_modifier": false
-  },
-  {
-    "value": 91,
-    "info": "numpad_3",
-    "js_value": 99,
-    "is_modifier": false
-  },
-  {
-    "value": 92,
-    "info": "numpad_4",
-    "js_value": 100,
-    "is_modifier": false
-  },
-  {
-    "value": 93,
-    "info": "numpad_5",
-    "js_value": 101,
-    "is_modifier": false
-  },
-  {
-    "value": 94,
-    "info": "numpad_6",
-    "js_value": 102,
-    "is_modifier": false
-  },
-  {
-    "value": 95,
-    "info": "numpad_7",
-    "js_value": 103,
-    "is_modifier": false
-  },
-  {
-    "value": 96,
-    "info": "numpad_8",
-    "js_value": 104,
-    "is_modifier": false
-  },
-  {
-    "value": 97,
-    "info": "numpad_9",
-    "js_value": 105,
-    "is_modifier": false
-  },
-  {
-    "value": 98,
-    "info": "numpad_0",
-    "js_value": 96,
+    "value": "0x65",
+    "info": "ContextMenu",
     "is_modifier": false
   }
+
 ]
