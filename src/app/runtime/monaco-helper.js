@@ -75,9 +75,42 @@ let language = {
 	functions: [
 		"print"
 	],
+	mathfunctions: [
+		"abs",
+		"acos",
+		"asin",
+		"atan",
+		"atan2",
+		"ceil",
+		"cos",
+		"cosh",
+		"deg",
+		"exp",
+		"floor",
+		"fmod",
+		"frexp",
+		"huge",
+		"ldexp",
+		"log",
+		"log10",
+		"max",
+		"min",
+		"modf",
+		"pi",
+		"pow",
+		"rad",
+		"random",
+		"randomseed",
+		"sin",
+		"sinh",
+		"sqrt",
+		"tan",
+		"tanh"
+	],
 	variables: [
 		"self",
-		"element"
+		"element",
+		"math"
 	],
 	brackets: [
 	  { token: "delimiter.bracket", open: "{", close: "}" },
@@ -116,6 +149,7 @@ let language = {
 			cases: {
 			  "@keywords": { token: "keyword.$0" },
 			  "@functions": { token: "function.$0" },
+			  "@mathfunctions": { token: "function.$0" },
 			  "@variables": { token: "variable.$0" },
 			  "@default": "identifier"
 			}
@@ -234,19 +268,35 @@ function initialize_autocomplete(){
 			let proposalList = []
 
 
-			for (const element of language.operators){
+			for (const element of language.functions){
 
 				let proposalItem = {
 					label: '',
-					kind: monaco.languages.CompletionItemKind.Keyword,
+					kind: monaco.languages.CompletionItemKind.Function,
+					documentation: 'Documentation',
+					insertText: '',
+					range: range
+				}				
+
+
+				proposalItem.label = element
+				proposalItem.insertText = element
+
+				proposalList.push(proposalItem)
+			}
+			for (const element of language.mathfunctions){
+
+				let proposalItem = {
+					label: '',
+					kind: monaco.languages.CompletionItemKind.Function,
 					documentation: 'Documentation',
 					insertText: '',
 					range: range
 					}				
 
 
-				proposalItem.label = element
-				proposalItem.insertText = element
+				proposalItem.label = "math."+ element
+				proposalItem.insertText = "math."+ element
 
 				proposalList.push(proposalItem)
 			}
@@ -273,20 +323,12 @@ function initialize_autocomplete(){
 				if(typeof grid_protocol[key] !== 'object'){
 
 					let proposalItem = {
-					label: '',
-					kind: monaco.languages.CompletionItemKind.Function,
-					documentation: 'Documentation',
-					insertText: '',
-					range: range
-					}
-			
-					// AUTOCOMPLETE FUNCTIONS
-					if(key.startsWith('GRID_LUA_FNC_G') && key.endsWith("_human")){
-						proposalItem.label = grid_protocol[key]
-						proposalItem.insertText = grid_protocol[key] + "()"
-					
-					}        
-					
+						label: '',
+						kind: monaco.languages.CompletionItemKind.Function,
+						documentation: 'Documentation',
+						insertText: '',
+						range: range
+					}					
 					
 					if(key.startsWith('GRID_LUA_FNC_E') && key.endsWith("_human")){
 

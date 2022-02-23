@@ -20,6 +20,18 @@
 
 <script>
 
+  /* ========== Macro block documentation ==========
+
+  1. Detect key press
+  2. Display the key assuming layout is English-US
+  3. Assembly the grid command parameters
+  4. Send changes to grid
+
+
+  */
+
+
+
   import { createEventDispatcher, onDestroy,} from 'svelte';
 
   import { clickOutside } from '../main/_actions/click-outside.action';
@@ -98,6 +110,8 @@
 
   function identifyKey(e){
 
+    console.log(e.keyCode, e.code)
+
     // delete on backspace
     if(e.keyCode == 8 && e.type == 'keydown'){
 
@@ -138,8 +152,8 @@
     // filter same keypress type
     if(!e.repeat && e.keyCode != 8){
       if(caretPos !== -1){    
-        let key = keyMap.default.find(key => key.js_value == e.keyCode);  
-        const f_key = [...caretKeyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+        let key = keyMap.default.find(key => key.info == e.code);  
+        const f_key = [...caretKeyBuffer].reverse().find(key => key.info == e.code);    
         if(!f_key){
           caretKeyBuffer.push({...key, type: e.type});         
         } else if(f_key.type !== e.type) {        
@@ -147,8 +161,8 @@
         } 
         caretKeyBuffer = cutQuickDownUp(caretKeyBuffer);  
       } else {
-        let key = keyMap.default.find(key => key.js_value == e.keyCode);  
-        const f_key = [...keyBuffer].reverse().find(key => key.js_value == e.keyCode);    
+        let key = keyMap.default.find(key => key.info == e.code);  
+        const f_key = [...keyBuffer].reverse().find(key => key.info == e.code);    
         if(!f_key){
           keyBuffer.push({...key, type: e.type});         
         } else if(f_key.type !== e.type) {        
