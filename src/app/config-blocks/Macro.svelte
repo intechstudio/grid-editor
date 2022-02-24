@@ -61,6 +61,7 @@
 
   onMount(()=>{
     selectedLayout = $appSettings.persistant.keyboardLayout
+    change_layout()
   })
 
 
@@ -83,7 +84,10 @@
     else{
     }
 
-    $appSettings.persistant.keyboardLayout = selectedLayout
+    if($appSettings.persistant.keyboardLayout !== selectedLayout){
+      $appSettings.persistant.keyboardLayout = selectedLayout
+    }
+
 
     macrosToConfig({script: config.script});
   }
@@ -230,10 +234,17 @@
   }
 
   function addKey(){
+
+    console.log(selectedKey)
+
+    let added_key = keyMap.default.find(e=>{return e.info === selectedKey.info})
+
+    console.log(added_key)
+
     if(caretPos == -1){
-      keyBuffer.splice(keyBuffer.length, 0, {...selectedKey, type: addonKeyType});
+      keyBuffer.splice(keyBuffer.length, 0, {...added_key, type: addonKeyType});
     } else {
-      keyBuffer.splice(caretPos, 0, {...selectedKey, type: addonKeyType});
+      keyBuffer.splice(caretPos, 0, {...added_key, type: addonKeyType});
     }
     keys = colorize(keyBuffer);
     visibleCaretPos += 1;
@@ -406,13 +417,15 @@
       caretPos = -1;
     }}
     class="flex w-full flex-col items-start p-2">
-        <div class="text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
 
         <select bind:value={selectedLayout}  on:change={change_layout} class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select">
           {#each layouts as layout }
             <option value="{layout.name}" class="text-white bg-secondary py-1 ">{layout.name}</option>
           {/each}
         </select>
+
+        <div class="text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
+
         <div class="flex w-full p-2">
           <div
             use:clickOutside={{useCapture:true}}
@@ -439,8 +452,8 @@
 
             <div class="flex flex-col">
               <select bind:value={selectedKey} class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select">
-                {#each keyMap.default as key}
-                  <option value={key} class="text-white bg-secondary py-1 ">{key.info}</option>
+                {#each layout.lookup as key}
+                  <option value={key} class="text-white bg-secondary py-1 ">{key.display}</option>
                 {/each}
               </select>
               <div class="flex mt-1">
