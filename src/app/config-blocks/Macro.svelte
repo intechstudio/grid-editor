@@ -418,13 +418,19 @@
     }}
     class="flex w-full flex-col items-start p-2">
 
-        <select bind:value={selectedLayout}  on:change={change_layout} class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select">
-          {#each layouts as layout }
-            <option value="{layout.name}" class="text-white bg-secondary py-1 ">{layout.name}</option>
-          {/each}
-        </select>
 
-        <div class="text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
+
+        <div class="flex flex-row w-full">
+          <div class="mr-auto text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
+          <div class="text-gray-500 text-sm py-1 pl-2 mr-2">Layout:</div>
+          <select
+            class="rounded bg-secondary text-white focus:outline-none border-select mr-2"
+            bind:value={selectedLayout}  on:change={change_layout}>
+            {#each layouts as layout }
+              <option value="{layout.name}" class="text-white bg-secondary py-1 ">{layout.name}</option>
+            {/each}
+          </select>
+        </div>
 
         <div class="flex w-full p-2">
           <div
