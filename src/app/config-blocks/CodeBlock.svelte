@@ -25,13 +25,6 @@
   import * as luamin from "../main/user-interface/code-editor/luamin.js";
   import stringManipulation from '../main/user-interface/_string-operations';
 
-
-  let luaminOptions = {
-    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-  }
-
   import {createEventDispatcher, onMount} from 'svelte';
 
 
