@@ -29,6 +29,7 @@
 
   import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+  import ErrorConsole from          './app/main/ErrorConsole.svelte';
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
 
   import Updater from               './app/shared/updater/Updater.svelte';
@@ -68,6 +69,8 @@
     <TopSubMenu/>
 
     <FirmwareCheck/>
+
+    <ErrorConsole/>
 
     <div class="flex w-full h-full overflow-hidden">
 

@@ -32,7 +32,7 @@
 
 
 
-  import { createEventDispatcher, onDestroy,} from 'svelte';
+  import { createEventDispatcher, onDestroy, onMount} from 'svelte';
 
   import { clickOutside } from '../main/_actions/click-outside.action';
 
@@ -40,7 +40,16 @@
 
   //import { check_for_matching_value, parameter_parser } from './action-helper';
 
+  import {appSettings} from "../runtime/app-helper.store"
+
   import * as keyMap from '../../external/macro/map.json';
+  import * as keyMap_en from '../../external/macro/map-en.json';
+  import * as keyMap_hu from '../../external/macro/map-hu.json';
+
+  const layouts = [{name: "En", lookup: keyMap_en.default}, {name: "Hu", lookup: keyMap_hu.default}]
+
+  let layout = layouts[0]
+
 
   export let config;
   export let index;
@@ -50,7 +59,36 @@
   let loaded = false;
   let macroInputField;
 
+  onMount(()=>{
+    selectedLayout = $appSettings.persistant.keyboardLayout
+    change_layout()
+  })
+
+
   $: if(config.script && !loaded){
+    macrosToConfig({script: config.script});
+  }
+
+  function change_layout(){
+  
+    console.log("chg layout")
+
+    layout = layouts.find(e => {return e.name === selectedLayout})
+    
+    if (layout===undefined){
+
+      layout = layouts[0]
+      selectedLayout = layout.name
+
+    }
+    else{
+    }
+
+    if($appSettings.persistant.keyboardLayout !== selectedLayout){
+      $appSettings.persistant.keyboardLayout = selectedLayout
+    }
+
+
     macrosToConfig({script: config.script});
   }
 
@@ -71,7 +109,6 @@
           if(array[i] != 15){
             const val = '0x'+Number(array[i+2]).toString(16).padStart(2, '0').toLowerCase();
             let f_key = keyMap.default.find(k => k.value == val && array[i] == k.is_modifier);
-            console.log(val, f_key)
             _keys.push({...f_key, type: array[i+1] == 0 ? 'keyup' : array[i+1] == 1 ? 'keydown' : array[i+1] == 2 ? 'keydownup' : undefined})
           } else {
             _keys.push({value: array[i+2], info: "delay", js_value: -1, is_modifier: 15, type: 'delay'})
@@ -82,10 +119,9 @@
         loaded = true;
       }
     } catch (error) {
-      console.warn('gsk can\'t be turned to config', script);
+      console.warn('gsk can\'t be turned to config', script, error);
     }    
 
-    console.log(keyBuffer)
   }
 
   function sendData(parameters){
@@ -106,14 +142,13 @@
   let caretPos = -1;
 
   let selectedKey;
+  let selectedLayout;
   let addonKeyType = 'keydownup';
   let delayKey = 100; // ms
   let defaultDelay = 25; // ms
 
 
   function identifyKey(e){
-
-    console.log(e.keyCode, e.code)
 
     // delete on backspace
     if(e.keyCode == 8 && e.type == 'keydown'){
@@ -199,10 +234,17 @@
   }
 
   function addKey(){
+
+    console.log(selectedKey)
+
+    let added_key = keyMap.default.find(e=>{return e.info === selectedKey.info})
+
+    console.log(added_key)
+
     if(caretPos == -1){
-      keyBuffer.splice(keyBuffer.length, 0, {...selectedKey, type: addonKeyType});
+      keyBuffer.splice(keyBuffer.length, 0, {...added_key, type: addonKeyType});
     } else {
-      keyBuffer.splice(caretPos, 0, {...selectedKey, type: addonKeyType});
+      keyBuffer.splice(caretPos, 0, {...added_key, type: addonKeyType});
     }
     keys = colorize(keyBuffer);
     visibleCaretPos += 1;
@@ -264,14 +306,22 @@
 
     args.forEach((arg,i) => {
 
+      let translator = layout.lookup.find(e=>{return e.info==arg.info})
+
+      let displayname = arg.info
+      if (translator!== undefined){
+        displayname = translator.display
+      }
+
+
       if(arg.type == 'keydownup'){
-        coloredKeys.push(`<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${arg.info}</div>`)
+        coloredKeys.push(`<div class="text-green-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-green-500 rounded-md">${displayname}</div>`)
       }
       else if(arg.type == 'keydown'){
-        coloredKeys.push(`<div class="text-red-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-red-500 rounded-md">${arg.info} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
+        coloredKeys.push(`<div class="text-red-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-red-500 rounded-md">${displayname} <span style="transform:rotate(180deg)" class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
       else if(arg.type == 'keyup'){
-        coloredKeys.push(`<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${arg.info} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
+        coloredKeys.push(`<div class="text-yellow-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-yellow-500  rounded-md">${displayname} <span class="h-4 w-4 ml-1">${svg}</span></div>` + '  ')
       }
       else if(arg.type == 'delay'){
         coloredKeys.push(`<div class="text-purple-500 px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default border-purple-500 rounded-md">${arg.info + ': ' + arg.value}</div>` + '  ')
@@ -367,7 +417,21 @@
       caretPos = -1;
     }}
     class="flex w-full flex-col items-start p-2">
-        <div class="text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
+
+
+
+        <div class="flex flex-row w-full">
+          <div class="mr-auto text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
+          <div class="text-gray-500 text-sm py-1 pl-2 mr-2">Layout:</div>
+          <select
+            class="rounded bg-secondary text-white focus:outline-none border-select mr-2"
+            bind:value={selectedLayout}  on:change={change_layout}>
+            {#each layouts as layout }
+              <option value="{layout.name}" class="text-white bg-secondary py-1 ">{layout.name}</option>
+            {/each}
+          </select>
+        </div>
+
         <div class="flex w-full p-2">
           <div
             use:clickOutside={{useCapture:true}}
@@ -394,8 +458,8 @@
 
             <div class="flex flex-col">
               <select bind:value={selectedKey} class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select">
-                {#each keyMap.default as key}
-                  <option value={key} class="text-white bg-secondary py-1 ">{key.info}</option>
+                {#each layout.lookup as key}
+                  <option value={key} class="text-white bg-secondary py-1 ">{key.display}</option>
                 {/each}
               </select>
               <div class="flex mt-1">

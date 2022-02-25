@@ -84,6 +84,7 @@ export const appSettings = writable({
     pageActivatorCriteria_1 : "",
     pageActivatorCriteria_2 : "",
     pageActivatorCriteria_3 : "",
+    keyboardLayout : "",
     pageActivatorInterval: 1000
   }
 
@@ -102,6 +103,7 @@ let persistant = {
   pageActivatorCriteria_1 : "",
   pageActivatorCriteria_2 : "",
   pageActivatorCriteria_3 : "",
+  keyboardLayout: "",
   pageActivatorInterval: 1000
 }
 
