@@ -20,6 +20,7 @@
   let tooltip_delaydone = false;
 
   let tooltip_style = ""
+  let arrow_style = ""
 
   $: if (parent_element){
 
@@ -74,11 +75,13 @@
     if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
+      arrow_style = `width: 14px; height:14px; margin-left: ${self.width/2-7-xoffset}px; `
 
 
     }else{
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
+      arrow_style = `width: 14px; height:14px; margin-left: ${self.width/2-7-xoffset}px; `
 
     }
 
@@ -116,15 +119,33 @@
         on:introend={()=>{ tooltip_delaydone = true}}
         >
         {#if tooltip_delaydone}
-        
           <div      
-          bind:this={tooltip_element}
-          on:click|stopPropagation={()=>{}}
-          in:fade={{duration: 250}} 
-          style="z-index: 50; {tooltip_style}" 
-          class="text-base fixed border-primary flex flex-col rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
+            bind:this={tooltip_element}
+            on:click|stopPropagation={()=>{}}
+            in:fade={{duration: 250}} 
+            style="z-index: 50; {tooltip_style}" 
+            class="fixed">
 
-          {tooltip_text}
+            <div
+              style="background-color: rgba(100,0,0,0.5);"
+              class="flex-col"
+              >
+              <div 
+                class=""
+                style="background-color: rgba(0,0,100,0.7);  {arrow_style}">
+              </div>
+              <div 
+                class="text-base flex flex-col px-4 py-4 text-white "
+                style="background-color: rgba(0,0,0,0.7);">
+                {tooltip_text}
+              </div>
+              <div 
+                class=""
+                style="background-color: rgba(0,0,100,0.7);  {arrow_style}">
+              </div>
+              
+            </div>  
+            
           </div>
         {/if}
 
@@ -159,15 +180,24 @@
             on:introend={()=>{ tooltip_delaydone = true}}
             >
             {#if tooltip_delaydone}
-            
               <div      
-              bind:this={tooltip_element}
-              on:click|stopPropagation={()=>{}}
-              in:fade={{duration: 250}} 
-              style="z-index: 50; {tooltip_style}" 
-              class="text-base fixed border-primary flex flex-col rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
+                bind:this={tooltip_element}
+                on:click|stopPropagation={()=>{}}
+                in:fade={{duration: 250}} 
+                style="z-index: 50; {tooltip_style}" 
+                class="fixed">
 
-              {tooltip_text}
+                <div
+                  class="text-base border-primary flex flex-col bg-thirdery border-2 px-4 py-1 text-white"
+                  >
+                  123
+                  <div class="mt-4">
+                    hello
+                    {tooltip_text}
+                  </div>
+
+                </div>  
+                
               </div>
             {/if}
 
