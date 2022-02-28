@@ -7,7 +7,6 @@
   import { tooltip_content } from "./tooltip-content.json.js";
 
   export let key = '';
-  export let mode = 0;
 
   const TOOLTIP_MAX_HEIGHT = 200;
 
@@ -20,7 +19,26 @@
   let tooltip_delaydone = false;
 
   let tooltip_style = ""
+  let tooltip_isbelow = false
   let arrow_style = ""
+
+
+  let innerWidth;
+  let innerHeight;
+
+  let ready = false;
+
+  onMount(()=>{
+
+    ready = true
+
+  })
+
+  $: if (innerWidth || innerHeight){
+    if (ready){
+      calculate_position()
+    }
+  }
 
   $: if (parent_element){
 
@@ -54,10 +72,15 @@
 
   function calculate_position(){
 
+    if (parent_element === undefined){
+
+      return;
+
+    }
+
     let docu = {width: window.innerWidth, height: window.innerHeight}
     let parent = parent_element.getBoundingClientRect();
     let self = {width: 200, height: 0}
-
 
     let xoffset = 0
 
@@ -70,19 +93,17 @@
       xoffset = 5-(parent.left - self.width/2 + parent.width/2 )
     }
 
-
-
     if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
-      arrow_style = `width: 14px; height:14px; margin-left: ${self.width/2-7-xoffset}px; `
-
+      arrow_style = `width: 10px; height:10px; margin-left: ${self.width/2-5-xoffset}px; `
+      tooltip_isbelow = false;
 
     }else{
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
-      arrow_style = `width: 14px; height:14px; margin-left: ${self.width/2-7-xoffset}px; `
-
+      arrow_style = `width: 10px; height:10px; margin-left: ${self.width/2-5-xoffset}px; `
+      tooltip_isbelow = true;
     }
 
 
@@ -104,15 +125,18 @@
 
 </script>
 
+
+<svelte:window bind:innerWidth={innerWidth}  bind:innerHeight={innerHeight} />
+
 <!-- Button Hover -->
-{#if mode == 1 && tooltip_text !== undefined}
+{#if tooltip_text !== undefined}
   <div 
     bind:this={parent_element}
     on:mouseenter={()=>{tooltip_isvisible = true; tooltip_delaydone = false}} 
     on:mouseleave={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
     on:click={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
     class="w-full flex h-full absolute right-0 top-0">
- 
+
     {#if tooltip_isvisible}
       <div 
         in:fade={{duration: 0, delay: 750}} 
@@ -127,22 +151,25 @@
             class="fixed">
 
             <div
-              style="background-color: rgba(100,0,0,0.5);"
               class="flex-col"
               >
+              {#if tooltip_isbelow == false}
+                <div 
+                  class="arrow-up"
+                  style="background-color: rgba(0,0,100,0);  {arrow_style}">
+                </div>
+              {/if}
               <div 
-                class=""
-                style="background-color: rgba(0,0,100,0.7);  {arrow_style}">
-              </div>
-              <div 
-                class="text-base flex flex-col px-4 py-4 text-white "
-                style="background-color: rgba(0,0,0,0.7);">
+                class="tooltip-bg text-base flex flex-col px-4 py-4 text-white "
+                style="">
                 {tooltip_text}
               </div>
-              <div 
-                class=""
-                style="background-color: rgba(0,0,100,0.7);  {arrow_style}">
-              </div>
+              {#if tooltip_isbelow == true}
+                <div 
+                  class="arrow-down"
+                  style="background-color: rgba(0,0,100,0);  {arrow_style}">
+                </div>
+              {/if}
               
             </div>  
             
@@ -159,54 +186,32 @@
 
 {/if}
 
-<!-- Questionmark Hover -->
-{#if mode == 2 && tooltip_text !== undefined}
-    <div 
-      on:click|stopPropagation={()=>{tooltip_isvisible = !tooltip_isvisible}} 
-      class="w-6 h-6 relative cursor-pointer">
-      <div class="w-6 h-6 relative rounded-full bg-secondary text-center text-xs flex items-center justify-center hover:text-important p-1">
-        ?
-      </div>
-      <div 
-        bind:this={parent_element}
-        on:mouseenter={()=>{tooltip_isvisible = true; tooltip_delaydone = false}} 
-        on:mouseleave={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
-        on:click={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
-        class="w-full flex h-full absolute right-0 top-0">
-    
-        {#if tooltip_isvisible}
-          <div 
-            in:fade={{duration: 0, delay: 750}} 
-            on:introend={()=>{ tooltip_delaydone = true}}
-            >
-            {#if tooltip_delaydone}
-              <div      
-                bind:this={tooltip_element}
-                on:click|stopPropagation={()=>{}}
-                in:fade={{duration: 250}} 
-                style="z-index: 50; {tooltip_style}" 
-                class="fixed">
 
-                <div
-                  class="text-base border-primary flex flex-col bg-thirdery border-2 px-4 py-1 text-white"
-                  >
-                  123
-                  <div class="mt-4">
-                    hello
-                    {tooltip_text}
-                  </div>
+<style>
+:root {
+  --tooltip-bg-color: rgba(14, 23, 24, 0.92);
+}
 
-                </div>  
-                
-              </div>
-            {/if}
+.tooltip-bg{
 
+  background-color: var(--tooltip-bg-color);
 
-          </div>
+}
 
-        {/if} 
-      </div>
+.arrow-up {
+  width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid var(--tooltip-bg-color);
+}
 
-    </div>
-{/if}
+.arrow-down {
+  width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 10px solid var(--tooltip-bg-color);
+}
 
+</style>

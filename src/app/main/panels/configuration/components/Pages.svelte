@@ -6,7 +6,7 @@
 
   import { logger, unsaved_changes, runtime } from '../../../../runtime/runtime.store.js';
 
-  import TooltipSetter from '../../../user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipQuestion from '../../../user-interface/tooltip/TooltipQuestion.svelte';
 
   export let pages;
 
@@ -52,7 +52,7 @@
 
   <div class="text-gray-500 flex items-center py-1 text-sm">
     <div>Pages</div>
-    <TooltipSetter mode={2} key={"configuration_pages"}/>
+    <TooltipQuestion key={"configuration_pages"}/>
   </div>
 
   <div class="flex bg-secondary shadow overflow-x-auto">

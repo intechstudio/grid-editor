@@ -28,7 +28,7 @@
     <span slot="popup">Cutted!</span>
     <span slot="button">
       <span>Cut</span>
-      <TooltipSetter mode={1} key={"configuration_cut_one"}/>
+      <TooltipSetter key={"configuration_cut_one"}/>
     </span>
   </BtnAndPopUp>
 
@@ -36,7 +36,7 @@
     <span slot="popup">Copied!</span>
     <span slot="button">
       <span>Copy</span>
-      <TooltipSetter mode={1} key={"configuration_copy_one"}/>
+      <TooltipSetter key={"configuration_copy_one"}/>
     </span>
   </BtnAndPopUp>
 
@@ -44,7 +44,7 @@
     <span slot="popup">Pasted!</span>
     <span slot="button">
       <span>Paste</span>
-      <TooltipSetter mode={1} key={"configuration_paste_one"}/>
+      <TooltipSetter key={"configuration_paste_one"}/>
     </span>
   </BtnAndPopUp>
 
@@ -53,7 +53,7 @@
     <span slot="popup">Removed!</span>
     <span slot="button">
       <span>Remove</span>
-      <TooltipSetter mode={1} key={"configuration_remove_one"}/>
+      <TooltipSetter key={"configuration_remove_one"}/>
     </span>
   </BtnAndPopUp> 
 

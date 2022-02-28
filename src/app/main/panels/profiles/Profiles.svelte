@@ -24,6 +24,7 @@
   import { addOnDoubleClick } from '../../_actions/add-on-double-click';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipQuestion from '../../user-interface/tooltip/TooltipSetter.svelte';
 
   let selected = {
     name: '',
@@ -410,7 +411,7 @@
       disabled={!checkIfOk(newProfile)} 
       class="{!checkIfOk(newProfile) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'} transition w-full px-2 py-2 my-2 block rounded text-white bg-commit relative  border-none focus:outline-none">
         <div>Save</div>
-        <TooltipSetter mode={1} key={"profile_save"}/>
+        <TooltipSetter key={"profile_save"}/>
       </button>
 
     </div>
@@ -419,7 +420,7 @@
 
     <div class="pt-2 text-white flex items-center relative">
       <div class="">Profile Library</div>
-      <TooltipSetter mode={2} key={"profile_load_profile"}/>
+      <TooltipQuestion key={"profile_load_profile"}/>
       <button 
         on:click={loadFilesFromDirectory} 
         class="relative inline-block bg-secondary ml-auto p-1 text-white rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">

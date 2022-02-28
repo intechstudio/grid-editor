@@ -234,18 +234,18 @@
       <div class="flex">
         <button on:click={viewDirectory} class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
           <div>View in explorer</div> 
-          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+          <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
         <button on:click={openDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
           <div>Select Folder</div> 
-          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+          <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
       </div>
       
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default folder:</b> {DEFAULT_PATH}</div>
       <button on:click={resetDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
         <div>Reset to Default</div> 
-        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+        <TooltipSetter key={"profile_select_local_folder"}/>
       </button>
 
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default profile library:</b> {download_status}</div>
