@@ -55,7 +55,7 @@
     <TooltipSetter mode={2} key={"configuration_pages"}/>
   </div>
 
-  <div class="flex bg-secondary shadow overflow-x-auto">
+  <div class="flex bg-secondary shadow">
     {#each pages.options as page}
       <button 
         on:click={()=>{handleSelectPage(page)}}           
