@@ -1,537 +1,537 @@
 [
   {
     "value": "0x01",
-    "info": "ctrl",
-    "js_value": 17,
+    "info": "ControlLeft",
     "is_modifier": true
   },
   {
     "value": "0x02",
-    "info": "shift",
-    "js_value": 16,
+    "info": "ShiftLeft",
     "is_modifier": true
   },
   {
     "value": "0x04",
-    "info": "alt",
-    "js_value": 18,
+    "info": "AltLeft",
     "is_modifier": true
   },
   {
     "value": "0x08",
-    "info": "left window",
-    "js_value": 91,
+    "info": "MetaLeft",
     "is_modifier": true
   },
   {
-    "value": "0x80",
-    "info": "right window",
-    "js_value": 92,
+    "value": "0x05",
+    "info": "ControlRight",
     "is_modifier": true
-  },
-  {
-    "value": 30,
-    "info": 1,
-    "js_value": 49,
-    "is_modifier": false
-  },
-  {
-    "value": 31,
-    "info": 2,
-    "js_value": 50,
-    "is_modifier": false
-
-  },
-  {
-    "value": 32,
-    "info": 3,
-    "js_value": 51,
-    "is_modifier": false
-  },
-  {
-    "value": 33,
-    "info": 4,
-    "js_value": 52,
-    "is_modifier": false
-  },
-  {
-    "value": 34,
-    "info": 5,
-    "js_value": 53,
-    "is_modifier": false
-  },
-  {
-    "value": 35,
-    "info": 6,
-    "js_value": 54,
-    "is_modifier": false
-  },
-  {
-    "value": 36,
-    "info": 7,
-    "js_value": 55,
-    "is_modifier": false
-  },
-  {
-    "value": 37,
-    "info": 8,
-    "js_value": 56,
-    "is_modifier": false  
-  },
-  {
-    "value": 38,
-    "info": 9,
-    "js_value": 57,
-    "is_modifier": false
-  },
-  {
-    "value": 39,
-    "info": 0,
-    "js_value": 48,
-    "is_modifier": false
   },
   {
     "value": "0x04",
-    "info": "A",
-    "js_value": 65,
+    "info": "ShiftRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x07",
+    "info": "AltRight",
+    "is_modifier": true
+  },
+  {
+    "value": "0x08",
+    "info": "MetaRight",
+    "is_modifier": true
+  },
+  
+  {
+    "value": "0x04",
+    "info": "KeyA",
     "is_modifier": false
   },
   {
     "value": "0x05",
-    "info": "B",
-    "js_value": 66,
+    "info": "KeyB",
     "is_modifier": false
   },
   {
     "value": "0x06",
-    "info": "C",
-    "js_value": 67,
+    "info": "KeyC",
     "is_modifier": false
   },
   {
     "value": "0x07",
-    "info": "D",
-    "js_value": 68,
+    "info": "KeyD",
     "is_modifier": false
   },
   {
     "value": "0x08",
-    "info": "E",
-    "js_value": 69,
+    "info": "KeyE",
     "is_modifier": false
   },
   {
     "value": "0x09",
-    "info": "F",
-    "js_value": 70,
+    "info": "KeyF",
     "is_modifier": false
   },
   {
-    "value": "0x0A",
-    "info": "G",
-    "js_value": 71,
+    "value": "0x0a",
+    "info": "KeyG",
     "is_modifier": false
   },
   {
-    "value": "0x0B",
-    "info": "H",
-    "js_value": 72,
+    "value": "0x0b",
+    "info": "KeyH",
     "is_modifier": false
   },
   {
-    "value": "0x0C",
-    "info": "I",
-    "js_value": 73,
+    "value": "0x0c",
+    "info": "KeyI",
     "is_modifier": false
   },
   {
-    "value": "0x0D",
-    "info": "J",
-    "js_value": 74,
+    "value": "0x0d",
+    "info": "KeyJ",
     "is_modifier": false
   },
   {
-    "value": "0x0E",
-    "info": "K",
-    "js_value": 75,
+    "value": "0x0e",
+    "info": "KeyK",
     "is_modifier": false
   },
   {
-    "value": "0x0F",
-    "info": "L",
-    "js_value": 76,
+    "value": "0x0f",
+    "info": "KeyL",
     "is_modifier": false
   },
   {
     "value": "0x10",
-    "info": "M",
-    "js_value": 77,
+    "info": "KeyM",
     "is_modifier": false
   },
   {
     "value": "0x11",
-    "info": "N",
-    "js_value": 78,
+    "info": "KeyN",
     "is_modifier": false
   },
   {
     "value": "0x12",
-    "info": "O",
-    "js_value": 79,
+    "info": "KeyO",
     "is_modifier": false
   },
   {
     "value": "0x13",
-    "info": "P",
-    "js_value": 80,
+    "info": "KeyP",
     "is_modifier": false
   },
   {
     "value": "0x14",
-    "info": "Q",
-    "js_value": 81,
+    "info": "KeyQ",
     "is_modifier": false
   },
   {
     "value": "0x15",
-    "info": "R",
-    "js_value": 82,
+    "info": "KeyR",
     "is_modifier": false
   },
   {
     "value": "0x16",
-    "info": "S",
-    "js_value": 83,
+    "info": "KeyS",
     "is_modifier": false
   },
   {
     "value": "0x17",
-    "info": "T",
-    "js_value": 84,
+    "info": "KeyT",
     "is_modifier": false
   },
   {
     "value": "0x18",
-    "info": "U",
-    "js_value": 85,
+    "info": "KeyU",
     "is_modifier": false
   },
   {
     "value": "0x19",
-    "info": "V",
-    "js_value": 86,
+    "info": "KeyV",
     "is_modifier": false
   },
   {
-    "value": "0x1A",
-    "info": "W",
-    "js_value": 87,
+    "value": "0x1a",
+    "info": "KeyW",
     "is_modifier": false
   },
   {
-    "value": "0x1B",
-    "info": "X",
-    "js_value": 88,
+    "value": "0x1b",
+    "info": "KeyX",
     "is_modifier": false
   },
   {
-    "value": "0x1C",
-    "info": "Y",
-    "js_value": 89,
+    "value": "0x1c",
+    "info": "KeyY",
     "is_modifier": false
   },
   {
-    "value": "0x1D",
-    "info": "Z",
-    "js_value": 90,
+    "value": "0x1d",
+    "info": "KeyZ",
+    "is_modifier": false
+  },
+
+  {
+    "value": "0x1e",
+    "info": "Digit1",
     "is_modifier": false
   },
   {
-    "value": 40,
-    "info": "enter",
-    "js_value": 13,
+    "value": "0x1f",
+    "info": "Digit2",
+    "is_modifier": false
+
+  },
+  {
+    "value": "0x20",
+    "info": "Digit3",
     "is_modifier": false
   },
   {
-    "value": 41,
-    "info": "escape",
-    "js_value": 27,
+    "value": "0x21",
+    "info": "Digit4",
     "is_modifier": false
   },
   {
-    "value": 43,
-    "info": "tab",
-    "js_value": 9,
+    "value": "0x22",
+    "info": "Digit5",
     "is_modifier": false
   },
   {
-    "value": 44,
-    "info": "space",
-    "js_value": 32,
+    "value": "0x23",
+    "info": "Digit6",
     "is_modifier": false
   },
   {
-    "value": 45,
-    "info": "dash",
-    "js_value": 189,
+    "value": "0x24",
+    "info": "Digit7",
     "is_modifier": false
   },
   {
-    "value": 47,
-    "info": "{",
-    "js_value": 219,
+    "value": "0x25",
+    "info": "Digit8",
+    "is_modifier": false  
+  },
+  {
+    "value": "0x26",
+    "info": "Digit9",
     "is_modifier": false
   },
   {
-    "value": 48,
-    "info": "}",
-    "js_value": 221,
+    "value": "0x27",
+    "info": "Digit0",
+    "js_value": 192,
     "is_modifier": false
   },
   {
-    "value": 54,
-    "info": ",",
-    "js_value": 188,
+    "value": "0x28",
+    "info": "Enter",
     "is_modifier": false
   },
   {
-    "value": 55,
-    "info": ".",
-    "js_value": 190,
+    "value": "0x29",
+    "info": "Escape",
     "is_modifier": false
   },
   {
-    "value": 56,
-    "info": "/",
-    "js_value": 191,
+    "value": "0x2a",
+    "info": "Backspace",
     "is_modifier": false
   },
   {
-    "value": 57,
-    "info": "caps lock",
-    "js_value": 20,
+    "value": "0x2b",
+    "info": "Tab",
     "is_modifier": false
   },
   {
-    "value": 58,
+    "value": "0x2c",
+    "info": "Space",
+    "is_modifier": false
+  },
+  {
+    "value": "0x2d",
+    "info": "Minus",
+    "is_modifier": false
+  },
+  {
+    "value": "0x2e",
+    "info": "Equal",
+    "is_modifier": false
+  },
+  {
+    "value": "0x2f",
+    "info": "BracketLeft",
+    "is_modifier": false
+  },
+  {
+    "value": "0x30",
+    "info": "BracketRight",
+    "is_modifier": false
+  },
+  {
+    "value": "0x31",
+    "info": "Backslash",
+    "is_modifier": false
+  },
+  {
+    "value": "0x32",
+    "info": "?????? Keyboard Int' #",
+    "is_modifier": false
+  },
+  {
+    "value": "0x33",
+    "info": "Semicolon",
+    "is_modifier": false
+  },
+  {
+    "value": "0x34",
+    "info": "Quote",
+    "is_modifier": false
+  },
+  {
+    "value": "0x35",
+    "info": "Backquote",
+    "is_modifier": false
+  },
+  {
+    "value": "0x36",
+    "info": "Comma",
+    "is_modifier": false
+  },
+  {
+    "value": "0x37",
+    "info": "Period",
+    "is_modifier": false
+  },
+  {
+    "value": "0x38",
+    "info": "Slash",
+    "is_modifier": false
+  },
+  {
+    "value": "0x39",
+    "info": "CapsLock",
+    "is_modifier": false
+  },
+  {
+    "value": "0x3a",
     "info": "F1",
-    "js_value": 112,
     "is_modifier": false
   },
   {
-    "value": 59,
+    "value": "0x3b",
     "info": "F2",
-    "js_value": 113,
     "is_modifier": false
   },
   {
-    "value": 60,
+    "value": "0x3c",
     "info": "F3",
-    "js_value": 114,
     "is_modifier": false
   },
   {
-    "value": 61,
+    "value": "0x3d",
     "info": "F4",
-    "js_value": 115,
     "is_modifier": false
   },
   {
-    "value": 62,
+    "value": "0x3e",
     "info": "F5",
-    "js_value": 116,
     "is_modifier": false
   },
   {
-    "value": 63,
+    "value": "0x3f",
     "info": "F6",
-    "js_value": 117,
     "is_modifier": false
   },
   {
-    "value": 64,
+    "value": "0x40",
     "info": "F7",
-    "js_value": 118,
     "is_modifier": false
   },
   {
-    "value": 65,
+    "value": "0x41",
     "info": "F8",
-    "js_value": 119,
     "is_modifier": false
   },
   {
-    "value": 66,
+    "value": "0x42",
     "info": "F9",
-    "js_value": 120,
     "is_modifier": false
   },
   {
-    "value": 67,
+    "value": "0x43",
     "info": "F10",
-    "js_value": 121,
     "is_modifier": false
   },
   {
-    "value": 68,
+    "value": "0x44",
     "info": "F11",
-    "js_value": 122,
     "is_modifier": false
   },
   {
-    "value": 69,
+    "value": "0x45",
     "info": "F12",
-    "js_value": 123,
     "is_modifier": false
   },
   {
-    "value": 71,
-    "info": "scroll lock",
-    "js_value": 145,
+    "value": "0x46",
+    "info": "PrintScreen",
     "is_modifier": false
   },
   {
-    "value": 73,
-    "info": "insert",
-    "js_value": 45,
+    "value": "0x47",
+    "info": "ScrollLock",
     "is_modifier": false
   },
   {
-    "value": 74,
-    "info": "home",
-    "js_value": 36,
+    "value": "0x48",
+    "info": "Pause",
     "is_modifier": false
   },
   {
-    "value": 75,
-    "info": "page up",
-    "js_value": 33,
+    "value": "0x49",
+    "info": "Insert",
     "is_modifier": false
   },
   {
-    "value": 76,
-    "info": "delete",
-    "js_value": 46,
+    "value": "0x4a",
+    "info": "Home",
     "is_modifier": false
   },
   {
-    "value": 77,
-    "info": "end",
-    "js_value": 35,
+    "value": "0x4b",
+    "info": "PageUp",
     "is_modifier": false
   },
   {
-    "value": 78,
-    "info": "page down",
-    "js_value": 34,
+    "value": "0x4c",
+    "info": "Delete",
     "is_modifier": false
   },
   {
-    "value": 79,
-    "info": "right arrow",
-    "js_value": 39,
+    "value": "0x4d",
+    "info": "End",
     "is_modifier": false
   },
   {
-    "value": 80,
-    "info": "left arrow",
-    "js_value": 37,
+    "value": "0x4e",
+    "info": "PageDown",
     "is_modifier": false
   },
   {
-    "value": 81,
-    "info": "down arrow",
-    "js_value": 40,
+    "value": "0x4f",
+    "info": "ArrowRight",
     "is_modifier": false
   },
   {
-    "value": 82,
-    "info": "up arrow",
-    "js_value": 38,
+    "value": "0x50",
+    "info": "ArrowLeft",
     "is_modifier": false
   },
   {
-    "value": 84,
-    "info": "divide",
-    "js_value": 111,
+    "value": "0x51",
+    "info": "ArrowDown",
     "is_modifier": false
   },
   {
-    "value": 85,
-    "info": "multiply",
-    "js_value": 106,
+    "value": "0x52",
+    "info": "ArrowUp",
     "is_modifier": false
   },
   {
-    "value": 86,
-    "info": "subtract",
-    "js_value": 109,
+    "value": "0x53",
+    "info": "NumLock",
     "is_modifier": false
   },
   {
-    "value": 87,
-    "info": "add",
-    "js_value": 107,
+    "value": "0x54",
+    "info": "NumpadDivide",
     "is_modifier": false
   },
   {
-    "value": 89,
-    "info": "numpad_1",
-    "js_value": 97,
+    "value": "0x55",
+    "info": "NumpadMultiply",
     "is_modifier": false
   },
   {
-    "value": 90,
-    "info": "numpad_2",
-    "js_value": 98,
+    "value": "0x56",
+    "info": "NumpadSubtract",
     "is_modifier": false
   },
   {
-    "value": 91,
-    "info": "numpad_3",
-    "js_value": 99,
+    "value": "0x57",
+    "info": "NumpadAdd",
     "is_modifier": false
   },
   {
-    "value": 92,
-    "info": "numpad_4",
-    "js_value": 100,
+    "value": "0x58",
+    "info": "NumpadEnter",
     "is_modifier": false
   },
   {
-    "value": 93,
-    "info": "numpad_5",
-    "js_value": 101,
+    "value": "0x59",
+    "info": "Numpad1",
     "is_modifier": false
   },
   {
-    "value": 94,
-    "info": "numpad_6",
-    "js_value": 102,
+    "value": "0x5a",
+    "info": "Numpad2",
     "is_modifier": false
   },
   {
-    "value": 95,
-    "info": "numpad_7",
-    "js_value": 103,
+    "value": "0x5b",
+    "info": "Numpad3",
     "is_modifier": false
   },
   {
-    "value": 96,
-    "info": "numpad_8",
-    "js_value": 104,
+    "value": "0x5c",
+    "info": "Numpad4",
     "is_modifier": false
   },
   {
-    "value": 97,
-    "info": "numpad_9",
-    "js_value": 105,
+    "value": "0x5d",
+    "info": "Numpad5",
     "is_modifier": false
   },
   {
-    "value": 98,
-    "info": "numpad_0",
-    "js_value": 96,
+    "value": "0x5e",
+    "info": "Numpad6",
+    "is_modifier": false
+  },
+  {
+    "value": "0x5f",
+    "info": "Numpad7",
+    "is_modifier": false
+  },
+  {
+    "value": "0x60",
+    "info": "Numpad8",
+    "is_modifier": false
+  },
+  {
+    "value": "0x61",
+    "info": "Numpad9",
+    "is_modifier": false
+  },
+  {
+    "value": "0x62",
+    "info": "Numpad0",
+    "is_modifier": false
+  },
+  {
+    "value": "0x63",
+    "info": "NumpadDecimal",
+    "is_modifier": false
+  },
+  {
+    "value": "0x64",
+    "info": "IntlBackslash",
+    "is_modifier": false
+  },
+  {
+    "value": "0x65",
+    "info": "ContextMenu",
     "is_modifier": false
   }
+
 ]

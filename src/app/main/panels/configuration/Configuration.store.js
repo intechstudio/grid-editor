@@ -1,12 +1,19 @@
 import { writable, get } from 'svelte/store';
 
-import {runtime, luadebug_store, appMultiSelect, appActionClipboard, user_input} from '../../../runtime/runtime.store';
+import {runtime, logger, luadebug_store, appMultiSelect, appActionClipboard, user_input} from '../../../runtime/runtime.store';
 
+import * as luamin from "../../user-interface/code-editor/luamin.js";
 
 import { analytics } from '../../../runtime/analytics_influx';
 
 import _utils from '../../../runtime/_utils.js';
 
+
+const luaminOptions = {
+  RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+  RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+  SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+}
 
 function get_configs () {
   let configs = '';
@@ -133,6 +140,79 @@ export function configManagement() {
         analytics.track_event("application", "configuration", "multiselect", "paste")
       }
     }
+
+    this.converttocodeblock = function() {
+    
+      const selection = get(appMultiSelect).selection;
+      const configs = get_configs();
+
+
+      // EDIT
+
+      let edited = [];
+
+      let i=0;
+      let j=0;
+      for (; i < configs.length;) {
+        if(selection[i] !== true){
+          edited.push(configs[i]);
+          j++
+        } else {
+          // edit these
+          if (i>0 && selection[i-1] == true){
+            edited[j-1] += configs[i].split("]]").splice(1).join();
+          }else{
+            edited.push("--[[@cb]]"+configs[i].split("]]").splice(1).join());
+            j++
+          }
+        }
+
+        i++;
+      }
+
+      // check if resulting codesections are valid
+
+      let error_count = 0;
+
+      for (let v=0; v < edited.length;v++) {
+        if(selection[v] == true){
+
+          try {
+            const minified_code = luamin.Minify(edited[v], luaminOptions)
+          } catch (error) {
+            error_count++
+          }
+
+        }
+      }
+
+      if (error_count){
+        console.log("Merge Rejected")
+        logger.set({type: 'alert', mode: 0, classname: 'configuration', message: `Code Merge Rejected`})
+        return;  
+      }
+
+
+
+
+
+      const li = get(user_input);
+
+      const dx = li.brc.dx;
+      const dy = li.brc.dy;
+      const page =  li.event.pagenumber;
+      const element = li.event.elementnumber;
+      const event = li.event.eventtype;
+      const actionstring = '<?lua ' + edited.join('') + ' ?>'
+  
+      runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+      // trigger change detection
+      user_input.update(n => n);
+
+    };
+
 
     this.cut = function() {
       analytics.track_event("application", "configuration", "multiselect", "cut")
