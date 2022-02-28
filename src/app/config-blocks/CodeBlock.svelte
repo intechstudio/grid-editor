@@ -113,8 +113,10 @@
 
       <div class="text-gray-500 text-sm font-bold">Code preview:</div>
       
-      <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
-   
+      <div class="grid w-full">
+        <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
+      </div>
+
       <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
         
     </div>

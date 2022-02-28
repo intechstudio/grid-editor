@@ -11,8 +11,8 @@
 </script>
 
 
-<panel-container class="{classes} h-full">
-
+<panel-container id="right-panel" class="{classes} h-full relative overflow-hidden">
+ 
   {#if $appSettings.rightPanel == 'Configuration'}
 
     <Configuration/>
