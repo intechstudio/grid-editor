@@ -25,7 +25,7 @@
   import * as luamin from "../main/user-interface/code-editor/luamin.js";
   import stringManipulation from '../main/user-interface/_string-operations';
 
-  import {createEventDispatcher, onMount} from 'svelte';
+  import {createEventDispatcher, onMount, onDestroy} from 'svelte';
 
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte"
@@ -49,11 +49,25 @@
 
 
 
+
   const creation_timestamp = Date.now();
+
+  onDestroy(()=>{
+
+    codePreview.removeEventListener("wheel", (evt) => {
+        evt.preventDefault();
+        codePreview.scrollLeft += evt.deltaY;
+    });
+
+  });
 
   onMount(()=>{
 
-
+    codePreview.addEventListener("wheel", (evt) => {
+        evt.preventDefault();
+        codePreview.scrollLeft += evt.deltaY;
+    });
+    
     committedCode = config.script
 
 
@@ -113,8 +127,8 @@
 
       <div class="text-gray-500 text-sm font-bold">Code preview:</div>
       
-      <div class="grid w-full">
-        <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
+      <div class="grid w-full" >
+        <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-x-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
       </div>
 
       <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>

@@ -69,6 +69,9 @@
   let element;
   let originalLeftPos;
   onMount(()=>{
+
+    /*
+
     element = document.getElementById('right-panel');
     //create box in bottom-left
     var resizer = document.createElement('div');
@@ -84,6 +87,9 @@
     
     //box function onmousemove
     resizer.addEventListener('mousedown', startDrag, false);
+
+    */
+   
   })
 
 </script>

@@ -78,7 +78,6 @@
 
   const active_config = derived([user_input], ([ui]) => {
 
-
     // whenever the UI changes, reset multiselect
     appMultiSelect.reset();
 
