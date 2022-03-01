@@ -41,6 +41,56 @@
   modalComponents["export"] = Export;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
+  
+  let startX, startY, startWidth, startHeight, stopWidth, stopX;
+
+
+  //resize the element
+  function Resize(e) {
+    element.style.width = (startWidth - e.clientX + startX) + 'px';
+  }
+  //on mouseup remove windows functions mousemove & mouseup
+  function stopResize(e) {
+    startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
+    startX = e.clientX; // lehetne getboundingclientrect is
+    document.removeEventListener('mousemove', Resize, false);
+    document.removeEventListener('mouseup', stopResize, false);
+  }
+
+
+  //Window funtion mousemove & mouseup
+  function startDrag(e) {
+    startX = element.getBoundingClientRect().x; // horixontal cordinate
+    startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
+    document.addEventListener('mousemove', Resize, false);
+    document.addEventListener('mouseup', stopResize, false);
+ }
+
+  let element;
+  let originalLeftPos;
+  onMount(()=>{
+
+    /*
+
+    element = document.getElementById('right-panel');
+    //create box in bottom-left
+    var resizer = document.createElement('div');
+    resizer.style.width = '10px';
+    resizer.style.height = '10px';
+    resizer.style.background = 'red';
+    resizer.style.position = 'absolute';
+    resizer.style.left = 0;
+    resizer.style.top = 0;
+    resizer.style.cursor = 'se-resize';
+    //Append Child to Element
+    element.appendChild(resizer);
+    
+    //box function onmousemove
+    resizer.addEventListener('mousedown', startDrag, false);
+
+    */
+   
+  })
 
 </script>
 
@@ -72,15 +122,15 @@
 
     <ErrorConsole/>
 
-    <div class="flex w-full h-full overflow-hidden">
+    <div class="flex w-full h-full overflow-hidden ">
 
-      <LeftPanelContainer classes={"w-4/12"}/>
+      <LeftPanelContainer classes={"w-3/12 "}/>
       
       <!-- This is the (mostly) Layout part of the code. -->
-      <GridLayout classes={"w-6/12"}/>
+      <GridLayout classes={"w-5/12"}/>
 
       <!-- The right side panel container -->
-      <RightPanelContainer classes={"w-6/12"}/>
+      <RightPanelContainer classes={"w-5/12"}/>
 
     </div>
   </div>

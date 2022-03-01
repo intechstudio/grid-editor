@@ -11,8 +11,8 @@
 </script>
 
 
-<panel-container class="{classes} h-full">
-
+<panel-container id="right-panel" class="{classes} h-full">
+ 
   {#if $appSettings.rightPanel == 'Configuration'}
 
     <Configuration/>

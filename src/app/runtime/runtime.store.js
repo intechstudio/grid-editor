@@ -99,7 +99,7 @@ const setIntervalAsyncActiveWindow = (fn) => {
 setIntervalAsyncActiveWindow(detectActiveWindow);
 
 // The controller which is added to runtime first, load a default config!
-let first_connection = true;
+
 
 let selection_changed_timestamp = 0;
 
@@ -430,6 +430,8 @@ function create_runtime () {
       return;
     }
 
+    let firstConnection = false;
+
     _runtime.update((_runtime) => {
       let online = false;
       _runtime.forEach(device => {
@@ -478,18 +480,11 @@ function create_runtime () {
         console.log("Mismatch: ", moduleMismatch, "Firmware Version: ", controller.fwVersion)
 
         _runtime.push(controller);
-        // this is not working because it fetches all and blocks ui
-        instructions.fetchPageCountFromGrid({brc: controller});
-        if(first_connection){
-          user_input.update((ui)=>{
-            ui.id = controller.id;
-            ui.dx = controller.dx;
-            ui.dy = controller.dy;
-            ui.event.elementnumber = 0;
-            ui.event.eventtype = 0;
-            return ui;
-          });
-          first_connection = false;
+
+        if(_runtime.length === 1){
+
+          firstConnection = true;
+
         }
 
         analytics.track_event("application", "runtime", "module count", _runtime.lengt)
@@ -499,6 +494,23 @@ function create_runtime () {
 
       return _runtime;
     });
+
+    if (firstConnection){
+
+      setTimeout(()=>{
+        user_input.update((ui)=>{
+          ui.id = controller.id;
+          ui.dx = controller.dx;
+          ui.dy = controller.dy;
+          ui.event.elementnumber = 0;
+          ui.event.eventtype = 0;
+          return ui;
+        });
+      },500)
+
+    }
+
+
   }
 
   function erase_all(){

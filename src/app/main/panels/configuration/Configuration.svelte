@@ -13,6 +13,7 @@
   import Pages from './components/Pages.svelte';
   
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
   import { runtime, appMultiSelect, luadebug_store, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
@@ -76,7 +77,6 @@
 
 
   const active_config = derived([user_input], ([ui]) => {
-
 
     // whenever the UI changes, reset multiselect
     appMultiSelect.reset();
@@ -306,7 +306,7 @@
       <span>
         UI Events
       </span>
-      <TooltipSetter mode={1} key={"configuration_ui_events"}/>
+      <TooltipSetter key={"configuration_ui_events"}/>
     </tab>
     <tab 
       on:click={()=>{changeSelectedConfig('systemEvents')}} 
@@ -314,7 +314,7 @@
       <span>
         System Events
       </span>
-      <TooltipSetter mode={1} key={"configuration_system_events"}/>
+      <TooltipSetter key={"configuration_system_events"}/>
     </tab>
   </tabs>
 

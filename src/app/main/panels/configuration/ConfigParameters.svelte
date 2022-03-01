@@ -137,13 +137,13 @@
           class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1" 
           on:click={()=>{copyAllEventConfigsFromSelf()}}>
             <div>Copy All</div>
-            <TooltipSetter mode={1} key={"configuration_copy_all"}/>
+            <TooltipSetter key={"configuration_copy_all"}/>
         </div>
         <div 
           class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
           on:click={()=>{overwriteAllEventConfigs()}}>
             <div>Overwrite</div>
-            <TooltipSetter mode={1} key={"configuration_overwrite"}/>
+            <TooltipSetter key={"configuration_overwrite"}/>
         </div>
       </div>
     </div>
@@ -155,7 +155,7 @@
           class:dummy={event.desc == undefined}
           class="{(selectedEvent === event) && (event.desc !== undefined) ? 'shadow-md bg-pick text-white': 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none">
           {@html event.desc ? event.desc : `<span class="invisible">null</span>`}
-          <TooltipSetter mode={1} key={`event_${event.desc}`}/>
+          <TooltipSetter key={`event_${event.desc}`}/>
         </button>
       {/each}
     </div>

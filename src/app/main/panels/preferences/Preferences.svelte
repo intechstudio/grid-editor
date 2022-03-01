@@ -187,6 +187,12 @@
   }
 
 
+  function setModuleRotation(rot){
+    $appSettings.persistant.moduleRotation = rot
+
+    analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
+  }
+
 
   onMount(async () => {
 
@@ -199,9 +205,22 @@
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
       <div class="pb-2">General Settings</div>
       <div class="flex my-1 flex-col relative text-white">
-        <div>Module Rotation</div>
-        <input class="bg-primary w-1/4" type="number" bind:value={$appSettings.persistant.moduleRotation} min="-180" max="180" step="90"/>
+        <div class="mb-1">Module Rotation</div>
+        <div class="flex flex-row"> 
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(0)}}>0°</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(90)}}>90°</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(180)}}>180°</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(270)}}>270°</button>
+        </div>
       </div>
+
+      <div class="flex w-40 flex-col my-1 relative text-white"> 
+        <div class="mb-1">Controller Scaling</div>
+        <input type="range" min="1.7" max="2.6" step="0.1" bind:value={$appSettings.size}/>
+      </div>
+
+
+
       <div class="flex my-1 relative text-white items-center"> 
 
 
@@ -219,10 +238,7 @@
         </div>
       </div>
 
-      <div class="flex w-40 flex-col my-1 relative text-white"> 
-        <div class="mb-1">Controller Scaling</div>
-        <input type="range" min="1.7" max="2.6" step="0.1" bind:value={$appSettings.size}/>
-      </div>
+
       
     </div>
 
@@ -234,18 +250,18 @@
       <div class="flex">
         <button on:click={viewDirectory} class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
           <div>View in explorer</div> 
-          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+          <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
         <button on:click={openDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
           <div>Select Folder</div> 
-          <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+          <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
       </div>
       
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default folder:</b> {DEFAULT_PATH}</div>
       <button on:click={resetDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
         <div>Reset to Default</div> 
-        <TooltipSetter mode={1} key={"profile_select_local_folder"}/>
+        <TooltipSetter key={"profile_select_local_folder"}/>
       </button>
 
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default profile library:</b> {download_status}</div>
