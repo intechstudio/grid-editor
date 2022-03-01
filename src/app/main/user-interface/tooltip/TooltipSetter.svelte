@@ -6,6 +6,8 @@
   import { current_tooltip_store } from "../../../runtime/app-helper.store";
   import { tooltip_content } from "./tooltip-content.json.js";
 
+  import {analytics} from "../../../runtime/analytics_influx"
+
   export let key = '';
 
   const TOOLTIP_MAX_HEIGHT = 200;
@@ -106,9 +108,6 @@
       tooltip_isbelow = true;
     }
 
-
-
-
     // bottom: 201
     // height: 30
     // left: 597.734375
@@ -118,8 +117,11 @@
     // x: 597.734375
     // y: 171
 
+  }
 
+  $: if (tooltip_isvisible && tooltip_delaydone){
 
+    analytics.track_event("application", "tooltip", "show tooltip", key)
   }
 
 
@@ -189,7 +191,7 @@
 
 <style>
 :root {
-  --tooltip-bg-color: rgba(14, 23, 24, 0.92);
+  --tooltip-bg-color: rgba(14, 20, 24, 0.92);
 }
 
 .tooltip-bg{
