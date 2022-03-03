@@ -8,6 +8,8 @@
 
   import {analytics} from "../../../runtime/analytics_influx"
 
+  import {appSettings, windowSize} from "../../../runtime/app-helper.store"
+
   export let key = '';
 
   const TOOLTIP_MAX_HEIGHT = 200;
@@ -35,22 +37,6 @@
     ready = true
 
   })
-
-  $: if (innerWidth || innerHeight){
-    if (ready){
-      calculate_position()
-    }
-  }
-
-  $: if (parent_element){
-
-    try {
-      
-      calculate_position()
-    } catch (error) {
-      console.log("tried", error)
-    }
-  }
 
   function appear(node, { duration }) {
 		return {
@@ -98,13 +84,13 @@
     if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
-      arrow_style = `width: 10px; height:10px; margin-left: ${self.width/2-5-xoffset}px; `
+      arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
       tooltip_isbelow = false;
 
     }else{
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
-      arrow_style = `width: 10px; height:10px; margin-left: ${self.width/2-5-xoffset}px; `
+      arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
       tooltip_isbelow = true;
     }
 
@@ -121,6 +107,7 @@
 
   $: if (tooltip_isvisible && tooltip_delaydone){
 
+    calculate_position()
     analytics.track_event("application", "tooltip", "show tooltip", key)
   }
 
@@ -137,7 +124,7 @@
     on:mouseenter={()=>{tooltip_isvisible = true; tooltip_delaydone = false}} 
     on:mouseleave={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
     on:click={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
-    class="w-full flex h-full absolute right-0 top-0">
+    class="w-full flex h-full absolute right-0 top-0 " >
 
     {#if tooltip_isvisible}
       <div 
@@ -162,7 +149,7 @@
                 </div>
               {/if}
               <div 
-                class="tooltip-bg text-base flex flex-col px-4 py-4 text-white "
+                class="tooltip-bg text-base flex flex-col px-4 py-4 text-white text-left"
                 style="">
                 {tooltip_text}
               </div>

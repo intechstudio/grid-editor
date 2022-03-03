@@ -24,7 +24,7 @@
   import { addOnDoubleClick } from '../../_actions/add-on-double-click';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
-  import TooltipQuestion from '../../user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
   let selected = {
     name: '',

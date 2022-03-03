@@ -73,6 +73,7 @@
     "serialport": "^10.3.0",
     "simple-discord-webhooks": "^1.1.1",
     "sirv-cli": "^0.4.6",
+    "svelte-watch-resize": "^1.0.3",
     "universal-analytics": "^0.4.23",
     "uuid": "^8.3.2",
     "ws": "^7.4.6"
