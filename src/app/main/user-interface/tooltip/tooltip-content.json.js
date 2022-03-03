@@ -1,4 +1,7 @@
 export const tooltip_content = {
+    
+    "preferences_track_physical": "This switches on-off tracking changes of the user interaction with the Grid module. The Editor user interface will only react to mouse clicks.",
+
     "profile_select_local_folder": "Choose a directory on your computer for the purpose of storing your profile data locally.",
     "profile_save": "Save the configuration of the currently active Page to your Local Folder.",
     "profile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",

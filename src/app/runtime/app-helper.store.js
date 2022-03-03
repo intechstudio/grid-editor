@@ -48,6 +48,15 @@ export const statusReport = writable({
 
 })
 
+
+export const windowSize = writable({
+  rightSidebarWidth: 0,
+  leftSidebarWidth: 0,
+  windowWidth: 0,
+  windowHeight: 0,
+
+});
+
 export const appSettings = writable({
   size: 2.1,
   version: {
@@ -70,6 +79,7 @@ export const appSettings = writable({
   os: checkOS(),
   intervalPause: false,
   firmwareNotificationState: 0,
+  sizeChange: 0,
   activeWindowResult: {
     title: undefined,
     owner: {neme: undefined}

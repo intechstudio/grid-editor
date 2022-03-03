@@ -332,8 +332,8 @@
 
         <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
 
-          <div class="pt-1 flex items-center  justify-between">
-            <div class="text-gray-500 text-sm">Actions</div>
+          <div class="text-gray-500 text-sm">Actions</div>
+          <div class="pt-1 flex items-center  justify-end">
             <MultiSelect/>
           </div>
         

@@ -12,6 +12,7 @@
   import loadFilesFromDirectory from '../../panels/profiles/Profiles.svelte';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
+  import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
   import { appSettings } from '../../../runtime/app-helper.store';
   import { analytics } from '../../../runtime/analytics_influx';
@@ -226,16 +227,7 @@
 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.changeOnContact}>
         <div class="mx-1">Track Physical Grid interaction</div>
-        <div class="group">
-          <div class="font-roboto-mono text-green-300 font-bold text-sm rounded-full p-2 mx-1 flex items-center justify-center w-6 h-6 bg-black">
-            <div>i</div>
-          </div>
-          <div class="group-hover:visible invisible absolute top-1 mt-4 ml-4 right-0 bg-thirdery rounded-md px-4 py-2 w-64 z-10 shadow border border-gray-700">
-            <p> 
-              This switches on-off tracking changes of the user interaction with the Grid module. The Editor user interface will only react to mouse clicks.
-            </p> 
-          </div>
-        </div>
+        <TooltipQuestion key={"preferences_track_physical"}/>
       </div>
 
 
