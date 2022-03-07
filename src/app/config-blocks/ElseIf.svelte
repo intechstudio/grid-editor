@@ -5,7 +5,7 @@
     name: 'ElseIf',
     rendering: 'modifier',
     category: 'condition',
-    desc: 'ElseIf',
+    desc: 'Else If',
     defaultLua: 'else if  then',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -59,22 +59,17 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<else-if-block class="w-full flex flex-col text-white ">
 
-  <div class="pl-2 flex items-center bg-purple-400">
-    <div class="font-bold py-1 min-w-max">ELSE IF</div>
-    <div class="pl-2 pr-1 py-0.5 flex-grow">
+<elseif-block class="w-full h-fit flex flex-col py-1 text-white" style="min-height: 2.5rem; background: {information.color};">
 
-      <div class="bg-secondary p-1 m-1 rounded" >
-        <LineEditor
-          on:output={(e)=>{sendData(e.detail.script)}}
-          {access_tree}
-          {sidebarWidth}
-          value={scriptSegment}
-        />
-      </div>
-
-    </div>
+  <div class="bg-secondary p-1 my-auto mr-1 rounded" >
+    <LineEditor
+      on:output={(e)=>{sendData(e.detail.script)}}
+      {access_tree}
+      {sidebarWidth}
+      value={scriptSegment}
+    />
   </div>
 
-</else-if-block>
+
+</elseif-block>

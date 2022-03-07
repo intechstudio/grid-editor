@@ -225,7 +225,14 @@
   .debugtexty:nth-child(even){
     @apply bg-select;
   }
-  .monaco-editor .suggest-widget { width: 300px !important; } 
+  .monaco-editor .suggest-widget { 
+    width: 250px !important; 
+    overflow:hidden !important;
+  } 
+  .line-editor .monaco-editor .suggest-widget { 
+    position: absolute !important; 
+    left: 0 !important; 
+  } 
 
 
 </style>
