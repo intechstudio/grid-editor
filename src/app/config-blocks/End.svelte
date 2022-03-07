@@ -32,8 +32,10 @@
 </script>
 
 
-<endif-block class="w-full flex flex-col text-white ">
 
-  <div class="font-bold pl-2 py-1 bg-purple-400 rounded-b-lg">END</div>
 
+<endif-block class="w-full h-fit flex flex-col text-white" style="min-height: 2.5rem; background: {information.color};">
 </endif-block>
+
+
+

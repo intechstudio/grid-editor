@@ -59,22 +59,16 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<if-block class="w-full flex flex-col text-white">
+<if-block class="w-full h-fit flex flex-col text-white py-1" style="min-height: 2.5rem; background: {information.color};">
 
-  <div class="pl-2 flex items-center bg-purple-400 rounded-t-lg">
-    <span class="font-bold py-1">IF</span>
-    <div class="pl-2 py-0.5 pr-1 w-full">
-
-      <div class="bg-secondary p-1 m-1 rounded" >
-        <LineEditor
-          on:output={(e)=>{sendData(e.detail.script)}}
-          {access_tree}
-          {sidebarWidth}
-          value={scriptSegment}
-        />
-      </div>
-      
-    </div>
+  <div class="bg-secondary p-1 my-auto mr-1 rounded" >
+    <LineEditor
+      on:output={(e)=>{sendData(e.detail.script)}}
+      {access_tree}
+      {sidebarWidth}
+      value={scriptSegment}
+    />
   </div>
+
 
 </if-block>

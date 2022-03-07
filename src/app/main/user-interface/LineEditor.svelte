@@ -105,5 +105,14 @@
 </script>
 
 
-<div bind:this={monaco_block} class="w-full justify-between"></div>
+<div
+on:click|preventDefault={()=>{console.log("dragstart")}}
+on:mousedown|preventDefault={()=>{console.log("dragstop")}}
+bind:this={monaco_block} class="line-editor w-full justify-between"></div>
 
+
+
+<style>
+  
+  
+</style>
