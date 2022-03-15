@@ -5,6 +5,7 @@ import { debug_store, runtime, user_input, update_elementPositionStore } from '.
 
 import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
 import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
+import { sendDataToWebsocketClient } from '../../ipcmain_websocket';
 
 
 
@@ -36,6 +37,8 @@ function createMessageStream(){
       if(class_descr.class_name === "MIDI" || class_descr.class_name === "MIDISYSEX" ){
       
         midi_monitor_store.update_midi(class_descr);
+
+        sendDataToWebsocketClient('hello');
       }      
       
       if(class_descr.class_name === "CONFIG"){
