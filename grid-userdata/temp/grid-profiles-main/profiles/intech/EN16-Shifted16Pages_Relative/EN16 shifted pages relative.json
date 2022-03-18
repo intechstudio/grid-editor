@@ -1,0 +1,370 @@
+{
+    "name": "EN16 shifted pages relative",
+    "description": "",
+    "type": "EN16",
+    "isGridProfile": true,
+    "version": {
+        "major": 1,
+        "minor": 2,
+        "patch": 8
+    },
+    "configs": [
+        {
+            "controlElementNumber": 0,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 1,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 2,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 3,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 4,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 5,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 6,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 7,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 8,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 9,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 10,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 11,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 12,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 13,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 14,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 15,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu,0)--[[@glc]] glc(num,2,red,gre,blu,0)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval)--[[@cb]] self.init = nil--[[@sec]] self:emo(1) self:ev0(100) ?>"
+                },
+                {
+                    "event": "3",
+                    "config": "<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>"
+                },
+                {
+                    "event": "2",
+                    "config": "<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(), (gmy()*4+shift)%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val)--[[@cb]] self:gtt(250)--[[@if]] if val>64 then--[[@cb]] glc(num,2,255,50,100)--[[@el]] else--[[@cb]] glc(num,2,50,255,100)--[[@en]] end ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@l]] local num = self:ind()--[[@cb]] print('tick')glc(num,2,glr(),glg(),glb()) ?>"
+                }
+            ]
+        },
+        {
+            "controlElementNumber": 255,
+            "events": [
+                {
+                    "event": "0",
+                    "config": "<?lua --[[@cb]] shift=0 ?>"
+                },
+                {
+                    "event": "4",
+                    "config": "<?lua --[[@cb]] shift=(shift+1)%16;self:gtt(1000)glp((16+shift-1)%16,1,0)glp(shift,1,255)print(shift) ?>"
+                },
+                {
+                    "event": "5",
+                    "config": "<?lua --[[@l]] local ch,cmd,param1,param2=midi.ch,midi.cmd,midi.p1,midi.p2 ?>"
+                },
+                {
+                    "event": "6",
+                    "config": "<?lua --[[@cb]] glp((shift)%16,1,0) ?>"
+                }
+            ]
+        }
+    ]
+}
