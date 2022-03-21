@@ -449,7 +449,7 @@
               <div class="w-full">{profile.name}</div> 
               
               <div
-                in:fade out:fade
+                in:fade
                 class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0" on:click={()=>{profile.showMore = !profile.showMore;}}>{profile.showMore?"▲":"▼"}</div>
             
               {#if (profile.showMore === true)}

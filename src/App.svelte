@@ -92,9 +92,6 @@
   })
 
 
-
-
-
 </script>
 
 <Tailwindcss />
@@ -130,10 +127,10 @@
       <LeftPanelContainer classes={"w-3/12 "}/>
       
       <!-- This is the (mostly) Layout part of the code. -->
-      <GridLayout classes={"w-7/12"}/>
+      <GridLayout classes={"flex-1"}/>
 
       <!-- The right side panel container -->
-      <RightPanelContainer classes={"w-5/12"}/>
+      <RightPanelContainer classes={"w-4/12"}/>
 
     </div>
   </div>

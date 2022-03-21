@@ -117,13 +117,25 @@
 
     const diskInfo = nodeDiskInfo.getDiskInfoSync()
 
-    // 3965 for Linux and 4059648 for Windows
-    let gridDrive = diskInfo.find(a => a.blocks === 3965 || a.blocks === 4059648);
+    //console.log(diskInfo)
+    // 3829 MAC ||  11767 new
+    // 3965 for Linux and 4059648 for Windows (old bootloader)
+    // 7934 for Linux and 8123904 for Windows (new bootloader)
+
+    let gridDrive = diskInfo.find(a => 
+      a.blocks === 3965 || a.blocks === 3829 || a.blocks === 4059648 || 
+      a.blocks === 7934 || a.blocks === 11767 || a.blocks === 8123904 
+      
+    );
 
     let data;
 
     if (gridDrive !== undefined ){
-      data = fs.readFileSync(gridDrive.mounted + "/INFO_UF2.TXT", {encoding:'utf8', flag:'r'})
+      try {
+        data = fs.readFileSync(gridDrive.mounted + "/INFO_UF2.TXT", {encoding:'utf8', flag:'r'})
+      } catch (error) {
+        console.warn(error)
+      }
     }
 
     if (data!==undefined){
