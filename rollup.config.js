@@ -80,7 +80,7 @@ export default {
 				{ src: 'public/assets/fonts/*', dest: 'public/build/assets/fonts'}
 			],
 			copyOnce: true,
-			hook: "closeBundle"
+			hook: "writeBundle"
 		}),
 
 		// If we're building for production (npm run build

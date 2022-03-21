@@ -2,6 +2,8 @@ const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electr
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 
+
+
 const { serial } = require('./ipcmain_serialport');
 
 
@@ -136,7 +138,9 @@ function createWindow() {
         icon:'./icon.png'
     });
 
-    serial.mainWindow = mainWindow
+    serial.mainWindow = mainWindow;
+
+
 
     require('@electron/remote/main').initialize();
     require("@electron/remote/main").enable(mainWindow.webContents);
@@ -149,8 +153,6 @@ function createWindow() {
         watcher.close();
       }         
     });
-
-
 
     mainWindow.on('resize', () => {
       let { width, height } = mainWindow.getBounds();
