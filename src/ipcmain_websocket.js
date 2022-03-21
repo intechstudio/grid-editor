@@ -1,8 +1,24 @@
+const {ipcMain} = require('electron');
 const WebSocket = require('ws');
+
+let websocket = {
+
+  mainWindow: undefined
+
+};
 
 const wss = new WebSocket.Server({port: 1337})
 
 let connection = undefined;
+
+ipcMain.on('websocket_tx', (event, arg) => {
+
+  if(connection !== undefined){
+    connection.send('hello-' + arg)
+  }
+
+})
+
 
 wss.on('connection', function (ws) {
 
@@ -10,17 +26,17 @@ wss.on('connection', function (ws) {
 
   ws.on('message', function message(data) {
     console.log('received websocket data: ', data);
+    
+    websocket.mainWindow.webContents.send('websocket_rx', data);
+
   });
 
   ws.on('close', function(){
-    console.warn('Client disconnected!')
+    console.warn('WS Client disconnected!')
   })
 
 });
 
-let counter = 0;
-export function sendDataToWebsocketClient(data){
-  if(connection !== undefined){
-    connection.send('hello-' + counter++)
-  }
-}
+
+
+module.exports = {websocket};

@@ -5,6 +5,7 @@ const { trackEvent } = require('./analytics');
 
 
 const { serial } = require('./ipcmain_serialport');
+const { websocket } = require('./ipcmain_websocket');
 
 
 const { store } = require('./main-store');
@@ -139,6 +140,7 @@ function createWindow() {
     });
 
     serial.mainWindow = mainWindow;
+    websocket.mainWindow = mainWindow;
 
 
 
