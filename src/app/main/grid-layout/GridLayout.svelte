@@ -176,7 +176,7 @@
 
     x_rot -= $surface_origin_x*Math.cos(rot) - $surface_origin_y*Math.sin(rot)
 
-    return ((x_rot)*106.6*$appSettings.size*1.1)
+    return ((x_rot)*106.6*$appSettings.size*1.05)
       
   }
   function calculate_y(x0, y0){
@@ -188,8 +188,11 @@
 
     y_rot -= $surface_origin_x*Math.sin(rot) + $surface_origin_y*Math.cos(rot)
 
-    return -1*((y_rot)*106.6*$appSettings.size*1.1)
+    return -1*((y_rot)*106.6*$appSettings.size*1.05)
   }
+
+  let map_h, map_w;
+
 
 </script>
 
@@ -197,7 +200,7 @@
 
   <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
 
-    <div id="grid-map" bind:this={map} style="top:25%; left:25%;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center">
+    <div id="grid-map" bind:this={map} bind:clientWidth={map_w} bind:clientHeight={map_h} style="top:{map_h/2-gridsize/2}px; left:{map_w/2-gridsize/2}px;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center">
 
       {#if $devices.length === 0 && ready && $appSettings.firmwareNotificationState === 0}
         <div in:fade="{{delay: 2000, duration: 1000}}" 
