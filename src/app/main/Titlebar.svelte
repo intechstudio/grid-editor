@@ -34,7 +34,9 @@ import { appSettings } from "../runtime/app-helper.store";
 
   onMount(()=> {
 
-    init();
+    if(process.platform != 'darwin'){
+      init();
+    }
 
     let startingWindow = getCurrentWindow();
     startingWindow.isMaximized() ? isMaximized = true : false;
@@ -47,10 +49,9 @@ import { appSettings } from "../runtime/app-helper.store";
 
 
 <top-bar style="background-color:rgb(25, 26, 32)" class="text-white static top-0 w-full p-1">
-  
-
+   
   <!-- Editor logo text svg -->
-
+  {#if process.platform != 'darwin'}
   <div class="draggable flex justify-between">
     <div class="flex items-center pl-2">
       <svg class="w-12 fill-current text-gray-500" viewBox="0 0 58 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -99,11 +100,12 @@ import { appSettings } from "../runtime/app-helper.store";
       </div>
     
     </div>
-
-
-        
   </div>
-  
+  {:else}
+  <div class="draggable flex items-center justify-center h-7">
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
+  </div>
+  {/if}
 </top-bar>
 
 <style>
