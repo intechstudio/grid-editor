@@ -45,30 +45,31 @@
         <div class="flex w-full text-xl opacity-70 ">Getting started</div>
         
         <div 
-          on:click={e => openInBrowser("https://intech.studio/support/docs/reference-manual")} 
+          on:click={e => openInBrowser(process.env.DOCUMENTATION_REFERENCEMANUAL_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">
           Editor reference manual...
         </div>
         <div 
-          on:click={e => openInBrowser("https://discord.gg/GRUdF2R")} 
+          on:click={e => openInBrowser(process.env.DOCUMENTATION_DISCORDSERVER_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">
           Join the Discord community...
         </div>
 
         <br>
+
         <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
         <div 
-          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/troubleshooting")} 
+          on:click={e => openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">
           Grid does not connect...
         </div>
         <div 
-          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/firmware-update")} 
+          on:click={e => openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">
           Updating the firmware...
         </div>
         <div 
-          on:click={e => openInBrowser("https://intech.studio/support/docs/guides/cleaning-kit")} 
+          on:click={e => openInBrowser(process.env.DOCUMENTATION_MAINTENANCE_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">
           Taking care of grid modules...
         </div>

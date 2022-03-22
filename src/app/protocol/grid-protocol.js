@@ -4,7 +4,7 @@ const lodash = require('lodash');
 
 
 const editor_lua_properties = [
-  // code OPERATORS https://www.tutorialspoint.com/code/code_operators.html
+  
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\*',  human:'*'}, 
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\+',  human:'+'}, 
   {type: 'arithmetic_operator', allowed: ['2', '1', '3'], short: '\-',  human:'-'}, 

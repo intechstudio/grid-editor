@@ -1,5 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
-
+const {ipcMain} = require('electron');
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
