@@ -23,12 +23,8 @@
   import { createEventDispatcher, onDestroy } from 'svelte';
   import AtomicInput from '../main/user-interface/AtomicInput.svelte';
   import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';  
-  import CodeEditor from '../main/user-interface/code-editor/CodeEditor.svelte';
-  import stringManipulation, { debounce } from '../main/user-interface/_string-operations';
   import { localDefinitions } from '../runtime/runtime.store';  
   import _utils from '../runtime/_utils';
-
-  import { parenthesis } from './_validators';
 
   export let config = '';
   export let index;

@@ -263,7 +263,7 @@
     trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
     analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
     
-    openInBrowser("https://intech.studio/support/docs/firmware-update")
+    openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
 
   }
 

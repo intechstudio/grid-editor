@@ -13,6 +13,17 @@
     "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
     "FIRMWARE_URL_END":"/grid_release.zip",
 
-    "DISCORD_FEEDBACK_WEBHOOK": "https://discordapp.com/api/webhooks/943463496073478184/CjyGbGGVQnLzX20yEN9GJgedxZZkXmyf5BDEE5UsinjaTI_eSg2hMC91ailE8mod2hO1"
+    "LIBRARY_GITHUB_URL": "https://github.com/intechstudio/grid-profiles/archive/refs/heads/main.zip",
+
+    "EDITOR_DOWNLOAD_URL": "https://intech.studio/grid-editor/downloads",
+
+    "DISCORD_FEEDBACK_WEBHOOK": "https://discordapp.com/api/webhooks/943463496073478184/CjyGbGGVQnLzX20yEN9GJgedxZZkXmyf5BDEE5UsinjaTI_eSg2hMC91ailE8mod2hO1",
+
+    "DOCUMENTATION_REFERENCEMANUAL_URL": "https://intech.studio/support/docs/reference-manual",
+    "DOCUMENTATION_DISCORDSERVER_URL": "https://discord.gg/GRUdF2R",
+    "DOCUMENTATION_TROUBLESHOOTING_URL": "https://intech.studio/support/docs/guides/troubleshooting",
+    "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://intech.studio/support/docs/guides/firmware-update",
+    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit"
+    
 
 }

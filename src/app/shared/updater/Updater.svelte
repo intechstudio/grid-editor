@@ -48,7 +48,7 @@
         
         <button 
         class="cursor-pointer relative px-2 py-1 mt-2 mr-2 bg-commit rounded hover:bg-commit-saturate-20 focus:outline-none" 
-        on:click={()=> {openInBrowser('https://intech.studio/downloads')}}>
+        on:click={()=> {openInBrowser(process.env.EDITOR_DOWNLOAD_URL)}}>
           Download
         </button>
 
@@ -80,7 +80,7 @@
           <p class="py-2">Please update manually.</p>
           <button 
             class="cursor-pointer relative px-2 py-1 mt-2 mr-2 border-highlight bg-highlight rounded hover:bg-highlight-400 focus:outline-none" 
-            on:click={()=> {openInBrowser('https://github.com/intechstudio/grid-editor/releases/latest')}}>
+            on:click={()=> {openInBrowser(process.env.EDITOR_DOWNLOAD_URL)}}>
               Latest Release
             </button>
         {/if}
