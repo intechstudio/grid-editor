@@ -60,7 +60,7 @@
     }
   }
 
-  import * as luamin from "../../main/user-interface/code-editor/luamin.js";
+  import * as luamin from "../../../external/luamin";
   import stringManipulation from '../../main/user-interface/_string-operations';
 
 
