@@ -115,33 +115,31 @@
     clearTimeout(download_status_interval)
 
     download_status = "Starting the download..."
-    fetch("https://intech.studio/common/github/releases").then(async e => {
 
-      let res = await e.json();
+    let link = process.env.LIBRARY_GITHUB_URL
+    console.log(link)
+    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
+    download_status = "Download completed!"
+    let zip = new AdmZip(result);
 
-      let link = "https://github.com/intechstudio/grid-profiles/archive/refs/heads/main.zip"
-      let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
-      download_status = "Download completed!"
-      let zip = new AdmZip(result);
+    let zipEntries = zip.getEntries(); // an array of ZipEntry records
 
-      let zipEntries = zip.getEntries(); // an array of ZipEntry records
+    let profileFilePaths = [];
 
-      let profileFilePaths = [];
+    zipEntries.forEach(function (zipEntry) {
 
-      zipEntries.forEach(function (zipEntry) {
+      if (zipEntry.entryName.endsWith(".json")) {
 
-        if (zipEntry.entryName.endsWith(".json")) {
+        profileFilePaths.push(zipEntry.entryName);
+      }
+    });
 
-          profileFilePaths.push(zipEntry.entryName);
-        }
-      });
+    let folder = get(appSettings).persistant.profileFolder;
 
-      let folder = get(appSettings).persistant.profileFolder;
-
-      zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
+    zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
 
       download_status = "Archive extracted!"
-      // console.log(profileFilePaths)
+      console.log(profileFilePaths)
 
       if (profileFilePaths.length !== 0){
 
@@ -175,7 +173,6 @@
         console.log("GRID_NOT_FOUND")
       }
 
-    });
 
   }
 

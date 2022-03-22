@@ -160,8 +160,10 @@
   }
 
   function troubleshoot(){
+    
 
-    openInBrowser("https://intech.studio/support/docs/troubleshooting")
+
+    openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)
 
     trackEvent('no-module', 'no-module: troubleshooting'); 
     analytics.track_event("application", "gridlayout", "no module", "open troubleshooting")
