@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 
 
-import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+import {editor as monaco_editor, languages as monaco_languages} from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json'
 
 
@@ -216,7 +216,7 @@ let language = {
 function initialize_language(){
 
 
-	monaco.languages.register({ id: 'intech_lua' });
+	monaco_languages.register({ id: 'intech_lua' });
 }
 
 
@@ -224,7 +224,7 @@ function initialize_language(){
 
 export function initialize_theme(){
 
-	monaco.editor.defineTheme('my-theme', {
+	monaco_editor.defineTheme('my-theme', {
 		base: 'vs-dark',
 		inherit: true,
 		rules: [
@@ -244,7 +244,7 @@ export function initialize_theme(){
 	  
 	  let monaco_block = document.createElement('div');
 
-	  let editor = monaco.editor.create(monaco_block, {
+	  let editor = monaco_editor.create(monaco_block, {
 		value: '',
 		language: 'intech_lua',
 		theme: "my-theme"
@@ -272,7 +272,7 @@ function initialize_autocomplete(){
 
 				let proposalItem = {
 					label: '',
-					kind: monaco.languages.CompletionItemKind.Function,
+					kind: monaco_languages.CompletionItemKind.Function,
 					documentation: 'Documentation',
 					insertText: '',
 					range: range
@@ -288,7 +288,7 @@ function initialize_autocomplete(){
 
 				let proposalItem = {
 					label: '',
-					kind: monaco.languages.CompletionItemKind.Function,
+					kind: monaco_languages.CompletionItemKind.Function,
 					documentation: 'Documentation',
 					insertText: '',
 					range: range
@@ -305,7 +305,7 @@ function initialize_autocomplete(){
 
 				let proposalItem = {
 					label: '',
-					kind: monaco.languages.CompletionItemKind.Keyword,
+					kind: monaco_languages.CompletionItemKind.Keyword,
 					documentation: 'Documentation',
 					insertText: '',
 					range: range
@@ -324,7 +324,7 @@ function initialize_autocomplete(){
 
 					let proposalItem = {
 						label: '',
-						kind: monaco.languages.CompletionItemKind.Function,
+						kind: monaco_languages.CompletionItemKind.Function,
 						documentation: 'Documentation',
 						insertText: '',
 						range: range
@@ -372,7 +372,7 @@ function initialize_autocomplete(){
 			return [... proposalList];
 		}
 
-		let disposable = monaco.languages.registerCompletionItemProvider('intech_lua', {
+		let disposable = monaco_languages.registerCompletionItemProvider('intech_lua', {
 			provideCompletionItems: function (model, position) {
 			// find out if we are completing a property in the 'dependencies' object.
 			var textUntilPosition = model.getValueInRange({
@@ -452,7 +452,7 @@ function initialize_highlight(){
 function initialize_hover(){
 
 	monaco_disposables.push(
-		monaco.languages.registerHoverProvider('intech_lua', {
+		monaco_languages.registerHoverProvider('intech_lua', {
 			provideHover: function(model, position) { 
 
 			if (model.getWordAtPosition(position) !== null){
@@ -476,8 +476,8 @@ function initialize_hover(){
 
 function initialize_grammar(){
 
-	monaco.languages.setMonarchTokensProvider('intech_lua', language);
-	monaco.languages.setLanguageConfiguration('intech_lua', language_config)
+	monaco_languages.setMonarchTokensProvider('intech_lua', language);
+	monaco_languages.setLanguageConfiguration('intech_lua', language_config)
 }
 
 initialize_theme();

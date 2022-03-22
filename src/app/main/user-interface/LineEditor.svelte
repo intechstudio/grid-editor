@@ -4,7 +4,7 @@
 
     import {monaco_elementtype} from '../../runtime/monaco-helper'
 
-    import * as monaco from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+    import {editor as monaco_editor} from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
   
     const dispatch = createEventDispatcher();
   
@@ -49,7 +49,7 @@
 
         $monaco_elementtype = access_tree.elementtype
         
-        editor = monaco.editor.create(monaco_block, {
+        editor = monaco_editor.create(monaco_block, {
         value: value,
         language: 'intech_lua',
         theme: "my-theme",
