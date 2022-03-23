@@ -92,14 +92,33 @@ function create_tray(){
   tray.setTitle("Grid Editor")
 }
 
-app.whenReady().then(() => {
+const gotTheLock = app.requestSingleInstanceLock()
 
-  if (process.platform !== 'darwin') {
-    create_tray();
-  }
-  
+if (!gotTheLock) {
+  app.quit()
+} else {
 
-})
+  app.on('second-instance', (event, commandLine, workingDirectory, additionalData) => {
+    // Print out data received from the second instance.
+    console.log(additionalData)
+
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+
+  app.whenReady().then(() => {
+
+    if (process.platform !== 'darwin') {
+      create_tray();
+    }
+    
+    createWindow()
+
+  })
+}
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -178,9 +197,9 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
 
-
+// moved this to app.whenReady!
+// app.on('ready', createWindow);
 
 log.info('check fo update and notify...')
 console.log('check for updates...')
