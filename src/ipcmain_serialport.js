@@ -86,7 +86,7 @@ async function openGridPort(){
         const parser = serialport_instance.pipe(new ReadlineParser({encoding: 'hex'}));
   
         parser.on('data', function(data){
-            serial.mainWindow.webContents.send('serialport_rx', data);
+          serial.mainWindow.webContents.send('serialport_rx', data);
         })
       }); 
 
