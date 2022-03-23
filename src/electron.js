@@ -146,12 +146,20 @@ function createWindow() {
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
-    mainWindow.on('closed', () => {
-      mainWindow = null;
+    mainWindow.on('close', (evt)=> {
+      // when quit is terminal under darwin
+      if(app.quitting){
+        mainWindow = null
+      } else { // only hide, keep in the background
+        evt.preventDefault();
+        mainWindow.hide()
+      }
+
+      // stop debug functions
       if (watcher) {
         watcher.close();
-      }         
-    });
+      } 
+    })
 
     mainWindow.on('resize', () => {
       let { width, height } = mainWindow.getBounds();
@@ -305,7 +313,7 @@ ipcMain.on('restart', (event, arg) => {
 
 
 // Quit when all windows are closed.
-app.on('window-all-closed', () => {
+app.on('window-all-closed', (evt) => {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -316,10 +324,11 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) {
-        createWindow();
-    }
+    mainWindow.show();
+
 });
 
+// termination of application, closing the windows, used for macOS hide flag
+app.on('before-quit', () => app.quitting = true)
 
 
