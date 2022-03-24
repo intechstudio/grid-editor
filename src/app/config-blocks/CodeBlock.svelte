@@ -22,7 +22,7 @@
 <script>
 
 
-  import * as luamin from "../main/user-interface/code-editor/luamin.js";
+  import * as luamin from "../../external/luamin";
   import stringManipulation from '../main/user-interface/_string-operations';
 
   import {createEventDispatcher, onMount, onDestroy} from 'svelte';
@@ -33,7 +33,7 @@
   import {appSettings} from "../runtime/app-helper.store"
   import {monaco_elementtype} from "../runtime/monaco-helper"
 
-  import * as monaco from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+  import {editor as monaco_editor} from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
   const dispatch = createEventDispatcher();
 
@@ -78,7 +78,7 @@
         beautified = beautified.slice( 1 );
 
     codePreview.innerHTML  = beautified
-    monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
+    monaco_editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
 
   })
 
@@ -97,7 +97,7 @@
         beautified = beautified.slice( 1 );
 
       codePreview.innerHTML = beautified
-      monaco.editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
+      monaco_editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
 
 
 

@@ -25,7 +25,7 @@
   //import '../../../node_modules/monaco-editor/min/vs/loader.js'
   //import * as monaco from 'monaco-editor'
   //import '../../../node_modules/monaco-editor/min/vs/loader.js'
-  import * as monaco from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+  import {editor as monaco_editor} from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
   let monaco_block;
 
@@ -60,7 +60,7 @@
     }
   }
 
-  import * as luamin from "../../main/user-interface/code-editor/luamin.js";
+  import * as luamin from "../../../external/luamin";
   import stringManipulation from '../../main/user-interface/_string-operations';
 
 
@@ -111,7 +111,7 @@
         beautified = beautified.slice( 1 );
 
 
-    editor = monaco.editor.create(monaco_block, {
+    editor = monaco_editor.create(monaco_block, {
       value: beautified,
       language: 'intech_lua',
       theme: "my-theme",

@@ -115,18 +115,32 @@
       dotdotdot = "";
     }
 
-    const diskInfo = nodeDiskInfo.getDiskInfoSync()
+    let diskInfo
+
+    try {
+      diskInfo = nodeDiskInfo.getDiskInfoSync()
+    } catch (error) {
+      console.warn(error)
+    }
+
+    if (diskInfo === undefined){
+      return;
+    }
 
     //console.log(diskInfo)
-    // 3829 MAC ||  11767 new
+    // 7929 MAC ||  15867 new
     // 3965 for Linux and 4059648 for Windows (old bootloader)
     // 7934 for Linux and 8123904 for Windows (new bootloader)
 
     let gridDrive = diskInfo.find(a => 
-      a.blocks === 3965 || a.blocks === 3829 || a.blocks === 4059648 || 
-      a.blocks === 7934 || a.blocks === 11767 || a.blocks === 8123904 
+    // old Linux Mac Win
+      a.blocks === 3965 || a.blocks === 7929 || a.blocks === 4059648 || 
+      // new Linux Mac Win
+      a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904 
       
     );
+
+    //console.log(gridDrive, diskInfo)
 
     let data;
 
@@ -263,7 +277,7 @@
     trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
     analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
     
-    openInBrowser("https://intech.studio/support/docs/firmware-update")
+    openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
 
   }
 

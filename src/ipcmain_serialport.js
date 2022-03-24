@@ -1,5 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
-
+const {ipcMain} = require('electron');
 const { SerialPort } = require('serialport');
 const { ReadlineParser } = require('@serialport/parser-readline');
 
@@ -87,7 +86,7 @@ async function openGridPort(){
         const parser = serialport_instance.pipe(new ReadlineParser({encoding: 'hex'}));
   
         parser.on('data', function(data){
-            serial.mainWindow.webContents.send('serialport_rx', data);
+          serial.mainWindow.webContents.send('serialport_rx', data);
         })
       }); 
 

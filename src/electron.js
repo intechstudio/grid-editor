@@ -1,10 +1,10 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
-
-
+require('@electron/remote/main').initialize();
 
 const { serial } = require('./ipcmain_serialport');
+const { websocket } = require('./ipcmain_websocket');
 
 
 const { store } = require('./main-store');
@@ -21,11 +21,6 @@ for (const key in grid_env) {
 }
 
 global.trackEvent = trackEvent;
-
-
-
-
-
 
 const path = require('path');
 const log = require('electron-log');
@@ -97,14 +92,40 @@ function create_tray(){
   tray.setTitle("Grid Editor")
 }
 
-app.whenReady().then(() => {
+const gotTheLock = app.requestSingleInstanceLock()
 
-  if (process.platform !== 'darwin') {
-    create_tray();
-  }
-  
+if (!gotTheLock) {
+  app.quit()
+} else {
 
-})
+  app.on('second-instance', (event, commandLine, workingDirectory, additionalData) => {
+
+    // Print out data received from the second instance.
+
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      
+      if (process.platform !== 'darwin'){
+        mainWindow.show();
+      }
+
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+        mainWindow.focus()
+      }
+    }
+  })
+
+  app.whenReady().then(() => {
+
+    if (process.platform !== 'darwin') {
+      create_tray();
+    }
+    
+    createWindow()
+
+  })
+}
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
@@ -117,7 +138,7 @@ if (process.env.NODE_ENV === 'development') {
 
 function createWindow() {
 
-    const mode = process.env.NODE_ENV;
+    const windowTitle = 'Grid Editor - ' + process.env.npm_package_version;
 
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
     let { width, height } = store.get('windowBounds');
@@ -129,6 +150,12 @@ function createWindow() {
         'minWidth': 800,
         backgroundColor: '#1e2628',
         frame: false,
+        titleBarStyle: 'hidden',
+        trafficLightPosition: {
+          x: 6,
+          y: 6
+        },
+        title: windowTitle,
         webPreferences: {
           nodeIntegration: true,
           contextIsolation: false,
@@ -139,20 +166,26 @@ function createWindow() {
     });
 
     serial.mainWindow = mainWindow;
+    websocket.mainWindow = mainWindow;
 
-
-
-    require('@electron/remote/main').initialize();
     require("@electron/remote/main").enable(mainWindow.webContents);
 
     mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
 
-    mainWindow.on('closed', () => {
-      mainWindow = null;
+    mainWindow.on('close', (evt)=> {
+      // when quit is terminal under darwin
+      if(app.quitting){
+        mainWindow = null
+      } else { // only hide, keep in the background
+        evt.preventDefault();
+        mainWindow.hide();
+      }
+
+      // stop debug functions
       if (watcher) {
         watcher.close();
-      }         
-    });
+      } 
+    })
 
     mainWindow.on('resize', () => {
       let { width, height } = mainWindow.getBounds();
@@ -171,9 +204,9 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
 
-
+// moved this to app.whenReady!
+// app.on('ready', createWindow);
 
 log.info('check fo update and notify...')
 console.log('check for updates...')
@@ -306,7 +339,7 @@ ipcMain.on('restart', (event, arg) => {
 
 
 // Quit when all windows are closed.
-app.on('window-all-closed', () => {
+app.on('window-all-closed', (evt) => {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
     if (process.platform !== 'darwin') {
@@ -317,10 +350,11 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     // On macOS it's common to re-create a window in the app when the
     // dock icon is clicked and there are no other windows open.
-    if (mainWindow === null) {
-        createWindow();
-    }
+    mainWindow.show();
+
 });
 
+// termination of application, closing the windows, used for macOS hide flag
+app.on('before-quit', () => app.quitting = true)
 
 
