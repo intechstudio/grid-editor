@@ -100,8 +100,6 @@ if (!gotTheLock) {
 
   app.on('second-instance', (event, commandLine, workingDirectory, additionalData) => {
 
-    // Print out data received from the second instance.
-
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
       
