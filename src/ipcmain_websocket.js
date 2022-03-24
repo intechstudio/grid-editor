@@ -7,9 +7,11 @@ let websocket = {
 
 };
 
-const wss = new WebSocket.Server({port: 1337})
-
 let connection = undefined;
+
+let wss = new WebSocket.Server({port: 1337});
+
+wss.on("error", error => console.log("The server encountered an error!", error)); 
 
 ipcMain.on('websocket_tx', (event, arg) => {
 
@@ -36,7 +38,6 @@ wss.on('connection', function (ws) {
   })
 
 });
-
 
 
 module.exports = {websocket};
