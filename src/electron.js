@@ -99,13 +99,20 @@ if (!gotTheLock) {
 } else {
 
   app.on('second-instance', (event, commandLine, workingDirectory, additionalData) => {
+
     // Print out data received from the second instance.
-    console.log(additionalData)
 
     // Someone tried to run a second instance, we should focus our window.
     if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
+      
+      if (process.platform !== 'darwin'){
+        mainWindow.show();
+      }
+
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore()
+        mainWindow.focus()
+      }
     }
   })
 
@@ -171,7 +178,7 @@ function createWindow() {
         mainWindow = null
       } else { // only hide, keep in the background
         evt.preventDefault();
-        mainWindow.hide()
+        mainWindow.hide();
       }
 
       // stop debug functions
