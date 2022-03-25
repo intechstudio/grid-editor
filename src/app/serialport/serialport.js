@@ -15,6 +15,19 @@ import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.s
 
 const { ipcRenderer, app } = require('electron');
 
+
+ipcRenderer.on('serialport_debug', function (evt, message) {
+
+  if (message.length>150){
+
+    console.log("DEBUG", message)
+  }
+  else{
+    console.log(message.length)
+  }
+
+});
+
 // Receive Serial data from the IPCMain process
 ipcRenderer.on('serialport_rx', function (evt, message) {
 

@@ -119,10 +119,14 @@ ipcMain.on('serialport_tx', (event, arg) => {
 
   if (typeof arg == 'object'){
 
+    serial.mainWindow.webContents.send('serialport_debug', [...arg, 10].toString());
+
     serialport_instance.write([...arg, 10])
   }
   else{
-    
+
+    serial.mainWindow.webContents.send('serialport_debug', arg+'\n');
+
     serialport_instance.write(arg+'\n')
   }
 
