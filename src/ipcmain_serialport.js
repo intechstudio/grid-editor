@@ -33,29 +33,47 @@ let serialport_instance = undefined;
 
 async function listSerialPorts(){
 
-    SerialPort.list().then(ports => {
-
-    let serial_list = [];
-    let grid_list = [];
-
-    ports.forEach((port, i) => { 
-
-        serial_list.push(port)
-
-        // check each port if it has productId with code ECAD or ecac...
-        if(port.productId == 'ECAD' || port.productId == 'ecad' || port.productId == 'ECAC' || port.productId == 'ecac'){
-
-            grid_list.push(port)
-
-        }
-        
-    });
-
-    serial_any_port_list = [...serial_list]
-    serial_grid_port_list = [...grid_list]
+  if (serial.mainWindow !== undefined){
     
+    const filters = [
+      { usbVendorId: 0x03eb, usbProductId: 0xecad },
+      { usbVendorId: 0x03eb, usbProductId: 0xecac }
+    ];
 
-    }).catch(err => {console.error(err);});
+    const filters_string =  JSON.stringify(filters)
+
+    const portSelected = await serial.mainWindow.webContents.executeJavaScript(
+      `navigator.serial.requestPort(`+filters_string+`).then(port => {navigator.intech = port; return port.getInfo()}).catch(err => err.toString());`, true)
+    
+    //console.log(portSelected)
+    //serial.mainWindow.webContents.executeJavaScript(`console.log('Got port ${JSON.stringify(portSelected)}')`, true)
+
+  }
+
+  
+    // SerialPort.list().then(ports => {
+
+    //   let serial_list = [];
+    //   let grid_list = [];
+
+    //   ports.forEach((port, i) => { 
+
+    //       serial_list.push(port)
+
+    //       // check each port if it has productId with code ECAD or ecac...
+    //       if(port.productId == 'ECAD' || port.productId == 'ecad' || port.productId == 'ECAC' || port.productId == 'ecac'){
+
+    //           grid_list.push(port)
+
+    //       }
+          
+    //   });
+
+    //   serial_any_port_list = [...serial_list]
+    //   serial_grid_port_list = [...grid_list]
+      
+
+    // }).catch(err => {console.error(err);});
 }
 
 

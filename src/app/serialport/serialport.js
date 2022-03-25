@@ -16,6 +16,63 @@ import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.s
 const { ipcRenderer, app } = require('electron');
 
 
+
+let port_disovery_interval;
+
+const setIntervalAsync = (fn, ms) => {
+  fn().then(() => {
+    port_disovery_interval = setTimeout(() => setIntervalAsync(fn, ms), ms);
+  });
+};
+
+// ============= NEW WEBSERIAL BASED IMPLEMENTATION ===================
+
+
+let lineBuffer = '';
+let latestValue = 0;
+
+let port_connected = false;
+
+async function testIt() {
+
+
+  if (navigator.intech!== undefined && port_connected == false){
+    console.log(navigator.intech.getInfo());
+
+    let port = navigator.intech
+    await port.open({ baudRate: 2000000});
+
+    port_connected = true;
+
+    const appendStream = new WritableStream({
+        write(chunk) {
+          lineBuffer += chunk;
+
+          let lines = lineBuffer.split('\n');
+
+          if (lines.length > 1) {
+            lineBuffer = lines.pop();
+
+            console.log("RX: "+lines.pop())
+          }
+        }
+      });
+
+    port.readable
+      .pipeThrough(new TextDecoderStream())
+      .pipeTo(appendStream);
+
+  }
+  
+}
+
+port_disovery_interval = setIntervalAsync(testIt, 500)
+
+// END
+
+
+
+
 ipcRenderer.on('serialport_debug', function (evt, message) {
 
   if (message.length>150){
