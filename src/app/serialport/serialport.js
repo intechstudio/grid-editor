@@ -37,7 +37,7 @@ async function testIt() {
 
 
   if (navigator.intech!== undefined && port_connected == false){
-    console.log(navigator.intech.getInfo());
+    //console.log(navigator.intech.getInfo());
 
     let port = navigator.intech
     await port.open({ baudRate: 2000000});
@@ -53,7 +53,24 @@ async function testIt() {
           if (lines.length > 1) {
             lineBuffer = lines.pop();
 
-            console.log("RX: "+lines.pop())
+            let foo = lines.pop()
+            //console.log("RX: "+ foo)
+
+            let asciicode_array = [];
+            let buffer = Buffer.from(foo, 'ascii');
+            for (let i = 0; i < buffer.length; i++) {
+              asciicode_array.push(buffer[i]);
+            }
+
+            debug_lowlevel_store.push_inbound(asciicode_array)
+
+            let class_array = grid.decode_packet_frame(asciicode_array);
+            grid.decode_packet_classes(class_array);
+          
+            if(class_array !== false){
+              messageStream.deliver_inbound(class_array);   
+            }
+
           }
         }
       });
@@ -112,14 +129,41 @@ ipcRenderer.on('serialport_rx', function (evt, message) {
 
 
 // Send Serial data to the IPCMain process
-export function serial_write(param){
+export async function serial_write(param){
 
   if (param === undefined){
     return;
   }
 
+  param.push(10)
+
   debug_lowlevel_store.push_outbound(param)
 
-  ipcRenderer.send('serialport_tx', param);
+
+
+  if (navigator.intech === undefined || navigator.intech === null ){
+    return;
+  }
+
+  if (navigator.intech.writable === undefined || navigator.intech.writable === null){
+    return;
+  }  
+
+
+
+  let port = navigator.intech
+  const writer = port.writable.getWriter();
+
+  const data = new Uint8Array(param);
+
+  //console.log("OUTBOUND",data)
+  await writer.write(data);
+  
+  
+  // Allow the serial port to be closed later.
+  writer.releaseLock();
+  //console.log("Release")
+
+  //ipcRenderer.send('serialport_tx', param);
 
 }

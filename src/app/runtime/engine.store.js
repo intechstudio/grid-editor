@@ -66,11 +66,9 @@ function createWriteBuffer (){
     }
     
 
-    console.log(descr)
-
-    console.log(str)
-
-    console.log(retval.serial.toString())
+    //console.log(descr)
+    //console.log(str)
+    //console.log(retval.serial.toString())
 
 
     return {id: retval.id};
