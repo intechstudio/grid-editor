@@ -33,13 +33,21 @@ let latestValue = 0;
 
 let port_connected = false;
 
-async function testIt() {
+export async function testIt() {
 
 
-  if (navigator.intech!== undefined && port_connected == false){
-    //console.log(navigator.intech.getInfo());
+  if (port_connected == false){
 
-    let port = navigator.intech
+    const filters = [
+      { usbVendorId: parseInt(process.env.USB_VID_0), usbProductId: parseInt(process.env.USB_PID_0) },
+      { usbVendorId: parseInt(process.env.USB_VID_1), usbProductId: parseInt(process.env.USB_PID_1) }
+    ];
+
+    const port = await navigator.serial.requestPort({filters});
+    const portInfo = port.getInfo();
+
+    navigator.intechPort = port
+
     await port.open({ baudRate: 2000000});
 
     port_connected = true;
@@ -83,52 +91,11 @@ async function testIt() {
   
 }
 
-port_disovery_interval = setIntervalAsync(testIt, 500)
-
-// END
+navigator.intechConnect = testIt
 
 
 
-
-ipcRenderer.on('serialport_debug', function (evt, message) {
-
-  if (message.length>150){
-
-    console.log("DEBUG", message)
-  }
-  else{
-    console.log(message.length)
-  }
-
-});
-
-// Receive Serial data from the IPCMain process
-ipcRenderer.on('serialport_rx', function (evt, message) {
-
-  //console.log(message); // Returns: {'SAVED': 'File Saved'}
-
-  // conver incoming data from hex blob to array of ascii codes
-  let incoming_hex_array = Array.from(message);
-  let asciicode_array = [];
-
-  for (let i = 0; i < incoming_hex_array.length; i+=2) {
-    asciicode_array.push(parseInt('0x'+incoming_hex_array[i] + incoming_hex_array[i+1]));
-  }
-
-  debug_lowlevel_store.push_inbound(asciicode_array)
-
-  let class_array = grid.decode_packet_frame(asciicode_array);
-  grid.decode_packet_classes(class_array);
-
-  if(class_array !== false){
-    messageStream.deliver_inbound(class_array);   
-  }
-
-});
-
-
-
-// Send Serial data to the IPCMain process
+// Send Serial data to the webserial interface
 export async function serial_write(param){
 
   if (param === undefined){
@@ -141,29 +108,24 @@ export async function serial_write(param){
 
 
 
-  if (navigator.intech === undefined || navigator.intech === null ){
+  if (navigator.intechPort === undefined || navigator.intechPort === null ){
     return;
   }
 
-  if (navigator.intech.writable === undefined || navigator.intech.writable === null){
+  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null){
     return;
   }  
 
 
 
-  let port = navigator.intech
+  let port = navigator.intechPort
   const writer = port.writable.getWriter();
 
   const data = new Uint8Array(param);
 
-  //console.log("OUTBOUND",data)
   await writer.write(data);
-  
   
   // Allow the serial port to be closed later.
   writer.releaseLock();
-  //console.log("Release")
-
-  //ipcRenderer.send('serialport_tx', param);
 
 }

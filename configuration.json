@@ -9,6 +9,12 @@
     "FIRMWARE_REQUIRED_MAJOR":1,
     "FIRMWARE_REQUIRED_MINOR":2,
     "FIRMWARE_REQUIRED_PATCH":13,
+ 
+    "USB_VID_0": "0x03eb",
+    "USB_PID_0": "0xecac",
+
+    "USB_VID_1": "0x03eb",
+    "USB_PID_1": "0xecad",
 
     "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
     "FIRMWARE_URL_END":"/grid_release.zip",
