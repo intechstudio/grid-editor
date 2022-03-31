@@ -9,7 +9,6 @@ let serial = {
 };
 
 
-
 let port_disovery_interval;
 
 const setIntervalAsync = (fn, ms) => {
@@ -20,106 +19,27 @@ const setIntervalAsync = (fn, ms) => {
 
 
 
-
-
-let serial_any_port_list = [];
-let serial_grid_port_list = [];
-
-let serialport_instance = undefined;
-
-
-
 // Basic serial usage
 
 async function listSerialPorts(){
 
   if (serial.mainWindow !== undefined){
     
+    try{
+      let foo = await serial.mainWindow.webContents.executeJavaScript(`navigator.intechConnect()`, true)
+      //console.log(foo)
+    }catch(e){
+      console.log(e)
+    }
 
-    await serial.mainWindow.webContents.executeJavaScript(`navigator.intechConnect()`, true)
     
 
   }
 
-  
+
 }
 
-
-async function openGridPort(){
-
-
-    if (serial_grid_port_list.length>0 && serialport_instance === undefined){
-  
-  
-      serialport_instance = new SerialPort({path: serial_grid_port_list[0].path, baudRate: 2000000, autoOpen: false})
-
-        serialport_instance.open(function(err){
-  
-        if (err){
-  
-          console.log('Error opening port: ', err)
-          serial_any_port_list = [];
-          serial_grid_port_list = [];  
-          serialport_instance = undefined;
-        }
-  
-      });
-  
-      serialport_instance.on('open', function() {
-        console.log('Port is open.', serialport_instance.path);  
-
-        // setup serial parser:
-        const parser = serialport_instance.pipe(new ReadlineParser({encoding: 'hex'}));
-  
-        parser.on('data', function(data){
-          serial.mainWindow.webContents.send('serialport_rx', data);
-        })
-      }); 
-
-
-  
-      serialport_instance.on('close', function(err) {
-        console.warn('Serialport closed unexpectedly: ',err);
-  
-        serial_any_port_list = [];
-        serial_grid_port_list = [];
-        serialport_instance = undefined;
-        
-      });
-  
-      serialport_instance.on('error', function(err) {
-        console.warn('Error',err);
-      });
-  
-    }
-  
-  }
-
-ipcMain.on('serialport_tx', (event, arg) => {
-
-  if (serialport_instance === undefined){
-    return;
-  } 
-
-  // console.log("tx", arg)
-
-  if (typeof arg == 'object'){
-
-    serial.mainWindow.webContents.send('serialport_debug', [...arg, 10].toString());
-
-    serialport_instance.write([...arg, 10])
-  }
-  else{
-
-    serial.mainWindow.webContents.send('serialport_debug', arg+'\n');
-
-    serialport_instance.write(arg+'\n')
-  }
-
-})
-
 setIntervalAsync(listSerialPorts, 1000)
-setIntervalAsync(openGridPort, 500)
 
   
 module.exports = {serial};

@@ -1,17 +1,17 @@
 import { get, writable } from 'svelte/store';
 import { appSettings } from './app-helper.store';
 import grid from '../protocol/grid-protocol';
-import { serial_write } from '../serialport/serialport';
+import { serial_write, serial_write_islocked } from '../serialport/serialport';
 
-const buffer_element = {
-  responseRequired: true,
-  responseTimeout: 2000,
-  serial: '',
-  filter: {id: '', event: {}, brc: {}},
-  failCb: function(){console.log('fail')}, 
-  successCb: function(){console.log('success')}
+import instructions from '../serialport/instructions';
+
+export function sendHeartbeat(type){
+
+  
+  instructions.sendEditorHeartbeat_immediate(type)
+  writeBuffer.writeBufferTryNext();
+
 }
-
 
 function createWriteBuffer (){
 
@@ -44,6 +44,8 @@ function createWriteBuffer (){
 
   function clear(){
 
+    console.log("clear")
+
     _write_buffer = [];
     active_elem = undefined;
     write_buffer_busy = false;
@@ -66,58 +68,54 @@ function createWriteBuffer (){
     }
     
 
-    //console.log(descr)
-    //console.log(str)
-    //console.log(retval.serial.toString())
-
-
     return {id: retval.id};
  
   }
 
   function writeBufferTryNext() {
 
+
     if(write_buffer_busy || _write_buffer.length == 0) return;
+
+    if (serial_write_islocked() === true){
+      console.log("LOCK", _write_buffer.length)
+      return;
+    }
+
 
     write_buffer_busy = true;
 
     active_elem = _write_buffer[0];
 
-    if(get(appSettings).debugMode)
-      if(Math.random() > 0.3){
-        serial_write(active_elem.serial);
-      } else{
-        console.error('GLITCH')
-    } else {
-      // create and send serial, save the ID for validation
-      const { id } = sendDataToGrid(active_elem.descr);
-      if(active_elem.responseRequired){
 
-        if (active_elem.filter !== undefined){
-          if (active_elem.filter.class_parameters !== undefined){
-            if (active_elem.filter.class_parameters['LASTHEADER'] !== undefined){
-            
-              active_elem.filter.class_parameters['LASTHEADER'] = id;
-              //console.log("LASTHEADER SET TO", id)
+    // create and send serial, save the ID for validation
+    const { id } = sendDataToGrid(active_elem.descr);
+    if(active_elem.responseRequired){
 
-            }
+      if (active_elem.filter !== undefined){
+        if (active_elem.filter.class_parameters !== undefined){
+          if (active_elem.filter.class_parameters['LASTHEADER'] !== undefined){
+          
+            active_elem.filter.class_parameters['LASTHEADER'] = id;
+            //console.log("LASTHEADER SET TO", id)
+
           }
         }
-
       }
 
     }
 
+    
+
     _write_buffer.shift();
 
-    if(active_elem.responseRequired !== undefined){
+    if(active_elem.responseRequired === true){
 
-      const responseTimeout = active_elem.responseTimeout ?? 1000;
+      const responseTimeout = active_elem.responseTimeout ?? 300;
 
       startFetchTimeout(responseTimeout);
 
     } else {
-      // heartbeat
       active_elem = undefined;
       write_buffer_busy = false;
       writeBufferTryNext();
@@ -206,6 +204,7 @@ function createWriteBuffer (){
   
 
   return {
+    writeBufferTryNext: writeBufferTryNext,
     messages: messages,
     add_first: add_first,
     add_last: add_last,

@@ -197,6 +197,7 @@ function createWindow() {
     }
 
     mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
+      //console.log("Select Serial Port")
       event.preventDefault()
       if (portList && portList.length > 0) {
         callback(portList[0].portId)
