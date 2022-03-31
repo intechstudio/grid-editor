@@ -2,7 +2,7 @@ import { writable, get, derived } from 'svelte/store';
 
 import grid from '../protocol/grid-protocol';
 import instructions from '../serialport/instructions';
-import { writeBuffer } from './engine.store';
+import { writeBuffer, sendHeartbeat } from './engine.store';
 import _utils from './_utils';
 
 
@@ -10,7 +10,6 @@ import { initialize } from './monaco-helper';
 import { appSettings } from './app-helper.store';
 import { analytics } from './analytics_influx';
 
-const activeWindow = require('active-win');
 
 
 let firmware_required = {major: parseInt(process.env.FIRMWARE_REQUIRED_MAJOR), minor: parseInt(process.env.FIRMWARE_REQUIRED_MINOR), patch: parseInt(process.env.FIRMWARE_REQUIRED_PATCH)};
@@ -1013,7 +1012,9 @@ const editor_heartbeat_interval_handler = async function(){
     type = 254
   }
 
-  instructions.sendEditorHeartbeat_immediate(type);
+
+  sendHeartbeat(type)
+
 
 }
 

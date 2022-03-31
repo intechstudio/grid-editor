@@ -11,8 +11,9 @@ const instructions = {
 
   sendEditorHeartbeat_immediate: (type) => {
 
-    const retval = grid.encode_packet(
-      {
+    let buffer_element = {
+
+      descr: {  
         brc_parameters:
           {DX: -127, DY: -127}, // GLOBAL
         class_name: "HEARTBEAT",
@@ -25,10 +26,14 @@ const instructions = {
             VMINOR: get(appSettings).version.minor,
             VPATCH: get(appSettings).version.patch,
           }
-      }
-    );
+      },
+      responseRequired: false,
+      failCb: function(){
+        //console.log('config execute - fail')
+      }, 
+    }
 
-    serial_write(retval.serial);
+    writeBuffer.add_last(buffer_element);
 
   },
 
@@ -392,7 +397,7 @@ const instructions = {
       }
     }
 
-    writeBuffer.add_last(buffer_element);
+    writeBuffer.add_first(buffer_element);
     
   }
 

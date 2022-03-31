@@ -4,7 +4,7 @@ const { trackEvent } = require('./analytics');
 require('@electron/remote/main').initialize();
 
 const { serial } = require('./ipcmain_serialport');
-const { websocket } = require('./ipcmain_websocket');
+//const { websocket } = require('./ipcmain_websocket');
 
 
 const { store } = require('./main-store');
@@ -164,7 +164,7 @@ function createWindow() {
     });
 
     serial.mainWindow = mainWindow;
-    websocket.mainWindow = mainWindow;
+    //websocket.mainWindow = mainWindow;
 
     require("@electron/remote/main").enable(mainWindow.webContents);
 
@@ -195,6 +195,36 @@ function createWindow() {
     if (process.env.NODE_ENV === 'development') {
       mainWindow.webContents.openDevTools();
     }
+
+    mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
+      //console.log("Select Serial Port")
+      event.preventDefault()
+      if (portList && portList.length > 0) {
+        callback(portList[0].portId)
+      } else {
+        callback('') //Could not find any matching devices
+      }
+    })
+  
+    mainWindow.webContents.session.on('serial-port-added', (event, port) => {
+      console.log('serial-port-added FIRED WITH', port)
+    })
+  
+    mainWindow.webContents.session.on('serial-port-removed', (event, port) => {
+      console.log('serial-port-removed FIRED WITH', port)
+    })
+  
+    mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+      if (permission === 'serial' && details.securityOrigin === 'file:///') {
+        return true
+      }
+    })
+      
+    mainWindow.webContents.session.setDevicePermissionHandler((details) => {
+      if (details.deviceType === 'serial' && details.origin === 'file://') {
+        return true
+      }
+    })
 
     
 }
