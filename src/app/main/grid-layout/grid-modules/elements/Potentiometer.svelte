@@ -8,6 +8,7 @@
   export let size = 1;
   export let elementNumber;
   export let position;
+  export let id;
   
   const knobSize = 13;
 
@@ -46,6 +47,7 @@
   on:grabmove={handleGrabMove}
   on:grabend={handleGrabEnd} 
   data-control-number={elementNumber}
+  data-module-id={id}
   data-control-element-type="potentiometer"
   width="{size*knobSize+'px'}" 
   height="{size*knobSize+'px'}"  

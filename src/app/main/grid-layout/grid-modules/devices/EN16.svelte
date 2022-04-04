@@ -67,7 +67,7 @@
   <slot></slot>
 
   <div 
-    use:select={[id]}
+    use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2 {(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy) ? ' border-gray-500' : 'border-transparent'} " 
     style="--module-size: {moduleWidth+'px'}"
@@ -81,6 +81,8 @@
               color={ledcolor_array[elementNumber]} 
               size={$appSettings.size}/>
             <Encoder {elementNumber} 
+
+              id = {id}
               position={elementposition_array[elementNumber]} 
               size={$appSettings.size}/>
           </div>

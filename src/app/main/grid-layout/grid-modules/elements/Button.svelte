@@ -2,6 +2,8 @@
 
   export let size = 1;
   export let elementNumber;
+  export let position;
+  export let id;
   let buttonSize = 9.5;
 
 </script>
@@ -9,6 +11,7 @@
 
 <svg 
   data-control-number={elementNumber} 
+  data-module-id={id}
   data-control-element-type="button" 
   width="{size * buttonSize + 'px'}" 
   height="{size * buttonSize + 'px'}" 

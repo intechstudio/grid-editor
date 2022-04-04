@@ -13,6 +13,8 @@
   export let faderHeight; // was 37 or 68
 
   export let position;
+  export let id;
+
 
   let move = 0;
   let startValue = 0;
@@ -99,19 +101,20 @@
 
 
 <svg 
-    use:grab
-    on:grabstart={handleGrabStart}
-    on:grabmove={handleGrabMove}
-    on:grabend={handleGrabEnd}
-    data-control-number={elementNumber}
-    data-control-element-type="fader"
-    id="fader-cap" 
-    width={size * faderWidth + 'px'} 
-    height={size * faderHeight + 'px'} 
-    viewBox="0 0 24 {faderHeight + 23}" 
-    fill="none" 
-    xmlns="http://www.w3.org/2000/svg"
-    style="overflow:visible;">
+  use:grab
+  on:grabstart={handleGrabStart}
+  on:grabmove={handleGrabMove}
+  on:grabend={handleGrabEnd}
+  data-control-number={elementNumber}
+  data-control-element-type="fader"
+  data-module-id={id}
+  id="fader-cap" 
+  width={size * faderWidth + 'px'} 
+  height={size * faderHeight + 'px'} 
+  viewBox="0 0 24 {faderHeight + 23}" 
+  fill="none" 
+  xmlns="http://www.w3.org/2000/svg"
+  style="overflow:visible;">
   <g id="fader">
     <g id="fader-path" filter="url(#filter0_i)">
       <rect x="9" width="6" height="{faderHeight + 23}" rx="3" fill="white"/>
