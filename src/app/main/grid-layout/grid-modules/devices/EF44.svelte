@@ -52,14 +52,15 @@
   });
 
 
-  onMount(()=>{
+
+  $: if (id){
 
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
     }
 
-  });
+  }
 
 </script>
 
