@@ -383,6 +383,7 @@ function create_runtime () {
 
   function fetchOrLoadConfig (ui, callback) {
     
+    //console.log("Fetch Or Load")
 
     const rt = get(runtime);
 
@@ -392,6 +393,7 @@ function create_runtime () {
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
 
+    //console.log(device, pageIndex, elementIndex, eventIndex)
 
     const cfgstatus = device.pages[pageIndex].control_elements[elementIndex].events[eventIndex].cfgStatus;
 

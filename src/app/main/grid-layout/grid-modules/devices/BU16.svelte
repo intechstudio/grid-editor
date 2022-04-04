@@ -50,13 +50,17 @@
     }
   });
 
-  onMount(()=>{
+
+  $: if (id){
+
     if(id !== undefined && (id.length > 4)){
       dx = +id.split(';')[0].split(':').pop();
       dy = +id.split(';')[1].split(':').pop();
     }
-  });
 
+  }
+
+  
 </script>
 
 
@@ -65,7 +69,7 @@
   <slot></slot>
 
   <div
-    use:select={[id]}
+    use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2 {(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy) ? ' border-gray-500' : 'border-transparent'} " 
     style="--module-size: {moduleWidth+'px'}" 
@@ -79,6 +83,7 @@
               color={ledcolor_array[elementNumber]} 
               size={$appSettings.size}/>
             <Button {elementNumber}
+              id = {id}
               position={elementposition_array[elementNumber]} 
               size={$appSettings.size}/>
           </div>

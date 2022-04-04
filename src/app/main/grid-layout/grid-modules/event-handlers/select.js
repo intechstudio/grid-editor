@@ -1,16 +1,16 @@
 import {get} from 'svelte/store'
 import { user_input } from '../../../../runtime/runtime.store.js';
 
-export function select(node, [moduleId, selectedDisplay]){
+export function select(node){
 
   function handleMousedown(e) {
     if(e.target.ownerSVGElement){
-      
+
       // get controlnumber and eventtype from DOM elemenet
-      const {controlNumber, controlElementType} = e.target.ownerSVGElement.dataset;
+      const {controlNumber, controlElementType, moduleId} = e.target.ownerSVGElement.dataset;
 
       if(controlNumber !== undefined && controlElementType !== undefined){
-        
+
         const dx = moduleId.split(';')[0].split(':').pop();
         const dy = moduleId.split(';')[1].split(':').pop();
 
