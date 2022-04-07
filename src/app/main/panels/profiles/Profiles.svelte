@@ -121,9 +121,7 @@
   })
 
   profileListRefresh.subscribe(store => {
-    console.log("REFRESH")
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
-      console.log("Profilepath", PROFILE_PATH)
       loadFilesFromDirectory();
     }
   })
@@ -374,6 +372,18 @@
     return ok;
   }
 
+
+  function compare( a, b ) {
+    if ( a.name < b.name ){
+      return -1;
+    }
+    if ( a.name > b.name ){
+      return 1;
+    }
+    return 0;
+  }
+
+
   // use:clickOutside={{useCapture: true}}
   // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
 </script>
@@ -440,7 +450,7 @@
           {/if}
           
 
-          {#each PROFILES as profile, i}
+          {#each PROFILES.sort( compare ) as profile, i}
             <li
               on:click={()=>{selected = profile; selectedIndex = i;}}                   
               use:addOnDoubleClick 
