@@ -45,10 +45,19 @@
 
   let PROFILES = [];
 
-  user_input.subscribe(val => {
-    if(val.id){
-      newProfile.type = val.id.substr(0,4);
+  user_input.subscribe(ui => {
+
+    const rt = get(runtime)
+
+    let device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+    if (device === undefined){
+      
+      return;
     }
+
+    newProfile.type = device.id.substr(0,4);
+
   })
 
   async function checkIfWritableDirectory(path){
@@ -391,8 +400,6 @@
 <profiles
 
   class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
-
-
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 

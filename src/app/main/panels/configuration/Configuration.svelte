@@ -76,20 +76,15 @@
 
 
 
-  const active_config = derived([user_input], ([ui]) => {
+  user_input.subscribe(ui=>{
 
-    // whenever the UI changes, reset multiselect
+
     appMultiSelect.reset();
-
-
-    const rt = get(runtime);
-
-
-    // fetch or load config now inline
 
     let config = [];
     let selectedEvent = "";
 
+    const rt = get(runtime);
     const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
 
     if (device === undefined){
@@ -104,7 +99,8 @@
     }
 
 
-    let module_type = ui.id.split("_")[0]
+    let module_type = device.id.split("_")[0]
+
     let element_type = grid.moduleElements[module_type][ui.event.elementnumber]
 
     let pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
@@ -150,7 +146,7 @@
 
     }
 
-    return {
+    let active = {
       elementtype: element_type,
       config: config,
       stringname: "",
@@ -167,11 +163,7 @@
         options: device.pages.map((n) => n.pageNumber)
       }
     }
-  });
 
-
-  // if active_config changes then...
-  active_config.subscribe(active => {
 
     if (active === undefined){
       return;

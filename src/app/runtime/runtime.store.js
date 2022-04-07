@@ -282,8 +282,6 @@ function create_user_input () {
         if (device === undefined){
           return store;
         }
-
-        store.id = device.id
     
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
@@ -293,7 +291,7 @@ function create_user_input () {
         store.event.eventtype = descr.class_parameters.EVENTTYPE;
         store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;   
 
-        let elementtype = grid.moduleElements[store.id.split("_")[0]][store.event.elementnumber]  
+        let elementtype = grid.moduleElements[device.id.split("_")[0]][store.event.elementnumber]  
         store.event.elementtype = elementtype;
 
         return store;
@@ -500,9 +498,8 @@ function create_runtime () {
 
       setTimeout(()=>{
         user_input.update((ui)=>{
-          ui.id = controller.id;
-          ui.dx = controller.dx;
-          ui.dy = controller.dy;
+          ui.brc.dx = controller.dx;
+          ui.brc.dy = controller.dy;
           ui.event.elementnumber = 0;
           ui.event.eventtype = 0;
           return ui;

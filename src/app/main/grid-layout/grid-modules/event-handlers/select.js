@@ -18,11 +18,10 @@ export function select(node){
         // should be probably put into user_input store's functions
         const ui = get(user_input);
 
-        if(ui.event.elementnumber != +controlNumber || ui.id != moduleId){
+        if(ui.event.elementnumber != +controlNumber || ui.brc.dx != dx || ui.brc.dy != dy){
 
           user_input.update((ui) =>{
 
-            ui.id = moduleId;
             ui.brc.dx = +dx;
             ui.brc.dy = +dy;
             ui.event.elementnumber = +controlNumber;
