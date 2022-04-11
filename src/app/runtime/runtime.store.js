@@ -229,7 +229,7 @@ function create_user_input () {
   const _event = writable({...defaultValues});
   
 
-  function process_incoming_from_grid(descr){
+  function process_incoming_event_from_grid(descr){
 
     // engine is disabled
     if ( get(engine) === "DISABLED"){
@@ -342,7 +342,7 @@ function create_user_input () {
     ..._event,
     subscribe: _event.subscribe,
     update: _event.update,
-    process_incoming_from_grid: process_incoming_from_grid,
+    process_incoming_event_from_grid: process_incoming_event_from_grid,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     module_destroy_handler: module_destroy_handler,
@@ -388,6 +388,9 @@ function create_runtime () {
     const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
     const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+
+    if (device.pages[pageIndex].control_elements[elementIndex] === undefined) return;
+
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
 
@@ -908,12 +911,6 @@ function create_runtime () {
       writeBuffer.clear();
 
       instructions.changeActivePage(new_page_number);
-
-      //After page change set user_input so it does not get cleared from writebuffer
-      li.event.pagenumber = new_page_number;
-
-      user_input.set(li);
-
 
     }
  

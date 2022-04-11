@@ -51,11 +51,27 @@ function createMessageStream(){
 
 
         // update active element selection
-        user_input.process_incoming_from_grid(class_descr);
+        user_input.process_incoming_event_from_grid(class_descr);
       }
 
       if (class_descr.class_name === "PAGEACTIVE" &&  class_descr.class_instr === "EXECUTE"){
-        runtime.change_page(class_descr.class_parameters.PAGENUMBER);
+        //console.log("PAGE")
+        //runtime.change_page(class_descr.class_parameters.PAGENUMBER);
+      }
+      if (class_descr.class_name === "PAGEACTIVE" &&  class_descr.class_instr === "REPORT"){
+
+      //After page change set user_input so it does not get cleared from writebuffer
+
+        
+        if (get(user_input).event === undefined) return;
+
+        //return;
+        if (get(user_input).event.pagenumber !== class_descr.class_parameters.PAGENUMBER){
+
+          user_input.update(s=>{s.event.pagenumber = class_descr.class_parameters.PAGENUMBER; return s;})
+        }
+
+
       }
 
 
