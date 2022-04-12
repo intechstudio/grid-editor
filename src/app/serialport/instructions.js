@@ -37,15 +37,15 @@ const instructions = {
     // Only add heatbeat into the write buffer if it is not in it already
     if (get(writeBuffer).length>0){
 
-      if (get(writeBuffer)[get(writeBuffer).length-1].descr.class_name !== "HEARTBEAT"){
+      if (get(writeBuffer)[0].descr.class_name !== "HEARTBEAT"){
 
-        writeBuffer.add_last(buffer_element);
+        writeBuffer.add_first(buffer_element);
       }
       else{
       }
     }
     else{
-      writeBuffer.add_last(buffer_element);
+      writeBuffer.add_first(buffer_element);
 
     }
 

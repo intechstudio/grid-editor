@@ -190,7 +190,7 @@ function init_appsettings(){
         }
 
         s.persistant[key] = value;
-        console.log("init", key, value);
+        //console.log("init", key, value);
     
       });
 

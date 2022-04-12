@@ -113,7 +113,7 @@ function createWriteBuffer (){
     } else {
       active_elem = undefined;
       write_buffer_busy = false;
-      writeBufferTryNext();
+      //writeBufferTryNext();
     }
 
   };
