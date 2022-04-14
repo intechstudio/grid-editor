@@ -9,24 +9,24 @@ export function sendHeartbeat(type){
 
   
   instructions.sendEditorHeartbeat_immediate(type)
-  writeBuffer.writeBufferTryNext();
 
 }
 
+
 function createWriteBuffer (){
 
-  const messages = writable([]);
-
-  let _write_buffer = [];
+  let _write_buffer = writable([]);
 
   let write_buffer_busy = false;
 
   let active_elem = undefined;
 
+
+
   function module_destroy_handler(dx, dy){
 
     // remove all of the elements that match the destroyed module's dx dy
-    _write_buffer = _write_buffer.filter(g => (g.descr.brc_parameters.DX!= dx || g.descr.brc_parameters.DY != dy));
+    _write_buffer.update(s=>s.filter(g => (g.descr.brc_parameters.DX!= dx || g.descr.brc_parameters.DY != dy)));
 
     // clear the active element if it matches the destroyed module's dx dy
     if (active_elem !== undefined){
@@ -37,16 +37,13 @@ function createWriteBuffer (){
       }
 
     }
-
-
-
   }
 
   function clear(){
 
     console.log("clear")
+    _write_buffer.set([])
 
-    _write_buffer = [];
     active_elem = undefined;
     write_buffer_busy = false;
     clearInterval(_fetch_timeout);
@@ -74,19 +71,19 @@ function createWriteBuffer (){
 
   function writeBufferTryNext() {
 
+    if(write_buffer_busy || get(_write_buffer).length == 0) return;
 
-    if(write_buffer_busy || _write_buffer.length == 0) return;
 
     if (serial_write_islocked() === true){
-      console.log("LOCK", _write_buffer.length)
+      console.log("LOCK", get(_write_buffer).length)
       return;
     }
 
-
     write_buffer_busy = true;
 
-    active_elem = _write_buffer[0];
+    active_elem = get(_write_buffer)[0];
 
+    if (active_elem === undefined) return;
 
     // create and send serial, save the ID for validation
     const { id } = sendDataToGrid(active_elem.descr);
@@ -105,9 +102,7 @@ function createWriteBuffer (){
 
     }
 
-    
-
-    _write_buffer.shift();
+    _write_buffer.update(s=>{s.shift(); return s})
 
     if(active_elem.responseRequired === true){
 
@@ -118,7 +113,7 @@ function createWriteBuffer (){
     } else {
       active_elem = undefined;
       write_buffer_busy = false;
-      writeBufferTryNext();
+      //writeBufferTryNext();
     }
 
   };
@@ -192,20 +187,22 @@ function createWriteBuffer (){
   }
 
   function add_first(obj){
-    _write_buffer.splice(0,0,obj);
+
+    _write_buffer.update(s=> [obj, ...s])
     writeBufferTryNext();
   }
 
   function add_last(obj){
-    _write_buffer = [..._write_buffer, obj];
+    
+    _write_buffer.update(s=> [...s, obj])
     writeBufferTryNext();
   }
 
   
 
   return {
+    subscribe: _write_buffer.subscribe,
     writeBufferTryNext: writeBufferTryNext,
-    messages: messages,
     add_first: add_first,
     add_last: add_last,
     validate_incoming: validateIncoming,

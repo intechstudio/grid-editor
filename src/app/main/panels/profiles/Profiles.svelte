@@ -45,10 +45,19 @@
 
   let PROFILES = [];
 
-  user_input.subscribe(val => {
-    if(val.id){
-      newProfile.type = val.id.substr(0,4);
+  user_input.subscribe(ui => {
+
+    const rt = get(runtime)
+
+    let device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+    if (device === undefined){
+      
+      return;
     }
+
+    newProfile.type = device.id.substr(0,4);
+
   })
 
   async function checkIfWritableDirectory(path){
@@ -121,9 +130,7 @@
   })
 
   profileListRefresh.subscribe(store => {
-    console.log("REFRESH")
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
-      console.log("Profilepath", PROFILE_PATH)
       loadFilesFromDirectory();
     }
   })
@@ -374,6 +381,18 @@
     return ok;
   }
 
+
+  function compare( a, b ) {
+    if ( a.name < b.name ){
+      return -1;
+    }
+    if ( a.name > b.name ){
+      return 1;
+    }
+    return 0;
+  }
+
+
   // use:clickOutside={{useCapture: true}}
   // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
 </script>
@@ -381,8 +400,6 @@
 <profiles
 
   class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
-
-
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 
@@ -440,7 +457,7 @@
           {/if}
           
 
-          {#each PROFILES as profile, i}
+          {#each PROFILES.sort( compare ) as profile, i}
             <li
               on:click={()=>{selected = profile; selectedIndex = i;}}                   
               use:addOnDoubleClick 

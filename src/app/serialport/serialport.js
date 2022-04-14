@@ -9,6 +9,7 @@ const { ReadlineParser } = require('@serialport/parser-readline');
 import { messageStream } from './message-stream.store.js';  
 
 import { appSettings } from '../runtime/app-helper.store.js';
+import { writeBuffer } from '../runtime/engine.store.js';
 
 import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.store.js';
 
@@ -58,53 +59,6 @@ export async function testIt() {
 
         port_connected = true;
   
-        const appendStream = new WritableStream({
-        
-          write(chunk) {
-            
-            try {
-              lineBuffer += chunk;
-  
-              let lines = lineBuffer.split('\n');
-    
-              if (lines.length > 1) {
-                lineBuffer = lines.pop();
-    
-                let foo = lines.pop()
-                //console.log("RX: "+ foo)
-    
-                let asciicode_array = [];
-                let buffer = Buffer.from(foo, 'ascii');
-                for (let i = 0; i < buffer.length; i++) {
-                  asciicode_array.push(buffer[i]);
-                }
-    
-                debug_lowlevel_store.push_inbound(asciicode_array)
-    
-                let class_array = grid.decode_packet_frame(asciicode_array);
-                grid.decode_packet_classes(class_array);
-              
-                if(class_array !== false){
-                  messageStream.deliver_inbound(class_array);   
-                }
-    
-              }
-            } catch (error) {
-              console.log(error)
-            }
-
-          },
-          close(){
-            console.log("CLOSE")
-          },
-          abort(e){
-            console.log("Error: ", e)
-          }
-
-        });
-
-        console.log(port.readable)
-
         fetchStream()
     
         // port.readable
@@ -123,10 +77,6 @@ export async function testIt() {
       //console.log(error)
     });
 
-
-
-
-
   }
 
   return false;
@@ -143,7 +93,6 @@ function fetchStream() {
     return;
   }
 
-  console.log( navigator.intechPort.readable)
   const reader = navigator.intechPort.readable.getReader();
   let charsReceived = 0;
   let rxBuffer = []
@@ -244,11 +193,6 @@ export async function serial_write(param){
     return false;
   }
 
-  param.push(10)
-
-  debug_lowlevel_store.push_outbound(param)
-
-
 
   if (navigator.intechPort === undefined || navigator.intechPort === null ){
     return false;
@@ -258,6 +202,9 @@ export async function serial_write(param){
     return false;
   }  
 
+  param.push(10)
+
+  debug_lowlevel_store.push_outbound(param)
 
 
   let port = navigator.intechPort
@@ -276,6 +223,8 @@ export async function serial_write(param){
   writer.write(data).then(e => {
     // Allow the serial port to be closed later.
     writer.releaseLock();
+    writeBuffer.writeBufferTryNext();
+
   }).catch(e => {
     console.log(e)
   })

@@ -229,7 +229,7 @@ function create_user_input () {
   const _event = writable({...defaultValues});
   
 
-  function process_incoming_from_grid(descr){
+  function process_incoming_event_from_grid(descr){
 
     // engine is disabled
     if ( get(engine) === "DISABLED"){
@@ -282,8 +282,6 @@ function create_user_input () {
         if (device === undefined){
           return store;
         }
-
-        store.id = device.id
     
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
@@ -293,7 +291,7 @@ function create_user_input () {
         store.event.eventtype = descr.class_parameters.EVENTTYPE;
         store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;   
 
-        let elementtype = grid.moduleElements[store.id.split("_")[0]][store.event.elementnumber]  
+        let elementtype = grid.moduleElements[device.id.split("_")[0]][store.event.elementnumber]  
         store.event.elementtype = elementtype;
 
         return store;
@@ -344,7 +342,7 @@ function create_user_input () {
     ..._event,
     subscribe: _event.subscribe,
     update: _event.update,
-    process_incoming_from_grid: process_incoming_from_grid,
+    process_incoming_event_from_grid: process_incoming_event_from_grid,
     update_eventtype: update_eventtype,
     update_elementnumber: update_elementnumber,
     module_destroy_handler: module_destroy_handler,
@@ -390,6 +388,9 @@ function create_runtime () {
     const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
     const pageIndex = device.pages.findIndex(x => x.pageNumber == ui.event.pagenumber);
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(x => x.controlElementNumber == ui.event.elementnumber);
+
+    if (device.pages[pageIndex].control_elements[elementIndex] === undefined) return;
+
     const eventIndex = device.pages[pageIndex].control_elements[elementIndex].events.findIndex(x => x.event.value == ui.event.eventtype);
 
 
@@ -500,9 +501,8 @@ function create_runtime () {
 
       setTimeout(()=>{
         user_input.update((ui)=>{
-          ui.id = controller.id;
-          ui.dx = controller.dx;
-          ui.dy = controller.dy;
+          ui.brc.dx = controller.dx;
+          ui.brc.dy = controller.dy;
           ui.event.elementnumber = 0;
           ui.event.eventtype = 0;
           return ui;
@@ -911,12 +911,6 @@ function create_runtime () {
       writeBuffer.clear();
 
       instructions.changeActivePage(new_page_number);
-
-      //After page change set user_input so it does not get cleared from writebuffer
-      li.event.pagenumber = new_page_number;
-
-      user_input.set(li);
-
 
     }
  

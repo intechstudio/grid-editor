@@ -20,7 +20,7 @@
 
 <div id="modal-copy-placeholder"></div>
 
-<modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
+<modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-secondary bg-opacity-50">
 
   <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
     class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
