@@ -465,9 +465,7 @@
               class="{selectedIndex == i ? 'border-pick bg-secondary' : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'} border-l-4 profile p-2 my-2 cursor-pointer relative">
               <div class="w-full">{profile.name}</div> 
               
-              <div
-                in:fade
-                class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0" on:click={()=>{profile.showMore = !profile.showMore;}}>{profile.showMore?"▲":"▼"}</div>
+
             
               {#if (profile.showMore === true)}
                 <textarea                   
@@ -483,6 +481,12 @@
                 <div class="m-1 flex justify-center text-center rounded-full px-2 inline-block bg-gray-900"> v{profile.version.major}.{profile.version.minor}.{profile.version.patch}</div>
                 <div class="m-1 flex justify-center text-center rounded-full px-2 inline-block" style="background-color: {profile.color}"> by {profile.folder}</div>
               
+              </div>
+
+              <div
+                in:fade
+                class="opacity-10  w-6 h-6 bg-primary absolute  hover:opacity-70 text-center right-0 bottom-0" on:click={()=>{profile.showMore = !profile.showMore;}}>
+                {profile.showMore?"▲":"▼"}
               </div>
 
             </li>
