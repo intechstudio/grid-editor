@@ -127,25 +127,44 @@ export function update_elementPositionStore(descr){
 
   elementPositionStore.set(eps);
 
-  // mocking led color values
-
-  let lcs = get(ledColorStore);
-  if (lcs[descr.brc_parameters.SX] === undefined){
-    lcs[descr.brc_parameters.SX] = {};
-  }
-  if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
-    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
-  }
-  if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] === undefined){
-    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER] = [0,0,0];
-  }
-
-  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][0] = 0.1*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][1] = 0.4*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-  lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER][2] = 0.8*eps[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.ELEMENTNUMBER]*2;
-
-  ledColorStore.set(lcs);
 }
+
+export function update_ledColorStore(descr) {
+
+
+  for (let i=0; i<descr.class_parameters.LENGTH/8; i++){
+
+    const num = parseInt("0x"+String.fromCharCode(descr.raw[8+i*8+0]) + String.fromCharCode(descr.raw[8+i*8+1]))
+    const red = parseInt("0x"+String.fromCharCode(descr.raw[8+i*8+2]) + String.fromCharCode(descr.raw[8+i*8+3]))
+    const gre = parseInt("0x"+String.fromCharCode(descr.raw[8+i*8+4]) + String.fromCharCode(descr.raw[8+i*8+5]))
+    const blu = parseInt("0x"+String.fromCharCode(descr.raw[8+i*8+6]) + String.fromCharCode(descr.raw[8+i*8+7]))
+  
+    //console.log(num, red, gre, blu)
+  
+    let lcs = get(ledColorStore);
+  
+    if (lcs[descr.brc_parameters.SX] === undefined){
+      lcs[descr.brc_parameters.SX] = {};
+    }
+    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+    }
+    if (lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined){
+      lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = [0,0,0];
+    }
+  
+  
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][0] = red*4;
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][1] = gre*4;
+    lcs[descr.brc_parameters.SX][descr.brc_parameters.SY][num][2] = blu*4;
+  
+    ledColorStore.set(lcs);
+
+
+  }
+
+}
+
 
 function createLogger(){
   const _log_store = writable({type:'', message: '', classname: ''});

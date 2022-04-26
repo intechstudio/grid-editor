@@ -1,7 +1,7 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
 import { writeBuffer } from '../runtime/engine.store';
-import { debug_store, runtime, user_input, update_elementPositionStore } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input, update_elementPositionStore, update_ledColorStore } from '../runtime/runtime.store';
 
 import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
 import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
@@ -29,6 +29,10 @@ function createMessageStream(){
 
       if(class_descr.class_name === "DEBUGTEXT"){
         debug_monitor_store.update_debugtext(class_descr);
+      }
+
+      if(class_descr.class_name === "LEDPREVIEW"){
+        update_ledColorStore(class_descr);
       }
 
       if(class_descr.class_name === "MIDI" || class_descr.class_name === "MIDISYSEX" ){
