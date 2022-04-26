@@ -829,6 +829,8 @@ const grid = {
       if (class_name_from_code[class_code_string] !== undefined){
 
         raw_class.class_name = class_name_from_code[class_code_string];
+
+
         raw_class.class_instr = instr_name_from_code[class_instr_string];
 
         raw_class.class_parameters = {};
