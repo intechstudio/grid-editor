@@ -245,24 +245,27 @@
 
           {#each action_options as option }
 
-            <div class="text-gray-500 text-sm">{option.category}</div>
-            
-            <div class="w-full flex justify-start py-1 h-full flex-wrap">   
+            {#if option.category!='special'}
 
-              {#each option.collection as action}
-                <div 
-                  style="--action-color: {action.color};"
-                  use:addOnDoubleClick 
-                  on:click={()=>{pickAction(action)}}
-                  on:double-click={closeActionPicker} 
-                  class="action-card {selected_action == action.desc ? ' border-pick' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white">
-                    <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
-                    <div class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25">{action.desc}</div> 
-                </div>
+              <div class="text-gray-500 text-sm">{option.category}</div>
+              
+              <div class="w-full flex justify-start py-1 h-full flex-wrap">   
 
-              {/each}
+                {#each option.collection as action}
+                  <div 
+                    style="--action-color: {action.color};"
+                    use:addOnDoubleClick 
+                    on:click={()=>{pickAction(action)}}
+                    on:double-click={closeActionPicker} 
+                    class="action-card {selected_action == action.desc ? ' border-pick' : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white">
+                      <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
+                      <div class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25">{action.desc}</div> 
+                  </div>
 
-            </div>
+                {/each}
+
+              </div>
+            {/if}
 
           {/each}
 

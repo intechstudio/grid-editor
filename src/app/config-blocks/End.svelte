@@ -4,6 +4,7 @@
     short: 'en',
     name: 'End',
     rendering: 'modifier',
+    rounding: 'bottom',
     category: 'condition',
     desc: 'End',
     defaultLua: 'end',

@@ -41,7 +41,6 @@ function createWriteBuffer (){
 
   function clear(){
 
-    console.log("clear")
     _write_buffer.set([])
 
     active_elem = undefined;

@@ -39,12 +39,13 @@ export function changeOrder(node, {configs}) {
 
     const matchLookup = {
       "If": "End", 
+      "EncoderPushRot": "End", 
     };
 
     for (let i = 0; i < _cfgs_length; i++) {
       if(!skipSelection){
         current = _cfgs[i].information.name; //easier than writing it over and over      
-        if (current === 'If') {
+        if (current === 'If' || current === 'EncoderPushRot') {
           stack.push(current);
         } else if (current === 'End') {
           const lastBracket = stack.pop();
@@ -158,7 +159,7 @@ export function changeOrder(node, {configs}) {
       // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
       const component = dragged.getAttribute('config-component');
 
-      if(component == 'If'){
+      if(component == 'If' || component == 'EncoderPushRot'){
         const _id = id.substr(4,);
         const nodes = _configs.slice(_id);
         const end_of_if = if_end_pairs(_configs, _id);
@@ -198,7 +199,7 @@ export function changeOrder(node, {configs}) {
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
-        if(id.startsWith('cfg-') && e.target.getAttribute('config-component') !== 'If' && e.target.getAttribute('config-component') !== 'Then'){
+        if(id.startsWith('cfg-') && (e.target.getAttribute('config-component') !== 'If' && e.target.getAttribute('config-component') !== 'EncoderPushRot' ) && e.target.getAttribute('config-component') !== 'Then'){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -211,7 +212,7 @@ export function changeOrder(node, {configs}) {
         }
         
 
-        if(e.target.getAttribute('config-component') == 'If'){
+        if(e.target.getAttribute('config-component') == 'If' || e.target.getAttribute('config-component') == 'EncoderPushRot' ){
           drop_target = Number(id.substr(4,)) - 1;
         };
         
