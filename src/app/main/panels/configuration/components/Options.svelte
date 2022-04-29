@@ -22,7 +22,7 @@
     // lookbefore
     const lookbefore  = configs.slice(0,index).reverse();
 
-    const if_index  = lookbefore.findIndex(a => a.information.name == 'If');
+    const if_index  = lookbefore.findIndex(a => a.information.name == 'If' || a.information.name == 'EncoderPushRot');
     const end_index = lookbefore.findIndex(a => a.information.name == 'End');
 
     if(if_index !== -1 && end_index !== -1){
@@ -56,12 +56,13 @@
 
     const matchLookup = {
       "If": "End", 
+      "EncoderPushRot": "End"
     };
 
     for (let i = 0; i < _configs_length; i++) {
       if(!skipSelection){
         current = _configs[i].information.name; //easier than writing it over and over      
-        if (current === 'If') {
+        if (current === 'If' || current === 'EncoderPushRot') {
           stack.push(current);
         } else if (current === 'End') {
           const lastBracket = stack.pop();
@@ -98,7 +99,7 @@
         {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
-{:else if (componentName == 'If' && true) && showSelectBox}
+{:else if (componentName == 'If' || componentName == 'EncoderPushRot') && showSelectBox}
   <select-box class="flex pl-2 justify-center items-center bg-transparent">
     <div 
       on:click={()=>{handleMultiSelect()}} 

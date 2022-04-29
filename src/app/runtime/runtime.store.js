@@ -1027,8 +1027,14 @@ const editor_heartbeat_interval_handler = async function(){
     type = 254
   }
 
+  if (get(runtime).length>0){
 
-  sendHeartbeat(type)
+    sendHeartbeat(type)
+  }
+  else{
+    writeBuffer.clear()
+  }
+
 
 
 }

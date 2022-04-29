@@ -78,5 +78,7 @@ export const tooltip_content = {
     "sidebar_preferences_icon": "Here you can change your Grid Editor settings.",
     "sidebar_profiles_icon": "You can manage locally stored configurations here.",
     "sidebar_debugger_icon": "Here you can access the debugger window for troubleshooting purposes.",
-    "sidebar_midi_monitor_icon": "Here you can access the MIDI monitor for MIDI message-specific troubleshooting."
+    "sidebar_midi_monitor_icon": "Here you can access the MIDI monitor for MIDI message-specific troubleshooting.",
+
+    "engine_clear": "Clear the writebuffer and re-enable the engine!"
 }

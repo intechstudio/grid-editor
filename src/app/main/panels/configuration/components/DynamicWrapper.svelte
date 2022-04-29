@@ -92,19 +92,19 @@
 </script>
 
 
-<wrapper bind:this={$configNodeBinding[config.id]} class="flex border-none outline-none transition-opacity duration-300">
+<wrapper bind:this={$configNodeBinding[config.id]} class="{config.information.rounding == 'top'?"rounded-tl-2xl ":""} {config.information.rounding == 'bottom'?"rounded-bl-2xl ":""} overflow-hidden flex border-none outline-none transition-opacity duration-300">
 
       <carousel 
 
-        class="flex flex-grow text-white {config.information.rendering == 'standard' ||  config.information.name == "If"?'cursor-pointer':''}  group"
+        class=" flex flex-grow text-white {config.information.rendering == 'standard' ||  config.information.name == "If" ||  config.information.name == "EncoderPushRot"?'cursor-pointer':''}  group"
         id="cfg-{index}" 
-        movable={config.information.rendering == 'standard' ||  config.information.name == "If"} 
+        movable={config.information.rendering == 'standard' ||  config.information.name == "If" ||  config.information.name == "EncoderPushRot"} 
         config-component={config.information.name} 
         config-id={config.id}>
 
           <div 
             on:click={()=>{toggle = ! toggle;}}
-            class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative ">
+            class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative">
             <icon style="background-color:{config.information.color}" class="flex group-hover:bg-opacity-75 items-center p-2">
 
                 {#if config.information.rendering == 'standard'}
