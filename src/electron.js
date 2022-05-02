@@ -342,6 +342,7 @@ autoUpdater.on('update-downloaded', () => {
 });
 
 ipcMain.on('restart_app', () => {
+  mainWindow.setClosable(true);
   autoUpdater.quitAndInstall();
 });
 
