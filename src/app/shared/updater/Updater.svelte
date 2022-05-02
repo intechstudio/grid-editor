@@ -38,10 +38,8 @@
 
 
 </script>
-
-
-<button on:click={restartApp}>restart</button>
-{#if updateNotification} <!--updateNotification-->
+ <!--updateNotification-->
+{#if updateNotification}
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
       <div id="notification" style="width:300px" class="p-4 rounded-lg">    
 
