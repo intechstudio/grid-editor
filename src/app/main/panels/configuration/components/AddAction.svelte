@@ -12,7 +12,7 @@
 
   import { get } from 'svelte/store';
   
-  import { appActionClipboard, appMultiSelect } from '../../../../runtime/runtime.store';
+  import { appActionClipboard, appMultiSelect, user_input } from '../../../../runtime/runtime.store';
 
   import { addOnDoubleClick } from '../../../_actions/add-on-double-click';
   
@@ -20,6 +20,7 @@
  
   import { analytics } from "../../../../runtime/analytics_influx"
  
+  import grid from "../../../../protocol/grid-protocol"
 
 
   export let animation = false;
@@ -93,7 +94,7 @@
 
     try {
 
-      const sorting_array = ['variables', 'led', 'midi', 'keyboard', 'mouse', 'element settings', 'condition', 'code', 'timer' ];
+      const sorting_array = ['variables', 'led', 'midi', 'keyboard', 'mouse', 'element settings', 'condition', 'special', 'code', 'timer' ];
 
       const condition_sorting = ['if', 'ei', 'el', 'en'];
 
@@ -107,15 +108,49 @@
 
       let object = {};
 
+
+      const li = get(user_input);
+      const eventtype = parseInt(li.event.eventtype);
+
+      console.log("EVENTTYPE", eventtype)
+
       blocks.forEach((elem)=>{
 
-        // check if we already got this type of category in obj
-        if (!(elem.category in object)){
-          object[elem.category] = [];
+        if (elem.category === null){
+          return;
         }
 
-        // push to category
-        object[elem.category].push(elem);
+        let found = false;
+
+        console.log(elem.eventtype)
+        // check if compatible events are defined in the action component
+        if (elem.eventtype !== undefined){
+
+          elem.eventtype.forEach(ev=>{
+            console.log("HELLO", ev, eventtype)
+            if (ev === eventtype){
+              found = true;
+              console.log("FOUND")
+            }
+          })
+        }
+
+        if (elem.eventtype === undefined || found){
+
+          // check if we already got this type of category in obj
+          if (!(elem.category in object)){
+            object[elem.category] = [];
+          }
+
+          // push to category
+          object[elem.category].push(elem);
+
+        }
+
+        if (elem.eventtype === eventtype){
+
+
+        }
 
       });
 
@@ -245,7 +280,7 @@
 
           {#each action_options as option }
 
-            {#if option.category!='special'}
+            {#if option.category!='special' || 1}
 
               <div class="text-gray-500 text-sm">{option.category}</div>
               

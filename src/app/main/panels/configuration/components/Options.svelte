@@ -23,7 +23,7 @@
     const lookbefore  = configs.slice(0,index).reverse();
 
     const if_index  = lookbefore.findIndex(a => a.information.name == 'If' || a.information.name == 'EncoderPushRot');
-    const end_index = lookbefore.findIndex(a => a.information.name == 'End');
+    const end_index = lookbefore.findIndex(a => a.information.name == 'End' || a.information.name == 'EncoderPushRotEnd');
 
     if(if_index !== -1 && end_index !== -1){
       if(if_index < end_index){
@@ -56,7 +56,7 @@
 
     const matchLookup = {
       "If": "End", 
-      "EncoderPushRot": "End"
+      "EncoderPushRot": "EncoderPushRotEnd"
     };
 
     for (let i = 0; i < _configs_length; i++) {
@@ -64,7 +64,7 @@
         current = _configs[i].information.name; //easier than writing it over and over      
         if (current === 'If' || current === 'EncoderPushRot') {
           stack.push(current);
-        } else if (current === 'End') {
+        } else if (current === 'End' || current === 'EncoderPushRotEnd') {
           const lastBracket = stack.pop();
           if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
             return false; //terminate immediately - no need to continue scanning the string
@@ -73,7 +73,7 @@
 
         arr.push(_configs[i]);        
 
-        if(stack.length == 0 && current == 'End'){
+        if(stack.length == 0 && (current == 'End' || current === 'EncoderPushRotEnd')){
           skipSelection = true;
         }
       }

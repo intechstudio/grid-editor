@@ -4,8 +4,9 @@
     short: 'ei',
     name: 'ElseIf',
     rendering: 'modifier',
+    hiddenIcon: true,
     category: 'condition',
-    desc: 'Else If',
+    desc: 'Else IF',
     defaultLua: 'else if  then',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,7 +31,14 @@
 
   import LineEditor from '../main/user-interface/LineEditor.svelte'
 
+  import { appSettings, windowSize } from "../runtime/app-helper.store";
+
   let sidebarWidth;
+
+  $: if(windowSize.rightSidebarWidth){
+    sidebarWidth = windowSize.rightSidebarWidth
+  }
+
 
   let loaded = false;
 
@@ -54,19 +62,19 @@
   
 </script>
 
-<svelte:window bind:innerWidth={sidebarWidth} />
+
+<if-block class="w-full h-fit flex text-white py-1">
+
+    <div class="bg-secondary p-1 my-auto mr-1 rounded flex  items-center  w-full" >
+      <LineEditor
+        on:output={(e)=>{sendData(e.detail.script)}}
+        {access_tree}
+        {sidebarWidth}
+        value={scriptSegment}
+      />
+    </div>
 
 
-<elseif-block class="w-full h-fit flex flex-col py-1 text-white" style="min-height: 2.5rem; background: {information.color};">
-
-  <div class="bg-secondary p-1 my-auto mr-1 rounded" >
-    <LineEditor
-      on:output={(e)=>{sendData(e.detail.script)}}
-      {access_tree}
-      {sidebarWidth}
-      value={scriptSegment}
-    />
-  </div>
 
 
-</elseif-block>
+</if-block>

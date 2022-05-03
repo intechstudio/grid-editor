@@ -92,32 +92,60 @@
 </script>
 
 
-<wrapper bind:this={$configNodeBinding[config.id]} class="{config.information.rounding == 'top'?"rounded-tl-2xl ":""} {config.information.rounding == 'bottom'?"rounded-bl-2xl ":""} overflow-hidden flex border-none outline-none transition-opacity duration-300">
+<wrapper bind:this={$configNodeBinding[config.id]} class=" flex border-none outline-none transition-opacity duration-300">
 
       <carousel 
 
-        class=" flex flex-grow text-white {config.information.rendering == 'standard' ||  config.information.name == "If" ||  config.information.name == "EncoderPushRot"?'cursor-pointer':''}  group"
+        class=" flex flex-grow text-white cursor-pointer group"
         id="cfg-{index}" 
         movable={config.information.rendering == 'standard' ||  config.information.name == "If" ||  config.information.name == "EncoderPushRot"} 
         config-component={config.information.name} 
         config-id={config.id}>
 
-          <div 
-            on:click={()=>{toggle = ! toggle;}}
-            class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative">
-            <icon style="background-color:{config.information.color}" class="flex group-hover:bg-opacity-75 items-center p-2">
+          {#if config.information.rendering == 'standard'}
+        
+            <div 
+              on:click={()=>{toggle = ! toggle;}}
+              class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative">
+              
+              
+                <icon style="background-color:{config.information.color}" class="flex group-hover:bg-opacity-75 items-center p-2">
 
-                {#if config.information.rendering == 'standard'}
-                  <div class="w-6 h-6">
-                    {@html config.information.icon ? config.information.icon : ' '}        
-                  </div> 
-                {:else}
-                  <div class="h-6" style="min-width: 1.5rem;">
-                    <b style="white-space: nowrap">{config.information.desc.toUpperCase()}</b>
-                  </div>   
-                {/if}           
-            </icon>
-          </div>
+                      <div class="w-6 h-6">
+                        {@html config.information.icon ? config.information.icon : ' '}        
+                      </div>    
+                </icon>  
+            </div>
+
+          {:else}
+
+            <div 
+              style="background-color:{config.information.color}" 
+              class="{disable_pointer_events ? 'pointer-events-none' : ''} {config.information.rounding == 'top'?"rounded-tl-2xl ":""} {config.information.rounding == 'bottom'?"rounded-bl-2xl ":""} flex flex-row w-full min-h-fit">
+
+              <icon class="flex items-center p-2 {config.information.hiddenIcon?" hidden ":" "}">
+          
+                <div class="w-6 h-6">
+                  {@html config.information.icon ? config.information.icon : ' '}        
+                </div>    
+              </icon>
+          
+              <div style="white-space: nowrap" class="mx-2 flex items-center">{config.information.desc}</div> 
+
+                <svelte:component 
+                  this={config.component} 
+                  {index} {config} {access_tree} 
+                  on:replace={(e)=>{replace_me(e)}}
+                  on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
+                />
+
+
+          
+            </div>  
+
+          {/if}      
+
+
 
           {#if !toggle && config.information.rendering == 'standard' }
             <name on:click={()=>{toggle = true;}}  class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2">
@@ -127,7 +155,7 @@
       
       </carousel>
           
-      {#if toggle || config.information.rendering != 'standard' }
+      {#if toggle }
       
         <container in:slide={{duration: animationDuration}} class=" w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
           <fader-transition class="w-full" in:fade={{delay: animationDuration, duration: animationDuration}} >

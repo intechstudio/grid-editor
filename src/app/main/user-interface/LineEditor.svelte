@@ -106,8 +106,8 @@
 
 
 <div
-on:click|preventDefault={()=>{console.log("dragstart")}}
-on:mousedown|preventDefault={()=>{console.log("dragstop")}}
+on:click|preventDefault={()=>{}}
+on:mousedown|preventDefault={()=>{}}
 bind:this={monaco_block} class="line-editor w-full justify-between"></div>
 
 
