@@ -56,7 +56,7 @@
     const event = li.event.eventtype;
     const actionstring = _utils.configMerge({config: configs});
 
-    if(configName == 'End' || configName == 'Else'){
+    if(configName == 'End' || configName == 'Else' || configName == 'EncoderPushRotElse' || configName == 'EncoderPushRotEnd'){
       runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
 
     } else {
