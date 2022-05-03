@@ -39,7 +39,7 @@ export function changeOrder(node, {configs}) {
 
     const matchLookup = {
       "If": "End", 
-      "EncoderPushRot": "End", 
+      "EncoderPushRot": "EncoderPushRotEnd", 
     };
 
     for (let i = 0; i < _cfgs_length; i++) {
@@ -47,7 +47,7 @@ export function changeOrder(node, {configs}) {
         current = _cfgs[i].information.name; //easier than writing it over and over      
         if (current === 'If' || current === 'EncoderPushRot') {
           stack.push(current);
-        } else if (current === 'End') {
+        } else if (current === 'End' || current === 'EncoderPushRotEnd') {
           const lastBracket = stack.pop();
           if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
             return false; //terminate immediately - no need to continue scanning the string
@@ -56,7 +56,7 @@ export function changeOrder(node, {configs}) {
 
         arr.push(_cfgs[i]);        
 
-        if(stack.length == 0 && current == 'End'){
+        if(stack.length == 0 && (current == 'End' || current === 'EncoderPushRotEnd')){
           skipSelection = true;
         }
       }
