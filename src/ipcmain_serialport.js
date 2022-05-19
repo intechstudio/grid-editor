@@ -26,7 +26,7 @@ async function listSerialPorts(){
   if (serial.mainWindow !== undefined){
     
     try{
-      let foo = await serial.mainWindow.webContents.executeJavaScript(`navigator.intechConnect()`, true)
+      let foo = await serial.mainWindow.webContents.executeJavaScript(`if(navigator.intechConnect){navigator.intechConnect()}`, true)
       //console.log(foo)
     }catch(e){
       console.log(e)
