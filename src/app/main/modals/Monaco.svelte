@@ -161,7 +161,7 @@
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
 
   <div use:clickOutside={{useCapture:true}} on:click-outside={clickOutsideHandler}   id="clickbox" 
-  class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
+  class=" z-50 w-3/4 h-3/4 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
     <div class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center">
 
@@ -204,7 +204,7 @@
 
     </div>
 
-    <div bind:this={scrollDown} class="flex-col  w-full h-full flex overflow-y-scroll bg-secondary">  
+    <div bind:this={scrollDown} class="flex-col  w-full h-1/3 flex overflow-y-scroll bg-secondary">  
   
         {#each $debug_monitor_store as debug, i}
           <span class="debugtexty px-1 py-1 font-mono text-white ">{debug}</span>
