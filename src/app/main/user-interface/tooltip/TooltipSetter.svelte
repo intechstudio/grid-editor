@@ -115,7 +115,14 @@
 
     let child = parent.firstChild
 
+
+
     while(child) {
+
+      if (child.classList === undefined){
+        parent.click();
+        return;
+      }
 
       if (child.classList.contains("tooltipconfirm")){
         // tooltipconfirm sibling found, so trigger that
