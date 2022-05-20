@@ -10,6 +10,10 @@
 
   import {appSettings, windowSize} from "../../../runtime/app-helper.store"
 
+
+
+  import {clickOutside} from '../../_actions/click-outside.action'
+
   export let key = '';
 
   const TOOLTIP_MAX_HEIGHT = 200;
@@ -35,6 +39,7 @@
   onMount(()=>{
 
     ready = true
+    
 
   })
 
@@ -59,7 +64,7 @@
 
 
   function calculate_position(){
-
+    
     if (parent_element === undefined){
 
       return;
@@ -105,36 +110,9 @@
 
   }
 
-
-  // Using oldschool javascript find out if there is also a tooltipconfirm component attached
-  function buttonClick(){
-    tooltip_isvisible = false; 
-    tooltip_delaydone = false; 
-
-    let parent = parent_element.parentElement
-
-    let child = parent.firstChild
-
-    while(child) {
-
-      if (child.classList.contains("tooltipconfirm")){
-        // tooltipconfirm sibling found, so trigger that
-        child.click();
-        return
-      }
-      child = child.nextElementSibling;
-
-    }
-
-    // no tooltipconfirm element found, so just trigger the parent click event
-    parent.click();
-
-  }
-
-  $: if (tooltip_isvisible && tooltip_delaydone){
+  $: if (tooltip_isvisible){
 
     calculate_position()
-    analytics.track_event("application", "tooltip", "show tooltip", key)
   }
 
 
@@ -143,63 +121,59 @@
 
 <svelte:window bind:innerWidth={innerWidth}  bind:innerHeight={innerHeight} />
 
-<!-- Button Hover -->
-{#if tooltip_text !== undefined}
-  <div 
-    bind:this={parent_element}
-    on:mouseenter={()=>{tooltip_isvisible = true; tooltip_delaydone = false}} 
-    on:mouseleave={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
-    on:click|stopPropagation={buttonClick} 
-    class="w-full flex h-full absolute right-0 top-0 " >
 
-    {#if tooltip_isvisible}
-      <div 
-        in:fade={{duration: 0, delay: 750}} 
-        on:introend={()=>{ tooltip_delaydone = true}}
-        >
-        {#if tooltip_delaydone}
-          <div      
-            bind:this={tooltip_element}
-            on:click|stopPropagation={()=>{}}
-            in:fade={{duration: 250}} 
-            style="z-index: 50; {tooltip_style}" 
-            class="fixed">
+  <!-- Button Hover -->
+  {#if tooltip_text !== undefined}
+    <div 
+      use:clickOutside={{useCapture:true}} on:click-outside={()=>{tooltip_isvisible = false}}
+      bind:this={parent_element}
+      on:click|stopPropagation={()=>{tooltip_isvisible = true;}} 
+      class="tooltipconfirm w-full flex h-full absolute right-0 top-0" >
 
-            <div
-              class="flex-col"
-              >
-              {#if tooltip_isbelow == false}
-                <div 
-                  class="arrow-up"
-                  style="background-color: rgba(0,0,100,0);  {arrow_style}">
-                </div>
-              {/if}
+      {#if tooltip_isvisible}
+
+        <div      
+          bind:this={tooltip_element}
+          on:click|stopPropagation={()=>{}}
+          style="z-index: 50; {tooltip_style}" 
+          class="fixed cursor-default">
+
+          <div
+            class="flex-col"
+            >
+            {#if tooltip_isbelow == false}
               <div 
-                class="tooltip-bg text-base flex flex-col px-4 py-4 text-white text-left"
-                style="">
-                {tooltip_text}
+                class="arrow-up"
+                style="background-color: rgba(0,0,100,0);  {arrow_style}">
               </div>
-              {#if tooltip_isbelow == true}
-                <div 
-                  class="arrow-down"
-                  style="background-color: rgba(0,0,100,0);  {arrow_style}">
-                </div>
-              {/if}
-              
-            </div>  
+            {/if}
+            <div 
+              class="tooltip-bg text-base flex flex-col px-4 py-4 text-white text-left"
+              style="">
+              {tooltip_text}
+              <div class="flex mt-2 {process.platform!=="linux"?" flex-row ":" flex-row-reverse "}">
+                <button class="w-1/2 mx-1 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 relative" on:click|stopPropagation={()=>{console.log(parent_element.parentNode.click()); tooltip_isvisible = false}}>Confirm</button>     
+                <button class="w-1/2 mx-1 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 relative" on:click|stopPropagation={()=>{tooltip_isvisible = false}}>Cancel</button>     
+              </div>
+            </div>
+            {#if tooltip_isbelow == true}
+              <div 
+                class="arrow-down"
+                style="background-color: rgba(0,0,100,0);  {arrow_style}">
+              </div>
+            {/if}
             
-          </div>
-        {/if}
+          </div>  
+          
+        </div>
 
 
-      </div>
-
-    {/if} 
-  </div>
+      {/if} 
+    </div>
 
 
 
-{/if}
+  {/if}
 
 
 <style>
