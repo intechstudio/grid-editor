@@ -86,7 +86,7 @@
     };
   }
 
-  let animationDuration = config.information.rendering != 'standard'?0:400;
+  let animationDuration = (config.information.rendering != 'standard' || config.information.toggleable === false)?0:400;
 
 
 </script>
@@ -147,7 +147,7 @@
 
 
 
-          {#if !toggle && config.information.rendering == 'standard' }
+          {#if !(toggle || config.information.toggleable === false)  && config.information.rendering == 'standard' }
             <name on:click={()=>{toggle = true;}}  class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2">
               <span class="block">{config.information.desc}</span>
             </name>
@@ -155,7 +155,7 @@
       
       </carousel>
           
-      {#if toggle }
+      {#if toggle || config.information.toggleable === false }
       
         <container in:slide={{duration: animationDuration}} class=" w-full flex bg-secondary bg-opacity-25 rounded-b-lg">
           <fader-transition class="w-full" in:fade={{delay: animationDuration, duration: animationDuration}} >

@@ -154,15 +154,18 @@ export function configManagement() {
       let i=0;
       let j=0;
       for (; i < configs.length;) {
+        
         if(selection[i] !== true){
           edited.push(configs[i]);
           j++
         } else {
           // edit these
           if (i>0 && selection[i-1] == true){
-            edited[j-1] += configs[i].split("]]").splice(1).join();
+            const [first, ...rest] = configs[i].split("]]")
+            edited[j-1] += rest.join("]]");
           }else{
-            edited.push("--[[@cb]]"+configs[i].split("]]").splice(1).join());
+            const [first, ...rest] = configs[i].split("]]")
+            edited.push("--[[@cb]]"+rest.join("]]"));
             j++
           }
         }

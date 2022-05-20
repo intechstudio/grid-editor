@@ -4,9 +4,10 @@
     short: 'c',
     name: 'Comment',
     rendering: 'standard',
+    toggleable: false,
     category: 'code',
     desc: 'Comment Block',
-    defaultLua: '--This Is A Comment',
+    defaultLua: '--[[This Is A Comment]]',
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
     `,
