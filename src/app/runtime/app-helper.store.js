@@ -102,6 +102,7 @@ export const appSettings = writable({
 });
 
 export const profileListRefresh = writable(0);
+export const presetListRefresh = writable(0);
 
 let persistant = {
   moduleRotation: 0,
