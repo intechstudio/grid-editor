@@ -3,6 +3,7 @@
   import MidiMonitor from "./panels/MidiMonitor/MidiMonitor.svelte";
   import DebugMonitor from "./panels/DebugMonitor/DebugMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
+  import Presets from "./panels/presets/Presets.svelte";
   import { appSettings, windowSize } from "../runtime/app-helper.store";
 
 
@@ -38,6 +39,12 @@
     {#if $appSettings.leftPanel == 'Profiles'}
 
       <Profiles/>
+
+    {/if}
+
+    {#if $appSettings.leftPanel == 'Presets'}
+
+      <Presets/>
 
     {/if}
 

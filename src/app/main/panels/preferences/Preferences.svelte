@@ -2,7 +2,7 @@
 <script>
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
-  import { profileListRefresh } from '../../../runtime/app-helper.store.js';
+  import { profileListRefresh, presetListRefresh } from '../../../runtime/app-helper.store.js';
 
   import instructions from "../../../serialport/instructions";
 
@@ -172,7 +172,6 @@
         analytics.track_event("application", "preferences", "profile downloader status", "download fail")
         console.log("GRID_NOT_FOUND")
       }
-
 
   }
 

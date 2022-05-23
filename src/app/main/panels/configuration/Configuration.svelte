@@ -66,11 +66,27 @@
     $appSettings.configType = arg;
 
     if(arg == 'systemEvents'){ // maybe ui.event.elementnumber = 255 ?
-      user_input.update((ui) => {ui.event.elementnumber = 255; ui.event.eventtype = 4; return ui});
+      user_input.update((ui) => {
+        ui.event.elementnumber = 255; 
+        ui.event.eventtype = 4; 
+        ui.event.elementtype = "system"; 
+        return ui});
     }
 
     if(arg == 'uiEvents'){
-      user_input.update((ui) => {ui.event.elementnumber = 0; ui.event.eventtype = 0; return ui});
+
+      const rt = get(runtime);
+      const ui = get(user_input);
+      const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
+
+      console.log(device.pages[ui.event.pagenumber].control_elements[0].controlElementType)
+
+      user_input.update((ui) => {
+        ui.event.elementnumber = 0; 
+        ui.event.eventtype = 0; 
+        ui.event.elementtype = device.pages[ui.event.pagenumber].control_elements[0].controlElementType; 
+        return ui
+      });
     }
   }
 

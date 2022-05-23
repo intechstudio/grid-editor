@@ -85,17 +85,31 @@ import { appSettings } from "../runtime/app-helper.store";
   
   <div class="flex flex-col">
 
-        <div 
-          on:click={()=>{changeLeftTab('Profiles')}}  
-          class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Profiles' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
-          <svg 
-            class="stroke-current text-white" width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M1 5.5L1.00028 19C1.0003 20.1046 1.89573 21 3.00028 21H24C25.1046 21 26 20.1046 26 19V7.5C26 6.39543 25.1046 5.5 24 5.5H11.0002M1 5.5V3C1 1.89543 1.89543 1 3 1H9.00019C10.1048 1 11.0002 1.89543 11.0002 3V5.5M1 5.5H11.0002"  stroke-width="2"/>
-          </svg>
-          <div class="left-0 -ml-3 absolute transition-all  {selectedLeftTab == 'Profiles' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
-          <TooltipSetter key={"sidebar_profiles_icon"}/>
+    <div 
+      on:click={()=>{changeLeftTab('Presets')}}  
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Presets' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
+      <svg 
+        class="stroke-current text-white" width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 5.5L1.00028 19C1.0003 20.1046 1.89573 21 3.00028 21H24C25.1046 21 26 20.1046 26 19V7.5C26 6.39543 25.1046 5.5 24 5.5H11.0002M1 5.5V3C1 1.89543 1.89543 1 3 1H9.00019C10.1048 1 11.0002 1.89543 11.0002 3V5.5M1 5.5H11.0002"  stroke-width="2"/>
+      </svg>
+      <div class="left-0 -ml-3 absolute transition-all  {selectedLeftTab == 'Presets' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+      <TooltipSetter key={"sidebar_presets_icon"}/>
 
-        </div>
+    </div>
+
+
+    <div 
+      on:click={()=>{changeLeftTab('Profiles')}}  
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'Profiles' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
+      <svg 
+        class="stroke-current text-white" width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 5.5L1.00028 19C1.0003 20.1046 1.89573 21 3.00028 21H24C25.1046 21 26 20.1046 26 19V7.5C26 6.39543 25.1046 5.5 24 5.5H11.0002M1 5.5V3C1 1.89543 1.89543 1 3 1H9.00019C10.1048 1 11.0002 1.89543 11.0002 3V5.5M1 5.5H11.0002"  stroke-width="2"/>
+      </svg>
+      <div class="left-0 -ml-3 absolute transition-all  {selectedLeftTab == 'Profiles' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
+      <TooltipSetter key={"sidebar_profiles_icon"}/>
+
+    </div>
+
 
     <div 
       on:click={()=>{changeLeftTab('Debug')}}  

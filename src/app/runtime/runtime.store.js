@@ -519,10 +519,15 @@ function create_runtime () {
     if (firstConnection){
 
       setTimeout(()=>{
+  
+
         user_input.update((ui)=>{
           ui.brc.dx = controller.dx;
           ui.brc.dy = controller.dy;
           ui.event.elementnumber = 0;
+
+          console.log(controller.pages[ui.event.pagenumber].control_elements[0].controlElementType);
+          ui.event.elementtype = controller.pages[ui.event.pagenumber].control_elements[0].controlElementType; 
           ui.event.eventtype = 0;
           return ui;
         });
@@ -548,6 +553,70 @@ function create_runtime () {
       });
       return rt;
     })
+
+  }
+
+  function element_preset_load(preset){
+
+
+    console.log(preset)
+
+
+    const li = get(user_input);
+
+    if(li.event.elementtype == preset.type){
+
+      console.log("GOOD TYPE");
+
+      let events = preset.configs.events
+
+      events.forEach((ev, index) => {
+
+
+        let callback;
+        if (index === events.length-1){ // last element
+          callback = function(){               
+            logger.set({type: 'success', mode: 0, classname: 'elementoverwrite', message: `Overwrite done!`});
+            user_input.update(n => n);
+          };
+        }
+        else{
+          callback = undefined;
+        }
+
+        let li = get(user_input);
+
+        const dx = li.brc.dx;
+        const dy = li.brc.dy;
+        const page =  li.event.pagenumber;
+        const element = li.event.elementnumber;
+        const event = ev.event;
+
+        console.log(index, dx, dy, page, element, event, ev)
+
+
+        _runtime.update(_runtime => {
+          let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
+          if (dest) {
+
+            console.log("FOUND")
+            dest.config = ev.config;
+            dest.cfgStatus = 'EDITOR_BACKGROUND';          
+
+            instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+            // trigger change detection
+            
+          }    
+          return _runtime;
+        })
+
+
+
+      });
+
+    } else {
+      logger.set({type: 'fail', mode: 0, classname: 'elementoverwrite', message: `Target element is different!`})
+    }
 
   }
 
@@ -582,8 +651,6 @@ function create_runtime () {
           if (dest) {
             dest.config = ev.config;
             dest.cfgStatus = 'EDITOR_BACKGROUND';          
-            
-            console.log("CONFIG:", dest.config);
 
             instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
             // trigger change detection
@@ -941,6 +1008,7 @@ function create_runtime () {
     reset: reset,
     subscribe: _runtime.subscribe,
 
+    element_preset_load: element_preset_load,
     whole_element_overwrite: whole_element_overwrite,
     whole_page_overwrite: whole_page_overwrite,
 
