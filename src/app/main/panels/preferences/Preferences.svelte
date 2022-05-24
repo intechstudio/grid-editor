@@ -124,13 +124,13 @@
 
     let zipEntries = zip.getEntries(); // an array of ZipEntry records
 
-    let profileFilePaths = [];
+    let libraryFilePaths = [];
 
     zipEntries.forEach(function (zipEntry) {
 
       if (zipEntry.entryName.endsWith(".json")) {
 
-        profileFilePaths.push(zipEntry.entryName);
+        libraryFilePaths.push(zipEntry.entryName);
       }
     });
 
@@ -139,24 +139,27 @@
     zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
 
       download_status = "Archive extracted!"
-      console.log(profileFilePaths)
+      console.log(libraryFilePaths)
 
-      if (profileFilePaths.length !== 0){
+      if (libraryFilePaths.length !== 0){
 
-        profileFilePaths.forEach(path => {
+        libraryFilePaths.forEach(path => {
 
 
           let parts = path.split("/")
           let filename = parts[parts.length-1]
+          let author = parts[parts.length-2]
+          let type = parts[parts.length-3]
 
           // console.log(path)
-          fs.copySync(folder + "/temp/" + path, folder+"/profiles/intech/" + filename)
+          fs.copySync(folder + "/temp/" + path, folder+"/"+type+"/"+author+"/" + filename)
 
         })
 
         download_status = "Profiles copied!"
 
         profileListRefresh.update(s => {return s+1});
+        presetListRefresh.update(s => {return s+1});
         download_status = "Library updated!"
 
         trackEvent('library-download', 'library-download: download success')
@@ -252,11 +255,11 @@
         <TooltipSetter key={"profile_select_local_folder"}/>
       </button>
 
-      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default profile library:</b> {download_status}</div>
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Default Profile & Preset libraries:</b> {download_status}</div>
       <button 
         on:click={()=>{libraryDownload()}} 
         class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
-        Download Profile Library
+        Download Library
       </button>
 
     </div>
