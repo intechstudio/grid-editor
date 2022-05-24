@@ -6,7 +6,14 @@ export const tooltip_content = {
     "profile_save": "Save the configuration of the currently active Page to your Local Folder.",
     "profile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",
     "profile_selection": "Saved properties of the selected profile, such as name and description are shown here.",
-    "profile_load_to_module": "Load the configuration of the selected locally saved profile onto the currently active Page of the Grid module.",
+    "profile_load_to_module": "Load the configuration of the selected profile onto the currently active Page of the Grid module.",
+
+    "preset_save": "Save the configuration of the currently active element to your Local Folder.",
+    "preset_load_preset": "Previously saved presets stored in your Local Folder are shown here.",
+    "preset_selection": "Saved properties of the selected preset, such as name and description are shown here.",
+    "preset_load_to_module": "Load the configuration of the selected preset onto the currently active control element.",
+
+
 
     "configuration_header_clear": "Clear all configurations of the currently active Page from Grid module memory.",
     "configuration_header_store": "Store the configuration of the currently active Page into Grid module memory.",
@@ -74,11 +81,12 @@ export const tooltip_content = {
     "action_mouse_move" : "Send a mouse move or scroll wheel message to the host device.",
     "action_mouse_button" : "Send mouse button change messages to the host device.",
 
-    "sidebar_configuration_icon": "Here you can configure your Grid modules.",
-    "sidebar_preferences_icon": "Here you can change your Grid Editor settings.",
-    "sidebar_profiles_icon": "You can manage locally stored configurations here.",
-    "sidebar_debugger_icon": "Here you can access the debugger window for troubleshooting purposes.",
-    "sidebar_midi_monitor_icon": "Here you can access the MIDI monitor for MIDI message-specific troubleshooting.",
+    "sidebar_configuration_icon": "Configure your Grid modules.",
+    "sidebar_preferences_icon": "Change your Grid Editor settings.",
+    "sidebar_profiles_icon": "Manage locally stored module configurations.",
+    "sidebar_presets_icon": "Manage locally stored element configurations.",
+    "sidebar_debugger_icon": "Access the debugger window for troubleshooting purposes.",
+    "sidebar_midi_monitor_icon": "Access the MIDI monitor for MIDI-specific troubleshooting.",
 
     "engine_clear": "Clear the writebuffer and re-enable the engine!"
 }
