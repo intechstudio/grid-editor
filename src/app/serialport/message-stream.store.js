@@ -1,7 +1,7 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
 import { writeBuffer } from '../runtime/engine.store';
-import { debug_store, runtime, user_input, update_elementPositionStore, update_ledColorStore } from '../runtime/runtime.store';
+import { debug_store, runtime, user_input, update_elementPositionStore,update_elementPositionStore_fromPreview, update_ledColorStore } from '../runtime/runtime.store';
 
 import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
 import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
@@ -57,6 +57,22 @@ function createMessageStream(){
         // update active element selection
         user_input.process_incoming_event_from_grid(class_descr);
       }
+
+      if (class_descr.class_name === "EVENTPREVIEW"){
+
+        //console.log("EVENTPREVIEW", class_descr.class_parameters["LENGTH"])
+
+        update_elementPositionStore_fromPreview(class_descr);
+
+        // update control element rotation
+        //update_elementPositionStore(class_descr);
+
+
+        // update active element selection
+        //user_input.process_incoming_event_from_grid(class_descr);
+      }
+
+
 
       if (class_descr.class_name === "PAGEACTIVE" &&  class_descr.class_instr === "EXECUTE"){
         //console.log("PAGE")

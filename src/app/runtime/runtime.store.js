@@ -129,6 +129,39 @@ export function update_elementPositionStore(descr){
 
 }
 
+export function update_elementPositionStore_fromPreview(descr){
+    
+  let eps = get(elementPositionStore);  
+
+  if (eps[descr.brc_parameters.SX] === undefined){
+    eps[descr.brc_parameters.SX] = {};
+  }
+  if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+  }
+
+
+  for (let i=1; i<descr.class_parameters.LENGTH/4; i++){
+
+    const num = parseInt("0x"+String.fromCharCode(descr.raw[4+i*4+0]) + String.fromCharCode(descr.raw[4+i*4+1]))
+    const val = parseInt("0x"+String.fromCharCode(descr.raw[4+i*4+2]) + String.fromCharCode(descr.raw[4+i*4+3]))
+    //console.log(num, val)
+
+
+    if (eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] === undefined){
+      eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = -1;
+    }
+  
+    eps[descr.brc_parameters.SX][descr.brc_parameters.SY][num] = val;
+  
+    elementPositionStore.set(eps);
+
+  }
+
+
+
+}
+
 export function update_ledColorStore(descr) {
 
 
@@ -526,7 +559,6 @@ function create_runtime () {
           ui.brc.dy = controller.dy;
           ui.event.elementnumber = 0;
 
-          console.log(controller.pages[ui.event.pagenumber].control_elements[0].controlElementType);
           ui.event.elementtype = controller.pages[ui.event.pagenumber].control_elements[0].controlElementType; 
           ui.event.eventtype = 0;
           return ui;
