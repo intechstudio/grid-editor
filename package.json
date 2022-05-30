@@ -60,6 +60,7 @@
     "electron-updater": "^4.3.5",
     "eslint": "^7.23.0",
     "fs-extra": "^10.0.0",
+    "googleapis": "^100.0.0",
     "lezer-generator": "^0.13.3",
     "luamin": "^1.0.4",
     "luaparse": "^0.3.0",
