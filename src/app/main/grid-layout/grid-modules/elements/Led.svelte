@@ -24,10 +24,13 @@
 </script>
 
 <svg width={size*ledSize+'px'} height={size*ledSize+'px'}  viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <circle cx="7" cy="7" r="5" fill="rgba({rgb[0]},{rgb[1]},{rgb[2]}, {alpha})"/>
-  <g filter="url(#filter0_f)">
-    <circle cx="7" cy="7" r="4.5" stroke="white"/>
+
+  <g filter="url(#filter0_f)">  
+    <circle cx="7" cy="7" r="5" fill="rgba({rgb[0]},{rgb[1]},{rgb[2]}, {alpha})"/>
+    <circle cx="7" cy="7" r="4.5" stroke="rgba(255,255,255,0.2)"/>
   </g>
+
+  <circle cx="7" cy="7" r="4.5" stroke="rgba(255,255,255,0.2)"/>
   <circle cx="7" cy="7" r="4.5" fill="rgba({rgb[0]},{rgb[1]},{rgb[2]}, {alpha})"/>
   <defs>
     <filter id="filter0_f" x="10%" y="10%" width={size*ledSize+'px'} height={size*ledSize+'px'} filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
