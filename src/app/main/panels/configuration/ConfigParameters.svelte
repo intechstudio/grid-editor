@@ -3,7 +3,7 @@
   import { analytics} from "../../../runtime/analytics_influx";
 
   import { get } from 'svelte/store';
-  import { runtime, engine, logger, user_input, controlElementClipboard} from '../../../runtime/runtime.store.js';
+  import { runtime, elementNameStore, engine, logger, user_input, controlElementClipboard} from '../../../runtime/runtime.store.js';
   import { configManagement } from "./Configuration.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
@@ -12,7 +12,20 @@
 
   export let events;
   export let elements;
-  export let stringname;
+  let stringname;
+
+
+  $: {
+
+    try {
+      
+      stringname = $elementNameStore[$user_input.brc.dx][$user_input.brc.dy][$user_input.event.elementnumber]
+    } catch (error) {
+      
+    }
+
+
+  }
   
   let selectedEvent;
 
@@ -81,11 +94,7 @@
 
   function showControlElementNameOverlay(){
     $appSettings.overlays.controlElementName = !$appSettings.overlays.controlElementName;
-    // fetch once, although on page changes this may be retriggered;
-    //if(!loaded){
-      console.error("SORRY");
-      loaded = true;
-    //}
+
   }
 
 
@@ -106,6 +115,7 @@
         </button>
       </div>
       <input
+        disabled
         type="text" 
         bind:value={stringname}
         on:input={updateStringName} 
