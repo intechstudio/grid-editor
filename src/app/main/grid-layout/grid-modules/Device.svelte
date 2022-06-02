@@ -64,7 +64,7 @@
 		justify-content: space-around;
 		align-items: center;
 		background-color: #1E2628;
-		border-radius: 0.75rem;
+		border-radius: 0.5rem;
   }
   
   .knob-and-led {
@@ -95,8 +95,14 @@
   }
 
   .active-element{
-    background-color: #ffffff66;
-    padding: 2px;
-    border-radius: 0.25rem;
+    background-color: #88888855;
+    box-shadow:         inset 0 0 0px #ffffff33;
+    padding: 0.2rem;
+    border-radius: 0.5rem;
+  }
+
+  .active-systemelement{
+    background-color: #212a2b;
+    box-shadow:         inset 0 0 10px #dddddd60;
   }
 </style>

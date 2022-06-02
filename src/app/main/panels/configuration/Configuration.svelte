@@ -15,7 +15,7 @@
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
   import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
-  import { runtime, appMultiSelect, luadebug_store, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
+  import { runtime, elementNameStore, appMultiSelect, luadebug_store, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
 
   import { dropStore } from './Configuration.store.js';
 
@@ -44,7 +44,6 @@
 
 
   let configs = [];
-  let stringname = "";
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
   let pages =  {options: ['', '', '', ''], selected: ""};
@@ -54,7 +53,6 @@
   function configuration_panel_reset(){
 
     configs = [];
-    stringname = "";
     events = {options: ['', '', ''], selected: ""};
     elements = {options: [], selected: ""};
     pages =  {options: ['', '', '', ''], selected: ""};
@@ -162,10 +160,10 @@
 
     }
 
+
     let active = {
       elementtype: element_type,
       config: config,
-      stringname: "",
       events: {
         selected: selectedEvent.event,
         options: device.pages[pageIndex].control_elements[elementIndex].events.map(e => e.event)
@@ -215,7 +213,7 @@
       events = active.events;
       elements = active.elements;
       pages = active.pages;
-      stringname = active.stringname;
+      
     }
 
     // set UI to uiEvents, if its not system events
@@ -332,7 +330,7 @@
 
       <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
-        <ConfigParameters {stringname} {configs} {events} {elements}/>
+        <ConfigParameters {configs} {events} {elements}/>
 
         <!--
           Old Configlist refactored to be inline

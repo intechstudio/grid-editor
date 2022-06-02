@@ -107,6 +107,7 @@ export const appActionClipboard = writable([]);
 export const conditionalConfigPlacement = writable();
 
 export const elementPositionStore = writable({});
+export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr){
@@ -128,6 +129,28 @@ export function update_elementPositionStore(descr){
   elementPositionStore.set(eps);
 
 }
+
+export function update_elementNameStore(descr){
+    
+  let ens = get(elementNameStore);  
+
+  if (ens[descr.brc_parameters.SX] === undefined){
+    ens[descr.brc_parameters.SX] = {};
+  }
+  if (ens[descr.brc_parameters.SX][descr.brc_parameters.SY] === undefined){
+    ens[descr.brc_parameters.SX][descr.brc_parameters.SY] = {};
+  }
+  if (ens[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.NUM] === undefined){
+    ens[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.NUM] = -1;
+  }
+
+  ens[descr.brc_parameters.SX][descr.brc_parameters.SY][descr.class_parameters.NUM] = descr.class_parameters.NAME;
+
+  elementNameStore.set(ens);
+
+}
+
+
 
 export function update_elementPositionStore_fromPreview(descr){
     
@@ -1000,6 +1023,23 @@ function create_runtime () {
 
     user_input.module_destroy_handler(dx, dy);
     writeBuffer.module_destroy_handler(dx, dy);
+
+    // reset rendering helper stores
+
+    elementPositionStore.update(eps=>{
+      eps[dx][dy] = undefined
+      return eps
+    });    
+
+    elementNameStore.update(ens=>{
+      ens[dx][dy] = undefined
+      return ens
+    });
+
+    ledColorStore.update(lcs=>{
+      lcs[dx][dy] = undefined
+      return lcs
+    });
     
     analytics.track_event("application", "runtime", "module count", get(runtime).length)
   }

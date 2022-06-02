@@ -8,12 +8,38 @@
 
   import { writable, get, readable } from 'svelte/store';
 
+  const {google} = require('googleapis');
+  const youtube = google.youtube('v3');
+
+  let video_link= process.env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
+
   onMount(()=>{
 
+    console.log("YOUTUBE", youtube)
+
+    const result = youtube.playlistItems.list({
+      key: process.env["YOUTUBE_API_KEY"],
+      part: 'snippet',
+      playlistId: process.env["YOUTUBE_RELEASENOTES_PLAYLIST_ID"],
+      maxResult: 100,
+    }, (err, results) => {
+      //console.log("YOUTUBE", err ? err.message : results);
+      if (err){
+
+      }
+      else{
+        const snippet = results.data.items[results.data.items.length-1].snippet
+        video_link = "https://www.youtube.com/watch?v="+snippet.resourceId.videoId
+        console.log(video_link)
+      }
+      
+    });
   })
 
 
   let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
+
+  
 
 </script>
 
@@ -43,7 +69,11 @@
       <div class="p-8 flex-col w-5/12 min-w-max flex justify-between ml-auto mt-8">
 
         <div class="flex w-full text-xl opacity-70 ">Getting started</div>
-        
+        <div 
+        on:click={e => openInBrowser(video_link)} 
+        class="flex w-full text-blue-500 cursor-pointer">
+        Release notes video...
+      </div>
         <div 
           on:click={e => openInBrowser(process.env.DOCUMENTATION_REFERENCEMANUAL_URL)} 
           class="flex w-full text-blue-500 cursor-pointer">

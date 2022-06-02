@@ -70,6 +70,7 @@
     use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2 {(dx == selectedElement.brc.dx && dy == selectedElement.brc.dy) ? ' border-gray-500' : 'border-transparent'} " 
+    class:active-systemelement={dx == selectedElement.brc.dx && dy == selectedElement.brc.dy && selectedElement.event.elementnumber == 255}
     style="--module-size: {moduleWidth+'px'}"
     >
 

@@ -3,7 +3,8 @@
   export const information = {
     short: 'sn',
     name: 'ElementName',
-    rendering: 'hidden',
+    rendering: 'standard', //'hidden'
+    toggleable: false,
     category: 'code',
     desc: 'Element Name',
     defaultLua: 'self.sn=\'\'',
@@ -29,11 +30,11 @@
   let scriptValue = ''; // local script part
 
   $: if(config.script && !loaded){
-    scriptValue = config.script.trim().slice(9,-1);
+    scriptValue = config.script.trim().slice(10,-2);
     loaded = true;
   }
 
-  $: if(scriptValue && loaded){
+  $: if(scriptValue!==undefined && loaded){
     sendData(scriptValue);
   }
 
@@ -42,7 +43,7 @@
   })
 
   function sendData(e){
-    dispatch('output', {short: 'sn', script: `self.sn='${e}'`})
+    dispatch('output', {short: 'sn', script: `self:gen("${e}")`})
   }
 </script>
 
