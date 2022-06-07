@@ -128,7 +128,7 @@ jobs:
         uses: actions/download-artifact@v2
 
   linux-unittest:
-    name: Linux Build
+    name: Linux Unit Test
     runs-on: ubuntu-latest
 
     steps:
