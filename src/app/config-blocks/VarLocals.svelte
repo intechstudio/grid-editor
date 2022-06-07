@@ -1,7 +1,7 @@
 <script context="module">
   export const information = {
     short: 'l',
-    name: 'Locals',
+    name: 'VarLocals',
     rendering: 'standard',
     category: 'variables',
     desc: 'Locals',
@@ -23,13 +23,15 @@
 
   import { checkVariableName } from '../validators/local_validator.mjs';
 
+  import {find_forbidden_identifiers} from '../runtime/monaco-helper'
+  let error_messsage = ""
+
   export let config = '';
   export let index;
   export let access_tree;
 
   import LineEditor from '../main/user-interface/LineEditor.svelte'
 
-  console.log(access_tree)
  
   let sidebarWidth;
 
@@ -37,14 +39,13 @@
 
   const dispatch = createEventDispatcher();
 
-  const regex = new RegExp(/\blocal\b\s*[a-zA-Z]\s*[=].*[a-zA-Z0-9\-\+\(\)].*/, 'g');
-
   /**
    * Locals specific variables
    * @locals []
   */
 
   let loaded = false;
+  
 
   let scriptSegments = [{variable: '', value: ''}]; 
 
@@ -100,11 +101,24 @@
     })
   }
 
+  // Commit button
   function sendData(){
+
+    error_messsage = ""
 
     let outputCode = codeEditorContent;
 
-    console.log('validate...',outputCode);
+    let forbiddenList = find_forbidden_identifiers(outputCode)
+
+    if (forbiddenList.length > 0){
+
+      const uniqueForbiddenList = [...new Set(forbiddenList)];
+      const readable = uniqueForbiddenList.toString().replaceAll(",", ", ")
+      error_messsage = "Reserved identifiers ["+readable+"] cannot be used!";
+      return;
+
+    }
+
 
     if(parenthesis(outputCode)){
       committedCode = outputCode;
@@ -194,6 +208,7 @@
 
   <div class="flex justify-between items-center my-2 px-2">
     {#if variableNameError} <div class="text-sm text-red-500">Variable name error!</div> {/if}
+    {#if error_messsage !== ""} <div class="text-sm text-red-500">{error_messsage}</div> {/if}
     {#key commitState}
       <div in:fly={{x:-5, duration: 200}} class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm">{commitState ? 'Unsaved changes!' : 'Synced with Grid!' }</div>
     {/key}

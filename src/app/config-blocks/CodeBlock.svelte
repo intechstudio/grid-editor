@@ -35,6 +35,7 @@
 
   import {editor as monaco_editor} from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
+
   const dispatch = createEventDispatcher();
 
   export let config;

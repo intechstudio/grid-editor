@@ -8,6 +8,8 @@
   import { debug_monitor_store} from "../panels/DebugMonitor/DebugMonitor.store";
 
 
+  import {find_forbidden_identifiers} from '../../runtime/monaco-helper'
+
 	import { beforeUpdate, afterUpdate } from 'svelte';
   let scrollDown;
 	let autoscroll;
@@ -73,6 +75,21 @@
   function commit(){
 
     const editor_code = editor.getValue() 
+
+
+    // test for forbidden identifiers
+
+    let forbiddenList = find_forbidden_identifiers(editor_code)
+
+    if (forbiddenList.length > 0){
+
+      const uniqueForbiddenList = [...new Set(forbiddenList)];
+      const readable = uniqueForbiddenList.toString().replaceAll(",", ", ")
+      error_messsage = "Reserved identifiers ["+readable+"] cannot be used!";
+      return;
+
+    }
+
     const short_code = stringManipulation.shortify(editor_code);
 
     try {
@@ -86,6 +103,11 @@
     }
     
     
+
+
+
+    
+
 
 
   }

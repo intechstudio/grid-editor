@@ -45,7 +45,7 @@ var language_config = {
 	]
   };
 
-let language = {
+export let language = {
 	defaultToken: "",
 	tokenPostfix: ".lua",
 	keywords: [
@@ -112,6 +112,8 @@ let language = {
 		"element",
 		"math"
 	],
+	forbiddens: [
+	],
 	brackets: [
 	  { token: "delimiter.bracket", open: "{", close: "}" },
 	  { token: "delimiter.array", open: "[", close: "]" },
@@ -151,6 +153,7 @@ let language = {
 			  "@functions": { token: "function.$0" },
 			  "@mathfunctions": { token: "function.$0" },
 			  "@variables": { token: "variable.$0" },
+			  "@forbiddens": { token: "forbidden.$0" },
 			  "@default": "identifier"
 			}
 		  }
@@ -235,6 +238,7 @@ export function initialize_theme(){
 		  },
 		  { token: 'function', foreground: 'dee4b1'},
 		  { token: 'variable', foreground: '549cd0'},
+		  { token: 'forbidden', foreground: '990000'},
 		],
 		colors: {
 		  'editor.background': '#2a343900',
@@ -442,6 +446,11 @@ function initialize_highlight(){
 
 			}
 
+			if (key.endsWith("_short")){
+				//console.log("SHORT: "+grid_protocol[key])
+				language.forbiddens.push(grid_protocol[key])
+			}
+
 		}
 	}
 
@@ -486,3 +495,29 @@ initialize_autocomplete();
 initialize_highlight();
 initialize_hover();
 initialize_grammar();
+
+
+export function find_forbidden_identifiers(str){
+
+	const identifier_match_expr = /[a-zA-Z0-9_]+/g
+
+	const identifiers = str.match(identifier_match_expr)
+
+	let forbiddenCount = 0;
+	let forbiddenList = [];
+
+	if (identifiers !== undefined && identifiers !== null){
+
+		identifiers.forEach(element => {
+		
+			if (language.forbiddens.find(e => e==element)){
+				forbiddenCount++;
+				forbiddenList.push(element);
+			}
+
+		});
+	}
+
+	return forbiddenList;
+
+}
