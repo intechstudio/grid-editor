@@ -4,7 +4,7 @@ const { trackEvent } = require('./analytics');
 require('@electron/remote/main').initialize();
 
 const { serial } = require('./ipcmain_serialport');
-//const { websocket } = require('./ipcmain_websocket');
+const { websocket } = require('./ipcmain_websocket');
 
 
 const { store } = require('./main-store');
@@ -164,7 +164,7 @@ function createWindow() {
     });
 
     serial.mainWindow = mainWindow;
-    //websocket.mainWindow = mainWindow;
+    websocket.mainWindow = mainWindow;
 
     require("@electron/remote/main").enable(mainWindow.webContents);
 

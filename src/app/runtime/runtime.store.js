@@ -11,6 +11,12 @@ import { appSettings } from './app-helper.store';
 import { analytics } from './analytics_influx';
 
 
+import { initialize_ws } from './websocket';
+//import { initialize_wss } from './websocketserver';
+
+
+//initialize_wss();
+initialize_ws();
 
 let firmware_required = {major: parseInt(process.env.FIRMWARE_REQUIRED_MAJOR), minor: parseInt(process.env.FIRMWARE_REQUIRED_MINOR), patch: parseInt(process.env.FIRMWARE_REQUIRED_PATCH)};
 
