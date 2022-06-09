@@ -2,6 +2,7 @@
 
   import MidiMonitor from "./panels/MidiMonitor/MidiMonitor.svelte";
   import DebugMonitor from "./panels/DebugMonitor/DebugMonitor.svelte";
+  import WebsocketMonitor from "./panels/WebsocketMonitor/WebsocketMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
   import Presets from "./panels/presets/Presets.svelte";
   import { appSettings, windowSize } from "../runtime/app-helper.store";
@@ -45,6 +46,11 @@
     {#if $appSettings.leftPanel == 'Presets'}
 
       <Presets/>
+
+    {/if}
+    {#if $appSettings.leftPanel == 'Websocket'}
+
+      <WebsocketMonitor/>
 
     {/if}
 

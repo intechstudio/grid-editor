@@ -298,6 +298,10 @@
         <div class="ml-1">Show welcome on startup</div>
       </div>
 
+      <div class="flex py-2 text-white items-center"> 
+        <input class="mr-1" type="checkbox" bind:checked={$appSettings.persistant.websocketMonitorEnabled}>
+        <div class="mx-1">Enable/Disable websocket monitor</div>
+      </div>
 
       <div class="flex py-2 text-white items-center"> 
         <input class="mr-1" type="checkbox" bind:checked={$appSettings.debugMode}>
