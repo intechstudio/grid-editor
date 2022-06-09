@@ -95,7 +95,8 @@ export const appSettings = writable({
     pageActivatorCriteria_2 : "",
     pageActivatorCriteria_3 : "",
     keyboardLayout : "",
-    pageActivatorInterval: 1000
+    pageActivatorInterval: 1000,
+    websocketMonitorEnabled: false
   }
 
 
@@ -115,7 +116,8 @@ let persistant = {
   pageActivatorCriteria_2 : "",
   pageActivatorCriteria_3 : "",
   keyboardLayout: "",
-  pageActivatorInterval: 1000
+  pageActivatorInterval: 1000,
+  websocketMonitorEnabled: false
 }
 
 init_appsettings();
