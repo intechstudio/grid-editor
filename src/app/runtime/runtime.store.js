@@ -14,6 +14,7 @@ import { analytics } from './analytics_influx';
 import { initialize_ws } from './websocket';
 //import { initialize_wss } from './websocketserver';
 
+const activeWindow = require('active-win');
 
 //initialize_wss();
 initialize_ws();
@@ -83,7 +84,7 @@ async function detectActiveWindow(){
 
   }
   catch(e){
-    console.error("detectActiveWindow failed")
+    console.error("detectActiveWindow failed", e)
   }
 
 }

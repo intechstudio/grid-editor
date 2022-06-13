@@ -55,6 +55,17 @@
     helperX = bounding.x + bounding.width/2
     helperY = bounding.y + bounding.height/2
 
+
+    document.addEventListener("mouseleave", e=>{
+
+      eyesX1 = 0;
+      eyesY1 = 0;
+      eyesX2 = 0;
+      eyesY2 = 0;
+
+    });
+
+
     document.addEventListener("mousemove", e=>{
 
       let eX1 = e.clientX - helperX + 10
