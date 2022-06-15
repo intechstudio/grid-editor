@@ -29,11 +29,11 @@
 
         popupWindow = setTimeout(()=>{
           popup = false;
-        }, 3250);
+        }, 5250);
              
         logClear = setTimeout(()=>{
           logs = [];
-        }, 3000);
+        }, 5000);
 
       }
     });
@@ -63,50 +63,14 @@
 
     let mouseX, mouseY;
 
-    function moveCursor(){
 
-      let [TOP, LEFT] = [0, 0];
-
-      const rect = node.getBoundingClientRect();
-
-      let [placeleft_X, placeleft_Y] = [ width - mouseX, height - mouseY ]; // the place left before going out of frame
-
-      if((placeleft_X - rect.width) < 0 ){
-        
-        LEFT = mouseX + (placeleft_X - rect.width);
-      } else {
-        LEFT = mouseX;
-      }
-
-
-      if((placeleft_Y - rect.height) < 0){
-        TOP = mouseY + (placeleft_Y - rect.height - 30);
-      } else {
-        TOP = mouseY;
-      }
-
-      div.style.left = LEFT + 'px';
-      div.style.top = TOP + 'px';
-
-    }
-
-    function handleMouseMove(e){
-
-      mouseX = e.clientX;
-      mouseY = e.clientY;
-
-      moveCursor();
-
-    }
-
-    document.addEventListener('mousemove', handleMouseMove);
 
     return {
       update(popup){
-        if(popup) moveCursor();
+        
       },
       destroy() {
-        document.removeEventListener('mousemove', handleMouseMove);
+        
       }
     }
   }
@@ -125,27 +89,21 @@
 
 
 
-<div id="cursor-log" style="z-index:9999;" use:cursorLog={{popup}} class="absolute">
+<div id="cursor-log" style="z-index:9999;" use:cursorLog={{popup}} class="flex mx-auto">
   {#if popup}
     <div 
-      transition:fade={{duration: 200}} 
+      transition:fade={{duration: 400}} 
       class:border-primary={logs.length == 0}
       class:border-green-600={setBorderColor(logs[logs.length-1], 'success')}
       class:border-yellow-600={setBorderColor(logs[logs.length-1] , 'alert')}
       class:border-red-600={setBorderColor(logs[logs.length-1], 'fail')}
       class:border-blue-600={setBorderColor(logs[logs.length-1], 'progress')}
-      class="flex flex-col w-72 rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white">
+      class="flex flex-col w-96 px-4 py-1 text-white">
 
-      <div class="py-2 mb-2 border-b border-gray-500">
-        {#if engine_state == 'DISABLED'}
-          <p class="calculating">Grid engine is calculating<span>.</span><span>.</span><span>.</span></p>
-        {:else}
-          Grid engine is enabled!
-        {/if}
-      </div>
+
 
       {#each logs as log, i (log.n)}
-        <div in:fly={{x: -10, delay: 200 * i}} out:fly={{x: 10, delay: 200 * i}} class="my-1 flex items-center p-0.5">
+        <div in:fly={{x: -10, delay: 400 * i}} out:fly={{x: 10, delay: 400 * i}} class="my-1 flex items-center p-2 bg-primary bg-opacity-50">
           <div class="px-2 py-1 bg-primary rounded mr-2">
             {log.type == 'success' ? '✔️' : log.type == 'alert' ? '⚠️' : log.type == 'progress' ? '⏳' : log.type == 'fail' ? '❌' : null}
           </div>

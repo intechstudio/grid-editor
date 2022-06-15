@@ -26,7 +26,6 @@
   import Monaco from                 './app/main/modals/Monaco.svelte';
   import Feedback from                 './app/main/modals/Feedback.svelte';
 
-  import CursorLog from             './app/main/user-interface/cursor-log/CursorLog.svelte';
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
   import ErrorConsole from          './app/main/ErrorConsole.svelte';
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
@@ -112,7 +111,6 @@
   <!-- Update notification -->
   <Updater/>
 
-  <CursorLog/>
 
   <TooltipGetter/>
 

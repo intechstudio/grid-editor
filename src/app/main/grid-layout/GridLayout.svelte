@@ -19,6 +19,7 @@
   import { openInBrowser } from '../../runtime/app-helper.store';
 
 
+  import CursorLog from          '../user-interface/cursor-log/CursorLog.svelte';
 
   const { getGlobal } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
@@ -198,13 +199,32 @@
 
 </script>
 
-<layout-container class="relative flex items-start {classes} h-full { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+<layout-container class="relative flex items-start {classes} h-full { $engine == 'ENABLED' ? 'pointer-events-auto' : 'pointer-events-none'}">
 
-  <grid-layout class="absolute overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
+  <grid-layout class="relative overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"> 
 
-    <div id="grid-map" bind:this={map} bind:clientWidth={map_w} bind:clientHeight={map_h} style="top:{map_h/2-gridsize/2}px; left:{map_w/2-gridsize/2}px;" class="w-full h-full flex relative focus:outline-none border-none outline-none justify-center items-center">
+    <div id="grid-map" bind:this={map} bind:clientWidth={map_w} bind:clientHeight={map_h} style="top:{map_h/2-gridsize/2}px; left:{map_w/2-gridsize/2}px;" class="w-full h-full flex absolute focus:outline-none border-none outline-none justify-center items-center">
 
-      {#if $devices.length === 0 && ready && $appSettings.firmwareNotificationState === 0}
+      {#each $devices as device}
+        <div 
+          in:fly="{{x: calculate_x(device.fly_x, device.fly_y), y: calculate_y(device.fly_x, device.fly_y), duration: 150 }}" out:fade="{{ duration: 150 }}"
+
+          id="grid-device-{'dx:'+device.dx+';dy:'+device.dy}" 
+          style="--device-size: {gridsize + 'px'}; top:{calculate_y(device.dx, device.dy) +'px'};left:{calculate_x(device.dx, device.dy) +'px'};"
+          class="device"
+          class:fwMismatch={device.fwMismatch}>
+        
+            <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot + $appSettings.persistant.moduleRotation/90} />
+
+        </div>
+      {/each}    
+    </div>
+
+    {#if $devices.length === 0 && ready && $appSettings.firmwareNotificationState === 0}
+      <div
+      style="top:{map_h/2-gridsize/2}px; left:{map_w/2-gridsize/2}px;" class="w-full h-full flex absolute focus:outline-none border-none outline-none justify-center items-center"
+      >
+        
         <div in:fade="{{delay: 2000, duration: 1000}}" 
           class="flex w-full h-full items-center justify-center text-white flex-col">
           <div class=" absolute top-0 left-0  p-4 bg-primary rounded shadow w-72">
@@ -230,24 +250,13 @@
       
         </div>
 
-      {/if}
+      </div>
+    {/if}
 
 
-      {#each $devices as device}
-        <div 
-          in:fly="{{x: calculate_x(device.fly_x, device.fly_y), y: calculate_y(device.fly_x, device.fly_y), duration: 150 }}" out:fade="{{ duration: 150 }}"
-
-          id="grid-device-{'dx:'+device.dx+';dy:'+device.dy}" 
-          style="--device-size: {gridsize + 'px'}; top:{calculate_y(device.dx, device.dy) +'px'};left:{calculate_x(device.dx, device.dy) +'px'};"
-          class="device"
-          class:fwMismatch={device.fwMismatch}>
-        
-            <Device type={device.id.substr(0,4)} id={device.id} rotation={device.rot + $appSettings.persistant.moduleRotation/90} />
-
-        </div>
-      {/each}    
+    <div class="w-full flex flex-row items-center min-h-fit mt-auto">
+      <CursorLog/>
     </div>
-
 
   </grid-layout>  
 </layout-container>
