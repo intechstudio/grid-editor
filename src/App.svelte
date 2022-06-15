@@ -30,8 +30,14 @@
   import ErrorConsole from          './app/main/ErrorConsole.svelte';
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
 
+
+  import Monster from "./app/main/user-interface/Monster.svelte";
+
   import Updater from               './app/shared/updater/Updater.svelte';
-  import { appSettings } from       './app/runtime/app-helper.store'
+  import { appSettings, windowSize } from       './app/runtime/app-helper.store'
+
+
+  import { watchResize } from "svelte-watch-resize";
 
   let modalComponents = {}
   modalComponents[""] = undefined;
@@ -92,14 +98,21 @@
 
 
 
+  function resize(){
+
+    $windowSize.window = $windowSize.window+1;
+  }
 
 </script>
+
+
+<Monster/>
 
 <Tailwindcss />
 
 <Titlebar/>
 
-<main id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
+<main use:watchResize={resize} id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
   <NavTabs/> 

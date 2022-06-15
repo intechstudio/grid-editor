@@ -1033,20 +1033,29 @@ function create_runtime () {
 
     // reset rendering helper stores
 
-    elementPositionStore.update(eps=>{
-      eps[dx][dy] = undefined
-      return eps
-    });    
+    try {
 
-    elementNameStore.update(ens=>{
-      ens[dx][dy] = undefined
-      return ens
-    });
+      elementPositionStore.update(eps=>{
+        eps[dx][dy] = undefined
+        return eps
+      });  
 
-    ledColorStore.update(lcs=>{
-      lcs[dx][dy] = undefined
-      return lcs
-    });
+      elementNameStore.update(ens=>{
+        ens[dx][dy] = undefined
+        return ens
+      });
+
+      ledColorStore.update(lcs=>{
+        lcs[dx][dy] = undefined
+        return lcs
+      });
+
+    } catch (error) {
+      
+    }
+
+  
+
     
     analytics.track_event("application", "runtime", "module count", get(runtime).length)
   }

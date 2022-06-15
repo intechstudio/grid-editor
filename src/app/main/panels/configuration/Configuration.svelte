@@ -77,7 +77,9 @@
       const ui = get(user_input);
       const device = rt.find(device => device.dx == ui.brc.dx && device.dy == ui.brc.dy)
 
-      console.log(device.pages[ui.event.pagenumber].control_elements[0].controlElementType)
+      if (device === undefined){
+        return;
+      }
 
       user_input.update((ui) => {
         ui.event.elementnumber = 0; 

@@ -29,6 +29,9 @@
   //import '../../../node_modules/monaco-editor/min/vs/loader.js'
   import {editor as monaco_editor} from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
 
+  import {attachment} from '../user-interface/Monster.store'
+
+
   let monaco_block;
 
   let monaco_disposables = []
@@ -112,17 +115,11 @@
 
   }
 
-  onDestroy(()=>{
-
-    monaco_disposables.forEach(element => {
-      element.dispose();
-    });
-
-
-  })
 
 
   let toColorize;
+
+  let modalElement;
 
   onMount(()=>{
 
@@ -152,7 +149,8 @@
       }
     });
 
-    
+
+
 
     
     editor.getModel().onDidChangeContent((event) => {
@@ -169,8 +167,25 @@
 
     scrollDown.scrollTo(0, scrollDown.scrollHeight)
 
+
+    $attachment = {element: modalElement, position: "top"}
+
   })
 
+
+  onDestroy(()=>{
+
+    if ($attachment.element === modalElement){
+      $attachment = undefined
+    }
+
+
+    monaco_disposables.forEach(element => {
+      element.dispose();
+    });
+
+
+  })
 
 </script>
 
@@ -182,7 +197,7 @@
 
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50">
 
-  <div use:clickOutside={{useCapture:true}} on:click-outside={clickOutsideHandler}   id="clickbox" 
+  <div bind:this={modalElement} use:clickOutside={{useCapture:true}} on:click-outside={clickOutsideHandler}   id="clickbox" 
   class=" z-50 w-3/4 h-3/4 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
     <div class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center">
