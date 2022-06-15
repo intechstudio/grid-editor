@@ -70,6 +70,15 @@
 
 
 
+
+
+  function dismiss(){
+
+    logtext = [];
+    analytics.track_event("application", "error console", "error notification", "dismiss")
+
+  }
+
 </script>
 
 <style>
@@ -94,6 +103,11 @@
         on:click={refresh} 
         class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
         Restart
+      </button>
+      <button 
+        on:click={dismiss} 
+        class="relative bg-gray-500 mr-3 block hover:bg-gray-300 text-white ml-1 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
+        Dismiss
       </button>
 
     </div>
