@@ -56,8 +56,6 @@
 
     analytics.track_event("application", "configpicker", "added action", action_name)
 
-    console.log(cfg)
-
     dispatch('new-config', {
       config: cfg
     });
@@ -112,7 +110,6 @@
       const li = get(user_input);
       const eventtype = parseInt(li.event.eventtype);
 
-      console.log("EVENTTYPE", eventtype)
 
       blocks.forEach((elem)=>{
 

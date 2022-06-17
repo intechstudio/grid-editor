@@ -77,16 +77,16 @@
 
     document.addEventListener("mousemove", e=>{
 
+      clearTimeout(sleepTimeout);
+      sleepTimeout = undefined
+
       if (helperSleep){
-        clearTimeout(sleepTimeout);
-        sleepTimeout = undefined
         if (wakeTimeout === undefined){
           wakeTimeout = setTimeout(() => { 
             helperSleep = false
             wakeTimeout = undefined
           }, 250);
         }
-
       }
 
       let eX1 = e.clientX - helperX + 10

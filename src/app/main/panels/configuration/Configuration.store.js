@@ -283,17 +283,17 @@ function createDropStore(){
 
         try{
           // check if it's and if block
-          if(a.information.name == 'If'){
+          if(a.information.name.endsWith('_If')){
             if_block = true;
           }
       
           // don't add +1 id in the array (end)
-          if(if_block && a.information.name !== 'End'){
+          if(if_block && (!a.information.name.endsWith('_End'))){
             disabled_blocks.push(index);
           }
           
           // this is the last, as END has to be disabled too!
-          if (a.information.name == 'End'){
+          if (a.information.name.endsWith('_End')){
             if_block = false;
           }
         }catch(e){

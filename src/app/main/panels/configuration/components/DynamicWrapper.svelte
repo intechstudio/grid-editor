@@ -56,7 +56,8 @@
     const event = li.event.eventtype;
     const actionstring = _utils.configMerge({config: configs});
 
-    if(configName == 'End' || configName == 'Else' || configName == 'EncoderPushRotElse' || configName == 'EncoderPushRotEnd'){
+    // EncoderPushRotElse, EncoderPushRotEnd ects
+    if(configName.endsWith('_End') || configName.endsWith('_Else')){
       runtime.update_event_configuration(dx, dy, page, element, event, actionstring, 'EDITOR_EXECUTE');
 
     } else {
@@ -98,7 +99,7 @@
 
         class=" flex flex-grow text-white cursor-pointer group"
         id="cfg-{index}" 
-        movable={config.information.rendering == 'standard' ||  config.information.name == "If" ||  config.information.name == "EncoderPushRot"} 
+        movable={config.information.rendering == 'standard' ||  config.information.name.endsWith("_If")} 
         config-component={config.information.name} 
         config-id={config.id}>
 
@@ -130,7 +131,7 @@
                 </div>    
               </icon>
           
-              <div style="white-space: nowrap" class="mx-2 flex items-center">{config.information.desc}</div> 
+              <div style="white-space: nowrap" class="mx-2 flex items-center">{config.information.blockTitle}</div> 
 
                 <svelte:component 
                   this={config.component} 
