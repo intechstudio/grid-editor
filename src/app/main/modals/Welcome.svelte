@@ -1,10 +1,11 @@
 <script>
   import { onDestroy, onMount } from "svelte";
   import { luadebug_store } from "../../runtime/runtime.store";
-  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
   import { appSettings, openInBrowser} from "../../runtime/app-helper.store";
 
   import {clickOutside} from '../_actions/click-outside.action'
+
+  import {attachment} from '../user-interface/Monster.store'
 
   import { writable, get, readable } from 'svelte/store';
 
@@ -13,17 +14,7 @@
 
   let video_link= process.env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
 
-
-  let helperX
-  let helperY
-  let mouseX
-  let mouseY
-  let eyesX1 = 0
-  let eyesY1 = 0
-  let eyesX2 = 0
-  let eyesY2 = 0
-
-  let helperElement;
+  let modalElement;
 
   onMount(()=>{
 
@@ -47,62 +38,19 @@
       
     });
 
+    $attachment = {element: modalElement, position: "left"}
 
-    const bounding = helperElement.getBoundingClientRect()
-
-    console.log(bounding);
-
-    helperX = bounding.x + bounding.width/2
-    helperY = bounding.y + bounding.height/2
-
-    document.addEventListener("mousemove", e=>{
-
-      let eX1 = e.clientX - helperX + 10
-      let eY1 = e.clientY - helperY    
-
-      let dist1 = Math.sqrt(eX1*eX1 + eY1*eY1)
-   
+  });
 
 
-      let eX2 = e.clientX - helperX - 10
-      let eY2 = e.clientY - helperY
+  onDestroy(()=>{
 
-      let dist2 = Math.sqrt(eX2*eX2 + eY2*eY2)
+    if ($attachment.element === modalElement){
+      $attachment = undefined
+    }
 
-      let agvDist = (dist1 + dist2)/2
+  });
 
-      if (agvDist > 150){
-        eyesX1 = eX1*(150/agvDist)
-        eyesY1 = eY1*(150/agvDist)
-      }
-      else{
-        eyesX1 = eX1
-        eyesY1 = eY1
-      }   
-
-      if (agvDist > 150){
-
-        eyesX2 = eX2*(150/agvDist)
-        eyesY2 = eY2*(150/agvDist)
-      
-      }
-      else{
-        eyesX2 = eX2
-        eyesY2 = eY2
-      }
-
-      let rate = Math.sqrt(agvDist*0.1)*20
-
-      eyesX1 = eX1/Math.sqrt(eX1*eX1+eY1*eY1)*rate
-      eyesY1 = eY1/Math.sqrt(eX1*eX1+eY1*eY1)*rate
-
-      eyesX2 = eX2/Math.sqrt(eX2*eX2+eY2*eY2)*rate
-      eyesY2 = eY2/Math.sqrt(eX2*eX2+eY2*eY2)*rate
-
-    })
-
-
-  })
 
 
   let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
@@ -116,7 +64,7 @@
 
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-secondary bg-opacity-50">
 
-  <div use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
+  <div bind:this={modalElement}  use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
     class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
       <div class="p-8 flex-col w-full flex justify-between items-center">
@@ -137,18 +85,6 @@
       <div class="flex flex-row w-full">
         <div class="p-8 flex-col w-7/12 flex justify-between mt-8">
 
-
-          <div style="width:100px; height: 100px;" class="bg-red-500 relative">
-
-            <svg bind:this={helperElement} width="100" height="100">
-              <circle cx="30" cy="50" r="15" fill="white" />   
-              <circle cx="70" cy="50" r="15" fill="white" />
-              <circle cx="{30 + eyesX1/15}" cy="{50 + eyesY1/15}" r="5" fill="black" />   
-              <circle cx="{70 + eyesX2/15}" cy="{50 + eyesY2/15}" r="5" fill="black" />
-              Sorry, your browser does not support inline SVG.
-           </svg> 
-            
-          </div>
 
 
 

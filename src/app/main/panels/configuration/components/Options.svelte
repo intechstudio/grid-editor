@@ -22,8 +22,8 @@
     // lookbefore
     const lookbefore  = configs.slice(0,index).reverse();
 
-    const if_index  = lookbefore.findIndex(a => a.information.name == 'If' || a.information.name == 'EncoderPushRot');
-    const end_index = lookbefore.findIndex(a => a.information.name == 'End' || a.information.name == 'EncoderPushRotEnd');
+    const if_index  = lookbefore.findIndex(a => a.information.name.endsWith('_If'));
+    const end_index = lookbefore.findIndex(a => a.information.name.endsWith('_End'));
 
     if(if_index !== -1 && end_index !== -1){
       if(if_index < end_index){
@@ -54,26 +54,21 @@
 
     let skipSelection = false;
 
-    const matchLookup = {
-      "If": "End", 
-      "EncoderPushRot": "EncoderPushRotEnd"
-    };
-
     for (let i = 0; i < _configs_length; i++) {
       if(!skipSelection){
         current = _configs[i].information.name; //easier than writing it over and over      
-        if (current === 'If' || current === 'EncoderPushRot') {
+        if (current.endsWith('_If')) {
           stack.push(current);
-        } else if (current === 'End' || current === 'EncoderPushRotEnd') {
+        } else if (current.endsWith('_End')) {
           const lastBracket = stack.pop();
-          if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
+          if (lastBracket !== current.split("_")[0]+"_If") { //if the stack is empty, .pop() returns undefined, so this expression is still correct
             return false; //terminate immediately - no need to continue scanning the string
           }
         }
 
         arr.push(_configs[i]);        
 
-        if(stack.length == 0 && (current == 'End' || current === 'EncoderPushRotEnd')){
+        if(stack.length == 0 && current.endsWith('_End')){
           skipSelection = true;
         }
       }
@@ -99,7 +94,7 @@
         {$appMultiSelect.selection[index] ? '✔' : ''}
     </div>
   </select-box>
-{:else if (componentName == 'If' || componentName == 'EncoderPushRot') && showSelectBox}
+{:else if (componentName.endsWith("_If")) && showSelectBox}
   <select-box class="flex pl-2 justify-center items-center bg-transparent">
     <div 
       on:click={()=>{handleMultiSelect()}} 

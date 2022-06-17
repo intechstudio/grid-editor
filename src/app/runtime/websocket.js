@@ -61,34 +61,34 @@ client.addEventListener('close', function clear() {
 
 
 
-// let heartbeatTimeout2;
+let heartbeatTimeout2;
 
-// const client2 = new WebSocket('ws://localhost:1337');
+const client2 = new WebSocket('ws://localhost:1337');
 
-// console.log("WS: ", client2);
+console.log("WS: ", client2);
 
-// client2.addEventListener('open', e => {
+client2.addEventListener('open', e => {
 
-//   heartbeatTimeout2 = setTimeout(e=>{client2.close()}, 5000 + 1000);
+  heartbeatTimeout2 = setTimeout(e=>{client2.close()}, 5000 + 1000);
 
-//   client2.addEventListener('message', function message(data) {
+  client2.addEventListener('message', function message(data) {
 
-//     const decoded = JSON.parse(data.data)
-
-
-//     if (decoded.event === "grid_ping"){
-
-//       //console.log("PING")
-//       clearTimeout(heartbeatTimeout2)
-//       heartbeatTimeout2 = setTimeout(e=>{client2.close()}, 5000 + 1000);
-
-//       client2.send(JSON.stringify({"event":"grid_pong"}))
-//     }
-//   });
-// });
+    const decoded = JSON.parse(data.data)
 
 
-// client2.addEventListener('close', function clear() {
-//   console.log("CONNECTION CLOSED")
-//   clearTimeout(heartbeatTimeout2)
-// });
+    if (decoded.event === "grid_ping"){
+
+      //console.log("PING")
+      clearTimeout(heartbeatTimeout2)
+      heartbeatTimeout2 = setTimeout(e=>{client2.close()}, 5000 + 1000);
+
+      client2.send(JSON.stringify({"event":"grid_pong"}))
+    }
+  });
+});
+
+
+client2.addEventListener('close', function clear() {
+  console.log("CONNECTION CLOSED")
+  clearTimeout(heartbeatTimeout2)
+});

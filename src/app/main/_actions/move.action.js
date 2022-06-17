@@ -37,26 +37,21 @@ export function changeOrder(node, {configs}) {
 
     let skipSelection = false;
 
-    const matchLookup = {
-      "If": "End", 
-      "EncoderPushRot": "EncoderPushRotEnd", 
-    };
-
     for (let i = 0; i < _cfgs_length; i++) {
       if(!skipSelection){
         current = _cfgs[i].information.name; //easier than writing it over and over      
-        if (current === 'If' || current === 'EncoderPushRot') {
+        if (current.endsWith('_If')) {
           stack.push(current);
-        } else if (current === 'End' || current === 'EncoderPushRotEnd') {
+        } else if (current.endsWith('_End')) {
           const lastBracket = stack.pop();
-          if (matchLookup[lastBracket] !== current) { //if the stack is empty, .pop() returns undefined, so this expression is still correct
+          if (lastBracket !== current.split("_")[0]+"_If") { //if the stack is empty, .pop() returns undefined, so this expression is still correct
             return false; //terminate immediately - no need to continue scanning the string
           }
         }
 
         arr.push(_cfgs[i]);        
 
-        if(stack.length == 0 && (current == 'End' || current === 'EncoderPushRotEnd')){
+        if(stack.length == 0 && current.endsWith('_End')){
           skipSelection = true;
         }
       }
@@ -159,7 +154,7 @@ export function changeOrder(node, {configs}) {
       // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
       const component = dragged.getAttribute('config-component');
 
-      if(component == 'If' || component == 'EncoderPushRot'){
+      if(component.endsWith('_If')){
         const _id = id.substr(4,);
         const nodes = _configs.slice(_id);
         const end_of_if = if_end_pairs(_configs, _id);
@@ -199,7 +194,7 @@ export function changeOrder(node, {configs}) {
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
-        if(id.startsWith('cfg-') && (e.target.getAttribute('config-component') !== 'If' && e.target.getAttribute('config-component') !== 'EncoderPushRot' ) && e.target.getAttribute('config-component') !== 'Then'){
+        if(id.startsWith('cfg-') && (!e.target.getAttribute('config-component').endsWith('_If')) && e.target.getAttribute('config-component') !== 'Then'){
           if((clientHeight / 2) < e.offsetY){
             drop_target = Number(id.substr(4,));
           } else {
@@ -211,10 +206,11 @@ export function changeOrder(node, {configs}) {
           drop_target = 'bin';
         }
         
-
-        if(e.target.getAttribute('config-component') == 'If' || e.target.getAttribute('config-component') == 'EncoderPushRot' ){
-          drop_target = Number(id.substr(4,)) - 1;
-        };
+        if (e.target.getAttribute('config-component') !== null ){
+          if(e.target.getAttribute('config-component').endsWith('_If')){
+            drop_target = Number(id.substr(4,)) - 1;
+          };
+        }
         
         if(drop_target !== ''){
           node.dispatchEvent(new CustomEvent('drop-target', {

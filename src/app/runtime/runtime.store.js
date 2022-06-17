@@ -14,6 +14,7 @@ import { analytics } from './analytics_influx';
 import { initialize_ws } from './websocket';
 //import { initialize_wss } from './websocketserver';
 
+const activeWindow = require('active-win');
 
 //initialize_wss();
 initialize_ws();
@@ -83,7 +84,7 @@ async function detectActiveWindow(){
 
   }
   catch(e){
-    console.error("detectActiveWindow failed")
+    console.error("detectActiveWindow failed", e)
   }
 
 }
@@ -1032,20 +1033,29 @@ function create_runtime () {
 
     // reset rendering helper stores
 
-    elementPositionStore.update(eps=>{
-      eps[dx][dy] = undefined
-      return eps
-    });    
+    try {
 
-    elementNameStore.update(ens=>{
-      ens[dx][dy] = undefined
-      return ens
-    });
+      elementPositionStore.update(eps=>{
+        eps[dx][dy] = undefined
+        return eps
+      });  
 
-    ledColorStore.update(lcs=>{
-      lcs[dx][dy] = undefined
-      return lcs
-    });
+      elementNameStore.update(ens=>{
+        ens[dx][dy] = undefined
+        return ens
+      });
+
+      ledColorStore.update(lcs=>{
+        lcs[dx][dy] = undefined
+        return lcs
+      });
+
+    } catch (error) {
+      
+    }
+
+  
+
     
     analytics.track_event("application", "runtime", "module count", get(runtime).length)
   }
