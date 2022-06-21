@@ -168,7 +168,7 @@
     scrollDown.scrollTo(0, scrollDown.scrollHeight)
 
 
-    $attachment = {element: modalElement, position: "top"}
+    $attachment = {element: modalElement, hpos: "60%", vpos: "0%", scale: 0.75}
 
   })
 

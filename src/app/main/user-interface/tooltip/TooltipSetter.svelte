@@ -10,9 +10,12 @@
 
   import {appSettings, windowSize} from "../../../runtime/app-helper.store"
 
+  import {attachment} from "../Monster.store"
+
   export let key = '';
 
   const TOOLTIP_MAX_HEIGHT = 200;
+  const TOOLTIP_MAX_WIDTH = 250;
 
   let fadein_ended=false;
 
@@ -24,8 +27,10 @@
 
   let tooltip_style = ""
   let tooltip_isbelow = false
+  let tooltip_helperOnLeft = false
   let arrow_style = ""
 
+  let tooltiptext_style = "";
 
   let innerWidth;
   let innerHeight;
@@ -68,7 +73,7 @@
 
     let docu = {width: window.innerWidth, height: window.innerHeight}
     let parent = parent_element.getBoundingClientRect();
-    let self = {width: 200, height: 0}
+    let self = {width: TOOLTIP_MAX_WIDTH, height: 0}
 
     let xoffset = 0
 
@@ -81,18 +86,45 @@
       xoffset = 5-(parent.left - self.width/2 + parent.width/2 )
     }
 
-    if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
+    // if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
+
+    //   tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
+    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
+    //   tooltip_isbelow = false;
+
+    // }else{
+
+    //   tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
+    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
+    //   tooltip_isbelow = true;
+    // }
+
+
+
+
+    if (TOOLTIP_MAX_HEIGHT < parent.top ){
+      tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
+      arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
+      tooltip_isbelow = true;
+
+
+    }else{
 
       tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
       arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
       tooltip_isbelow = false;
 
-    }else{
-
-      tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
-      arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
-      tooltip_isbelow = true;
     }
+
+    if (parent.left + parent.width/2 < docu.width/2){
+      tooltip_helperOnLeft = true;
+      tooltiptext_style = "padding-right: 60px; min-height: 50px;"
+    }
+    else {
+      tooltip_helperOnLeft = false;
+      tooltiptext_style = "padding-left: 60px; min-height: 50px;"
+    }
+
 
     // bottom: 201
     // height: 30
@@ -105,6 +137,7 @@
 
   }
 
+  let attachmentElement;
 
   // Using oldschool javascript find out if there is also a tooltipconfirm component attached
   function buttonClick(){
@@ -142,6 +175,111 @@
 
     calculate_position()
     analytics.track_event("application", "tooltip", "show tooltip", key)
+
+    if (tooltip_helperOnLeft){
+
+      $attachment = {element: attachmentElement, hpos: "90%", vpos: "50%", scale: 0.45}
+    }
+    else{
+
+      $attachment = {element: attachmentElement, hpos: "10%", vpos: "50%", scale: 0.45}
+    }
+
+  }
+
+
+
+  function mouseenterCallback(){
+
+    if (tooltip_isvisible === false){
+
+      tooltip_isvisible = true; tooltip_delaydone = false
+    }
+  }
+
+  function mouseleaveCallback(e){
+
+    // clear tooltip if it wasen't even rendered yet
+    if (tooltip_delaydone === false){
+      tooltip_isvisible = false; tooltip_delaydone = false; $attachment = undefined
+      return;
+    }
+
+
+
+    if (tooltip_element === undefined || tooltip_element === null){
+      return;
+    }    
+    
+    if (parent_element === undefined || parent_element === null){
+      return;
+    }
+
+
+    const teb = tooltip_element.getBoundingClientRect()
+    const tpb = parent_element.getBoundingClientRect()
+
+    //console.log(e, bnd)
+
+    if (e.clientX > teb.x && e.clientY > teb.y && e.clientX < teb.x + teb.width && e.clientY < teb.y + teb.height ){
+
+      //console.log("A")
+    }
+    else if (e.clientX > tpb.x && e.clientY > tpb.y && e.clientX < tpb.x + tpb.width && e.clientY < tpb.y + tpb.height ){
+
+      //console.log("B")
+
+    }
+    else{
+      //console.log("C")
+      tooltip_isvisible = false; tooltip_delaydone = false; $attachment = undefined
+    }
+
+  }
+
+
+
+
+  function mousemoveCallback(e){
+
+
+
+    if (tooltip_element === undefined || tooltip_element === null){
+      return;
+    }    
+    
+    if (parent_element === undefined || parent_element === null){
+      return;
+    }
+
+
+    const teb = tooltip_element.getBoundingClientRect()
+    const tpb = parent_element.getBoundingClientRect()
+
+    //console.log(e, bnd)
+
+    if (e.clientX > teb.x -5 && e.clientY > teb.y -5 && e.clientX < teb.x + 5 + teb.width && e.clientY < teb.y + 5 + teb.height ){
+
+      //console.log("X")
+    }
+    else if (e.clientX > tpb.x -5 && e.clientY > tpb.y -5 && e.clientX < tpb.x + 5 + tpb.width && e.clientY < tpb.y + 5 + tpb.height ){
+
+      //console.log("Y")
+
+    }
+    else{
+      //console.log("Z")
+
+      document.removeEventListener("mousemove", mousemoveCallback)
+      tooltip_isvisible = false; tooltip_delaydone = false; $attachment = undefined
+    }
+
+  }
+
+  function tooltipAppear(){
+
+    tooltip_delaydone = true
+    document.addEventListener("mousemove", mousemoveCallback)
   }
 
 
@@ -154,15 +292,15 @@
 {#if tooltip_text !== undefined}
   <div 
     bind:this={parent_element}
-    on:mouseenter={()=>{tooltip_isvisible = true; tooltip_delaydone = false}} 
-    on:mouseleave={()=>{tooltip_isvisible = false; tooltip_delaydone = false}} 
+    on:mouseenter={mouseenterCallback} 
+    on:mouseleave={mouseleaveCallback} 
     on:click|stopPropagation={buttonClick} 
     class="w-full flex h-full absolute right-0 top-0 " >
 
     {#if tooltip_isvisible}
       <div 
         in:fade={{duration: 0, delay: 750}} 
-        on:introend={()=>{ tooltip_delaydone = true}}
+        on:introend={tooltipAppear}
         >
         {#if tooltip_delaydone}
           <div      
@@ -182,8 +320,9 @@
                 </div>
               {/if}
               <div 
-                class="tooltip-bg text-base flex flex-col px-4 py-4 text-white text-left"
-                style="">
+                bind:this={attachmentElement}
+                class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left"
+                style="{tooltiptext_style}">
                 {tooltip_text}
               </div>
               {#if tooltip_isbelow == true}

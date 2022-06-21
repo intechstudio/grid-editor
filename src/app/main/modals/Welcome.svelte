@@ -38,7 +38,7 @@
       
     });
 
-    $attachment = {element: modalElement, position: "left"}
+    $attachment = {element: modalElement, hpos: "0%", vpos: "60%"}
 
   });
 

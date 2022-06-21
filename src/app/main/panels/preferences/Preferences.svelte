@@ -193,6 +193,16 @@
     analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
   }
 
+  function setHelperShape(shape){
+    $appSettings.persistant.helperShape = shape
+
+    analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
+  }
+
+  function setHelperColor(color){
+    $appSettings.persistant.helperColor = color
+    analytics.track_event("application", "preferences", "helper color", "set to "+color)
+  }
 
   onMount(async () => {
 
@@ -207,10 +217,10 @@
       <div class="flex my-1 flex-col relative text-white">
         <div class="mb-1">Module Rotation</div>
         <div class="flex flex-row"> 
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(0)}}>0°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(90)}}>90°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(180)}}>180°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(270)}}>270°</button>
+          <button class:selected="{$appSettings.persistant.moduleRotation === 0}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(0)}}>0°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 90}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(90)}}>90°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 180}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(180)}}>180°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 270}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(270)}}>270°</button>
         </div>
       </div>
 
@@ -232,6 +242,31 @@
 
       
     </div>
+
+    <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+      <div class="flex my-1 flex-col relative text-white">
+        <div class="mb-1">Grid Helper Name</div>
+        <div class="flex flex-row"> 
+          <input type="text" placeholder="Helper Name" class="bg-primary m-1" bind:value={$appSettings.persistant.helperName}/>   
+        </div>
+        <div class="mb-1">Style</div>
+        <div class="flex flex-row"> 
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(0)}}>Star</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(1)}}>Play</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(2)}}>Circle</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(3)}}>Wave</button>
+        </div>
+        <div class="mb-1">Color</div>
+        <div class="flex flex-row"> 
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(0)}}>0</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(1)}}>1</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(2)}}>2</button>     
+          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(3)}}>3</button>
+        </div>
+      </div>
+      
+    </div>
+
 
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
@@ -345,5 +380,9 @@
 
 <style>
 
+
+  button.selected{
+    font-weight: bold;
+  }
 
 </style>
