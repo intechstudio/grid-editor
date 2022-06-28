@@ -32,6 +32,7 @@
 
 
   import Monster from "./app/main/user-interface/Monster.svelte";
+  import {attachment} from "./app/main/user-interface/Monster.store";
 
   import Updater from               './app/shared/updater/Updater.svelte';
   import { appSettings, windowSize } from       './app/runtime/app-helper.store'
@@ -47,6 +48,26 @@
   modalComponents["feedback"] = Feedback;
   
   let startX, startY, startWidth, startHeight, stopWidth, stopX;
+
+
+
+  let shapeSelected;
+  let colorSelected;
+  let name;
+
+  $: {
+
+    if ($appSettings.persistant.helperShape !== undefined){    
+      shapeSelected = $appSettings.persistant.helperShape;
+    }    
+
+    if ($appSettings.persistant.helperColor !== undefined){    
+      colorSelected = $appSettings.persistant.helperColor;
+    }
+
+    name = $appSettings.persistant.helperName;
+
+  }
 
 
   //resize the element
@@ -106,7 +127,7 @@
 </script>
 
 
-<Monster/>
+<Monster {name}  {shapeSelected} {colorSelected} {attachment} />
 
 <Tailwindcss />
 

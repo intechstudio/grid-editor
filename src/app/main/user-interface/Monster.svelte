@@ -1,29 +1,15 @@
 <script>
 
   import { onDestroy, onMount } from "svelte";
-  import {attachment} from "./Monster.store"
 
   import {windowSize, appSettings} from "../../runtime/app-helper.store"
 
-  
-  let shapeSelected = 0;
-  let colorSelected = 0;
-  let name = "";
+  export let shapeSelected = 0;
+  export let colorSelected = 0;
+  export let name = "";
+  export let attachment = undefined
 
 
-  $: {
-
-    if ($appSettings.persistant.helperShape !== undefined){    
-      shapeSelected = $appSettings.persistant.helperShape;
-    }    
-    
-    if ($appSettings.persistant.helperColor !== undefined){    
-      colorSelected = $appSettings.persistant.helperColor;
-    }
-    
-    name = $appSettings.persistant.helperName;
-
-  }
 
   // star, play, cycle, wave
   const shapes = [
