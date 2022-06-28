@@ -142,7 +142,9 @@
   // Using oldschool javascript find out if there is also a tooltipconfirm component attached
   function buttonClick(){
     tooltip_isvisible = false; 
-    tooltip_delaydone = false; 
+    tooltip_delaydone = false;
+     
+    $attachment = undefined
 
     let parent = parent_element.parentElement
 

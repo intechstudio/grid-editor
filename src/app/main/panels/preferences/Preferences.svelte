@@ -40,6 +40,7 @@
 
   let helperAttachment = writable({
       element: helperPreviewElement,
+      scale: 0.7,
       vpos: "50%",
       hpos: "50%"
     });
@@ -47,6 +48,7 @@
   onMount(async () => {
     helperAttachment.set({
       element: helperPreviewElement,
+      scale: 0.7,
       vpos: "50%",
       hpos: "50%"
     });
@@ -215,8 +217,6 @@
   function setHelperShape(shape){
     $appSettings.persistant.helperShape = shape
 
-    console.log(helperPreviewElement, $helperAttachment)
-
     analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
   }
 
@@ -268,7 +268,7 @@
       <div class="flex my-1 flex-col relative text-white">
         <div class="mb-1">Grid Helper Name</div>
         <div class="flex flex-row"> 
-          <input type="text" placeholder="Helper Name" class="bg-primary m-1" bind:value={$appSettings.persistant.helperName}/>   
+          <input type="text" placeholder="Helper Name" class="bg-primary my-1" bind:value={$appSettings.persistant.helperName}/>   
         </div>
         <div class="mb-1">Style</div>
         <div class="flex flex-row"> 
@@ -286,9 +286,9 @@
         </div>
       </div>
       
-      <div bind:this={helperPreviewElement} class="flex my-1 flex-col text-white w-full">
+      <div bind:this={helperPreviewElement} class="flex relative my-1 flex-col text-white w-full">
 
-        <Monster helperShape={$appSettings.persistant.helperShape} helperColor={$appSettings.persistant.helperColor} attachment={helperAttachment}/>
+        <Monster  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor}  attachment={helperAttachment}/>
 
       </div>
     </div>
@@ -343,10 +343,10 @@
 
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {$appSettings.persistant.pageActivatorEnabled?window_title:"N/A"}</div>
       
-      <input type="text" placeholder="Page 0 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
-      <input type="text" placeholder="Page 1 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
-      <input type="text" placeholder="Page 2 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_2}/>
-      <input type="text" placeholder="Page 3 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_3}/>
+      <input type="text" placeholder="Page 0 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
+      <input type="text" placeholder="Page 1 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
+      <input type="text" placeholder="Page 2 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_2}/>
+      <input type="text" placeholder="Page 3 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_3}/>
 
 
     </div>

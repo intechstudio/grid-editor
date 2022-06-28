@@ -127,7 +127,7 @@
 </script>
 
 
-<Monster {name}  {shapeSelected} {colorSelected} {attachment} />
+<Monster {name}  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor} {attachment} />
 
 <Tailwindcss />
 

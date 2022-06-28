@@ -38,6 +38,8 @@
 
   let scale = 1;
 
+  let monsterElement;
+
   let eyeOriginX1 = 35
   let eyeOriginY1 = 50
 
@@ -78,7 +80,7 @@
       // just to trigger on window change
     }
 
-    if ($attachment !== undefined && $attachment.element !== undefined && $attachment.element !== null){
+    if ($attachment !== undefined && $attachment.element !== undefined && $attachment.element !== null && monsterElement !== undefined && monsterElement !== null){
       
       if ($attachment.element.getBoundingClientRect !== undefined){
 
@@ -88,14 +90,14 @@
         const hpos = $attachment.hpos
 
         if (vpos !== undefined && vpos.endsWith("%") && !isNaN(parseInt(vpos))){
-          helperY = bounding.top + bounding.height/100*parseInt(vpos)
+          helperY = bounding.top + bounding.height/100*parseInt(vpos) - monsterElement.parentElement.getBoundingClientRect().top
         }
         else{
           helperY = bounding.top
         }
 
         if (hpos !== undefined && hpos.endsWith("%") && !isNaN(parseInt(hpos))){
-          helperX = bounding.left + bounding.width/100*parseInt(hpos)
+          helperX = bounding.left + bounding.width/100*parseInt(hpos) - monsterElement.parentElement.getBoundingClientRect().left
         }
         else{
           helperX = bounding.left
@@ -122,8 +124,12 @@
 
   function refreshEyes(){
 
-    let X = lastMouseX - helperX - 50 + (eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2
-    let Y = lastMouseY - helperY - 50 + (eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2
+    if (monsterElement === null || monsterElement === undefined){
+      return;
+    }
+
+    let X = lastMouseX - helperX - 50 + (eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2  - monsterElement.parentElement.getBoundingClientRect().left
+    let Y = lastMouseY - helperY - 50 + (eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2 - monsterElement.parentElement.getBoundingClientRect().top
 
     let dist = Math.sqrt(X*X + Y*Y)
 
@@ -135,54 +141,64 @@
 
   }
 
+
+  function mouseleaveCallback(e){
+
+    clearTimeout(wakeTimeout);
+    wakeTimeout = undefined
+    if (sleepTimeout === undefined){
+      sleepTimeout = setTimeout(() => { 
+        helperSleep = true
+        sleepTimeout = undefined
+      }, 750);
+    
+    }
+  }
+
+
+
+  function mousemoveCallback(e){
+
+    clearTimeout(sleepTimeout);
+    sleepTimeout = undefined
+
+    if (helperSleep){
+      if (wakeTimeout === undefined){
+        wakeTimeout = setTimeout(() => { 
+          helperSleep = false
+          wakeTimeout = undefined
+        }, 250);
+      }
+    }
+
+
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY; 
+
+    refreshEyes();
+  }
+
   onMount(()=>{
 
 
-    document.addEventListener("mouseleave", e=>{
+    document.addEventListener("mouseleave", mouseleaveCallback);
+    document.addEventListener("mousemove", mousemoveCallback);
 
-      clearTimeout(wakeTimeout);
-      wakeTimeout = undefined
-      if (sleepTimeout === undefined){
-        sleepTimeout = setTimeout(() => { 
-          helperSleep = true
-          sleepTimeout = undefined
-        }, 750);
-      
-      }
+  })
 
-    });
+  
+  onDestroy(()=>{
 
 
-
-    document.addEventListener("mousemove", e=>{
-
-      clearTimeout(sleepTimeout);
-      sleepTimeout = undefined
-
-      if (helperSleep){
-        if (wakeTimeout === undefined){
-          wakeTimeout = setTimeout(() => { 
-            helperSleep = false
-            wakeTimeout = undefined
-          }, 250);
-        }
-      }
-
-
-      lastMouseX = e.clientX;
-      lastMouseY = e.clientY; 
-
-      refreshEyes();
-
-    })
-
+    document.addEventListener("mouseleave", mouseleaveCallback);
+    document.addEventListener("mousemove", mousemoveCallback);
 
   })
 
 
 </script>
 
-<div class="absolute bg-gray-500 bg-opacity-0" style="z-index: 70; top: {helperY-100/2*scale}px; left: {helperX-100/2*scale}px;">
+<div bind:this={monsterElement} class="absolute bg-gray-500 bg-opacity-0" style="z-index: 70; top: {helperY-100/2*scale}px; left: {helperX-100/2*scale}px;">
   <svg bind:this={helperElement} width="{100*scale}" height="{100*scale}" >
   
     <g transform="scale({scale})">

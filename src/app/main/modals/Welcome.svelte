@@ -15,6 +15,7 @@
   let video_link= process.env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
 
   let modalElement;
+  let attachmentElement;
 
   onMount(()=>{
 
@@ -38,14 +39,14 @@
       
     });
 
-    $attachment = {element: modalElement, hpos: "0%", vpos: "60%"}
+    $attachment = {element: attachmentElement, hpos: "0%", vpos: "100%"}
 
   });
 
 
   onDestroy(()=>{
 
-    if ($attachment.element === modalElement){
+    if ($attachment.element === attachmentElement){
       $attachment = undefined
     }
 
@@ -65,7 +66,7 @@
 <modal class=" z-40 flex absolute items-center justify-center w-full h-screen bg-secondary bg-opacity-50">
 
   <div bind:this={modalElement}  use:clickOutside={{useCapture:true}} on:click-outside={()=>{$appSettings.modal = ''}}  id="clickbox" 
-    class=" z-50 w-1/2 h-1/2 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
+    class="items-center z-50 w-3/6 h-3/6 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100">
 
       <div class="p-8 flex-col w-full flex justify-between items-center">
 
@@ -82,52 +83,64 @@
 
       </div>
 
-      <div class="flex flex-row w-full">
-        <div class="p-8 flex-col w-7/12 flex justify-between mt-8">
+      <div class="flex flex-row m-6 bg-primary w-full" style="max-width:500px">
+        <div bind:this={attachmentElement}  class="flex flex-row w-full bg-black bg-opacity-20 ml-6">
+          <div class="p-8 flex-col w-7/12 flex justify-between">
 
 
+            <div class="flex w-full text-2xl opacity-70 ">Hello Friend!</div>
+            <div class="flex w-full h-full opacity-70 mt-4"> 
+              Welcome to the magical world of the Grid Editor. 
+              I will be your helper, your partner in crime as we configure your Grid Modules!
+            </div>
+            <div class="flex w-full h-full opacity-70 mt-2"> 
+              If you are ready then let's jump in!
+              
 
+            </div>
+           
 
-        </div>
-
-        <div class="p-8 flex-col w-5/12 min-w-max flex justify-between mt-8">
-
-          <div class="flex w-full text-xl opacity-70 ">Getting started</div>
-          <div 
-          on:click={e => openInBrowser(video_link)} 
-          class="flex w-full text-blue-500 cursor-pointer">
-          Release notes video...
-        </div>
-          <div 
-            on:click={e => openInBrowser(process.env.DOCUMENTATION_REFERENCEMANUAL_URL)} 
-            class="flex w-full text-blue-500 cursor-pointer">
-            Editor reference manual...
-          </div>
-          <div 
-            on:click={e => openInBrowser(process.env.DOCUMENTATION_DISCORDSERVER_URL)} 
-            class="flex w-full text-blue-500 cursor-pointer">
-            Join the Discord community...
           </div>
 
-          <br>
+          <div class="p-8 flex-col w-5/12 min-w-max flex justify-between">
 
-          <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
-          <div 
-            on:click={e => openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)} 
+            <div class="flex w-full text-xl opacity-70 ">Getting started</div>
+            <div 
+            on:click={e => openInBrowser(video_link)} 
             class="flex w-full text-blue-500 cursor-pointer">
-            Grid does not connect...
+            Release notes video...
           </div>
-          <div 
-            on:click={e => openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)} 
-            class="flex w-full text-blue-500 cursor-pointer">
-            Updating the firmware...
-          </div>
-          <div 
-            on:click={e => openInBrowser(process.env.DOCUMENTATION_MAINTENANCE_URL)} 
-            class="flex w-full text-blue-500 cursor-pointer">
-            Taking care of grid modules...
-          </div>
+            <div 
+              on:click={e => openInBrowser(process.env.DOCUMENTATION_REFERENCEMANUAL_URL)} 
+              class="flex w-full text-blue-500 cursor-pointer">
+              Editor reference manual...
+            </div>
+            <div 
+              on:click={e => openInBrowser(process.env.DOCUMENTATION_DISCORDSERVER_URL)} 
+              class="flex w-full text-blue-500 cursor-pointer">
+              Join the Discord community...
+            </div>
 
+            <br>
+
+            <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
+            <div 
+              on:click={e => openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)} 
+              class="flex w-full text-blue-500 cursor-pointer">
+              Grid does not connect...
+            </div>
+            <div 
+              on:click={e => openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)} 
+              class="flex w-full text-blue-500 cursor-pointer">
+              Updating the firmware...
+            </div>
+            <div 
+              on:click={e => openInBrowser(process.env.DOCUMENTATION_MAINTENANCE_URL)} 
+              class="flex w-full text-blue-500 cursor-pointer">
+              Taking care of grid modules...
+            </div>
+
+          </div>
         </div>
       </div>
 
