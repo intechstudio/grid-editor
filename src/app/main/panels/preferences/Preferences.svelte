@@ -4,6 +4,9 @@
   import { writable, get } from 'svelte/store';
   import { profileListRefresh, presetListRefresh } from '../../../runtime/app-helper.store.js';
 
+  import Monster from '../../user-interface/Monster.svelte'
+  import {attachment} from  '../../user-interface/Monster.store'
+
   import instructions from "../../../serialport/instructions";
 
   import { onMount, onDestroy } from 'svelte';
@@ -19,6 +22,7 @@
 
 
 
+
   const electron = require('electron'); 
 
 
@@ -31,7 +35,24 @@
 
   const { ipcRenderer } = require('electron');
 
+  let helperPreviewElement;
 
+
+  let helperAttachment = writable({
+      element: helperPreviewElement,
+      scale: 0.7,
+      vpos: "50%",
+      hpos: "50%"
+    });
+
+  onMount(async () => {
+    helperAttachment.set({
+      element: helperPreviewElement,
+      scale: 0.7,
+      vpos: "50%",
+      hpos: "50%"
+    });
+  })
 
   let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
 
@@ -193,12 +214,21 @@
     analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
   }
 
+  function setHelperShape(shape){
+    $appSettings.persistant.helperShape = shape
 
-  onMount(async () => {
+    analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
+  }
 
-  })
+  function setHelperColor(color){
+    $appSettings.persistant.helperColor = color
+    analytics.track_event("application", "preferences", "helper color", "set to "+color)
+  }
+
+
 
 </script>
+
 
   <preferences class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto">
 
@@ -207,10 +237,10 @@
       <div class="flex my-1 flex-col relative text-white">
         <div class="mb-1">Module Rotation</div>
         <div class="flex flex-row"> 
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(0)}}>0°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(90)}}>90°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(180)}}>180°</button>     
-          <button class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(270)}}>270°</button>
+          <button class:selected="{$appSettings.persistant.moduleRotation === 0}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(0)}}>0°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 90}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(90)}}>90°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 180}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(180)}}>180°</button>     
+          <button class:selected="{$appSettings.persistant.moduleRotation === 270}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setModuleRotation(270)}}>270°</button>
         </div>
       </div>
 
@@ -232,6 +262,37 @@
 
       
     </div>
+
+    <div class="p-4 bg-secondary rounded-lg flex flex-row mb-4">
+
+      <div class="flex my-1 flex-col relative text-white">
+        <div class="mb-1">Grid Helper Name</div>
+        <div class="flex flex-row"> 
+          <input type="text" placeholder="Helper Name" class="bg-primary my-1" bind:value={$appSettings.persistant.helperName}/>   
+        </div>
+        <div class="mb-1">Style</div>
+        <div class="flex flex-row"> 
+          <button class:selected="{$appSettings.persistant.helperShape === 0}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(0)}}>Star</button>     
+          <button class:selected="{$appSettings.persistant.helperShape === 1}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(1)}}>Play</button>     
+          <button class:selected="{$appSettings.persistant.helperShape === 2}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(2)}}>Circle</button>     
+          <button class:selected="{$appSettings.persistant.helperShape === 3}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperShape(3)}}>Wave</button>
+        </div>
+        <div class="mb-1">Color</div>
+        <div class="flex flex-row"> 
+          <button class:selected="{$appSettings.persistant.helperColor === 0}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(0)}}>Green</button>     
+          <button class:selected="{$appSettings.persistant.helperColor === 1}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(1)}}>Purple</button>     
+          <button class:selected="{$appSettings.persistant.helperColor === 2}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(2)}}>Yellow</button>     
+          <button class:selected="{$appSettings.persistant.helperColor === 3}" class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative" on:click={()=>{setHelperColor(3)}}>Blue</button>
+        </div>
+      </div>
+      
+      <div bind:this={helperPreviewElement} class="flex relative my-1 flex-col text-white w-full">
+
+        <Monster  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor}  attachment={helperAttachment}/>
+
+      </div>
+    </div>
+
 
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
@@ -282,10 +343,10 @@
 
       <div class="text-gray-400 py-1 mt-1 text-sm"><b>Active title:</b> {$appSettings.persistant.pageActivatorEnabled?window_title:"N/A"}</div>
       
-      <input type="text" placeholder="Page 0 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
-      <input type="text" placeholder="Page 1 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
-      <input type="text" placeholder="Page 2 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_2}/>
-      <input type="text" placeholder="Page 3 trigger application" class="bg-primary m-1" bind:value={$appSettings.persistant.pageActivatorCriteria_3}/>
+      <input type="text" placeholder="Page 0 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_0}/>
+      <input type="text" placeholder="Page 1 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_1}/>
+      <input type="text" placeholder="Page 2 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_2}/>
+      <input type="text" placeholder="Page 3 trigger application" class="bg-primary my-1" bind:value={$appSettings.persistant.pageActivatorCriteria_3}/>
 
 
     </div>
@@ -345,5 +406,10 @@
 
 <style>
 
+
+  button.selected{
+    font-weight: bold;
+    box-shadow:  inset 0 0 100px #ffffff60;
+  }
 
 </style>
