@@ -9,6 +9,16 @@
   export let name = "";
   export let attachment = undefined
 
+  let _shapeSelected = 0;
+  let _colorSelected = 0;
+
+  $: if (shapeSelected){
+    _shapeSelected = shapeSelected
+  }
+
+  $: if (colorSelected){
+    _colorSelected = colorSelected
+  }
 
 
   // star, play, cycle, wave
@@ -128,15 +138,19 @@
       return;
     }
 
-    let X = lastMouseX - helperX - 50 + (eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2  - monsterElement.parentElement.getBoundingClientRect().left
-    let Y = lastMouseY - helperY - 50 + (eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2 - monsterElement.parentElement.getBoundingClientRect().top
 
+    let X = lastMouseX - helperX - 50 + (eyeOrigin[_shapeSelected].x1 + eyeOrigin[_shapeSelected].x2)/2  - monsterElement.parentElement.getBoundingClientRect().left
+    let Y = lastMouseY - helperY - 50 + (eyeOrigin[_shapeSelected].y1 + eyeOrigin[_shapeSelected].y2)/2 - monsterElement.parentElement.getBoundingClientRect().top
+    
     let dist = Math.sqrt(X*X + Y*Y)
 
     let rate = Math.sqrt(dist*0.1)*0.5
 
     eyesDX = X/dist*rate
     eyesDY = Y/dist*rate
+
+
+
 
 
   }
@@ -186,7 +200,7 @@
 
   })
 
-  
+
   onDestroy(()=>{
 
 
@@ -207,32 +221,32 @@
         <g id="c">
 
           <!-- Body shape -->
-          <g fill="{colors[colorSelected]}">
-          {@html shapes[shapeSelected]}
+          <g fill="{colors[_colorSelected]}">
+          {@html shapes[_shapeSelected]}
           </g>
 
           <g class="{helperSleep?"hidden":""}">
 
             <!-- Normal Eyes (left) -->
-            <circle class="d" cx="{eyeOrigin[shapeSelected].x1}" cy="{eyeOrigin[shapeSelected].y1}" r="9.5"/>
-            <circle cx="{eyeOrigin[shapeSelected].x1+eyesDX}" cy="{eyeOrigin[shapeSelected].y1+eyesDY}" r="5"/>
+            <circle class="d" cx="{eyeOrigin[_shapeSelected].x1}" cy="{eyeOrigin[_shapeSelected].y1}" r="9.5"/>
+            <circle cx="{eyeOrigin[_shapeSelected].x1+eyesDX}" cy="{eyeOrigin[_shapeSelected].y1+eyesDY}" r="5"/>
 
             <!-- Normal Eyes (right) -->
-            <circle class="d" cx="{eyeOrigin[shapeSelected].x2}" cy="{eyeOrigin[shapeSelected].y2}" r="9.5"/>
-            <circle cx="{eyeOrigin[shapeSelected].x2+eyesDX}" cy="{eyeOrigin[shapeSelected].y2+eyesDY}" r="5"/>
+            <circle class="d" cx="{eyeOrigin[_shapeSelected].x2}" cy="{eyeOrigin[_shapeSelected].y2}" r="9.5"/>
+            <circle cx="{eyeOrigin[_shapeSelected].x2+eyesDX}" cy="{eyeOrigin[_shapeSelected].y2+eyesDY}" r="5"/>
 
 
             <!-- Normal Mouth -->
-            <path  transform="translate({(eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2-50},{(eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2-50})" class="f"  d="M55,65c0,2.76-2.24,5-5,5s-5-2.24-5-5"/>
+            <path  transform="translate({(eyeOrigin[_shapeSelected].x1 + eyeOrigin[_shapeSelected].x2)/2-50},{(eyeOrigin[_shapeSelected].y1 + eyeOrigin[_shapeSelected].y2)/2-50})" class="f"  d="M55,65c0,2.76-2.24,5-5,5s-5-2.24-5-5"/>
           </g>          
           
           <g class="{helperSleep?"":"hidden"}">
             <!-- Sleepy Eyes -->
-            <path  transform="translate({(eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2-50},{(eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2-50})"  class="f" d="M43.5,45.75c0,4.69-3.81,8.5-8.5,8.5s-8.5-3.81-8.5-8.5"/>
-            <path   transform="translate({(eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2-50},{(eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2-50})" class="f" d="M73.5,45.75c0,4.69-3.81,8.5-8.5,8.5s-8.5-3.81-8.5-8.5"/>
+            <path  transform="translate({(eyeOrigin[_shapeSelected].x1 + eyeOrigin[_shapeSelected].x2)/2-50},{(eyeOrigin[_shapeSelected].y1 + eyeOrigin[_shapeSelected].y2)/2-50})"  class="f" d="M43.5,45.75c0,4.69-3.81,8.5-8.5,8.5s-8.5-3.81-8.5-8.5"/>
+            <path   transform="translate({(eyeOrigin[_shapeSelected].x1 + eyeOrigin[_shapeSelected].x2)/2-50},{(eyeOrigin[_shapeSelected].y1 + eyeOrigin[_shapeSelected].y2)/2-50})" class="f" d="M73.5,45.75c0,4.69-3.81,8.5-8.5,8.5s-8.5-3.81-8.5-8.5"/>
 
             <!-- Sleepy Mouth -->
-            <circle  transform="translate({(eyeOrigin[shapeSelected].x1 + eyeOrigin[shapeSelected].x2)/2-50},{(eyeOrigin[shapeSelected].y1 + eyeOrigin[shapeSelected].y2)/2-50})"  fill="black" stroke="black"   cx="50" cy="65" r="5"/>
+            <circle  transform="translate({(eyeOrigin[_shapeSelected].x1 + eyeOrigin[_shapeSelected].x2)/2-50},{(eyeOrigin[_shapeSelected].y1 + eyeOrigin[_shapeSelected].y2)/2-50})"  fill="black" stroke="black"   cx="50" cy="65" r="5"/>
           </g>
           
         </g>
