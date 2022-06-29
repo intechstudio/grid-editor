@@ -225,6 +225,11 @@
     analytics.track_event("application", "preferences", "helper color", "set to "+color)
   }
 
+  function setHelperName(){
+    console.log("name")
+    analytics.track_event("application", "preferences", "helper color", "set to ...")
+  }
+
 
 
 </script>
@@ -268,7 +273,7 @@
       <div class="flex my-1 flex-col relative text-white">
         <div class="mb-1">Grid Helper Name</div>
         <div class="flex flex-row"> 
-          <input type="text" placeholder="Helper Name" class="bg-primary my-1" bind:value={$appSettings.persistant.helperName}/>   
+          <input type="text" placeholder="Helper Name" class="bg-primary my-1" on:blur={setHelperName} bind:value={$appSettings.persistant.helperName}/>   
         </div>
         <div class="mb-1">Style</div>
         <div class="flex flex-row"> 
