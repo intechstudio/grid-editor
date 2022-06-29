@@ -45,8 +45,13 @@
   import * as keyMap from '../../external/macro/map.json';
   import * as keyMap_en from '../../external/macro/map-en.json';
   import * as keyMap_hu from '../../external/macro/map-hu.json';
+  import * as keyMap_de from '../../external/macro/map-de.json';
 
-  const layouts = [{name: "En", lookup: keyMap_en.default}, {name: "Hu", lookup: keyMap_hu.default}]
+  const layouts = [
+    {name: "En", lookup: keyMap_en.default}, 
+    {name: "Hu", lookup: keyMap_hu.default},
+    {name: "De", lookup: keyMap_de.default}
+  ]
 
   let layout = layouts[0]
 
