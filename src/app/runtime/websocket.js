@@ -11,7 +11,9 @@ export function initialize_ws(){
 
 export function wss_send_message(msg){
 
-  ipcRenderer.send("websocket_tx", JSON.stringify(msg))
+
+  const toSend = Buffer.from(msg).toString('base64')
+  ipcRenderer.send("websocket_tx", JSON.stringify(toSend))
 
 }
 

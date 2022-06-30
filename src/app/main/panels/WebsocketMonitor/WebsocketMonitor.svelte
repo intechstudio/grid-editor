@@ -138,20 +138,12 @@
   }
 
 
-  let websocketMessage = `{"zyp": "hy"}`;
+  let websocketMessage = `{zyp: "hy"}`;
 
   function sendMessage(){
 
-    try {
-      
-      const obj = JSON.parse(websocketMessage);    
-      wss_send_message(obj);
+    wss_send_message(websocketMessage);
 
-    } catch (error) {
-      
-      console.log("INVALID JSON", websocketMessage)
-
-    }
 
 
 
