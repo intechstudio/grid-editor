@@ -30,6 +30,7 @@ const _utils = {
       return;
     }
 
+
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
 

@@ -25,6 +25,8 @@
   export let toggle = false;
 
 
+  let informationOverride = {};
+
   function replace_me(e) {
 
     appMultiSelect.reset()
@@ -41,6 +43,20 @@
 
     handleConfigChange({configName: config.information.name});
   }
+
+  function information_override(e) {
+
+    
+    Object.keys(e.detail).forEach((k) => {
+      
+      //console.log("k-v", k, e.detail[k]);
+      informationOverride[k] = e.detail[k]
+    });
+
+
+
+  }
+
 
   function handleConfigChange({configName}){
 
@@ -127,16 +143,31 @@
               <icon class="flex items-center p-2 {config.information.hiddenIcon?" hidden ":" "}">
           
                 <div class="w-6 h-6">
-                  {@html config.information.icon ? config.information.icon : ' '}        
+                  {#if informationOverride.icon !== undefined}
+                    {@html informationOverride.icon ? informationOverride.icon : ' '}      
+                  {:else}
+                    
+                    {@html config.information.icon ? config.information.icon : ' '}      
+                  {/if}  
                 </div>    
               </icon>
           
-              <div style="white-space: nowrap" class="mx-2 flex items-center">{config.information.blockTitle}</div> 
+             
+              <div style="white-space: nowrap" class="mx-2 flex items-center">
+                
+                {#if informationOverride.blockTitle !== undefined}
+                  {informationOverride.blockTitle}
+                {:else}
+                  {config.information.blockTitle}
+                {/if}
+
+              </div> 
 
                 <svelte:component 
                   this={config.component} 
-                  {index} {config} {access_tree} 
+                  {index} {config} {access_tree}
                   on:replace={(e)=>{replace_me(e)}}
+                  on:informationOverride={(e)=>{information_override(e)}}
                   on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
                 />
 
@@ -163,8 +194,9 @@
 
             <svelte:component 
               this={config.component} 
-              {index} {config} {access_tree} 
+              {index} {config} {access_tree} {informationOverride}
               on:replace={(e)=>{replace_me(e)}}
+              on:informationOverride={(e)=>{information_override(e)}}
               on:output={(e)=>{config.script = e.detail.script; handleConfigChange({configName: config.information.name}); configs = configs;}}
             />
 
