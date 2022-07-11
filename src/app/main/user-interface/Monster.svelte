@@ -74,17 +74,6 @@
   let wakeTimeout;
 
   $: {
-    if($attachment !== undefined){
-
-
-      if ($attachment.element == null){
-        console.log("NULL")
-      }
-
-
-    }
-  }
-  $: {
 
     if ($windowSize.window){
       // just to trigger on window change
@@ -99,28 +88,34 @@
         const vpos = $attachment.vpos
         const hpos = $attachment.hpos
 
-        if (vpos !== undefined && vpos.endsWith("%") && !isNaN(parseInt(vpos))){
-          helperY = bounding.top + bounding.height/100*parseInt(vpos) - monsterElement.parentElement.getBoundingClientRect().top
-        }
-        else{
-          helperY = bounding.top
+
+        let _helperX = bounding.left
+        let _helperY = bounding.top
+        let _scale = 1
+
+        if (typeof vpos !== 'undefined' && vpos !== null) {
+          if (vpos.endsWith("%") && !isNaN(parseInt(vpos))){
+            _helperY = bounding.top + bounding.height/100*parseInt(vpos) - monsterElement.parentElement.getBoundingClientRect().top
+          }
+        }        
+        
+        if (typeof hpos !== 'undefined' && hpos !== null) {
+          if (hpos.endsWith("%") && !isNaN(parseInt(hpos))){
+            _helperX = bounding.left + bounding.width/100*parseInt(hpos) - monsterElement.parentElement.getBoundingClientRect().left
+          }
         }
 
-        if (hpos !== undefined && hpos.endsWith("%") && !isNaN(parseInt(hpos))){
-          helperX = bounding.left + bounding.width/100*parseInt(hpos) - monsterElement.parentElement.getBoundingClientRect().left
-        }
-        else{
-          helperX = bounding.left
+        if (typeof $attachment.scale !== 'undefined' && $attachment.scale !== null) {
+          _scale = $attachment.scale
         }
 
-        if ($attachment.scale !== undefined){
-          scale = $attachment.scale
-        }
-        else{
-          scale = 1; 
-        }
+        helperX = _helperX
+        helperY = _helperY
+        scale = _scale
 
       }
+
+
 
       refreshEyes();
 
