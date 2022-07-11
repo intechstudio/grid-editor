@@ -46,9 +46,12 @@
 
   onDestroy(()=>{
 
-    if ($attachment.element === attachmentElement){
-      $attachment = undefined
+    if ($attachment !== undefined){
+      if ($attachment.element === attachmentElement){
+        $attachment = undefined
+      }
     }
+
 
   });
 

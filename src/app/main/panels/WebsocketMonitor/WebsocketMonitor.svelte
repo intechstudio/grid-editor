@@ -4,7 +4,7 @@
   import _utils, { luaParser } from "../../../runtime/_utils";
   import { appSettings } from '../../../runtime/app-helper.store';
   import {luadebug_store} from "../../../runtime/runtime.store"
-  import { wss_send_message } from '../../../runtime/websocket';
+  import { wss_send_message, wss_change_port } from '../../../runtime/websocket';
 
 
   let runtimeScript = '';
@@ -149,6 +149,11 @@
 
   }
 
+  function portChange(){
+
+    wss_change_port($appSettings.persistant.wssPort)
+  }
+
 </script>
 
 <config-debug class="w-full h-full flex flex-col p-4 z-10 bg-primary">
@@ -156,6 +161,9 @@
   <div class="text-white">
     Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}  
   </div>
+
+  <input type="number" bind:value={$appSettings.persistant.wssPort} on:change={portChange}/>
+
   <div class="text-white">
     Websocket Monitor 
   </div>

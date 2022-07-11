@@ -85,6 +85,7 @@ export const appSettings = writable({
     owner: {neme: undefined}
   },
   persistant: {
+    wssPort: 1337,
     moduleRotation: 0,
     welcomeOnStartup: true,
     lastVersion: '',
@@ -109,6 +110,7 @@ export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
 
 let persistant = {
+  wssPort: 1337,
   moduleRotation: 0,
   welcomeOnStartup: true,
   lastVersion: '',
@@ -198,8 +200,11 @@ function init_appsettings(){
           value = 1000;
         }
 
-        s.persistant[key] = value;
-        //console.log("init", key, value);
+        if (value !== undefined){
+
+          s.persistant[key] = value;
+          //console.log("init", key, value);
+        }
     
       });
 

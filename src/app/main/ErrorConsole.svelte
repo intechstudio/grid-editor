@@ -28,8 +28,14 @@
 
       analytics.track_event("application", "error console", "error notification", "error event")
 
-      const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-      webhook.send(`######\nError Notification\n######\n${errorMsg} `)
+      try {
+        
+        const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
+        webhook.send(`######\nError Notification\n######\n${errorMsg} `)
+        
+      } catch (error) {
+        
+      }
 
       return false;
     }
@@ -41,8 +47,14 @@
 
       analytics.track_event("application", "error console", "error notification", "error event")
 
-      const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-      webhook.send(`######\nError Notification\n######\n${e.reason} `)
+      try {
+        
+        const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
+        webhook.send(`######\nError Notification\n######\n${e.reason} `)
+
+      } catch (error) {
+        
+      }
     }
 
     if(process.platform == 'darwin'){
