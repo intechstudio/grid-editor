@@ -199,6 +199,48 @@
 
   }
 
+  function delay(time) {
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(), time);
+    });
+  }
+
+  async function uxpPhotoshopDownload(){
+
+
+    const version = "v"+process.env.UXP_PHOTOSHOP_REQUIRED_MAJOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_MINOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_PATCH
+    
+    let link = process.env.UXP_PHOTOSHOP_URL_BEGINING + version + process.env.UXP_PHOTOSHOP_URL_END
+    console.log(link)
+
+
+    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
+    download_status = "Download completed!"
+    let zip = new AdmZip(result);
+
+    let zipEntries = zip.getEntries(); // an array of ZipEntry records
+
+    let pluginFilePaths = [];
+
+    zipEntries.forEach(function (zipEntry) {
+
+      console.log(zipEntry.entryName)
+
+      if (zipEntry.entryName.endsWith(".ccx")) {
+
+        pluginFilePaths.push(zipEntry.entryName);
+      }
+    });
+
+    let folder = get(appSettings).persistant.profileFolder;
+
+    zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
+    
+
+   shell.showItemInFolder(folder + "/temp/" +pluginFilePaths[0]) 
+
+  }
+
   function resetAppSettings(){
 
     ipcRenderer.sendSync('resetAppSettings', 'foo');
@@ -327,6 +369,13 @@
         class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
         Download Library
       </button>
+
+      <div class="text-gray-400 py-1 mt-1 text-sm"><b>Photoshop Plugin</b></div>
+      <button 
+        on:click={()=>{uxpPhotoshopDownload()}} 
+        class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+        Download UXP Plugin
+      </button>  
 
     </div>
 
