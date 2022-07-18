@@ -281,6 +281,7 @@ ipcMain.on('download', async (event, arg) => {
 
   }catch(e){
 
+    console.log("Download Error", e)
     event.returnValue = undefined;
   }
 

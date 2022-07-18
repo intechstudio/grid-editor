@@ -183,7 +183,7 @@ export function changeOrder(node, {configs}) {
         detail: {id: _configIds}
       }));
 
-    }
+    } 
 
     // drag over section
     if(drag >= 2 && !moveDisabled){
@@ -194,13 +194,16 @@ export function changeOrder(node, {configs}) {
       if(id){
         let drop_target = '';
         // if its a modifier, the below helper shouldn't be used!
-        if(id.startsWith('cfg-') && (!e.target.getAttribute('config-component').endsWith('_If')) && e.target.getAttribute('config-component') !== 'Then'){
-          if((clientHeight / 2) < e.offsetY){
-            drop_target = Number(id.substr(4,));
-          } else {
-            drop_target = Number(id.substr(4,)) - 1;
+        
+        if (e.target.getAttribute('config-component') !== null ){
+          if(id.startsWith('cfg-') && (!e.target.getAttribute('config-component').endsWith('_If')) && e.target.getAttribute('config-component') !== 'Then'){
+            if((clientHeight / 2) < e.offsetY){
+              drop_target = Number(id.substr(4,));
+            } else {
+              drop_target = Number(id.substr(4,)) - 1;
+            }
           }
-        } else if(id.substr(0,3) == 'dz-'){  
+        }else if(id.substr(0,3) == 'dz-'){  
           drop_target = Number(id.substr(3,));
         } else if(id == 'config-bin'){
           drop_target = 'bin';

@@ -11,18 +11,27 @@
     "YOUTUBE_RELEASENOTES_PLAYLIST_ID": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
     "YOUTUBE_RELEASENOTES_FALLBACK_URL": "https://www.youtube.com/playlist?list=PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
 
-    "FIRMWARE_REQUIRED_MAJOR":1,
-    "FIRMWARE_REQUIRED_MINOR":2,
-    "FIRMWARE_REQUIRED_PATCH":18,
- 
     "USB_VID_0": "0x03eb",
     "USB_PID_0": "0xecac",
 
     "USB_VID_1": "0x03eb",
     "USB_PID_1": "0xecad",
 
+    "FIRMWARE_REQUIRED_MAJOR":1,
+    "FIRMWARE_REQUIRED_MINOR":2,
+    "FIRMWARE_REQUIRED_PATCH":18,
+ 
     "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
     "FIRMWARE_URL_END":"/grid_release.zip",
+
+    "UXP_PHOTOSHOP_REQUIRED_MAJOR":0,
+    "UXP_PHOTOSHOP_REQUIRED_MINOR":0,
+    "UXP_PHOTOSHOP_REQUIRED_PATCH":1,
+
+    "UXP_PHOTOSHOP_URL_BEGINING":"https://github.com/intechstudio/grid-photoshop-plugin/releases/download/",
+    "UXP_PHOTOSHOP_URL_END":"/uxp_photoshop_release.zip",
+
+    
 
     "LIBRARY_GITHUB_URL": "https://github.com/intechstudio/grid-profiles/archive/refs/heads/main.zip",
 
