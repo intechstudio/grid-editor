@@ -7,7 +7,7 @@
     category: 'element settings',
     color: '#5F416D',
     desc: 'Encoder Mode',
-    defaultLua: 'self:emo(0) self:ev0(100)',
+    defaultLua: 'self:emo(0) self:ev0(50)',
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
   }
 
@@ -91,7 +91,8 @@
 
     [
       {value: '0', info: 'No velocity (0%)'}, 
-      {value: '100', info: 'Default (100%)'},
+      {value: '50', info: 'Default (50%)'},
+      {value: '100', info: 'Maximum (100%)'},
     ]
   ]
 
