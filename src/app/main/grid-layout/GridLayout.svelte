@@ -253,11 +253,10 @@
       </div>
     {/if}
 
-
     <div class="w-full flex flex-row items-center min-h-fit mt-auto">
-      <CursorLog/>
+    <CursorLog/>
     </div>
-
+    
   </grid-layout>  
 </layout-container>
 

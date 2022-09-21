@@ -87,33 +87,28 @@
 
 </script>
 
-
-
-<div id="cursor-log" style="z-index:9999;" use:cursorLog={{popup}} class="flex mx-auto">
-  {#if popup}
-    <div 
-      transition:fade={{duration: 400}} 
-      class:border-primary={logs.length == 0}
-      class:border-green-600={setBorderColor(logs[logs.length-1], 'success')}
-      class:border-yellow-600={setBorderColor(logs[logs.length-1] , 'alert')}
-      class:border-red-600={setBorderColor(logs[logs.length-1], 'fail')}
-      class:border-blue-600={setBorderColor(logs[logs.length-1], 'progress')}
-      class="flex flex-col w-96 px-4 py-1 text-white">
-
-
-
-      {#each logs as log, i (log.n)}
-        <div in:fly={{x: -10, delay: 400 * i}} out:fly={{x: 10, delay: 400 * i}} class="my-1 flex items-center p-2 bg-primary bg-opacity-50">
-          <div class="px-2 py-1 bg-primary rounded mr-2">
-            {log.type == 'success' ? '✔️' : log.type == 'alert' ? '⚠️' : log.type == 'progress' ? '⏳' : log.type == 'fail' ? '❌' : null}
+  <div id="cursor-log" style="z-index:9999;" use:cursorLog={{popup}} class="flex mx-auto">
+    {#if popup}
+      <div 
+        transition:fade={{duration: 400}} 
+        class:border-primary={logs.length == 0}
+        class:border-green-600={setBorderColor(logs[logs.length-1], 'success')}
+        class:border-yellow-600={setBorderColor(logs[logs.length-1] , 'alert')}
+        class:border-red-600={setBorderColor(logs[logs.length-1], 'fail')}
+        class:border-blue-600={setBorderColor(logs[logs.length-1], 'progress')}
+        class="flex flex-col w-96 px-4 py-1 text-white">
+        {#each logs as log, i (log.n)}
+          <div in:fly={{x: -10, delay: 400 * i}} out:fly={{x: 10, delay: 400 * i}} class="my-1 flex items-center p-2 bg-primary bg-opacity-50">
+            <div class="px-2 py-1 bg-primary rounded mr-2">
+              {log.type == 'success' ? '✔️' : log.type == 'alert' ? '⚠️' : log.type == 'progress' ? '⏳' : log.type == 'fail' ? '❌' : null}
+            </div>
+            {log.message}
           </div>
-          {log.message}
-        </div>
-      {/each}
+        {/each}
+      </div>
+    {/if}
+  </div> 
 
-    </div>
-  {/if}
-</div> 
 
 <style>
 

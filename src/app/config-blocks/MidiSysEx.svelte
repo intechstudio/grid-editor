@@ -72,7 +72,9 @@
 
     commitState = 0;
 
-    config.script = "gmss("+textarea.innerText +")"
+    console.log(textarea.innerText);
+
+    config.script = "gmss("+textarea.innerText.toString() +")"
 
     dispatch('output', {short: config.short, script: config.script})
     

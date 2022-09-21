@@ -43,7 +43,9 @@
     "DOCUMENTATION_DISCORDSERVER_URL": "https://discord.gg/GRUdF2R",
     "DOCUMENTATION_TROUBLESHOOTING_URL": "https://intech.studio/support/docs/guides/troubleshooting",
     "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://intech.studio/support/docs/guides/firmware-update",
-    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit"
+    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit",
     
+    "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
+    "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor"
 
 }
