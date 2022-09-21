@@ -1,10 +1,6 @@
 name: Build Nightly Grid Editor
 
-on: 
-  push:
-    branches:
-      - stable
-      - dev
+on: push
 
 jobs:
   win-build:
