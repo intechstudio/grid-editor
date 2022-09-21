@@ -146,7 +146,7 @@
   <textarea spellcheck="false" bind:value={runtimeScript} class="w-full cursor-default min-h-[200px] bg-secondary rounded px-1 my-2 text-white font-mono"/>
 
 
-  <div class="flex justify-between  min-h-[70px] items-center overflow-y-auto">  
+  <div class="flex justify-between  min-h-[100px] items-center overflow-y-auto">  
     
     <div class="mx-1 my-2">
       <div class="text-white">Syntax: {runtimeParser}</div>
@@ -155,32 +155,32 @@
   </div>
 
 
-  <div class="flex text-white items-center"> 
+  <div class="flex flex-wrap text-white items-center my-4"> 
     <button 
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded" 
       on:click={clearDebugtext}>Clear
     </button>
     <button 
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded" 
       on:click={()=>{display = "DEC"}}>DEC
     </button>
     <button 
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded" 
       on:click={()=>{display = "HEX"}}>HEX
     </button>
     <button 
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded" 
       on:click={()=>{display = "CHAR"}}>CHAR
     </button>
 
     {#if frozen == false}   
       <button 
-        class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+        class="px-3 py-1  bg-select hover:bg-select-saturate-10 rounded" 
         on:click={freezeDebugtext}>Freeze
       </button>
     {:else}
       <button 
-        class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded" 
+        class="px-3 py-1  bg-select hover:bg-select-saturate-10 rounded" 
         on:click={unfreezeDebugtext}>Unfreeze
       </button>
     {/if}
@@ -204,10 +204,10 @@
       Raw Packet: 
     </div>
  
-    <div class="selectable flex flex-col font-mono overflow-y-auto text-white m-1 h-1/2">
+    <div class="selectable flex flex-col w-full font-mono overflow-y-auto text-white m-1 h-1/2">
       {#each $debug_lowlevel_store as debug, i}
         
-        <span class="px-1 py-0.5 my-1 {debug.direction == "IN"?"input":"output"}">
+        <span class="px-1 py-0.5 my-1 w-full break-all {debug.direction == "IN"?"input":"output"} ">
 
           {#if display=="DEC"}
             {toDecString(debug.data)}
