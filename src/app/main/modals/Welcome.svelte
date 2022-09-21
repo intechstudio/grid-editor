@@ -42,7 +42,7 @@
       
     });
 
-    $attachment = {element: attachmentElement, hpos: "0%", vpos: "100%"}
+    $attachment = {element: attachmentElement, hpos: "100%", vpos: "50%"}
 
   });
 
@@ -89,7 +89,7 @@
 
       </div>
 
-      <div class="flex flex-row bg-primary w-full" style="">
+      <div bind:this={attachmentElement} class="flex flex-row bg-primary w-full" style="">
         <div  class="px-2 flex flex-row w-full bg-black bg-opacity-20">
           <div class="p-4 flex-col w-7/12 flex justify-between">
 
