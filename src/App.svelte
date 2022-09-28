@@ -95,25 +95,6 @@
   let originalLeftPos;
   onMount(()=>{
 
-    /*
-
-    element = document.getElementById('right-panel');
-    //create box in bottom-left
-    var resizer = document.createElement('div');
-    resizer.style.width = '10px';
-    resizer.style.height = '10px';
-    resizer.style.background = 'red';
-    resizer.style.position = 'absolute';
-    resizer.style.left = 0;
-    resizer.style.top = 0;
-    resizer.style.cursor = 'se-resize';
-    //Append Child to Element
-    element.appendChild(resizer);
-    
-    //box function onmousemove
-    resizer.addEventListener('mousedown', startDrag, false);
-
-    */
    
   })
 

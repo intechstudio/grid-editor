@@ -19,7 +19,7 @@
 
     "FIRMWARE_REQUIRED_MAJOR":1,
     "FIRMWARE_REQUIRED_MINOR":2,
-    "FIRMWARE_REQUIRED_PATCH":18,
+    "FIRMWARE_REQUIRED_PATCH":19,
  
     "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
     "FIRMWARE_URL_END":"/grid_release.zip",
@@ -43,7 +43,9 @@
     "DOCUMENTATION_DISCORDSERVER_URL": "https://discord.gg/GRUdF2R",
     "DOCUMENTATION_TROUBLESHOOTING_URL": "https://intech.studio/support/docs/guides/troubleshooting",
     "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://intech.studio/support/docs/guides/firmware-update",
-    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit"
+    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit",
     
+    "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
+    "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor"
 
 }

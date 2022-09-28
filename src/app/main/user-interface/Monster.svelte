@@ -12,12 +12,12 @@
   let _shapeSelected = 0;
   let _colorSelected = 0;
 
-  $: if (shapeSelected){
-    _shapeSelected = shapeSelected
+  $: if (shapeSelected !== undefined){
+    _shapeSelected = shapeSelected;
   }
 
-  $: if (colorSelected){
-    _colorSelected = colorSelected
+  $: if (colorSelected !== undefined){
+    _colorSelected = colorSelected;
   }
 
 
