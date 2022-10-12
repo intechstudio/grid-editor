@@ -2,7 +2,7 @@
 
   import { onDestroy, onMount } from "svelte";
 
-  import {windowSize, appSettings} from "../../runtime/app-helper.store"
+  import { windowSize } from '../../runtime/window-size';
 
   export let shapeSelected = 0;
   export let colorSelected = 0;

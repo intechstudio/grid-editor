@@ -1,6 +1,5 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../config-blocks/_configs';
-import grid from '../protocol/grid-protocol';
 
 //const ipcRenderer = window.sketchyAPI;
 
@@ -46,14 +45,6 @@ export const statusReport = writable({
 
 })
 
-
-export const windowSize = writable({
-  rightSidebarWidth: 0,
-  leftSidebarWidth: 0,
-  windowWidth: 0,
-  windowHeight: 0,
-
-});
 
 export const appSettings = writable({
   size: 2.1,
@@ -275,8 +266,8 @@ function createPresetManagement(){
   }
 }
 
-trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
-trackEvent('operating-system', process.platform)
+//trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
+//trackEvent('operating-system', process.platform)
 
 export const activeDropDown = writable({config_index: undefined, input_index: undefined})
 

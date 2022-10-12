@@ -32,7 +32,10 @@
 
   import LineEditor from '../main/user-interface/LineEditor.svelte'
 
-  import { appSettings, windowSize } from "../runtime/app-helper.store";
+  import { appSettings } from "../runtime/app-helper.store";
+
+  import { windowSize } from '../runtime/window-size';
+
 
   let sidebarWidth;
 

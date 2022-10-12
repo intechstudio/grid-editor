@@ -8,7 +8,7 @@
 
   import {analytics} from "../../../runtime/analytics_influx"
 
-  import {appSettings, windowSize} from "../../../runtime/app-helper.store"
+  import { windowSize } from '../../../runtime/window-size';
 
 
 

@@ -8,7 +8,6 @@
 
   import {analytics} from "../../../runtime/analytics_influx"
 
-  import {appSettings, windowSize} from "../../../runtime/app-helper.store"
 
   import {attachment} from "../Monster.store"
 
