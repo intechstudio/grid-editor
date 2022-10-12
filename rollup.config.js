@@ -12,8 +12,6 @@ import { lezer } from "lezer-generator/rollup"
 
 import json from '@rollup/plugin-json';
 
-
-import path from 'path';
 import monaco from 'rollup-plugin-monaco-editor';
 
 const production = !process.env.ROLLUP_WATCH;

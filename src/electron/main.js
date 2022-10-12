@@ -155,7 +155,7 @@ function createWindow() {
         webPreferences: {
           preload: path.join(__dirname, 'preload.js'),
           nodeIntegration: true,
-          contextIsolation: true,
+          contextIsolation: false,
           enableRemoteModule: true,
           backgroundThrottling: false
         },
@@ -181,7 +181,11 @@ function createWindow() {
 
     require("@electron/remote/main").enable(mainWindow.webContents);
 
-    mainWindow.loadURL(`file://${path.join(__dirname, '../../public/index.html')}`);
+      console.log(path.join(__dirname, '../../public/index.html'))
+
+      mainWindow.loadURL(`file://${path.join(__dirname, '../../public/index.html')}`); 
+
+    
 
     mainWindow.on('close', (evt)=> {
       // when quit is terminal under darwin

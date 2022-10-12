@@ -12,10 +12,10 @@
   */
 
   import { onMount } from 'svelte';
-  import Titlebar from              './app/main/Titlebar.svelte';
+  //import Titlebar from              './app/main/Titlebar.svelte';
   import NavTabs from               './app/main/NavTabs.svelte';
 
-  import RightPanelContainer from   './app/main/RightPanelContainer.svelte';
+  //import RightPanelContainer from   './app/main/RightPanelContainer.svelte';
   import LeftPanelContainer from    './app/main/LeftPanelContainer.svelte';
   import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
   import TopSubMenu from            './app/main/TopSubMenu.svelte';
@@ -26,7 +26,8 @@
   import Monaco from                 './app/main/modals/Monaco.svelte';
   import Feedback from                 './app/main/modals/Feedback.svelte';
 */
-  import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+  
+//import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
 
   import ErrorConsole from          './app/main/ErrorConsole.svelte';
 
@@ -123,17 +124,20 @@
 
 <Tailwindcss />
 
+<!--
 <Titlebar/>
-
+-->
 <main use:watchResize={resize} id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
 
   <NavTabs/> 
 
+  <!--
   <svelte:component 
     this={modalComponents[$appSettings.modal]}
   />
+-->
 
   <!-- Update notification -->
   <Updater/>
@@ -146,8 +150,9 @@
  
    <TopSubMenu/>
 
+   <!--
    <FirmwareCheck/>
- 
+ -->
     <ErrorConsole/>
 
     <div class="flex w-full h-full overflow-hidden ">
@@ -160,8 +165,9 @@
 
       <!-- The right side panel container -->
   
+      <!--
       <RightPanelContainer classes={"w-4/12"}/>
-        
+        -->
 
     </div>
   </div>

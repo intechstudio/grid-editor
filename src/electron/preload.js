@@ -1,7 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
 // const {BrowserWindow, getCurrentWindow, getGlobal} = require( "@electron/remote");
 
+console.log('preload loadad')
 
+/**
 contextBridge.exposeInMainWorld('versions', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
@@ -16,7 +18,7 @@ contextBridge.exposeInMainWorld('sketchyAPI', {
     on: () => {}, // ipcRenderer.on,
     removeAllListeners: () => {}, // ipcRenderer.removeAllListeners
 })
-
+ */
 /**
 
 contextBridge.exposeInMainWorld('sketchyRemote', {
