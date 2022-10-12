@@ -9,7 +9,6 @@ contextBridge.exposeInMainWorld('versions', {
   // we can also expose variables, not just functions
 })
 
-/**
 
 contextBridge.exposeInMainWorld('sketchyAPI', {
     send: () => {}, // ipcRenderer.send,
@@ -17,7 +16,7 @@ contextBridge.exposeInMainWorld('sketchyAPI', {
     on: () => {}, // ipcRenderer.on,
     removeAllListeners: () => {}, // ipcRenderer.removeAllListeners
 })
- */
+
 /**
 
 contextBridge.exposeInMainWorld('sketchyRemote', {

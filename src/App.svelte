@@ -160,7 +160,7 @@
 
       <!-- The right side panel container -->
   
- <RightPanelContainer classes={"w-4/12"}/>
+      <RightPanelContainer classes={"w-4/12"}/>
         
 
     </div>
