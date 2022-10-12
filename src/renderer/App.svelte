@@ -12,34 +12,34 @@
   */
 
   import { onMount } from 'svelte';
-  //import Titlebar from              './app/main/Titlebar.svelte';
-  import NavTabs from               './app/main/NavTabs.svelte';
+  //import Titlebar from              './main/Titlebar.svelte';
+  import NavTabs from               './main/NavTabs.svelte';
 
-  //import RightPanelContainer from   './app/main/RightPanelContainer.svelte';
-  import LeftPanelContainer from    './app/main/LeftPanelContainer.svelte';
-  import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
-  import TopSubMenu from            './app/main/TopSubMenu.svelte';
+  //import RightPanelContainer from   './main/RightPanelContainer.svelte';
+  import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
+  import GridLayout from            './main/grid-layout/GridLayout.svelte';
+  import TopSubMenu from            './main/TopSubMenu.svelte';
 
 /**
-  import Export from                 './app/main/modals/Export.svelte';
-  import Welcome from                 './app/main/modals/Welcome.svelte';
-  import Monaco from                 './app/main/modals/Monaco.svelte';
-  import Feedback from                 './app/main/modals/Feedback.svelte';
+  import Export from                 './main/modals/Export.svelte';
+  import Welcome from                 './main/modals/Welcome.svelte';
+  import Monaco from                 './main/modals/Monaco.svelte';
+  import Feedback from                 './main/modals/Feedback.svelte';
 */
   
-//import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+//import FirmwareCheck from         './main/FirmwareCheck.svelte';
 
-  import ErrorConsole from          './app/main/ErrorConsole.svelte';
+  import ErrorConsole from          './main/ErrorConsole.svelte';
 
-  import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
+  import TooltipGetter from         './main/user-interface/tooltip/TooltipGetter.svelte';
 
 
-  import Monster from "./app/main/user-interface/Monster.svelte";
-  import {attachment} from "./app/main/user-interface/Monster.store";
+  import Monster from "./main/user-interface/Monster.svelte";
+  import {attachment} from "./main/user-interface/Monster.store";
 
-  import Updater from               './app/shared/updater/Updater.svelte';
+  import Updater from               './shared/updater/Updater.svelte';
 
-  import { appSettings, windowSize } from       './app/runtime/app-helper.store'
+  import { appSettings, windowSize } from       './runtime/app-helper.store'
 
 
 

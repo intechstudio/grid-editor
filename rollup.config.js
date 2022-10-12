@@ -18,7 +18,7 @@ const production = !process.env.ROLLUP_WATCH;
 
 
 export default {
-	input: 'src/svelte.js',
+	input: 'src/renderer/svelte.js',
 	output: {
 		sourcemap: false,
 		format: 'es',
