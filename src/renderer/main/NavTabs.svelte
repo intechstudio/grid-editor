@@ -1,6 +1,6 @@
 <script>
 
-import { appSettings } from "../runtime/app-helper.store";
+  import { navigation } from "../runtime/navigation.store";
 
   import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte';
 
@@ -10,20 +10,12 @@ import { appSettings } from "../runtime/app-helper.store";
 
   function changeRightTab(tab){
     selectedRightTab = tab;
-    appSettings.update(store => {
+    navigation.update(store => {
       store.rightPanel = tab;
       return store;
     })
   };
 
-  let openPref = false;
-  function openPreferences(){
-    openPref = ! openPref;
-    appSettings.update(store => {
-      store.preferences = openPref;
-      return store;
-    })
-  }
 
   function changeLeftTab(tab){
 
@@ -33,7 +25,7 @@ import { appSettings } from "../runtime/app-helper.store";
 
     selectedLeftTab = tab;
 
-    appSettings.update(store => {
+    navigation.update(store => {
       store.leftPanel = tab;
       return store;
     })
@@ -187,6 +179,7 @@ import { appSettings } from "../runtime/app-helper.store";
   </div>
 
 
+  <!--
   {#if $appSettings.persistant.websocketMonitorEnabled === true}
 
     <div 
@@ -211,7 +204,7 @@ import { appSettings } from "../runtime/app-helper.store";
     </div>
 
   {/if}
-
+-->
   </div>
 
  

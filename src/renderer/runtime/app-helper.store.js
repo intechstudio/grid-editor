@@ -1,7 +1,7 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../config-blocks/_configs';
 
-//const ipcRenderer = window.sketchyAPI;
+const ipcRenderer = window.sketchyAPI;
 
 
 export function openInBrowser(url){
@@ -12,25 +12,6 @@ export function openInBrowser(url){
 const trackEvent = function(){} //getGlobal('trackEvent');
 
 
-
-
-function checkOS() {
-  if (typeof window !== 'undefined' && typeof window.process === 'object' && window.process.type === 'renderer') {
-    return process.platform;
-  }
-
-  // Main process
-  if (typeof process !== 'undefined' && typeof process.versions === 'object' && !!process.versions.electron) {
-      return process.platform;
-  }
-
-  // Detect the user agent when the `nodeIntegration` option is set to true
-  if (typeof navigator === 'object' && typeof navigator.userAgent === 'string' && navigator.userAgent.indexOf('Electron') >= 0) {
-    return process.platform;
-  }
-
-  return 'browser';
-}
 
 const versionstring = '00000000'  // ipcRenderer.sendSync('app_version')
 
@@ -59,8 +40,6 @@ export const appSettings = writable({
   changeOnContact: true,
   layoutMode: false,
   configType: 'uiEvents',
-  rightPanel: 'Configuration',
-  leftPanel: 'Profiles',
   stringNameOverlay: false,
   preferences: false,
   modal: '',
@@ -91,8 +70,6 @@ export const appSettings = writable({
     helperColor: 0,
     helperName: "Monster"
   }
-
-
 });
 
 export const profileListRefresh = writable(0);

@@ -125,7 +125,7 @@ if (!gotTheLock) {
 
 let watcher;
 if (process.env.NODE_ENV === 'development') {
- watcher = require('chokidar').watch(path.join(__dirname, '../public/build/*'), { ignoreInitial: true });
+ watcher = require('chokidar').watch(path.join(__dirname, '../../public/build/*'), { ignoreInitial: true });
  watcher.on('change', () => {
     mainWindow.reload();
  });
@@ -155,7 +155,7 @@ function createWindow() {
         webPreferences: {
           preload: path.join(__dirname, 'preload.js'),
           nodeIntegration: true,
-          contextIsolation: false,
+          contextIsolation: true,
           enableRemoteModule: true,
           backgroundThrottling: false
         },
@@ -308,6 +308,38 @@ ipcMain.on('download', async (event, arg) => {
 ipcMain.handle('getStoreValue', (event, key) => {
   const result = store.get(key);
   return result;
+})
+
+ipcMain.handle('closeWindow', async (event, args) => {
+  const window = mainWindow;
+  window.close();
+  console.log('close...')
+  return 'closed';
+})
+
+ipcMain.handle('minimizeWindow', async (event, args) => {
+  const window = mainWindow
+  window.minimize();
+  return 'minimized';
+})
+
+ipcMain.handle('maximizeWindow', async (event, args) => {
+  const window = mainWindow
+
+    window.maximize();
+
+  return 'maximized';
+})
+
+ipcMain.handle('restoreWindow', async (event, args) => {
+  const window = mainWindow
+  window.restore();
+  return 'restored';
+})
+
+ipcMain.handle('isMaximized', async (event, args) => {
+  const window = mainWindow
+  return window.isMaximized();
 })
 
 ipcMain.handle('getStoreValues', (event, keys) => {

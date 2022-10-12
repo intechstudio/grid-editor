@@ -3,10 +3,9 @@
 
   import { onMount } from "svelte";
   import { fly, fade, slide } from 'svelte/transition';
-  import { current_tooltip_store } from "../../../runtime/app-helper.store";
   import { tooltip_content } from "./tooltip-content.json.js";
 
-  import {analytics} from "../../../runtime/analytics_influx"
+  //import {analytics} from "../../../runtime/analytics_influx"
 
 
   import {attachment} from "../Monster.store"
@@ -175,7 +174,7 @@
   $: if (tooltip_isvisible && tooltip_delaydone){
 
     calculate_position()
-    analytics.track_event("application", "tooltip", "show tooltip", key)
+    //analytics.track_event("application", "tooltip", "show tooltip", key)
 
     if (tooltip_helperOnLeft){
 

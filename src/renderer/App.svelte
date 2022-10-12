@@ -4,7 +4,7 @@
   *   tailwindcss
   */
 
-  //import Tailwindcss from './Tailwindcss.svelte';
+  import Tailwindcss from './Tailwindcss.svelte';
 
 
   /**
@@ -12,8 +12,8 @@
   */
 
   import { onMount } from 'svelte';
-  //import Titlebar from              './main/Titlebar.svelte';
-  //import NavTabs from               './main/NavTabs.svelte';
+  import Titlebar from              './main/Titlebar.svelte';
+  import NavTabs from               './main/NavTabs.svelte';
 
   //import RightPanelContainer from   './main/RightPanelContainer.svelte';
   //import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
@@ -111,18 +111,17 @@
 
 <Monster {name}  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor} {attachment} />
 -->
-<!--
+
 <Tailwindcss />
--->
-<!--
+
+
 <Titlebar/>
--->
+
 <main use:watchResize={resize} id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
 
-  <!--<NavTabs/>-- 
-
+  <NavTabs/>
  
   <!--
   <svelte:component 

@@ -1,58 +1,58 @@
 <script>
   import { onMount } from 'svelte';
-  import { appSettings } from "../runtime/app-helper.store";
 
-  /**
+  import {app_settings} from '../runtime/settings.store';
 
-  const {BrowserWindow, getCurrentWindow} = window.sketchyRemote;
+  const browserWindow = window.sketchyRemote;
+
+  const {platform} = window.variables;
+
 
   function init() { 
     document.getElementById("minimize-btn").addEventListener("click", function (e) {
-          
-      const window = BrowserWindow.getFocusedWindow();
-      window.minimize(); 
+      browserWindow.minimizeWindow();
     });
 
     document.getElementById("maximize-btn").addEventListener("click", function (e) {
-      var window = BrowserWindow.getFocusedWindow(); 
       isMaximized = true;
-      window.maximize(); 
+      browserWindow.maximizeWindow();
+
     });
 
     document.getElementById("restore-down-btn").addEventListener("click", function (e) {
-      const window = BrowserWindow.getFocusedWindow(); 
+     
       isMaximized = false;
-      window.restore()
+      browserWindow.restoreWindow()
     });
 
     document.getElementById("close-btn").addEventListener("click", function (e) {
-      const window = BrowserWindow.getFocusedWindow();
-      window.close();
+      browserWindow.closeWindow();
     }); 
   }; 
-*/
+
   let isMaximized;
 
-  onMount(()=> {
+  onMount(async ()=> {
 
-    if(process.platform != 'darwin'){
+    if(platform != 'darwin'){
       init();
     }
+    
 
-    let startingWindow = undefined // getCurrentWindow();
-    startingWindow.isMaximized() ? isMaximized = true : false;
+    browserWindow.isMaximized() ? isMaximized = true : false;
 
   });
 
-
+  
 </script>
+
 
 
 
 <top-bar style="background-color:rgb(25, 26, 32)" class="text-white static top-0 w-full p-1">
    
   <!-- Editor logo text svg -->
-  {#if process.platform != 'darwin'}
+  {#if platform != 'darwin'}
   <div class="draggable flex justify-between">
     <div class="flex items-center pl-2">
       <svg class="w-12 fill-current text-gray-500" viewBox="0 0 58 14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -67,7 +67,8 @@
 
     <!-- Title Text + version -->
     
-    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
+    
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$app_settings.version.major}.{$app_settings.version.minor}.{$app_settings.version.patch}</div>
 
     <!-- Min Max Close -->
 
@@ -104,7 +105,7 @@
   </div>
   {:else}
   <div class="draggable flex items-center justify-center h-7">
-    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$app_settings.version.major}.{$app_settings.version.minor}.{$app_settings.version.patch}</div>
   </div>
   {/if}
 </top-bar>
