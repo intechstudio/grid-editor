@@ -1,10 +1,7 @@
 
 
 import grid from '../protocol/grid-protocol.js';
-const { exec } = require("child_process");
 
-const { SerialPort } = require('serialport');
-const { ReadlineParser } = require('@serialport/parser-readline');
 
 import { messageStream } from './message-stream.store.js';  
 
@@ -12,10 +9,6 @@ import { appSettings } from '../runtime/app-helper.store.js';
 import { writeBuffer } from '../runtime/engine.store.js';
 
 import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.store.js';
-
-
-const { ipcRenderer, app } = require('electron');
-
 
 
 

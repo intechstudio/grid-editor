@@ -2,7 +2,8 @@ import { get } from "svelte/store";
 import {debug_lowlevel_store} from "../main/panels/WebsocketMonitor/WebsocketMonitor.store"
 import { appSettings } from "./app-helper.store";
 
-const { ipcRenderer, app } = require('electron');
+//const ipcRenderer = window.sketchyAPI;
+
 
 let client
 let heartbeatTimeout;
@@ -19,7 +20,7 @@ export function wss_send_message(msg){
 
 
   const toSend = Buffer.from(msg).toString('base64')
-  ipcRenderer.send("websocket_tx", JSON.stringify(toSend))
+  //ipcRenderer.send("websocket_tx", JSON.stringify(toSend))
 
 }
 
@@ -39,8 +40,7 @@ appSettings.subscribe(appS => {
 
 
 });
-
-ipcRenderer.on('wss_rx', (event, args) => {
+/**ipcRenderer.on('wss_rx', (event, args) => {
 
   debug_lowlevel_store.push_inbound(new TextEncoder().encode(args))
 
@@ -52,6 +52,7 @@ ipcRenderer.on('wss_tx', (event, args) => {
   
 })
 
+ */
 
 
 function websocketStart(){
@@ -91,7 +92,7 @@ function websocketStart(){
 
 export function wss_change_port(port){
   console.log("PORTCHANGE", port)
-  ipcRenderer.send("websocket_changePort", port)
+  //ipcRenderer.send("websocket_changePort", port)
 
   if (client !== undefined){
 

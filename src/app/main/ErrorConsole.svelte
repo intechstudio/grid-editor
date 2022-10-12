@@ -2,16 +2,16 @@
   import { onMount } from 'svelte';
   import { writable, get } from 'svelte/store';
   
-
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-  const { getGlobal } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
+//import { getGlobal } from '@electron/remote';
+  const trackEvent = function(){} //getGlobal('trackEvent');
+
   import {analytics} from "../runtime/analytics_influx"
 
-  const { ipcRenderer } = require('electron');
+  //const ipcRenderer = window.sketchyAPI;
 
-  const {Webhook} = require('simple-discord-webhooks');
+  import  {Webhook} from 'simple-discord-webhooks';
 
 
   let logelement;
@@ -74,7 +74,7 @@
     analytics.track_event("application", "error console", "error notification", "app restart")
 
     setTimeout(() => {
-      ipcRenderer.sendSync('restart', "foo");
+      //ipcRenderer.sendSync('restart', "foo");
     }, 500);
 
 

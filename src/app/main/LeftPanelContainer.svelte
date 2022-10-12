@@ -39,13 +39,13 @@
 
     {#if $appSettings.leftPanel == 'Profiles'}
 
-      <Profiles/>
+      <!--<Profiles/>-->
 
     {/if}
 
     {#if $appSettings.leftPanel == 'Presets'}
 
-      <Presets/>
+      <!--<Presets/>-->
 
     {/if}
     {#if $appSettings.leftPanel == 'Websocket'}

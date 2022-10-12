@@ -9,7 +9,7 @@
 
   import { writable, get, readable } from 'svelte/store';
 
-  const {google} = require('googleapis');
+  import {google} from 'googleapis';
   const youtube = google.youtube('v3');
 
   let video_link= process.env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]

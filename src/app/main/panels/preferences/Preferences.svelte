@@ -1,5 +1,7 @@
 
 <script>
+
+  /**
   import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
   import { profileListRefresh, presetListRefresh } from '../../../runtime/app-helper.store.js';
@@ -33,7 +35,8 @@
   const fs = require('fs-extra');  
   const AdmZip = require("adm-zip");
 
-  const { ipcRenderer } = require('electron');
+    const ipcRenderer = window.sketchyAPI;
+
 
   let helperPreviewElement;
 
@@ -157,7 +160,7 @@
 
     let folder = get(appSettings).persistant.profileFolder;
 
-    zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
+    zip.extractAllTo(folder + "/temp", true);
 
       download_status = "Archive extracted!"
       console.log(libraryFilePaths)
@@ -234,7 +237,7 @@
 
     let folder = get(appSettings).persistant.profileFolder;
 
-    zip.extractAllTo(folder + "/temp", /*overwrite*/ true);
+    zip.extractAllTo(folder + "/temp",  true);
     
 
    shell.showItemInFolder(folder + "/temp/" +pluginFilePaths[0]) 
@@ -272,11 +275,11 @@
     analytics.track_event("application", "preferences", "helper color", "set to ...")
   }
 
-
+*/
 
 </script>
 
-
+<!--
   <preferences class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto">
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
@@ -466,4 +469,4 @@
     box-shadow:  inset 0 0 100px #ffffff60;
   }
 
-</style>
+</style>-->

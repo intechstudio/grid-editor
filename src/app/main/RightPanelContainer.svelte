@@ -27,7 +27,7 @@
 
   {:else if $appSettings.rightPanel == 'Preferences'}
 
-    <Preferences/>
+    <!--<Preferences/>-->
 
   {:else if $appSettings.rightPanel == 'MIDI Monitor'}
 

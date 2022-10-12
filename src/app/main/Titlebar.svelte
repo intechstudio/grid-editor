@@ -1,9 +1,10 @@
 <script>
   import { onMount } from 'svelte';
-import { appSettings } from "../runtime/app-helper.store";
+  import { appSettings } from "../runtime/app-helper.store";
 
+  /**
 
-  const {BrowserWindow, getCurrentWindow} = require("@electron/remote");
+  const {BrowserWindow, getCurrentWindow} = window.sketchyRemote;
 
   function init() { 
     document.getElementById("minimize-btn").addEventListener("click", function (e) {
@@ -29,7 +30,7 @@ import { appSettings } from "../runtime/app-helper.store";
       window.close();
     }); 
   }; 
-
+*/
   let isMaximized;
 
   onMount(()=> {
@@ -38,7 +39,7 @@ import { appSettings } from "../runtime/app-helper.store";
       init();
     }
 
-    let startingWindow = getCurrentWindow();
+    let startingWindow = undefined // getCurrentWindow();
     startingWindow.isMaximized() ? isMaximized = true : false;
 
   });

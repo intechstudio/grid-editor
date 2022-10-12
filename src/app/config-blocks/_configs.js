@@ -1,8 +1,3 @@
-const fs = require('fs');
-const path = require('path');
-const fsPromises = fs.promises;
-
-
 export let config_components;
 
 async function init_config_block_library(){
@@ -13,7 +8,7 @@ async function init_config_block_library(){
 
   // scanCofigBlockDirectory()
   try {
-    let _files = fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
+    let _files = [] // fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
     _files = (await _files).filter(f => f.slice(-6) == 'svelte');
     files = _files;
   } 

@@ -9,15 +9,13 @@ const { websocket } = require('./ipcmain_websocket');
 
 const { store } = require('./main-store');
 
-const { iconBuffer, iconSize } = require('./icon')
+const { iconBuffer, iconSize } = require('./icon');
 
-const grid_env = require('../configuration.json')
 
+// might be environment variables as well.
+const grid_env = require('../../configuration.json')
 for (const key in grid_env) {
-
-  //console.log(key, grid_env[key])
   process.env[key] = grid_env[key]
-
 }
 
 global.trackEvent = trackEvent;
@@ -155,8 +153,9 @@ function createWindow() {
         },
         title: windowTitle,
         webPreferences: {
+          preload: path.join(__dirname, 'preload.js'),
           nodeIntegration: true,
-          contextIsolation: false,
+          contextIsolation: true,
           enableRemoteModule: true,
           backgroundThrottling: false
         },
@@ -182,7 +181,7 @@ function createWindow() {
 
     require("@electron/remote/main").enable(mainWindow.webContents);
 
-    mainWindow.loadURL(`file://${path.join(__dirname, '../public/index.html')}`);
+    mainWindow.loadURL(`file://${path.join(__dirname, '../../public/index.html')}`);
 
     mainWindow.on('close', (evt)=> {
       // when quit is terminal under darwin

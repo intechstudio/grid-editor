@@ -1,4 +1,5 @@
 <script>
+ 
   import { onMount } from 'svelte';
   import { writable, get } from 'svelte/store';
 
@@ -7,7 +8,7 @@
   import { analytics} from      '../runtime/analytics_influx';
   import { runtime } from       '../runtime/runtime.store';
 
-  
+  /**
 
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
@@ -93,10 +94,6 @@
         setTimeout(() => resolve(), time);
     });
   }
-
-
-  const { ipcRenderer } = require('electron');
-
 
   let bootloader_path = undefined;
 
@@ -240,7 +237,7 @@
     uploadProgressText = "Decompressing image "
     await delay(1500);
 
-    zip.extractAllTo(folder, /*overwrite*/ true);
+    zip.extractAllTo(folder, true);
 
     console.log(firmwareFileName)
 
@@ -281,14 +278,10 @@
 
   }
 
-
+*/
 </script>
 
-<style>
-
-
-</style>
-
+<!--
 
 
 {#if $appSettings.firmwareNotificationState === 1}
@@ -363,3 +356,4 @@
   </div>
 
 {/if}
+-->

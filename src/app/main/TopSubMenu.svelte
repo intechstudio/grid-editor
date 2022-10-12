@@ -6,13 +6,16 @@
 
   import {fade} from 'svelte/transition';
 
+  import {Webhook}  from 'simple-discord-webhooks';
+
+
 
   import instructions from "../serialport/instructions";
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
 
-  const { getGlobal } = require('@electron/remote'); 
-  const trackEvent = getGlobal('trackEvent');
+  //import { getGlobal } from '@electron/remote';
+const trackEvent = function(){} //getGlobal('trackEvent');
 
   import { analytics } from "../runtime/analytics_influx"
 
@@ -48,7 +51,6 @@
   // })
 
 
-  const {Webhook} = require('simple-discord-webhooks');
 
   function debugWriteBuffer(){
 

@@ -8,7 +8,7 @@
 
   import { writable, get, readable } from 'svelte/store';
 
-  const {Webhook} = require('simple-discord-webhooks');
+  import {Webhook} from 'simple-discord-webhooks';
 
   const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
 

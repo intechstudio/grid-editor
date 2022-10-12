@@ -1,5 +1,6 @@
 <script>
-  const { ipcRenderer, app } = require('electron');
+  /**
+  const ipcRenderer = window.sketchyAPI;
 
   import { openInBrowser } from '../../runtime/app-helper.store';
 
@@ -35,10 +36,11 @@
     console.log('update error...', updateError)
   });
 
-
+*/
 
 </script>
- <!--updateNotification-->
+<!--
+
 {#if updateNotification}
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
       <div id="notification" style="width:300px" class="p-4 rounded-lg">    
@@ -82,9 +84,9 @@
     </div>
   {/if}
 
-
+-->
 <style>
-
+/**
   #notification {
     background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
   }
@@ -117,5 +119,5 @@
         .25em 0 0 white,
         .5em 0 0 white;}
       }
-
+*/
   </style>

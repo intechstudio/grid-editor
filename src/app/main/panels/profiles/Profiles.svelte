@@ -1,6 +1,5 @@
 <script>
-
-  import { createEventDispatcher, onMount } from 'svelte';
+/**  import { createEventDispatcher, onMount } from 'svelte';
 
   import { get } from 'svelte/store'
 
@@ -395,8 +394,11 @@
 
   // use:clickOutside={{useCapture: true}}
   // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
-</script>
+*/
 
+
+  </script>
+<!--
 <profiles
 
   class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
@@ -521,3 +523,4 @@
 
 </style>
 
+-->

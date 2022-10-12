@@ -1,18 +1,16 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '../config-blocks/_configs';
 import grid from '../protocol/grid-protocol';
-const fs = require('fs'); 
 
-const { ipcRenderer, app } = require('electron');
+//const ipcRenderer = window.sketchyAPI;
 
-const shell = require('electron').shell
 
 export function openInBrowser(url){
-  shell.openExternal(url)
+ // shell.openExternal(url)
 }
 
-const { getGlobal } = require('@electron/remote');
-const trackEvent = getGlobal('trackEvent');
+//import { getGlobal } from '@electron/remote';
+const trackEvent = function(){} //getGlobal('trackEvent');
 
 
 
@@ -35,7 +33,7 @@ function checkOS() {
   return 'browser';
 }
 
-const versionstring =  ipcRenderer.sendSync('app_version')
+const versionstring = '00000000'  // ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
@@ -143,7 +141,7 @@ appSettings.subscribe(store => {
 
       let foo = {};
       foo[key] = instore[key];
-      ipcRenderer.send('setStoreValue-message', foo);
+      //ipcRenderer.send('setStoreValue-message', foo);
     }
 
 
@@ -153,7 +151,7 @@ appSettings.subscribe(store => {
 })
 
 
-
+/**
 ipcRenderer.on('trayState', (event, args) => {
 
   if (get(appSettings).trayState === true && args === false){
@@ -164,7 +162,7 @@ ipcRenderer.on('trayState', (event, args) => {
   console.log("traystate: ", args)
   appSettings.update(s => {s.trayState = args; return s;})  
 })
-
+ */
 
 function init_appsettings(){
 
@@ -178,6 +176,7 @@ function init_appsettings(){
 
   });
 
+  /**
   ipcRenderer.invoke('getStoreValues', request).then((response) => {
 
     appSettings.update(s => {
@@ -230,16 +229,7 @@ function init_appsettings(){
   
   });
 
-  Object.entries(persistant).forEach(entry => {
-    const [key, value] = entry;
-
-    ipcRenderer.invoke('getStoreValue', key).then((value) => {
-
-
-    });
-
-  });
-
+ */
 }
 
 

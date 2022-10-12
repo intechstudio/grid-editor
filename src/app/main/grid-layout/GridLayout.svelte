@@ -21,14 +21,14 @@
 
   import CursorLog from          '../user-interface/cursor-log/CursorLog.svelte';
 
-  const { getGlobal } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
+  //import { getGlobal } from '@electron/remote';
+  const trackEvent = function(){} //getGlobal('trackEvent');
 
   import { analytics } from '../../runtime/analytics_influx';
   import { appSettings } from '../../runtime/app-helper.store';
 
 
-  const { ipcRenderer } = require('electron');
+  //const ipcRenderer = window.sketchyAPI;
 
   export let classes;
 
@@ -154,7 +154,7 @@
 
 
     setTimeout(() => {
-      ipcRenderer.sendSync('restart', "foo");
+      //ipcRenderer.sendSync('restart', "foo");
     }, 500);
 
 

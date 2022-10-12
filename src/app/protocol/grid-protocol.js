@@ -1,6 +1,6 @@
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json';
 
-const lodash = require('lodash');
+import lodash from 'lodash';
 
 
 const editor_lua_properties = [

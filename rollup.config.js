@@ -48,6 +48,11 @@ export default {
 		// a separate file - better for performance
 		css({ output: 'bundle.css' }),
 
+				// some packages like luaparse needs this (?)
+
+		commonjs(),
+
+
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
 		// some cases you'll need additional configuration —
@@ -58,8 +63,6 @@ export default {
 			dedupe: importee => importee === 'svelte' || importee.startsWith('svelte/')
 		}),
 
-		// some packages like luaparse needs this (?)
-		commonjs(),
 
 		// need this badboy to import dynamically components
 		dynamicImportVars(),

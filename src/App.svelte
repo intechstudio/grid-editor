@@ -12,7 +12,6 @@
   */
 
   import { onMount } from 'svelte';
-
   import Titlebar from              './app/main/Titlebar.svelte';
   import NavTabs from               './app/main/NavTabs.svelte';
 
@@ -21,13 +20,16 @@
   import GridLayout from            './app/main/grid-layout/GridLayout.svelte';
   import TopSubMenu from            './app/main/TopSubMenu.svelte';
 
+/**
   import Export from                 './app/main/modals/Export.svelte';
   import Welcome from                 './app/main/modals/Welcome.svelte';
   import Monaco from                 './app/main/modals/Monaco.svelte';
   import Feedback from                 './app/main/modals/Feedback.svelte';
-
+*/
   import FirmwareCheck from         './app/main/FirmwareCheck.svelte';
+
   import ErrorConsole from          './app/main/ErrorConsole.svelte';
+
   import TooltipGetter from         './app/main/user-interface/tooltip/TooltipGetter.svelte';
 
 
@@ -35,18 +37,24 @@
   import {attachment} from "./app/main/user-interface/Monster.store";
 
   import Updater from               './app/shared/updater/Updater.svelte';
+
   import { appSettings, windowSize } from       './app/runtime/app-helper.store'
+
 
 
   import { watchResize } from "svelte-watch-resize";
 
+  
   let modalComponents = {}
+
+  /**
   modalComponents[""] = undefined;
   modalComponents["welcome"] = Welcome;
   modalComponents["export"] = Export;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
-  
+*/
+
   let startX, startY, startWidth, startHeight, stopWidth, stopX;
 
 
@@ -54,6 +62,7 @@
   let shapeSelected;
   let colorSelected;
   let name;
+
 
   $: {
 
@@ -94,7 +103,8 @@
   let element;
   let originalLeftPos;
   onMount(()=>{
-
+    const information = document.getElementById('info')
+    information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`
    
   })
 
@@ -107,6 +117,7 @@
 
 </script>
 
+<div id="info">YO</div>
 
 <Monster {name}  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor} {attachment} />
 
@@ -117,6 +128,7 @@
 <main use:watchResize={resize} id="app" spellcheck="false" class=" relative flex w-full h-full flex-row justify-between overflow-hidden">
 
   <!-- Switch between tabs for different application features. -->
+
   <NavTabs/> 
 
   <svelte:component 
@@ -129,23 +141,27 @@
 
   <TooltipGetter/>
 
+
   <div class="flex flex-col w-full h-full">
-  
-    <TopSubMenu/>
+ 
+   <TopSubMenu/>
 
-    <FirmwareCheck/>
-
+   <FirmwareCheck/>
+ 
     <ErrorConsole/>
 
     <div class="flex w-full h-full overflow-hidden ">
 
       <LeftPanelContainer classes={"w-3/12 "}/>
-      
+ 
       <!-- This is the (mostly) Layout part of the code. -->
+    
       <GridLayout classes={"flex-1"}/>
 
       <!-- The right side panel container -->
-      <RightPanelContainer classes={"w-4/12"}/>
+  
+ <RightPanelContainer classes={"w-4/12"}/>
+        
 
     </div>
   </div>

@@ -5,7 +5,7 @@ import stringManipulation from '../main/user-interface/_string-operations.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // commonjs node require
-const lua = require('luaparse');
+import * as lua from 'luaparse'
 
 
 const _utils = {

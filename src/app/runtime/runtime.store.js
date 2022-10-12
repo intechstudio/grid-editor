@@ -14,7 +14,7 @@ import { analytics } from './analytics_influx';
 import { initialize_ws } from './websocket';
 //import { initialize_wss } from './websocketserver';
 
-const activeWindow = require('active-win');
+//const activeWindow = require('active-win');
 
 //initialize_wss();
 initialize_ws();
@@ -26,6 +26,7 @@ console.log("Minimum Firmware Version Required: ", firmware_required)
 let lastPageActivator = "";  
 
 
+/**
 async function detectActiveWindow(){
 
   if (get(appSettings).persistant.pageActivatorEnabled !== true){
@@ -103,7 +104,7 @@ const setIntervalAsyncActiveWindow = (fn) => {
 };
 
 setIntervalAsyncActiveWindow(detectActiveWindow);
-
+ */
 // The controller which is added to runtime first, load a default config!
 
 
