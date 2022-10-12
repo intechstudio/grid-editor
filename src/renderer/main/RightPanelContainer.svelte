@@ -2,9 +2,10 @@
 
 
   import Configuration from './panels/configuration/Configuration.svelte';
-  import Preferences from './panels/preferences/Preferences.svelte';
+  //import Preferences from './panels/preferences/Preferences.svelte';
   import MidiMonitor from './panels/MidiMonitor/MidiMonitor.svelte';
-  import { appSettings } from "../runtime/app-helper.store";
+
+  import {app_settings} from '../runtime/settings.store';
 
   import { windowSize } from '../runtime/window-size';
 
@@ -15,7 +16,6 @@
 
 
   function resize(){
-
     $windowSize.rightSidebarWidth = $windowSize.rightSidebarWidth+1;
   }
 
@@ -24,18 +24,19 @@
 
 <panel-container id="right-panel" class="{classes} h-full"  use:watchResize={resize} >
  
-  {#if $appSettings.rightPanel == 'Configuration'}
+  {#if $app_settings.rightPanel == 'Configuration'}
 
+  
     <Configuration/>
 
-  {:else if $appSettings.rightPanel == 'Preferences'}
+  {:else if $app_settings.rightPanel == 'Preferences'}
 
     <!--<Preferences/>-->
 
-  {:else if $appSettings.rightPanel == 'MIDI Monitor'}
+  {:else if $app_settings.rightPanel == 'MIDI Monitor'}
 
     <MidiMonitor/>
-
+  
   {/if}
 
 </panel-container>

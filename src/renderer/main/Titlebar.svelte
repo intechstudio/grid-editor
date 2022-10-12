@@ -16,7 +16,6 @@
     document.getElementById("maximize-btn").addEventListener("click", function (e) {
       isMaximized = true;
       browserWindow.maximizeWindow();
-
     });
 
     document.getElementById("restore-down-btn").addEventListener("click", function (e) {

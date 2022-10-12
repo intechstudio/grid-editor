@@ -15,7 +15,7 @@
   import Titlebar from              './main/Titlebar.svelte';
   import NavTabs from               './main/NavTabs.svelte';
 
-  //import RightPanelContainer from   './main/RightPanelContainer.svelte';
+  import RightPanelContainer from   './main/RightPanelContainer.svelte';
   //import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
   //import GridLayout from            './main/grid-layout/GridLayout.svelte';
   //import TopSubMenu from            './main/TopSubMenu.svelte';
@@ -161,9 +161,9 @@
 -->
       <!-- The right side panel container -->
   
-   <!--
+   
       <RightPanelContainer classes={"w-4/12"}/>
-     -->
+   
 
     </div>
   </div>
