@@ -4,7 +4,6 @@ import { appSettings } from "./app-helper.store";
 
 //const ipcRenderer = window.sketchyAPI;
 
-
 let client
 let heartbeatTimeout;
 
@@ -99,7 +98,7 @@ export function wss_change_port(port){
     client.close();
   }
 
-  websocketStart();
+  // websocketStart();
 
 }
 

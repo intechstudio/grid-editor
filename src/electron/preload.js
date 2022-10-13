@@ -1,11 +1,14 @@
 const { contextBridge, ipcRenderer } = require('electron')
-const {BrowserWindow, getCurrentWindow, getGlobal} = require( "@electron/remote");
+const { getGlobal } = require( "@electron/remote");
 
-contextBridge.exposeInMainWorld('variables', {
+
+contextBridge.exposeInMainWorld('ctxProcess', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   platform: () => process.platform,
+  env: () => ipcRenderer.invoke('get-env')
+
   // we can also expose variables, not just functions
 })
 
@@ -23,6 +26,6 @@ contextBridge.exposeInMainWorld('sketchyRemote', {
   minimizeWindow: () => ipcRenderer.invoke('minimizeWindow'),
   maximizeWindow: () =>ipcRenderer.invoke('maximizeWindow'),
   restoreWindow: () => ipcRenderer.invoke('restoreWindow'),
-  isMaximized: ()=>ipcRenderer.invoke('isMaximized'),
-  getGlobal: getGlobal
+  isMaximized: () => ipcRenderer.invoke('isMaximized'),
+  getGlobal: () => getGlobal
 })

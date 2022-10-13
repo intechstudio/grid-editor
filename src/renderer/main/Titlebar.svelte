@@ -5,7 +5,7 @@
 
   const browserWindow = window.sketchyRemote;
 
-  const {platform} = window.variables;
+  const {platform} = window.ctxProcess;
 
 
   function init() { 

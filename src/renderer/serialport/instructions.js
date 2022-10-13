@@ -1,4 +1,3 @@
-import { serial_write } from './serialport.js';
 import { get } from 'svelte/store';
 import { appSettings } from '../runtime/app-helper.store';
 

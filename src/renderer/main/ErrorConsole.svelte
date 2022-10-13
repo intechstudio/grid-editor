@@ -11,6 +11,10 @@
 
   //const ipcRenderer = window.sketchyAPI;
 
+  const ctxProcess = window.ctxProcess;
+
+  const env = ctxProcess.env()
+
   import  {Webhook} from 'simple-discord-webhooks';
 
 
@@ -30,8 +34,8 @@
 
       try {
         
-        const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-        webhook.send(`######\nError Notification\n######\n${errorMsg} `)
+        //const webhook = new Webhook(ctxProcess.env.DISCORD_FEEDBACK_WEBHOOK);
+        //webhook.send(`######\nError Notification\n######\n${errorMsg} `)
         
       } catch (error) {
         
@@ -49,15 +53,15 @@
 
       try {
         
-        const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-        webhook.send(`######\nError Notification\n######\n${e.reason} `)
+        //const webhook = new Webhook(ctxProcess.env.DISCORD_FEEDBACK_WEBHOOK);
+        //webhook.send(`######\nError Notification\n######\n${e.reason} `)
 
       } catch (error) {
         
       }
     }
 
-    if(process.platform == 'darwin'){
+    if(ctxProcess.platform == 'darwin'){
       text = 'Command + Shift + R';
     } else {
       text = 'Ctrl + Shift + R';

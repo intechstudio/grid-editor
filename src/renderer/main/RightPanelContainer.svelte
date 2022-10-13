@@ -11,6 +11,7 @@
 
 
   import { watchResize } from "svelte-watch-resize";
+    import { onMount } from 'svelte';
 
   export let classes;
 
@@ -19,10 +20,15 @@
     $windowSize.rightSidebarWidth = $windowSize.rightSidebarWidth+1;
   }
 
+  onMount(()=> {
+    console.log('rightpanel')
+  })
+
 
 </script>
 
 <panel-container id="right-panel" class="{classes} h-full"  use:watchResize={resize} >
+
  
   {#if $app_settings.rightPanel == 'Configuration'}
 

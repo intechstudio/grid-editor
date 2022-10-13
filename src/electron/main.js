@@ -342,6 +342,10 @@ ipcMain.handle('isMaximized', async (event, args) => {
   return window.isMaximized();
 })
 
+ipcMain.handle('get-env', async (event, args) => {
+  return grid_env
+})
+
 ipcMain.handle('getStoreValues', (event, keys) => {
   
   let result = {}

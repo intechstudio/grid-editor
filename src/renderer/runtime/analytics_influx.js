@@ -13,19 +13,25 @@ const version = ipcRenderer.sendSync('app_version')
 console.log('SUPP')
 
 // You can generate an API token from the "API Tokens Tab" in the UI
-const token = process.env.INFLUX_TOKEN
-const org = process.env.INFLUX_ORG
-const bucket = process.env.INFLUX_BUCKET
-const server = process.env.INFLUX_SERVER
+/**
+console.log('env', ctxProcess.env)
+
+const token = ctxProcess.env.INFLUX_TOKEN
+const org = ctxProcess.env.INFLUX_ORG
+const bucket = ctxProcess.env.INFLUX_BUCKET
+const server = ctxProcess.env.INFLUX_SERVER
 
 if (token && org && bucket && server){
 
   console.log("Analytics Ready!")
+ 
 }
 else{
   
   console.log("Analytics ENV Failed")
 }
+
+
 
 const client = new influx.InfluxDB({url: server, token: token})
 
@@ -34,10 +40,10 @@ const user_platform = get(appSettings).os;
 
 
 const userId = ipcRenderer.sendSync('analytics_uuid');
-const node_env = process.env.NODE_ENV;
+const node_env = ctxProcess.env.NODE_ENV;
 
 const writeApi = client.getWriteApi(org, bucket)
- 
+  */
 function track_event(category, action, label, value){
 
 /**

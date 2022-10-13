@@ -2,7 +2,7 @@ import { writable } from "svelte/store";
 
 const ipcRenderer = window.sketchyAPI;
 
-const variables = window.variables;
+const variables = window.ctxProcess;
 
 const versionstring = ipcRenderer.sendSync('app_version');
 
@@ -10,7 +10,7 @@ const versionstring = ipcRenderer.sendSync('app_version');
 
 function checkOS() {
 
-  if (typeof window.variables === 'object') {
+  if (typeof window.ctxProcess === 'object') {
     return variables.platform;
   }
  
@@ -31,6 +31,7 @@ export const app_settings = writable({
   layoutMode: false,
   configType: 'uiEvents',
   stringNameOverlay: false,
+  rightPanel: 'Configuration',
   preferences: false,
   modal: '',
   trayState: false,

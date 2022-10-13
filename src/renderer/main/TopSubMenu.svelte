@@ -8,21 +8,21 @@
 
   import {Webhook}  from 'simple-discord-webhooks';
 
-
+  const ctxProcess = window.ctxProcess; 
 
   import instructions from "../serialport/instructions";
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
 
   //import { getGlobal } from '@electron/remote';
-const trackEvent = function(){} //getGlobal('trackEvent');
+//const trackEvent = function(){} //getGlobal('trackEvent');
 
-  import { analytics } from "../runtime/analytics_influx"
+  //import { analytics } from "../runtime/analytics_influx"
 
   function store() {
 
-    trackEvent('page-config', 'page-config: store') 
-    analytics.track_event("application", "topsubmenu", "pageconfig", "store")
+    //trackEvent('page-config', 'page-config: store') 
+    //analytics.track_event("application", "topsubmenu", "pageconfig", "store")
 
     instructions.sendPageStoreToGrid();
   }
@@ -31,16 +31,16 @@ const trackEvent = function(){} //getGlobal('trackEvent');
 
     instructions.sendPageDiscardToGrid();
 
-    trackEvent('page-config', 'page-config: discard')
-    analytics.track_event("application", "topsubmenu", "pageconfig", "discard")
+    //trackEvent('page-config', 'page-config: discard')
+    //analytics.track_event("application", "topsubmenu", "pageconfig", "discard")
 
   }
 
   function clear() {
     instructions.sendPageClearToGrid();
     
-    trackEvent('page-config', 'page-config: clear')
-    analytics.track_event("application", "topsubmenu", "pageconfig", "clear")
+    //trackEvent('page-config', 'page-config: clear')
+    //analytics.track_event("application", "topsubmenu", "pageconfig", "clear")
 
   }
 
@@ -58,11 +58,11 @@ const trackEvent = function(){} //getGlobal('trackEvent');
     
     
     //discord
-    const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-    webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
+    //const webhook = new Webhook(ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
+   // webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
         
-    trackEvent('writebuffer', 'writebuffer: clear')
-    analytics.track_event("application", "topsubmenu", "writebuffer", "clear")
+    //trackEvent('writebuffer', 'writebuffer: clear')
+    //analytics.track_event("application", "topsubmenu", "writebuffer", "clear")
 
 
     writeBuffer.clear();

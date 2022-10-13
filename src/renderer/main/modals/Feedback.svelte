@@ -10,7 +10,7 @@
 
   import {Webhook} from 'simple-discord-webhooks';
 
-  const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
+  //const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
 
 
   let feedback_title;
@@ -29,7 +29,7 @@
 
   function sendFeedback(){
 
-    webhook.send(`######\n${feedback_title.value}\n######\n${feedback_text.value} `)
+    //webhook.send(`######\n${feedback_title.value}\n######\n${feedback_text.value} `)
 
     thank_you = 'Thank you for your feedback!'
     //$appSettings.modal = ''

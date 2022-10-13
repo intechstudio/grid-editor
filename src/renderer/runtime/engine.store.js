@@ -1,14 +1,13 @@
 import { get, writable } from 'svelte/store';
-import { appSettings } from './app-helper.store';
 import grid from '../protocol/grid-protocol';
-import { serial_write, serial_write_islocked } from '../serialport/serialport';
+//import { serial_write, serial_write_islocked } from '../serialport/serialport';
 
-import instructions from '../serialport/instructions';
+//import instructions from '../serialport/instructions';
 
 export function sendHeartbeat(type){
 
   
-  instructions.sendEditorHeartbeat_immediate(type)
+  //instructions.sendEditorHeartbeat_immediate(type)
 
 }
 
@@ -55,7 +54,7 @@ function createWriteBuffer (){
     let retval = grid.encode_packet(descr);
 
 
-    serial_write(retval.serial);
+    //serial_write(retval.serial);
 
     // debugger for message ASCII frames
     let str = "";
@@ -72,12 +71,12 @@ function createWriteBuffer (){
 
     if(write_buffer_busy || get(_write_buffer).length == 0) return;
 
-
+/**
     if (serial_write_islocked() === true){
       console.log("LOCK", get(_write_buffer).length)
       return;
     }
-
+ */
     write_buffer_busy = true;
 
     active_elem = get(_write_buffer)[0];

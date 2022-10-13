@@ -1,6 +1,6 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { analytics} from "../../../runtime/analytics_influx";
+  //import { analytics} from "../../../runtime/analytics_influx";
 
   import { get } from 'svelte/store';
   import { runtime, elementNameStore, engine, logger, user_input, controlElementClipboard} from '../../../runtime/runtime.store.js';
@@ -75,7 +75,7 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    analytics.track_event("application", "configuration", "whole element", "copy")
+    //analytics.track_event("application", "configuration", "whole element", "copy")
   }
 
   function overwriteAllEventConfigs(){
@@ -83,7 +83,7 @@
    let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    analytics.track_event("application", "configuration", "whole element", "overwrite")
+    //analytics.track_event("application", "configuration", "whole element", "overwrite")
 
   }
 

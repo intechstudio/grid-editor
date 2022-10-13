@@ -69,7 +69,7 @@ const stringManipulation = {
     return string.replace(/\s/g,'');
   },
 
-  splitShortScript: function(script, mode){
+  splitShortScript: async function(script, mode){
 
     let lookupType;
 
@@ -82,12 +82,6 @@ const stringManipulation = {
 
     for (const key in this.VALIDATOR[lookupType]) {
       pattern.push(`${'(?<' + key + '>' + this.VALIDATOR[lookupType][key] + ')'}`);
-    }
-
-    // split with dev
-    if(process.env.NODE_ENV == "development"){
-      //console.log("Running _V in development mode.");
-      //pattern.push(`${'(?<development>([a-zA-Z_]+))'}`);
     }
 
     // for "," in functions

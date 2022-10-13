@@ -81,7 +81,7 @@
   let uploadProgressText = "";
 
   onMount(()=>{
-    if(process.platform == 'darwin'){
+    if(ctxProcess.platform == 'darwin'){
       text = 'Command + Shift + R';
     } else {
       text = 'Ctrl + Shift + R';

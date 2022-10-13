@@ -36,11 +36,13 @@ navigator.serial.addEventListener('disconnect', (e) => {
 
 export async function testIt() {
 
+  const env = await window.ctxProcess.env();
+
   if (port_connected == false){
 
     const filters = [
-      { usbVendorId: parseInt(process.env.USB_VID_0), usbProductId: parseInt(process.env.USB_PID_0) },
-      { usbVendorId: parseInt(process.env.USB_VID_1), usbProductId: parseInt(process.env.USB_PID_1) }
+      { usbVendorId: parseInt(env.USB_VID_0), usbProductId: parseInt(env.USB_PID_0) },
+      { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) }
     ];
 
     const port = navigator.serial.requestPort({filters}).then(port=>{

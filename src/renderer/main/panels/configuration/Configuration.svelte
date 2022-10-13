@@ -4,7 +4,7 @@
   import { fly, fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
 
-  import { appSettings } from '../../../runtime/app-helper.store.js';
+  import { app_settings } from '../../../runtime/settings.store';
 
   import ConfigParameters from './ConfigParameters.svelte';
 
@@ -15,7 +15,16 @@
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
   import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
-  import { runtime, elementNameStore, appMultiSelect, luadebug_store, localDefinitions, conditionalConfigPlacement, user_input, engine } from '../../../runtime/runtime.store.js';
+
+  import { 
+    runtime,
+    elementNameStore, appMultiSelect, 
+    luadebug_store, 
+    localDefinitions, conditionalConfigPlacement, 
+    user_input,
+    engine 
+  } from '../../../runtime/runtime.store.js';
+
 
   import { dropStore } from './Configuration.store.js';
 
@@ -42,7 +51,6 @@
   import grid from "../../../protocol/grid-protocol"
 
 
-
   let configs = [];
   let events = {options: ['', '', ''], selected: ""};
   let elements = {options: [], selected: ""};
@@ -59,9 +67,13 @@
 
   }
 
+  onMount(()=>{
+    console.log("configuration mount.y")
+  })
 
-  function changeSelectedConfig(arg){
-    $appSettings.configType = arg;
+
+  function changeSelectedConfig(arg){ 
+    $app_settings.configType = arg;
 
     if(arg == 'systemEvents'){ // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {
@@ -89,9 +101,6 @@
       });
     }
   }
-
-
-
   user_input.subscribe(ui=>{
 
 
@@ -220,7 +229,7 @@
 
     // set UI to uiEvents, if its not system events
     if(elements.selected !== 255){
-      $appSettings.configType = 'uiEvents';
+      $app_settings.configType = 'uiEvents';
     }
    
 
@@ -296,21 +305,24 @@
 
   }
 
-  $: luadebug_store.update_config(_utils.configMerge({config: configs}));
+  //$: luadebug_store.update_config(_utils.configMerge({config: configs}));
 
 
 
 
 </script>
 
+
+
 <configuration class="w-full h-full flex flex-col { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+  
 
   <Pages {pages}/>
 
   <tabs class="flex flex-row items-start mt-4">
     <tab 
       on:click={()=>{changeSelectedConfig('uiEvents')}} 
-      class="{$appSettings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$app_settings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         UI Events
       </span>
@@ -318,7 +330,7 @@
     </tab>
     <tab 
       on:click={()=>{changeSelectedConfig('systemEvents')}} 
-      class="{$appSettings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$app_settings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         System Events
       </span>
@@ -327,16 +339,14 @@
   </tabs>
 
 
-    {#key $appSettings.configType == 'uiEvents'}
+    {#key $app_settings.configType == 'uiEvents'}
 
 
-      <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
+      <container class="flex flex-col h-full" in:fly={{x: $app_settings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
         <ConfigParameters {configs} {events} {elements}/>
 
-        <!--
-          Old Configlist refactored to be inline
-        -->
+     
 
         <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
 
@@ -406,17 +416,13 @@
         </configs>
         
 
-        <!--
-          End of Configlist
-        -->        
-        
-
 
 
       </container>
     {/key}
-</configuration>
 
+
+</configuration>
 
 
 

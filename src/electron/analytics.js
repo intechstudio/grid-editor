@@ -2,6 +2,7 @@ const ua = require('universal-analytics');
 const { store } = require('./main-store');
 const { v4: uuidv4 } = require('uuid');
 
+/**
 
 // Retrieve the userid value, and if it's not there, assign it a new uuid.
 const userId = store.get('userId') || uuidv4();
@@ -10,9 +11,11 @@ const userId = store.get('userId') || uuidv4();
 store.set('userId', userId)
 
 var usr = ua(process.env.GOOGLEUA_TOKEN, userId);
+ */
 
 function trackEvent(category, action, label, value) {
 
+  /**
 
   if(process.env.NODE_ENV !== "development"){
     usr
@@ -26,6 +29,7 @@ function trackEvent(category, action, label, value) {
   } else {
     console.info(`UA offline during ${process.env.NODE_ENV}!`);
   }
+   */
 }
 
 

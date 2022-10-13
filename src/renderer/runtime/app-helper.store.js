@@ -1,7 +1,10 @@
 import { writable, get, readable } from 'svelte/store';
-import { getAllComponents } from '../config-blocks/_configs';
+//import { getAllComponents } from '../config-blocks/_configs';
 
 const ipcRenderer = window.sketchyAPI;
+
+const ctxProcess = window.ctxProcess;
+
 
 
 export function openInBrowser(url){
@@ -11,7 +14,14 @@ export function openInBrowser(url){
 //import { getGlobal } from '@electron/remote';
 const trackEvent = function(){} //getGlobal('trackEvent');
 
+function checkOS() {
 
+  if (typeof window.ctxProcess === 'object') {
+    return ctxProcess.platform;
+  }
+ 
+  return 'browser';
+}
 
 const versionstring = '00000000'  // ipcRenderer.sendSync('app_version')
 
@@ -42,6 +52,7 @@ export const appSettings = writable({
   configType: 'uiEvents',
   stringNameOverlay: false,
   preferences: false,
+  rightPanel: 'configuration',
   modal: '',
   trayState: false,
   os: checkOS(),
@@ -210,7 +221,7 @@ export const preferenceStore = writable();
 
 
 
-export const action_collection = readable(Promise.all([getAllComponents()]))
+export const action_collection = readable(Promise.all([/*getAllComponents()*/]))
 
 function createPresetManagement(){
 
@@ -244,7 +255,7 @@ function createPresetManagement(){
 }
 
 //trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
-//trackEvent('operating-system', process.platform)
+//trackEvent('operating-system', ctxProcess.platform)
 
 export const activeDropDown = writable({config_index: undefined, input_index: undefined})
 
