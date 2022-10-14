@@ -1,9 +1,9 @@
 import { writable, get, derived } from 'svelte/store';
 
 import grid from '../protocol/grid-protocol';
-//import instructions from '../serialport/instructions';
+import instructions from '../serialport/instructions';
 import { writeBuffer, sendHeartbeat } from './engine.store';
-//import _utils from './_utils';
+import _utils from './_utils';
 
 
 import { appSettings } from './app-helper.store';
@@ -105,7 +105,7 @@ const setIntervalAsyncActiveWindow = (fn) => {
   });
 };
 
-// setIntervalAsyncActiveWindow(detectActiveWindow);
+setIntervalAsyncActiveWindow(detectActiveWindow);
 
 // The controller which is added to runtime first, load a default config!
 
@@ -268,8 +268,6 @@ function create_luadebug_store(){
 }
 
 export const luadebug_store = create_luadebug_store();
-
-
 
 
 
@@ -498,7 +496,7 @@ function create_runtime () {
       const element = ui.event.elementnumber;
       const event = ui.event.eventtype;
 
-      //instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
+      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
     }
 
     return;
@@ -668,7 +666,7 @@ function create_runtime () {
             dest.config = ev.config;
             dest.cfgStatus = 'EDITOR_BACKGROUND';          
 
-            //instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+            instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
             // trigger change detection
             
           }    
@@ -717,7 +715,7 @@ function create_runtime () {
             dest.config = ev.config;
             dest.cfgStatus = 'EDITOR_BACKGROUND';          
 
-            //instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+            instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
             // trigger change detection
             
           }    
@@ -781,7 +779,7 @@ function create_runtime () {
           };
         }
 
-        //instructions.sendConfigToGrid( dx, dy, page, element, event, ev.config, callback);
+        instructions.sendConfigToGrid( dx, dy, page, element, event, ev.config, callback);
 
       });
     });
@@ -808,7 +806,7 @@ function create_runtime () {
 
     let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
     if (dest) {
-      //instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
+      instructions.sendConfigToGrid( dx, dy, page, element, event, dest.config, callback);
     } 
     else{
       console.error("DEST not found!")
@@ -1087,7 +1085,7 @@ function create_runtime () {
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
-      //instructions.changeActivePage(new_page_number);
+      instructions.changeActivePage(new_page_number);
 
     }
  
@@ -1161,7 +1159,7 @@ const grid_heartbeat_interval_handler = async function(){
 
 }
 
-//setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
+setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
 
 setInterval(function(){
 
@@ -1198,7 +1196,7 @@ const editor_heartbeat_interval_handler = async function(){
 
 }
 
-//setIntervalAsync(editor_heartbeat_interval_handler, get(heartbeat).editor);
+setIntervalAsync(editor_heartbeat_interval_handler, get(heartbeat).editor);
 
 
 

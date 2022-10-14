@@ -305,7 +305,7 @@
 
   }
 
-  //$: luadebug_store.update_config(_utils.configMerge({config: configs}));
+  $: luadebug_store.update_config(_utils.configMerge({config: configs}));
 
 
 

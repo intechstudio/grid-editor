@@ -8,7 +8,6 @@ contextBridge.exposeInMainWorld('ctxProcess', {
   electron: () => process.versions.electron,
   platform: () => process.platform,
   env: () => ipcRenderer.invoke('get-env')
-
   // we can also expose variables, not just functions
 })
 

@@ -5,11 +5,9 @@ import grid from '../protocol/grid-protocol.js';
 
 import { messageStream } from './message-stream.store.js';  
 
-import { appSettings } from '../runtime/app-helper.store.js';
 import { writeBuffer } from '../runtime/engine.store.js';
 
 import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.store.js';
-
 
 
 // ============= NEW WEBSERIAL BASED IMPLEMENTATION ===================
@@ -107,8 +105,10 @@ function fetchStream() {
     // value for fetch streams is a Uint8Array
     charsReceived += value.length;
     const chunk = value;
- 
-    let buffer = Buffer.from(chunk, 'ascii');
+
+    let buffer = Array.from(chunk);
+
+
     for (let i = 0; i < buffer.length; i++) {
       rxBuffer.push(buffer[i]);
     }

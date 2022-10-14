@@ -16,8 +16,8 @@
   import NavTabs from               './main/NavTabs.svelte';
 
   import RightPanelContainer from   './main/RightPanelContainer.svelte';
-  //import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
-  //import GridLayout from            './main/grid-layout/GridLayout.svelte';
+  import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
+  import GridLayout from            './main/grid-layout/GridLayout.svelte';
   //import TopSubMenu from            './main/TopSubMenu.svelte';
 
 /*
@@ -152,13 +152,13 @@
 -->
     <div class="flex w-full h-full overflow-hidden ">
 
-      <!--
+
       <LeftPanelContainer classes={"w-3/12 "}/>
- -->
+
       <!-- This is the (mostly) Layout part of the code. -->
-    <!--
+
       <GridLayout classes={"flex-1"}/>
--->
+
       <!-- The right side panel container -->
   
    
