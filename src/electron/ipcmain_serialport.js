@@ -19,11 +19,12 @@ const setIntervalAsync = (fn, ms) => {
 
 async function listSerialPorts(){
 
+
   if (serial.mainWindow !== undefined){
     
     try{
       let foo = await serial.mainWindow.webContents.executeJavaScript(`if(navigator.intechConnect){navigator.intechConnect()}`, true)
-      //console.log(foo)
+      //console.log('serial conn',foo)
     }catch(e){
       console.log(e)
     }

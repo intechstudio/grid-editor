@@ -1,42 +1,31 @@
-export let config_components;
+export let config_components = [];
 
 async function init_config_block_library(){
 
-  console.log("Init config block library!");
+  console.info("Init config block library!");
 
-  let files;
-
-  // scanCofigBlockDirectory()
-  try {
-    let _files = [] // fsPromises.readdir(path.join(__dirname, '/build/config-blocks'));
-    _files = (await _files).filter(f => f.slice(-6) == 'svelte');
-    files = _files;
-  } 
-  catch (err) {
-    console.error('Error occured while reading directory!', err);
-  }
-
-  console.log("List of files: ", files);
+  let _files = import.meta.glob('../config-blocks/*.svelte');
+  let files = [];
   
-  // importComponents()
-
-  let components = undefined;
-
+  for (const file in _files){
+    files.push(file);
+  }
+  
   try {  
-    let _components = Promise.all(
+    Promise.all(
       files.map(async file => {
-        const name = file.slice(0,-7)
-        return await import(`../config-blocks/${name}.svelte`)
+        const configBlockName = file.substring(17,file.length-7);
+        return await import(`../config-blocks/${configBlockName}.svelte`);
       })
-    );
-    _components.then(value => {
+    ).then(value => {
       config_components = value
+      console.info('Config blocks imported!');
     });
   } 
   catch (err) {
     console.error('Failed to import!', err)
   }
-
+ 
 }
 
 init_config_block_library();

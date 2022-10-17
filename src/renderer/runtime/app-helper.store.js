@@ -1,5 +1,5 @@
 import { writable, get, readable } from 'svelte/store';
-//import { getAllComponents } from '../config-blocks/_configs';
+import { getAllComponents } from '$lib/_configs';
 
 const ipcRenderer = window.sketchyAPI;
 
@@ -221,7 +221,7 @@ export const preferenceStore = writable();
 
 
 
-export const action_collection = readable(Promise.all([/*getAllComponents()*/]))
+export const action_collection = readable(Promise.all([getAllComponents()]))
 
 function createPresetManagement(){
 

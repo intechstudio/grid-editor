@@ -1,5 +1,5 @@
 // es6 import
-import { getComponentInformation, config_components } from '../config-blocks/_configs.js';
+import { getComponentInformation, config_components } from '../lib/_configs.js';
 import grid from '../protocol/grid-protocol.js';
 import stringManipulation from '../main/user-interface/_string-operations.js';
 import { v4 as uuidv4 } from 'uuid';

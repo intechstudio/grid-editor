@@ -5170,12 +5170,14 @@ luaminp.Uglify = function(src1, options) {
     return result
 }
 
+/** 
 try {
     if (module != null && module.exports != null) {
         module.exports.Beautify = luaminp.Beautify
         module.exports.Minify = luaminp.Minify
         module.exports.Uglify = luaminp.Uglify
     }
-} catch(err) {/*idontcareboutthis*/}
+} catch(err) {}
+*/
 
-//export {luaminp as luamin};
+export default luaminp;

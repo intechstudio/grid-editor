@@ -4,12 +4,14 @@
   *   tailwindcss
   */
 
-  import Tailwindcss from './Tailwindcss.svelte';
+  import './app.css';
 
 
   /**
    *  svelte UI parts and components
   */
+
+  import { appSettings } from './runtime/app-helper.store';
 
   import { onMount } from 'svelte';
   import Titlebar from              './main/Titlebar.svelte';
@@ -18,26 +20,29 @@
   import RightPanelContainer from   './main/RightPanelContainer.svelte';
   import LeftPanelContainer from    './main/LeftPanelContainer.svelte';
   import GridLayout from            './main/grid-layout/GridLayout.svelte';
-  //import TopSubMenu from            './main/TopSubMenu.svelte';
+  import TopSubMenu from            './main/TopSubMenu.svelte';
 
-/*
+
+
   import Export from                 './main/modals/Export.svelte';
-  import Welcome from                 './main/modals/Welcome.svelte';
+
+  //import Welcome from                 './main/modals/Welcome.svelte';
+
   import Monaco from                 './main/modals/Monaco.svelte';
   import Feedback from                 './main/modals/Feedback.svelte';
-*/
+
   
-//import FirmwareCheck from         './main/FirmwareCheck.svelte';
+  //import FirmwareCheck from         './main/FirmwareCheck.svelte';
 
   //import ErrorConsole from          './main/ErrorConsole.svelte';
 
-  //import TooltipGetter from         './main/user-interface/tooltip/TooltipGetter.svelte';
+  import TooltipGetter from         './main/user-interface/tooltip/TooltipGetter.svelte';
 
 
-  //import Monster from "./main/user-interface/Monster.svelte";
-  //import {attachment} from "./main/user-interface/Monster.store";
+  import Monster from "./main/user-interface/Monster.svelte";
+  import {attachment} from "./main/user-interface/Monster.store";
 
- // import Updater from               './shared/updater/Updater.svelte';
+  // import Updater from './shared/updater/Updater.svelte';
 
   
   import { windowSize } from './runtime/window-size';
@@ -47,13 +52,14 @@
   
   let modalComponents = {}
 
-  /*
+
+
   modalComponents[""] = undefined;
-  modalComponents["welcome"] = Welcome;
   modalComponents["export"] = Export;
+    //modalComponents["welcome"] = Welcome;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
-*/
+
   let startX, startY, startWidth, startHeight, stopWidth, stopX;
 
 
@@ -62,7 +68,7 @@
   let colorSelected;
   let name;
 
-/**
+
   $: {
 
     if ($appSettings.persistant.helperShape !== undefined){    
@@ -76,7 +82,7 @@
     name = $appSettings.persistant.helperName;
 
   }
-*/
+
 
   //resize the element
   function Resize(e) {
@@ -105,14 +111,10 @@
 
 </script>
 
-<div id="info">YO</div>
-
-<!--
 
 <Monster {name}  shapeSelected={$appSettings.persistant.helperShape} colorSelected={$appSettings.persistant.helperColor} {attachment} />
--->
 
-<Tailwindcss />
+
 
 
 <Titlebar/>
@@ -123,33 +125,26 @@
 
   <NavTabs/>
  
-  <!--
+
   <svelte:component 
     this={modalComponents[$appSettings.modal]}
   />
--->
+
 
   <!-- Update notification -->
   <!--
   <Updater/>
 -->
 
-<!--
   <TooltipGetter/>
--->
 
   <div class="flex flex-col w-full h-full">
  
-    <!--
    <TopSubMenu/>
--->
 
-   <!--
-   <FirmwareCheck/>
- -->
- <!--
-    <ErrorConsole/>
--->
+   <!--<FirmwareCheck/>-->
+    <!--<ErrorConsole/>-->
+
     <div class="flex w-full h-full overflow-hidden ">
 
 

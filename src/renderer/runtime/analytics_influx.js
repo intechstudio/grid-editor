@@ -6,7 +6,7 @@ import { get } from 'svelte/store';
 const ipcRenderer = window.sketchyAPI;
 
 
-import * as influx from '@influxdata/influxdb-client';
+//import * as influx from '@influxdata/influxdb-client';
 
 const version = ipcRenderer.sendSync('app_version')
 

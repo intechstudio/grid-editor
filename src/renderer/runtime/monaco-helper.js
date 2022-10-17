@@ -1,7 +1,7 @@
 import { writable, get } from 'svelte/store';
 
 
-import {editor as monaco_editor, languages as monaco_languages} from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+import {editor as monaco_editor, languages as monaco_languages} from 'monaco-editor/esm/vs/editor/editor.api'
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json'
 
 

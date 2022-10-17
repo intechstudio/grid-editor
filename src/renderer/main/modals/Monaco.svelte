@@ -27,7 +27,7 @@
   //import '../../../node_modules/monaco-editor/min/vs/loader.js'
   //import * as monaco from 'monaco-editor'
   //import '../../../node_modules/monaco-editor/min/vs/loader.js'
-  import {editor as monaco_editor} from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+  import {editor as monaco_editor} from 'monaco-editor/esm/vs/editor/editor.api'
 
   import {attachment} from '../user-interface/Monster.store'
 
@@ -65,7 +65,7 @@
     }
   }
 
-  import * as luamin from "../../../external/luamin";
+  import luamin from "../../../external/luamin";
   import stringManipulation from '../../main/user-interface/_string-operations';
 
 

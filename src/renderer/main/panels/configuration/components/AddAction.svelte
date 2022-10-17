@@ -16,7 +16,7 @@
 
   import { addOnDoubleClick } from '../../../_actions/add-on-double-click';
   
-  import { getAllComponents } from '../../../../config-blocks/_configs';
+  import { getAllComponents } from '../../../../lib/_configs';
  
   import { analytics } from "../../../../runtime/analytics_influx"
  

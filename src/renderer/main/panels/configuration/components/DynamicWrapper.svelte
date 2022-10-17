@@ -13,7 +13,7 @@
   import { configNodeBinding } from '../../../../runtime/app-helper.store.js';
 
 
-  import { getAllComponents } from '../../../../config-blocks/_configs';
+  import { getAllComponents } from '../../../../lib/_configs';
 
 
   export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};

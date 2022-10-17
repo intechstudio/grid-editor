@@ -22,7 +22,7 @@
 <script>
 
 
-  import * as luamin from "../../external/luamin";
+  import luamin from "../../external/luamin";
   import stringManipulation from '../main/user-interface/_string-operations';
 
   import {createEventDispatcher, onMount, onDestroy} from 'svelte';
@@ -33,7 +33,7 @@
   import {appSettings} from "../runtime/app-helper.store"
   import {monaco_elementtype} from "../runtime/monaco-helper"
 
-  import {editor as monaco_editor} from '../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
+  import {editor as monaco_editor} from 'monaco-editor/esm/vs/editor/editor.api'
 
 
   const dispatch = createEventDispatcher();
@@ -99,7 +99,6 @@
     });
     
     committedCode = config.script
-
 
     let human = stringManipulation.humanize(committedCode)
     let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});

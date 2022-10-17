@@ -1,17 +1,7 @@
 const colors = require('tailwindcss/colors')
+const config = {
+  content: ["./src/**/*.{html,js,svelte,ts}"],
 
-module.exports = {
-  purge: {
-    enabled:  false, //!process.env.ROLLUP_WATCH,
-    mode: 'all',
-    content: ['./**/**/*.html', './**/**/*.svelte'],
-    options: {
-      whitelistPatterns: [/svelte-/],
-      defaultExtractor: (content) =>
-        [...content.matchAll(/(?:class:)*([\w\d-/:%.]+)/gm)].map(([_match, group, ..._rest]) => group),
-    },
-  },
-  darkMode: false, // or 'media' or 'class'
   theme: {
     fontFamily: {
       'body': ['roboto']
@@ -61,7 +51,7 @@ module.exports = {
       colors: {
         black: colors.black,
         white: colors.white,
-        gray: colors.trueGray,
+        gray: colors.neutral,
         green: colors.green,
         red: colors.rose,
         yellow: colors.amber,
@@ -144,16 +134,8 @@ module.exports = {
       },
     }
   },
-  variants: {
-    textColor: ['group-hover'],
-    visibility: ['hover'],
-    backgroundColor: ['hover','group-hover'],
-    cursor: ['group-hover'],
-    borderRadius: ['hover'],
-    height: ['group-hover', 'hover'],
-    scale: ['hover','group-hover'],
-    display: ['hover', 'group-hover'],
-    visibility: ['hover', 'group-hover']
-  },
-  plugins: []
-}
+
+  plugins: [],
+};
+
+module.exports = config;

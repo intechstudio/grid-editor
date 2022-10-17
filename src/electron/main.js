@@ -183,9 +183,13 @@ function createWindow() {
 
       console.log(path.join(__dirname, '../../public/index.html'))
 
-      mainWindow.loadURL(`file://${path.join(__dirname, '../../public/index.html')}`); 
+    //mainWindow.loadURL(`file://${path.join(__dirname, '../../src/renderer/index.html')}`); 
 
-    
+    mainWindow.loadURL('http://localhost:5173/');
+
+    //if (process.env.NODE_ENV === 'development') {
+      mainWindow.webContents.openDevTools();
+    //}
 
     mainWindow.on('close', (evt)=> {
       // when quit is terminal under darwin
@@ -209,12 +213,10 @@ function createWindow() {
       mainWindow.webContents.send('window_size', { width, height });
     })
 
-    if (process.env.NODE_ENV === 'development') {
-      mainWindow.webContents.openDevTools();
-    }
+
 
     mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
-      //console.log("Select Serial Port")
+      console.log("Select Serial Port")
       event.preventDefault()
       if (portList && portList.length > 0) {
         callback(portList[0].portId)
@@ -232,13 +234,16 @@ function createWindow() {
     })
   
     mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
-      if (permission === 'serial' && details.securityOrigin === 'file:///') {
+      // file is for production, localhost is for development, mind the last '/' at the end of the url
+      if (permission === 'serial' && (details.securityOrigin == 'file:///' || details.securityOrigin == 'http://localhost:5173/')) {
         return true
       }
     })
       
     mainWindow.webContents.session.setDevicePermissionHandler((details) => {
-      if (details.deviceType === 'serial' && details.origin === 'file://') {
+      // file is for production, localhost is for development
+      //console.log('PERMISSION', details);
+      if (details.deviceType === 'serial' && (details.origin === 'file://' || details.origin === 'http://localhost:5173')) {
         return true
       }
     })
@@ -343,7 +348,11 @@ ipcMain.handle('isMaximized', async (event, args) => {
 })
 
 ipcMain.handle('get-env', async (event, args) => {
-  return grid_env
+  let variables = {};
+  for (const key in process.env) {
+    variables[key] = process.env[key];
+  }
+  return variables;
 })
 
 ipcMain.handle('getStoreValues', (event, keys) => {

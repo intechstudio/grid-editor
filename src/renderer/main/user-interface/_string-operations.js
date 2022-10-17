@@ -49,7 +49,7 @@ const stringManipulation = {
       //functions: functions
     }
 
-    //console.log(this.VALIDATOR)
+    console.log(this.VALIDATOR)
   },
 
   checkFn: function(text){
@@ -69,7 +69,7 @@ const stringManipulation = {
     return string.replace(/\s/g,'');
   },
 
-  splitShortScript: async function(script, mode){
+  splitShortScript: function(script, mode){
 
     let lookupType;
 
@@ -125,7 +125,7 @@ const stringManipulation = {
 
     const splitArray = this.splitShortScript(script, 'short');
 
-    //console.log('HUMAN SPLIT: ',splitArray);
+    console.log('HUMAN SPLIT: ',splitArray);
 
     const humanized = this.splitArrayToString(splitArray, 'human');
 
