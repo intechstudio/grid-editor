@@ -5,6 +5,7 @@ import instructions from '../serialport/instructions';
 import { writeBuffer, sendHeartbeat } from './engine.store';
 import _utils from './_utils';
 
+import * as init_theme from './monaco-helper';
 
 import { appSettings } from './app-helper.store';
 //import { analytics } from './analytics_influx';

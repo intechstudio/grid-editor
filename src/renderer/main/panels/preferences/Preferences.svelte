@@ -1,8 +1,6 @@
 
 <script>
-
-  /**
-  import { runtime, heartbeat, engine } from '../../../runtime/runtime.store.js';
+  import { engine } from '../../../runtime/runtime.store.js';
   import { writable, get } from 'svelte/store';
   import { profileListRefresh, presetListRefresh } from '../../../runtime/app-helper.store.js';
 
@@ -14,28 +12,17 @@
   import { onMount, onDestroy } from 'svelte';
 
 
-  import loadFilesFromDirectory from '../../panels/profiles/Profiles.svelte';
-
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
   import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
   import { appSettings } from '../../../runtime/app-helper.store';
-  import { analytics } from '../../../runtime/analytics_influx';
+  //import { analytics } from '../../../runtime/analytics_influx';
 
 
-
-
-  const electron = require('electron'); 
-
-
+  /**
   const { getGlobal, dialog } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
-
-  const {shell} = require('electron') // deconstructing assignment
-  const fs = require('fs-extra');  
-  const AdmZip = require("adm-zip");
-
-    const ipcRenderer = window.sketchyAPI;
+  */
 
 
   let helperPreviewElement;
@@ -57,14 +44,17 @@
     });
   })
 
-  let DEFAULT_PATH = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');
+  let DEFAULT_PATH = '';
+
+  window.electron.library.defaultDirectory().then(res => {
+    console.log(res);
+    DEFAULT_PATH = res;
+  });
 
   let download_status = "";
   let download_status_interval;
 
   let preferences = ['MIDI Monitor', 'Debug', 'Advanced'];
-
-
 
   let window_name = "";
   let window_title = "";
@@ -83,203 +73,91 @@
 
   })
 
-  function openDirectory(){
-
+  async function selectDirectory(){
     appSettings.update(s=>{ s.intervalPause = true; return s;});
-
-    dialog.showOpenDialog({
-        properties: ['openDirectory']
-    }).then(dir => {
-      if(!dir.canceled){
-
-        appSettings.update(s => {
-          s.persistant.profileFolder = dir.filePaths.toString();
-          
-          // Create the folder if it does not exist
-          if(!fs.existsSync(s.persistant.profileFolder)) fs.mkdirSync(s.persistant.profileFolder);
-
-          appSettings.update(s=>{ s.intervalPause = false; return s; });
-          return s;
-        })
-
-      }
-      appSettings.update(s=>{ s.intervalPause = false; return s; });
-    }).catch(err => {
-        console.log(err)
-        appSettings.update(s=>{ s.intervalPause = false; return s; });
-    });
-
-
-   
-
-  }
-
-  function viewDirectory(){
-
-   shell.openPath(get(appSettings).persistant.profileFolder) 
-  }  
-
-  function resetDirectory(){
-
-    appSettings.update(s => {
-
-      s.persistant.profileFolder = DEFAULT_PATH;
-      // Create the folder if it does not exist
-      if(!fs.existsSync(s.persistant.profileFolder)) fs.mkdirSync(s.persistant.profileFolder);
-      return s;
-    })
+    const selectDirectoryResult = await window.electron.library.selectDirectory();
+    // if the selected directory fails or cancels, it returns with ''
+    if(selectDirectoryResult !== ''){
+      appSettings.update(s => {
+        s.persistant.profileFolder = selectDirectoryResult
+        return s;
+      })
+    }
+    appSettings.update(s=>{ s.intervalPause = false; return s; });        
   }
 
   async function libraryDownload(){
 
-
-    trackEvent('library-download', 'library-download: download start')
-    analytics.track_event("application", "preferences", "profile downloader status", "download started")
+    //trackEvent('library-download', 'library-download: download start')
+    //analytics.track_event("application", "preferences", "profile downloader status", "download started")
 
     clearTimeout(download_status_interval)
 
     download_status = "Starting the download..."
 
-    let link = process.env.LIBRARY_GITHUB_URL
-    console.log(link)
-    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
-    download_status = "Download completed!"
-    let zip = new AdmZip(result);
+    const targetFolder = get(appSettings).persistant.profileFolder;
 
-    let zipEntries = zip.getEntries(); // an array of ZipEntry records
+    await window.electron.library.download(targetFolder, "library")
 
-    let libraryFilePaths = [];
+    profileListRefresh.update(s => {return s+1});
+    presetListRefresh.update(s => {return s+1});
 
-    zipEntries.forEach(function (zipEntry) {
+    download_status = "Library updated!"
 
-      if (zipEntry.entryName.endsWith(".json")) {
+    //trackEvent('library-download', 'library-download: download success')
+    //analytics.track_event("application", "preferences", "profile downloader status", "download success")
 
-        libraryFilePaths.push(zipEntry.entryName);
-      }
-    });
-
-    let folder = get(appSettings).persistant.profileFolder;
-
-    zip.extractAllTo(folder + "/temp", true);
-
-      download_status = "Archive extracted!"
-      console.log(libraryFilePaths)
-
-      if (libraryFilePaths.length !== 0){
-
-        libraryFilePaths.forEach(path => {
-
-
-          let parts = path.split("/")
-          let filename = parts[parts.length-1]
-          let author = parts[parts.length-2]
-          let type = parts[parts.length-3]
-
-          // console.log(path)
-          fs.copySync(folder + "/temp/" + path, folder+"/"+type+"/"+author+"/" + filename)
-
-        })
-
-        download_status = "Profiles copied!"
-
-        profileListRefresh.update(s => {return s+1});
-        presetListRefresh.update(s => {return s+1});
-        download_status = "Library updated!"
-
-        trackEvent('library-download', 'library-download: download success')
-        analytics.track_event("application", "preferences", "profile downloader status", "download success")
-
-        download_status_interval = setTimeout(() => {
-          download_status = ""
-        }, 2500);
-      }
-      else{
-     
-        trackEvent('library-download', 'library-download: download failed')   
-        analytics.track_event("application", "preferences", "profile downloader status", "download fail")
-        console.log("GRID_NOT_FOUND")
-      }
-
-  }
-
-  function delay(time) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(), time);
-    });
+    download_status_interval = setTimeout(() => {
+      download_status = ""
+    }, 2500);
+    
   }
 
   async function uxpPhotoshopDownload(){
-
-
-    const version = "v"+process.env.UXP_PHOTOSHOP_REQUIRED_MAJOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_MINOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_PATCH
-    
-    let link = process.env.UXP_PHOTOSHOP_URL_BEGINING + version + process.env.UXP_PHOTOSHOP_URL_END
-    console.log(link)
-
-
-    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
-    download_status = "Download completed!"
-    let zip = new AdmZip(result);
-
-    let zipEntries = zip.getEntries(); // an array of ZipEntry records
-
-    let pluginFilePaths = [];
-
-    zipEntries.forEach(function (zipEntry) {
-
-      console.log(zipEntry.entryName)
-
-      if (zipEntry.entryName.endsWith(".ccx")) {
-
-        pluginFilePaths.push(zipEntry.entryName);
-      }
-    });
-
-    let folder = get(appSettings).persistant.profileFolder;
-
-    zip.extractAllTo(folder + "/temp",  true);
-    
-
-   shell.showItemInFolder(folder + "/temp/" +pluginFilePaths[0]) 
-
+    await window.electron.library.download(get(appSettings).persistant.profileFolder, "uxpPhotoshop");
   }
 
+
+  async function viewDirectory(){
+    await window.electron.library.viewDirectory(get(appSettings).persistant.profileFolder);
+  }  
+
+  async function resetDirectory(){
+    appSettings.update(s => { s.persistant.profileFolder = DEFAULT_PATH; return s;})
+    await window.electron.library.resetDirectory()
+  }
+
+  
   function resetAppSettings(){
-
-    ipcRenderer.sendSync('resetAppSettings', 'foo');
-
-    console.log("App settings cleared");
-
+    window.electron.resetAppSettings();
   }
 
 
   function setModuleRotation(rot){
     $appSettings.persistant.moduleRotation = rot
-
-    analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
+    //analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
   }
 
   function setHelperShape(shape){
     $appSettings.persistant.helperShape = shape
-
-    analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
+    //analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
   }
 
   function setHelperColor(color){
     $appSettings.persistant.helperColor = color
-    analytics.track_event("application", "preferences", "helper color", "set to "+color)
+    //analytics.track_event("application", "preferences", "helper color", "set to "+color)
   }
 
   function setHelperName(){
-    console.log("name")
-    analytics.track_event("application", "preferences", "helper color", "set to ...")
+    //console.log("name")
+    //analytics.track_event("application", "preferences", "helper color", "set to ...")
   }
 
-*/
+
 
 </script>
 
-<!--
+
   <preferences class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto">
 
     <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
@@ -354,7 +232,7 @@
           <div>View in explorer</div> 
           <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
-        <button on:click={openDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
+        <button on:click={selectDirectory} class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative">
           <div>Select Folder</div> 
           <TooltipSetter key={"profile_select_local_folder"}/>
         </button>
@@ -469,4 +347,4 @@
     box-shadow:  inset 0 0 100px #ffffff60;
   }
 
-</style>-->
+</style>

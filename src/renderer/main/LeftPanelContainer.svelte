@@ -4,7 +4,7 @@
   import DebugMonitor from "./panels/DebugMonitor/DebugMonitor.svelte";
   import WebsocketMonitor from "./panels/WebsocketMonitor/WebsocketMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
-  import Presets from "./panels/presets/Presets.svelte";
+  //import Presets from "./panels/presets/Presets.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from '../runtime/window-size';
@@ -42,7 +42,7 @@
 
     {#if $appSettings.leftPanel == 'Profiles'}
 
-      <!--<Profiles/>-->
+      <Profiles/>
 
     {/if}
 

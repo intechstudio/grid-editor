@@ -4,8 +4,6 @@
   import { fly, fade } from 'svelte/transition';
   import { flip } from 'svelte/animate';
 
-  import { app_settings } from '../../../runtime/settings.store';
-
   import ConfigParameters from './ConfigParameters.svelte';
 
   let actionIsDragged = false
@@ -49,6 +47,7 @@
   import AddAction from './components/AddAction.svelte';
 
   import grid from "../../../protocol/grid-protocol"
+    import { appSettings } from '../../../runtime/app-helper.store';
 
 
   let configs = [];
@@ -73,7 +72,7 @@
 
 
   function changeSelectedConfig(arg){ 
-    $app_settings.configType = arg;
+    $appSettings.configType = arg;
 
     if(arg == 'systemEvents'){ // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {
@@ -229,7 +228,7 @@
 
     // set UI to uiEvents, if its not system events
     if(elements.selected !== 255){
-      $app_settings.configType = 'uiEvents';
+      $appSettings.configType = 'uiEvents';
     }
    
 
@@ -322,7 +321,7 @@
   <tabs class="flex flex-row items-start mt-4">
     <tab 
       on:click={()=>{changeSelectedConfig('uiEvents')}} 
-      class="{$app_settings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'uiEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         UI Events
       </span>
@@ -330,7 +329,7 @@
     </tab>
     <tab 
       on:click={()=>{changeSelectedConfig('systemEvents')}} 
-      class="{$app_settings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
+      class="{$appSettings.configType == 'systemEvents' ? "bg-primary" : "bg-secondary"} relative px-4 py-2 cursor-pointer text-white rounded-t-md">
       <span>
         System Events
       </span>
@@ -339,10 +338,10 @@
   </tabs>
 
 
-    {#key $app_settings.configType == 'uiEvents'}
+    {#key $appSettings.configType == 'uiEvents'}
 
 
-      <container class="flex flex-col h-full" in:fly={{x: $app_settings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
+      <container class="flex flex-col h-full" in:fly={{x: $appSettings.configType == 'uiEvents' ? -5 : 5, opacity: 0.5, duration: 200, delay: 0}} >
 
         <ConfigParameters {configs} {events} {elements}/>
 

@@ -32,7 +32,7 @@
   import Feedback from                 './main/modals/Feedback.svelte';
 
   
-  //import FirmwareCheck from         './main/FirmwareCheck.svelte';
+  import FirmwareCheck from         './main/FirmwareCheck.svelte';
 
   //import ErrorConsole from          './main/ErrorConsole.svelte';
 
@@ -56,7 +56,7 @@
 
   modalComponents[""] = undefined;
   modalComponents["export"] = Export;
-    //modalComponents["welcome"] = Welcome;
+  //modalComponents["welcome"] = Welcome;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
 

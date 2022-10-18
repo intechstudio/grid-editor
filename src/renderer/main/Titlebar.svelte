@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
+  import { appSettings } from '../runtime/app-helper.store';
 
-  import {app_settings} from '../runtime/settings.store';
 
   const browserWindow = window.sketchyRemote;
 
@@ -67,7 +67,7 @@
     <!-- Title Text + version -->
     
     
-    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$app_settings.version.major}.{$app_settings.version.minor}.{$app_settings.version.patch}</div>
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
 
     <!-- Min Max Close -->
 
@@ -104,7 +104,7 @@
   </div>
   {:else}
   <div class="draggable flex items-center justify-center h-7">
-    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$app_settings.version.major}.{$app_settings.version.minor}.{$app_settings.version.patch}</div>
+    <div class="flex text-gray-500 text-sm pt-1">Grid Editor v{$appSettings.version.major}.{$appSettings.version.minor}.{$appSettings.version.patch}</div>
   </div>
   {/if}
 </top-bar>

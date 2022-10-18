@@ -23,7 +23,8 @@ function checkOS() {
   return 'browser';
 }
 
-const versionstring = '00000000'  // ipcRenderer.sendSync('app_version')
+
+const versionstring = ipcRenderer.sendSync('app_version')
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
@@ -52,7 +53,8 @@ export const appSettings = writable({
   configType: 'uiEvents',
   stringNameOverlay: false,
   preferences: false,
-  rightPanel: 'configuration',
+  rightPanel: 'Configuration',
+  leftPanel: 'Profiles',
   modal: '',
   trayState: false,
   os: checkOS(),

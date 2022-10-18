@@ -1,25 +1,16 @@
 <script>
-/**  import { createEventDispatcher, onMount } from 'svelte';
-
   import { get } from 'svelte/store'
 
-  import { writeBuffer } from '../../../runtime/engine.store.js';
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-  const electron = require('electron'); 
-  const fs = require('fs'); 
+  //const { getGlobal } = require('@electron/remote');
+  //const trackEvent = getGlobal('trackEvent');
+  //import { analytics } from '../../../runtime/analytics_influx';
 
-  const { ipcRenderer } = require('electron');
-
-  const { getGlobal } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
-  import { isJson } from '../../../runtime/_utils.js';
   import { appSettings, profileListRefresh } from '../../../runtime/app-helper.store.js';
-  import { analytics } from '../../../runtime/analytics_influx';
 
-  import { clickOutside } from '../../_actions/click-outside.action';
   import { addOnDoubleClick } from '../../_actions/add-on-double-click';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
@@ -38,7 +29,6 @@
   };
 
   let selectedIndex = undefined;
-  
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder;
 
@@ -59,229 +49,41 @@
 
   })
 
-  async function checkIfWritableDirectory(path){
-
-    const stats = fs.promises.stat(path).then(res => {return {isFile: res.isFile(), isDirectory: res.isDirectory()}});
-
-    return await Promise.all([stats])
-
-  }
-
-  const moveOldProfiles = async function(){
-
-    let path = PROFILE_PATH;
-
-    console.log("Checking for profiles", path)
-
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
-    if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
-
-    fs.readdir(path, (err, files) => {
-
-      files.forEach(async file => {
-
-        try {
-
-          let filepath = path + "/" + file;
-          
-          const [stats] = await checkIfWritableDirectory(filepath);
-
-          if(stats.isFile){
-            let filenameparts = file.split(".");
-            let extension = filenameparts[filenameparts.length-1];
-            if (extension === "json"){
-              fs.renameSync(path + "/" + file, path + "/profiles/user/" + file);
-              console.log("moving: ", file);
-            }
-
-
-          } else {
-
-            //console.info('Not a file!');
-
-          }
-
-        } catch (error) {
-
-          console.error('readFile error...',error)
-
-        }
-        
-      })
-
-      loadFilesFromDirectory()
-
-    });
-
-  }
-
   appSettings.subscribe(store => {
-
     let new_folder = store.persistant.profileFolder;
-
     if (new_folder !== PROFILE_PATH){
-
       PROFILE_PATH = new_folder;
       moveOldProfiles();
     }
-
   })
 
   profileListRefresh.subscribe(store => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
-      loadFilesFromDirectory();
+      loadProfilesFromDirectory();
     }
   })
 
-  function stringToColor(string) {
-
-    // Generte Hash
-
-    var hash = 0;
-    if (string.length == 0)
-        return hash;
-    for (let i = 0; i < string.length; i++) {
-        var charCode = string.charCodeAt(i);
-        hash = ((hash << 7) - hash) + charCode;
-        hash = hash & hash;
-    }
-
-    // define the color params
-
-    var hue = Math.abs(hash)%360; // degrees
-    var sat = 65; // percentage
-    var lum = 50; // percentage
-
-    // convert from HSL to RGB
-
-    lum /= 100;
-    const a = sat * Math.min(lum, 1 - lum) / 100;
-    const f = n => {
-      const k = (n + hue / 30) % 12;
-      const col = lum - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * col).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
-    };
-
-    var color = `#${f(0)}${f(8)}${f(4)}`;
-
-    return color;
+  
+  async function moveOldProfiles(){
+    await window.electron.profiles.moveOldProfiles(PROFILE_PATH);
+    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);
   }
 
-
-
-  async function loadFilesFromDirectory(){
-
-    let path = PROFILE_PATH;
-    // Create the folder if it does not exist
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
-
-    try {
-
-      PROFILES = [];
-
-      const [stats] = await checkIfWritableDirectory(path+"/profiles");
-
-      if(stats.isDirectory){
-
-        // get list of directories
-        let dirs = fs.readdirSync(path+"/profiles", { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory())
-                    .map(dirent => dirent.name)
-
-        console.log("dirs", dirs)
-
-        // for all directories...
-        dirs.forEach(dir => {
-
-          // read all files from dir
-          fs.readdir(path + "/profiles/" + dir, (err, files) => {
-
-            files.forEach(async file => {
-
-              try {
-
-                let filepath = path + "/profiles/" + dir + "/" + file;
-                
-                const [stats] = await checkIfWritableDirectory(filepath);
-
-                if(stats.isFile){
-
-                  fs.readFile(filepath,'utf-8', function (err, data) { 
-
-                      if (err) {
-                        throw err
-                      }; 
-
-                      if(isJson(data)){                
-                        let obj = JSON.parse(data);
-                        if(obj.isGridProfile){
-                          obj.folder = dir;
-                          obj.showMore = false;
-                          obj.color = stringToColor(dir)
-                          PROFILES = [...PROFILES, obj];
-                        } else {
-                          console.info('JSON is not a grid profile!') ;
-                        }
-                      }
-
-                  });
-
-                } else {
-
-                  //console.info('Not a file!');
-
-                }
-
-              } catch (error) {
-
-                console.error('readFile error...',error)
-
-              }
-              
-            })
-          });
-
-
-        })
-
-
-
-      }
-
-    } catch (error) {
-      
-      console.error(error);
-
-    }
-   
+  
+  async function loadProfilesFromDirectory(){
+    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);
+    console.log(PROFILES);   
   }
 
-  function saveProfile(path, name, profile){         
-    
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
-    if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
-
-    // Creating and Writing to the sample.txt file 
-    fs.writeFile(`${path}/profiles/user/${name}.json`, JSON.stringify(profile, null, 4), function (err) { 
-        if (err) throw err; 
-        console.log('Saved!'); 
-        logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
-
-        loadFilesFromDirectory();
-
-        trackEvent('profile-library', 'profile-library: save success')
-        analytics.track_event("application", "profiles", "profile", "save success")
-
-    }); 
+  async function saveProfile(path, name, profile){         
+    await window.electron.profiles.saveProfile(path, name, profile);
+    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);   
   }
 
   function prepareSave() { 
 
-    trackEvent('profile-library', 'profile-library: save start')
-    analytics.track_event("application", "profiles", "profile", "save start")
+    //trackEvent('profile-library', 'profile-library: save start')
+    //analytics.track_event("application", "profiles", "profile", "save start")
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -333,9 +135,8 @@
 
   function loadProfile(){
 
-    
-    trackEvent('profile-library', 'profile-library: load start')
-    analytics.track_event("application", "profiles", "profile", "load start")
+    //trackEvent('profile-library', 'profile-library: load start')
+    //analytics.track_event("application", "profiles", "profile", "load start")
 
     if(selected !== undefined){
 
@@ -350,15 +151,15 @@
 
         runtime.whole_page_overwrite(profile.configs);
 
-        trackEvent('profile-library', 'profile-library: load success')
-        analytics.track_event("application", "profiles", "profile", "load success")
+        //trackEvent('profile-library', 'profile-library: load success')
+        //analytics.track_event("application", "profiles", "profile", "load success")
 
 
       } else {
 
 
-        trackEvent('profile-library', 'profile-library: load mismatch')
-        analytics.track_event("application", "profiles", "profile", "load mismatch")
+        //trackEvent('profile-library', 'profile-library: load mismatch')
+        //analytics.track_event("application", "profiles", "profile", "load mismatch")
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }
@@ -394,14 +195,11 @@
 
   // use:clickOutside={{useCapture: true}}
   // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
-*/
 
 
   </script>
-<!--
-<profiles
 
-  class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+<profiles class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 
@@ -441,7 +239,7 @@
       <div class="">Profile Library</div>
       <TooltipQuestion key={"profile_load_profile"}/>
       <button 
-        on:click={loadFilesFromDirectory} 
+        on:click={loadProfilesFromDirectory} 
         class="relative inline-block bg-secondary ml-auto p-1 text-white rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
         <div>Refresh List</div>
       </button>    
@@ -523,4 +321,3 @@
 
 </style>
 
--->

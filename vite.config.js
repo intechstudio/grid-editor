@@ -5,6 +5,9 @@ import path from 'path';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 
 export default defineConfig({
+    optimizeDeps: {
+      include: ['esm-dep > cjs-dep']
+    },
     plugins: [
       svelte({
         preprocess: [

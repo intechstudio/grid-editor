@@ -2,16 +2,16 @@
 
 
   import Configuration from './panels/configuration/Configuration.svelte';
-  //import Preferences from './panels/preferences/Preferences.svelte';
+  import Preferences from './panels/preferences/Preferences.svelte';
   import MidiMonitor from './panels/MidiMonitor/MidiMonitor.svelte';
 
-  import {app_settings} from '../runtime/settings.store';
+  import {appSettings} from '../runtime/app-helper.store';
 
   import { windowSize } from '../runtime/window-size';
 
 
   import { watchResize } from "svelte-watch-resize";
-    import { onMount } from 'svelte';
+  import { onMount } from 'svelte';
 
   export let classes;
 
@@ -30,16 +30,16 @@
 <panel-container id="right-panel" class="{classes} h-full"  use:watchResize={resize} >
 
  
-  {#if $app_settings.rightPanel == 'Configuration'}
+  {#if $appSettings.rightPanel == 'Configuration'}
 
   
     <Configuration/>
 
-  {:else if $app_settings.rightPanel == 'Preferences'}
+  {:else if $appSettings.rightPanel == 'Preferences'}
 
-    <!--<Preferences/>-->
+    <Preferences/>
 
-  {:else if $app_settings.rightPanel == 'MIDI Monitor'}
+  {:else if $appSettings.rightPanel == 'MIDI Monitor'}
 
     <MidiMonitor/>
   

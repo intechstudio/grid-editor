@@ -1,6 +1,5 @@
 <script>
-
-  import { app_settings } from "../runtime/settings.store";
+    import { appSettings } from "../runtime/app-helper.store";
 
   import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte';
 
@@ -10,7 +9,7 @@
 
   function changeRightTab(tab){
     selectedRightTab = tab;
-    app_settings.update(store => {
+    appSettings.update(store => {
       store.rightPanel = tab;
       return store;
     })
@@ -25,7 +24,7 @@
 
     selectedLeftTab = tab;
 
-    app_settings.update(store => {
+    appSettings.update(store => {
       store.leftPanel = tab;
       return store;
     })

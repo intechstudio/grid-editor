@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const { trackEvent } = require('./analytics');
 require('@electron/remote/main').initialize();
@@ -284,31 +284,65 @@ ipcMain.on('setStoreValue-message', (event, arg) => {
 
 
 
+const { libraryDownload, uxpPhotoshopDownload, selectDirectory  } = require('./src/library');
+ipcMain.handle('download', async (event, arg) => {
 
-ipcMain.on('download', async (event, arg) => {
+  let result = undefined;
 
-
-  try{
-
-    console.log('attempt to download..', arg.url);
-    const win = BrowserWindow.getFocusedWindow();
-  
-    let folder = store.get("profileFolder") + "/" + arg.folder;
-  
-    let result = await download(win, arg.url, {
-                                    directory: folder
-                                });
-
-    event.returnValue = result.getSavePath();
-
-  }catch(e){
-
-    console.log("Download Error", e)
-    event.returnValue = undefined;
+  if(arg.package == 'library'){
+    result = await libraryDownload(arg.targetFolder);
   }
 
+  if(arg.package == 'uxpPhotoshop'){
+    result = await uxpPhotoshopDownload(arg.targetFolder);
+  }
+
+  return result;
 
 })
+
+ipcMain.handle('selectDirectory', async (event, arg) => {
+  return await selectDirectory();
+})
+
+ipcMain.handle('viewDirectory', async (event, arg) => {
+  console.log(arg);
+  shell.openPath(arg.targetFolder);
+  return;
+})
+
+ipcMain.handle('resetDirectory', async (event, arg) => {
+  const defaultPath = app.getPath('documents') + '/grid-userdata';
+  // Create the folder if it does not exist
+  if(!fs.existsSync(defaultPath)){
+    fs.mkdirSync(defaultPath);
+  }
+  return defaultPath;
+})
+
+ipcMain.handle('defaultDirectory', (event, arg) => {
+  return app.getPath('documents') + '/grid-userdata';
+})
+
+
+
+const { loadProfilesFromDirectory, moveOldProfiles, saveProfile } = require('./src/profiles');
+
+ipcMain.handle('moveOldProfiles', async(event, arg) => {
+  return await moveOldProfiles(arg.profilePath);
+})
+
+ipcMain.handle('loadProfilesFromDirectory',async (event, arg) => {
+  return await loadProfilesFromDirectory(arg.profilePath);
+})
+
+ipcMain.handle('saveProfile',async (event, arg) => {
+  return await saveProfile(arg.profilePath);
+})
+
+
+
+
 
 ipcMain.handle('getStoreValue', (event, key) => {
   const result = store.get(key);
@@ -410,11 +444,8 @@ ipcMain.on('restart_app', () => {
 });
 
 
-// profile save and user config saves
-ipcMain.on('getProfileDefaultDirectory', (event, arg) => {
 
-  event.returnValue = app.getPath('documents') + '/grid-userdata'
-})
+
 
 ipcMain.on('resetAppSettings', (event, arg) => {
 
