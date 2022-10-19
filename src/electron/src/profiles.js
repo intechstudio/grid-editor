@@ -11,15 +11,15 @@ async function checkIfWritableDirectory(path){
   return await Promise.all([stats])
 }
 
-async function moveOldProfiles(profilePath){
+async function moveOldConfigs(configPath, rootDirectory){
 
-  let path = profilePath;
+  let path = configPath;
 
   if(!fs.existsSync(path)) fs.mkdirSync(path);
-  if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
-  if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+  if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
 
-  log.info('Profile move start...');
+  log.info(rootDirectory + ' move start...');
 
   await fs.promises.readdir(path).then(files => {
 
@@ -33,7 +33,7 @@ async function moveOldProfiles(profilePath){
           let filenameparts = file.split(".");
           let extension = filenameparts[filenameparts.length-1];
           if (extension === "json"){
-            fs.renameSync(path + "/" + file, path + "/profiles/user/" + file);
+            fs.renameSync(path + "/" + file, path + "/" + rootDirectory + "/user/" + file);
             log.info("moving: ", file);
           }
 
@@ -52,47 +52,49 @@ async function moveOldProfiles(profilePath){
 
   });
 
-  log.info('Profile move end.');
+  log.info(rootDirectory + ' move end.');
 
 }
 
-async function loadProfilesFromDirectory(profilePath){
+async function loadConfigsFromDirectory(configPath, rootDirectory){
 
-  let path = profilePath;
+  let path = configPath;
+
+  console.log(path, rootDirectory)
 
   // Create the folder if it does not exist
   if(!fs.existsSync(path)) fs.mkdirSync(path);
-  if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
 
-  let profiles = [];
+  // either presets or profiles (pages)
+  // make sure to figure out naming conventions!
+  let configs = []; 
 
-  let promises = [];
-
-  const [stats] = await checkIfWritableDirectory(path+"/profiles");
+  const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`);
 
   if(stats.isDirectory){
 
     // get list of directories
-    let dirs = fs.readdirSync(path+"/profiles", { withFileTypes: true })
+    let dirs = fs.readdirSync(`${path}/${rootDirectory}`, { withFileTypes: true })
                 .filter(dirent => dirent.isDirectory())
                 .map(dirent => dirent.name)
 
     // for all directories...
 
     for (const dir of dirs) {
-      const files = await fs.promises.readdir(path + "/profiles/" + dir);
+      const files = await fs.promises.readdir(`${path}/${rootDirectory}/${dir}`);
       for (const file of files) {
-        let filepath = path + "/profiles/" + dir + "/" + file;          
+        let filepath = path + "/" + rootDirectory + "/" + dir + "/" + file;          
         const [stats] = await checkIfWritableDirectory(filepath);
         if(stats.isFile){
           await fs.promises.readFile(filepath,'utf-8').then(data => { 
             if(isJson(data)){                
               let obj = JSON.parse(data);
-              if(obj.isGridProfile){
+              if(obj.isGridProfile || obj.isGridPreset){
                 obj.folder = dir;
                 obj.showMore = false;
                 obj.color = stringToColor(dir)
-                profiles.push(obj);
+                configs.push(obj);
               } else {
                 log.info('JSON is not a grid profile!') ;
               }
@@ -107,24 +109,22 @@ async function loadProfilesFromDirectory(profilePath){
     log.info('Not a directory!');
   }
 
-  return profiles;
-
-
+  return configs;
 }
 
-async function saveProfile(profilePath, name, profile){     
+async function saveConfig(configPath, name, config, rootDirectory){     
   
-  const path = profilePath;
+  const path = configPath;
   
   if(!fs.existsSync(path)) fs.mkdirSync(path);
-  if(!fs.existsSync(path+"/profiles")) fs.mkdirSync(path+"/profiles");
-  if(!fs.existsSync(path+"/profiles/user")) fs.mkdirSync(path+"/profiles/user");
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+  if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
+
 
   // Creating and Writing to the sample.txt file 
-  fs.writeFile(`${path}/profiles/user/${name}.json`, JSON.stringify(profile, null, 4), function (err) { 
+  fs.writeFile(`${path}/${rootDirectory}/user/${name}.json`, JSON.stringify(config, null, 4), function (err) { 
       if (err) throw err; 
       console.log('Saved!'); 
-      logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
 
       // we should call this function in renderer, after the profile is saved
       // loadProfilesFromDirectory(path); 
@@ -178,4 +178,4 @@ function stringToColor(string) {
   return color;
 }
 
-module.exports = {moveOldProfiles, loadProfilesFromDirectory, saveProfile}
+module.exports = {moveOldConfigs, loadConfigsFromDirectory, saveConfig}

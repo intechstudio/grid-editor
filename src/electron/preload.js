@@ -19,12 +19,21 @@ contextBridge.exposeInMainWorld('electron', {
     resetDirectory: () => ipcRenderer.invoke('resetDirectory'),
     defaultDirectory: () => ipcRenderer.invoke('defaultDirectory'),
   },
-  profiles: {
-    moveOldProfiles: (profilePath) => ipcRenderer.invoke('moveOldProfiles', {profilePath}),
-    loadProfilesFromDirectory: (profilePath) => ipcRenderer.invoke('loadProfilesFromDirectory', {profilePath}),
-    saveProfile: (profilePath, name, profile) => ipcRenderer.invoke('saveProfile', {profilePath, name, profile}),
+  firmware: {
+    onFirmwareUpdate: (callback) => ipcRenderer.on('onFirmwareUpdate', callback),
+    findBootloaderPath: () => ipcRenderer.invoke('findBootloaderPath'),
+    firmwareDownload: (targetFolder) => ipcRenderer.invoke('firmwareDownload', {targetFolder}),
+  },
+  configs: {
+    moveOldConfigs: (configPath,rootDirectory) => ipcRenderer.invoke('moveOldConfigs', {configPath, rootDirectory}),
+    loadConfigsFromDirectory: (configPath, rootDirectory) => ipcRenderer.invoke('loadConfigsFromDirectory', {configPath, rootDirectory}),
+    saveConfig: (configPath, name, config, rootDirectory) => ipcRenderer.invoke('saveConfig', {configPath, name, config, rootDirectory}),
   },
   resetAppSettings: () => ipcRenderer.sendSync('resetAppSettings'),
+  persistentStorage: {
+    get: (request) => ipcRenderer.invoke('getPersistentStore', request),
+    set: (object) => ipcRenderer.invoke('setPersistentStore', object),
+  }
 })
 
 

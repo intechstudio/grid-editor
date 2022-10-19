@@ -146,5 +146,7 @@ function selectDirectory(){
 module.exports = {
   libraryDownload, 
   uxpPhotoshopDownload,
-  selectDirectory
+  selectDirectory,
+  downloadInMainProcess,
+  extractArchiveToTemp
 }

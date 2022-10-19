@@ -1,27 +1,14 @@
 <script>
-  
-  /**
-  import { createEventDispatcher, onMount } from 'svelte';
-
   import { get } from 'svelte/store'
-
-  import { writeBuffer } from '../../../runtime/engine.store.js';
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-  const electron = require('electron'); 
-  const fs = require('fs'); 
-
-  const { ipcRenderer } = require('electron');
-
-  const { getGlobal } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
+  //const { getGlobal } = require('@electron/remote');
+  //const trackEvent = getGlobal('trackEvent');
+  //import { analytics } from '../../../runtime/analytics_influx';
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
-  import { isJson } from '../../../runtime/_utils.js';
   import { appSettings, presetListRefresh } from '../../../runtime/app-helper.store.js';
-  import { analytics } from '../../../runtime/analytics_influx';
 
-  import { clickOutside } from '../../_actions/click-outside.action';
   import { addOnDoubleClick } from '../../_actions/add-on-double-click';
 
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
@@ -47,235 +34,44 @@
   let PRESETS = [];
 
   user_input.subscribe(ui => {
-
     newPreset.type = ui.event.elementtype ;
-
   })
-
-  async function checkIfWritableDirectory(path){
-
-    const stats = fs.promises.stat(path).then(res => {return {isFile: res.isFile(), isDirectory: res.isDirectory()}});
-
-    return await Promise.all([stats])
-
-  }
-
-  const moveOldPresets = async function(){
-
-    let path = PRESET_PATH;
-
-    console.log("Checking for presets", path)
-
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/presets")) fs.mkdirSync(path+"/presets");
-    if(!fs.existsSync(path+"/presets/user")) fs.mkdirSync(path+"/presets/user");
-
-    fs.readdir(path, (err, files) => {
-
-      files.forEach(async file => {
-
-        try {
-
-          let filepath = path + "/" + file;
-          
-          const [stats] = await checkIfWritableDirectory(filepath);
-
-          if(stats.isFile){
-            let filenameparts = file.split(".");
-            let extension = filenameparts[filenameparts.length-1];
-            if (extension === "json"){
-              fs.renameSync(path + "/" + file, path + "/presets/user/" + file);
-              console.log("moving: ", file);
-            }
-
-
-          } else {
-
-            //console.info('Not a file!');
-
-          }
-
-        } catch (error) {
-
-          console.error('readFile error...',error)
-
-        }
-        
-      })
-
-      loadFilesFromDirectory()
-
-    });
-
-  }
 
   appSettings.subscribe(store => {
-
     let new_folder = store.persistant.profileFolder;
-
     if (new_folder !== PRESET_PATH){
-
       PRESET_PATH = new_folder;
-      moveOldPresets();
+      moveOld();
     }
-
   })
 
-  
   presetListRefresh.subscribe(store => {
     if (PRESET_PATH !== undefined && PRESET_PATH !== ""){
-      loadFilesFromDirectory();
+      loadFromDirectory();
     }
   })
 
-  function stringToColor(string) {
-
-    // Generte Hash
-
-    var hash = 0;
-    if (string.length == 0)
-        return hash;
-    for (let i = 0; i < string.length; i++) {
-        var charCode = string.charCodeAt(i);
-        hash = ((hash << 7) - hash) + charCode;
-        hash = hash & hash;
-    }
-
-    // define the color params
-
-    var hue = Math.abs(hash)%360; // degrees
-    var sat = 65; // percentage
-    var lum = 50; // percentage
-
-    // convert from HSL to RGB
-
-    lum /= 100;
-    const a = sat * Math.min(lum, 1 - lum) / 100;
-    const f = n => {
-      const k = (n + hue / 30) % 12;
-      const col = lum - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-      return Math.round(255 * col).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
-    };
-
-    var color = `#${f(0)}${f(8)}${f(4)}`;
-
-    return color;
+  async function moveOld(){
+    await window.electron.configs.movdeOldConfigs(PRESET_PATH, "presets");
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
   }
 
-
-
-  async function loadFilesFromDirectory(){
-
-    let path = PRESET_PATH;
-    // Create the folder if it does not exist
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/presets")) fs.mkdirSync(path+"/presets");
-
-    try {
-
-      PRESETS = [];
-
-      const [stats] = await checkIfWritableDirectory(path+"/presets");
-
-      if(stats.isDirectory){
-
-        // get list of directories
-        let dirs = fs.readdirSync(path+"/presets", { withFileTypes: true })
-                    .filter(dirent => dirent.isDirectory())
-                    .map(dirent => dirent.name)
-
-        console.log("dirs", path, dirs)
-
-        // for all directories...
-        dirs.forEach(dir => {
-
-          // read all files from dir
-          fs.readdir(path + "/presets/" + dir, (err, files) => {
-
-            files.forEach(async file => {
-
-              try {
-
-                let filepath = path + "/presets/" + dir + "/" + file;
-                
-                const [stats] = await checkIfWritableDirectory(filepath);
-
-                if(stats.isFile){
-
-                  fs.readFile(filepath,'utf-8', function (err, data) { 
-
-                      if (err) {
-                        throw err
-                      }; 
-
-                      if(isJson(data)){                
-                        let obj = JSON.parse(data);
-                        if(obj.isGridPreset){
-                          obj.folder = dir;
-                          obj.showMore = false;
-                          obj.color = stringToColor(dir)
-                          PRESETS = [...PRESETS, obj];
-                        } else {
-                          console.info('JSON is not a grid preset!') ;
-                        }
-                      }
-
-                  });
-
-                } else {
-
-                  //console.info('Not a file!');
-
-                }
-
-              } catch (error) {
-
-                console.error('readFile error...',error)
-
-              }
-              
-            })
-          });
-
-
-        })
-
-
-
-      }
-
-    } catch (error) {
-      
-      console.error(error);
-
-    }
-   
+  async function loadFromDirectory(){
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
   }
 
-  function savePreset(path, name, preset){         
-    
-    if(!fs.existsSync(path)) fs.mkdirSync(path);
-    if(!fs.existsSync(path+"/presets")) fs.mkdirSync(path+"/presets");
-    if(!fs.existsSync(path+"/presets/user")) fs.mkdirSync(path+"/presets/user");
-
-    // Creating and Writing to the sample.txt file 
-    fs.writeFile(`${path}/presets/user/${name}.json`, JSON.stringify(preset, null, 4), function (err) { 
-        if (err) throw err; 
-        console.log('Saved!'); 
-        logger.set({type: 'success', mode: 0, classname: 'presetsave', message: `Preset saved!`});
-
-        loadFilesFromDirectory();
-
-        trackEvent('preset-library', 'preset-library: save success')
-        analytics.track_event("application", "presets", "preset", "save success")
-
-    }); 
+  async function saveToDirectory(path, name, preset){         
+    await window.electron.configs.saveConfig(path, name, preset, "presets");
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
+    logger.set({type: 'success', mode: 0, classname: 'presetsave', message: `Preset saved!`});
+    //trackEvent('preset-library', 'preset-library: save success')
+    //analytics.track_event("application", "presets", "preset", "save success")
   }
 
   function prepareSave() { 
 
-    trackEvent('preset-library', 'preset-library: save start')
-    analytics.track_event("application", "presets", "preset", "save start")
+    //trackEvent('preset-library', 'preset-library: save start')
+    //analytics.track_event("application", "presets", "preset", "save start")
 
     let elementnumber = $user_input.event.elementnumber
     let dx = $user_input.brc.dx
@@ -320,7 +116,7 @@
   
       })    
   
-      savePreset(PRESET_PATH, newPreset.name, preset);
+      saveToDirectory(PRESET_PATH, newPreset.name, preset);
 
       engine.set('ENABLED');
     };
@@ -330,10 +126,9 @@
   }
 
   function loadPreset(){
-
     
-    trackEvent('preset-library', 'preset-library: load start')
-    analytics.track_event("application", "presets", "preset", "load start")
+    //trackEvent('preset-library', 'preset-library: load start')
+    //analytics.track_event("application", "presets", "preset", "load start")
 
     if(selected !== undefined){
 
@@ -348,15 +143,15 @@
 
         runtime.element_preset_load(preset);
 
-        trackEvent('preset-library', 'preset-library: load success')
-        analytics.track_event("application", "presets", "preset", "load success")
+        //trackEvent('preset-library', 'preset-library: load success')
+        //analytics.track_event("application", "presets", "preset", "load success")
 
 
       } else {
 
 
-        trackEvent('preset-library', 'preset-library: load mismatch')
-        analytics.track_event("application", "presets", "preset", "load mismatch")
+        //trackEvent('preset-library', 'preset-library: load mismatch')
+        //analytics.track_event("application", "presets", "preset", "load mismatch")
         let element = currentModule.pages[ui.event.pagenumber].control_elements[ui.event.elementnumber].controlElementType
         logger.set({type: 'alert', mode: 0, classname: 'presetload', message: `Preset is not made for ${element}!`})
 
@@ -391,16 +186,10 @@
   }
 
 
-  // use:clickOutside={{useCapture: true}}
-  // on:click-outside={()=>{selected = undefined; selectedIndex = undefined;}} 
-*/
-
   </script>
 
-<!--
-<presets
 
-  class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
+<presets class="w-full h-full p-4 flex flex-col justify-start bg-primary { $engine == 'ENABLED' ? '' : 'pointer-events-none'}">
 
     <div in:fade={{delay:0}} class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start items-start">
 
@@ -440,7 +229,7 @@
       <div class="">Preset Library</div>
       <TooltipQuestion key={"preset_load_preset"}/>
       <button 
-        on:click={loadFilesFromDirectory} 
+        on:click={loadFromDirectory} 
         class="relative inline-block bg-secondary ml-auto p-1 text-white rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
         <div>Refresh List</div>
       </button>    
@@ -521,5 +310,3 @@
   }
 
 </style>
-
--->

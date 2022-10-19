@@ -3,42 +3,40 @@
   import { onMount } from 'svelte';
   import { writable, get } from 'svelte/store';
 
-  import { openInBrowser } from '../runtime/app-helper.store';
   import { appSettings } from   '../runtime/app-helper.store';
-  import { analytics} from      '../runtime/analytics_influx';
+  //import { analytics} from      '../runtime/analytics_influx';
   import { runtime } from       '../runtime/runtime.store';
-
-  /**
 
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
+  /**
   const { getGlobal } = require('@electron/remote');
   const trackEvent = getGlobal('trackEvent');
+*/
 
   let fwMismatch = false; 
 
-
-
-  const fs = require('fs-extra');  
-  const AdmZip = require("adm-zip");
-  // const drivelist = require('drivelist');
-  const nodeDiskInfo = require('node-disk-info');
-
   let dotdotdot = "";
 
-  let notificationState = 0; // 1: Mismatch detected, 2: Waiting for enumeration, 3: Bootloader detected, 4: Updating... , 5: Update completed
+  let flagBootloaderCheck = 0;
+  let booloaderConnectionCheck = undefined;
+
+  let bootloader_path = undefined;
+
+  const startBootladerCheck = () => {
+    booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750)
+  }
+  
 
   appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
 
   runtime.subscribe((store)=>{
-
     if (store.length !== 0){
-      
       if ($appSettings.firmwareNotificationState !==5){
         appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
       }
     }
-    else{
+    else {
       if ($appSettings.firmwareNotificationState === 1){
         appSettings.update(s => {s.firmwareNotificationState = 2; return s;})
       }
@@ -47,33 +45,31 @@
     let gotMismatch = false;
 
     store.forEach(device=>{
-
       if (device.fwMismatch === true){
         gotMismatch = true;
-      }
-
-      
+      }      
     });
 
     if (gotMismatch === true){
 
-
       appSettings.update(s => {s.firmwareNotificationState = 1; return s;})
 
+      // only start interval if it is not already started.
+      if(flagBootloaderCheck == 0){
+        startBootladerCheck()
+        flagBootloaderCheck = 1; // flag as started
+      }
+
       if (fwMismatch === false){
-        trackEvent('firmware-download', 'firmware-download: mismatch detected')
-        analytics.track_event("application", "firmwarecheck", "firmware update status", "mismatch detected")
+        //trackEvent('firmware-download', 'firmware-download: mismatch detected')
+        //analytics.track_event("application", "firmwarecheck", "firmware update status", "mismatch detected")
         fwMismatch = true;
       }
-      
     }
     else{
       fwMismatch = false;
     }
-
-    
   })
-
 
 
   let text = '';
@@ -88,200 +84,54 @@
     }
   })
 
+  
+  async function find_bootloader_path(){
 
-  function delay(time) {
-    return new Promise((resolve) => {
-        setTimeout(() => resolve(), time);
-    });
-  }
+    bootloader_path = await window.electron.firmware.findBootloaderPath()
 
-  let bootloader_path = undefined;
-
-  const setIntervalAsync = (fn, ms) => {
-    fn().then(() => {
-      setTimeout(() => setIntervalAsync(fn, ms), ms);
-    });
-  };
-
-  let find_bootloader_path = async function(){
-
-    if (dotdotdot !== "..."){
-      dotdotdot += ".";
-    }
-    else {
-      dotdotdot = "";
-    }
-
-    let diskInfo
-
-    try {
-      diskInfo = nodeDiskInfo.getDiskInfoSync()
-    } catch (error) {
-      console.warn(error)
-    }
-
-    if (diskInfo === undefined){
-      return;
-    }
-
-    //console.log(diskInfo)
-    // 7929 MAC ||  15867 new
-    // 3965 for Linux and 4059648 for Windows (old bootloader)
-    // 7934 for Linux and 8123904 for Windows (new bootloader)
-
-    let gridDrive = diskInfo.find(a => 
-    // old Linux Mac Win
-      a.blocks === 3965 || a.blocks === 7929 || a.blocks === 4059648 || 
-      // new Linux Mac Win
-      a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904 
-      
-    );
-
-    //console.log(gridDrive, diskInfo)
-
-    let data;
-
-    if (gridDrive !== undefined ){
-      try {
-        data = fs.readFileSync(gridDrive.mounted + "/INFO_UF2.TXT", {encoding:'utf8', flag:'r'})
-      } catch (error) {
-        console.warn(error)
-      }
-    }
-
-    if (data!==undefined){
-
-      // isgrid
-      if (data.indexOf("SAMD51N20A-GRID") !== -1){
-
-        bootloader_path = gridDrive.mounted;
-
-        if (uploadProgressText == ""){
-          appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
-          uploadProgressText = "Grid bootloader is detected! ";
-
-          
-          trackEvent('firmware-download', 'firmware-download: bootloader detected')
-          analytics.track_event("application", "firmwarecheck", "firmware update status", "bootloader detected")
-        }  
-
-        return;
-
-      }
-
- 
-
-    }
-    
-
-    // reset path
     if (bootloader_path !== undefined){
-      bootloader_path = undefined;
-      setTimeout(() => {
-        uploadProgressText = "";
-        appSettings.update(s => {s.firmwareNotificationState = 0; return s;})
-      }, 2000);
-
+      clearInterval(booloaderConnectionCheck)
+      // clear flag
+      flagBootloaderCheck = 0;
     }
-
 
   }
 
-  setIntervalAsync(find_bootloader_path, 750);
+  window.electron.firmware.onFirmwareUpdate((_event, value) => {
+
+    console.log('fw update event from main...',value);
+
+    if(value.code !== undefined){
+      $appSettings.firmwareNotificationState = value.code;
+
+      if(value.code == 5){
+        setTimeout(()=> {
+          $appSettings.firmwareNotificationState = 0;
+        }, 2000)
+      }
+    }
+
+    if(value.message !== undefined){
+      uploadProgressText = value.message;
+    }
+
+  })
 
   async function firmwareDownload(){
-
-
-    appSettings.update(s => {s.firmwareNotificationState = 4; return s;})
-
-    trackEvent('firmware-download', 'firmware-download: update start')
-    analytics.track_event("application", "firmwarecheck", "firmware update status", "update started")
-
-
-    const version = "v"+process.env.FIRMWARE_REQUIRED_MAJOR+"."+process.env.FIRMWARE_REQUIRED_MINOR+"."+process.env.FIRMWARE_REQUIRED_PATCH
-    let link = process.env.FIRMWARE_URL_BEGINING + version + process.env.FIRMWARE_URL_END;
-
-    uploadProgressText = "Downloading firmware image "
-    
-    let result = ipcRenderer.sendSync('download', {url: link, folder: "temp"});
-
-    await delay(1000);
-
-    if (result === undefined){
-      uploadProgressText = "Error: Download failed"
-      
-      trackEvent('firmware-download', 'firmware-download: download fail')
-      analytics.track_event("application", "firmwarecheck", "firmware update status", "download fail")
-      await delay(2500);
-      
-      appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
-      return;
-    }
-
-    let zip = new AdmZip(result);
-
-    let zipEntries = zip.getEntries(); // an array of ZipEntry records
-
-    let firmwareFileName;
-
-    zipEntries.forEach(function (zipEntry) {
-        console.log(zipEntry.toString()); // outputs zip entries information
-        if (zipEntry.entryName.endsWith(".uf2")) {
-          firmwareFileName = zipEntry.entryName;
-        }
-    });
-
-    let folder = get(appSettings).persistant.profileFolder + "/temp";
-
-
-    uploadProgressText = "Decompressing image "
-    await delay(1500);
-
-    zip.extractAllTo(folder, true);
-
-    console.log(firmwareFileName)
-
-
-
-    uploadProgressText = "Uploading firmware "
-    await delay(1500);
-
-    if (bootloader_path !== undefined){
-
-      fs.copySync(folder + "/" + firmwareFileName, bootloader_path + "/" + firmwareFileName)
-
-      uploadProgressText = "Update completed successfully!";
-
-      trackEvent('firmware-download', 'firmware-download: update success')
-      analytics.track_event("application", "firmwarecheck", "firmware update status", "update success")
-
-      appSettings.update(s => {s.firmwareNotificationState = 5; return s;})
-      
-    }
-    else{
-      console.log("GRID_NOT_FOUND")
-
-      trackEvent('firmware-download', 'firmware-download: update fail')
-      analytics.track_event("application", "firmwarecheck", "firmware update status", "update fail")
-    }
-
-
-
+    const folder = $appSettings.persistant.profileFolder;
+    await window.electron.firmware.firmwareDownload(folder);
   }
 
   function firmwareTroubleshooting(){
-
-    trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
-    analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
-    
-    openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
-
+    //trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
+    //analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
+    //openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
   }
 
-*/
+
 </script>
 
-<!--
+
 
 
 {#if $appSettings.firmwareNotificationState === 1}
@@ -356,4 +206,3 @@
   </div>
 
 {/if}
--->

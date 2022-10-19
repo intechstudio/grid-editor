@@ -5,9 +5,9 @@
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
 //import { getGlobal } from '@electron/remote';
-  const trackEvent = function(){} //getGlobal('trackEvent');
+  //const trackEvent = function(){} //getGlobal('trackEvent');
 
-  import {analytics} from "../runtime/analytics_influx"
+  //import {analytics} from "../runtime/analytics_influx"
 
   //const ipcRenderer = window.sketchyAPI;
 
@@ -15,7 +15,7 @@
 
   const env = ctxProcess.env()
 
-  import  {Webhook} from 'simple-discord-webhooks';
+  //import  {Webhook} from 'simple-discord-webhooks';
 
 
   let logelement;
@@ -30,7 +30,7 @@
       console.log('we got exception, but the app has crashed', errorMsg);
       logtext = [...logtext, (errorMsg)];
 
-      analytics.track_event("application", "error console", "error notification", "error event")
+      //analytics.track_event("application", "error console", "error notification", "error event")
 
       try {
         
@@ -49,7 +49,7 @@
 		  console.log('we got exception, but the app has crashed', e);
       logtext = [...logtext, (e.reason)];
 
-      analytics.track_event("application", "error console", "error notification", "error event")
+      //analytics.track_event("application", "error console", "error notification", "error event")
 
       try {
         
@@ -75,7 +75,7 @@
 
   function refresh(){
 
-    analytics.track_event("application", "error console", "error notification", "app restart")
+    //analytics.track_event("application", "error console", "error notification", "app restart")
 
     setTimeout(() => {
       //ipcRenderer.sendSync('restart', "foo");
@@ -91,7 +91,7 @@
   function dismiss(){
 
     logtext = [];
-    analytics.track_event("application", "error console", "error notification", "dismiss")
+    //analytics.track_event("application", "error console", "error notification", "dismiss")
 
   }
 

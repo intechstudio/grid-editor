@@ -53,31 +53,32 @@
     let new_folder = store.persistant.profileFolder;
     if (new_folder !== PROFILE_PATH){
       PROFILE_PATH = new_folder;
-      moveOldProfiles();
+      moveOld();
     }
   })
 
   profileListRefresh.subscribe(store => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
-      loadProfilesFromDirectory();
+      loadFromDirectory();
     }
   })
 
   
-  async function moveOldProfiles(){
-    await window.electron.profiles.moveOldProfiles(PROFILE_PATH);
-    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);
+  async function moveOld(){
+    await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(PROFILE_PATH, "profiles");
   }
 
   
-  async function loadProfilesFromDirectory(){
-    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);
-    console.log(PROFILES);   
+  async function loadFromDirectory(){
+    console.log(PROFILE_PATH)
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(PROFILE_PATH, "profiles");
   }
 
-  async function saveProfile(path, name, profile){         
-    await window.electron.profiles.saveProfile(path, name, profile);
-    PROFILES = await window.electron.profiles.loadProfilesFromDirectory(PROFILE_PATH);   
+  async function saveToDirectory(path, name, profile){         
+    await window.electron.configs.saveConfig(path, name, profile, "profiles");
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(PROFILE_PATH, "profiles");   
+    logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
   }
 
   function prepareSave() { 
@@ -124,7 +125,9 @@
   
       })    
   
-      saveProfile(PROFILE_PATH, newProfile.name, profile);
+      saveToDirectory(PROFILE_PATH, newProfile.name, profile);
+
+
 
       engine.set('ENABLED');
     };
@@ -239,7 +242,7 @@
       <div class="">Profile Library</div>
       <TooltipQuestion key={"profile_load_profile"}/>
       <button 
-        on:click={loadProfilesFromDirectory} 
+        on:click={loadFromDirectory} 
         class="relative inline-block bg-secondary ml-auto p-1 text-white rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none">
         <div>Refresh List</div>
       </button>    

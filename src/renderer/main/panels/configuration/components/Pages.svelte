@@ -1,7 +1,5 @@
 <script>
 
-  import { onMount } from 'svelte';
-
   import { get } from 'svelte/store';
 
    import { logger, unsaved_changes, runtime } from '../../../../runtime/runtime.store.js';

@@ -181,7 +181,10 @@ function createWindow() {
 
     require("@electron/remote/main").enable(mainWindow.webContents);
 
-      console.log(path.join(__dirname, '../../public/index.html'))
+    const { firmware } = require('./src/firmware');
+    firmware.mainWindow = mainWindow;
+
+    console.log(path.join(__dirname, '../../public/index.html'))
 
     //mainWindow.loadURL(`file://${path.join(__dirname, '../../src/renderer/index.html')}`); 
 
@@ -216,7 +219,6 @@ function createWindow() {
 
 
     mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
-      console.log("Select Serial Port")
       event.preventDefault()
       if (portList && portList.length > 0) {
         callback(portList[0].portId)
@@ -263,42 +265,20 @@ console.log('check for updates...')
 autoUpdater.checkForUpdatesAndNotify();
 
 
-ipcMain.on('setStoreValue-message', (event, arg) => {
-  
-  Object.entries(arg).forEach(entry => {
 
-    let [key, value] = entry;
-    if (value !== undefined){
-      store.set(arg)
-      console.log('attempt to store..',arg);
-    }
-    else{
-      store.delete(key)
-      console.log('delete from store..',arg);
-    }
-
-  });
-
-  event.reply('setStoreValue-reply', 'saved');
-})
 
 
 
 const { libraryDownload, uxpPhotoshopDownload, selectDirectory  } = require('./src/library');
 ipcMain.handle('download', async (event, arg) => {
-
   let result = undefined;
-
   if(arg.package == 'library'){
     result = await libraryDownload(arg.targetFolder);
   }
-
   if(arg.package == 'uxpPhotoshop'){
     result = await uxpPhotoshopDownload(arg.targetFolder);
   }
-
   return result;
-
 })
 
 ipcMain.handle('selectDirectory', async (event, arg) => {
@@ -321,66 +301,95 @@ ipcMain.handle('resetDirectory', async (event, arg) => {
 })
 
 ipcMain.handle('defaultDirectory', (event, arg) => {
-  return app.getPath('documents') + '/grid-userdata';
-})
-
-
-
-const { loadProfilesFromDirectory, moveOldProfiles, saveProfile } = require('./src/profiles');
-
-ipcMain.handle('moveOldProfiles', async(event, arg) => {
-  return await moveOldProfiles(arg.profilePath);
-})
-
-ipcMain.handle('loadProfilesFromDirectory',async (event, arg) => {
-  return await loadProfilesFromDirectory(arg.profilePath);
-})
-
-ipcMain.handle('saveProfile',async (event, arg) => {
-  return await saveProfile(arg.profilePath);
+  const defaultPath = app.getPath('documents') + '/grid-userdata';
+  return defaultPath;
 })
 
 
 
 
 
-ipcMain.handle('getStoreValue', (event, key) => {
-  const result = store.get(key);
+
+const { loadConfigsFromDirectory, moveOldConfigs, saveConfig } = require('./src/profiles');
+ipcMain.handle('moveOldConfigs', async(event, arg) => {
+  return await moveOldConfigs(arg.configPath, arg.rootDirectory);
+})
+
+ipcMain.handle('loadConfigsFromDirectory',async (event, arg) => {
+  return await loadConfigsFromDirectory(arg.configPath, arg.rootDirectory);
+})
+
+ipcMain.handle('saveConfig',async (event, arg) => {
+  return await saveConfig(arg.configPath, arg.name, arg.config, arg.rootDirectory);
+})
+
+
+const { firmwareDownload, findBootloaderPath } = require('./src/firmware');
+// this is needed for the functions to have the mainWindow for communication
+ipcMain.handle('firmwareDownload', async (event, arg) => {
+  return await firmwareDownload(arg.targetFolder);
+})
+ipcMain.handle('findBootloaderPath', async (event, arg) => {
+  return await findBootloaderPath();
+})
+
+
+// persistent storage for the app
+ipcMain.handle('getPersistentStore', (event, arg) => {
+  let result = {}
+  arg.forEach(key => {
+    let value = store.get(key);
+    result[key] = value;
+  });
   return result;
 })
 
+ipcMain.handle('setPersistentStore', (event, arg) => {
+  Object.entries(arg).forEach(entry => {
+    let [key, value] = entry;
+    if (value !== undefined){
+      store.set(arg)
+      log.info('attempt to store..',arg);
+    }
+    else{
+      store.delete(key)
+      log.info('delete from store..',arg);
+    }
+
+  });
+  return 'saved';
+})
+
+
+
+// app window management
 ipcMain.handle('closeWindow', async (event, args) => {
-  const window = mainWindow;
-  window.close();
-  console.log('close...')
+  mainWindow.close();
   return 'closed';
 })
 
 ipcMain.handle('minimizeWindow', async (event, args) => {
-  const window = mainWindow
-  window.minimize();
+  mainWindow.minimize();
   return 'minimized';
 })
 
 ipcMain.handle('maximizeWindow', async (event, args) => {
-  const window = mainWindow
-
-    window.maximize();
-
+  mainWindow.maximize();
   return 'maximized';
 })
 
 ipcMain.handle('restoreWindow', async (event, args) => {
-  const window = mainWindow
-  window.restore();
+  mainWindow.restore();
   return 'restored';
 })
 
 ipcMain.handle('isMaximized', async (event, args) => {
-  const window = mainWindow
-  return window.isMaximized();
+  return mainWindow.isMaximized();
 })
 
+
+
+// environment variables for renderer
 ipcMain.handle('get-env', async (event, args) => {
   let variables = {};
   for (const key in process.env) {
@@ -389,18 +398,6 @@ ipcMain.handle('get-env', async (event, args) => {
   return variables;
 })
 
-ipcMain.handle('getStoreValues', (event, keys) => {
-  
-  let result = {}
-  keys.forEach(key => {
-
-    let value = store.get(key);
-    result[key] = value;
-    
-  });
-
-  return result;
-})
 
 
 

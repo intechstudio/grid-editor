@@ -120,14 +120,11 @@ appSettings.subscribe(store => {
 
       persistant[key] = instore[key];
 
-      let foo = {};
-      foo[key] = instore[key];
-      //ipcRenderer.send('setStoreValue-message', foo);
+      let settings = {};
+      settings[key] = instore[key];
+      window.electron.persistentStorage.set(settings);
     }
-
-
   });
-
 
 })
 
@@ -147,18 +144,14 @@ ipcRenderer.on('trayState', (event, args) => {
 
 function init_appsettings(){
 
-
-
   let request = []
   Object.entries(persistant).forEach(entry => {
-
     const [key, value] = entry;
     request.push(key)
-
   });
 
-  /**
-  ipcRenderer.invoke('getStoreValues', request).then((response) => {
+
+  window.electron.persistentStorage.get(request).then((response) => {
 
     appSettings.update(s => {
 
@@ -169,7 +162,7 @@ function init_appsettings(){
         // validate values, append default behavior
 
         if (key === "profileFolder" && value === undefined){
-          value = ipcRenderer.sendSync('getProfileDefaultDirectory', 'foo');    
+          value = window.electron.library.defaultDirectory()  
         }        
         
         if (key === "moduleRotation" && value === undefined){
@@ -181,9 +174,7 @@ function init_appsettings(){
         }
 
         if (value !== undefined){
-
           s.persistant[key] = value;
-          //console.log("init", key, value);
         }
     
       });
@@ -210,13 +201,7 @@ function init_appsettings(){
   
   });
 
- */
 }
-
-
-
-
-
 
 
 export const preferenceStore = writable();
