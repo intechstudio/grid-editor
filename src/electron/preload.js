@@ -1,7 +1,6 @@
 const { contextBridge, ipcRenderer } = require('electron')
-const { getGlobal } = require( "@electron/remote");
 
-
+// contextBridge exposed processes from NodeJs
 contextBridge.exposeInMainWorld('ctxProcess', {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
@@ -31,6 +30,7 @@ contextBridge.exposeInMainWorld('electron', {
   },
   resetAppSettings: () => ipcRenderer.sendSync('resetAppSettings'),
   getLatestVideo: () => ipcRenderer.invoke('getLatestVideo'),
+  openInBrowser: () => ipcRenderer.invoke('openInBrowser'),
   analytics: {
     google: (name, params) => ipcRenderer.invoke('googleAnalytics', {name, params}),
     influx: (category, action, label, value) => ipcRenderer.invoke('influxAnalytics', {category, action, label, value}),
@@ -45,6 +45,12 @@ contextBridge.exposeInMainWorld('electron', {
     maximize: () =>ipcRenderer.invoke('maximizeWindow'),
     restore: () => ipcRenderer.invoke('restoreWindow'),
     isMaximized: () => ipcRenderer.invoke('isMaximized'),
+  },
+  activeWindow: () => ipcRenderer.invoke('activeWindow'),
+  websocket: {
+    onReceive: (callback) => ipcRenderer.on('onWebsocketReceive', callback),
+    onTransmit: (callback) => ipcRenderer.on('onWebsocketTransmit', callback),
+    transmit: (message) => ipcRenderer.invoke('websocketTransmit', {message}),
+    changePort: (port) => ipcRenderer.invoke('websocketChangePort', {port}),
   }
-  
 })

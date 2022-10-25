@@ -5,20 +5,9 @@ import instructions from '../serialport/instructions';
 import { writeBuffer, sendHeartbeat } from './engine.store';
 import _utils from './_utils';
 
-import * as init_theme from './monaco-helper';
-
 import { appSettings } from './app-helper.store';
-//import { analytics } from './analytics_influx';
 
 const ctxProcess = window.ctxProcess;
-
-//import { initialize_ws } from './websocket';
-//import { initialize_wss } from './websocketserver';
-
-//const activeWindow = require('active-win');
-
-//initialize_wss();
-//initialize_ws();
 
 const env = await ctxProcess.env()
 
@@ -40,7 +29,7 @@ async function detectActiveWindow(){
 
     if (get(appSettings).intervalPause) return;
 
-    let result = (await activeWindow());
+    let result = await window.electron.activeWindow();
 
     if (result === undefined){
       result = {owner: {name: "Unknown!"}, title: "Invalid title!"}
@@ -51,9 +40,7 @@ async function detectActiveWindow(){
     
 
     appSettings.update(s => {s.activeWindowResult = result; return s;});
-    
   
-
 
     if (get(appSettings).persistant.pageActivatorEnabled !== true){
 
@@ -1200,7 +1187,6 @@ const editor_heartbeat_interval_handler = async function(){
 setIntervalAsync(editor_heartbeat_interval_handler, get(heartbeat).editor);
 
 
-
 function createLocalDefinitions(){
   
   const store = writable();
@@ -1228,5 +1214,10 @@ function createLocalDefinitions(){
 }
 
 export const localDefinitions = createLocalDefinitions();
+
+export async function wss_send_message(message){
+  const toSend = Array.from(message).toString('base64')
+  window.electron.websocket.transmit(JSON.stringify(toSend))
+}
 
 console.log('reached end of runtime')

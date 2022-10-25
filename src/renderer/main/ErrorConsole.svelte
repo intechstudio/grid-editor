@@ -4,7 +4,6 @@
   
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-
   const ctxProcess = window.ctxProcess;
 
 

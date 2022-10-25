@@ -16,11 +16,11 @@
 
   import { fade, fly } from 'svelte/transition';
 
-  import { openInBrowser } from '../../runtime/app-helper.store';
-
   import CursorLog from          '../user-interface/cursor-log/CursorLog.svelte';
 
   import { appSettings } from '../../runtime/app-helper.store';
+
+  const { env } = window.ctxProcess;
 
   export let classes;
 
@@ -156,7 +156,7 @@
     
 
 
-    openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)
+    window.electron.openInBrowser(env.DOCUMENTATION_TROUBLESHOOTING_URL)
 
     window.electron.analytics.google('no-module', {value: 'troubleshooting'}); 
     window.electron.analytics.influx("application", "gridlayout", "no module", "open troubleshooting")

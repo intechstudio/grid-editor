@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const WebSocket = require('ws');
+const { store } = require('./main-store');
 
 let websocket = {
 
@@ -9,6 +10,8 @@ let websocket = {
 
 let wss;
 let interval;
+
+startWebsocketServer(store.get('wssPort') || 1337);
 
 function startWebsocketServer(port){
 
@@ -20,14 +23,13 @@ function startWebsocketServer(port){
 
     ws.isAlive = true;
 
-    console.warn('WS Client connected!')
+    console.info('WS Client connected!')
 
     connection = ws;
 
     ws.on('message', function message(data) {
 
-
-      websocket.mainWindow.webContents.send('wss_rx', data);
+      websocket.mainWindow.webContents.send('onWebsocketReceive', data);
 
       const decoded = JSON.parse(data)
       if (decoded.event === "grid_pong"){
@@ -54,7 +56,7 @@ function startWebsocketServer(port){
   interval = setInterval(function ping() {
 
     const data = JSON.stringify({"event":"grid_ping"})
-    websocket.mainWindow.webContents.send('wss_tx', data);
+    websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
   
     //console.log("PING")
 
@@ -71,18 +73,12 @@ function startWebsocketServer(port){
 
 
 
+ipcMain.handle('websocketTransmit', (event, arg) => {
 
-
-console.log("WEBSOCKET")
-
-
-ipcMain.on('websocket_tx', (event, arg) => {
-
-  console.log(arg)
-  const decoded = JSON.parse(arg)
+  const decoded = JSON.parse(arg.message)
 
   const data = JSON.stringify({"event":"message", "data": decoded})
-  websocket.mainWindow.webContents.send('wss_tx', data);
+  websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
 
   wss.clients.forEach(function each(ws) {
     ws.send(data)
@@ -90,7 +86,7 @@ ipcMain.on('websocket_tx', (event, arg) => {
 
 })
 
-ipcMain.on('websocket_changePort', (event, arg) => {
+ipcMain.handle('websocketChangePort', (event, arg) => {
 
   console.log("NEW PORT", arg)
 
@@ -102,12 +98,10 @@ ipcMain.on('websocket_changePort', (event, arg) => {
     wss.close();
   }
 
-  
-
   startWebsocketServer(arg);
 
 })
 
 
 
-module.exports = {websocket};
+module.exports = { websocket };

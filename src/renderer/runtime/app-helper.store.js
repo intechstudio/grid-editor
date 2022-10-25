@@ -3,9 +3,6 @@ import { getAllComponents } from '$lib/_configs';
 
 const ctxProcess = window.ctxProcess;
 
-export function openInBrowser(url){
- // shell.openExternal(url)
-}
 
 function checkOS() {
   if (typeof window.ctxProcess === 'object') {
@@ -15,7 +12,10 @@ function checkOS() {
 }
 
 
-const versionstring = ctxProcess.env.npm_package_version;
+const envs = await ctxProcess.env()
+const versionstring = envs.npm_package_version;
+
+console.log(versionstring, envs)
 
 export const current_tooltip_store = writable({key: '', bool: false});
 

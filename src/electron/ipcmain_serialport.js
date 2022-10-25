@@ -1,9 +1,6 @@
 let serial = {
-
   mainWindow: undefined
-
 };
-
 
 let port_disovery_interval;
 
@@ -14,26 +11,16 @@ const setIntervalAsync = (fn, ms) => {
 };
 
 
-
 // Basic serial usage
-
 async function listSerialPorts(){
-
-
   if (serial.mainWindow !== undefined){
-    
     try{
       let foo = await serial.mainWindow.webContents.executeJavaScript(`if(navigator.intechConnect){navigator.intechConnect()}`, true)
       //console.log('serial conn',foo)
     }catch(e){
       console.log(e)
     }
-
-    
-
   }
-
-
 }
 
 setIntervalAsync(listSerialPorts, 1000)

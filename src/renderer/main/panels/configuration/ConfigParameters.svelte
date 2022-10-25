@@ -1,6 +1,5 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  //import { analytics} from "../../../runtime/analytics_influx";
 
   import { get } from 'svelte/store';
   import { runtime, elementNameStore, engine, logger, user_input, controlElementClipboard} from '../../../runtime/runtime.store.js';

@@ -1,11 +1,10 @@
 // Top level imports
 import { writable, get } from 'svelte/store';
 import { writeBuffer } from '../runtime/engine.store';
-import { runtime, user_input, update_elementNameStore, update_elementPositionStore,update_elementPositionStore_fromPreview, update_ledColorStore } from '../runtime/runtime.store';
+import { runtime, user_input, wss_send_message, update_elementNameStore, update_elementPositionStore,update_elementPositionStore_fromPreview, update_ledColorStore } from '../runtime/runtime.store';
 
 import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store';
 import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store';
-import { wss_send_message } from '../runtime/websocket';
 
 function createMessageStream(){
 
@@ -31,9 +30,10 @@ function createMessageStream(){
       if(class_descr.class_name === "DEBUGTEXT"){
         debug_monitor_store.update_debugtext(class_descr);
       }      
+
       if(class_descr.class_name === "WEBSOCKET"){
         wss_send_message(class_descr.class_parameters.TEXT)
-
+        
       }
 
       if(class_descr.class_name === "LEDPREVIEW"){

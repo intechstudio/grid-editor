@@ -5,8 +5,6 @@
   import { fly, fade, slide } from 'svelte/transition';
   import { tooltip_content } from "./tooltip-content.json.js";
 
-  //import {analytics} from "../../../runtime/analytics_influx"
-
 
   import {attachment} from "../Monster.store"
 

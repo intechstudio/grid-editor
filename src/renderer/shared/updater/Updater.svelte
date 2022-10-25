@@ -2,13 +2,13 @@
   /**
   const ipcRenderer = window.sketchyAPI;
 
-  import { openInBrowser } from '../../runtime/app-helper.store';
-
   // self update
   let updateNotification = false;
   let updateReady = false;
   let updateProgress = 0;
   let updateError = "";
+
+  const {env} = window.ctxProcess;
 
   function restartApp(){
     ipcRenderer.send('restart_app');
@@ -70,7 +70,7 @@
         
         <button 
         class="cursor-pointer relative px-2 py-1 mt-2 mr-2 bg-commit rounded hover:bg-commit-saturate-20 focus:outline-none" 
-        on:click={()=> {openInBrowser(process.env.EDITOR_DOWNLOAD_URL)}}>
+        on:click={()=> {window.electron.openInBrowser(env.EDITOR_DOWNLOAD_URL)}}>
           Download
         </button>
 

@@ -1,10 +1,8 @@
 <script>
-  import { get } from 'svelte/store';
   import { debug_monitor_store, debug_lowlevel_store, inbound_data_rate_points, outbound_data_rate_points, inbound_data_rate_history, outbound_data_rate_history } from "./WebsocketMonitor.store";
   import _utils, { luaParser } from "../../../runtime/_utils";
   import { appSettings } from '../../../runtime/app-helper.store';
-  import {luadebug_store} from "../../../runtime/runtime.store"
-  import { wss_send_message, wss_change_port } from '../../../runtime/websocket';
+  import {luadebug_store, wss_send_message} from "../../../runtime/runtime.store"
 
 
   let runtimeScript = '';
@@ -141,17 +139,11 @@
   let websocketMessage = `{zyp: "hy"}`;
 
   function sendMessage(){
-
     wss_send_message(websocketMessage);
-
-
-
-
   }
 
   function portChange(){
-
-    wss_change_port($appSettings.persistant.wssPort)
+    window.electron.websocket.changePort($appSettings.persistant.wssPort);
   }
 
 </script>

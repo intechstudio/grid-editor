@@ -6,8 +6,6 @@
   import { current_tooltip_store } from "../../../runtime/app-helper.store";
   import { tooltip_content } from "./tooltip-content.json.js";
 
-  import {analytics} from "../../../runtime/analytics_influx"
-
   import { windowSize } from '../../../runtime/window-size';
 
   const {platform} = window.ctxProcess;

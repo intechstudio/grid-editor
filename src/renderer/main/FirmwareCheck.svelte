@@ -7,6 +7,8 @@
 
   import { fade } from "svelte/transition";
 
+  const { env } = window.ctxProcess;
+
 
   let fwMismatch = false; 
 
@@ -119,7 +121,7 @@
   function firmwareTroubleshooting(){
     window.electron.analytics.google('firmware-download', {value:'troubleshooting'}); 
     window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "open troubleshooting")
-    //openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
+    window.electron.openInBrowser(env.DOCUMENTATION_FIRMWAREUPDATE_URL)
   }
 
 

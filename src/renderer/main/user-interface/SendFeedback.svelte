@@ -3,7 +3,6 @@
   import { createEventDispatcher } from 'svelte';
 
   import { appSettings } from   '../../runtime/app-helper.store';
-  import { analytics} from      '../../runtime/analytics_influx';
 
   const dispatch = createEventDispatcher();
 

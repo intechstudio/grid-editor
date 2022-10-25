@@ -4,8 +4,6 @@ import {runtime, logger, luadebug_store, appMultiSelect, appActionClipboard, use
 
 import * as luamin from "../../../../external/luamin";
 
-import { analytics } from '../../../runtime/analytics_influx';
-
 import _utils from '../../../runtime/_utils.js';
 
 

@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { appSettings, openInBrowser} from "../../runtime/app-helper.store";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   import {clickOutside} from '../_actions/click-outside.action'
 

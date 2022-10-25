@@ -178,7 +178,7 @@
   </div>
 
 
-  <!--
+
   {#if $appSettings.persistant.websocketMonitorEnabled === true}
 
     <div 
@@ -203,7 +203,7 @@
     </div>
 
   {/if}
--->
+
   </div>
 
  

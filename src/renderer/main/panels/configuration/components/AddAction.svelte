@@ -17,11 +17,7 @@
   import { addOnDoubleClick } from '../../../_actions/add-on-double-click';
   
   import { getAllComponents } from '../../../../lib/_configs';
- 
-  import { analytics } from "../../../../runtime/analytics_influx"
- 
-  import grid from "../../../../protocol/grid-protocol"
-
+  
 
   export let animation = false;
   export let userHelper = false;

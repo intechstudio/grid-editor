@@ -351,13 +351,26 @@ ipcMain.handle('influxAnalytics', async (event, arg) => {
 
 
 
-
+// load the latest video from the grid editor playlist
 const { getLatestVideo } = require('./src/youtube');
 ipcMain.handle('getLatestVideo', async (event, arg) => {
   return await getLatestVideo()
 })
 
 
+
+// launch browser and open url
+ipcMain.handle('openInBrowser', async (event, arg) => {
+  return await shell.openExternal(arg.url)
+})
+
+
+
+// get the active window, user must give permissons for this
+const { getActiveWindow } = require('./src/active-window');
+ipcMain.handle('activeWindow', async (event, arg) => {
+  return await getActiveWindow()
+})
 
 
 
