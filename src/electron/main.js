@@ -176,15 +176,17 @@ function createWindow() {
     const { firmware } = require('./src/firmware');
     firmware.mainWindow = mainWindow;
 
-    console.log(path.join(__dirname, '../../public/index.html'))
+    log.info('process.env.NODE_ENV', process.env.NODE_ENV, 'entry: ', `file://${path.join(__dirname, '../../src/renderer/index.html')}`);
 
-    //mainWindow.loadURL(`file://${path.join(__dirname, '../../src/renderer/index.html')}`); 
-
-    mainWindow.loadURL('http://localhost:5173/');
-
-    //if (process.env.NODE_ENV === 'development') {
+    if(process.env.NODE_ENV == 'development'){
+      log.info('Development Mode!')
+      mainWindow.loadURL('http://localhost:5173/');
       mainWindow.webContents.openDevTools();
-    //}
+    } else {
+      // this is lazy, we should launch electron explicitly with node_env production, but this works as well
+      log.info('Production Mode!', `file://${path.join(__dirname, '../../src/renderer/index.html')}`);
+      mainWindow.loadURL(`file://${path.join(__dirname, '../../src/renderer/index.html')}`);   
+    }
 
     mainWindow.on('close', (evt)=> {
       // when quit is terminal under darwin
@@ -220,11 +222,11 @@ function createWindow() {
     })
   
     mainWindow.webContents.session.on('serial-port-added', (event, port) => {
-      console.log('serial-port-added FIRED WITH', port)
+      log.info('serial-port-added FIRED WITH', port)
     })
   
     mainWindow.webContents.session.on('serial-port-removed', (event, port) => {
-      console.log('serial-port-removed FIRED WITH', port)
+      log.info('serial-port-removed FIRED WITH', port)
     })
   
     mainWindow.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
@@ -236,7 +238,6 @@ function createWindow() {
       
     mainWindow.webContents.session.setDevicePermissionHandler((details) => {
       // file is for production, localhost is for development
-      //console.log('PERMISSION', details);
       if (details.deviceType === 'serial' && (details.origin === 'file://' || details.origin === 'http://localhost:5173')) {
         return true
       }
@@ -253,7 +254,6 @@ function createWindow() {
 // app.on('ready', createWindow);
 
 log.info('check fo update and notify...')
-console.log('check for updates...')
 autoUpdater.checkForUpdatesAndNotify();
 
 
@@ -278,7 +278,6 @@ ipcMain.handle('selectDirectory', async (event, arg) => {
 })
 
 ipcMain.handle('viewDirectory', async (event, arg) => {
-  console.log(arg);
   shell.openPath(arg.targetFolder);
   return;
 })
@@ -445,8 +444,6 @@ ipcMain.handle('get-env', async (event, args) => {
 
 
 ipcMain.on('analytics_uuid', (event) => {
-  console.log("UUID", store.get('userId'))
-
   event.returnValue = store.get('userId');
 });
 
