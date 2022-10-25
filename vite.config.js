@@ -21,20 +21,8 @@ export default defineConfig({
     ], 
     build: {
       outDir: ('../../dist-svelte'),
-      rollupOptions: {
-        plugins: [
-          copy({
-            targets:[
-              { src: 'src/renderer/config-blocks/*', dest: 'dist-svelte/config-blocks'},
-              { src: 'src/renderer/assets/fonts/*', dest: 'dist-svelte/assets/fonts'}
-            ],
-            copyOnce: true,
-            hook: "writeBundle"
-          })
-        ]
-      }
+      target: 'chrome104' // this must follow version number of electron's bundled chromium
     },
-    
     root: path.resolve(process.cwd(), 'src/renderer'),
     base: './',
     resolve: {

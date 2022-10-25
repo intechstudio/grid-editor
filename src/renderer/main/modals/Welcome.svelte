@@ -10,7 +10,7 @@
 
   const { env } = window.ctxProcess;
 
-  let video_link= env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
+  let video_link = ''
 
   let modalElement;
   let attachmentElement;
@@ -18,6 +18,8 @@
   let video_id;
 
   onMount(async()=>{
+
+    video_link = env()["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
 
     const {videoLink, videoId} = await window.electron.getLatestVideo();
 

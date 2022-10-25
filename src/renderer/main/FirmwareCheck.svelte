@@ -9,8 +9,8 @@
 
   const { env } = window.ctxProcess;
 
-
   let fwMismatch = false; 
+
 
   let dotdotdot = "";
 
@@ -118,10 +118,13 @@
     await window.electron.firmware.firmwareDownload(folder);
   }
 
-  function firmwareTroubleshooting(){
+  async function firmwareTroubleshooting(){
+
     window.electron.analytics.google('firmware-download', {value:'troubleshooting'}); 
     window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "open troubleshooting")
-    window.electron.openInBrowser(env.DOCUMENTATION_FIRMWAREUPDATE_URL)
+
+    const url = env()["DOCUMENTATION_FIRMWAREUPDATE_URL"]
+    window.electron.openInBrowser(url);
   }
 
 

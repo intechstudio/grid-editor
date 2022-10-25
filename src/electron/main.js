@@ -430,12 +430,12 @@ ipcMain.handle('isMaximized', async (event, args) => {
 
 
 // environment variables for renderer
-ipcMain.handle('get-env', async (event, args) => {
+ipcMain.on('get-env', (event) => {
   let variables = {};
   for (const key in process.env) {
     variables[key] = process.env[key];
   }
-  return variables;
+  event.returnValue = variables;
 })
 
 

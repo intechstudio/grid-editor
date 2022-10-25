@@ -45,12 +45,12 @@
 
 
 
-  function debugWriteBuffer(){
+  async function debugWriteBuffer(){
 
     console.log(get(writeBuffer));
 
     // discord
-    // const webhook = new Webhook(ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
+    // const webhook = new Webhook(await ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
     // webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
         
     window.electron.analytics.google('writebuffer', {value: 'clear'})

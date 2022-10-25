@@ -1,8 +1,9 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '$lib/_configs';
 
-const {platform, env} = window.ctxProcess;
+const { env } = window.ctxProcess;
 
+let envs = env();
 
 function checkOS() {
   if (typeof window.ctxProcess === 'object') {
@@ -11,67 +12,75 @@ function checkOS() {
   return 'browser';
 }
 
-
-const versionstring = env["npm_package_version"];
-
 export const current_tooltip_store = writable({key: '', bool: false});
 
 export const statusReport = writable({
-
-  serialport: {
-    
-
-  }
-
+  serialport: {}
 })
 
 
-export const appSettings = writable({
-  size: 2.1,
-  version: {
-    major: versionstring.split('.')[0],
-    minor: versionstring.split('.')[1],
-    patch: versionstring.split('.')[2]
-  },
-  overlays: {controlElementName: false},
-  debugMode: false,
-  selectedDisplay: '',
-  changeOnContact: true,
-  layoutMode: false,
-  configType: 'uiEvents',
-  stringNameOverlay: false,
-  preferences: false,
-  rightPanel: 'Configuration',
-  leftPanel: 'Profiles',
-  modal: '',
-  trayState: false,
-  os: checkOS(),
-  intervalPause: false,
-  firmwareNotificationState: 0,
-  sizeChange: 0,
-  activeWindowResult: {
-    title: undefined,
-    owner: {neme: undefined}
-  },
-  persistant: {
-    wssPort: 1337,
-    moduleRotation: 0,
-    welcomeOnStartup: true,
-    lastVersion: '',
-    profileFolder: '',
-    pageActivatorEnabled: false,
-    pageActivatorCriteria_0 : "",
-    pageActivatorCriteria_1 : "",
-    pageActivatorCriteria_2 : "",
-    pageActivatorCriteria_3 : "",
-    keyboardLayout : "",
-    pageActivatorInterval: 1000,
-    websocketMonitorEnabled: false,
-    helperShape: 0,
-    helperColor: 0,
-    helperName: "Monster"
+console.log('envvsss',envs);
+
+function createAppSettingsStore(){
+
+  const store = writable({
+    size: 2.1,
+    version: {
+      major: envs.npm_package_version.split('.')[0],
+      minor: envs.npm_package_version.split('.')[1],
+      patch: envs.npm_package_version.split('.')[2]
+    },
+    overlays: {controlElementName: false},
+    debugMode: false,
+    selectedDisplay: '',
+    changeOnContact: true,
+    layoutMode: false,
+    configType: 'uiEvents',
+    stringNameOverlay: false,
+    preferences: false,
+    rightPanel: 'Configuration',
+    leftPanel: 'Profiles',
+    modal: '',
+    trayState: false,
+    os: checkOS(),
+    intervalPause: false,
+    firmwareNotificationState: 0,
+    firmware_required:{
+      major: parseInt(envs.FIRMWARE_REQUIRED_MAJOR), 
+      minor: parseInt(envs.FIRMWARE_REQUIRED_MINOR), 
+      patch: parseInt(envs.FIRMWARE_REQUIRED_PATCH)
+    },
+    sizeChange: 0,
+    activeWindowResult: {
+      title: undefined,
+      owner: {neme: undefined}
+    },
+    persistant: {
+      wssPort: 1337,
+      moduleRotation: 0,
+      welcomeOnStartup: true,
+      lastVersion: '',
+      profileFolder: '',
+      pageActivatorEnabled: false,
+      pageActivatorCriteria_0 : "",
+      pageActivatorCriteria_1 : "",
+      pageActivatorCriteria_2 : "",
+      pageActivatorCriteria_3 : "",
+      keyboardLayout : "",
+      pageActivatorInterval: 1000,
+      websocketMonitorEnabled: false,
+      helperShape: 0,
+      helperColor: 0,
+      helperName: "Monster"
+    }
+  })
+  
+  return {
+    ...store
   }
-});
+} 
+
+export const appSettings = createAppSettingsStore();
 
 export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
@@ -139,7 +148,7 @@ function init_appsettings(){
   });
 
 
-  window.electron.persistentStorage.get(request).then((response) => {
+  window.electron.persistentStorage.get(request).then(async (response) => {
 
     appSettings.update(s => {
 
@@ -171,15 +180,14 @@ function init_appsettings(){
 
     });
 
-
     // show welcome modal if it is not disabled, but always show after version update
     if (get(appSettings).persistant.welcomeOnStartup === undefined ||
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != versionstring){
+        get(appSettings).persistant.lastVersion != envs["npm_package_version"]){
 
       appSettings.update(s => {
-        s.persistant.lastVersion = versionstring
+        s.persistant.lastVersion = envs["npm_package_version"]
         s.persistant.welcomeOnStartup = true
         s.modal = 'welcome'
         return s;

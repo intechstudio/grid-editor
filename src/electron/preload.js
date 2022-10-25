@@ -6,7 +6,7 @@ contextBridge.exposeInMainWorld('ctxProcess', {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   platform: () => process.platform,
-  env: () => ipcRenderer.invoke('get-env')
+  env: () => ipcRenderer.sendSync('get-env')
   // we can also expose variables, not just functions
 })
 
@@ -30,7 +30,7 @@ contextBridge.exposeInMainWorld('electron', {
   },
   resetAppSettings: () => ipcRenderer.sendSync('resetAppSettings'),
   getLatestVideo: () => ipcRenderer.invoke('getLatestVideo'),
-  openInBrowser: () => ipcRenderer.invoke('openInBrowser'),
+  openInBrowser: (url) => ipcRenderer.invoke('openInBrowser', {url}),
   analytics: {
     google: (name, params) => ipcRenderer.invoke('googleAnalytics', {name, params}),
     influx: (category, action, label, value) => ipcRenderer.invoke('influxAnalytics', {category, action, label, value}),

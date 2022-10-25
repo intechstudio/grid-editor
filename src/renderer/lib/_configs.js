@@ -5,6 +5,7 @@ async function init_config_block_library(){
   console.info("Init config block library!");
 
   let _files = import.meta.glob('../config-blocks/*.svelte');
+
   let files = [];
   
   for (const file in _files){

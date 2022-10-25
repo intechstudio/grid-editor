@@ -152,11 +152,11 @@
 
   }
 
-  function troubleshoot(){
+  async function troubleshoot(){
     
+    const url = env()["DOCUMENTATION_TROUBLESHOOTING_URL"]
 
-
-    window.electron.openInBrowser(env.DOCUMENTATION_TROUBLESHOOTING_URL)
+    window.electron.openInBrowser(url)
 
     window.electron.analytics.google('no-module', {value: 'troubleshooting'}); 
     window.electron.analytics.influx("application", "gridlayout", "no module", "open troubleshooting")

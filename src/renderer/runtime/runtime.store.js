@@ -10,9 +10,7 @@ import { appSettings } from './app-helper.store';
 const { env } = window.ctxProcess;
 
 
-let firmware_required = {major: parseInt(env.FIRMWARE_REQUIRED_MAJOR), minor: parseInt(env.FIRMWARE_REQUIRED_MINOR), patch: parseInt(env.FIRMWARE_REQUIRED_PATCH)};
-
-console.log("Minimum Firmware Version Required: ", firmware_required)
+console.log("Minimum Firmware Version Required: ", get(appSettings).firmware_required)
 
 let lastPageActivator = "";  
 
@@ -521,6 +519,8 @@ function create_runtime () {
 
         // check if the firmware version of the newly connected device is acceptable
         let moduleMismatch = true
+
+        const firmware_required = get(appSettings).firmware_required;
 
 
         if (controller.fwVersion.major > firmware_required.major){
