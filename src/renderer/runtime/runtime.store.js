@@ -7,9 +7,8 @@ import _utils from './_utils';
 
 import { appSettings } from './app-helper.store';
 
-const ctxProcess = window.ctxProcess;
+const { env } = window.ctxProcess;
 
-const env = await ctxProcess.env()
 
 let firmware_required = {major: parseInt(env.FIRMWARE_REQUIRED_MAJOR), minor: parseInt(env.FIRMWARE_REQUIRED_MINOR), patch: parseInt(env.FIRMWARE_REQUIRED_PATCH)};
 

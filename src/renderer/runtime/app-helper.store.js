@@ -1,7 +1,7 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '$lib/_configs';
 
-const ctxProcess = window.ctxProcess;
+const {platform, env} = window.ctxProcess;
 
 
 function checkOS() {
@@ -12,10 +12,7 @@ function checkOS() {
 }
 
 
-const envs = await ctxProcess.env()
-const versionstring = envs.npm_package_version;
-
-console.log(versionstring, envs)
+const versionstring = env["npm_package_version"];
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
