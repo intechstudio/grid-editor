@@ -2,9 +2,6 @@
   import { get } from 'svelte/store'
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
-  //const { getGlobal } = require('@electron/remote');
-  //const trackEvent = getGlobal('trackEvent');
-  //import { analytics } from '../../../runtime/analytics_influx';
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { appSettings, presetListRefresh } from '../../../runtime/app-helper.store.js';
@@ -64,14 +61,14 @@
     await window.electron.configs.saveConfig(path, name, preset, "presets");
     PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
     logger.set({type: 'success', mode: 0, classname: 'presetsave', message: `Preset saved!`});
-    //trackEvent('preset-library', 'preset-library: save success')
-    //analytics.track_event("application", "presets", "preset", "save success")
+    window.electron.analytics.google('preset-library', {value: 'save success'})
+    window.electron.analytics.influx("application", "presets", "preset", "save success")
   }
 
   function prepareSave() { 
 
-    //trackEvent('preset-library', 'preset-library: save start')
-    //analytics.track_event("application", "presets", "preset", "save start")
+    window.electron.analytics.google('preset-library', {value: 'save start'})
+    window.electron.analytics.influx("application", "presets", "preset", "save start")
 
     let elementnumber = $user_input.event.elementnumber
     let dx = $user_input.brc.dx
@@ -127,8 +124,8 @@
 
   function loadPreset(){
     
-    //trackEvent('preset-library', 'preset-library: load start')
-    //analytics.track_event("application", "presets", "preset", "load start")
+    window.electron.analytics.google('preset-library', {value: 'load start'})
+    window.electron.analytics.influx("application", "presets", "preset", "load start")
 
     if(selected !== undefined){
 
@@ -143,15 +140,15 @@
 
         runtime.element_preset_load(preset);
 
-        //trackEvent('preset-library', 'preset-library: load success')
-        //analytics.track_event("application", "presets", "preset", "load success")
+        window.electron.analytics.google('preset-library', {value: 'load success'})
+        window.electron.analytics.influx("application", "presets", "preset", "load success")
 
 
       } else {
 
 
-        //trackEvent('preset-library', 'preset-library: load mismatch')
-        //analytics.track_event("application", "presets", "preset", "load mismatch")
+        window.electron.analytics.google('preset-library', {value: 'load mismatch'})
+        window.electron.analytics.influx("application", "presets", "preset", "load mismatch")
         let element = currentModule.pages[ui.event.pagenumber].control_elements[ui.event.elementnumber].controlElementType
         logger.set({type: 'alert', mode: 0, classname: 'presetload', message: `Preset is not made for ${element}!`})
 

@@ -30,26 +30,21 @@ contextBridge.exposeInMainWorld('electron', {
     saveConfig: (configPath, name, config, rootDirectory) => ipcRenderer.invoke('saveConfig', {configPath, name, config, rootDirectory}),
   },
   resetAppSettings: () => ipcRenderer.sendSync('resetAppSettings'),
+  getLatestVideo: () => ipcRenderer.invoke('getLatestVideo'),
+  analytics: {
+    google: (name, params) => ipcRenderer.invoke('googleAnalytics', {name, params}),
+    influx: (category, action, label, value) => ipcRenderer.invoke('influxAnalytics', {category, action, label, value}),
+  },
   persistentStorage: {
     get: (request) => ipcRenderer.invoke('getPersistentStore', request),
     set: (object) => ipcRenderer.invoke('setPersistentStore', object),
+  },
+  window: {
+    close: () => ipcRenderer.invoke('closeWindow'),
+    minimize: () => ipcRenderer.invoke('minimizeWindow'),
+    maximize: () =>ipcRenderer.invoke('maximizeWindow'),
+    restore: () => ipcRenderer.invoke('restoreWindow'),
+    isMaximized: () => ipcRenderer.invoke('isMaximized'),
   }
-})
-
-
-contextBridge.exposeInMainWorld('sketchyAPI', {
-  send: ipcRenderer.send,
-  sendSync: ipcRenderer.sendSync,
-  on:  ipcRenderer.on,
-  removeAllListeners: ipcRenderer.removeAllListeners
-})
-
-
-contextBridge.exposeInMainWorld('sketchyRemote', {
-  closeWindow: () => ipcRenderer.invoke('closeWindow'),
-  minimizeWindow: () => ipcRenderer.invoke('minimizeWindow'),
-  maximizeWindow: () =>ipcRenderer.invoke('maximizeWindow'),
-  restoreWindow: () => ipcRenderer.invoke('restoreWindow'),
-  isMaximized: () => ipcRenderer.invoke('isMaximized'),
-  getGlobal: () => getGlobal
+  
 })

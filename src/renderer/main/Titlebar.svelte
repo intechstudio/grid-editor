@@ -3,29 +3,28 @@
   import { appSettings } from '../runtime/app-helper.store';
 
 
-  const browserWindow = window.sketchyRemote;
+  const browserWindow = window.electron.window;
 
-  const {platform} = window.ctxProcess;
+  const { platform } = window.ctxProcess;
 
 
   function init() { 
     document.getElementById("minimize-btn").addEventListener("click", function (e) {
-      browserWindow.minimizeWindow();
+      browserWindow.minimize();
     });
 
     document.getElementById("maximize-btn").addEventListener("click", function (e) {
       isMaximized = true;
-      browserWindow.maximizeWindow();
+      browserWindow.maximize();
     });
 
     document.getElementById("restore-down-btn").addEventListener("click", function (e) {
-     
       isMaximized = false;
-      browserWindow.restoreWindow()
+      browserWindow.restore()
     });
 
     document.getElementById("close-btn").addEventListener("click", function (e) {
-      browserWindow.closeWindow();
+      browserWindow.close();
     }); 
   }; 
 

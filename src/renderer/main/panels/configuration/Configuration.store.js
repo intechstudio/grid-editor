@@ -113,7 +113,7 @@ export function configManagement() {
       appActionClipboard.set(clipboard);
       
       if (isCut === false){
-        analytics.track_event("application", "configuration", "multiselect", "copy")
+        window.electron.analytics.influx("application", "configuration", "multiselect", "copy")
       }
 
     };
@@ -137,7 +137,7 @@ export function configManagement() {
         // trigger change detection
         user_input.update(n => n);
 
-        analytics.track_event("application", "configuration", "multiselect", "paste")
+        window.electron.analytics.influx("application", "configuration", "multiselect", "paste")
       }
     }
 
@@ -218,7 +218,7 @@ export function configManagement() {
 
 
     this.cut = function() {
-      analytics.track_event("application", "configuration", "multiselect", "cut")
+      window.electron.analytics.influx("application", "configuration", "multiselect", "cut")
       this.copy(true);
       this.remove();
     };
@@ -256,7 +256,7 @@ export function configManagement() {
         // trigger change detection
         user_input.update(n => n);
 
-        analytics.track_event("application", "configuration", "multiselect", "remove")
+        window.electron.analytics.influx("application", "configuration", "multiselect", "remove")
 
       }
 

@@ -18,17 +18,9 @@
 
   import { openInBrowser } from '../../runtime/app-helper.store';
 
-
   import CursorLog from          '../user-interface/cursor-log/CursorLog.svelte';
 
-  //import { getGlobal } from '@electron/remote';
-  const trackEvent = function(){} //getGlobal('trackEvent');
-
-  import { analytics } from '../../runtime/analytics_influx';
   import { appSettings } from '../../runtime/app-helper.store';
-
-
-  //const ipcRenderer = window.sketchyAPI;
 
   export let classes;
 
@@ -149,8 +141,8 @@
 
   function refresh(){
 
-    trackEvent('no-module', 'no-module: restart app') 
-    analytics.track_event("application", "gridlayout", "no module", "app restart")
+    window.electron.analytics.google('no-module', {value: 'restart app'}) 
+    window.electron.analytics.influx("application", "gridlayout", "no module", "app restart")
 
 
     setTimeout(() => {
@@ -166,8 +158,8 @@
 
     openInBrowser(process.env.DOCUMENTATION_TROUBLESHOOTING_URL)
 
-    trackEvent('no-module', 'no-module: troubleshooting'); 
-    analytics.track_event("application", "gridlayout", "no module", "open troubleshooting")
+    window.electron.analytics.google('no-module', {value: 'troubleshooting'}); 
+    window.electron.analytics.influx("application", "gridlayout", "no module", "open troubleshooting")
 
   }
 

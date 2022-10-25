@@ -1,18 +1,12 @@
 <script>
  
   import { onMount } from 'svelte';
-  import { writable, get } from 'svelte/store';
 
   import { appSettings } from   '../runtime/app-helper.store';
-  //import { analytics} from      '../runtime/analytics_influx';
   import { runtime } from       '../runtime/runtime.store';
 
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
+  import { fade } from "svelte/transition";
 
-  /**
-  const { getGlobal } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
-*/
 
   let fwMismatch = false; 
 
@@ -61,8 +55,8 @@
       }
 
       if (fwMismatch === false){
-        //trackEvent('firmware-download', 'firmware-download: mismatch detected')
-        //analytics.track_event("application", "firmwarecheck", "firmware update status", "mismatch detected")
+        window.electron.analytics.google('firmware-download', {value: 'mismatch detected'})
+        window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "mismatch detected")
         fwMismatch = true;
       }
     }
@@ -123,8 +117,8 @@
   }
 
   function firmwareTroubleshooting(){
-    //trackEvent('firmware-download', 'firmware-download: troubleshooting'); 
-    //analytics.track_event("application", "firmwarecheck", "firmware update status", "open troubleshooting")
+    window.electron.analytics.google('firmware-download', {value:'troubleshooting'}); 
+    window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "open troubleshooting")
     //openInBrowser(process.env.DOCUMENTATION_FIRMWAREUPDATE_URL)
   }
 

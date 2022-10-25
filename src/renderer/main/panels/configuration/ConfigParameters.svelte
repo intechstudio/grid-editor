@@ -75,7 +75,7 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    //analytics.track_event("application", "configuration", "whole element", "copy")
+    window.electron.analytics.influx("application", "configuration", "whole element", "copy")
   }
 
   function overwriteAllEventConfigs(){
@@ -83,7 +83,7 @@
    let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    //analytics.track_event("application", "configuration", "whole element", "overwrite")
+    window.electron.analytics.influx("application", "configuration", "whole element", "overwrite")
 
   }
 

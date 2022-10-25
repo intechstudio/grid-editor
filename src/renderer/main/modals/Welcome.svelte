@@ -1,52 +1,32 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { luadebug_store } from "../../runtime/runtime.store";
   import { appSettings, openInBrowser} from "../../runtime/app-helper.store";
 
   import {clickOutside} from '../_actions/click-outside.action'
 
   import {attachment} from '../user-interface/Monster.store'
 
-  import { writable, get, readable } from 'svelte/store';
-
-  console.log(env)
-
-
-  import {google} from 'googleapis';
-  const youtube = google.youtube('v3');
+  import { get } from 'svelte/store';
 
   const { env } = window.ctxProcess;
-
 
   let video_link= env["YOUTUBE_RELEASENOTES_FALLBACK_URL"]
 
   let modalElement;
   let attachmentElement;
 
-  let videoId;
+  let video_id;
 
-  onMount(()=>{
+  onMount(async()=>{
 
-    console.log("YOUTUBE", youtube)
+    const {videoLink, videoId} = await window.electron.getLatestVideo();
 
-    const result = youtube.playlistItems.list({
-      key: env["YOUTUBE_API_KEY"],
-      part: 'snippet',
-      playlistId: env["YOUTUBE_RELEASENOTES_PLAYLIST_ID"],
-      maxResult: 100,
-    }, (err, results) => {
-      //console.log("YOUTUBE", err ? err.message : results);
-      if (err){
+    console.log(videoLink, videoId)
 
-      }
-      else{
-        const snippet = results.data.items[results.data.items.length-1].snippet
-        video_link = "https://www.youtube.com/watch?v="+snippet.resourceId.videoId
-        videoId = snippet.resourceId.videoId
-        console.log(video_link)
-      }
-      
-    });
+    if(videoLink && videoId){
+      video_link = videoLink;
+      video_id = videoId;
+    }
 
     $attachment = {element: attachmentElement, hpos: "100%", vpos: "50%"}
 
@@ -102,7 +82,7 @@
             <div class="flex w-full text-xl opacity-70 ">Latest Release Video</div>
 
             <iframe crossorigin="anonymous" title="release video" class="py-1 w-full h-full block"
-              src="https://youtube.com/embed/{videoId}">
+              src="https://youtube.com/embed/{video_id}">
             </iframe> 
 
           </div>

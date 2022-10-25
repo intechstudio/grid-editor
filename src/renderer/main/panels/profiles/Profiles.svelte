@@ -1,12 +1,7 @@
 <script>
   import { get } from 'svelte/store'
 
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
-
-  //const { getGlobal } = require('@electron/remote');
-  //const trackEvent = getGlobal('trackEvent');
-  //import { analytics } from '../../../runtime/analytics_influx';
-
+  import { fade, slide } from "svelte/transition";
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { appSettings, profileListRefresh } from '../../../runtime/app-helper.store.js';
@@ -83,8 +78,8 @@
 
   function prepareSave() { 
 
-    //trackEvent('profile-library', 'profile-library: save start')
-    //analytics.track_event("application", "profiles", "profile", "save start")
+    window.electron.analytics.influx('profile-library', {value: 'save start'})
+    window.electron.analytics.influx("application", "profiles", "profile", "save start")
 
     let callback = function(){           
       logger.set({type: 'progress', mode: 0, classname: 'profilesave', message: `Ready to save profile!`});
@@ -138,8 +133,8 @@
 
   function loadProfile(){
 
-    //trackEvent('profile-library', 'profile-library: load start')
-    //analytics.track_event("application", "profiles", "profile", "load start")
+    window.electron.analytics.google('profile-library', {value: 'load start'})
+    window.electron.analytics.influx("application", "profiles", "profile", "load start")
 
     if(selected !== undefined){
 
@@ -154,15 +149,15 @@
 
         runtime.whole_page_overwrite(profile.configs);
 
-        //trackEvent('profile-library', 'profile-library: load success')
-        //analytics.track_event("application", "profiles", "profile", "load success")
+        window.electron.analytics.google('profile-library', {value: 'load success'})
+        window.electron.analytics.influx("application", "profiles", "profile", "load success")
 
 
       } else {
 
 
-        //trackEvent('profile-library', 'profile-library: load mismatch')
-        //analytics.track_event("application", "profiles", "profile", "load mismatch")
+        window.electron.analytics.google('profile-library', {value: 'load mismatch'})
+        window.electron.analytics.influx("application", "profiles", "profile", "load mismatch")
         logger.set({type: 'alert', mode: 0, classname: 'profileload', message: `Profile is not made for ${currentModule.id.substr(0,4)}!`})
 
       }

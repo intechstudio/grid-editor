@@ -1,30 +1,21 @@
 import { writable, get, readable } from 'svelte/store';
 import { getAllComponents } from '$lib/_configs';
 
-const ipcRenderer = window.sketchyAPI;
-
 const ctxProcess = window.ctxProcess;
-
-
 
 export function openInBrowser(url){
  // shell.openExternal(url)
 }
 
-//import { getGlobal } from '@electron/remote';
-const trackEvent = function(){} //getGlobal('trackEvent');
-
 function checkOS() {
-
   if (typeof window.ctxProcess === 'object') {
     return ctxProcess.platform;
   }
- 
   return 'browser';
 }
 
 
-const versionstring = ipcRenderer.sendSync('app_version')
+const versionstring = ctxProcess.env.npm_package_version;
 
 export const current_tooltip_store = writable({key: '', bool: false});
 
@@ -240,9 +231,6 @@ function createPresetManagement(){
     }
   }
 }
-
-//trackEvent('fw-editor-version', `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`);
-//trackEvent('operating-system', ctxProcess.platform)
 
 export const activeDropDown = writable({config_index: undefined, input_index: undefined})
 

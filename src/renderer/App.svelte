@@ -11,9 +11,12 @@
    *  svelte UI parts and components
   */
 
-  import { appSettings } from './runtime/app-helper.store';
 
   import { onMount } from 'svelte';
+  import { get } from 'svelte/store'; 
+
+  import { appSettings } from './runtime/app-helper.store';
+
   import Titlebar from              './main/Titlebar.svelte';
   import NavTabs from               './main/NavTabs.svelte';
 
@@ -25,7 +28,7 @@
 
 
   import Export from                 './main/modals/Export.svelte';
-  //import Welcome from                 './main/modals/Welcome.svelte';
+  import Welcome from                 './main/modals/Welcome.svelte';
   import Monaco from                 './main/modals/Monaco.svelte';
   import Feedback from                 './main/modals/Feedback.svelte';
 
@@ -48,7 +51,7 @@
 
   modalComponents[""] = undefined;
   modalComponents["export"] = Export;
-  //modalComponents["welcome"] = Welcome;
+  modalComponents["welcome"] = Welcome;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
 
@@ -75,6 +78,13 @@
   function resize(){
     $windowSize.window = $windowSize.window+1;
   }
+
+  onMount(()=>{
+    // application mounted, check analytics
+    window.electron.analytics.influx('application', 'init', 'init', 'init');
+    window.electron.analytics.google('fw-editor-version', {value: `v${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`});
+
+  })
 
 </script>
 

@@ -8,21 +8,14 @@
 
   import {Webhook}  from 'simple-discord-webhooks';
 
-  const ctxProcess = window.ctxProcess; 
-
   import instructions from "../serialport/instructions";
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
 
-  //import { getGlobal } from '@electron/remote';
-//const trackEvent = function(){} //getGlobal('trackEvent');
-
-  //import { analytics } from "../runtime/analytics_influx"
-
   function store() {
 
-    //trackEvent('page-config', 'page-config: store') 
-    //analytics.track_event("application", "topsubmenu", "pageconfig", "store")
+    window.electron.analytics.google('page-config', {value: 'store'}) 
+    window.electron.analytics.influx("application", "topsubmenu", "pageconfig", "store")
 
     instructions.sendPageStoreToGrid();
   }
@@ -31,16 +24,16 @@
 
     instructions.sendPageDiscardToGrid();
 
-    //trackEvent('page-config', 'page-config: discard')
-    //analytics.track_event("application", "topsubmenu", "pageconfig", "discard")
+    window.electron.analytics.google('page-config', {value: 'discard'})
+    window.electron.analytics.influx("application", "topsubmenu", "pageconfig", "discard")
 
   }
 
   function clear() {
     instructions.sendPageClearToGrid();
     
-    //trackEvent('page-config', 'page-config: clear')
-    //analytics.track_event("application", "topsubmenu", "pageconfig", "clear")
+    window.electron.analytics.google('page-config', { value:'clear'})
+    window.electron.analytics.influx("application", "topsubmenu", "pageconfig", "clear")
 
   }
 
@@ -55,14 +48,13 @@
   function debugWriteBuffer(){
 
     console.log(get(writeBuffer));
-    
-    
-    //discord
-    //const webhook = new Webhook(ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
-   // webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
+
+    // discord
+    // const webhook = new Webhook(ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
+    // webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
         
-    //trackEvent('writebuffer', 'writebuffer: clear')
-    //analytics.track_event("application", "topsubmenu", "writebuffer", "clear")
+    window.electron.analytics.google('writebuffer', {value: 'clear'})
+    window.electron.analytics.influx("application", "topsubmenu", "writebuffer", "clear")
 
 
     writeBuffer.clear();

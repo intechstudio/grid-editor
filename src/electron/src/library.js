@@ -5,6 +5,7 @@ const log = require('electron-log');
 const fs = require('fs-extra');
 
 const { store } = require('../main-store');
+const { googleAnalytics, influxAnalytics } = require('./analytics');
 
 /**
  * 
@@ -45,8 +46,8 @@ async function extractArchiveToTemp(data, endOfEntryName, folder){
 
 async function libraryDownload(targetFolder){
 
-  //trackEvent('library-download', 'library-download: download start')
-  //analytics.track_event("application", "preferences", "profile downloader status", "download started")
+  googleAnalytics('library-download', {value: 'download start'})
+  influxAnalytics("application", "preferences", "profile downloader status", "download started")
 
   log.info("Starting the download...")
   
@@ -75,16 +76,20 @@ async function libraryDownload(targetFolder){
 
     log.info("Profiles copied!")
 
+    googleAnalytics('library-download', {value: 'download success'})
+    influxAnalytics("application", "preferences", "profile downloader status", "download success")
+
     return 'success';
-    //trackEvent('library-download', 'library-download: download success')
-    //analytics.track_event("application", "preferences", "profile downloader status", "download success")
+
   }
   else{
     log.error("Fail after archive extraction!")
 
+    googleAnalytics('library-download', {value: 'download failed'})   
+    influxAnalytics("application", "preferences", "profile downloader status", "download fail")
+    
     return 'failed';
-      //trackEvent('library-download', 'library-download: download failed')   
-      //analytics.track_event("application", "preferences", "profile downloader status", "download fail")
+
   }
 
 }

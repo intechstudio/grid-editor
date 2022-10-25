@@ -573,7 +573,7 @@ function create_runtime () {
 
         }
 
-        //analytics.track_event("application", "runtime", "module count", _runtime.lengt)
+        window.electron.analytics.influx("application", "runtime", "module count", _runtime.lengt)
 
       }
 
@@ -1059,7 +1059,7 @@ function create_runtime () {
   
 
     
-    //analytics.track_event("application", "runtime", "module count", get(runtime).length)
+    window.electron.analytics.influx("application", "runtime", "module count", get(runtime).length)
   }
 
   function reset(){
@@ -1166,14 +1166,14 @@ setInterval(function(){
 
   if (!get(appSettings).trayState){
 
-    //analytics.track_event("application", "runtime", "tray state", 1)
+    window.electron.analytics.influx("application", "runtime", "tray state", 1)
   }
   else{
-    //analytics.track_event("application", "runtime", "tray state", 0)
+    window.electron.analytics.influx("application", "runtime", "tray state", 0)
   }
 
 
-  //analytics.track_event("application", "runtime", "module count", get(runtime).length)
+  window.electron.analytics.influx("application", "runtime", "module count", get(runtime).length)
 
 
 }, 10000);

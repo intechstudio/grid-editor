@@ -14,7 +14,8 @@
 
     $appSettings.modal = 'feedback'
     $appSettings.feedback_context = feedback_context
-    //analytics.track_event("application", "feedback", "feedback context", feedback_context)
+
+    window.electron.analytics.influx("application", "feedback", "feedback context", feedback_context)
   }
 
 </script>

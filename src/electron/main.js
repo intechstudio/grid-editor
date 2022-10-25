@@ -1,16 +1,13 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
-const { trackEvent } = require('./analytics');
 require('@electron/remote/main').initialize();
 
 const { serial } = require('./ipcmain_serialport');
 const { websocket } = require('./ipcmain_websocket');
 
-
 const { store } = require('./main-store');
 
 const { iconBuffer, iconSize } = require('./icon');
-
 
 // might be environment variables as well.
 const grid_env = require('../../configuration.json')
@@ -18,14 +15,9 @@ for (const key in grid_env) {
   process.env[key] = grid_env[key]
 }
 
-global.trackEvent = trackEvent;
-
 const path = require('path');
 const log = require('electron-log');
-
-const {download} = require('electron-dl');
 const fs = require('fs-extra');  
-var AdmZip = require("adm-zip");
 
 
 autoUpdater.logger = log;
@@ -64,7 +56,7 @@ function create_tray(){
 
         mainWindow.webContents.send('trayState', false)
 
-        trackEvent('tray', 'tray: show window')
+        googleAnalytics('tray', {value: 'show window'})
       }
     },    
     {
@@ -74,7 +66,7 @@ function create_tray(){
 
         mainWindow.webContents.send('trayState', true)
 
-        trackEvent('tray', 'tray: hide window')
+        googleAnalytics('tray', {value: 'hide window'})
       }
     },
     {
@@ -310,6 +302,7 @@ ipcMain.handle('defaultDirectory', (event, arg) => {
 
 
 
+
 const { loadConfigsFromDirectory, moveOldConfigs, saveConfig } = require('./src/profiles');
 ipcMain.handle('moveOldConfigs', async(event, arg) => {
   return await moveOldConfigs(arg.configPath, arg.rootDirectory);
@@ -324,6 +317,11 @@ ipcMain.handle('saveConfig',async (event, arg) => {
 })
 
 
+
+
+
+
+
 const { firmwareDownload, findBootloaderPath } = require('./src/firmware');
 // this is needed for the functions to have the mainWindow for communication
 ipcMain.handle('firmwareDownload', async (event, arg) => {
@@ -332,6 +330,38 @@ ipcMain.handle('firmwareDownload', async (event, arg) => {
 ipcMain.handle('findBootloaderPath', async (event, arg) => {
   return await findBootloaderPath();
 })
+
+
+
+
+
+
+
+
+const { influxAnalytics, googleAnalytics } = require('./src/analytics');
+ipcMain.handle('googleAnalytics', async (event, arg) => {
+  return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
+})
+ipcMain.handle('influxAnalytics', async (event, arg) => {
+  return await influxAnalytics(arg.category, arg.action, arg.label, arg.value);
+})
+
+
+
+
+
+
+
+const { getLatestVideo } = require('./src/youtube');
+ipcMain.handle('getLatestVideo', async (event, arg) => {
+  return await getLatestVideo()
+})
+
+
+
+
+
+
 
 
 // persistent storage for the app

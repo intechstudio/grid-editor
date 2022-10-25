@@ -11,19 +11,10 @@
 
   import { onMount, onDestroy } from 'svelte';
 
-
   import TooltipSetter from '../../user-interface/tooltip/TooltipSetter.svelte';
   import TooltipQuestion from '../../user-interface/tooltip/TooltipQuestion.svelte';
 
   import { appSettings } from '../../../runtime/app-helper.store';
-  //import { analytics } from '../../../runtime/analytics_influx';
-
-
-  /**
-  const { getGlobal, dialog } = require('@electron/remote');
-  const trackEvent = getGlobal('trackEvent');
-  */
-
 
   let helperPreviewElement;
 
@@ -88,8 +79,8 @@
 
   async function libraryDownload(){
 
-    //trackEvent('library-download', 'library-download: download start')
-    //analytics.track_event("application", "preferences", "profile downloader status", "download started")
+    window.electron.analytics.google('library-download', {value: 'download start'})
+    window.electron.analytics.influx("application", "preferences", "profile downloader status", "download started")
 
     clearTimeout(download_status_interval)
 
@@ -104,8 +95,8 @@
 
     download_status = "Library updated!"
 
-    //trackEvent('library-download', 'library-download: download success')
-    //analytics.track_event("application", "preferences", "profile downloader status", "download success")
+    window.electron.analytics.google('library-download', {value: 'download success'})
+    window.electron.analytics.influx("application", "preferences", "profile downloader status", "download success")
 
     download_status_interval = setTimeout(() => {
       download_status = ""
@@ -135,22 +126,22 @@
 
   function setModuleRotation(rot){
     $appSettings.persistant.moduleRotation = rot
-    //analytics.track_event("application", "preferences", "module rotation", "set to "+rot)
+    window.electron.analytics.influx("application", "preferences", "module rotation", "set to "+rot)
   }
 
   function setHelperShape(shape){
     $appSettings.persistant.helperShape = shape
-    //analytics.track_event("application", "preferences", "helper shape", "set to "+shape)
+    window.electron.analytics.influx("application", "preferences", "helper shape", "set to "+shape)
   }
 
   function setHelperColor(color){
     $appSettings.persistant.helperColor = color
-    //analytics.track_event("application", "preferences", "helper color", "set to "+color)
+    window.electron.analytics.influx("application", "preferences", "helper color", "set to "+color)
   }
 
   function setHelperName(){
     //console.log("name")
-    //analytics.track_event("application", "preferences", "helper color", "set to ...")
+    window.electron.analytics.influx("application", "preferences", "helper color", "set to ...")
   }
 
 

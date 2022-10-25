@@ -54,7 +54,7 @@
     let action_name = get(presetManagement.selected_action).name;
 
 
-    analytics.track_event("application", "configpicker", "added action", action_name)
+    window.electron.analytics.influx("application", "configpicker", "added action", action_name)
 
     dispatch('new-config', {
       config: cfg
@@ -78,7 +78,7 @@
     configSelection = false;
     visible = false;
 
-    analytics.track_event("application", "configpicker", "multiselect", "paste")
+    window.electron.analytics.influx("application", "configpicker", "multiselect", "paste")
   }
 
   let action_options = [];
@@ -197,7 +197,7 @@
     let actionPickerDuration = Date.now() - actionPickerTimestamp;
 
 
-    analytics.track_event("application", "configpicker", "time to pick", actionPickerDuration)
+    window.electron.analytics.influx("application", "configpicker", "time to pick", actionPickerDuration)
 
 
     initConfig();

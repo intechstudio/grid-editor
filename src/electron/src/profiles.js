@@ -1,5 +1,6 @@
 const fs = require('fs');
 const log = require('electron-log');
+const { googleAnalytics, influxAnalytics } = require('./analytics');
 
 async function checkIfWritableDirectory(path){
 
@@ -129,8 +130,8 @@ async function saveConfig(configPath, name, config, rootDirectory){
       // we should call this function in renderer, after the profile is saved
       // loadProfilesFromDirectory(path); 
 
-      //trackEvent('profile-library', 'profile-library: save success')
-      //analytics.track_event("application", "profiles", "profile", "save success")
+      googleAnalytics('profile-library', {value:'save success'})
+      influxAnalytics("application", "profiles", "profile", "save success")
 
   }); 
 }

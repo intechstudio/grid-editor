@@ -174,7 +174,7 @@
   $: if (tooltip_isvisible && tooltip_delaydone){
 
     calculate_position()
-    //analytics.track_event("application", "tooltip", "show tooltip", key)
+    window.electron.analytics.influx("application", "tooltip", "show tooltip", key)
 
     if (tooltip_helperOnLeft){
 

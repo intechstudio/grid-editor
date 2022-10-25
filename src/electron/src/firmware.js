@@ -3,6 +3,7 @@ const log = require('electron-log');
 const fs = require('fs-extra');
 
 const { extractArchiveToTemp, downloadInMainProcess } = require('./library');
+const { googleAnalytics, influxAnalytics } = require('./analytics');
 
 let bootloader_path = undefined;
 
@@ -56,8 +57,8 @@ async function findBootloaderPath(){
 
       firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid bootloader is detected!", code: 3});
         
-      //trackEvent('firmware-download', 'firmware-download: bootloader detected')
-      //analytics.track_event("application", "firmwarecheck", "firmware update status", "bootloader detected")
+      window.electron.analytics.google('firmware-download', {value: 'firmware-download: bootloader detected'})
+      window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "bootloader detected")
 
       return bootloader_path;
 
@@ -67,23 +68,14 @@ async function findBootloaderPath(){
   // reset path
   if (bootloader_path !== undefined){
     log.info('some reset stuff should happen here...')
-    /**
-    bootloader_path = undefined;
-    setTimeout(() => {
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "", code: 0});
-
-    }, 2000);
-     */
   }
 
 }
 
 async function firmwareDownload(targetFolder){
 
-  //appSettings.update(s => {s.firmwareNotificationState = 4; return s;})
-
-  //trackEvent('firmware-download', 'firmware-download: update start')
-  //analytics.track_event("application", "firmwarecheck", "firmware update status", "update started")
+  googleAnalytics('firmware-download', {value: 'update start'})
+  influxAnalytics("application", "firmwarecheck", "firmware update status", "update started")
 
   const version = "v"+process.env.FIRMWARE_REQUIRED_MAJOR+"."+process.env.FIRMWARE_REQUIRED_MINOR+"."+process.env.FIRMWARE_REQUIRED_PATCH
   const link = process.env.FIRMWARE_URL_BEGINING + version + process.env.FIRMWARE_URL_END;
@@ -96,21 +88,15 @@ async function firmwareDownload(targetFolder){
 
   await delay(1000);
 
-  console.log(downloadResult);
-
   const firmwareFileName = filePathArray[0];
-
-  console.log(filePathArray);
 
 
   if (firmwareFileName === undefined){
     firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Error: Download failed.", code: 3});
 
-    //trackEvent('firmware-download', 'firmware-download: download fail')
-    //analytics.track_event("application", "firmwarecheck", "firmware update status", "download fail")
-    //await delay(2500);
-    
-    //appSettings.update(s => {s.firmwareNotificationState = 3; return s;})
+    googleAnalytics('firmware-download', {value: 'download fail'})
+    influxAnalytics("application", "firmwarecheck", "firmware update status", "download fail")    
+
     return;
   }
 
@@ -129,15 +115,16 @@ async function firmwareDownload(targetFolder){
 
     firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Update completed successfully!",code: 5});
 
-    //trackEvent('firmware-download', 'firmware-download: update success')
-    //analytics.track_event("application", "firmwarecheck", "firmware update status", "update success")
+    googleAnalytics('firmware-download', {value: 'update success'})
+    influxAnalytics("application", "firmwarecheck", "firmware update status", "update success")
     
   }
   else{
+    
     log.warn("GRID_NOT_FOUND")
 
-    //trackEvent('firmware-download', 'firmware-download: update fail')
-    //analytics.track_event("application", "firmwarecheck", "firmware update status", "update fail")
+    googleAnalytics('firmware-download', {value: 'update fail'})
+    influxAnalytics("application", "firmwarecheck", "firmware update status", "update fail")
   }
 
 
