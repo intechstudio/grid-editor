@@ -176,16 +176,14 @@ function createWindow() {
     const { firmware } = require('./src/firmware');
     firmware.mainWindow = mainWindow;
 
-    log.info('process.env.NODE_ENV', process.env.NODE_ENV, 'entry: ', `file://${path.join(__dirname, '../../src/renderer/index.html')}`);
-
     if(process.env.NODE_ENV == 'development'){
       log.info('Development Mode!')
       mainWindow.loadURL('http://localhost:5173/');
       mainWindow.webContents.openDevTools();
     } else {
       // this is lazy, we should launch electron explicitly with node_env production, but this works as well
-      log.info('Production Mode!', `file://${path.join(__dirname, '../../src/renderer/index.html')}`);
-      mainWindow.loadURL(`file://${path.join(__dirname, '../../src/renderer/index.html')}`);   
+      log.info('Production Mode!', `file://${path.join(__dirname, '../../dist-svelte/index.html')}`);
+      mainWindow.loadURL(`file://${path.join(__dirname, '../../dist-svelte/index.html')}`);   
     }
 
     mainWindow.on('close', (evt)=> {

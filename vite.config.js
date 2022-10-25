@@ -3,6 +3,7 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import preprocess from 'svelte-preprocess';
 import path from 'path';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import copy from 'rollup-plugin-copy';
 
 export default defineConfig({
     optimizeDeps: {
@@ -18,6 +19,22 @@ export default defineConfig({
       }),
       monacoEditorPlugin([])
     ], 
+    build: {
+      outDir: ('../../dist-svelte'),
+      rollupOptions: {
+        plugins: [
+          copy({
+            targets:[
+              { src: 'src/renderer/config-blocks/*', dest: 'dist-svelte/config-blocks'},
+              { src: 'src/renderer/assets/fonts/*', dest: 'dist-svelte/assets/fonts'}
+            ],
+            copyOnce: true,
+            hook: "writeBundle"
+          })
+        ]
+      }
+    },
+    
     root: path.resolve(process.cwd(), 'src/renderer'),
     base: './',
     resolve: {
