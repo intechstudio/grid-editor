@@ -16,7 +16,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v2
         with:
-          node-version: '18.10.0'        
+          node-version: '16.16'        
 
       - name: Install dependencies
         run: npm i
@@ -31,8 +31,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
           # windows Code signing
-          CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v2
@@ -56,7 +56,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v2
         with:
-          node-version: '18.10.0'        
+          node-version: '16.16'        
 
       - name: Install dependencies
         run: npm i
@@ -100,7 +100,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v2
         with:
-          node-version: '18.10.0'        
+          node-version: '16.16'        
 
       - name: Install dependencies
         run: npm i
@@ -136,7 +136,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v2
         with:
-          node-version: '18.10.0'        
+          node-version: '16.16'        
 
       - name: Install dependencies
         run: npm i
