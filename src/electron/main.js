@@ -171,8 +171,6 @@ function createWindow() {
     serial.mainWindow = mainWindow;
     websocket.mainWindow = mainWindow;
 
-    require("@electron/remote/main").enable(mainWindow.webContents);
-
     const { firmware } = require('./src/firmware');
     firmware.mainWindow = mainWindow;
 
