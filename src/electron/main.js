@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
 const { autoUpdater } = require('electron-updater');
-require('@electron/remote/main').initialize();
 
 const { serial } = require('./ipcmain_serialport');
 const { websocket } = require('./ipcmain_websocket');
