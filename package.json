@@ -93,7 +93,7 @@
     "dmg": {
       "sign": false
     },
-    "afterSign": "./dist-assets/notarize.js"
+    "afterSign": "dist-assets/notarize.js"
   },
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
