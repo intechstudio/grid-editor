@@ -22,6 +22,9 @@ jobs:
         run: npm i
         env:
           UA: ${{ secrets.UA }}
+
+      - name: see directory
+        run: ls  
       
       - name: Build        
         run: npm run export:nightly
@@ -56,7 +59,16 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v2
         with:
-          node-version: '18.10'        
+          node-version: '18.10'
+
+      - name: see directory
+        run: ls        
+
+      - name: install build tools
+        run: npm install -g node-gyp
+        
+      - name: configure python version
+        run: npm config set python python3.7
 
       - name: Install dependencies
         run: npm i
