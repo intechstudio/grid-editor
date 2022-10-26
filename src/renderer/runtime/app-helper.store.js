@@ -26,9 +26,9 @@ function createAppSettingsStore(){
   const store = writable({
     size: 2.1,
     version: {
-      major: envs.npm_package_version.split('.')[0],
-      minor: envs.npm_package_version.split('.')[1],
-      patch: envs.npm_package_version.split('.')[2]
+      major: envs.EDITOR_VERSION.split('.')[0],
+      minor: envs.EDITOR_VERSION.split('.')[1],
+      patch: envs.EDITOR_VERSION.split('.')[2]
     },
     overlays: {controlElementName: false},
     debugMode: false,
@@ -184,10 +184,10 @@ function init_appsettings(){
     if (get(appSettings).persistant.welcomeOnStartup === undefined ||
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != envs["npm_package_version"]){
+        get(appSettings).persistant.lastVersion != envs["EDITOR_VERSION"]){
 
       appSettings.update(s => {
-        s.persistant.lastVersion = envs["npm_package_version"]
+        s.persistant.lastVersion = envs["EDITOR_VERSION"]
         s.persistant.welcomeOnStartup = true
         s.modal = 'welcome'
         return s;

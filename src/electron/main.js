@@ -12,7 +12,9 @@ const { iconBuffer, iconSize } = require('./icon');
 const grid_env = require('../../configuration.json')
 for (const key in grid_env) {
   process.env[key] = grid_env[key]
+  console.log(process.env[key])
 }
+
 
 const path = require('path');
 const log = require('electron-log');
@@ -125,7 +127,7 @@ if (process.env.NODE_ENV === 'development') {
 
 function createWindow() {
 
-    const windowTitle = 'Grid Editor - ' + process.env.npm_package_version;
+    const windowTitle = 'Grid Editor - ' + process.env.EDITOR_VERSION;
 
     // First we'll get our height and width. This will be the defaults if there wasn't anything saved
     let { width, height } = store.get('windowBounds');
