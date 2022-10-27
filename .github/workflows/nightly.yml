@@ -3,6 +3,125 @@ name: Build Nightly Grid Editor
 on: push
 
 jobs:
+  win-build:
+    name: Windows Build
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ''
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '17'        
+
+      - name: Install dependencies
+        run: npm i
+        env:
+          UA: ${{ secrets.UA }}
+      
+      - name: Build        
+        run: npm run export:nightly
+        if: ${{ always() }}
+        env:     
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-nightly
+          path: dist/*.*
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+  mac-build:
+    name: MacOS Build
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ''
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '17'        
+
+      - name: Install dependencies
+        run: npm i
+        env:
+          UA: ${{ secrets.UA }}
+      
+      - name: Build        
+        run: npm run export:nightly
+        if: ${{ always() }}
+        env:     
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # Apple ID
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_ID_PASSWORD: ${{secrets.APPLE_ID_PASSWORD}}
+
+          # macOS Code signing
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: macos-nightly
+          path: dist/*.*
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
+  linux-build:
+    name: Linux Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ''
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: '17'        
+
+      - name: Install dependencies
+        run: npm i
+        env:
+          UA: ${{ secrets.UA }}
+      
+      - name: Build        
+        run: npm run export:nightly
+        if: ${{ always() }}
+        env:     
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-nightly
+          path: dist/*.*
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
 
   linux-unittest:
     name: Linux Unit Test
@@ -30,13 +149,13 @@ jobs:
           cat unittest.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: linux-unittest
           path: unittest.txt
       
       - name: Download Artifacts
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
 
       - uses: tsickert/discord-webhook@v4.0.0
         with:

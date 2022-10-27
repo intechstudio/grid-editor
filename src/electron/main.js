@@ -12,8 +12,9 @@ const { iconBuffer, iconSize } = require('./icon');
 const grid_env = require('../../configuration.json')
 for (const key in grid_env) {
   process.env[key] = grid_env[key]
-  console.log(process.env[key])
 }
+
+process.env["EDITOR_VERSION"] = app.getVersion();
 
 
 const path = require('path');
