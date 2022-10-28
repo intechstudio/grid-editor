@@ -1,0 +1,182 @@
+const fs = require('fs');
+const log = require('electron-log');
+const { googleAnalytics, influxAnalytics } = require('./analytics');
+
+async function checkIfWritableDirectory(path){
+
+  const stats = fs.promises.stat(path).then(res => ({
+    isFile: res.isFile(), 
+    isDirectory: res.isDirectory()
+  }));
+
+  return await Promise.all([stats])
+}
+
+async function moveOldConfigs(configPath, rootDirectory){
+
+  let path = configPath;
+
+  if(!fs.existsSync(path)) fs.mkdirSync(path);
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+  if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
+
+  log.info(rootDirectory + ' move start...');
+
+  await fs.promises.readdir(path).then(files => {
+
+    files.forEach(async file => {
+
+        let filepath = path + "/" + file;
+        
+        const [stats] = await checkIfWritableDirectory(filepath);
+
+        if(stats.isFile){
+          let filenameparts = file.split(".");
+          let extension = filenameparts[filenameparts.length-1];
+          if (extension === "json"){
+            fs.renameSync(path + "/" + file, path + "/" + rootDirectory + "/user/" + file);
+            log.info("moving: ", file);
+          }
+
+
+        } else {
+
+          log.info('Not a file!');
+
+        }
+      
+    })
+
+  }).catch(err => { 
+
+    log.error(err)
+
+  });
+
+  log.info(rootDirectory + ' move end.');
+
+}
+
+async function loadConfigsFromDirectory(configPath, rootDirectory){
+
+  let path = configPath;
+
+  console.log(path, rootDirectory)
+
+  // Create the folder if it does not exist
+  if(!fs.existsSync(path)) fs.mkdirSync(path);
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+
+  // either presets or profiles (pages)
+  // make sure to figure out naming conventions!
+  let configs = []; 
+
+  const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`);
+
+  if(stats.isDirectory){
+
+    // get list of directories
+    let dirs = fs.readdirSync(`${path}/${rootDirectory}`, { withFileTypes: true })
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name)
+
+    // for all directories...
+
+    for (const dir of dirs) {
+      const files = await fs.promises.readdir(`${path}/${rootDirectory}/${dir}`);
+      for (const file of files) {
+        let filepath = path + "/" + rootDirectory + "/" + dir + "/" + file;          
+        const [stats] = await checkIfWritableDirectory(filepath);
+        if(stats.isFile){
+          await fs.promises.readFile(filepath,'utf-8').then(data => { 
+            if(isJson(data)){                
+              let obj = JSON.parse(data);
+              if(obj.isGridProfile || obj.isGridPreset){
+                obj.folder = dir;
+                obj.showMore = false;
+                obj.color = stringToColor(dir)
+                configs.push(obj);
+              } else {
+                log.info('JSON is not a grid profile!') ;
+              }
+            }
+          })
+        } else {
+          log.info('Not a file!');
+        }
+      }
+    }
+  } else {
+    log.info('Not a directory!');
+  }
+
+  return configs;
+}
+
+async function saveConfig(configPath, name, config, rootDirectory){     
+  
+  const path = configPath;
+  
+  if(!fs.existsSync(path)) fs.mkdirSync(path);
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+  if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
+
+
+  // Creating and Writing to the sample.txt file 
+  fs.writeFile(`${path}/${rootDirectory}/user/${name}.json`, JSON.stringify(config, null, 4), function (err) { 
+      if (err) throw err; 
+      console.log('Saved!'); 
+
+      // we should call this function in renderer, after the profile is saved
+      // loadProfilesFromDirectory(path); 
+
+      googleAnalytics('profile-library', {value:'save success'})
+      influxAnalytics("application", "profiles", "profile", "save success")
+
+  }); 
+}
+
+function isJson (str){
+  try {
+      JSON.parse(str);
+  } catch (e) {
+      return false;
+  }
+  return true;
+}
+
+function stringToColor(string) {
+
+  // Generte Hash
+
+  var hash = 0;
+  if (string.length == 0)
+      return hash;
+  for (let i = 0; i < string.length; i++) {
+      var charCode = string.charCodeAt(i);
+      hash = ((hash << 7) - hash) + charCode;
+      hash = hash & hash;
+  }
+
+  // define the color params
+
+  var hue = Math.abs(hash)%360; // degrees
+  var sat = 65; // percentage
+  var lum = 50; // percentage
+
+  // convert from HSL to RGB
+
+  lum /= 100;
+  const a = sat * Math.min(lum, 1 - lum) / 100;
+  const f = n => {
+    const k = (n + hue / 30) % 12;
+    const col = lum - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * col).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+  };
+
+  var color = `#${f(0)}${f(8)}${f(4)}`;
+
+  return color;
+}
+
+module.exports = {moveOldConfigs, loadConfigsFromDirectory, saveConfig}

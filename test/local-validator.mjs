@@ -30,7 +30,7 @@ Any string alphanumerical (latin) + '_' that does not start with a number
 
 import { expect } from 'chai';
 
-import { checkVariableName } from '../src/app/validators/local_validator.mjs';
+import { checkVariableName } from '../src/renderer/validators/local_validator.mjs';
 
 describe("validator --[[@l]] / variable name", () => {
 
