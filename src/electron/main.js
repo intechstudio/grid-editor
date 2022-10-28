@@ -117,14 +117,6 @@ if (!gotTheLock) {
   })
 }
 
-let watcher;
-if (process.env.NODE_ENV === 'development') {
- watcher = require('chokidar').watch(path.join(__dirname, '../../public/build/*'), { ignoreInitial: true });
- watcher.on('change', () => {
-    mainWindow.reload();
- });
-}
-
 
 function createWindow() {
 
@@ -150,7 +142,7 @@ function createWindow() {
           preload: path.join(__dirname, 'preload.js'),
           nodeIntegration: false,
           contextIsolation: true,
-          enableRemoteModule: true,
+          enableRemoteModule: false,
           backgroundThrottling: false
         },
         icon:'./icon.png'
@@ -194,11 +186,6 @@ function createWindow() {
         evt.preventDefault();
         mainWindow.hide();
       }
-
-      // stop debug functions
-      if (watcher) {
-        watcher.close();
-      } 
     })
 
     mainWindow.on('resize', () => {
@@ -253,9 +240,6 @@ function createWindow() {
 
 log.info('check fo update and notify...')
 autoUpdater.checkForUpdatesAndNotify();
-
-
-
 
 
 

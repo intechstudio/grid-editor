@@ -34,7 +34,7 @@ navigator.serial.addEventListener('disconnect', (e) => {
 
 export async function testIt() {
 
-  const env = await window.ctxProcess.env();
+  const env = window.ctxProcess.env();
 
   if (port_connected == false){
 
@@ -43,11 +43,11 @@ export async function testIt() {
       { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) }
     ];
 
-    console.log(filters);
+    console.log(navigator.serial)
 
     navigator.serial.requestPort({filters}).then(port=>{
 
-      console.log(port);
+      console.log('port',port);
 
       navigator.intechPort = port
 
