@@ -105,7 +105,7 @@
     "export:local": "run-s s:build e:builder:local",
     "s:build": "cross-env NODE_ENV=production vite build",
     "s:build:local": "cross-env NODE_ENV=production vite build",
-    "postinstall": "SET DEBUG=electron-builder&& electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps",
     "dev": "vite",
     "test": "mocha",
     "electron": "run-s build pure-electron",
