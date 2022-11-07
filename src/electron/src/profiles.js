@@ -14,38 +14,73 @@ async function checkIfWritableDirectory(path){
 
 async function moveOldConfigs(configPath, rootDirectory){
 
+  if (configPath === undefined) return;
+  if (configPath === "") return;
+
   let path = configPath;
+
+  log.info("TESTTTTTT", path, typeof configPath)
 
   if(!fs.existsSync(path)) fs.mkdirSync(path);
   if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
-  if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
+  
 
   log.info(rootDirectory + ' move start...');
 
-  await fs.promises.readdir(path).then(files => {
+  await fs.promises.readdir(`${path}/${rootDirectory}`).then( authors => {
 
-    files.forEach(async file => {
+    authors.forEach(async author => {
 
-        let filepath = path + "/" + file;
-        
-        const [stats] = await checkIfWritableDirectory(filepath);
+      await fs.promises.readdir(`${path}/${rootDirectory}/${author}`).then(files => {
 
-        if(stats.isFile){
-          let filenameparts = file.split(".");
-          let extension = filenameparts[filenameparts.length-1];
-          if (extension === "json"){
-            fs.renameSync(path + "/" + file, path + "/" + rootDirectory + "/user/" + file);
-            log.info("moving: ", file);
+        log.info("SUKU", files)
+
+        files.forEach(async file => {
+
+          let filepath = `${path}/${rootDirectory}/${author}/${file}`;
+          
+          const [stats] = await checkIfWritableDirectory(filepath);
+  
+          if(stats.isFile){
+            log.info("SUKU", file)
+            let filenameparts = file.split(".");
+            let extension = filenameparts[filenameparts.length-1];
+            if (extension === "json"){
+
+              if(file.lastIndexOf(".") != -1){
+
+                let basename = file.substring(0, file.lastIndexOf("."));
+
+                if(!fs.existsSync(`${path}/${rootDirectory}/${author}/${basename}`)) 
+                {
+                  fs.mkdirSync(`${path}/${rootDirectory}/${author}/${basename}`)
+                }
+
+                const from = `${path}/${rootDirectory}/${author}/${file}`
+                const to = `${path}/${rootDirectory}/${author}/${basename}/${file}`
+                fs.renameSync(from, to);
+                log.info("moving: ", file);
+              }
+            
+
+
+            }
+  
+  
+          } else {
+  
+            log.info('Not a file!');
+  
           }
+        
+      })
 
-
-        } else {
-
-          log.info('Not a file!');
-
-        }
+      });
       
+
     })
+
+
 
   }).catch(err => { 
 
@@ -83,26 +118,40 @@ async function loadConfigsFromDirectory(configPath, rootDirectory){
     // for all directories...
 
     for (const dir of dirs) {
-      const files = await fs.promises.readdir(`${path}/${rootDirectory}/${dir}`);
-      for (const file of files) {
-        let filepath = path + "/" + rootDirectory + "/" + dir + "/" + file;          
-        const [stats] = await checkIfWritableDirectory(filepath);
-        if(stats.isFile){
-          await fs.promises.readFile(filepath,'utf-8').then(data => { 
-            if(isJson(data)){                
-              let obj = JSON.parse(data);
-              if(obj.isGridProfile || obj.isGridPreset){
-                obj.folder = dir;
-                obj.showMore = false;
-                obj.color = stringToColor(dir)
-                configs.push(obj);
-              } else {
-                log.info('JSON is not a grid profile!') ;
+      const directories = await fs.promises.readdir(`${path}/${rootDirectory}/${dir}`);
+      for (const directory of directories) {
+        let directorypath = path + "/" + rootDirectory + "/" + dir + "/" + directory;          
+        const [stats] = await checkIfWritableDirectory(directorypath);
+        if(stats.isDirectory){
+
+          const files = await fs.promises.readdir(`${path}/${rootDirectory}/${dir}/${directory}`);
+          for (const file of files) {
+
+            let filepath = path + "/" + rootDirectory + "/" + dir + "/" + directory + "/" + file;          
+            const [stats] = await checkIfWritableDirectory(directorypath);
+
+            await fs.promises.readFile(filepath,'utf-8').then(data => { 
+              if(isJson(data)){                
+                let obj = JSON.parse(data);
+                if(obj.isGridProfile || obj.isGridPreset){
+                  obj.folder = dir;
+                  obj.showMore = false;
+                  obj.color = stringToColor(dir)
+                  configs.push(obj);
+                } else {
+                  log.info('JSON is not a grid profile!') ;
+                }
               }
-            }
-          })
+              else {
+                log.info('Not a file!');
+
+              }
+            })
+
+          }
+
         } else {
-          log.info('Not a file!');
+          log.info('Not a directory!');
         }
       }
     }
@@ -122,8 +171,11 @@ async function saveConfig(configPath, name, config, rootDirectory){
   if(!fs.existsSync(`${path}/${rootDirectory}/user`)) fs.mkdirSync(`${path}/${rootDirectory}/user`);
 
 
+  if(!fs.existsSync(`${path}/${rootDirectory}/user/${name}`)) fs.mkdirSync(`${path}/${rootDirectory}/user/${name}`);
+
+
   // Creating and Writing to the sample.txt file 
-  fs.writeFile(`${path}/${rootDirectory}/user/${name}.json`, JSON.stringify(config, null, 4), function (err) { 
+  fs.writeFile(`${path}/${rootDirectory}/user/${name}/${name}.json`, JSON.stringify(config, null, 4), function (err) { 
       if (err) throw err; 
       console.log('Saved!'); 
 

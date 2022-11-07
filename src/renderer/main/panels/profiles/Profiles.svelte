@@ -1,6 +1,8 @@
 <script>
   import { get } from 'svelte/store'
 
+  import { onMount } from 'svelte';
+
   import { fade, slide } from "svelte/transition";
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
@@ -52,6 +54,11 @@
     }
   })
 
+  onMount(() => {
+    moveOld();
+  })
+
+
   profileListRefresh.subscribe(store => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
       loadFromDirectory();
@@ -61,7 +68,7 @@
   
   async function moveOld(){
     await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(PROFILE_PATH, "profiles");
+    loadFromDirectory()
   }
 
   
@@ -72,7 +79,7 @@
 
   async function saveToDirectory(path, name, profile){         
     await window.electron.configs.saveConfig(path, name, profile, "profiles");
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(PROFILE_PATH, "profiles");   
+    loadFromDirectory()
     logger.set({type: 'success', mode: 0, classname: 'profilesave', message: `Profile saved!`});
   }
 

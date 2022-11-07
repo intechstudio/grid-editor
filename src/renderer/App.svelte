@@ -84,12 +84,12 @@
 
   // websocket rx tx from main for debug
   window.electron.websocket.onReceive((_event, value) => {
-    console.log('websocket',value);
+    //console.log('websocket',value);
     debug_lowlevel_store.push_inbound(new TextEncoder().encode(value))
   })
 
   window.electron.websocket.onTransmit((_event, value) => {
-    console.log('websocket',value);
+    //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value))
   })
 

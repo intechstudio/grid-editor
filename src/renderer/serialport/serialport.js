@@ -43,11 +43,11 @@ export async function testIt() {
       { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) }
     ];
 
-    console.log(navigator.serial)
+    // console.log(navigator.serial)
 
     navigator.serial.requestPort({filters}).then(port=>{
 
-      console.log('port',port);
+      //console.log('port',port);
 
       navigator.intechPort = port
 
@@ -63,14 +63,14 @@ export async function testIt() {
 
 
       }).catch(error => {
-        console.log(error)
+        //console.log(error)
       });
       
 
     }).catch(error => {
       //no port selected by the user
       //port_connected = false;
-      console.log(error)
+      //console.log(error)
     });
 
   }

@@ -2,6 +2,7 @@
   import { get } from 'svelte/store'
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
+  import { onMount } from 'svelte';
 
   import { engine, logger, runtime, user_input } from '../../../runtime/runtime.store.js';
   import { appSettings, presetListRefresh } from '../../../runtime/app-helper.store.js';
@@ -48,18 +49,24 @@
     }
   })
 
+
+  onMount(() => {
+    moveOld();
+  })
+
   async function moveOld(){
-    await window.electron.configs.movdeOldConfigs(PRESET_PATH, "presets");
-    PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
+    await window.electron.configs.moveOldConfigs(PRESET_PATH, "presets");
+    loadFromDirectory();
   }
 
   async function loadFromDirectory(){
     PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
+    console.log("presets",PRESETS)
   }
 
   async function saveToDirectory(path, name, preset){         
     await window.electron.configs.saveConfig(path, name, preset, "presets");
-    PRESETS = await window.electron.configs.loadConfigsFromDirectory(PRESET_PATH, "presets");
+    loadFromDirectory();
     logger.set({type: 'success', mode: 0, classname: 'presetsave', message: `Preset saved!`});
     window.electron.analytics.google('preset-library', {value: 'save success'})
     window.electron.analytics.influx("application", "presets", "preset", "save success")

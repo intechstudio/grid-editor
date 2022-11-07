@@ -67,10 +67,18 @@ async function libraryDownload(targetFolder){
 
       let parts = path.split("/")
       let filename = parts[parts.length-1]
-      let author = parts[parts.length-2]
-      let type = parts[parts.length-3]
+      let profilename = parts[parts.length-2]
+      let author = parts[parts.length-3]
+      let type = parts[parts.length-4]
 
-      fs.copySync(targetFolder + "/temp/" + path, targetFolder+"/"+type+"/"+author+"/" + filename)
+
+
+
+      const from = targetFolder + "/temp/" + path
+      const to = targetFolder+"/"+type+"/"+author+"/"+profilename +"/"+  filename
+
+
+      fs.copySync(from, to)
 
     })
 
