@@ -4,8 +4,8 @@
 
     import {monaco_elementtype} from '../../runtime/monaco-helper'
 
-    import {editor as monaco_editor} from '../../../../node_modules/monaco-editor/esm/vs/editor/editor.api'
-  
+    import {editor as monaco_editor, languages as monaco_languages} from 'monaco-editor/esm/vs/editor/editor.api'
+
     const dispatch = createEventDispatcher();
   
     export let value;
@@ -44,6 +44,7 @@
     })
 
     onMount(()=>{
+
 
 
 
