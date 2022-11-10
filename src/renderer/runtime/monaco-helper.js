@@ -1,17 +1,17 @@
 import { writable, get } from 'svelte/store';
 
-
-import {editor as monaco_editor, languages as monaco_languages} from 'monaco-editor/esm/vs/editor/editor.api'
 import * as grid_protocol from '../../external/grid-protocol/grid_protocol_bot.json'
 
+import { monaco_languages, monaco_editor } from '../lib/CustomMonaco';
 
 export const monaco_elementtype = writable()
 
 
+/**
 $: if(get(monaco_elementtype)){
-
 	initialize_highlight()
 }
+ */
 
 let monaco_disposables = []
 
@@ -19,7 +19,7 @@ let monaco_disposables = []
 let hoverTips = {};
 let hoverDisposable = undefined;
 
-var language_config = {
+export const language_config = {
 	comments: {
 	  lineComment: "--",
 	  blockComment: ["--[[", "]]"]
@@ -43,9 +43,9 @@ var language_config = {
 	  { open: '"', close: '"' },
 	  { open: "'", close: "'" }
 	]
-  };
+};
 
-export let language = {
+export const language = {
 	defaultToken: "",
 	tokenPostfix: ".lua",
 	keywords: [
@@ -217,12 +217,8 @@ export let language = {
 
 
 function initialize_language(){
-
-
 	monaco_languages.register({ id: 'intech_lua' });
 }
-
-
 
 
 export function initialize_theme(){
@@ -376,6 +372,8 @@ function initialize_autocomplete(){
 			return [... proposalList];
 		}
 
+		console.log('sup');
+
 		let disposable = monaco_languages.registerCompletionItemProvider('intech_lua', {
 			provideCompletionItems: function (model, position) {
 			// find out if we are completing a property in the 'dependencies' object.
@@ -460,42 +458,42 @@ function initialize_highlight(){
 
 function initialize_hover(){
 
-	monaco_disposables.push(
-		monaco_languages.registerHoverProvider('intech_lua', {
-			provideHover: function(model, position) { 
+	monaco_languages.registerHoverProvider('intech_lua', {
+		provideHover: function(model, position) { 
 
-			if (model.getWordAtPosition(position) !== null){
+		if (model.getWordAtPosition(position) !== null){
 
-				const word = model.getWordAtPosition(position).word;
+			const word = model.getWordAtPosition(position).word;
 
-				if (hoverTips[word] !== undefined)
-				return {				
-				contents: [
-					{ value: '**SOURCE**' },
-					{ value: '```html\n' + hoverTips[word] + '\n```' }
-				]
-				}
+			if (hoverTips[word] !== undefined)
 
+			return {				
+			contents: [
+				{ value: '**SOURCE**' },
+				{ value: '```html\n' + hoverTips[word] + '\n```' }
+			]
 			}
 
-			}
-		})
-	);
+		}
+
+		}
+	})
+
 }
 
 function initialize_grammar(){
 
 	monaco_languages.setMonarchTokensProvider('intech_lua', language);
 	monaco_languages.setLanguageConfiguration('intech_lua', language_config)
+
 }
 
 initialize_theme();
 initialize_language();
+initialize_grammar();
+initialize_hover();
 initialize_autocomplete();
 initialize_highlight();
-initialize_hover();
-initialize_grammar();
-
 
 export function find_forbidden_identifiers(str){
 

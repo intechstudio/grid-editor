@@ -1,5 +1,5 @@
 {
-    defaultToken: "",
+    "defaultToken": "",
     "tokenPostfix": ".lua",
     "keywords": [
       "and",
@@ -87,12 +87,12 @@
         [/"/, "string", '@string."'],
         [/'/, "string", "@string.'"]
       ],
-      whitespace: [
+      "whitespace": [
         [/[ \t\r\n]+/, ""],
         [/--\[([=]*)\[/, "comment", "@comment.$1"],
         [/--.*$/, "comment"]
       ],
-      comment: [
+      "comment": [
         [/[^\]]+/, "comment"],
         [
           /\]([=]*)\]/,
@@ -105,7 +105,7 @@
         ],
         [/./, "comment"]
       ],
-      string: [
+      "string": [
         [/[^\\"']+/, "string"],
         [/@escapes/, "string.escape"],
         [/\\./, "string.escape.invalid"],
