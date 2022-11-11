@@ -4,14 +4,17 @@
 
   import {clickOutside} from '../_actions/click-outside.action'
 
-  import { writable, get, readable } from 'svelte/store';
   import { debug_monitor_store} from "../panels/DebugMonitor/DebugMonitor.store";
 
   import { monaco_editor, monaco_languages } from '../../lib/CustomMonaco';
 
-  import {find_forbidden_identifiers, language, language_config} from '../../runtime/monaco-helper'
+  import {find_forbidden_identifiers} from '../../runtime/monaco-helper'
 
 	import { beforeUpdate, afterUpdate } from 'svelte';
+
+  import luamin from "../../../external/luamin";
+  import stringManipulation from '../../main/user-interface/_string-operations';
+
   let scrollDown;
 	let autoscroll;
 
@@ -22,10 +25,7 @@
 	afterUpdate(() => {
 		if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
 	});
-
-  let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
-
-  
+ 
   import {attachment} from '../user-interface/Monster.store'
 
 
@@ -53,18 +53,10 @@
 
 
   function clickOutsideHandler(){
-
     if (!commitState){
-
-
       $appSettings.modal = ''
-
     }
   }
-
-  import luamin from "../../../external/luamin";
-  import stringManipulation from '../../main/user-interface/_string-operations';
-
 
   const luaminOptions = {
     RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
