@@ -384,26 +384,28 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
   return 'saved';
 })
 
-
-
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
+  googleAnalytics('tray', {value: 'close window'});
   mainWindow.close();
   return 'closed';
 })
 
 ipcMain.handle('minimizeWindow', async (event, args) => {
   mainWindow.minimize();
+  googleAnalytics('tray', {value: 'minimize window'});
   return 'minimized';
 })
 
 ipcMain.handle('maximizeWindow', async (event, args) => {
   mainWindow.maximize();
+  googleAnalytics('tray', {value: 'maximize window'});
   return 'maximized';
 })
 
 ipcMain.handle('restoreWindow', async (event, args) => {
   mainWindow.restore();
+  googleAnalytics('tray', {value: 'restore window'});
   return 'restored';
 })
 

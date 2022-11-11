@@ -21,15 +21,14 @@ async function googleAnalytics(name, params) {
     await fetch(`https://www.google-analytics.com/mp/collect?measurement_id=${measurement_id}&api_secret=${api_secret}`, {
       method: "POST",
       body: JSON.stringify({
-        user_id: userId,
-        events: [{
-          name: name.replace(/\s|-/g, '_'),
-          params: params
-        }]
-      }),
-      headers: {
-        "Content-Type": "application/json"
-      }
+        client_id: userId,
+        events: [
+          {
+            name: name.replace(/\s|-/g, '_'),
+            params: params
+          }
+        ]
+      })
     })
   } catch (error) {
     console.log('google analytics error', error)

@@ -19,11 +19,8 @@ async function moveOldConfigs(configPath, rootDirectory){
 
   let path = configPath;
 
-  log.info("TESTTTTTT", path, typeof configPath)
-
   if(!fs.existsSync(path)) fs.mkdirSync(path);
   if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
-  
 
   log.info(rootDirectory + ' move start...');
 
@@ -33,8 +30,6 @@ async function moveOldConfigs(configPath, rootDirectory){
 
       await fs.promises.readdir(`${path}/${rootDirectory}/${author}`).then(files => {
 
-        log.info("SUKU", files)
-
         files.forEach(async file => {
 
           let filepath = `${path}/${rootDirectory}/${author}/${file}`;
@@ -42,7 +37,6 @@ async function moveOldConfigs(configPath, rootDirectory){
           const [stats] = await checkIfWritableDirectory(filepath);
   
           if(stats.isFile){
-            log.info("SUKU", file)
             let filenameparts = file.split(".");
             let extension = filenameparts[filenameparts.length-1];
             if (extension === "json"){
