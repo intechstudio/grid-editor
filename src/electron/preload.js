@@ -31,6 +31,11 @@ contextBridge.exposeInMainWorld('electron', {
   resetAppSettings: () => ipcRenderer.sendSync('resetAppSettings'),
   getLatestVideo: () => ipcRenderer.invoke('getLatestVideo'),
   openInBrowser: (url) => ipcRenderer.invoke('openInBrowser', {url}),
+  restartApp: () => ipcRenderer.sendSync('restartApp'),
+  updater: {
+    restartAfterUpdate: () => ipcRenderer.sendSync('restartAfterUpdate'),
+    onAppUpdate: (callback) => ipcRenderer.on('onAppUpdate', callback),
+  },
   analytics: {
     google: (name, params) => ipcRenderer.invoke('googleAnalytics', {name, params}),
     influx: (category, action, label, value) => ipcRenderer.invoke('influxAnalytics', {category, action, label, value}),

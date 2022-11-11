@@ -1,5 +1,5 @@
 <script>
-  /**
+
   const ipcRenderer = window.sketchyAPI;
 
   // self update
@@ -10,36 +10,32 @@
 
   const {env} = window.ctxProcess;
 
+
   function restartApp(){
-    ipcRenderer.send('restart_app');
-  }  
-
-  ipcRenderer.on('update_available', () => {
-    ipcRenderer.removeAllListeners('update_available');
-    console.log('update available')
-    updateNotification = true;
-  });
+    window.electron.updater.restartAfterUpdate();
+  } 
+  
+  window.electron.updater.onAppUpdate((_event, value) => {
+    if(value.code == 'update-available'){
+      updateNotification = true;
+    }
     
-  ipcRenderer.on('update_downloaded', () => {
-    ipcRenderer.removeAllListeners('update_downloaded');
-    console.log('update downloaded')
-    updateReady = true;
-  });
+    if(value.code == 'update-downloaded'){
+      updateReady = true;
+    }
 
-  ipcRenderer.on('update_progress', (event,arg) => {
-    updateProgress = Math.floor(arg.percent);
-    console.log('update progress...', event, arg)
-  });
+    if(value.code == 'update-progress'){
+      updateProgress = Math.floor(value.percent);
+    }
 
-  ipcRenderer.on('update_error', (event, arg) => {
-    updateError = arg;  
-    console.log('update error...', updateError)
-  });
+    if(value.code == 'update-error'){
+      updateError = value.error;
+    }
+  })
 
-*/
 
 </script>
-<!--
+
 
 {#if updateNotification}
     <div style="z-index:9999;" class="bg-primary fixed text-white shadow rounded-lg left-1 bottom-1">
@@ -84,9 +80,9 @@
     </div>
   {/if}
 
--->
+
 <style>
-/**
+
   #notification {
     background: -webkit-linear-gradient(45deg, #7D4645 0%, rgba(35, 104, 184, 0.29529) 44.71%, rgba(222, 118, 239, 0) 100%);
   }
@@ -119,5 +115,4 @@
         .25em 0 0 white,
         .5em 0 0 white;}
       }
-*/
   </style>
