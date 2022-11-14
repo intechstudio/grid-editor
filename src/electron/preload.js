@@ -36,6 +36,9 @@ contextBridge.exposeInMainWorld('electron', {
     restartAfterUpdate: () => ipcRenderer.sendSync('restartAfterUpdate'),
     onAppUpdate: (callback) => ipcRenderer.on('onAppUpdate', callback),
   },
+  discord: {
+    sendMessage: (message) => ipcRenderer.invoke('sendToDiscord', {message}),
+  },
   analytics: {
     google: (name, params) => ipcRenderer.invoke('googleAnalytics', {name, params}),
     influx: (category, action, label, value) => ipcRenderer.invoke('influxAnalytics', {category, action, label, value}),

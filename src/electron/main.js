@@ -317,6 +317,15 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 
 
 
+const { sendToDiscord } = require('./src/discord');
+ipcMain.handle('sendToDiscord', async (event, arg) => {
+  return await sendToDiscord(arg.message);
+})
+
+
+
+
+
 
 
 const { influxAnalytics, googleAnalytics } = require('./src/analytics');
