@@ -6,8 +6,6 @@
 
   import {fade} from 'svelte/transition';
 
-  import {Webhook}  from 'simple-discord-webhooks';
-
   import instructions from "../serialport/instructions";
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
@@ -37,22 +35,12 @@
 
   }
 
-  // let writeBuffer_length = 0;
-
-  // writeBuffer.subscribe(s=>{
-  //   writeBuffer_length = s.length
-  // })
-
-
 
   async function debugWriteBuffer(){
 
-    console.log(get(writeBuffer));
+   
+    window.electron.discord.sendMessage({title: 'Writebuffer', text: JSON.stringify(get(writeBuffer)).substring(0,1000)});
 
-    // discord
-    // const webhook = new Webhook(await ctxProcess.env().then(res => res.DISCORD_FEEDBACK_WEBHOOK));
-    // webhook.send(`######\nWritebuffer\n######\n${JSON.stringify(get(writeBuffer)).substring(0,1000)} `)
-        
     window.electron.analytics.google('writebuffer', {value: 'clear'})
     window.electron.analytics.influx("application", "topsubmenu", "writebuffer", "clear")
 
