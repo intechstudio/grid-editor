@@ -1,5 +1,4 @@
 const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
-const { autoUpdater } = require('electron-updater');
 
 const { serial } = require('./ipcmain_serialport');
 const { websocket } = require('./ipcmain_websocket');
@@ -22,8 +21,6 @@ const log = require('electron-log');
 const fs = require('fs-extra');  
 
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = 'info';
 log.info('App starting...');
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -167,6 +164,13 @@ function createWindow() {
 
     const { firmware } = require('./src/firmware');
     firmware.mainWindow = mainWindow;
+    
+    const { updater, restartAfterUpdate } = require('./src/updater');
+    updater.mainWindow = mainWindow;
+
+    ipcMain.on('restartAfterUpdate', () => {
+      restartAfterUpdate();
+    });
 
     if(process.env.NODE_ENV == 'development'){
       log.info('Development Mode!')
@@ -194,7 +198,6 @@ function createWindow() {
       store.set('windowBounds', { width, height });
       mainWindow.webContents.send('window_size', { width, height });
     })
-
 
 
     mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
@@ -235,11 +238,8 @@ function createWindow() {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-// moved this to app.whenReady!
-// app.on('ready', createWindow);
 
-log.info('check fo update and notify...')
-autoUpdater.checkForUpdatesAndNotify();
+
 
 
 
@@ -384,26 +384,28 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
   return 'saved';
 })
 
-
-
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
+  googleAnalytics('tray', {value: 'close window'});
   mainWindow.close();
   return 'closed';
 })
 
 ipcMain.handle('minimizeWindow', async (event, args) => {
   mainWindow.minimize();
+  googleAnalytics('tray', {value: 'minimize window'});
   return 'minimized';
 })
 
 ipcMain.handle('maximizeWindow', async (event, args) => {
   mainWindow.maximize();
+  googleAnalytics('tray', {value: 'maximize window'});
   return 'maximized';
 })
 
 ipcMain.handle('restoreWindow', async (event, args) => {
   mainWindow.restore();
+  googleAnalytics('tray', {value: 'restore window'});
   return 'restored';
 })
 
@@ -437,47 +439,25 @@ ipcMain.on('app_version', (event) => {
 
 
 
-autoUpdater.on('error', (error) => {
-  log.info('Error..', error);
-  mainWindow.webContents.send('update_error', error);
-})
 
-autoUpdater.on('update-available', () => {
-  log.info('update-available... in main!')
-  mainWindow.webContents.send('update_available');
-});
-
-autoUpdater.on('download-progress', (progressObj) => {
-  log.info('update_progress', progressObj);
-  mainWindow.webContents.send('update_progress', progressObj);
-});
-
-autoUpdater.on('update-downloaded', () => {
-  log.info('update downloaded... in main!')
-  mainWindow.webContents.send('update_downloaded');
-});
-
-ipcMain.on('restart_app', () => {
-  mainWindow.setClosable(true);
-  autoUpdater.quitAndInstall();
-});
 
 
 
 
 
 ipcMain.on('resetAppSettings', (event, arg) => {
-
   event.returnValue = store.clear();
   app.relaunch()
   app.exit()
 })
 
-ipcMain.on('restart', (event, arg) => {
-
+ipcMain.on('restartApp', (event, arg) => {
   app.relaunch()
   app.exit()
 })
+
+
+
 
 
 // Quit when all windows are closed.
