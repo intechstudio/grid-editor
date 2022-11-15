@@ -26,6 +26,8 @@
   import Welcome from './main/modals/Welcome.svelte'
   import Monaco from './main/modals/Monaco.svelte'
   import Feedback from './main/modals/Feedback.svelte'
+  import ProfileInfo from './main/modals/ProfileInfo.svelte'
+  import ProfileAttachment from './main/modals/ProfileAttachment.svelte'
 
   import FirmwareCheck from './main/FirmwareCheck.svelte'
 
@@ -50,6 +52,8 @@
   modalComponents['welcome'] = Welcome
   modalComponents['code'] = Monaco
   modalComponents['feedback'] = Feedback
+  modalComponents['profileInfo'] = ProfileInfo
+  modalComponents['profileAttachment'] = ProfileAttachment
 
   let shapeSelected
   let colorSelected
@@ -139,6 +143,7 @@
       <RightPanelContainer classes={'w-4/12'} />
 
     </div>
+
   </div>
 
 </main>

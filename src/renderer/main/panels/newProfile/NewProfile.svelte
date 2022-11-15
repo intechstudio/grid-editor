@@ -1,5 +1,7 @@
 <script>
   import newProfiles from './newProfiles'
+  import { clickOutside } from '/main/_actions/click-outside.action'
+  import { appSettings } from '/runtime/app-helper.store'
 
   let sessionProfile = [
     {
@@ -18,29 +20,38 @@
   let isProfileCloudOpen = false
 </script>
 
-<div class="bg-newPrimary-400 pt-4 h-full flex flex-col overflow-hidden ">
+<div
+  use:clickOutside={{ useCapture: true }}
+  on:click-outside={() => {
+    selected = undefined
+  }}
+  class="bg-primary pt-4 h-full flex flex-col overflow-hidden ">
   <div class="m-4 ">
     <button
       on:click={() => {
         isSessionProfileOpen = !isSessionProfileOpen
       }}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer bg-newPrimary-300 w-full">
+      cursor-pointer bg-secondary w-full">
       <div>Session Profiles</div>
       {isSessionProfileOpen ? '▼' : '▲'}
     </button>
 
     {#if isSessionProfileOpen}
-      <div class="bg-newPrimary-300 p-3">
+      <div class="bg-secondary p-3">
 
         {#each sessionProfile as sessionProfileElement}
           <button
             on:click={() => {
               selected = sessionProfileElement
             }}
-            class="w-full text-left bg-newPrimary-200 hover:bg-newPrimary-100
-            mb-4 p-2 cursor-pointer {selected == sessionProfileElement ? 'border border-green-300 bg-newPrimary-100' : 'border border-black border-opacity-0'}">
-            <span class="text-zinc-100 ">{sessionProfileElement.name}</span>
+            class="w-full text-left bg-primary-700 hover:bg-primary-600 mb-4 p-2
+            cursor-pointer {selected == sessionProfileElement ? 'border border-green-300 bg-primary-100' : 'border border-black border-opacity-0'}">
+            <div class="flex justify-between">
+              <span class="text-zinc-100 ">{sessionProfileElement.name}</span>
+
+            </div>
+
             <span class="text-zinc-400 text-sm">
               modified: {sessionProfileElement.latestMod}
             </span>
@@ -59,14 +70,13 @@
         isProfileCloudOpen = !isProfileCloudOpen
       }}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer bg-newPrimary-300 w-full">
+      cursor-pointer bg-secondary w-full">
       <div>Profile Cloud</div>
       {isProfileCloudOpen ? '▼' : '▲'}
     </button>
 
     {#if isProfileCloudOpen}
-      <div
-        class="bg-newPrimary-300 p-3 gap-6 flex flex-col h-full overflow-auto">
+      <div class="bg-secondary p-3 gap-6 flex flex-col h-full overflow-auto">
 
         <div class="flex flex-col gap-2">
           <div class="relative">
@@ -104,7 +114,7 @@
             </svg>
             <input
               type="text"
-              class="w-full py-3 pl-12 pr-2 bg-newPrimary-200 text-white
+              class="w-full py-3 pl-12 pr-2 bg-primary-700 text-white
               placeholder-gray-500 text-md"
               placeholder="Find Profile" />
 
@@ -114,15 +124,15 @@
             <div class="text-zinc-100 ">Suggested searches:</div>
             <div>
               <button
-                class="border border-zinc-600 text-zinc-400 rounded-md p-1">
+                class="border border-zinc-600 text-zinc-400 rounded-md py-1 px-2">
                 photoshop
               </button>
               <button
-                class="border border-zinc-600 text-zinc-400 rounded-md p-1">
+                class="border border-zinc-600 text-zinc-400 rounded-md py-1 px-2">
                 audio
               </button>
               <button
-                class="border border-zinc-600 text-zinc-400 rounded-md p-1">
+                class="border border-zinc-600 text-zinc-400 rounded-md py-1 px-2">
                 video
               </button>
             </div>
@@ -135,28 +145,50 @@
               on:click={() => {
                 selected = profileCloudElement
               }}
-              class="w-full bg-newPrimary-200 hover:bg-newPrimary-100 p-2
-              cursor-pointer {selected == profileCloudElement ? 'border border-green-300 bg-newPrimary-100' : 'border border-black border-opacity-0'}">
+              class="w-full bg-primary-700 hover:bg-primary-600 p-2
+              cursor-pointer {selected == profileCloudElement ? 'border border-green-300 bg-primary-100' : 'border border-black border-opacity-0'}">
 
-              <div class="flex flex-col text-left">
+              <div class="flex flex-row justify-between items-start gap-2">
 
-                <div
-                  class="text-zinc-300 text-sm flex flex-row justify-between">
-                  <span>{profileCloudElement.category}</span>
-                  <span>@{profileCloudElement.author}</span>
+                <div class="text-left">
+                  <div class="text-zinc-300 text-sm flex flex-row ">
+                    <span>{profileCloudElement.category}</span>
+                  </div>
 
+                  <div class=" flex">
+                    <span class="text-zinc-100 ">
+                      {profileCloudElement.name}
+                    </span>
+                  </div>
+                  <div class="flex gap-3 flex-wrap">
+                    <span
+                      class="text-zinc-100 text-sm px-3 bg-violet-600 rounded-xl">
+                      {profileCloudElement.module}
+                    </span>
+                  </div>
                 </div>
 
-                <div class=" flex justify-between">
-                  <span class="text-zinc-100 ">{profileCloudElement.name}</span>
+                <div class="flex flex-col text-right ">
+                  <div class="text-zinc-200 text-sm ">
+                    @{profileCloudElement.author}
+                  </div>
+                  <div>
+                    <button>!</button>
+                    <button
+                      on:click|preventDefault={() => {
+                        $appSettings.modal = 'profileAttachment'
+                      }}>
+                      at
+                    </button>
+                    <button
+                      on:click|preventDefault={() => {
+                        $appSettings.modal = 'profileInfo'
+                      }}>
+                      info
+                    </button>
+                  </div>
                 </div>
-                <div class="flex gap-3 flex-wrap">
-                  <span
-                    class="text-zinc-100 text-sm px-3 bg-violet-600 rounded-xl">
-                    {profileCloudElement.module}
-                  </span>
 
-                </div>
               </div>
             </button>
           {/each}
