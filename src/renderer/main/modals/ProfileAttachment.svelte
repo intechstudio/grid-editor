@@ -6,8 +6,6 @@
   let modalWidth
   let modalHeight
 
-  let liked = false
-
   $: if (modalWidth || modalHeight) {
     if (editor !== undefined) {
       editor.layout()
@@ -53,16 +51,101 @@
 
       <div class="text-lg font-medium">Productivity macros</div>
 
-      <div class="flex flex-col gap-3 w-full">
-        <button class="p-3 bg-secondary rounded flex flex-col w-full">
-          <span>read_me.txt</span>
-          <span>size: 2 kB</span>
-        </button>
+      <div class="flex flex-col gap-3 w-full mb-4">
 
-        <button class="p-3 bg-secondary rounded flex flex-col">
-          <span>read_me.txt</span>
-          <span>size: 2 kB</span>
-        </button>
+        <div
+          class="p-3 bg-secondary rounded flex flex-row gap-2 text-left
+          items-center">
+          <svg
+            width="21"
+            height="25"
+            viewBox="0 0 21 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_234_1460)">
+              <path
+                d="M6.99984 13.6364H13.9998M6.99984 18.1818H10.4998M1.1665
+                3.40908V21.5909C1.1665 22.1937 1.41234 22.7717 1.84992
+                23.198C2.28751 23.6242 2.881 23.8636 3.49984
+                23.8636H17.4998C18.1187 23.8636 18.7122 23.6242 19.1498
+                23.198C19.5873 22.7717 19.8332 22.1937 19.8332
+                21.5909V8.34317C19.8331 8.0404 19.771 7.74068 19.6504
+                7.46163C19.5298 7.18258 19.3531 6.92981 19.1308 6.71817L13.9508
+                1.78408C13.5149 1.36892 12.9295 1.13643 12.3198
+                1.13635H3.49984C2.881 1.13635 2.28751 1.3758 1.84992
+                1.80202C1.41234 2.22824 1.1665 2.80632 1.1665 3.40908V3.40908Z"
+                stroke="#BBBBBB"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path
+                d="M12.833 1.13635V5.68181C12.833 6.28457 13.0788 6.86265
+                13.5164 7.28887C13.954 7.71509 14.5475 7.95453 15.1663
+                7.95453H19.833"
+                stroke="#BBBBBB"
+                stroke-width="2"
+                stroke-linejoin="round" />
+            </g>
+            <defs>
+              <clipPath id="clip0_234_1460">
+                <rect width="21" height="25" fill="white" />
+              </clipPath>
+            </defs>
+          </svg>
+
+          <div class="flex flex-col">
+            <span>read_me.txt</span>
+            <span class="text-zinc-400">size: 2 kB</span>
+          </div>
+
+        </div>
+
+        <div
+          class="p-3 bg-secondary rounded flex flex-row gap-2 text-left
+          items-center">
+          <svg
+            width="21"
+            height="25"
+            viewBox="0 0 21 25"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_234_1460)">
+              <path
+                d="M6.99984 13.6364H13.9998M6.99984 18.1818H10.4998M1.1665
+                3.40908V21.5909C1.1665 22.1937 1.41234 22.7717 1.84992
+                23.198C2.28751 23.6242 2.881 23.8636 3.49984
+                23.8636H17.4998C18.1187 23.8636 18.7122 23.6242 19.1498
+                23.198C19.5873 22.7717 19.8332 22.1937 19.8332
+                21.5909V8.34317C19.8331 8.0404 19.771 7.74068 19.6504
+                7.46163C19.5298 7.18258 19.3531 6.92981 19.1308 6.71817L13.9508
+                1.78408C13.5149 1.36892 12.9295 1.13643 12.3198
+                1.13635H3.49984C2.881 1.13635 2.28751 1.3758 1.84992
+                1.80202C1.41234 2.22824 1.1665 2.80632 1.1665 3.40908V3.40908Z"
+                stroke="#BBBBBB"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+              <path
+                d="M12.833 1.13635V5.68181C12.833 6.28457 13.0788 6.86265
+                13.5164 7.28887C13.954 7.71509 14.5475 7.95453 15.1663
+                7.95453H19.833"
+                stroke="#BBBBBB"
+                stroke-width="2"
+                stroke-linejoin="round" />
+            </g>
+            <defs>
+              <clipPath id="clip0_234_1460">
+                <rect width="21" height="25" fill="white" />
+              </clipPath>
+            </defs>
+          </svg>
+
+          <div class="flex flex-col">
+            <span>read_me.txt</span>
+            <span class="text-zinc-400">size: 2 kB</span>
+          </div>
+
+        </div>
       </div>
 
       <div>

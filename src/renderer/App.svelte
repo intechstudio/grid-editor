@@ -28,6 +28,7 @@
   import Feedback from './main/modals/Feedback.svelte'
   import ProfileInfo from './main/modals/ProfileInfo.svelte'
   import ProfileAttachment from './main/modals/ProfileAttachment.svelte'
+  import ProfileEdit from './main/modals/ProfileEdit.svelte'
 
   import FirmwareCheck from './main/FirmwareCheck.svelte'
 
@@ -54,6 +55,7 @@
   modalComponents['feedback'] = Feedback
   modalComponents['profileInfo'] = ProfileInfo
   modalComponents['profileAttachment'] = ProfileAttachment
+  modalComponents['profileEdit'] = ProfileEdit
 
   let shapeSelected
   let colorSelected
