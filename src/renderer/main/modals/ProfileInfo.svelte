@@ -1,6 +1,8 @@
 <script>
+  import { get } from 'svelte/store'
   import { clickOutside } from '/main/_actions/click-outside.action'
   import { appSettings } from '/runtime/app-helper.store'
+  import { selectedProfileStore } from '/runtime/profile-helper.store'
 
   let editor
   let modalWidth
@@ -19,6 +21,8 @@
   function isProfileLiked() {
     liked = !liked
   }
+
+  let selectedProfile = get(selectedProfileStore)
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -58,22 +62,19 @@
 
     <div class="p-6 flex flex-row gap-10 overflow-auto">
       <div class="w-3/5 flex flex-col gap-4">
+
         <div>
           <div class="text-green-400 font-semibold mb-2">Category</div>
-          <div class="text-lg font-medium">Productivity macros</div>
+          <div class="text-lg font-medium">{selectedProfile.name}</div>
+
         </div>
         <div>
-          <img src="/assets/imgs/profile_info_image.png" alt="" />
+          <img
+            src="/assets/imgs/profile_info_image.png"
+            alt="user_profile_img" />
         </div>
         <div>
-          <p>
-            Lorem ipsum dolor sit amet consectetur. Placerat a sed tempor
-            consequat. Lacinia enim laoreet nullam varius bibendum. Dignissim
-            consectetur lacinia lacinia ultrices ipsum quis. Ac facilisis ut id
-            aliquam potenti consequat mi quam. Vestibulum imperdiet blandit
-            tempor ipsum in libero facilisi. Nulla vulputate odio ut ullamcorper
-            elit. Hendrerit sit velit mauris sit.
-          </p>
+          <p>{selectedProfile.description}</p>
         </div>
         <div>
           <ul class="list-disc list-inside">
@@ -99,18 +100,14 @@
         <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
 
           <div>
-            <div class="font-semibold mb-2 ">Author</div>
 
             <div
               class="flex flex-row items-center justify-between
               border-primary-700 border-b border-t-0 border-x-0 pb-4">
 
               <div class="flex flex-col items-center">
-                <img
-                  class="mb-2 mr-2"
-                  src="/assets/imgs/user_image.png"
-                  alt="img" />
-                <span class="font-medium">Jordan</span>
+
+                <span class="font-medium">@user</span>
               </div>
 
               <div class="text-center">
@@ -198,7 +195,7 @@
           </div>
 
           <div class="flex flex-col gap-1">
-            <div>Compatible controllers: EF44</div>
+            <div>Compatible controllers: {selectedProfile.type}</div>
             <div class="flex items-center gap-2">
               <span>Compatible with Ableton</span>
               <img
@@ -207,7 +204,9 @@
                 alt="ableton_logo" />
 
             </div>
-            <div>Made with Grid Editor v1.2.27</div>
+            <div>
+              Made with Grid Editor v{selectedProfile.version.major}.{selectedProfile.version.minor}.{selectedProfile.version.patch}
+            </div>
           </div>
         </div>
 

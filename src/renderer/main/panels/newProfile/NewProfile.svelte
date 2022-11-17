@@ -1,7 +1,11 @@
 <script>
   import newProfiles from './newProfiles'
   import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings } from '/runtime/app-helper.store'
+  import { appSettings, profileListRefresh } from '/runtime/app-helper.store'
+  import { get } from 'svelte/store'
+  import { onMount } from 'svelte'
+  import Profiles from '../profiles/Profiles.svelte'
+  import { selectedProfileStore } from '/runtime/profile-helper.store'
 
   let sessionProfile = [
     {
@@ -15,9 +19,61 @@
     },
   ]
 
-  let selected = undefined
+  let selected = {}
+
+  selectedProfileStore.subscribe((store) => {
+    selected = store
+  })
+
+  let searcBarValue = ''
+
+  let selectedIndex = undefined
   let isSessionProfileOpen = false
   let isProfileCloudOpen = false
+
+  let PROFILE_PATH = get(appSettings).persistant.profileFolder
+  let PROFILES = []
+
+  async function loadFromDirectory() {
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+      PROFILE_PATH,
+      'profiles',
+    )
+  }
+
+  appSettings.subscribe((store) => {
+    let new_folder = store.persistant.profileFolder
+    if (new_folder !== PROFILE_PATH) {
+      PROFILE_PATH = new_folder
+      moveOld()
+    }
+  })
+
+  async function moveOld() {
+    await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles')
+    loadFromDirectory()
+  }
+
+  function selectProfile(element) {
+    selected = element
+    selectedProfileStore.set(selected)
+  }
+
+  selectedProfileStore.set(selected)
+
+  function compare(a, b) {
+    if (a.name < b.name) {
+      return -1
+    }
+    if (a.name > b.name) {
+      return 1
+    }
+    return 0
+  }
+
+  onMount(() => {
+    moveOld()
+  })
 </script>
 
 <div
@@ -143,10 +199,11 @@
         </div>
 
         <div class="flex flex-col overflow-y-auto gap-4 ">
-          {#each newProfiles as profileCloudElement}
+          {#each PROFILES.sort(compare) as profileCloudElement, i}
             <button
               on:click={() => {
-                selected = profileCloudElement
+                selectedIndex = i
+                selectProfile(profileCloudElement)
               }}
               class="w-full bg-primary-700 hover:bg-primary-600 p-2
               cursor-pointer {selected == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
@@ -154,9 +211,6 @@
               <div class="flex flex-row justify-between items-start gap-1">
 
                 <div class="flex flex-col text-left gap-2">
-                  <div class="text-gray-300 text-sm flex flex-row ">
-                    <span>{profileCloudElement.category}</span>
-                  </div>
 
                   <div>
                     <span class="text-gray-100 ">
@@ -166,21 +220,24 @@
                   <div class="flex gap-3 flex-wrap">
                     <span
                       class="text-zinc-100 text-sm px-3 bg-violet-600 rounded-xl">
-                      {profileCloudElement.module}
+                      {profileCloudElement.type}
                     </span>
                   </div>
                 </div>
 
                 <div class="flex flex-col text-right gap-2">
                   <div class="text-gray-100 text-sm ">
-                    @{profileCloudElement.author}
+                    {#if profileCloudElement.author == undefined}
+                      @user
+                    {:else}@{profileCloudElement.author}{/if}
+
                   </div>
                   <div class="flex flex-row gap-1">
                     <button>!</button>
                     <button
                       class="p-1 hover:bg-primary-500 rounded"
                       on:click|preventDefault={() => {
-                        $appSettings.modal = 'profileAttachment'
+                        ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement)
                       }}>
                       <svg
                         width="17"
@@ -235,7 +292,7 @@
                     <button
                       class="p-1 hover:bg-primary-500 rounded"
                       on:click|preventDefault={() => {
-                        $appSettings.modal = 'profileInfo'
+                        ;($appSettings.modal = 'profileInfo'), selectProfile(profileCloudElement)
                       }}>
                       <svg
                         class="fill-white "
@@ -288,6 +345,7 @@
                       class="p-1 hover:bg-primary-500 rounded"
                       on:click|preventDefault={() => {
                         $appSettings.modal = 'profileEdit'
+                        selectProfile(profileCloudElement)
                       }}>
                       edit info
                     </button>

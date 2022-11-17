@@ -1,12 +1,15 @@
 <script>
+  import { get } from 'svelte/store'
   import { clickOutside } from '/main/_actions/click-outside.action'
   import { appSettings } from '/runtime/app-helper.store'
+  import { selectedProfileStore } from '/runtime/profile-helper.store'
+  import Toggle from '/main/user-interface/Toggle.svelte'
 
   let editor
   let modalWidth
   let modalHeight
 
-  let charsOfArea = ' '
+  let charsOfArea = ''
   let charCount = undefined
   $: charCount = charsOfArea.length
 
@@ -15,6 +18,10 @@
       editor.layout()
     }
   }
+
+  let selectedProfile = get(selectedProfileStore)
+
+  let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -60,17 +67,20 @@
             <label class="mb-1 " for="title">Title</label>
             <input
               id="title"
+              bind:value={selectedProfile.name}
               type="text"
               class="w-full py-2 px-3 bg-secondary text-white
               placeholder-gray-400 text-md" />
+
           </div>
 
           <div class="flex flex-col">
             <label class="mb-1" for="shortDesc">Short Description</label>
             <textarea
               id="shortDesc"
+              bind:value={selectedProfile.description}
               type="text"
-              class="w-full py-2 px-3 bg-secondary text-white
+              class="w-full py-2 px-3 h-20 bg-secondary text-white
               placeholder-gray-400 text-md resize-none" />
           </div>
 
@@ -92,7 +102,8 @@
         <div class="w-full flex flex-col gap-4">
 
           <div class="flex flex-col">
-            <label class="mb-1" for="category">Category</label>
+            <label class="mb-1" for="category">Tags</label>
+            <!--Ide valami fancy input text field kellene-->
             <select
               id="category"
               class="bg-secondary border-none flex-grow text-white p-2 shadow">
@@ -103,43 +114,26 @@
           </div>
 
           <div class="flex flex-col">
-            <label class="mb-1" for="compContr">Compatible Controller(s)</label>
+            <label class="mb-1" for="compContr">Compatible Controller</label>
             <select
               id="compContr"
-              class="bg-secondary border-none flex-grow text-white p-2 shadow">
-              <option class="text-white bg-secondary py-1 border-none">
-                Element
-              </option>
+              class="bg-secondary border-none flex-grow text-white p-2 shadow ">
+              <option value="" selected disabled hidden>- Select -</option>
+
+              {#each allModulesTypes as module}
+                <option
+                  value={module}
+                  selected={module == selectedProfile.type}>
+                  {module}
+                </option>
+              {/each}
+
             </select>
           </div>
 
-          <div class="flex flex-col">
-            <label class="mb-1" for="compSw">Compatible Software(s)</label>
-            <select
-              id="compSw"
-              class="bg-secondary border-none flex-grow text-white p-2 shadow">
-              <option class="text-white bg-secondary py-1 border-none">
-                Element
-              </option>
-            </select>
-          </div>
-
-          <div class="">
-            <label
-              class="inline-flex relative items-center ml-1 cursor-pointer">
-              <input type="checkbox" value="" class="sr-only peer" />
-              <div
-                class="w-12 h-6 bg-primary-700 rounded-full peer
-                peer-focus:ring-4 peer-focus:ring-orange-300
-                dark:peer-focus:ring-gray-300 dark:bg-gray-700
-                peer-checked:after:translate-x-6
-                peer-checked:after:border-orange-100 after:content-['']
-                after:absolute after:top-0 after:left-0 after:bg-white
-                after:border-gray-300 after:border after:rounded-full after:h-6
-                after:w-6 after:transition-all dark:border-gray-100
-                peer-checked:bg-commit" />
-              <span class="ml-3 text-md font-medium">Private Profile</span>
-            </label>
+          <div class="flex">
+            <Toggle />
+            <span class="ml-3 text-md font-medium">Private Profile</span>
           </div>
         </div>
 
