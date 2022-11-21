@@ -64,7 +64,44 @@
       <div class="w-3/5 flex flex-col gap-4">
 
         <div>
-          <div class="text-green-400 font-semibold mb-2">Category</div>
+          <div class="flex justify-between">
+            <div class="text-green-400 font-semibold mb-2">Category</div>
+            <button
+              class="flex gap-2 items-center focus:outline-none justify-center
+              rounded my-2 border-select bg-select
+              hover:border-select-saturate-10 hover:bg-select-saturate-10
+              border-2 text-white px-2 py-0.5 mx-1 w-24"
+              on:click|preventDefault={() => {
+                $appSettings.modal = 'profileEdit'
+              }}>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
+                  4.08732L1.31319 9.75047V10.6697ZM10.7025 4.05449L7.912
+                  1.29678L8.83123 0.377544C9.08293 0.125848 9.39219 0 9.75901
+                  0C10.1254 0 10.4344 0.125848 10.6861 0.377544L11.6054
+                  1.29678C11.8571 1.54848 11.9884 1.85226 11.9993
+                  2.20814C12.0103 2.56358 11.8899 2.86714 11.6382
+                  3.11884L10.7025 4.05449ZM0.656597 11.9829C0.470561 11.9829
+                  0.314729 11.9199 0.1891 11.7938C0.0630334 11.6682 0 11.5123 0
+                  11.3263V9.47142C0 9.38387 0.016415 9.29917 0.0492448
+                  9.21731C0.0820747 9.13502 0.131319 9.06104 0.196979
+                  8.99538L6.95993 2.23243L9.75047 5.02297L2.98752
+                  11.7859C2.92186 11.8516 2.8481 11.9008 2.76624 11.9337C2.68395
+                  11.9665 2.59903 11.9829 2.51148 11.9829H0.656597ZM7.43596
+                  4.54694L6.97635 4.08732L7.89558 5.00656L7.43596 4.54694Z"
+                  fill="#FFF" />
+              </svg>
+              edit
+            </button>
+
+          </div>
+
           <div class="text-lg font-medium">{selectedProfile.name}</div>
 
         </div>
@@ -94,8 +131,9 @@
             </li>
           </ul>
         </div>
+
       </div>
-      <div class="w-2/5">
+      <div class="w-2/5 flex flex-col justify-between">
 
         <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
 
@@ -106,8 +144,7 @@
               border-primary-700 border-b border-t-0 border-x-0 pb-4">
 
               <div class="flex flex-col items-center">
-
-                <span class="font-medium">@user</span>
+                <span class="font-medium ">@user</span>
               </div>
 
               <div class="text-center">
@@ -118,8 +155,8 @@
                   {#if !liked}
                     <svg
                       class="fill-white"
-                      width="35"
-                      height="32"
+                      width="32"
+                      height="29"
                       viewBox="0 0 38 35"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -157,8 +194,8 @@
                   {#if liked}
                     <svg
                       class="fill-red-600"
-                      width="35"
-                      height="32"
+                      width="32"
+                      height="29"
                       viewBox="0 0 38 35"
                       fill="none"
                       xmlns="http://www.w3.org/2000/svg">
@@ -195,9 +232,11 @@
           </div>
 
           <div class="flex flex-col gap-1">
+
             <div>Compatible controllers: {selectedProfile.type}</div>
             <div class="flex items-center gap-2">
               <span>Compatible with Ableton</span>
+              <!---kell ez nekem?--->
               <img
                 class="w-10"
                 src="/assets/svgs/ableton_logo.svg"

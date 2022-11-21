@@ -3,6 +3,8 @@
   import { clickOutside } from '/main/_actions/click-outside.action'
   import { appSettings } from '/runtime/app-helper.store'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
+  import { onMount } from 'svelte'
+
   import Toggle from '/main/user-interface/Toggle.svelte'
 
   let editor
@@ -22,6 +24,39 @@
   let selectedProfile = get(selectedProfileStore)
 
   let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
+
+  let PROFILE_PATH = get(appSettings).persistant.profileFolder
+  let PROFILES = []
+  async function loadFromDirectory() {
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+      PROFILE_PATH,
+      'profiles',
+    )
+  }
+
+  appSettings.subscribe((store) => {
+    let new_folder = store.persistant.profileFolder
+    if (new_folder !== PROFILE_PATH) {
+      PROFILE_PATH = new_folder
+      moveOld()
+    }
+  })
+
+  async function moveOld() {
+    await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles')
+    loadFromDirectory()
+  }
+
+  /*   function saveProfileEdit() {
+    PROFILES.forEach((element) => {
+      element.name = selectedProfile.name,
+      element.name = selectedProfile.name,
+    })
+  }
+ */
+  onMount(() => {
+    moveOld()
+  })
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -68,6 +103,8 @@
             <input
               id="title"
               bind:value={selectedProfile.name}
+              minlength="2"
+              maxlength="60"
               type="text"
               class="w-full py-2 px-3 bg-secondary text-white
               placeholder-gray-400 text-md" />
@@ -75,24 +112,14 @@
           </div>
 
           <div class="flex flex-col">
-            <label class="mb-1" for="shortDesc">Short Description</label>
+            <label class="mb-1" for="desc">Description</label>
             <textarea
-              id="shortDesc"
+              id="desc"
               bind:value={selectedProfile.description}
+              minlength="2"
               type="text"
-              class="w-full py-2 px-3 h-20 bg-secondary text-white
+              class="w-full py-2 px-3 h-52 bg-secondary text-white
               placeholder-gray-400 text-md resize-none" />
-          </div>
-
-          <div class="flex flex-col">
-            <label class="mb-1" for="longDesc">Long Description</label>
-            <textarea
-              id="longDesc"
-              bind:value={charsOfArea}
-              type="text"
-              class="w-full py-2 px-3 h-40 bg-secondary text-white
-              placeholder-gray-400 text-md resize-none" />
-            {charCount}
           </div>
 
           <div>Upload Cover Photo</div>
@@ -139,12 +166,22 @@
 
       </form>
 
-      <div class="flex justify-end">
+      <div class="flex justify-between items-center">
         <button
-          class=" flex items-center justify-center rounded my-2
-          focus:outline-none border-2 border-commit bg-commit
-          hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white
-          px-2 py-0.5 ml-1 w-24">
+          class="flex items-center focus:outline-none justify-center rounded
+          my-2 border-select bg-select hover:border-select-saturate-10
+          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24 "
+          on:click|preventDefault={() => {
+            $appSettings.modal = 'profileInfo'
+          }}>
+          ← back
+        </button>
+        <button
+          on:click|preventDefault={() => saveProfileEdit()}
+          class=" flex items-center focus:outline-none justify-center rounded
+          my-22 border-commit bg-commit hover:bg-commit-saturate-20
+          hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
+          w-24 ">
           Save
         </button>
       </div>
