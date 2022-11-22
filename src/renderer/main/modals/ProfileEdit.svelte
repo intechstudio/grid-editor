@@ -1,15 +1,17 @@
 <script>
   import { get } from 'svelte/store'
   import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings } from '/runtime/app-helper.store'
+  import { appSettings } from '/runtime/app-helper.store.js'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
   import { onMount } from 'svelte'
-
+  import { logger } from '/runtime/runtime.store.js'
   import Toggle from '/main/user-interface/Toggle.svelte'
 
   let editor
   let modalWidth
   let modalHeight
+
+  let newName = ''
 
   let charsOfArea = ''
   let charCount = undefined
@@ -22,6 +24,22 @@
   }
 
   let selectedProfile = get(selectedProfileStore)
+
+  let editProfileData = {
+    name: selectedProfile.name,
+    description: selectedProfile.description,
+    tags: '',
+    type: selectedProfile.type,
+    config: selectedProfile.configs,
+    private: false,
+
+    isGridProfile: true, // differentiator from different JSON files!
+    version: {
+      major: $appSettings.version.major,
+      minor: $appSettings.version.minor,
+      patch: $appSettings.version.patch,
+    },
+  }
 
   let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
 
@@ -47,13 +65,21 @@
     loadFromDirectory()
   }
 
-  /*   function saveProfileEdit() {
-    PROFILES.forEach((element) => {
-      element.name = selectedProfile.name,
-      element.name = selectedProfile.name,
-    })
+  async function updateConfig() {
+    await window.electron.configs.updateConfig(
+      PROFILE_PATH,
+      editProfileData.name,
+      editProfileData,
+      'profiles',
+      selectedProfile.name,
+      'user',
+    )
+
+    selectedProfile.name = editProfileData.name
+    selectedProfile.description = editProfileData.description
+    selectedProfile = {}
   }
- */
+
   onMount(() => {
     moveOld()
   })
@@ -102,7 +128,7 @@
             <label class="mb-1 " for="title">Title</label>
             <input
               id="title"
-              bind:value={selectedProfile.name}
+              bind:value={editProfileData.name}
               minlength="2"
               maxlength="60"
               type="text"
@@ -115,7 +141,7 @@
             <label class="mb-1" for="desc">Description</label>
             <textarea
               id="desc"
-              bind:value={selectedProfile.description}
+              bind:value={editProfileData.description}
               minlength="2"
               type="text"
               class="w-full py-2 px-3 h-52 bg-secondary text-white
@@ -150,7 +176,7 @@
               {#each allModulesTypes as module}
                 <option
                   value={module}
-                  selected={module == selectedProfile.type}>
+                  selected={module == editProfileData.type}>
                   {module}
                 </option>
               {/each}
@@ -177,7 +203,7 @@
           ← back
         </button>
         <button
-          on:click|preventDefault={() => saveProfileEdit()}
+          on:click|preventDefault={() => updateConfig()}
           class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1

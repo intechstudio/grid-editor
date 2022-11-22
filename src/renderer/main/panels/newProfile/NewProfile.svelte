@@ -1,6 +1,6 @@
 <script>
   import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings, profileListRefresh } from '/runtime/app-helper.store'
+  import { appSettings } from '/runtime/app-helper.store'
   import { get } from 'svelte/store'
   import { onMount } from 'svelte'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
@@ -17,10 +17,10 @@
     },
   ]
 
-  let selected = {}
+  let selectedProfile = {}
 
   selectedProfileStore.subscribe((store) => {
-    selected = store
+    selectedProfile = store
   })
 
   let searchbarValue = ''
@@ -53,11 +53,13 @@
   }
 
   function selectProfile(profile) {
-    selected = profile
-    selectedProfileStore.set(selected)
+    selectedProfile = profile
+    selectedProfileStore.set(selectedProfile)
   }
 
-  selectedProfileStore.set(selected)
+  selectedProfileStore.set(selectedProfile)
+
+  $: console.log('profiles', selectedProfileStore)
 
   function updateSearchFilter(input) {
     PROFILES.forEach((profile) => {
@@ -68,6 +70,10 @@
       }
       PROFILES = [...PROFILES]
     })
+  }
+
+  $: if ($selectedProfileStore == {}) {
+    console.log('ures')
   }
 
   function compare(a, b) {
@@ -88,7 +94,7 @@
 <div
   use:clickOutside={{ useCapture: true }}
   on:click-outside={() => {
-    selected = undefined
+    selectedProfile = undefined
   }}
   class="bg-primary pt-4 h-full flex flex-col overflow-hidden scroll-smooth">
   <div class="m-4 ">
@@ -108,10 +114,10 @@
         {#each sessionProfile as sessionProfileElement}
           <button
             on:click={() => {
-              selected = sessionProfileElement
+              selectedProfile = sessionProfileElement
             }}
             class="w-full text-left bg-primary-700 hover:bg-primary-600 mb-4 p-2
-            cursor-pointer {selected == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+            cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
             <div class="flex justify-between">
               <span class="text-zinc-100 ">{sessionProfileElement.name}</span>
 
@@ -222,7 +228,7 @@
                   selectProfile(profileCloudElement)
                 }}
                 class="w-full bg-primary-700 hover:bg-primary-600 p-2
-                cursor-pointer {selected == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+                cursor-pointer {selectedProfile == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
@@ -244,9 +250,9 @@
 
                   <div class="flex flex-col text-right gap-2">
                     <div class="text-gray-100 text-sm ">
-                      {#if profileCloudElement.author == undefined}
+                      {#if profileCloudElement.folder == undefined}
                         @user
-                      {:else}@{profileCloudElement.author}{/if}
+                      {:else}@{profileCloudElement.folder}{/if}
 
                     </div>
                     <div class="flex flex-row gap-1">
