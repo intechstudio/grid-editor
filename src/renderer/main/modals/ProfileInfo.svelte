@@ -64,7 +64,7 @@
       <div class="w-3/5 flex flex-col gap-4">
 
         <div>
-          <div class="flex justify-between">
+          <div class="flex justify-between items-center">
             <div class="text-green-400 font-semibold mb-2">Category</div>
             <button
               class="flex gap-2 items-center focus:outline-none justify-center

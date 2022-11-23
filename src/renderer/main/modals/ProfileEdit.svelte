@@ -23,14 +23,12 @@
     }
   }
 
-  let selectedProfile = get(selectedProfileStore)
-
   let editProfileData = {
-    name: selectedProfile.name,
-    description: selectedProfile.description,
+    name: $selectedProfileStore.name,
+    description: $selectedProfileStore.description,
     tags: '',
-    type: selectedProfile.type,
-    config: selectedProfile.configs,
+    type: $selectedProfileStore.type,
+    config: $selectedProfileStore.configs,
     private: false,
 
     isGridProfile: true, // differentiator from different JSON files!
@@ -38,6 +36,16 @@
       major: $appSettings.version.major,
       minor: $appSettings.version.minor,
       patch: $appSettings.version.patch,
+    },
+  }
+
+  let validatorProfileData = {
+    name: {
+      isEmptyMessage: '',
+      isTitleUniqueMessage: '',
+    },
+    description: {
+      isEmptyMessage: '',
     },
   }
 
@@ -52,37 +60,75 @@
     )
   }
 
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder
-      moveOld()
-    }
-  })
-
-  async function moveOld() {
-    await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles')
-    loadFromDirectory()
-  }
-
   async function updateConfig() {
     await window.electron.configs.updateConfig(
       PROFILE_PATH,
       editProfileData.name,
       editProfileData,
       'profiles',
-      selectedProfile.name,
+      $selectedProfileStore.name,
       'user',
     )
 
-    selectedProfile.name = editProfileData.name
-    selectedProfile.description = editProfileData.description
-    selectedProfile = {}
+    $selectedProfileStore.name = editProfileData.name
+    $selectedProfileStore.description = editProfileData.description
+
+    await loadFromDirectory()
+
+    console.log('PROFILE config', PROFILES)
+    logger.set({
+      type: 'success',
+      mode: 0,
+      classname: 'profilesave',
+      message: `Profile saved!`,
+    })
   }
 
-  onMount(() => {
-    moveOld()
-  })
+  let isTitleUnique = undefined
+
+  async function checkIfProfileTitleUnique(input) {
+    await loadFromDirectory()
+
+    PROFILES.forEach((profile) => {
+      /*       if (profile.name.trim() == $selectedProfileStore.name.trim()) {
+        console.log(
+          'Fine',
+          profile.name.trim(),
+          $selectedProfileStore.name.trim(),
+          input.trim(),
+        )
+        isTitleUniqueMessage = ''
+      } */
+
+      if (
+        profile.name.trim() != $selectedProfileStore.name.trim() &&
+        profile.name.trim() == input.trim()
+      ) {
+        isTitleUnique = true
+      } else {
+        isTitleUnique = false
+      }
+    })
+  }
+
+  let isTitleEmpty = undefined
+  let isDescEmpty = undefined
+
+  async function checkIfTitleFieldEmpty(input) {
+    if (input.length < 1) {
+      isTitleEmpty = true
+    } else {
+      isTitleEmpty = false
+    }
+  }
+
+  async function checkIfDescFieldEmpty(input) {
+    if (input.length < 1) {
+      isDescEmpty = true
+    } else {
+      isDescEmpty = false
+    }
+  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -129,11 +175,20 @@
             <input
               id="title"
               bind:value={editProfileData.name}
+              on:input={() => {
+                checkIfProfileTitleUnique(editProfileData.name), checkIfTitleFieldEmpty(editProfileData.name)
+              }}
               minlength="2"
               maxlength="60"
               type="text"
               class="w-full py-2 px-3 bg-secondary text-white
-              placeholder-gray-400 text-md" />
+              placeholder-gray-400 text-md mb-2 " />
+            {#if isTitleEmpty}
+              <span class="text-red-500">This field is required</span>
+            {/if}
+            {#if isTitleUnique}
+              <span class="text-red-500">This title is already in use.</span>
+            {/if}
 
           </div>
 
@@ -142,10 +197,14 @@
             <textarea
               id="desc"
               bind:value={editProfileData.description}
+              on:input={checkIfDescFieldEmpty(editProfileData.description)}
               minlength="2"
               type="text"
               class="w-full py-2 px-3 h-52 bg-secondary text-white
-              placeholder-gray-400 text-md resize-none" />
+              placeholder-gray-400 text-md resize-none mb-2" />
+            {#if isDescEmpty}
+              <span class="text-red-500">This field is required</span>
+            {/if}
           </div>
 
           <div>Upload Cover Photo</div>

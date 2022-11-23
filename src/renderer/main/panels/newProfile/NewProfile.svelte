@@ -4,6 +4,7 @@
   import { get } from 'svelte/store'
   import { onMount } from 'svelte'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
+  import { logger } from '/runtime/runtime.store.js'
 
   let sessionProfile = [
     {
@@ -59,8 +60,6 @@
 
   selectedProfileStore.set(selectedProfile)
 
-  $: console.log('profiles', selectedProfileStore)
-
   function updateSearchFilter(input) {
     PROFILES.forEach((profile) => {
       if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
@@ -72,8 +71,8 @@
     })
   }
 
-  $: if ($selectedProfileStore == {}) {
-    console.log('ures')
+  $: if ($selectedProfileStore) {
+    loadFromDirectory()
   }
 
   function compare(a, b) {
@@ -120,13 +119,11 @@
             cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
             <div class="flex justify-between">
               <span class="text-zinc-100 ">{sessionProfileElement.name}</span>
-
             </div>
 
             <span class="text-zinc-400 text-sm">
               modified: {sessionProfileElement.latestMod}
             </span>
-
           </button>
         {/each}
 
@@ -219,7 +216,6 @@
         </div>
 
         <div class="flex flex-col overflow-y-auto gap-4 ">
-
           {#each PROFILES.sort(compare) as profileCloudElement, i}
             {#if profileCloudElement.isInFilteredResult != false}
               <button
@@ -228,7 +224,7 @@
                   selectProfile(profileCloudElement)
                 }}
                 class="w-full bg-primary-700 hover:bg-primary-600 p-2
-                cursor-pointer {selectedProfile == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+                cursor-pointer {selectedIndex == i ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
@@ -260,7 +256,7 @@
                       <button
                         class="p-1 hover:bg-primary-500 rounded"
                         on:click|preventDefault={() => {
-                          ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement)
+                          ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement), (selectedIndex = i)
                         }}>
                         <svg
                           width="17"
@@ -315,7 +311,7 @@
                       <button
                         class="p-1 hover:bg-primary-500 rounded"
                         on:click|preventDefault={() => {
-                          ;($appSettings.modal = 'profileInfo'), selectProfile(profileCloudElement)
+                          ;($appSettings.modal = 'profileInfo'), selectProfile(profileCloudElement), (selectedIndex = i)
                         }}>
                         <svg
                           class="fill-white "
