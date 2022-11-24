@@ -325,6 +325,7 @@ ipcMain.handle('saveConfig', async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
+    arg.user,
   )
 })
 

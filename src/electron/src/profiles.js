@@ -155,21 +155,21 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
   return configs
 }
 
-async function saveConfig(configPath, name, config, rootDirectory) {
+async function saveConfig(configPath, name, config, rootDirectory, user) {
   const path = configPath
 
   if (!fs.existsSync(path)) fs.mkdirSync(path)
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`)
-  if (!fs.existsSync(`${path}/${rootDirectory}/user`))
-    fs.mkdirSync(`${path}/${rootDirectory}/user`)
+  if (!fs.existsSync(`${path}/${rootDirectory}/${user}`))
+    fs.mkdirSync(`${path}/${rootDirectory}/${user}`)
 
-  if (!fs.existsSync(`${path}/${rootDirectory}/user/${name}`))
-    fs.mkdirSync(`${path}/${rootDirectory}/user/${name}`)
+  if (!fs.existsSync(`${path}/${rootDirectory}/${user}/${name}`))
+    fs.mkdirSync(`${path}/${rootDirectory}/${user}/${name}`)
 
   // Creating and Writing to the sample.txt file
   fs.writeFile(
-    `${path}/${rootDirectory}/user/${name}/${name}.json`,
+    `${path}/${rootDirectory}/${user}/${name}/${name}.json`,
     JSON.stringify(config, null, 4),
     function (err) {
       if (err) throw err

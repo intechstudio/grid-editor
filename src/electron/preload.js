@@ -35,12 +35,13 @@ contextBridge.exposeInMainWorld('electron', {
         configPath,
         rootDirectory,
       }),
-    saveConfig: (configPath, name, config, rootDirectory) =>
+    saveConfig: (configPath, name, config, rootDirectory, user) =>
       ipcRenderer.invoke('saveConfig', {
         configPath,
         name,
         config,
         rootDirectory,
+        user,
       }),
     updateConfig: (
       configPath,

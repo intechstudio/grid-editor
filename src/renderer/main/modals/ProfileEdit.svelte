@@ -39,16 +39,6 @@
     },
   }
 
-  let validatorProfileData = {
-    name: {
-      isEmptyMessage: '',
-      isTitleUniqueMessage: '',
-    },
-    description: {
-      isEmptyMessage: '',
-    },
-  }
-
   let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
@@ -61,27 +51,36 @@
   }
 
   async function updateConfig() {
-    await window.electron.configs.updateConfig(
-      PROFILE_PATH,
-      editProfileData.name,
-      editProfileData,
-      'profiles',
-      $selectedProfileStore.name,
-      'user',
-    )
+    checkIfProfileTitleUnique(editProfileData.name)
+    checkIfTitleFieldEmpty(editProfileData.name)
+    checkIfDescFieldEmpty(editProfileData.description)
 
-    $selectedProfileStore.name = editProfileData.name
-    $selectedProfileStore.description = editProfileData.description
+    if (
+      isTitleDirty != false &&
+      isDescDirty != false &&
+      isTitleUnique != false
+    ) {
+      await window.electron.configs.updateConfig(
+        PROFILE_PATH,
+        editProfileData.name,
+        editProfileData,
+        'profiles',
+        $selectedProfileStore.name,
+        'user',
+      )
 
-    await loadFromDirectory()
+      $selectedProfileStore.name = editProfileData.name
+      $selectedProfileStore.description = editProfileData.description
 
-    console.log('PROFILE config', PROFILES)
-    logger.set({
-      type: 'success',
-      mode: 0,
-      classname: 'profilesave',
-      message: `Profile saved!`,
-    })
+      await loadFromDirectory()
+
+      logger.set({
+        type: 'success',
+        mode: 0,
+        classname: 'profilesave',
+        message: `Profile saved!`,
+      })
+    }
   }
 
   let isTitleUnique = undefined
@@ -90,43 +89,35 @@
     await loadFromDirectory()
 
     PROFILES.forEach((profile) => {
-      /*       if (profile.name.trim() == $selectedProfileStore.name.trim()) {
-        console.log(
-          'Fine',
-          profile.name.trim(),
-          $selectedProfileStore.name.trim(),
-          input.trim(),
-        )
-        isTitleUniqueMessage = ''
-      } */
+      if (profile.name.trim() == $selectedProfileStore.name.trim()) {
+        isTitleUnique = true
+      }
 
       if (
         profile.name.trim() != $selectedProfileStore.name.trim() &&
         profile.name.trim() == input.trim()
       ) {
-        isTitleUnique = true
-      } else {
         isTitleUnique = false
       }
     })
   }
 
-  let isTitleEmpty = undefined
-  let isDescEmpty = undefined
+  let isTitleDirty = undefined
+  let isDescDirty = undefined
 
   async function checkIfTitleFieldEmpty(input) {
     if (input.length < 1) {
-      isTitleEmpty = true
+      isTitleDirty = false
     } else {
-      isTitleEmpty = false
+      isTitleDirty = true
     }
   }
 
   async function checkIfDescFieldEmpty(input) {
     if (input.length < 1) {
-      isDescEmpty = true
+      isDescDirty = false
     } else {
-      isDescEmpty = false
+      isDescDirty = true
     }
   }
 </script>
@@ -183,10 +174,10 @@
               type="text"
               class="w-full py-2 px-3 bg-secondary text-white
               placeholder-gray-400 text-md mb-2 " />
-            {#if isTitleEmpty}
+            {#if isTitleDirty == false}
               <span class="text-red-500">This field is required</span>
             {/if}
-            {#if isTitleUnique}
+            {#if isTitleUnique == false}
               <span class="text-red-500">This title is already in use.</span>
             {/if}
 
@@ -202,7 +193,7 @@
               type="text"
               class="w-full py-2 px-3 h-52 bg-secondary text-white
               placeholder-gray-400 text-md resize-none mb-2" />
-            {#if isDescEmpty}
+            {#if isDescDirty == false}
               <span class="text-red-500">This field is required</span>
             {/if}
           </div>
@@ -238,6 +229,7 @@
                   selected={module == editProfileData.type}>
                   {module}
                 </option>
+                <!--Ezt meg kell még csinálni, hogy változzon az adat!-->
               {/each}
 
             </select>
