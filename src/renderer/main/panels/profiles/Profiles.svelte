@@ -92,7 +92,9 @@
       'profiles',
       user,
     )
+
     loadFromDirectory()
+
     logger.set({
       type: 'success',
       mode: 0,
@@ -173,12 +175,14 @@
 
       const rt = get(runtime)
       const ui = get(user_input)
+
       const currentModule = rt.find(
         (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
       )
 
       if (currentModule.id.substr(0, 4) == profile.type) {
         runtime.whole_page_overwrite(profile.configs)
+        console.log
 
         window.electron.analytics.google('profile-library', {
           value: 'load success',

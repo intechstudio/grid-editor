@@ -1,6 +1,6 @@
 <script>
   import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings } from '/runtime/app-helper.store'
+  import { appSettings, profileListRefresh } from '/runtime/app-helper.store'
   import { get } from 'svelte/store'
   import { onMount } from 'svelte'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
@@ -32,11 +32,18 @@
   let searchbarValue = ''
 
   let selectedIndex = undefined
-  let isSessionProfileOpen = false
-  let isProfileCloudOpen = false
+  let isSessionProfileOpen = true
+  let isProfileCloudOpen = true
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
+
+  let editable = false
+
+  function handleDblClick() {
+    editable = true
+    console.log(editable)
+  }
 
   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
@@ -63,7 +70,19 @@
     selectedProfileStore.set(selectedProfile)
   }
 
-  selectedProfileStore.set(selectedProfile)
+  user_input.subscribe((ui) => {
+    const rt = get(runtime)
+
+    let device = rt.find(
+      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
+    )
+
+    if (device === undefined) {
+      return
+    }
+
+    selectedProfile.type = device.id.substr(0, 4)
+  })
 
   function updateSearchFilter(input) {
     PROFILES.forEach((profile) => {
@@ -76,8 +95,59 @@
     })
   }
 
+  function loadProfile() {
+    window.electron.analytics.google('profile-library', { value: 'load start' })
+    window.electron.analytics.influx(
+      'application',
+      'profiles',
+      'profile',
+      'load start',
+    )
+
+    if (selectedProfile !== undefined) {
+      console.log(selectedProfile.type)
+      const profile = selectedProfile
+
+      const rt = get(runtime)
+      const ui = get(user_input)
+
+      const currentModule = rt.find(
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
+      )
+
+      if (currentModule.id.substr(0, 4) == profile.type) {
+        runtime.whole_page_overwrite(profile.configs)
+
+        window.electron.analytics.google('profile-library', {
+          value: 'load success',
+        })
+        window.electron.analytics.influx(
+          'application',
+          'profiles',
+          'profile',
+          'load success',
+        )
+      } else {
+        window.electron.analytics.google('profile-library', {
+          value: 'load mismatch',
+        })
+        window.electron.analytics.influx(
+          'application',
+          'profiles',
+          'profile',
+          'load mismatch',
+        )
+        logger.set({
+          type: 'alert',
+          mode: 0,
+          classname: 'profileload',
+          message: `Profile is not made for ${currentModule.id.substr(0, 4)}!`,
+        })
+      }
+    }
+  }
+
   function prepareSave(user) {
-    console.log(user, 'user')
     window.electron.analytics.influx('profile-library', { value: 'save start' })
     window.electron.analytics.influx(
       'application',
@@ -98,7 +168,6 @@
 
       const configs = get(runtime)
 
-      console.log(selectedProfile)
       let profile = {
         ...selectedProfile,
         isGridProfile: true, // differentiator from different JSON files!
@@ -143,18 +212,22 @@
       'profiles',
       user,
     )
-    loadFromDirectory()
+
     logger.set({
       type: 'success',
       mode: 0,
       classname: 'profilesave',
       message: `Profile saved!`,
     })
+
+    loadFromDirectory()
   }
 
   $: if ($selectedProfileStore) {
     loadFromDirectory()
   }
+
+  $: console.log(selectedProfile)
 
   function compare(a, b) {
     if (a.name < b.name) {
@@ -166,55 +239,11 @@
     return 0
   }
 
-  function loadProfile() {
-    window.electron.analytics.google('profile-library', { value: 'load start' })
-    window.electron.analytics.influx(
-      'application',
-      'profiles',
-      'profile',
-      'load start',
-    )
-
-    if (selectedProfile !== undefined) {
-      const profile = selectedProfile
-
-      const rt = get(runtime)
-      const ui = get(user_input)
-      const currentModule = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
-      )
-
-      if (currentModule.id.substr(0, 4) == profile.type) {
-        runtime.whole_page_overwrite(profile.configs)
-
-        window.electron.analytics.google('profile-library', {
-          value: 'load success',
-        })
-        window.electron.analytics.influx(
-          'application',
-          'profiles',
-          'profile',
-          'load success',
-        )
-      } else {
-        window.electron.analytics.google('profile-library', {
-          value: 'load mismatch',
-        })
-        window.electron.analytics.influx(
-          'application',
-          'profiles',
-          'profile',
-          'load mismatch',
-        )
-        logger.set({
-          type: 'alert',
-          mode: 0,
-          classname: 'profileload',
-          message: `Profile is not made for ${currentModule.id.substr(0, 4)}!`,
-        })
-      }
+  profileListRefresh.subscribe((store) => {
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
+      loadFromDirectory()
     }
-  }
+  })
 
   onMount(() => {
     moveOld()
@@ -224,166 +253,198 @@
 <div
   use:clickOutside={{ useCapture: true }}
   on:click-outside={() => {
-    selectedProfile = undefined
+    selectedProfile = {}
     selectedIndex = undefined
   }}
-  class="bg-primary pt-4 h-full flex flex-col overflow-hidden scroll-smooth">
+  class="bg-primary pt-4 h-full flex flex-col ">
 
   <div class="m-4 flex flex-col ">
     <button
-      on:click={() => {
-        isSessionProfileOpen = !isSessionProfileOpen
-      }}
+      on:click={() => (isSessionProfileOpen = !isSessionProfileOpen)}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer bg-secondary w-full">
+      cursor-pointer bg-secondary w-full ">
       <div>Session Profiles</div>
       {isSessionProfileOpen ? '▼' : '▲'}
     </button>
 
     {#if isSessionProfileOpen}
-      <div class="bg-secondary flex flex-col p-3 overflow-y-auto">
+      <div class="bg-secondary flex flex-col p-3 overflow-hidden ">
+        <div class="flex flex-col overflow-y-auto gap-4 scroll-smooth ">
+          {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
+            <button
+              class="w-full flex justify-between gap-1 items-center text-left
+              bg-primary-700 hover:bg-primary-600 p-2 cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+              <div class="flex justify-between">
+                <span
+                  on:dblclick={() => handleDblClick()}
+                  contenteditable={editable == true}
+                  class="text-zinc-100 ">
+                  {sessionProfileElement.name}
+                </span>
+                <span class="text-zinc-100 ">{sessionProfileElement.type}</span>
 
-        {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
-          <button
-            on:click={() => {
-              selectedProfile = sessionProfileElement
-            }}
-            class="w-full flex justify-between gap-1 items-center text-left
-            bg-primary-700 hover:bg-primary-600 mb-4 p-2 cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
-            <div class="flex justify-between">
-              <span class="text-zinc-100 ">{sessionProfileElement.name}</span>
-            </div>
+              </div>
 
-            <span class="text-zinc-400 text-sm">
-              <!-- modified: {sessionProfileElement.latestMod} -->
-            </span>
+              <span class="text-zinc-400 text-sm">
+                <!-- modified: {sessionProfileElement.latestMod} -->
+              </span>
 
-            <div class="flex gap-2 ">
-              <svg
-                width="19"
-                height="18"
-                viewBox="0 0 19 18"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg">
-                <path
-                  d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539 1.52244
-                  0.753154C2.00468 0.270917 2.65873 0 3.34072 0H14.1137C14.7956
-                  0.000145639 15.4496 0.271159 15.9317 0.753429L18.0159
-                  2.83757C18.4981 3.3197 18.7691 3.97364 18.7693
-                  4.65557V15.4286C18.7693 16.1106 18.4984 16.7646 18.0161
-                  17.2468C17.5339 17.7291 16.8798 18 16.1979 18H3.34072C2.65873
-                  18 2.00468 17.7291 1.52244 17.2468C1.0402 16.7646 0.769287
-                  16.1106 0.769287 15.4286V2.57143ZM3.34072 1.28571C2.99972
-                  1.28571 2.6727 1.42117 2.43158 1.66229C2.19046 1.90341 2.055
-                  2.23044 2.055 2.57143V15.4286C2.055 15.7696 2.19046 16.0966
-                  2.43158 16.3377C2.6727 16.5788 2.99972 16.7143 3.34072
-                  16.7143V10.9286C3.34072 10.4171 3.5439 9.92654 3.90558
-                  9.56487C4.26726 9.20319 4.7578 9 5.26929 9H14.2693C14.7808 9
-                  15.2713 9.20319 15.633 9.56487C15.9947 9.92654 16.1979 10.4171
-                  16.1979 10.9286V16.7143C16.5389 16.7143 16.8659 16.5788 17.107
-                  16.3377C17.3481 16.0966 17.4836 15.7696 17.4836
-                  15.4286V4.65557C17.4835 4.31461 17.348 3.98763 17.1069
-                  3.74657L15.0227 1.66243C14.7817 1.42129 14.4547 1.28579
-                  14.1137 1.28571H13.6264V4.5C13.6264 5.01149 13.4232 5.50203
-                  13.0616 5.86371C12.6999 6.22538 12.2093 6.42857 11.6979
-                  6.42857H6.555C6.04351 6.42857 5.55297 6.22538 5.1913
-                  5.86371C4.82962 5.50203 4.62643 5.01149 4.62643
-                  4.5V1.28571H3.34072ZM5.91214 1.28571V4.5C5.91214 4.6705
-                  5.97987 4.83401 6.10043 4.95457C6.22099 5.07513 6.3845 5.14286
-                  6.555 5.14286H11.6979C11.8684 5.14286 12.0319 5.07513 12.1524
-                  4.95457C12.273 4.83401 12.3407 4.6705 12.3407
-                  4.5V1.28571H5.91214ZM14.9121 16.7143V10.9286C14.9121 10.7581
-                  14.8444 10.5946 14.7239 10.474C14.6033 10.3534 14.4398 10.2857
-                  14.2693 10.2857H5.26929C5.09879 10.2857 4.93528 10.3534
-                  4.81472 10.474C4.69416 10.5946 4.62643 10.7581 4.62643
-                  10.9286V16.7143H14.9121Z"
-                  fill="#F1F1F1" />
-              </svg>
-
-              <button>
-                <svg
-                  width="19"
-                  height="18"
-                  viewBox="0 0 19 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_262_1198)">
+              <div class="flex gap-2 ">
+                <button
+                  class="p-1 hover:bg-primary-500 rounded"
+                  on:click|preventDefault={() => {
+                    selectProfile(sessionProfileElement)
+                    prepareSave('user')
+                  }}>
+                  <svg
+                    width="19"
+                    height="18"
+                    viewBox="0 0 19 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
                     <path
-                      d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214 13.074
-                      0 10.1961 0C5.22682 0 1.20468 4.01786 1.19825
-                      8.98929C1.19182 13.965 5.22254 18 10.1961 18C14.0811 18
-                      17.3918 15.5357 18.6518 12.0836C18.684 11.9936 18.6368
-                      11.8929 18.5468 11.8629L17.3318 11.445C17.2895 11.4305
-                      17.2431 11.4331 17.2027 11.4523C17.1622 11.4716 17.1309
-                      11.5058 17.1154 11.5479C17.0768 11.655 17.034 11.7621
-                      16.989 11.8671C16.6183 12.7457 16.0868 13.5343 15.4097
-                      14.2114C14.738 14.8844 13.9427 15.4213 13.0675
-                      15.7929C12.1611 16.1764 11.1947 16.3714 10.2004
-                      16.3714C9.20396 16.3714 8.23968 16.1764 7.33325
-                      15.7929C6.4572 15.4229 5.66165 14.8857 4.99111
-                      14.2114C4.31761 13.5398 3.78121 12.7436 3.41182
-                      11.8671C3.02825 10.9586 2.83325 9.99429 2.83325
-                      8.99786C2.83325 8.00143 3.02825 7.03714 3.41182
-                      6.12857C3.78254 5.25 4.31396 4.46143 4.99111
-                      3.78429C5.66825 3.10714 6.45682 2.57571 7.33325
-                      2.20286C8.23968 1.81929 9.20611 1.62429 10.2004
-                      1.62429C11.1968 1.62429 12.1611 1.81929 13.0675
-                      2.20286C13.9436 2.57281 14.7391 3.10997 15.4097
-                      3.78429C15.6218 3.99643 15.8211 4.22143 16.0054
-                      4.45714L14.7154 5.46429C14.6899 5.48403 14.6704 5.51058
-                      14.6593 5.54088C14.6482 5.57117 14.6459 5.60399 14.6526
-                      5.63555C14.6593 5.66712 14.6748 5.69614 14.6973
-                      5.7193C14.7198 5.74245 14.7483 5.75879 14.7797
-                      5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
-                      18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
-                      2.42571 18.4932 2.51357V2.51357Z"
+                      d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
+                      1.52244 0.753154C2.00468 0.270917 2.65873 0 3.34072
+                      0H14.1137C14.7956 0.000145639 15.4496 0.271159 15.9317
+                      0.753429L18.0159 2.83757C18.4981 3.3197 18.7691 3.97364
+                      18.7693 4.65557V15.4286C18.7693 16.1106 18.4984 16.7646
+                      18.0161 17.2468C17.5339 17.7291 16.8798 18 16.1979
+                      18H3.34072C2.65873 18 2.00468 17.7291 1.52244
+                      17.2468C1.0402 16.7646 0.769287 16.1106 0.769287
+                      15.4286V2.57143ZM3.34072 1.28571C2.99972 1.28571 2.6727
+                      1.42117 2.43158 1.66229C2.19046 1.90341 2.055 2.23044
+                      2.055 2.57143V15.4286C2.055 15.7696 2.19046 16.0966
+                      2.43158 16.3377C2.6727 16.5788 2.99972 16.7143 3.34072
+                      16.7143V10.9286C3.34072 10.4171 3.5439 9.92654 3.90558
+                      9.56487C4.26726 9.20319 4.7578 9 5.26929 9H14.2693C14.7808
+                      9 15.2713 9.20319 15.633 9.56487C15.9947 9.92654 16.1979
+                      10.4171 16.1979 10.9286V16.7143C16.5389 16.7143 16.8659
+                      16.5788 17.107 16.3377C17.3481 16.0966 17.4836 15.7696
+                      17.4836 15.4286V4.65557C17.4835 4.31461 17.348 3.98763
+                      17.1069 3.74657L15.0227 1.66243C14.7817 1.42129 14.4547
+                      1.28579 14.1137 1.28571H13.6264V4.5C13.6264 5.01149
+                      13.4232 5.50203 13.0616 5.86371C12.6999 6.22538 12.2093
+                      6.42857 11.6979 6.42857H6.555C6.04351 6.42857 5.55297
+                      6.22538 5.1913 5.86371C4.82962 5.50203 4.62643 5.01149
+                      4.62643 4.5V1.28571H3.34072ZM5.91214 1.28571V4.5C5.91214
+                      4.6705 5.97987 4.83401 6.10043 4.95457C6.22099 5.07513
+                      6.3845 5.14286 6.555 5.14286H11.6979C11.8684 5.14286
+                      12.0319 5.07513 12.1524 4.95457C12.273 4.83401 12.3407
+                      4.6705 12.3407 4.5V1.28571H5.91214ZM14.9121
+                      16.7143V10.9286C14.9121 10.7581 14.8444 10.5946 14.7239
+                      10.474C14.6033 10.3534 14.4398 10.2857 14.2693
+                      10.2857H5.26929C5.09879 10.2857 4.93528 10.3534 4.81472
+                      10.474C4.69416 10.5946 4.62643 10.7581 4.62643
+                      10.9286V16.7143H14.9121Z"
                       fill="#F1F1F1" />
-                  </g>
-                  <defs>
-                    <clipPath id="clip0_262_1198">
-                      <rect
-                        width="18"
-                        height="18"
-                        fill="white"
-                        transform="translate(0.769287)" />
-                    </clipPath>
-                  </defs>
-                </svg>
-              </button>
+                  </svg>
+                </button>
 
-              <button
-                on:click|preventDefault={() => {
-                  loadProfile()
-                }}>
-                <svg
-                  width="16"
-                  height="18"
-                  viewBox="0 0 16 18"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M2.15391 18.0002C1.9168 18.0003 1.68389 17.9376 1.47891
-                    17.8184C1.26344 17.7002 1.08381 17.5261 0.958938
-                    17.3144C0.834061 17.1027 0.768549 16.8613 0.769293
-                    16.6155V1.38478C0.768549 1.13901 0.834061 0.897579 0.958938
-                    0.685898C1.08381 0.474217 1.26344 0.300108 1.47891
-                    0.181891C1.69124 0.0581744 1.93348 -0.00483371 2.17918
-                    -0.000255414C2.42488 0.00432288 2.6646 0.0763115 2.87218
-                    0.207852L15.3337 7.81458C15.538 7.9378 15.7069 8.1117
-                    15.8242 8.31942C15.9415 8.52713 16.0031 8.76162 16.0031
-                    9.00016C16.0031 9.2387 15.9415 9.47319 15.8242
-                    9.68091C15.7069 9.88862 15.538 10.0625 15.3337
-                    10.1857L2.87218 17.7925C2.65748 17.9288 2.40825 18.0009
-                    2.15391 18.0002ZM2.15391 1.38478V16.6155L14.6154
-                    9.00016L2.15391 1.38478Z"
-                    fill="#F1F1F1" />
-                </svg>
-              </button>
+                <button
+                  class="p-1 hover:bg-primary-500 rounded"
+                  on:click|preventDefault={() => {
+                    selectProfile(sessionProfileElement)
+                    prepareSave('sessionProfile')
+                  }}>
+                  <svg
+                    width="19"
+                    height="18"
+                    viewBox="0 0 19 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_262_1198)">
+                      <path
+                        d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
+                        13.074 0 10.1961 0C5.22682 0 1.20468 4.01786 1.19825
+                        8.98929C1.19182 13.965 5.22254 18 10.1961 18C14.0811 18
+                        17.3918 15.5357 18.6518 12.0836C18.684 11.9936 18.6368
+                        11.8929 18.5468 11.8629L17.3318 11.445C17.2895 11.4305
+                        17.2431 11.4331 17.2027 11.4523C17.1622 11.4716 17.1309
+                        11.5058 17.1154 11.5479C17.0768 11.655 17.034 11.7621
+                        16.989 11.8671C16.6183 12.7457 16.0868 13.5343 15.4097
+                        14.2114C14.738 14.8844 13.9427 15.4213 13.0675
+                        15.7929C12.1611 16.1764 11.1947 16.3714 10.2004
+                        16.3714C9.20396 16.3714 8.23968 16.1764 7.33325
+                        15.7929C6.4572 15.4229 5.66165 14.8857 4.99111
+                        14.2114C4.31761 13.5398 3.78121 12.7436 3.41182
+                        11.8671C3.02825 10.9586 2.83325 9.99429 2.83325
+                        8.99786C2.83325 8.00143 3.02825 7.03714 3.41182
+                        6.12857C3.78254 5.25 4.31396 4.46143 4.99111
+                        3.78429C5.66825 3.10714 6.45682 2.57571 7.33325
+                        2.20286C8.23968 1.81929 9.20611 1.62429 10.2004
+                        1.62429C11.1968 1.62429 12.1611 1.81929 13.0675
+                        2.20286C13.9436 2.57281 14.7391 3.10997 15.4097
+                        3.78429C15.6218 3.99643 15.8211 4.22143 16.0054
+                        4.45714L14.7154 5.46429C14.6899 5.48403 14.6704 5.51058
+                        14.6593 5.54088C14.6482 5.57117 14.6459 5.60399 14.6526
+                        5.63555C14.6593 5.66712 14.6748 5.69614 14.6973
+                        5.7193C14.7198 5.74245 14.7483 5.75879 14.7797
+                        5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
+                        18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
+                        2.42571 18.4932 2.51357V2.51357Z"
+                        fill="#F1F1F1" />
+                    </g>
+                    <defs>
+                      <clipPath id="clip0_262_1198">
+                        <rect
+                          width="18"
+                          height="18"
+                          fill="white"
+                          transform="translate(0.769287)" />
+                      </clipPath>
+                    </defs>
+                  </svg>
+                </button>
 
-            </div>
+                <button
+                  on:click|preventDefault={() => {
+                    selectProfile(sessionProfileElement)
+                  }}
+                  on:click|preventDefault={loadProfile}
+                  class="p-1 hover:bg-primary-500 rounded">
 
-          </button>
-        {/each}
+                  <svg
+                    width="16"
+                    height="18"
+                    viewBox="0 0 16 18"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M2.15391 18.0002C1.9168 18.0003 1.68389 17.9376 1.47891
+                      17.8184C1.26344 17.7002 1.08381 17.5261 0.958938
+                      17.3144C0.834061 17.1027 0.768549 16.8613 0.769293
+                      16.6155V1.38478C0.768549 1.13901 0.834061 0.897579
+                      0.958938 0.685898C1.08381 0.474217 1.26344 0.300108
+                      1.47891 0.181891C1.69124 0.0581744 1.93348 -0.00483371
+                      2.17918 -0.000255414C2.42488 0.00432288 2.6646 0.0763115
+                      2.87218 0.207852L15.3337 7.81458C15.538 7.9378 15.7069
+                      8.1117 15.8242 8.31942C15.9415 8.52713 16.0031 8.76162
+                      16.0031 9.00016C16.0031 9.2387 15.9415 9.47319 15.8242
+                      9.68091C15.7069 9.88862 15.538 10.0625 15.3337
+                      10.1857L2.87218 17.7925C2.65748 17.9288 2.40825 18.0009
+                      2.15391 18.0002ZM2.15391 1.38478V16.6155L14.6154
+                      9.00016L2.15391 1.38478Z"
+                      fill="#F1F1F1" />
+                  </svg>
+                </button>
+
+              </div>
+
+            </button>
+          {/each}
+
+        </div>
+
+        <button
+          on:click={() => prepareSave('sessionProfile')}
+          disabled={selectedProfile.name === undefined}
+          class="relative bg-commit block {selectedProfile.name !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
+          w-full text-white mt-3 mb-1 py-2 px-2 rounded
+          border-commit-saturate-10 hover:border-commit-desaturate-10
+          focus:outline-none">
+          <div>Save as Session Profile</div>
+
+        </button>
 
       </div>
     {/if}
@@ -477,11 +538,6 @@
           {#each PROFILES.sort(compare).filter((element) => element.folder != 'sessionProfile') as profileCloudElement, i}
             {#if profileCloudElement.isInFilteredResult != false}
               <button
-                on:click={() => {
-                  selectedIndex = i
-                  selectProfile(profileCloudElement)
-                  prepareSave('sessionProfile')
-                }}
                 class="w-full bg-primary-700 hover:bg-primary-600 p-2
                 cursor-pointer {selectedIndex == i && $appSettings.modal == '' ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
 
@@ -618,8 +674,11 @@
 
                       <button
                         on:click|preventDefault={() => {
-                          loadProfile()
-                        }}>
+                          selectProfile(profileCloudElement)
+                        }}
+                        on:click={loadProfile}
+                        class="p-1 hover:bg-primary-500 rounded">
+
                         <svg
                           width="16"
                           height="18"
@@ -644,6 +703,7 @@
                             1.38478V16.6155L14.6154 9.00016L2.15391 1.38478Z"
                             fill="#F1F1F1" />
                         </svg>
+
                       </button>
 
                     </div>
