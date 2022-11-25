@@ -229,7 +229,7 @@
   }}
   class="bg-primary pt-4 h-full flex flex-col overflow-hidden scroll-smooth">
 
-  <div class="m-4 flex flex-col overflow-auto">
+  <div class="m-4 flex flex-col ">
     <button
       on:click={() => {
         isSessionProfileOpen = !isSessionProfileOpen
