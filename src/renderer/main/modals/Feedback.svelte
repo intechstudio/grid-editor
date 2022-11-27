@@ -6,33 +6,20 @@
 
   import {clickOutside} from '../_actions/click-outside.action'
 
-  import { writable, get, readable } from 'svelte/store';
 
-  import {Webhook} from 'simple-discord-webhooks';
+  let feedback = {
+    title: '',
+    text: ''
+  };
 
-  //const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
-
-
-  let feedback_title;
-  let feedback_text; 
   let submit_button;
 
   let thank_you = ""; 
 
-  onMount(()=>{
 
-  })
-
-
-
-
-
-  function sendFeedback(){
-
-    //webhook.send(`######\n${feedback_title.value}\n######\n${feedback_text.value} `)
-
+  async function sendFeedback(){
+    await window.electron.discord.sendMessage(feedback)
     thank_you = 'Thank you for your feedback!'
-    //$appSettings.modal = ''
     submit_button.disabled = true
   }
 
@@ -66,9 +53,9 @@
 
         
         <div class="mt-4 mb-1 text-gray-500 ">Feedback Context:</div>
-        <input bind:this={feedback_title} class="bg-secondary p-2" type="text" value="{$appSettings.feedback_context}"/>
+        <input bind:this={feedback.title} class="bg-secondary p-2" type="text" value="{$appSettings.feedback_context}"/>
         <div class="mt-4 mb-1 text-gray-500 ">Text:</div>
-        <textarea bind:this={feedback_text} class="bg-secondary p-2 h-36"></textarea>
+        <textarea bind:this={feedback.text} class="bg-secondary p-2 h-36"></textarea>
         <button bind:this={submit_button}  on:click={sendFeedback} id="close-btn" 
           class="p-1 mt-4 mb-4 w-48 rounded not-draggable hover:bg-green-500 bg-secondary disabled:bg-secondary">
           Submit Feedback!

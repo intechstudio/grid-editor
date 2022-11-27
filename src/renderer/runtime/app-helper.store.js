@@ -19,8 +19,6 @@ export const statusReport = writable({
 })
 
 
-console.log('envvsss',envs);
-
 function createAppSettingsStore(){
 
   const store = writable({

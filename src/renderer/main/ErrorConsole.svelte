@@ -1,11 +1,7 @@
 <script>
   import { onMount } from 'svelte';
-  import { writable, get } from 'svelte/store';
   
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
-
   const ctxProcess = window.ctxProcess;
-
 
   let logelement;
   let text = '';
@@ -22,9 +18,9 @@
       window.electron.analytics.influx("application", "error console", "error notification", "error event")
 
       try {
+
+        window.electron.discord.sendMessage({title: 'Error', text: errorMsg});
         
-        //const webhook = new Webhook(ctxProcess.env.DISCORD_FEEDBACK_WEBHOOK);
-        //webhook.send(`######\nError Notification\n######\n${errorMsg} `)
         
       } catch (error) {
         
@@ -42,8 +38,7 @@
 
       try {
         
-        //const webhook = new Webhook(ctxProcess.env.DISCORD_FEEDBACK_WEBHOOK);
-        //webhook.send(`######\nError Notification\n######\n${e.reason} `)
+        window.electron.discord.sendMessage({title: 'Error', text: e.reason});
 
       } catch (error) {
         
@@ -56,32 +51,17 @@
       text = 'Ctrl + Shift + R';
     }
 
-
   })
 
-
-
-
   function refresh(){
-
     window.electron.analytics.influx("application", "error console", "error notification", "app restart")
-
-    setTimeout(() => {
-      //ipcRenderer.sendSync('restart', "foo");
-    }, 500);
-
-
+    window.electron.restartApp();
   }
 
 
-
-
-
   function dismiss(){
-
     logtext = [];
     window.electron.analytics.influx("application", "error console", "error notification", "dismiss")
-
   }
 
 </script>

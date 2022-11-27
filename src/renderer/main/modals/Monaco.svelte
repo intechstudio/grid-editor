@@ -4,13 +4,17 @@
 
   import {clickOutside} from '../_actions/click-outside.action'
 
-  import { writable, get, readable } from 'svelte/store';
   import { debug_monitor_store} from "../panels/DebugMonitor/DebugMonitor.store";
 
+  import { monaco_editor, monaco_languages } from '../../lib/CustomMonaco';
 
   import {find_forbidden_identifiers} from '../../runtime/monaco-helper'
 
 	import { beforeUpdate, afterUpdate } from 'svelte';
+
+  import luamin from "../../../external/luamin";
+  import stringManipulation from '../../main/user-interface/_string-operations';
+
   let scrollDown;
 	let autoscroll;
 
@@ -21,14 +25,7 @@
 	afterUpdate(() => {
 		if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
 	});
-
-  let version = `${get(appSettings).version.major}.${get(appSettings).version.minor}.${get(appSettings).version.patch}`
-
-  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
-  //import * as monaco from 'monaco-editor'
-  //import '../../../node_modules/monaco-editor/min/vs/loader.js'
-  import {editor as monaco_editor} from 'monaco-editor/esm/vs/editor/editor.api'
-
+ 
   import {attachment} from '../user-interface/Monster.store'
 
 
@@ -56,18 +53,10 @@
 
 
   function clickOutsideHandler(){
-
     if (!commitState){
-
-
       $appSettings.modal = ''
-
     }
   }
-
-  import luamin from "../../../external/luamin";
-  import stringManipulation from '../../main/user-interface/_string-operations';
-
 
   const luaminOptions = {
     RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -129,7 +118,6 @@
     if( beautified.charAt( 0 ) === '\n' )
         beautified = beautified.slice( 1 );
 
-
     editor = monaco_editor.create(monaco_block, {
       value: beautified,
       language: 'intech_lua',
@@ -148,10 +136,6 @@
         showWords: true
       }
     });
-
-
-
-
     
     editor.getModel().onDidChangeContent((event) => {
 

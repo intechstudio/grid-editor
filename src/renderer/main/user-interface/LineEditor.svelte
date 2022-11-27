@@ -4,7 +4,7 @@
 
     import {monaco_elementtype} from '../../runtime/monaco-helper'
 
-    import {editor as monaco_editor, languages as monaco_languages} from 'monaco-editor/esm/vs/editor/editor.api'
+    import { monaco_editor } from '$lib/CustomMonaco';
 
     const dispatch = createEventDispatcher();
   

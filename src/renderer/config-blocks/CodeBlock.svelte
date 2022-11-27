@@ -33,7 +33,7 @@
   import {appSettings} from "../runtime/app-helper.store"
   import {monaco_elementtype} from "../runtime/monaco-helper"
 
-  import {editor as monaco_editor} from 'monaco-editor/esm/vs/editor/editor.api'
+  import {monaco_editor, monaco_languages} from '$lib/CustomMonaco';
 
 
   const dispatch = createEventDispatcher();
