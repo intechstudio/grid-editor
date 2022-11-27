@@ -1,4 +1,5 @@
 import { writable, get } from 'svelte/store';
+import { language } from '$lib/CustomMonaco';
 
 export const monaco_elementtype = writable()
 

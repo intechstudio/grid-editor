@@ -34,7 +34,7 @@ const language_config = {
 	]
 };
 
-const language = {
+export const language = {
 	defaultToken: "",
 	tokenPostfix: ".lua",
 	keywords: [

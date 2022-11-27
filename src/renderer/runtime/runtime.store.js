@@ -9,12 +9,9 @@ import { appSettings } from './app-helper.store';
 
 const { env } = window.ctxProcess;
 
-
 console.log("Minimum Firmware Version Required: ", get(appSettings).firmware_required)
 
 let lastPageActivator = "";  
-
-
 
 async function detectActiveWindow(){
 

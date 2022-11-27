@@ -57,8 +57,8 @@ async function findBootloaderPath(){
 
       firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid bootloader is detected!", code: 3});
         
-      window.electron.analytics.google('firmware-download', {value: 'firmware-download: bootloader detected'})
-      window.electron.analytics.influx("application", "firmwarecheck", "firmware update status", "bootloader detected")
+      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected'})
+      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected")
 
       return bootloader_path;
 
