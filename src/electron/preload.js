@@ -76,7 +76,7 @@ contextBridge.exposeInMainWorld('electron', {
     onAppUpdate: (callback) => ipcRenderer.on('onAppUpdate', callback),
   },
   discord: {
-    sendMessage: (message) => ipcRenderer.invoke('sendToDiscord', {message}),
+    sendMessage: (message) => ipcRenderer.invoke('sendToDiscord', { message }),
   },
   analytics: {
     google: (name, params) =>

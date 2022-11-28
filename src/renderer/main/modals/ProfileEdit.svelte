@@ -162,6 +162,7 @@
 
         <div class="w-full flex flex-col gap-4">
           <div class="flex flex-col ">
+
             <label class="mb-1 " for="title">Title</label>
             <input
               id="title"

@@ -175,13 +175,13 @@ function createWindow() {
 
   const { firmware } = require('./src/firmware')
   firmware.mainWindow = mainWindow
-    
-    const { updater, restartAfterUpdate } = require('./src/updater');
-    updater.mainWindow = mainWindow;
 
-    ipcMain.on('restartAfterUpdate', () => {
-      restartAfterUpdate();
-    });
+  const { updater, restartAfterUpdate } = require('./src/updater')
+  updater.mainWindow = mainWindow
+
+  ipcMain.on('restartAfterUpdate', () => {
+    restartAfterUpdate()
+  })
 
   if (process.env.NODE_ENV == 'development') {
     log.info('Development Mode!')
@@ -264,8 +264,6 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-
-
 
 autoUpdater.checkForUpdatesAndNotify()
 
@@ -364,14 +362,10 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 })
 
 const { influxAnalytics, googleAnalytics } = require('./src/analytics')
-const { sendToDiscord } = require('./src/discord');
+const { sendToDiscord } = require('./src/discord')
 ipcMain.handle('sendToDiscord', async (event, arg) => {
-  return await sendToDiscord(arg.message);
+  return await sendToDiscord(arg.message)
 })
-
-
-
-
 
 ipcMain.handle('googleAnalytics', async (event, arg) => {
   return await googleAnalytics(arg.name, arg.params) // uses the measurement protocol!
@@ -422,23 +416,23 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
 })
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
-  googleAnalytics('tray', {value: 'close window'});
+  googleAnalytics('tray', { value: 'close window' })
   return 'closed'
 })
 
 ipcMain.handle('minimizeWindow', async (event, args) => {
   mainWindow.minimize()
-  googleAnalytics('tray', {value: 'minimize window'});
+  googleAnalytics('tray', { value: 'minimize window' })
 })
 
 ipcMain.handle('maximizeWindow', async (event, args) => {
   mainWindow.maximize()
-  googleAnalytics('tray', {value: 'maximize window'});
+  googleAnalytics('tray', { value: 'maximize window' })
 })
 
 ipcMain.handle('restoreWindow', async (event, args) => {
   mainWindow.restore()
-  googleAnalytics('tray', {value: 'restore window'});
+  googleAnalytics('tray', { value: 'restore window' })
 })
 
 ipcMain.handle('isMaximized', async (event, args) => {
@@ -462,14 +456,7 @@ ipcMain.on('app_version', (event) => {
   event.returnValue = app.getVersion()
 })
 
-
-
-
-
-
-
 ipcMain.on('resetAppSettings', (event, arg) => {
-
   app.relaunch()
   app.exit()
 })
@@ -478,9 +465,6 @@ ipcMain.on('restartApp', (event, arg) => {
   app.relaunch()
   app.exit()
 })
-
-
-
 
 // Quit when all windows are closed.
 app.on('window-all-closed', (evt) => {

@@ -1,6 +1,7 @@
 const fs = require('fs')
 const log = require('electron-log')
 const { googleAnalytics, influxAnalytics } = require('./analytics')
+const path = require('path')
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -126,13 +127,16 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
               file
             const [stats] = await checkIfWritableDirectory(directorypath)
 
-            await fs.promises.readFile(filepath, 'utf-8').then((data) => {
+            await fs.promises.readFile(filepath, 'utf-8').then(async (data) => {
               if (isJson(data)) {
                 let obj = JSON.parse(data)
                 if (obj.isGridProfile || obj.isGridPreset) {
                   obj.folder = dir
                   obj.showMore = false
                   obj.color = stringToColor(dir)
+                  const dateObject = await getDateOfModify(filepath)
+                  obj.fsCreatedAt = dateObject.createdAt
+                  obj.fsModifiedAt = dateObject.modifiedAt
                   configs.push(obj)
                 } else {
                   log.info('JSON is not a grid profile!')
@@ -179,14 +183,16 @@ async function saveConfig(configPath, name, config, rootDirectory, user) {
 
       googleAnalytics('profile-library', { value: 'save success' })
       influxAnalytics('application', 'profiles', 'profile', 'save success')
+      getDateOfModify(path, name, rootDirectory, user)
     },
   )
 }
 
 async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
-  /* fs.unlink() */
+  const path = configPath
+
   fs.rmdir(
-    `${configPath}/${rootDirectory}/${profileFolder}/${name}`,
+    `${path}/${rootDirectory}/${profileFolder}/${name}`,
     { recursive: true },
     (err) => {
       throw err
@@ -205,10 +211,10 @@ async function updateConfig(
 ) {
   if (oldName === name) {
     // just save and overwrite existing profile
-    saveConfig(configPath, name, config, rootDirectory)
+    saveConfig(configPath, name, config, rootDirectory, profileFolder)
     console.log('Profile overwritten!')
   } else {
-    saveConfig(configPath, name, config, rootDirectory)
+    saveConfig(configPath, name, config, rootDirectory, profileFolder)
     deleteConfig(configPath, oldName, rootDirectory, profileFolder)
   }
 }
@@ -220,6 +226,23 @@ function isJson(str) {
     return false
   }
   return true
+}
+
+async function getDateOfModify(filepath) {
+  // Get the modif date of selected file
+  log.info(`hello, ${filepath}`)
+
+  const dateObject = await fs.promises
+    .stat(filepath)
+    .then((stats) => {
+      // print file last modified date
+      console.log(`File Data Last Modified: ${stats.mtime}`)
+      console.log(`File Status Last Modified: ${stats.ctime}`)
+      return { modifiedAt: stats.mtime, createdAt: stats.ctime }
+    })
+    .catch((err) => console.error('get date modify', err))
+
+  return dateObject
 }
 
 function stringToColor(string) {
