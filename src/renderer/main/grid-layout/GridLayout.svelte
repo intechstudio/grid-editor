@@ -134,7 +134,7 @@
     );
 
     setTimeout(() => {
-      //ipcRenderer.sendSync('restart', "foo");
+      window.electron.restartApp();
     }, 500);
   }
 

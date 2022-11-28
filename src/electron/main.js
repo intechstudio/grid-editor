@@ -462,19 +462,11 @@ ipcMain.on('app_version', (event) => {
   event.returnValue = app.getVersion()
 })
 
-  log.info('Error..', error);
-  mainWindow.webContents.send('update_error', error);
-  mainWindow.webContents.send('update_available');
-});
-  log.info('update_progress', progressObj);
-  mainWindow.webContents.send('update_progress', progressObj);
-});
-  mainWindow.webContents.send('update_downloaded');
-});
 
-  mainWindow.setClosable(true);
-  autoUpdater.quitAndInstall();
-});
+
+
+
+
 
 ipcMain.on('resetAppSettings', (event, arg) => {
 

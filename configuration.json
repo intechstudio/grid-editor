@@ -39,11 +39,11 @@
 
     "DISCORD_FEEDBACK_WEBHOOK": "https://discordapp.com/api/webhooks/943463496073478184/CjyGbGGVQnLzX20yEN9GJgedxZZkXmyf5BDEE5UsinjaTI_eSg2hMC91ailE8mod2hO1",
 
-    "DOCUMENTATION_REFERENCEMANUAL_URL": "https://intech.studio/support/docs/reference-manual",
+    "DOCUMENTATION_REFERENCEMANUAL_URL": "https://grid-documentation.onrender.com/wiki/introduction",
     "DOCUMENTATION_DISCORDSERVER_URL": "https://discord.gg/GRUdF2R",
-    "DOCUMENTATION_TROUBLESHOOTING_URL": "https://intech.studio/support/docs/guides/troubleshooting",
-    "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://intech.studio/support/docs/guides/firmware-update",
-    "DOCUMENTATION_MAINTENANCE_URL": "https://intech.studio/support/docs/guides/cleaning-kit",
+    "DOCUMENTATION_TROUBLESHOOTING_URL": "https://grid-documentation.onrender.com/guides/troubleshooting",
+    "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://grid-documentation.onrender.com/guides/firmware",
+    "DOCUMENTATION_MAINTENANCE_URL": "https://grid-documentation.onrender.com/guides/taking-care-of-modules",
     
     "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
     "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor"
