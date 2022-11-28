@@ -187,7 +187,7 @@
     <div class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center">
 
  
-      <div class="flex flex-row w-full h-content bg-black bg-opacity-10 flex justify-between items-center"> 
+      <div class="flex flex-row w-full h-content bg-black bg-opacity-10  justify-between items-center"> 
        
         <div class="flex flex-col h-full p-6">
             <div class="flex w-full opacity-70 ">Grid Editor is Open-Source Software</div>

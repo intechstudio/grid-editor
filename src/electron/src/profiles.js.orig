@@ -11,6 +11,44 @@ async function checkIfWritableDirectory(path) {
   return await Promise.all([stats])
 }
 
+<<<<<<< HEAD
+async function moveOldConfigs(configPath, rootDirectory){
+
+  if (configPath === undefined) return;
+  if (configPath === "") return;
+
+  let path = configPath;
+
+  if(!fs.existsSync(path)) fs.mkdirSync(path);
+  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
+
+  log.info(rootDirectory + ' move start...');
+
+  await fs.promises.readdir(`${path}/${rootDirectory}`).then( authors => {
+
+    authors.forEach(async author => {
+
+      await fs.promises.readdir(`${path}/${rootDirectory}/${author}`).then(files => {
+
+        files.forEach(async file => {
+
+          let filepath = `${path}/${rootDirectory}/${author}/${file}`;
+          
+          const [stats] = await checkIfWritableDirectory(filepath);
+  
+          if(stats.isFile){
+            let filenameparts = file.split(".");
+            let extension = filenameparts[filenameparts.length-1];
+            if (extension === "json"){
+
+              if(file.lastIndexOf(".") != -1){
+
+                let basename = file.substring(0, file.lastIndexOf("."));
+
+                if(!fs.existsSync(`${path}/${rootDirectory}/${author}/${basename}`)) 
+                {
+                  fs.mkdirSync(`${path}/${rootDirectory}/${author}/${basename}`)
+=======
 async function moveOldConfigs(configPath, rootDirectory) {
   if (configPath === undefined) return
   if (configPath === '') return
@@ -24,6 +62,7 @@ async function moveOldConfigs(configPath, rootDirectory) {
     fs.mkdirSync(`${path}/${rootDirectory}`)
 
   log.info(rootDirectory + ' move start...')
+
   await fs.promises
     .readdir(`${path}/${rootDirectory}`)
     .then((authors) => {
@@ -61,6 +100,7 @@ async function moveOldConfigs(configPath, rootDirectory) {
                     fs.renameSync(from, to)
                     log.info('moving: ', file)
                   }
+>>>>>>> betty-dev
                 }
               } else {
                 log.info('Not a file!')

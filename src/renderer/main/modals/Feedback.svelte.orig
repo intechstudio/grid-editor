@@ -6,13 +6,35 @@
 
   import { clickOutside } from '../_actions/click-outside.action'
 
+<<<<<<< HEAD
 
   let feedback = {
     title: '',
     text: ''
   };
 
+  let submit_button;
+
+  let thank_you = ""; 
+
+=======
+  import { writable, get, readable } from 'svelte/store'
+
+  import { Webhook } from 'simple-discord-webhooks'
+
+  //const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
+
+  let feedback_title
+  let feedback_text
+  let submit_button
+
+  let thank_you = ''
+
   onMount(() => {})
+
+  function sendFeedback() {
+    //webhook.send(`######\n${feedback_title.value}\n######\n${feedback_text.value} `)
+>>>>>>> betty-dev
 
   async function sendFeedback(){
     await window.electron.discord.sendMessage(feedback)
@@ -67,13 +89,13 @@
     <div class="p-8 flex-col w-full flex justify-between ml-auto">
 
       <div class="mt-4 mb-1 text-gray-500 ">Feedback Context:</div>
-        <input bind:this={feedback.title} class="bg-secondary p-2" type="text" value="{$appSettings.feedback_context}"/>
+      <input
         bind:this={feedback_title}
         class="bg-secondary p-2"
         type="text"
         value={$appSettings.feedback_context} />
       <div class="mt-4 mb-1 text-gray-500 ">Text:</div>
-        <textarea bind:this={feedback.text} class="bg-secondary p-2 h-36"></textarea>
+      <textarea bind:this={feedback_text} class="bg-secondary p-2 h-36" />
       <button
         bind:this={submit_button}
         on:click={sendFeedback}
@@ -85,9 +107,24 @@
       {thank_you}
     </div>
 
+<<<<<<< HEAD
+      <div class="p-8 flex-col w-full flex justify-between ml-auto">
+
+        
+        <div class="mt-4 mb-1 text-gray-500 ">Feedback Context:</div>
+        <input bind:this={feedback.title} class="bg-secondary p-2" type="text" value="{$appSettings.feedback_context}"/>
+        <div class="mt-4 mb-1 text-gray-500 ">Text:</div>
+        <textarea bind:this={feedback.text} class="bg-secondary p-2 h-36"></textarea>
+        <button bind:this={submit_button}  on:click={sendFeedback} id="close-btn" 
+          class="p-1 mt-4 mb-4 w-48 rounded not-draggable hover:bg-green-500 bg-secondary disabled:bg-secondary">
+          Submit Feedback!
+        </button>{thank_you}
+      </div>
+=======
     <div
       class="flex flex-row w-full absolute h-content bottom-0 bg-black
       bg-opacity-10 justify-between items-center">
+>>>>>>> betty-dev
 
       <div class="flex flex-col h-full p-6">
         <div class="flex w-full opacity-70 ">

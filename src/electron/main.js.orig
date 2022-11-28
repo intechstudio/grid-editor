@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+const { app, BrowserWindow, ipcMain, Tray, Menu, nativeImage, shell } = require('electron');
+=======
 const {
   app,
   BrowserWindow,
@@ -8,6 +11,7 @@ const {
   shell,
 } = require('electron')
 const { autoUpdater } = require('electron-updater')
+>>>>>>> betty-dev
 
 const { serial } = require('./ipcmain_serialport')
 const { websocket } = require('./ipcmain_websocket')
@@ -28,9 +32,18 @@ const path = require('path')
 const log = require('electron-log')
 const fs = require('fs-extra')
 
+<<<<<<< HEAD
+const path = require('path');
+const log = require('electron-log');
+const fs = require('fs-extra');  
+
+
+log.info('App starting...');
+=======
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
 log.info('App starting...')
+>>>>>>> betty-dev
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -166,6 +179,24 @@ function createWindow() {
         delete d.responseHeaders['x-frame-options']
       }
 
+<<<<<<< HEAD
+      c({cancel: false, responseHeaders: d.responseHeaders});
+    }
+  );
+
+    serial.mainWindow = mainWindow;
+    websocket.mainWindow = mainWindow;
+
+    const { firmware } = require('./src/firmware');
+    firmware.mainWindow = mainWindow;
+    
+    const { updater, restartAfterUpdate } = require('./src/updater');
+    updater.mainWindow = mainWindow;
+
+    ipcMain.on('restartAfterUpdate', () => {
+      restartAfterUpdate();
+    });
+=======
       c({ cancel: false, responseHeaders: d.responseHeaders })
     },
   )
@@ -175,13 +206,6 @@ function createWindow() {
 
   const { firmware } = require('./src/firmware')
   firmware.mainWindow = mainWindow
-    
-    const { updater, restartAfterUpdate } = require('./src/updater');
-    updater.mainWindow = mainWindow;
-
-    ipcMain.on('restartAfterUpdate', () => {
-      restartAfterUpdate();
-    });
 
   if (process.env.NODE_ENV == 'development') {
     log.info('Development Mode!')
@@ -197,6 +221,7 @@ function createWindow() {
       `file://${path.join(__dirname, '../../dist-svelte/index.html')}`,
     )
   }
+>>>>>>> betty-dev
 
   mainWindow.on('close', (evt) => {
     // when quit is terminal under darwin
@@ -212,6 +237,9 @@ function createWindow() {
   mainWindow.on('resize', () => {
     let { width, height } = mainWindow.getBounds()
 
+<<<<<<< HEAD
+    mainWindow.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
+=======
     store.set('windowBounds', { width, height })
     mainWindow.webContents.send('window_size', { width, height })
   })
@@ -219,6 +247,7 @@ function createWindow() {
   mainWindow.webContents.session.on(
     'select-serial-port',
     (event, portList, webContents, callback) => {
+>>>>>>> betty-dev
       event.preventDefault()
       if (portList && portList.length > 0) {
         callback(portList[0].portId)
@@ -266,8 +295,14 @@ function createWindow() {
 // Some APIs can only be used after this event occurs.
 
 
+<<<<<<< HEAD
 
+
+
+=======
+log.info('check fo update and notify...')
 autoUpdater.checkForUpdatesAndNotify()
+>>>>>>> betty-dev
 
 const {
   libraryDownload,
@@ -363,7 +398,12 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
   return await findBootloaderPath()
 })
 
-const { influxAnalytics, googleAnalytics } = require('./src/analytics')
+<<<<<<< HEAD
+
+
+
+
+
 const { sendToDiscord } = require('./src/discord');
 ipcMain.handle('sendToDiscord', async (event, arg) => {
   return await sendToDiscord(arg.message);
@@ -373,6 +413,12 @@ ipcMain.handle('sendToDiscord', async (event, arg) => {
 
 
 
+
+
+const { influxAnalytics, googleAnalytics } = require('./src/analytics');
+=======
+const { influxAnalytics, googleAnalytics } = require('./src/analytics')
+>>>>>>> betty-dev
 ipcMain.handle('googleAnalytics', async (event, arg) => {
   return await googleAnalytics(arg.name, arg.params) // uses the measurement protocol!
 })
@@ -420,25 +466,50 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
   })
   return 'saved'
 })
+
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
+<<<<<<< HEAD
   googleAnalytics('tray', {value: 'close window'});
+  mainWindow.close();
+  return 'closed';
+})
+
+ipcMain.handle('minimizeWindow', async (event, args) => {
+  mainWindow.minimize();
+  googleAnalytics('tray', {value: 'minimize window'});
+  return 'minimized';
+})
+
+ipcMain.handle('maximizeWindow', async (event, args) => {
+  mainWindow.maximize();
+  googleAnalytics('tray', {value: 'maximize window'});
+  return 'maximized';
+})
+
+ipcMain.handle('restoreWindow', async (event, args) => {
+  mainWindow.restore();
+  googleAnalytics('tray', {value: 'restore window'});
+  return 'restored';
+=======
+  mainWindow.close()
   return 'closed'
 })
 
 ipcMain.handle('minimizeWindow', async (event, args) => {
   mainWindow.minimize()
-  googleAnalytics('tray', {value: 'minimize window'});
+  return 'minimized'
 })
 
 ipcMain.handle('maximizeWindow', async (event, args) => {
   mainWindow.maximize()
-  googleAnalytics('tray', {value: 'maximize window'});
+  return 'maximized'
 })
 
 ipcMain.handle('restoreWindow', async (event, args) => {
   mainWindow.restore()
-  googleAnalytics('tray', {value: 'restore window'});
+  return 'restored'
+>>>>>>> betty-dev
 })
 
 ipcMain.handle('isMaximized', async (event, args) => {
@@ -462,34 +533,64 @@ ipcMain.on('app_version', (event) => {
   event.returnValue = app.getVersion()
 })
 
-  log.info('Error..', error);
-  mainWindow.webContents.send('update_error', error);
-  mainWindow.webContents.send('update_available');
-});
-  log.info('update_progress', progressObj);
-  mainWindow.webContents.send('update_progress', progressObj);
-});
-  mainWindow.webContents.send('update_downloaded');
-});
+<<<<<<< HEAD
 
-  mainWindow.setClosable(true);
-  autoUpdater.quitAndInstall();
-});
+
+
+
+
 
 ipcMain.on('resetAppSettings', (event, arg) => {
+  event.returnValue = store.clear();
+=======
+autoUpdater.on('error', (error) => {
+  log.info('Error..', error)
+  mainWindow.webContents.send('update_error', error)
+})
 
+autoUpdater.on('update-available', () => {
+  log.info('update-available... in main!')
+  mainWindow.webContents.send('update_available')
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+  log.info('update_progress', progressObj)
+  mainWindow.webContents.send('update_progress', progressObj)
+})
+
+autoUpdater.on('update-downloaded', () => {
+  log.info('update downloaded... in main!')
+  mainWindow.webContents.send('update_downloaded')
+})
+
+ipcMain.on('restart_app', () => {
+  mainWindow.setClosable(true)
+  autoUpdater.quitAndInstall()
+})
+
+ipcMain.on('resetAppSettings', (event, arg) => {
+  event.returnValue = store.clear()
+>>>>>>> betty-dev
   app.relaunch()
   app.exit()
 })
 
+<<<<<<< HEAD
 ipcMain.on('restartApp', (event, arg) => {
+=======
+ipcMain.on('restart', (event, arg) => {
+>>>>>>> betty-dev
   app.relaunch()
   app.exit()
 })
 
+<<<<<<< HEAD
 
 
 
+
+=======
+>>>>>>> betty-dev
 // Quit when all windows are closed.
 app.on('window-all-closed', (evt) => {
   // On macOS it is common for applications and their menu bar

@@ -9,14 +9,27 @@ import { appSettings } from './app-helper.store'
 
 const { env } = window.ctxProcess
 
+<<<<<<< HEAD
+console.log("Minimum Firmware Version Required: ", get(appSettings).firmware_required)
+
+let lastPageActivator = "";  
+
+async function detectActiveWindow(){
+
+  if (get(appSettings).persistant.pageActivatorEnabled !== true){
+    return;
+=======
+console.log(
   'Minimum Firmware Version Required: ',
   get(appSettings).firmware_required,
 )
+
 let lastPageActivator = ''
 
 async function detectActiveWindow() {
   if (get(appSettings).persistant.pageActivatorEnabled !== true) {
     return
+>>>>>>> betty-dev
   }
 
   try {

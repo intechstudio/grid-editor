@@ -19,7 +19,13 @@ export const statusReport = writable({
 })
 
 console.log('envvsss', envs)
+
+<<<<<<< HEAD
+function createAppSettingsStore(){
+
+=======
 function createAppSettingsStore() {
+>>>>>>> betty-dev
   const store = writable({
     size: 2.1,
     version: {
