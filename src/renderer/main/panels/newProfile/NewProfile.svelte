@@ -17,7 +17,7 @@
     selectedProfile = store
   })
 
-  let editProfileData = {
+  /*   let editProfileData = {
     name: $selectedProfileStore.name,
     description: $selectedProfileStore.description,
     tags: '',
@@ -31,7 +31,7 @@
       minor: $appSettings.version.minor,
       patch: $appSettings.version.patch,
     },
-  }
+  } */
 
   let searchbarValue = ''
 
@@ -42,11 +42,11 @@
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
 
-  let editable = false
+  let justReadInput = true
 
   function handleDblClick() {
-    editable = true
-    console.log('click')
+    justReadInput = false
+    console.log('YAAAAAAAAAAY')
   }
 
   async function loadFromDirectory() {
@@ -109,7 +109,6 @@
     )
 
     if (selectedProfile !== undefined) {
-      console.log(selectedProfile.type)
       const profile = selectedProfile
 
       const rt = get(runtime)
@@ -237,22 +236,48 @@
     loadFromDirectory()
   }
 
-  async function updateProfileTitle() {
-    checkIfProfileTitleUnique(editProfileData.name)
-    checkIfTitleFieldEmpty(editProfileData.name)
+  /*   async function updateSessionProfileTitle(profileData, oldName) {
+    checkIfProfileTitleUnique(profileData.name)
+    checkIfTitleFieldEmpty(profileData.name)
 
     if (isTitleDirty != false && isTitleUnique != false) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
-        editProfileData.name,
-        editProfileData,
+        profileData.name,
+        profileData,
         'profiles',
-        $selectedProfileStore.name,
-        'user',
+        oldName,
+        'sessionProfile',
       )
-
       await loadFromDirectory()
+    } else {
+      console.log('Sorry')
+      profileData.name = oldName
+
+      console.log(profileData.name, oldName)
+      console.log(isTitleDirty, isTitleUnique)
     }
+    await loadFromDirectory()
+  } */
+
+  async function updateSessionProfileTitle(profileData, oldName) {
+    checkIfProfileTitleUnique(profileData.name)
+    checkIfTitleFieldEmpty(profileData.name)
+
+    if (isTitleDirty != false && isTitleUnique != false) {
+      await window.electron.configs.updateConfig(
+        PROFILE_PATH,
+        profileData.name,
+        profileData,
+        'profiles',
+        oldName,
+        'sessionProfile',
+      )
+      await loadFromDirectory()
+    } else {
+      profileData.name = oldName
+    }
+    await loadFromDirectory()
   }
 
   let isTitleUnique = undefined
@@ -261,12 +286,12 @@
     await loadFromDirectory()
 
     PROFILES.forEach((profile) => {
-      if (profile.name.trim() == $selectedProfileStore.name.trim()) {
+      if (profile.name.trim() == input.trim()) {
         isTitleUnique = true
       }
 
       if (
-        profile.name.trim() != $selectedProfileStore.name.trim() &&
+        profile.name.trim() != input.trim() &&
         profile.name.trim() == input.trim()
       ) {
         isTitleUnique = false
@@ -275,7 +300,6 @@
   }
 
   let isTitleDirty = undefined
-  let isDescDirty = undefined
 
   async function checkIfTitleFieldEmpty(input) {
     if (input.length < 1) {
@@ -334,27 +358,48 @@
         <div class="flex flex-col overflow-y-auto gap-4 scroll-smooth ">
           {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
             <button
-              class="w-full flex justify-between gap-1 items-center text-left
+              class="flex justify-between gap-1 items-center text-left
               bg-primary-700 hover:bg-primary-600 p-2 cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
-              <div class="flex justify-between">
+              <div class="flex justify-between flex-wrap w-2/5 ">
 
-                <span
+                <!--                 <div
                   use:clickOutside={{ useCapture: true }}
-                  on:blur={() => {
+                  on:blur={(e) => {
                     editable = false
+                    let oldName = sessionProfileElement.name
+                    sessionProfileElement.name = e.srcElement.innerText
+                    updateSessionProfileTitle(sessionProfileElement, oldName)
                   }}
                   on:dblclick={() => {
-                    handleDblClick(), selectProfile(sessionProfileElement)
-                  }}
-                  on:input={() => {
-                    checkIfProfileTitleUnique(editProfileData.name), checkIfTitleFieldEmpty(editProfileData.name), updateProfileTitle()
+                    handleDblClick()
+                    selectProfile(sessionProfileElement)
                   }}
                   contenteditable={editable}
-                  class="text-zinc-100 ">
+                  class="text-zinc-100 min-w-[15px] w-fit break-words">
                   {sessionProfileElement.name}
-                </span>
+                </div> -->
 
-                <span class="text-zinc-100 ">{sessionProfileElement.type}</span>
+                <div on:dblclick={() => handleDblClick()}>
+                  <input
+                    type="text"
+                    disabled={justReadInput == true}
+                    bind:value={sessionProfileElement.name}
+                    use:clickOutside={{ useCapture: true }}
+                    on:blur={(e) => {
+                      justReadInput = true
+                      let oldName = selectedProfile.name
+                      updateSessionProfileTitle(sessionProfileElement, oldName)
+                    }}
+                    on:click={() => {
+                      selectProfile(sessionProfileElement)
+                    }}
+                    class="text-zinc-100 min-w-[15px] h-6 break-words
+                    bg-primary-700 overflow-hidden w-full " />
+
+                  <span class="text-zinc-100 ">
+                    {sessionProfileElement.type}
+                  </span>
+                </div>
 
               </div>
 

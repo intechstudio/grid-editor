@@ -161,6 +161,8 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
 async function saveConfig(configPath, name, config, rootDirectory, user) {
   const path = configPath
 
+  log.info('SaveConfig', name, config)
+
   if (!fs.existsSync(path)) fs.mkdirSync(path)
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`)
@@ -183,13 +185,14 @@ async function saveConfig(configPath, name, config, rootDirectory, user) {
 
       googleAnalytics('profile-library', { value: 'save success' })
       influxAnalytics('application', 'profiles', 'profile', 'save success')
-      getDateOfModify(path, name, rootDirectory, user)
+      //getDateOfModify(path, name, rootDirectory, user)
     },
   )
 }
 
 async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
   const path = configPath
+  log.info('deleteConfig')
 
   fs.rmdir(
     `${path}/${rootDirectory}/${profileFolder}/${name}`,
@@ -209,11 +212,15 @@ async function updateConfig(
   oldName,
   profileFolder,
 ) {
+  console.log('updateConfig', name.config)
+
   if (oldName === name) {
     // just save and overwrite existing profile
     saveConfig(configPath, name, config, rootDirectory, profileFolder)
-    console.log('Profile overwritten!')
+    log.info('Profile overwritten!')
   } else {
+    log.info('Update name')
+
     saveConfig(configPath, name, config, rootDirectory, profileFolder)
     deleteConfig(configPath, oldName, rootDirectory, profileFolder)
   }
