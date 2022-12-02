@@ -1,11 +1,9 @@
-const {ipcMain} = require('electron');
-const WebSocket = require('ws');
-const { store } = require('./main-store');
+import {ipcMain} from 'electron';
+import WebSocket from 'ws';
+import { store } from './main-store';
 
-let websocket = {
-
+export const websocket = {
   mainWindow: undefined
-
 };
 
 let wss;
@@ -25,7 +23,7 @@ function startWebsocketServer(port){
 
     console.info('WS Client connected!')
 
-    connection = ws;
+    //connection = ws;
 
     ws.on('message', function message(data) {
 
@@ -101,7 +99,3 @@ ipcMain.handle('websocketChangePort', (event, arg) => {
   startWebsocketServer(arg);
 
 })
-
-
-
-module.exports = { websocket };

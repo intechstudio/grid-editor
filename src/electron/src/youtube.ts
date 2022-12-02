@@ -1,8 +1,9 @@
-const { google } = require('googleapis');
-const youtube = google.youtube('v3');
-const log = require('electron-log');
+import { google } from 'googleapis';
+import log from 'electron-log';
 
-async function getLatestVideo(){
+const youtube = google.youtube('v3');
+
+export async function getLatestVideo(){
   return new Promise((resolve, reject)=>{
     youtube.playlistItems.list({
       key: process.env["YOUTUBE_API_KEY"],
@@ -26,5 +27,3 @@ async function getLatestVideo(){
   })
   
 }
-
-module.exports = {getLatestVideo}

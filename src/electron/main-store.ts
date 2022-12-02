@@ -1,6 +1,6 @@
-const Store = require('electron-store');
+import Store from 'electron-store';
 
-const store = new Store({
+export const store = new Store({
   defaults: { 
       windowBounds: { 
           width: 1280, 
@@ -9,5 +9,3 @@ const store = new Store({
       profiles_folder: '',
   }
 });
-
-module.exports = { store }

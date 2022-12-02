@@ -1,9 +1,13 @@
-const nodeDiskInfo = require('node-disk-info');
-const log = require('electron-log');
-const fs = require('fs-extra');
+import nodeDiskInfo from 'node-disk-info';
+import log from 'electron-log';
+import fs from 'fs-extra';
 
-const { extractArchiveToTemp, downloadInMainProcess } = require('./library');
-const { googleAnalytics, influxAnalytics } = require('./analytics');
+import { extractArchiveToTemp, downloadInMainProcess } from './library';
+import { googleAnalytics, influxAnalytics } from './analytics';
+
+export const firmware = {
+  mainWindow: undefined,
+}
 
 let bootloader_path = undefined;
 
@@ -13,7 +17,7 @@ function delay(time) {
   });
 }
 
-async function findBootloaderPath(){
+export async function findBootloaderPath(){
 
   let diskInfo = undefined;
 
@@ -72,7 +76,7 @@ async function findBootloaderPath(){
 
 }
 
-async function firmwareDownload(targetFolder){
+export async function firmwareDownload(targetFolder){
 
   googleAnalytics('firmware-download', {value: 'update start'})
   influxAnalytics("application", "firmwarecheck", "firmware update status", "update started")
@@ -129,14 +133,4 @@ async function firmwareDownload(targetFolder){
 
 
 
-}
-
-let firmware = {
-  mainWindow: undefined,
-}
-
-module.exports = {
-  firmware,
-  findBootloaderPath,
-  firmwareDownload,
 }

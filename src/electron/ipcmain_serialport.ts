@@ -1,4 +1,4 @@
-let serial = {
+export const serial = {
   mainWindow: undefined
 };
 
@@ -24,6 +24,3 @@ async function listSerialPorts(){
 }
 
 setIntervalAsync(listSerialPorts, 1000)
-
-  
-module.exports = {serial};

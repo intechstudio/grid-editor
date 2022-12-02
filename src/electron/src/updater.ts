@@ -1,7 +1,7 @@
-const { autoUpdater } = require('electron-updater');
-const log = require('electron-log');
+import { autoUpdater } from 'electron-updater';
+import log from 'electron-log';
 
-let updater = {
+export const updater = {
   mainWindow: undefined
 }
 
@@ -31,12 +31,7 @@ autoUpdater.on('update-downloaded', () => {
   updater.mainWindow.webContents.send('onAppUpdate', {code: 'update-downloaded'});
 });
 
-function restartAfterUpdate(){
+export function restartAfterUpdate(){
   updater.mainWindow.setClosable(true);
   autoUpdater.quitAndInstall();
-}
-
-module.exports = {
-  updater,
-  restartAfterUpdate
 }

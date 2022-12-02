@@ -1,4 +1,4 @@
-import { defineConfig } from 'electron-vite';
+import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import preprocess from 'svelte-preprocess';
 import path, { resolve } from 'path';
@@ -7,6 +7,9 @@ import monacoEditorPlugin from 'vite-plugin-monaco-editor';
 export default defineConfig({    
 
   main: {
+    plugins: [
+      externalizeDepsPlugin()
+    ],
     define: {
       'process.env': 'process.env'
     },
@@ -16,20 +19,23 @@ export default defineConfig({
     build:{
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/electron/main.js'),
+          index: resolve(__dirname, 'src/electron/main.ts'),
         }
       }, 
       outDir: 'dist/main',
     }
   },
   preload: {
+    plugins: [
+      externalizeDepsPlugin()
+    ],
     define: {
       'process.env': 'process.env'
     },
     build:{
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/electron/preload.js'),
+          index: resolve(__dirname, 'src/electron/preload.ts'),
         }
       },
       outDir: 'dist/preload',

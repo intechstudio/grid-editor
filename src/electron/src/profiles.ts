@@ -1,6 +1,7 @@
-const fs = require('fs')
-const log = require('electron-log')
-const { googleAnalytics, influxAnalytics } = require('./analytics')
+import fs from 'fs';
+import log from 'electron-log';
+
+import { googleAnalytics, influxAnalytics } from './analytics';
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -11,7 +12,7 @@ async function checkIfWritableDirectory(path) {
   return await Promise.all([stats])
 }
 
-async function moveOldConfigs(configPath, rootDirectory) {
+export async function moveOldConfigs(configPath, rootDirectory) {
   if (configPath === undefined) return
   if (configPath === '') return
 
@@ -76,7 +77,7 @@ async function moveOldConfigs(configPath, rootDirectory) {
   log.info(rootDirectory + ' move end.')
 }
 
-async function loadConfigsFromDirectory(configPath, rootDirectory) {
+export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
 
   console.log(path, rootDirectory)
@@ -154,7 +155,7 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
   return configs
 }
 
-async function saveConfig(configPath, name, config, rootDirectory, user) {
+export async function saveConfig(configPath, name, config, rootDirectory, user) {
   const path = configPath
 
   if (!fs.existsSync(path)) fs.mkdirSync(path)
@@ -183,7 +184,7 @@ async function saveConfig(configPath, name, config, rootDirectory, user) {
   )
 }
 
-async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
+export async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
   /* fs.unlink() */
   fs.rmdir(
     `${configPath}/${rootDirectory}/${profileFolder}/${name}`,
@@ -195,7 +196,7 @@ async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
   )
 }
 
-async function updateConfig(
+export async function updateConfig(
   configPath,
   name,
   config,
@@ -254,12 +255,4 @@ function stringToColor(string) {
   var color = `#${f(0)}${f(8)}${f(4)}`
 
   return color
-}
-
-module.exports = {
-  moveOldConfigs,
-  loadConfigsFromDirectory,
-  saveConfig,
-  updateConfig,
-  deleteConfig,
 }
