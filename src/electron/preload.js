@@ -12,8 +12,8 @@ contextBridge.exposeInMainWorld('ctxProcess', {
 
 contextBridge.exposeInMainWorld('electron', {
   library: {
-    download: (targetFolder, package) =>
-      ipcRenderer.invoke('download', { targetFolder, package }),
+    download: (targetFolder, packageToDownload) =>
+      ipcRenderer.invoke('download', { targetFolder, packageToDownload }),
     viewDirectory: (targetFolder) =>
       ipcRenderer.invoke('viewDirectory', { targetFolder }),
     selectDirectory: () => ipcRenderer.invoke('selectDirectory'),

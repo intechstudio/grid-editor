@@ -191,10 +191,10 @@ function createWindow() {
     // this is lazy, we should launch electron explicitly with node_env production, but this works as well
     log.info(
       'Production Mode!',
-      `file://${path.join(__dirname, '../../dist-svelte/index.html')}`,
+      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
     )
     mainWindow.loadURL(
-      `file://${path.join(__dirname, '../../dist-svelte/index.html')}`,
+      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
     )
   }
 

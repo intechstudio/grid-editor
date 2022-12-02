@@ -4,7 +4,7 @@ const { download } = require('electron-dl');
 const log = require('electron-log');
 const fs = require('fs-extra');
 
-const { store } = require('../main-store');
+const { store } = require('../main-store.js');
 const { googleAnalytics, influxAnalytics } = require('./analytics');
 
 /**

@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: windows-nightly
-          path: dist/*.*
+          path: build/*.*
       
       - name: Download Artifacts
         uses: actions/download-artifact@v3
@@ -82,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: macos-nightly
-          path: dist/*.*
+          path: build/*.*
       
       - name: Download Artifacts
         uses: actions/download-artifact@v3
@@ -118,7 +118,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: linux-nightly
-          path: dist/*.*
+          path: build/*.*
       
       - name: Download Artifacts
         uses: actions/download-artifact@v3
