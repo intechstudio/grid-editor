@@ -433,6 +433,7 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
 })
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
+  mainWindow.close();
   googleAnalytics('tray', {value: 'close window'});
   return 'closed'
 })
