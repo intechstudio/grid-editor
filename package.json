@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.31.0",
+    "@nut-tree/nut-js": "^2.3.0",
     "active-win": "^7.7.2",
     "adm-zip": "^0.5.9",
     "discord.js": "^13.6.0",

@@ -30,6 +30,9 @@ function startWebsocketServer(port){
       websocket.mainWindow.webContents.send('onWebsocketReceive', data);
 
       const decoded = JSON.parse(data)
+
+      console.log(decoded);
+
       if (decoded.event === "grid_pong"){
         //console.log("WS PONG")
         ws.isAlive = true;
@@ -71,11 +74,12 @@ function startWebsocketServer(port){
 
 
 
-ipcMain.handle('websocketTransmit', (event, arg) => {
+ipcMain.handle('websocketTransmit', async (event, arg) => {
 
   const decoded = JSON.parse(arg.message)
 
   const data = JSON.stringify({"event":"message", "data": decoded})
+
   websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
 
   wss.clients.forEach(function each(ws) {
@@ -84,7 +88,7 @@ ipcMain.handle('websocketTransmit', (event, arg) => {
 
 })
 
-ipcMain.handle('websocketChangePort', (event, arg) => {
+ipcMain.handle('websocketChangePort', async (event, arg) => {
 
   console.log("NEW PORT", arg)
 

@@ -44,8 +44,7 @@ import { influxAnalytics, googleAnalytics } from './src/analytics';
 import { sendToDiscord } from './src/discord';
 import { getLatestVideo } from './src/youtube';
 import { getActiveWindow } from './src/active-window';
-
-
+import { typeKey } from './addon/desktopAutomation';
 
 
 process.env['EDITOR_VERSION'] = app.getVersion()
@@ -375,6 +374,12 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 
 ipcMain.handle('sendToDiscord', async (event, arg) => {
   return await sendToDiscord(arg.message);
+})
+
+
+
+ipcMain.handle('mediaKeys', async (event, arg) => {
+  return await typeKey(arg.key)
 })
 
 
