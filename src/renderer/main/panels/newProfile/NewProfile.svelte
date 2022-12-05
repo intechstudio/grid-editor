@@ -355,7 +355,7 @@
 
     {#if isSessionProfileOpen}
       <div class="bg-secondary flex flex-col p-3 overflow-hidden h-full">
-        <div class="flex flex-col overflow-y-auto gap-4 scroll-smooth ">
+        <div class="flex flex-col overflow-y-auto gap-4 ">
           {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
             <button
               class="flex justify-between gap-1 items-center text-left
@@ -380,7 +380,7 @@
                 </div> -->
 
                 <div on:dblclick={() => handleDblClick()}>
-                  <input
+                  <textarea
                     type="text"
                     disabled={justReadInput == true}
                     bind:value={sessionProfileElement.name}
@@ -393,8 +393,8 @@
                     on:click={() => {
                       selectProfile(sessionProfileElement)
                     }}
-                    class="text-zinc-100 min-w-[15px] h-6 break-words
-                    bg-primary-700 overflow-hidden w-full " />
+                    class="text-zinc-100 min-w-[15px] h-fit break-words
+                    bg-transparent overflow-hidden w-full " />
 
                   <span class="text-zinc-100 ">
                     {sessionProfileElement.type}
@@ -414,8 +414,8 @@
                   }}
                   class="p-1 hover:bg-primary-500 rounded">
                   <svg
-                    width="20"
-                    height="20"
+                    width="16"
+                    height="16"
                     viewBox="0 0 39 39"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -441,8 +441,8 @@
                     prepareSave('user')
                   }}>
                   <svg
-                    width="19"
-                    height="18"
+                    width="15"
+                    height="14"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -491,8 +491,8 @@
                     prepareSave('sessionProfile')
                   }}>
                   <svg
-                    width="19"
-                    height="18"
+                    width="15"
+                    height="14"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -548,8 +548,8 @@
                   class="p-1 hover:bg-primary-500 rounded">
 
                   <svg
-                    width="16"
-                    height="18"
+                    width="12"
+                    height="14"
                     viewBox="0 0 16 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -654,27 +654,26 @@
           </div>
 
           <div class="flex flex-row gap-2 ">
-            <div class="text-gray-100 basis-2/4 ">Suggested searches:</div>
-            <div class="flex flex-row gap-2 basis-2/4">
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                bu16
-              </button>
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                obs
-              </button>
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                EN16
-              </button>
-            </div>
+
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              bu16
+            </button>
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              obs
+            </button>
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              EN16
+            </button>
+
           </div>
         </div>
 
@@ -715,8 +714,8 @@
                           ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement)
                         }}>
                         <svg
-                          width="17"
-                          height="18"
+                          width="15"
+                          height="16"
                           viewBox="0 0 20 21"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">
@@ -771,8 +770,8 @@
                         }}>
                         <svg
                           class="fill-white "
-                          width="19"
-                          height="18"
+                          width="15"
+                          height="14"
                           viewBox="0 0 21 20"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">
@@ -824,8 +823,8 @@
                         class="p-1 hover:bg-primary-500 rounded">
 
                         <svg
-                          width="16"
-                          height="18"
+                          width="12"
+                          height="14"
                           viewBox="0 0 16 18"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">
