@@ -12,8 +12,8 @@ contextBridge.exposeInMainWorld('ctxProcess', {
 
 contextBridge.exposeInMainWorld('electron', {
   library: {
-    download: (targetFolder, package) =>
-      ipcRenderer.invoke('download', { targetFolder, package }),
+    download: (targetFolder, packageToDownload) =>
+      ipcRenderer.invoke('download', { targetFolder, packageToDownload }),
     viewDirectory: (targetFolder) =>
       ipcRenderer.invoke('viewDirectory', { targetFolder }),
     selectDirectory: () => ipcRenderer.invoke('selectDirectory'),
@@ -102,4 +102,5 @@ contextBridge.exposeInMainWorld('electron', {
     transmit: (message) => ipcRenderer.invoke('websocketTransmit', { message }),
     changePort: (port) => ipcRenderer.invoke('websocketChangePort', { port }),
   },
+  mediaKeys: (key) => ipcRenderer.invoke('mediaKeys', { key })
 })

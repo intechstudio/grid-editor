@@ -1,4 +1,4 @@
-const {
+import {
   app,
   BrowserWindow,
   ipcMain,
@@ -6,27 +6,48 @@ const {
   Menu,
   nativeImage,
   shell,
-} = require('electron')
-const { autoUpdater } = require('electron-updater')
+} from 'electron'
+import path from 'path'
+import log from 'electron-log'
+import fs from 'fs-extra'
+import dotenv from 'dotenv';
+dotenv.config();
 
-const { serial } = require('./ipcmain_serialport')
-const { websocket } = require('./ipcmain_websocket')
 
-const { store } = require('./main-store')
-
-const { iconBuffer, iconSize } = require('./icon')
+import { autoUpdater } from 'electron-updater'
 
 // might be environment variables as well.
-const grid_env = require('../../configuration.json')
+import grid_env from '../../configuration.json'
 for (const key in grid_env) {
   process.env[key] = grid_env[key]
 }
 
-process.env['EDITOR_VERSION'] = app.getVersion()
+import { serial } from './ipcmain_serialport'
+import { websocket } from './ipcmain_websocket'
+import { store } from './main-store'
+import { iconBuffer, iconSize } from './icon'
+import { firmware, firmwareDownload, findBootloaderPath } from './src/firmware';
+import { updater, restartAfterUpdate } from './src/updater';
+import {
+  libraryDownload,
+  uxpPhotoshopDownload,
+  selectDirectory,
+} from './src/library';
+import {
+  loadConfigsFromDirectory,
+  moveOldConfigs,
+  saveConfig,
+  updateConfig,
+  deleteConfig,
+} from './src/profiles';
+import { influxAnalytics, googleAnalytics } from './src/analytics';
+import { sendToDiscord } from './src/discord';
+import { getLatestVideo } from './src/youtube';
+import { getActiveWindow } from './src/active-window';
+import { typeKey } from './addon/desktopAutomation';
 
-const path = require('path')
-const log = require('electron-log')
-const fs = require('fs-extra')
+
+process.env['EDITOR_VERSION'] = app.getVersion()
 
 autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
@@ -146,10 +167,9 @@ function createWindow() {
     },
     title: windowTitle,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      enableRemoteModule: false,
       backgroundThrottling: false,
     },
     icon: './icon.png',
@@ -173,10 +193,9 @@ function createWindow() {
   serial.mainWindow = mainWindow
   websocket.mainWindow = mainWindow
 
-  const { firmware } = require('./src/firmware')
+  
   firmware.mainWindow = mainWindow
 
-  const { updater, restartAfterUpdate } = require('./src/updater')
   updater.mainWindow = mainWindow
 
   ipcMain.on('restartAfterUpdate', () => {
@@ -191,10 +210,10 @@ function createWindow() {
     // this is lazy, we should launch electron explicitly with node_env production, but this works as well
     log.info(
       'Production Mode!',
-      `file://${path.join(__dirname, '../../dist-svelte/index.html')}`,
+      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
     )
     mainWindow.loadURL(
-      `file://${path.join(__dirname, '../../dist-svelte/index.html')}`,
+      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
     )
   }
 
@@ -267,11 +286,7 @@ function createWindow() {
 
 autoUpdater.checkForUpdatesAndNotify()
 
-const {
-  libraryDownload,
-  uxpPhotoshopDownload,
-  selectDirectory,
-} = require('./src/library')
+
 ipcMain.handle('download', async (event, arg) => {
   let result = undefined
   if (arg.package == 'library') {
@@ -306,13 +321,7 @@ ipcMain.handle('defaultDirectory', (event, arg) => {
   return defaultPath
 })
 
-const {
-  loadConfigsFromDirectory,
-  moveOldConfigs,
-  saveConfig,
-  updateConfig,
-  deleteConfig,
-} = require('./src/profiles')
+
 
 ipcMain.handle('moveOldConfigs', async (event, arg) => {
   return await moveOldConfigs(arg.configPath, arg.rootDirectory)
@@ -352,7 +361,6 @@ ipcMain.handle('deleteConfig', async (event, arg) => {
   )
 })
 
-const { firmwareDownload, findBootloaderPath } = require('./src/firmware')
 // this is needed for the functions to have the mainWindow for communication
 ipcMain.handle('firmwareDownload', async (event, arg) => {
   return await firmwareDownload(arg.targetFolder)
@@ -361,11 +369,16 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
   return await findBootloaderPath()
 })
 
-const { influxAnalytics, googleAnalytics } = require('./src/analytics')
-const { sendToDiscord } = require('./src/discord')
+
 ipcMain.handle('sendToDiscord', async (event, arg) => {
   return await sendToDiscord(arg.message)
 })
+
+ipcMain.handle('mediaKeys', async (event, arg) => {
+  return await typeKey(arg.key)
+})
+
+
 
 ipcMain.handle('googleAnalytics', async (event, arg) => {
   return await googleAnalytics(arg.name, arg.params) // uses the measurement protocol!
@@ -375,7 +388,6 @@ ipcMain.handle('influxAnalytics', async (event, arg) => {
 })
 
 // load the latest video from the grid editor playlist
-const { getLatestVideo } = require('./src/youtube')
 ipcMain.handle('getLatestVideo', async (event, arg) => {
   return await getLatestVideo()
 })
@@ -386,7 +398,6 @@ ipcMain.handle('openInBrowser', async (event, arg) => {
 })
 
 // get the active window, user must give permissons for this
-const { getActiveWindow } = require('./src/active-window')
 ipcMain.handle('activeWindow', async (event, arg) => {
   return await getActiveWindow()
 })
@@ -416,7 +427,7 @@ ipcMain.handle('setPersistentStore', (event, arg) => {
 })
 // app window management
 ipcMain.handle('closeWindow', async (event, args) => {
-  googleAnalytics('tray', { value: 'close window' })
+  mainWindow.close();
   return 'closed'
 })
 

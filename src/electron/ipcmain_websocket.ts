@@ -1,11 +1,9 @@
-const {ipcMain} = require('electron');
-const WebSocket = require('ws');
-const { store } = require('./main-store');
+import {ipcMain} from 'electron';
+import WebSocket from 'ws';
+import { store } from './main-store';
 
-let websocket = {
-
+export const websocket = {
   mainWindow: undefined
-
 };
 
 let wss;
@@ -25,13 +23,16 @@ function startWebsocketServer(port){
 
     console.info('WS Client connected!')
 
-    connection = ws;
+    //connection = ws;
 
     ws.on('message', function message(data) {
 
       websocket.mainWindow.webContents.send('onWebsocketReceive', data);
 
       const decoded = JSON.parse(data)
+
+      console.log(decoded);
+
       if (decoded.event === "grid_pong"){
         //console.log("WS PONG")
         ws.isAlive = true;
@@ -73,11 +74,12 @@ function startWebsocketServer(port){
 
 
 
-ipcMain.handle('websocketTransmit', (event, arg) => {
+ipcMain.handle('websocketTransmit', async (event, arg) => {
 
   const decoded = JSON.parse(arg.message)
 
   const data = JSON.stringify({"event":"message", "data": decoded})
+
   websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
 
   wss.clients.forEach(function each(ws) {
@@ -86,7 +88,7 @@ ipcMain.handle('websocketTransmit', (event, arg) => {
 
 })
 
-ipcMain.handle('websocketChangePort', (event, arg) => {
+ipcMain.handle('websocketChangePort', async (event, arg) => {
 
   console.log("NEW PORT", arg)
 
@@ -101,7 +103,3 @@ ipcMain.handle('websocketChangePort', (event, arg) => {
   startWebsocketServer(arg);
 
 })
-
-
-
-module.exports = { websocket };

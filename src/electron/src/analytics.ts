@@ -1,8 +1,10 @@
-const { store } = require('../main-store');
-const { v4: uuidv4 } = require('uuid');
-const fetch = require('node-fetch');
-const influx = require('@influxdata/influxdb-client');
-const { app } = require('electron');
+import { store } from '../main-store';
+import { v4 as uuidv4 } from 'uuid';
+import fetch from 'node-fetch';
+import influx from '@influxdata/influxdb-client';
+import { app } from 'electron';
+import dotenv from 'dotenv';
+dotenv.config()
 
 // Retrieve the userid value, and if it's not there, assign it a new uuid.
 const userId = store.get('userId') || uuidv4();
@@ -10,7 +12,7 @@ const userId = store.get('userId') || uuidv4();
 store.set('userId', userId)
 
 // using the measurement protocol
-async function googleAnalytics(name, params) {
+export async function googleAnalytics(name, params) {
 
   const measurement_id = `G-SJB4MHFG3N`;
   const api_secret = `snyDyY8-Rka6ZrCTe_6m-A`;
@@ -40,7 +42,7 @@ const version = app.getVersion();
 const token = process.env.INFLUX_TOKEN
 const org = process.env.INFLUX_ORG
 const bucket = process.env.INFLUX_BUCKET
-const server = process.env.INFLUX_SERVER
+const server = process.env.INFLUX_SERVER!
 
 if (token && org && bucket && server) {
   console.log("Influx Analytics Ready!")
@@ -50,19 +52,19 @@ else {
 }
 
 const client = new influx.InfluxDB({url: server, token: token})
-const writeApi = client.getWriteApi(org, bucket)
+const writeApi = client.getWriteApi(org!, bucket!)
 
 const sessionid = Date.now();
 const user_platform = process.platform;
 const node_env = process.env.NODE_ENV;
 
-function influxAnalytics(category, action, label, value){
+export function influxAnalytics(category, action, label, value){
 
   console.log('send to influx...', category, action, label, value);
 
   let measurement = "AppUsage"
 
-  writeApi.useDefaultTags({nodeenv: node_env, platform: user_platform})
+  writeApi.useDefaultTags({nodeenv: node_env!, platform: user_platform})
  
   const point = new influx.Point(measurement)
   .stringField("uuid", userId)  
@@ -81,5 +83,3 @@ function influxAnalytics(category, action, label, value){
   }
   
 }
-
-module.exports = { googleAnalytics, influxAnalytics };

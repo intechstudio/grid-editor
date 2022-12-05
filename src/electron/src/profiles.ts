@@ -1,6 +1,7 @@
-const fs = require('fs')
-const log = require('electron-log')
-const { googleAnalytics, influxAnalytics } = require('./analytics')
+import fs from 'fs';
+import log from 'electron-log';
+
+import { googleAnalytics, influxAnalytics } from './analytics';
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -11,45 +12,7 @@ async function checkIfWritableDirectory(path) {
   return await Promise.all([stats])
 }
 
-<<<<<<< HEAD
-async function moveOldConfigs(configPath, rootDirectory){
-
-  if (configPath === undefined) return;
-  if (configPath === "") return;
-
-  let path = configPath;
-
-  if(!fs.existsSync(path)) fs.mkdirSync(path);
-  if(!fs.existsSync(`${path}/${rootDirectory}`)) fs.mkdirSync(`${path}/${rootDirectory}`);
-
-  log.info(rootDirectory + ' move start...');
-
-  await fs.promises.readdir(`${path}/${rootDirectory}`).then( authors => {
-
-    authors.forEach(async author => {
-
-      await fs.promises.readdir(`${path}/${rootDirectory}/${author}`).then(files => {
-
-        files.forEach(async file => {
-
-          let filepath = `${path}/${rootDirectory}/${author}/${file}`;
-          
-          const [stats] = await checkIfWritableDirectory(filepath);
-  
-          if(stats.isFile){
-            let filenameparts = file.split(".");
-            let extension = filenameparts[filenameparts.length-1];
-            if (extension === "json"){
-
-              if(file.lastIndexOf(".") != -1){
-
-                let basename = file.substring(0, file.lastIndexOf("."));
-
-                if(!fs.existsSync(`${path}/${rootDirectory}/${author}/${basename}`)) 
-                {
-                  fs.mkdirSync(`${path}/${rootDirectory}/${author}/${basename}`)
-=======
-async function moveOldConfigs(configPath, rootDirectory) {
+export async function moveOldConfigs(configPath, rootDirectory) {
   if (configPath === undefined) return
   if (configPath === '') return
 
@@ -62,7 +25,6 @@ async function moveOldConfigs(configPath, rootDirectory) {
     fs.mkdirSync(`${path}/${rootDirectory}`)
 
   log.info(rootDirectory + ' move start...')
-
   await fs.promises
     .readdir(`${path}/${rootDirectory}`)
     .then((authors) => {
@@ -100,7 +62,6 @@ async function moveOldConfigs(configPath, rootDirectory) {
                     fs.renameSync(from, to)
                     log.info('moving: ', file)
                   }
->>>>>>> betty-dev
                 }
               } else {
                 log.info('Not a file!')
@@ -116,7 +77,7 @@ async function moveOldConfigs(configPath, rootDirectory) {
   log.info(rootDirectory + ' move end.')
 }
 
-async function loadConfigsFromDirectory(configPath, rootDirectory) {
+export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
 
   console.log(path, rootDirectory)
@@ -166,13 +127,16 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
               file
             const [stats] = await checkIfWritableDirectory(directorypath)
 
-            await fs.promises.readFile(filepath, 'utf-8').then((data) => {
+            await fs.promises.readFile(filepath, 'utf-8').then(async (data) => {
               if (isJson(data)) {
                 let obj = JSON.parse(data)
                 if (obj.isGridProfile || obj.isGridPreset) {
                   obj.folder = dir
                   obj.showMore = false
                   obj.color = stringToColor(dir)
+                  const dateObject = await getDateOfModify(filepath)
+                  obj.fsCreatedAt = dateObject.createdAt
+                  obj.fsModifiedAt = dateObject.modifiedAt
                   configs.push(obj)
                 } else {
                   log.info('JSON is not a grid profile!')
@@ -194,8 +158,10 @@ async function loadConfigsFromDirectory(configPath, rootDirectory) {
   return configs
 }
 
-async function saveConfig(configPath, name, config, rootDirectory, user) {
+export async function saveConfig(configPath, name, config, rootDirectory, user) {
   const path = configPath
+
+  log.info('SaveConfig', name, config)
 
   if (!fs.existsSync(path)) fs.mkdirSync(path)
   if (!fs.existsSync(`${path}/${rootDirectory}`))
@@ -219,14 +185,17 @@ async function saveConfig(configPath, name, config, rootDirectory, user) {
 
       googleAnalytics('profile-library', { value: 'save success' })
       influxAnalytics('application', 'profiles', 'profile', 'save success')
+      //getDateOfModify(path, name, rootDirectory, user)
     },
   )
 }
 
-async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
-  /* fs.unlink() */
+export async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
+  const path = configPath
+  log.info('deleteConfig')
+
   fs.rmdir(
-    `${configPath}/${rootDirectory}/${profileFolder}/${name}`,
+    `${path}/${rootDirectory}/${profileFolder}/${name}`,
     { recursive: true },
     (err) => {
       throw err
@@ -235,7 +204,7 @@ async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
   )
 }
 
-async function updateConfig(
+export async function updateConfig(
   configPath,
   name,
   config,
@@ -243,12 +212,16 @@ async function updateConfig(
   oldName,
   profileFolder,
 ) {
+  console.log('updateConfig', name.config)
+
   if (oldName === name) {
     // just save and overwrite existing profile
-    saveConfig(configPath, name, config, rootDirectory)
-    console.log('Profile overwritten!')
+    saveConfig(configPath, name, config, rootDirectory, profileFolder)
+    log.info('Profile overwritten!')
   } else {
-    saveConfig(configPath, name, config, rootDirectory)
+    log.info('Update name')
+
+    saveConfig(configPath, name, config, rootDirectory, profileFolder)
     deleteConfig(configPath, oldName, rootDirectory, profileFolder)
   }
 }
@@ -260,6 +233,23 @@ function isJson(str) {
     return false
   }
   return true
+}
+
+async function getDateOfModify(filepath) {
+  // Get the modif date of selected file
+  log.info(`hello, ${filepath}`)
+
+  const dateObject = await fs.promises
+    .stat(filepath)
+    .then((stats) => {
+      // print file last modified date
+      console.log(`File Data Last Modified: ${stats.mtime}`)
+      console.log(`File Status Last Modified: ${stats.ctime}`)
+      return { modifiedAt: stats.mtime, createdAt: stats.ctime }
+    })
+    .catch((err) => console.error('get date modify', err))
+
+  return dateObject
 }
 
 function stringToColor(string) {
@@ -294,12 +284,4 @@ function stringToColor(string) {
   var color = `#${f(0)}${f(8)}${f(4)}`
 
   return color
-}
-
-module.exports = {
-  moveOldConfigs,
-  loadConfigsFromDirectory,
-  saveConfig,
-  updateConfig,
-  deleteConfig,
 }

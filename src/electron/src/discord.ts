@@ -1,8 +1,10 @@
-const { Webhook } = require('simple-discord-webhooks');
+import { Webhook } from 'simple-discord-webhooks';
+import dotenv from 'dotenv';
+dotenv.config()
 
 const webhook = new Webhook(process.env.DISCORD_FEEDBACK_WEBHOOK);
 
-async function sendToDiscord(message){
+export async function sendToDiscord(message){
 
   console.log(message)
 
@@ -15,8 +17,4 @@ async function sendToDiscord(message){
   }
 
   return await webhook.send(`######\n${message.title}\n######\n${message.text} `)
-}
-
-module.exports = {
-  sendToDiscord
 }
