@@ -13,7 +13,6 @@ import fs from 'fs-extra'
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 import { autoUpdater } from 'electron-updater'
 
 // might be environment variables as well.
@@ -21,6 +20,7 @@ import grid_env from '../../configuration.json'
 for (const key in grid_env) {
   process.env[key] = grid_env[key]
 }
+
 
 import { serial } from './ipcmain_serialport'
 import { websocket } from './ipcmain_websocket'
@@ -371,6 +371,7 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 
 
 ipcMain.handle('sendToDiscord', async (event, arg) => {
+  console.log('sendTOdiscord', arg.message)
   return await sendToDiscord(arg.message)
 })
 
