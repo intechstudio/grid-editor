@@ -11,7 +11,8 @@
     user_input,
   } from '../../../runtime/runtime.store.js'
 
-  let selectedProfile = {}
+  let selectedProfile = undefined
+  let active = {}
 
   selectedProfileStore.subscribe((store) => {
     selectedProfile = store
@@ -46,7 +47,6 @@
 
   function handleDblClick() {
     justReadInput = false
-    console.log('YAAAAAAAAAAY')
   }
 
   async function loadFromDirectory() {
@@ -70,6 +70,7 @@
   }
 
   function selectProfile(profile) {
+    active = profile
     selectedProfile = profile
     selectedProfileStore.set(selectedProfile)
   }
@@ -95,6 +96,12 @@
       } else {
         profile.isInFilteredResult = false
       }
+
+      if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
+        profile.isInFilteredResult = true
+      } else {
+        profile.isInFilteredResult = false
+      }
       PROFILES = [...PROFILES]
     })
   }
@@ -109,6 +116,8 @@
     )
 
     if (selectedProfile !== undefined) {
+      /* itt undefined volt! */
+
       const profile = selectedProfile
 
       const rt = get(runtime)
@@ -229,10 +238,11 @@
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
-      element.name,
+      element.name.trim(),
       'profiles',
       element.folder,
     )
+
     loadFromDirectory()
   }
 
@@ -261,13 +271,13 @@
   } */
 
   async function updateSessionProfileTitle(profileData, oldName) {
-    checkIfProfileTitleUnique(profileData.name)
-    checkIfTitleFieldEmpty(profileData.name)
+    checkIfProfileTitleUnique(profileData.name.trim())
+    checkIfTitleFieldEmpty(profileData.name.trim())
 
     if (isTitleDirty != false && isTitleUnique != false) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
-        profileData.name,
+        profileData.name.trim(),
         profileData,
         'profiles',
         oldName,
@@ -309,11 +319,11 @@
     }
   }
 
-  $: if ($selectedProfileStore) {
+  $: if ($selectedProfileStore == undefined) {
     loadFromDirectory()
   }
 
-  $: console.log(selectedProfile)
+  /*enélkül nem reactive törtlésnél a profile cloud lista, de az active kijelölt elemet jelző css-t elcseszi :(*/
 
   function compare(a, b) {
     if (a.name < b.name) {
@@ -338,10 +348,7 @@
 
 <div
   use:clickOutside={{ useCapture: true }}
-  on:click-outside={() => {
-    selectedProfile = {}
-    selectedIndex = undefined
-  }}
+  on:click-outside={() => {}}
   class="bg-primary pt-4 flex flex-col h-full justify-between ">
 
   <div class="m-4 flex flex-col ">
@@ -439,6 +446,8 @@
                   on:click|preventDefault={() => {
                     selectProfile(sessionProfileElement)
                     prepareSave('user')
+                    deleteFromDirectory(sessionProfileElement)
+                    selectedProfile = undefined
                   }}>
                   <svg
                     width="15"
@@ -581,8 +590,8 @@
 
         <button
           on:click={() => prepareSave('sessionProfile')}
-          disabled={selectedProfile.name === undefined}
-          class="relative bg-commit block {selectedProfile.name !== undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
+          disabled={selectedProfile == undefined}
+          class="relative bg-commit block {selectedProfile != {} ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
           w-full text-white mt-3 mb-1 py-2 px-2 rounded
           border-commit-saturate-10 hover:border-commit-desaturate-10
           focus:outline-none">
@@ -613,8 +622,8 @@
           <div class="relative">
             <svg
               class="absolute left-3 bottom-1"
-              width="18"
-              height="18"
+              width="15"
+              height="15"
               viewBox="0 0 18 18"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">
@@ -643,12 +652,32 @@
                 2.93763C12.8479 4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
                 fill="#CDCDCD" />
             </svg>
+            {#if searchbarValue != ''}
+              <button
+                class="absolute right-3 bottom-3"
+                on:click={() => updateSearchFilter((searchbarValue = ''))}>
+                <svg
+                  width="30"
+                  height="30"
+                  viewBox="0 0 39 39"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
+                    stroke="#FFF"
+                    stroke-width="2"
+                    stroke-linecap="round" />
+                </svg>
+              </button>
+            {/if}
+
             <input
               type="text"
               bind:value={searchbarValue}
               on:keyup={() => updateSearchFilter(searchbarValue)}
+              on:input={() => updateSearchFilter(searchbarValue)}
               on:change={() => updateSearchFilter(searchbarValue)}
-              class="w-full py-3 pl-12 pr-2 bg-primary-700 text-white
+              class="w-full py-3 px-12 bg-primary-700 text-white
               placeholder-gray-400 text-md"
               placeholder="Find Profile..." />
           </div>
@@ -657,20 +686,20 @@
 
             <button
               on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
-              class="border border-primary-300 text-primary-100 rounded-md py-1
-              px-2 h-min">
+              class="border border-primary-300 text-sm text-primary-100
+              rounded-md py-1 px-2 h-min">
               bu16
             </button>
             <button
               on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
-              class="border border-primary-300 text-primary-100 rounded-md py-1
-              px-2 h-min">
+              class="border border-primary-300 text-sm text-primary-100
+              rounded-md py-1 px-2 h-min">
               obs
             </button>
             <button
               on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
-              class="border border-primary-300 text-primary-100 rounded-md py-1
-              px-2 h-min">
+              class="border border-primary-300 text-sm text-primary-100
+              rounded-md py-1 px-2 h-min">
               EN16
             </button>
 
@@ -682,7 +711,7 @@
             {#if profileCloudElement.isInFilteredResult != false}
               <button
                 class="w-full bg-primary-700 hover:bg-primary-600 p-2
-                cursor-pointer {selectedIndex == i && $appSettings.modal == '' ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+                cursor-pointer {active == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
@@ -856,6 +885,7 @@
               </button>
             {/if}
           {/each}
+
         </div>
 
       </div>

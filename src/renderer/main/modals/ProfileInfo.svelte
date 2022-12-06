@@ -4,6 +4,15 @@
   import { appSettings } from '/runtime/app-helper.store'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
 
+  import { onMount } from 'svelte'
+
+  import {
+    engine,
+    logger,
+    runtime,
+    user_input,
+  } from '/runtime/runtime.store.js'
+
   let editor
   let modalWidth
   let modalHeight
@@ -22,6 +31,7 @@
     liked = !liked
   }
 
+  let PROFILES = []
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
 
   let selectedProfile = get(selectedProfileStore)
@@ -40,6 +50,9 @@
       'profiles',
       element.folder,
     )
+
+    loadFromDirectory()
+    selectedProfile = undefined
   }
 </script>
 
@@ -95,8 +108,7 @@
                   on:click|preventDefault={() => {
                     deleteFromDirectory(selectedProfile)
                     $appSettings.modal = ''
-                    selectedProfile = {}
-                    loadFromDirectory()
+                    $selectedProfileStore = undefined
                   }}>
                   <svg
                     width="20"
