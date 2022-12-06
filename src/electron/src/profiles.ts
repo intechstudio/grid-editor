@@ -1,7 +1,7 @@
-import fs from 'fs';
-import log from 'electron-log';
+import fs from 'fs'
+import log from 'electron-log'
 
-import { googleAnalytics, influxAnalytics } from './analytics';
+import { googleAnalytics, influxAnalytics } from './analytics'
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -158,7 +158,13 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   return configs
 }
 
-export async function saveConfig(configPath, name, config, rootDirectory, user) {
+export async function saveConfig(
+  configPath,
+  name,
+  config,
+  rootDirectory,
+  user,
+) {
   const path = configPath
 
   log.info('SaveConfig', name, config)
@@ -190,7 +196,12 @@ export async function saveConfig(configPath, name, config, rootDirectory, user) 
   )
 }
 
-export async function deleteConfig(configPath, name, rootDirectory, profileFolder) {
+export async function deleteConfig(
+  configPath,
+  name,
+  rootDirectory,
+  profileFolder,
+) {
   const path = configPath
   log.info('deleteConfig')
 
@@ -200,7 +211,6 @@ export async function deleteConfig(configPath, name, rootDirectory, profileFolde
     (err) => {
       throw err
     },
-    console.log(`${name} is deleted!`),
   )
 }
 
