@@ -1169,7 +1169,6 @@ const editor_heartbeat_interval_handler = async function(){
   }
 
   if (get(runtime).length>0){
-
     sendHeartbeat(type)
   }
   else{
@@ -1212,18 +1211,8 @@ function createLocalDefinitions(){
 export const localDefinitions = createLocalDefinitions();
 
 export async function wss_send_message(message){
-  //const toSend = Array.from(message).toString('base64')
-
-  const data = JSON.parse(message)
-
-  console.log(data);
-  
-  if(data.command == 'mediaKeys'){
-    window.electron.mediaKeys(data.key)
-  } else {
-    window.electron.websocket.transmit(JSON.stringify(data))
-  }
- 
+  const toSend = Array.from(message).toString('base64')
+  window.electron.websocket.transmit({event:'message', data: message})
 }
 
 console.log('reached end of runtime')

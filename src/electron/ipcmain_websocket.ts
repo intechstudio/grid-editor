@@ -76,9 +76,7 @@ function startWebsocketServer(port){
 
 ipcMain.handle('websocketTransmit', async (event, arg) => {
 
-  const decoded = JSON.parse(arg.message)
-
-  const data = JSON.stringify({"event":"message", "data": decoded})
+  const data = JSON.stringify(arg.message)
 
   websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
 

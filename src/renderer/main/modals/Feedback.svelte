@@ -14,7 +14,7 @@
   onMount(() => {});
 
   async function sendFeedback() {
-    const result = await window.electron.discord.sendMessage({
+    await window.electron.discord.sendMessage({
       title: feedback.title.value,
       text: feedback.text.value,
     });

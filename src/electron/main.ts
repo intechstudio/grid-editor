@@ -44,8 +44,7 @@ import { influxAnalytics, googleAnalytics } from './src/analytics';
 import { sendToDiscord } from './src/discord';
 import { getLatestVideo } from './src/youtube';
 import { getActiveWindow } from './src/active-window';
-import { typeKey } from './addon/desktopAutomation';
-
+import { nutPlugin } from './addon/desktopAutomation';
 
 process.env['EDITOR_VERSION'] = app.getVersion()
 
@@ -193,7 +192,8 @@ function createWindow() {
   serial.mainWindow = mainWindow
   websocket.mainWindow = mainWindow
 
-  
+  nutPlugin();
+
   firmware.mainWindow = mainWindow
 
   updater.mainWindow = mainWindow
@@ -210,10 +210,10 @@ function createWindow() {
     // this is lazy, we should launch electron explicitly with node_env production, but this works as well
     log.info(
       'Production Mode!',
-      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
+      `file://${path.join(__dirname, '../../dist/renderer/index.html')}`,
     )
     mainWindow.loadURL(
-      `file://${path.join(__dirname, 'dist/renderer/index.html')}`,
+      `file://${path.join(__dirname, '../../dist/renderer/index.html')}`,
     )
   }
 
@@ -373,10 +373,6 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 ipcMain.handle('sendToDiscord', async (event, arg) => {
   console.log('sendTOdiscord', arg.message)
   return await sendToDiscord(arg.message)
-})
-
-ipcMain.handle('mediaKeys', async (event, arg) => {
-  return await typeKey(arg.key)
 })
 
 
