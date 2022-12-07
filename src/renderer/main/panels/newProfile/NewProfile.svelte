@@ -4,6 +4,7 @@
   import { get } from 'svelte/store'
   import { onMount } from 'svelte'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
+  import { profileChangeCallbackStore } from './profile-change.store'
   import {
     engine,
     logger,
@@ -13,10 +14,6 @@
 
   let selectedProfile = undefined
   let active = {}
-
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store
-  })
 
   /*   let editProfileData = {
     name: $selectedProfileStore.name,
@@ -36,14 +33,25 @@
 
   let searchbarValue = ''
 
-  let selectedIndex = undefined
+  let sorting = true
   let isSessionProfileOpen = true
   let isProfileCloudOpen = true
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
+  let filteredProfileCloud = PROFILES
 
   let justReadInput = true
+
+  selectedProfileStore.subscribe((store) => {
+    selectedProfile = store
+  })
+
+  profileChangeCallbackStore.subscribe(async (store) => {
+    if (store.action == 'update' || store.action == 'delete') {
+      await loadFromDirectory()
+    }
+  })
 
   function handleDblClick() {
     justReadInput = false
@@ -54,6 +62,7 @@
       PROFILE_PATH,
       'profiles',
     )
+    filteredProfileCloud = PROFILES
   }
 
   appSettings.subscribe((store) => {
@@ -90,19 +99,17 @@
   })
 
   function updateSearchFilter(input) {
+    filteredProfileCloud = []
     PROFILES.forEach((profile) => {
       if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        profile.isInFilteredResult = true
-      } else {
-        profile.isInFilteredResult = false
+        filteredProfileCloud = [...filteredProfileCloud, profile]
+      } else if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
+        filteredProfileCloud = [...filteredProfileCloud, profile]
+      } else if (
+        profile.folder.toLowerCase().indexOf(input.toLowerCase()) > -1
+      ) {
+        filteredProfileCloud = [...filteredProfileCloud, profile]
       }
-
-      if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        profile.isInFilteredResult = true
-      } else {
-        profile.isInFilteredResult = false
-      }
-      PROFILES = [...PROFILES]
     })
   }
 
@@ -319,21 +326,87 @@
     }
   }
 
-  $: if ($selectedProfileStore == undefined) {
-    loadFromDirectory()
+  function sortProfileCloud(e) {
+    if (e.target.value == 'name') {
+      if (sort == true) {
+        filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending)
+      }
+      if (sort == false) {
+        filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending)
+      }
+    }
+
+    if (e.target.value == 'date') {
+      filteredProfileCloud = filteredProfileCloud.sort(compareDate)
+    }
+
+    /*     filteredProfileCloud.sort(compare)
+    console.log('hello') */
   }
 
-  /*enélkül nem reactive törtlésnél a profile cloud lista, de az active kijelölt elemet jelző css-t elcseszi :(*/
-
-  function compare(a, b) {
+  function compareNameAscending(a, b) {
     if (a.name < b.name) {
+      console.log('1')
       return -1
     }
+
     if (a.name > b.name) {
+      console.log('2')
       return 1
     }
+
     return 0
   }
+
+  function compareNameDescending(a, b) {
+    if (a.name < b.name) {
+      console.log('1')
+      return -1
+    }
+
+    if (a.name > b.name) {
+      console.log('2')
+      return 1
+    }
+
+    return 0
+  }
+
+  function compareDateAscending(a, b) {
+    if (a.fsModifiedAt < b.fsModifiedAt) {
+      console.log('1')
+      return -1
+    }
+
+    if (a.fsModifiedAt > b.fsModifiedAt) {
+      console.log('2')
+      return 1
+    }
+
+    return 0
+  }
+
+  function compareDateDescending(a, b) {
+    if (a.fsModifiedAt < b.fsModifiedAt) {
+      console.log('1')
+      return -1
+    }
+
+    if (a.fsModifiedAt > b.fsModifiedAt) {
+      console.log('2')
+      return 1
+    }
+
+    return 0
+  }
+
+  function toggleSortingOrder() {
+    sorting = !sorting
+
+    console.log(sorting)
+  }
+
+  $: console.log(selectedProfile)
 
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
@@ -349,25 +422,25 @@
 <div
   use:clickOutside={{ useCapture: true }}
   on:click-outside={() => {}}
-  class="bg-primary pt-4 flex flex-col h-full justify-between ">
+  class=" flex flex-col h-full justify-between mt-4 ">
 
-  <div class="m-4 flex flex-col ">
+  <div class=" flex flex-col bg-primary ">
     <button
       on:click={() => (isSessionProfileOpen = !isSessionProfileOpen)}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer bg-secondary w-full ">
+      cursor-pointer w-full ">
       <div>Session Profiles</div>
       {isSessionProfileOpen ? '▼' : '▲'}
     </button>
 
     {#if isSessionProfileOpen}
-      <div class="bg-secondary flex flex-col p-3 overflow-hidden h-full">
+      <div class=" flex flex-col p-3 overflow-hidden h-full">
         <div class="flex flex-col overflow-y-auto gap-4 ">
-          {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
+          {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement}
             <button
               class="flex justify-between gap-1 items-center text-left
-              bg-primary-700 hover:bg-primary-600 p-2 cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
-              <div class="flex justify-between flex-wrap w-2/5 ">
+              bg-secondary hover:bg-primary-600 p-2 cursor-pointer {active == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
+              <div class="flex justify-between flex-wrap ">
 
                 <!--                 <div
                   use:clickOutside={{ useCapture: true }}
@@ -591,7 +664,7 @@
         <button
           on:click={() => prepareSave('sessionProfile')}
           disabled={selectedProfile == undefined}
-          class="relative bg-commit block {selectedProfile != {} ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
+          class="relative bg-commit block {selectedProfile != undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
           w-full text-white mt-3 mb-1 py-2 px-2 rounded
           border-commit-saturate-10 hover:border-commit-desaturate-10
           focus:outline-none">
@@ -604,114 +677,153 @@
 
   </div>
 
-  <div class=" flex flex-col m-4 h-full overflow-hidden ">
+  <div class=" flex flex-col h-full overflow-hidden bg-primary">
+
     <button
       on:click={() => {
         isProfileCloudOpen = !isProfileCloudOpen
       }}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer bg-secondary w-full">
+      cursor-pointer w-full">
       <div>Profile Cloud</div>
       {isProfileCloudOpen ? '▼' : '▲'}
     </button>
-
     {#if isProfileCloudOpen}
-      <div class="bg-secondary p-3 gap-6 flex flex-col h-full overflow-auto">
+      <div class="flex flex-col gap-2 p-3">
+        <div class="relative">
+          <svg
+            class="absolute left-3 bottom-1"
+            width="15"
+            height="15"
+            viewBox="0 0 18 18"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
+              6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
+              0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
+              3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
+              0.00400665 7.03862C-0.0656329 8.8802 0.562637 10.6802 1.76312
+              12.0784C2.96361 13.4767 4.64778 14.3701 6.47869 14.5799C8.3096
+              14.7897 10.1522 14.3005 11.6379 13.2101H11.6368C11.6705 13.2551
+              11.7065 13.2979 11.747 13.3395L16.0783 17.6707C16.2892 17.8818
+              16.5754 18.0005 16.8738 18.0006C17.1723 18.0007 17.4585 17.8822
+              17.6696 17.6713C17.8807 17.4603 17.9994 17.1742 17.9995
+              16.8758C17.9996 16.5773 17.8811 16.2911 17.6702 16.08L13.3389
+              11.7487C13.2987 11.708 13.2554 11.6704 13.2095
+              11.6362V11.6374ZM13.4998 7.31286C13.4998 8.12541 13.3397 8.93001
+              13.0288 9.68071C12.7178 10.4314 12.2621 11.1135 11.6875
+              11.6881C11.113 12.2626 10.4308 12.7184 9.68014 13.0294C8.92944
+              13.3403 8.12484 13.5004 7.31229 13.5004C6.49974 13.5004 5.69514
+              13.3403 4.94444 13.0294C4.19373 12.7184 3.51163 12.2626 2.93707
+              11.6881C2.3625 11.1135 1.90674 10.4314 1.59578 9.68071C1.28483
+              8.93001 1.12479 8.12541 1.12479 7.31286C1.12479 5.67183 1.77669
+              4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
+              1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
+              4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
+              fill="#CDCDCD" />
+          </svg>
+          {#if searchbarValue != ''}
+            <button
+              class="absolute right-3 bottom-3"
+              on:click={() => updateSearchFilter((searchbarValue = ''))}>
+              <svg
+                width="30"
+                height="30"
+                viewBox="0 0 39 39"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
+                  stroke="#FFF"
+                  stroke-width="2"
+                  stroke-linecap="round" />
+              </svg>
+            </button>
+          {/if}
 
-        <div class="flex flex-col gap-2">
-          <div class="relative">
+          <input
+            type="text"
+            bind:value={searchbarValue}
+            on:keyup={() => updateSearchFilter(searchbarValue)}
+            on:input={() => updateSearchFilter(searchbarValue)}
+            on:change={() => updateSearchFilter(searchbarValue)}
+            class="w-full py-3 px-12 bg-primary-700 text-white
+            placeholder-gray-400 text-md"
+            placeholder="Find Profile..." />
+        </div>
+
+        <div class="flex flex-row gap-2 p-3">
+
+          <button
+            on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
+            class="border border-primary-300 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min">
+            bu16
+          </button>
+          <button
+            on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
+            class="border border-primary-300 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min">
+            obs
+          </button>
+          <button
+            on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
+            class="border border-primary-300 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min">
+            EN16
+          </button>
+
+        </div>
+      </div>
+
+      <div class="flex justify-end p-3">
+        <div class="flex gap-2">
+          <button on:click={() => toggleSortingOrder()}>
             <svg
-              class="absolute left-3 bottom-1"
-              width="15"
-              height="15"
-              viewBox="0 0 18 18"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
               fill="none"
               xmlns="http://www.w3.org/2000/svg">
               <path
-                d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
-                6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
-                0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
-                3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462
-                5.19704 0.00400665 7.03862C-0.0656329 8.8802 0.562637 10.6802
-                1.76312 12.0784C2.96361 13.4767 4.64778 14.3701 6.47869
-                14.5799C8.3096 14.7897 10.1522 14.3005 11.6379
-                13.2101H11.6368C11.6705 13.2551 11.7065 13.2979 11.747
-                13.3395L16.0783 17.6707C16.2892 17.8818 16.5754 18.0005 16.8738
-                18.0006C17.1723 18.0007 17.4585 17.8822 17.6696 17.6713C17.8807
-                17.4603 17.9994 17.1742 17.9995 16.8758C17.9996 16.5773 17.8811
-                16.2911 17.6702 16.08L13.3389 11.7487C13.2987 11.708 13.2554
-                11.6704 13.2095 11.6362V11.6374ZM13.4998 7.31286C13.4998 8.12541
-                13.3397 8.93001 13.0288 9.68071C12.7178 10.4314 12.2621 11.1135
-                11.6875 11.6881C11.113 12.2626 10.4308 12.7184 9.68014
-                13.0294C8.92944 13.3403 8.12484 13.5004 7.31229 13.5004C6.49974
-                13.5004 5.69514 13.3403 4.94444 13.0294C4.19373 12.7184 3.51163
-                12.2626 2.93707 11.6881C2.3625 11.1135 1.90674 10.4314 1.59578
-                9.68071C1.28483 8.93001 1.12479 8.12541 1.12479 7.31286C1.12479
-                5.67183 1.77669 4.09802 2.93707 2.93763C4.09745 1.77725 5.67126
-                1.12536 7.31229 1.12536C8.95332 1.12536 10.5271 1.77725 11.6875
-                2.93763C12.8479 4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
-                fill="#CDCDCD" />
+                d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
             </svg>
-            {#if searchbarValue != ''}
-              <button
-                class="absolute right-3 bottom-3"
-                on:click={() => updateSearchFilter((searchbarValue = ''))}>
-                <svg
-                  width="30"
-                  height="30"
-                  viewBox="0 0 39 39"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
-                    stroke="#FFF"
-                    stroke-width="2"
-                    stroke-linecap="round" />
-                </svg>
-              </button>
-            {/if}
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round" />
+            </svg>
+          </button>
 
-            <input
-              type="text"
-              bind:value={searchbarValue}
-              on:keyup={() => updateSearchFilter(searchbarValue)}
-              on:input={() => updateSearchFilter(searchbarValue)}
-              on:change={() => updateSearchFilter(searchbarValue)}
-              class="w-full py-3 px-12 bg-primary-700 text-white
-              placeholder-gray-400 text-md"
-              placeholder="Find Profile..." />
-          </div>
-
-          <div class="flex flex-row gap-2 ">
-
-            <button
-              on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
-              class="border border-primary-300 text-sm text-primary-100
-              rounded-md py-1 px-2 h-min">
-              bu16
-            </button>
-            <button
-              on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
-              class="border border-primary-300 text-sm text-primary-100
-              rounded-md py-1 px-2 h-min">
-              obs
-            </button>
-            <button
-              on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
-              class="border border-primary-300 text-sm text-primary-100
-              rounded-md py-1 px-2 h-min">
-              EN16
-            </button>
-
-          </div>
+          <select on:change={(e) => sortProfileCloud(e)} name="sort">
+            <option selected value="name">name</option>
+            <option value="date">date</option>
+          </select>
         </div>
+      </div>
 
-        <div class="flex flex-col overflow-y-auto gap-4 ">
-          {#each PROFILES.sort(compare).filter((element) => element.folder != 'sessionProfile') as profileCloudElement, i}
-            {#if profileCloudElement.isInFilteredResult != false}
+      <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
+
+        <div class="flex flex-col ">
+
+          <div class="overflow-auto flex flex-col gap-4">
+            {#each filteredProfileCloud.filter((element) => element.folder != 'sessionProfile') as profileCloudElement}
               <button
-                class="w-full bg-primary-700 hover:bg-primary-600 p-2
-                cursor-pointer {active == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
+                class="w-full bg-secondary hover:bg-primary-600 p-2
+                cursor-pointer {active == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
@@ -883,9 +995,10 @@
 
                 </div>
               </button>
-            {/if}
-          {/each}
+            {/each}
+          </div>
 
+          <div>No result</div>
         </div>
 
       </div>

@@ -12,6 +12,7 @@
     runtime,
     user_input,
   } from '/runtime/runtime.store.js'
+  import { profileChangeCallbackStore } from '../panels/newProfile/profile-change.store'
 
   let editor
   let modalWidth
@@ -51,7 +52,11 @@
       element.folder,
     )
 
-    loadFromDirectory()
+    profileChangeCallbackStore.set({
+      action: 'delete',
+      profile: selectedProfile,
+    })
+
     selectedProfile = undefined
   }
 </script>

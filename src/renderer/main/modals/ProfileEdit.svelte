@@ -6,6 +6,7 @@
   import { onMount } from 'svelte'
   import { logger } from '/runtime/runtime.store.js'
   import Toggle from '/main/user-interface/Toggle.svelte'
+  import { profileChangeCallbackStore } from '../panels/newProfile/profile-change.store'
 
   let editor
   let modalWidth
@@ -72,7 +73,10 @@
       $selectedProfileStore.name = editProfileData.name
       $selectedProfileStore.description = editProfileData.description
 
-      await loadFromDirectory()
+      profileChangeCallbackStore.set({
+        action: 'update',
+        profile: $selectedProfileStore,
+      })
 
       logger.set({
         type: 'success',
