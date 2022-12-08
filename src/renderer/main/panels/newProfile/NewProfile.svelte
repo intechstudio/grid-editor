@@ -5,6 +5,7 @@
   import { onMount } from 'svelte'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
   import { profileChangeCallbackStore } from './profile-change.store'
+
   import {
     engine,
     logger,
@@ -33,13 +34,13 @@
 
   let searchbarValue = ''
 
-  let sorting = true
   let isSessionProfileOpen = true
   let isProfileCloudOpen = true
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
-  let filteredProfileCloud = PROFILES
+  let profileCloud = []
+  let filteredProfileCloud = []
 
   let justReadInput = true
 
@@ -57,12 +58,21 @@
     justReadInput = false
   }
 
+  filteredProfileCloud = filteredProfileCloud.filter(
+    (element) => element.folder != 'sessionProfile',
+  )
+
   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
       'profiles',
     )
-    filteredProfileCloud = PROFILES
+
+    profileCloud = PROFILES.filter(
+      (element) => element.folder != 'sessionProfile',
+    )
+
+    filteredProfileCloud = profileCloud
   }
 
   appSettings.subscribe((store) => {
@@ -100,7 +110,7 @@
 
   function updateSearchFilter(input) {
     filteredProfileCloud = []
-    PROFILES.forEach((profile) => {
+    profileCloud.forEach((profile) => {
       if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
         filteredProfileCloud = [...filteredProfileCloud, profile]
       } else if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
@@ -123,8 +133,6 @@
     )
 
     if (selectedProfile !== undefined) {
-      /* itt undefined volt! */
-
       const profile = selectedProfile
 
       const rt = get(runtime)
@@ -166,6 +174,8 @@
     }
   }
 
+  let number = 1
+
   function prepareSave(user) {
     window.electron.analytics.influx('profile-library', { value: 'save start' })
     window.electron.analytics.influx(
@@ -186,6 +196,15 @@
       const li = get(user_input)
 
       const configs = get(runtime)
+
+      if (user == 'sessionProfile') {
+        number = number++
+
+        if (selectedProfile.hasOwnProperty('name') == false) {
+          selectedProfile.name = `Default Profile ${number}`
+          selectedProfile.description = ''
+        }
+      }
 
       let profile = {
         ...selectedProfile,
@@ -326,32 +345,35 @@
     }
   }
 
-  function sortProfileCloud(e) {
-    if (e.target.value == 'name') {
-      if (sort == true) {
+  let sortAsc = true
+  let sortField = 'name'
+
+  function sortProfileCloud(field, asc) {
+    if (field == 'name') {
+      if (asc == true) {
         filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending)
       }
-      if (sort == false) {
+      if (asc == false) {
         filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending)
       }
     }
 
-    if (e.target.value == 'date') {
-      filteredProfileCloud = filteredProfileCloud.sort(compareDate)
+    if (field == 'date') {
+      if (asc == true) {
+        filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending)
+      }
+      if (asc == false) {
+        filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending)
+      }
     }
-
-    /*     filteredProfileCloud.sort(compare)
-    console.log('hello') */
   }
 
   function compareNameAscending(a, b) {
     if (a.name < b.name) {
-      console.log('1')
       return -1
     }
 
     if (a.name > b.name) {
-      console.log('2')
       return 1
     }
 
@@ -360,13 +382,11 @@
 
   function compareNameDescending(a, b) {
     if (a.name < b.name) {
-      console.log('1')
-      return -1
+      return 1
     }
 
     if (a.name > b.name) {
-      console.log('2')
-      return 1
+      return -1
     }
 
     return 0
@@ -374,12 +394,10 @@
 
   function compareDateAscending(a, b) {
     if (a.fsModifiedAt < b.fsModifiedAt) {
-      console.log('1')
       return -1
     }
 
     if (a.fsModifiedAt > b.fsModifiedAt) {
-      console.log('2')
       return 1
     }
 
@@ -388,22 +406,14 @@
 
   function compareDateDescending(a, b) {
     if (a.fsModifiedAt < b.fsModifiedAt) {
-      console.log('1')
-      return -1
-    }
-
-    if (a.fsModifiedAt > b.fsModifiedAt) {
-      console.log('2')
       return 1
     }
 
+    if (a.fsModifiedAt > b.fsModifiedAt) {
+      return -1
+    }
+
     return 0
-  }
-
-  function toggleSortingOrder() {
-    sorting = !sorting
-
-    console.log(sorting)
   }
 
   $: console.log(selectedProfile)
@@ -440,7 +450,7 @@
             <button
               class="flex justify-between gap-1 items-center text-left
               bg-secondary hover:bg-primary-600 p-2 cursor-pointer {active == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
-              <div class="flex justify-between flex-wrap ">
+              <div class="flex justify-between flex-wrap">
 
                 <!--                 <div
                   use:clickOutside={{ useCapture: true }}
@@ -658,7 +668,6 @@
 
             </button>
           {/each}
-
         </div>
 
         <button
@@ -669,7 +678,6 @@
           border-commit-saturate-10 hover:border-commit-desaturate-10
           focus:outline-none">
           <div>Add to Session Profile</div>
-
         </button>
 
       </div>
@@ -777,9 +785,41 @@
         </div>
       </div>
 
-      <div class="flex justify-end p-3">
-        <div class="flex gap-2">
-          <button on:click={() => toggleSortingOrder()}>
+      <div class="flex gap-2 jus items-center justify-end p-3">
+
+        <label
+          for="sorting select"
+          class="uppercase text-gray-500 py-1 text-sm">
+          sort by
+        </label>
+
+        <select
+          class="bg-secondary border-none flex-grow text-white p-2 shadow"
+          id="sortingSelectBox"
+          on:change={(e) => {
+            sortField = e.target.value
+            sortProfileCloud(sortField, sortAsc)
+          }}
+          name="sorting select">
+
+          <option
+            selected
+            class="text-white bg-secondary py-1 border-none"
+            value="name">
+            name
+          </option>
+
+          <option class="text-white bg-secondary py-1 border-none" value="date">
+            date
+          </option>
+        </select>
+
+        <button
+          on:click={() => {
+            sortAsc = !sortAsc
+            sortProfileCloud(sortField, sortAsc)
+          }}>
+          {#if sortAsc == false}
             <svg
               width="20"
               height="20"
@@ -793,6 +833,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round" />
             </svg>
+          {:else}
             <svg
               width="20"
               height="20"
@@ -806,13 +847,9 @@
                 stroke-linecap="round"
                 stroke-linejoin="round" />
             </svg>
-          </button>
+          {/if}
 
-          <select on:change={(e) => sortProfileCloud(e)} name="sort">
-            <option selected value="name">name</option>
-            <option value="date">date</option>
-          </select>
-        </div>
+        </button>
       </div>
 
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
@@ -820,7 +857,7 @@
         <div class="flex flex-col ">
 
           <div class="overflow-auto flex flex-col gap-4">
-            {#each filteredProfileCloud.filter((element) => element.folder != 'sessionProfile') as profileCloudElement}
+            {#each filteredProfileCloud as profileCloudElement}
               <button
                 class="w-full bg-secondary hover:bg-primary-600 p-2
                 cursor-pointer {active == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
@@ -996,9 +1033,11 @@
                 </div>
               </button>
             {/each}
+            {#if filteredProfileCloud.length == 0}
+              <div class="text-gray-300">No result</div>
+            {/if}
           </div>
 
-          <div>No result</div>
         </div>
 
       </div>

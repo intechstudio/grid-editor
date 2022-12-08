@@ -188,24 +188,6 @@
         <div>
           <p>{selectedProfile.description}</p>
         </div>
-        <div>
-          <ul class="list-disc list-inside">
-            <li>Lorem ipsum dolor sit amet consectetur.</li>
-            <li>Auctor porttitor dui eget gravida et mi.</li>
-            <li>Nibh sed massa in convallis arcu viverra.</li>
-            <li>Lobortis mauris in dignissim id accumsan quam vitae.</li>
-            <li>
-              Eget nibh augue tellus rutrum sed nisl sed morbi proin. Maecenas
-              nisl purus orci mattis enim nunc. Lectus et bibendum nisi amet
-              eget nec habitasse dignissim nec.
-            </li>
-            <li>
-              Tellus eros cursus ullamcorper aliquam nisi nam id justo. Purus
-              sagittis vitae velit velit. Neque nam convallis venenatis urna
-              iaculis.
-            </li>
-          </ul>
-        </div>
 
       </div>
       <div class="w-2/5 flex flex-col justify-between">
