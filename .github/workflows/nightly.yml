@@ -125,7 +125,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: macos-nightly
+          name: mac-m1-nightly
           path: build/*.*
       
       - name: Download Artifacts
