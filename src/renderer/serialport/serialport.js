@@ -20,13 +20,10 @@ let port_connected = false;
 
 
 navigator.serial.addEventListener('connect', (e) => {
-  // Connect to `e.target` or add it to a list of available ports.
   console.log("Serial Connect", e)
-  //testIt()
 });
 
 navigator.serial.addEventListener('disconnect', (e) => {
-  // Remove `e.target` from the list of available ports.
   console.log("Serial Disconnect", e)
   port_connected = false;
 });

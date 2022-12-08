@@ -22,49 +22,65 @@
     flagBootloaderCheck = 1;
   };
 
-  appSettings.update((s) => {
-    s.firmwareNotificationState = 0;
-    return s;
-  });
+  const stopBootloaderCheck = () => {
+    clearInterval(booloaderConnectionCheck);
+    flagBootloaderCheck = 0;
+  };
 
-  runtime.subscribe((store) => {
-    if (store.length !== 0) {
-      if ($appSettings.firmwareNotificationState !== 5) {
-        appSettings.update((s) => {
-          s.firmwareNotificationState = 0;
-          return s;
-        });
-      }
-    } else {
-      if ($appSettings.firmwareNotificationState === 1) {
-        appSettings.update((s) => {
-          s.firmwareNotificationState = 2;
-          return s;
-        });
-      } else {
-        startBootladerCheck();
+  window.electron.firmware.onFirmwareUpdate((_event, value) => {
+    if (value.code !== undefined) {
+      $appSettings.firmwareNotificationState = value.code;
+
+      // when the firmware update is successful, reset the notification state
+      if (value.code == 5) {
+        setTimeout(() => {
+          $appSettings.firmwareNotificationState = 0;
+        }, 2000);
       }
     }
 
-    let gotMismatch = false;
+    if (value.message !== undefined) {
+      uploadProgressText = value.message;
+    }
+  });
 
+  // check if serial connection is established
+  navigator.serial.addEventListener("connect", (e) => {
+    // only start if not already started!
+    console.log(flagBootloaderCheck, "flagBootloaderCheck");
+    if (flagBootloaderCheck === 0) {
+      startBootladerCheck();
+    }
+  });
+
+  // check if serial disconnect happened
+  navigator.serial.addEventListener("disconnect", (e) => {
+    stopBootloaderCheck();
+    $appSettings.firmwareNotificationState = 0;
+  });
+
+  // check for parsed modules
+  runtime.subscribe((store) => {
+    // when actual module store changes, we can stop the bootloader check
+    stopBootloaderCheck();
+
+    let firmwareMismatchFound = false;
+
+    // check modules for firmware mismatch
     store.forEach((device) => {
       if (device.fwMismatch === true) {
-        gotMismatch = true;
+        firmwareMismatchFound = true;
       }
     });
 
-    if (gotMismatch === true) {
+    // if mismatch is found, show notification
+    if (firmwareMismatchFound === true) {
       appSettings.update((s) => {
         s.firmwareNotificationState = 1;
         return s;
       });
 
-      // only start interval if it is not already started.
-      if (flagBootloaderCheck == 0) {
-        startBootladerCheck();
-      }
-
+      // only if mismatch is not already detected
       if (fwMismatch === false) {
         window.electron.analytics.google("firmware-download", {
           value: "mismatch detected",
@@ -96,30 +112,11 @@
 
   async function find_bootloader_path() {
     bootloader_path = await window.electron.firmware.findBootloaderPath();
-
     if (bootloader_path !== undefined) {
       clearInterval(booloaderConnectionCheck);
       flagBootloaderCheck = 0;
     }
   }
-
-  window.electron.firmware.onFirmwareUpdate((_event, value) => {
-    console.log("fw update event from main...", value);
-
-    if (value.code !== undefined) {
-      $appSettings.firmwareNotificationState = value.code;
-
-      if (value.code == 5) {
-        setTimeout(() => {
-          $appSettings.firmwareNotificationState = 0;
-        }, 2000);
-      }
-    }
-
-    if (value.message !== undefined) {
-      uploadProgressText = value.message;
-    }
-  });
 
   async function firmwareDownload() {
     const folder = $appSettings.persistant.profileFolder;
@@ -182,7 +179,10 @@
     class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
   >
     <div class="flex-col">
-      <div class="mx-2"><b>{uploadProgressText} </b> {bootloader_path}</div>
+      <div class="mx-2">
+        <b>{uploadProgressText}</b>
+        {bootloader_path}
+      </div>
       <div class="mx-2">
         Click Update to start the automatic update process!
       </div>
@@ -202,7 +202,9 @@
     class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
   >
     <div class="flex-col">
-      <div class="mx-2"><b>Update is in progress... </b></div>
+      <div class="mx-2">
+        <b>Update is in progress... </b>
+      </div>
       <div class="mx-2">{uploadProgressText}</div>
     </div>
   </div>
