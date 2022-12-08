@@ -1,13 +1,36 @@
 import {keyboard, Key} from "@nut-tree/nut-js";
+import { shell } from "electron";
 import WebSocket from 'ws';
 
-keyboard.config = { autoDelayMs: 10 }
+keyboard.config = { autoDelayMs: 30 }
 
 let webSocketClient: WebSocket | undefined = undefined;
 let webSocketUrl = 'ws://localhost:1337'
 let connectionCheckInterval = 2000;
 let receivedMessages: any = [];
 let wsClientStatus: string | undefined = undefined;
+
+let websocketInterval: NodeJS.Timeout | undefined = undefined;
+
+export async function desktopAutomationPluginStart(){
+
+  if(websocketInterval){
+    clearInterval(websocketInterval);
+  }
+
+  websocketInterval = setInterval(()=>{
+    connectToWebSocket();
+  }, connectionCheckInterval)
+
+}
+
+export async function desktopAutomationPluginStop(){
+  if(websocketInterval){
+    clearInterval(websocketInterval);
+  }
+
+  webSocketClient?.close();
+}
 
 function connectToWebSocket(){
   if(webSocketClient){
@@ -37,14 +60,15 @@ function connectToWebSocket(){
     receivedMessages.push(event.data);
 
     const EDITOR_PACKET = JSON.parse(event.data);
-    
+
+    console.log('DATA here', EDITOR_PACKET.data)
+
     switch (EDITOR_PACKET["event"]) {
       case "message":
         if(EDITOR_PACKET.data != undefined){
           const decodedMessage = JSON.parse(EDITOR_PACKET.data);
-          console.log(decodedMessage, decodedMessage.plugin)
-          if(decodedMessage.plugin == 'nut'){
-            typeKey(decodedMessage.key);
+          if(decodedMessage.plugin == 'desktopAutomation'){
+            dataHandler(decodedMessage.data);
           }
         }
         break;
@@ -59,17 +83,37 @@ function connectToWebSocket(){
 }
 
 
+async function dataHandler(data){
 
-export async function nutPlugin(){
+  for (const instruction of data) {
+    if(instruction.hasOwnProperty('key') == true){
+      await typeKey(instruction.key);
+    }
 
-  setInterval(()=>{
-    connectToWebSocket();
-  }, connectionCheckInterval)
+    if(instruction.hasOwnProperty('text') == true){
+      await typeText(instruction.text);
+    }
+
+    if(instruction.hasOwnProperty('url') == true){
+      await openUrl(instruction.url);
+    }
+  }
 
 }
 
+// example: websocket_send('{"plugin": "desktopAutomation", "data": [{"url": "https://google.com"}] }')
 
 async function typeKey(key: Key){ 
-  console.log('typekey', key)
   await keyboard.type(Key[key]);
+  return key;
+}
+
+async function typeText(text: string){
+  await keyboard.type(text);
+  return text;
+}
+
+async function openUrl(url: string){
+  await shell.openExternal(url);
+  return url;
 }

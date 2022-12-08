@@ -18,49 +18,31 @@ function startWebsocketServer(port){
   wss.on("error", error => console.log("The server encountered an error!", error)); 
 
   wss.on('connection', function (ws) {
-
     ws.isAlive = true;
-
     console.info('WS Client connected!')
-
-    //connection = ws;
-
     ws.on('message', function message(data) {
-
       websocket.mainWindow.webContents.send('onWebsocketReceive', data);
-
       const decoded = JSON.parse(data)
-
-      console.log(decoded);
-
       if (decoded.event === "grid_pong"){
-        //console.log("WS PONG")
         ws.isAlive = true;
       }
-
     });
 
     ws.on('close', function(){
       console.warn('WS Client disconnected!')
-    
     })
 
   });
 
-
   wss.on('close', function close(){
-    console.log("CLEAR INTERVAL")
     clearInterval(interval);
   })
 
-  console.log("SET INTERVAL")
   interval = setInterval(function ping() {
 
     const data = JSON.stringify({"event":"grid_ping"})
     websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
   
-    //console.log("PING")
-
     wss.clients.forEach(function each(ws) {
       if (ws.isAlive === false) return ws.terminate();
   
@@ -87,8 +69,6 @@ ipcMain.handle('websocketTransmit', async (event, arg) => {
 })
 
 ipcMain.handle('websocketChangePort', async (event, arg) => {
-
-  console.log("NEW PORT", arg)
 
   if (wss !== undefined){
     wss.clients.forEach(function each(ws) {

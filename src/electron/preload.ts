@@ -101,5 +101,9 @@ contextBridge.exposeInMainWorld('electron', {
     onTransmit: (callback) => ipcRenderer.on('onWebsocketTransmit', callback),
     transmit: (message) => ipcRenderer.invoke('websocketTransmit', { message }),
     changePort: (port) => ipcRenderer.invoke('websocketChangePort', { port }),
+  },
+  plugin: {
+    start: (name) => ipcRenderer.invoke('startPlugin', { name }),
+    stop: (name) => ipcRenderer.invoke('stopPlugin', { name }),
   }
 })

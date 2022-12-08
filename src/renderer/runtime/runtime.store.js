@@ -1211,7 +1211,6 @@ function createLocalDefinitions(){
 export const localDefinitions = createLocalDefinitions();
 
 export async function wss_send_message(message){
-  const toSend = Array.from(message).toString('base64')
   window.electron.websocket.transmit({event:'message', data: message})
 }
 
