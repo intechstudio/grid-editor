@@ -14,6 +14,7 @@
   } from '../../../runtime/runtime.store.js'
 
   let selectedProfile = undefined
+  let selectedSessionProfile = undefined
   let active = {}
 
   /*   let editProfileData = {
@@ -40,6 +41,7 @@
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
   let profileCloud = []
+  let sessionProfile = []
   let filteredProfileCloud = []
 
   let justReadInput = true
@@ -58,10 +60,6 @@
     justReadInput = false
   }
 
-  filteredProfileCloud = filteredProfileCloud.filter(
-    (element) => element.folder != 'sessionProfile',
-  )
-
   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
@@ -72,7 +70,13 @@
       (element) => element.folder != 'sessionProfile',
     )
 
+    sessionProfile = PROFILES.filter(
+      (element) => element.folder == 'sessionProfile',
+    )
+
     filteredProfileCloud = profileCloud
+
+    sortProfileCloud(sortField, sortAsc)
   }
 
   appSettings.subscribe((store) => {
@@ -85,7 +89,7 @@
 
   async function moveOld() {
     await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles')
-    loadFromDirectory()
+    await loadFromDirectory()
   }
 
   function selectProfile(profile) {
@@ -93,6 +97,8 @@
     selectedProfile = profile
     selectedProfileStore.set(selectedProfile)
   }
+
+  let selectedModule
 
   user_input.subscribe((ui) => {
     const rt = get(runtime)
@@ -105,7 +111,9 @@
       return
     }
 
-    selectedProfile.type = device.id.substr(0, 4)
+    selectedModule = device.id.substr(0, 4)
+
+    //selectedProfile.type = device.id.substr(0, 4)
   })
 
   function updateSearchFilter(input) {
@@ -174,7 +182,7 @@
     }
   }
 
-  let number = 1
+  let number = 0
 
   function prepareSave(user) {
     window.electron.analytics.influx('profile-library', { value: 'save start' })
@@ -196,18 +204,30 @@
       const li = get(user_input)
 
       const configs = get(runtime)
+      number++
+
+      let name = selectedProfile.name
+
+      let description = selectedProfile.description
+
+      let type = selectedProfile.type
 
       if (user == 'sessionProfile') {
-        number = number++
-
         if (selectedProfile.hasOwnProperty('name') == false) {
-          selectedProfile.name = `Default Profile ${number}`
-          selectedProfile.description = ''
+          name = `Default Profile ${number}`
+          description = ''
+          type = selectedModule
         }
       }
 
+      if (selectedProfile.folder == 'sessionProfile') {
+        name = `Default Profile ${number}`
+      }
+
       let profile = {
-        ...selectedProfile,
+        name: name,
+        description: description,
+        type: type,
         isGridProfile: true, // differentiator from different JSON files!
         version: {
           major: $appSettings.version.major,
@@ -234,7 +254,7 @@
         }
       })
 
-      saveToDirectory(PROFILE_PATH, selectedProfile.name, profile, user)
+      saveToDirectory(PROFILE_PATH, name, profile, user)
 
       engine.set('ENABLED')
     }
@@ -349,9 +369,14 @@
   let sortField = 'name'
 
   function sortProfileCloud(field, asc) {
+    filteredProfileCloud = profileCloud
+
+    filteredProfileCloud = profileCloud
     if (field == 'name') {
       if (asc == true) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending)
+        filteredProfileCloud = [
+          ...filteredProfileCloud.sort(compareNameAscending),
+        ]
       }
       if (asc == false) {
         filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending)
@@ -416,7 +441,8 @@
     return 0
   }
 
-  $: console.log(selectedProfile)
+  $: console.log(selectedProfile, 'selectProfile')
+  $: console.log(selectedModule, 'selectedModule')
 
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
@@ -445,11 +471,21 @@
 
     {#if isSessionProfileOpen}
       <div class=" flex flex-col p-3 overflow-hidden h-full">
-        <div class="flex flex-col overflow-y-auto gap-4 ">
-          {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement}
+        <button
+          on:click={() => prepareSave('sessionProfile')}
+          disabled={selectedProfile == undefined}
+          class="relative bg-commit block {selectedProfile != undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
+          w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
+          hover:border-commit-desaturate-10 focus:outline-none">
+          <div>Add to Session Profile</div>
+        </button>
+        <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
+
+          {#each sessionProfile as sessionProfileElement}
             <button
-              class="flex justify-between gap-1 items-center text-left
-              bg-secondary hover:bg-primary-600 p-2 cursor-pointer {active == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
+              class=" cursor-default flex justify-between gap-1 items-center
+              text-left bg-secondary p-2 {sessionProfileElement.type == selectedModule ? 'border border-opacity-0 border-green-300 bg-primary-600 hover:bg-primary-600' : 'border border-black border-opacity-0 bg-secondary opacity-30 '}
+              ">
               <div class="flex justify-between flex-wrap">
 
                 <!--                 <div
@@ -486,7 +522,7 @@
                     class="text-zinc-100 min-w-[15px] h-fit break-words
                     bg-transparent overflow-hidden w-full " />
 
-                  <span class="text-zinc-100 ">
+                  <span class="text-zinc-100 w-min">
                     {sessionProfileElement.type}
                   </span>
                 </div>
@@ -669,16 +705,6 @@
             </button>
           {/each}
         </div>
-
-        <button
-          on:click={() => prepareSave('sessionProfile')}
-          disabled={selectedProfile == undefined}
-          class="relative bg-commit block {selectedProfile != undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
-          w-full text-white mt-3 mb-1 py-2 px-2 rounded
-          border-commit-saturate-10 hover:border-commit-desaturate-10
-          focus:outline-none">
-          <div>Add to Session Profile</div>
-        </button>
 
       </div>
     {/if}
