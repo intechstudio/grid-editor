@@ -27,23 +27,6 @@
     flagBootloaderCheck = 0;
   };
 
-  window.electron.firmware.onFirmwareUpdate((_event, value) => {
-    if (value.code !== undefined) {
-      $appSettings.firmwareNotificationState = value.code;
-
-      // when the firmware update is successful, reset the notification state
-      if (value.code == 5) {
-        setTimeout(() => {
-          $appSettings.firmwareNotificationState = 0;
-        }, 2000);
-      }
-    }
-
-    if (value.message !== undefined) {
-      uploadProgressText = value.message;
-    }
-  });
-
   // check if serial connection is established
   navigator.serial.addEventListener("connect", (e) => {
     // only start if not already started!
@@ -99,8 +82,23 @@
   });
 
   let text = "";
-
   let uploadProgressText = "";
+  window.electron.firmware.onFirmwareUpdate((_event, value) => {
+    if (value.code !== undefined) {
+      $appSettings.firmwareNotificationState = value.code;
+
+      // when the firmware update is successful, reset the notification state
+      if (value.code == 5) {
+        setTimeout(() => {
+          $appSettings.firmwareNotificationState = 0;
+        }, 2000);
+      }
+    }
+
+    if (value.message !== undefined) {
+      uploadProgressText = value.message;
+    }
+  });
 
   onMount(() => {
     if (ctxProcess.platform == "darwin") {
@@ -113,8 +111,7 @@
   async function find_bootloader_path() {
     bootloader_path = await window.electron.firmware.findBootloaderPath();
     if (bootloader_path !== undefined) {
-      clearInterval(booloaderConnectionCheck);
-      flagBootloaderCheck = 0;
+      stopBootloaderCheck();
     }
   }
 

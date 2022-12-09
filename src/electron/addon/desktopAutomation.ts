@@ -66,7 +66,10 @@ function connectToWebSocket(){
     switch (EDITOR_PACKET["event"]) {
       case "message":
         if(EDITOR_PACKET.data != undefined){
+          // this is a correction hack for file paths!
+          EDITOR_PACKET.data = EDITOR_PACKET.data.replace(/\\/g, '\\\\');
           const decodedMessage = JSON.parse(EDITOR_PACKET.data);
+          console.log('here it fails');
           if(decodedMessage.plugin == 'desktopAutomation'){
             dataHandler(decodedMessage.data);
           }
@@ -97,11 +100,16 @@ async function dataHandler(data){
     if(instruction.hasOwnProperty('url') == true){
       await openUrl(instruction.url);
     }
+
+    if(instruction.hasOwnProperty('path') == true){
+      await openPath(instruction.path);
+    }
   }
 
 }
 
 // example: websocket_send('{"plugin": "desktopAutomation", "data": [{"url": "https://google.com"}] }')
+// websocket_send('{"plugin": "desktopAutomation", "data": [{"path": "D:\\Content\\examples"}] }')
 
 async function typeKey(key: Key){ 
   await keyboard.type(Key[key]);
@@ -116,4 +124,10 @@ async function typeText(text: string){
 async function openUrl(url: string){
   await shell.openExternal(url);
   return url;
+}
+
+async function openPath(path: string){
+  console.log(path)
+  await shell.openPath(path);
+  return path;
 }
