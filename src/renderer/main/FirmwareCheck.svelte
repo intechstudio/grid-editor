@@ -101,7 +101,7 @@
   });
 
   onMount(() => {
-    if (ctxProcess.platform == "darwin") {
+    if (ctxProcess.platform()== "darwin") {
       text = "Command + Shift + R";
     } else {
       text = "Ctrl + Shift + R";

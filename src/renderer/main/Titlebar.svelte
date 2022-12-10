@@ -32,11 +32,10 @@
 
   onMount(async ()=> {
 
-    if(platform != 'darwin'){
+    if(platform() != 'darwin'){
       init();
     }
     
-
     browserWindow.isMaximized() ? isMaximized = true : false;
 
   });
@@ -50,7 +49,7 @@
 <top-bar style="background-color:rgb(25, 26, 32)" class="text-white static top-0 w-full p-1">
    
   <!-- Editor logo text svg -->
-  {#if platform != 'darwin'}
+  {#if platform() != 'darwin'}
   <div class="draggable flex justify-between">
     <div class="flex items-center pl-2">
       <svg class="w-12 fill-current text-gray-500" viewBox="0 0 58 14" fill="none" xmlns="http://www.w3.org/2000/svg">
