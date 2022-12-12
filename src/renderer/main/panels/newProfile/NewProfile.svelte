@@ -15,7 +15,6 @@
 
   let selectedProfile = undefined
   let selectedSessionProfile = undefined
-  let active = {}
 
   /*   let editProfileData = {
     name: $selectedProfileStore.name,
@@ -93,7 +92,6 @@
   }
 
   function selectProfile(profile) {
-    active = profile
     selectedProfile = profile
     selectedProfileStore.set(selectedProfile)
   }
@@ -131,7 +129,7 @@
     })
   }
 
-  function loadProfile() {
+  /*   function loadProfile() {
     window.electron.analytics.google('profile-library', { value: 'load start' })
     window.electron.analytics.influx(
       'application',
@@ -180,7 +178,7 @@
         })
       }
     }
-  }
+  } */
 
   let number = 0
 
@@ -213,15 +211,15 @@
       let type = selectedProfile.type
 
       if (user == 'sessionProfile') {
-        if (selectedProfile.hasOwnProperty('name') == false) {
-          name = `Default Profile ${number}`
-          description = ''
-          type = selectedModule
-        }
+        name = `Session Profile ${number}`
+        description = ''
+        type = selectedModule
+        console.log('lol')
       }
 
       if (selectedProfile.folder == 'sessionProfile') {
-        name = `Default Profile ${number}`
+        name = `Session Profile ${number}`
+        console.log('lol2')
       }
 
       let profile = {
@@ -317,8 +315,11 @@
   } */
 
   async function updateSessionProfileTitle(profileData, oldName) {
-    checkIfProfileTitleUnique(profileData.name.trim())
-    checkIfTitleFieldEmpty(profileData.name.trim())
+    await checkIfProfileTitleUnique(profileData.name.trim())
+    await checkIfTitleFieldEmpty(profileData.name.trim())
+
+    console.log(isTitleDirty, isTitleUnique)
+    console.log(profileData.name.trim(), oldName)
 
     if (isTitleDirty != false && isTitleUnique != false) {
       await window.electron.configs.updateConfig(
@@ -343,11 +344,11 @@
 
     PROFILES.forEach((profile) => {
       if (profile.name.trim() == input.trim()) {
+        console.log('')
         isTitleUnique = true
       }
-
       if (
-        profile.name.trim() != input.trim() &&
+        profile.name.trim() != $selectedProfileStore.name.trim() &&
         profile.name.trim() == input.trim()
       ) {
         isTitleUnique = false
@@ -483,8 +484,10 @@
 
           {#each sessionProfile as sessionProfileElement}
             <button
-              class=" cursor-default flex justify-between gap-1 items-center
-              text-left bg-secondary p-2 {sessionProfileElement.type == selectedModule ? 'border border-opacity-0 border-green-300 bg-primary-600 hover:bg-primary-600' : 'border border-black border-opacity-0 bg-secondary opacity-30 '}
+              on:click={() => selectProfile(sessionProfileElement)}
+              class=" cursor-pointer flex justify-between gap-1 items-center
+              text-left bg-secondary p-2 {sessionProfileElement.type != selectedModule ? 'border border-black border-opacity-0 bg-secondary opacity-30' : 0}
+              {sessionProfileElement == selectedProfile ? 'border border-green-300' : 'border border-black border-opacity-0'}
               ">
               <div class="flex justify-between flex-wrap">
 
@@ -506,23 +509,25 @@
                 </div> -->
 
                 <div on:dblclick={() => handleDblClick()}>
-                  <textarea
+                  <input
                     type="text"
                     disabled={justReadInput == true}
-                    bind:value={sessionProfileElement.name}
+                    value={sessionProfileElement.name}
                     use:clickOutside={{ useCapture: true }}
+                    on:click={(e) => {
+                      selectProfile(sessionProfileElement)
+                    }}
                     on:blur={(e) => {
                       justReadInput = true
-                      let oldName = selectedProfile.name
+                      let oldName = sessionProfileElement.name
+                      sessionProfileElement.name = e.target.value
+                      console.log('oldname', oldName, 'sessionProfileElement', sessionProfileElement)
                       updateSessionProfileTitle(sessionProfileElement, oldName)
-                    }}
-                    on:click={() => {
-                      selectProfile(sessionProfileElement)
                     }}
                     class="text-zinc-100 min-w-[15px] h-fit break-words
                     bg-transparent overflow-hidden w-full " />
 
-                  <span class="text-zinc-100 w-min">
+                  <span class="text-zinc-100 text-sm w-min">
                     {sessionProfileElement.type}
                   </span>
                 </div>
@@ -665,38 +670,6 @@
                           transform="translate(0.769287)" />
                       </clipPath>
                     </defs>
-                  </svg>
-                </button>
-
-                <button
-                  on:click|preventDefault={() => {
-                    selectProfile(sessionProfileElement)
-                  }}
-                  on:click|preventDefault={loadProfile}
-                  class="p-1 hover:bg-primary-500 rounded">
-
-                  <svg
-                    width="12"
-                    height="14"
-                    viewBox="0 0 16 18"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path
-                      d="M2.15391 18.0002C1.9168 18.0003 1.68389 17.9376 1.47891
-                      17.8184C1.26344 17.7002 1.08381 17.5261 0.958938
-                      17.3144C0.834061 17.1027 0.768549 16.8613 0.769293
-                      16.6155V1.38478C0.768549 1.13901 0.834061 0.897579
-                      0.958938 0.685898C1.08381 0.474217 1.26344 0.300108
-                      1.47891 0.181891C1.69124 0.0581744 1.93348 -0.00483371
-                      2.17918 -0.000255414C2.42488 0.00432288 2.6646 0.0763115
-                      2.87218 0.207852L15.3337 7.81458C15.538 7.9378 15.7069
-                      8.1117 15.8242 8.31942C15.9415 8.52713 16.0031 8.76162
-                      16.0031 9.00016C16.0031 9.2387 15.9415 9.47319 15.8242
-                      9.68091C15.7069 9.88862 15.538 10.0625 15.3337
-                      10.1857L2.87218 17.7925C2.65748 17.9288 2.40825 18.0009
-                      2.15391 18.0002ZM2.15391 1.38478V16.6155L14.6154
-                      9.00016L2.15391 1.38478Z"
-                      fill="#F1F1F1" />
                   </svg>
                 </button>
 
@@ -885,8 +858,11 @@
           <div class="overflow-auto flex flex-col gap-4">
             {#each filteredProfileCloud as profileCloudElement}
               <button
+                on:click={() => {
+                  selectProfile(profileCloudElement)
+                }}
                 class="w-full bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {active == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
+                cursor-pointer {selectedProfile == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
@@ -900,7 +876,7 @@
                     <div class="flex gap-3 flex-wrap">
                       <span
                         class="text-zinc-100 text-sm px-3 bg-violet-600
-                        rounded-xl">
+                        rounded-xl {selectedModule == profileCloudElement.type ? 'bg-violet-600' : 'bg-gray-600 '}">
                         {profileCloudElement.type}
                       </span>
                     </div>
@@ -1015,40 +991,6 @@
                                 transform="translate(0.272461)" />
                             </clipPath>
                           </defs>
-                        </svg>
-
-                      </button>
-
-                      <button
-                        on:click|preventDefault={() => {
-                          selectProfile(profileCloudElement)
-                        }}
-                        on:click={loadProfile}
-                        class="p-1 hover:bg-primary-500 rounded">
-
-                        <svg
-                          width="12"
-                          height="14"
-                          viewBox="0 0 16 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <path
-                            d="M2.15391 18.0002C1.9168 18.0003 1.68389 17.9376
-                            1.47891 17.8184C1.26344 17.7002 1.08381 17.5261
-                            0.958938 17.3144C0.834061 17.1027 0.768549 16.8613
-                            0.769293 16.6155V1.38478C0.768549 1.13901 0.834061
-                            0.897579 0.958938 0.685898C1.08381 0.474217 1.26344
-                            0.300108 1.47891 0.181891C1.69124 0.0581744 1.93348
-                            -0.00483371 2.17918 -0.000255414C2.42488 0.00432288
-                            2.6646 0.0763115 2.87218 0.207852L15.3337
-                            7.81458C15.538 7.9378 15.7069 8.1117 15.8242
-                            8.31942C15.9415 8.52713 16.0031 8.76162 16.0031
-                            9.00016C16.0031 9.2387 15.9415 9.47319 15.8242
-                            9.68091C15.7069 9.88862 15.538 10.0625 15.3337
-                            10.1857L2.87218 17.7925C2.65748 17.9288 2.40825
-                            18.0009 2.15391 18.0002ZM2.15391
-                            1.38478V16.6155L14.6154 9.00016L2.15391 1.38478Z"
-                            fill="#F1F1F1" />
                         </svg>
 
                       </button>

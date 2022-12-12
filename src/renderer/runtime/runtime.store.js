@@ -3,6 +3,8 @@ import { writable, get, derived } from 'svelte/store'
 import grid from '../protocol/grid-protocol'
 import instructions from '../serialport/instructions'
 import { writeBuffer, sendHeartbeat } from './engine.store'
+import { selectedProfileStore } from './profile-helper.store'
+
 import _utils from './_utils'
 
 import { appSettings } from './app-helper.store'
@@ -357,6 +359,9 @@ function create_user_input() {
       } else {
         return
       }
+
+      //reset of profile selecting
+      selectedProfileStore.set({})
 
       _event.update((store) => {
         const rt = get(runtime)

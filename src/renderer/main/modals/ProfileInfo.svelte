@@ -113,7 +113,6 @@
                   on:click|preventDefault={() => {
                     deleteFromDirectory(selectedProfile)
                     $appSettings.modal = ''
-                    $selectedProfileStore = undefined
                   }}>
                   <svg
                     width="20"
@@ -181,7 +180,7 @@
         </div>
         <div>
           <img
-            class="w-full"
+            class="w-full max-h-48 object-cover"
             src="/assets/imgs/sm_{selectedProfile.type}.jpg"
             alt="{selectedProfile.type}_img" />
         </div>
