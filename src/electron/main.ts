@@ -319,10 +319,11 @@ ipcMain.handle('stopPlugin', async (event, arg) => {
 
 ipcMain.handle('download', async (event, arg) => {
   let result: any = undefined
-  if (arg.package == 'library') {
-    result = await libraryDownload(arg.targetFolder)
+  if (arg.packageToDownload == 'library') {
+    result = await libraryDownload(arg.targetFolder);
+    console.log('library', result);
   }
-  if (arg.package == 'uxpPhotoshop') {
+  if (arg.packageToDownload == 'uxpPhotoshop') {
     result = await uxpPhotoshopDownload(arg.targetFolder)
   }
   return result
