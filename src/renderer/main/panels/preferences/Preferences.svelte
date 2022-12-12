@@ -1,5 +1,6 @@
 <script>
   import { engine } from "../../../runtime/runtime.store.js";
+  import isOnline from "is-online";
   import { writable, get } from "svelte/store";
   import {
     profileListRefresh,
@@ -82,6 +83,11 @@
   }
 
   async function libraryDownload() {
+    if (!(await isOnline())) {
+      download_status = "no internet connection!";
+      return;
+    }
+
     window.electron.analytics.google("library-download", {
       value: "download start",
     });
@@ -125,6 +131,10 @@
   }
 
   async function uxpPhotoshopDownload() {
+    if (!(await isOnline())) {
+      return;
+    }
+
     await window.electron.library.download(
       get(appSettings).persistant.profileFolder,
       "uxpPhotoshop"

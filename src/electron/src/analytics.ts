@@ -86,7 +86,7 @@ export function influxAnalytics(category, action, label, value){
     writeApi.useDefaultTags({nodeenv: node_env!, platform: user_platform})
     writeApi.writePoint(point)
   }catch(e){
-    console.log("Analytics: ", e)
+    console.log("influx analytics error: ", e)
   }
   
 }
