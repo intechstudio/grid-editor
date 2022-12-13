@@ -32,17 +32,17 @@
     liked = !liked
   }
 
-  let PROFILES = []
+  /*   let PROFILES = [] */
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
 
   let selectedProfile = get(selectedProfileStore)
 
-  async function loadFromDirectory() {
+  /*   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
       'profiles',
     )
-  }
+  } */
 
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
@@ -55,6 +55,13 @@
     profileChangeCallbackStore.set({
       action: 'delete',
       profile: selectedProfile,
+    })
+
+    logger.set({
+      type: 'success',
+      mode: 0,
+      classname: 'profiledelete',
+      message: `Profile deleted!`,
     })
 
     selectedProfile = undefined
@@ -96,8 +103,8 @@
       </svg>
     </button>
 
-    <div class="p-6 flex flex-row gap-10 overflow-auto">
-      <div class="w-3/5 flex flex-col gap-4">
+    <div class="p-6 flex flex-row gap-10 overflow-auto w-full">
+      <div class="w-3/5 flex flex-col gap-4 ">
 
         <div>
           <div class="flex justify-between items-center">
@@ -180,7 +187,7 @@
         </div>
         <div>
           <img
-            class="w-full max-h-48 object-cover"
+            class="w-full h-48 object-cover"
             src="/assets/imgs/sm_{selectedProfile.type}.jpg"
             alt="{selectedProfile.type}_img" />
         </div>

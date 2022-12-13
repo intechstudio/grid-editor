@@ -62,7 +62,7 @@
 {#if showOverlay}
   <div
     class="text-white bg-black bg-opacity-25 w-full h-full absolute flex
-    items-center justify-center">
+    items-center justify-center rounded">
 
     <button
       on:click={() => {

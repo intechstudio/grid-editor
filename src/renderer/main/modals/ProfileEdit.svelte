@@ -27,27 +27,30 @@
   let editProfileData = {
     name: $selectedProfileStore.name,
     description: $selectedProfileStore.description,
-    tags: '',
     type: $selectedProfileStore.type,
-    config: $selectedProfileStore.configs,
-    private: false,
-
     isGridProfile: true, // differentiator from different JSON files!
     version: {
       major: $appSettings.version.major,
       minor: $appSettings.version.minor,
       patch: $appSettings.version.patch,
     },
+    config: $selectedProfileStore.configs,
   }
 
   let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
+  let profileCloud = []
+
   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
       'profiles',
+    )
+
+    profileCloud = PROFILES.filter(
+      (element) => element.folder != 'sessionProfile',
     )
   }
 
@@ -92,18 +95,22 @@
   async function checkIfProfileTitleUnique(input) {
     await loadFromDirectory()
 
-    PROFILES.forEach((profile) => {
-      if (profile.name.trim() == $selectedProfileStore.name.trim()) {
-        isTitleUnique = true
-      }
+    console.log(input, editProfileData.name, $selectedProfileStore.name)
 
-      if (
-        profile.name.trim() != $selectedProfileStore.name.trim() &&
-        profile.name.trim() == input.trim()
-      ) {
+    profileCloud.every((profile) => {
+      if (input.trim() == profile.name.trim()) {
         isTitleUnique = false
+        return false
+      } else {
+        isTitleUnique = true
+        return true
       }
     })
+
+    if ($selectedProfileStore.name == input) {
+      isTitleUnique = true
+    }
+    console.log(isTitleUnique)
   }
 
   let isTitleDirty = undefined
@@ -209,9 +216,9 @@
 
         <div class="w-full flex flex-col gap-4">
 
-          <div class="flex flex-col">
+          <!--           <div class="flex flex-col">
             <label class="mb-1" for="category">Tags</label>
-            <!--Ide valami fancy input text field kellene-->
+
             <select
               id="category"
               class="bg-secondary border-none flex-grow text-white p-2 shadow">
@@ -219,9 +226,9 @@
                 Element
               </option>
             </select>
-          </div>
+          </div> -->
 
-          <div class="flex flex-col">
+          <!--<div class="flex flex-col">
             <label class="mb-1" for="compContr">Compatible Controller</label>
             <select
               id="compContr"
@@ -234,11 +241,11 @@
                   selected={module == editProfileData.type}>
                   {module}
                 </option>
-                <!--Ezt meg kell még csinálni, hogy változzon az adat!-->
+                
               {/each}
 
             </select>
-          </div>
+          </div> -->
 
           <div class="flex">
             <Toggle />
