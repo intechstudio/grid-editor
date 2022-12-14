@@ -9,7 +9,6 @@
   import instructions from '../serialport/instructions'
   import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte'
   import TooltipConfirm from './user-interface/tooltip/TooltipConfirm.svelte'
-  import { selectedProfileStore } from '../runtime/profile-helper.store'
 
   function store() {
     window.electron.analytics.google('page-config', { value: 'store' })
@@ -75,15 +74,7 @@
     items-center justify-between">
 
     <div class="px-4">{$appSettings.rightPanel}</div>
-    <div>
-      <button
-        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20"
-        on:click={() => {
-          selectedProfileStore.set({})
-        }}>
-        Off Profile Overlay
-      </button>
-    </div>
+    <div />
 
     {#if $unsaved_changes}
       <div in:fade class="flex items-center">

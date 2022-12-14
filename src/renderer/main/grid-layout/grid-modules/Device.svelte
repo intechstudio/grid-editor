@@ -9,6 +9,7 @@
 
   import ControlNameOverlay from './overlays/ControlNameOverlay.svelte'
   import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte'
+  import { clickOutside } from '/main/_actions/click-outside.action'
 
   import { appSettings } from '../../../runtime/app-helper.store.js'
   import { runtime, user_input } from '../../../runtime/runtime.store.js'
@@ -46,6 +47,12 @@
         selectedElement = store
       }
     })
+  })
+
+  $: user_input.subscribe((store) => {
+    if (Object.keys($selectedProfileStore).length === 0) {
+      selectedElement = store
+    }
   })
 </script>
 

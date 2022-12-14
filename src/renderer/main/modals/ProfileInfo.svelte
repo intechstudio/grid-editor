@@ -32,17 +32,9 @@
     liked = !liked
   }
 
-  /*   let PROFILES = [] */
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
 
   let selectedProfile = get(selectedProfileStore)
-
-  /*   async function loadFromDirectory() {
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      'profiles',
-    )
-  } */
 
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(

@@ -12,12 +12,6 @@
   let modalWidth
   let modalHeight
 
-  let newName = ''
-
-  let charsOfArea = ''
-  let charCount = undefined
-  $: charCount = charsOfArea.length
-
   $: if (modalWidth || modalHeight) {
     if (editor !== undefined) {
       editor.layout()
@@ -247,10 +241,10 @@
             </select>
           </div> -->
 
-          <div class="flex">
+          <!--   <div class="flex">
             <Toggle />
             <span class="ml-3 text-md font-medium">Private Profile</span>
-          </div>
+          </div> -->
         </div>
 
       </form>

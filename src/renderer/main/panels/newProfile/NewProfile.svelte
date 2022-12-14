@@ -16,22 +16,6 @@
   let selectedProfile = undefined
   let selectedSessionProfile = undefined
 
-  /*   let editProfileData = {
-    name: $selectedProfileStore.name,
-    description: $selectedProfileStore.description,
-    tags: '',
-    type: $selectedProfileStore.type,
-    config: $selectedProfileStore.configs,
-    private: false,
-
-    isGridProfile: true, // differentiator from different JSON files!
-    version: {
-      major: $appSettings.version.major,
-      minor: $appSettings.version.minor,
-      patch: $appSettings.version.patch,
-    },
-  } */
-
   let searchbarValue = ''
 
   let isSessionProfileOpen = true
@@ -78,8 +62,6 @@
     sortProfileCloud(sortField, sortAsc)
   }
 
-  $: console.log(profileCloud)
-
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder
     if (new_folder !== PROFILE_PATH) {
@@ -112,8 +94,6 @@
     }
 
     selectedModule = device.id.substr(0, 4)
-
-    //selectedProfile.type = device.id.substr(0, 4)
   })
 
   function updateSearchFilter(input) {
@@ -131,59 +111,17 @@
     })
   }
 
-  /*   function loadProfile() {
-    window.electron.analytics.google('profile-library', { value: 'load start' })
-    window.electron.analytics.influx(
-      'application',
-      'profiles',
-      'profile',
-      'load start',
-    )
-
-    if (selectedProfile !== undefined) {
-      const profile = selectedProfile
-
-      const rt = get(runtime)
-      const ui = get(user_input)
-
-      const currentModule = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
-      )
-
-      if (currentModule.id.substr(0, 4) == profile.type) {
-        runtime.whole_page_overwrite(profile.configs)
-
-        window.electron.analytics.google('profile-library', {
-          value: 'load success',
-        })
-        window.electron.analytics.influx(
-          'application',
-          'profiles',
-          'profile',
-          'load success',
-        )
-      } else {
-        window.electron.analytics.google('profile-library', {
-          value: 'load mismatch',
-        })
-        window.electron.analytics.influx(
-          'application',
-          'profiles',
-          'profile',
-          'load mismatch',
-        )
-        logger.set({
-          type: 'alert',
-          mode: 0,
-          classname: 'profileload',
-          message: `Profile is not made for ${currentModule.id.substr(0, 4)}!`,
-        })
-      }
-    }
-  } */
-
   let number = 0
   let sessionProfileNumbers = []
+
+   /*  
+Refactoring prepareSave!
+save to session profile
+save to profile cloud from session profile (and delete element from session profile)
+
+delete from session profile
+delete from profile cloud 
+*/
 
   function prepareAddToSessionProfile(user) {
     window.electron.analytics.influx('profile-library', { value: 'save start' })
@@ -206,11 +144,11 @@
 
       const configs = get(runtime)
 
-      let name
+      let name;
 
-      let description
+      let description;
 
-      let type
+      let type;
 
       //session profile numbering, simplify me pls
       if (user == 'sessionProfile') {
@@ -220,12 +158,6 @@
 
         sessionProfile.forEach((sessionProfileElement) => {
           sessionProfileName = JSON.stringify(sessionProfileElement.name)
-
-          console.log(
-            'sessionProfileName lol',
-            sessionProfileName.length,
-            sessionProfileName,
-          )
 
           if (sessionProfileName.includes('Session Profile')) {
             sessionProfileNumbers = [
@@ -287,6 +219,7 @@
     runtime.fetch_page_configuration_from_grid(callback)
   }
 
+
   function prepareSave(user) {
     window.electron.analytics.influx('profile-library', { value: 'save start' })
     window.electron.analytics.influx(
@@ -344,18 +277,28 @@
         }
       })
 
+      
+
       if (user == 'user') {
+        let isNameUnique;
+
         profileCloud.forEach((profile) => {
           if (name == profile.name) {
-            console.log('name', name)
-            logger.set({
-              type: 'fail',
-              mode: 0,
-              classname: 'profilesavefailed',
-              message: `This name is already taken in Profile Cloud!`,
-            })
+            isNameUnique = false
           }
         })
+
+        if (isNameUnique == false) {
+          logger.set({
+            type: 'fail',
+            mode: 0,
+            classname: 'profilesavefailed',
+            message: `A profile with this name is already exists in Profile Cloud!`,
+          })
+        } else {
+          saveToDirectory(PROFILE_PATH, name, profile, user)
+          deleteFromDirectory(selectedProfile)
+        }
       }
 
       engine.set('ENABLED')
@@ -363,7 +306,31 @@
 
     runtime.fetch_page_configuration_from_grid(callback)
   }
+  async function updateSessionProfileTitle(profile, oldName) {
+    await checkIfProfileTitleUnique(profile.name.trim(), oldName)
+    await checkIfTitleFieldEmpty(profile.name.trim())
 
+    if (isTitleDirty == true && isTitleUnique == true) {
+      await window.electron.configs.updateConfig(
+        PROFILE_PATH,
+        profile.name.trim(),
+        profile,
+        'profiles',
+        oldName,
+        'sessionProfile',
+      )
+    } else {
+      profile.name = oldName
+
+      logger.set({
+        type: 'fail',
+        mode: 0,
+        classname: 'sessionprofileeditname',
+        message: `This session profile name is taken. Please choose another one!`,
+      })
+    }
+    await loadFromDirectory()
+  }
   async function saveToDirectory(path, name, profile, user) {
     await window.electron.configs.saveConfig(
       path,
@@ -382,102 +349,44 @@
 
     loadFromDirectory()
   }
-
   async function deleteFromDirectory(element) {
-    if (element.name != selectedProfile.name) {
-      await window.electron.configs.deleteConfig(
-        PROFILE_PATH,
-        element.name.trim(),
-        'profiles',
-        element.folder,
-      )
+    await window.electron.configs.deleteConfig(
+      PROFILE_PATH,
+      element.name.trim(),
+      'profiles',
+      element.folder,
+    )
 
-      logger.set({
-        type: 'success',
-        mode: 0,
-        classname: 'profiledelete',
-        message: `Profile deleted!`,
-      })
+    logger.set({
+      type: 'success',
+      mode: 0,
+      classname: 'profiledelete',
+      message: `Profile deleted!`,
+    })
 
-      loadFromDirectory()
-    }
-  }
-
-  /*   async function updateSessionProfileTitle(profileData, oldName) {
-    checkIfProfileTitleUnique(profileData.name)
-    checkIfTitleFieldEmpty(profileData.name)
-
-    if (isTitleDirty != false && isTitleUnique != false) {
-      await window.electron.configs.updateConfig(
-        PROFILE_PATH,
-        profileData.name,
-        profileData,
-        'profiles',
-        oldName,
-        'sessionProfile',
-      )
-      await loadFromDirectory()
-    } else {
-      console.log('Sorry')
-      profileData.name = oldName
-
-      console.log(profileData.name, oldName)
-      console.log(isTitleDirty, isTitleUnique)
-    }
-    await loadFromDirectory()
-  } */
-
-  async function updateSessionProfileTitle(profileData, oldName) {
-    await checkIfProfileTitleUnique(profileData.name.trim())
-    await checkIfTitleFieldEmpty(profileData.name.trim())
-
-    console.log(profileData.name.trim(), oldName)
-
-    if (isTitleDirty == true && isTitleUnique == true) {
-      await window.electron.configs.updateConfig(
-        PROFILE_PATH,
-        profileData.name.trim(),
-        profileData,
-        'profiles',
-        oldName,
-        'sessionProfile',
-      )
-    } else {
-      profileData.name = oldName
-
-      logger.set({
-        type: 'fail',
-        mode: 0,
-        classname: 'sessionprofileeditname',
-        message: `This session profile name is taken. Please choose another one.`,
-      })
-    }
-    await loadFromDirectory()
+    loadFromDirectory()
   }
 
   let isTitleUnique = undefined
 
-  async function checkIfProfileTitleUnique(input) {
+  async function checkIfProfileTitleUnique(input, oldName) {
     await loadFromDirectory()
 
-    sessionProfile.every((profile) => {
-      console.log(
-        profile.name.trim(),
-        $selectedProfileStore.name.trim(),
-        input,
-        '1',
-      )
+    if (input == oldName) {
+      isTitleUnique = true
+    } else {
+      sessionProfile.every((profile) => {
+        if (input == profile.name.trim()) {
+          isTitleUnique = false
 
-      if (input.trim() == profile.name.trim()) {
-        isTitleUnique = false
-        return false
-      } else {
-        isTitleUnique = true
+          return false
+        } else {
+          isTitleUnique = true
 
-        return true
-      }
-    })
-    console.log(isTitleUnique)
+          return true
+        }
+      })
+    }
   }
 
   let isTitleDirty = undefined
@@ -566,9 +475,6 @@
     return 0
   }
 
-  $: console.log(selectedProfile, 'selectProfile')
-  $: console.log(selectedModule, 'selectedModule')
-
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
       loadFromDirectory()
@@ -578,11 +484,13 @@
   onMount(() => {
     moveOld()
   })
+
+  $: console.log('selectProfile', selectedProfile)
+  $: console.log('selectedModule', selectedModule)
 </script>
 
 <div
-  use:clickOutside={{ useCapture: true }}
-  on:click-outside={() => {}}
+
   class=" flex flex-col h-full justify-between mt-4 ">
 
   <div class=" flex flex-col bg-primary ">
@@ -615,23 +523,6 @@
               ">
               <div class="flex justify-between flex-wrap">
 
-                <!--                 <div
-                  use:clickOutside={{ useCapture: true }}
-                  on:blur={(e) => {
-                    editable = false
-                    let oldName = sessionProfileElement.name
-                    sessionProfileElement.name = e.srcElement.innerText
-                    updateSessionProfileTitle(sessionProfileElement, oldName)
-                  }}
-                  on:dblclick={() => {
-                    handleDblClick()
-                    selectProfile(sessionProfileElement)
-                  }}
-                  contenteditable={editable}
-                  class="text-zinc-100 min-w-[15px] w-fit break-words">
-                  {sessionProfileElement.name}
-                </div> -->
-
                 <div on:dblclick={() => handleDblClick()}>
                   <input
                     type="text"
@@ -643,8 +534,8 @@
                     }}
                     on:blur={(e) => {
                       justReadInput = true
-                      let oldName = sessionProfileElement.name
-                      sessionProfileElement.name = e.target.value
+                      let oldName = selectedProfile.name
+                      sessionProfileElement.name = e.target.value.trim()
                       updateSessionProfileTitle(sessionProfileElement, oldName)
                     }}
                     class="text-zinc-100 min-w-[15px] h-fit break-words
@@ -693,7 +584,6 @@
                   on:click|preventDefault={() => {
                     selectProfile(sessionProfileElement)
                     prepareSave('user')
-                    deleteFromDirectory(sessionProfileElement)
                     selectedProfile = undefined
                   }}>
                   <svg
