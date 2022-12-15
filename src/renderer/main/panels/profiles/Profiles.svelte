@@ -293,19 +293,6 @@
       <div>Save</div>
       <TooltipSetter key={"profile_save"} />
     </button>
-
-    <button
-      on:click={() => prepareSave("sessionProfile")}
-      disabled={!checkIfOk(newProfile)}
-      class="{!checkIfOk(newProfile)
-        ? 'cursor-not-allowed opacity-50'
-        : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'}
-      transition w-full px-2 py-2 my-2 block rounded text-white bg-commit
-      relative border-none focus:outline-none"
-    >
-      <div>Session Profile Save</div>
-      <TooltipSetter key={"profile_save"} />
-    </button>
   </div>
 
   <div class="pt-2 text-white flex items-center relative">
