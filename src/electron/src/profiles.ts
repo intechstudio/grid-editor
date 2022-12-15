@@ -247,14 +247,10 @@ function isJson(str) {
 
 async function getDateOfModify(filepath) {
   // Get the modif date of selected file
-  log.info(`hello, ${filepath}`)
-
   const dateObject = await fs.promises
     .stat(filepath)
     .then((stats) => {
       // print file last modified date
-      console.log(`File Data Last Modified: ${stats.mtime}`)
-      console.log(`File Status Last Modified: ${stats.ctime}`)
       return { modifiedAt: stats.mtime, createdAt: stats.ctime }
     })
     .catch((err) => console.error('get date modify', err))

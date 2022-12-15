@@ -149,7 +149,7 @@
               class="tooltip-bg text-base flex flex-col px-4 py-4 text-white text-left"
               style="">
               {tooltip_text}
-              <div class="flex mt-2 {platform!=="linux"?" flex-row ":" flex-row-reverse "}">
+              <div class="flex mt-2 {platform()!=="linux"?" flex-row ":" flex-row-reverse "}">
                 <button class="w-1/2 mx-1 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 relative" on:click|stopPropagation={()=>{console.log(parent_element.parentNode.click()); tooltip_isvisible = false}}>Confirm</button>     
                 <button class="w-1/2 mx-1 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 relative" on:click|stopPropagation={()=>{tooltip_isvisible = false}}>Cancel</button>     
               </div>

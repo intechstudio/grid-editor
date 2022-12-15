@@ -16,9 +16,12 @@ import { googleAnalytics, influxAnalytics } from './analytics';
 export async function downloadInMainProcess(url, directory){
   const win = BrowserWindow.getFocusedWindow();
   let folder = store.get("profileFolder") + "/" + directory;
+  console.log('DL START',folder)
+
   let result = await download(win, url, {
       directory: folder
-  });
+  }).catch(err => console.log('dl error', err));
+  console.log('DL RES',result)
   const savePath = result.getSavePath();
   return savePath;
 }

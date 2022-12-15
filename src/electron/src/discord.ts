@@ -1,21 +1,21 @@
-import { Webhook } from 'simple-discord-webhooks'
-import dotenv from 'dotenv'
+import { Webhook } from 'simple-discord-webhooks';
+import dotenv from 'dotenv';
 dotenv.config()
 
-export async function sendToDiscord(message) {
+export async function sendToDiscord(message){
+
   const webhook = new Webhook(new URL(process.env.DISCORD_FEEDBACK_WEBHOOK!));
 
-  if (!webhook) {
-    throw new Error('No webhook provided!')
+  if(!webhook){
+    throw new Error('No webhook provided!');
   }
 
-  if (!message.title || !message.text) {
+  if(!message.title || !message.text){
     throw new Error('Discord message object does not look right!')
   }
 
-  return await webhook.send(
+  return await webhook.send(`######\n${message.title}\n######\n${message.text} `).catch((err) => console.log('discord error',err))
   
-  )
 }
 
  

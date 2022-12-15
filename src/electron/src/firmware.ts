@@ -70,7 +70,7 @@ export async function findBootloaderPath(){
   }
   
   // reset path
-  if (bootloader_path !== undefined){
+  if (bootloader_path != undefined){
     log.info('some reset stuff should happen here...')
   }
 
