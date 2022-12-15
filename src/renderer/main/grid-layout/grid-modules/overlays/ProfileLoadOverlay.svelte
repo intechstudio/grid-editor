@@ -1,53 +1,91 @@
 <script>
+  import { selectedProfileStore } from '../../../../runtime/profile-helper.store'
+  import { runtime, user_input } from '../../../../runtime/runtime.store'
 
-  export let id;
-  export let moduleWidth;
-  export let rotation;
-  export let bank;
+  export let id
 
-  let overlayDesign; 
+  let showOverlay = false
+  let selectedProfile = undefined
 
-  $: breakpoint = moduleWidth > 200 ? 'large' : 'small';
+  selectedProfileStore.subscribe((store) => {
+    selectedProfile = store
+    showLoadProfileOverlay(id, store.type)
+  })
 
-  let controlElementSettings;
-
-  const control_block = (number) => {
-    let array = [];
-    for (let i = 0; i < number; i++) {
-      array.push(i);
+  function showLoadProfileOverlay(moduleId, profileType) {
+    let moduleType = moduleId.substr(0, 4)
+    if (moduleType == profileType) {
+      showOverlay = true
+    } else {
+      showOverlay = false
     }
-    return array;
   }
 
+  function selectModuleWhereProfileIsLoaded() {
+    const dx = id.split(';')[0].split(':').pop()
+    const dy = id.split(';')[1].split(':').pop()
+
+    user_input.update((store) => {
+      store.brc.dx = +dx
+      store.brc.dy = +dy
+      return store
+    })
+  }
+
+  function loadProfileToThisModule() {
+    selectModuleWhereProfileIsLoaded()
+
+    window.electron.analytics.google('profile-library', { value: 'load start' })
+    window.electron.analytics.influx(
+      'application',
+      'profiles',
+      'profile',
+      'load start',
+    )
+
+    // to do.. if undefined configs
+
+    runtime.whole_page_overwrite(selectedProfile.configs)
+
+    window.electron.analytics.google('profile-library', {
+      value: 'load success',
+    })
+    window.electron.analytics.influx(
+      'application',
+      'profiles',
+      'profile',
+      'load success',
+    )
+  }
 </script>
 
-<div class="overlay text-white w-full">
-  {#each control_block(2) as block }
-    <div class="text-xs flex flex-col justify-around items-center" style="width: {moduleWidth / 2 +'px'}">
-      {#each control_block(2) as element }
-        <div class="text-xs flex flex-col items-center justify-center border border-gray-700 hover:bg-highlight cursor-pointer w-full" style="height: {moduleWidth / 2 + 'px'}; transform: rotate({-1*rotation+'deg'})">
-          {element * 2 + block}
-        </div>
-      {/each}
+{#if showOverlay}
+  <div
+    class="text-white bg-black bg-opacity-25 w-full absolute flex flex-col
+    items-center justify-center rounded h-full ">
+
+    <div>
+      <button
+        on:click={() => {
+          loadProfileToThisModule()
+        }}
+        class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
+        opacity-80 block">
+        Load Profile
+      </button>
     </div>
-  {/each}
-</div>
 
+    <div>
 
+      <button
+        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
+        left-[53px] absolute bottom-0 opacity-60"
+        on:click={() => {
+          selectedProfileStore.set({})
+        }}>
+        Off Profile Overlay
+      </button>
+    </div>
 
-<style>
-
-  .overlay{
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: row;
-    background-color: rgba(30 ,30,30,0.8);
-    border-radius: 0.75rem;
-    justify-content: space-around;
-    backdrop-filter: blur(1px);
-    z-index: 50;
-  }
-
-</style>
+  </div>
+{/if}

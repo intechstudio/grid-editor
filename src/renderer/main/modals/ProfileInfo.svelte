@@ -4,6 +4,16 @@
   import { appSettings } from '/runtime/app-helper.store'
   import { selectedProfileStore } from '/runtime/profile-helper.store'
 
+  import { onMount } from 'svelte'
+
+  import {
+    engine,
+    logger,
+    runtime,
+    user_input,
+  } from '/runtime/runtime.store.js'
+  import { profileChangeCallbackStore } from '../panels/newProfile/profile-change.store'
+
   let editor
   let modalWidth
   let modalHeight
@@ -26,13 +36,6 @@
 
   let selectedProfile = get(selectedProfileStore)
 
-  async function loadFromDirectory() {
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      'profiles',
-    )
-  }
-
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
@@ -40,6 +43,20 @@
       'profiles',
       element.folder,
     )
+
+    profileChangeCallbackStore.set({
+      action: 'delete',
+      profile: selectedProfile,
+    })
+
+    logger.set({
+      type: 'success',
+      mode: 0,
+      classname: 'profiledelete',
+      message: `Profile deleted!`,
+    })
+
+    selectedProfile = undefined
   }
 </script>
 
@@ -78,8 +95,8 @@
       </svg>
     </button>
 
-    <div class="p-6 flex flex-row gap-10 overflow-auto">
-      <div class="w-3/5 flex flex-col gap-4">
+    <div class="p-6 flex flex-row gap-10 overflow-auto w-full">
+      <div class="w-3/5 flex flex-col gap-4 ">
 
         <div>
           <div class="flex justify-between items-center">
@@ -95,8 +112,6 @@
                   on:click|preventDefault={() => {
                     deleteFromDirectory(selectedProfile)
                     $appSettings.modal = ''
-                    selectedProfile = {}
-                    loadFromDirectory()
                   }}>
                   <svg
                     width="20"
@@ -164,30 +179,12 @@
         </div>
         <div>
           <img
-            class="w-full"
+            class="w-full h-48 object-cover"
             src="/assets/imgs/sm_{selectedProfile.type}.jpg"
             alt="{selectedProfile.type}_img" />
         </div>
         <div>
           <p>{selectedProfile.description}</p>
-        </div>
-        <div>
-          <ul class="list-disc list-inside">
-            <li>Lorem ipsum dolor sit amet consectetur.</li>
-            <li>Auctor porttitor dui eget gravida et mi.</li>
-            <li>Nibh sed massa in convallis arcu viverra.</li>
-            <li>Lobortis mauris in dignissim id accumsan quam vitae.</li>
-            <li>
-              Eget nibh augue tellus rutrum sed nisl sed morbi proin. Maecenas
-              nisl purus orci mattis enim nunc. Lectus et bibendum nisi amet
-              eget nec habitasse dignissim nec.
-            </li>
-            <li>
-              Tellus eros cursus ullamcorper aliquam nisi nam id justo. Purus
-              sagittis vitae velit velit. Neque nam convallis venenatis urna
-              iaculis.
-            </li>
-          </ul>
         </div>
 
       </div>
