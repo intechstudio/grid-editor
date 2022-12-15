@@ -40,7 +40,6 @@
   let DEFAULT_PATH = "";
 
   window.electron.library.defaultDirectory().then((res) => {
-    console.log(res);
     DEFAULT_PATH = res;
   });
 
@@ -148,11 +147,11 @@
   }
 
   async function resetDirectory() {
+    DEFAULT_PATH = await window.electron.library.resetDirectory();
     appSettings.update((s) => {
       s.persistant.profileFolder = DEFAULT_PATH;
       return s;
     });
-    await window.electron.library.resetDirectory();
   }
 
   function resetAppSettings() {
