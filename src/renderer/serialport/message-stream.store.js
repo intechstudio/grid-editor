@@ -33,7 +33,6 @@ function createMessageStream(){
 
       if(class_descr.class_name === "WEBSOCKET"){
         wss_send_message(class_descr.class_parameters.TEXT)
-        
       }
 
       if(class_descr.class_name === "LEDPREVIEW"){

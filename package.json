@@ -1,7 +1,7 @@
 {
   "name": "grid-editor",
   "version": "1.2.28",
-  "main": "./src/electron/main.js",
+  "main": "dist/main/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/intechstudio/grid-editor.git"
@@ -16,6 +16,7 @@
     "dotenv": "^14.2.0",
     "electron": "^18.3.15",
     "electron-builder": "^24.0.0-alpha.2",
+    "electron-vite": "^1.0.14",
     "mocha": "^9.2.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.18",
@@ -26,13 +27,14 @@
     "svelte-preprocess": "^4.7.0",
     "tailwindcss": "^3.1.8",
     "vite": "^3.1.8",
+    "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.31.0",
+    "@nut-tree/nut-js": "^2.3.0",
     "active-win": "^7.7.2",
     "adm-zip": "^0.5.9",
-    "detect-active-title": "^1.0.1",
     "discord.js": "^13.6.0",
     "electron-dl": "^3.4.1",
     "electron-log": "^4.4.8",
@@ -41,6 +43,7 @@
     "eslint": "^7.23.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
+    "is-online": "^10.0.0",
     "luaparse": "^0.3.0",
     "monaco-editor": "^0.34.0",
     "node-disk-info": "^1.3.0",
@@ -58,7 +61,7 @@
     "productName": "Grid Editor",
     "copyright": "Copyright © 2022 Intech Studio Ltd.",
     "directories": {
-      "output": "dist/"
+      "output": "build/"
     },
     "extraResources": "src/renderer/config-blocks/*",
     "win": {
@@ -73,7 +76,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "dist-assets/icon.png"
+      "icon": "build-assets/icon.png"
     },
     "linux": {
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}"
@@ -84,16 +87,16 @@
         "zip"
       ],
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
-      "icon": "dist-assets/icon.png",
+      "icon": "build-assets/icon.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "entitlements": "dist-assets/entitlements.mac.plist",
-      "entitlementsInherit": "dist-assets/entitlements.mac.plist"
+      "entitlements": "build-assets/entitlements.mac.plist",
+      "entitlementsInherit": "build-assets/entitlements.mac.plist"
     },
     "dmg": {
       "sign": false
     },
-    "afterSign": "dist-assets/notarize.js"
+    "afterSign": "build-assets/notarize.js"
   },
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
@@ -103,14 +106,12 @@
     "export:nightly": "run-s s:build e:builder:nightly",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "export:local": "run-s s:build e:builder:local",
-    "s:build": "cross-env NODE_ENV=production vite build",
-    "s:build:local": "cross-env NODE_ENV=production vite build",
+    "s:build": "cross-env NODE_ENV=production electron-vite build",
+    "s:build:local": "cross-env NODE_ENV=production electron-vite build",
     "postinstall": "electron-builder install-app-deps",
-    "dev": "vite",
     "test": "mocha",
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
-    "electron-dev": "run-p dev pure-electron-dev",
-    "pure-electron-dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 DEBUG=universal-analytics NODE_ENV=development electron ."
+    "electron-dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 DEBUG=universal-analytics NODE_ENV=development electron-vite dev --watch"
   }
 }

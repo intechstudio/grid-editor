@@ -69,7 +69,8 @@ function createAppSettingsStore(){
       websocketMonitorEnabled: false,
       helperShape: 0,
       helperColor: 0,
-      helperName: "Monster"
+      helperName: "Monster",
+      desktopAutomationPlugin: false,
     }
   })
   
@@ -99,7 +100,8 @@ let persistant = {
   websocketMonitorEnabled: false,
   helperShape: 0,
   helperColor: 0,
-  helperName: "Monster"
+  helperName: "Monster",
+  desktopAutomationPlugin: false,
 }
 
 init_appsettings();
@@ -137,7 +139,7 @@ ipcRenderer.on('trayState', (event, args) => {
 })
  */
 
-function init_appsettings(){
+async function init_appsettings(){
 
   let request = []
   Object.entries(persistant).forEach(entry => {
@@ -146,7 +148,7 @@ function init_appsettings(){
   });
 
 
-  window.electron.persistentStorage.get(request).then(async (response) => {
+  await window.electron.persistentStorage.get(request).then(async (response) => {
 
     appSettings.update(s => {
 
@@ -192,6 +194,15 @@ function init_appsettings(){
       });
 
     }  
+
+    if(get(appSettings).persistant.desktopAutomationPlugin === true){
+      console.log("start plugin");
+
+      window.electron.plugin.start('desktopAutomation')
+    } else {
+      console.log('stop plugin')
+      window.electron.plugin.stop('desktopAutomation')
+    }
   
   });
 

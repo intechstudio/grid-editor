@@ -11,23 +11,27 @@
     user_input,
   } from '../../../runtime/runtime.store.js'
 
-  let sessionProfile = [
-    {
-      name: 'BU16',
-      latestMod: '11-22-2022 16:50',
-    },
-
-    {
-      name: 'PBF4',
-      latestMod: '11-22-2022 16:50',
-    },
-  ]
-
   let selectedProfile = {}
 
   selectedProfileStore.subscribe((store) => {
     selectedProfile = store
   })
+
+  /*   let editProfileData = {
+    name: $selectedProfileStore.name,
+    description: $selectedProfileStore.description,
+    tags: '',
+    type: $selectedProfileStore.type,
+    config: $selectedProfileStore.configs,
+    private: false,
+
+    isGridProfile: true, // differentiator from different JSON files!
+    version: {
+      major: $appSettings.version.major,
+      minor: $appSettings.version.minor,
+      patch: $appSettings.version.patch,
+    },
+  } */
 
   let searchbarValue = ''
 
@@ -38,11 +42,11 @@
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
   let PROFILES = []
 
-  let editable = false
+  let justReadInput = true
 
   function handleDblClick() {
-    editable = true
-    console.log(editable)
+    justReadInput = false
+    console.log('YAAAAAAAAAAY')
   }
 
   async function loadFromDirectory() {
@@ -105,7 +109,6 @@
     )
 
     if (selectedProfile !== undefined) {
-      console.log(selectedProfile.type)
       const profile = selectedProfile
 
       const rt = get(runtime)
@@ -223,6 +226,89 @@
     loadFromDirectory()
   }
 
+  async function deleteFromDirectory(element) {
+    await window.electron.configs.deleteConfig(
+      PROFILE_PATH,
+      element.name,
+      'profiles',
+      element.folder,
+    )
+    loadFromDirectory()
+  }
+
+  /*   async function updateSessionProfileTitle(profileData, oldName) {
+    checkIfProfileTitleUnique(profileData.name)
+    checkIfTitleFieldEmpty(profileData.name)
+
+    if (isTitleDirty != false && isTitleUnique != false) {
+      await window.electron.configs.updateConfig(
+        PROFILE_PATH,
+        profileData.name,
+        profileData,
+        'profiles',
+        oldName,
+        'sessionProfile',
+      )
+      await loadFromDirectory()
+    } else {
+      console.log('Sorry')
+      profileData.name = oldName
+
+      console.log(profileData.name, oldName)
+      console.log(isTitleDirty, isTitleUnique)
+    }
+    await loadFromDirectory()
+  } */
+
+  async function updateSessionProfileTitle(profileData, oldName) {
+    checkIfProfileTitleUnique(profileData.name)
+    checkIfTitleFieldEmpty(profileData.name)
+
+    if (isTitleDirty != false && isTitleUnique != false) {
+      await window.electron.configs.updateConfig(
+        PROFILE_PATH,
+        profileData.name,
+        profileData,
+        'profiles',
+        oldName,
+        'sessionProfile',
+      )
+      await loadFromDirectory()
+    } else {
+      profileData.name = oldName
+    }
+    await loadFromDirectory()
+  }
+
+  let isTitleUnique = undefined
+
+  async function checkIfProfileTitleUnique(input) {
+    await loadFromDirectory()
+
+    PROFILES.forEach((profile) => {
+      if (profile.name.trim() == input.trim()) {
+        isTitleUnique = true
+      }
+
+      if (
+        profile.name.trim() != input.trim() &&
+        profile.name.trim() == input.trim()
+      ) {
+        isTitleUnique = false
+      }
+    })
+  }
+
+  let isTitleDirty = undefined
+
+  async function checkIfTitleFieldEmpty(input) {
+    if (input.length < 1) {
+      isTitleDirty = false
+    } else {
+      isTitleDirty = true
+    }
+  }
+
   $: if ($selectedProfileStore) {
     loadFromDirectory()
   }
@@ -256,7 +342,7 @@
     selectedProfile = {}
     selectedIndex = undefined
   }}
-  class="bg-primary pt-4 h-full flex flex-col ">
+  class="bg-primary pt-4 flex flex-col h-full justify-between ">
 
   <div class="m-4 flex flex-col ">
     <button
@@ -268,20 +354,52 @@
     </button>
 
     {#if isSessionProfileOpen}
-      <div class="bg-secondary flex flex-col p-3 overflow-hidden ">
-        <div class="flex flex-col overflow-y-auto gap-4 scroll-smooth ">
+      <div class="bg-secondary flex flex-col p-3 overflow-hidden h-full">
+        <div class="flex flex-col overflow-y-auto gap-4 ">
           {#each PROFILES.filter((element) => element.folder == 'sessionProfile') as sessionProfileElement, i}
             <button
-              class="w-full flex justify-between gap-1 items-center text-left
+              class="flex justify-between gap-1 items-center text-left
               bg-primary-700 hover:bg-primary-600 p-2 cursor-pointer {selectedProfile == sessionProfileElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0'}">
-              <div class="flex justify-between">
-                <span
-                  on:dblclick={() => handleDblClick()}
-                  contenteditable={editable == true}
-                  class="text-zinc-100 ">
+              <div class="flex justify-between flex-wrap w-2/5 ">
+
+                <!--                 <div
+                  use:clickOutside={{ useCapture: true }}
+                  on:blur={(e) => {
+                    editable = false
+                    let oldName = sessionProfileElement.name
+                    sessionProfileElement.name = e.srcElement.innerText
+                    updateSessionProfileTitle(sessionProfileElement, oldName)
+                  }}
+                  on:dblclick={() => {
+                    handleDblClick()
+                    selectProfile(sessionProfileElement)
+                  }}
+                  contenteditable={editable}
+                  class="text-zinc-100 min-w-[15px] w-fit break-words">
                   {sessionProfileElement.name}
-                </span>
-                <span class="text-zinc-100 ">{sessionProfileElement.type}</span>
+                </div> -->
+
+                <div on:dblclick={() => handleDblClick()}>
+                  <textarea
+                    type="text"
+                    disabled={justReadInput == true}
+                    bind:value={sessionProfileElement.name}
+                    use:clickOutside={{ useCapture: true }}
+                    on:blur={(e) => {
+                      justReadInput = true
+                      let oldName = selectedProfile.name
+                      updateSessionProfileTitle(sessionProfileElement, oldName)
+                    }}
+                    on:click={() => {
+                      selectProfile(sessionProfileElement)
+                    }}
+                    class="text-zinc-100 min-w-[15px] h-fit break-words
+                    bg-transparent overflow-hidden w-full " />
+
+                  <span class="text-zinc-100 ">
+                    {sessionProfileElement.type}
+                  </span>
+                </div>
 
               </div>
 
@@ -291,14 +409,40 @@
 
               <div class="flex gap-2 ">
                 <button
+                  on:click|preventDefault={() => {
+                    deleteFromDirectory(sessionProfileElement)
+                  }}
+                  class="p-1 hover:bg-primary-500 rounded">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 39 39"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path
+                      d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+                      23.9102"
+                      stroke="#FFF"
+                      stroke-width="2"
+                      stroke-linecap="round" />
+                    <path
+                      d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+                      35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
+                      3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
+                      19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
+                      stroke="#FFF"
+                      stroke-width="2" />
+                  </svg>
+                </button>
+                <button
                   class="p-1 hover:bg-primary-500 rounded"
                   on:click|preventDefault={() => {
                     selectProfile(sessionProfileElement)
                     prepareSave('user')
                   }}>
                   <svg
-                    width="19"
-                    height="18"
+                    width="15"
+                    height="14"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -347,8 +491,8 @@
                     prepareSave('sessionProfile')
                   }}>
                   <svg
-                    width="19"
-                    height="18"
+                    width="15"
+                    height="14"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -404,8 +548,8 @@
                   class="p-1 hover:bg-primary-500 rounded">
 
                   <svg
-                    width="16"
-                    height="18"
+                    width="12"
+                    height="14"
                     viewBox="0 0 16 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg">
@@ -442,7 +586,7 @@
           w-full text-white mt-3 mb-1 py-2 px-2 rounded
           border-commit-saturate-10 hover:border-commit-desaturate-10
           focus:outline-none">
-          <div>Save as Session Profile</div>
+          <div>Add to Session Profile</div>
 
         </button>
 
@@ -510,27 +654,26 @@
           </div>
 
           <div class="flex flex-row gap-2 ">
-            <div class="text-gray-100 basis-2/4 ">Suggested searches:</div>
-            <div class="flex flex-row gap-2 basis-2/4">
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                bu16
-              </button>
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                obs
-              </button>
-              <button
-                on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
-                class="border border-primary-300 text-primary-100 rounded-md
-                py-1 px-2 h-min">
-                EN16
-              </button>
-            </div>
+
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              bu16
+            </button>
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              obs
+            </button>
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
+              class="border border-primary-300 text-primary-100 rounded-md py-1
+              px-2 h-min">
+              EN16
+            </button>
+
           </div>
         </div>
 
@@ -564,15 +707,15 @@
                       @{profileCloudElement.folder}
                     </div>
                     <div class="flex flex-row gap-1">
-                      <button>!</button>
+
                       <button
                         class="p-1 hover:bg-primary-500 rounded"
                         on:click|preventDefault={() => {
                           ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement)
                         }}>
                         <svg
-                          width="17"
-                          height="18"
+                          width="15"
+                          height="16"
                           viewBox="0 0 20 21"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">
@@ -627,8 +770,8 @@
                         }}>
                         <svg
                           class="fill-white "
-                          width="19"
-                          height="18"
+                          width="15"
+                          height="14"
                           viewBox="0 0 21 20"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">
@@ -680,8 +823,8 @@
                         class="p-1 hover:bg-primary-500 rounded">
 
                         <svg
-                          width="16"
-                          height="18"
+                          width="12"
+                          height="14"
                           viewBox="0 0 16 18"
                           fill="none"
                           xmlns="http://www.w3.org/2000/svg">

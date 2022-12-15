@@ -96,6 +96,8 @@ const stringManipulation = {
     pattern.push(`${'(?<space>([\\s\\n]))'}`);
     // if its special
     pattern.push(`${'(?<special>(\\blocal\\b|[=._@:;\'\"\`]))'}`);
+    // if its backslash
+    pattern.push(`${'(?<backslash>(\\\\))'}`);
     // if unknown
     pattern.push(`${'(?<other>([a-zA-Z]+))'}`)
     // create full pattern
@@ -125,7 +127,7 @@ const stringManipulation = {
 
     const splitArray = this.splitShortScript(script, 'short');
 
-    console.log('HUMAN SPLIT: ',splitArray);
+    //console.log('HUMAN SPLIT: ',splitArray);
 
     const humanized = this.splitArrayToString(splitArray, 'human');
 
@@ -139,15 +141,9 @@ const stringManipulation = {
 
     // We should heaviliy consider handling spaces and returns better!
 
-    //script = script.replace(/\s\s+/g, ' ');
-
     const splitArray = this.splitShortScript(script, 'human');
 
-    //console.log('SHORT SPLIT: ', splitArray);
-
     const shorted = this.splitArrayToString(splitArray, 'short');
-
-    //console.log('SHORT: ', shorted);
 
     return shorted;
 

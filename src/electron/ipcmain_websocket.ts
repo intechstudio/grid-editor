@@ -1,11 +1,9 @@
-const {ipcMain} = require('electron');
-const WebSocket = require('ws');
-const { store } = require('./main-store');
+import {ipcMain} from 'electron';
+import WebSocket from 'ws';
+import { store } from './main-store';
 
-let websocket = {
-
+export const websocket = {
   mainWindow: undefined
-
 };
 
 let wss;
@@ -20,46 +18,31 @@ function startWebsocketServer(port){
   wss.on("error", error => console.log("The server encountered an error!", error)); 
 
   wss.on('connection', function (ws) {
-
     ws.isAlive = true;
-
     console.info('WS Client connected!')
-
-    connection = ws;
-
     ws.on('message', function message(data) {
-
       websocket.mainWindow.webContents.send('onWebsocketReceive', data);
-
       const decoded = JSON.parse(data)
       if (decoded.event === "grid_pong"){
-        //console.log("WS PONG")
         ws.isAlive = true;
       }
-
     });
 
     ws.on('close', function(){
       console.warn('WS Client disconnected!')
-    
     })
 
   });
 
-
   wss.on('close', function close(){
-    console.log("CLEAR INTERVAL")
     clearInterval(interval);
   })
 
-  console.log("SET INTERVAL")
   interval = setInterval(function ping() {
 
     const data = JSON.stringify({"event":"grid_ping"})
     websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
   
-    //console.log("PING")
-
     wss.clients.forEach(function each(ws) {
       if (ws.isAlive === false) return ws.terminate();
   
@@ -73,11 +56,10 @@ function startWebsocketServer(port){
 
 
 
-ipcMain.handle('websocketTransmit', (event, arg) => {
+ipcMain.handle('websocketTransmit', async (event, arg) => {
 
-  const decoded = JSON.parse(arg.message)
+  const data = JSON.stringify(arg.message)
 
-  const data = JSON.stringify({"event":"message", "data": decoded})
   websocket.mainWindow.webContents.send('onWebsocketTransmit', data);
 
   wss.clients.forEach(function each(ws) {
@@ -86,9 +68,7 @@ ipcMain.handle('websocketTransmit', (event, arg) => {
 
 })
 
-ipcMain.handle('websocketChangePort', (event, arg) => {
-
-  console.log("NEW PORT", arg)
+ipcMain.handle('websocketChangePort', async (event, arg) => {
 
   if (wss !== undefined){
     wss.clients.forEach(function each(ws) {
@@ -101,7 +81,3 @@ ipcMain.handle('websocketChangePort', (event, arg) => {
   startWebsocketServer(arg);
 
 })
-
-
-
-module.exports = { websocket };

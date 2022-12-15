@@ -1,11 +1,11 @@
-const { BrowserWindow, ipcMain, webContents, dialog } = require('electron');
-const AdmZip = require('adm-zip');
-const { download } = require('electron-dl');
-const log = require('electron-log');
-const fs = require('fs-extra');
+import { BrowserWindow, ipcMain, webContents, dialog } from 'electron';
+import AdmZip from 'adm-zip';
+import { download } from 'electron-dl';
+import log from 'electron-log'
+import fs from 'fs-extra';
 
-const { store } = require('../main-store');
-const { googleAnalytics, influxAnalytics } = require('./analytics');
+import { store } from '../main-store';
+import { googleAnalytics, influxAnalytics } from './analytics';
 
 /**
  * 
@@ -13,17 +13,20 @@ const { googleAnalytics, influxAnalytics } = require('./analytics');
  * @param {string} directory Destination directory
  * @returns
  */
-async function downloadInMainProcess(url, directory){
+export async function downloadInMainProcess(url, directory){
   const win = BrowserWindow.getFocusedWindow();
   let folder = store.get("profileFolder") + "/" + directory;
+  console.log('DL START',folder)
+
   let result = await download(win, url, {
       directory: folder
-  });
+  }).catch(err => console.log('dl error', err));
+  console.log('DL RES',result)
   const savePath = result.getSavePath();
   return savePath;
 }
 
-async function extractArchiveToTemp(data, endOfEntryName, folder){
+export async function extractArchiveToTemp(data, endOfEntryName, folder){
   let zip = new AdmZip(data);
 
   let zipEntries = zip.getEntries(); // an array of ZipEntry records
@@ -44,7 +47,7 @@ async function extractArchiveToTemp(data, endOfEntryName, folder){
 }
   
 
-async function libraryDownload(targetFolder){
+export async function libraryDownload(targetFolder){
 
   googleAnalytics('library-download', {value: 'download start'})
   influxAnalytics("application", "preferences", "profile downloader status", "download started")
@@ -103,7 +106,7 @@ async function libraryDownload(targetFolder){
 }
 
 
-async function uxpPhotoshopDownload(targetFolder){
+export async function uxpPhotoshopDownload(targetFolder){
 
 
   const version = "v"+process.env.UXP_PHOTOSHOP_REQUIRED_MAJOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_MINOR+"."+process.env.UXP_PHOTOSHOP_REQUIRED_PATCH
@@ -125,7 +128,7 @@ async function uxpPhotoshopDownload(targetFolder){
 
 } 
 
-function selectDirectory(){
+export function selectDirectory(){
 
   const selectedDirectoryPath = dialog.showOpenDialog({
       properties: ['openDirectory']
@@ -154,12 +157,4 @@ function selectDirectory(){
   });
 
   return selectedDirectoryPath;
-}
-
-module.exports = {
-  libraryDownload, 
-  uxpPhotoshopDownload,
-  selectDirectory,
-  downloadInMainProcess,
-  extractArchiveToTemp
 }

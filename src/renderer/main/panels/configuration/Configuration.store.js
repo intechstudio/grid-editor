@@ -2,7 +2,7 @@ import { writable, get } from 'svelte/store';
 
 import {runtime, logger, luadebug_store, appMultiSelect, appActionClipboard, user_input} from '../../../runtime/runtime.store';
 
-import * as luamin from "../../../../external/luamin";
+import luamin from "../../../../external/luamin";
 
 import _utils from '../../../runtime/_utils.js';
 

@@ -1,7 +1,5 @@
 <script>
-  import { onDestroy, onMount } from "svelte";
-  import { luadebug_store } from "../../runtime/runtime.store";
-  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
+  import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
 
   import { clickOutside } from "../_actions/click-outside.action";
@@ -16,9 +14,11 @@
   onMount(() => {});
 
   async function sendFeedback() {
-    await window.electron.discord.sendMessage(feedback);
+    await window.electron.discord.sendMessage({
+      title: feedback.title.value,
+      text: feedback.text.value,
+    });
     thank_you = "Thank you for your feedback!";
-    submit_button.disabled = true;
   }
 </script>
 

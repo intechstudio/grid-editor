@@ -43,14 +43,14 @@ jobs:
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
 
       - name: See directory
-        run: ls dist/*.*
+        run: ls build/*.*
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           name: Release ${{ env.RELEASE_VERSION }}
-          files: dist/*.*
+          files: build/*.*
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,14 +95,14 @@ jobs:
           APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
 
       - name: See directory
-        run: ls dist/*.*
+        run: ls build/*.*
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           name: Release ${{ env.RELEASE_VERSION }}
-          files: dist/*.*
+          files: build/*.*
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -139,14 +139,14 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: See directory
-        run: ls dist/*.*
+        run: ls build/*.*
 
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ env.RELEASE_VERSION }}
           name: Release ${{ env.RELEASE_VERSION }}
-          files: dist/*.*
+          files: build/*.*
           draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
