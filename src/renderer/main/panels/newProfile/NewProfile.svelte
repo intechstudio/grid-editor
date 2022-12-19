@@ -475,6 +475,31 @@ delete from profile cloud
     return 0
   }
 
+      function compareModuleAscending(a, b) {
+    if (a.type< b.type) {
+      return -1
+    }
+
+    if (a.type > b.type) {
+      return 1
+    }
+
+    return 0
+  }
+
+    function compareModuleDescending(a, b) {
+    if (a.type < b.type) {
+      return 1
+    }
+
+    if (a.type > b.type) {
+      return -1
+    }
+
+    return 0
+  }
+
+
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
       loadFromDirectory()
@@ -521,7 +546,7 @@ delete from profile cloud
               text-left bg-secondary p-2 {sessionProfileElement.type != selectedModule ? 'border border-black border-opacity-0 bg-secondary opacity-30' : 0}
               {sessionProfileElement == selectedProfile ? 'border border-green-300' : 'border border-black border-opacity-0'}
               ">
-              <div class="flex justify-between flex-wrap">
+              <div class="flex justify-between flex-row">
 
                 <div on:dblclick={() => handleDblClick()}>
                   <input
@@ -541,17 +566,14 @@ delete from profile cloud
                     class="text-zinc-100 min-w-[15px] h-fit break-words
                     bg-transparent overflow-hidden w-full " />
 
-                  <span class="text-zinc-100 text-sm w-min">
-                    {sessionProfileElement.type}
-                  </span>
+        
                 </div>
 
               </div>
-
-              <span class="text-zinc-400 text-sm">
-                <!-- modified: {sessionProfileElement.latestMod} -->
+              <span class="text-zinc-100 text-sm w-min">
+                    {sessionProfileElement.type}
               </span>
-
+              
               <div class="flex gap-2 ">
                 <button
                   on:click|preventDefault={() => {
@@ -687,6 +709,8 @@ delete from profile cloud
                 </button>
 
               </div>
+
+                  
 
             </button>
           {/each}
@@ -879,23 +903,23 @@ delete from profile cloud
 
                 <div class="flex flex-row justify-between items-start gap-1">
 
-                  <div class="flex flex-col text-left gap-2">
+                  <div class="flex flex-row text-left gap-2">
 
                     <div>
                       <span class="text-gray-100 ">
                         {profileCloudElement.name}
                       </span>
                     </div>
-                    <div class="flex gap-3 flex-wrap">
+                    <div class="flex gap-3 ">
                       <span
-                        class="text-zinc-100 text-sm px-3 bg-violet-600
+                        class="text-zinc-100 text-sm h-fit px-3 bg-violet-600
                         rounded-xl {selectedModule == profileCloudElement.type ? 'bg-violet-600' : 'bg-gray-600 '}">
                         {profileCloudElement.type}
                       </span>
                     </div>
                   </div>
 
-                  <div class="flex flex-col text-right gap-2">
+                  <div class="flex flex-row text-right gap-2">
                     <div class="text-gray-100 text-sm ">
                       @{profileCloudElement.folder}
                     </div>

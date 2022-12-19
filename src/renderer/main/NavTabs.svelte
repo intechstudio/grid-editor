@@ -111,7 +111,7 @@
   </div>
 
   <div class="flex flex-col">
-    <!--
+    
     <div 
       on:click={()=>{changeLeftTab('NewProfile')}}  
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab == 'NewProfile' ? 'bg-opacity-100' : 'bg-opacity-40'} bg-secondary ">
@@ -121,7 +121,7 @@
       <div class="left-0 -ml-3 absolute transition-all  {selectedLeftTab == 'NewProfile' ? 'h-8' : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"></div>
 
     </div>
--->
+
 
     <div
       on:click={() => {

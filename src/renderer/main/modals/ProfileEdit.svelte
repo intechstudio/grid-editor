@@ -31,6 +31,8 @@
     config: $selectedProfileStore.configs,
   }
 
+
+
   let allModulesTypes = ['BU16', 'EF44', 'PBF4', 'EN16', 'PO16']
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder
@@ -54,9 +56,9 @@
     checkIfDescFieldEmpty(editProfileData.description)
 
     if (
-      isTitleDirty != false &&
-      isDescDirty != false &&
-      isTitleUnique != false
+      isTitleDirty == true &&
+      isDescDirty == true &&
+      isTitleUnique == true
     ) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
@@ -173,7 +175,7 @@
               id="title"
               bind:value={editProfileData.name}
               on:input={() => {
-                checkIfProfileTitleUnique(editProfileData.name), checkIfTitleFieldEmpty(editProfileData.name)
+                checkIfProfileTitleUnique(editProfileData.name.trim()), checkIfTitleFieldEmpty(editProfileData.name)
               }}
               minlength="2"
               maxlength="60"
@@ -194,7 +196,7 @@
             <textarea
               id="desc"
               bind:value={editProfileData.description}
-              on:input={checkIfDescFieldEmpty(editProfileData.description)}
+              on:input={checkIfDescFieldEmpty(editProfileData.description.trim())}
               minlength="2"
               type="text"
               class="w-full py-2 px-3 h-52 bg-secondary text-white

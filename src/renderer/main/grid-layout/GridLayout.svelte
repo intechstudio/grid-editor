@@ -213,7 +213,10 @@
       <div
         use:clickOutside={{ useCapture: true }}
         on:click-outside={() => {
-          selectedProfileStore.set({})
+          if($appSettings.modal == ''){
+            selectedProfileStore.set({})
+          }
+          
         }}>
         {#each $devices as device}
           <div
