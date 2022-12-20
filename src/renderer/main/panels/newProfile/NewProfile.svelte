@@ -1,120 +1,131 @@
 <script>
-  import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings, profileListRefresh } from '/runtime/app-helper.store'
-  import { get } from 'svelte/store'
-  import { onMount } from 'svelte'
-  import { selectedProfileStore } from '/runtime/profile-helper.store'
-  import { profileChangeCallbackStore } from './profile-change.store'
-
+  import { clickOutside } from "/main/_actions/click-outside.action";
+  import { appSettings, profileListRefresh } from "/runtime/app-helper.store";
+  import { get } from "svelte/store";
+  import { onMount } from "svelte";
+  import { selectedProfileStore } from "/runtime/profile-helper.store";
+  import { profileChangeCallbackStore } from "./profile-change.store";
   import {
     engine,
     logger,
     runtime,
     user_input,
-  } from '../../../runtime/runtime.store.js'
+  } from "../../../runtime/runtime.store.js";
 
-  let selectedProfile = undefined
-  let selectedSessionProfile = undefined
+  let selectedProfile = undefined;
+  let selectedSessionProfile = undefined;
 
-  let searchbarValue = ''
+  let searchbarValue = "";
 
-  let isSessionProfileOpen = true
-  let isProfileCloudOpen = true
+  let isSessionProfileOpen = true;
+  let isProfileCloudOpen = true;
 
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder
-  let PROFILES = []
-  let profileCloud = []
-  let sessionProfile = []
-  let filteredProfileCloud = []
+  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  let PROFILES = [];
+  let profileCloud = [];
+  let sessionProfile = [];
+  let filteredProfileCloud = [];
 
-  let justReadInput = true
+  let justReadInput = true;
 
   selectedProfileStore.subscribe((store) => {
-    selectedProfile = store
-  })
+    selectedProfile = store;
+  });
 
   profileChangeCallbackStore.subscribe(async (store) => {
-    if (store.action == 'update' || store.action == 'delete') {
-      await loadFromDirectory()
+    if (store.action == "update" || store.action == "delete") {
+      await loadFromDirectory();
     }
-  })
+  });
 
   function handleDblClick() {
-    justReadInput = false
+    justReadInput = false;
   }
 
   async function loadFromDirectory() {
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
-      'profiles',
-    )
+      "profiles"
+    );
+
+    PROFILES.forEach((element) => {
+      console.log(element);
+    });
 
     profileCloud = PROFILES.filter(
-      (element) => element.folder != 'sessionProfile',
-    )
+      (element) => element.folder != "sessionProfile"
+    );
+
+    profileCloud.forEach((element) => {
+      console.log(element);
+    });
 
     sessionProfile = PROFILES.filter(
-      (element) => element.folder == 'sessionProfile',
-    )
+      (element) => element.folder == "sessionProfile"
+    );
 
-    filteredProfileCloud = profileCloud
+    sessionProfile.forEach((element) => {
+      console.log(element);
+    });
 
-    sortProfileCloud(sortField, sortAsc)
+    filteredProfileCloud = profileCloud;
+
+    sortProfileCloud(sortField, sortAsc);
   }
 
   appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder
+    let new_folder = store.persistant.profileFolder;
     if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder
-      moveOld()
+      PROFILE_PATH = new_folder;
+      moveOld();
     }
-  })
+  });
 
   async function moveOld() {
-    await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles')
-    await loadFromDirectory()
+    await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
+    await loadFromDirectory();
   }
 
   function selectProfile(profile) {
-    selectedProfile = profile
-    selectedProfileStore.set(selectedProfile)
+    selectedProfile = profile;
+    selectedProfileStore.set(selectedProfile);
   }
 
-  let selectedModule
+  let selectedModule;
 
   user_input.subscribe((ui) => {
-    const rt = get(runtime)
+    const rt = get(runtime);
 
     let device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
-    )
+      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+    );
 
     if (device === undefined) {
-      return
+      return;
     }
 
-    selectedModule = device.id.substr(0, 4)
-  })
+    selectedModule = device.id.substr(0, 4);
+  });
 
   function updateSearchFilter(input) {
-    filteredProfileCloud = []
+    filteredProfileCloud = [];
     profileCloud.forEach((profile) => {
       if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile]
+        filteredProfileCloud = [...filteredProfileCloud, profile];
       } else if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile]
+        filteredProfileCloud = [...filteredProfileCloud, profile];
       } else if (
         profile.folder.toLowerCase().indexOf(input.toLowerCase()) > -1
       ) {
-        filteredProfileCloud = [...filteredProfileCloud, profile]
+        filteredProfileCloud = [...filteredProfileCloud, profile];
       }
-    })
+    });
   }
 
-  let number = 0
-  let sessionProfileNumbers = []
+  let number = 0;
+  let sessionProfileNumbers = [];
 
-   /*  
+  /*  
 Refactoring prepareSave!
 save to session profile
 save to profile cloud from session profile (and delete element from session profile)
@@ -124,25 +135,27 @@ delete from profile cloud
 */
 
   function prepareAddToSessionProfile(user) {
-    window.electron.analytics.influx('profile-library', { value: 'save start' })
+    window.electron.analytics.influx("profile-library", {
+      value: "save start",
+    });
     window.electron.analytics.influx(
-      'application',
-      'profiles',
-      'profile',
-      'save start',
-    )
+      "application",
+      "profiles",
+      "profile",
+      "save start"
+    );
 
     let callback = function () {
       logger.set({
-        type: 'progress',
+        type: "progress",
         mode: 0,
-        classname: 'profilesave',
+        classname: "profilesave",
         message: `Ready to save profile!`,
-      })
+      });
 
-      const li = get(user_input)
+      const li = get(user_input);
 
-      const configs = get(runtime)
+      const configs = get(runtime);
 
       let name;
 
@@ -151,34 +164,34 @@ delete from profile cloud
       let type;
 
       //session profile numbering, simplify me pls
-      if (user == 'sessionProfile') {
-        loadFromDirectory()
-        let sessionProfileName
-        sessionProfileNumbers = []
+      if (user == "sessionProfile") {
+        loadFromDirectory();
+        let sessionProfileName;
+        sessionProfileNumbers = [];
 
         sessionProfile.forEach((sessionProfileElement) => {
-          sessionProfileName = JSON.stringify(sessionProfileElement.name)
+          sessionProfileName = JSON.stringify(sessionProfileElement.name);
 
-          if (sessionProfileName.includes('Session Profile')) {
+          if (sessionProfileName.includes("Session Profile")) {
             sessionProfileNumbers = [
               ...sessionProfileNumbers,
-              parseInt(sessionProfileName.split(' ').pop(), 10),
-            ]
+              parseInt(sessionProfileName.split(" ").pop(), 10),
+            ];
           }
-        })
+        });
 
-        let largestNumber = Math.max(...sessionProfileNumbers)
+        let largestNumber = Math.max(...sessionProfileNumbers);
 
         if (largestNumber > 0) {
-          number = largestNumber
-          number++
+          number = largestNumber;
+          number++;
         } else {
-          number++
+          number++;
         }
 
-        name = `Session Profile ${number}`
-        description = ''
-        type = selectedModule
+        name = `Session Profile ${number}`;
+        description = "";
+        type = selectedModule;
       }
 
       let profile = {
@@ -191,11 +204,11 @@ delete from profile cloud
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
-      }
+      };
 
       configs.forEach((d) => {
         if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber)
+          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
 
           profile.configs = page.control_elements.map((cfg) => {
             return {
@@ -204,48 +217,49 @@ delete from profile cloud
                 return {
                   event: ev.event.value,
                   config: ev.config,
-                }
+                };
               }),
-            }
-          })
+            };
+          });
         }
-      })
+      });
 
-      saveToDirectory(PROFILE_PATH, name, profile, user)
+      saveToDirectory(PROFILE_PATH, name, profile, user);
 
-      engine.set('ENABLED')
-    }
+      engine.set("ENABLED");
+    };
 
-    runtime.fetch_page_configuration_from_grid(callback)
+    runtime.fetch_page_configuration_from_grid(callback);
   }
 
-
   function prepareSave(user) {
-    window.electron.analytics.influx('profile-library', { value: 'save start' })
+    window.electron.analytics.influx("profile-library", {
+      value: "save start",
+    });
     window.electron.analytics.influx(
-      'application',
-      'profiles',
-      'profile',
-      'save start',
-    )
+      "application",
+      "profiles",
+      "profile",
+      "save start"
+    );
 
     let callback = function () {
       logger.set({
-        type: 'progress',
+        type: "progress",
         mode: 0,
-        classname: 'profilesave',
+        classname: "profilesave",
         message: `Ready to save profile!`,
-      })
+      });
 
-      const li = get(user_input)
+      const li = get(user_input);
 
-      const configs = get(runtime)
+      const configs = get(runtime);
 
-      let name = selectedProfile.name
+      let name = selectedProfile.name;
 
-      let description = selectedProfile.description
+      let description = selectedProfile.description;
 
-      let type = selectedProfile.type
+      let type = selectedProfile.type;
 
       let profile = {
         name: name,
@@ -257,11 +271,11 @@ delete from profile cloud
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
-      }
+      };
 
       configs.forEach((d) => {
         if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber)
+          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
 
           profile.configs = page.control_elements.map((cfg) => {
             return {
@@ -270,350 +284,396 @@ delete from profile cloud
                 return {
                   event: ev.event.value,
                   config: ev.config,
-                }
+                };
               }),
-            }
-          })
+            };
+          });
         }
-      })
+      });
 
-      
-
-      if (user == 'user') {
+      if (user == "user") {
         let isNameUnique;
 
         profileCloud.forEach((profile) => {
           if (name == profile.name) {
-            isNameUnique = false
+            isNameUnique = false;
           }
-        })
+        });
 
         if (isNameUnique == false) {
           logger.set({
-            type: 'fail',
+            type: "fail",
             mode: 0,
-            classname: 'profilesavefailed',
+            classname: "profilesavefailed",
             message: `A profile with this name is already exists in Profile Cloud!`,
-          })
+          });
         } else {
-          saveToDirectory(PROFILE_PATH, name, profile, user)
-          deleteFromDirectory(selectedProfile)
+          saveToDirectory(PROFILE_PATH, name, profile, user);
+          deleteFromDirectory(selectedProfile);
         }
       }
 
-      engine.set('ENABLED')
-    }
+      engine.set("ENABLED");
+    };
 
-    runtime.fetch_page_configuration_from_grid(callback)
+    runtime.fetch_page_configuration_from_grid(callback);
   }
   async function updateSessionProfileTitle(profile, oldName) {
-    await checkIfProfileTitleUnique(profile.name.trim(), oldName)
-    await checkIfTitleFieldEmpty(profile.name.trim())
+    await checkIfProfileTitleUnique(profile.name.trim(), oldName);
+    await checkIfTitleFieldEmpty(profile.name.trim());
 
     if (isTitleDirty == true && isTitleUnique == true) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
         profile.name.trim(),
         profile,
-        'profiles',
+        "profiles",
         oldName,
-        'sessionProfile',
-      )
+        "sessionProfile"
+      );
     } else {
-      profile.name = oldName
+      profile.name = oldName;
 
       logger.set({
-        type: 'fail',
+        type: "fail",
         mode: 0,
-        classname: 'sessionprofileeditname',
+        classname: "sessionprofileeditname",
         message: `This session profile name is taken. Please choose another one!`,
-      })
+      });
     }
-    await loadFromDirectory()
+    await loadFromDirectory();
   }
   async function saveToDirectory(path, name, profile, user) {
     await window.electron.configs.saveConfig(
       path,
       name,
       profile,
-      'profiles',
-      user,
-    )
+      "profiles",
+      user
+    );
 
     logger.set({
-      type: 'success',
+      type: "success",
       mode: 0,
-      classname: 'profilesave',
+      classname: "profilesave",
       message: `Profile saved!`,
-    })
+    });
 
-    loadFromDirectory()
+    loadFromDirectory();
   }
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
       element.name.trim(),
-      'profiles',
-      element.folder,
-    )
+      "profiles",
+      element.folder
+    );
 
     logger.set({
-      type: 'success',
+      type: "success",
       mode: 0,
-      classname: 'profiledelete',
+      classname: "profiledelete",
       message: `Profile deleted!`,
-    })
+    });
 
-    loadFromDirectory()
+    loadFromDirectory();
   }
 
-  let isTitleUnique = undefined
+  let isTitleUnique = undefined;
 
   async function checkIfProfileTitleUnique(input, oldName) {
-    await loadFromDirectory()
+    await loadFromDirectory();
 
     if (input == oldName) {
-      isTitleUnique = true
+      isTitleUnique = true;
     } else {
       sessionProfile.every((profile) => {
         if (input == profile.name.trim()) {
-          isTitleUnique = false
+          isTitleUnique = false;
 
-          return false
+          return false;
         } else {
-          isTitleUnique = true
+          isTitleUnique = true;
 
-          return true
+          return true;
         }
-      })
+      });
     }
   }
 
-  let isTitleDirty = undefined
+  let isTitleDirty = undefined;
 
   async function checkIfTitleFieldEmpty(input) {
     if (input.length < 1) {
-      isTitleDirty = false
+      isTitleDirty = false;
     } else {
-      isTitleDirty = true
+      isTitleDirty = true;
     }
   }
 
-  let sortAsc = true
-  let sortField = 'name'
+  let sortAsc = true;
+  let sortField = "name";
 
   function sortProfileCloud(field, asc) {
-    filteredProfileCloud = profileCloud
+    filteredProfileCloud = profileCloud;
 
-    filteredProfileCloud = profileCloud
-    if (field == 'name') {
+    filteredProfileCloud = profileCloud;
+    if (field == "name") {
       if (asc == true) {
         filteredProfileCloud = [
           ...filteredProfileCloud.sort(compareNameAscending),
-        ]
+        ];
       }
       if (asc == false) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending)
+        filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending);
       }
     }
 
-    if (field == 'date') {
+    if (field == "date") {
       if (asc == true) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending)
+        filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending);
       }
       if (asc == false) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending)
+        filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending);
+      }
+    }
+
+    if (field == "module") {
+      if (asc == true) {
+        filteredProfileCloud = filteredProfileCloud.sort(
+          compareModuleAscending
+        );
+      }
+      if (asc == false) {
+        filteredProfileCloud = filteredProfileCloud.sort(
+          compareModuleDescending
+        );
       }
     }
   }
 
   function compareNameAscending(a, b) {
     if (a.name < b.name) {
-      return -1
+      return -1;
     }
 
     if (a.name > b.name) {
-      return 1
+      return 1;
     }
 
-    return 0
+    return 0;
   }
 
   function compareNameDescending(a, b) {
     if (a.name < b.name) {
-      return 1
+      return 1;
     }
 
     if (a.name > b.name) {
-      return -1
+      return -1;
     }
 
-    return 0
+    return 0;
   }
 
   function compareDateAscending(a, b) {
     if (a.fsModifiedAt < b.fsModifiedAt) {
-      return -1
+      return -1;
     }
 
     if (a.fsModifiedAt > b.fsModifiedAt) {
-      return 1
+      return 1;
     }
 
-    return 0
+    return 0;
   }
 
   function compareDateDescending(a, b) {
     if (a.fsModifiedAt < b.fsModifiedAt) {
-      return 1
+      return 1;
     }
 
     if (a.fsModifiedAt > b.fsModifiedAt) {
-      return -1
+      return -1;
     }
 
-    return 0
+    return 0;
   }
 
-      function compareModuleAscending(a, b) {
-    if (a.type< b.type) {
-      return -1
-    }
-
-    if (a.type > b.type) {
-      return 1
-    }
-
-    return 0
-  }
-
-    function compareModuleDescending(a, b) {
+  function compareModuleAscending(a, b) {
     if (a.type < b.type) {
-      return 1
+      return -1;
     }
 
     if (a.type > b.type) {
-      return -1
+      return 1;
     }
 
-    return 0
+    return 0;
   }
 
+  function compareModuleDescending(a, b) {
+    if (a.type < b.type) {
+      return 1;
+    }
+
+    if (a.type > b.type) {
+      return -1;
+    }
+
+    return 0;
+  }
 
   profileListRefresh.subscribe((store) => {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
-      loadFromDirectory()
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+      loadFromDirectory();
     }
-  })
+  });
 
   onMount(() => {
-    moveOld()
-  })
+    moveOld();
+  });
 
-  $: console.log('selectProfile', selectedProfile)
-  $: console.log('selectedModule', selectedModule)
+  const [send, receive] = crossfade({
+    duration: (d) => Math.sqrt(d * 200),
+
+    fallback(node, params) {
+      const style = getComputedStyle(node);
+      const transform = style.transform === "none" ? "" : style.transform;
+
+      return {
+        duration: 600,
+        easing: quintOut,
+        css: (t) => `
+					transform: ${transform} scale(${t});
+					opacity: ${t}
+				`,
+      };
+    },
+  });
+
+  $: console.log("selectProfile", selectedProfile);
+  $: console.log("selectedModule", selectedModule);
 </script>
 
-<div
-
-  class=" flex flex-col h-full justify-between mt-4 ">
-
+<div class=" flex flex-col h-full justify-between mt-4 ">
   <div class=" flex flex-col bg-primary ">
     <button
       on:click={() => (isSessionProfileOpen = !isSessionProfileOpen)}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full ">
+      cursor-pointer w-full "
+    >
       <div>Session Profiles</div>
-      {isSessionProfileOpen ? '▼' : '▲'}
+      {isSessionProfileOpen ? "▼" : "▲"}
     </button>
 
     {#if isSessionProfileOpen}
       <div class=" flex flex-col p-3 overflow-hidden h-full">
         <button
-          on:click={() => prepareAddToSessionProfile('sessionProfile')}
+          on:click={() => prepareAddToSessionProfile("sessionProfile")}
           disabled={selectedProfile == undefined}
-          class="relative bg-commit block {selectedProfile != undefined ? 'hover:bg-commit-saturate-20' : 'opacity-50 cursor-not-allowed'}
+          class="relative bg-commit block {selectedProfile != undefined
+            ? 'hover:bg-commit-saturate-20'
+            : 'opacity-50 cursor-not-allowed'}
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
-          hover:border-commit-desaturate-10 focus:outline-none">
+          hover:border-commit-desaturate-10 focus:outline-none"
+        >
           <div>Add to Session Profile</div>
         </button>
         <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
-
-          {#each sessionProfile as sessionProfileElement}
+          {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
             <button
               on:click={() => selectProfile(sessionProfileElement)}
-              class=" cursor-pointer flex justify-between gap-1 items-center
-              text-left bg-secondary p-2 {sessionProfileElement.type != selectedModule ? 'border border-black border-opacity-0 bg-secondary opacity-30' : 0}
-              {sessionProfileElement == selectedProfile ? 'border border-green-300' : 'border border-black border-opacity-0'}
-              ">
-              <div class="flex justify-between flex-row">
-
-                <div on:dblclick={() => handleDblClick()}>
-                  <input
-                    type="text"
-                    disabled={justReadInput == true}
-                    value={sessionProfileElement.name}
-                    use:clickOutside={{ useCapture: true }}
-                    on:click={(e) => {
-                      selectProfile(sessionProfileElement)
-                    }}
-                    on:blur={(e) => {
-                      justReadInput = true
-                      let oldName = selectedProfile.name
-                      sessionProfileElement.name = e.target.value.trim()
-                      updateSessionProfileTitle(sessionProfileElement, oldName)
-                    }}
-                    class="text-zinc-100 min-w-[15px] h-fit break-words
-                    bg-transparent overflow-hidden w-full " />
-
-        
+              class=" cursor-pointer flex justify-between gap-2 items-center
+              text-left p-2    bg-secondary hover:bg-primary-600
+             
+              {sessionProfileElement == selectedProfile
+                ? 'border border-green-300'
+                : 'border border-black border-opacity-0'}
+              "
+            >
+              <div class="flex  gap-2">
+                <div
+                  class="text-zinc-100 text-sm h-fit px-3 bg-violet-600
+                      rounded-xl {selectedModule == sessionProfileElement.type
+                    ? 'bg-violet-600'
+                    : 'bg-gray-600 '}"
+                >
+                  {sessionProfileElement.type}
                 </div>
 
+                <div class="flex justify-between flex-row">
+                  <div on:dblclick={() => handleDblClick()}>
+                    <input
+                      type="text"
+                      disabled={justReadInput == true}
+                      value={sessionProfileElement.name}
+                      use:clickOutside={{ useCapture: true }}
+                      on:click={(e) => {
+                        selectProfile(sessionProfileElement);
+                      }}
+                      on:blur={(e) => {
+                        justReadInput = true;
+                        let oldName = selectedProfile.name;
+                        sessionProfileElement.name = e.target.value.trim();
+                        updateSessionProfileTitle(
+                          sessionProfileElement,
+                          oldName
+                        );
+                      }}
+                      class="text-zinc-100 min-w-[15px] h-fit break-words
+                    bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate"
+                    />
+                  </div>
+                </div>
               </div>
-              <span class="text-zinc-100 text-sm w-min">
-                    {sessionProfileElement.type}
-              </span>
-              
-              <div class="flex gap-2 ">
+
+              <div class="flex gap-2">
                 <button
                   on:click|preventDefault={() => {
-                    deleteFromDirectory(sessionProfileElement)
+                    deleteFromDirectory(sessionProfileElement);
                   }}
-                  class="p-1 hover:bg-primary-500 rounded">
+                  class="p-1 hover:bg-primary-500 rounded"
+                >
                   <svg
                     width="16"
                     height="16"
                     viewBox="0 0 39 39"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
                       stroke="#FFF"
                       stroke-width="2"
-                      stroke-linecap="round" />
+                      stroke-linecap="round"
+                    />
                     <path
                       d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
                       stroke="#FFF"
-                      stroke-width="2" />
+                      stroke-width="2"
+                    />
                   </svg>
                 </button>
                 <button
                   class="p-1 hover:bg-primary-500 rounded"
                   on:click|preventDefault={() => {
-                    selectProfile(sessionProfileElement)
-                    prepareSave('user')
-                    selectedProfile = undefined
-                  }}>
+                    selectProfile(sessionProfileElement);
+                    prepareSave("user");
+                    selectedProfile = undefined;
+                  }}
+                >
                   <svg
                     width="15"
                     height="14"
                     viewBox="0 0 19 18"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
                       1.52244 0.753154C2.00468 0.270917 2.65873 0 3.34072
@@ -648,22 +708,25 @@ delete from profile cloud
                       10.2857H5.26929C5.09879 10.2857 4.93528 10.3534 4.81472
                       10.474C4.69416 10.5946 4.62643 10.7581 4.62643
                       10.9286V16.7143H14.9121Z"
-                      fill="#F1F1F1" />
+                      fill="#F1F1F1"
+                    />
                   </svg>
                 </button>
 
                 <button
                   class="p-1 hover:bg-primary-500 rounded"
                   on:click|preventDefault={() => {
-                    selectProfile(sessionProfileElement)
-                    prepareSave('sessionProfile')
-                  }}>
+                    selectProfile(sessionProfileElement);
+                    prepareSave("sessionProfile");
+                  }}
+                >
                   <svg
                     width="15"
                     height="14"
                     viewBox="0 0 19 18"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <g clip-path="url(#clip0_262_1198)">
                       <path
                         d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
@@ -694,7 +757,8 @@ delete from profile cloud
                         5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
                         18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
                         2.42571 18.4932 2.51357V2.51357Z"
-                        fill="#F1F1F1" />
+                        fill="#F1F1F1"
+                      />
                     </g>
                     <defs>
                       <clipPath id="clip0_262_1198">
@@ -702,46 +766,43 @@ delete from profile cloud
                           width="18"
                           height="18"
                           fill="white"
-                          transform="translate(0.769287)" />
+                          transform="translate(0.769287)"
+                        />
                       </clipPath>
                     </defs>
                   </svg>
                 </button>
-
               </div>
-
-                  
-
             </button>
           {/each}
         </div>
-
       </div>
     {/if}
-
   </div>
 
   <div class=" flex flex-col h-full overflow-hidden bg-primary">
-
     <button
       on:click={() => {
-        isProfileCloudOpen = !isProfileCloudOpen
+        isProfileCloudOpen = !isProfileCloudOpen;
       }}
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full">
+      cursor-pointer w-full"
+    >
       <div>Profile Cloud</div>
-      {isProfileCloudOpen ? '▼' : '▲'}
+      {isProfileCloudOpen ? "▼" : "▲"}
     </button>
+
     {#if isProfileCloudOpen}
-      <div class="flex flex-col gap-2 p-3">
+      <div class="flex flex-col gap-1 p-3">
         <div class="relative">
           <svg
-            class="absolute left-3 bottom-1"
-            width="15"
-            height="15"
+            class="absolute left-3 bottom-[28%]"
+            width="14"
+            height="14"
             viewBox="0 0 18 18"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg">
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
               6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
@@ -765,23 +826,27 @@ delete from profile cloud
               4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
               1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
               4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
-              fill="#CDCDCD" />
+              fill="#CDCDCD"
+            />
           </svg>
-          {#if searchbarValue != ''}
+          {#if searchbarValue != ""}
             <button
-              class="absolute right-3 bottom-3"
-              on:click={() => updateSearchFilter((searchbarValue = ''))}>
+              class="absolute right-3 bottom-[25%]"
+              on:click={() => updateSearchFilter((searchbarValue = ""))}
+            >
               <svg
-                width="30"
-                height="30"
+                width="28"
+                height="28"
                 viewBox="0 0 39 39"
                 fill="none"
-                xmlns="http://www.w3.org/2000/svg">
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
                   stroke="#FFF"
                   stroke-width="2"
-                  stroke-linecap="round" />
+                  stroke-linecap="round"
+                />
               </svg>
             </button>
           {/if}
@@ -792,82 +857,105 @@ delete from profile cloud
             on:keyup={() => updateSearchFilter(searchbarValue)}
             on:input={() => updateSearchFilter(searchbarValue)}
             on:change={() => updateSearchFilter(searchbarValue)}
-            class="w-full py-3 px-12 bg-primary-700 text-white
+            class="w-full py-2 px-12 bg-primary-700 text-white
             placeholder-gray-400 text-md"
-            placeholder="Find Profile..." />
+            placeholder="Find Profile..."
+          />
         </div>
 
-        <div class="flex flex-row gap-2 p-3">
-
+        <div class="flex flex-row gap-2 py-3">
           <button
-            on:click={() => updateSearchFilter((searchbarValue = 'bu16'))}
-            class="border border-primary-300 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min">
-            bu16
+            on:click={() => updateSearchFilter((searchbarValue = "BU16"))}
+            class="border border-primary-700 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+          >
+            BU16
           </button>
           <button
-            on:click={() => updateSearchFilter((searchbarValue = 'obs'))}
-            class="border border-primary-300 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min">
-            obs
+            on:click={() => updateSearchFilter((searchbarValue = "EF44"))}
+            class="border border-primary-700 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+          >
+            EF44
           </button>
           <button
-            on:click={() => updateSearchFilter((searchbarValue = 'EN16'))}
-            class="border border-primary-300 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min">
+            on:click={() => updateSearchFilter((searchbarValue = "EN16"))}
+            class="border border-primary-700 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+          >
             EN16
           </button>
-
+          <button
+            on:click={() => updateSearchFilter((searchbarValue = "PBF4"))}
+            class="border border-primary-700 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+          >
+            PBF4
+          </button>
+          <button
+            on:click={() => updateSearchFilter((searchbarValue = "PO16"))}
+            class="border border-primary-700 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+          >
+            PO16
+          </button>
         </div>
       </div>
 
       <div class="flex gap-2 jus items-center justify-end p-3">
-
         <label
           for="sorting select"
-          class="uppercase text-gray-500 py-1 text-sm">
+          class="uppercase text-gray-500 py-1 text-sm"
+        >
           sort by
         </label>
 
         <select
-          class="bg-secondary border-none flex-grow text-white p-2 shadow"
+          class="bg-secondary border-none flex-grow text-white p-2 "
           id="sortingSelectBox"
           on:change={(e) => {
-            sortField = e.target.value
-            sortProfileCloud(sortField, sortAsc)
+            sortField = e.target.value;
+            sortProfileCloud(sortField, sortAsc);
           }}
-          name="sorting select">
-
+          name="sorting select"
+        >
           <option
             selected
             class="text-white bg-secondary py-1 border-none"
-            value="name">
+            value="name"
+          >
             name
           </option>
 
-          <option class="text-white bg-secondary py-1 border-none" value="date">
-            date
+          <option
+            class="text-white bg-secondary py-1 border-none"
+            value="module"
+          >
+            module
           </option>
         </select>
 
         <button
           on:click={() => {
-            sortAsc = !sortAsc
-            sortProfileCloud(sortField, sortAsc)
-          }}>
+            sortAsc = !sortAsc;
+            sortProfileCloud(sortField, sortAsc);
+          }}
+        >
           {#if sortAsc == false}
             <svg
               width="20"
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg">
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
                 stroke="white"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round" />
+                stroke-linejoin="round"
+              />
             </svg>
           {:else}
             <svg
@@ -875,70 +963,71 @@ delete from profile cloud
               height="20"
               viewBox="0 0 24 24"
               fill="none"
-              xmlns="http://www.w3.org/2000/svg">
+              xmlns="http://www.w3.org/2000/svg"
+            >
               <path
                 d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
                 stroke="white"
                 stroke-width="2"
                 stroke-linecap="round"
-                stroke-linejoin="round" />
+                stroke-linejoin="round"
+              />
             </svg>
           {/if}
-
         </button>
       </div>
 
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
-
-        <div class="flex flex-col ">
-
+        <div class="flex flex-col overflow-auto">
           <div class="overflow-auto flex flex-col gap-4">
-            {#each filteredProfileCloud as profileCloudElement}
+            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
               <button
                 on:click={() => {
-                  selectProfile(profileCloudElement)
+                  selectProfile(profileCloudElement);
                 }}
-                class="w-full bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedProfile == profileCloudElement ? 'border border-green-300 bg-primary-600' : 'border border-black border-opacity-0 bg-secondary'}">
-
-                <div class="flex flex-row justify-between items-start gap-1">
-
-                  <div class="flex flex-row text-left gap-2">
-
-                    <div>
-                      <span class="text-gray-100 ">
-                        {profileCloudElement.name}
-                      </span>
-                    </div>
-                    <div class="flex gap-3 ">
-                      <span
-                        class="text-zinc-100 text-sm h-fit px-3 bg-violet-600
-                        rounded-xl {selectedModule == profileCloudElement.type ? 'bg-violet-600' : 'bg-gray-600 '}">
-                        {profileCloudElement.type}
-                      </span>
-                    </div>
+                class="w-full flex items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
+                cursor-pointer {selectedProfile == profileCloudElement
+                  ? 'border border-green-300 bg-primary-600'
+                  : 'border border-black border-opacity-0 bg-secondary'}"
+              >
+                <div class="flex flex-row gap-2 items-center w-[60%]">
+                  <div
+                    class="text-zinc-100  text-sm h-fit px-3 bg-violet-600
+                      rounded-xl {selectedModule == profileCloudElement.type
+                      ? 'bg-violet-600'
+                      : 'bg-gray-600 '}"
+                  >
+                    {profileCloudElement.type}
                   </div>
 
-                  <div class="flex flex-row text-right gap-2">
-                    <div class="text-gray-100 text-sm ">
-                      @{profileCloudElement.folder}
-                    </div>
-                    <div class="flex flex-row gap-1">
+                  <div class="text-gray-100 text-left truncate ">
+                    {profileCloudElement.name}
+                  </div>
+                </div>
 
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded"
-                        on:click|preventDefault={() => {
-                          ;($appSettings.modal = 'profileAttachment'), selectProfile(profileCloudElement)
-                        }}>
-                        <svg
-                          width="15"
-                          height="16"
-                          viewBox="0 0 20 21"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <g clip-path="url(#clip0_262_1471)">
-                            <path
-                              d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+                <div class="flex flex-row items-center justify-between gap-2">
+                  <div class="text-gray-100 text-sm ">
+                    @{profileCloudElement.folder}
+                  </div>
+
+                  <div class="flex flex-row  ">
+                    <button
+                      class="p-1 hover:bg-primary-500 rounded"
+                      on:click|preventDefault={() => {
+                        ($appSettings.modal = "profileAttachment"),
+                          selectProfile(profileCloudElement);
+                      }}
+                    >
+                      <svg
+                        width="15"
+                        height="16"
+                        viewBox="0 0 20 21"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_262_1471)">
+                          <path
+                            d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -965,36 +1054,40 @@ delete from profile cloud
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                              fill="#F1F1F1" />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_262_1471">
-                              <rect
-                                width="20"
-                                height="20"
-                                fill="white"
-                                transform="translate(0 0.5)" />
-                            </clipPath>
-                          </defs>
-                        </svg>
+                            fill="#F1F1F1"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_262_1471">
+                            <rect
+                              width="20"
+                              height="20"
+                              fill="white"
+                              transform="translate(0 0.5)"
+                            />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                    </button>
 
-                      </button>
-
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded"
-                        on:click|preventDefault={() => {
-                          ;($appSettings.modal = 'profileInfo'), selectProfile(profileCloudElement)
-                        }}>
-                        <svg
-                          class="fill-white "
-                          width="15"
-                          height="14"
-                          viewBox="0 0 21 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg">
-                          <g clip-path="url(#clip0_293_1221)">
-                            <path
-                              d="M10.2723 0.489136C5.02014 0.489136 0.761475
+                    <button
+                      class="p-1 hover:bg-primary-500 rounded"
+                      on:click|preventDefault={() => {
+                        ($appSettings.modal = "profileInfo"),
+                          selectProfile(profileCloudElement);
+                      }}
+                    >
+                      <svg
+                        class="fill-white "
+                        width="15"
+                        height="14"
+                        viewBox="0 0 21 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_293_1221)">
+                          <path
+                            d="M10.2723 0.489136C5.02014 0.489136 0.761475
                               4.7478 0.761475 10C0.761475 15.2522 5.02014
                               19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
                               15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
@@ -1002,9 +1095,10 @@ delete from profile cloud
                               2.37493 14.3606 2.37493 10C2.37493 5.63944 5.91178
                               2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
                               5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
-                              10.2723 17.8974Z" />
-                            <path
-                              d="M9.25342 6.26359C9.25342 6.53385 9.36078
+                              10.2723 17.8974Z"
+                          />
+                          <path
+                            d="M9.25342 6.26359C9.25342 6.53385 9.36078
                               6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
                               7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
                               7.17525 10.993 6.98415C11.1841 6.79304 11.2915
@@ -1017,24 +1111,22 @@ delete from profile cloud
                               9.59309 8.81114V14.5856C9.59309 14.679 9.66952
                               14.7554 9.76293 14.7554H10.782C10.8754 14.7554
                               10.9518 14.679 10.9518 14.5856V8.81114C10.9518
-                              8.71773 10.8754 8.64131 10.782 8.64131Z" />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_293_1221">
-                              <rect
-                                width="20"
-                                height="20"
-                                fill="white"
-                                transform="translate(0.272461)" />
-                            </clipPath>
-                          </defs>
-                        </svg>
-
-                      </button>
-
-                    </div>
+                              8.71773 10.8754 8.64131 10.782 8.64131Z"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_293_1221">
+                            <rect
+                              width="20"
+                              height="20"
+                              fill="white"
+                              transform="translate(0.272461)"
+                            />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                    </button>
                   </div>
-
                 </div>
               </button>
             {/each}
@@ -1042,11 +1134,8 @@ delete from profile cloud
               <div class="text-gray-300">No result</div>
             {/if}
           </div>
-
         </div>
-
       </div>
     {/if}
   </div>
-
 </div>
