@@ -4,7 +4,9 @@
   import { get } from "svelte/store";
   import { onMount } from "svelte";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { profileChangeCallbackStore } from "./profile-change.store";
+
   import {
     engine,
     logger,
@@ -13,7 +15,7 @@
   } from "../../../runtime/runtime.store.js";
 
   let selectedProfile = undefined;
-  let selectedSessionProfile = undefined;
+  let isActionButtonClicked = false;
 
   let searchbarValue = "";
 
@@ -32,6 +34,10 @@
     selectedProfile = store;
   });
 
+  isActionButtonClickedStore.subscribe((store) => {
+    isActionButtonClicked = store;
+  });
+
   profileChangeCallbackStore.subscribe(async (store) => {
     if (store.action == "update" || store.action == "delete") {
       await loadFromDirectory();
@@ -48,29 +54,19 @@
       "profiles"
     );
 
-    PROFILES.forEach((element) => {
-      console.log(element);
-    });
-
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
     );
-
-    profileCloud.forEach((element) => {
-      console.log(element);
-    });
 
     sessionProfile = PROFILES.filter(
       (element) => element.folder == "sessionProfile"
     );
 
-    sessionProfile.forEach((element) => {
-      console.log(element);
-    });
-
     filteredProfileCloud = profileCloud;
 
     sortProfileCloud(sortField, sortAsc);
+    sessionProfile.sort(compareDateDescending); /*lehetne szebb...*/
+    console.log("session", sessionProfile);
   }
 
   appSettings.subscribe((store) => {
@@ -166,6 +162,7 @@ delete from profile cloud
       //session profile numbering, simplify me pls
       if (user == "sessionProfile") {
         loadFromDirectory();
+
         let sessionProfileName;
         sessionProfileNumbers = [];
 
@@ -310,6 +307,19 @@ delete from profile cloud
         } else {
           saveToDirectory(PROFILE_PATH, name, profile, user);
           deleteFromDirectory(selectedProfile);
+        }
+      }
+
+      if (user == "sessionProfile") {
+        if (selectedModule != selectedProfile.type) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profilesavefailed",
+            message: `Cannot overwrite a profile with different module type!`,
+          });
+        } else {
+          saveToDirectory(PROFILE_PATH, name, profile, user);
         }
       }
 
@@ -534,26 +544,7 @@ delete from profile cloud
     moveOld();
   });
 
-  const [send, receive] = crossfade({
-    duration: (d) => Math.sqrt(d * 200),
-
-    fallback(node, params) {
-      const style = getComputedStyle(node);
-      const transform = style.transform === "none" ? "" : style.transform;
-
-      return {
-        duration: 600,
-        easing: quintOut,
-        css: (t) => `
-					transform: ${transform} scale(${t});
-					opacity: ${t}
-				`,
-      };
-    },
-  });
-
-  $: console.log("selectProfile", selectedProfile);
-  $: console.log("selectedModule", selectedModule);
+  $: console.log("selectedProfile", selectedProfile);
 </script>
 
 <div class=" flex flex-col h-full justify-between mt-4 ">
@@ -581,18 +572,17 @@ delete from profile cloud
           <div>Add to Session Profile</div>
         </button>
         <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
-          {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
+          {#each sessionProfile as sessionProfileElement}
             <button
               on:click={() => selectProfile(sessionProfileElement)}
-              class=" cursor-pointer flex justify-between gap-2 items-center
-              text-left p-2    bg-secondary hover:bg-primary-600
-             
+              class="cursor-pointer flex justify-between gap-2 items-center
+              text-left p-2 bg-secondary hover:bg-primary-600
               {sessionProfileElement == selectedProfile
                 ? 'border border-green-300'
                 : 'border border-black border-opacity-0'}
               "
             >
-              <div class="flex  gap-2">
+              <div class="flex gap-2">
                 <div
                   class="text-zinc-100 text-sm h-fit px-3 bg-violet-600
                       rounded-xl {selectedModule == sessionProfileElement.type
@@ -631,7 +621,11 @@ delete from profile cloud
               <div class="flex gap-2">
                 <button
                   on:click|preventDefault={() => {
+                    isActionButtonClickedStore.set(true);
                     deleteFromDirectory(sessionProfileElement);
+                  }}
+                  on:blur={() => {
+                    isActionButtonClickedStore.set(false);
                   }}
                   class="p-1 hover:bg-primary-500 rounded"
                 >
@@ -662,9 +656,13 @@ delete from profile cloud
                 <button
                   class="p-1 hover:bg-primary-500 rounded"
                   on:click|preventDefault={() => {
+                    isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
                     prepareSave("user");
                     selectedProfile = undefined;
+                  }}
+                  on:blur={() => {
+                    isActionButtonClickedStore.set(false);
                   }}
                 >
                   <svg
@@ -716,8 +714,12 @@ delete from profile cloud
                 <button
                   class="p-1 hover:bg-primary-500 rounded"
                   on:click|preventDefault={() => {
+                    isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
                     prepareSave("sessionProfile");
+                  }}
+                  on:blur={() => {
+                    isActionButtonClickedStore.set(false);
                   }}
                 >
                   <svg
@@ -858,7 +860,7 @@ delete from profile cloud
             on:input={() => updateSearchFilter(searchbarValue)}
             on:change={() => updateSearchFilter(searchbarValue)}
             class="w-full py-2 px-12 bg-primary-700 text-white
-            placeholder-gray-400 text-md"
+            placeholder-gray-400 text-md focus:outline-none"
             placeholder="Find Profile..."
           />
         </div>
@@ -911,7 +913,7 @@ delete from profile cloud
         </label>
 
         <select
-          class="bg-secondary border-none flex-grow text-white p-2 "
+          class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
           id="sortingSelectBox"
           on:change={(e) => {
             sortField = e.target.value;
@@ -980,12 +982,12 @@ delete from profile cloud
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
         <div class="flex flex-col overflow-auto">
           <div class="overflow-auto flex flex-col gap-4">
-            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
+            {#each filteredProfileCloud as profileCloudElement}
               <button
                 on:click={() => {
                   selectProfile(profileCloudElement);
                 }}
-                class="w-full flex items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
+                class="w-full gap-3 flex items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
                 cursor-pointer {selectedProfile == profileCloudElement
                   ? 'border border-green-300 bg-primary-600'
                   : 'border border-black border-opacity-0 bg-secondary'}"
@@ -1005,7 +1007,9 @@ delete from profile cloud
                   </div>
                 </div>
 
-                <div class="flex flex-row items-center justify-between gap-2">
+                <div
+                  class="flex flex-row items-center justify-end gap-2 w-[40%]"
+                >
                   <div class="text-gray-100 text-sm ">
                     @{profileCloudElement.folder}
                   </div>

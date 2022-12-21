@@ -1,60 +1,86 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onMount } from "svelte";
 
-  import BU16 from './devices/BU16.svelte'
-  import PO16 from './devices/PO16.svelte'
-  import PBF4 from './devices/PBF4.svelte'
-  import EN16 from './devices/EN16.svelte'
-  import EF44 from './devices/EF44.svelte'
+  import BU16 from "./devices/BU16.svelte";
+  import PO16 from "./devices/PO16.svelte";
+  import PBF4 from "./devices/PBF4.svelte";
+  import EN16 from "./devices/EN16.svelte";
+  import EF44 from "./devices/EF44.svelte";
 
-  import ControlNameOverlay from './overlays/ControlNameOverlay.svelte'
-  import ProfileLoadOverlay from './overlays/ProfileLoadOverlay.svelte'
-  import { clickOutside } from '/main/_actions/click-outside.action'
+  import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
+  import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
+  import { clickOutside } from "/main/_actions/click-outside.action";
 
-  import { appSettings } from '../../../runtime/app-helper.store.js'
-  import { runtime, user_input } from '../../../runtime/runtime.store.js'
-  import { selectedProfileStore } from '../../../runtime/profile-helper.store'
+  import { appSettings } from "../../../runtime/app-helper.store.js";
+  import { runtime, user_input } from "../../../runtime/runtime.store.js";
+  import { selectedProfileStore } from "../../../runtime/profile-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
 
   const components = [
-    { type: 'BU16', component: BU16 },
-    { type: 'PO16', component: PO16 },
-    { type: 'PBF4', component: PBF4 },
-    { type: 'EN16', component: EN16 },
-    { type: 'EF44', component: EF44 },
-  ]
+    { type: "BU16", component: BU16 },
+    { type: "PO16", component: PO16 },
+    { type: "PBF4", component: PBF4 },
+    { type: "EN16", component: EN16 },
+    { type: "EF44", component: EF44 },
+  ];
 
-  export let type
-  export let id
-  export let rotation
+  export let type;
+  export let id;
+  export let rotation;
 
-  let selected
+  let selected;
 
-  let selectedElement
+  let selectedElement;
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2
+  let isActionButtonClicked;
 
-  $: selected = components.find((component) => component.type === type)
+  $: moduleWidth = $appSettings.size * 106.6 + 2;
+
+  $: selected = components.find((component) => component.type === type);
 
   onMount(() => {
+    isActionButtonClickedStore.subscribe((store) => {
+      isActionButtonClicked = store;
+    });
+
     selectedProfileStore.subscribe((store) => {
-      if (Object.keys($selectedProfileStore).length !== 0) {
-        selectedElement = { id: '', brc: {}, event: {} }
+      if (
+        Object.keys($selectedProfileStore).length !== 0 &&
+        isActionButtonClicked == false
+      ) {
+        selectedElement = { id: "", brc: {}, event: {} };
       }
-    })
+    });
 
     user_input.subscribe((store) => {
       if (Object.keys($selectedProfileStore).length === 0) {
-        selectedElement = store
+        selectedElement = store;
       }
-    })
-  })
+    });
+  });
 
   $: user_input.subscribe((store) => {
     if (Object.keys($selectedProfileStore).length === 0) {
-      selectedElement = store
+      selectedElement = store;
     }
-  })
+  });
 </script>
+
+{#if selected}
+  <svelte:component
+    this={selected.component}
+    {moduleWidth}
+    {id}
+    {rotation}
+    {selectedElement}
+  >
+    {#if $appSettings.overlays.controlElementName}
+      <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
+    {/if}
+
+    <ProfileLoadOverlay {id} />
+  </svelte:component>
+{/if}
 
 <style global>
   .module-dimensions {
@@ -107,20 +133,3 @@
     box-shadow: inset 0 0 10px #dddddd60;
   }
 </style>
-
-{#if selected}
-  <svelte:component
-    this={selected.component}
-    {moduleWidth}
-    {id}
-    {rotation}
-    {selectedElement}>
-
-    {#if $appSettings.overlays.controlElementName}
-      <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
-    {/if}
-
-    <ProfileLoadOverlay {id} />
-
-  </svelte:component>
-{/if}
