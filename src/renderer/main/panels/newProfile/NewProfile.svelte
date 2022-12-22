@@ -6,6 +6,7 @@
   import { selectedProfileStore } from "/runtime/profile-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { profileChangeCallbackStore } from "./profile-change.store";
+  import { fade, fly } from "svelte/transition";
 
   import {
     engine,
@@ -65,7 +66,7 @@
     filteredProfileCloud = profileCloud;
 
     sortProfileCloud(sortField, sortAsc);
-    sessionProfile.sort(compareDateDescending); /*lehetne szebb...*/
+    sessionProfile.sort(compareDateDescending); /*lehetne szebb.../*
     console.log("session", sessionProfile);
   }
 
@@ -563,7 +564,7 @@ delete from profile cloud
         <button
           on:click={() => prepareAddToSessionProfile("sessionProfile")}
           disabled={selectedProfile == undefined}
-          class="relative bg-commit block {selectedProfile != undefined
+          class="relative bg-commit block  {selectedProfile != undefined
             ? 'hover:bg-commit-saturate-20'
             : 'opacity-50 cursor-not-allowed'}
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
@@ -574,6 +575,8 @@ delete from profile cloud
         <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
           {#each sessionProfile as sessionProfileElement}
             <button
+              in:fly={{ x: -200, duration: 1000 }}
+              out:fade
               on:click={() => selectProfile(sessionProfileElement)}
               class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
