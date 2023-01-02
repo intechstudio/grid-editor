@@ -65,9 +65,10 @@
 
     filteredProfileCloud = profileCloud;
 
+    sessionProfile.sort(compareDateDescending);
     sortProfileCloud(sortField, sortAsc);
-    sessionProfile.sort(compareDateDescending); /*lehetne szebb.../*
-    console.log("session", sessionProfile);
+
+    /*lehetne szebb...*/
   }
 
   appSettings.subscribe((store) => {
@@ -122,14 +123,13 @@
   let number = 0;
   let sessionProfileNumbers = [];
 
-  /*  
-Refactoring prepareSave!
-save to session profile
-save to profile cloud from session profile (and delete element from session profile)
+  /*Refactoring prepareSave!
+    save to session profile
+    save to profile cloud from session profile (and delete element from session profile)
 
-delete from session profile
-delete from profile cloud 
-*/
+    delete from session profile
+    delete from profile cloud 
+    */
 
   function prepareAddToSessionProfile(user) {
     window.electron.analytics.influx("profile-library", {
@@ -228,6 +228,8 @@ delete from profile cloud
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
+
+    transitionDistance = -200;
   }
 
   function prepareSave(user) {
@@ -307,6 +309,7 @@ delete from profile cloud
           });
         } else {
           saveToDirectory(PROFILE_PATH, name, profile, user);
+
           deleteFromDirectory(selectedProfile);
         }
       }
@@ -354,6 +357,7 @@ delete from profile cloud
     }
     await loadFromDirectory();
   }
+
   async function saveToDirectory(path, name, profile, user) {
     await window.electron.configs.saveConfig(
       path,
@@ -367,10 +371,11 @@ delete from profile cloud
       type: "success",
       mode: 0,
       classname: "profilesave",
-      message: `Profile saved!`,
+      message: `${name} saved!`,
     });
 
-    loadFromDirectory();
+    /* loadFromDirectory(); */
+    transitionDistance = -200;
   }
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
@@ -384,7 +389,7 @@ delete from profile cloud
       type: "success",
       mode: 0,
       classname: "profiledelete",
-      message: `Profile deleted!`,
+      message: `${element.name.trim()} deleted!`,
     });
 
     loadFromDirectory();
@@ -426,15 +431,11 @@ delete from profile cloud
   let sortField = "name";
 
   function sortProfileCloud(field, asc) {
-    filteredProfileCloud = profileCloud;
-
-    filteredProfileCloud = profileCloud;
     if (field == "name") {
       if (asc == true) {
-        filteredProfileCloud = [
-          ...filteredProfileCloud.sort(compareNameAscending),
-        ];
+        filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending);
       }
+
       if (asc == false) {
         filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending);
       }
@@ -444,6 +445,7 @@ delete from profile cloud
       if (asc == true) {
         filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending);
       }
+
       if (asc == false) {
         filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending);
       }
@@ -541,11 +543,12 @@ delete from profile cloud
     }
   });
 
+  let transitionDistance;
+
   onMount(() => {
+    transitionDistance = 0;
     moveOld();
   });
-
-  $: console.log("selectedProfile", selectedProfile);
 </script>
 
 <div class=" flex flex-col h-full justify-between mt-4 ">
@@ -575,8 +578,8 @@ delete from profile cloud
         <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
           {#each sessionProfile as sessionProfileElement}
             <button
-              in:fly={{ x: -200, duration: 1000 }}
-              out:fade
+              in:fly|local={{ x: transitionDistance }}
+              out:fade|local={{ y: 200 }}
               on:click={() => selectProfile(sessionProfileElement)}
               class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
@@ -585,9 +588,9 @@ delete from profile cloud
                 : 'border border-black border-opacity-0'}
               "
             >
-              <div class="flex gap-2">
+              <div class="flex gap-2 items-center">
                 <div
-                  class="text-zinc-100 text-sm h-fit px-3 bg-violet-600
+                  class="text-zinc-100 text-xs lg:text-sm h-fit px-2 bg-violet-600
                       rounded-xl {selectedModule == sessionProfileElement.type
                     ? 'bg-violet-600'
                     : 'bg-gray-600 '}"
@@ -615,13 +618,13 @@ delete from profile cloud
                         );
                       }}
                       class="text-zinc-100 min-w-[15px] h-fit break-words
-                    bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate"
+                    bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
                     />
                   </div>
                 </div>
               </div>
 
-              <div class="flex gap-2">
+              <div class="flex gap-1">
                 <button
                   on:click|preventDefault={() => {
                     isActionButtonClickedStore.set(true);
@@ -630,11 +633,10 @@ delete from profile cloud
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
                   }}
-                  class="p-1 hover:bg-primary-500 rounded"
+                  class="p-1 hover:bg-primary-500 rounded "
                 >
                   <svg
-                    width="16"
-                    height="16"
+                    class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
                     viewBox="0 0 39 39"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -669,8 +671,7 @@ delete from profile cloud
                   }}
                 >
                   <svg
-                    width="15"
-                    height="14"
+                    class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -726,8 +727,7 @@ delete from profile cloud
                   }}
                 >
                   <svg
-                    width="15"
-                    height="14"
+                    class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
                     viewBox="0 0 19 18"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -836,7 +836,7 @@ delete from profile cloud
           </svg>
           {#if searchbarValue != ""}
             <button
-              class="absolute right-3 bottom-[25%]"
+              class="absolute right-2 bottom-[25%]"
               on:click={() => updateSearchFilter((searchbarValue = ""))}
             >
               <svg
@@ -868,7 +868,7 @@ delete from profile cloud
           />
         </div>
 
-        <div class="flex flex-row gap-2 py-3">
+        <div class="flex flex-row gap-2 py-3 flex-wrap">
           <button
             on:click={() => updateSearchFilter((searchbarValue = "BU16"))}
             class="border border-primary-700 text-sm text-primary-100 rounded-md
@@ -984,20 +984,24 @@ delete from profile cloud
 
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
         <div class="flex flex-col overflow-auto">
-          <div class="overflow-auto flex flex-col gap-4">
+          <div class="overflow-y-auto flex flex-col gap-4 mb-2">
             {#each filteredProfileCloud as profileCloudElement}
               <button
+                in:fly|local={{ x: transitionDistance }}
+                out:fade|local={{ y: 200 }}
                 on:click={() => {
                   selectProfile(profileCloudElement);
                 }}
-                class="w-full gap-3 flex items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
+                class="w-full flex gap-1 items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
                 cursor-pointer {selectedProfile == profileCloudElement
                   ? 'border border-green-300 bg-primary-600'
                   : 'border border-black border-opacity-0 bg-secondary'}"
               >
-                <div class="flex flex-row gap-2 items-center w-[60%]">
+                <div
+                  class="flex flex-row gap-2 items-centerc w-full max-w-[50%] lg:max-w-[60%]"
+                >
                   <div
-                    class="text-zinc-100  text-sm h-fit px-3 bg-violet-600
+                    class="text-zinc-100 text-xs lg:text-sm h-fit px-2 bg-violet-600
                       rounded-xl {selectedModule == profileCloudElement.type
                       ? 'bg-violet-600'
                       : 'bg-gray-600 '}"
@@ -1005,19 +1009,19 @@ delete from profile cloud
                     {profileCloudElement.type}
                   </div>
 
-                  <div class="text-gray-100 text-left truncate ">
+                  <div
+                    class="text-gray-100 text-left text-sm lg:text-md truncate "
+                  >
                     {profileCloudElement.name}
                   </div>
                 </div>
 
-                <div
-                  class="flex flex-row items-center justify-end gap-2 w-[40%]"
-                >
-                  <div class="text-gray-100 text-sm ">
+                <div class="flex flex-row gap-1 items-center justify-end  ">
+                  <div class="text-gray-100 text-xs lg:text-sm ">
                     @{profileCloudElement.folder}
                   </div>
 
-                  <div class="flex flex-row  ">
+                  <div class="flex flex-row gap-1">
                     <button
                       class="p-1 hover:bg-primary-500 rounded"
                       on:click|preventDefault={() => {
@@ -1026,6 +1030,7 @@ delete from profile cloud
                       }}
                     >
                       <svg
+                        class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
                         width="15"
                         height="16"
                         viewBox="0 0 20 21"
@@ -1085,9 +1090,7 @@ delete from profile cloud
                       }}
                     >
                       <svg
-                        class="fill-white "
-                        width="15"
-                        height="14"
+                        class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
                         viewBox="0 0 21 20"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
