@@ -31,6 +31,8 @@
 
   let justReadInput = true;
 
+  let transitionDistance;
+
   selectedProfileStore.subscribe((store) => {
     selectedProfile = store;
   });
@@ -65,10 +67,9 @@
 
     filteredProfileCloud = profileCloud;
 
-    sessionProfile.sort(compareDateDescending);
     sortProfileCloud(sortField, sortAsc);
 
-    /*lehetne szebb...*/
+    sessionProfile.sort(compareNameDescending);
   }
 
   appSettings.subscribe((store) => {
@@ -374,9 +375,11 @@
       message: `${name} saved!`,
     });
 
-    /* loadFromDirectory(); */
     transitionDistance = -200;
+    await loadFromDirectory();
+    transitionDistance = 0;
   }
+
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
@@ -430,6 +433,42 @@
   let sortAsc = true;
   let sortField = "name";
 
+  let compareNameAscending = (a, b) => {
+    return a.name
+      .toLowerCase()
+      .localeCompare(b.name.toLowerCase(), undefined, { numeric: true });
+  };
+
+  let compareNameDescending = (a, b) => {
+    return b.name
+      .toLowerCase()
+      .localeCompare(a.name.toLowerCase(), undefined, { numeric: true });
+  };
+
+  function compareDateAscending(a, b) {
+    return a.fsModifiedAt.localeCompare(b.fsModifiedAt, undefined, {
+      numeric: true,
+    });
+  }
+
+  function compareDateDescending(a, b) {
+    return b.fsModifiedAt.localeCompare(a.fsModifiedAt, undefined, {
+      numeric: true,
+    });
+  }
+
+  function compareModuleAscending(a, b) {
+    return a.type.localeCompare(b.type, undefined, {
+      numeric: true,
+    });
+  }
+
+  function compareModuleDescending(a, b) {
+    return b.type.localeCompare(a.type, undefined, {
+      numeric: true,
+    });
+  }
+
   function sortProfileCloud(field, asc) {
     if (field == "name") {
       if (asc == true) {
@@ -465,85 +504,11 @@
     }
   }
 
-  function compareNameAscending(a, b) {
-    if (a.name < b.name) {
-      return -1;
-    }
-
-    if (a.name > b.name) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  function compareNameDescending(a, b) {
-    if (a.name < b.name) {
-      return 1;
-    }
-
-    if (a.name > b.name) {
-      return -1;
-    }
-
-    return 0;
-  }
-
-  function compareDateAscending(a, b) {
-    if (a.fsModifiedAt < b.fsModifiedAt) {
-      return -1;
-    }
-
-    if (a.fsModifiedAt > b.fsModifiedAt) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  function compareDateDescending(a, b) {
-    if (a.fsModifiedAt < b.fsModifiedAt) {
-      return 1;
-    }
-
-    if (a.fsModifiedAt > b.fsModifiedAt) {
-      return -1;
-    }
-
-    return 0;
-  }
-
-  function compareModuleAscending(a, b) {
-    if (a.type < b.type) {
-      return -1;
-    }
-
-    if (a.type > b.type) {
-      return 1;
-    }
-
-    return 0;
-  }
-
-  function compareModuleDescending(a, b) {
-    if (a.type < b.type) {
-      return 1;
-    }
-
-    if (a.type > b.type) {
-      return -1;
-    }
-
-    return 0;
-  }
-
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
       loadFromDirectory();
     }
   });
-
-  let transitionDistance;
 
   onMount(() => {
     transitionDistance = 0;
@@ -607,6 +572,18 @@
                       use:clickOutside={{ useCapture: true }}
                       on:click={(e) => {
                         selectProfile(sessionProfileElement);
+                      }}
+                      on:keypress={(e) => {
+                        if (e.charCode === 13) {
+                          justReadInput = true;
+                          let oldName = selectedProfile.name;
+                          sessionProfileElement.name = e.target.value.trim();
+                          updateSessionProfileTitle(
+                            sessionProfileElement,
+                            oldName
+                          );
+                          justReadInput = true;
+                        }
                       }}
                       on:blur={(e) => {
                         justReadInput = true;
@@ -907,7 +884,7 @@
         </div>
       </div>
 
-      <div class="flex gap-2 jus items-center justify-end p-3">
+      <div class="flex gap-2 items-center justify-between  flex-wrap p-3">
         <label
           for="sorting select"
           class="uppercase text-gray-500 py-1 text-sm"
@@ -984,9 +961,10 @@
 
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
         <div class="flex flex-col overflow-auto">
-          <div class="overflow-y-auto flex flex-col gap-4 mb-2">
-            {#each filteredProfileCloud as profileCloudElement}
+          <div class="overflow-auto flex flex-col gap-4 mb-2">
+            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
               <button
+                title={profileCloudElement.name}
                 in:fly|local={{ x: transitionDistance }}
                 out:fade|local={{ y: 200 }}
                 on:click={() => {
@@ -998,48 +976,48 @@
                   : 'border border-black border-opacity-0 bg-secondary'}"
               >
                 <div
-                  class="flex flex-row gap-2 items-centerc w-full max-w-[50%] lg:max-w-[60%]"
+                  class="flex flex-row gap-1 items-center w-full  justify-between"
                 >
-                  <div
-                    class="text-zinc-100 text-xs lg:text-sm h-fit px-2 bg-violet-600
+                  <div class="flex truncate items-center   gap-1">
+                    <div
+                      class="text-zinc-100 text-xs lg:text-sm h-fit px-1 lg:px-2 bg-violet-600
                       rounded-xl {selectedModule == profileCloudElement.type
-                      ? 'bg-violet-600'
-                      : 'bg-gray-600 '}"
-                  >
-                    {profileCloudElement.type}
-                  </div>
-
-                  <div
-                    class="text-gray-100 text-left text-sm lg:text-md truncate "
-                  >
-                    {profileCloudElement.name}
-                  </div>
-                </div>
-
-                <div class="flex flex-row gap-1 items-center justify-end  ">
-                  <div class="text-gray-100 text-xs lg:text-sm ">
-                    @{profileCloudElement.folder}
-                  </div>
-
-                  <div class="flex flex-row gap-1">
-                    <button
-                      class="p-1 hover:bg-primary-500 rounded"
-                      on:click|preventDefault={() => {
-                        ($appSettings.modal = "profileAttachment"),
-                          selectProfile(profileCloudElement);
-                      }}
+                        ? 'bg-violet-600'
+                        : 'bg-gray-600 '}"
                     >
-                      <svg
-                        class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                        width="15"
-                        height="16"
-                        viewBox="0 0 20 21"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                      {profileCloudElement.type}
+                    </div>
+
+                    <div
+                      class="text-gray-100 text-left text-sm lg:text-md truncate "
+                    >
+                      {profileCloudElement.name}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-row gap-1 items-center justify-end">
+                    <div class="text-gray-100 text-xs lg:text-sm ">
+                      @{profileCloudElement.folder}
+                    </div>
+                    <div class="flex flex-row gap-1">
+                      <button
+                        class="p-1 hover:bg-primary-500 rounded"
+                        on:click|preventDefault={() => {
+                          ($appSettings.modal = "profileAttachment"),
+                            selectProfile(profileCloudElement);
+                        }}
                       >
-                        <g clip-path="url(#clip0_262_1471)">
-                          <path
-                            d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+                        <svg
+                          class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
+                          width="15"
+                          height="16"
+                          viewBox="0 0 20 21"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clip-path="url(#clip0_262_1471)">
+                            <path
+                              d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -1066,38 +1044,38 @@
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                            fill="#F1F1F1"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_262_1471">
-                            <rect
-                              width="20"
-                              height="20"
-                              fill="white"
-                              transform="translate(0 0.5)"
+                              fill="#F1F1F1"
                             />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </button>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_262_1471">
+                              <rect
+                                width="20"
+                                height="20"
+                                fill="white"
+                                transform="translate(0 0.5)"
+                              />
+                            </clipPath>
+                          </defs>
+                        </svg>
+                      </button>
 
-                    <button
-                      class="p-1 hover:bg-primary-500 rounded"
-                      on:click|preventDefault={() => {
-                        ($appSettings.modal = "profileInfo"),
-                          selectProfile(profileCloudElement);
-                      }}
-                    >
-                      <svg
-                        class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                        viewBox="0 0 21 20"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
+                      <button
+                        class="p-1 hover:bg-primary-500 rounded"
+                        on:click|preventDefault={() => {
+                          ($appSettings.modal = "profileInfo"),
+                            selectProfile(profileCloudElement);
+                        }}
                       >
-                        <g clip-path="url(#clip0_293_1221)">
-                          <path
-                            d="M10.2723 0.489136C5.02014 0.489136 0.761475
+                        <svg
+                          class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                          viewBox="0 0 21 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clip-path="url(#clip0_293_1221)">
+                            <path
+                              d="M10.2723 0.489136C5.02014 0.489136 0.761475
                               4.7478 0.761475 10C0.761475 15.2522 5.02014
                               19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
                               15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
@@ -1106,9 +1084,9 @@
                               2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
                               5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
                               10.2723 17.8974Z"
-                          />
-                          <path
-                            d="M9.25342 6.26359C9.25342 6.53385 9.36078
+                            />
+                            <path
+                              d="M9.25342 6.26359C9.25342 6.53385 9.36078
                               6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
                               7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
                               7.17525 10.993 6.98415C11.1841 6.79304 11.2915
@@ -1122,24 +1100,26 @@
                               14.7554 9.76293 14.7554H10.782C10.8754 14.7554
                               10.9518 14.679 10.9518 14.5856V8.81114C10.9518
                               8.71773 10.8754 8.64131 10.782 8.64131Z"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_293_1221">
-                            <rect
-                              width="20"
-                              height="20"
-                              fill="white"
-                              transform="translate(0.272461)"
                             />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </button>
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_293_1221">
+                              <rect
+                                width="20"
+                                height="20"
+                                fill="white"
+                                transform="translate(0.272461)"
+                              />
+                            </clipPath>
+                          </defs>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </button>
             {/each}
+
             {#if filteredProfileCloud.length == 0}
               <div class="text-gray-300">No result</div>
             {/if}
