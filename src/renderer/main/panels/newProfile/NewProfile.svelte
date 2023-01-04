@@ -31,7 +31,8 @@
 
   let justReadInput = true;
 
-  let transitionDistance;
+  let animateFade;
+  let animateFly;
 
   selectedProfileStore.subscribe((store) => {
     selectedProfile = store;
@@ -68,8 +69,8 @@
     filteredProfileCloud = profileCloud;
 
     sortProfileCloud(sortField, sortAsc);
-
-    sessionProfile.sort(compareNameDescending);
+    sessionProfile.sort(compareDateDescending);
+    updateSearchFilter(searchbarValue);
   }
 
   appSettings.subscribe((store) => {
@@ -229,8 +230,6 @@
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
-
-    transitionDistance = -200;
   }
 
   function prepareSave(user) {
@@ -334,10 +333,21 @@
     runtime.fetch_page_configuration_from_grid(callback);
   }
   async function updateSessionProfileTitle(profile, oldName) {
+    animateFly = false;
+    animateFade = true;
     await checkIfProfileTitleUnique(profile.name.trim(), oldName);
     await checkIfTitleFieldEmpty(profile.name.trim());
 
-    if (isTitleDirty == true && isTitleUnique == true) {
+    console.log(oldName, "oldname", profile.name, "profile.name");
+    console.log("profile.name == oldName", profile.name == oldName);
+    console.log("isTitleDirty", isTitleDirty);
+    console.log("isTitleUnique", isTitleUnique);
+
+    if (
+      isTitleDirty == true &&
+      isTitleUnique == true &&
+      profile.name != oldName
+    ) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
         profile.name.trim(),
@@ -348,15 +358,18 @@
       );
     } else {
       profile.name = oldName;
+    }
 
+    if (isTitleUnique == false && profile.name != oldName)
       logger.set({
         type: "fail",
         mode: 0,
         classname: "sessionprofileeditname",
         message: `This session profile name is taken. Please choose another one!`,
       });
-    }
+
     await loadFromDirectory();
+    animateFly = false;
   }
 
   async function saveToDirectory(path, name, profile, user) {
@@ -375,9 +388,9 @@
       message: `${name} saved!`,
     });
 
-    transitionDistance = -200;
+    animateFly = true;
     await loadFromDirectory();
-    transitionDistance = 0;
+    animateFly = false;
   }
 
   async function deleteFromDirectory(element) {
@@ -401,23 +414,22 @@
   let isTitleUnique = undefined;
 
   async function checkIfProfileTitleUnique(input, oldName) {
-    await loadFromDirectory();
+    console.log("input", input);
+    console.log("oldaname", oldName);
+    console.log("isTitleUnique1", isTitleUnique);
+    console.log(sessionProfile);
+    sessionProfile.every(function (element, index) {
+      console.log(element.name, index); /*ezt meg kell csinálni!!!*/
+      if (element.name == input) {
+        isTitleUnique = false;
+        return false;
+      } else {
+        isTitleUnique = true;
+        return true;
+      }
+    });
 
-    if (input == oldName) {
-      isTitleUnique = true;
-    } else {
-      sessionProfile.every((profile) => {
-        if (input == profile.name.trim()) {
-          isTitleUnique = false;
-
-          return false;
-        } else {
-          isTitleUnique = true;
-
-          return true;
-        }
-      });
-    }
+    console.log("isTitleUnique2", isTitleUnique);
   }
 
   let isTitleDirty = undefined;
@@ -446,15 +458,11 @@
   };
 
   function compareDateAscending(a, b) {
-    return a.fsModifiedAt.localeCompare(b.fsModifiedAt, undefined, {
-      numeric: true,
-    });
+    return a.fsModifiedAt - b.fsModifiedAt;
   }
 
   function compareDateDescending(a, b) {
-    return b.fsModifiedAt.localeCompare(a.fsModifiedAt, undefined, {
-      numeric: true,
-    });
+    return b.fsModifiedAt - a.fsModifiedAt;
   }
 
   function compareModuleAscending(a, b) {
@@ -511,9 +519,22 @@
   });
 
   onMount(() => {
-    transitionDistance = 0;
+    animateFade = true;
+    animateFly = false;
     moveOld();
   });
+
+  function fadeAnimation(node, options) {
+    if (animateFade) {
+      return options.fn(node, options);
+    }
+  }
+
+  function flyAnimation(node, options) {
+    if (animateFly) {
+      return options.fn(node, options);
+    }
+  }
 </script>
 
 <div class=" flex flex-col h-full justify-between mt-4 ">
@@ -541,10 +562,10 @@
           <div>Add to Session Profile</div>
         </button>
         <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
-          {#each sessionProfile as sessionProfileElement}
+          {#each sessionProfile as sessionProfileElement (sessionProfileElement.name)}
             <button
-              in:fly|local={{ x: transitionDistance }}
-              out:fade|local={{ y: 200 }}
+              in:flyAnimation={{ fn: fly, x: -200 }}
+              out:fadeAnimation={{ fn: fade, y: 200 }}
               on:click={() => selectProfile(sessionProfileElement)}
               class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
@@ -573,6 +594,15 @@
                       on:click={(e) => {
                         selectProfile(sessionProfileElement);
                       }}
+                      on:blur={(e) => {
+                        justReadInput = true;
+                        let oldName = selectedProfile.name;
+                        sessionProfileElement.name = e.target.value.trim();
+                        updateSessionProfileTitle(
+                          sessionProfileElement,
+                          oldName
+                        );
+                      }}
                       on:keypress={(e) => {
                         if (e.charCode === 13) {
                           justReadInput = true;
@@ -582,17 +612,7 @@
                             sessionProfileElement,
                             oldName
                           );
-                          justReadInput = true;
                         }
-                      }}
-                      on:blur={(e) => {
-                        justReadInput = true;
-                        let oldName = selectedProfile.name;
-                        sessionProfileElement.name = e.target.value.trim();
-                        updateSessionProfileTitle(
-                          sessionProfileElement,
-                          oldName
-                        );
                       }}
                       class="text-zinc-100 min-w-[15px] h-fit break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
@@ -965,8 +985,8 @@
             {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
               <button
                 title={profileCloudElement.name}
-                in:fly|local={{ x: transitionDistance }}
-                out:fade|local={{ y: 200 }}
+                in:flyAnimation={{ fn: fly, x: -200 }}
+                out:fadeAnimation={{ fn: fade, y: 200 }}
                 on:click={() => {
                   selectProfile(profileCloudElement);
                 }}
@@ -1000,24 +1020,25 @@
                       @{profileCloudElement.folder}
                     </div>
                     <div class="flex flex-row gap-1">
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded"
-                        on:click|preventDefault={() => {
-                          ($appSettings.modal = "profileAttachment"),
-                            selectProfile(profileCloudElement);
-                        }}
-                      >
-                        <svg
-                          class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                          width="15"
-                          height="16"
-                          viewBox="0 0 20 21"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                      {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                        <button
+                          class="p-1 hover:bg-primary-500 rounded"
+                          on:click|preventDefault={() => {
+                            ($appSettings.modal = "profileAttachment"),
+                              selectProfile(profileCloudElement);
+                          }}
                         >
-                          <g clip-path="url(#clip0_262_1471)">
-                            <path
-                              d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+                          <svg
+                            class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
+                            width="15"
+                            height="16"
+                            viewBox="0 0 20 21"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clip-path="url(#clip0_262_1471)">
+                              <path
+                                d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -1044,21 +1065,22 @@
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                              fill="#F1F1F1"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_262_1471">
-                              <rect
-                                width="20"
-                                height="20"
-                                fill="white"
-                                transform="translate(0 0.5)"
+                                fill="#F1F1F1"
                               />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                      </button>
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_262_1471">
+                                <rect
+                                  width="20"
+                                  height="20"
+                                  fill="white"
+                                  transform="translate(0 0.5)"
+                                />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                        </button>
+                      {/if}
 
                       <button
                         class="p-1 hover:bg-primary-500 rounded"

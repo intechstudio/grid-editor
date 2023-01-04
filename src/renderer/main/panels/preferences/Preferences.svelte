@@ -490,6 +490,33 @@
       <input
         class="mr-1"
         type="checkbox"
+        bind:checked={$appSettings.persistant.newProfileBrowserEnabled}
+      />
+      <div class="mx-1">Enable/Disable New Profile Browser</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.legacyProfileBrowserEnabled}
+      />
+      <div class="mx-1">Enable/Disable Legacy Profile Browser</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.profileCloudDevFeaturesEnabled}
+      />
+      <div class="mx-1">Enable/Disable Profile Cloud Dev Features</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
         bind:checked={$appSettings.debugMode}
       />
       <div class="ml-1">Glitch Debug Mode</div>
