@@ -206,8 +206,10 @@
             {/if}
           </div>
 
-          <div>Upload Cover Photo</div>
-          <div>Upload Attachments</div>
+          {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            <div>Upload Cover Photo</div>
+            <div>Upload Attachments</div>
+          {/if}
         </div>
 
         <!-- <div class="w-full flex flex-col gap-4">

@@ -7,6 +7,7 @@
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
+  import { v4 as uuidv4 } from "uuid";
 
   import {
     engine,
@@ -292,20 +293,20 @@
       });
 
       if (user == "user") {
-        let isNameUnique;
+        let isProfileCloudNameUnique;
 
         profileCloud.forEach((profile) => {
           if (name == profile.name) {
-            isNameUnique = false;
+            isProfileCloudNameUnique = false;
           }
         });
 
-        if (isNameUnique == false) {
+        if (isProfileCloudNameUnique == false) {
           logger.set({
             type: "fail",
             mode: 0,
             classname: "profilesavefailed",
-            message: `A profile with this name is already exists in Profile Cloud!`,
+            message: `A profile with "${name}" name is already exists in Profile Cloud!`,
           });
         } else {
           saveToDirectory(PROFILE_PATH, name, profile, user);
@@ -332,44 +333,54 @@
 
     runtime.fetch_page_configuration_from_grid(callback);
   }
-  async function updateSessionProfileTitle(profile, oldName) {
+
+  async function updateSessionProfileTitle(profile, newName) {
     animateFly = false;
     animateFade = true;
-    await checkIfProfileTitleUnique(profile.name.trim(), oldName);
-    await checkIfTitleFieldEmpty(profile.name.trim());
 
-    console.log(oldName, "oldname", profile.name, "profile.name");
-    console.log("profile.name == oldName", profile.name == oldName);
-    console.log("isTitleDirty", isTitleDirty);
-    console.log("isTitleUnique", isTitleUnique);
+    console.log(profile.name, "profile.name", newName, "newName");
 
-    if (
-      isTitleDirty == true &&
-      isTitleUnique == true &&
-      profile.name != oldName
-    ) {
+    checkIfProfileTitleUnique(newName);
+    checkIfTitleFieldEmpty(newName);
+
+    if (isSessionProfileNameUnique && isTitleDirty && profile.name != newName) {
+      let oldName = profile.name;
+      profile.name = newName;
+
       await window.electron.configs.updateConfig(
         PROFILE_PATH,
-        profile.name.trim(),
+        newName,
         profile,
         "profiles",
         oldName,
         "sessionProfile"
       );
-    } else {
-      profile.name = oldName;
-    }
+    } else if (isSessionProfileNameUnique == false && profile.name != newName) {
+      sessionProfile = [];
 
-    if (isTitleUnique == false && profile.name != oldName)
       logger.set({
         type: "fail",
         mode: 0,
         classname: "sessionprofileeditname",
-        message: `This session profile name is taken. Please choose another one!`,
+        message: `A profile already exists with name "${newName}" in Session Profiles.`,
       });
+    }
 
     await loadFromDirectory();
     animateFly = false;
+    animateFade = false;
+
+    // checkIfProfileTitleUnique(title): true/false
+    //
+    if (1) {
+      //update Titel
+      //profile.name = newName;
+    } else {
+      //alert
+    }
+
+    //loadFromDir
+    //return
   }
 
   async function saveToDirectory(path, name, profile, user) {
@@ -411,25 +422,22 @@
     loadFromDirectory();
   }
 
-  let isTitleUnique = undefined;
+  let isSessionProfileNameUnique = undefined;
 
-  async function checkIfProfileTitleUnique(input, oldName) {
-    console.log("input", input);
-    console.log("oldaname", oldName);
-    console.log("isTitleUnique1", isTitleUnique);
-    console.log(sessionProfile);
-    sessionProfile.every(function (element, index) {
-      console.log(element.name, index); /*ezt meg kell csinálni!!!*/
+  async function checkIfProfileTitleUnique(input) {
+    let notUniqueName = [];
+
+    sessionProfile.forEach((element) => {
       if (element.name == input) {
-        isTitleUnique = false;
-        return false;
-      } else {
-        isTitleUnique = true;
-        return true;
+        notUniqueName.push(element.name);
       }
     });
 
-    console.log("isTitleUnique2", isTitleUnique);
+    if (notUniqueName.length > 0) {
+      isSessionProfileNameUnique = false;
+    } else {
+      isSessionProfileNameUnique = true;
+    }
   }
 
   let isTitleDirty = undefined;
@@ -596,21 +604,19 @@
                       }}
                       on:blur={(e) => {
                         justReadInput = true;
-                        let oldName = selectedProfile.name;
-                        sessionProfileElement.name = e.target.value.trim();
+                        let newName = e.target.value.trim();
                         updateSessionProfileTitle(
                           sessionProfileElement,
-                          oldName
+                          newName
                         );
                       }}
                       on:keypress={(e) => {
                         if (e.charCode === 13) {
                           justReadInput = true;
-                          let oldName = selectedProfile.name;
-                          sessionProfileElement.name = e.target.value.trim();
+                          let newName = e.target.value.trim();
                           updateSessionProfileTitle(
                             sessionProfileElement,
-                            oldName
+                            newName
                           );
                         }
                       }}
@@ -1000,7 +1006,7 @@
                 >
                   <div class="flex truncate items-center   gap-1">
                     <div
-                      class="text-zinc-100 text-xs lg:text-sm h-fit px-1 lg:px-2 bg-violet-600
+                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md 2xl:text-lg 
                       rounded-xl {selectedModule == profileCloudElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
@@ -1009,7 +1015,7 @@
                     </div>
 
                     <div
-                      class="text-gray-100 text-left text-sm lg:text-md truncate "
+                      class="text-gray-100 text-left text-sm lg:text-md xl:text-lg 2xl:text-xl truncate "
                     >
                       {profileCloudElement.name}
                     </div>
