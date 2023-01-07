@@ -18,6 +18,9 @@
 
   import { appSettings } from "../../runtime/app-helper.store";
 
+  import { clickOutside } from "/main/_actions/click-outside.action";
+  import { selectedProfileStore } from "../../runtime/profile-helper.store";
+
   const { env } = window.ctxProcess;
 
   export let classes;
@@ -182,7 +185,8 @@
     : 'pointer-events-none'}"
 >
   <grid-layout
-    class="relative overflow-hidden w-full flex flex-col h-full focus:outline-none border-none outline-none"
+    class="relative overflow-hidden w-full flex flex-col h-full
+    focus:outline-none border-none outline-none"
   >
     <div
       id="grid-map"
@@ -191,45 +195,58 @@
       bind:clientHeight={map_h}
       style="top:{map_h / 2 - gridsize / 2}px; left:{map_w / 2 -
         gridsize / 2}px;"
-      class="w-full h-full flex absolute focus:outline-none border-none outline-none justify-center items-center"
+      class="w-full h-full flex absolute focus:outline-none border-none
+      outline-none justify-center items-center"
     >
-      {#each $devices as device}
-        <div
-          in:fly={{
-            x: calculate_x(device.fly_x, device.fly_y),
-            y: calculate_y(device.fly_x, device.fly_y),
-            duration: 150,
-          }}
-          out:fade={{ duration: 150 }}
-          id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-          style="--device-size: {gridsize + 'px'}; top:{calculate_y(
-            device.dx,
-            device.dy
-          ) + 'px'};left:{calculate_x(device.dx, device.dy) + 'px'};"
-          class="device"
-          class:fwMismatch={device.fwMismatch}
-        >
-          <Device
-            type={device.id.substr(0, 4)}
-            id={device.id}
-            rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
-          />
-        </div>
-      {/each}
+      <div
+        use:clickOutside={{ useCapture: true }}
+        on:click-outside={() => {
+          if ($appSettings.modal == "") {
+            selectedProfileStore.set({});
+          }
+        }}
+      >
+        {#each $devices as device}
+          <div
+            in:fly={{
+              x: calculate_x(device.fly_x, device.fly_y),
+              y: calculate_y(device.fly_x, device.fly_y),
+              duration: 150,
+            }}
+            out:fade={{ duration: 150 }}
+            id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+            style="--device-size: {gridsize + 'px'}; top:{calculate_y(
+              device.dx,
+              device.dy
+            ) + 'px'};left:{calculate_x(device.dx, device.dy) + 'px'};"
+            class="device"
+            class:fwMismatch={device.fwMismatch}
+          >
+            <Device
+              type={device.id.substr(0, 4)}
+              id={device.id}
+              rotation={device.rot +
+                $appSettings.persistant.moduleRotation / 90}
+            />
+          </div>
+        {/each}
+      </div>
     </div>
 
     {#if $devices.length === 0 && ready && $appSettings.firmwareNotificationState === 0}
       <div
         style="top:{map_h / 2 - gridsize / 2}px; left:{map_w / 2 -
           gridsize / 2}px;"
-        class="w-full h-full flex absolute focus:outline-none border-none outline-none justify-center items-center"
+        class="w-full h-full flex absolute focus:outline-none border-none
+        outline-none justify-center items-center"
       >
         <div
           in:fade={{ delay: 2000, duration: 1000 }}
-          class="flex w-full h-full items-center justify-center text-white flex-col"
+          class="flex w-full h-full items-center justify-center text-white
+          flex-col"
         >
           <div
-            class=" absolute top-0 left-0  p-4 bg-primary rounded shadow w-72"
+            class=" absolute top-0 left-0 p-4 bg-primary rounded shadow w-72"
           >
             <div class="text-xl py-1">Connect your module now!</div>
             <div class="py-1">
@@ -239,14 +256,18 @@
             <div class="flex justify-between items-center">
               <button
                 on:click={refresh}
-                class="relative bg-commit mr-3 block hover:bg-commit-saturate-20 text-white mt-3 mb-1 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+                class="relative bg-commit mr-3 block hover:bg-commit-saturate-20
+                text-white mt-3 mb-1 py-1 px-2 rounded border-commit-saturate-10
+                hover:border-commit-desaturate-10 focus:outline-none"
               >
                 <div>Refresh</div>
               </button>
 
               <button
                 on:click={troubleshoot}
-                class="relative border block hover:bg-commit-saturate-20 text-white mt-3 mb-1 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+                class="relative border block hover:bg-commit-saturate-20
+                text-white mt-3 mb-1 py-1 px-2 rounded border-commit-saturate-10
+                hover:border-commit-desaturate-10 focus:outline-none"
               >
                 <div>Troubleshooting</div>
               </button>
@@ -256,7 +277,9 @@
       </div>
     {/if}
 
-    <div class="w-full flex flex-row items-center min-h-fit mt-auto">
+    <div class="w-full flex flex-col items-center min-h-fit mt-auto">
+      <div class="w-full flex flex-row items-center min-h-fit mt-auto" />
+
       <CursorLog />
     </div>
   </grid-layout>

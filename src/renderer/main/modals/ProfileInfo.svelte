@@ -1,91 +1,111 @@
 <script>
-  import { get } from 'svelte/store'
-  import { clickOutside } from '/main/_actions/click-outside.action'
-  import { appSettings } from '/runtime/app-helper.store'
-  import { selectedProfileStore } from '/runtime/profile-helper.store'
+  import { get } from "svelte/store";
+  import { clickOutside } from "/main/_actions/click-outside.action";
+  import { appSettings } from "/runtime/app-helper.store";
+  import { selectedProfileStore } from "/runtime/profile-helper.store";
 
-  let editor
-  let modalWidth
-  let modalHeight
+  import { onMount } from "svelte";
 
-  let liked = false
+  import {
+    engine,
+    logger,
+    runtime,
+    user_input,
+  } from "/runtime/runtime.store.js";
+  import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
 
-  modalWidth = 500
+  let editor;
+  let modalWidth;
+  let modalHeight;
+
+  let liked = false;
+
+  modalWidth = 500;
 
   $: if (modalWidth || modalHeight) {
     if (editor !== undefined) {
-      editor.layout()
+      editor.layout();
     }
   }
 
   function isProfileLiked() {
-    liked = !liked
+    liked = !liked;
   }
 
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder
+  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
 
-  let selectedProfile = get(selectedProfileStore)
-
-  async function loadFromDirectory() {
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      'profiles',
-    )
-  }
+  let selectedProfile = get(selectedProfileStore);
 
   async function deleteFromDirectory(element) {
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
       element.name,
-      'profiles',
-      element.folder,
-    )
+      "profiles",
+      element.folder
+    );
+
+    profileChangeCallbackStore.set({
+      action: "delete",
+      profile: selectedProfile,
+    });
+
+    logger.set({
+      type: "success",
+      mode: 0,
+      classname: "profiledelete",
+      message: `Profile deleted!`,
+    });
+
+    selectedProfile = undefined;
   }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
   class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50 ">
-
+  bg-secondary bg-opacity-50 "
+>
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
-      $appSettings.modal = ''
+      $appSettings.modal = "";
     }}
     class=" z-50 w-4/6 h-fit max-h-[3/4] text-white relative flex flex-col
-    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6">
-
+    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6"
+  >
     <div>Profile Info</div>
     <button
       on:click={() => {
-        $appSettings.modal = ''
+        $appSettings.modal = "";
       }}
       id="close-btn"
       class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
-      hover:bg-secondary">
+      hover:bg-secondary"
+    >
       <svg
         class="w-5 h-5 p-1 fill-current text-gray-300"
         viewBox="0 0 29 29"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg">
+        xmlns="http://www.w3.org/2000/svg"
+      >
         <path
           d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
-          2.37512L2.37506 0.142151Z" />
+          2.37512L2.37506 0.142151Z"
+        />
         <path
           d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
-          0.142151L28.4264 2.37512Z" />
+          0.142151L28.4264 2.37512Z"
+        />
       </svg>
     </button>
 
-    <div class="p-6 flex flex-row gap-10 overflow-auto">
-      <div class="w-3/5 flex flex-col gap-4">
-
+    <div class="p-6 flex flex-row gap-10 overflow-auto w-full">
+      <div class="w-3/5 flex flex-col gap-4 ">
         <div>
           <div class="flex justify-between items-center">
             <div class="text-green-400 font-semibold mb-2">Tags</div>
 
-            {#if selectedProfile.folder == 'user'}
+            {#if selectedProfile.folder == "user"}
               <div class="flex gap-2">
                 <button
                   class="flex gap-2 items-center focus:outline-none
@@ -93,30 +113,32 @@
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24"
                   on:click|preventDefault={() => {
-                    deleteFromDirectory(selectedProfile)
-                    $appSettings.modal = ''
-                    selectedProfile = {}
-                    loadFromDirectory()
-                  }}>
+                    deleteFromDirectory(selectedProfile);
+                    $appSettings.modal = "";
+                  }}
+                >
                   <svg
                     width="20"
                     height="20"
                     viewBox="0 0 39 39"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
                       stroke="#FFF"
                       stroke-width="2"
-                      stroke-linecap="round" />
+                      stroke-linecap="round"
+                    />
                     <path
                       d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
                       stroke="#FFF"
-                      stroke-width="2" />
+                      stroke-width="2"
+                    />
                   </svg>
                   delete
                 </button>
@@ -126,14 +148,16 @@
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24"
                   on:click|preventDefault={() => {
-                    $appSettings.modal = 'profileEdit'
-                  }}>
+                    $appSettings.modal = "profileEdit";
+                  }}
+                >
                   <svg
                     width="12"
                     height="12"
                     viewBox="0 0 12 12"
                     fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
                     <path
                       d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
                       4.08732L1.31319 9.75047V10.6697ZM10.7025 4.05449L7.912
@@ -150,87 +174,66 @@
                       11.9337C2.68395 11.9665 2.59903 11.9829 2.51148
                       11.9829H0.656597ZM7.43596 4.54694L6.97635 4.08732L7.89558
                       5.00656L7.43596 4.54694Z"
-                      fill="#FFF" />
+                      fill="#FFF"
+                    />
                   </svg>
                   edit
                 </button>
               </div>
             {/if}
-
           </div>
 
           <div class="text-lg font-medium">{selectedProfile.name}</div>
-
         </div>
         <div>
           <img
-            class="w-full"
+            class="w-full h-48 object-cover"
             src="/assets/imgs/sm_{selectedProfile.type}.jpg"
-            alt="{selectedProfile.type}_img" />
+            alt="{selectedProfile.type}_img"
+          />
         </div>
         <div>
           <p>{selectedProfile.description}</p>
         </div>
-        <div>
-          <ul class="list-disc list-inside">
-            <li>Lorem ipsum dolor sit amet consectetur.</li>
-            <li>Auctor porttitor dui eget gravida et mi.</li>
-            <li>Nibh sed massa in convallis arcu viverra.</li>
-            <li>Lobortis mauris in dignissim id accumsan quam vitae.</li>
-            <li>
-              Eget nibh augue tellus rutrum sed nisl sed morbi proin. Maecenas
-              nisl purus orci mattis enim nunc. Lectus et bibendum nisi amet
-              eget nec habitasse dignissim nec.
-            </li>
-            <li>
-              Tellus eros cursus ullamcorper aliquam nisi nam id justo. Purus
-              sagittis vitae velit velit. Neque nam convallis venenatis urna
-              iaculis.
-            </li>
-          </ul>
-        </div>
-
       </div>
       <div class="w-2/5 flex flex-col justify-between">
-
         <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
-
           <div>
-
             <div
               class="flex flex-row justify-between border-primary-700 border-b
-              border-t-0 border-x-0 pb-4">
-
+              border-t-0 border-x-0 pb-4"
+            >
               <div>
-
                 <div class="font-medium mb-1">@{selectedProfile.folder}</div>
 
                 <div class="text-zinc-300">
-                  Modified at {selectedProfile.fsModifiedAt.toJSON().split('T')[0]}
+                  Modified at {selectedProfile.fsModifiedAt
+                    .toJSON()
+                    .split("T")[0]}
                   <!--  something isn't right with the date in the json here -->
                 </div>
-
               </div>
-
-              <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
-
-                <button
-                  class="flex flex-row items-center justify-between "
-                  on:click={() => {
-                    isProfileLiked()
-                  }}>
-                  <div class="border-r pr-2">
-                    {#if !liked}
-                      <svg
-                        class="fill-white "
-                        width="15"
-                        height="12"
-                        viewBox="0 0 38 35"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          shape-rendering="optimizeQuality"
-                          d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
+              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
+                  <button
+                    class="flex flex-row items-center justify-between "
+                    on:click={() => {
+                      isProfileLiked();
+                    }}
+                  >
+                    <div class="border-r pr-2">
+                      {#if !liked}
+                        <svg
+                          class="fill-white "
+                          width="15"
+                          height="12"
+                          viewBox="0 0 38 35"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            shape-rendering="optimizeQuality"
+                            d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
                           34.5591 3.33109C33.4962 2.28917 32.243 1.46117 30.8677
                           0.892121C29.4415 0.299708 27.912 -0.00352347 26.3677
                           3.08886e-05C24.2012 3.08886e-05 22.0874 0.593293
@@ -256,20 +259,22 @@
                           3.33987C14.8408 3.33987 17.627 5.13284 18.998
                           7.75198C20.3691 5.13284 23.1553 3.33987 26.3677
                           3.33987C30.938 3.33987 34.6426 6.96976 34.6426
-                          11.4478C34.6426 20.2896 18.998 30.3135 18.998 30.3135Z" />
-                      </svg>
-                    {/if}
-                    {#if liked}
-                      <svg
-                        class="fill-red-600"
-                        width="15"
-                        height="12"
-                        viewBox="0 0 38 35"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          shape-rendering="optimizeQuality"
-                          d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
+                          11.4478C34.6426 20.2896 18.998 30.3135 18.998 30.3135Z"
+                          />
+                        </svg>
+                      {/if}
+                      {#if liked}
+                        <svg
+                          class="fill-red-600"
+                          width="15"
+                          height="12"
+                          viewBox="0 0 38 35"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            shape-rendering="optimizeQuality"
+                            d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
                           34.5454 3.33112C33.4825 2.2892 32.2293 1.4612 30.854
                           0.892151C29.4279 0.299738 27.8983 -0.00349296 26.354
                           6.14062e-05C24.1875 6.14062e-05 22.0737 0.593323
@@ -290,49 +295,42 @@
                           33.5127 22.1353 34.9541 19.9864C35.8638 18.6285
                           36.5801 17.2838 37.0723 15.9874C37.6655 14.4361
                           37.9644 12.9112 37.9644 11.4478C37.9688 9.89655
-                          37.6567 8.38922 37.0459 6.96979Z" />
-                      </svg>
-                    {/if}
-                  </div>
+                          37.6567 8.38922 37.0459 6.96979Z"
+                          />
+                        </svg>
+                      {/if}
+                    </div>
 
-                  <div class="font-medium pl-2">200</div>
-                </button>
-
-              </div>
-
+                    <div class="font-medium pl-2">200</div>
+                  </button>
+                </div>
+              {/if}
             </div>
           </div>
 
           <div class="flex flex-col gap-1">
-
             <div class="flex justify-between items-center">
               <div class="text-zinc-300">Made for:</div>
               <div>{selectedProfile.type}</div>
             </div>
-
-            <div class="flex justify-between items-center">
-              <div class="text-zinc-300">Compatible with:</div>
-              <div class="flex items-center gap-1">
-
-                <div>Ableton</div>
+            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              <div class="flex justify-between items-center">
+                <div class="text-zinc-300">Compatible with:</div>
+                <div class="flex items-center gap-1">
+                  <div>Ableton</div>
+                </div>
               </div>
-
-            </div>
+            {/if}
             <div class="flex justify-between items-center">
-
               <div class="text-zinc-300">Made with:</div>
               <div>
-                Grid Editor v{selectedProfile.version.major}.{selectedProfile.version.minor}.{selectedProfile.version.patch}
+                Grid Editor v{selectedProfile.version.major}.{selectedProfile
+                  .version.minor}.{selectedProfile.version.patch}
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
-
     </div>
-
   </div>
-
 </modal>

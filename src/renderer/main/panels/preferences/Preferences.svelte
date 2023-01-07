@@ -197,6 +197,8 @@
       "set to ..."
     );
   }
+
+  let selected = $appSettings.persistant.newProfileBrowserEnabled;
 </script>
 
 <preferences
@@ -468,6 +470,44 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="flex py-2 text-white items-center  ">
+      <input
+        class="mr-1"
+        type="radio"
+        name="mode"
+        id="newProfileBrowser"
+        on:click={() => {
+          $appSettings.persistant.newProfileBrowserEnabled = true;
+
+          $appSettings.persistant.legacyProfileBrowserEnabled = false;
+        }}
+        value={$appSettings.persistant.newProfileBrowserEnabled}
+        bind:group={selected}
+      />
+      <label for="newProfileBrowser" class="mx-1"
+        >New Profile Browser Mode</label
+      >
+    </div>
+
+    <div class="flex py-2 text-white items-center border-b mb-1">
+      <input
+        class="mr-1"
+        type="radio"
+        name="mode"
+        id="legacyProfileBrowser"
+        on:click={() => {
+          $appSettings.persistant.legacyProfileBrowserEnabled = true;
+
+          $appSettings.persistant.newProfileBrowserEnabled = false;
+        }}
+        value={$appSettings.persistant.legacyProfileBrowserEnabled}
+        bind:group={selected}
+      />
+      <label for="legacyProfileBrowser" class="mx-1"
+        >Legacy Profile Browser Mode</label
+      >
+    </div>
+
     <div class="flex py-2 text-white items-center">
       <input
         class="mr-1"
@@ -484,6 +524,15 @@
         bind:checked={$appSettings.persistant.websocketMonitorEnabled}
       />
       <div class="mx-1">Enable/Disable websocket monitor</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.profileCloudDevFeaturesEnabled}
+      />
+      <div class="mx-1">Enable/Disable Profile Cloud Dev Features</div>
     </div>
 
     <div class="flex py-2 text-white items-center">
