@@ -8,6 +8,7 @@
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
   import { v4 as uuidv4 } from "uuid";
+  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
 
   import {
     engine,
@@ -15,6 +16,24 @@
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
+
+  let searchSuggestions = [
+    {
+      value: "BU16",
+    },
+    {
+      value: "EF44",
+    },
+    {
+      value: "EN16",
+    },
+    {
+      value: "PBF4",
+    },
+    {
+      value: "PO16",
+    },
+  ];
 
   let selectedProfile = undefined;
   let isActionButtonClicked = false;
@@ -37,7 +56,7 @@
       PROFILE_PATH = new_folder;
       loadFromDirectory();
     }
-  });
+  });  
 
   let justReadInput = true;
 
@@ -127,7 +146,6 @@
   });
 
   function updateSearchFilter(input) {
-
 
     
     filteredProfileCloud = [];
@@ -558,11 +576,7 @@
 
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      console.log("REFRESH!")
       loadFromDirectory();
-    }
-    else{
-      console.log("No profilE_path for you!")
     }
   });
 
@@ -585,7 +599,6 @@
   }
 </script>
 
-
 <div class=" flex flex-col h-full justify-between mt-4 ">
   <div class=" flex flex-col bg-primary ">
     <button
@@ -598,7 +611,11 @@
     </button>
 
     {#if isSessionProfileOpen}
-      <div class=" flex flex-col p-3 overflow-hidden h-full">
+      <div
+        in:fadeAnimation={{ fn: fade, y: 100 }}
+        out:fadeAnimation={{ fn: fade, y: 100 }}
+        class=" flex flex-col p-3 overflow-hidden h-full"
+      >
         <button
           on:click={() => prepareAddToSessionProfile("sessionProfile")}
           disabled={selectedProfile == undefined}
@@ -614,7 +631,7 @@
           {#each sessionProfile as sessionProfileElement (sessionProfileElement.name)}
             <button
               in:flyAnimation={{ fn: fly, x: -200 }}
-              out:fadeAnimation={{ fn: fade, y: 200 }}
+              out:fadeAnimation={{ fn: fade, y: 100 }}
               on:click={() => selectProfile(sessionProfileElement)}
               class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
@@ -677,7 +694,7 @@
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
                   }}
-                  class="p-1 hover:bg-primary-500 rounded "
+                  class="p-1 hover:bg-primary-500 rounded relative"
                 >
                   <svg
                     class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
@@ -701,9 +718,11 @@
                       stroke-width="2"
                     />
                   </svg>
+
+                  <TooltipSetter key={"newProfile_delete"} />
                 </button>
                 <button
-                  class="p-1 hover:bg-primary-500 rounded"
+                  class="p-1 hover:bg-primary-500 rounded relative"
                   on:click|preventDefault={() => {
                     isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
@@ -757,10 +776,12 @@
                       fill="#F1F1F1"
                     />
                   </svg>
+
+                  <TooltipSetter key={"newProfile_save"} />
                 </button>
 
                 <button
-                  class="p-1 hover:bg-primary-500 rounded"
+                  class="p-1 hover:bg-primary-500 rounded relative"
                   on:click|preventDefault={() => {
                     isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
@@ -820,6 +841,7 @@
                       </clipPath>
                     </defs>
                   </svg>
+                  <TooltipSetter key={"newProfile_rewrite"} />
                 </button>
               </div>
             </button>
@@ -842,18 +864,22 @@
     </button>
 
     {#if isProfileCloudOpen}
-      <div class="flex flex-col gap-1 p-3">
-        <div class="relative">
-          <svg
-            class="absolute left-3 bottom-[28%]"
-            width="14"
-            height="14"
-            viewBox="0 0 18 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
+      <div
+        in:fadeAnimation={{ fn: fade, y: 100 }}
+        out:fadeAnimation={{ fn: fade, y: 100 }}
+      >
+        <div class="flex flex-col gap-1 p-3">
+          <div class="relative">
+            <svg
+              class="absolute left-3 bottom-[28%]"
+              width="14"
+              height="14"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
               6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
               0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
               3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
@@ -875,193 +901,191 @@
               4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
               1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
               4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
-              fill="#CDCDCD"
+                fill="#CDCDCD"
+              />
+            </svg>
+            {#if searchbarValue != ""}
+              <button
+                class="absolute right-2 bottom-[25%]"
+                on:click={() => updateSearchFilter((searchbarValue = ""))}
+              >
+                <svg
+                  width="28"
+                  height="28"
+                  viewBox="0 0 39 39"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
+                    stroke="#FFF"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                </svg>
+              </button>
+            {/if}
+
+            <input
+              type="text"
+              bind:value={searchbarValue}
+              on:keyup={() => updateSearchFilter(searchbarValue)}
+              on:input={() => updateSearchFilter(searchbarValue)}
+              on:change={() => updateSearchFilter(searchbarValue)}
+              class="w-full py-2 px-12 bg-primary-700 text-white
+            placeholder-gray-400 text-md focus:outline-none"
+              placeholder="Find Profile..."
             />
-          </svg>
-          {#if searchbarValue != ""}
-            <button
-              class="absolute right-2 bottom-[25%]"
-              on:click={() => updateSearchFilter((searchbarValue = ""))}
+          </div>
+
+          <div class="flex flex-row gap-2 py-3 flex-wrap">
+            {#each searchSuggestions as suggestion}
+              <button
+                on:click={() =>
+                  updateSearchFilter((searchbarValue = suggestion.value))}
+                class="border border-primary-700 hover:border-primary-500 text-sm text-primary-100 rounded-md
+            py-1 px-2 h-min"
+              >
+                {suggestion.value}
+              </button>
+            {/each}
+          </div>
+        </div>
+
+        <div class="flex gap-2 items-center justify-between  flex-wrap p-3">
+          <label
+            for="sorting select"
+            class="uppercase text-gray-500 py-1 text-sm"
+          >
+            sort by
+          </label>
+
+          <select
+            class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
+            id="sortingSelectBox"
+            on:change={(e) => {
+              sortField = e.target.value;
+              sortProfileCloud(sortField, sortAsc);
+            }}
+            name="sorting select"
+          >
+            <option
+              selected
+              class="text-white bg-secondary py-1 border-none"
+              value="name"
             >
+              name
+            </option>
+
+            <option
+              class="text-white bg-secondary py-1 border-none"
+              value="module"
+            >
+              module
+            </option>
+          </select>
+
+          <button
+            on:click={() => {
+              sortAsc = !sortAsc;
+              sortProfileCloud(sortField, sortAsc);
+            }}
+          >
+            {#if sortAsc == false}
               <svg
-                width="28"
-                height="28"
-                viewBox="0 0 39 39"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
               >
                 <path
-                  d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
-                  stroke="#FFF"
+                  d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
+                  stroke="white"
                   stroke-width="2"
                   stroke-linecap="round"
+                  stroke-linejoin="round"
                 />
               </svg>
-            </button>
-          {/if}
-
-          <input
-            type="text"
-            bind:value={searchbarValue}
-            on:keyup={() => updateSearchFilter(searchbarValue)}
-            on:input={() => updateSearchFilter(searchbarValue)}
-            on:change={() => updateSearchFilter(searchbarValue)}
-            class="w-full py-2 px-12 bg-primary-700 text-white
-            placeholder-gray-400 text-md focus:outline-none"
-            placeholder="Find Profile..."
-          />
-        </div>
-
-        <div class="flex flex-row gap-2 pt-3 flex-wrap">
-
-          {#each ["PO16", "BU16", "PBF4", "EN16", "EF44"] as moduleName}
-            <button
-              on:click={() => updateSearchFilter((searchbarValue = moduleName))}
-              class="border border-primary-700 text-sm text-primary-100 rounded-md
-              py-1 px-2 h-min"
-            >
-              {moduleName}
-            </button>
-          {/each}
-
-        </div>
-      </div>
-
-      <div class="flex gap-2 items-center justify-between  flex-wrap px-3 ">
-        <label
-          for="sorting select"
-          class="uppercase text-gray-500 py-1 text-sm"
-        >
-          sort by
-        </label>
-
-        <select
-          class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
-          id="sortingSelectBox"
-          on:change={(e) => {
-            sortField = e.target.value;
-            sortProfileCloud(sortField, sortAsc);
-          }}
-          name="sorting select"
-        >
-          <option
-            selected
-            class="text-white bg-secondary py-1 border-none"
-            value="name"
-          >
-            name
-          </option>
-
-          <option
-            class="text-white bg-secondary py-1 border-none"
-            value="module"
-          >
-            module
-          </option>
-        </select>
-
-        <button
-          on:click={() => {
-            sortAsc = !sortAsc;
-            sortProfileCloud(sortField, sortAsc);
-          }}
-        >
-          {#if sortAsc == false}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          {:else}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          {/if}
-        </button>
-      </div>
-
-      <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
-        <div class="flex flex-col overflow-auto">
-          <div class="overflow-auto flex flex-col gap-4 mb-2">
-            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
-              <button
-                title={profileCloudElement.name}
-                in:flyAnimation={{ fn: fly, x: -200 }}
-                out:fadeAnimation={{ fn: fade, y: 200 }}
-                on:click={() => {
-                  selectProfile(profileCloudElement);
-                }}
-                class="w-full flex gap-1 items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedProfile == profileCloudElement
-                  ? 'border border-green-300 bg-primary-600'
-                  : 'border border-black border-opacity-0 bg-secondary'}"
+            {:else}
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
               >
-                <div
-                  class="flex flex-row gap-1 items-center w-full  justify-between"
+                <path
+                  d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            {/if}
+          </button>
+        </div>
+        <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
+          <div class="flex flex-col overflow-auto">
+            <div class="overflow-auto flex flex-col gap-4 mb-2">
+              {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
+                <button
+                  title={profileCloudElement.name}
+                  in:flyAnimation={{ fn: fly, x: -200 }}
+                  out:fadeAnimation={{ fn: fade, y: 100 }}
+                  on:click={() => {
+                    selectProfile(profileCloudElement);
+                  }}
+                  class="w-full flex gap-1 items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
+                cursor-pointer {selectedProfile == profileCloudElement
+                    ? 'border border-green-300 bg-primary-600'
+                    : 'border border-black border-opacity-0 bg-secondary'}"
                 >
-                  <div class="flex truncate items-center   gap-1">
-                    <div
-                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
+                  <div
+                    class="flex flex-row gap-1 items-center w-full  justify-between"
+                  >
+                    <div class="flex truncate items-center   gap-1">
+                      <div
+                        class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
                       rounded-xl {selectedModule == profileCloudElement.type
-                        ? 'bg-violet-600'
-                        : 'bg-gray-600 '}"
-                    >
-                      {profileCloudElement.type}
+                          ? 'bg-violet-600'
+                          : 'bg-gray-600 '}"
+                      >
+                        {profileCloudElement.type}
+                      </div>
+
+                      <div
+                        class="text-gray-100 text-left text-sm lg:text-md   truncate "
+                      >
+                        {profileCloudElement.name}
+                      </div>
                     </div>
 
-                    <div
-                      class="text-gray-100 text-left text-sm lg:text-md   truncate "
-                    >
-                      {profileCloudElement.name}
-                    </div>
-                  </div>
-
-                  <div class="flex flex-row gap-1 items-center justify-end">
-                    <div class="text-gray-100 text-xs lg:text-sm ">
-                      @{profileCloudElement.folder}
-                    </div>
-                    <div class="flex flex-row gap-1">
-                      {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                        <button
-                          class="p-1 hover:bg-primary-500 rounded"
-                          on:click|preventDefault={() => {
-                            ($appSettings.modal = "profileAttachment"),
-                              selectProfile(profileCloudElement);
-                          }}
-                        >
-                          <svg
-                            class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                            width="15"
-                            height="16"
-                            viewBox="0 0 20 21"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
+                    <div class="flex flex-row gap-1 items-center justify-end">
+                      <div class="text-gray-100 text-xs lg:text-sm ">
+                        @{profileCloudElement.folder}
+                      </div>
+                      <div class="flex flex-row gap-1">
+                        {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                          <button
+                            class="p-1 hover:bg-primary-500 rounded"
+                            on:click|preventDefault={() => {
+                              ($appSettings.modal = "profileAttachment"),
+                                selectProfile(profileCloudElement);
+                            }}
                           >
-                            <g clip-path="url(#clip0_262_1471)">
-                              <path
-                                d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+                            <svg
+                              class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
+                              width="15"
+                              height="16"
+                              viewBox="0 0 20 21"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <g clip-path="url(#clip0_262_1471)">
+                                <path
+                                  d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -1088,39 +1112,39 @@
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                                fill="#F1F1F1"
-                              />
-                            </g>
-                            <defs>
-                              <clipPath id="clip0_262_1471">
-                                <rect
-                                  width="20"
-                                  height="20"
-                                  fill="white"
-                                  transform="translate(0 0.5)"
+                                  fill="#F1F1F1"
                                 />
-                              </clipPath>
-                            </defs>
-                          </svg>
-                        </button>
-                      {/if}
+                              </g>
+                              <defs>
+                                <clipPath id="clip0_262_1471">
+                                  <rect
+                                    width="20"
+                                    height="20"
+                                    fill="white"
+                                    transform="translate(0 0.5)"
+                                  />
+                                </clipPath>
+                              </defs>
+                            </svg>
+                          </button>
+                        {/if}
 
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded"
-                        on:click|preventDefault={() => {
-                          ($appSettings.modal = "profileInfo"),
-                            selectProfile(profileCloudElement);
-                        }}
-                      >
-                        <svg
-                          class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                          viewBox="0 0 21 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
+                        <button
+                          class="p-1 hover:bg-primary-500 rounded relative"
+                          on:click|preventDefault={() => {
+                            ($appSettings.modal = "profileInfo"),
+                              selectProfile(profileCloudElement);
+                          }}
                         >
-                          <g clip-path="url(#clip0_293_1221)">
-                            <path
-                              d="M10.2723 0.489136C5.02014 0.489136 0.761475
+                          <svg
+                            class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                            viewBox="0 0 21 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clip-path="url(#clip0_293_1221)">
+                              <path
+                                d="M10.2723 0.489136C5.02014 0.489136 0.761475
                               4.7478 0.761475 10C0.761475 15.2522 5.02014
                               19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
                               15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
@@ -1129,9 +1153,9 @@
                               2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
                               5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
                               10.2723 17.8974Z"
-                            />
-                            <path
-                              d="M9.25342 6.26359C9.25342 6.53385 9.36078
+                              />
+                              <path
+                                d="M9.25342 6.26359C9.25342 6.53385 9.36078
                               6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
                               7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
                               7.17525 10.993 6.98415C11.1841 6.79304 11.2915
@@ -1145,29 +1169,32 @@
                               14.7554 9.76293 14.7554H10.782C10.8754 14.7554
                               10.9518 14.679 10.9518 14.5856V8.81114C10.9518
                               8.71773 10.8754 8.64131 10.782 8.64131Z"
-                            />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_293_1221">
-                              <rect
-                                width="20"
-                                height="20"
-                                fill="white"
-                                transform="translate(0.272461)"
                               />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                      </button>
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_293_1221">
+                                <rect
+                                  width="20"
+                                  height="20"
+                                  fill="white"
+                                  transform="translate(0.272461)"
+                                />
+                              </clipPath>
+                            </defs>
+                          </svg>
+
+                          <TooltipSetter key={"newProfile_info"} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </button>
-            {/each}
+                </button>
+              {/each}
 
-            {#if filteredProfileCloud.length == 0}
-              <div class="text-gray-300">No result</div>
-            {/if}
+              {#if filteredProfileCloud.length == 0}
+                <div class="text-gray-300">No result</div>
+              {/if}
+            </div>
           </div>
         </div>
       </div>
