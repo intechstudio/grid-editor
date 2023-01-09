@@ -30,6 +30,15 @@
   let sessionProfile = [];
   let filteredProfileCloud = [];
 
+  appSettings.subscribe((store) => {
+    console.log("Update Folder Path")
+    let new_folder = store.persistant.profileFolder;
+    if (new_folder !== PROFILE_PATH) {
+      PROFILE_PATH = new_folder;
+      loadFromDirectory();
+    }
+  });
+
   let justReadInput = true;
 
   let animateFade;
@@ -54,10 +63,19 @@
   }
 
   async function loadFromDirectory() {
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      "profiles"
-    );
+
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
+      console.log("try loadFromDirectory", PROFILE_PATH, "profiles")
+      PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+        PROFILE_PATH,
+        "profiles"
+      );
+    }
+    else{
+      
+      console.log("Sorry: profile path is not set!")
+    }
+
 
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
@@ -109,17 +127,35 @@
   });
 
   function updateSearchFilter(input) {
+
+
+    
     filteredProfileCloud = [];
+
+
+    const arrayOfSearchTerms = input.trim().toLowerCase().split(' ');
+
+
+    
+
     profileCloud.forEach((profile) => {
-      if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile];
-      } else if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile];
-      } else if (
-        profile.folder.toLowerCase().indexOf(input.toLowerCase()) > -1
-      ) {
+
+      const currentProfileSearchable = profile.name.toLowerCase() + " " + profile.type.toLowerCase() + " " + profile.folder.toLowerCase();
+      let filterMatch = true;
+
+      arrayOfSearchTerms.forEach((searchTerm)=>{
+
+        if (currentProfileSearchable.indexOf(searchTerm) === -1) {
+          filterMatch = false
+        }
+
+      });
+
+      if (filterMatch){
         filteredProfileCloud = [...filteredProfileCloud, profile];
       }
+
+
     });
   }
 
@@ -522,7 +558,11 @@
 
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+      console.log("REFRESH!")
       loadFromDirectory();
+    }
+    else{
+      console.log("No profilE_path for you!")
     }
   });
 
@@ -544,6 +584,7 @@
     }
   }
 </script>
+
 
 <div class=" flex flex-col h-full justify-between mt-4 ">
   <div class=" flex flex-col bg-primary ">
@@ -871,46 +912,22 @@
           />
         </div>
 
-        <div class="flex flex-row gap-2 py-3 flex-wrap">
-          <button
-            on:click={() => updateSearchFilter((searchbarValue = "BU16"))}
-            class="border border-primary-700 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
-          >
-            BU16
-          </button>
-          <button
-            on:click={() => updateSearchFilter((searchbarValue = "EF44"))}
-            class="border border-primary-700 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
-          >
-            EF44
-          </button>
-          <button
-            on:click={() => updateSearchFilter((searchbarValue = "EN16"))}
-            class="border border-primary-700 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
-          >
-            EN16
-          </button>
-          <button
-            on:click={() => updateSearchFilter((searchbarValue = "PBF4"))}
-            class="border border-primary-700 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
-          >
-            PBF4
-          </button>
-          <button
-            on:click={() => updateSearchFilter((searchbarValue = "PO16"))}
-            class="border border-primary-700 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
-          >
-            PO16
-          </button>
+        <div class="flex flex-row gap-2 pt-3 flex-wrap">
+
+          {#each ["PO16", "BU16", "PBF4", "EN16", "EF44"] as moduleName}
+            <button
+              on:click={() => updateSearchFilter((searchbarValue = moduleName))}
+              class="border border-primary-700 text-sm text-primary-100 rounded-md
+              py-1 px-2 h-min"
+            >
+              {moduleName}
+            </button>
+          {/each}
+
         </div>
       </div>
 
-      <div class="flex gap-2 items-center justify-between  flex-wrap p-3">
+      <div class="flex gap-2 items-center justify-between  flex-wrap px-3 ">
         <label
           for="sorting select"
           class="uppercase text-gray-500 py-1 text-sm"

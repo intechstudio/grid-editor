@@ -80,7 +80,7 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
 
-  console.log(path, rootDirectory)
+  console.log("loadConfigsFromDirectory", path, rootDirectory)
 
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path)
