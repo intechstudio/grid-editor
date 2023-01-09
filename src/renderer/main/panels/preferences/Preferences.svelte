@@ -38,21 +38,10 @@
       hpos: "50%",
     });
 
-    console.log(
-      "newprofile: ",
-      $appSettings.persistant.newProfileBrowserEnabled,
-      "legacyprofile: ",
-      $appSettings.persistant.legacyProfileBrowserEnabled,
-      "selected:",
-      selected
-    );
-
     if ($appSettings.persistant.newProfileBrowserEnabled) {
       selected = "newLibrary";
-      console.log("new");
     } else {
       selected = "legacyLibrary";
-      console.log("legacy");
     }
   });
 
@@ -69,15 +58,6 @@
     } // bwecause it is initialized to undefined
     else {
     }
-
-    console.log(
-      "newprofile: ",
-      $appSettings.persistant.newProfileBrowserEnabled,
-      "legacyprofile: ",
-      $appSettings.persistant.legacyProfileBrowserEnabled,
-      "selected:",
-      selected
-    );
   }
 
   let DEFAULT_PATH = "";
@@ -232,7 +212,6 @@
   }
 
   function setHelperName() {
-    //console.log("name")
     window.electron.analytics.influx(
       "application",
       "preferences",

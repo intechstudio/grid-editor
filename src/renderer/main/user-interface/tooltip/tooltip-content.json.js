@@ -13,6 +13,10 @@ export const tooltip_content = {
     "preset_selection": "Saved properties of the selected preset, such as name and description are shown here.",
     "preset_load_to_module": "Load the configuration of the selected preset onto the currently active control element.",
 
+    "newProfile_delete": "Delete profile from Session Profile.",
+    "newProfile_save": "Move profile to Profile Cloud.",
+    "newProfile_rewrite": "Rewrite profile with the selected module's config.",
+    "newProfile_info": "Profile informations",
 
 
     "configuration_header_clear": "Clear all configurations of the currently active Page from Grid module memory.",

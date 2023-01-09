@@ -30,8 +30,6 @@
 
   $: {
     if ($appSettings.persistant.newProfileBrowserEnabled) {
-      console.log("newEnabled", $appSettings.leftPanel);
-
       if (
         $appSettings.leftPanel === "Profiles" ||
         $appSettings.leftPanel === "Presets"
@@ -39,7 +37,6 @@
         $appSettings.leftPanel = "NewProfile";
       }
     } else {
-      console.log("legacyEnabled", $appSettings.leftPanel);
       if ($appSettings.leftPanel === "NewProfile") {
         $appSettings.leftPanel = "Profiles";
       }
@@ -152,7 +149,7 @@
     {/if}
 
     {#if $appSettings.persistant.legacyProfileBrowserEnabled === true}
-      <div
+      <button
         on:click={() => {
           changeLeftTab("Presets");
         }}
@@ -196,9 +193,9 @@
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
         <TooltipSetter key={"sidebar_presets_icon"} />
-      </div>
+      </button>
 
-      <div
+      <button
         on:click={() => {
           changeLeftTab("Profiles");
         }}
@@ -390,10 +387,10 @@
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
         <TooltipSetter key={"sidebar_profiles_icon"} />
-      </div>
+      </button>
     {/if}
 
-    <div
+    <button
       on:click={() => {
         changeLeftTab("Debug");
       }}
@@ -451,9 +448,9 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
       <TooltipSetter key={"sidebar_debugger_icon"} />
-    </div>
+    </button>
 
-    <div
+    <button
       on:click={() => {
         changeLeftTab("MIDI Monitor");
       }}
@@ -493,10 +490,10 @@
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-    </div>
+    </button>
 
     {#if $appSettings.persistant.websocketMonitorEnabled === true}
-      <div
+      <button
         on:click={() => {
           changeLeftTab("Websocket");
         }}
@@ -554,7 +551,7 @@
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-      </div>
+      </button>
     {/if}
   </div>
 </nav-tab>
