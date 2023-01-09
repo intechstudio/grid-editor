@@ -158,14 +158,14 @@ async function init_appsettings(){
 
     appSettings.update(s => {
 
-      Object.entries(response).forEach(entry => {
+      Object.entries(response).forEach(async entry => {
 
         let [key, value] = entry;
 
         // validate values, append default behavior
 
         if (key === "profileFolder" && value === undefined){
-          value = window.electron.library.defaultDirectory()  
+          value = await window.electron.library.defaultDirectory()  
         }        
         
         if (key === "moduleRotation" && value === undefined){

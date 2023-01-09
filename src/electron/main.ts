@@ -500,6 +500,7 @@ ipcMain.on('resetAppSettings', (event, arg) => {
   store.clear()
   app.relaunch()
   app.exit()
+  return true;
 })
 
 ipcMain.on('restartApp', (event, arg) => {

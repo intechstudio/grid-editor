@@ -49,6 +49,15 @@
   let sessionProfile = [];
   let filteredProfileCloud = [];
 
+  appSettings.subscribe((store) => {
+    console.log("Update Folder Path")
+    let new_folder = store.persistant.profileFolder;
+    if (new_folder !== PROFILE_PATH) {
+      PROFILE_PATH = new_folder;
+      loadFromDirectory();
+    }
+  });  
+
   let justReadInput = true;
 
   let animateFade;
@@ -73,10 +82,19 @@
   }
 
   async function loadFromDirectory() {
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      "profiles"
-    );
+
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
+      console.log("try loadFromDirectory", PROFILE_PATH, "profiles")
+      PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+        PROFILE_PATH,
+        "profiles"
+      );
+    }
+    else{
+      
+      console.log("Sorry: profile path is not set!")
+    }
+
 
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
@@ -128,17 +146,34 @@
   });
 
   function updateSearchFilter(input) {
+
+    
     filteredProfileCloud = [];
+
+
+    const arrayOfSearchTerms = input.trim().toLowerCase().split(' ');
+
+
+    
+
     profileCloud.forEach((profile) => {
-      if (profile.name.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile];
-      } else if (profile.type.toLowerCase().indexOf(input.toLowerCase()) > -1) {
-        filteredProfileCloud = [...filteredProfileCloud, profile];
-      } else if (
-        profile.folder.toLowerCase().indexOf(input.toLowerCase()) > -1
-      ) {
+
+      const currentProfileSearchable = profile.name.toLowerCase() + " " + profile.type.toLowerCase() + " " + profile.folder.toLowerCase();
+      let filterMatch = true;
+
+      arrayOfSearchTerms.forEach((searchTerm)=>{
+
+        if (currentProfileSearchable.indexOf(searchTerm) === -1) {
+          filterMatch = false
+        }
+
+      });
+
+      if (filterMatch){
         filteredProfileCloud = [...filteredProfileCloud, profile];
       }
+
+
     });
   }
 
