@@ -80,7 +80,6 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
 
-  console.log("loadConfigsFromDirectory", path, rootDirectory)
 
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path)
@@ -222,7 +221,6 @@ export async function updateConfig(
   oldName,
   profileFolder,
 ) {
-  console.log('updateConfig', name.config)
 
   if (oldName === name) {
     // just save and overwrite existing profile

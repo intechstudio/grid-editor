@@ -10,6 +10,10 @@
 
   const { env } = window.ctxProcess;
 
+  import configuration from "../../../../configuration.json";
+
+  console.log("config", configuration.DOCUMENTATION_REFERENCEMANUAL_URL);
+
   let video_link = "";
 
   let modalElement;
@@ -117,10 +121,11 @@
             Release notes video...
           </button>
           <button
-            on:click={(e) =>
+            on:click={(e) => {
               window.electron.openInBrowser(
-                env.DOCUMENTATION_REFERENCEMANUAL_URL
-              )}
+                configuration.DOCUMENTATION_REFERENCEMANUAL_URL
+              );
+            }}
             class="flex w-full text-blue-500 cursor-pointer"
           >
             Editor reference manual...
@@ -128,7 +133,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                env.DOCUMENTATION_DISCORDSERVER_URL
+                configuration.DOCUMENTATION_DISCORDSERVER_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
@@ -141,7 +146,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                env.DOCUMENTATION_TROUBLESHOOTING_URL
+                configuration.DOCUMENTATION_TROUBLESHOOTING_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
@@ -150,7 +155,7 @@
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
-                env.DOCUMENTATION_FIRMWAREUPDATE_URL
+                configuration.DOCUMENTATION_FIRMWAREUPDATE_URL
               )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
@@ -158,7 +163,9 @@
           </button>
           <button
             on:click={(e) =>
-              window.electron.openInBrowser(env.DOCUMENTATION_MAINTENANCE_URL)}
+              window.electron.openInBrowser(
+                configuration.DOCUMENTATION_MAINTENANCE_URL
+              )}
             class="flex w-full text-blue-500 cursor-pointer"
           >
             Taking care of grid modules...
@@ -171,7 +178,7 @@
           <div class="flex w-full">
             <button
               on:click={(e) =>
-                window.electron.openInBrowser(env.PUBLIC_ROADMAP_URL)}
+                window.electron.openInBrowser(configuration.PUBLIC_ROADMAP_URL)}
               class="rounded py-2 px-4 my-2 bg-secondary text-white
               cursor-pointer"
             >
@@ -192,7 +199,7 @@
         </div>
         <button
           on:click={(e) =>
-            window.electron.openInBrowser(env.EDITOR_REPOSITORY_URL)}
+            window.electron.openInBrowser(configuration.EDITOR_REPOSITORY_URL)}
           class="flex w-full opacity-40 hover:opacity-100 transition-opacity
           cursor-pointer"
         >

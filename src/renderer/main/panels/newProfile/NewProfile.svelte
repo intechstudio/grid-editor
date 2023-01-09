@@ -50,13 +50,12 @@
   let filteredProfileCloud = [];
 
   appSettings.subscribe((store) => {
-    console.log("Update Folder Path")
     let new_folder = store.persistant.profileFolder;
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       loadFromDirectory();
     }
-  });  
+  });
 
   let justReadInput = true;
 
@@ -82,19 +81,12 @@
   }
 
   async function loadFromDirectory() {
-
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== ""){
-      console.log("try loadFromDirectory", PROFILE_PATH, "profiles")
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
       PROFILES = await window.electron.configs.loadConfigsFromDirectory(
         PROFILE_PATH,
         "profiles"
       );
     }
-    else{
-      
-      console.log("Sorry: profile path is not set!")
-    }
-
 
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
@@ -109,6 +101,8 @@
     sortProfileCloud(sortField, sortAsc);
     sessionProfile.sort(compareDateDescending);
     updateSearchFilter(searchbarValue);
+
+    animateFade = true;
   }
 
   appSettings.subscribe((store) => {
@@ -146,34 +140,30 @@
   });
 
   function updateSearchFilter(input) {
+    animateFade = false;
 
-    
     filteredProfileCloud = [];
 
-
-    const arrayOfSearchTerms = input.trim().toLowerCase().split(' ');
-
-
-    
+    const arrayOfSearchTerms = input.trim().toLowerCase().split(" ");
 
     profileCloud.forEach((profile) => {
-
-      const currentProfileSearchable = profile.name.toLowerCase() + " " + profile.type.toLowerCase() + " " + profile.folder.toLowerCase();
+      const currentProfileSearchable =
+        profile.name.toLowerCase() +
+        " " +
+        profile.type.toLowerCase() +
+        " " +
+        profile.folder.toLowerCase();
       let filterMatch = true;
 
-      arrayOfSearchTerms.forEach((searchTerm)=>{
-
+      arrayOfSearchTerms.forEach((searchTerm) => {
         if (currentProfileSearchable.indexOf(searchTerm) === -1) {
-          filterMatch = false
+          filterMatch = false;
         }
-
       });
 
-      if (filterMatch){
+      if (filterMatch) {
         filteredProfileCloud = [...filteredProfileCloud, profile];
       }
-
-
     });
   }
 
@@ -390,9 +380,7 @@
 
   async function updateSessionProfileTitle(profile, newName) {
     animateFly = false;
-    animateFade = true;
-
-    console.log(profile.name, "profile.name", newName, "newName");
+    animateFade = false;
 
     checkIfProfileTitleUnique(newName);
     checkIfTitleFieldEmpty(newName);
@@ -421,20 +409,6 @@
     }
 
     await loadFromDirectory();
-    animateFly = false;
-    animateFade = false;
-
-    // checkIfProfileTitleUnique(title): true/false
-    //
-    if (1) {
-      //update Titel
-      //profile.name = newName;
-    } else {
-      //alert
-    }
-
-    //loadFromDir
-    //return
   }
 
   async function saveToDirectory(path, name, profile, user) {
@@ -602,7 +576,9 @@
 <div class=" flex flex-col h-full justify-between mt-4 ">
   <div class=" flex flex-col bg-primary ">
     <button
-      on:click={() => (isSessionProfileOpen = !isSessionProfileOpen)}
+      on:click={() => {
+        (animateFade = true), (isSessionProfileOpen = !isSessionProfileOpen);
+      }}
       class="flex justify-between items-center p-4 text-white font-medium
       cursor-pointer w-full "
     >
@@ -612,8 +588,8 @@
 
     {#if isSessionProfileOpen}
       <div
-        in:fadeAnimation={{ fn: fade, y: 100 }}
-        out:fadeAnimation={{ fn: fade, y: 100 }}
+        in:fadeAnimation={{ fn: fade, y: 50 }}
+        out:fadeAnimation={{ fn: fade, y: 50 }}
         class=" flex flex-col p-3 overflow-hidden h-full"
       >
         <button
@@ -627,7 +603,9 @@
         >
           <div>Add to Session Profile</div>
         </button>
-        <div class="flex flex-col overflow-y-auto gap-4 max-h-96 ">
+        <div
+          class="flex flex-col overflow-y-auto gap-4 min-h-[200px] max-h-96 "
+        >
           {#each sessionProfile as sessionProfileElement (sessionProfileElement.name)}
             <button
               in:flyAnimation={{ fn: fly, x: -200 }}
@@ -851,10 +829,10 @@
     {/if}
   </div>
 
-  <div class=" flex flex-col h-full overflow-hidden bg-primary">
+  <div class=" flex flex-col h-full  overflow-hidden bg-primary">
     <button
       on:click={() => {
-        isProfileCloudOpen = !isProfileCloudOpen;
+        (animateFade = true), (isProfileCloudOpen = !isProfileCloudOpen);
       }}
       class="flex justify-between items-center p-4 text-white font-medium
       cursor-pointer w-full"
@@ -865,10 +843,11 @@
 
     {#if isProfileCloudOpen}
       <div
-        in:fadeAnimation={{ fn: fade, y: 100 }}
-        out:fadeAnimation={{ fn: fade, y: 100 }}
+        class="flex flex-col overflow-hidden"
+        in:fadeAnimation={{ fn: fade, y: 50 }}
+        out:fadeAnimation={{ fn: fade, y: 50 }}
       >
-        <div class="flex flex-col gap-1 p-3">
+        <div class="flex flex-col gap-1 p-3  ">
           <div class="relative">
             <svg
               class="absolute left-3 bottom-[28%]"
@@ -952,7 +931,7 @@
           </div>
         </div>
 
-        <div class="flex gap-2 items-center justify-between  flex-wrap p-3">
+        <div class="flex gap-2 items-center justify-between  flex-wrap p-3  ">
           <label
             for="sorting select"
             class="uppercase text-gray-500 py-1 text-sm"

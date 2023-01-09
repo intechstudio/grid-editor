@@ -85,8 +85,6 @@
   async function checkIfProfileTitleUnique(input) {
     await loadFromDirectory();
 
-    console.log(input, editProfileData.name, $selectedProfileStore.name);
-
     profileCloud.every((profile) => {
       if (input.trim() == profile.name.trim()) {
         isTitleUnique = false;
@@ -100,7 +98,6 @@
     if ($selectedProfileStore.name == input) {
       isTitleUnique = true;
     }
-    console.log(isTitleUnique);
   }
 
   let isTitleDirty = undefined;
