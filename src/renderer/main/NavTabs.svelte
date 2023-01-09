@@ -27,6 +27,24 @@
       return store;
     });
   }
+
+  $: {
+    if ($appSettings.persistant.newProfileBrowserEnabled) {
+      console.log("newEnabled", $appSettings.leftPanel);
+
+      if (
+        $appSettings.leftPanel === "Profiles" ||
+        $appSettings.leftPanel === "Presets"
+      ) {
+        $appSettings.leftPanel = "NewProfile";
+      }
+    } else {
+      console.log("legacyEnabled", $appSettings.leftPanel);
+      if ($appSettings.leftPanel === "NewProfile") {
+        $appSettings.leftPanel = "Profiles";
+      }
+    }
+  }
 </script>
 
 <nav-tab
@@ -48,7 +66,7 @@
     </div>
     -->
 
-    <div
+    <button
       on:click={() => {
         changeRightTab("Configuration");
       }}
@@ -75,9 +93,9 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
       <TooltipSetter key={"sidebar_configuration_icon"} />
-    </div>
+    </button>
 
-    <div
+    <button
       on:click={() => {
         changeRightTab("Preferences");
       }}
@@ -107,12 +125,12 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
       <TooltipSetter key={"sidebar_preferences_icon"} />
-    </div>
+    </button>
   </div>
 
   <div class="flex flex-col">
     {#if $appSettings.persistant.newProfileBrowserEnabled === true}
-      <div
+      <button
         on:click={() => {
           changeLeftTab("NewProfile");
         }}
@@ -129,8 +147,10 @@
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-      </div>
+        <TooltipSetter key={"sidebar_new_profiles_icon"} />
+      </button>
     {/if}
+
     {#if $appSettings.persistant.legacyProfileBrowserEnabled === true}
       <div
         on:click={() => {

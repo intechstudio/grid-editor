@@ -28,6 +28,8 @@
     hpos: "50%",
   });
 
+  let selected;
+
   onMount(async () => {
     helperAttachment.set({
       element: helperPreviewElement,
@@ -35,7 +37,48 @@
       vpos: "50%",
       hpos: "50%",
     });
+
+    console.log(
+      "newprofile: ",
+      $appSettings.persistant.newProfileBrowserEnabled,
+      "legacyprofile: ",
+      $appSettings.persistant.legacyProfileBrowserEnabled,
+      "selected:",
+      selected
+    );
+
+    if ($appSettings.persistant.newProfileBrowserEnabled) {
+      selected = "newLibrary";
+      console.log("new");
+    } else {
+      selected = "legacyLibrary";
+      console.log("legacy");
+    }
   });
+
+  // profile browser radio handler
+
+  $: {
+    // string "newLibrary" bbecause radio button value is string!!!
+    if (selected === "newLibrary") {
+      $appSettings.persistant.newProfileBrowserEnabled = true;
+      $appSettings.persistant.legacyProfileBrowserEnabled = false;
+    } else if (selected === "legacyLibrary") {
+      $appSettings.persistant.newProfileBrowserEnabled = false;
+      $appSettings.persistant.legacyProfileBrowserEnabled = true;
+    } // bwecause it is initialized to undefined
+    else {
+    }
+
+    console.log(
+      "newprofile: ",
+      $appSettings.persistant.newProfileBrowserEnabled,
+      "legacyprofile: ",
+      $appSettings.persistant.legacyProfileBrowserEnabled,
+      "selected:",
+      selected
+    );
+  }
 
   let DEFAULT_PATH = "";
 
@@ -197,8 +240,6 @@
       "set to ..."
     );
   }
-
-  let selected = $appSettings.persistant.newProfileBrowserEnabled;
 </script>
 
 <preferences
@@ -471,40 +512,26 @@
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center  ">
-      <input
-        class="mr-1"
-        type="radio"
-        name="mode"
-        id="newProfileBrowser"
-        on:click={() => {
-          $appSettings.persistant.newProfileBrowserEnabled = true;
-
-          $appSettings.persistant.legacyProfileBrowserEnabled = false;
-        }}
-        value={$appSettings.persistant.newProfileBrowserEnabled}
-        bind:group={selected}
-      />
-      <label for="newProfileBrowser" class="mx-1"
-        >New Profile Browser Mode</label
+      <label class="mx-1">
+        <input
+          class="mr-1"
+          type="radio"
+          value="newLibrary"
+          bind:group={selected}
+        />
+        New Profile Browser Mode</label
       >
     </div>
 
     <div class="flex py-2 text-white items-center border-b mb-1">
-      <input
-        class="mr-1"
-        type="radio"
-        name="mode"
-        id="legacyProfileBrowser"
-        on:click={() => {
-          $appSettings.persistant.legacyProfileBrowserEnabled = true;
-
-          $appSettings.persistant.newProfileBrowserEnabled = false;
-        }}
-        value={$appSettings.persistant.legacyProfileBrowserEnabled}
-        bind:group={selected}
-      />
-      <label for="legacyProfileBrowser" class="mx-1"
-        >Legacy Profile Browser Mode</label
+      <label class="mx-1">
+        <input
+          class="mr-1"
+          type="radio"
+          value="legacyLibrary"
+          bind:group={selected}
+        />
+        Legacy Profile Browser Mode</label
       >
     </div>
 

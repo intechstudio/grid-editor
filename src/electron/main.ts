@@ -496,6 +496,8 @@ ipcMain.on('app_version', (event) => {
 })
 
 ipcMain.on('resetAppSettings', (event, arg) => {
+  log.info('Clear app settings...')
+  store.clear()
   app.relaunch()
   app.exit()
 })

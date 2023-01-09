@@ -1006,7 +1006,7 @@
                 >
                   <div class="flex truncate items-center   gap-1">
                     <div
-                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md 2xl:text-lg 
+                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
                       rounded-xl {selectedModule == profileCloudElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
@@ -1015,7 +1015,7 @@
                     </div>
 
                     <div
-                      class="text-gray-100 text-left text-sm lg:text-md xl:text-lg 2xl:text-xl truncate "
+                      class="text-gray-100 text-left text-sm lg:text-md   truncate "
                     >
                       {profileCloudElement.name}
                     </div>
