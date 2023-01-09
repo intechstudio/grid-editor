@@ -83,6 +83,7 @@ export const tooltip_content = {
 
     "sidebar_configuration_icon": "Configure your Grid modules.",
     "sidebar_preferences_icon": "Change your Grid Editor settings.",
+    "sidebar_new_profiles_icon": "Profile Manager",
     "sidebar_profiles_icon": "Manage locally stored module configurations.",
     "sidebar_presets_icon": "Manage locally stored element configurations.",
     "sidebar_debugger_icon": "Access the debugger window for troubleshooting purposes.",
