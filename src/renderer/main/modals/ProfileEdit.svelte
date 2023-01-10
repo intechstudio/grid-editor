@@ -49,9 +49,18 @@
   }
 
   async function updateConfig() {
-    checkIfProfileTitleUnique(editProfileData.name);
+    await checkIfProfileTitleUnique(editProfileData.name);
     checkIfTitleFieldEmpty(editProfileData.name);
     checkIfDescFieldEmpty(editProfileData.description);
+
+    console.log(
+      "isTitleUnique",
+      isTitleUnique,
+      "isDescDirty",
+      isDescDirty,
+      "isTitleDirty",
+      isTitleDirty
+    );
 
     if (isTitleDirty == true && isDescDirty == true && isTitleUnique == true) {
       await window.electron.configs.updateConfig(
@@ -83,17 +92,21 @@
   let isTitleUnique = undefined;
 
   async function checkIfProfileTitleUnique(input) {
-    await loadFromDirectory();
+    loadFromDirectory();
 
-    profileCloud.every((profile) => {
-      if (input.trim() == profile.name.trim()) {
-        isTitleUnique = false;
-        return false;
-      } else {
-        isTitleUnique = true;
-        return true;
+    let notUniqueName = [];
+
+    profileCloud.forEach((element) => {
+      if (element.name.trim() == input.trim()) {
+        notUniqueName.push(element.name.trim());
       }
     });
+
+    if (notUniqueName.length > 0) {
+      isTitleUnique = false;
+    } else {
+      isTitleUnique = true;
+    }
 
     if ($selectedProfileStore.name == input) {
       isTitleUnique = true;
@@ -261,7 +274,7 @@
           ← back
         </button>
         <button
-          on:click|preventDefault={() => updateConfig()}
+          on:click={() => updateConfig()}
           class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
