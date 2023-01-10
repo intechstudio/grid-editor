@@ -102,8 +102,10 @@
     <div class="p-6 flex flex-row gap-10 overflow-auto w-full">
       <div class="w-3/5 flex flex-col gap-4 ">
         <div>
-          <div class="flex justify-between items-center">
-            <div class="text-green-400 font-semibold mb-2">Tags</div>
+          <div class="flex justify-end items-center ">
+            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              <div class="text-green-400 font-semibold mb-2">Tags</div>
+            {/if}
 
             {#if selectedProfile.folder == "user"}
               <div class="flex gap-2">
