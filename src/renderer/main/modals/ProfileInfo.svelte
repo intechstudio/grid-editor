@@ -208,12 +208,14 @@
               <div>
                 <div class="font-medium mb-1">@{selectedProfile.folder}</div>
 
-                <div class="text-zinc-300">
-                  Modified at {selectedProfile.fsModifiedAt
-                    .toJSON()
-                    .split("T")[0]}
-                  <!--  something isn't right with the date in the json here -->
-                </div>
+                {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                  <div class="text-zinc-300">
+                    Modified at {selectedProfile.fsModifiedAt
+                      .toJSON()
+                      .split("T")[0]}
+                    <!--  something isn't right with the date in the json here -->
+                  </div>
+                {/if}
               </div>
               {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
                 <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">

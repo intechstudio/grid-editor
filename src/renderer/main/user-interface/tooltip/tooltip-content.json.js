@@ -17,6 +17,7 @@ export const tooltip_content = {
     "newProfile_save": "Move profile to Profile Cloud.",
     "newProfile_rewrite": "Rewrite profile with the selected module's config.",
     "newProfile_info": "Profile informations",
+    "newProfile_add_to_session": "Save config from your selected module as Session Profile.",
 
 
     "configuration_header_clear": "Clear all configurations of the currently active Page from Grid module memory.",
