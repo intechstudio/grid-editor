@@ -594,10 +594,7 @@
       >
         <button
           on:click={() => prepareAddToSessionProfile("sessionProfile")}
-          disabled={selectedProfile == undefined}
-          class="relative bg-commit block  {selectedProfile != undefined
-            ? 'hover:bg-commit-saturate-20'
-            : 'opacity-50 cursor-not-allowed'}
+          class="relative bg-commit block  
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
           hover:border-commit-desaturate-10 focus:outline-none"
         >
@@ -607,7 +604,7 @@
           class="flex flex-col overflow-y-auto gap-4 min-h-[200px] max-h-96 "
         >
           {#each sessionProfile as sessionProfileElement (sessionProfileElement.name)}
-            <!---No fade transition: would be able to click on the delete button during transition, leads to an error message ("No file exits")--->
+            <!---No fade transition: would be able to click on the delete button during transition, leads to an error message ("No file exits") or should use a variable for state?--->
             <button
               in:flyAnimation={{ fn: fly, x: -200 }}
               on:click={() => selectProfile(sessionProfileElement)}
@@ -635,7 +632,7 @@
                       disabled={justReadInput == true}
                       value={sessionProfileElement.name}
                       use:clickOutside={{ useCapture: true }}
-                      on:click={(e) => {
+                      on:click={() => {
                         selectProfile(sessionProfileElement);
                       }}
                       on:blur={(e) => {
@@ -1109,7 +1106,11 @@
                           class="p-1 hover:bg-primary-500 rounded relative"
                           on:click|preventDefault={() => {
                             ($appSettings.modal = "profileInfo"),
-                              selectProfile(profileCloudElement);
+                              selectProfile(profileCloudElement),
+                              isActionButtonClickedStore.set(true);
+                          }}
+                          on:blur={() => {
+                            isActionButtonClickedStore.set(false);
                           }}
                         >
                           <svg
