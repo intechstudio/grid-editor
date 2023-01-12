@@ -13,13 +13,6 @@ export const tooltip_content = {
     "preset_selection": "Saved properties of the selected preset, such as name and description are shown here.",
     "preset_load_to_module": "Load the configuration of the selected preset onto the currently active control element.",
 
-    "newProfile_delete": "Delete profile from Session Profile.",
-    "newProfile_save": "Move profile to Profile Cloud.",
-    "newProfile_rewrite": "Rewrite profile with the selected module's config.",
-    "newProfile_info": "Profile informations",
-    "newProfile_add_to_session": "Save config from your selected module as Session Profile.",
-
-
     "configuration_header_clear": "Clear all configurations of the currently active Page from Grid module memory.",
     "configuration_header_store": "Store the configuration of the currently active Page into Grid module memory.",
     "configuration_header_discard": "Discard the unstored configuration of the currently active Page from Grid module memory.",
@@ -94,5 +87,11 @@ export const tooltip_content = {
     "sidebar_debugger_icon": "Access the debugger window for troubleshooting purposes.",
     "sidebar_midi_monitor_icon": "Access the MIDI monitor for MIDI-specific troubleshooting.",
 
-    "engine_clear": "Clear the writebuffer and re-enable the engine!"
+    "engine_clear": "Clear the writebuffer and re-enable the engine!",
+
+    "newProfile_delete": "Delete profile from Session Profile.",
+    "newProfile_save": "Move profile to Profile Cloud.",
+    "newProfile_rewrite": "Rewrite profile with the selected module's config.",
+    "newProfile_info": "Profile informations",
+    "newProfile_add_to_session": "Save config from your selected module as Session Profile.",
 }

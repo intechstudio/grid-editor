@@ -169,6 +169,8 @@
         filteredProfileCloud = [...filteredProfileCloud, profile];
       }
     });
+
+    sortProfileCloud(sortField, sortAsc);
   }
 
   let number = 0;
@@ -511,8 +513,6 @@
   let sortAsc = true;
   let sortField = "name";
 
-  $: console.log("sortasc", sortAsc);
-
   let compareNameAscending = (a, b) => {
     return a.name
       .toLowerCase()
@@ -749,7 +749,6 @@
                     isSaveToCloudButtonClicked = true;
                     isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
-                    console.log(sessionProfile.indexOf(selectedProfile));
 
                     prepareSave("user");
                     selectedProfile = undefined;
