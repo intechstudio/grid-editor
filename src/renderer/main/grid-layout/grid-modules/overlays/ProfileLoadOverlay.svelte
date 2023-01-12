@@ -71,7 +71,7 @@
 
 {#if showOverlay}
   <div
-    class="text-white bg-black bg-opacity-25 w-full absolute flex flex-col
+    class="text-white bg-black bg-opacity-25 z-[1] w-full absolute flex flex-col
     items-center justify-center rounded h-full "
   >
     <div>

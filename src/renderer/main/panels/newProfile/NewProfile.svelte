@@ -36,7 +36,11 @@
   ];
 
   let selectedProfile = undefined;
-  let isActionButtonClicked = false;
+  let isActionButtonClicked;
+  let disableButton = false;
+  let isDeleteButtonClicked = false;
+  let isSaveToCloudButtonClicked = false;
+  let isAddToSessionButtonClicked = false;
 
   let searchbarValue = "";
 
@@ -165,20 +169,16 @@
         filteredProfileCloud = [...filteredProfileCloud, profile];
       }
     });
+
+    sortProfileCloud(sortField, sortAsc);
   }
 
   let number = 0;
   let sessionProfileNumbers = [];
 
-  /*Refactoring prepareSave!
-    save to session profile
-    save to profile cloud from session profile (and delete element from session profile)
+  async function prepareAddToSessionProfile(user) {
+    isAddToSessionButtonClicked = true;
 
-    delete from session profile
-    delete from profile cloud 
-    */
-
-  function prepareAddToSessionProfile(user) {
     window.electron.analytics.influx("profile-library", {
       value: "save start",
     });
@@ -189,7 +189,7 @@
       "save start"
     );
 
-    let callback = function () {
+    let callback = await function () {
       logger.set({
         type: "progress",
         mode: 0,
@@ -270,7 +270,7 @@
       });
 
       saveToDirectory(PROFILE_PATH, name, profile, user);
-
+      isAddToSessionButtonClicked = false;
       engine.set("ENABLED");
     };
 
@@ -354,7 +354,6 @@
           });
         } else {
           saveToDirectory(PROFILE_PATH, name, profile, user);
-
           deleteFromDirectory(selectedProfile);
         }
       }
@@ -412,6 +411,37 @@
   }
 
   async function saveToDirectory(path, name, profile, user) {
+    disableButton = true;
+    if (isAddToSessionButtonClicked == true) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "profilesave",
+        message: `${name} saved to Session Profiles!`,
+      });
+    }
+
+    if (isSaveToCloudButtonClicked == true) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "profilesave",
+        message: `${name} saved to Profile Cloud!`,
+      });
+    }
+
+    if (
+      isAddToSessionButtonClicked != true &&
+      isSaveToCloudButtonClicked != true
+    ) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "profilesave",
+        message: `${name} saved!`,
+      });
+    }
+
     await window.electron.configs.saveConfig(
       path,
       name,
@@ -420,25 +450,25 @@
       user
     );
 
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: "profilesave",
-      message: `${name} saved!`,
-    });
-
     animateFly = true;
     await loadFromDirectory();
     animateFly = false;
+    disableButton = false;
   }
 
   async function deleteFromDirectory(element) {
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: "profiledelete",
-      message: `${element.name.trim()} deleted!`,
-    });
+    disableButton = true;
+
+    if (isDeleteButtonClicked) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "profiledelete",
+        message: `${element.name.trim()} deleted!`,
+      });
+    }
+
+    isDeleteButtonClicked = false;
 
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
@@ -448,6 +478,8 @@
     );
 
     await loadFromDirectory();
+
+    disableButton = false;
   }
 
   let isSessionProfileNameUnique = undefined;
@@ -593,20 +625,28 @@
         class=" flex flex-col p-3 overflow-hidden h-full"
       >
         <button
-          on:click={() => prepareAddToSessionProfile("sessionProfile")}
+          on:click={() => {
+            prepareAddToSessionProfile("sessionProfile");
+          }}
           class="relative bg-commit block  
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
           hover:border-commit-desaturate-10 focus:outline-none"
         >
           <div>Add to Session Profile</div>
+          <TooltipSetter key={"newProfile_add_to_session"} />
         </button>
         <div
-          class="flex flex-col overflow-y-auto gap-4 min-h-[200px] max-h-96 "
+          class="flex flex-col overflow-y-auto gap-4 min-h-[240px] max-h-60 "
         >
-          {#each sessionProfile as sessionProfileElement (sessionProfileElement.name)}
+          {#if sessionProfile.length == 0}
+            <div class="text-gray-300">No profile to show</div>
+          {/if}
+
+          {#each sessionProfile as sessionProfileElement, i (sessionProfileElement.name)}
             <!---No fade transition: would be able to click on the delete button during transition, leads to an error message ("No file exits") or should use a variable for state?--->
             <button
-              in:flyAnimation={{ fn: fly, x: -200 }}
+              in:flyAnimation={{ fn: fly, x: -50 }}
+              out:fadeAnimation={{ fn: fade, y: 50 }}
               on:click={() => selectProfile(sessionProfileElement)}
               class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
@@ -664,12 +704,16 @@
                 <button
                   on:click|preventDefault={() => {
                     isActionButtonClickedStore.set(true);
+                    isDeleteButtonClicked = true;
                     deleteFromDirectory(sessionProfileElement);
                   }}
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
                   }}
-                  class="p-1 hover:bg-primary-500 rounded relative"
+                  class="p-1 hover:bg-primary-500 {selectedProfile ==
+                    sessionProfileElement && disableButton == true
+                    ? 'pointer-events-none'
+                    : 0} rounded relative"
                 >
                   <svg
                     class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
@@ -697,12 +741,18 @@
                   <TooltipSetter key={"newProfile_delete"} />
                 </button>
                 <button
-                  class="p-1 hover:bg-primary-500 rounded relative"
+                  class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
+                    sessionProfileElement && disableButton == true
+                    ? 'pointer-events-none'
+                    : 0}"
                   on:click|preventDefault={() => {
+                    isSaveToCloudButtonClicked = true;
                     isActionButtonClickedStore.set(true);
                     selectProfile(sessionProfileElement);
+
                     prepareSave("user");
                     selectedProfile = undefined;
+                    isSaveToCloudButtonClicked = false;
                   }}
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
@@ -1008,8 +1058,8 @@
               {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
                 <button
                   title={profileCloudElement.name}
-                  in:flyAnimation={{ fn: fly, x: -200 }}
-                  out:fadeAnimation={{ fn: fade, y: 100 }}
+                  in:flyAnimation={{ fn: fly, x: -50 }}
+                  out:fadeAnimation={{ fn: fade, y: 50 }}
                   on:click={() => {
                     selectProfile(profileCloudElement);
                   }}
@@ -1169,169 +1219,13 @@
                     @{profileCloudElement.folder}
                   </div>
                 </button>
-
-                <!-- <button
-                  title={profileCloudElement.name}
-                  in:flyAnimation={{ fn: fly, x: -200 }}
-                  out:fadeAnimation={{ fn: fade, y: 100 }}
-                  on:click={() => {
-                    selectProfile(profileCloudElement);
-                  }}
-                  class="w-full flex gap-1 items-center flex-row justify-between bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedProfile == profileCloudElement
-                    ? 'border border-green-300 bg-primary-600'
-                    : 'border border-black border-opacity-0 bg-secondary'}"
-                >
-                  <div
-                    class="flex flex-row gap-1 items-center w-full  justify-between"
-                  >
-                    <div class="flex truncate items-center   gap-1">
-                      <div
-                        class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
-                      rounded-xl {selectedModule == profileCloudElement.type
-                          ? 'bg-violet-600'
-                          : 'bg-gray-600 '}"
-                      >
-                        {profileCloudElement.type}
-                      </div>
-
-                      <div
-                        class="text-gray-100 text-left text-sm lg:text-md   truncate "
-                      >
-                        {profileCloudElement.name}
-                      </div>
-                    </div>
-
-                    <div class="flex flex-row gap-1 items-center justify-end">
-                      <div class="text-gray-100 text-xs lg:text-sm ">
-                        @{profileCloudElement.folder}
-                      </div>
-                      <div class="flex flex-row gap-1">
-                        {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                          <button
-                            class="p-1 hover:bg-primary-500 rounded"
-                            on:click|preventDefault={() => {
-                              ($appSettings.modal = "profileAttachment"),
-                                selectProfile(profileCloudElement);
-                            }}
-                          >
-                            <svg
-                              class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                              width="15"
-                              height="16"
-                              viewBox="0 0 20 21"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <g clip-path="url(#clip0_262_1471)">
-                                <path
-                                  d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
-                              1.06324 19.1804C-0.375193 17.7373 -0.375193
-                              15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
-                              0.284467 16.7098 0.441967 18.666 2.40072C19.5426
-                              3.27884 20.0345 4.54478 20.016 5.87541C19.9976
-                              7.19199 19.4832 8.45197 18.6041 9.33259L10.1273
-                              18.357C9.89133 18.6098 9.49571 18.6213 9.24385
-                              18.3842C8.9926 18.1467 8.98041 17.7504 9.21729
-                              17.4985L17.707 8.4604C18.371 7.79509 18.752
-                              6.85132 18.766 5.85789C18.7801 4.86384 18.421
-                              3.92664 17.7823 3.28632C16.5823 2.08382 14.6285
-                              1.45414 13.176 2.91007L1.96006 14.8207C0.995686
-                              15.7876 0.995998 17.3404 1.94756 18.2944C2.39379
-                              18.741 2.92348 18.9585 3.48754 18.9244C4.04567
-                              18.8903 4.61942 18.6041 5.10317 18.1191L14.0275
-                              8.62035C14.351 8.29628 15.001 7.50191 14.3394
-                              6.83878C13.9647 6.46347 13.7016 6.4866 13.615
-                              6.49378C13.3679 6.51566 13.0791 6.6866 12.7794
-                              6.98722L6.06223 14.1313C5.82504 14.3835 5.4291
-                              14.3957 5.17877 14.1578C4.92721 13.921 4.91565
-                              13.5241 5.15221 13.2728L11.8816 6.11535C12.4107
-                              5.58378 12.9516 5.29566 13.5022 5.24628C13.9319
-                              5.20814 14.571 5.29972 15.2229 5.95347C16.1904
-                              6.92283 16.0701 8.34472 14.9244 9.49285L6.00006
-                              18.991C5.28756 19.7059 4.42723 20.1213 3.5641
-                              20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
-                              20.1806L3.37381 20.1806Z"
-                                  fill="#F1F1F1"
-                                />
-                              </g>
-                              <defs>
-                                <clipPath id="clip0_262_1471">
-                                  <rect
-                                    width="20"
-                                    height="20"
-                                    fill="white"
-                                    transform="translate(0 0.5)"
-                                  />
-                                </clipPath>
-                              </defs>
-                            </svg>
-                          </button>
-                        {/if}
-
-                        <button
-                          class="p-1 hover:bg-primary-500 rounded relative"
-                          on:click|preventDefault={() => {
-                            ($appSettings.modal = "profileInfo"),
-                              selectProfile(profileCloudElement);
-                          }}
-                        >
-                          <svg
-                            class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                            viewBox="0 0 21 20"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <g clip-path="url(#clip0_293_1221)">
-                              <path
-                                d="M10.2723 0.489136C5.02014 0.489136 0.761475
-                              4.7478 0.761475 10C0.761475 15.2522 5.02014
-                              19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
-                              15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
-                              10.2723 0.489136ZM10.2723 17.8974C5.91178 17.8974
-                              2.37493 14.3606 2.37493 10C2.37493 5.63944 5.91178
-                              2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
-                              5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
-                              10.2723 17.8974Z"
-                              />
-                              <path
-                                d="M9.25342 6.26359C9.25342 6.53385 9.36078
-                              6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
-                              7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
-                              7.17525 10.993 6.98415C11.1841 6.79304 11.2915
-                              6.53385 11.2915 6.26359C11.2915 5.99333 11.1841
-                              5.73414 10.993 5.54303C10.8019 5.35193 10.5427
-                              5.24457 10.2724 5.24457C10.0022 5.24457 9.74299
-                              5.35193 9.55188 5.54303C9.36078 5.73414 9.25342
-                              5.99333 9.25342 6.26359ZM10.782
-                              8.64131H9.76293C9.66952 8.64131 9.59309 8.71773
-                              9.59309 8.81114V14.5856C9.59309 14.679 9.66952
-                              14.7554 9.76293 14.7554H10.782C10.8754 14.7554
-                              10.9518 14.679 10.9518 14.5856V8.81114C10.9518
-                              8.71773 10.8754 8.64131 10.782 8.64131Z"
-                              />
-                            </g>
-                            <defs>
-                              <clipPath id="clip0_293_1221">
-                                <rect
-                                  width="20"
-                                  height="20"
-                                  fill="white"
-                                  transform="translate(0.272461)"
-                                />
-                              </clipPath>
-                            </defs>
-                          </svg>
-
-                          <TooltipSetter key={"newProfile_info"} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </button> -->
               {/each}
 
-              {#if filteredProfileCloud.length == 0}
+              {#if profileCloud.length == 0}
+                <div class="text-gray-300">No profile to show</div>
+              {/if}
+
+              {#if filteredProfileCloud.length == 0 && profileCloud.length != 0}
                 <div class="text-gray-300">No result</div>
               {/if}
             </div>
