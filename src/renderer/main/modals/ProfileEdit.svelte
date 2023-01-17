@@ -179,6 +179,7 @@
             <label class="mb-1 " for="title">Title</label>
             <input
               id="title"
+              placeholder="Enter profile name..."
               bind:value={editProfileData.name}
               on:input={() => {
                 checkIfProfileTitleUnique(editProfileData.name.trim()),
@@ -202,6 +203,7 @@
             <label class="mb-1" for="desc">Description</label>
             <textarea
               id="desc"
+              placeholder="Write a short description about this profile..."
               bind:value={editProfileData.description}
               on:input={checkIfDescFieldEmpty(
                 editProfileData.description.trim()

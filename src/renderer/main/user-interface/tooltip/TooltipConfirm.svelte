@@ -106,8 +106,6 @@
   $: if (tooltip_isvisible) {
     calculate_position();
   }
-
-  console.log("confirm");
 </script>
 
 <svelte:window bind:innerWidth bind:innerHeight />

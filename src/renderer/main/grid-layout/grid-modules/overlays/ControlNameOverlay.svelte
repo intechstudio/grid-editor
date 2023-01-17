@@ -6,7 +6,6 @@
     elementNameStore,
     user_input,
   } from "../../../../runtime/runtime.store.js";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
 
   export let id;
   export let moduleWidth;
@@ -25,18 +24,16 @@
 
   let controlElementSettings;
 
-  let isActionButtonClicked = false;
-
   let selectedProfile = {};
 
-  $: selectedProfileStore.subscribe((store) => {
+  selectedProfileStore.subscribe((store) => {
     selectedProfile = store;
     showControlNameOverlay(selectedProfile);
     showOverlay;
   });
 
   function showControlNameOverlay(selectedProfile) {
-    if (Object.keys(selectedProfile).length === 0) {
+    if (Object.keys(selectedProfile).length == 0) {
       showOverlay = true;
     } else {
       showOverlay = false;

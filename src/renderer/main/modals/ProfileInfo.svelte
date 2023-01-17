@@ -60,6 +60,35 @@
 
     selectedProfile = undefined;
   }
+
+  function deleteProfile() {
+    deleteFromDirectory(selectedProfile);
+    $appSettings.modal = "";
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_desc_delete",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_desc_delete"
+    );
+  }
+
+  function editProfile() {
+    $appSettings.modal = "profileEdit";
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_desc_edit",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_desc_edit"
+    );
+  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -72,7 +101,7 @@
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class=" z-50 w-3/6 2xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col
+    class=" z-50 w-3/6 3xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col
     shadow bg-primary bg-opacity-100 items-start opacity-100 p-6 "
   >
     <div>Profile Info</div>
@@ -102,7 +131,7 @@
     </button>
 
     <div
-      class="p-6 flex flex-row gap-10 overflow-auto w-full flex-wrap justify-between "
+      class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between "
     >
       <div class="flex flex-col gap-4 w-full lg:w-3/6 ">
         <div>
@@ -112,15 +141,14 @@
             {/if}
 
             {#if selectedProfile.folder == "user"}
-              <div class="flex gap-2">
+              <div class="flex gap-2 flex-wrap">
                 <button
                   class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
                   on:click|preventDefault={() => {
-                    deleteFromDirectory(selectedProfile);
-                    $appSettings.modal = "";
+                    deleteProfile();
                   }}
                 >
                   <svg
@@ -157,7 +185,7 @@
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
                   on:click|preventDefault={() => {
-                    $appSettings.modal = "profileEdit";
+                    editProfile();
                   }}
                 >
                   <svg

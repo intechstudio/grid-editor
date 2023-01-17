@@ -16,6 +16,7 @@
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
+  import { bubble } from "svelte/internal";
 
   let searchSuggestions = [
     {
@@ -40,8 +41,9 @@
   let disableButton = false;
   let isDeleteButtonClicked = false;
   let isSaveToCloudButtonClicked = false;
-  let isAddToSessionButtonClicked = false;
+  let isSaveToSessionButtonClicked = false;
 
+  let isSearchSortingShows = false;
   let searchbarValue = "";
 
   let isSessionProfileOpen = true;
@@ -169,17 +171,17 @@
   let number = 0;
   let sessionProfileNumbers = [];
 
-  async function prepareAddToSessionProfile(user) {
-    isAddToSessionButtonClicked = true;
+  async function saveToSessionProfile(user) {
+    isSaveToSessionButtonClicked = true;
 
     window.electron.analytics.influx("profile-library", {
-      value: "save start",
+      value: "newProfile_add_to_session",
     });
     window.electron.analytics.influx(
       "application",
       "profiles",
       "profile",
-      "save start"
+      "newProfile_add_to_session"
     );
 
     let callback = await function () {
@@ -263,7 +265,7 @@
       });
 
       saveToDirectory(PROFILE_PATH, name, profile, user);
-      isAddToSessionButtonClicked = false;
+      isSaveToSessionButtonClicked = false;
       engine.set("ENABLED");
     };
 
@@ -405,7 +407,7 @@
 
   async function saveToDirectory(path, name, profile, user) {
     disableButton = true;
-    if (isAddToSessionButtonClicked == true) {
+    if (isSaveToSessionButtonClicked == true) {
       logger.set({
         type: "success",
         mode: 0,
@@ -413,7 +415,6 @@
         message: `${name} saved to Session Profiles!`,
       });
     }
-
     if (isSaveToCloudButtonClicked == true) {
       logger.set({
         type: "success",
@@ -422,9 +423,8 @@
         message: `${name} saved to Profile Cloud!`,
       });
     }
-
     if (
-      isAddToSessionButtonClicked != true &&
+      isSaveToSessionButtonClicked != true &&
       isSaveToCloudButtonClicked != true
     ) {
       logger.set({
@@ -434,7 +434,6 @@
         message: `${name} saved!`,
       });
     }
-
     await window.electron.configs.saveConfig(
       path,
       name,
@@ -442,7 +441,6 @@
       "profiles",
       user
     );
-
     animateFly = true;
     await loadFromDirectory();
     animateFly = false;
@@ -451,7 +449,6 @@
 
   async function deleteFromDirectory(element) {
     disableButton = true;
-
     if (isDeleteButtonClicked) {
       logger.set({
         type: "success",
@@ -460,19 +457,16 @@
         message: `${element.name.trim()} deleted!`,
       });
     }
-
     isDeleteButtonClicked = false;
-
     await window.electron.configs.deleteConfig(
       PROFILE_PATH,
       element.name.trim(),
       "profiles",
       element.folder
     );
-
     await loadFromDirectory();
-
     disableButton = false;
+    isActionButtonClickedStore.set(false);
   }
 
   let isSessionProfileNameUnique = undefined;
@@ -573,16 +567,25 @@
     }
   }
 
+  function filterShowHide() {
+    isSearchSortingShows = !isSearchSortingShows;
+    animateFade = true;
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_filter_show_hide",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_filter_show_hide"
+    );
+  }
+
   profileListRefresh.subscribe((store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
       loadFromDirectory();
     }
-  });
-
-  onMount(() => {
-    animateFade = true;
-    animateFly = false;
-    moveOld();
   });
 
   function fadeAnimation(node, options) {
@@ -595,6 +598,94 @@
     if (animateFly) {
       return options.fn(node, options);
     }
+  }
+
+  onMount(() => {
+    animateFade = true;
+    animateFly = false;
+    moveOld();
+  });
+
+  function deleteSessionProfile(profile) {
+    isActionButtonClickedStore.set(true);
+    isDeleteButtonClicked = true;
+    deleteFromDirectory(profile);
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_delete",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_delete"
+    );
+  }
+
+  function saveFromSessionToCloud(profile) {
+    isSaveToCloudButtonClicked = true;
+    isActionButtonClickedStore.set(true);
+
+    selectProfile(profile);
+    prepareSave("user");
+
+    selectedProfile = undefined;
+    isSaveToCloudButtonClicked = false;
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_save",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_save"
+    );
+  }
+
+  function rewriteSessionProfile(profile) {
+    isActionButtonClickedStore.set(true);
+
+    selectProfile(profile);
+    prepareSave("sessionProfile");
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_rewrite",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_rewrite"
+    );
+  }
+
+  function useSearchSuggestion(suggestionText) {
+    updateSearchFilter((searchbarValue = suggestionText));
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_use_search_suggestion",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_use_search_suggestion"
+    );
+  }
+
+  function openProfileInfo(profile) {
+    ($appSettings.modal = "profileInfo"), selectProfile(profile);
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_info",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_info"
+    );
   }
 </script>
 
@@ -619,7 +710,7 @@
       >
         <button
           on:click={() => {
-            prepareAddToSessionProfile("sessionProfile");
+            saveToSessionProfile("sessionProfile");
           }}
           class="relative bg-commit block  
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
@@ -692,12 +783,7 @@
               <div class="flex gap-1 ">
                 <button
                   on:click|preventDefault={() => {
-                    isActionButtonClickedStore.set(true);
-                    isDeleteButtonClicked = true;
-                    deleteFromDirectory(sessionProfileElement);
-                  }}
-                  on:blur={() => {
-                    isActionButtonClickedStore.set(false);
+                    deleteSessionProfile(sessionProfileElement);
                   }}
                   class="p-1 hover:bg-primary-500 {selectedProfile ==
                     sessionProfileElement && disableButton == true
@@ -736,13 +822,7 @@
                     ? 'pointer-events-none'
                     : 0}"
                   on:click|preventDefault={() => {
-                    isSaveToCloudButtonClicked = true;
-                    isActionButtonClickedStore.set(true);
-                    selectProfile(sessionProfileElement);
-
-                    prepareSave("user");
-                    selectedProfile = undefined;
-                    isSaveToCloudButtonClicked = false;
+                    saveFromSessionToCloud(sessionProfileElement);
                   }}
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
@@ -798,9 +878,7 @@
                 <button
                   class="p-1 hover:bg-primary-500 rounded relative"
                   on:click|preventDefault={() => {
-                    isActionButtonClickedStore.set(true);
-                    selectProfile(sessionProfileElement);
-                    prepareSave("sessionProfile");
+                    rewriteSessionProfile(sessionProfileElement);
                   }}
                   on:blur={() => {
                     isActionButtonClickedStore.set(false);
@@ -868,10 +946,22 @@
 
   <div class=" flex flex-col h-full  overflow-hidden bg-primary">
     <div
-      class="flex justify-between items-center p-4 text-white font-medium
+      class="flex justify-between items-center p-4 
       w-full"
     >
-      <div>Profile Cloud</div>
+      <div class="text-white font-medium">Profile Cloud</div>
+      <button
+        on:click={() => {
+          filterShowHide();
+        }}
+        class="text-white text-left font-xs "
+      >
+        {#if isSearchSortingShows}
+          Hide Filters
+        {:else}
+          Show Filters
+        {/if}
+      </button>
     </div>
 
     <div
@@ -879,18 +969,23 @@
       in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
       out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
     >
-      <div class="flex flex-col gap-1 p-3  ">
-        <div class="relative">
-          <svg
-            class="absolute left-3 bottom-[28%]"
-            width="14"
-            height="14"
-            viewBox="0 0 18 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
+      {#if isSearchSortingShows == true}
+        <div
+          in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+          out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+        >
+          <div class="flex flex-col gap-1 p-3">
+            <div class="relative">
+              <svg
+                class="absolute left-3 bottom-[28%]"
+                width="14"
+                height="14"
+                viewBox="0 0 18 18"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
               6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
               0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
               3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
@@ -912,131 +1007,137 @@
               4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
               1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
               4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
-              fill="#CDCDCD"
-            />
-          </svg>
-          {#if searchbarValue != ""}
-            <button
-              class="absolute right-2 bottom-[25%]"
-              on:click={() => updateSearchFilter((searchbarValue = ""))}
-            >
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 39 39"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
-                  stroke="#FFF"
-                  stroke-width="2"
-                  stroke-linecap="round"
+                  fill="#CDCDCD"
                 />
               </svg>
-            </button>
-          {/if}
 
-          <input
-            type="text"
-            bind:value={searchbarValue}
-            on:keyup={() => updateSearchFilter(searchbarValue)}
-            on:input={() => updateSearchFilter(searchbarValue)}
-            on:change={() => updateSearchFilter(searchbarValue)}
-            class="w-full py-2 px-12 bg-primary-700 text-white
+              {#if searchbarValue != ""}
+                <button
+                  class="absolute right-2 bottom-[25%]"
+                  on:click={() => updateSearchFilter((searchbarValue = ""))}
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 39 39"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
+                      stroke="#FFF"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                  </svg>
+                </button>
+              {/if}
+
+              <input
+                type="text"
+                bind:value={searchbarValue}
+                on:keyup={() => updateSearchFilter(searchbarValue)}
+                on:input={() => updateSearchFilter(searchbarValue)}
+                on:change={() => updateSearchFilter(searchbarValue)}
+                class="w-full py-2 px-12 bg-primary-700 text-white
             placeholder-gray-400 text-md focus:outline-none"
-            placeholder="Find Profile..."
-          />
-        </div>
+                placeholder="Find Profile..."
+              />
+            </div>
 
-        <div class="flex flex-row gap-2 py-3 flex-wrap">
-          {#each searchSuggestions as suggestion}
+            <div class="flex flex-row gap-2 py-3 flex-wrap">
+              {#each searchSuggestions as suggestion}
+                <button
+                  on:click={() => useSearchSuggestion(suggestion.value)}
+                  class="border  hover:border-primary-500 text-sm text-primary-100 rounded-md
+                  py-1 px-2 h-min {searchbarValue.toLowerCase() ==
+                  suggestion.value.toLowerCase()
+                    ? 'border-primary-100'
+                    : 'border-primary-700'}"
+                >
+                  {suggestion.value}
+                </button>
+              {/each}
+            </div>
+          </div>
+
+          <div class="flex gap-2 items-center justify-between flex-wrap p-3">
+            <label
+              for="sorting select"
+              class="uppercase text-gray-500 py-1 text-sm"
+            >
+              sort by
+            </label>
+
+            <select
+              class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
+              id="sortingSelectBox"
+              on:change={(e) => {
+                sortField = e.target.value;
+                sortProfileCloud(sortField, sortAsc);
+              }}
+              name="sorting select"
+            >
+              <option
+                selected
+                class="text-white bg-secondary py-1 border-none"
+                value="name"
+              >
+                name
+              </option>
+
+              <option
+                class="text-white bg-secondary py-1 border-none"
+                value="module"
+              >
+                module
+              </option>
+            </select>
+
             <button
-              on:click={() =>
-                updateSearchFilter((searchbarValue = suggestion.value))}
-              class="border border-primary-700 hover:border-primary-500 text-sm text-primary-100 rounded-md
-            py-1 px-2 h-min"
+              on:click={() => {
+                sortAsc = !sortAsc;
+                sortProfileCloud(sortField, sortAsc);
+              }}
             >
-              {suggestion.value}
+              {#if sortAsc == false}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              {:else}
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
+                    stroke="white"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              {/if}
             </button>
-          {/each}
+          </div>
         </div>
-      </div>
+      {/if}
 
-      <div class="flex gap-2 items-center justify-between  flex-wrap p-3  ">
-        <label
-          for="sorting select"
-          class="uppercase text-gray-500 py-1 text-sm"
-        >
-          sort by
-        </label>
-
-        <select
-          class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
-          id="sortingSelectBox"
-          on:change={(e) => {
-            sortField = e.target.value;
-            sortProfileCloud(sortField, sortAsc);
-          }}
-          name="sorting select"
-        >
-          <option
-            selected
-            class="text-white bg-secondary py-1 border-none"
-            value="name"
-          >
-            name
-          </option>
-
-          <option
-            class="text-white bg-secondary py-1 border-none"
-            value="module"
-          >
-            module
-          </option>
-        </select>
-
-        <button
-          on:click={() => {
-            sortAsc = !sortAsc;
-            sortProfileCloud(sortField, sortAsc);
-          }}
-        >
-          {#if sortAsc == false}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          {:else}
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
-                stroke="white"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          {/if}
-        </button>
-      </div>
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
         <div class="flex flex-col overflow-auto">
           <div class="overflow-auto flex flex-col gap-4 mb-2">
@@ -1139,8 +1240,7 @@
                       <button
                         class="p-1 hover:bg-primary-500 rounded relative"
                         on:click|preventDefault={() => {
-                          ($appSettings.modal = "profileInfo"),
-                            selectProfile(profileCloudElement);
+                          openProfileInfo(profileCloudElement);
                         }}
                       >
                         <svg
