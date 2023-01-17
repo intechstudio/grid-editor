@@ -1,78 +1,78 @@
 <script>
-  import { get, writable } from 'svelte/store'
-  import { appSettings } from '../runtime/app-helper.store'
-  import { engine, unsaved_changes } from '../runtime/runtime.store'
-  import { writeBuffer } from '../runtime/engine.store'
+  import { get, writable } from "svelte/store";
+  import { appSettings } from "../runtime/app-helper.store";
+  import { engine, unsaved_changes } from "../runtime/runtime.store";
+  import { writeBuffer } from "../runtime/engine.store";
 
-  import { fade } from 'svelte/transition'
+  import { fade } from "svelte/transition";
 
-  import instructions from '../serialport/instructions'
-  import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte'
-  import TooltipConfirm from './user-interface/tooltip/TooltipConfirm.svelte'
+  import instructions from "../serialport/instructions";
+  import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
 
   function store() {
-    window.electron.analytics.google('page-config', { value: 'store' })
+    window.electron.analytics.google("page-config", { value: "store" });
     window.electron.analytics.influx(
-      'application',
-      'topsubmenu',
-      'pageconfig',
-      'store',
-    )
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "store"
+    );
 
-    instructions.sendPageStoreToGrid()
+    instructions.sendPageStoreToGrid();
   }
 
   function discard() {
-    instructions.sendPageDiscardToGrid()
+    instructions.sendPageDiscardToGrid();
 
-    window.electron.analytics.google('page-config', { value: 'discard' })
+    window.electron.analytics.google("page-config", { value: "discard" });
     window.electron.analytics.influx(
-      'application',
-      'topsubmenu',
-      'pageconfig',
-      'discard',
-    )
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "discard"
+    );
   }
 
   function clear() {
-    instructions.sendPageClearToGrid()
+    instructions.sendPageClearToGrid();
 
-    window.electron.analytics.google('page-config', { value: 'clear' })
+    window.electron.analytics.google("page-config", { value: "clear" });
     window.electron.analytics.influx(
-      'application',
-      'topsubmenu',
-      'pageconfig',
-      'clear',
-    )
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "clear"
+    );
   }
 
   async function debugWriteBuffer() {
     window.electron.discord.sendMessage({
-      title: 'Writebuffer',
+      title: "Writebuffer",
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
-    })
+    });
 
-    window.electron.analytics.google('writebuffer', { value: 'clear' })
+    window.electron.analytics.google("writebuffer", { value: "clear" });
     window.electron.analytics.influx(
-      'application',
-      'topsubmenu',
-      'writebuffer',
-      'clear',
-    )
+      "application",
+      "topsubmenu",
+      "writebuffer",
+      "clear"
+    );
 
-    writeBuffer.clear()
-    engine.set('ENABLED')
+    writeBuffer.clear();
+    engine.set("ENABLED");
   }
 </script>
 
 <top-sub-menu
   style="background-color:rgb(25, 26, 32)"
-  class="w-full rounded-tl-lg pt-4 -mt-4 shadow-md flex text-white">
-
+  class="w-full rounded-tl-lg pt-4 -mt-4 shadow-md flex text-white"
+>
   <div
     class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg flex
-    items-center justify-between">
-
+    items-center justify-between"
+  >
     <div class="px-4">{$appSettings.rightPanel}</div>
     <div />
 
@@ -81,42 +81,45 @@
         <div class="mr-4">Unsaved changed</div>
         <div
           class="px-4 py-1 flex items-center justify-center rounded-md
-          bg-select-saturate-20 text-yellow-300">
+          bg-select-saturate-20 text-yellow-300"
+        >
           {$unsaved_changes}
         </div>
 
         <button
           on:click={() => {
-            discard()
+            discard();
           }}
           class="relative flex items-center justify-center focus:outline-none
           rounded my-2 border-select bg-select border-2 hover:bg-yellow-600
-          hover:border-yellow-600 text-white px-2 py-0.5 ml-4">
+          hover:border-yellow-600 text-white px-2 py-0.5 ml-4"
+        >
           <div>Discard</div>
-          <TooltipSetter key={'configuration_header_clear'} />
+          <TooltipSetter key={"configuration_header_clear"} />
         </button>
-
       </div>
     {/if}
 
     <div class="px-4">
-
       <div class="flex items-center">
-
         <button
           on:click={debugWriteBuffer}
           class=" relative flex items-center focus:outline-none justify-center
           rounded my-2 border-select bg-select border-2 text-white px-2 py-0.5
-          mx-1 w-48 ">
+          mx-1 w-48 "
+        >
           <span class="pr-2 text-gray-200 tracking-wider">
             {$engine}
-            {$writeBuffer.length ? '[' + $writeBuffer.length + ']' : ''}
+            {$writeBuffer.length ? "[" + $writeBuffer.length + "]" : ""}
           </span>
           <svg
-            class="w-5 h-5 p-0.5 fill-current {$engine == 'ENABLED' ? 'text-green-500' : 'text-red-500'}"
+            class="w-5 h-5 p-0.5 fill-current {$engine == 'ENABLED'
+              ? 'text-green-500'
+              : 'text-red-500'}"
             viewBox="0 0 465 385"
             fill="none"
-            xmlns="http://www.w3.org/2000/svg">
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path
               d="M24.0009 128.001H382.06L343.03 167.03C338.529 171.531 336
               177.635 336 184.001C336 190.366 338.529 196.471 343.03
@@ -131,7 +134,8 @@
               40.9716L382.06 80.0006H24.0009C17.6357 80.0006 11.5312 82.5292
               7.03031 87.0301C2.52944 91.5309 0.000873566 97.6354 0.000873566
               104.001C0.000873566 110.366 2.52944 116.47 7.03031 120.971C11.5312
-              125.472 17.6357 128.001 24.0009 128.001Z" />
+              125.472 17.6357 128.001 24.0009 128.001Z"
+            />
             <path
               d="M440.001 256.001H81.9419L120.972 216.972C125.473 212.471
               128.001 206.366 128.001 200.001C128.001 193.635 125.473 187.531
@@ -146,43 +150,45 @@
               304.001H440.001C446.366 304.001 452.471 301.472 456.971
               296.971C461.472 292.47 464.001 286.366 464.001 280.001C464.001
               273.635 461.472 267.531 456.971 263.03C452.471 258.529 446.366
-              256.001 440.001 256.001Z" />
+              256.001 440.001 256.001Z"
+            />
           </svg>
-          <TooltipSetter key={'engine_clear'} />
+          <TooltipSetter key={"engine_clear"} />
         </button>
 
         <button
           on:click={() => {
-            clear()
+            clear();
           }}
-          disabled={$engine != 'ENABLED'}
-          class="{$engine == 'ENABLED' ? 'hover:bg-red-500 hover:border-red-500' : 'opacity-75'}
+          disabled={$engine != "ENABLED"}
+          class="{$engine == 'ENABLED'
+            ? 'hover:bg-red-500 hover:border-red-500'
+            : 'opacity-75'}
           relative flex items-center focus:outline-none justify-center rounded
-          my-2 border-select bg-select border-2 text-white px-2 py-0.5 mx-1 w-24">
+          my-2 border-select bg-select border-2 text-white px-2 py-0.5 mx-1 w-24"
+        >
           <div>Clear</div>
-          <TooltipConfirm key={'configuration_header_clear'} />
-          <TooltipSetter key={'configuration_header_clear'} />
-
+          <TooltipConfirm key={"configuration_header_clear"} />
+          <TooltipSetter key={"configuration_header_clear"} />
         </button>
 
         <button
           on:click={() => {
-            store()
+            store();
           }}
-          disabled={$engine != 'ENABLED'}
-          class="{$engine == 'ENABLED' ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20' : 'opacity-75'}
+          disabled={$engine != "ENABLED"}
+          class="{$engine == 'ENABLED'
+            ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20'
+            : 'opacity-75'}
           relative flex items-center justify-center rounded my-2
           focus:outline-none border-2 border-commit bg-commit
           hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white
-          px-2 py-0.5 ml-1 w-24">
+          px-2 py-0.5 ml-1 w-24"
+        >
           <div>Store</div>
-          <TooltipSetter key={'configuration_header_store'} />
+          <TooltipSetter key={"configuration_header_store"} />
         </button>
-
       </div>
-
     </div>
-
   </div>
-
 </top-sub-menu>

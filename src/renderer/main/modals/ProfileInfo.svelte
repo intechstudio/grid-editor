@@ -3,6 +3,8 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
+  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
 
   import { onMount } from "svelte";
 
@@ -70,8 +72,8 @@
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class=" z-50 w-4/6 h-fit max-h-[3/4] text-white relative flex flex-col
-    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6"
+    class=" z-50 w-3/6 2xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col
+    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6 "
   >
     <div>Profile Info</div>
     <button
@@ -99,8 +101,10 @@
       </svg>
     </button>
 
-    <div class="p-6 flex flex-row gap-10 overflow-auto w-full">
-      <div class="w-3/5 flex flex-col gap-4 ">
+    <div
+      class="p-6 flex flex-row gap-10 overflow-auto w-full flex-wrap justify-between "
+    >
+      <div class="flex flex-col gap-4 w-full lg:w-3/6 ">
         <div>
           <div class="flex justify-end items-center ">
             {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
@@ -113,7 +117,7 @@
                   class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
-                  border-2 text-white px-2 py-0.5 mx-1 w-24"
+                  border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
                   on:click|preventDefault={() => {
                     deleteFromDirectory(selectedProfile);
                     $appSettings.modal = "";
@@ -143,12 +147,15 @@
                     />
                   </svg>
                   delete
+                  <TooltipConfirm key={"newProfile_desc_delete"} />
+                  <TooltipSetter key={"newProfile_desc_delete"} />
                 </button>
+
                 <button
                   class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
-                  border-2 text-white px-2 py-0.5 mx-1 w-24"
+                  border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
                   on:click|preventDefault={() => {
                     $appSettings.modal = "profileEdit";
                   }}
@@ -180,6 +187,8 @@
                     />
                   </svg>
                   edit
+
+                  <TooltipSetter key={"newProfile_desc_edit"} />
                 </button>
               </div>
             {/if}
@@ -198,7 +207,7 @@
           <p>{selectedProfile.description}</p>
         </div>
       </div>
-      <div class="w-2/5 flex flex-col justify-between">
+      <div class="w-full lg:w-2/6 flex flex-col justify-between">
         <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
           <div>
             <div

@@ -87,11 +87,15 @@ export const tooltip_content = {
     "sidebar_debugger_icon": "Access the debugger window for troubleshooting purposes.",
     "sidebar_midi_monitor_icon": "Access the MIDI monitor for MIDI-specific troubleshooting.",
 
-    "engine_clear": "Clear the writebuffer and re-enable the engine!",
+    "engine_clear": "Clear the writebuffer after a module crash, and re-enable the Editor engine!",
 
-    "newProfile_delete": "Delete profile from Session Profile.",
-    "newProfile_save": "Move profile to Profile Cloud.",
-    "newProfile_rewrite": "Rewrite profile with the selected module's config.",
-    "newProfile_info": "Profile informations",
-    "newProfile_add_to_session": "Save config from your selected module as Session Profile.",
+    "newProfile_delete": "Delete this Session Profile permanently.",
+    "newProfile_save": "Move this Session Profile to the Profile Cloud folder.",
+    "newProfile_rewrite": "Overwrite this Session Profile with the selected module's configuration.",
+    "newProfile_info": "Open the Profile description window.",
+    "newProfile_add_to_session": "Save the currently active module configuration locally as a Session Profile.",
+    "newProfile_load_profile": "Load the selected profile to this module.",
+    "newProfile_exit_overlay": "Hide the Overlay.",
+    "newProfile_desc_delete": "Delete this Profile from the Profile Cloud permanently.",
+    "newProfile_desc_edit": "Edit the description of this Profile.",
 }

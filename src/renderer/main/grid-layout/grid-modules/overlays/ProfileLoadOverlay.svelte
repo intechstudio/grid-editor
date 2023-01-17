@@ -2,6 +2,8 @@
   import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { appSettings } from "/runtime/app-helper.store";
+  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
 
   export let id;
 
@@ -73,8 +75,9 @@
   <div
     class="text-white bg-black bg-opacity-25 z-[1] w-full absolute flex flex-col
     items-center justify-center rounded h-full "
+    style="transform: rotate({$appSettings.persistant.moduleRotation + 'deg'})"
   >
-    <div>
+    <div class="w-fit">
       <button
         on:click={() => {
           loadProfileToThisModule();
@@ -83,10 +86,12 @@
         opacity-80 block"
       >
         Load Profile
+
+        <TooltipSetter key={"newProfile_load_profile"} />
       </button>
     </div>
 
-    <div>
+    <div class="w-fit">
       <button
         class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
         left-[53px] absolute bottom-0 opacity-60"
@@ -94,7 +99,9 @@
           selectedProfileStore.set({});
         }}
       >
-        Off Profile Overlay
+        Cancel
+
+        <TooltipSetter key={"newProfile_exit_overlay"} />
       </button>
     </div>
   </div>

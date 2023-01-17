@@ -143,7 +143,7 @@
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class="z-50 w-4/6 h-fit max-h-[3/4] text-white relative flex flex-col shadow
+    class="z-50 w-3/6 2xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col shadow
     bg-primary bg-opacity-100 items-start opacity-100 p-6 overflow-auto"
   >
     <div>Profile Info - Edit</div>
@@ -173,7 +173,7 @@
     </button>
 
     <div class="p-6 flex flex-col w-full">
-      <form action="" class="flex flex-row gap-10 text-gray-500">
+      <form action="" class="flex flex-row gap-10  text-gray-500">
         <div class="w-full flex flex-col gap-4">
           <div class="flex flex-col ">
             <label class="mb-1 " for="title">Title</label>
