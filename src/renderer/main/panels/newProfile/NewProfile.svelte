@@ -9,6 +9,7 @@
   import { fade, fly } from "svelte/transition";
   import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { v4 as uuidv4 } from "uuid";
 
   import {
     engine,
@@ -88,6 +89,12 @@
         "profiles"
       );
     }
+
+    PROFILES.forEach((element) => {
+      element.id = uuidv4();
+    });
+
+    console.log(PROFILES, "PROFILES");
 
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
@@ -727,7 +734,7 @@
             <div class="text-gray-300">No profile to show</div>
           {/if}
 
-          {#each sessionProfile as sessionProfileElement, i (sessionProfileElement.name)}
+          {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
             <button
               in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
               out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
@@ -1143,7 +1150,7 @@
       <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
         <div class="flex flex-col overflow-auto">
           <div class="overflow-auto flex flex-col gap-4 mb-2">
-            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.name)}
+            {#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
               <button
                 in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
                 out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
