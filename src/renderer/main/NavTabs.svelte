@@ -136,7 +136,28 @@
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
-        icon
+        <svg
+          class="fill-current text-white p-0.5"
+          width="27"
+          height="22"
+          viewBox="0 0 27 22"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <g clip-path="url(#clip0_508_1201)">
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M3 2C2.44771 2 2 2.44771 2 3V4.5H10.0002V3C10.0002 2.44771 9.55251 2 9.00019 2H3ZM12.0002 4.5V3C12.0002 1.34315 10.6571 0 9.00019 0H3C1.34315 0 0 1.34315 0 3L0.000280023 19C0.000310004 20.6569 1.34344 22 3.00028 22H24C25.6569 22 27 20.6569 27 19V7.5C27 5.84315 25.6569 4.5 24 4.5H12.0002ZM2.00002 6.5L2.00028 19C2.00029 19.5523 2.44801 20 3.00028 20H24C24.5523 20 25 19.5523 25 19V7.5C25 6.9477 24.5523 6.5 24 6.5H2.00002Z"
+              fill="white"
+            />
+          </g>
+          <defs>
+            <clipPath id="clip0_508_1201">
+              <rect width="27" height="22" fill="white" />
+            </clipPath>
+          </defs>
+        </svg>
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==

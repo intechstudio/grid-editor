@@ -2,9 +2,9 @@
   import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { appSettings } from "/runtime/app-helper.store";
 
   export let id;
-
   let showOverlay = false;
   let selectedProfile = undefined;
   let isActionButtonClicked = false;
@@ -21,7 +21,6 @@
 
   function showLoadProfileOverlay(moduleId, profileType) {
     let moduleType = moduleId.substr(0, 4);
-
     if (moduleType == profileType && isActionButtonClicked == false) {
       showOverlay = true;
     } else {
@@ -67,14 +66,30 @@
       "load success"
     );
   }
+
+  function cancelProfileOverlay() {
+    selectedProfileStore.set({});
+
+    window.electron.analytics.google("profile-library", {
+      value: "cancel overlay",
+    });
+
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "cancel overlay"
+    );
+  }
 </script>
 
 {#if showOverlay}
   <div
-    class="text-white bg-black bg-opacity-25 z-[1] w-full absolute flex flex-col
-    items-center justify-center rounded h-full "
+    class="text-white bg-black bg-opacity-25 z-[1] w-full  flex flex-col
+    items-center justify-center rounded h-full absolute"
+    style="transform: rotate({$appSettings.persistant.moduleRotation + 'deg'})"
   >
-    <div>
+    <div class="w-fit relative">
       <button
         on:click={() => {
           loadProfileToThisModule();
@@ -86,15 +101,15 @@
       </button>
     </div>
 
-    <div>
+    <div class="w-fit">
       <button
         class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
-        left-[53px] absolute bottom-0 opacity-60"
+        left-[37%] absolute bottom-[22%] opacity-60"
         on:click={() => {
-          selectedProfileStore.set({});
+          cancelProfileOverlay();
         }}
       >
-        Off Profile Overlay
+        Cancel
       </button>
     </div>
   </div>

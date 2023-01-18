@@ -931,13 +931,29 @@ function create_runtime() {
       message: `Preparing configs...`,
     })
 
+    console.log("FETCH")
+
     const rt = get(runtime)
 
     let li = Object.assign({}, get(user_input))
 
-    const device = rt.find(
+    let device = rt.find(
       (device) => device.dx == li.brc.dx && device.dy == li.brc.dy,
     )
+
+    if (typeof device === "undefined"){
+      logger.set({
+        type: 'fail',
+        mode: 0,
+        classname: 'profilesave',
+        message: `No module selected`,
+      })
+
+      engine.set('ENABLED')
+
+      return;
+    }
+
     const pageIndex = device.pages.findIndex(
       (x) => x.pageNumber == li.event.pagenumber,
     )
