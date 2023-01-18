@@ -80,6 +80,8 @@
   });
 
   async function loadFromDirectory() {
+    animateFade = false;
+
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
       PROFILES = await window.electron.configs.loadConfigsFromDirectory(
         PROFILE_PATH,
@@ -373,11 +375,10 @@
   }
 
   async function updateSessionProfileTitle(profile, newName) {
-    animateFly = false;
-    animateFade = false;
-
     checkIfProfileTitleUnique(newName);
     checkIfTitleFieldEmpty(newName);
+
+    animateFade = false;
 
     if (isSessionProfileNameUnique && isTitleDirty && profile.name != newName) {
       let oldName = profile.name;
@@ -759,6 +760,7 @@
                       }}
                       on:blur={(e) => {
                         let newName = e.target.value.trim();
+                        animateFade = false;
                         updateSessionProfileTitle(
                           sessionProfileElement,
                           newName
