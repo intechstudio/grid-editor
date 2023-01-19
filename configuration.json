@@ -30,20 +30,19 @@
 
     "UXP_PHOTOSHOP_URL_BEGINING":"https://github.com/intechstudio/grid-photoshop-plugin/releases/download/",
     "UXP_PHOTOSHOP_URL_END":"/uxp_photoshop_release.zip",
-
     
 
     "LIBRARY_GITHUB_URL": "https://github.com/intechstudio/grid-profiles/archive/refs/heads/main.zip",
 
-    "EDITOR_DOWNLOAD_URL": "https://intech.studio/grid-editor/downloads",
+    "EDITOR_DOWNLOAD_URL": "https://links.intech.studio/grid-editor-download",
 
     "DISCORD_FEEDBACK_WEBHOOK": "https://discordapp.com/api/webhooks/943463496073478184/CjyGbGGVQnLzX20yEN9GJgedxZZkXmyf5BDEE5UsinjaTI_eSg2hMC91ailE8mod2hO1",
 
-    "DOCUMENTATION_REFERENCEMANUAL_URL": "https://grid-documentation.onrender.com/wiki/introduction",
-    "DOCUMENTATION_DISCORDSERVER_URL": "https://discord.gg/GRUdF2R",
-    "DOCUMENTATION_TROUBLESHOOTING_URL": "https://grid-documentation.onrender.com/guides/troubleshooting",
-    "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://grid-documentation.onrender.com/guides/firmware",
-    "DOCUMENTATION_MAINTENANCE_URL": "https://grid-documentation.onrender.com/guides/taking-care-of-modules",
+    "DOCUMENTATION_REFERENCEMANUAL_URL": "https://links.intech.studio/wiki",
+    "DOCUMENTATION_DISCORDSERVER_URL": "https://links.intech.studio/discord",
+    "DOCUMENTATION_TROUBLESHOOTING_URL": "https://links.intech.studio/grid-troubleshoot",
+    "DOCUMENTATION_FIRMWAREUPDATE_URL": "https://links.intech.studio/grid-firmware",
+    "DOCUMENTATION_MAINTENANCE_URL": "https://links.intech.studio/grid-maintanance",
     
     "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
     "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor"
