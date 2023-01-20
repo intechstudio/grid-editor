@@ -63,6 +63,7 @@ export default defineConfig({
     resolve: {
       alias: {
         '$lib': path.resolve('src/renderer/lib'),
+        '@assets': path.resolve('src/renderer/assets'),
       },
     },
     target: 'chrome104'
