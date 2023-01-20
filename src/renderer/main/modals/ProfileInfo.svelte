@@ -89,6 +89,13 @@
       "newProfile_desc_edit"
     );
   }
+
+  function getImgUrl(img){
+    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href
+    console.log('img', img, imgPath)
+
+    return imgPath
+  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -225,11 +232,14 @@
           <div class="text-lg font-medium">{selectedProfile.name}</div>
         </div>
         <div>
+          <!--
+            this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
-            src="/assets/imgs/sm_{selectedProfile.type}.jpg"
+            src="{getImgUrl(selectedProfile.type)}"
             alt="{selectedProfile.type}_img"
           />
+          -->
         </div>
         <div>
           <p>{selectedProfile.description}</p>
