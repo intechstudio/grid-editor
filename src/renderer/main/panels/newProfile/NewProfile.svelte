@@ -17,7 +17,6 @@
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
-  import { bubble } from "svelte/internal";
 
   let searchSuggestions = [
     {
@@ -83,18 +82,20 @@
   async function loadFromDirectory() {
     animateFade = false;
 
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-        PROFILE_PATH,
-        "profiles"
-      );
-    }
+    if (PROFILE_PATH == undefined || PROFILE_PATH == "") {
+      return
+    };
+
+    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+      PROFILE_PATH,
+      "profiles"
+    );
 
     PROFILES.forEach((element) => {
-      element.id = uuidv4();
+      if(element.id == undefined || element.id == ""){
+        element.id = uuidv4();
+      }
     });
-
-    console.log(PROFILES, "PROFILES");
 
     profileCloud = PROFILES.filter(
       (element) => element.folder != "sessionProfile"
@@ -206,14 +207,12 @@
       const configs = get(runtime);
 
       let name;
-
       let description;
-
       let type;
 
       //session profile numbering, simplify me pls
       if (user == "sessionProfile") {
-        loadFromDirectory();
+        loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
 
         let sessionProfileName;
         sessionProfileNumbers = [];
@@ -253,6 +252,7 @@
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
+        id: uuidv4()
       };
 
       configs.forEach((d) => {
@@ -305,10 +305,9 @@
       const configs = get(runtime);
 
       let name = selectedProfile.name;
-
       let description = selectedProfile.description;
-
       let type = selectedProfile.type;
+      let id = selectedProfile.id;
 
       let profile = {
         name: name,
@@ -320,12 +319,12 @@
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
+        id: id
       };
 
       configs.forEach((d) => {
         if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
           const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
-
           profile.configs = page.control_elements.map((cfg) => {
             return {
               controlElementNumber: cfg.controlElementNumber,
