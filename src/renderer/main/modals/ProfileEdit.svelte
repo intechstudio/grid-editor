@@ -28,7 +28,7 @@
       minor: $appSettings.version.minor,
       patch: $appSettings.version.patch,
     },
-    config: $selectedProfileStore.configs,
+    configs: $selectedProfileStore.configs,
   };
 
   let allModulesTypes = ["BU16", "EF44", "PBF4", "EN16", "PO16"];
