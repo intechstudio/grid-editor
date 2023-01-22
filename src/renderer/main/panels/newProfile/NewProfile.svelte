@@ -93,7 +93,7 @@
 
     PROFILES.forEach((element) => {
       if(element.id == undefined || element.id == ""){
-        element.id = uuidv4();
+        element.id = element.name.replace(/\W+/g, '-');
       }
     });
 
