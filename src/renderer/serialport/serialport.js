@@ -37,7 +37,8 @@ export async function testIt() {
 
     const filters = [
       { usbVendorId: parseInt(env.USB_VID_0), usbProductId: parseInt(env.USB_PID_0) },
-      { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) }
+      { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) },
+      { usbVendorId: parseInt(env.USB_VID_2), usbProductId: parseInt(env.USB_PID_2) }
     ];
 
     // console.log(navigator.serial)
