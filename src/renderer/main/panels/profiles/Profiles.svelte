@@ -65,16 +65,16 @@
     moveOld();
   });
 
-  profileListRefresh.subscribe((store) => {
+  profileListRefresh.subscribe(async (store) => {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      loadFromDirectory();
+      await loadFromDirectory();
     }
   });
 
   async function moveOld() {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
       await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
-      loadFromDirectory();
+      await loadFromDirectory();
     }
   }
 
@@ -96,7 +96,7 @@
       user
     );
 
-    loadFromDirectory();
+    await loadFromDirectory();
 
     logger.set({
       type: "success",
@@ -189,7 +189,6 @@
 
       if (currentModule.id.substr(0, 4) == profile.type) {
         runtime.whole_page_overwrite(profile.configs);
-        console.log;
 
         window.electron.analytics.google("profile-library", {
           value: "load success",
