@@ -92,7 +92,7 @@
   let isTitleUnique = undefined;
 
   async function checkIfProfileTitleUnique(input) {
-    loadFromDirectory();
+    await loadFromDirectory();
 
     let notUniqueName = [];
 

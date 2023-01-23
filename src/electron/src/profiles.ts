@@ -18,8 +18,6 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 
   let path = configPath
 
-  log.info('TESTTTTTT', path, typeof configPath)
-
   if (!fs.existsSync(path)) fs.mkdirSync(path)
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`)
@@ -32,7 +30,6 @@ export async function moveOldConfigs(configPath, rootDirectory) {
         await fs.promises
           .readdir(`${path}/${rootDirectory}/${author}`)
           .then((files) => {
-            log.info('SUKU', files)
 
             files.forEach(async (file) => {
               let filepath = `${path}/${rootDirectory}/${author}/${file}`
@@ -40,7 +37,6 @@ export async function moveOldConfigs(configPath, rootDirectory) {
               const [stats] = await checkIfWritableDirectory(filepath)
 
               if (stats.isFile) {
-                log.info('SUKU', file)
                 let filenameparts = file.split('.')
                 let extension = filenameparts[filenameparts.length - 1]
                 if (extension === 'json') {
@@ -79,7 +75,6 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
-
 
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path)
@@ -178,21 +173,21 @@ export async function saveConfig(
     fs.mkdirSync(`${path}/${rootDirectory}/${user}/${name}`)
 
   // Creating and Writing to the sample.txt file
-  fs.writeFile(
+  await fs.promises.writeFile(
     `${path}/${rootDirectory}/${user}/${name}/${name}.json`,
-    JSON.stringify(config, null, 4),
-    function (err) {
-      if (err) throw err
-      console.log('Saved!')
-
-      // we should call this function in renderer, after the profile is saved
-      // loadProfilesFromDirectory(path);
-
+    JSON.stringify(config, null, 4))
+    .then((data)=>{
       googleAnalytics('profile-library', { value: 'save success' })
       influxAnalytics('application', 'profiles', 'profile', 'save success')
-      //getDateOfModify(path, name, rootDirectory, user)
-    },
-  )
+      console.log('Saved!')
+    })
+    .catch((err) => {
+      googleAnalytics('profile-library', { value: 'save fail' })
+      influxAnalytics('application', 'profiles', 'profile', 'save fail')
+      console.log('Error:', err)
+      throw err
+    })
+
 }
 
 export async function deleteConfig(
@@ -204,13 +199,12 @@ export async function deleteConfig(
   const path = configPath
   log.info('deleteConfig')
 
-  fs.rmdir(
+  await fs.promises.rmdir(
     `${path}/${rootDirectory}/${profileFolder}/${name}`,
-    { recursive: true },
-    (err) => {
+    { recursive: true })
+    .catch((err) => {
       throw err
-    },
-  )
+    })
 }
 
 export async function updateConfig(
@@ -224,13 +218,12 @@ export async function updateConfig(
 
   if (oldName === name) {
     // just save and overwrite existing profile
-    saveConfig(configPath, name, config, rootDirectory, profileFolder)
+    await saveConfig(configPath, name, config, rootDirectory, profileFolder)
     log.info('Profile overwritten!')
   } else {
     log.info('Update name')
-
-    saveConfig(configPath, name, config, rootDirectory, profileFolder)
-    deleteConfig(configPath, oldName, rootDirectory, profileFolder)
+    await saveConfig(configPath, name, config, rootDirectory, profileFolder)
+    await deleteConfig(configPath, oldName, rootDirectory, profileFolder)
   }
 }
 
