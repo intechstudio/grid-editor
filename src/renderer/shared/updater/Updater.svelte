@@ -8,7 +8,7 @@
   let updateProgress = 0;
   let updateError = "";
 
-  const {env} = window.ctxProcess;
+  const env = window.ctxProcess.env();
 
 
   function restartApp(){
@@ -32,7 +32,6 @@
       updateError = value.error;
     }
   })
-
 
 </script>
 
