@@ -76,6 +76,8 @@
     <div class="px-4">{$appSettings.rightPanel}</div>
     <div />
 
+
+
     {#if $unsaved_changes}
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changed</div>

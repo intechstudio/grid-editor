@@ -1,5 +1,6 @@
 <script>
   import { onMount } from "svelte";
+	import { fly, fade, slide } from 'svelte/transition';
 
   const ctxProcess = window.ctxProcess;
 
@@ -8,41 +9,77 @@
 
   let logtext = [];
 
+  let solutions = [{
+    "type": "error",
+    "match": "hello is not",
+    "link": "https://links.intech.studio/wiki",
+    "message": "You found the hello error :D How to fix this? Click link to learn more"
+  }];
+
+  let bgHelper = 0;
+
+  function displayError(errorMessage, url, line){
+
+    if (logtext.length>4){
+      //logtext.shift();
+    }
+
+    if (bgHelper === 0){
+      bgHelper = 1;
+    }
+    else{
+      bgHelper = 0;
+    }
+
+    console.log("we got exception, but the app has crashed 1", url, line, errorMessage);
+
+    let solution = undefined;
+    solutions.forEach(s =>{
+      if (errorMessage.toString().indexOf(s.match) !== -1){
+        console.log("match")
+        solution = s;
+      }
+    })
+
+    let displaytext = "";
+
+    if (url !== undefined && line !== undefined){
+      displaytext = errorMessage+" ### at line "+line+" in "+url + " ### "
+    }
+    else{
+      displaytext = errorMessage
+    }
+
+    logtext = [...logtext, {reason: displaytext, solution: solution}];
+
+
+    window.electron.analytics.influx(
+      "application",
+      "error console",
+      "error notification",
+      "error event"
+    );
+
+    try {
+      window.electron.discord.sendMessage({ title: "Error", text: displaytext });
+    } catch (error) {}
+
+
+  }
+
   onMount(() => {
     // check for errors
 
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
-      console.log("we got exception, but the app has crashed", errorMsg);
-      logtext = [...logtext, errorMsg];
-
-      window.electron.analytics.influx(
-        "application",
-        "error console",
-        "error notification",
-        "error event"
-      );
-
-      try {
-        window.electron.discord.sendMessage({ title: "Error", text: errorMsg });
-      } catch (error) {}
-
+      displayError(errorMsg, url, lineNumber)
       return false;
+
     };
 
     window.onunhandledrejection = (e) => {
-      console.log("we got exception, but the app has crashed", e);
-      logtext = [...logtext, e.reason];
+      console.log("we got exception, but the app has crashed 2", e);
+      displayError(e.reason)
 
-      window.electron.analytics.influx(
-        "application",
-        "error console",
-        "error notification",
-        "error event"
-      );
-
-      try {
-        window.electron.discord.sendMessage({ title: "Error", text: e.reason });
-      } catch (error) {}
     };
 
     if (ctxProcess.platform() == "darwin") {
@@ -62,6 +99,19 @@
     window.electron.restartApp();
   }
 
+  function solution(link) {
+
+    window.electron.openInBrowser(link)
+
+    window.electron.analytics.influx(
+      "application",
+      "error console",
+      "error notification",
+      "app restart"
+    );
+  }
+
+
   function dismiss() {
     logtext = [];
     window.electron.analytics.influx(
@@ -76,13 +126,41 @@
 {#if logtext.length != 0}
   <div
     bind:this={logelement}
-    class="w-full bg-red-600 text-white justify-center flex flex-col items-center"
+    class="w-full bg-gray-900 text-white justify-center flex flex-col items-center"
+    transition:fade
   >
-    {#each logtext as log}
-      <div>{log}</div>
+    {#each logtext as log, index}
+
+      {#if index>logtext.length-4}
+        {#key index === logtext.length}
+        <div in:fly="{{ x: -50, delay: 0, duration: 500 }}"  class="w-full {(logtext.length-index+bgHelper)%2?"bg-gray-800":"bg-gray-900"} justify-center flex flex-row items-center h-16">
+          <div>{log.reason} </div>
+          {#if log.solution !== undefined}
+            <div class="ml-4 font-bold"> {log.solution.message} </div>
+           
+
+            {#if log.solution.link !== undefined}
+            <button
+              on:click={solution(log.solution.link)}
+              class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+            >
+              Find solution
+            </button>
+        
+            {/if}
+
+          {/if}
+
+
+        </div>       
+      {/key}  
+    {/if}   
+
+
+
     {/each}
 
-    <div class="flex flex-row items-center">
+    <div class="w-full flex flex-row bg-red-500 justify-center items-center">
       Reload the application using {text} or click
 
       <button
