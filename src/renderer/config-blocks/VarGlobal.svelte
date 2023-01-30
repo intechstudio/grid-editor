@@ -99,6 +99,9 @@
     })
   }
 
+
+  let rerenderList = 0;
+
   function sendData(){
 
     error_messsage = ""
@@ -123,6 +126,8 @@
       dispatch('output', {short: 'g', script: outputCode});
       commitState = 0;
     }
+
+    rerenderList++;
   }
 
   $: {
@@ -228,24 +233,26 @@
         <div class="w-9/12 pl-1">
 
             <div class="w-full p-1 bg-secondary">
-                  
-              <LineEditor 
-                on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}
-                {access_tree}
-                {sidebarWidth}
-                value={script.value}
-              />
+                      
+              {#key rerenderList}
+                <LineEditor 
+                  on:output={(e)=>{saveChangesOnInput(e.detail.script, i ,'value')}}
+                  {access_tree}
+                  {sidebarWidth}
+                  value={script.value}
+                />              
+              {/key}
             </div>
 
         </div>
         <div class="w-1/12 pl-1 flex items-center justify-center">
           {#if i !== 0}
-            <div on:click={()=>{removeGlobalVariable(i)}} class="flex items-center group cursor-pointer pl-1">
+            <button on:click={()=>{removeGlobalVariable(i)}} class="flex items-center group cursor-pointer pl-1">
               <svg class="w-5 h-5 p-1 fill-current group-hover:text-white text-gray-500" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z" />
                 <path d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z" />
               </svg>
-            </div>
+            </button>
           {:else}
           <div class=" flex invisible items-center group cursor-pointer pl-1">
             <div class="w-5 h-5 p-1">
@@ -266,9 +273,9 @@
 
 
   <div class="w-full flex group p-2">
-    <div on:click={()=>{addGlobalVariable()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
+    <button on:click={()=>{addGlobalVariable()}} class="group-hover:border-pick cursor-pointer group-hover:bg-select-saturate-10 border-secondary transition-colors duration-300 w-full border-l-4 text-white pl-4 py-0.5">
       Add global variable...
-    </div>
+    </button>
   </div>
 
   <SendFeedback feedback_context="Globals"/>
