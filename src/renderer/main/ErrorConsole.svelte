@@ -5,6 +5,7 @@
   import configuration from "../../../configuration.json";
 
 
+
   const ctxProcess = window.ctxProcess;
 
   let logelement;
@@ -48,10 +49,10 @@
     let displaytext = "";
 
     if (url !== undefined && line !== undefined){
-      displaytext = errorMessage+" ### at line "+line+" in "+url.split("/")[url.split("/").length-1] + " ### "
+      displaytext = errorMessage+" at line "+line+" in "+url.split("/")[url.split("/").length-1]+" "
     }
     else{
-      displaytext = errorMessage
+      displaytext = errorMessage +" "
     }
 
     logtext = [...logtext, {reason: displaytext, solution: solution}];
@@ -65,7 +66,7 @@
     );
 
     try {
-      window.electron.discord.sendMessage({ title: "Error", text: displaytext });
+       window.electron.discord.sendMessage({ title: "Error", text: displaytext });
     } catch (error) {}
 
 

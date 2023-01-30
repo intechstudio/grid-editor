@@ -1,6 +1,7 @@
 import { Webhook } from 'simple-discord-webhooks';
-import dotenv from 'dotenv';
-dotenv.config()
+
+import { app } from 'electron';
+
 
 export async function sendToDiscord(message){
 
@@ -14,7 +15,7 @@ export async function sendToDiscord(message){
     throw new Error('Discord message object does not look right!')
   }
 
-  return await webhook.send(`######\n${message.title}\n######\n${message.text} `).catch((err) => console.log('discord error',err))
+  return await webhook.send(`###### ${message.title} ######\n${process.platform} | ${process.env.NODE_ENV} | ${app.getVersion()}\n${message.text} `).catch((err) => console.log('discord error',err))
   
 }
 
