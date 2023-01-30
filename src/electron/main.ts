@@ -116,10 +116,11 @@ function create_tray() {
   tray.setTitle('Grid Editor')
 }
 
-const gotTheLock = app.requestSingleInstanceLock()
+//const gotTheLock = app.requestSingleInstanceLock()
+const gotTheLock = true
 
 if (!gotTheLock) {
-  app.quit()
+  //app.quit()
 } else {
   app.on(
     'second-instance',
