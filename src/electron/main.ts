@@ -42,6 +42,7 @@ import {
 } from './src/profiles';
 import { influxAnalytics, googleAnalytics } from './src/analytics';
 import { sendToDiscord } from './src/discord';
+import { fetchUrlJSON } from './src/fetch';
 import { getLatestVideo } from './src/youtube';
 import { getActiveWindow } from './src/active-window';
 import { desktopAutomationPluginStart, desktopAutomationPluginStop } from './addon/desktopAutomation';
@@ -404,6 +405,11 @@ ipcMain.handle('findBootloaderPath', async (event, arg) => {
 ipcMain.handle('sendToDiscord', async (event, arg) => {
   console.log('sendTOdiscord', arg.message)
   return await sendToDiscord(arg.message)
+})
+
+ipcMain.handle('fetchUrlJSON', async (event, arg) => {
+
+  return await fetchUrlJSON(arg)
 })
 
 

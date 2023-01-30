@@ -1,6 +1,14 @@
-[{
-    "type": "error",
-    "match": "property of",
-    "link": "https://links.intech.studio/wiki",
-    "message": "How to fix this? Click link to learn more"
-}]
+[
+    {
+        "type": "error",
+        "match": "hello is not",
+        "link": "https://links.intech.studio/wiki",
+        "message": "You found the hello error :D How to fix this? Click link to learn more"
+    },
+    {
+        "type": "error",
+        "match": "other is not",
+        "link": "",
+        "message": "This is another error that is handled but without solution"
+    }
+]
