@@ -504,12 +504,16 @@ ipcMain.on('app_version', (event) => {
 ipcMain.on('resetAppSettings', (event, arg) => {
   log.info('Clear app settings...')
   store.clear()
+
+  app.releaseSingleInstanceLock();
   app.relaunch()
-  app.quit()
+  app.exit()
   return true;
 })
 
 ipcMain.on('restartApp', (event, arg) => {
+
+  app.releaseSingleInstanceLock();
   app.relaunch()
   app.exit()
 })
