@@ -2,6 +2,9 @@
   import { onMount } from "svelte";
 	import { fly, fade, slide } from 'svelte/transition';
 
+  import configuration from "../../../configuration.json";
+
+
   const ctxProcess = window.ctxProcess;
 
   let logelement;
@@ -9,12 +12,7 @@
 
   let logtext = [];
 
-  let solutions = [{
-    "type": "error",
-    "match": "hello is not",
-    "link": "https://links.intech.studio/wiki",
-    "message": "You found the hello error :D How to fix this? Click link to learn more"
-  }];
+  let solutions = [];
 
   let bgHelper = 0;
 
@@ -34,17 +32,23 @@
     console.log("we got exception, but the app has crashed 1", url, line, errorMessage);
 
     let solution = undefined;
-    solutions.forEach(s =>{
-      if (errorMessage.toString().indexOf(s.match) !== -1){
-        console.log("match")
-        solution = s;
-      }
-    })
+
+    console.log("solutions:", solutions)
+
+    if (typeof solutions !== "undefined"){
+      solutions.forEach(s =>{
+        if (errorMessage.toString().indexOf(s.match) !== -1){
+          console.log("match")
+          solution = s;
+        }
+      })
+    }
+
 
     let displaytext = "";
 
     if (url !== undefined && line !== undefined){
-      displaytext = errorMessage+" ### at line "+line+" in "+url + " ### "
+      displaytext = errorMessage+" ### at line "+line+" in "+url.split("/")[url.split("/").length-1] + " ### "
     }
     else{
       displaytext = errorMessage
@@ -67,7 +71,7 @@
 
   }
 
-  onMount(() => {
+  onMount(async () => {
     // check for errors
 
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
@@ -87,6 +91,10 @@
     } else {
       text = "Ctrl + Shift + R";
     }
+
+    const response = await window.electron.fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
+    solutions = response;
+
   });
 
   function refresh() {
@@ -131,7 +139,7 @@
   >
     {#each logtext as log, index}
 
-      {#if index>logtext.length-4}
+      {#if index>logtext.length-5}
         {#key index === logtext.length}
         <div in:fly="{{ x: -50, delay: 0, duration: 500 }}"  class="w-full {(logtext.length-index+bgHelper)%2?"bg-gray-800":"bg-gray-900"} justify-center flex flex-row items-center h-16">
           <div>{log.reason} </div>
@@ -139,7 +147,7 @@
             <div class="ml-4 font-bold"> {log.solution.message} </div>
            
 
-            {#if log.solution.link !== undefined}
+            {#if log.solution.link !== undefined && log.solution.link !==""}
             <button
               on:click={solution(log.solution.link)}
               class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
