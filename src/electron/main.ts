@@ -505,7 +505,7 @@ ipcMain.on('resetAppSettings', (event, arg) => {
   log.info('Clear app settings...')
   store.clear()
   app.relaunch()
-  app.exit()
+  app.quit()
   return true;
 })
 
