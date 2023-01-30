@@ -116,11 +116,10 @@ function create_tray() {
   tray.setTitle('Grid Editor')
 }
 
-//const gotTheLock = app.requestSingleInstanceLock()
-const gotTheLock = true
+const gotTheLock = app.requestSingleInstanceLock()
 
 if (!gotTheLock) {
-  //app.quit()
+  app.quit()
 } else {
   app.on(
     'second-instance',
@@ -505,18 +504,54 @@ ipcMain.on('app_version', (event) => {
 ipcMain.on('resetAppSettings', (event, arg) => {
   log.info('Clear app settings...')
   store.clear()
+  
 
-  app.releaseSingleInstanceLock();
-  app.relaunch()
-  app.exit()
+
+  if (process.env.APPIMAGE) {
+    let options;
+    options.args = process.argv.slice(1).concat(['--relaunch']);
+    options.execPath = process.execPath;
+    options.execPath = process.env.APPIMAGE;
+    options.args.unshift('--appimage-extract-and-run');
+
+    log.info("ARGS: ", options)
+
+    app.relaunch(options);
+    app.exit(0);
+  }else{
+
+    app.relaunch();
+    app.exit()
+  }
+
+
   return true;
 })
 
 ipcMain.on('restartApp', (event, arg) => {
 
-  app.releaseSingleInstanceLock();
-  app.relaunch()
-  app.exit()
+
+  log.info('main', 'App restart requested');
+
+
+  if (process.env.APPIMAGE) {
+    let options;
+    options.args = process.argv.slice(1).concat(['--relaunch']);
+    options.execPath = process.execPath;
+    options.execPath = process.env.APPIMAGE;
+    options.args.unshift('--appimage-extract-and-run');
+
+    log.info("ARGS: ", options)
+
+    app.relaunch(options);
+    app.exit(0);
+  }else{
+
+    app.relaunch();
+    app.exit()
+  }
+
+
 })
 
 // Quit when all windows are closed.
