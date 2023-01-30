@@ -10,11 +10,12 @@
 
   import _utils from '../../../../runtime/_utils';
 
-  import { configNodeBinding } from '../../../../runtime/app-helper.store.js';
+  import { configNodeBinding, openedActionBlocks } from '../../../../runtime/app-helper.store.js';
 
 
   import { getAllComponents } from '../../../../lib/_configs';
 
+  import { onMount } from "svelte";
 
   export let config = '' //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs
@@ -23,6 +24,27 @@
   export let disable_pointer_events = false;
 
   export let toggle = false;
+
+  let animationDuration = 0;
+
+
+  onMount(()=>{
+
+    let openedBlocks = $openedActionBlocks;
+
+    if (openedBlocks.find(s=>s==config.short)){
+
+      toggle = true
+      animationDuration = 0;
+    }
+    else{
+      animationDuration = (config.information.rendering != 'standard' || config.information.toggleable === false)?0:400;
+
+    }
+
+
+ 
+  })
 
 
   let informationOverride = {};
@@ -103,8 +125,35 @@
     };
   }
 
-  let animationDuration = (config.information.rendering != 'standard' || config.information.toggleable === false)?0:400;
+  function handleToggle(short){
 
+    console.log(config.short)
+    if (toggle === true){
+
+      toggle = false;
+      animationDuration = (config.information.rendering != 'standard' || config.information.toggleable === false)?0:400;
+      
+      openedActionBlocks.update(s=>{
+        s = s.filter(v=>v!==short)
+        return s;
+      })
+
+    }
+    else{
+      toggle = true;
+      
+      openedActionBlocks.update(s=>{
+        s = s.filter(v=>v!==short)
+        s.push(short)
+        return s;
+      })
+
+
+    }
+
+
+
+  }
 
 </script>
 
@@ -122,7 +171,7 @@
           {#if config.information.rendering == 'standard'}
         
             <div 
-              on:click={()=>{toggle = ! toggle;}}
+              on:click={()=>{handleToggle(config.short)}}
               class="{disable_pointer_events ? 'pointer-events-none' : ''} flex relative">
               
               

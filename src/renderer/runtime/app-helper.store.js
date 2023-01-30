@@ -217,6 +217,8 @@ async function init_appsettings(){
 
 export const preferenceStore = writable();
 
+export const openedActionBlocks = writable([]);
+
 
 
 export const action_collection = readable(Promise.all([getAllComponents()]))

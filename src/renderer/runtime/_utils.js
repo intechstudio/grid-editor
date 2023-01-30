@@ -112,7 +112,7 @@ const _utils = {
     // trim whitespaces
     config = config.map(c => c.trim())
   
-    console.log(config)
+    //console.log(config)
     return config;
   },
 
