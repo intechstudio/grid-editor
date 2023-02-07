@@ -466,6 +466,16 @@ const grid = {
     }
   },
 
+  module_architecture_from_hwcfg: function (hwcfg){
+
+    if (hwcfg%2 === 1){
+      return "esp32"
+    }
+    else{
+      return "d51"
+    }
+
+  },
   
   properties: (function (){
 

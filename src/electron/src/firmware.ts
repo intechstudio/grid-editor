@@ -37,11 +37,15 @@ export async function findBootloaderPath(){
   // 7934 for Linux and 8123904 for Windows (new bootloader)
 
   let gridDrive = diskInfo.find(a => 
-    // old Linux Mac Win
+    // old bootloader Linux Mac Win
     a.blocks === 3965 || a.blocks === 7929 || a.blocks === 4059648 || 
-    // new Linux Mac Win
-    a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904     
+    // new bootloader Linux Mac Win
+    a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904 ||  
+    // add esp32 bootloader block size here WINDOWS ONLY
+    a.blocks === 33423360
   );
+
+  console.log("DiskInfo", diskInfo)
 
   let data;
 
@@ -59,13 +63,24 @@ export async function findBootloaderPath(){
 
       bootloader_path = gridDrive.mounted;
 
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid bootloader is detected!", code: 3});
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3});
         
-      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected'})
-      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected")
+      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected D51'})
+      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected D51")
 
-      return bootloader_path;
+      return {path: bootloader_path, architecture: "d51"};
 
+    }
+    else if (data.indexOf("ESP32S3") !== -1){
+
+      bootloader_path = gridDrive.mounted;
+
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3});
+        
+      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected ESP32'})
+      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected ESP32")
+
+      return {path: bootloader_path, architecture: "esp32"};
     }
   }
   
@@ -78,10 +93,15 @@ export async function findBootloaderPath(){
 
 export async function firmwareDownload(targetFolder){
 
+
+  const result = await findBootloaderPath();
+
+  console.log("ARCHITECTURE = ", result.architecture);
+
   googleAnalytics('firmware-download', {value: 'update start'})
   influxAnalytics("application", "firmwarecheck", "firmware update status", "update started")
 
-  const version = "v"+process.env.FIRMWARE_REQUIRED_MAJOR+"."+process.env.FIRMWARE_REQUIRED_MINOR+"."+process.env.FIRMWARE_REQUIRED_PATCH
+  const version = process.env.FIRMWARE_LATEST_DOWNLOAD_VERSION;
   const link = process.env.FIRMWARE_URL_BEGINING + version + process.env.FIRMWARE_URL_END;
 
   firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Downloading firmware image...", code: 4});
@@ -92,7 +112,17 @@ export async function firmwareDownload(targetFolder){
 
   await delay(1000);
 
-  const firmwareFileName = filePathArray[0];
+  console.log("filePathArray", filePathArray);
+
+  let firmwareFileName = undefined;
+
+  filePathArray.forEach(element => {
+
+    if (element.indexOf(result.architecture) !== -1){
+      firmwareFileName = element;
+      console.log("Correct firmware is: ", firmwareFileName);
+    }
+  })
 
 
   if (firmwareFileName === undefined){

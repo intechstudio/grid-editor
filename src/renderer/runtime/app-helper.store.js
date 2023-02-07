@@ -43,10 +43,15 @@ function createAppSettingsStore(){
     os: checkOS(),
     intervalPause: false,
     firmwareNotificationState: 0,
-    firmware_required:{
-      major: parseInt(envs.FIRMWARE_REQUIRED_MAJOR), 
-      minor: parseInt(envs.FIRMWARE_REQUIRED_MINOR), 
-      patch: parseInt(envs.FIRMWARE_REQUIRED_PATCH)
+    firmware_d51_required:{
+      major: parseInt(envs.FIRMWARE_D51_REQUIRED_MAJOR), 
+      minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR), 
+      patch: parseInt(envs.FIRMWARE_D51_REQUIRED_PATCH)
+    },
+    firmware_esp32_required:{
+      major: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MAJOR), 
+      minor: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MINOR), 
+      patch: parseInt(envs.FIRMWARE_ESP32_REQUIRED_PATCH)
     },
     sizeChange: 0,
     activeWindowResult: {

@@ -16,6 +16,7 @@
   let booloaderConnectionCheck = undefined;
 
   let bootloader_path = undefined;
+  let bootloader_architecture = undefined;
 
   const startBootladerCheck = () => {
     booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750);
@@ -109,8 +110,14 @@
   });
 
   async function find_bootloader_path() {
-    bootloader_path = await window.electron.firmware.findBootloaderPath();
-    if (bootloader_path !== undefined) {
+
+    const value = await window.electron.firmware.findBootloaderPath();
+
+    if (value !== undefined) {
+
+      bootloader_path = value.path
+      bootloader_architecture = value.architecture
+
       stopBootloaderCheck();
     }
   }

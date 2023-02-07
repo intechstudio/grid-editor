@@ -11,10 +11,6 @@ import { appSettings } from './app-helper.store'
 
 const { env } = window.ctxProcess
 
-console.log(
-  'Minimum Firmware Version Required: ',
-  get(appSettings).firmware_required,
-)
 
 let lastPageActivator = ''
 
@@ -556,7 +552,9 @@ function create_runtime() {
         // check if the firmware version of the newly connected device is acceptable
         let moduleMismatch = true
 
-        const firmware_required = get(appSettings).firmware_required
+        console.log("Architecture", controller.architecture);
+
+        const firmware_required = get(appSettings).firmware_d51_required
 
         if (controller.fwVersion.major > firmware_required.major) {
           moduleMismatch = false
@@ -1095,6 +1093,7 @@ function create_runtime() {
 
       controller = {
         // implement the module id rep / req
+        architecture: grid.module_architecture_from_hwcfg(heartbeat.HWCFG),
         id: moduleType + '_' + 'dx:' + header.SX + ';dy:' + header.SY,
         dx: header.SX,
         dy: header.SY,
