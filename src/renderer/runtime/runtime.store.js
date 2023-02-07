@@ -554,7 +554,16 @@ function create_runtime() {
 
         console.log("Architecture", controller.architecture);
 
-        const firmware_required = get(appSettings).firmware_d51_required
+        let firmware_required = undefined;
+
+        if (controller.architecture === "esp32"){
+          firmware_required = get(appSettings).firmware_esp32_required
+        }
+        else{
+          firmware_required = get(appSettings).firmware_d51_required
+        }
+
+        
 
         if (controller.fwVersion.major > firmware_required.major) {
           moduleMismatch = false
