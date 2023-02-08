@@ -1,11 +1,11 @@
 <script>
-  import { appSettings } from "../runtime/app-helper.store";
+  import { appSettings, paneSizes } from "../runtime/app-helper.store";
 
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
   let selectedRightTab = "Configuration";
 
-  let selectedLeftTab = "Profiles";
+  let selectedLeftTab = "NewProfile";
 
   function changeRightTab(tab) {
     selectedRightTab = tab;
@@ -16,8 +16,18 @@
   }
 
   function changeLeftTab(tab) {
+    // only on the left tab, if the tab is already selected, then close close it
     if (selectedLeftTab === tab) {
       tab = "";
+      paneSizes.update((store) => {
+        store.left = 0;
+        return store;
+      });
+    } else {
+      paneSizes.update((store) => {
+        store.left = 25;
+        return store;
+      });
     }
 
     selectedLeftTab = tab;

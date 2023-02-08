@@ -20,29 +20,31 @@
 </script>
 
 {#if $appSettings.leftPanel}
-  <panel-container class="{classes} h-full" use:watchResize={resize}>
-    {#if $appSettings.leftPanel == "Debug"}
-      <DebugMonitor />
-    {/if}
+  <div class="{classes} w-full h-full" use:watchResize={resize}>
+    <div class="min-w-[300px]">
+      {#if $appSettings.leftPanel == "Debug"}
+        <DebugMonitor />
+      {/if}
 
-    {#if $appSettings.leftPanel == "MIDI Monitor"}
-      <MidiMonitor />
-    {/if}
+      {#if $appSettings.leftPanel == "MIDI Monitor"}
+        <MidiMonitor />
+      {/if}
 
-    {#if $appSettings.leftPanel == "Profiles"}
-      <Profiles />
-    {/if}
+      {#if $appSettings.leftPanel == "Profiles"}
+        <Profiles />
+      {/if}
 
-    {#if $appSettings.leftPanel == "Presets"}
-      <Presets />
-    {/if}
+      {#if $appSettings.leftPanel == "Presets"}
+        <Presets />
+      {/if}
 
-    {#if $appSettings.leftPanel == "NewProfile"}
-      <NewProfile />
-    {/if}
+      {#if $appSettings.leftPanel == "NewProfile"}
+        <NewProfile />
+      {/if}
 
-    {#if $appSettings.leftPanel == "Websocket"}
-      <WebsocketMonitor />
-    {/if}
-  </panel-container>
+      {#if $appSettings.leftPanel == "Websocket"}
+        <WebsocketMonitor />
+      {/if}
+    </div>
+  </div>
 {/if}

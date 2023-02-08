@@ -83,8 +83,8 @@
     animateFade = false;
 
     if (PROFILE_PATH == undefined || PROFILE_PATH == "") {
-      return
-    };
+      return;
+    }
 
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
       PROFILE_PATH,
@@ -92,8 +92,8 @@
     );
 
     PROFILES.forEach((element) => {
-      if(element.id == undefined || element.id == ""){
-        element.id = element.name.replace(/\W+/g, '-');
+      if (element.id == undefined || element.id == "") {
+        element.id = element.name.replace(/\W+/g, "-");
       }
     });
 
@@ -252,7 +252,7 @@
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
-        id: uuidv4()
+        id: uuidv4(),
       };
 
       configs.forEach((d) => {
@@ -319,7 +319,7 @@
           minor: $appSettings.version.minor,
           patch: $appSettings.version.patch,
         },
-        id: id
+        id: id,
       };
 
       configs.forEach((d) => {
@@ -696,7 +696,7 @@
   }
 </script>
 
-<div class=" flex flex-col h-full justify-between mt-4 ">
+<div class=" flex flex-col h-full justify-between ">
   <div class=" flex flex-col bg-primary ">
     <button
       on:click={() => {
