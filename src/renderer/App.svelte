@@ -9,10 +9,12 @@
    *  svelte UI parts and components
    */
 
+  import { Pane, Splitpanes } from "svelte-splitpanes";
+
   import { onMount } from "svelte";
   import { get } from "svelte/store";
 
-  import { appSettings } from "./runtime/app-helper.store";
+  import { appSettings, paneSizes } from "./runtime/app-helper.store";
 
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
@@ -88,6 +90,8 @@
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
 
+  let rightPaneSize;
+
   onMount(() => {
     // application mounted, check analytics
     window.electron.analytics.influx("application", "init", "init", "init");
@@ -133,15 +137,81 @@
     <ErrorConsole />
 
     <div class="flex w-full h-full overflow-hidden ">
-      <LeftPanelContainer classes={"w-3/12 "} />
-
-      <!-- This is the (mostly) Layout part of the code. -->
-
-      <GridLayout classes={"flex-1"} />
-
-      <!-- The right side panel container -->
-
-      <RightPanelContainer classes={"w-4/12"} />
+      <Splitpanes
+        theme="modern-theme"
+        pushOtherPanes={false}
+        on:resized={(e) => {
+          $paneSizes.right = e.detail[2].size;
+        }}
+        class="w-full"
+      >
+        <Pane bind:size={$paneSizes.left} snapSize={5}>
+          <LeftPanelContainer classes={"min-w-[300px]"} />
+        </Pane>
+        <Pane>
+          <GridLayout classes={"flex-1"} />
+        </Pane>
+        <Pane size={$paneSizes.right} minSize={20}>
+          <RightPanelContainer classes={"min-w-[300px]"} />
+        </Pane>
+      </Splitpanes>
     </div>
   </div>
 </main>
+
+<style global>
+  .splitpanes.modern-theme .splitpanes__pane {
+    @apply bg-secondary;
+    position: relative;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter {
+    background-color: #4c4c4c;
+    position: relative;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: opacity 0.4s;
+    background-color: #2db9d2;
+    opacity: 0;
+    z-index: 1;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter:hover:before {
+    opacity: 1;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
+    z-index: 2;
+    /* Fix an issue of overlap fighting with a near hovered splitter */
+  }
+  .modern-theme.splitpanes--vertical > .splitpanes__splitter:before {
+    left: -3px;
+    right: -3px;
+    height: 100%;
+    cursor: col-resize;
+  }
+  .modern-theme.splitpanes--horizontal > .splitpanes__splitter:before {
+    top: -3px;
+    bottom: -3px;
+    width: 100%;
+    cursor: row-resize;
+  }
+  .splitpanes.no-splitter .splitpanes__pane {
+    background-color: #0e100f;
+  }
+  .splitpanes.no-splitter .splitpanes__splitter {
+    background-color: #4c4c4c;
+    position: relative;
+  }
+  .no-splitter.splitpanes--horizontal > .splitpanes__splitter:before {
+    width: 0.05rem;
+    pointer-events: none;
+    cursor: none;
+  }
+  .no-splitter.splitpanes--vertical > .splitpanes__splitter:before {
+    height: 0.05rem;
+    pointer-events: none;
+    cursor: none;
+  }
+</style>
