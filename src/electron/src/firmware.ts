@@ -41,8 +41,8 @@ export async function findBootloaderPath(){
     a.blocks === 3965 || a.blocks === 7929 || a.blocks === 4059648 || 
     // new bootloader Linux Mac Win
     a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904 ||  
-    // add esp32 bootloader block size here WINDOWS ONLY
-    a.blocks === 33423360
+    // add esp32 bootloader block size here LINUX & M1 Mac & WINDOWS
+    a.blocks === 32640 || a.blocks === 65281 || a.blocks === 33423360
   );
 
   console.log("DiskInfo", diskInfo)
@@ -63,7 +63,7 @@ export async function findBootloaderPath(){
 
       bootloader_path = gridDrive.mounted;
 
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3});
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3, path: bootloader_path});
         
       googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected D51'})
       influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected D51")
@@ -75,7 +75,7 @@ export async function findBootloaderPath(){
 
       bootloader_path = gridDrive.mounted;
 
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3});
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3, path: bootloader_path});
         
       googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected ESP32'})
       influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected ESP32")
@@ -101,8 +101,7 @@ export async function firmwareDownload(targetFolder){
   googleAnalytics('firmware-download', {value: 'update start'})
   influxAnalytics("application", "firmwarecheck", "firmware update status", "update started")
 
-  const version = process.env.FIRMWARE_LATEST_DOWNLOAD_VERSION;
-  const link = process.env.FIRMWARE_URL_BEGINING + version + process.env.FIRMWARE_URL_END;
+  const link = process.env.FIRMWARE_URL_BEGINING + process.env.FIRMWARE_URL_END;
 
   firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Downloading firmware image...", code: 4});
 

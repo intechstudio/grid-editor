@@ -28,9 +28,8 @@
     "FIRMWARE_ESP32_REQUIRED_MINOR":2,
     "FIRMWARE_ESP32_REQUIRED_PATCH":20,
 
-    "FIRMWARE_LATEST_DOWNLOAD_VERSION":  "v1.2.20",
  
-    "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/download/",
+    "FIRMWARE_URL_BEGINING":"https://github.com/intechstudio/grid-fw/releases/latest/download/",
     "FIRMWARE_URL_END":"/grid_release.zip",
 
     "UXP_PHOTOSHOP_REQUIRED_MAJOR":0,

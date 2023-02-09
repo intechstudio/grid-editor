@@ -16,7 +16,6 @@
   let booloaderConnectionCheck = undefined;
 
   let bootloader_path = undefined;
-  let bootloader_architecture = undefined;
 
   const startBootladerCheck = () => {
     booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750);
@@ -99,6 +98,8 @@
     if (value.message !== undefined) {
       uploadProgressText = value.message;
     }
+
+    bootloader_path = value.path
   });
 
   onMount(() => {
