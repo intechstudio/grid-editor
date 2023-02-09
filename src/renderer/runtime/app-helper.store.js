@@ -12,14 +12,19 @@ function checkOS() {
   return 'browser';
 }
 
-export const current_tooltip_store = writable({key: '', bool: false});
+export const current_tooltip_store = writable({ key: '', bool: false });
 
 export const statusReport = writable({
   serialport: {}
 })
 
+export const paneSizes = writable({
+  left: 25,
+  center: 40,
+  right: 35,
+})
 
-function createAppSettingsStore(){
+function createAppSettingsStore() {
 
   const store = writable({
     size: 2.1,
@@ -28,7 +33,7 @@ function createAppSettingsStore(){
       minor: envs.EDITOR_VERSION.split('.')[1],
       patch: envs.EDITOR_VERSION.split('.')[2]
     },
-    overlays: {controlElementName: false},
+    overlays: { controlElementName: false },
     debugMode: false,
     selectedDisplay: '',
     changeOnContact: true,
@@ -43,9 +48,9 @@ function createAppSettingsStore(){
     os: checkOS(),
     intervalPause: false,
     firmwareNotificationState: 0,
-    firmware_d51_required:{
-      major: parseInt(envs.FIRMWARE_D51_REQUIRED_MAJOR), 
-      minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR), 
+    firmware_d51_required: {
+      major: parseInt(envs.FIRMWARE_D51_REQUIRED_MAJOR),
+      minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR),
       patch: parseInt(envs.FIRMWARE_D51_REQUIRED_PATCH)
     },
     firmware_esp32_required:{
@@ -56,7 +61,7 @@ function createAppSettingsStore(){
     sizeChange: 0,
     activeWindowResult: {
       title: undefined,
-      owner: {neme: undefined}
+      owner: { neme: undefined }
     },
     persistant: {
       wssPort: 1337,
@@ -65,11 +70,11 @@ function createAppSettingsStore(){
       lastVersion: '',
       profileFolder: '',
       pageActivatorEnabled: false,
-      pageActivatorCriteria_0 : "",
-      pageActivatorCriteria_1 : "",
-      pageActivatorCriteria_2 : "",
-      pageActivatorCriteria_3 : "",
-      keyboardLayout : "",
+      pageActivatorCriteria_0: "",
+      pageActivatorCriteria_1: "",
+      pageActivatorCriteria_2: "",
+      pageActivatorCriteria_3: "",
+      keyboardLayout: "",
       pageActivatorInterval: 1000,
       websocketMonitorEnabled: false,
       newProfileBrowserEnabled: true,
@@ -81,11 +86,11 @@ function createAppSettingsStore(){
       desktopAutomationPlugin: false,
     }
   })
-  
+
   return {
     ...store
   }
-} 
+}
 
 export const appSettings = createAppSettingsStore();
 
@@ -99,10 +104,10 @@ let persistant = {
   lastVersion: '',
   profileFolder: '',
   pageActivatorEnabled: false,
-  pageActivatorCriteria_0 : "",
-  pageActivatorCriteria_1 : "",
-  pageActivatorCriteria_2 : "",
-  pageActivatorCriteria_3 : "",
+  pageActivatorCriteria_0: "",
+  pageActivatorCriteria_1: "",
+  pageActivatorCriteria_2: "",
+  pageActivatorCriteria_3: "",
   keyboardLayout: "",
   pageActivatorInterval: 1000,
   websocketMonitorEnabled: false,
@@ -124,7 +129,7 @@ appSettings.subscribe(store => {
   Object.entries(persistant).forEach(entry => {
     const [key, value] = entry;
 
-    if (persistant[key] !== instore[key]){
+    if (persistant[key] !== instore[key]) {
 
       persistant[key] = instore[key];
 
@@ -150,7 +155,7 @@ ipcRenderer.on('trayState', (event, args) => {
 })
  */
 
-async function init_appsettings(){
+async function init_appsettings() {
 
   let request = []
   Object.entries(persistant).forEach(entry => {
@@ -169,22 +174,22 @@ async function init_appsettings(){
 
         // validate values, append default behavior
 
-        if (key === "profileFolder" && value === undefined){
-          value = await window.electron.library.defaultDirectory()  
-        }        
-        
-        if (key === "moduleRotation" && value === undefined){
+        if (key === "profileFolder" && value === undefined) {
+          value = await window.electron.library.defaultDirectory()
+        }
+
+        if (key === "moduleRotation" && value === undefined) {
           value = persistant[key]
         }
-      
-        if (key === "pageActivatorInterval" && value === undefined){
+
+        if (key === "pageActivatorInterval" && value === undefined) {
           value = 1000;
         }
 
-        if (value !== undefined){
+        if (value !== undefined) {
           s.persistant[key] = value;
         }
-    
+
       });
 
       return s;
@@ -193,9 +198,9 @@ async function init_appsettings(){
 
     // show welcome modal if it is not disabled, but always show after version update
     if (get(appSettings).persistant.welcomeOnStartup === undefined ||
-        get(appSettings).persistant.welcomeOnStartup === true ||
-        get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != envs["EDITOR_VERSION"]){
+      get(appSettings).persistant.welcomeOnStartup === true ||
+      get(appSettings).persistant.lastVersion === undefined ||
+      get(appSettings).persistant.lastVersion != envs["EDITOR_VERSION"]) {
 
       appSettings.update(s => {
         s.persistant.lastVersion = envs["EDITOR_VERSION"]
@@ -204,9 +209,9 @@ async function init_appsettings(){
         return s;
       });
 
-    }  
+    }
 
-    if(get(appSettings).persistant.desktopAutomationPlugin === true){
+    if (get(appSettings).persistant.desktopAutomationPlugin === true) {
       console.log("start plugin");
 
       window.electron.plugin.start('desktopAutomation')
@@ -214,7 +219,7 @@ async function init_appsettings(){
       console.log('stop plugin')
       window.electron.plugin.stop('desktopAutomation')
     }
-  
+
   });
 
 }
@@ -228,11 +233,11 @@ export const openedActionBlocks = writable([]);
 
 export const action_collection = readable(Promise.all([getAllComponents()]))
 
-function createPresetManagement(){
+function createPresetManagement() {
 
-  const _selected_preset = writable({sub: '', name: '', configs: ''});
+  const _selected_preset = writable({ sub: '', name: '', configs: '' });
 
-  const _selected_action = writable({name: '', configs: ''});
+  const _selected_action = writable({ name: '', configs: '' });
 
   const _quick_access = writable([]);
 
@@ -240,26 +245,26 @@ function createPresetManagement(){
     subscribe: _selected_preset.subscribe,
     selected_preset: {
       subscribe: _selected_preset.subscribe,
-      update: ({sub, name, configs}) => {
-        _selected_preset.set({sub: sub, name: name, configs: configs});
+      update: ({ sub, name, configs }) => {
+        _selected_preset.set({ sub: sub, name: name, configs: configs });
       },
     },
     selected_action: {
       subscribe: _selected_action.subscribe,
-      update: ({name, configs}) => {
-        _selected_action.set({name: name, configs: configs})
+      update: ({ name, configs }) => {
+        _selected_action.set({ name: name, configs: configs })
       }
     },
     quick_access: {
       subscribe: _quick_access.subscribe,
       update: () => {
-        _quick_access.update(s => { if(s.length >= 4){ s.shift() }; s = [...s, get(_selected_preset)]; return s});
+        _quick_access.update(s => { if (s.length >= 4) { s.shift() }; s = [...s, get(_selected_preset)]; return s });
       }
     }
   }
 }
 
-export const activeDropDown = writable({config_index: undefined, input_index: undefined})
+export const activeDropDown = writable({ config_index: undefined, input_index: undefined })
 
 export const presetManagement = createPresetManagement();
 
