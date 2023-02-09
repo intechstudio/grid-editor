@@ -16,24 +16,15 @@ import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.s
 let lineBuffer = '';
 let latestValue = 0;
 
-let port_connected = false;
-
-
-navigator.serial.addEventListener('connect', (e) => {
-  console.log("Serial Connect", e)
-});
-
-navigator.serial.addEventListener('disconnect', (e) => {
-  console.log("Serial Disconnect", e)
-  port_connected = false;
-});
 
 
 export async function testIt() {
 
+//  console.log("TEST IT");
+
   const env = window.ctxProcess.env();
 
-  if (port_connected == false){
+  if (navigator.intechPort === undefined){
 
     const filters = [
       { usbVendorId: parseInt(env.USB_VID_0), usbProductId: parseInt(env.USB_PID_0) },
@@ -47,12 +38,17 @@ export async function testIt() {
 
       //console.log('port',port);
 
-      navigator.intechPort = port
 
       port.open({ baudRate: 2000000}).then(e=>{
 
-        port_connected = true;
-  
+        navigator.intechPort = port
+
+        port.addEventListener("disconnect", (e) => {
+          console.log("The Real Disconnect", e);
+          navigator.intechPort = undefined;
+        });
+
+
         fetchStream()
     
         // port.readable
@@ -67,7 +63,6 @@ export async function testIt() {
 
     }).catch(error => {
       //no port selected by the user
-      //port_connected = false;
       //console.log(error)
     });
 
@@ -85,7 +80,7 @@ function fetchStream() {
 
   console.log('--------serial---------')
 
-  if (port_connected !== true){
+  if (navigator.intechPort === undefined){
     return;
   }
 
@@ -160,10 +155,6 @@ navigator.intechFetch = fetchStream
 
 export async function serial_write_islocked(){
 
-  if (port_connected !== true){
-    return true;
-  }
-
   if (navigator.intechPort === undefined || navigator.intechPort === null ){
     return true;
   }
@@ -187,7 +178,7 @@ export async function serial_write_islocked(){
 
 export async function serial_write(param){
 
-  if (param === undefined || port_connected !== true){
+  if (param === undefined){
     return false;
   }
 

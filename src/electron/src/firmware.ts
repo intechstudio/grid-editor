@@ -62,10 +62,6 @@ export async function findBootloaderPath(){
 
 
       firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3, path: gridDrive.mounted});
-        
-      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected D51'})
-      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected D51")
-
       return {path: gridDrive.mounted, architecture: "d51"};
 
     }
@@ -73,10 +69,6 @@ export async function findBootloaderPath(){
 
 
       firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3, path: gridDrive.mounted});
-        
-      googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected ESP32'})
-      influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected ESP32")
-
       return {path: gridDrive.mounted, architecture: "esp32"};
     }
   }
@@ -133,11 +125,11 @@ export async function firmwareDownload(targetFolder){
   }
 
 
-  firmware.mainWindow.webContents.send('onFirmwareUpdate',{message: "Decompressing image..."});
+  firmware.mainWindow.webContents.send('onFirmwareUpdate',{message: "Decompressing image...", code: 4});
 
   await delay(1500);
 
-  firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Uploading firmware..."});
+  firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Uploading firmware...", code: 4});
 
   await delay(1500);
 

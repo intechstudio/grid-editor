@@ -17,6 +17,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   import { runtime } from "../runtime/runtime.store";
 
   import { fade } from "svelte/transition";
+    import { escape } from "svelte/internal";
 
   const { env } = window.ctxProcess;
 
@@ -28,7 +29,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   let booloaderConnectionCheck = undefined;
 
   let bootloader_path = undefined;
-
 
   const startBootloaderCheck = () => {
 
@@ -46,30 +46,28 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     flagBootloaderCheck = 0;
   };
 
-  // check if serial connection is established
-  navigator.serial.addEventListener("connect", (e) => {
-    stopBootloaderCheck();
-  });
-
-  // check if serial disconnect happened
-  navigator.serial.addEventListener("disconnect", (e) => {
-  
-    startBootloaderCheck();
-    if ($appSettings.firmwareNotificationState  == 1){
-      $appSettings.firmwareNotificationState = 2;
-    }
-  });
 
   // check for parsed modules
   runtime.subscribe((store) => {
 
     let firmwareMismatchFound = false;
 
+    if (store.length === 0){
+      startBootloaderCheck();
+      if ($appSettings.firmwareNotificationState  == 1){
+        $appSettings.firmwareNotificationState = 2;
+      }
+    }else{
+
+      stopBootloaderCheck();
+
+    }
+
+
     // check modules for firmware mismatch
     store.forEach((device) => {
 
 
-      stopBootloaderCheck();
       if ($appSettings.firmwareNotificationState == 6){
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";
@@ -113,7 +111,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   window.electron.firmware.onFirmwareUpdate((_event, value) => {
 
 
-
     if (value.code !== undefined) {
 
       if (value.code == 3 && $appSettings.firmwareNotificationState == 4){
@@ -121,6 +118,11 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       }
 
       $appSettings.firmwareNotificationState = value.code;
+
+      if (value.message !== undefined) {
+        uploadProgressText = value.message;
+      }
+
 
       // when the firmware update is successful, reset the notification state
       if (value.code == 5) {
@@ -130,9 +132,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       }
     }
 
-    if (value.message !== undefined) {
-      uploadProgressText = value.message;
-    }
 
   });
 
@@ -146,6 +145,8 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       text = "Ctrl + Shift + R";
     }
   });
+
+
 
   async function find_bootloader_path() {
 
@@ -161,11 +162,26 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     }
     else{
       
-      if (typeof bootloader_path !== 'undefined'){
+      if ($appSettings.firmwareNotificationState == 4 || $appSettings.firmwareNotificationState == 5){
+
         bootloader_path = undefined
-        uploadProgressText = "Bootloader connection lost!"
-        $appSettings.firmwareNotificationState = 6;
+        //console.log("Disconnect but no problem")
+
       }
+      else{
+        
+        if (typeof bootloader_path !== 'undefined'){
+
+        //console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
+
+          bootloader_path = undefined
+          uploadProgressText = "Bootloader connection lost!"
+          $appSettings.firmwareNotificationState = 6;
+
+        }
+      }
+
+
     }
   }
 
