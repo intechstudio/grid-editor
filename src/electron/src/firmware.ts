@@ -9,7 +9,6 @@ export const firmware = {
   mainWindow: undefined,
 }
 
-let bootloader_path = undefined;
 
 function delay(time) {
   return new Promise((resolve) => {
@@ -45,7 +44,7 @@ export async function findBootloaderPath(){
     a.blocks === 32640 || a.blocks === 65281 || a.blocks === 33423360
   );
 
-  console.log("DiskInfo", diskInfo)
+  //console.log("DiskInfo", diskInfo)
 
   let data;
 
@@ -61,33 +60,27 @@ export async function findBootloaderPath(){
     // is it grid
     if (data.indexOf("SAMD51N20A-GRID") !== -1){
 
-      bootloader_path = gridDrive.mounted;
 
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3, path: bootloader_path});
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid D51 bootloader is detected!", code: 3, path: gridDrive.mounted});
         
       googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected D51'})
       influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected D51")
 
-      return {path: bootloader_path, architecture: "d51"};
+      return {path: gridDrive.mounted, architecture: "d51"};
 
     }
     else if (data.indexOf("ESP32S3") !== -1){
 
-      bootloader_path = gridDrive.mounted;
 
-      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3, path: bootloader_path});
+      firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Grid ESP32 bootloader is detected!", code: 3, path: gridDrive.mounted});
         
       googleAnalytics('firmware-download', {value: 'firmware-download: bootloader detected ESP32'})
       influxAnalytics("application", "firmwarecheck", "firmware update status", "bootloader detected ESP32")
 
-      return {path: bootloader_path, architecture: "esp32"};
+      return {path: gridDrive.mounted, architecture: "esp32"};
     }
   }
-  
-  // reset path
-  if (bootloader_path != undefined){
-    log.info('some reset stuff should happen here...')
-  }
+
 
 }
 
@@ -96,7 +89,13 @@ export async function firmwareDownload(targetFolder){
 
   const result = await findBootloaderPath();
 
-  console.log("ARCHITECTURE = ", result.architecture);
+  if (typeof result === 'undefined'){
+    //bootloader not found
+    firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Error: No device connected.", code: 6});
+    return;
+  }
+
+  let path = result.path;
 
   googleAnalytics('firmware-download', {value: 'update start'})
   influxAnalytics("application", "firmwarecheck", "firmware update status", "update started")
@@ -111,7 +110,7 @@ export async function firmwareDownload(targetFolder){
 
   await delay(1000);
 
-  console.log("filePathArray", filePathArray);
+  //console.log("filePathArray", filePathArray);
 
   let firmwareFileName = undefined;
 
@@ -142,9 +141,15 @@ export async function firmwareDownload(targetFolder){
 
   await delay(1500);
 
-  if (bootloader_path !== undefined){
+  if (path !== undefined){
 
-    fs.copySync(targetFolder + "/temp/" + firmwareFileName, bootloader_path + "/" + firmwareFileName)
+    try {
+      
+      fs.copySync(targetFolder + "/temp/" + firmwareFileName, path + "/" + firmwareFileName)
+
+    } catch (error) {
+      console.log("COPY ERROR UNBOUNT", error)
+    }
 
     firmware.mainWindow.webContents.send('onFirmwareUpdate', {message: "Update completed successfully!",code: 5});
 
