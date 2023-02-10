@@ -1,5 +1,5 @@
 <script>
-  import { appSettings, paneSizes } from "../runtime/app-helper.store";
+  import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
@@ -15,21 +15,41 @@
     });
   }
 
-  function changeLeftTab(tab) {
-    // only on the left tab, if the tab is already selected, then close close it
-    if (selectedLeftTab === tab) {
-      tab = "";
-      paneSizes.update((store) => {
-        store.left = 0;
+  appSettings.subscribe((store) => {
+    selectedLeftTab = store.leftPanel;
+  });
+
+  function toggleTab() {
+    // toggle the visibility of the left panel
+    $appSettings.leftPanelVisible = !$appSettings.leftPanelVisible;
+
+    // when visibility changes, update the splitpanes store
+    // TODO... move to splitpane controller as subscription...?
+    if ($appSettings.leftPanelVisible == true) {
+      splitpanes.update((store) => {
+        store.left = 30;
         return store;
       });
     } else {
-      paneSizes.update((store) => {
-        store.left = 25;
+      splitpanes.update((store) => {
+        store.left = 0;
         return store;
       });
     }
+  }
 
+  function changeLeftTab(tab) {
+    // when same tab is clicked, toggle the visibility of the left panel
+    if (selectedLeftTab == tab) {
+      toggleTab();
+    }
+
+    // when leftpanel is hidden then toggle (show) it, but only if a different tab is clicked from the current one
+    if ($appSettings.leftPanelVisible == false && selectedLeftTab != tab) {
+      toggleTab();
+    }
+
+    // update local leftPanel
     selectedLeftTab = tab;
 
     appSettings.update((store) => {
@@ -78,7 +98,7 @@
         changeRightTab("Configuration");
       }}
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
-      'Configuration'
+        'Configuration' && $appSettings.rightPanel != ''
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary "
     >
@@ -94,8 +114,8 @@
         <rect x="1.17725" y="12.1777" width="10" height="1" fill="black" />
       </svg>
       <div
-        class="left-0 -ml-3 absolute transition-all  {selectedRightTab ==
-        'Configuration'
+        class="left-0 -ml-3 absolute transition-all  
+        {selectedRightTab == 'Configuration'
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -106,8 +126,8 @@
       on:click={() => {
         changeRightTab("Preferences");
       }}
-      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedRightTab ==
-      'Preferences'
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg 
+      {selectedRightTab == 'Preferences'
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
     >
@@ -141,8 +161,8 @@
         on:click={() => {
           changeLeftTab("NewProfile");
         }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'NewProfile'
+        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 
+        {selectedLeftTab == 'NewProfile' && $splitpanes.left != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -171,7 +191,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'NewProfile'
+            'NewProfile' && $splitpanes.left != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -185,7 +205,7 @@
           changeLeftTab("Presets");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Presets'
+          'Presets' && $splitpanes.left != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -219,7 +239,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'Presets'
+            'Presets' && $splitpanes.left != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -231,7 +251,7 @@
           changeLeftTab("Profiles");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Profiles'
+          'Profiles' && $splitpanes.left != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -413,7 +433,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'Profiles'
+            'Profiles' && $splitpanes.left != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -426,7 +446,7 @@
         changeLeftTab("Debug");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-      'Debug'
+        'Debug' && $splitpanes.left != 0
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary "
     >
@@ -474,7 +494,8 @@
       </svg>
 
       <div
-        class="left-0 -ml-3 absolute transition-all  {selectedLeftTab == 'Debug'
+        class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          'Debug' && $splitpanes.left != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -486,7 +507,7 @@
         changeLeftTab("MIDI Monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-      'MIDI Monitor'
+        'MIDI Monitor' && $splitpanes.left != 0
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
     >
@@ -517,7 +538,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-        'MIDI Monitor'
+          'MIDI Monitor' && $splitpanes.left != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -529,7 +550,7 @@
           changeLeftTab("Websocket");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Websocket'
+          'Websocket' && $splitpanes.left != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -578,7 +599,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'Websocket'
+            'Websocket' && $splitpanes.left != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />

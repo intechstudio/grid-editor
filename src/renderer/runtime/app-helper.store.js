@@ -18,9 +18,9 @@ export const statusReport = writable({
   serialport: {}
 })
 
-export const paneSizes = writable({
-  left: 25,
-  center: 40,
+export const splitpanes = writable({
+  left: 30,
+  middle: 35,
   right: 35,
 })
 
@@ -42,6 +42,7 @@ function createAppSettingsStore() {
     stringNameOverlay: false,
     preferences: false,
     rightPanel: 'Configuration',
+    leftPanelVisible: true,
     leftPanel: 'Profiles',
     modal: '',
     trayState: false,

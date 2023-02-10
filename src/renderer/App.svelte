@@ -14,7 +14,7 @@
   import { onMount } from "svelte";
   import { get } from "svelte/store";
 
-  import { appSettings, paneSizes } from "./runtime/app-helper.store";
+  import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
@@ -90,7 +90,41 @@
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
 
-  let rightPaneSize;
+  let leftPaneSize;
+  function handlePaneResize(event) {
+    if (event.detail[0].size > leftPaneSize) {
+      // when left panel is resized to > 0, make leftpanel visible
+      appSettings.update((store) => {
+        store.leftPanelVisible = true;
+        return store;
+      });
+    }
+    $splitpanes.left = event.detail[0].size;
+  }
+
+  function handlePaneResized(event) {
+    event.detail.forEach((pane, index) => {
+      // left pane
+      if (index == 0) {
+        if (pane.size == 0) {
+          // when left panel is resized to 0, make leftpanel invisible
+          appSettings.update((store) => {
+            store.leftPanelVisible = false;
+            return store;
+          });
+        }
+        leftPaneSize = pane.size;
+      }
+      // middle pane
+      if (index == 1) {
+        $splitpanes.middle = pane.size;
+      }
+      // right pane
+      if (index == 2) {
+        $splitpanes.right = pane.size;
+      }
+    });
+  }
 
   onMount(() => {
     // application mounted, check analytics
@@ -140,18 +174,17 @@
       <Splitpanes
         theme="modern-theme"
         pushOtherPanes={false}
-        on:resized={(e) => {
-          $paneSizes.right = e.detail[2].size;
-        }}
+        on:resize={handlePaneResize}
+        on:resized={handlePaneResized}
         class="w-full"
       >
-        <Pane bind:size={$paneSizes.left} snapSize={5}>
-          <LeftPanelContainer classes={"min-w-[300px]"} />
+        <Pane bind:size={$splitpanes.left} snapSize={5}>
+          <LeftPanelContainer />
         </Pane>
         <Pane>
           <GridLayout classes={"flex-1"} />
         </Pane>
-        <Pane size={$paneSizes.right} minSize={20}>
+        <Pane size={$splitpanes.right} minSize={20}>
           <RightPanelContainer classes={"min-w-[300px]"} />
         </Pane>
       </Splitpanes>
@@ -173,7 +206,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    transition: opacity 0.4s;
+    transition: opacity 0.3s;
     background-color: #2db9d2;
     opacity: 0;
     z-index: 1;
