@@ -706,6 +706,7 @@
       cursor-pointer w-full "
     >
       <div>Session Profiles</div>
+
       {isSessionProfileOpen ? "▼" : "▲"}
     </button>
 
