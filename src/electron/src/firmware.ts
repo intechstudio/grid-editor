@@ -38,8 +38,8 @@ export async function findBootloaderPath(){
   let gridDrive = diskInfo.find(a => 
     // old bootloader Linux Mac Win
     a.blocks === 3965 || a.blocks === 7929 || a.blocks === 4059648 || 
-    // new bootloader Linux Mac Win
-    a.blocks === 7934 || a.blocks === 15867 || a.blocks === 8123904 ||  
+    // new bootloader Linux, Mac, M1Mac, Win
+    a.blocks === 7934 || a.blocks === 15867 || a.blocks === 15868 || a.blocks === 8123904 ||  
     // add esp32 bootloader block size here LINUX & M1 Mac & WINDOWS
     a.blocks === 32640 || a.blocks === 65281 || a.blocks === 33423360
   );
