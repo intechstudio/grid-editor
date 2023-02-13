@@ -14,6 +14,7 @@
   let logtext = [];
 
   let solutions = [];
+  let notifications = [];
 
   let bgHelper = 0;
 
@@ -94,7 +95,28 @@
     }
 
     const response = await window.electron.fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
-    solutions = response;
+
+    response.forEach(element => {
+      if (element.type === "error"){
+        solutions.push(element)
+
+      }
+      else if (element.type === "notification"){
+
+        if (typeof element.delay !== 'undefined'){
+          let delay = parseInt(element.delay)
+          setTimeout(() => {
+            notifications = [...notifications, element]
+          }, delay);
+        } 
+        else{
+          notifications = [...notifications, element]
+
+        }
+
+      }
+    });
+
 
   });
 
@@ -130,6 +152,24 @@
       "dismiss"
     );
   }
+
+  function close_notification(index){
+
+    let new_not_array = [];
+
+    
+    notifications.forEach((element, i) => {
+
+      if (i!==index){
+        new_not_array.push(element)
+      }
+    });
+
+    
+    notifications = [...new_not_array]
+
+  }
+
 </script>
 
 {#if logtext.length != 0}
@@ -187,6 +227,42 @@
     </div>
   </div>
 {/if}
+
+{#each notifications as notification, index}
+
+
+  {#key index === notifications.length}
+    <div in:fly="{{ x: -50, delay: 0, duration: 500 }}"  class="w-full {notification.class?notification.class:"bg-green-500"} justify-center flex flex-row items-center h-16">
+      <div>{notification.message} </div>
+
+      {#if notification.link !== undefined && notification.link !==""}
+      <button
+        on:click={solution(notification.link)}
+        class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+      >
+        Open Link
+      </button>
+  
+      {#if notification.dismissable === true}
+        <button
+          on:click={()=>{close_notification(index)}}
+          class="relative bg-gray-600 mr-3 block hover:bg-gray-300 text-white ml-3 my-2 py-1 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
+        >
+          Close
+        </button>
+  
+      {/if}
+
+
+      {/if}
+
+
+
+    </div>       
+  {/key}  
+
+
+{/each}
 
 <style>
 </style>

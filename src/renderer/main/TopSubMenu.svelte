@@ -67,7 +67,7 @@
 
 <top-sub-menu
   style="background-color:rgb(25, 26, 32)"
-  class="w-full rounded-tl-lg pt-4 -mt-4 shadow-md z-10 flex text-white"
+  class="w-full z-10 flex text-white"
 >
   <div
     class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg flex
