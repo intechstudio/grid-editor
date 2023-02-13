@@ -164,11 +164,12 @@
   <TooltipGetter />
 
   <div class="flex flex-col w-full h-full">
-    <TopSubMenu />
-
     <FirmwareCheck />
 
     <ErrorConsole />
+
+    <TopSubMenu />
+
 
     <div class="flex w-full h-full overflow-hidden ">
       <Splitpanes
