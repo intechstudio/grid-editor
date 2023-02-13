@@ -78,9 +78,43 @@
     }
 
     const short_code = stringManipulation.shortify(editor_code);
+    const short_lines = short_code.split("\n");
+    console.log(short_lines)
+    short_lines.forEach((element, index) => {
+      const trimmed = element.trim();
+      let commentStartIndex = trimmed.indexOf("--"); 
+      if (commentStartIndex !== -1){
+        
+        let beginning = trimmed.substring(0, commentStartIndex);
+        let comment = trimmed.substring(commentStartIndex+2, trimmed.length).trim();
+
+        let gotReturnChar = false;
+        if (comment.indexOf("\r") == comment.length-1){
+          gotReturnChar = true;
+          comment = comment.substring(0, comment.length-1);
+        }
+
+        if (commentStartIndex>2){
+
+          comment = "$"+comment
+
+        }
+        let commentEncoded = " COMMENT=\"" + window.btoa(comment) + "\""
+
+        if (gotReturnChar){
+          commentEncoded += "\r"
+        }
+
+        short_lines[index] = beginning + commentEncoded;
+      }
+
+    });
+
+    
+    console.log(short_lines)
 
     try {
-      const minified_code = luamin.Minify(short_code, luaminOptions);
+      const minified_code = luamin.Minify(short_lines.join("\n"), luaminOptions);
       $appSettings.monaco_code_committed = minified_code;
       commitState = 0;
       error_messsage = "";
@@ -102,6 +136,42 @@
     });
 
     if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+
+    let lines = beautified.split("\n");
+
+    let lines2 = []
+
+    lines.forEach((element,index) => {
+
+      if (element.indexOf("COMMENT = ") !== -1){
+
+        let parts = element.split("COMMENT = ");
+        console.log("parts", parts)
+        parts[1] = window.atob(parts[1].split("\"")[1])
+        console.log("parts", parts)
+
+        if (parts[1].substring(0,1) === "$"){
+          parts[1] = parts[1].substring(1)
+          let result = parts.join("--")
+          console.log(result)
+          console.log("$$$$")
+          lines2[lines2.length-1] += result
+        }
+        else{
+          let result = parts.join("--")
+          console.log(result)
+          lines2.push(result);
+        }
+      }
+      else{
+        lines2.push(element);
+      }
+
+
+
+    });
+
+    beautified = lines2.join("\n")
 
     editor = monaco_editor.create(monaco_block, {
       value: beautified,
