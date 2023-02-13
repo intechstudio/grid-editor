@@ -68,8 +68,6 @@
       dy = +id.split(";")[1].split(":").pop();
     }
   }
-
-  $: console.log(selectedElement, "selectedElements");
 </script>
 
 <div

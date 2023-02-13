@@ -11,6 +11,7 @@
   import { watchResize } from "svelte-watch-resize";
 
   import NewProfile from "./panels/newProfile/NewProfile.svelte";
+  import UserAccount from "./panels/user-account/UserAccount.svelte";
 
   export let classes;
 
@@ -44,6 +45,10 @@
 
       {#if $appSettings.leftPanel == "Websocket"}
         <WebsocketMonitor />
+      {/if}
+
+      {#if $appSettings.leftPanel == "User Account"}
+        <UserAccount />
       {/if}
     </div>
   </div>
