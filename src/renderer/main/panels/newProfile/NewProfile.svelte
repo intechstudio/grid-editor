@@ -748,7 +748,7 @@
             >
               <div class="flex gap-2 items-center">
                 <div
-                  class="text-zinc-100 text-xs lg:text-sm h-fit px-2 bg-violet-600
+                  class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
                       rounded-xl {selectedModule == sessionProfileElement.type
                     ? 'bg-violet-600'
                     : 'bg-gray-600 '}"
@@ -1167,7 +1167,7 @@
                 >
                   <div class="flex truncate items-center   gap-1">
                     <div
-                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
+                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
                       rounded-xl {selectedModule == profileCloudElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
