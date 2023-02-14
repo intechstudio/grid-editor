@@ -1,6 +1,7 @@
 <script>
   import { get } from "svelte/store";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
+  import { selectedPresetStore } from "/runtime/preset-helper.store";
 
   import { onMount } from "svelte";
 
@@ -10,6 +11,7 @@
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
+
   import {
     appSettings,
     presetListRefresh,
@@ -70,7 +72,6 @@
       PRESET_PATH,
       "presets"
     );
-    console.log("presets", PRESETS);
   }
 
   async function saveToDirectory(path, name, preset) {
@@ -315,6 +316,7 @@
             on:click={() => {
               selected = preset;
               selectedIndex = i;
+              selectedPresetStore.set(selected);
             }}
             use:addOnDoubleClick
             on:double-click={() => {
@@ -347,13 +349,6 @@
                   : 'bg-gray-600 '}"
               >
                 {preset.type === "potentiometer" ? "potmeter" : preset.type}
-              </div>
-              <div
-                class="m-1 flex justify-center text-center rounded-full px-2
-                 bg-gray-900"
-              >
-                v{preset.version.major}.{preset.version.minor}.{preset.version
-                  .patch}
               </div>
 
               <div class="text-gray-100 text-xs  lg:text-sm">

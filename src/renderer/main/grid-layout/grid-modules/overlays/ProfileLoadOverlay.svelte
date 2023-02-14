@@ -5,6 +5,10 @@
   import { appSettings } from "/runtime/app-helper.store";
 
   export let id;
+  export let elements;
+
+  console.log("prset", elements);
+
   let showOverlay = false;
   let selectedProfile = undefined;
   let isActionButtonClicked = false;

@@ -4,6 +4,7 @@ import grid from '../protocol/grid-protocol'
 import instructions from '../serialport/instructions'
 import { writeBuffer, sendHeartbeat } from './engine.store'
 import { selectedProfileStore } from './profile-helper.store'
+import { selectedPresetStore } from './preset-helper.store'
 
 import _utils from './_utils'
 
@@ -358,6 +359,7 @@ function create_user_input() {
 
       //reset of profile selecting
       selectedProfileStore.set({})
+      selectedPresetStore.set({})
 
       _event.update((store) => {
         const rt = get(runtime)

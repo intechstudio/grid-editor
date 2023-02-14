@@ -47,6 +47,8 @@
   import grid from "../../../protocol/grid-protocol";
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
+
   let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
@@ -64,6 +66,14 @@
   onMount(() => {
     console.log("configuration mount.y");
   });
+
+  let controllerIndex;
+
+  selectedControllerIndexStore.subscribe((store) => {
+    controllerIndex = store;
+  });
+
+  $: selectedControllerIndexStore.set(elements);
 
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;

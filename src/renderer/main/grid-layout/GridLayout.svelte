@@ -20,6 +20,7 @@
 
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { selectedProfileStore } from "../../runtime/profile-helper.store";
+  import { selectedPresetStore } from "../../runtime/preset-helper.store";
 
   const { env } = window.ctxProcess;
 
@@ -203,6 +204,7 @@
         on:click-outside={() => {
           if ($appSettings.modal == "") {
             selectedProfileStore.set({});
+            selectedPresetStore.set({});
           }
         }}
       >
