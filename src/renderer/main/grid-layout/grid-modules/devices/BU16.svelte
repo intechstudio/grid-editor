@@ -69,7 +69,10 @@
     }
   }
 
-  $: console.log(selectedElement, "selectedElements");
+  $: console.log(
+    selectedElement.event.elementnumber,
+    "selectedElement.event.elementnumber"
+  );
 </script>
 
 <div

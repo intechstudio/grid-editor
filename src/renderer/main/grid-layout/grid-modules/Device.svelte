@@ -67,6 +67,9 @@
       if (Object.keys($selectedProfileStore).length === 0) {
         selectedElement = store;
       }
+      if (Object.keys($selectedProfileStore).length === 0) {
+        selectedElement = store;
+      }
     });
   });
 

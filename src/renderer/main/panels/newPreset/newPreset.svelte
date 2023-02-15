@@ -34,6 +34,12 @@
     type: "",
   };
 
+  let selectedModule;
+
+  selectedPresetStore.subscribe((store) => {
+    selected = store;
+  });
+
   let selectedIndex = undefined;
 
   let PRESET_PATH = get(appSettings).persistant.profileFolder;
@@ -41,7 +47,13 @@
   let PRESETS = [];
 
   user_input.subscribe((ui) => {
+    const rt = get(runtime);
+    let device = rt.find(
+      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+    );
+
     newPreset.type = ui.event.elementtype;
+    selectedModule = device.id.substr(0, 4);
   });
 
   appSettings.subscribe((store) => {
@@ -323,7 +335,7 @@
               preset.showMore = !preset.showMore;
             }}
             class="w-full flex gap-1 flex-col  bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedIndex == i
+                cursor-pointer {selected == preset
               ? 'border border-green-300 bg-primary-600'
               : 'border border-black border-opacity-0 bg-secondary'}
                  "
@@ -372,7 +384,7 @@
     </div>
   </div>
 
-  <button
+  <!--   <button
     on:click={loadPreset}
     disabled={selectedIndex === undefined}
     class="relative bg-commit block {selectedIndex !== undefined
@@ -383,7 +395,7 @@
   >
     <div>Load Preset To Element</div>
     <TooltipSetter key={"preset_load_to_module"} />
-  </button>
+  </button> -->
 </presets>
 
 <style>

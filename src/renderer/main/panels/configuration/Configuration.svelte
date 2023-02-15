@@ -75,6 +75,10 @@
 
   $: selectedControllerIndexStore.set(elements);
 
+  const ui = get(user_input);
+
+  $: console.log(ui.event.elementtype, "ui.event.elementtype");
+
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;
 
@@ -110,6 +114,7 @@
       });
     }
   }
+
   user_input.subscribe((ui) => {
     appMultiSelect.reset();
 

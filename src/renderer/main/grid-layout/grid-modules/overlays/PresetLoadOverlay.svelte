@@ -33,7 +33,15 @@
     selectedIndex = store;
   });
 
-  $: console.log("selectedIndex", selectedIndex);
+  let device;
+  runtime.subscribe((runtime) => {
+    device = runtime.find((controller) => controller.id == id);
+    if (device !== undefined) {
+      controlElementSettings = device.pages[0].control_elements;
+    }
+  });
+
+  $: console.log("selectedPreset", selectedPreset);
 
   /*   isActionButtonClickedStore.subscribe((store) => {
     isActionButtonClicked = store;
@@ -81,39 +89,58 @@
     });
   }
 
-  runtime.subscribe((runtime) => {
-    const device = runtime.find((controller) => controller.id == id);
-    if (device !== undefined) {
-      controlElementSettings = device.pages[0].control_elements;
-    }
-  });
-
-  function loadProfileToThisModule() {
-    selectModuleWhereProfileIsLoaded();
-
-    window.electron.analytics.google("profile-library", {
-      value: "load start",
-    });
+  function loadPreset() {
+    window.electron.analytics.google("preset-library", { value: "load start" });
     window.electron.analytics.influx(
       "application",
-      "profiles",
-      "profile",
+      "presets",
+      "preset",
       "load start"
     );
 
-    // to do.. if undefined configs
+    if (selectedPreset !== undefined) {
+      const preset = selectedPreset;
 
-    runtime.whole_page_overwrite(selectedPreset.configs);
+      const rt = get(runtime);
+      const ui = get(user_input);
+      const currentModule = rt.find(
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+      );
 
-    window.electron.analytics.google("profile-library", {
-      value: "load success",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "load success"
-    );
+      if (ui.event.elementtype == preset.type) {
+        runtime.element_preset_load(preset);
+
+        window.electron.analytics.google("preset-library", {
+          value: "load success",
+        });
+        window.electron.analytics.influx(
+          "application",
+          "presets",
+          "preset",
+          "load success"
+        );
+      } else {
+        window.electron.analytics.google("preset-library", {
+          value: "load mismatch",
+        });
+        window.electron.analytics.influx(
+          "application",
+          "presets",
+          "preset",
+          "load mismatch"
+        );
+        let element =
+          currentModule.pages[ui.event.pagenumber].control_elements[
+            ui.event.elementnumber
+          ].controlElementType;
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "presetload",
+          message: `Preset is not made for ${element}!`,
+        });
+      }
+    }
   }
 
   function cancelProfileOverlay() {
@@ -131,232 +158,37 @@
     );
   }
 
-  function pop() {
-    selectedIndex.options.pop();
-    selectedIndex = selectedIndex;
+  function handleSelectElement(element) {
+    user_input.update_elementnumber(element);
   }
-
-  pop();
 </script>
 
-{#if showOverlay == true}
-  {#if id.startsWith("PBF4")}
-    <div class="overlay text-white w-full h-full grid grid-cols-4 grid-rows-3">
-      {#each selectedIndex.options as element}
-        <div>
-          <button class="bg-violet-600 py-1 px-2 rounded-md">{element} </button>
-        </div>
-      {/each}
+<div
+  class="overlay text-white w-full h-full justify-items-center items-end gap-1 {overlayDesign ==
+  '3x4'
+    ? 'grid-cols-4 grid-rows-3'
+    : overlayDesign == '2x4'
+    ? 'grid-cols-4 grid-rows-2'
+    : overlayDesign == '4x4'
+    ? 'grid-cols-4 grid-rows-4'
+    : ''} grid "
+>
+  {#each controlElementSettings.slice(0, -1) as element}
+    <div>
+      {#if element.controlElementType == selectedPreset.type}
+        <button
+          on:click={() => {
+            handleSelectElement(element.controlElementNumber), loadPreset();
+          }}
+          class=" bg-commit block 
+    w-full text-white mt-3  py-1 px-1 rounded border-commit-saturate-10
+    hover:border-commit-desaturate-10 focus:outline-none"
+          >load
+        </button>
+      {/if}
     </div>
-  {/if}
-
-  {#if id.startsWith("PO16") || id.startsWith("EN16") || id.startsWith("EN16")}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around "
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(4) as element}
-            <div
-              class="text-xs flex flex-col items-center "
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
-                'deg'})"
-            >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-
-                  <button class="bg-violet-600 py-1 px-2 rounded-md"
-                    >{element}
-                  </button>
-                </div>
-                <!--               {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div> -->
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {/if}
-
-  {#if id.startsWith("EF44")}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around "
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(1) as element}
-            <div
-              class="text-xs flex flex-col items-center "
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
-                'deg'})"
-            >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-
-                  <button class="bg-violet-600 py-1 px-2 rounded-md"
-                    >{element}
-                  </button>
-                </div>
-                <!--               {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div> -->
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {/if}
-  <!--   {#if overlayDesign == "4x4"}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(4) as element}
-            <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
-                'deg'})"
-            >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                  {element}
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else if overlayDesign == "3x4"}
-  
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(3) as element}
-            <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
-                'deg'})"
-            >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-
-                  <button class="bg-violet-600 py-1 px-2 rounded-md"
-                    >{element}</button
-                  >
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else if overlayDesign == "2x4"}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(2) as element}
-            <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {((element * 2 + 1) * moduleWidth) / 4 + 'px'};
-            transform: rotate({1 * rotation * 90 + 'deg'})"
-            >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {/if} -->
-{/if}
+  {/each}
+</div>
 
 <style>
   .overlay {
