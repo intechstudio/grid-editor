@@ -656,7 +656,7 @@ function create_runtime() {
     const li = get(user_input)
 
     if (li.event.elementtype == preset.type) {
-      console.log('GOOD TYPE')
+      console.log('GOOD TYPE', li.event.elementtype == preset.type)
 
       let events = preset.configs.events
 

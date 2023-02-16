@@ -22,23 +22,22 @@
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
-  let selected = {
-    name: "",
-    description: "",
-    type: "",
-  };
-
   let newPreset = {
     name: "",
     description: "",
     type: "",
   };
 
-  let selectedModule;
+  let selectedPreset;
 
   selectedPresetStore.subscribe((store) => {
-    selected = store;
+    selectedPreset = store;
+
+    console.log(selectedPreset);
   });
+
+  let selectedModule;
+  let selectedController;
 
   let selectedIndex = undefined;
 
@@ -53,6 +52,7 @@
     );
 
     newPreset.type = ui.event.elementtype;
+    selectedController = ui.event.elementtype;
     selectedModule = device.id.substr(0, 4);
   });
 
@@ -167,60 +167,6 @@
     runtime.fetch_page_configuration_from_grid(callback);
   }
 
-  function loadPreset() {
-    window.electron.analytics.google("preset-library", { value: "load start" });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "load start"
-    );
-
-    if (selected !== undefined) {
-      const preset = selected;
-
-      const rt = get(runtime);
-      const ui = get(user_input);
-      const currentModule = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      if (ui.event.elementtype == preset.type) {
-        runtime.element_preset_load(preset);
-
-        window.electron.analytics.google("preset-library", {
-          value: "load success",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load success"
-        );
-      } else {
-        window.electron.analytics.google("preset-library", {
-          value: "load mismatch",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load mismatch"
-        );
-        let element =
-          currentModule.pages[ui.event.pagenumber].control_elements[
-            ui.event.elementnumber
-          ].controlElementType;
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "presetload",
-          message: `Preset is not made for ${element}!`,
-        });
-      }
-    }
-  }
-
   function checkIfOk(preset) {
     let ok = true;
 
@@ -305,6 +251,7 @@
       <div>Refresh List</div>
     </button>
   </div>
+
   <div id="browse-presets" class="overflow-hidden w-full h-full flex flex-col ">
     <div
       id="zero-level"
@@ -326,16 +273,15 @@
         {#each PRESETS.sort(compare) as preset, i}
           <button
             on:click={() => {
-              selected = preset;
               selectedIndex = i;
-              selectedPresetStore.set(selected);
+              selectedPresetStore.set(preset);
             }}
             use:addOnDoubleClick
             on:double-click={() => {
               preset.showMore = !preset.showMore;
             }}
             class="w-full flex gap-1 flex-col  bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selected == preset
+                cursor-pointer {selectedPreset == preset
               ? 'border border-green-300 bg-primary-600'
               : 'border border-black border-opacity-0 bg-secondary'}
                  "
@@ -356,7 +302,7 @@
             <div class="flex text-xs opacity-80 font-semibold">
               <div
                 class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                      rounded-xl {newPreset.type == preset.type
+                      rounded-xl {preset.type == selectedController
                   ? 'bg-violet-600'
                   : 'bg-gray-600 '}"
               >

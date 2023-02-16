@@ -68,11 +68,6 @@
       dy = +id.split(";")[1].split(":").pop();
     }
   }
-
-  $: console.log(
-    selectedElement.event.elementnumber,
-    "selectedElement.event.elementnumber"
-  );
 </script>
 
 <div

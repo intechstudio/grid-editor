@@ -18,6 +18,8 @@
     showLoadProfileOverlay(id, store.type);
   });
 
+  $: console.log(selectedProfile, "selectedProfile");
+
   isActionButtonClickedStore.subscribe((store) => {
     isActionButtonClicked = store;
     showLoadProfileOverlay(id, store.type);

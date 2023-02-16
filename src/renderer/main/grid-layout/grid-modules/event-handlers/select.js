@@ -18,6 +18,7 @@ export function select(node) {
 
         //reset of profile selecting
         selectedProfileStore.set({})
+        
 
         // this should be checked to not reupdate UI when clicking on a control element.
         // should be probably put into user_input store's functions

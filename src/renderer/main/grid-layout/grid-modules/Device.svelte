@@ -64,12 +64,14 @@
     });
 
     user_input.subscribe((store) => {
-      if (Object.keys($selectedProfileStore).length === 0) {
+      if (
+        Object.keys($selectedProfileStore).length === 0 ||
+        Object.keys($selectedPresetStore).length === 0
+      ) {
         selectedElement = store;
       }
-      if (Object.keys($selectedProfileStore).length === 0) {
-        selectedElement = store;
-      }
+
+      console.log(store, "store");
     });
   });
 
@@ -81,6 +83,8 @@
       selectedElement = store;
     }
   });
+
+  $: console.log(selectedElement, "selectedElement");
 </script>
 
 {#if selected}
@@ -96,7 +100,7 @@
     {/if}
 
     <ProfileLoadOverlay {id} />
-    <PresetLoadOverlay {id} {selectedElement} />
+    <PresetLoadOverlay {id} />
   </svelte:component>
 {/if}
 
