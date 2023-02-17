@@ -156,6 +156,8 @@
     const arrayOfSearchTerms = input.trim().toLowerCase().split(" ");
 
     profileCloud.forEach((profile) => {
+
+
       const currentProfileSearchable =
         profile.name.toLowerCase() +
         " " +

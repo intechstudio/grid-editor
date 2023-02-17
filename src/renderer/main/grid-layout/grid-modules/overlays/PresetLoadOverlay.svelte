@@ -5,16 +5,13 @@
     runtime,
     user_input,
   } from "../../../../runtime/runtime.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
-  import { appSettings } from "/runtime/app-helper.store";
+
   import { get } from "svelte/store";
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
-  import AddAction from "../../../panels/configuration/components/AddAction.svelte";
-  import Bin from "../../../panels/configuration/components/Bin.svelte";
 
   export let id;
   export let moduleWidth;
-  export let rotation;
+  
 
   let showOverlay = false;
   let selectedPreset;
@@ -23,7 +20,7 @@
   let controlElementSettings;
   let selectedIndex;
 
-  $: console.log(selectedPreset, "selectedPreset");
+
 
   selectedControllerIndexStore.subscribe((store) => {
     selectedIndex = store;
@@ -60,7 +57,7 @@
   selectedPresetStore.subscribe((store) => {
     selectedPreset = store;
     showLoadPresetOverlay();
-    console.log(selectedPreset);
+
   });
 
   $: if (id) {

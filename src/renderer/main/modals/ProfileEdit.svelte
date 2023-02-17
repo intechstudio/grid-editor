@@ -171,7 +171,7 @@
         />
       </svg>
     </button>
-
+    {#if $appSettings.leftPanel == "NewProfile"}
     <div class="p-6 flex flex-col w-full">
       <form action="" class="flex flex-row gap-10  text-gray-500">
         <div class="w-full flex flex-col gap-4">
@@ -286,5 +286,123 @@
         </button>
       </div>
     </div>
+    {/if}
+
+    {#if $appSettings.leftPanel == "NewPreset"}
+    <div class="p-6 flex flex-col w-full">
+      <form action="" class="flex flex-row gap-10  text-gray-500">
+        <div class="w-full flex flex-col gap-4">
+          <div class="flex flex-col ">
+            <label class="mb-1 " for="title">Title</label>
+            <input
+              id="title"
+              placeholder="Enter profile name..."
+              bind:value={editProfileData.name}
+              on:input={() => {
+                checkIfProfileTitleUnique(editProfileData.name.trim()),
+                  checkIfTitleFieldEmpty(editProfileData.name);
+              }}
+              minlength="2"
+              maxlength="60"
+              type="text"
+              class="w-full py-2 px-3 bg-secondary text-white
+              placeholder-gray-400 text-md mb-2 "
+            />
+            {#if isTitleDirty == false}
+              <span class="text-red-500">This field is required</span>
+            {/if}
+            {#if isTitleUnique == false}
+              <span class="text-red-500">This title is already in use.</span>
+            {/if}
+          </div>
+
+          <div class="flex flex-col">
+            <label class="mb-1" for="desc">Description</label>
+            <textarea
+              id="desc"
+              placeholder="Write a short description about this profile..."
+              bind:value={editProfileData.description}
+              on:input={checkIfDescFieldEmpty(
+                editProfileData.description.trim()
+              )}
+              minlength="2"
+              type="text"
+              class="w-full py-2 px-3 h-52 bg-secondary text-white
+              placeholder-gray-400 text-md resize-none mb-2"
+            />
+            {#if isDescDirty == false}
+              <span class="text-red-500">This field is required</span>
+            {/if}
+          </div>
+
+          {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            <div>Upload Cover Photo</div>
+            <div>Upload Attachments</div>
+          {/if}
+        </div>
+
+        <!-- <div class="w-full flex flex-col gap-4">
+
+                    <div class="flex flex-col">
+            <label class="mb-1" for="category">Tags</label>
+
+            <select
+              id="category"
+              class="bg-secondary border-none flex-grow text-white p-2 shadow">
+              <option class="text-white bg-secondary py-1 border-none">
+                Element
+              </option>
+            </select>
+          </div> -->
+
+        <!--<div class="flex flex-col">
+            <label class="mb-1" for="compContr">Compatible Controller</label>
+            <select
+              id="compContr"
+              class="bg-secondary border-none flex-grow text-white p-2 shadow ">
+              <option value="" selected disabled hidden>- Select -</option>
+
+              {#each allModulesTypes as module}
+                <option
+                  value={module}
+                  selected={module == editProfileData.type}>
+                  {module}
+                </option>
+                
+              {/each}
+
+            </select>
+          </div> -->
+
+        <!--   <div class="flex">
+            <Toggle />
+            <span class="ml-3 text-md font-medium">Private Profile</span>
+          </div>
+        </div> -->
+      </form>
+
+      <div class="flex justify-between items-center">
+        <button
+          class="flex items-center focus:outline-none justify-center rounded
+          my-2 border-select bg-select hover:border-select-saturate-10
+          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24 "
+          on:click|preventDefault={() => {
+            $appSettings.modal = "profileInfo";
+          }}
+        >
+          ← back
+        </button>
+        <button
+          on:click={() => updateConfig()}
+          class=" flex items-center focus:outline-none justify-center rounded
+          my-22 border-commit bg-commit hover:bg-commit-saturate-20
+          hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
+          w-24 "
+        >
+          Save
+        </button>
+      </div>
+    </div>
+    {/if}
   </div>
 </modal>

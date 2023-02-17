@@ -70,6 +70,7 @@ function createAppSettingsStore() {
       welcomeOnStartup: true,
       lastVersion: '',
       profileFolder: '',
+      presetFolder: '',
       pageActivatorEnabled: false,
       pageActivatorCriteria_0: "",
       pageActivatorCriteria_1: "",
@@ -104,6 +105,7 @@ let persistant = {
   welcomeOnStartup: true,
   lastVersion: '',
   profileFolder: '',
+  presetFolder: '',
   pageActivatorEnabled: false,
   pageActivatorCriteria_0: "",
   pageActivatorCriteria_1: "",
@@ -176,6 +178,10 @@ async function init_appsettings() {
         // validate values, append default behavior
 
         if (key === "profileFolder" && value === undefined) {
+          value = await window.electron.library.defaultDirectory()
+        }
+
+        if (key === "presetFolder" && value === undefined) {
           value = await window.electron.library.defaultDirectory()
         }
 

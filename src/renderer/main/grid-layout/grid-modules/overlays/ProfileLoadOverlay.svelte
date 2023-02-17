@@ -5,9 +5,8 @@
   import { appSettings } from "/runtime/app-helper.store";
 
   export let id;
-  export let elements;
 
-  console.log("prset", elements);
+
 
   let showOverlay = false;
   let selectedProfile = undefined;
@@ -18,7 +17,7 @@
     showLoadProfileOverlay(id, store.type);
   });
 
-  $: console.log(selectedProfile, "selectedProfile");
+
 
   isActionButtonClickedStore.subscribe((store) => {
     isActionButtonClicked = store;
