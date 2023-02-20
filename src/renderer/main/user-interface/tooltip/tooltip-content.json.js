@@ -98,4 +98,11 @@ export const tooltip_content = {
     "newProfile_exit_overlay": "Hide the Overlay.",
     "newProfile_desc_delete": "Delete this Profile from the Profile Cloud permanently.",
     "newProfile_desc_edit": "Edit the description of this Profile.",
+
+
+    "newPreset_save": "Save the configuration of the currently active element to your Local Folder.",
+    "newPreset_info": "Open the Preset description window.",
+    "newProfile_add_to_session": "Save the currently active module configuration locally as a Session Profile.",
+    "newProfile_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
+    "newPeset_desc_edit": "Edit the description of this Preset.",
 }

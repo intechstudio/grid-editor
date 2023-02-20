@@ -156,8 +156,6 @@
     const arrayOfSearchTerms = input.trim().toLowerCase().split(" ");
 
     profileCloud.forEach((profile) => {
-
-
       const currentProfileSearchable =
         profile.name.toLowerCase() +
         " " +
@@ -345,7 +343,7 @@
         let isProfileCloudNameUnique;
 
         profileCloud.forEach((profile) => {
-          if (name == profile.name) {
+          if (name.toLowerCase() == profile.name.toLowerCase) {
             isProfileCloudNameUnique = false;
           }
         });

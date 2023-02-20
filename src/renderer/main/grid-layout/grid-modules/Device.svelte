@@ -70,8 +70,6 @@
       ) {
         selectedElement = store;
       }
-
-      console.log(store, "store");
     });
   });
 
@@ -83,8 +81,6 @@
       selectedElement = store;
     }
   });
-
-  $: console.log(selectedElement, "selectedElement");
 </script>
 
 {#if selected}
