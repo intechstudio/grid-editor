@@ -46,10 +46,10 @@
     presetCloud = PRESETS;
   }
 
-  async function updateConfig() {
+  async function updateConfigAndCloseModal() {
     await checkIfPresetTitleUnique(editPresetData.name);
     checkIfTitleFieldEmpty(editPresetData.name);
-    checkIfDescFieldEmpty(editPresetData.description);
+    /* checkIfDescFieldEmpty(editPresetData.description); */
 
     console.log(
       "isTitleUnique",
@@ -60,7 +60,7 @@
       isTitleDirty
     );
 
-    if (isTitleDirty == true && isDescDirty == true && isTitleUnique == true) {
+    if (isTitleDirty == true && isTitleUnique == true) {
       await window.electron.configs.updateConfig(
         PRESET_PATH,
         editPresetData.name,
@@ -84,6 +84,8 @@
         classname: "presetsave",
         message: `Preset saved!`,
       });
+
+      $appSettings.modal = "";
     }
   }
 
@@ -143,7 +145,7 @@
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class="z-50 w-3/6 2xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col shadow
+    class="z-50  w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col shadow
     bg-primary bg-opacity-100 items-start opacity-100 p-6 overflow-auto"
   >
     <div>Profile Info - Edit</div>
@@ -174,7 +176,7 @@
 
     {#if $appSettings.leftPanel == "NewPreset"}
       <div class="p-6 flex flex-col w-full">
-        <form action="" class="flex flex-row gap-10  text-gray-500">
+        <div class="flex flex-row gap-10  text-gray-500">
           <div class="w-full flex flex-col gap-4">
             <div class="flex flex-col ">
               <label class="mb-1 " for="title">Title</label>
@@ -214,9 +216,9 @@
                 class="w-full py-2 px-3 h-52 bg-secondary text-white
               placeholder-gray-400 text-md resize-none mb-2"
               />
-              {#if isDescDirty == false}
+              <!--          {#if isDescDirty == false}
                 <span class="text-red-500">This field is required</span>
-              {/if}
+              {/if} -->
             </div>
 
             {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
@@ -263,7 +265,7 @@
             <span class="ml-3 text-md font-medium">Private Profile</span>
           </div>
         </div> -->
-        </form>
+        </div>
 
         <div class="flex justify-between items-center">
           <button
@@ -277,7 +279,7 @@
             ← back
           </button>
           <button
-            on:click={() => updateConfig()}
+            on:click={() => updateConfigAndCloseModal()}
             class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1

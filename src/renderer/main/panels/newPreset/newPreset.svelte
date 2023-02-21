@@ -376,17 +376,26 @@
   async function checkIfPresetTitleUnique(input) {
     let notUniqueName = [];
 
+    console.log(PRESETS);
+
     PRESETS.forEach((element) => {
-      if (element.name.toLowerCase() == input.toLowerCase()) {
-        notUniqueName.push(element.name);
+      if (
+        element.name.toLowerCase() == input.toLowerCase() &&
+        element.folder == "user"
+      ) {
+        notUniqueName = [...notUniqueName, element.name];
       }
     });
+
+    console.log(notUniqueName, "notUniqueName");
 
     if (notUniqueName.length > 0) {
       isTitleUnique = false;
     } else {
       isTitleUnique = true;
     }
+
+    console.log(isTitleUnique);
   }
 
   function fadeAnimation(node, options) {
@@ -463,10 +472,7 @@
   </div>
 
   <div class="flex justify-between">
-    <div class="pt-2 text-white flex items-center relative">
-      <div class="">Preset Library</div>
-      <TooltipQuestion key={"newPreset_load_preset"} />
-    </div>
+    <div class="text-white font-medium">Preset Cloud</div>
     <button
       on:click={() => {
         filterShowHide();

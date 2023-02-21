@@ -96,7 +96,7 @@
     {/if}
 
     <ProfileLoadOverlay {id} />
-    <PresetLoadOverlay {id} />
+    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
   </svelte:component>
 {/if}
 

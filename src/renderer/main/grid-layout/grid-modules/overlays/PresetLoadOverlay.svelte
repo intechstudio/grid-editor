@@ -11,7 +11,8 @@
 
   export let id;
   export let moduleWidth;
-  
+
+  export let rotation;
 
   let showOverlay = false;
   let selectedPreset;
@@ -19,8 +20,6 @@
   let overlayDesign;
   let controlElementSettings;
   let selectedIndex;
-
-
 
   selectedControllerIndexStore.subscribe((store) => {
     selectedIndex = store;
@@ -57,7 +56,6 @@
   selectedPresetStore.subscribe((store) => {
     selectedPreset = store;
     showLoadPresetOverlay();
-
   });
 
   $: if (id) {
@@ -146,26 +144,30 @@
 
 {#if showOverlay}
   <div
-    class=" overlay text-white w-full h-full justify-items-center items-end gap-1 {overlayDesign ==
+    class=" overlay  text-white w-full h-full justify-items-center items-end gap-2 grid-cols-4 grid-rows-4  {overlayDesign ==
     '3x4'
-      ? 'grid-cols-4 grid-rows-3'
+      ? 'pbf4'
       : overlayDesign == '2x4'
-      ? 'grid-cols-4 grid-rows-2'
-      : overlayDesign == '4x4'
-      ? 'grid-cols-4 grid-rows-4'
+      ? 'ef44'
       : ''} grid "
   >
     {#each controlElementSettings.slice(0, -1) as element}
-      <div>
+      <div class="h-full w-full">
         {#if element.controlElementType == selectedPreset.type}
           <button
             on:click={() => {
               loadPreset(element);
             }}
-            class=" bg-commit block 
-    w-full text-white mt-3  py-1 px-1 rounded border-commit-saturate-10
-    hover:border-commit-desaturate-10 focus:outline-none"
-            >load
+            class="group bg-gray-300 hover:bg-commit-saturate-20
+        opacity-80 block h-full
+    w-full text-white bg-opacity-25    rounded 
+     focus:outline-none"
+            ><div
+              style="transform: rotate({1 * rotation * 90 + 'deg'}"
+              class="hidden group-hover:block"
+            >
+              load
+            </div>
           </button>
         {/if}
       </div>
@@ -178,10 +180,18 @@
     position: absolute;
     width: 100%;
     height: 100%;
-    background-color: rgba(30, 30, 30, 0.5);
+    background-color: rgba(30, 30, 30, 0.3);
     border-radius: 0.5rem;
-    justify-content: space-around;
     backdrop-filter: blur(0.5px);
     z-index: 50;
+    padding: 8px;
+  }
+
+  .pbf4 {
+    grid-template-rows: 1fr 2fr 1fr;
+  }
+
+  .ef44 {
+    grid-template-rows: 1fr 3fr;
   }
 </style>

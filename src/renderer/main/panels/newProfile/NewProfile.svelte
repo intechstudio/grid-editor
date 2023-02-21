@@ -9,6 +9,7 @@
   import { fade, fly } from "svelte/transition";
   import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import TooltipQuestion from "/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { v4 as uuidv4 } from "uuid";
 
   import {
@@ -343,7 +344,10 @@
         let isProfileCloudNameUnique;
 
         profileCloud.forEach((profile) => {
-          if (name.toLowerCase() == profile.name.toLowerCase) {
+          if (
+            name.toLowerCase() == profile.name.toLowerCase() &&
+            profile.folder == "user"
+          ) {
             isProfileCloudNameUnique = false;
           }
         });

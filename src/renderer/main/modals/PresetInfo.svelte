@@ -105,7 +105,7 @@
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class=" z-50 w-3/6 3xl:w-2/6 h-fit max-h-[3/4] text-white relative flex flex-col
+    class=" z-50  w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
     shadow bg-primary bg-opacity-100 items-start opacity-100 p-6 "
   >
     <div>Preset Info</div>
