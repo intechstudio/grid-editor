@@ -88,6 +88,58 @@
     style="--module-size: {moduleWidth + 'px'}"
   >
     <div
+      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
+    >
+      {#each [0, 1, 2, 3] as elementNumber}
+        <div
+          class:active-element={dx == selectedElement.brc.dx &&
+            dy == selectedElement.brc.dy &&
+            selectedElement.event.elementnumber == elementNumber}
+          class="knob-and-led row-span-1"
+        >
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Potentiometer
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={$appSettings.size}
+          />
+        </div>
+      {/each}
+
+      {#each [4, 5, 6, 7] as elementNumber}
+        <div
+          class:active-element={dx == selectedElement.brc.dx &&
+            dy == selectedElement.brc.dy &&
+            selectedElement.event.elementnumber == elementNumber}
+          class="knob-and-led row-span-2"
+        >
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Fader
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={$appSettings.size}
+            rotation={rotation * -90}
+            faderHeight={37}
+          />
+        </div>
+      {/each}
+
+      {#each [8, 9, 10, 11] as elementNumber}
+        <div
+          class:active-element={dx == selectedElement.brc.dx &&
+            dy == selectedElement.brc.dy &&
+            selectedElement.event.elementnumber == elementNumber}
+          class="knob-and-led row-span-1"
+        >
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Button {id} {elementNumber} size={$appSettings.size} />
+        </div>
+      {/each}
+    </div>
+  </div>
+  <!--     <div
       class="control-row"
       style="--control-row-mt: {$appSettings.size * 3.235 +
         'px'}; --control-row-mx: {$appSettings.size * 6.835 + 'px'}"
@@ -152,6 +204,5 @@
           <Button {id} {elementNumber} size={$appSettings.size} />
         </div>
       {/each}
-    </div>
-  </div>
+    </div> -->
 </div>

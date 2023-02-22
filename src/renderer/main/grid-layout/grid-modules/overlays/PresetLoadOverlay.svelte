@@ -144,7 +144,7 @@
 
 {#if showOverlay}
   <div
-    class=" overlay  text-white w-full h-full justify-items-center items-end gap-2 grid-cols-4 grid-rows-4  {overlayDesign ==
+    class=" overlay  text-white w-full h-full justify-items-center items-end gap-1  grid-cols-4 grid-rows-4  {overlayDesign ==
     '3x4'
       ? 'pbf4'
       : overlayDesign == '2x4'
@@ -184,7 +184,6 @@
     border-radius: 0.5rem;
     backdrop-filter: blur(0.5px);
     z-index: 50;
-    padding: 8px;
   }
 
   .pbf4 {
