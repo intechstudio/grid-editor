@@ -54,9 +54,9 @@ function createAppSettingsStore() {
       minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR),
       patch: parseInt(envs.FIRMWARE_D51_REQUIRED_PATCH)
     },
-    firmware_esp32_required:{
-      major: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MAJOR), 
-      minor: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MINOR), 
+    firmware_esp32_required: {
+      major: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MAJOR),
+      minor: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MINOR),
       patch: parseInt(envs.FIRMWARE_ESP32_REQUIRED_PATCH)
     },
     sizeChange: 0,
@@ -86,6 +86,9 @@ function createAppSettingsStore() {
       helperColor: 0,
       helperName: "Monster",
       desktopAutomationPlugin: false,
+      authUser: {},
+      authIdToken: "",
+      authRefreshToken: ""
     }
   })
 
@@ -121,6 +124,9 @@ let persistant = {
   helperColor: 0,
   helperName: "Monster",
   desktopAutomationPlugin: false,
+  authUser: {},
+  authIdToken: "",
+  authRefreshToken: ""
 }
 
 init_appsettings();

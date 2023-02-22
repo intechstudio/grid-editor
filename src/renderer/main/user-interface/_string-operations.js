@@ -137,6 +137,140 @@ const stringManipulation = {
     
   },
 
+  blockCommentToLineComment: function(script){
+
+    const short_lines = script.split("\n");
+    let short_code_comment_fixed = "";
+
+    let inBlockComment = false;
+
+    // Convert Block comments to line comments
+    short_lines.forEach((element, index) => {
+
+      let result = element;
+
+      console.log("LINE: ",  result + "\n", inBlockComment)
+
+      if (inBlockComment === true){
+        result = "--"+result
+      }
+      else if (element.indexOf("--[[") !== -1){
+        
+        if (element.indexOf("--]]") === -1){
+          inBlockComment = true;
+          result = element.replace("--[[", "--")
+
+        }
+        else if(element.indexOf("--[[") < element.indexOf("--]]")){ 
+          result = element.replace("--[[", "--").replace("--]]", "\r\n")
+        }
+      }
+      if (element.indexOf("--]]") !== -1){
+        result = "--"+element.replace("--]]", "\r\n")
+        inBlockComment = false;
+      }
+
+        
+        console.log("RESULT: ", "$"+result.trim()+"$", inBlockComment)
+
+        if (result.trim() !== "--"){
+          
+        short_code_comment_fixed += result + "\n"
+        }
+
+      
+      
+
+    })
+
+    return short_code_comment_fixed;
+
+  },
+  lineCommentToNoComment: function(script){
+
+    const short_lines2 = script.split("\n");
+
+    // Covert line comments to global comment variables
+    short_lines2.forEach((element, index) => {
+      let trimmed = element.trim();
+
+      let lineCommentStartIndex = trimmed.indexOf("--"); 
+
+      if (lineCommentStartIndex !== -1){
+
+  
+        let beginning = trimmed.substring(0, lineCommentStartIndex);
+        let comment = trimmed.substring(lineCommentStartIndex+2, trimmed.length).trim();
+
+        let gotReturnChar = false;
+        if (comment.indexOf("\r") == comment.length-1){
+          gotReturnChar = true;
+          comment = comment.substring(0, comment.length-1);
+        }
+
+        if (lineCommentStartIndex>2){
+
+          comment = "$"+comment
+
+        }
+        let commentEncoded = " COMMENT=\"" + window.btoa(comment) + "\""
+
+        if (gotReturnChar){
+          commentEncoded += "\r"
+        }
+
+        short_lines2[index] = beginning + commentEncoded;
+      }
+
+    });
+
+    
+
+    return short_lines2.join("\n")
+
+  },
+
+  noCommentToLineComment: function(script){
+
+
+    let lines = script.split("\n");
+
+    let lines2 = []
+
+    lines.forEach((element,index) => {
+
+      if (element.indexOf("COMMENT = ") !== -1){
+
+        let parts = element.split("COMMENT = ");
+        console.log("parts", parts)
+        parts[1] = window.atob(parts[1].split("\"")[1])
+        console.log("parts", parts)
+
+        if (parts[1].substring(0,1) === "$"){
+          parts[1] = parts[1].substring(1)
+          let result = parts.join("--")
+          console.log(result)
+          console.log("$$$$")
+          lines2[lines2.length-1] += result
+        }
+        else{
+          let result = parts.join("--")
+          console.log(result)
+          lines2.push(result);
+        }
+      }
+      else{
+        lines2.push(element);
+      }
+
+
+
+    });
+
+    return lines2.join("\n")
+
+  },
+
   shortify(script){
 
     // We should heaviliy consider handling spaces and returns better!

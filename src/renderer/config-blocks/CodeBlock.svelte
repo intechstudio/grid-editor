@@ -103,10 +103,12 @@
     let human = stringManipulation.humanize(committedCode)
     let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
   
-    if( beautified.charAt( 0 ) === '\n' )
-        beautified = beautified.slice( 1 );
+    if( beautified.charAt( 0 ) === '\n' ){
+      beautified = beautified.slice( 1 );
+    }
 
-    codePreview.innerHTML  = beautified
+  
+    codePreview.innerHTML  = stringManipulation.noCommentToLineComment(beautified)
     monaco_editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
 
   })

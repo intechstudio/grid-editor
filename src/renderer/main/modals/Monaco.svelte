@@ -78,9 +78,11 @@
     }
 
     const short_code = stringManipulation.shortify(editor_code);
+    const line_commented_code = stringManipulation.blockCommentToLineComment(short_code);
+    const safe_code = stringManipulation.lineCommentToNoComment(line_commented_code)
 
     try {
-      const minified_code = luamin.Minify(short_code, luaminOptions);
+      const minified_code = luamin.Minify(safe_code, luaminOptions);
       $appSettings.monaco_code_committed = minified_code;
       commitState = 0;
       error_messsage = "";
@@ -103,8 +105,11 @@
 
     if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
 
+    const code_preview = stringManipulation.noCommentToLineComment(beautified)
+
+
     editor = monaco_editor.create(monaco_block, {
-      value: beautified,
+      value: code_preview,
       language: "intech_lua",
       theme: "my-theme",
       fontSize: 12,
