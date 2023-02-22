@@ -71,6 +71,10 @@
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
+    if (typeof device === 'undefined'){
+      return;
+    }
+
     newPreset.type = ui.event.elementtype;
     selectedController = ui.event.elementtype;
     selectedModule = device.id.substr(0, 4);
