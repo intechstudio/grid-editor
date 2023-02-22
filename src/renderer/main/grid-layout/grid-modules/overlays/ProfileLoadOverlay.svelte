@@ -5,6 +5,7 @@
   import { appSettings } from "/runtime/app-helper.store";
 
   export let id;
+
   let showOverlay = false;
   let selectedProfile = undefined;
   let isActionButtonClicked = false;
@@ -85,7 +86,7 @@
 
 {#if showOverlay}
   <div
-    class="text-white bg-black bg-opacity-25 z-[1] w-full  flex flex-col
+    class="text-white bg-black bg-opacity-30 z-[1] w-full  flex flex-col
     items-center justify-center rounded h-full absolute"
     style="transform: rotate({$appSettings.persistant.moduleRotation + 'deg'})"
   >

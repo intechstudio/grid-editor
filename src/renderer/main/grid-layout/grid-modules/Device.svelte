@@ -9,11 +9,13 @@
 
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
+  import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
   import { clickOutside } from "/main/_actions/click-outside.action";
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
   import { runtime, user_input } from "../../../runtime/runtime.store.js";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
+  import { selectedPresetStore } from "../../../runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
 
   const components = [
@@ -28,7 +30,7 @@
   export let id;
   export let rotation;
 
-  let selected;
+  export let selected;
 
   let selectedElement;
 
@@ -52,15 +54,30 @@
       }
     });
 
+    selectedPresetStore.subscribe((store) => {
+      if (
+        Object.keys($selectedPresetStore).length !== 0 &&
+        isActionButtonClicked == false
+      ) {
+        selectedElement = { id: "", brc: {}, event: {} };
+      }
+    });
+
     user_input.subscribe((store) => {
-      if (Object.keys($selectedProfileStore).length === 0) {
+      if (
+        Object.keys($selectedProfileStore).length === 0 ||
+        Object.keys($selectedPresetStore).length === 0
+      ) {
         selectedElement = store;
       }
     });
   });
 
   $: user_input.subscribe((store) => {
-    if (Object.keys($selectedProfileStore).length === 0) {
+    if (
+      Object.keys($selectedProfileStore).length === 0 ||
+      Object.keys($selectedPresetStore).length === 0
+    ) {
       selectedElement = store;
     }
   });
@@ -79,6 +96,7 @@
     {/if}
 
     <ProfileLoadOverlay {id} />
+    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
   </svelte:component>
 {/if}
 

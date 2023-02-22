@@ -9,6 +9,7 @@
   import { fade, fly } from "svelte/transition";
   import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import TooltipQuestion from "/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { v4 as uuidv4 } from "uuid";
 
   import {
@@ -343,7 +344,10 @@
         let isProfileCloudNameUnique;
 
         profileCloud.forEach((profile) => {
-          if (name == profile.name) {
+          if (
+            name.toLowerCase() == profile.name.toLowerCase() &&
+            profile.folder == "user"
+          ) {
             isProfileCloudNameUnique = false;
           }
         });
@@ -748,7 +752,7 @@
             >
               <div class="flex gap-2 items-center">
                 <div
-                  class="text-zinc-100 text-xs lg:text-sm h-fit px-2 bg-violet-600
+                  class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
                       rounded-xl {selectedModule == sessionProfileElement.type
                     ? 'bg-violet-600'
                     : 'bg-gray-600 '}"
@@ -1167,7 +1171,7 @@
                 >
                   <div class="flex truncate items-center   gap-1">
                     <div
-                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  bg-violet-600 lg:text-sm xl:text-md  
+                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
                       rounded-xl {selectedModule == profileCloudElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"

@@ -82,6 +82,7 @@ export const tooltip_content = {
     "sidebar_configuration_icon": "Configure your Grid modules.",
     "sidebar_preferences_icon": "Change your Grid Editor settings.",
     "sidebar_new_profiles_icon": "Profile Manager",
+    "sidebar_new_presets_icon": "Preset Manager",
     "sidebar_profiles_icon": "Manage locally stored module configurations.",
     "sidebar_presets_icon": "Manage locally stored element configurations.",
     "sidebar_debugger_icon": "Access the debugger window for troubleshooting purposes.",
@@ -98,4 +99,13 @@ export const tooltip_content = {
     "newProfile_exit_overlay": "Hide the Overlay.",
     "newProfile_desc_delete": "Delete this Profile from the Profile Cloud permanently.",
     "newProfile_desc_edit": "Edit the description of this Profile.",
+    "newProfile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",
+
+
+    "newPreset_save": "Save the configuration of the currently active element to your Local Folder.",
+    "newPreset_info": "Open the Preset description window.",
+    "newProfile_add_to_session": "Save the currently active module configuration locally as a Session Profile.",
+    "newProfile_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
+    "newPeset_desc_edit": "Edit the description of this Preset.",
+    "newPreset_load_preset": "Previously saved presets stored in your Local Folder are shown here.",
 }

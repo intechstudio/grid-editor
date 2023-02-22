@@ -47,6 +47,8 @@
   import grid from "../../../protocol/grid-protocol";
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
+
   let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
@@ -64,6 +66,18 @@
   onMount(() => {
     console.log("configuration mount.y");
   });
+
+  let controllerIndex;
+
+  selectedControllerIndexStore.subscribe((store) => {
+    controllerIndex = store;
+  });
+
+  $: selectedControllerIndexStore.set(elements);
+
+  const ui = get(user_input);
+
+  $: console.log(ui.event.elementtype, "ui.event.elementtype");
 
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;
@@ -100,6 +114,7 @@
       });
     }
   }
+
   user_input.subscribe((ui) => {
     appMultiSelect.reset();
 
