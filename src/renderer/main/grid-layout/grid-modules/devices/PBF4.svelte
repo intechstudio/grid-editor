@@ -97,7 +97,11 @@
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-1"
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led
+            color={ledcolor_array[elementNumber]}
+            size={$appSettings.size}
+            position={elementposition_array[elementNumber]}
+          />
           <Potentiometer
             {elementNumber}
             {id}
@@ -114,7 +118,12 @@
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-2"
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led
+            color={ledcolor_array[elementNumber]}
+            size={$appSettings.size}
+            position={elementposition_array[elementNumber]}
+          />
+
           <Fader
             {elementNumber}
             {id}
@@ -134,6 +143,7 @@
           class="knob-and-led row-span-1"
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+
           <Button {id} {elementNumber} size={$appSettings.size} />
         </div>
       {/each}
