@@ -89,7 +89,28 @@
       selectedElement.event.elementnumber == 255}
     style="--module-size: {moduleWidth + 'px'}"
   >
-    {#each [0, 1, 2, 3] as row}
+    <div
+      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
+    >
+      {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
+        <div
+          class:active-element={dx == selectedElement.brc.dx &&
+            dy == selectedElement.brc.dy &&
+            selectedElement.event.elementnumber == elementNumber}
+          class="knob-and-led"
+        >
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Button
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={$appSettings.size}
+          />
+        </div>
+      {/each}
+    </div>
+
+    <!--  {#each [0, 1, 2, 3] as row}
       <div
         class="control-row"
         style="--control-row-mt: {$appSettings.size * 3.235 +
@@ -116,6 +137,6 @@
           </div>
         {/each}
       </div>
-    {/each}
+    {/each} -->
   </div>
 </div>
