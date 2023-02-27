@@ -317,12 +317,16 @@
       }
     }
 
-    if (field == "module") {
+    if (field == "control_element") {
       if (asc == true) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareModuleAscending);
+        filteredPresetCloud = filteredPresetCloud.sort(
+          compareControlElementAscending
+        );
       }
       if (asc == false) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareModuleDescending);
+        filteredPresetCloud = filteredPresetCloud.sort(
+          compareControlElementDescending
+        );
       }
     }
   }
@@ -347,13 +351,13 @@
     return b.fsModifiedAt - a.fsModifiedAt;
   }
 
-  function compareModuleAscending(a, b) {
+  function compareControlElementAscending(a, b) {
     return a.type.localeCompare(b.type, undefined, {
       numeric: true,
     });
   }
 
-  function compareModuleDescending(a, b) {
+  function compareControlElementDescending(a, b) {
     return b.type.localeCompare(a.type, undefined, {
       numeric: true,
     });
@@ -471,39 +475,27 @@
     </button>
   </div>
 
-  <div class="flex justify-between">
-    <div class="text-white font-medium">Preset Cloud</div>
-    <button
-      on:click={() => {
-        filterShowHide();
-      }}
-      class="text-white text-left font-xs "
-    >
-      {#if isSearchSortingShows}
-        Hide Filters
-      {:else}
-        Show Filters
-      {/if}
-    </button>
-  </div>
-
-  <div id="browse-presets" class="overflow-hidden w-full h-full flex flex-col ">
-    <div
-      id="zero-level"
-      class="w-full h-full flex-col overflow-y-auto text-white mt-2"
-    >
-      <div class="w-full">
-        {#if PRESETS.length === 0}
-          <div in:fade={{ delay: 500 }} class="text-yellow-500">
-            <b>Presets not found!</b>
-          </div>
-          <div in:fade={{ delay: 1000 }} class="text-yellow-500">
-            Setup preset folder and download the default preset library in the
-            Preferences menu...
-          </div>
+  <div class="overflow-hidden flex flex-col">
+    <div class="flex justify-between items-center p-4 w-full">
+      <div class="text-white font-medium">Preset Cloud</div>
+      <button
+        on:click={() => {
+          filterShowHide();
+        }}
+        class="text-white text-left font-xs "
+      >
+        {#if isSearchSortingShows}
+          Hide Filters
+        {:else}
+          Show Filters
         {/if}
-      </div>
+      </button>
+    </div>
 
+    <div
+      id="browse-presets"
+      class="overflow-hidden w-full h-full flex flex-col "
+    >
       {#if isSearchSortingShows == true}
         <div>
           <div class="flex flex-col gap-1 p-3">
@@ -620,9 +612,9 @@
 
               <option
                 class="text-white bg-secondary py-1 border-none"
-                value="module"
+                value="control_element"
               >
-                module
+                control element
               </option>
             </select>
 
@@ -669,63 +661,77 @@
           </div>
         </div>
       {/if}
+
+      <!--       <div class="w-full">
+        {#if PRESETS.length === 0}
+          <div in:fade={{ delay: 500 }} class="text-yellow-500">
+            <b>Presets not found!</b>
+          </div>
+          <div in:fade={{ delay: 1000 }} class="text-yellow-500">
+            Setup preset folder and download the default preset library in the
+            Preferences menu...
+          </div>
+        {/if}
+      </div> -->
       <div
         in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
         out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-        class="w-full flex gap-4 flex-col"
+        class="p-3 gap-6 flex flex-col h-full overflow-auto"
       >
-        {#each filteredPresetCloud as preset (preset.id)}
-          <button
-            in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
-            out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-            on:click={() => {
-              selectedPresetStore.set(preset);
-            }}
-            class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
+        <div class="flex flex-col overflow-auto">
+          <div class="overflow-auto flex flex-col gap-4 mb-2">
+            {#each filteredPresetCloud as preset (preset.id)}
+              <button
+                in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
+                out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+                on:click={() => {
+                  selectedPresetStore.set(preset);
+                }}
+                class="w-full  flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
                 cursor-pointer {selectedPreset == preset
-              ? 'border border-green-300 bg-primary-600'
-              : 'border border-black border-opacity-0 bg-secondary'}"
-          >
-            <div
-              class="flex flex-row gap-1 items-center w-full  justify-between"
-            >
-              <div class="flex truncate items-center   gap-1">
+                  ? 'border border-green-300 bg-primary-600'
+                  : 'border border-black border-opacity-0 bg-secondary'}"
+              >
                 <div
-                  class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
+                  class="flex flex-row gap-1 items-center w-full  justify-between"
+                >
+                  <div class="flex truncate items-center   gap-1">
+                    <div
+                      class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
                       rounded-xl {preset.type == selectedController
-                    ? 'bg-violet-600'
-                    : 'bg-gray-600 '}"
-                >
-                  {preset.type}
-                </div>
-
-                <div
-                  class="text-gray-100 text-left text-sm lg:text-md   truncate "
-                >
-                  {preset.name}
-                </div>
-              </div>
-
-              <div class="flex flex-row gap-1 items-center justify-end">
-                <div class="flex flex-row gap-1">
-                  {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                    <button
-                      class="p-1 hover:bg-primary-500 rounded"
-                      on:click|preventDefault={() => {
-                        selectedPresetStore.set(preset);
-                      }}
+                        ? 'bg-violet-600'
+                        : 'bg-gray-600 '}"
                     >
-                      <svg
-                        class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                        width="15"
-                        height="16"
-                        viewBox="0 0 20 21"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clip-path="url(#clip0_262_1471)">
-                          <path
-                            d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+                      {preset.type}
+                    </div>
+
+                    <div
+                      class="text-gray-100 text-left text-sm lg:text-md   truncate "
+                    >
+                      {preset.name}
+                    </div>
+                  </div>
+
+                  <div class="flex flex-row gap-1 items-center justify-end">
+                    <div class="flex flex-row gap-1">
+                      {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                        <button
+                          class="p-1 hover:bg-primary-500 rounded"
+                          on:click|preventDefault={() => {
+                            selectedPresetStore.set(preset);
+                          }}
+                        >
+                          <svg
+                            class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
+                            width="15"
+                            height="16"
+                            viewBox="0 0 20 21"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <g clip-path="url(#clip0_262_1471)">
+                              <path
+                                d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -752,39 +758,39 @@
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                            fill="#F1F1F1"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_262_1471">
-                            <rect
-                              width="20"
-                              height="20"
-                              fill="white"
-                              transform="translate(0 0.5)"
-                            />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                    </button>
-                  {/if}
+                                fill="#F1F1F1"
+                              />
+                            </g>
+                            <defs>
+                              <clipPath id="clip0_262_1471">
+                                <rect
+                                  width="20"
+                                  height="20"
+                                  fill="white"
+                                  transform="translate(0 0.5)"
+                                />
+                              </clipPath>
+                            </defs>
+                          </svg>
+                        </button>
+                      {/if}
 
-                  <button
-                    class="p-1 hover:bg-primary-500 rounded relative"
-                    on:click|preventDefault={() => {
-                      selectedPresetStore.set(preset);
-                      openPresetInfo();
-                    }}
-                  >
-                    <svg
-                      class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                      viewBox="0 0 21 20"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clip-path="url(#clip0_293_1221)">
-                        <path
-                          d="M10.2723 0.489136C5.02014 0.489136 0.761475
+                      <button
+                        class="p-1 hover:bg-primary-500 rounded relative"
+                        on:click|preventDefault={() => {
+                          selectedPresetStore.set(preset);
+                          openPresetInfo();
+                        }}
+                      >
+                        <svg
+                          class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                          viewBox="0 0 21 20"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <g clip-path="url(#clip0_293_1221)">
+                            <path
+                              d="M10.2723 0.489136C5.02014 0.489136 0.761475
                               4.7478 0.761475 10C0.761475 15.2522 5.02014
                               19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
                               15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
@@ -793,9 +799,9 @@
                               2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
                               5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
                               10.2723 17.8974Z"
-                        />
-                        <path
-                          d="M9.25342 6.26359C9.25342 6.53385 9.36078
+                            />
+                            <path
+                              d="M9.25342 6.26359C9.25342 6.53385 9.36078
                               6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
                               7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
                               7.17525 10.993 6.98415C11.1841 6.79304 11.2915
@@ -809,100 +815,35 @@
                               14.7554 9.76293 14.7554H10.782C10.8754 14.7554
                               10.9518 14.679 10.9518 14.5856V8.81114C10.9518
                               8.71773 10.8754 8.64131 10.782 8.64131Z"
-                        />
-                      </g>
-                      <defs>
-                        <clipPath id="clip0_293_1221">
-                          <rect
-                            width="20"
-                            height="20"
-                            fill="white"
-                            transform="translate(0.272461)"
-                          />
-                        </clipPath>
-                      </defs>
-                    </svg>
+                            />
+                          </g>
+                          <defs>
+                            <clipPath id="clip0_293_1221">
+                              <rect
+                                width="20"
+                                height="20"
+                                fill="white"
+                                transform="translate(0.272461)"
+                              />
+                            </clipPath>
+                          </defs>
+                        </svg>
 
-                    <TooltipSetter key={"newPreset_info"} />
-                  </button>
+                        <TooltipSetter key={"newPreset_info"} />
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div class="text-gray-100 text-xs self-end lg:text-sm ">
-              @{preset.folder}
-            </div>
-          </button>
-          <!-- <button
-            on:click={() => {
-              selectedIndex = i;
-              selectedPresetStore.set(preset);
-            }}
-            use:addOnDoubleClick
-            on:double-click={() => {
-              preset.showMore = !preset.showMore;
-            }}
-            class="w-full flex gap-1 flex-col  bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedPreset == preset
-              ? 'border border-green-300 bg-primary-600'
-              : 'border border-black border-opacity-0 bg-secondary'}
-                 "
-          >
-          <div
-          class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                rounded-xl {preset.type == selectedController
-            ? 'bg-violet-600'
-            : 'bg-gray-600 '}"
-        >
-          {preset.type === "potentiometer" ? "potmeter" : preset.type}
-        </div> <div class="">{preset.name}</div>
-
-            {#if preset.showMore === true}
-              <textarea
-                in:slide
-                out:slide
-                bind:value={preset.description}
-                type="text"
-                placeholder="No description available"
-                class="w-full bg-primary p-1 rounded-none h-36 resize-none "
-              />
-            {/if}
-
-            <div class="flex text-xs opacity-80 font-semibold">
-
-
-              <div class="text-gray-100 text-xs  lg:text-sm">
-                @{preset.folder}
-              </div>
-            </div>
-
-            <button
-              in:fade
-              class="opacity-10 w-6 h-6 bg-primary absolute hover:opacity-70
-              text-center right-0 bottom-0"
-              on:click={() => {
-                preset.showMore = !preset.showMore;
-              }}
-            >
-              {preset.showMore ? "▲" : "▼"}
-            </button>
-          </button> -->
-        {/each}
+                <div class="text-gray-100 text-xs self-end lg:text-sm ">
+                  @{preset.folder}
+                </div>
+              </button>
+            {/each}
+          </div>
+        </div>
       </div>
     </div>
   </div>
-
-  <!--   <button
-    on:click={loadPreset}
-    disabled={selectedIndex === undefined}
-    class="relative bg-commit block {selectedIndex !== undefined
-      ? 'hover:bg-commit-saturate-20'
-      : 'opacity-50 cursor-not-allowed'}
-    w-full text-white mt-3 mb-1 py-2 px-2 rounded border-commit-saturate-10
-    hover:border-commit-desaturate-10 focus:outline-none"
-  >
-    <div>Load Preset To Element</div>
-    <TooltipSetter key={"preset_load_to_module"} />
-  </button> -->
 </presets>
 
 <!-- <style>

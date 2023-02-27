@@ -5,11 +5,9 @@
   let rgb = [255, 255, 0];
   let alpha = 1;
 
-  let scrollAmount;
-
   $: if (color !== undefined) {
     let maximum = Math.max(color[0], color[1], color[2]);
-    alpha = (color[0] + color[1] + color[2]) / (1 * 256);
+    alpha = (color[0] + color[1] + color[2]) / (2 * 256);
 
     if (alpha > 1) {
       alpha = 1;
@@ -21,10 +19,6 @@
   }
 
   let ledSize = 6;
-
-  $: if (position) {
-    scrollAmount = 1 / 127;
-  }
 
   $: console.log(position, "position");
 </script>
@@ -43,7 +37,15 @@
       r="44"
       fill="rgba({rgb[0]},{rgb[1]},{rgb[2]}, {alpha})"
     />
+    <circle
+      cx="74"
+      cy="74"
+      r="44"
+      stroke="rgba({rgb[0]},{rgb[1]},{rgb[2]},0.4)"
+      stroke-width="10"
+    />
   </g>
+
   <defs>
     <filter
       id="filter0_di_6_4"

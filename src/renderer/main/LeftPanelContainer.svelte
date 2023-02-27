@@ -10,8 +10,8 @@
 
   import { watchResize } from "svelte-watch-resize";
 
-  import NewProfile from "./panels/newProfile/NewProfile.svelte";
-  import NewPreset from "./panels/newPreset/NewPreset.svelte";
+  import NewProfile from "./panels/newProfile/newProfile.svelte";
+  import NewPreset from "./panels/newPreset/newPreset.svelte";
   import UserAccount from "./panels/user-account/UserAccount.svelte";
 
   export let classes;
