@@ -10,8 +10,8 @@
 
   import { watchResize } from "svelte-watch-resize";
 
-  import NewProfile from "./panels/newProfile/newProfile.svelte";
-  import NewPreset from "./panels/newPreset/newPreset.svelte";
+  import NewProfile from "./panels/newProfile/NewProfile.svelte";
+  import NewPreset from "./panels/newPreset/NewPreset.svelte";
   import UserAccount from "./panels/user-account/UserAccount.svelte";
 
   export let classes;
@@ -19,6 +19,8 @@
   function resize() {
     $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
   }
+
+  $: console.log($appSettings.leftPanel);
 </script>
 
 {#if $appSettings.leftPanelVisible == true}
@@ -41,10 +43,12 @@
       {/if}
 
       {#if $appSettings.leftPanel == "NewProfile"}
+        <span class="text-white">NewProfile</span>
         <NewProfile />
       {/if}
 
       {#if $appSettings.leftPanel == "NewPreset"}
+        <span class="text-white">NewPreset</span>
         <NewPreset />
       {/if}
 
