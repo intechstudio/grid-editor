@@ -159,8 +159,6 @@
     newPreset.name = "";
     newPreset.description = "";
 
-    console.log(newPreset.type);
-
     await loadFromDirectory();
     animateFly = false;
   }
@@ -380,8 +378,6 @@
   async function checkIfPresetTitleUnique(input) {
     let notUniqueName = [];
 
-    console.log(PRESETS);
-
     PRESETS.forEach((element) => {
       if (
         element.name.toLowerCase() == input.toLowerCase() &&
@@ -391,15 +387,11 @@
       }
     });
 
-    console.log(notUniqueName, "notUniqueName");
-
     if (notUniqueName.length > 0) {
       isTitleUnique = false;
     } else {
       isTitleUnique = true;
     }
-
-    console.log(isTitleUnique);
   }
 
   function fadeAnimation(node, options) {

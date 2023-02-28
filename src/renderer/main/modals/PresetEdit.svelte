@@ -51,15 +51,6 @@
     checkIfTitleFieldEmpty(editPresetData.name);
     /* checkIfDescFieldEmpty(editPresetData.description); */
 
-    console.log(
-      "isTitleUnique",
-      isTitleUnique,
-      "isDescDirty",
-      isDescDirty,
-      "isTitleDirty",
-      isTitleDirty
-    );
-
     if (isTitleDirty == true && isTitleUnique == true) {
       await window.electron.configs.updateConfig(
         PRESET_PATH,

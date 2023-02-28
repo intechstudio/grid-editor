@@ -78,10 +78,10 @@
   <div
     use:select
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions {dx == selectedElement.brc.dx &&
+    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
     dy == selectedElement.brc.dy
       ? 'border-2 border-gray-500'
-      : ''}"
+      : 'border-transparent'}"
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}

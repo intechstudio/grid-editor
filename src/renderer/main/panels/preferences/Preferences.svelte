@@ -498,7 +498,7 @@
           value="newLibrary"
           bind:group={selected}
         />
-        New Profile Browser Mode</label
+        New Profile & Preset Browser Mode</label
       >
     </div>
 
@@ -510,7 +510,7 @@
           value="legacyLibrary"
           bind:group={selected}
         />
-        Legacy Profile Browser Mode</label
+        Legacy Profile & Preset Browser Mode</label
       >
     </div>
 
@@ -521,6 +521,15 @@
         bind:checked={$appSettings.persistant.welcomeOnStartup}
       />
       <div class="ml-1">Show welcome on startup</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.showLoginRegister}
+      />
+      <div class="mx-1">Show Login/Register</div>
     </div>
 
     <div class="flex py-2 text-white items-center">
@@ -608,7 +617,7 @@
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       <div>Trigger error: hello</div>
-    </button>    
+    </button>
     <button
       on:click={() => {
         other["ds"] = 0;

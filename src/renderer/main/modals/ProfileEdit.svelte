@@ -53,15 +53,6 @@
     checkIfTitleFieldEmpty(editProfileData.name);
     /*    checkIfDescFieldEmpty(editProfileData.description); */
 
-    console.log(
-      "isTitleUnique",
-      isTitleUnique,
-      "isDescDirty",
-      isDescDirty,
-      "isTitleDirty",
-      isTitleDirty
-    );
-
     if (isTitleDirty == true && isTitleUnique == true) {
       await window.electron.configs.updateConfig(
         PROFILE_PATH,

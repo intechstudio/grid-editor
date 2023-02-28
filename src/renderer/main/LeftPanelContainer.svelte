@@ -19,8 +19,6 @@
   function resize() {
     $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
   }
-
-  $: console.log($appSettings.leftPanel);
 </script>
 
 {#if $appSettings.leftPanelVisible == true}
@@ -43,12 +41,10 @@
       {/if}
 
       {#if $appSettings.leftPanel == "NewProfile"}
-        <span class="text-white">NewProfile</span>
         <NewProfile />
       {/if}
 
       {#if $appSettings.leftPanel == "NewPreset"}
-        <span class="text-white">NewPreset</span>
         <NewPreset />
       {/if}
 

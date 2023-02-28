@@ -705,164 +705,154 @@
   }
 </script>
 
-<div class=" flex flex-col h-full justify-between ">
-  <div class="flex w-full h-full overflow-hidden ">
+<div class=" flex flex-col h-full justify-between p-4 bg-primary ">
+  <div class="flex w-full h-full flex-col overflow-hidden ">
+    <div
+      class="flex justify-between items-center p-4 text-white font-medium
+      cursor-pointer w-full "
+    >
+      <div>Session Profiles</div>
+    </div>
     <Splitpanes
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class="w-full"
+      class="w-full h-full"
     >
-      <Pane>
-        <div class=" flex flex-col bg-primary h-full">
-          <button
-            on:click={() => {
-              (animateFade = true),
-                (isSessionProfileOpen = !isSessionProfileOpen);
-            }}
-            class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full "
+      <Pane size={31}>
+        <div class=" flex flex-col bg-primary overflow-hidden h-full ">
+          <div
+            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            class=" flex flex-col p-3 overflow-hidden h-full"
           >
-            <div>Session Profiles</div>
-
-            {isSessionProfileOpen ? "▼" : "▲"}
-          </button>
-
-          {#if isSessionProfileOpen}
-            <div
-              in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-              out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-              class=" flex flex-col p-3 overflow-hidden h-full"
-            >
-              <button
-                on:click={() => {
-                  saveToSessionProfile("sessionProfile");
-                }}
-                class="relative bg-commit block  
+            <button
+              on:click={() => {
+                saveToSessionProfile("sessionProfile");
+              }}
+              class="relative bg-commit block  
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
           hover:border-commit-desaturate-10 focus:outline-none"
-              >
-                <div>Save Session Profile</div>
-                <TooltipSetter key={"newProfile_add_to_session"} />
-              </button>
-              <div
-                class="flex flex-col overflow-y-auto gap-4 min-h-[240px] max-h-60 "
-              >
-                {#if sessionProfile.length == 0}
-                  <div class="text-gray-300">No profile to show</div>
-                {/if}
+            >
+              <div>Save Session Profile</div>
+              <TooltipSetter key={"newProfile_add_to_session"} />
+            </button>
+            <div class="flex flex-col overflow-y-auto gap-4  ">
+              {#if sessionProfile.length == 0}
+                <div class="text-gray-300">No profile to show</div>
+              {/if}
 
-                {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
-                  <button
-                    in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
-                    out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-                    on:click={() => selectProfile(sessionProfileElement)}
-                    class="cursor-pointer flex justify-between gap-2 items-center
+              {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
+                <button
+                  in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
+                  out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+                  on:click={() => selectProfile(sessionProfileElement)}
+                  class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
               {sessionProfileElement == selectedProfile
-                      ? 'border border-green-300'
-                      : 'border border-black border-opacity-0'}
+                    ? 'border border-green-300'
+                    : 'border border-black border-opacity-0'}
               "
-                  >
-                    <div class="flex gap-2 items-center">
-                      <div
-                        class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
+                >
+                  <div class="flex gap-2 items-center">
+                    <div
+                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
                       rounded-xl {selectedModule == sessionProfileElement.type
-                          ? 'bg-violet-600'
-                          : 'bg-gray-600 '}"
-                      >
-                        {sessionProfileElement.type}
-                      </div>
+                        ? 'bg-violet-600'
+                        : 'bg-gray-600 '}"
+                    >
+                      {sessionProfileElement.type}
+                    </div>
 
-                      <div class="flex justify-between flex-row">
-                        <div>
-                          <input
-                            type="text"
-                            value={sessionProfileElement.name}
-                            use:clickOutside={{ useCapture: true }}
-                            on:click={() => {
-                              selectProfile(sessionProfileElement);
-                            }}
-                            on:blur={(e) => {
+                    <div class="flex justify-between flex-row">
+                      <div>
+                        <input
+                          type="text"
+                          value={sessionProfileElement.name}
+                          use:clickOutside={{ useCapture: true }}
+                          on:click={() => {
+                            selectProfile(sessionProfileElement);
+                          }}
+                          on:blur={(e) => {
+                            let newName = e.target.value.trim();
+                            animateFade = false;
+                            updateSessionProfileTitle(
+                              sessionProfileElement,
+                              newName
+                            );
+                          }}
+                          on:keypress={(e) => {
+                            if (e.charCode === 13) {
                               let newName = e.target.value.trim();
-                              animateFade = false;
                               updateSessionProfileTitle(
                                 sessionProfileElement,
                                 newName
                               );
-                            }}
-                            on:keypress={(e) => {
-                              if (e.charCode === 13) {
-                                let newName = e.target.value.trim();
-                                updateSessionProfileTitle(
-                                  sessionProfileElement,
-                                  newName
-                                );
-                              }
-                            }}
-                            class="text-zinc-100 min-w-[15px] h-fit break-words
+                            }
+                          }}
+                          class="text-zinc-100 min-w-[15px] h-fit break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
-                          />
-                        </div>
+                        />
                       </div>
                     </div>
+                  </div>
 
-                    <div class="flex gap-1 ">
-                      <button
-                        on:click|preventDefault={() => {
-                          deleteSessionProfile(sessionProfileElement);
-                        }}
-                        class="p-1 hover:bg-primary-500 {selectedProfile ==
-                          sessionProfileElement && disableButton == true
-                          ? 'pointer-events-none'
-                          : 0} rounded relative"
+                  <div class="flex gap-1 ">
+                    <button
+                      on:click|preventDefault={() => {
+                        deleteSessionProfile(sessionProfileElement);
+                      }}
+                      class="p-1 hover:bg-primary-500 {selectedProfile ==
+                        sessionProfileElement && disableButton == true
+                        ? 'pointer-events-none'
+                        : 0} rounded relative"
+                    >
+                      <svg
+                        class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
+                        viewBox="0 0 39 39"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <svg
-                          class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
-                          viewBox="0 0 39 39"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+                        <path
+                          d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
-                            stroke="#FFF"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                          />
-                          <path
-                            d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+                          stroke="#FFF"
+                          stroke-width="2"
+                          stroke-linecap="round"
+                        />
+                        <path
+                          d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
-                            stroke="#FFF"
-                            stroke-width="2"
-                          />
-                        </svg>
-                        <TooltipConfirm key={"newProfile_delete"} />
-                        <TooltipSetter key={"newProfile_delete"} />
-                      </button>
+                          stroke="#FFF"
+                          stroke-width="2"
+                        />
+                      </svg>
+                      <TooltipConfirm key={"newProfile_delete"} />
+                      <TooltipSetter key={"newProfile_delete"} />
+                    </button>
 
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
-                          sessionProfileElement && disableButton == true
-                          ? 'pointer-events-none'
-                          : 0}"
-                        on:click|preventDefault={() => {
-                          saveFromSessionToCloud(sessionProfileElement);
-                        }}
-                        on:blur={() => {
-                          isActionButtonClickedStore.set(false);
-                        }}
+                    <button
+                      class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
+                        sessionProfileElement && disableButton == true
+                        ? 'pointer-events-none'
+                        : 0}"
+                      on:click|preventDefault={() => {
+                        saveFromSessionToCloud(sessionProfileElement);
+                      }}
+                      on:blur={() => {
+                        isActionButtonClickedStore.set(false);
+                      }}
+                    >
+                      <svg
+                        class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                        viewBox="0 0 19 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <svg
-                          class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                          viewBox="0 0 19 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
+                        <path
+                          d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
                       1.52244 0.753154C2.00468 0.270917 2.65873 0 3.34072
                       0H14.1137C14.7956 0.000145639 15.4496 0.271159 15.9317
                       0.753429L18.0159 2.83757C18.4981 3.3197 18.7691 3.97364
@@ -895,31 +885,31 @@
                       10.2857H5.26929C5.09879 10.2857 4.93528 10.3534 4.81472
                       10.474C4.69416 10.5946 4.62643 10.7581 4.62643
                       10.9286V16.7143H14.9121Z"
-                            fill="#F1F1F1"
-                          />
-                        </svg>
+                          fill="#F1F1F1"
+                        />
+                      </svg>
 
-                        <TooltipSetter key={"newProfile_save"} />
-                      </button>
+                      <TooltipSetter key={"newProfile_save"} />
+                    </button>
 
-                      <button
-                        class="p-1 hover:bg-primary-500 rounded relative"
-                        on:click|preventDefault={() => {
-                          rewriteSessionProfile(sessionProfileElement);
-                        }}
-                        on:blur={() => {
-                          isActionButtonClickedStore.set(false);
-                        }}
+                    <button
+                      class="p-1 hover:bg-primary-500 rounded relative"
+                      on:click|preventDefault={() => {
+                        rewriteSessionProfile(sessionProfileElement);
+                      }}
+                      on:blur={() => {
+                        isActionButtonClickedStore.set(false);
+                      }}
+                    >
+                      <svg
+                        class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                        viewBox="0 0 19 18"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
                       >
-                        <svg
-                          class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                          viewBox="0 0 19 18"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <g clip-path="url(#clip0_262_1198)">
-                            <path
-                              d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
+                        <g clip-path="url(#clip0_262_1198)">
+                          <path
+                            d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
                         13.074 0 10.1961 0C5.22682 0 1.20468 4.01786 1.19825
                         8.98929C1.19182 13.965 5.22254 18 10.1961 18C14.0811 18
                         17.3918 15.5357 18.6518 12.0836C18.684 11.9936 18.6368
@@ -947,31 +937,30 @@
                         5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
                         18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
                         2.42571 18.4932 2.51357V2.51357Z"
-                              fill="#F1F1F1"
+                            fill="#F1F1F1"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_262_1198">
+                            <rect
+                              width="18"
+                              height="18"
+                              fill="white"
+                              transform="translate(0.769287)"
                             />
-                          </g>
-                          <defs>
-                            <clipPath id="clip0_262_1198">
-                              <rect
-                                width="18"
-                                height="18"
-                                fill="white"
-                                transform="translate(0.769287)"
-                              />
-                            </clipPath>
-                          </defs>
-                        </svg>
-                        <TooltipSetter key={"newProfile_rewrite"} />
-                      </button>
-                    </div>
-                  </button>
-                {/each}
-              </div>
+                          </clipPath>
+                        </defs>
+                      </svg>
+                      <TooltipSetter key={"newProfile_rewrite"} />
+                    </button>
+                  </div>
+                </button>
+              {/each}
             </div>
-          {/if}
+          </div>
         </div></Pane
       >
-      <Pane>
+      <Pane minSize={28}>
         <div class=" flex flex-col h-full  overflow-hidden bg-primary">
           <div
             class="flex justify-between items-center p-4 
@@ -994,13 +983,13 @@
 
           <div
             class="flex flex-col overflow-hidden"
-            in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-            out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
           >
             {#if isSearchSortingShows == true}
               <div
-                in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-                out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+                in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+                out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
               >
                 <div class="flex flex-col gap-1 p-3">
                   <div class="relative">
@@ -1171,11 +1160,16 @@
 
             <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
               <div class="flex flex-col overflow-auto">
+                <div />
                 <div class="overflow-auto flex flex-col gap-4 mb-2">
                   {#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
                     <button
-                      in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
-                      out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+                      in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
+                      out:fadeAnimation|local={{
+                        fn: fade,
+                        y: 50,
+                        duration: 150,
+                      }}
                       on:click={() => {
                         selectProfile(profileCloudElement);
                       }}
