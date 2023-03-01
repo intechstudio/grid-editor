@@ -166,7 +166,7 @@
               style="transform: rotate({1 * rotation * 90 + 'deg'}"
               class="hidden group-hover:block"
             >
-              load
+              Load
             </div>
           </button>
         {/if}

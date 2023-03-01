@@ -107,7 +107,6 @@
   }
 
   function prepareSave(user) {
-    console.log(user, "user");
     window.electron.analytics.influx("profile-library", {
       value: "save start",
     });

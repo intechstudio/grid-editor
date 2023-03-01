@@ -120,6 +120,7 @@ let persistant = {
   newProfileBrowserEnabled: true,
   legacyProfileBrowserEnabled: false,
   profileCloudDevFeaturesEnabled: false,
+  showLoginRegister: false,
   helperShape: 0,
   helperColor: 0,
   helperName: "Monster",

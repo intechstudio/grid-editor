@@ -198,9 +198,9 @@
 
 <style global>
   .splitpanes.modern-theme .splitpanes__pane {
-    @apply bg-secondary;
+    /*  @apply bg-secondary; */
     position: relative;
-    overflow: visible;
+    /*  overflow: visible; */
   }
   .splitpanes.modern-theme .splitpanes__splitter {
     background-color: #4c4c4c;

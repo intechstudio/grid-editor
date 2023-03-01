@@ -80,7 +80,7 @@
   <div
     use:select
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
+    class="module-dimensions border-2  {dx == selectedElement.brc.dx &&
     dy == selectedElement.brc.dy
       ? ' border-gray-500'
       : 'border-transparent'} "
@@ -109,34 +109,5 @@
         </div>
       {/each}
     </div>
-
-    <!--     {#each [0, 1, 2, 3] as row}
-      <div
-        class="control-row"
-        style="--control-row-mt: {$appSettings.size * 3.235 +
-          'px'}; --control-row-mx: {$appSettings.size * 6.835 +
-          'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}"
-      >
-        {#each [0 + 4 * row, 1 + 4 * row, 2 + 4 * row, 3 + 4 * row] as elementNumber}
-          <div
-            class:active-element={dx == selectedElement.brc.dx &&
-              dy == selectedElement.brc.dy &&
-              selectedElement.event.elementnumber == elementNumber}
-            class="knob-and-led"
-          >
-            <Led
-              color={ledcolor_array[elementNumber]}
-              size={$appSettings.size}
-            />
-            <Potentiometer
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber]}
-              size={$appSettings.size}
-            />
-          </div>
-        {/each}
-      </div>
-    {/each} -->
   </div>
 </div>
