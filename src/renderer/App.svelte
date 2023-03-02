@@ -182,12 +182,14 @@
         on:resized={handlePaneResized}
         class="w-full"
       >
-        <Pane bind:size={$splitpanes.left} snapSize={5}>
+        <Pane class="leftPane" bind:size={$splitpanes.left} snapSize={5}>
           <LeftPanelContainer />
         </Pane>
+
         <Pane>
           <GridLayout classes={"flex-1"} />
         </Pane>
+
         <Pane size={$splitpanes.right} minSize={20}>
           <RightPanelContainer classes={"min-w-[300px]"} />
         </Pane>
@@ -201,6 +203,10 @@
     /*  @apply bg-secondary; */
     position: relative;
     overflow: visible;
+  }
+
+  .splitpanes.modern-theme .splitpanes__pane.leftPane {
+    overflow: hidden;
   }
   .splitpanes.modern-theme .splitpanes__splitter {
     background-color: #4c4c4c;
