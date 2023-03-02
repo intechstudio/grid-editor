@@ -205,6 +205,7 @@
     overflow: visible;
   }
 
+  /*betty magic variable*/
   .splitpanes.modern-theme .splitpanes__pane.leftPane {
     overflow: hidden;
   }
