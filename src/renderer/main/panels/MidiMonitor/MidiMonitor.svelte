@@ -1,14 +1,21 @@
 <script>
   import { fade } from "svelte/transition";
   import { midi_monitor_store } from "./MidiMonitor.store";
-
+  import Toggle from "../../user-interface/Toggle.svelte"
   // ok but slow nice
+  let rawView = false;
 </script>
+
 
 <div
   transition:fade={{ duration: 150 }}
   class="flex bg-primary justify-start relative w-full h-full flex-col text-white gap-2 p-4 overflow-auto"
 >
+  <div class="flex flex-wrap text-white items-center my-2">
+    <Toggle bind:toggleValue={rawView}/>
+    <div class="ml-3 text-white font-medium">Raw View</div>
+  </div>
+
   <div class="font-mono">
     <div class="w-full grid grid-cols-6">
       <div>[X,Y]</div>
@@ -30,10 +37,34 @@
               : 'text-green-400'} flex items-start justify-start w-full font-mono "
           >
             <div class="w-full grid grid-cols-6 ">
-              <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
+              <div>
+                <span class="text-teal-400">
+                  {#if !rawView && midi.class_parameters.DEVICE_NAME != undefined}
+                    {midi.class_parameters.DEVICE_NAME}
+                  {:else}
+                    [{midi.brc_parameters.SX},{midi.brc_parameters.SY}]
+                  {/if}
+                </span>
+              </div>
               <div>{midi.class_parameters.CHANNEL}</div>
-              <div>{midi.class_parameters.COMMAND}</div>
-              <div>{midi.class_parameters.PARAM1}</div>
+              <div>
+                  <span class="text-teal-400">
+                    {#if !rawView && midi.class_parameters.COMMAND_NAME != undefined}
+                      {midi.class_parameters.COMMAND_NAME}
+                    {:else}
+                      {midi.class_parameters.COMMAND}
+                    {/if}
+                  </span>
+              </div>
+              <div>
+                <span class="text-teal-400">
+                  {#if !rawView && midi.class_parameters.PARAM1_VALUE != undefined}
+                    {midi.class_parameters.PARAM1_VALUE}
+                  {:else}
+                    {midi.class_parameters.PARAM1}
+                  {/if}
+                </span>
+              </div>
               <div>{midi.class_parameters.PARAM2}</div>
               <div class="flex items-center">
                 {#if midi.class_instr == "REPORT"}
