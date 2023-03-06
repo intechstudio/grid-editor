@@ -25,18 +25,30 @@
     selectedIndex = store;
   });
 
-  let device;
   runtime.subscribe((runtime) => {
+
+    let device;
     device = runtime.find((controller) => controller.id == id);
-    if (device !== undefined) {
-      controlElementSettings = device.pages[0].control_elements;
+
+    if (typeof device === "undefined") {
+      return;
     }
+
+    controlElementSettings = device.pages[0].control_elements;
   });
 
   let isModuleCompatibleWithPreset = [];
 
   function showLoadPresetOverlay() {
     isModuleCompatibleWithPreset = [];
+
+    let device;
+    device = get(runtime).find((controller) => controller.id == id);
+
+    if (typeof device === "undefined") {
+      return;
+    }
+
 
     device.pages[0].control_elements.slice(0, -1).forEach((element) => {
       if (element.controlElementType == selectedPreset.type) {
