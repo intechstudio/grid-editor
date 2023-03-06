@@ -22,7 +22,7 @@ for (const key in grid_env) {
 }
 
 
-import { serial } from './ipcmain_serialport'
+import { serial, restartSerialCheckInterval } from './ipcmain_serialport'
 import { websocket } from './ipcmain_websocket'
 import { store } from './main-store'
 import { iconBuffer, iconSize } from './icon'
@@ -399,6 +399,10 @@ ipcMain.handle('firmwareDownload', async (event, arg) => {
 })
 ipcMain.handle('findBootloaderPath', async (event, arg) => {
   return await findBootloaderPath()
+})
+
+ipcMain.handle('restartSerialCheckInterval', (event, arg) => {
+  return restartSerialCheckInterval()
 })
 
 
