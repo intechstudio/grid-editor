@@ -332,35 +332,38 @@
 </script>
 
 <configuration
-  class="w-full h-full flex flex-col {$engine == 'ENABLED'
+  class="w-full h-full flex flex-col  {$engine == 'ENABLED'
     ? ''
     : 'pointer-events-none'}"
 >
   <Pages {pages} />
 
-  <div class="flex flex-row items-start mt-4">
-    <button
-      on:click={() => {
-        changeSelectedConfig("uiEvents");
-      }}
-      class="{$appSettings.configType == 'uiEvents'
-        ? 'bg-primary'
-        : 'bg-secondary'} relative px-4 py-2 cursor-pointer text-white "
-    >
-      <span> UI Events </span>
-      <TooltipSetter key={"configuration_ui_events"} />
-    </button>
-    <button
-      on:click={() => {
-        changeSelectedConfig("systemEvents");
-      }}
-      class="{$appSettings.configType == 'systemEvents'
-        ? 'bg-primary'
-        : 'bg-secondary'} relative px-4 py-2 cursor-pointer text-white"
-    >
-      <span> System Events </span>
-      <TooltipSetter key={"configuration_system_events"} />
-    </button>
+  <div class="bg-primary py-5 flex flex-col justify-center items-center">
+    <div class="flex flex-row items-start bg-primary py-2">
+      <button
+        on:click={() => {
+          changeSelectedConfig("uiEvents");
+        }}
+        class="{$appSettings.configType == 'uiEvents'
+          ? 'bg-secondary'
+          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
+      >
+        <span> UI Events </span>
+        <TooltipSetter key={"configuration_ui_events"} />
+      </button>
+
+      <button
+        on:click={() => {
+          changeSelectedConfig("systemEvents");
+        }}
+        class="{$appSettings.configType == 'systemEvents'
+          ? 'bg-secondary'
+          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> System Events </span>
+        <TooltipSetter key={"configuration_system_events"} />
+      </button>
+    </div>
   </div>
 
   {#key $appSettings.configType == "uiEvents"}
@@ -377,7 +380,7 @@
 
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
         <div class="text-gray-500 text-sm">Actions</div>
-        <div class="pt-1 flex items-center  justify-end">
+        <div class="pt-1 flex items-center justify-between w-full">
           <MultiSelect />
         </div>
 

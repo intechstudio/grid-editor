@@ -166,7 +166,7 @@
     <div class="w-1/2 p-1">
       <div class="text-gray-500 py-1 text-sm">Selected Element</div>
 
-      <div class="flex flex-col relative justify-between font-bold text-white">
+      <div class="flex flex-col relative  font-bold text-white">
         <!-- svelte-ignore a11y-no-onchange -->
         <select
           bind:value={elements.selected}
@@ -187,7 +187,7 @@
     </div>
   </div>
 
-  <div class="pb-2">
+  <div class="pb-2 flex flex-col justify-center">
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
@@ -213,25 +213,29 @@
       </div>
     </div>
 
-    <div class="flex bg-secondary shadow overflow-x-auto">
-      {#each events.options as event}
-        <button
-          on:click={() => {
-            handleSelectEvent(event);
-          }}
-          class:dummy={event.desc == undefined}
-          class="{selectedEvent === event && event.desc !== undefined
-            ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none"
-        >
-          {@html event.desc
-            ? event.desc
-            : `<span class="invisible">null</span>`}
-          {#if event.desc != undefined}
-            <TooltipSetter key={`event_${event.desc}`} />
-          {/if}
-        </button>
-      {/each}
+    <div class="flex flex-col justify-center items-center ">
+      <hr class="w-[70%] my-6   border-white border-opacity-10 " />
+      <div class="flex bg-secondary shadow overflow-x-auto w-full ">
+        {#each events.options as event}
+          <button
+            on:click={() => {
+              handleSelectEvent(event);
+            }}
+            class:dummy={event.desc == undefined}
+            class="{selectedEvent === event && event.desc !== undefined
+              ? 'shadow-md bg-pick text-white'
+              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none"
+          >
+            {@html event.desc
+              ? event.desc
+              : `<span class="invisible">null</span>`}
+            {#if event.desc != undefined}
+              <TooltipSetter key={`event_${event.desc}`} />
+            {/if}
+          </button>
+        {/each}
+      </div>
+      <hr class="w-[70%] my-6   border-white border-opacity-10 " />
     </div>
   </div>
 </div>
