@@ -3,6 +3,8 @@
   export let size = 1;
   export let elementNumber;
   export let id;
+
+  export let position;
   const encoderSize = 13;
 
 </script>

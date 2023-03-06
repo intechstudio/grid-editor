@@ -49,6 +49,7 @@
     "node-disk-info": "^1.3.0",
     "node-fetch": "^2.6.7",
     "panzoom": "^9.3.0",
+    "set-interval-async": "^3.0.3",
     "simple-discord-webhooks": "^2.1.0",
     "svelte-splitpanes": "^0.7.12",
     "svelte-watch-resize": "^1.0.3",
