@@ -1,182 +1,179 @@
 <script>
   import { fade } from "svelte/transition";
   import { midi_monitor_store } from "./MidiMonitor.store";
-  import Toggle from "../../user-interface/Toggle.svelte"
+  import Toggle from "../../user-interface/Toggle.svelte";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { get } from 'svelte/store';
   // ok but slow nice
-  let rawView = false;
+  let debug = false;
+  let containerText = "Last Command";
+  let index = 0;
+  class MIDIMessageVM {
+    constructor(device, channel, command, p1_name, p1_value, p2_name, p2_value, direction) {
+      this.device = device;
+      this.channel = channel;
+      this.command = command;
+      this.p1_name = p1_name;
+      this.p1_value = p1_value;
+      this.p2_name = p2_name;
+      this.p2_value = p2_value;
+      this.direction = direction;
+    }
+  }
+
+  let lastMIDI = new MIDIMessageVM(...Array(MIDIMessageVM.length).fill("N/A"));
+
+  midi_monitor_store.subscribe(midi => { 
+    ++index;
+    setLastMessage(midi)
+  });
+
+  function setLastMessage(midi){
+    if(midi.length > 0){
+      let cp = midi.slice(-1)[0].class_parameters;
+      let direction = midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒";
+      lastMIDI = new MIDIMessageVM(
+        cp.DEVICE_NAME,
+        cp.CHANNEL,
+        cp.COMMAND_NAME,
+        cp.PARAM1_NAME,
+        cp.PARAM1_VALUE,
+        cp.PARAM2_NAME,
+        cp.PARAM2_VALUE,
+        direction
+      );
+    }
+  }
+
+  function onLeave(item, index){
+    containerText = "Last Command";
+    let ms = get(midi_monitor_store);
+    setLastMessage(ms);
+  }
+
+  function onEnter(item, index){
+    containerText = "Selected Command";
+    let ms = get(midi_monitor_store);
+    let selected = ms[index];
+    let direction = selected.class_instr == "REPORT" ? "RECEIVE" : "TRANSMIT";
+    let cp = selected.class_parameters;
+      lastMIDI = new MIDIMessageVM(
+        cp.DEVICE_NAME,
+        cp.CHANNEL,
+        cp.COMMAND_NAME,
+        cp.PARAM1_NAME,
+        cp.PARAM1_VALUE,
+        cp.PARAM2_NAME,
+        cp.PARAM2_VALUE,
+        direction
+      );
+  }
 </script>
 
-
-<div
-  transition:fade={{ duration: 150 }}
-  class="flex bg-primary justify-start relative w-full h-full flex-col text-white gap-2 p-4 overflow-auto"
->
-  <div class="flex flex-wrap text-white items-center my-2">
-    <Toggle bind:toggleValue={rawView}/>
-    <div class="ml-3 text-white font-medium">Raw View</div>
-  </div>
-
-  <div class="font-mono">
-    <div class="w-full grid grid-cols-6">
-      <div>[X,Y]</div>
-      <div>CH</div>
-      <div>CMD</div>
-      <div>P1</div>
-      <div>P2</div>
-      <div>DIR</div>
+<div transition:fade={{ duration: 150 }}
+  class="flex bg-primary justify-start relative w-full h-full flex-col text-white gap-2 p-4 overflow-auto">
+  <div class="text-white font-large">MIDI Monitor</div>
+  <div class="flex grid grid-cols-2 content-between my-2">
+    <div class="text-white font-medium">History</div>
+    <div class="justify-self-end flex items-center">
+      <span class="text-white font-medium mr-2">Debug View</span>
+      <Toggle bind:toggleValue={debug}/>
     </div>
   </div>
 
-  <div class=" flex flex-col h-full ">
-    {#each $midi_monitor_store as midi}
-      <div class=" ">
+  {#if debug}
+    <div class="font-mono">
+        <div class="w-full grid grid-cols-6">
+          <div>[X,Y]</div>
+          <div>CH</div>
+          <div>CMD</div>
+          <div>P1</div>
+          <div>P2</div>
+          <div>DIR</div>
+        </div>
+    </div>
+
+    <div class="flex flex-col w-full">
+      {#each $midi_monitor_store as midi}
         {#if midi.class_name === "MIDI"}
-          <div
-            class="{midi.class_instr == 'REPORT'
-              ? 'text-blue-400'
-              : 'text-green-400'} flex items-start justify-start w-full font-mono "
-          >
-            <div class="w-full grid grid-cols-6 ">
-              <div>
-                <span class="text-teal-400">
-                  {#if !rawView && midi.class_parameters.DEVICE_NAME != undefined}
-                    {midi.class_parameters.DEVICE_NAME}
-                  {:else}
-                    [{midi.brc_parameters.SX},{midi.brc_parameters.SY}]
-                  {/if}
-                </span>
-              </div>
+          <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
+            flex items-start justify-start w-full font-mono ">
+            <div class="w-full grid grid-cols-6">
+              <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
               <div>{midi.class_parameters.CHANNEL}</div>
-              <div>
-                  <span class="text-teal-400">
-                    {#if !rawView && midi.class_parameters.COMMAND_NAME != undefined}
-                      {midi.class_parameters.COMMAND_NAME}
-                    {:else}
-                      {midi.class_parameters.COMMAND}
-                    {/if}
-                  </span>
-              </div>
-              <div>
-                <span class="text-teal-400">
-                  {#if !rawView && midi.class_parameters.PARAM1_VALUE != undefined}
-                    {midi.class_parameters.PARAM1_VALUE}
-                  {:else}
-                    {midi.class_parameters.PARAM1}
-                  {/if}
-                </span>
-              </div>
+              <div>{midi.class_parameters.COMMAND}</div>
+              <div>{midi.class_parameters.PARAM1}</div>
               <div>{midi.class_parameters.PARAM2}</div>
               <div class="flex items-center">
-                {#if midi.class_instr == "REPORT"}
-                  <div>RX</div>
-                  <svg
-                    class="ml-1 w-5 h-5 fill-current text-blue-400"
-                    version="1.1"
-                    id="Capa_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    viewBox="0 0 512 512"
-                    style="enable-background:new 0 0 512 512;"
-                    xml:space="preserve"
-                  >
-                    <path
-                      d="M492,236H68.442l70.164-69.824c7.829-7.792,7.859-20.455,0.067-28.284c-7.792-7.83-20.456-7.859-28.285-0.068
-                    l-104.504,104c-0.007,0.006-0.012,0.013-0.018,0.019c-7.809,7.792-7.834,20.496-0.002,28.314c0.007,0.006,0.012,0.013,0.018,0.019
-                    l104.504,104c7.828,7.79,20.492,7.763,28.285-0.068c7.792-7.829,7.762-20.492-0.067-28.284L68.442,276H492
-                    c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z"
-                    />
-                  </svg>
-                {:else}
-                  <div>TX</div>
-                  <svg
-                    class="rotate-180 transform ml-1 w-5 h-5 fill-current text-green-400"
-                    version="1.1"
-                    id="Capa_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    viewBox="0 0 512 512"
-                    style="enable-background:new 0 0 512 512;"
-                    xml:space="preserve"
-                  >
-                    <path
-                      d="M492,236H68.442l70.164-69.824c7.829-7.792,7.859-20.455,0.067-28.284c-7.792-7.83-20.456-7.859-28.285-0.068
-                    l-104.504,104c-0.007,0.006-0.012,0.013-0.018,0.019c-7.809,7.792-7.834,20.496-0.002,28.314c0.007,0.006,0.012,0.013,0.018,0.019
-                    l104.504,104c7.828,7.79,20.492,7.763,28.285-0.068c7.792-7.829,7.762-20.492-0.067-28.284L68.442,276H492
-                    c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z"
-                    />
-                  </svg>
-                {/if}
+                {midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}
               </div>
             </div>
           </div>
         {:else}
-          <div
-            class="{midi.class_instr == 'REPORT'
-              ? 'text-blue-400'
-              : 'text-green-400'} flex items-center justify-between w-full font-mono"
-          >
+          <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
+            flex items-center justify-between w-full font-mono">
             <div class="w-full grid grid-cols-6 ">
               <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
-              <div>
-                SysEx:{String.fromCharCode.apply(String, midi.raw).substr(8)}
-              </div>
-              <div />
-
-              <div />
-              <div />
-              <div class="flex items-center">
-                {#if midi.class_instr == "REPORT"}
-                  <div>RX</div>
-                  <svg
-                    class="ml-1 w-5 h-5 fill-current text-blue-400"
-                    version="1.1"
-                    id="Capa_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    viewBox="0 0 512 512"
-                    style="enable-background:new 0 0 512 512;"
-                    xml:space="preserve"
-                  >
-                    <path
-                      d="M492,236H68.442l70.164-69.824c7.829-7.792,7.859-20.455,0.067-28.284c-7.792-7.83-20.456-7.859-28.285-0.068
-                    l-104.504,104c-0.007,0.006-0.012,0.013-0.018,0.019c-7.809,7.792-7.834,20.496-0.002,28.314c0.007,0.006,0.012,0.013,0.018,0.019
-                    l104.504,104c7.828,7.79,20.492,7.763,28.285-0.068c7.792-7.829,7.762-20.492-0.067-28.284L68.442,276H492
-                    c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z"
-                    />
-                  </svg>
-                {:else}
-                  <div>TX</div>
-                  <svg
-                    class="rotate-180 transform ml-1 w-5 h-5 fill-current text-green-400"
-                    version="1.1"
-                    id="Capa_1"
-                    xmlns="http://www.w3.org/2000/svg"
-                    xmlns:xlink="http://www.w3.org/1999/xlink"
-                    x="0px"
-                    y="0px"
-                    viewBox="0 0 512 512"
-                    style="enable-background:new 0 0 512 512;"
-                    xml:space="preserve"
-                  >
-                    <path
-                      d="M492,236H68.442l70.164-69.824c7.829-7.792,7.859-20.455,0.067-28.284c-7.792-7.83-20.456-7.859-28.285-0.068
-                    l-104.504,104c-0.007,0.006-0.012,0.013-0.018,0.019c-7.809,7.792-7.834,20.496-0.002,28.314c0.007,0.006,0.012,0.013,0.018,0.019
-                    l104.504,104c7.828,7.79,20.492,7.763,28.285-0.068c7.792-7.829,7.762-20.492-0.067-28.284L68.442,276H492
-                    c11.046,0,20-8.954,20-20C512,244.954,503.046,236,492,236z"
-                    />
-                  </svg>
-                {/if}
-              </div>
+              <div>SysEx:{String.fromCharCode.apply(String, midi.raw).substr(8)}</div>
+              <div class="flex items-center">{midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}</div>
             </div>
           </div>
         {/if}
+      {/each}
+    </div>
+  {:else}
+  <Splitpanes horizontal="true" theme="modern-theme" pushOtherPanes={false} class="w-full h-full">
+    <Pane class="flex flex-col w-full">
+      <div class="flex flex-col h-full w-full overflow-hidden overflow-y-scroll">
+        {#each $midi_monitor_store as midi, i}
+          <div>
+            {#if midi.class_name === "MIDI"}
+              <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
+                flex items-start justify-start w-full font-mono ">
+                <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                <div class="flex w-full hover:shadow-sm hover:shadow-white" 
+                  on:mouseover={() => onEnter(this, i)}
+                  on:mouseleave={() => onLeave(this, i)}
+                  >
+                  <div>{i + index}. {midi.class_parameters.DEVICE_NAME} |</div>
+                  <div>(Ch: {midi.class_parameters.CHANNEL}) |</div>
+                  <div>{midi.class_parameters.COMMAND_NAME} |</div>
+                </div>
+              </div>
+            {/if}
+          </div>
+        {/each}
       </div>
-    {/each}
-  </div>
+    </Pane>
+    <Pane minSize={28}>
+        <div>{containerText}</div>
+        <div>Command: {lastMIDI.command}</div>
+        <div class="grid grid-cols-3">
+          <div>Device: {lastMIDI.device}</div>
+          <div>Channel: {lastMIDI.channel}</div>
+          <div>
+            Direction: {lastMIDI.direction}
+          </div>
+        </div>
+        <div class="grid grid-cols-2">
+          <div class="grid grid-rows-2 content-center m-2">
+            <div class="bg-lime-50 rounded-t text-primary text-center">
+                {lastMIDI.p1_name}
+            </div>
+            <div class="border border-lime-50 text-lime-50 rounded-b text-center">
+              {lastMIDI.p1_value}
+            </div>
+          </div>
+          <div class="grid grid-rows-2 content-center m-2">
+            <div class="bg-lime-50 rounded-t text-primary text-center">
+              {lastMIDI.p2_name}
+            </div>
+            <div class="border border-lime-50 text-lime-50 rounded-b text-center">
+              {lastMIDI.p2_value}
+            </div>
+          </div>
+        </div>
+      </Pane>
+    </Splitpanes>
+  {/if}
 </div>
