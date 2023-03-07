@@ -345,6 +345,29 @@
           changeSelectedConfig("uiEvents");
         }}
         class="{$appSettings.configType == 'uiEvents'
+          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
+          : ''} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> UI Events </span>
+        <TooltipSetter key={"configuration_ui_events"} />
+      </button>
+
+      <button
+        on:click={() => {
+          changeSelectedConfig("systemEvents");
+        }}
+        class="{$appSettings.configType == 'systemEvents'
+          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
+          : ''} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> System Events </span>
+        <TooltipSetter key={"configuration_system_events"} />
+      </button>
+      <!--       <button
+        on:click={() => {
+          changeSelectedConfig("uiEvents");
+        }}
+        class="{$appSettings.configType == 'uiEvents'
           ? 'bg-secondary'
           : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
       >
@@ -362,7 +385,7 @@
       >
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />
-      </button>
+      </button> -->
     </div>
   </div>
 
@@ -376,12 +399,15 @@
         delay: 0,
       }}
     >
-      <ConfigParameters {configs} {events} {elements} />
-
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
-        <div class="text-gray-500 text-sm">Actions</div>
-        <div class="pt-1 flex items-center justify-between w-full">
-          <MultiSelect />
+        <div>
+          <ConfigParameters {configs} {events} {elements} />
+          <div class="px-4">
+            <div class="text-gray-500 text-sm ">Actions</div>
+            <div class="pt-1 flex items-center justify-between w-full ">
+              <MultiSelect />
+            </div>
+          </div>
         </div>
 
         <div
@@ -416,7 +442,7 @@
           on:anim-end={() => {
             animation = false;
           }}
-          class="flex flex-col h-full relative justify-between"
+          class="flex flex-col h-full relative justify-between "
         >
           <config-list
             id="cfg-list"
@@ -425,7 +451,7 @@
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full  h-auto overflow-y-auto"
+            class="flex flex-col w-full  h-auto overflow-y-auto px-4"
           >
             {#if configs.length !== 0}
               {#if !drag_start}
@@ -486,24 +512,23 @@
               {/if}
             {/if}
           </config-list>
-
-          <container class="flex flex-col w-full">
-            {#if !drag_start}
-              <div class="w-full flex justify-between mb-3">
-                <AddAction
-                  userHelper={true}
-                  {animation}
-                  on:new-config={(e) => {
-                    addConfigAtPosition(e, configs.length + 1);
-                  }}
-                />
-                <ExportConfigs />
-              </div>
-            {:else}
-              <Bin />
-            {/if}
-          </container>
         </div>
+        <container class="flex flex-col w-full">
+          {#if !drag_start}
+            <div class="w-full flex justify-between mb-3">
+              <AddAction
+                userHelper={true}
+                {animation}
+                on:new-config={(e) => {
+                  addConfigAtPosition(e, configs.length + 1);
+                }}
+              />
+              <ExportConfigs />
+            </div>
+          {:else}
+            <Bin />
+          {/if}
+        </container>
       </configs>
     </container>
   {/key}

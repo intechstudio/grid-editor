@@ -78,7 +78,9 @@
           ? 'rounded-bl bg-secondary'
           : `bg-secondary`} p-1 flex-grow border-0  text-gray-50 "
       >
-        {@html page !== "" ? page : `<span class="invisible">null</span>`}
+        Page {@html page !== ""
+          ? page + 1
+          : `<span class="invisible">null</span>`}
       </button>
 
       <!--       {#if manage}
