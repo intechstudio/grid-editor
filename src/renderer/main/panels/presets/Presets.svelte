@@ -270,7 +270,7 @@
       disabled={!checkIfOk(newPreset)}
       class="{!checkIfOk(newPreset)
         ? 'cursor-not-allowed opacity-50'
-        : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'}
+        : ' opacity-100  hover:bg-commit-saturate-10'}
       transition w-full px-2 py-2 my-2 block rounded text-white bg-commit
       relative border-none focus:outline-none"
     >
@@ -320,7 +320,7 @@
             class="{selectedIndex == i
               ? 'border-pick bg-secondary'
               : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'}
-            border-l-4 preset p-2 my-2 cursor-pointer relative"
+            border-l-4 preset p-2 my-2  relative"
           >
             <div class="w-full">{preset.name}</div>
 

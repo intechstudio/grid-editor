@@ -15,6 +15,7 @@
   import _utils from "../../../runtime/_utils.js";
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   export let events;
   export let elements;
@@ -154,13 +155,15 @@
           </svg>
         </button>
       </div>
-      <div class="text-white">
+      <div class="text-white flex">
         {#if stringname}
           <div>{stringname}</div>
         {/if}
         {#if !stringname}
           <div>Name your element</div>
         {/if}
+
+        <TooltipQuestion key={"configuration_element_name"} />
       </div>
 
       <!--       <input
@@ -252,8 +255,8 @@
             }}
             class:dummy={event.desc == undefined}
             class="{selectedEvent === event && event.desc !== undefined
-              ? 'shadow-md border-pick-desaturate-20  text-pick-desaturate-20 '
-              : 'hover:border-pick  hover:text-pick'}  text-white relative m-2 p-1 flex-grow border rounded focus:outline-none"
+              ? 'shadow-md border-blue-300  text-blue-300 '
+              : 'hover:border-blue-500  hover:text-blue-500'}   text-white relative m-2 p-1 flex-grow border rounded focus:outline-none"
           >
             {@html event.desc
               ? event.desc

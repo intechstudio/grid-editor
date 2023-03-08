@@ -483,6 +483,7 @@
                   >
                     <DynamicWrapper
                       let:toggle
+                      {drag_start}
                       {disable_pointer_events}
                       {index}
                       {config}
