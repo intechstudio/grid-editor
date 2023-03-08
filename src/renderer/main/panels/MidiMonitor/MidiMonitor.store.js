@@ -81,16 +81,18 @@ function fillUserFriendlyValues(midi_msg){
   }
 }
 
-function createMidiMonitor(){
+function createMidiMonitor(max_val){
 
   const store = writable([]);
 
   return {
     ...store,
     update_midi: (descr) => {
+      if(descr.class_name !== "MIDI")
+        return;
 
       store.update(s => {
-        if(s.length >= 30){
+        if(s.length >= max_val){
           s.shift()
         };
 
@@ -104,6 +106,27 @@ function createMidiMonitor(){
   }
 }
 
-export const midi_monitor_store = createMidiMonitor();
+function createSysExMonitor(max_val){
+  const store = writable([]);
+  return {
+    ...store,
+    update_sysex: (descr) => {
+      if(descr.class_name !== "MIDISYSEX")
+        return;
+
+      store.update(s => {
+        if(s.length >= max_val){
+          s.shift()
+        };
+
+        s = [...s, descr];
+        return s;
+      })
+    }
+  }
+}
+
+export const midi_monitor_store = createMidiMonitor(32);
+export const sysex_monitor_store = createSysExMonitor(32);
 
 
