@@ -3,13 +3,13 @@ import { runtime } from "../../../runtime/runtime.store";
 
 //Lookup table for command HEX values
 const cmdLookup = new Map([
-  ["8", { name: "Note-off",         p1Name: "Note",       p2Name: "Velocity"}],
-  ["9", { name: "Note-on",          p1Name: "Note",       p2Name: "Velocity"}],        
-  ["A", { name: "Aftertouch",       p1Name: "Note",       p2Name: "Touch"}],
-  ["B", { name: "Continous Control",       p1Name: "CTRL No.",   p2Name: "CTRL Val."}],
-  ["C", { name: "Patch CNG",        p1Name: "Inst. No.",  p2Name: "N/A"}],
-  ["D", { name: "CHN. Press.",      p1Name: "Pressure",   p2Name: "N/A"}],
-  ["E", { name: "Pitch Bend",       p1Name: "LSB",        p2Name: "MSB"}]
+  ["8", { name: "Note-off",           p1Name: "Note",           p2Name: "Velocity"}],
+  ["9", { name: "Note-on",            p1Name: "Note",           p2Name: "Velocity"}],        
+  ["A", { name: "Aftertouch",         p1Name: "Note",           p2Name: "Touch"}],
+  ["B", { name: "Continous Control",  p1Name: "Controller No.", p2Name: "Controller Value"}],
+  ["C", { name: "Patch CHange",       p1Name: "Instrument No.", p2Name: "N/A"}],
+  ["D", { name: "Channel Pressure",   p1Name: "Pressure",       p2Name: "N/A"}],
+  ["E", { name: "Pitch Bend",         p1Name: "LSB",            p2Name: "MSB"}]
 ]);
 
 //Musical notes in order
