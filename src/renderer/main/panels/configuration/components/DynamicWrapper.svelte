@@ -134,7 +134,6 @@
   }
 
   function handleToggle(short) {
-    console.log(config.short);
     if (toggle === true) {
       toggle = false;
       animationDuration =
@@ -157,10 +156,6 @@
       });
     }
   }
-
-  $: console.log(drag_start, "drag_start");
-
-  let isDragIconClicked = false;
 </script>
 
 <wrapper
@@ -176,16 +171,12 @@
     config-id={config.id}
   >
     <div
-      on:focus={() => {
-        isDragIconClicked = !isDragIconClicked;
-      }}
-      class="flex p-2 {disable_pointer_events
-        ? ' pointer-events-none'
-        : ''} {isDragIconClicked
-        ? 'cursor-grabbing'
-        : 'cursor-grab'}  bg-secondary "
+      class="flex p-2  {disable_pointer_events
+        ? 'pointer-events-none '
+        : 'cursor-grab'}  bg-secondary"
     >
       <!---cursor-grab problem-->
+
       <svg
         width="8"
         height="13"
@@ -223,8 +214,9 @@
     {:else}
       <div
         style="background-color:{config.information.color}"
-        class="{disable_pointer_events ? 'pointer-events-none' : ''} {config
-          .information.rounding == 'top'
+        class="{disable_pointer_events
+          ? 'pointer-events-none '
+          : 'cursor-grab'} {config.information.rounding == 'top'
           ? 'rounded-tl-2xl '
           : ''} {config.information.rounding == 'bottom'
           ? 'rounded-bl-2xl '
@@ -277,7 +269,10 @@
         on:click={() => {
           toggle = true;
         }}
-        class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2"
+        class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2 {disable_pointer_events ==
+        false
+          ? 'cursor-pointer'
+          : ''}"
       >
         <span class="block">{config.information.desc}</span>
       </name>

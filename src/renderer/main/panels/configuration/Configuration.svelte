@@ -451,7 +451,9 @@
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full  h-auto overflow-y-auto px-4"
+            class="flex flex-col w-full  h-auto overflow-y-auto px-4 {disable_pointer_events
+              ? 'cursor-grabbing'
+              : ''}"
           >
             {#if configs.length !== 0}
               {#if !drag_start}
@@ -477,7 +479,8 @@
                   <anim-block
                     animate:flip={{ duration: 300 }}
                     in:fade={{ delay: 0 }}
-                    class="select-none {config.information.rendering == 'hidden'
+                    class="select-none   {config.information.rendering ==
+                    'hidden'
                       ? 'hidden'
                       : 'block'}"
                   >
@@ -536,10 +539,10 @@
 </configuration>
 
 <style global>
-  .grabbed {
-    cursor: move !important;
+  /*   .grabbed {
+    cursor: grab !important;
   }
-
+ */
   .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -547,7 +550,7 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    cursor: default;
+    /*     cursor: default; */
   }
 
   ::-webkit-scrollbar {
