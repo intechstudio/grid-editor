@@ -19,6 +19,7 @@ export const tooltip_content = {
 
     "configuration_ui_events": "UI Events can be triggered by interacting with the control elements on the Grid modules (e.g. turning a knob or pressing a button).",
     "configuration_system_events": "System Events are shared by all Grid modules and Each System Event serves a specific purpose (see the specific system event descriptions).",
+    "configuration_element_name": 'Name your control element, by adding an "Element Name" field in Actions.',
     "configuration_selected_element": "A Control Element represents each individual button, knob or fader on a Grid module and are referred to by number from 0 to 15 from topdown left-to-right fashion.",
     "configuration_selected_events": "Egy kedves béka mindig felvidítja az embert a tóparton.",
     "configuration_pages": "Pages store configuration data independently for all your Grid modules, providing quick access to 4 different configurations.",

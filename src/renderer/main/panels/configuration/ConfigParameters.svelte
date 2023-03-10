@@ -15,6 +15,7 @@
   import _utils from "../../../runtime/_utils.js";
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   export let events;
   export let elements;
@@ -132,7 +133,7 @@
       ? 'block'
       : 'hidden'} flex"
   >
-    <div class="w-1/2 p-1">
+    <div class="w-3/4 p-1">
       <div class="flex items-center py-1">
         <div class="text-gray-500 text-sm ">Element Name</div>
         <button
@@ -154,20 +155,31 @@
           </svg>
         </button>
       </div>
-      <input
+      <div class="text-white flex">
+        {#if stringname}
+          <div>{stringname}</div>
+        {/if}
+        {#if !stringname}
+          <div>Name your element</div>
+        {/if}
+
+        <TooltipQuestion key={"configuration_element_name"} />
+      </div>
+
+      <!--       <input
         disabled
         type="text"
         bind:value={stringname}
         on:input={updateStringName}
         class="w-full bg-secondary border-none text-white py-1.5 pl-2 rounded-none"
-      />
+      /> -->
     </div>
 
-    <div class="w-1/2 p-1">
+    <!--     <div class="w-1/2 p-1">
       <div class="text-gray-500 py-1 text-sm">Selected Element</div>
 
-      <div class="flex flex-col relative justify-between font-bold text-white">
-        <!-- svelte-ignore a11y-no-onchange -->
+      <div class="flex flex-col relative  font-bold text-white">
+
         <select
           bind:value={elements.selected}
           on:change={(e) => {
@@ -184,15 +196,18 @@
           {/each}
         </select>
       </div>
-    </div>
+    </div> -->
   </div>
 
-  <div class="pb-2">
-    <div class="py-2 text-sm flex justify-between items-center">
+  <div class="pb-2  flex flex-col justify-center">
+    <!--     <div class="  flex justify-center items-center">
+      <hr class="w-[90%] my-6 border-white border-opacity-10 " />
+    </div> -->
+    <div class="py-2  text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
       <div class="flex text-gray-400">
-        <div
+        <button
           class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1"
           on:click={() => {
             copyAllEventConfigsFromSelf();
@@ -200,8 +215,9 @@
         >
           <div>Copy All</div>
           <TooltipSetter key={"configuration_copy_all"} />
-        </div>
-        <div
+        </button>
+
+        <button
           class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
           on:click={() => {
             overwriteAllEventConfigs();
@@ -209,29 +225,49 @@
         >
           <div>Overwrite</div>
           <TooltipSetter key={"configuration_overwrite"} />
-        </div>
+        </button>
       </div>
     </div>
 
-    <div class="flex bg-secondary shadow overflow-x-auto">
-      {#each events.options as event}
-        <button
-          on:click={() => {
-            handleSelectEvent(event);
-          }}
-          class:dummy={event.desc == undefined}
-          class="{selectedEvent === event && event.desc !== undefined
-            ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none"
-        >
-          {@html event.desc
-            ? event.desc
-            : `<span class="invisible">null</span>`}
-          {#if event.desc != undefined}
-            <TooltipSetter key={`event_${event.desc}`} />
-          {/if}
-        </button>
-      {/each}
+    <div class="flex flex-col justify-center items-center ">
+      <div class="flex shadow overflow-x-auto w-full ">
+        {#each events.options as event}
+          <!--           <button
+            on:click={() => {
+              handleSelectEvent(event);
+            }}
+            class:dummy={event.desc == undefined}
+            class="{selectedEvent === event && event.desc !== undefined
+              ? 'shadow-md bg-pick text-white'
+              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none"
+          >
+            {@html event.desc
+              ? event.desc
+              : `<span class="invisible">null</span>`}
+            {#if event.desc != undefined}
+              <TooltipSetter key={`event_${event.desc}`} />
+            {/if}
+          </button> -->
+
+          <button
+            on:click={() => {
+              handleSelectEvent(event);
+            }}
+            class:dummy={event.desc == undefined}
+            class="{selectedEvent === event && event.desc !== undefined
+              ? 'shadow-md border-blue-300  text-blue-300 '
+              : 'hover:border-blue-500  hover:text-blue-500'}   text-white relative m-2 p-1 flex-grow border rounded focus:outline-none"
+          >
+            {@html event.desc
+              ? event.desc
+              : `<span class="invisible">null</span>`}
+            {#if event.desc != undefined}
+              <TooltipSetter key={`event_${event.desc}`} />
+            {/if}
+          </button>
+        {/each}
+      </div>
+      <!-- <hr class="w-[90%] my-6 border-white border-opacity-10 " /> -->
     </div>
   </div>
 </div>

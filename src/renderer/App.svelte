@@ -172,7 +172,7 @@
 
     <ErrorConsole />
 
-    <TopSubMenu />
+    <!--   <TopSubMenu /> -->
 
     <div class="flex w-full h-full overflow-hidden ">
       <Splitpanes
@@ -205,7 +205,7 @@
     overflow: visible;
   }
 
-  /*betty magic variable*/
+  /*betty magic selector*/
   .splitpanes.modern-theme .splitpanes__pane.leftPane {
     overflow: hidden;
   }

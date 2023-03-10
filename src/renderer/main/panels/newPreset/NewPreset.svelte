@@ -27,6 +27,7 @@
   };
 
   let selectedPreset;
+  let presetsOfSelectedDevice;
 
   selectedPresetStore.subscribe((store) => {
     selectedPreset = store;
@@ -41,6 +42,8 @@
   let isSearchSortingShows = false;
   let searchbarValue = "";
   let filteredPresetCloud = [];
+
+  let sessionPreset = [];
 
   let isTitleUnique = undefined;
 
@@ -64,20 +67,24 @@
 
   let sortAsc = true;
   let sortField = "name";
+  let selectedPage;
 
   user_input.subscribe((ui) => {
     const rt = get(runtime);
+
     let device = rt.find(
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
-    if (typeof device === 'undefined'){
+    if (typeof device === "undefined") {
       return;
     }
 
     newPreset.type = ui.event.elementtype;
     selectedController = ui.event.elementtype;
     selectedModule = device.id.substr(0, 4);
+    selectedPage = ui.event.pagenumber;
+    presetsOfSelectedDevice = device.pages[selectedPage].control_elements;
   });
 
   appSettings.subscribe((store) => {
@@ -410,11 +417,114 @@
     }
   }
 
+  /*EZEN DOLGOZZ BETTI!*/
+  async function saveToSessionPreset(user) {
+    isSaveToSessionButtonClicked = true;
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newPreset_add_to_session",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "newPreset_add_to_session"
+    );
+
+    let callback = await function () {
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "presetsave",
+        message: `Ready to save preset(s)!`,
+      });
+
+      const li = get(user_input);
+
+      const configs = get(runtime);
+
+      let name;
+      let description;
+      let type;
+
+      //session profile numbering, simplify me pls
+      if (user == "sessionProfile") {
+        loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
+
+        let sessionPresetName;
+        sessionProfileNumbers = [];
+
+        sessionProfile.forEach((sessionProfileElement) => {
+          sessionProfileName = JSON.stringify(sessionProfileElement.name);
+
+          if (sessionProfileName.includes("Session Profile")) {
+            sessionProfileNumbers = [
+              ...sessionProfileNumbers,
+              parseInt(sessionProfileName.split(" ").pop(), 10),
+            ];
+          }
+        });
+
+        let largestNumber = Math.max(...sessionProfileNumbers);
+
+        if (largestNumber > 0) {
+          number = largestNumber;
+          number++;
+        } else {
+          number++;
+        }
+
+        name = `Session Profile ${number}`;
+        description = "";
+        type = selectedModule;
+      }
+
+      let profile = {
+        name: name,
+        description: description,
+        type: type,
+        isGridProfile: true, // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        id: uuidv4(),
+      };
+
+      configs.forEach((d) => {
+        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
+
+          profile.configs = page.control_elements.map((cfg) => {
+            return {
+              controlElementNumber: cfg.controlElementNumber,
+              events: cfg.events.map((ev) => {
+                return {
+                  event: ev.event.value,
+                  config: ev.config,
+                };
+              }),
+            };
+          });
+        }
+      });
+
+      saveToDirectory(PROFILE_PATH, name, profile, user);
+      isSaveToSessionButtonClicked = false;
+      engine.set("ENABLED");
+    };
+
+    runtime.fetch_page_configuration_from_grid(callback);
+  }
+
   onMount(() => {
     animateFade = true;
     animateFly = false;
     moveOld();
   });
+
+  $: console.log("lol", presetsOfSelectedDevice);
 </script>
 
 <presets
@@ -469,6 +579,17 @@
       <div>Save</div>
       <TooltipSetter key={"newPreset_save"} />
     </button>
+  </div>
+
+  <div>
+    {#each sessionPreset as sessionPresetElement}
+      {sessionPresetElement}
+    {/each}
+    {#each presetsOfSelectedDevice as presetsOfDevice}
+      <div>
+        {presetsOfDevice.controlElementName}, {presetsOfDevice.controlElementType}
+      </div>
+    {/each}
   </div>
 
   <div class="overflow-hidden flex flex-col">

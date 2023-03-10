@@ -74,13 +74,10 @@
     items-center justify-between"
   >
     <div class="px-4">{$appSettings.rightPanel}</div>
-    <div />
 
-
-
-    {#if $unsaved_changes}
+    <!--     {#if $unsaved_changes}
       <div in:fade class="flex items-center">
-        <div class="mr-4">Unsaved changed</div>
+        <div class="mr-4">Unsaved changes</div>
         <div
           class="px-4 py-1 flex items-center justify-center rounded-md
           bg-select-saturate-20 text-yellow-300"
@@ -100,9 +97,9 @@
           <TooltipSetter key={"configuration_header_clear"} />
         </button>
       </div>
-    {/if}
+    {/if} -->
 
-    <div class="px-4">
+    <!--     <div class="px-4">
       <div class="flex items-center">
         <button
           on:click={debugWriteBuffer}
@@ -191,6 +188,6 @@
           <TooltipSetter key={"configuration_header_store"} />
         </button>
       </div>
-    </div>
+    </div> -->
   </div>
 </top-sub-menu>
