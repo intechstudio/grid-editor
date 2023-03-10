@@ -1,5 +1,6 @@
-import activeWindow from 'active-win';
+// import activeWindow from 'active-win'; // package should be revisited and properly tested on windows 7 and older mac os versions, should do with new plugin architecture
 
 export async function getActiveWindow() {
-  return await activeWindow();
+  return undefined;
+  //return await activeWindow(); activeWindow is a package, which can cause incompaitibility issues on windows 7 and older mac os versions.
 }
