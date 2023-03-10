@@ -33,7 +33,7 @@
   export let disable_pointer_events = false;
 
   export let toggle = false;
-  export let drag_start;
+
 
   let animationDuration = 0;
 

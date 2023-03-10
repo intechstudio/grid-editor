@@ -616,11 +616,7 @@
     }
   }
 
-  onMount(() => {
-    animateFade = true;
-    animateFly = false;
-    moveOld();
-  });
+
 
   function deleteSessionProfile(profile) {
     isActionButtonClickedStore.set(true);
@@ -703,6 +699,12 @@
       "newProfile_info"
     );
   }
+
+    onMount(() => {
+    animateFade = true;
+    animateFly = false;
+    moveOld();
+  });
 </script>
 
 <div class=" flex flex-col h-full justify-between p-4 bg-primary ">
@@ -782,7 +784,7 @@
                             );
                           }}
                           on:keypress={(e) => {
-                            if (e.charCode === 13) {
+                            if (e.key === 13) {
                               let newName = e.target.value.trim();
                               updateSessionProfileTitle(
                                 sessionProfileElement,

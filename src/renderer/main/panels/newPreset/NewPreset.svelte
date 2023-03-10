@@ -1,83 +1,82 @@
 <script>
-  import { get } from "svelte/store";
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
-  import { selectedPresetStore } from "/runtime/preset-helper.store";
-  import { presetChangeCallbackStore } from "./preset-change.store";
-  import { onMount } from "svelte";
+import { get} from "svelte/store";
+import {fade, blur, fly, slide, scale} from "svelte/transition";
+import {selectedPresetStore} from "/runtime/preset-helper.store";
+import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+import {presetChangeCallbackStore} from "./preset-change.store";
+import {onMount} from "svelte";
+import {v4 as uuidv4} from "uuid";
+import {Pane,Splitpanes} from "svelte-splitpanes";
+import { engine,logger,runtime,user_input} from "../../../runtime/runtime.store.js";
+import {appSettings,presetListRefresh,} from "../../../runtime/app-helper.store.js";
+import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store.js";
-
-  import {
-    appSettings,
-    presetListRefresh,
-  } from "../../../runtime/app-helper.store.js";
-
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
-
-  let newPreset = {
+let newPreset = {
     name: "",
     description: "",
     type: "",
-  };
+};
 
-  let selectedPreset;
-  let presetsOfSelectedDevice;
+let selectedPreset = undefined;
+let presetsOfSelectedDevice;
+let isActionButtonClicked;
+let isDeleteButtonClicked = false;
 
-  selectedPresetStore.subscribe((store) => {
+selectedPresetStore.subscribe((store) => {
     selectedPreset = store;
+});
+
+isActionButtonClickedStore.subscribe((store) => {
+    isActionButtonClicked = store;
   });
 
-  let selectedModule;
-  let selectedController;
+let selectedModule;
+let selectedController;
 
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
-  let PRESETS = [];
+let PRESET_PATH = get(appSettings).persistant.presetFolder;
+let PRESETS = [];
+let disableButton = false;
+let isSaveToCloudButtonClicked = false;
+let isSaveToSessionButtonClicked = false;
+let isSearchSortingShows = false;
+let searchbarValue = "";
+let filteredPresetCloud = [];
+let presetCloud = [];
+let sessionPreset = [];
 
-  let isSearchSortingShows = false;
-  let searchbarValue = "";
-  let filteredPresetCloud = [];
+let isSessionPresetNameUnique = undefined;;
 
-  let sessionPreset = [];
+let animateFade;
+let animateFly;
 
-  let isTitleUnique = undefined;
-
-  let animateFade;
-  let animateFly;
-
-  let searchSuggestions = [
-    {
-      value: "button",
+let searchSuggestions = [{
+        value: "button",
     },
     {
-      value: "fader",
+        value: "fader",
     },
     {
-      value: "potentiometer",
+        value: "potentiometer",
     },
     {
-      value: "encoder",
+        value: "encoder",
     },
-  ];
+];
 
-  let sortAsc = true;
-  let sortField = "name";
-  let selectedPage;
+let sortAsc = true;
+let sortField = "name";
+let selectedPage;
 
-  user_input.subscribe((ui) => {
+user_input.subscribe((ui) => {
     const rt = get(runtime);
 
     let device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
     if (typeof device === "undefined") {
-      return;
+        return;
     }
 
     newPreset.type = ui.event.elementtype;
@@ -85,102 +84,170 @@
     selectedModule = device.id.substr(0, 4);
     selectedPage = ui.event.pagenumber;
     presetsOfSelectedDevice = device.pages[selectedPage].control_elements;
-  });
+});
 
-  appSettings.subscribe((store) => {
+appSettings.subscribe((store) => {
     let new_folder = store.persistant.presetFolder;
     if (new_folder !== PRESET_PATH) {
-      PRESET_PATH = new_folder;
+        PRESET_PATH = new_folder;
 
-      loadFromDirectory;
+        loadFromDirectory;
     }
-  });
+});
 
-  presetListRefresh.subscribe((store) => {
+presetListRefresh.subscribe((store) => {
     if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
-      loadFromDirectory();
+        loadFromDirectory();
     }
-  });
+});
 
-  presetChangeCallbackStore.subscribe(async (store) => {
+presetChangeCallbackStore.subscribe(async (store) => {
     if (store.action == "update" || store.action == "delete") {
-      await loadFromDirectory();
+        await loadFromDirectory();
     }
-  });
+});
 
-  async function moveOld() {
+async function moveOld() {
     await window.electron.configs.moveOldConfigs(PRESET_PATH, "presets");
     loadFromDirectory();
-  }
+}
 
-  async function loadFromDirectory() {
+async function loadFromDirectory() {
     animateFade = false;
 
     if (PRESET_PATH == undefined || PRESET_PATH == "") {
-      return;
+        return;
     }
 
     PRESETS = await window.electron.configs.loadConfigsFromDirectory(
-      PRESET_PATH,
-      "presets"
+        PRESET_PATH,
+        "presets"
     );
 
     PRESETS.forEach((element) => {
-      if (element.id == undefined || element.id == "") {
-        element.id = element.name.replace(/\W+/g, "-");
-      }
+        if (element.id == undefined || element.id == "") {
+            element.id = element.name.replace(/\W+/g, "-");
+        }
     });
 
-    filteredPresetCloud = PRESETS;
+    presetCloud = PRESETS.filter(
+        (element) => element.folder != "sessionPreset"
+    );
+
+    sessionPreset = PRESETS.filter(
+        (element) => element.folder == "sessionPreset"
+    );
+
+    filteredPresetCloud = presetCloud;
 
     sortPresetCloud(sortField, sortAsc);
 
     updateSearchFilter(searchbarValue);
 
     animateFade = true;
-  }
+}
 
-  async function saveToDirectory(path, name, preset, user) {
+async function updateSessionPresetTitle(preset, newName) {
+    checkIfPresetTitleUnique(newName);
+    checkIfTitleFieldEmpty(newName);
+
+    animateFade = false;
+
+    if (isSessionPresetNameUnique && isTitleDirty && preset.name != newName) {
+        let oldName = preset.name;
+        preset.name = newName;
+
+        await window.electron.configs.updateConfig(
+            PRESET_PATH,
+            newName,
+            preset,
+            "preset",
+            oldName,
+            "sessionPreset"
+        );
+    } else if (isSessionPresetNameUnique == false && profile.name != newName) {
+        sessionPreset = [];
+
+        logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "sessionprofileeditname",
+            message: `A preset already exists with name "${newName}" in Session Profiles.`,
+        });
+    }
+
+    await loadFromDirectory();
+}
+
+async function saveToDirectory(path, name, preset, user) {
+  disableButton = true;
+    if (isSaveToSessionButtonClicked == true) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetesave",
+        message: `${name} saved to Session Presets!`,
+      });
+    }
+
+    if (isSaveToCloudButtonClicked == true) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetsave",
+        message: `${name} saved to Preset Cloud!`,
+      });
+    }
+
+    if (
+      isSaveToSessionButtonClicked != true &&
+      isSaveToCloudButtonClicked != true
+    ) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "profilesave",
+        message: `${name} saved!`,
+      });
+    }
+
     await window.electron.configs.saveConfig(
-      path,
-      name,
-      preset,
-      "presets",
-      user
+        path,
+        name,
+        preset,
+        "presets",
+        user
     );
-
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: "presetsave",
-      message: `Preset saved!`,
-    });
     window.electron.analytics.google("preset-library", {
-      value: "save success",
+        value: "save success",
     });
     window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save success"
+        "application",
+        "presets",
+        "preset",
+        "save success"
     );
 
     animateFly = true;
-
+/* 
     newPreset.name = "";
-    newPreset.description = "";
+    newPreset.description = ""; */
 
     await loadFromDirectory();
     animateFly = false;
-  }
+    disableButton = false;
+}
 
-  function prepareSave(user) {
-    window.electron.analytics.google("preset-library", { value: "save start" });
+function prepareSave(user) {
+
+    window.electron.analytics.google("preset-library", {
+        value: "save start"
+    });
     window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
+        "application",
+        "presets",
+        "preset",
+        "save start"
     );
 
     let elementnumber = $user_input.event.elementnumber;
@@ -188,412 +255,766 @@
     let dy = $user_input.brc.dy;
     let pagenumber = $user_input.event.pagenumber;
 
-    let callback = function () {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "presetsave",
-        message: `Ready to save preset!`,
-      });
+    let callback = function() {
+        logger.set({
+            type: "progress",
+            mode: 0,
+            classname: "presetsave",
+            message: `Ready to save preset!`,
+        });
 
-      const rt = get(runtime);
+        const rt = get(runtime);
 
-      let preset = {
-        ...newPreset,
-        isGridPreset: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-      };
+        let name = selectedPreset.name;
+        let description = selectedPreset.description;
+        let type = selectedPreset.type;
+        let id = selectedPreset.id;
 
-      rt.forEach((d) => {
-        if (d.dx == dx && d.dy == dy) {
-          const page = d.pages.find((x) => x.pageNumber == pagenumber);
+        let preset = {
+            name: name,
+            description: description,
+            type: type,
+            isGridPreset: true, // differentiator from different JSON files!
+            version: {
+                major: $appSettings.version.major,
+                minor: $appSettings.version.minor,
+                patch: $appSettings.version.patch,
+            },
+            id: id,
+        };
 
-          const element = page.control_elements.find(
-            (x) => x.controlElementNumber === elementnumber
-          );
+        rt.forEach((d) => {
+            if (d.dx == dx && d.dy == dy) {
+                const page = d.pages.find((x) => x.pageNumber == pagenumber);
 
-          preset.configs = {
-            events: element.events.map((ev) => {
-              return {
-                event: ev.event.value,
-                config: ev.config,
-              };
-            }),
-          };
+                const element = page.control_elements.find(
+                    (x) => x.controlElementNumber === elementnumber
+                );
+
+                preset.configs = {
+                    events: element.events.map((ev) => {
+                        return {
+                            event: ev.event.value,
+                            config: ev.config,
+                        };
+                    }),
+                };
+            }
+        });
+
+        
+      if (user == "user") {
+        let isProfileCloudNameUnique;
+
+        profileCloud.forEach((profile) => {
+          if (
+            name.toLowerCase() == profile.name.toLowerCase() &&
+            profile.folder == "user"
+          ) {
+            isProfileCloudNameUnique = false;
+          }
+        });
+
+        if (isProfileCloudNameUnique == false) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profilesavefailed",
+            message: `A profile with "${name}" name is already exists in Profile Cloud!`,
+          });
+        } else {
+          saveToDirectory(PRESET_PATH, preset.name, preset, user);;
+          deleteFromDirectory(selectedProfile);
         }
-      });
+      }
 
-      saveToDirectory(PRESET_PATH, newPreset.name, preset, user);
+      if (user == "sessionProfile") {
+        if (selectedModule != selectedProfile.type) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profilesavefailed",
+            message: `Cannot overwrite a profile with different module type!`,
+          });
+        } else {
+          saveToDirectory(PRESET_PATH, preset.name, preset, user);;
+        }
+      }
 
-      engine.set("ENABLED");
+        
+
+        engine.set("ENABLED");
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
-  }
+}
 
-  function checkIfOk(preset) {
+/*EZEN DOLGOZZ BETTI!*/
+let number = 0;
+let sessionPresetNumbers = [];
+
+async function saveToSessionPreset() {
+    let user = "sessionPreset"
+
+    window.electron.analytics.google("preset-library", {
+        value: "save start"
+    });
+    window.electron.analytics.influx(
+        "application",
+        "presets",
+        "preset",
+        "save start"
+    );
+
+    let elementnumber = $user_input.event.elementnumber;
+    let dx = $user_input.brc.dx;
+    let dy = $user_input.brc.dy;
+    let pagenumber = $user_input.event.pagenumber;
+
+    let callback = function() {
+        logger.set({
+            type: "progress",
+            mode: 0,
+            classname: "presetsave",
+            message: `Ready to save preset!`,
+        });
+
+        const rt = get(runtime);
+
+        let name;
+        let description;
+        let type;
+
+        if (user == "sessionPreset") {
+            loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
+
+            let sessionPresetName;
+            sessionPresetNumbers = [];
+
+            sessionPreset.forEach((sessionPresetElement) => {
+                console.log(user)
+                sessionPresetName = JSON.stringify(sessionPresetElement.name);
+
+                if (sessionPresetName.includes("Session Preset")) {
+                    sessionPresetNumbers = [
+                        ...sessionPresetNumbers,
+                        parseInt(sessionPresetName.split(" ").pop(), 10),
+                    ];
+                }
+            });
+
+            let largestNumber = Math.max(...sessionPresetNumbers);
+
+            if (largestNumber > 0) {
+                number = largestNumber;
+                number++;
+            } else {
+                number++;
+            }
+
+            name = `Session Preset ${number}`;
+            description = "";
+            type = selectedController;
+        }
+
+        let preset = {
+            name: name,
+            description: description,
+            type: type,
+            isGridPreset: true, // differentiator from different JSON files!
+            version: {
+                major: $appSettings.version.major,
+                minor: $appSettings.version.minor,
+                patch: $appSettings.version.patch,
+            },
+            id: uuidv4(),
+        };
+
+        rt.forEach((d) => {
+            if (d.dx == dx && d.dy == dy) {
+                const page = d.pages.find((x) => x.pageNumber == pagenumber);
+
+                const element = page.control_elements.find(
+                    (x) => x.controlElementNumber === elementnumber
+                );
+
+                preset.configs = {
+                    events: element.events.map((ev) => {
+                        return {
+                            event: ev.event.value,
+                            config: ev.config,
+                        };
+                    }),
+                };
+            }
+        });
+
+        saveToDirectory(PRESET_PATH, preset.name, preset, user);
+
+        engine.set("ENABLED");
+    };
+
+    runtime.fetch_page_configuration_from_grid(callback);
+}
+
+function checkIfOk(preset) {
     let ok = true;
 
     if (preset.name == "") {
-      ok = false;
+        ok = false;
     }
 
     if (preset.type == "") {
-      ok = false;
+        ok = false;
     }
 
     return ok;
-  }
+}
 
-  function openPresetInfo() {
+function openPresetInfo() {
     $appSettings.modal = "presetInfo";
 
     window.electron.analytics.influx("preset-library", {
-      value: "newPreset_info",
+        value: "newPreset_info",
     });
     window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_info"
+        "application",
+        "presets",
+        "preset",
+        "newPreset_info"
     );
-  }
+}
 
-  function filterShowHide() {
+function filterShowHide() {
     isSearchSortingShows = !isSearchSortingShows;
     animateFade = true;
 
     window.electron.analytics.influx("profile-library", {
-      value: "newPreset_filter_show_hide",
+        value: "newPreset_filter_show_hide",
     });
     window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_filter_show_hide"
+        "application",
+        "presets",
+        "preset",
+        "newPreset_filter_show_hide"
     );
-  }
+}
 
-  function updateSearchFilter(input) {
+function updateSearchFilter(input) {
     animateFade = false;
     filteredPresetCloud = [];
 
     const arrayOfSearchTerms = input.trim().toLowerCase().split(" ");
 
-    PRESETS.forEach((preset) => {
-      const currentPresetSearchable =
-        preset.name.toLowerCase() +
-        " " +
-        preset.type.toLowerCase() +
-        " " +
-        preset.folder.toLowerCase();
-      let filterMatch = true;
+    presetCloud.forEach((preset) => {
+        const currentPresetSearchable =
+            preset.name.toLowerCase() +
+            " " +
+            preset.type.toLowerCase() +
+            " " +
+            preset.folder.toLowerCase();
+        let filterMatch = true;
 
-      arrayOfSearchTerms.forEach((searchTerm) => {
-        if (currentPresetSearchable.indexOf(searchTerm) === -1) {
-          filterMatch = false;
+        arrayOfSearchTerms.forEach((searchTerm) => {
+            if (currentPresetSearchable.indexOf(searchTerm) === -1) {
+                filterMatch = false;
+            }
+        });
+
+        if (filterMatch) {
+            filteredPresetCloud = [...filteredPresetCloud, preset];
         }
-      });
-
-      if (filterMatch) {
-        filteredPresetCloud = [...filteredPresetCloud, preset];
-      }
     });
 
     sortPresetCloud(sortField, sortAsc);
-  }
+}
 
-  function sortPresetCloud(field, asc) {
+function sortPresetCloud(field, asc) {
     if (field == "name") {
-      if (asc == true) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareNameAscending);
-      }
-      if (asc == false) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareNameDescending);
-      }
+        if (asc == true) {
+            filteredPresetCloud = filteredPresetCloud.sort(compareNameAscending);
+        }
+        if (asc == false) {
+            filteredPresetCloud = filteredPresetCloud.sort(compareNameDescending);
+        }
     }
 
     if (field == "date") {
-      if (asc == true) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareDateAscending);
-      }
-      if (asc == false) {
-        filteredPresetCloud = filteredPresetCloud.sort(compareDateDescending);
-      }
+        if (asc == true) {
+            filteredPresetCloud = filteredPresetCloud.sort(compareDateAscending);
+        }
+        if (asc == false) {
+            filteredPresetCloud = filteredPresetCloud.sort(compareDateDescending);
+        }
     }
 
     if (field == "control_element") {
-      if (asc == true) {
-        filteredPresetCloud = filteredPresetCloud.sort(
-          compareControlElementAscending
-        );
-      }
-      if (asc == false) {
-        filteredPresetCloud = filteredPresetCloud.sort(
-          compareControlElementDescending
-        );
-      }
+        if (asc == true) {
+            filteredPresetCloud = filteredPresetCloud.sort(
+                compareControlElementAscending
+            );
+        }
+        if (asc == false) {
+            filteredPresetCloud = filteredPresetCloud.sort(
+                compareControlElementDescending
+            );
+        }
     }
-  }
+}
 
-  let compareNameAscending = (a, b) => {
+let compareNameAscending = (a, b) => {
     return a.name
-      .toLowerCase()
-      .localeCompare(b.name.toLowerCase(), undefined, { numeric: true });
-  };
+        .toLowerCase()
+        .localeCompare(b.name.toLowerCase(), undefined, {
+            numeric: true
+        });
+};
 
-  let compareNameDescending = (a, b) => {
+let compareNameDescending = (a, b) => {
     return b.name
-      .toLowerCase()
-      .localeCompare(a.name.toLowerCase(), undefined, { numeric: true });
-  };
+        .toLowerCase()
+        .localeCompare(a.name.toLowerCase(), undefined, {
+            numeric: true
+        });
+};
 
-  function compareDateAscending(a, b) {
+function compareDateAscending(a, b) {
     return a.fsModifiedAt - b.fsModifiedAt;
-  }
+}
 
-  function compareDateDescending(a, b) {
+function compareDateDescending(a, b) {
     return b.fsModifiedAt - a.fsModifiedAt;
-  }
+}
 
-  function compareControlElementAscending(a, b) {
+function compareControlElementAscending(a, b) {
     return a.type.localeCompare(b.type, undefined, {
-      numeric: true,
+        numeric: true,
     });
-  }
+}
 
-  function compareControlElementDescending(a, b) {
+function compareControlElementDescending(a, b) {
     return b.type.localeCompare(a.type, undefined, {
-      numeric: true,
+        numeric: true,
     });
-  }
+}
 
-  function useSearchSuggestion(suggestionText) {
+function useSearchSuggestion(suggestionText) {
     updateSearchFilter((searchbarValue = suggestionText));
 
     window.electron.analytics.influx("preset-library", {
-      value: "newPreset_use_search_suggestion",
+        value: "newPreset_use_search_suggestion",
     });
     window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_use_search_suggestion"
+        "application",
+        "presets",
+        "preset",
+        "newPreset_use_search_suggestion"
     );
-  }
+}
 
-  async function checkIfPresetTitleUnique(input) {
+async function checkIfPresetTitleUnique(input) {
     let notUniqueName = [];
 
-    PRESETS.forEach((element) => {
-      if (
-        element.name.toLowerCase() == input.toLowerCase() &&
-        element.folder == "user"
-      ) {
-        notUniqueName = [...notUniqueName, element.name];
-      }
+    presetCloud.forEach((element) => {
+        if (
+            element.name.toLowerCase() == input.toLowerCase() &&
+            element.folder == "user"
+        ) {
+            notUniqueName = [...notUniqueName, element.name];
+        }
     });
 
     if (notUniqueName.length > 0) {
-      isTitleUnique = false;
+        isSessionPresetNameUnique = false;
     } else {
-      isTitleUnique = true;
+        isSessionPresetNameUnique = true;
     }
-  }
+}
 
-  function fadeAnimation(node, options) {
+let isTitleDirty = undefined;
+
+async function checkIfTitleFieldEmpty(input) {
+    if (input.length < 1) {
+        isTitleDirty = false;
+    } else {
+        isTitleDirty = true;
+    }
+}
+
+function fadeAnimation(node, options) {
     if (animateFade) {
-      return options.fn(node, options);
+        return options.fn(node, options);
     }
-  }
+}
 
-  function flyAnimation(node, options) {
+function flyAnimation(node, options) {
     if (animateFly) {
-      return options.fn(node, options);
+        return options.fn(node, options);
     }
+}
+
+function selectPreset(preset) {
+    selectedPreset = preset;
+    selectedPresetStore.set(selectedPreset);
+}
+
+
+
+async function deleteFromDirectory(element) {
+    disableButton = true;
+
+    if (isDeleteButtonClicked) {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetdelete",
+        message: `${element.name.trim()} deleted!`,
+      });
+    }
+    isDeleteButtonClicked = false;
+
+    await window.electron.configs.deleteConfig(
+      PRESET_PATH,
+      element.name.trim(),
+      "presets",
+      element.folder
+    );
+
+    await loadFromDirectory();
+    disableButton = false;
+    isActionButtonClickedStore.set(false);
   }
 
-  /*EZEN DOLGOZZ BETTI!*/
-  async function saveToSessionPreset(user) {
-    isSaveToSessionButtonClicked = true;
+function deleteSessionPreset(preset) {
+    isActionButtonClickedStore.set(true);
+    isDeleteButtonClicked = true;
+    deleteFromDirectory(preset);
 
-    window.electron.analytics.influx("profile-library", {
-      value: "newPreset_add_to_session",
+    window.electron.analytics.influx("preset-library", {
+      value: "newPreset_delete",
     });
     window.electron.analytics.influx(
       "application",
       "presets",
       "preset",
-      "newPreset_add_to_session"
+      "newPreset_delete"
     );
-
-    let callback = await function () {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "presetsave",
-        message: `Ready to save preset(s)!`,
-      });
-
-      const li = get(user_input);
-
-      const configs = get(runtime);
-
-      let name;
-      let description;
-      let type;
-
-      //session profile numbering, simplify me pls
-      if (user == "sessionProfile") {
-        loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
-
-        let sessionPresetName;
-        sessionProfileNumbers = [];
-
-        sessionProfile.forEach((sessionProfileElement) => {
-          sessionProfileName = JSON.stringify(sessionProfileElement.name);
-
-          if (sessionProfileName.includes("Session Profile")) {
-            sessionProfileNumbers = [
-              ...sessionProfileNumbers,
-              parseInt(sessionProfileName.split(" ").pop(), 10),
-            ];
-          }
-        });
-
-        let largestNumber = Math.max(...sessionProfileNumbers);
-
-        if (largestNumber > 0) {
-          number = largestNumber;
-          number++;
-        } else {
-          number++;
-        }
-
-        name = `Session Profile ${number}`;
-        description = "";
-        type = selectedModule;
-      }
-
-      let profile = {
-        name: name,
-        description: description,
-        type: type,
-        isGridProfile: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        id: uuidv4(),
-      };
-
-      configs.forEach((d) => {
-        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
-
-          profile.configs = page.control_elements.map((cfg) => {
-            return {
-              controlElementNumber: cfg.controlElementNumber,
-              events: cfg.events.map((ev) => {
-                return {
-                  event: ev.event.value,
-                  config: ev.config,
-                };
-              }),
-            };
-          });
-        }
-      });
-
-      saveToDirectory(PROFILE_PATH, name, profile, user);
-      isSaveToSessionButtonClicked = false;
-      engine.set("ENABLED");
-    };
-
-    runtime.fetch_page_configuration_from_grid(callback);
   }
 
-  onMount(() => {
+  function saveFromSessionToCloud(preset) {
+    isSaveToCloudButtonClicked = true;
+    isActionButtonClickedStore.set(true);
+
+    selectPreset(preset);
+    prepareSave("user");
+
+    selectedPreset = undefined;
+    isSaveToCloudButtonClicked = false;
+
+    window.electron.analytics.influx("profile-library", {
+      value: "newProfile_save",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "profiles",
+      "profile",
+      "newProfile_save"
+    );
+  }
+
+  function rewriteSessionPreset(preset) {
+    isActionButtonClickedStore.set(true);
+
+    selectPreset(preset);
+    prepareSave("sessionPreset");
+
+    window.electron.analytics.influx("preset-library", {
+      value: "newPreset_rewrite",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "presets",
+      "newPreset_rewrite"
+    );
+  }
+
+onMount(() => {
     animateFade = true;
     animateFly = false;
     moveOld();
-  });
+});
 
-  $: console.log("lol", presetsOfSelectedDevice);
+$: console.log("lol", presetsOfSelectedDevice);
 </script>
 
 <presets
-  class="w-full h-full p-4 flex flex-col justify-start bg-primary {$engine ==
+  class="flex flex-col h-full justify-between p-4 bg-primary {$engine ==
   'ENABLED'
     ? ''
     : 'pointer-events-none'}"
 >
+<div class="flex w-full h-full flex-col overflow-hidden ">
   <div
-    in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-    out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-    class="bg-secondary bg-opacity-25 rounded-lg p-4 flex flex-col justify-start
-    items-start"
-  >
-    <div class="text-white pb-2">Save element preset to local folder</div>
+  class="flex justify-between items-center p-4 text-white font-medium
+  cursor-pointer w-full "
+>
+  <div>Session Presets</div>
+</div>
+<Splitpanes
+horizontal="true"
+theme="modern-theme"
+pushOtherPanes={false}
+class="w-full h-full"
+>
 
-    <div class="flex flex-col w-full py-2">
-      <div class="text-sm text-gray-500 pb-1">Preset name</div>
-      <input
-        bind:value={newPreset.name}
-        on:input={checkIfPresetTitleUnique(newPreset.name.trim())}
-        type="text"
-        placeholder="Name of this preset..."
-        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
-      />
-      {#if isTitleUnique == false}
-        <span class="text-red-500 py-2">This name is already in use.</span>
-      {/if}
-    </div>
+<Pane size={31}>
 
-    <div class="flex flex-col w-full py-2">
-      <div class="text-sm text-gray-500 pb-1">Description</div>
-      <textarea
-        bind:value={newPreset.description}
-        type="text"
-        placeholder="What does this preset do?"
-        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
-      />
-    </div>
-
-    <button
-      on:click={() => {
-        prepareSave("user");
-      }}
-      disabled={!checkIfOk(newPreset) || !isTitleUnique}
-      class="{!checkIfOk(newPreset) || !isTitleUnique
-        ? 'cursor-not-allowed opacity-50'
-        : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'}
-      transition w-full px-2 py-2 my-2 block rounded text-white bg-commit
-      relative border-none focus:outline-none"
+  <div class=" flex flex-col bg-primary overflow-hidden h-full w-full">
+    <div
+      in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+      out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+      class=" flex flex-col p-3 overflow-hidden h-full"
     >
-      <div>Save</div>
-      <TooltipSetter key={"newPreset_save"} />
-    </button>
-  </div>
+      <button
+        on:click={() => {
+           saveToSessionPreset();
+        }}
+        class="relative bg-commit block  
+    w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
+    hover:border-commit-desaturate-10 focus:outline-none"
+      >
+        <div>Save Session Profile</div>
+        <TooltipSetter key={"newProfile_add_to_session"} />
+      </button>
+      <div class="flex flex-col overflow-y-auto gap-4  ">
+        {#if sessionPreset.length == 0}
+          <div class="text-gray-300">No preset to show</div>
+        {/if}
 
-  <div>
-    {#each sessionPreset as sessionPresetElement}
-      {sessionPresetElement}
-    {/each}
-    {#each presetsOfSelectedDevice as presetsOfDevice}
-      <div>
-        {presetsOfDevice.controlElementName}, {presetsOfDevice.controlElementType}
+        {#each sessionPreset as sessionPresetElement (sessionPresetElement.id)}
+          <button
+            in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
+            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            on:click={() =>  selectPreset(sessionPresetElement)}
+            class="cursor-pointer flex justify-between gap-2 items-center
+        text-left p-2 bg-secondary hover:bg-primary-600
+        {sessionPresetElement == selectedPreset
+              ? 'border border-green-300'
+              : 'border border-black border-opacity-0'}
+        "
+          >
+            <div class="flex gap-2 items-center">
+              <div
+                class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
+                rounded-xl {selectedController == sessionPresetElement.type
+                  ? 'bg-violet-600'
+                  : 'bg-gray-600 '}"
+              >
+                {sessionPresetElement.type}
+              </div>
+
+              <div class="flex justify-between flex-row">
+                <div><!--use:clickOutside={{ useCapture: true }}-->
+                  <input
+                    type="text"
+                    value={sessionPresetElement.name}
+
+                    on:click={() =>  selectPreset(sessionPresetElement)}
+                    on:blur={(e) => {
+                      let newName = e.target.value.trim();
+                      animateFade = false; 
+                       updateSessionPresetTitle(
+                        sessionPresetElement,
+                        newName
+                      );
+                    }}
+                    on:keypress={(e) => {
+                      if (e.key === 13) {
+                        let newName = e.target.value.trim();
+                         updateSessionPresetTitle(
+                          sessionPresetElement,
+                          newName
+                        ) ;
+                      }
+                    }}
+                    class="text-zinc-100 min-w-[15px] h-fit break-words
+              bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="flex gap-1 ">
+              <button
+                on:click|preventDefault={() => {
+                  deleteSessionPreset(sessionPresetElement);
+                }}
+                class="p-1 hover:bg-primary-500 {selectedPreset ==
+                  sessionPresetElement  && disableButton == true 
+                  ? 'pointer-events-none'
+                  : 0} rounded relative"
+              >
+                <svg
+                  class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
+                  viewBox="0 0 39 39"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+                23.9102"
+                    stroke="#FFF"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+                35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
+                3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
+                19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
+                    stroke="#FFF"
+                    stroke-width="2"
+                  />
+                </svg>
+                <!-- <TooltipConfirm key={"newProfile_delete"} /> -->
+                <TooltipSetter key={"newProfile_delete"} />
+              </button>
+
+              <button
+                class="p-1 hover:bg-primary-500 rounded relative {selectedPreset ==
+                  sessionPresetElement  && disableButton == true 
+                  ? 'pointer-events-none'
+                  : 0}"
+                on:click|preventDefault={() => {
+                  saveFromSessionToCloud(sessionPresetElement); 
+                }}
+                on:blur={() => {
+                   isActionButtonClickedStore.set(false); 
+                }}
+              >
+                <svg
+                  class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                  viewBox="0 0 19 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
+                1.52244 0.753154C2.00468 0.270917 2.65873 0 3.34072
+                0H14.1137C14.7956 0.000145639 15.4496 0.271159 15.9317
+                0.753429L18.0159 2.83757C18.4981 3.3197 18.7691 3.97364
+                18.7693 4.65557V15.4286C18.7693 16.1106 18.4984 16.7646
+                18.0161 17.2468C17.5339 17.7291 16.8798 18 16.1979
+                18H3.34072C2.65873 18 2.00468 17.7291 1.52244
+                17.2468C1.0402 16.7646 0.769287 16.1106 0.769287
+                15.4286V2.57143ZM3.34072 1.28571C2.99972 1.28571 2.6727
+                1.42117 2.43158 1.66229C2.19046 1.90341 2.055 2.23044
+                2.055 2.57143V15.4286C2.055 15.7696 2.19046 16.0966
+                2.43158 16.3377C2.6727 16.5788 2.99972 16.7143 3.34072
+                16.7143V10.9286C3.34072 10.4171 3.5439 9.92654 3.90558
+                9.56487C4.26726 9.20319 4.7578 9 5.26929 9H14.2693C14.7808
+                9 15.2713 9.20319 15.633 9.56487C15.9947 9.92654 16.1979
+                10.4171 16.1979 10.9286V16.7143C16.5389 16.7143 16.8659
+                16.5788 17.107 16.3377C17.3481 16.0966 17.4836 15.7696
+                17.4836 15.4286V4.65557C17.4835 4.31461 17.348 3.98763
+                17.1069 3.74657L15.0227 1.66243C14.7817 1.42129 14.4547
+                1.28579 14.1137 1.28571H13.6264V4.5C13.6264 5.01149
+                13.4232 5.50203 13.0616 5.86371C12.6999 6.22538 12.2093
+                6.42857 11.6979 6.42857H6.555C6.04351 6.42857 5.55297
+                6.22538 5.1913 5.86371C4.82962 5.50203 4.62643 5.01149
+                4.62643 4.5V1.28571H3.34072ZM5.91214 1.28571V4.5C5.91214
+                4.6705 5.97987 4.83401 6.10043 4.95457C6.22099 5.07513
+                6.3845 5.14286 6.555 5.14286H11.6979C11.8684 5.14286
+                12.0319 5.07513 12.1524 4.95457C12.273 4.83401 12.3407
+                4.6705 12.3407 4.5V1.28571H5.91214ZM14.9121
+                16.7143V10.9286C14.9121 10.7581 14.8444 10.5946 14.7239
+                10.474C14.6033 10.3534 14.4398 10.2857 14.2693
+                10.2857H5.26929C5.09879 10.2857 4.93528 10.3534 4.81472
+                10.474C4.69416 10.5946 4.62643 10.7581 4.62643
+                10.9286V16.7143H14.9121Z"
+                    fill="#F1F1F1"
+                  />
+                </svg>
+
+                <TooltipSetter key={"newProfile_save"} />
+              </button>
+
+              <button
+                class="p-1 hover:bg-primary-500 rounded relative"
+                on:click|preventDefault={() => {
+                  rewriteSessionPreset(sessionPresetElement); 
+                }}
+                on:blur={() => {
+                  isActionButtonClickedStore.set(false); 
+                }}
+              >
+                <svg
+                  class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+                  viewBox="0 0 19 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <g clip-path="url(#clip0_262_1198)">
+                    <path
+                      d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
+                  13.074 0 10.1961 0C5.22682 0 1.20468 4.01786 1.19825
+                  8.98929C1.19182 13.965 5.22254 18 10.1961 18C14.0811 18
+                  17.3918 15.5357 18.6518 12.0836C18.684 11.9936 18.6368
+                  11.8929 18.5468 11.8629L17.3318 11.445C17.2895 11.4305
+                  17.2431 11.4331 17.2027 11.4523C17.1622 11.4716 17.1309
+                  11.5058 17.1154 11.5479C17.0768 11.655 17.034 11.7621
+                  16.989 11.8671C16.6183 12.7457 16.0868 13.5343 15.4097
+                  14.2114C14.738 14.8844 13.9427 15.4213 13.0675
+                  15.7929C12.1611 16.1764 11.1947 16.3714 10.2004
+                  16.3714C9.20396 16.3714 8.23968 16.1764 7.33325
+                  15.7929C6.4572 15.4229 5.66165 14.8857 4.99111
+                  14.2114C4.31761 13.5398 3.78121 12.7436 3.41182
+                  11.8671C3.02825 10.9586 2.83325 9.99429 2.83325
+                  8.99786C2.83325 8.00143 3.02825 7.03714 3.41182
+                  6.12857C3.78254 5.25 4.31396 4.46143 4.99111
+                  3.78429C5.66825 3.10714 6.45682 2.57571 7.33325
+                  2.20286C8.23968 1.81929 9.20611 1.62429 10.2004
+                  1.62429C11.1968 1.62429 12.1611 1.81929 13.0675
+                  2.20286C13.9436 2.57281 14.7391 3.10997 15.4097
+                  3.78429C15.6218 3.99643 15.8211 4.22143 16.0054
+                  4.45714L14.7154 5.46429C14.6899 5.48403 14.6704 5.51058
+                  14.6593 5.54088C14.6482 5.57117 14.6459 5.60399 14.6526
+                  5.63555C14.6593 5.66712 14.6748 5.69614 14.6973
+                  5.7193C14.7198 5.74245 14.7483 5.75879 14.7797
+                  5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
+                  18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
+                  2.42571 18.4932 2.51357V2.51357Z"
+                      fill="#F1F1F1"
+                    />
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_262_1198">
+                      <rect
+                        width="18"
+                        height="18"
+                        fill="white"
+                        transform="translate(0.769287)"
+                      />
+                    </clipPath>
+                  </defs>
+                </svg>
+                <TooltipSetter key={"newProfile_rewrite"} />
+              </button>
+            </div>
+          </button>
+        {/each}
       </div>
-    {/each}
+    </div>
   </div>
+</Pane>
+<Pane minSize={28}>
+  <div
+  class="flex flex-col h-full  overflow-hidden bg-primary"
+>
+    <div class="flex justify-between items-center p-4 
+    w-full">
 
-  <div class="overflow-hidden flex flex-col">
-    <div class="flex justify-between items-center p-4 w-full">
       <div class="text-white font-medium">Preset Cloud</div>
       <button
         on:click={() => {
@@ -607,14 +1028,17 @@
           Show Filters
         {/if}
       </button>
-    </div>
+    </div> 
 
-    <div
-      id="browse-presets"
-      class="overflow-hidden w-full h-full flex flex-col "
-    >
+          <div
+            class="flex flex-col overflow-hidden"
+            id="browse-presets"
+            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+          >
       {#if isSearchSortingShows == true}
-        <div>
+        <div                 in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+        out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}>
           <div class="flex flex-col gap-1 p-3">
             <div class="relative">
               <svg
@@ -779,7 +1203,7 @@
         </div>
       {/if}
 
-      <!--       <div class="w-full">
+             <div class="w-full">
         {#if PRESETS.length === 0}
           <div in:fade={{ delay: 500 }} class="text-yellow-500">
             <b>Presets not found!</b>
@@ -789,7 +1213,7 @@
             Preferences menu...
           </div>
         {/if}
-      </div> -->
+      </div> 
       <div
         in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
         out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
@@ -835,7 +1259,7 @@
                         <button
                           class="p-1 hover:bg-primary-500 rounded"
                           on:click|preventDefault={() => {
-                            selectedPresetStore.set(preset);
+                             selectPreset(preset);
                           }}
                         >
                           <svg
@@ -895,7 +1319,7 @@
                       <button
                         class="p-1 hover:bg-primary-500 rounded relative"
                         on:click|preventDefault={() => {
-                          selectedPresetStore.set(preset);
+                           selectPreset(preset);
                           openPresetInfo();
                         }}
                       >
@@ -960,15 +1384,75 @@
         </div>
       </div>
     </div>
+
+</Pane>
+</Splitpanes>
+
+<!--     <div class="flex flex-col w-full py-2">
+      <div class="text-sm text-gray-500 pb-1">Preset name</div>
+      <input
+        bind:value={newPreset.name}
+        on:input={checkIfPresetTitleUnique(newPreset.name.trim())}
+        type="text"
+        placeholder="Name of this preset..."
+        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
+      />
+      {#if isTitleUnique == false}
+        <span class="text-red-500 py-2">This name is already in use.</span>
+      {/if}
+    </div>
+
+    <div class="flex flex-col w-full py-2">
+      <div class="text-sm text-gray-500 pb-1">Description</div>
+      <textarea
+        bind:value={newPreset.description}
+        type="text"
+        placeholder="What does this preset do?"
+        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
+      />
+    </div>
+
+    <button
+      on:click={() => {
+        prepareSave("user");
+      }}
+      disabled={!checkIfOk(newPreset) || !isTitleUnique}
+      class="{!checkIfOk(newPreset) || !isTitleUnique
+        ? 'cursor-not-allowed opacity-50'
+        : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'}
+      transition w-full px-2 py-2 my-2 block rounded text-white bg-commit
+      relative border-none focus:outline-none"
+    >
+      <div>Save</div>
+      <TooltipSetter key={"newPreset_save"} />
+    </button>
   </div>
+
+  <div>
+    <button on:click={()=>{saveToSessionPreset()}}>add to Session Preset</button>
+    {#each sessionPreset as sessionPresetElement}
+      <div class="text-white">{sessionPresetElement.name}</div>
+    {/each}
+
+    {#each presetsOfSelectedDevice as presetsOfDevice}
+      <div>
+        {presetsOfDevice.controlElementName}, {presetsOfDevice.controlElementType}
+      </div>
+    {/each}
+  </div>
+
+-->
+</div>
 </presets>
 
 <!-- <style>
-  .preset:first-child {
+.preset:first-child {
     margin-top: 0;
-  }
+}
 
-  .preset:last-child {
+.preset:last-child {
     margin-bottom: 0;
-  }
-</style> -->
+}
+</style>
+
+-->
