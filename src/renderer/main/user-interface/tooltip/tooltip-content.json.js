@@ -103,10 +103,16 @@ export const tooltip_content = {
     "newProfile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",
 
 
-    "newPreset_save": "Save the configuration of the currently active element to your Local Folder.",
+    "newPreset_delete": "Delete this Session Preset permanently.",
+    "newPreset_save": "Move this Session Preset to the Preset Cloud folder",
+    "newPreset_rewrite": "Overwrite this Session Preset with the selected module's configuration.",
     "newPreset_info": "Open the Preset description window.",
-    "newProfile_add_to_session": "Save the currently active module configuration locally as a Session Profile.",
-    "newProfile_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
-    "newPeset_desc_edit": "Edit the description of this Preset.",
+    "newPreset_add_to_session": "Save the currently active module configuration locally as a Session Preset.",
+    "newPreset_exit_overlay": "Hide the Overlay.",
+    "newPreset_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
+    "newPreset_desc_edit": "Edit the description of this Preset.",
     "newPreset_load_preset": "Previously saved presets stored in your Local Folder are shown here.",
+
+
+    
 }
