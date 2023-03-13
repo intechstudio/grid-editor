@@ -5,6 +5,13 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from 'svelte/store';
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
+
+  function handleMessage(e){
+    e.detail.forEach(element => {
+      console.log(Math.floor(element.size));
+    });
+  }
+
   // ok but slow nice
 
   //Defines
@@ -89,138 +96,134 @@
 
 <div transition:fade={{ duration: 150 }}
   class="bg-primary flex flex-col h-full">
-  <!-- Panel Header Text -->
-  <div class="text-white font-large text-2xl bg-pick pl-4 font-medium">MIDI Monitor</div>
-  <!-- Last MIDI Message -->
-  <div class="px-4 text-white">
-    <div class="text-xl">
-      <div>Command: {midiMessage.command}</div>
-      <div class="grid grid-cols-3">
-        <div>Device: {midiMessage.device}</div>
-        <div>Channel: {midiMessage.channel}</div>
-        <div>
-          Direction: {midiMessage.direction}
+  <div class="flex flex-col">
+    <!-- Panel Header Text -->
+    <div class="text-white font-large text-2xl bg-pick pl-4 font-medium">MIDI Monitor</div>
+    <!-- Last MIDI Message -->
+    <div class="px-4 text-white">
+      <div class="text-xl">
+        <div>Command: {midiMessage.command}</div>
+        <div class="grid grid-cols-3">
+          <div>Device: {midiMessage.device}</div>
+          <div>Channel: {midiMessage.channel}</div>
+          <div>
+            Direction: {midiMessage.direction}
+          </div>
+        </div>
+        <div class="flex grid grid-cols-2 justify-items-center mt-2">
+          <div class="grid grid-rows-2 w-4/5 h-20">
+            <div class="flex items-center justify-center bg-lime-50 rounded-t-xl text-primary">
+                {midiMessage.p1_name}
+            </div>
+            <div class="flex items-center justify-center border border-lime-50 text-lime-50 rounded-b-xl">
+              {midiMessage.p1_value}
+            </div>
+          </div>
+          <div class="grid grid-rows-2 w-4/5">
+            <div class="flex items-center justify-center bg-lime-50 rounded-t-xl text-primary">
+              {midiMessage.p2_name}
+            </div>
+            <div class="flex items-center justify-center border border-lime-50 text-lime-50 rounded-b-xl">
+              {midiMessage.p2_value}
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex grid grid-cols-2 justify-items-center mt-2">
-        <div class="grid grid-rows-2 w-4/5 h-20">
-          <div class="flex items-center justify-center bg-lime-50 rounded-t-xl text-primary">
-              {midiMessage.p1_name}
-          </div>
-          <div class="flex items-center justify-center border border-lime-50 text-lime-50 rounded-b-xl">
-            {midiMessage.p1_value}
-          </div>
-        </div>
-        <div class="grid grid-rows-2 w-4/5">
-          <div class="flex items-center justify-center bg-lime-50 rounded-t-xl text-primary">
-            {midiMessage.p2_name}
-          </div>
-          <div class="flex items-center justify-center border border-lime-50 text-lime-50 rounded-b-xl">
-            {midiMessage.p2_value}
-          </div>
-        </div>
+    </div>
+    <!-- History Header -->
+    <div class="flex text-white font-large bg-pick pl-4 justify-between">
+      <div class="text-white text-2xl font-medium">History</div>
+      <div class="flex items-center">
+        <span class="text-white font-medium mr-2">Debug View</span>
+        <Toggle bind:toggleValue={debug}/>
       </div>
     </div>
+    <!-- MIDI History and Debug View -->
   </div>
-  <!-- History Header -->
-  <div class="flex text-white font-large bg-pick pl-4 justify-between">
-    <div class="text-white text-2xl font-medium">History</div>
-    <div class="flex items-center">
-      <span class="text-white font-medium mr-2">Debug View</span>
-      <Toggle bind:toggleValue={debug}/>
-    </div>
-  </div>
-  <!-- MIDI History and Debug View -->
-  {#if debug}
-    <div class="font-mono">
-        <div class="w-full grid grid-cols-6">
-          <div>[X,Y]</div>
-          <div>CH</div>
-          <div>CMD</div>
-          <div>P1</div>
-          <div>P2</div>
-          <div>DIR</div>
-        </div>
-    </div>
-      <div class="flex flex-col w-full">
-        {#each $stream as midi}
-          {#if midi.class_name === "MIDI"}
-            <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
+
+  <div class="flex-grow overflow-hidden">
+    <Splitpanes horizontal="true" theme="modern-theme" pushOtherPanes={false} class="h-full">
+      <Pane minSize={20} maxSize={80} class="flex flex-col bg-primary p-4">
+        {#if debug}
+          <div class="flex w-full font-medium text-white">MIDI Messages</div>
+          <div class="w-full grid grid-cols-6 text-white">
+            <div>[X,Y]</div>
+            <div>CH</div>
+            <div>CMD</div>
+            <div>P1</div>
+            <div>P2</div>
+            <div>DIR</div>
+          </div>
+          <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
+            {#each $stream as midi}
+              <div class="w-full grid grid-cols-6 {midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
               flex items-start justify-start w-full font-mono ">
-              <div class="w-full grid grid-cols-6">
-                <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
-                <div>{midi.class_parameters.CHANNEL}</div>
-                <div>{midi.class_parameters.COMMAND}</div>
-                <div>{midi.class_parameters.PARAM1}</div>
-                <div>{midi.class_parameters.PARAM2}</div>
-                <div class="flex items-center">
-                  {midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}
-                </div>
+                {#if midi.class_name === "MIDI"}
+                  <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
+                  <div>{midi.class_parameters.CHANNEL}</div>
+                  <div>{midi.class_parameters.COMMAND}</div>
+                  <div>{midi.class_parameters.PARAM1}</div>
+                  <div>{midi.class_parameters.PARAM2}</div>
+                  <div class="flex items-center">
+                    {midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}
+                  </div>
+                {:else}
+                  <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
+                  <div class="col-span-4">SysEx: {String.fromCharCode.apply(String, midi.raw).substr(8)}</div>
+                  <div class="flex items-center">{midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}</div>
+                {/if}
               </div>
-            </div>
-          {:else}
-            <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-green-400'} 
-              flex items-center justify-between w-full font-mono">
-              <div class="w-full grid grid-cols-6 ">
-                <div>[{midi.brc_parameters.SX},{midi.brc_parameters.SY}]</div>
-                <div>SysEx:{String.fromCharCode.apply(String, midi.raw).substr(8)}</div>
-                <div class="flex items-center">{midi.class_instr == "REPORT" ? "RX🡐" : "TX🡒"}</div>
-              </div>
-            </div>
-          {/if}
-        {/each}
-      </div>
-      {#if $debug_monitor_store.length != 0}
-        <div class="text-white">Debug Text:</div>
-        <div
-          class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px]"
-        >
-          {#each $debug_monitor_store as debug, i}
-            <span class="debugtexty px-1 py-0.5 ">{debug}</span>
-          {/each}
-        </div>
-      {/if}
-  {:else}
-    <Splitpanes horizontal="true" theme="modern-theme" pushOtherPanes={false} class="">
-      <Pane>
-        <div class="flex flex-col h-full bg-primary">
-          <div class="flex w-full py-2 font-medium text-white">MIDI Messages</div>
-          <div class="flex flex-col flex-grow overflow-y-auto bg-secondary py-1 m-4">
-          {#each $midi_monitor_store as midi, i}
-            <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-commit'} 
-              flex items-start justify-start w-full font-mono pl-2">
+            {/each}
+          </div>
+        {:else}
+          <div class="flex w-full font-medium text-white">
+            MIDI Messages
+          </div>
+          <div class="flex flex-col flex-grow  bg-secondary overflow-y-auto">
+            {#each $midi_monitor_store as midi, i}
               <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div class="flex w-full hover:shadow-sm hover:shadow-white" 
+              <div class="{midi.class_instr == 'REPORT' ? 'text-blue-400' : 'text-commit'} 
+                flex w-full font-mono"
                 on:mouseover={() => onEnterMidiMessage(this, i)}
                 on:mouseleave={() => onLeaveMidiMessage(this, i)}
                 >
-                <div>{midi.class_parameters.DEVICE_NAME} |</div>
-                <div>(Ch: {midi.class_parameters.CHANNEL}) |</div>
-                <div>{midi.class_parameters.COMMAND_NAME} |</div>
-                <div>{midi.class_instr == 'REPORT' ? "RX🡐" : "TX🡒"}</div>
+                <span class="pr-4">{midi.class_parameters.DEVICE_NAME}</span>
+                <span class="pr-4">(Ch: {midi.class_parameters.CHANNEL})</span>
+                <span class="pr-4">{midi.class_parameters.COMMAND_NAME}</span>
+                <span class="pr-4">{midi.class_instr == 'REPORT' ? "RX🡐" : "TX🡒"}</span>
               </div>
-            </div>
-          {/each}
-        </div>
+            {/each}
+          </div>
+        {/if}
       </Pane>
-      <Pane>
-        <div class="flex flex-col h-1/2 bg-primary">
-          <div class="flex w-full py-2 font-medium text-white">SysEx Messages</div>
-          <div class="flex-col w-full flex-grow overflow-y-auto bg-secondary py-1">
-            <!-- {#each $sysex_monitor_store as sysex}
-              <div class="{sysex.class_instr == 'REPORT' ? 'text-blue-400' : 'text-commit'} 
-                flex items-start justify-start w-full font-mono pl-2">
+      <Pane size={40} minSize={20} maxSize={80} class="flex flex-col bg-primary p-4">
+        {#if debug}
+        <div class="flex w-full font-medium text-white">
+          Debug Text
+        </div>
+        <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
+            {#if $debug_monitor_store.length != 0}
+                {#each $debug_monitor_store as debug, i}
+                  <span class="font-mono text-white debugtexty">{debug}</span>
+                {/each}
+            {/if}
+          </div>
+        {:else}
+          <div class="flex w-full font-medium text-white">
+            SysEx Messages
+          </div>
+          <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
+            {#each $sysex_monitor_store as sysex}
+              <div class="{sysex.class_instr == 'REPORT' ? 'text-blue-400' : 'text-commit'} font-mono">
                 <div class="block">
-                  <div>
                     <span>SysEx: {String.fromCharCode.apply(String, sysex.raw).substr(8)}</span>
-                    <span> {sysex.class_instr == 'REPORT' ? "RX🡐" : "TX🡒"}</span>
-                  </div>
+                    <span>{sysex.class_instr == 'REPORT' ? "RX🡐" : "TX🡒"}</span>
                 </div>
               </div>
-            {/each} -->
+            {/each}
           </div>
-        </div>
+        {/if}
       </Pane>
     </Splitpanes>
-  {/if}
+  </div>
 </div>
