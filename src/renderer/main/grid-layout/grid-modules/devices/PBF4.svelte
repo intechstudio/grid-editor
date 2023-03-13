@@ -100,7 +100,6 @@
           <Led
             color={ledcolor_array[elementNumber]}
             size={$appSettings.size}
-            position={elementposition_array[elementNumber]}
           />
           <Potentiometer
             {elementNumber}
@@ -121,7 +120,6 @@
           <Led
             color={ledcolor_array[elementNumber]}
             size={$appSettings.size}
-            position={elementposition_array[elementNumber]}
           />
 
           <Fader
@@ -144,7 +142,7 @@
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
 
-          <Button {id} {elementNumber} size={$appSettings.size} />
+          <Button {id}  position={elementposition_array[elementNumber]} {elementNumber} size={$appSettings.size} />
         </div>
       {/each}
     </div>

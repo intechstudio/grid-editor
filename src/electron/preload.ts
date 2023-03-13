@@ -27,6 +27,9 @@ contextBridge.exposeInMainWorld('electron', {
     firmwareDownload: (targetFolder, arch) =>
       ipcRenderer.invoke('firmwareDownload', { targetFolder }),
   },
+  serial: {
+    restartSerialCheckInterval: () => ipcRenderer.invoke('restartSerialCheckInterval')
+  },
   configs: {
     moveOldConfigs: (configPath, rootDirectory) =>
       ipcRenderer.invoke('moveOldConfigs', { configPath, rootDirectory }),
