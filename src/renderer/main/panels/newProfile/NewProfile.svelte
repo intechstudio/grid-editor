@@ -55,13 +55,17 @@
   let isSessionProfileOpen = true;
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  let PRESET_PATH = get(appSettings).persistant.presetFolder;
   let PROFILES = [];
+  let PRESETS = [];
   let profileCloud = [];
   let sessionProfile = [];
+  let sessionPreset = [];
   let filteredProfileCloud = [];
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       loadFromDirectory();
@@ -97,6 +101,15 @@
       "profiles"
     );
 
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+      PRESET_PATH,
+      "presets"
+    );
+
+    sessionPreset = PRESETS.filter(
+      (element) => element.folder == "sessionPreset"
+    );
+
     PROFILES.forEach((element) => {
       if (element.id == undefined || element.id == "") {
         element.id = element.name.replace(/\W+/g, "-");
@@ -122,10 +135,13 @@
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       moveOld();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   async function moveOld() {
@@ -654,6 +670,7 @@
   }
 
   function rewriteSessionProfile(profile) {
+    let user = "sessionPreset";
     isActionButtonClickedStore.set(true);
 
     selectProfile(profile);
@@ -695,6 +712,171 @@
       "profiles",
       "profile",
       "newProfile_info"
+    );
+  }
+
+  let numberForSessionPreset = 0;
+  let sessionPresetNumbers = [];
+
+  async function convertProfileToSessionPreset(profile) {
+    let user = console.log(profile, "profile convert");
+
+    profile.configs.forEach((profileElement) => {
+      console.log("preset config:", profileElement);
+
+      let user = "sessionPreset";
+
+      window.electron.analytics.google("preset-library", {
+        value: "save start",
+      });
+      window.electron.analytics.influx(
+        "application",
+        "presets",
+        "preset",
+        "save start"
+      );
+
+      let elementnumber = $user_input.event.elementnumber;
+      let dx = $user_input.brc.dx;
+      let dy = $user_input.brc.dy;
+      let pagenumber = $user_input.event.pagenumber;
+
+      let name;
+      let description;
+      let type;
+
+      let callback = function () {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "presetsave",
+          message: `Ready to save preset!`,
+        });
+
+        const rt = get(runtime);
+
+        if (user == "sessionPreset") {
+          loadFromDirectory();
+
+          let sessionPresetName;
+          sessionPresetNumbers = [];
+
+          sessionPreset.forEach((sessionPresetElement) => {
+            sessionPresetName = JSON.stringify(sessionPresetElement.name);
+
+            if (sessionPresetName.includes("Session Preset")) {
+              sessionPresetNumbers = [
+                ...sessionPresetNumbers,
+                parseInt(sessionPresetName.split(" ").pop(), 10),
+              ];
+            }
+          });
+
+          let largestNumber = Math.max(...sessionPresetNumbers);
+
+          if (largestNumber > 0) {
+            numberForSessionPreset = largestNumber;
+            numberForSessionPreset++;
+          } else {
+            numberForSessionPreset++;
+          }
+
+          console.log(numberForSessionPreset, "numberForSessionPreset");
+
+          name = profile.name + ` Session Preset ${numberForSessionPreset}`;
+          description = "";
+
+          console.log(profile.type);
+
+          if (profile.type == "BU16") {
+            type = "button";
+          }
+
+          if (profile.type == "PO16") {
+            type = "potmeter";
+          }
+
+          if (profile.type == "EN16") {
+            type = "encoder";
+          }
+
+          if (profile.type == "EF44") {
+            if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
+              type = "encoder";
+            }
+            if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+              type = "fader";
+            }
+          }
+
+          if (profile.type == "PBF4") {
+            if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
+              type = "potmeter";
+            }
+            if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+              type = "fader";
+            }
+            if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
+              type = "button";
+            }
+          }
+        }
+
+        let preset = {
+          name: name,
+          description: description,
+          type: type,
+          isGridPreset: true, // differentiator from different JSON files!
+          version: {
+            major: $appSettings.version.major,
+            minor: $appSettings.version.minor,
+            patch: $appSettings.version.patch,
+          },
+          id: uuidv4(),
+        };
+
+        console.log(preset, "preset");
+
+        rt.forEach((d) => {
+          if (d.dx == dx && d.dy == dy) {
+            const page = d.pages.find((x) => x.pageNumber == pagenumber);
+
+            const element = page.control_elements.find(
+              (x) => x.controlElementNumber === elementnumber
+            );
+
+            preset.configs = {
+              events: element.events.map((ev) => {
+                return {
+                  event: ev.event.value,
+                  config: ev.config,
+                };
+              }),
+            };
+          }
+        });
+
+        saveToSessionPreset(
+          PRESET_PATH,
+          preset.name,
+          preset,
+          user
+        ); /*nem mindent ment le néha, valszeg valamy async dolgo lehet!!!*/
+
+        engine.set("ENABLED");
+      };
+
+      runtime.fetch_page_configuration_from_grid(callback);
+    });
+  }
+
+  async function saveToSessionPreset(path, name, preset, user) {
+    await window.electron.configs.saveConfig(
+      path,
+      name,
+      preset,
+      "presets",
+      user
     );
   }
 
@@ -1263,6 +1445,17 @@
                                 </svg>
                               </button>
                             {/if}
+
+                            <button
+                              class="p-1 hover:bg-primary-500 rounded relative text-white"
+                              on:click|preventDefault={() => {
+                                convertProfileToSessionPreset(
+                                  profileCloudElement
+                                );
+                              }}
+                            >
+                              p
+                            </button>
 
                             <button
                               class="p-1 hover:bg-primary-500 rounded relative"

@@ -93,7 +93,7 @@
     selectedController = ui.event.elementtype;
     selectedModule = device.id.substr(0, 4);
     selectedPage = ui.event.pagenumber;
-    presetsOfSelectedDevice = device.pages[selectedPage].control_elements;
+    /*     presetsOfSelectedDevice = device.pages[selectedPage].control_elements; */
   });
 
   appSettings.subscribe((store) => {
@@ -153,6 +153,8 @@
     sortPresetCloud(sortField, sortAsc);
 
     updateSearchFilter(searchbarValue);
+
+    sessionPreset.sort(compareDateDescending);
 
     animateFade = true;
   }
@@ -398,7 +400,6 @@
         sessionPresetNumbers = [];
 
         sessionPreset.forEach((sessionPresetElement) => {
-          console.log(user);
           sessionPresetName = JSON.stringify(sessionPresetElement.name);
 
           if (sessionPresetName.includes("Session Preset")) {
@@ -744,8 +745,6 @@
     animateFly = false;
     moveOld();
   });
-
-  $: console.log("lol", presetsOfSelectedDevice);
 </script>
 
 <presets
