@@ -707,19 +707,19 @@
 
 <div class=" flex flex-col h-full justify-between p-4 bg-primary ">
   <div class="flex w-full h-full flex-col overflow-hidden ">
+    <div
+      class="flex justify-between items-center p-4 text-white font-medium
+      cursor-pointer w-full "
+    >
+      <div>Session Profiles</div>
+    </div>
     <Splitpanes
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class="w-full "
+      class="flex w-full h-full flex-col overflow-hidden "
     >
       <Pane size={31}>
-        <div
-          class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full "
-        >
-          <div>Session Profiles</div>
-        </div>
         <div class=" flex flex-col bg-primary overflow-hidden h-full ">
           <div
             in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}

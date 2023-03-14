@@ -155,8 +155,6 @@
       });
     }
   }
-
-  $: console.log("disable_pointer_events", disable_pointer_events);
 </script>
 
 <wrapper

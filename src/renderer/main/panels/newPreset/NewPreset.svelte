@@ -755,18 +755,18 @@
     : 'pointer-events-none'}"
 >
   <div class="flex w-full h-full flex-col overflow-hidden ">
+    <div
+      class="flex justify-between items-center p-4 text-white font-medium
+  cursor-pointer w-full "
+    >
+      <div>Session Presets</div>
+    </div>
     <Splitpanes
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class="w-full h-full"
+      class="flex w-full h-full flex-col overflow-hidden"
     >
-      <div
-        class="flex justify-between items-center p-4 text-white font-medium
-  cursor-pointer w-full "
-      >
-        <div>Session Presets</div>
-      </div>
       <Pane size={31}>
         <div class=" flex flex-col bg-primary overflow-hidden h-full w-full">
           <div
