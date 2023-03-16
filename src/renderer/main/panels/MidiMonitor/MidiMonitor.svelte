@@ -1,5 +1,5 @@
 <script>
-  import { fade } from "svelte/transition";
+  import { fade, slide, fly } from "svelte/transition";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from 'svelte/store';
@@ -7,7 +7,9 @@
   import { 
     midi_monitor_store,
     sysex_monitor_store,
+    maxMidi
   } from "./MidiMonitor.store";
+  import { afterUpdate } from 'svelte';
   // ok but slow nice
 
   //Defines
@@ -16,6 +18,12 @@
   let hover = false;
   let hoverIndex = undefined;
   let last = undefined;
+  let midiList;
+
+  afterUpdate(() => {
+    if(midiList)
+      midiList.scrollTop = midiList.scrollHeight;
+  });
 
   midi_monitor_store.subscribe(() => {
     let mms = get(midi_monitor_store);
@@ -69,65 +77,59 @@
 
 <div transition:fade={{ duration: 150 }}
   class="bg-primary flex flex-col h-full">
-  <div class="flex text-white text-2xl font-medium bg-pick pl-4 justify-between">
-    MIDI Monitor
-  </div>
-  <div class="flex flex-col mx-4 my-2">
-    <!-- Panel Header Text -->
-    <div class="flex text-white font-large justify-between">
-      <div class="flex items-center">
-        <span class="text-white font-medium mr-2">Debug View</span>
-        <Toggle bind:toggleValue={debug}/>
-      </div>
-      <button 
-        class="px-4 bg-select hover:bg-select-saturate-10 rounded" 
-        on:click={onClearClicked}>
-        Clear All
-      </button>
+  <!-- Header -->
+  <div class="flex text-white justify-between px-4 py-2">
+    <div class="text-2xl">
+      MIDI Monitor
+    </div>
+    <div class="flex items-center">
+      <span class="text-white font-medium mr-2">Debug View</span>
+      <Toggle bind:toggleValue={debug}/>
     </div>
   </div>
 
-  {#if !debug}
+  <div class="flex flex-grow flex-col">
     <!-- Last MIDI Message -->
-    <div class="px-4 text-white">
-      <div class="text-xl">
-        <div class="flex flex-cols">
-          <span>Displayed Message:</span>
-          <div class="w-100 rounded bg-white text-black px-2 ml-2">{hover ? "Selected" : "Last"}</div> 
-        </div>
-        <div>Command: {last ? last.data.command.name : "N/A"}</div>
-        <div class="grid grid-cols-3">
-          <div>Device: {last ? last.device.name : "N/A"}</div>
-          <div>Channel: {last ? last.data.channel : "N/A"}</div>
-          <div>
-            Direction: {last ? ( last.data.direction == 'REPORT' ? "RX🡐" : "TX🡒" ) : "N/A"}
+    {#if !debug}
+      <div class="flex-none h-auto px-4 text-white">
+        <div class="text-xl">
+          <div class="flex flex-cols">
+            <span>Displayed Message:</span>
+            <div class="w-100 rounded bg-white text-black px-2 ml-2">{hover ? "Selected" : "Last"}</div> 
           </div>
-        </div>
-        <div class="flex grid grid-cols-2 justify-items-center mt-2">
-          <div class="grid grid-rows-2 w-4/5 h-20">
-            <div class="flex items-center justify-center {hover ? "bg-green-300" : "bg-lime-50"} rounded-t-xl text-primary">
-                {last ? last.data.params.p1.name : "N/A"}
-            </div>
-            <div class="flex items-center justify-center border {hover ? "border-green-300" : "border-lime-50"} text-lime-50 rounded-b-xl">
-              {last ? last.data.params.p1.value : "N/A"}
+          <div>Command: {last ? last.data.command.name : "N/A"}</div>
+          <div class="grid grid-cols-3">
+            <div>Device: {last ? last.device.name : "N/A"}</div>
+            <div>Channel: {last ? last.data.channel : "N/A"}</div>
+            <div>
+              Direction: {last ? ( last.data.direction == 'REPORT' ? "RX🡐" : "TX🡒" ) : "N/A"}
             </div>
           </div>
-          <div class="grid grid-rows-2 w-4/5">
-            <div class="flex items-center justify-center {hover ? "bg-green-300" : "bg-lime-50"} rounded-t-xl text-primary">
-              {last ? last.data.params.p2.name : "N/A"}
+          <div class="grid grid-cols-2 justify-items-center mt-2">
+            <div class="grid grid-rows-2 w-4/5 h-20">
+              <div class="flex items-center justify-center transition-colors duration-75 {hover ? "bg-pick" : "bg-white"} rounded-t-xl text-primary">
+                  {last ? last.data.params.p1.name : "N/A"}
+              </div>
+              <div class="flex items-center justify-center border transition-colors duration-75 {hover ? "border-pick" : "border-white"} text-lime-50 rounded-b-xl">
+                {last ? last.data.params.p1.value : "N/A"}
+              </div>
             </div>
-            <div class="flex items-center justify-center border {hover ? "border-green-300" : "border-lime-50"} text-lime-50 rounded-b-xl">
-              {last ? last.data.params.p2.value : "N/A"}
+            <div class="grid grid-rows-2 w-4/5">
+              <div class="flex items-center justify-center transition-colors duration-75 {hover ? "bg-pick" : "bg-white"} rounded-t-xl text-primary">
+                {last ? last.data.params.p2.name : "N/A"}
+              </div>
+              <div class="flex items-center justify-center border transition-colors duration-75 {hover ? "border-pick" : "border-white"} text-lime-50 rounded-b-xl">
+                {last ? last.data.params.p2.value : "N/A"}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  {/if}
-  <!-- MIDI History and Debug View -->
-  <div class="flex-grow overflow-hidden">
-    <Splitpanes horizontal="true" theme="modern-theme" pushOtherPanes={false} class="">
-      <Pane minSize={20} maxSize={80} class="flex flex-col bg-primary p-4">
+    {/if}
+
+    <!-- MIDI History and Debug View -->
+    <Splitpanes class="flex-1 " horizontal="true" theme="modern-theme" pushOtherPanes={false}>
+      <Pane class="flex flex-col bg-primary p-4">
         {#if debug}
           <div class="flex w-full font-medium text-white">MIDI Messages</div>
           <div class="w-full grid grid-cols-6 text-white">
@@ -160,12 +162,12 @@
           <div class="flex w-full font-medium text-white">
             MIDI Messages
           </div>
-          <div id="list" class="flex flex-col flex-grow  bg-secondary overflow-y-auto">
-            {#each $midi_monitor_store as midi, i}
-              {#key i == $midi_monitor_store.length}
+          <div id="list" class="flex flex-col flex-grow  bg-secondary overflow-y-auto overflow-x-hidden" bind:this={midiList}>
+            {#each $midi_monitor_store as midi, i (midi.id)}
               <!-- svelte-ignore a11y-mouse-events-have-key-events -->
               <div on:mouseover={() => onEnterMidiMessage(this, i)} on:mouseleave={() => onLeaveMidiMessage(this, i)}
-                class="opacity-100 transition-opacity duration-500 text-green-300 {hover && i == hoverIndex ? "text-xl" : "text-m"}" transition:fade={{ duration: 150 }}>
+                class="text-green-300 transition-transform {hover && i == hoverIndex ? "scale-115" : "scale-100"}" 
+                in:fly={{ x: -10, duration: 100 }}>
                   <span class="pr-2 text-white">[{midi.device.name}]</span>
                   <span class="pr-2">(Ch: {midi.data.channel})</span>
                   <span class="pr-2">{midi.data.command.short}</span>
@@ -175,12 +177,11 @@
                   <span class="pr-2">{midi.data.params.p2.value}</span>
                   <span class="pr-2">{midi.data.direction == 'REPORT' ? "RX🡐" : "TX🡒"}</span>
                 </div>
-                {/key}
             {/each}
           </div>
         {/if}
       </Pane>
-      <Pane size={40} minSize={20} maxSize={80} class="flex flex-col bg-primary p-4">
+      <Pane class="flex flex-col bg-primary p-4">
         {#if debug}
         <div class="flex w-full font-medium text-white">
           Debug Text
@@ -209,5 +210,13 @@
         {/if}
       </Pane>
     </Splitpanes>
+    <!-- Clear Button -->
+    <div class="flex flex-none h-400">
+      <button 
+      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full py-1" 
+      on:click={onClearClicked}>
+        Clear All
+      </button>
+    </div>
   </div>
 </div>

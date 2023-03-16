@@ -1,5 +1,6 @@
 import { writable, get } from 'svelte/store';
 import { runtime } from "../../../runtime/runtime.store";
+import { v4 as uuidv4 } from "uuid";
 
 class DeviceInfo{
   constructor(name, dx, dy){
@@ -166,6 +167,7 @@ function createMidiMonitor(max_val){
         let cp = descr.class_parameters;
 
         let item = { 
+          id: uuidv4(),
           data: new MidiMessage(
             cp.CHANNEL,
             cp.COMMAND,
@@ -204,6 +206,7 @@ function createSysExMonitor(max_val){
         let cp = descr.class_parameters;
 
         let item = {
+          id: uuidv4(),
           data: new SysExMessage(
             cp.CHANNEL,
             descr.class_instr,
@@ -225,7 +228,8 @@ function createSysExMonitor(max_val){
   }
 }
 
-export const midi_monitor_store = createMidiMonitor(32);
+export const maxMidi = 32;
+export const midi_monitor_store = createMidiMonitor(maxMidi);
 export const sysex_monitor_store = createSysExMonitor(32);
 
 
