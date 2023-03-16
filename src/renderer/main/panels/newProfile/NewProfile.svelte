@@ -70,6 +70,8 @@
       PROFILE_PATH = new_folder;
       loadFromDirectory();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   let animateFade;
@@ -719,9 +721,7 @@
   let sessionPresetNumbers = [];
 
   async function convertProfileToSessionPreset(profile) {
-    let user = console.log(profile, "profile convert");
-
-    profile.configs.forEach((profileElement) => {
+    await profile.configs.forEach((profileElement) => {
       console.log("preset config:", profileElement);
 
       let user = "sessionPreset";
@@ -745,6 +745,12 @@
       let description;
       let type;
 
+      const rt = get(runtime);
+
+      console.log(rt, "rt");
+
+      numberForSessionPreset++;
+
       let callback = function () {
         logger.set({
           type: "progress",
@@ -752,8 +758,6 @@
           classname: "presetsave",
           message: `Ready to save preset!`,
         });
-
-        const rt = get(runtime);
 
         if (user == "sessionPreset") {
           loadFromDirectory();
@@ -774,12 +778,12 @@
 
           let largestNumber = Math.max(...sessionPresetNumbers);
 
-          if (largestNumber > 0) {
+          /*           if (largestNumber > 0) {
             numberForSessionPreset = largestNumber;
             numberForSessionPreset++;
           } else {
             numberForSessionPreset++;
-          }
+          } */
 
           console.log(numberForSessionPreset, "numberForSessionPreset");
 

@@ -100,8 +100,6 @@
     let new_folder = store.persistant.presetFolder;
     if (new_folder !== PRESET_PATH) {
       PRESET_PATH = new_folder;
-
-      loadFromDirectory;
     }
   });
 
