@@ -1,84 +1,150 @@
 import { writable, get } from 'svelte/store';
 import { runtime } from "../../../runtime/runtime.store";
 
-//Lookup table for command HEX values
+class DeviceInfo{
+  constructor(name, dx, dy){
+    this.name = name;
+    this.x = dx;
+    this.y = dy;
+  }
+}
+
+class MidiMessage {
+  constructor( channel, command, param1, param2, direction ) {
+    this.channel = channel;
+    this.command = { 
+      name: getCommandName(command), 
+      value: command,
+      short: getCommandShortName(command) 
+    };
+
+    this.params = {
+      p1: {
+        name: getParameterNames(command).p1.name,
+        short: getParameterNames(command).p1.short,
+        value: param1
+      },
+      p2: {
+        name: getParameterNames(command).p2.name,
+        short: getParameterNames(command).p2.short,
+        value: param2
+      }
+    };
+
+    this.direction = direction;
+  }
+}
+
+class SysExMessage {
+  constructor( channel, direction, raw ) {
+    this.channel = channel;
+    this.direction = direction;
+    this.raw = raw;
+  }
+}
+
+//Lookup table for command HEX values and getter functions
+
+function getCommandName(cmd_int){
+  let cmd = getCommand(cmd_int);
+  return cmd?.name;
+}
+
+function getParameterNames(cmd_int){
+  let cmd = getCommand(cmd_int);
+  return cmd?.params;
+}
+
+function getCommandShortName(cmd_int){
+  let cmd = getCommand(cmd_int);
+  return cmd?.short;
+}
+
 const cmdLookup = new Map([
-  ["8", { name: "Note-off",           p1Name: "Note",           p2Name: "Velocity"}],
-  ["9", { name: "Note-on",            p1Name: "Note",           p2Name: "Velocity"}],        
-  ["A", { name: "Aftertouch",         p1Name: "Note",           p2Name: "Touch"}],
-  ["B", { name: "Continous Control",  p1Name: "Controller No.", p2Name: "Controller Value"}],
-  ["C", { name: "Patch CHange",       p1Name: "Instrument No.", p2Name: "N/A"}],
-  ["D", { name: "Channel Pressure",   p1Name: "Pressure",       p2Name: "N/A"}],
-  ["E", { name: "Pitch Bend",         p1Name: "LSB",            p2Name: "MSB"}]
+  ["8", { name: "Note-off", short: "Note-off",         
+          params: {
+            p1: {name: "Note", short: "Note"} , 
+            p2: {name: "Velocity", short: "Vel."}
+          }
+        }
+  ],
+  ["9", { name: "Note-on", short: "Note-on",                    
+          params: {
+            p1: {name: "Note", short: "Note"} , 
+            p2: {name: "Velocity", short: "Vel."}
+          }
+        }
+  ],        
+  ["A", { name: "Aftertouch", short: "Aftertouch",              
+          params: {
+            p1: {name: "Note", short: "Note"} , 
+            p2: {name: "Touch", short: "Touch"}
+          }
+        }
+  ],
+  ["B", { name: "Continous Control", short: "CC",          
+          params: {
+            p1: {name: "Controller Number", short: "Ctrl."} , 
+            p2: {name: "Value", short: "Value"}
+          }
+        }
+  ],
+  ["C", { name: "Patch Change", short: "Patch",               
+          params: {
+            p1: {name: "Instrument Number", short: "Inst."} , 
+            p2: {name: "N/A", short: "N/A"}
+          }
+        }
+  ],
+  ["D", { name: "Channel Pressure", short: "Ch. Pressure",          
+          params: {
+            p1: {name: "Pressure", short: "Pressure"} , 
+            p2: {name: "N/A", short: "N/A"}
+          }
+        }
+  ],
+  ["E", { name: "Pitch Bend", short: "Pitch Bend",                 
+          params: {
+            p1: {name: "LSB", short: "LSB"} , 
+            p2: {name: "MSB", short: "MSB"}
+          }
+        }
+  ]
 ]);
 
-//Musical notes in order
-const musNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+//Musical Notes
+export class MusicalNotes {
+  static #musNotes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+  static FromInt(int_value){
+    return this.#musNotes[Math.floor(int_value % 12)] + Math.floor(int_value / 12);
+  }
+}
+
+//Retrieves an object with all the user friendly naming
+function getCommand(int_value){
+  try {
+    if(!Number.isInteger(int_value))
+      throw int_value + " is not an integer.";
+
+    let hex = int_value.toString(16);
+    let cmd = cmdLookup.get(hex[0].toUpperCase());
+
+    if(cmd === undefined)
+      throw "Unknown Command (" + int_value + ")";
+
+    return cmd;
+  }
+  catch(e){
+    console.log("MIDI message parsing error: " + e);
+    return undefined;
+  }
+}
 
 //Retrieves device name from coordinates of the device
 function getDeviceName(x, y){
   const rt = get(runtime);
   const currentModule = rt.find( device => device.dx == x && device.dy == y );
-  return currentModule.id.slice(0,4);
-}
-
-//Retrieves an object with all the user friendly naming
-function getCommandNames(int_value){
-  if(!Number.isInteger(int_value))
-    throw int_value + " is not an integer.";
-
-  let hex = int_value.toString(16);
-  return cmdLookup.get(hex[0].toUpperCase());
-}
-
-function fillUserFriendlyValues(midi_msg){
-  //Defines
-  const cp = midi_msg.class_parameters;
-  const bp = midi_msg.brc_parameters;
-
-  //Initial Values
-  cp.COMMAND_NAME = "Unknown Command";
-  cp.DEVICE_NAME = "Unknown Device";
-  cp.PARAM1_NAME = "Unknown Parameter";
-  cp.PARAM1_VALUE = cp.PARAM1;
-  cp.PARAM2_NAME = "Unknown Parameter";
-  cp.PARAM2_VALUE = cp.PARAM2;
-
-  try {
-    //Get the Device Name from X/Y values
-    var device = getDeviceName(bp.SX, bp.SY);
-    if(device !== undefined)
-      cp.DEVICE_NAME = device;
-
-    //Get command from the lookup table by it's (int) value
-    var command = getCommandNames(cp.COMMAND);
-    if(command === undefined){
-      //Command is not defined
-      throw "Command " + cp.COMMAND + " is undefined.";
-    }
-  }
-  catch(e){
-    console.log("MIDI parsing error: " + e);
-    return;
-  }
-
-  //Set user friendly command, and parameter names and values 
-  cp.COMMAND_NAME = command.name;
-  cp.PARAM1_NAME  = command.p1Name;
-  cp.PARAM2_NAME  = command.p2Name;
-
-  //Set default parameter values
-  cp.PARAM1_VALUE = cp.PARAM1;
-  cp.PARAM2_VALUE = cp.PARAM2;
-
-  //Override default values with command specific values
-  switch(command.name){
-    case "Aftertouch":
-    case "Note-off":
-    case "Note-on": 
-      cp.PARAM1_VALUE = musNotes[Math.floor(cp.PARAM1 % 12)] + Math.floor(cp.PARAM1 / 12);
-      break;
-  }
+  return currentModule?.id.slice(0,4);
 }
 
 function createMidiMonitor(max_val){
@@ -96,10 +162,25 @@ function createMidiMonitor(max_val){
           s.shift()
         };
 
-        s = [...s, descr];
+        let bc = descr.brc_parameters;
+        let cp = descr.class_parameters;
 
-        //Map user friendly values
-        s.forEach( e => fillUserFriendlyValues(e));
+        let item = { 
+          data: new MidiMessage(
+            cp.CHANNEL,
+            cp.COMMAND,
+            cp.PARAM1,
+            cp.PARAM2,
+            descr.class_instr
+          ),
+          device: new DeviceInfo(
+            getDeviceName(bc.SX, bc.SY),
+            bc.SX,
+            bc.SY
+          )
+        };
+
+        s = [...s, item];
         return s;
       })
     }
@@ -119,7 +200,25 @@ function createSysExMonitor(max_val){
           s.shift()
         };
 
-        s = [...s, descr];
+        let bc = descr.brc_parameters;
+        let cp = descr.class_parameters;
+
+        let item = {
+          data: new SysExMessage(
+            cp.CHANNEL,
+            descr.class_instr,
+            descr.raw
+          ),
+          device: new DeviceInfo(
+            getDeviceName(bc.SX, bc.SY),
+            bc.SX,
+            bc.SY
+          )
+        };
+
+        console.log(item);
+
+        s = [...s, item];
         return s;
       })
     }
