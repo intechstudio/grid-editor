@@ -3,7 +3,7 @@
 import grid from '../protocol/grid-protocol.js';
 
 
-import { messageStream } from './message-stream.store.js';  
+import { messageStream } from './message-stream.store.js';
 
 import { writeBuffer } from '../runtime/engine.store.js';
 
@@ -20,11 +20,11 @@ let latestValue = 0;
 
 export async function testIt() {
 
-//  console.log("TEST IT");
+  //  console.log("TEST IT");
 
   const env = window.ctxProcess.env();
 
-  if (navigator.intechPort === undefined){
+  if (navigator.intechPort === undefined) {
 
     const filters = [
       { usbVendorId: parseInt(env.USB_VID_0), usbProductId: parseInt(env.USB_PID_0) },
@@ -34,12 +34,12 @@ export async function testIt() {
 
     // console.log(navigator.serial)
 
-    navigator.serial.requestPort({filters}).then(port=>{
+    navigator.serial.requestPort({ filters }).then(port => {
 
       //console.log('port',port);
 
 
-      port.open({ baudRate: 2000000}).then(e=>{
+      port.open({ baudRate: 2000000 }).then(e => {
 
         navigator.intechPort = port
 
@@ -50,7 +50,7 @@ export async function testIt() {
 
 
         fetchStream()
-    
+
         // port.readable
         //   .pipeThrough(new TextDecoderStream())
         //   .pipeTo(appendStream);
@@ -59,7 +59,7 @@ export async function testIt() {
       }).catch(error => {
         //console.log(error)
       });
-      
+
 
     }).catch(error => {
       //no port selected by the user
@@ -69,7 +69,7 @@ export async function testIt() {
   }
 
   return false;
-  
+
 }
 
 navigator.intechConnect = testIt
@@ -80,7 +80,7 @@ function fetchStream() {
 
   console.log('--------serial---------')
 
-  if (navigator.intechPort === undefined){
+  if (navigator.intechPort === undefined) {
     return;
   }
 
@@ -115,13 +115,13 @@ function fetchStream() {
     let messageStartIndex = 0;
     let messageStopIndex = 0;
 
-    for(let i=0; i<rxBuffer.length; i++){
+    for (let i = 0; i < rxBuffer.length; i++) {
 
-      if (rxBuffer[i] === 10){ // newline character found
+      if (rxBuffer[i] === 10) { // newline character found
 
         messageStopIndex = i;
         let currentMessage = rxBuffer.slice(messageStartIndex, messageStopIndex);
-        messageStartIndex = i+1;
+        messageStartIndex = i + 1;
 
         //decode
 
@@ -129,9 +129,9 @@ function fetchStream() {
 
         let class_array = grid.decode_packet_frame(currentMessage);
         grid.decode_packet_classes(class_array);
-      
-        if(class_array !== false){
-          messageStream.deliver_inbound(class_array);   
+
+        if (class_array !== false) {
+          messageStream.deliver_inbound(class_array);
         }
 
 
@@ -142,7 +142,7 @@ function fetchStream() {
 
 
     // Read some more, and call this function again
-    return reader.read().then(processText).catch(e=>{console.log(e)});
+    return reader.read().then(processText).catch(e => { console.log(e) });
   });
 }
 
@@ -153,15 +153,15 @@ navigator.intechFetch = fetchStream
 // Send Serial data to the webserial interface
 
 
-export async function serial_write_islocked(){
+export async function serial_write_islocked() {
 
-  if (navigator.intechPort === undefined || navigator.intechPort === null ){
+  if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return true;
   }
 
-  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null){
+  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null) {
     return true;
-  }  
+  }
 
 
 
@@ -169,27 +169,27 @@ export async function serial_write_islocked(){
 
 
 
-  if (port.writable.locked === true){
+  if (port.writable.locked === true) {
     return false;
   }
 
 
 }
 
-export async function serial_write(param){
+export async function serial_write(param) {
 
-  if (param === undefined){
+  if (param === undefined) {
     return false;
   }
 
 
-  if (navigator.intechPort === undefined || navigator.intechPort === null ){
+  if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return false;
   }
 
-  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null){
+  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null) {
     return false;
-  }  
+  }
 
   param.push(10)
 
@@ -200,7 +200,7 @@ export async function serial_write(param){
 
 
 
-  if (port.writable.locked === true){
+  if (port.writable.locked === true) {
     console.log("SORRY it's locked")
     return false;
   }
@@ -217,7 +217,7 @@ export async function serial_write(param){
   }).catch(e => {
     console.log(e)
   })
-  
+
 
 
 }

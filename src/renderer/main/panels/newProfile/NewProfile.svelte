@@ -717,165 +717,146 @@
     );
   }
 
-  let numberForSessionPreset = 0;
   let sessionPresetNumbers = [];
+  let numberForSessionPreset = 0;
 
   async function convertProfileToSessionPreset(profile) {
-    await profile.configs.forEach((profileElement) => {
-      console.log("preset config:", profileElement);
+    // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
+    // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
 
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "presetsave",
+      message: `Profile to element presets conversion started...`,
+    });
+
+    // analitikiát @tofinak meg kell javítani
+
+    window.electron.analytics.google("preset-library", {
+      value: "save start",
+    });
+
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "save start"
+    );
+
+    /**
+     * Ez egy jó promise pattern.
+     * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
+     * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
+     * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
+     * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
+     *
+     * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
+     * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
+     */
+
+    const conversionPromises = profile.configs.map((profileElement) => {
       let user = "sessionPreset";
-
-      window.electron.analytics.google("preset-library", {
-        value: "save start",
-      });
-      window.electron.analytics.influx(
-        "application",
-        "presets",
-        "preset",
-        "save start"
-      );
-
-      let elementnumber = $user_input.event.elementnumber;
-      let dx = $user_input.brc.dx;
-      let dy = $user_input.brc.dy;
-      let pagenumber = $user_input.event.pagenumber;
 
       let name;
       let description;
       let type;
 
-      const rt = get(runtime);
-
-      console.log(rt, "rt");
-
       numberForSessionPreset++;
 
-      let callback = function () {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "presetsave",
-          message: `Ready to save preset!`,
+      if (user == "sessionPreset") {
+        let sessionPresetName;
+        sessionPresetNumbers = [];
+
+        sessionPreset.forEach((sessionPresetElement) => {
+          sessionPresetName = JSON.stringify(sessionPresetElement.name);
+          if (sessionPresetName.includes("Session Preset")) {
+            sessionPresetNumbers = [
+              ...sessionPresetNumbers,
+              parseInt(sessionPresetName.split(" ").pop(), 10),
+            ];
+          }
         });
 
-        if (user == "sessionPreset") {
-          loadFromDirectory();
+        let largestNumber = Math.max(...sessionPresetNumbers);
 
-          let sessionPresetName;
-          sessionPresetNumbers = [];
-
-          sessionPreset.forEach((sessionPresetElement) => {
-            sessionPresetName = JSON.stringify(sessionPresetElement.name);
-
-            if (sessionPresetName.includes("Session Preset")) {
-              sessionPresetNumbers = [
-                ...sessionPresetNumbers,
-                parseInt(sessionPresetName.split(" ").pop(), 10),
-              ];
-            }
-          });
-
-          let largestNumber = Math.max(...sessionPresetNumbers);
-
-          /*           if (largestNumber > 0) {
+        /*           if (largestNumber > 0) {
             numberForSessionPreset = largestNumber;
             numberForSessionPreset++;
           } else {
             numberForSessionPreset++;
           } */
 
-          console.log(numberForSessionPreset, "numberForSessionPreset");
+        name = `SP ${numberForSessionPreset} ` + profile.name;
+        description = "";
 
-          name = profile.name + ` Session Preset ${numberForSessionPreset}`;
-          description = "";
+        if (profile.type == "BU16") {
+          type = "button";
+        }
 
-          console.log(profile.type);
+        if (profile.type == "PO16") {
+          type = "potentiometer";
+        }
 
-          if (profile.type == "BU16") {
-            type = "button";
-          }
+        if (profile.type == "EN16") {
+          type = "encoder";
+        }
 
-          if (profile.type == "PO16") {
-            type = "potmeter";
-          }
-
-          if (profile.type == "EN16") {
+        if (profile.type == "EF44") {
+          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
             type = "encoder";
           }
-
-          if (profile.type == "EF44") {
-            if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-              type = "encoder";
-            }
-            if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-              type = "fader";
-            }
-          }
-
-          if (profile.type == "PBF4") {
-            if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-              type = "potmeter";
-            }
-            if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-              type = "fader";
-            }
-            if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
-              type = "button";
-            }
+          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+            type = "fader";
           }
         }
 
-        let preset = {
-          name: name,
-          description: description,
-          type: type,
-          isGridPreset: true, // differentiator from different JSON files!
-          version: {
-            major: $appSettings.version.major,
-            minor: $appSettings.version.minor,
-            patch: $appSettings.version.patch,
-          },
-          id: uuidv4(),
-        };
-
-        console.log(preset, "preset");
-
-        rt.forEach((d) => {
-          if (d.dx == dx && d.dy == dy) {
-            const page = d.pages.find((x) => x.pageNumber == pagenumber);
-
-            const element = page.control_elements.find(
-              (x) => x.controlElementNumber === elementnumber
-            );
-
-            preset.configs = {
-              events: element.events.map((ev) => {
-                return {
-                  event: ev.event.value,
-                  config: ev.config,
-                };
-              }),
-            };
+        if (profile.type == "PBF4") {
+          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
+            type = "potentiometer";
           }
-        });
+          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+            type = "fader";
+          }
+          if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
+            type = "button";
+          }
+        }
 
-        saveToSessionPreset(
-          PRESET_PATH,
-          preset.name,
-          preset,
-          user
-        ); /*nem mindent ment le néha, valszeg valamy async dolgo lehet!!!*/
+        console.log("profileElement", profileElement);
+      }
 
-        engine.set("ENABLED");
+      let preset = {
+        name: name,
+        description: description,
+        type: type,
+        isGridPreset: true, // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        configs: {
+          ...profileElement,
+        },
+        id: uuidv4(),
       };
 
-      runtime.fetch_page_configuration_from_grid(callback);
+      return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+    });
+
+    await Promise.all(conversionPromises).then((res) => {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetsave",
+        message: `Profile to element presets conversion finished!`,
+      });
     });
   }
 
   async function saveToSessionPreset(path, name, preset, user) {
-    await window.electron.configs.saveConfig(
+    return await window.electron.configs.saveConfig(
       path,
       name,
       preset,
