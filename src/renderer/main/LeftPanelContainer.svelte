@@ -22,7 +22,7 @@
 </script>
 
 {#if $appSettings.leftPanelVisible == true}
-  <div class="{classes} w-full h-full" use:watchResize={resize}>
+  <div class="{classes}" use:watchResize={resize}>
     <div class="min-w-[200px] h-full">
       {#if $appSettings.leftPanel == "Debug"}
         <DebugMonitor />

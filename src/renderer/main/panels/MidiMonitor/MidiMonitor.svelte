@@ -76,22 +76,24 @@
 </script>
 
 <div transition:fade={{ duration: 150 }}
-  class="bg-primary flex flex-col h-full">
-  <!-- Header -->
-  <div class="flex text-white justify-between px-4 py-2">
-    <div class="text-2xl">
-      MIDI Monitor
-    </div>
-    <div class="flex items-center">
-      <span class="text-white font-medium mr-2">Debug View</span>
-      <Toggle bind:toggleValue={debug}/>
-    </div>
-  </div>
+  class="h-full w-full">
+  <div class="flex flex-col h-full w-full bg-purple-600">
 
-  <div class="flex flex-grow flex-col">
-    <!-- Last MIDI Message -->
+    <!-- Header -->
+    <div class="flex flex-row w-full text-white justify-between bg-green-800">
+      <div class="flex text-2xl">
+        MIDI Monitor
+      </div>
+      <div class="flex">
+        <span class="text-white font-medium mr-2">Debug View</span>
+        <Toggle bind:toggleValue={debug}/>
+      </div>
+    </div>
+
+  <!-- <div class="flex flex-col flex-grow bg-red-300 m-5"> -->
+  <!-- <div class="grid grid-rows-[200px_1fr_200px] h-full bg-red-300 m-5"> -->
     {#if !debug}
-      <div class="flex-none h-auto px-4 text-white">
+      <div class="text-white bg-black">
         <div class="text-xl">
           <div class="flex flex-cols">
             <span>Displayed Message:</span>
@@ -126,10 +128,17 @@
         </div>
       </div>
     {/if}
-
-    <!-- MIDI History and Debug View -->
-    <Splitpanes class="flex-1 " horizontal="true" theme="modern-theme" pushOtherPanes={false}>
-      <Pane class="flex flex-col bg-primary p-4">
+    <div class="flex">
+      <button 
+      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full" 
+      on:click={onClearClicked}>
+        Clear All
+      </button>
+    </div>
+    <div class="flex h-300 bg-yellow-500">
+    <Splitpanes horizontal="true" theme="modern-theme" pushOtherPanes={false} class="bg-red-300 flex">
+      <Pane >
+        <div class="flex flex-col h-full w-full">
         {#if debug}
           <div class="flex w-full font-medium text-white">MIDI Messages</div>
           <div class="w-full grid grid-cols-6 text-white">
@@ -159,13 +168,12 @@
             {/each}
           </div>
         {:else}
-          <div class="flex w-full font-medium text-white">
+          <div class="flex w-full text-white">
             MIDI Messages
           </div>
-          <div id="list" class="flex flex-col flex-grow  bg-secondary overflow-y-auto overflow-x-hidden" bind:this={midiList}>
+          <div class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden" bind:this={midiList}>
             {#each $midi_monitor_store as midi, i (midi.id)}
-              <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-              <div on:mouseover={() => onEnterMidiMessage(this, i)} on:mouseleave={() => onLeaveMidiMessage(this, i)}
+              <div 
                 class="text-green-300 transition-transform {hover && i == hoverIndex ? "scale-115" : "scale-100"}" 
                 in:fly={{ x: -10, duration: 100 }}>
                   <span class="pr-2 text-white">[{midi.device.name}]</span>
@@ -180,24 +188,26 @@
             {/each}
           </div>
         {/if}
+        </div> 
       </Pane>
-      <Pane class="flex flex-col bg-primary p-4">
+      <Pane>
+        <div class="flex flex-col h-full w-full">
         {#if debug}
-        <div class="flex w-full font-medium text-white">
-          Debug Text
-        </div>
-        <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-            {#if $debug_monitor_store.length != 0}
-                {#each $debug_monitor_store as debug, i}
-                  <span class="font-mono text-white debugtexty">{debug}</span>
-                {/each}
-            {/if}
-          </div>
-        {:else}
           <div class="flex w-full font-medium text-white">
-            SysEx Messages
+            Debug Text
           </div>
           <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
+              {#if $debug_monitor_store.length != 0}
+                  {#each $debug_monitor_store as debug, i}
+                    <span class="font-mono text-white debugtexty">{debug}</span>
+                  {/each}
+              {/if}
+          </div>
+        {:else}
+          <div class="flex w-full text-white">
+            SysEx Messages
+          </div>
+          <div class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden" >
             {#each $sysex_monitor_store as sysex}
               <div class="{sysex.data.direction == 'REPORT' ? 'text-blue-400' : 'text-commit'} font-mono">
                 <div class="block">
@@ -208,15 +218,19 @@
             {/each}
           </div>
         {/if}
+      </div>
       </Pane>
     </Splitpanes>
-    <!-- Clear Button -->
-    <div class="flex flex-none h-400">
+    </div>
+
+    <div class="flex">
       <button 
-      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full py-1" 
+      class="bg-select hover:bg-select-saturate-10 rounded text-white w-72" 
       on:click={onClearClicked}>
         Clear All
       </button>
     </div>
-  </div>
+  <!-- </div> -->
+<!-- </div> -->
+</div>
 </div>

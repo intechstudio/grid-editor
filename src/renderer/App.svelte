@@ -154,7 +154,7 @@
   use:watchResize={resize}
   id="app"
   spellcheck="false"
-  class=" relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
 
@@ -172,9 +172,9 @@
 
     <ErrorConsole />
 
-    <!--   <TopSubMenu /> -->
+    <!-- <TopSubMenu /> -->
 
-    <div class="flex w-full h-full overflow-hidden ">
+    <!-- <div class="flex flex-grow overflow-hidden "> -->
       <Splitpanes
         theme="modern-theme"
         pushOtherPanes={false}
@@ -183,7 +183,7 @@
         class="w-full"
       >
         <Pane class="leftPane" bind:size={$splitpanes.left} snapSize={5}>
-          <LeftPanelContainer />
+          <LeftPanelContainer classes={"w-full h-full"}/>
         </Pane>
 
         <Pane>
@@ -195,7 +195,7 @@
         </Pane>
       </Splitpanes>
     </div>
-  </div>
+  <!-- </div> -->
 </main>
 
 <style global>
