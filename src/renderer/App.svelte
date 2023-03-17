@@ -174,7 +174,7 @@
 
     <!-- <TopSubMenu /> -->
 
-    <!-- <div class="flex flex-grow overflow-hidden "> -->
+    <div class="flex flex-grow overflow-hidden ">
       <Splitpanes
         theme="modern-theme"
         pushOtherPanes={false}
@@ -183,7 +183,7 @@
         class="w-full"
       >
         <Pane class="leftPane" bind:size={$splitpanes.left} snapSize={5}>
-          <LeftPanelContainer classes={"w-full h-full"}/>
+          <LeftPanelContainer />
         </Pane>
 
         <Pane>
@@ -195,7 +195,7 @@
         </Pane>
       </Splitpanes>
     </div>
-  <!-- </div> -->
+  </div>
 </main>
 
 <style global>
