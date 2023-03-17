@@ -88,14 +88,22 @@ export function changeOrder(node, {configs}) {
     cursor = target.cloneNode(true);
     cursor.id = 'drag-n-drop-cursor';
     cursor.style.opacity = '0.75';
-    cursor.style.position = "absolute";
+    let cDiv = cursor.children;
+    cursor.style.position = 'absolute'
+    
+    for (var i = 0; i < cDiv.length; i++) {
+      if (cDiv[i].tagName == "PARENT") {   
+        cDiv[i].style.position = 'absolute';  
+      }
+    } 
+    cursor.style.top = "0"
     cursor.style.userSelect = "none";
-    cursor.style.display = "none"
     cursor.style.pointerEvents = "none";
     cursor.style.width =  width + 'px';
 
     // put in app, so it wont overflow!
     document.getElementById('app').append(cursor);
+
   }
 
   function handleMouseDown(e){
@@ -131,10 +139,10 @@ export function changeOrder(node, {configs}) {
     // emit dragstart only once
     if(drag == 2){
 
-      //console.log(e.target)
+  
       if(e.target.getAttribute('movable') == 'false' || e.target.getAttribute('movable') == undefined){
         moveDisabled = true;
-        //console.log(e.target.getAttribute('movable'), e.target)
+
         node.dispatchEvent(new CustomEvent('drag-end'));
         node.dispatchEvent(new CustomEvent('enable-pointer-events'));  
         console.log('This cannot be moved!')
@@ -176,7 +184,7 @@ export function changeOrder(node, {configs}) {
         _configIds = [dragged.getAttribute('config-id')]; // this is used as an array, as multidrag is supported
         multiDragFlag = false;
         dragged.style.opacity = '0.2';
-        createCursor(dragged);
+        createCursor(dragged, dragged.clientWidth);
       }
 
       node.dispatchEvent(new CustomEvent('drag-target', {

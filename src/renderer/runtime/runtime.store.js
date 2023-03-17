@@ -503,6 +503,8 @@ function create_runtime() {
       device.pages[pageIndex].control_elements[elementIndex].events[eventIndex]
         .cfgStatus
 
+
+
     if (
       cfgstatus == 'GRID_REPORT' ||
       cfgstatus == 'EDITOR_EXECUTE' ||

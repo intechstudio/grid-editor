@@ -55,17 +55,23 @@
   let isSessionProfileOpen = true;
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  let PRESET_PATH = get(appSettings).persistant.presetFolder;
   let PROFILES = [];
+  let PRESETS = [];
   let profileCloud = [];
   let sessionProfile = [];
+  let sessionPreset = [];
   let filteredProfileCloud = [];
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       loadFromDirectory();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   let animateFade;
@@ -97,6 +103,15 @@
       "profiles"
     );
 
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+      PRESET_PATH,
+      "presets"
+    );
+
+    sessionPreset = PRESETS.filter(
+      (element) => element.folder == "sessionPreset"
+    );
+
     PROFILES.forEach((element) => {
       if (element.id == undefined || element.id == "") {
         element.id = element.name.replace(/\W+/g, "-");
@@ -122,10 +137,13 @@
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       moveOld();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   async function moveOld() {
@@ -616,12 +634,6 @@
     }
   }
 
-  onMount(() => {
-    animateFade = true;
-    animateFly = false;
-    moveOld();
-  });
-
   function deleteSessionProfile(profile) {
     isActionButtonClickedStore.set(true);
     isDeleteButtonClicked = true;
@@ -660,6 +672,7 @@
   }
 
   function rewriteSessionProfile(profile) {
+    let user = "sessionPreset";
     isActionButtonClickedStore.set(true);
 
     selectProfile(profile);
@@ -703,6 +716,160 @@
       "newProfile_info"
     );
   }
+
+  let sessionPresetNumbers = [];
+  let numberForSessionPreset = 0;
+
+  async function convertProfileToSessionPreset(profile) {
+    // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
+    // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
+
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "presetsave",
+      message: `Profile to element presets conversion started...`,
+    });
+
+    // analitikiát @tofinak meg kell javítani
+
+    window.electron.analytics.google("preset-library", {
+      value: "save start",
+    });
+
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "save start"
+    );
+
+    /**
+     * Ez egy jó promise pattern.
+     * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
+     * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
+     * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
+     * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
+     *
+     * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
+     * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
+     */
+
+    const conversionPromises = profile.configs.map((profileElement) => {
+      let user = "sessionPreset";
+
+      let name;
+      let description;
+      let type;
+
+      numberForSessionPreset++;
+
+      if (user == "sessionPreset") {
+        let sessionPresetName;
+        sessionPresetNumbers = [];
+
+        sessionPreset.forEach((sessionPresetElement) => {
+          sessionPresetName = JSON.stringify(sessionPresetElement.name);
+          if (sessionPresetName.includes("Session Preset")) {
+            sessionPresetNumbers = [
+              ...sessionPresetNumbers,
+              parseInt(sessionPresetName.split(" ").pop(), 10),
+            ];
+          }
+        });
+
+        let largestNumber = Math.max(...sessionPresetNumbers);
+
+        /*           if (largestNumber > 0) {
+            numberForSessionPreset = largestNumber;
+            numberForSessionPreset++;
+          } else {
+            numberForSessionPreset++;
+          } */
+
+        name = `SP ${numberForSessionPreset} ` + profile.name;
+        description = "";
+
+        if (profile.type == "BU16") {
+          type = "button";
+        }
+
+        if (profile.type == "PO16") {
+          type = "potentiometer";
+        }
+
+        if (profile.type == "EN16") {
+          type = "encoder";
+        }
+
+        if (profile.type == "EF44") {
+          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
+            type = "encoder";
+          }
+          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+            type = "fader";
+          }
+        }
+
+        if (profile.type == "PBF4") {
+          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
+            type = "potentiometer";
+          }
+          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
+            type = "fader";
+          }
+          if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
+            type = "button";
+          }
+        }
+
+        console.log("profileElement", profileElement);
+      }
+
+      let preset = {
+        name: name,
+        description: description,
+        type: type,
+        isGridPreset: true, // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        configs: {
+          ...profileElement,
+        },
+        id: uuidv4(),
+      };
+
+      return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+    });
+
+    await Promise.all(conversionPromises).then((res) => {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetsave",
+        message: `Profile to element presets conversion finished!`,
+      });
+    });
+  }
+
+  async function saveToSessionPreset(path, name, preset, user) {
+    return await window.electron.configs.saveConfig(
+      path,
+      name,
+      preset,
+      "presets",
+      user
+    );
+  }
+
+  onMount(() => {
+    animateFade = true;
+    animateFly = false;
+    moveOld();
+  });
 </script>
 
 <div class=" flex flex-col h-full justify-between p-4 bg-primary ">
@@ -717,7 +884,7 @@
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class="w-full h-full"
+      class="flex w-full h-full flex-col overflow-hidden "
     >
       <Pane size={31}>
         <div class=" flex flex-col bg-primary overflow-hidden h-full ">
@@ -782,7 +949,7 @@
                             );
                           }}
                           on:keypress={(e) => {
-                            if (e.charCode === 13) {
+                            if (e.key === 13) {
                               let newName = e.target.value.trim();
                               updateSessionProfileTitle(
                                 sessionProfileElement,
@@ -1263,6 +1430,17 @@
                                 </svg>
                               </button>
                             {/if}
+
+                            <button
+                              class="p-1 hover:bg-primary-500 rounded relative text-white"
+                              on:click|preventDefault={() => {
+                                convertProfileToSessionPreset(
+                                  profileCloudElement
+                                );
+                              }}
+                            >
+                              p
+                            </button>
 
                             <button
                               class="p-1 hover:bg-primary-500 rounded relative"
