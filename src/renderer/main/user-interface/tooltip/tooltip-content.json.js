@@ -100,7 +100,16 @@ export const tooltip_content = {
     "newProfile_exit_overlay": "Hide the Overlay.",
     "newProfile_desc_delete": "Delete this Profile from the Profile Cloud permanently.",
     "newProfile_desc_edit": "Edit the description of this Profile.",
+    "newProfile_desc_split_presets":"This will make for each control element a control element preset in the element preset folder.",
     "newProfile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",
+
+
+
+
+
+
+
+
 
 
     "newPreset_delete": "Delete this Session Preset permanently.",

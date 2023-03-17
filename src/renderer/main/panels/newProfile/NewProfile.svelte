@@ -1431,16 +1431,7 @@
                               </button>
                             {/if}
 
-                            <button
-                              class="p-1 hover:bg-primary-500 rounded relative text-white"
-                              on:click|preventDefault={() => {
-                                convertProfileToSessionPreset(
-                                  profileCloudElement
-                                );
-                              }}
-                            >
-                              p
-                            </button>
+
 
                             <button
                               class="p-1 hover:bg-primary-500 rounded relative"
