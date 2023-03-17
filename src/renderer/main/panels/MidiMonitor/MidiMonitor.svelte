@@ -1,38 +1,25 @@
 <script>
-  import { fade, slide, fly } from "svelte/transition";
+  import { fly } from "svelte/transition";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import {
-    midi_monitor_store,
-    sysex_monitor_store,
-    maxMidi,
-  } from "./MidiMonitor.store";
-  import { afterUpdate } from "svelte";
+  import { midi_monitor_store, sysex_monitor_store } from "./MidiMonitor.store";
   // ok but slow nice
 
   //Defines
   const debug_stream = writable([]);
   let debug = false;
   let hover = false;
-  let hoverIndex = undefined;
   let last = undefined;
   let midiList;
-
-  afterUpdate(() => {
-    if (midiList) midiList.scrollTop = midiList.scrollHeight;
-  });
-
-  function handleMessage(p) {
-    console.log(p);
-  }
 
   midi_monitor_store.subscribe(() => {
     let mms = get(midi_monitor_store);
     let m = mms.slice(-1).pop();
     if (m) {
       last = m;
+      if (midiList) midiList.scrollTop = midiList.scrollHeight;
       UpdateDebugStream(m, "MIDI");
     }
   });
@@ -56,14 +43,12 @@
 
   function onLeaveMidiMessage(item, index) {
     hover = false;
-    hoverIndex = undefined;
     let mms = get(midi_monitor_store);
     last = mms.slice(-1).pop();
   }
 
   function onEnterMidiMessage(item, index) {
     hover = true;
-    hoverIndex = index;
     let ms = get(midi_monitor_store);
     last = ms[index];
   }
@@ -88,8 +73,8 @@
   }
 </script>
 
-<div class=" flex flex-col h-full p-4 bg-primary">
-  <div class="flex flex-row w-full text-white justify-between bg-green-800">
+<div class="flex flex-col h-full p-4 bg-primary">
+  <div class="flex flex-row w-full text-white justify-between items-center">
     <div class="flex text-2xl">MIDI Monitor</div>
     <div class="flex">
       <span class="text-white font-medium mr-2">Debug View</span>
@@ -98,59 +83,78 @@
   </div>
 
   {#if !debug}
-    <div class="text-white bg-black">
-      <div class="text-xl">
-        <div class="flex flex-cols">
-          <span>Displayed Message:</span>
-          <div class="w-100 rounded bg-white text-black px-2 ml-2">
-            {hover ? "Selected" : "Last"}
+    <div class="py-8 px-10">
+      <div class="border-secondary border flex flex-col col-span-3 mb-2">
+        <span class="text-sm text-white bg-secondary px-1">Command</span>
+        <div
+          class="flex flex-row w-full text-white justify-between align-center items-center"
+        >
+          <span class="py-1 px-2 text-white"
+            >{last ? last.data.command.name : "N/A"}</span
+          >
+          <div class="py-1 px-2 w-24 text-center rounded">
+            <div
+              class="w-auto text-primary text-sm bg-white h-6 text-center rounded"
+            >
+              {hover ? "SELECTED" : "LAST"}
+            </div>
           </div>
         </div>
-        <div>Command: {last ? last.data.command.name : "N/A"}</div>
-        <div class="grid grid-cols-3">
-          <div>Device: {last ? last.device.name : "N/A"}</div>
-          <div>Channel: {last ? last.data.channel : "N/A"}</div>
-          <div>
-            Direction: {last
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 mb-2">
+        <div class="border-secondary border flex flex-col">
+          <div class="flex flex-row w-full text-white">
+            <span class="text-sm text-white bg-secondary px-1"
+              >{last ? last.data.params.p1.name : "N/A"}</span
+            >
+            <span class="grow text-right text-sm text-white bg-secondary px-1"
+              >[ P1 ]</span
+            >
+          </div>
+
+          <span class="px-2 text-white text-center"
+            >{last ? last.data.params.p1.value : "N/A"}</span
+          >
+        </div>
+        <div class="border-secondary border flex flex-col">
+          <div class="flex flex-row w-full text-white">
+            <span class="text-sm text-white bg-secondary px-1"
+              >{last ? last.data.params.p2.name : "N/A"}</span
+            >
+            <span class="grow text-right text-sm text-white bg-secondary px-1"
+              >[ P2 ]</span
+            >
+          </div>
+
+          <span class="px-2 text-white text-center"
+            >{last ? last.data.params.p2.value : "N/A"}</span
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        <div class="border-secondary border flex flex-col">
+          <span class="text-sm text-white bg-secondary px-1">Channel</span>
+          <span class="px-2 text-white text-center"
+            >{last ? last.data.channel : "N/A"}</span
+          >
+        </div>
+        <div class="border-secondary border flex flex-col">
+          <span class="text-sm text-white bg-secondary px-1">Device</span>
+          <span class="px-2 text-white text-center"
+            >{last ? last.device.name : "N/A"}</span
+          >
+        </div>
+        <div class="border-secondary border flex flex-col">
+          <span class="text-sm text-white bg-secondary px-1">Direction</span>
+          <span class="px-2 text-white text-center"
+            >{last
               ? last.data.direction == "REPORT"
                 ? "RX🡐"
                 : "TX🡒"
-              : "N/A"}
-          </div>
-        </div>
-        <div class="grid grid-cols-2 justify-items-center mt-2">
-          <div class="grid grid-rows-2 w-4/5 h-20">
-            <div
-              class="flex items-center justify-center transition-colors duration-75 {hover
-                ? 'bg-pick'
-                : 'bg-white'} rounded-t-xl text-primary"
-            >
-              {last ? last.data.params.p1.name : "N/A"}
-            </div>
-            <div
-              class="flex items-center justify-center border transition-colors duration-75 {hover
-                ? 'border-pick'
-                : 'border-white'} text-lime-50 rounded-b-xl"
-            >
-              {last ? last.data.params.p1.value : "N/A"}
-            </div>
-          </div>
-          <div class="grid grid-rows-2 w-4/5">
-            <div
-              class="flex items-center justify-center transition-colors duration-75 {hover
-                ? 'bg-pick'
-                : 'bg-white'} rounded-t-xl text-primary"
-            >
-              {last ? last.data.params.p2.name : "N/A"}
-            </div>
-            <div
-              class="flex items-center justify-center border transition-colors duration-75 {hover
-                ? 'border-pick'
-                : 'border-white'} text-lime-50 rounded-b-xl"
-            >
-              {last ? last.data.params.p2.value : "N/A"}
-            </div>
-          </div>
+              : "N/A"}</span
+          >
         </div>
       </div>
     </div>
@@ -161,133 +165,124 @@
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class=" bg-red-600 h-full w-full"
+      class="h-full w-full"
     >
       <Pane size={50}>
         <div class="flex flex-col overflow-hidden h-full">
-          <div class="flex w-full text-white">MIDI Messages</div>
-          <div
-            class="flex flex-col bg-secondary overflow-y-auto"
-            bind:this={midiList}
-          >
-            {#if debug}
-              <div class="flex w-full font-medium text-white">
-                MIDI Messages
-              </div>
-              <div class="w-full grid grid-cols-6 text-white">
-                <div>[X,Y]</div>
-                <div>CH</div>
-                <div>CMD</div>
-                <div>P1</div>
-                <div>P2</div>
-                <div>DIR</div>
-              </div>
-              <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-                {#each $debug_stream as message}
-                  <div
-                    class="w-full grid grid-cols-6 flex items-start justify-start w-full font-mono text-green-300"
-                  >
-                    <div>[{message.device.x}, {message.device.y}]</div>
-                    {#if message.type === "MIDI"}
-                      <div>{message.data.channel}</div>
-                      <div>{message.data.command.value}</div>
-                      <div>{message.data.params.p1.value}</div>
-                      <div>{message.data.params.p2.value}</div>
-                    {:else}
-                      <div class="col-span-4">
-                        SysEx: {String.fromCharCode
-                          .apply(String, message.data.raw)
-                          .substr(8)}
-                      </div>
-                    {/if}
-                    <div class="flex items-center">
-                      {message.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}
+          {#if debug}
+            <div class="flex w-full font-medium text-white pb-2 pt-8">
+              MIDI Messages (RAW)
+            </div>
+            <div class="w-full grid grid-cols-6 text-white">
+              <div>[X,Y]</div>
+              <div>CH</div>
+              <div>CMD</div>
+              <div>P1</div>
+              <div>P2</div>
+              <div>DIR</div>
+            </div>
+            <div class="flex flex-col grow overflow-y-auto bg-secondary">
+              {#each $debug_stream as message}
+                <div
+                  class="grid grid-cols-6 items-start justify-start w-full font-mono text-green-300"
+                >
+                  <div>[{message.device.x}, {message.device.y}]</div>
+                  {#if message.type === "MIDI"}
+                    <div>{message.data.channel}</div>
+                    <div>{message.data.command.value}</div>
+                    <div>{message.data.params.p1.value}</div>
+                    <div>{message.data.params.p2.value}</div>
+                  {:else}
+                    <div class="col-span-4">
+                      SysEx: {String.fromCharCode
+                        .apply(String, message.data.raw)
+                        .substr(8)}
                     </div>
+                  {/if}
+                  <div class="flex items-center">
+                    {message.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}
                   </div>
-                {/each}
-              </div>
-            {:else}
-              <div class="flex w-full text-white">MIDI Messages</div>
-              <div
-                class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-                bind:this={midiList}
-              >
-                {#each $midi_monitor_store as midi, i (midi.id)}
-                  <div
-                    class="text-green-300 transition-transform {hover &&
-                    i == hoverIndex
-                      ? 'scale-115'
-                      : 'scale-100'}"
-                    in:fly={{ x: -10, duration: 100 }}
+                </div>
+              {/each}
+            </div>
+          {:else}
+            <div class="flex w-full text-white pb-2">MIDI Messages</div>
+            <div
+              class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
+              bind:this={midiList}
+            >
+              {#each $midi_monitor_store as midi, i (midi.id)}
+                <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                <div
+                  class="text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
+                  on:mouseover={() => onEnterMidiMessage(this, i)}
+                  on:mouseleave={() => onLeaveMidiMessage(this, i)}
+                  in:fly={{ x: -10, duration: 100 }}
+                >
+                  <span class="pr-2 text-white">[{midi.device.name}]</span>
+                  <span class="pr-2">(Ch: {midi.data.channel})</span>
+                  <span class="pr-2">{midi.data.command.short}</span>
+                  <span class="pr-2">{midi.data.params.p1.short}</span>
+                  <span class="pr-2">{midi.data.params.p1.value}</span>
+                  <span class="pr-2">{midi.data.params.p2.short}</span>
+                  <span class="pr-2">{midi.data.params.p2.value}</span>
+                  <span class="pr-2"
+                    >{midi.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
                   >
-                    <span class="pr-2 text-white">[{midi.device.name}]</span>
-                    <span class="pr-2">(Ch: {midi.data.channel})</span>
-                    <span class="pr-2">{midi.data.command.short}</span>
-                    <span class="pr-2">{midi.data.params.p1.short}</span>
-                    <span class="pr-2">{midi.data.params.p1.value}</span>
-                    <span class="pr-2">{midi.data.params.p2.short}</span>
-                    <span class="pr-2">{midi.data.params.p2.value}</span>
-                    <span class="pr-2"
-                      >{midi.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
-                    >
-                  </div>
-                {/each}
-              </div>
-            {/if}
-          </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
         </div>
       </Pane>
       <Pane size={50}>
         <div class="flex flex-col h-full w-full">
-          <div class="flex w-full text-white">MIDI Messages</div>
-          <div
-            class="flex flex-col bg-secondary overflow-y-auto"
-            bind:this={midiList}
-          >
-            {#if debug}
-              <div class="flex w-full font-medium text-white">Debug Text</div>
-              <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
-                {#if $debug_monitor_store.length != 0}
-                  {#each $debug_monitor_store as debug, i}
-                    <span class="font-mono text-white debugtexty">{debug}</span>
-                  {/each}
-                {/if}
-              </div>
-            {:else}
-              <div class="flex w-full text-white">SysEx Messages</div>
-              <div
-                class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              >
-                {#each $sysex_monitor_store as sysex}
-                  <div
-                    class="{sysex.data.direction == 'REPORT'
-                      ? 'text-blue-400'
-                      : 'text-commit'} font-mono"
-                  >
-                    <div class="block">
-                      <span
-                        >SysEx: {String.fromCharCode
-                          .apply(String, sysex.data.raw)
-                          .substr(8)}</span
-                      >
-                      <span
-                        >{sysex.data.direction == "REPORT"
-                          ? "RX🡐"
-                          : "TX🡒"}</span
-                      >
-                    </div>
-                  </div>
+          {#if debug}
+            <div class="flex w-full font-medium text-white pb-2 pt-6">
+              Debug Text
+            </div>
+            <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
+              {#if $debug_monitor_store.length != 0}
+                {#each $debug_monitor_store as debug, i}
+                  <span class="font-mono text-white debugtexty">{debug}</span>
                 {/each}
-              </div>
-            {/if}
-          </div>
+              {/if}
+            </div>
+          {:else}
+            <div class="flex w-full text-white pb-2 pt-6">
+              System Exclusive Messages
+            </div>
+            <div
+              class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
+            >
+              {#each $sysex_monitor_store as sysex}
+                <div
+                  class="{sysex.data.direction == 'REPORT'
+                    ? 'text-blue-400'
+                    : 'text-green-400'} font-mono"
+                >
+                  <div class="block">
+                    <span class="text-white">SysEx: </span>
+                    <span
+                      >{String.fromCharCode
+                        .apply(String, sysex.data.raw)
+                        .substr(8)}</span
+                    >
+                    <span
+                      >{sysex.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
+                    >
+                  </div>
+                </div>
+              {/each}
+            </div>
+          {/if}
         </div>
       </Pane>
     </Splitpanes>
   </div>
-  <div class="flex">
+  <div class="flex pt-4 pb-12">
     <button
-      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full"
+      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full p-1"
       on:click={onClearClicked}
     >
       Clear All
