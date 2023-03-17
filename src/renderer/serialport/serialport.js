@@ -17,10 +17,28 @@ let lineBuffer = '';
 let latestValue = 0;
 
 
+// INITIALIZE THE INTERVAL
+console.log("Initialize Discovery Interval! ENABLE debugging through navigator.serialDebug = true");
+window.electron.serial.restartSerialCheckInterval()
+
+
+navigator.serial.addEventListener("disconnect", (e) => {
+  if (navigator.serialDebug)  console.log("Any Device Disconnect", e, navigator.intechPort); 
+  if (navigator.serialDebug)  console.log("Restart Discovery Interval"); 
+  
+  window.electron.serial.restartSerialCheckInterval()
+});
+navigator.serial.addEventListener("connect", (e) => {
+  if (navigator.serialDebug)  console.log("Any Device Connect", e,  navigator.intechPort);
+  if (navigator.serialDebug)  console.log("Restart Discovery Interval");
+  window.electron.serial.restartSerialCheckInterval()
+});
+
 
 export async function testIt() {
 
-  //  console.log("TEST IT");
+
+  if (navigator.serialDebug)  console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
@@ -44,7 +62,7 @@ export async function testIt() {
         navigator.intechPort = port
 
         port.addEventListener("disconnect", (e) => {
-          console.log("The Real Disconnect", e);
+          if (navigator.serialDebug)  console.log("The Real Disconnect", e);
           navigator.intechPort = undefined;
         });
 

@@ -41,7 +41,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   };
 
   const stopBootloaderCheck = () => {
-    //console.log("Stop Trying")
+    ////console.log("Stop Trying")
     clearInterval(booloaderConnectionCheck);
     flagBootloaderCheck = 0;
   };
@@ -117,6 +117,11 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         return
       }
 
+      if ($appSettings.firmwareNotificationState == 5){
+        return; // already in success state
+      }
+
+      //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
       $appSettings.firmwareNotificationState = value.code;
 
       if (value.message !== undefined) {
@@ -156,23 +161,37 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
     if (value !== undefined) {
 
-      bootloader_path = value.path
+      if ($appSettings.firmwareNotificationState == 1 || $appSettings.firmwareNotificationState == 2 || $appSettings.firmwareNotificationState == 6){
+
+        //console.log("Successfuly detection", value.path)
+
+        bootloader_path = value.path
+      }
+      else{
+
+        //console.log("Dont care detection", value.path)
+        bootloader_path = value.path
+      }
+
 
       //stopBootloaderCheck();
     }
     else{
       
-      if ($appSettings.firmwareNotificationState == 4 || $appSettings.firmwareNotificationState == 5){
+      if ( $appSettings.firmwareNotificationState == 4 || $appSettings.firmwareNotificationState == 5 || $appSettings.firmwareNotificationState == 6){
 
         bootloader_path = undefined
         //console.log("Disconnect but no problem")
 
       }
       else{
+
+
+        //console.log("Disconnect from state", $appSettings.firmwareNotificationState)
         
         if (typeof bootloader_path !== 'undefined'){
 
-        //console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
+        ////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
 
           bootloader_path = undefined
           uploadProgressText = "Bootloader connection lost!"
