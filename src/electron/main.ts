@@ -411,9 +411,9 @@ ipcMain.handle('sendToDiscord', async (event, arg) => {
   return await sendToDiscord(arg.message)
 })
 
-ipcMain.handle('fetchUrlJSON', async (event, arg) => {
+ipcMain.handle('fetchUrlJSON', (event, arg) => {
 
-  return await fetchUrlJSON(arg)
+  return fetchUrlJSON(arg)
 })
 
 

@@ -94,29 +94,33 @@
       text = "Ctrl + Shift + R";
     }
 
-    const response = await window.electron.fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
+    window.electron.fetchUrlJSON(configuration.NOTIFICATION_JSON_URL).then(data => {
+      console.log("RESPONSE", data)
 
-    response.forEach(element => {
-      if (element.type === "error"){
-        solutions.push(element)
-
-      }
-      else if (element.type === "notification"){
-
-        if (typeof element.delay !== 'undefined'){
-          let delay = parseInt(element.delay)
-          setTimeout(() => {
-            notifications = [...notifications, element]
-          }, delay);
-        } 
-        else{
-          notifications = [...notifications, element]
+      data.forEach(element => {
+        if (element.type === "error"){
+          solutions.push(element)
 
         }
+        else if (element.type === "notification"){
 
-      }
-    });
+          if (typeof element.delay !== 'undefined'){
+            let delay = parseInt(element.delay)
+            setTimeout(() => {
+              notifications = [...notifications, element]
+            }, delay);
+          } 
+          else{
+            notifications = [...notifications, element]
 
+          }
+
+        }
+      });
+
+    }).catch(error => {
+        console.log("Fetching solutions failed", error);
+      });
 
   });
 
