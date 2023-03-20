@@ -1,5 +1,5 @@
 <script>
-  import { fly } from "svelte/transition";
+  import { beforeUpdate, afterUpdate } from "svelte";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
@@ -12,7 +12,15 @@
   let debug = false;
   let hover = false;
   let last = undefined;
-  let midiList;
+  let midiList = undefined;
+  let activity = false;
+  let timer = undefined;
+
+  beforeUpdate(() => {});
+
+  afterUpdate(() => {
+    //test = false;
+  });
 
   midi_monitor_store.subscribe(() => {
     let mms = get(midi_monitor_store);
@@ -23,6 +31,16 @@
       UpdateDebugStream(m, "MIDI");
     }
   });
+
+  function showActivity() {
+    activity = true;
+    if (timer !== undefined) {
+      clearTimeout(timer);
+    }
+    timer = setTimeout(() => {
+      activity = false;
+    }, 250);
+  }
 
   sysex_monitor_store.subscribe(() => {
     let sms = get(sysex_monitor_store);
@@ -35,7 +53,7 @@
       if (items.length >= 32) {
         items.shift();
       }
-
+      showActivity();
       item.type = msg_type;
       return [...items, item];
     });
@@ -49,11 +67,13 @@
 
   function onEnterMidiMessage(item, index) {
     hover = true;
+    showActivity();
     let ms = get(midi_monitor_store);
     last = ms[index];
   }
 
   function onClearClicked() {
+    last = undefined;
     debug_monitor_store.update((s) => {
       s = [];
       return s;
@@ -74,86 +94,95 @@
 </script>
 
 <div class="flex flex-col h-full p-4 bg-primary">
-  <div class="flex flex-row w-full text-white justify-between items-center">
+  <div class="flex flex-row w-full text-white justify-between">
     <div class="flex text-2xl">MIDI Monitor</div>
-    <div class="flex">
+    <div class="flex items-center">
       <span class="text-white font-medium mr-2">Debug View</span>
       <Toggle bind:toggleValue={debug} />
     </div>
   </div>
 
   {#if !debug}
-    <div class="py-8 px-10">
-      <div class="border-secondary border flex flex-col col-span-3 mb-2">
-        <span class="text-sm text-white bg-secondary px-1">Command</span>
+    <div class="py-8 px-6">
+      <div class="border-gray-700 border rounded flex flex-col col-span-3 mb-2">
+        <span class="text-lg text-white bg-secondary px-2">Command</span>
         <div
           class="flex flex-row w-full text-white justify-between align-center items-center"
         >
-          <span class="py-1 px-2 text-white"
-            >{last ? last.data.command.name : "N/A"}</span
-          >
-          <div class="py-1 px-2 w-24 text-center rounded">
+          <div class="flex items-center py-1 px-3">
+            <span class="flex text-xl text-white "
+              >{last ? last.data.command.name : "Waiting for MIDI..."}</span
+            >
+          </div>
+          {#if last}
             <div
-              class="w-auto text-primary text-sm bg-white h-6 text-center rounded"
+              class="grid grid-cols-2 items-center rounded-lg text-center transition-width duration-200 mr-2 {hover
+                ? 'bg-green-400 w-24'
+                : 'bg-white w-20'}"
             >
-              {hover ? "SELECTED" : "LAST"}
+              <div
+                class="flex ml-3 mr-1 z-10 {hover
+                  ? 'text-white'
+                  : 'text-primary'} text-center"
+              >
+                {hover ? "SELECT" : "LAST"}
+              </div>
+              <div
+                class="flex place-self-end self-center {activity
+                  ? 'bg-yellow-500'
+                  : 'bg-primary'} rounded-full w-3 h-3 mr-2"
+              />
             </div>
-          </div>
+          {/if}
         </div>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 mb-2">
-        <div class="border-secondary border flex flex-col">
-          <div class="flex flex-row w-full text-white">
-            <span class="text-sm text-white bg-secondary px-1"
-              >{last ? last.data.params.p1.name : "N/A"}</span
-            >
-            <span class="grow text-right text-sm text-white bg-secondary px-1"
-              >[ P1 ]</span
-            >
-          </div>
-
-          <span class="px-2 text-white text-center"
-            >{last ? last.data.params.p1.value : "N/A"}</span
+      <div class="grid grid-cols-3 gap-4 my-4 text-center">
+        <div class="border-gray-700 border rounded flex flex-col">
+          <span class="text-lg text-white bg-secondary px-1">Channel</span>
+          <span class="px-2 text-xl text-white text-center"
+            >{last ? last.data.channel : "---"}</span
           >
         </div>
-        <div class="border-secondary border flex flex-col">
-          <div class="flex flex-row w-full text-white">
-            <span class="text-sm text-white bg-secondary px-1"
-              >{last ? last.data.params.p2.name : "N/A"}</span
-            >
-            <span class="grow text-right text-sm text-white bg-secondary px-1"
-              >[ P2 ]</span
-            >
-          </div>
-
-          <span class="px-2 text-white text-center"
-            >{last ? last.data.params.p2.value : "N/A"}</span
+        <div class="border-gray-700 border rounded flex flex-col">
+          <span class="text-lg text-white bg-secondary px-1">Device</span>
+          <span class="px-2 text-xl text-white text-center"
+            >{last ? last.device.name : "---"}</span
           >
         </div>
-      </div>
-
-      <div class="grid grid-cols-3 gap-2">
-        <div class="border-secondary border flex flex-col">
-          <span class="text-sm text-white bg-secondary px-1">Channel</span>
-          <span class="px-2 text-white text-center"
-            >{last ? last.data.channel : "N/A"}</span
-          >
-        </div>
-        <div class="border-secondary border flex flex-col">
-          <span class="text-sm text-white bg-secondary px-1">Device</span>
-          <span class="px-2 text-white text-center"
-            >{last ? last.device.name : "N/A"}</span
-          >
-        </div>
-        <div class="border-secondary border flex flex-col">
-          <span class="text-sm text-white bg-secondary px-1">Direction</span>
-          <span class="px-2 text-white text-center"
+        <div class="border-gray-700 border rounded flex flex-col">
+          <span class="text-lg text-white bg-secondary px-1">Direction</span>
+          <span class="px-2 text-xl text-white text-center"
             >{last
               ? last.data.direction == "REPORT"
-                ? "RX🡐"
-                : "TX🡒"
-              : "N/A"}</span
+                ? "Receive"
+                : "Transmit"
+              : "---"}</span
+          >
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4 place-items-center">
+        <div class="border-gray-700 border rounded flex flex-col w-44">
+          <div class="flex flex-row w-full text-white">
+            <span class="text-lg text-white text-center bg-secondary w-full"
+              >{last ? last.data.params.p1.name : "Parameter 1"}</span
+            >
+          </div>
+
+          <span class="text-xl text-white text-center"
+            >{last ? last.data.params.p1.value : "---"}</span
+          >
+        </div>
+        <div class="border-gray-700 border rounded flex flex-col w-44">
+          <div class="flex flex-row w-full text-white">
+            <span class="text-lg text-white text-center bg-secondary w-full"
+              >{last ? last.data.params.p2.name : "Parameter 2"}</span
+            >
+          </div>
+
+          <span class="text-xl text-white text-center"
+            >{last ? last.data.params.p2.value : "---"}</span
           >
         </div>
       </div>
@@ -181,7 +210,10 @@
               <div>P2</div>
               <div>DIR</div>
             </div>
-            <div class="flex flex-col grow overflow-y-auto bg-secondary">
+            <div
+              class="flex flex-col grow overflow-y-auto bg-secondary"
+              bind:this={midiList}
+            >
               {#each $debug_stream as message}
                 <div
                   class="grid grid-cols-6 items-start justify-start w-full font-mono text-green-300"
@@ -214,19 +246,18 @@
               {#each $midi_monitor_store as midi, i (midi.id)}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
+                  class="grid grid-cols-8 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
                   on:mouseover={() => onEnterMidiMessage(this, i)}
                   on:mouseleave={() => onLeaveMidiMessage(this, i)}
-                  in:fly={{ x: -10, duration: 100 }}
                 >
-                  <span class="pr-2 text-white">[{midi.device.name}]</span>
-                  <span class="pr-2">(Ch: {midi.data.channel})</span>
-                  <span class="pr-2">{midi.data.command.short}</span>
-                  <span class="pr-2">{midi.data.params.p1.short}</span>
-                  <span class="pr-2">{midi.data.params.p1.value}</span>
-                  <span class="pr-2">{midi.data.params.p2.short}</span>
-                  <span class="pr-2">{midi.data.params.p2.value}</span>
-                  <span class="pr-2"
+                  <span class="text-white">[{midi.device.name}]</span>
+                  <span class="">(Ch: {midi.data.channel})</span>
+                  <span class="">{midi.data.command.short}</span>
+                  <span class="">{midi.data.params.p1.short}:</span>
+                  <span class="">{midi.data.params.p1.value}</span>
+                  <span class="">{midi.data.params.p2.short}:</span>
+                  <span class="">{midi.data.params.p2.value}</span>
+                  <span class=""
                     >{midi.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
                   >
                 </div>
