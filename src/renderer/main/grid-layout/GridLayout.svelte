@@ -257,11 +257,12 @@
   >
     <grid-layout
       class="relative overflow-hidden w-full flex flex-col h-full
-    focus:outline-none border-none outline-none"
+    focus:outline-none border-none outline-none "
     >
-      <section class="relative inline-block my-0 mx-auto">
+      <Pages />
+      <section class="relative inline-block  mx-auto my-8 ">
         <div
-          class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center"
+          class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg "
         >
           <div class="mr-4 text-white font-medium  ">
             {$unsaved_changes} active changes
