@@ -42,7 +42,6 @@
 
 <svg 
   style="filter:url(#dropshadow)"
-  use:grab
   on:grabstart={handleGrabStart}
   on:grabmove={handleGrabMove}
   on:grabend={handleGrabEnd} 

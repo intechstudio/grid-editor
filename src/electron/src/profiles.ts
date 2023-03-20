@@ -75,14 +75,13 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   let path = configPath
-
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path)
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`)
 
   // either presets or profiles (pages)
-  // make sure to figure out naming conventions!
+  // make sure to figure out naming conventions!,
   let configs = []
 
   const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`)

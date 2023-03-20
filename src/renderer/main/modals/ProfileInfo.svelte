@@ -197,6 +197,7 @@
                       />
                     </svg>
                     delete
+                    
                     <TooltipConfirm key={"newProfile_desc_delete"} />
                     <TooltipSetter key={"newProfile_desc_delete"} />
                   </button>
