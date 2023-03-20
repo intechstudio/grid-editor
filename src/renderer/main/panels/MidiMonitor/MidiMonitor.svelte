@@ -1,5 +1,4 @@
 <script>
-  import { beforeUpdate, afterUpdate } from "svelte";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
@@ -16,19 +15,13 @@
   let activity = false;
   let timer = undefined;
 
-  beforeUpdate(() => {});
-
-  afterUpdate(() => {
-    //test = false;
-  });
-
   midi_monitor_store.subscribe(() => {
     let mms = get(midi_monitor_store);
     let m = mms.slice(-1).pop();
     if (m) {
       last = m;
-      if (midiList) midiList.scrollTop = midiList.scrollHeight;
       UpdateDebugStream(m, "MIDI");
+      if (midiList) midiList.scrollTop = midiList.scrollHeight;
     }
   });
 
@@ -243,23 +236,24 @@
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
               bind:this={midiList}
             >
-              {#each $midi_monitor_store as midi, i (midi.id)}
+              {#each $midi_monitor_store as midi, i}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-8 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
                   on:mouseover={() => onEnterMidiMessage(this, i)}
                   on:mouseleave={() => onLeaveMidiMessage(this, i)}
                 >
-                  <span class="text-white">[{midi.device.name}]</span>
-                  <span class="">(Ch: {midi.data.channel})</span>
-                  <span class="">{midi.data.command.short}</span>
-                  <span class="">{midi.data.params.p1.short}:</span>
-                  <span class="">{midi.data.params.p1.value}</span>
-                  <span class="">{midi.data.params.p2.short}:</span>
-                  <span class="">{midi.data.params.p2.value}</span>
-                  <span class=""
-                    >{midi.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
+                  <span class="text-white"
+                    >{midi.device.name}{midi.data.direction == "REPORT"
+                      ? " 🡐"
+                      : " 🡒"}</span
                   >
+                  <span>Ch: {midi.data.channel}</span>
+                  <span>{midi.data.command.short}</span>
+                  <span>{midi.data.params.p1.short}:</span>
+                  <span>{midi.data.params.p1.value}</span>
+                  <span>{midi.data.params.p2.short}:</span>
+                  <span>{midi.data.params.p2.value}</span>
                 </div>
               {/each}
             </div>
@@ -293,14 +287,15 @@
                     : 'text-green-400'} font-mono"
                 >
                   <div class="block">
-                    <span class="text-white">SysEx: </span>
+                    <span class="text-white"
+                      >{sysex.device.name}{sysex.data.direction == "REPORT"
+                        ? " 🡐"
+                        : " 🡒"}</span
+                    >
                     <span
                       >{String.fromCharCode
                         .apply(String, sysex.data.raw)
                         .substr(8)}</span
-                    >
-                    <span
-                      >{sysex.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}</span
                     >
                   </div>
                 </div>
