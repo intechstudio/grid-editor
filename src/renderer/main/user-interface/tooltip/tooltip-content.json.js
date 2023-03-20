@@ -105,13 +105,6 @@ export const tooltip_content = {
 
 
 
-
-
-
-
-
-
-
     "newPreset_delete": "Delete this Session Preset permanently.",
     "newPreset_save": "Move this Session Preset to the Preset Cloud folder",
     "newPreset_rewrite": "Overwrite this Session Preset with the selected module's configuration.",

@@ -28,27 +28,22 @@
   PRESET_PATH = get(appSettings).persistant.presetFolder;
 
   let sessionPreset = GetSessionPreset();
-  
-  async function GetSessionPreset(){
-  if(PRESETS == null)
-  {
-    await loadFromDirectory();
-  }
-  sessionPreset = PRESETS.filter(
+
+  async function GetSessionPreset() {
+    if (PRESETS == null) {
+      await loadFromDirectory();
+    }
+    sessionPreset = PRESETS.filter(
       (element) => element.folder == "sessionPreset"
     );
-}
+  }
 
-  async function loadFromDirectory(){
+  async function loadFromDirectory() {
     PRESETS = await window.electron.configs.loadConfigsFromDirectory(
       PRESET_PATH,
       "presets"
     );
-    console.log(PRESETS);
   }
-
-
-
 
   let liked = false;
 
@@ -63,10 +58,6 @@
   function isProfileLiked() {
     liked = !liked;
   }
-
-
-
-  $: console.log("PRESET_PATH", PRESET_PATH);
 
   let selectedProfile = get(selectedProfileStore);
 
@@ -129,7 +120,6 @@
 
   function getImgUrl(img) {
     const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
-    console.log("img", img, imgPath);
 
     return imgPath;
   }
@@ -137,8 +127,6 @@
   let numberForSessionPreset = 0;
 
   async function convertProfileToSessionPreset(profile) {
-
-    
     // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
     // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
 
@@ -173,6 +161,24 @@
      * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
      */
 
+    let isSessionPresetNameUnique = undefined;
+
+    function checkIfPresetTitleUnique(input) {
+      let notUniqueName = [];
+
+      sessionPreset.forEach((element) => {
+        if (element.name.toLowerCase() == input.toLowerCase()) {
+          notUniqueName = [...notUniqueName, element.name];
+        }
+      });
+
+      if (notUniqueName.length > 0) {
+        isSessionPresetNameUnique = false;
+      } else {
+        isSessionPresetNameUnique = true;
+      }
+    }
+
     const conversionPromises = profile.configs.map((profileElement) => {
       let user = "sessionPreset";
 
@@ -196,16 +202,7 @@
           }
         });
 
-        let largestNumber = Math.max(...sessionPresetNumbers);
-
-        /*           if (largestNumber > 0) {
-            numberForSessionPreset = largestNumber;
-            numberForSessionPreset++;
-          } else {
-            numberForSessionPreset++;
-          } */
-
-        name = `SP ${numberForSessionPreset} ` + profile.name;
+        name = profile.name + ` ${profileElement.controlElementNumber}`;
         description = "";
 
         if (profile.type == "BU16") {
@@ -241,7 +238,7 @@
           }
         }
 
-        console.log("profileElement", profileElement);
+        checkIfPresetTitleUnique(name);
       }
 
       let preset = {
@@ -260,7 +257,9 @@
         id: uuidv4(),
       };
 
-      return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+      if (isSessionPresetNameUnique == true) {
+        return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+      }
     });
 
     await Promise.all(conversionPromises).then((res) => {
@@ -282,7 +281,6 @@
       user
     );
   }
-
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -377,7 +375,7 @@
                       />
                     </svg>
                     delete
-                    
+
                     <TooltipConfirm key={"newProfile_desc_delete"} />
                     <TooltipSetter key={"newProfile_desc_delete"} />
                   </button>
@@ -576,32 +574,36 @@
                 </div>
               </div>
             </div>
-            
           </div>
-          <div class="bg-secondary py-8 px-6 rounded-lg border-cyan-600 border-2 flex flex-col gap-6">
-          
-              <div
-                class="flex flex-col justify-between 
+          <div
+            class="bg-secondary py-8 px-6 rounded-lg border-cyan-600 border-2 flex flex-col gap-6"
+          >
+            <div
+              class="flex flex-col justify-between 
                 pb-4 gap-6"
-              >
-                
+            >
               <div>
-                <div class=" text-lg mb-4">Split to control element presets</div>
-                <div class="text-gray-300">This will make for each control element a control element preset in the element preset folder. </div>
-              </div>
-                  
-                  <div>
-                    <button on:click={()=>{convertProfileToSessionPreset(selectedProfile)}} class="bg-green-500 py-2 px-10 rounded cursor-pointer relative">Split                    <TooltipConfirm key={"newProfile_desc_delete"} />
-                      <TooltipConfirm key={"newProfile_desc_split_presets"} /> 
-                      <TooltipSetter key={"newProfile_desc_split_presets"} />
-                    </button>
-                      
-
-                  </div>
-                  
+                <div class=" text-lg mb-4">
+                  Split to control element presets
                 </div>
-              
+                <div class="text-gray-300">
+                  Convert profile to element presets.
+                </div>
+              </div>
 
+              <div>
+                <button
+                  on:click={() => {
+                    convertProfileToSessionPreset(selectedProfile);
+                  }}
+                  class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
+                >
+                  <div>Split</div>
+                  <TooltipConfirm key={"newProfile_desc_split_presets"} />
+                  <TooltipSetter key={"newProfile_desc_split_presets"} />
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

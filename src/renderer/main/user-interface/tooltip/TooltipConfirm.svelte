@@ -127,7 +127,7 @@
       <div
         bind:this={tooltip_element}
         on:click|stopPropagation={() => {}}
-        style="z-index: 50; {tooltip_style}"
+        style="z-index: 60; {tooltip_style}"
         class="fixed cursor-default"
       >
         <div class="flex-col">
