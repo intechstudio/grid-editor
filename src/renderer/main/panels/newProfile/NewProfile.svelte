@@ -717,154 +717,6 @@
     );
   }
 
-  let sessionPresetNumbers = [];
-  let numberForSessionPreset = 0;
-
-  async function convertProfileToSessionPreset(profile) {
-    // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
-    // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "presetsave",
-      message: `Profile to element presets conversion started...`,
-    });
-
-    // analitikiát @tofinak meg kell javítani
-
-    window.electron.analytics.google("preset-library", {
-      value: "save start",
-    });
-
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
-
-    /**
-     * Ez egy jó promise pattern.
-     * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
-     * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
-     * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
-     * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
-     *
-     * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
-     * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
-     */
-
-    const conversionPromises = profile.configs.map((profileElement) => {
-      let user = "sessionPreset";
-
-      let name;
-      let description;
-      let type;
-
-      numberForSessionPreset++;
-
-      if (user == "sessionPreset") {
-        let sessionPresetName;
-        sessionPresetNumbers = [];
-
-        sessionPreset.forEach((sessionPresetElement) => {
-          sessionPresetName = JSON.stringify(sessionPresetElement.name);
-          if (sessionPresetName.includes("Session Preset")) {
-            sessionPresetNumbers = [
-              ...sessionPresetNumbers,
-              parseInt(sessionPresetName.split(" ").pop(), 10),
-            ];
-          }
-        });
-
-        let largestNumber = Math.max(...sessionPresetNumbers);
-
-        /*           if (largestNumber > 0) {
-            numberForSessionPreset = largestNumber;
-            numberForSessionPreset++;
-          } else {
-            numberForSessionPreset++;
-          } */
-
-        name = `SP ${numberForSessionPreset} ` + profile.name;
-        description = "";
-
-        if (profile.type == "BU16") {
-          type = "button";
-        }
-
-        if (profile.type == "PO16") {
-          type = "potentiometer";
-        }
-
-        if (profile.type == "EN16") {
-          type = "encoder";
-        }
-
-        if (profile.type == "EF44") {
-          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-            type = "encoder";
-          }
-          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-            type = "fader";
-          }
-        }
-
-        if (profile.type == "PBF4") {
-          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-            type = "potentiometer";
-          }
-          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-            type = "fader";
-          }
-          if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
-            type = "button";
-          }
-        }
-
-        console.log("profileElement", profileElement);
-      }
-
-      let preset = {
-        name: name,
-        description: description,
-        type: type,
-        isGridPreset: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        configs: {
-          ...profileElement,
-        },
-        id: uuidv4(),
-      };
-
-      return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
-    });
-
-    await Promise.all(conversionPromises).then((res) => {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "presetsave",
-        message: `Profile to element presets conversion finished!`,
-      });
-    });
-  }
-
-  async function saveToSessionPreset(path, name, preset, user) {
-    return await window.electron.configs.saveConfig(
-      path,
-      name,
-      preset,
-      "presets",
-      user
-    );
-  }
-
   onMount(() => {
     animateFade = true;
     animateFly = false;
@@ -922,46 +774,44 @@
                     : 'border border-black border-opacity-0'}
               "
                 >
-                  <div class="flex gap-2 items-center">
+                  <div class="flex gap-2 items-center w-full">
                     <div
                       class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                      rounded-xl {selectedModule == sessionProfileElement.type
+                      rounded-xl  {selectedModule == sessionProfileElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
                     >
                       {sessionProfileElement.type}
                     </div>
 
-                    <div class="flex justify-between flex-row">
-                      <div>
-                        <input
-                          type="text"
-                          value={sessionProfileElement.name}
-                          use:clickOutside={{ useCapture: true }}
-                          on:click={() => {
-                            selectProfile(sessionProfileElement);
-                          }}
-                          on:blur={(e) => {
+                    <div class="flex justify-between flex-row w-full">
+                      <input
+                        type="text"
+                        value={sessionProfileElement.name}
+                        use:clickOutside={{ useCapture: true }}
+                        on:click={() => {
+                          selectProfile(sessionProfileElement);
+                        }}
+                        on:blur={(e) => {
+                          let newName = e.target.value.trim();
+                          animateFade = false;
+                          updateSessionProfileTitle(
+                            sessionProfileElement,
+                            newName
+                          );
+                        }}
+                        on:keypress={(e) => {
+                          if (e.key === 13) {
                             let newName = e.target.value.trim();
-                            animateFade = false;
                             updateSessionProfileTitle(
                               sessionProfileElement,
                               newName
                             );
-                          }}
-                          on:keypress={(e) => {
-                            if (e.key === 13) {
-                              let newName = e.target.value.trim();
-                              updateSessionProfileTitle(
-                                sessionProfileElement,
-                                newName
-                              );
-                            }
-                          }}
-                          class="text-zinc-100 min-w-[15px] h-fit break-words
+                          }
+                        }}
+                        class="text-zinc-100 min-w-[15px] h-fit px-2  break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
 
@@ -1431,17 +1281,6 @@
                                 </svg>
                               </button>
                             {/if}
-
-                            <button
-                              class="p-1 hover:bg-primary-500 rounded relative text-white"
-                              on:click|preventDefault={() => {
-                                convertProfileToSessionPreset(
-                                  profileCloudElement
-                                );
-                              }}
-                            >
-                              p
-                            </button>
 
                             <button
                               class="p-1 hover:bg-primary-500 rounded relative"

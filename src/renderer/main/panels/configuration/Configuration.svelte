@@ -8,8 +8,6 @@
 
   let actionIsDragged = false;
 
-  import Pages from "./components/Pages.svelte";
-
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
@@ -52,7 +50,6 @@
   let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
-  let pages = { options: ["", "", "", ""], selected: "" };
 
   let access_tree = {};
 
@@ -60,7 +57,6 @@
     configs = [];
     events = { options: ["", "", ""], selected: "" };
     elements = { options: [], selected: "" };
-    pages = { options: ["", "", "", ""], selected: "" };
   }
 
   onMount(() => {
@@ -244,9 +240,9 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
+      console.log("DEBUG", active.pages);
       events = active.events;
       elements = active.elements;
-      pages = active.pages;
     }
 
     // set UI to uiEvents, if its not system events
@@ -336,8 +332,6 @@
     ? ''
     : 'pointer-events-none'}"
 >
-  <Pages {pages} />
-
   <div class="bg-primary py-5 flex flex-col justify-center items-center">
     <div class="flex flex-row items-start bg-primary py-2">
       <button
@@ -493,7 +487,6 @@
                       {configs}
                       {access_tree}
                     />
-                    
 
                     {#if !drag_start}
                       <AddAction

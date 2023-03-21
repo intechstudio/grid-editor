@@ -18,6 +18,18 @@
     rgb[0] = (color[0] / maximum) * 255;
     rgb[1] = (color[1] / maximum) * 255;
     rgb[2] = (color[2] / maximum) * 255;
+
+    if (isNaN(rgb[0])) {
+      rgb[0] = 150;
+    }
+
+    if (isNaN(rgb[1])) {
+      rgb[1] = 150;
+    }
+
+    if (isNaN(rgb[2])) {
+      rgb[2] = 150;
+    }
   }
 
   let ledSize = 6;
