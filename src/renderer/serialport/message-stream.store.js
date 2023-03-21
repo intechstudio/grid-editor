@@ -11,7 +11,7 @@ import {
   update_ledColorStore,
 } from '../runtime/runtime.store'
 import { debug_monitor_store } from '../main/panels/DebugMonitor/DebugMonitor.store'
-import { midi_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store'
+import { midi_monitor_store, sysex_monitor_store } from '../main/panels/MidiMonitor/MidiMonitor.store'
 
 function createMessageStream() {
   const _deliver_inbound = function (class_array) {
@@ -42,14 +42,15 @@ function createMessageStream() {
         update_ledColorStore(class_descr)
       }
 
-      if (
-        class_descr.class_name === 'MIDI' ||
-        class_descr.class_name === 'MIDISYSEX'
-      ) {
+      if (class_descr.class_name === 'MIDI') {
         midi_monitor_store.update_midi(class_descr)
 
         // websocket send data to plugin
         // ipcRenderer.send('websocket_tx', class_descr);
+      }
+
+      if(class_descr.class_name === 'MIDISYSEX'){
+        sysex_monitor_store.update_sysex(class_descr)
       }
 
       if (class_descr.class_name === 'CONFIG') {
