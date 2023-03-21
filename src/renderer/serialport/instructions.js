@@ -338,6 +338,7 @@ const instructions = {
     logger.set({type: 'progress', mode: 0, classname: 'pagediscard', message: `Discarding configurations...`})
 
     let buffer_element = {
+      responseTimeout: 1000,
       descr: {
         brc_parameters: {
           DX: -127, DY: -127
