@@ -654,6 +654,8 @@
   }
 
   function selectPreset(preset) {
+
+
     selectedPreset = preset;
     selectedPresetStore.set(selectedPreset);
   }
@@ -703,8 +705,9 @@
     isSaveToCloudButtonClicked = true;
     isActionButtonClickedStore.set(true);
 
-    selectPreset(preset);
-    prepareSave("user");
+
+    saveToDirectory(PRESET_PATH, preset.name, preset, "user");
+    deleteSessionPreset(preset)
 
     selectedPreset = undefined;
     isSaveToCloudButtonClicked = false;
