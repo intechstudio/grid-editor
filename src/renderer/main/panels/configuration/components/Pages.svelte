@@ -64,15 +64,16 @@
     <TooltipQuestion key={"configuration_pages"} />
   </div> -->
 
-  <div class="flex bg-secondary w-fit">
+  <div class="flex bg-primary w-fit gap-2">
     {#each [0, 1, 2, 3] as page}
       <button
         on:click={() => {
           handleSelectPage(page);
         }}
         class=" {selectedPage == page
-          ? ' bg-blue-400'
-          : 'bg-primary'}   flex-grow border-0 py-2 px-5 text-gray-50  max-w-[100px]"
+        ? 'bg-secondary  text-white'
+        : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none  flex-grow border-0 text-gray-50  w-[100px]"
+
       >
         Page {@html page !== ""
           ? page + 1

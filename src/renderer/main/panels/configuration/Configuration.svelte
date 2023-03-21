@@ -240,7 +240,7 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
-      console.log("DEBUG", active.pages);
+      
       events = active.events;
       elements = active.elements;
     }
@@ -339,8 +339,8 @@
           changeSelectedConfig("uiEvents");
         }}
         class="{$appSettings.configType == 'uiEvents'
-          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
-          : ''} relative px-4 py-2 cursor-pointer text-white"
+          ? 'shadow-md bg-pick text-white'
+            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
         <TooltipSetter key={"configuration_ui_events"} />
@@ -351,8 +351,8 @@
           changeSelectedConfig("systemEvents");
         }}
         class="{$appSettings.configType == 'systemEvents'
-          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
-          : ''} relative px-4 py-2 cursor-pointer text-white"
+          ? 'shadow-md bg-pick text-white'
+            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />

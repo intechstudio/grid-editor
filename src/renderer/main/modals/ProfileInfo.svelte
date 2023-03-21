@@ -188,58 +188,69 @@
 
       numberForSessionPreset++;
 
-      if (user == "sessionPreset") {
-        let sessionPresetName;
-        sessionPresetNumbers = [];
+      //if (user == "sessionPreset") {
+      let sessionPresetName;
+      sessionPresetNumbers = [];
 
-        sessionPreset.forEach((sessionPresetElement) => {
-          sessionPresetName = JSON.stringify(sessionPresetElement.name);
-          if (sessionPresetName.includes("Session Preset")) {
-            sessionPresetNumbers = [
-              ...sessionPresetNumbers,
-              parseInt(sessionPresetName.split(" ").pop(), 10),
-            ];
-          }
-        });
-
-        name = profile.name + ` ${profileElement.controlElementNumber}`;
-        description = "";
-
-        if (profile.type == "BU16") {
-          type = "button";
+      sessionPreset.forEach((sessionPresetElement) => {
+        sessionPresetName = JSON.stringify(sessionPresetElement.name);
+        if (sessionPresetName.includes("Session Preset")) {
+          sessionPresetNumbers = [
+            ...sessionPresetNumbers,
+            parseInt(sessionPresetName.split(" ").pop(), 10),
+          ];
         }
+      });
 
-        if (profile.type == "PO16") {
-          type = "potentiometer";
-        }
 
-        if (profile.type == "EN16") {
+      name =  `${profile.name} (Element: ${profileElement.controlElementNumber})`;
+      description = "";
+
+      if (profile.type == "BU16") {
+        type = "button";
+      }
+
+      if (profile.type == "PO16") {
+        type = "potentiometer";
+      }
+
+      if (profile.type == "EN16") {
+        type = "encoder";
+      }
+
+      if (profile.type == "EF44") {
+
+        if ([0,1,2,3].includes(profileElement.controlElementNumber)) {
           type = "encoder";
         }
-
-        if (profile.type == "EF44") {
-          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-            type = "encoder";
-          }
-          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-            type = "fader";
-          }
+        if ([4,5,6,7].includes(profileElement.controlElementNumber)) {
+          type = "fader";
         }
-
-        if (profile.type == "PBF4") {
-          if (profileElement.controlElementNumber == 0 || 1 || 2 || 3) {
-            type = "potentiometer";
-          }
-          if (profileElement.controlElementNumber == 4 || 5 || 6 || 7) {
-            type = "fader";
-          }
-          if (profileElement.controlElementNumber == 8 || 9 || 10 || 11) {
-            type = "button";
-          }
-        }
-
-        checkIfPresetTitleUnique(name);
       }
+
+      if (profile.type == "PBF4") {
+
+       
+        if ( [0,1,2,3].includes(profileElement.controlElementNumber)) {
+          type = "potentiometer";
+        }
+        if ( [4,5,6,7].includes(profileElement.controlElementNumber)) {
+          type = "fader";
+        }
+        if ( [8,9,10,11].includes(profileElement.controlElementNumber)) {
+          type = "button";
+        }
+      }
+
+
+      if (profileElement.controlElementNumber === 255){
+        type="system"
+      }
+
+      checkIfPresetTitleUnique(name);
+      //}
+
+
 
       let preset = {
         name: name,
