@@ -8,8 +8,6 @@
 
   let actionIsDragged = false;
 
-  import Pages from "./components/Pages.svelte";
-
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
@@ -52,7 +50,6 @@
   let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
-  let pages = { options: ["", "", "", ""], selected: "" };
 
   let access_tree = {};
 
@@ -60,7 +57,6 @@
     configs = [];
     events = { options: ["", "", ""], selected: "" };
     elements = { options: [], selected: "" };
-    pages = { options: ["", "", "", ""], selected: "" };
   }
 
   onMount(() => {
@@ -244,9 +240,9 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
+      console.log("DEBUG", active.pages);
       events = active.events;
       elements = active.elements;
-      pages = active.pages;
     }
 
     // set UI to uiEvents, if its not system events
@@ -332,35 +328,59 @@
 </script>
 
 <configuration
-  class="w-full h-full flex flex-col {$engine == 'ENABLED'
+  class="w-full h-full flex flex-col  {$engine == 'ENABLED'
     ? ''
     : 'pointer-events-none'}"
 >
-  <Pages {pages} />
+  <div class="bg-primary py-5 flex flex-col justify-center items-center">
+    <div class="flex flex-row items-start bg-primary py-2">
+      <button
+        on:click={() => {
+          changeSelectedConfig("uiEvents");
+        }}
+        class="{$appSettings.configType == 'uiEvents'
+          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
+          : ''} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> UI Events </span>
+        <TooltipSetter key={"configuration_ui_events"} />
+      </button>
 
-  <div class="flex flex-row items-start mt-4">
-    <button
-      on:click={() => {
-        changeSelectedConfig("uiEvents");
-      }}
-      class="{$appSettings.configType == 'uiEvents'
-        ? 'bg-primary'
-        : 'bg-secondary'} relative px-4 py-2 cursor-pointer text-white "
-    >
-      <span> UI Events </span>
-      <TooltipSetter key={"configuration_ui_events"} />
-    </button>
-    <button
-      on:click={() => {
-        changeSelectedConfig("systemEvents");
-      }}
-      class="{$appSettings.configType == 'systemEvents'
-        ? 'bg-primary'
-        : 'bg-secondary'} relative px-4 py-2 cursor-pointer text-white"
-    >
-      <span> System Events </span>
-      <TooltipSetter key={"configuration_system_events"} />
-    </button>
+      <button
+        on:click={() => {
+          changeSelectedConfig("systemEvents");
+        }}
+        class="{$appSettings.configType == 'systemEvents'
+          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
+          : ''} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> System Events </span>
+        <TooltipSetter key={"configuration_system_events"} />
+      </button>
+      <!--       <button
+        on:click={() => {
+          changeSelectedConfig("uiEvents");
+        }}
+        class="{$appSettings.configType == 'uiEvents'
+          ? 'bg-secondary'
+          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
+      >
+        <span> UI Events </span>
+        <TooltipSetter key={"configuration_ui_events"} />
+      </button>
+
+      <button
+        on:click={() => {
+          changeSelectedConfig("systemEvents");
+        }}
+        class="{$appSettings.configType == 'systemEvents'
+          ? 'bg-secondary'
+          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white"
+      >
+        <span> System Events </span>
+        <TooltipSetter key={"configuration_system_events"} />
+      </button> -->
+    </div>
   </div>
 
   {#key $appSettings.configType == "uiEvents"}
@@ -373,12 +393,15 @@
         delay: 0,
       }}
     >
-      <ConfigParameters {configs} {events} {elements} />
-
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
-        <div class="text-gray-500 text-sm">Actions</div>
-        <div class="pt-1 flex items-center  justify-end">
-          <MultiSelect />
+        <div>
+          <ConfigParameters {configs} {events} {elements} />
+          <div class="px-4">
+            <div class="text-gray-500 text-sm ">Actions</div>
+            <div class="pt-1 flex items-center justify-between w-full ">
+              <MultiSelect />
+            </div>
+          </div>
         </div>
 
         <div
@@ -413,7 +436,7 @@
           on:anim-end={() => {
             animation = false;
           }}
-          class="flex flex-col h-full relative justify-between"
+          class="flex flex-col h-full relative justify-between "
         >
           <config-list
             id="cfg-list"
@@ -422,7 +445,9 @@
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full  h-auto overflow-y-auto"
+            class="flex flex-col w-full  h-auto overflow-y-auto px-4 {disable_pointer_events
+              ? 'cursor-grabbing'
+              : ''}"
           >
             {#if configs.length !== 0}
               {#if !drag_start}
@@ -448,12 +473,14 @@
                   <anim-block
                     animate:flip={{ duration: 300 }}
                     in:fade={{ delay: 0 }}
-                    class="select-none {config.information.rendering == 'hidden'
+                    class="select-none   {config.information.rendering ==
+                    'hidden'
                       ? 'hidden'
                       : 'block'}"
                   >
                     <DynamicWrapper
                       let:toggle
+                      {drag_start}
                       {disable_pointer_events}
                       {index}
                       {config}
@@ -483,34 +510,33 @@
               {/if}
             {/if}
           </config-list>
-
-          <container class="flex flex-col w-full">
-            {#if !drag_start}
-              <div class="w-full flex justify-between mb-3">
-                <AddAction
-                  userHelper={true}
-                  {animation}
-                  on:new-config={(e) => {
-                    addConfigAtPosition(e, configs.length + 1);
-                  }}
-                />
-                <ExportConfigs />
-              </div>
-            {:else}
-              <Bin />
-            {/if}
-          </container>
         </div>
+        <container class="flex flex-col w-full">
+          {#if !drag_start}
+            <div class="w-full flex justify-between mb-3">
+              <AddAction
+                userHelper={true}
+                {animation}
+                on:new-config={(e) => {
+                  addConfigAtPosition(e, configs.length + 1);
+                }}
+              />
+              <ExportConfigs />
+            </div>
+          {:else}
+            <Bin />
+          {/if}
+        </container>
       </configs>
     </container>
   {/key}
 </configuration>
 
 <style global>
-  .grabbed {
-    cursor: move !important;
+  /*   .grabbed {
+    cursor: grab !important;
   }
-
+ */
   .unselectable {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -518,7 +544,7 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    cursor: default;
+    /*     cursor: default; */
   }
 
   ::-webkit-scrollbar {

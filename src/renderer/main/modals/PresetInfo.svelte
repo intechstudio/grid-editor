@@ -46,7 +46,7 @@
 
     presetChangeCallbackStore.set({
       action: "delete",
-      profile: selectedPreset,
+      preset: selectedPreset,
     });
 
     logger.set({
@@ -64,13 +64,13 @@
     $appSettings.modal = "";
 
     window.electron.analytics.influx("preset-library", {
-      value: "newProfile_desc_delete",
+      value: "newPreset_desc_delete",
     });
     window.electron.analytics.influx(
       "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_delete"
+      "presets",
+      "preset",
+      "newPreset_desc_delete"
     );
   }
 
@@ -82,9 +82,9 @@
     });
     window.electron.analytics.influx(
       "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_edit"
+      "presets",
+      "preset",
+      "newPreset_desc_edit"
     );
   }
 
@@ -179,8 +179,8 @@
                     />
                   </svg>
                   delete
-                  <TooltipConfirm key={"newProfile_desc_delete"} />
-                  <TooltipSetter key={"newProfile_desc_delete"} />
+                  <TooltipConfirm key={"newPreset_desc_delete"} />
+                  <TooltipSetter key={"newPreset_desc_delete"} />
                 </button>
 
                 <button
@@ -220,7 +220,7 @@
                   </svg>
                   edit
 
-                  <TooltipSetter key={"newProfile_desc_edit"} />
+                  <TooltipSetter key={"newPreset_desc_edit"} />
                 </button>
               </div>
             {/if}

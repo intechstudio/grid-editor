@@ -156,7 +156,7 @@
   use:watchResize={resize}
   id="app"
   spellcheck="false"
-  class=" relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
 
@@ -174,9 +174,9 @@
 
     <ErrorConsole />
 
-    <TopSubMenu />
+    <!-- <TopSubMenu /> -->
 
-    <div class="flex w-full h-full overflow-hidden ">
+    <div class="flex flex-grow overflow-hidden ">
       <Splitpanes
         theme="modern-theme"
         pushOtherPanes={false}
@@ -207,7 +207,7 @@
     overflow: visible;
   }
 
-  /*betty magic variable*/
+  /*betty magic selector*/
   .splitpanes.modern-theme .splitpanes__pane.leftPane {
     overflow: hidden;
   }

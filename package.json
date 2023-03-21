@@ -1,6 +1,6 @@
 {
   "name": "grid-editor",
-  "version": "1.2.31",
+  "version": "1.2.32",
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
@@ -32,8 +32,6 @@
   },
   "dependencies": {
     "@influxdata/influxdb-client": "^1.31.0",
-    "@nut-tree/nut-js": "^2.3.0",
-    "active-win": "^7.7.2",
     "adm-zip": "^0.5.9",
     "discord.js": "^13.6.0",
     "electron-dl": "^3.4.1",

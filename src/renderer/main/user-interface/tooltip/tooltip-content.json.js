@@ -19,6 +19,7 @@ export const tooltip_content = {
 
     "configuration_ui_events": "UI Events can be triggered by interacting with the control elements on the Grid modules (e.g. turning a knob or pressing a button).",
     "configuration_system_events": "System Events are shared by all Grid modules and Each System Event serves a specific purpose (see the specific system event descriptions).",
+    "configuration_element_name": 'Name your control element, by adding an "Element Name" field in Actions.',
     "configuration_selected_element": "A Control Element represents each individual button, knob or fader on a Grid module and are referred to by number from 0 to 15 from topdown left-to-right fashion.",
     "configuration_selected_events": "Egy kedves béka mindig felvidítja az embert a tóparton.",
     "configuration_pages": "Pages store configuration data independently for all your Grid modules, providing quick access to 4 different configurations.",
@@ -99,13 +100,21 @@ export const tooltip_content = {
     "newProfile_exit_overlay": "Hide the Overlay.",
     "newProfile_desc_delete": "Delete this Profile from the Profile Cloud permanently.",
     "newProfile_desc_edit": "Edit the description of this Profile.",
+    "newProfile_desc_split_presets":"This will make for each control element a control element preset in the element preset folder.",
     "newProfile_load_profile": "Previously saved profiles stored in your Local Folder are shown here.",
 
 
-    "newPreset_save": "Save the configuration of the currently active element to your Local Folder.",
+
+    "newPreset_delete": "Delete this Session Preset permanently.",
+    "newPreset_save": "Move this Session Preset to the Preset Cloud folder",
+    "newPreset_rewrite": "Overwrite this Session Preset with the selected module's configuration.",
     "newPreset_info": "Open the Preset description window.",
-    "newProfile_add_to_session": "Save the currently active module configuration locally as a Session Profile.",
-    "newProfile_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
-    "newPeset_desc_edit": "Edit the description of this Preset.",
+    "newPreset_add_to_session": "Save the currently active module configuration locally as a Session Preset.",
+    "newPreset_exit_overlay": "Hide the Overlay.",
+    "newPreset_desc_delete": "Delete this Preset from the Preset Cloud permanently.",
+    "newPreset_desc_edit": "Edit the description of this Preset.",
     "newPreset_load_preset": "Previously saved presets stored in your Local Folder are shown here.",
+
+
+    
 }

@@ -55,17 +55,23 @@
   let isSessionProfileOpen = true;
 
   let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  let PRESET_PATH = get(appSettings).persistant.presetFolder;
   let PROFILES = [];
+  let PRESETS = [];
   let profileCloud = [];
   let sessionProfile = [];
+  let sessionPreset = [];
   let filteredProfileCloud = [];
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       loadFromDirectory();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   let animateFade;
@@ -97,6 +103,15 @@
       "profiles"
     );
 
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+      PRESET_PATH,
+      "presets"
+    );
+
+    sessionPreset = PRESETS.filter(
+      (element) => element.folder == "sessionPreset"
+    );
+
     PROFILES.forEach((element) => {
       if (element.id == undefined || element.id == "") {
         element.id = element.name.replace(/\W+/g, "-");
@@ -122,10 +137,13 @@
 
   appSettings.subscribe((store) => {
     let new_folder = store.persistant.profileFolder;
+
     if (new_folder !== PROFILE_PATH) {
       PROFILE_PATH = new_folder;
       moveOld();
     }
+
+    PRESET_PATH = store.persistant.presetFolder;
   });
 
   async function moveOld() {
@@ -616,12 +634,6 @@
     }
   }
 
-  onMount(() => {
-    animateFade = true;
-    animateFly = false;
-    moveOld();
-  });
-
   function deleteSessionProfile(profile) {
     isActionButtonClickedStore.set(true);
     isDeleteButtonClicked = true;
@@ -660,6 +672,7 @@
   }
 
   function rewriteSessionProfile(profile) {
+    let user = "sessionPreset";
     isActionButtonClickedStore.set(true);
 
     selectProfile(profile);
@@ -703,6 +716,12 @@
       "newProfile_info"
     );
   }
+
+  onMount(() => {
+    animateFade = true;
+    animateFly = false;
+    moveOld();
+  });
 </script>
 
 <div class=" flex flex-col h-full justify-between p-4 bg-primary ">
@@ -713,11 +732,12 @@
     >
       <div>Session Profiles</div>
     </div>
+
     <Splitpanes
       horizontal="true"
       theme="modern-theme"
       pushOtherPanes={false}
-      class="w-full h-full"
+      class="flex w-full h-full flex-col overflow-hidden "
     >
       <Pane size={31}>
         <div class=" flex flex-col bg-primary overflow-hidden h-full ">
@@ -754,46 +774,44 @@
                     : 'border border-black border-opacity-0'}
               "
                 >
-                  <div class="flex gap-2 items-center">
+                  <div class="flex gap-2 items-center w-full">
                     <div
                       class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                      rounded-xl {selectedModule == sessionProfileElement.type
+                      rounded-xl  {selectedModule == sessionProfileElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
                     >
                       {sessionProfileElement.type}
                     </div>
 
-                    <div class="flex justify-between flex-row">
-                      <div>
-                        <input
-                          type="text"
-                          value={sessionProfileElement.name}
-                          use:clickOutside={{ useCapture: true }}
-                          on:click={() => {
-                            selectProfile(sessionProfileElement);
-                          }}
-                          on:blur={(e) => {
+                    <div class="flex justify-between flex-row w-full">
+                      <input
+                        type="text"
+                        value={sessionProfileElement.name}
+                        use:clickOutside={{ useCapture: true }}
+                        on:click={() => {
+                          selectProfile(sessionProfileElement);
+                        }}
+                        on:blur={(e) => {
+                          let newName = e.target.value.trim();
+                          animateFade = false;
+                          updateSessionProfileTitle(
+                            sessionProfileElement,
+                            newName
+                          );
+                        }}
+                        on:keypress={(e) => {
+                          if (e.key === 13) {
                             let newName = e.target.value.trim();
-                            animateFade = false;
                             updateSessionProfileTitle(
                               sessionProfileElement,
                               newName
                             );
-                          }}
-                          on:keypress={(e) => {
-                            if (e.charCode === 13) {
-                              let newName = e.target.value.trim();
-                              updateSessionProfileTitle(
-                                sessionProfileElement,
-                                newName
-                              );
-                            }
-                          }}
-                          class="text-zinc-100 min-w-[15px] h-fit break-words
+                          }
+                        }}
+                        class="text-zinc-100 min-w-[15px] h-fit px-2  break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
 
@@ -1003,27 +1021,27 @@
                     >
                       <path
                         d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
-              6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
-              0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
-              3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
-              0.00400665 7.03862C-0.0656329 8.8802 0.562637 10.6802 1.76312
-              12.0784C2.96361 13.4767 4.64778 14.3701 6.47869 14.5799C8.3096
-              14.7897 10.1522 14.3005 11.6379 13.2101H11.6368C11.6705 13.2551
-              11.7065 13.2979 11.747 13.3395L16.0783 17.6707C16.2892 17.8818
-              16.5754 18.0005 16.8738 18.0006C17.1723 18.0007 17.4585 17.8822
-              17.6696 17.6713C17.8807 17.4603 17.9994 17.1742 17.9995
-              16.8758C17.9996 16.5773 17.8811 16.2911 17.6702 16.08L13.3389
-              11.7487C13.2987 11.708 13.2554 11.6704 13.2095
-              11.6362V11.6374ZM13.4998 7.31286C13.4998 8.12541 13.3397 8.93001
-              13.0288 9.68071C12.7178 10.4314 12.2621 11.1135 11.6875
-              11.6881C11.113 12.2626 10.4308 12.7184 9.68014 13.0294C8.92944
-              13.3403 8.12484 13.5004 7.31229 13.5004C6.49974 13.5004 5.69514
-              13.3403 4.94444 13.0294C4.19373 12.7184 3.51163 12.2626 2.93707
-              11.6881C2.3625 11.1135 1.90674 10.4314 1.59578 9.68071C1.28483
-              8.93001 1.12479 8.12541 1.12479 7.31286C1.12479 5.67183 1.77669
-              4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
-              1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
-              4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
+                      6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
+                      0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
+                      3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
+                      0.00400665 7.03862C-0.0656329 8.8802 0.562637 10.6802 1.76312
+                      12.0784C2.96361 13.4767 4.64778 14.3701 6.47869 14.5799C8.3096
+                      14.7897 10.1522 14.3005 11.6379 13.2101H11.6368C11.6705 13.2551
+                      11.7065 13.2979 11.747 13.3395L16.0783 17.6707C16.2892 17.8818
+                      16.5754 18.0005 16.8738 18.0006C17.1723 18.0007 17.4585 17.8822
+                      17.6696 17.6713C17.8807 17.4603 17.9994 17.1742 17.9995
+                      16.8758C17.9996 16.5773 17.8811 16.2911 17.6702 16.08L13.3389
+                      11.7487C13.2987 11.708 13.2554 11.6704 13.2095
+                      11.6362V11.6374ZM13.4998 7.31286C13.4998 8.12541 13.3397 8.93001
+                      13.0288 9.68071C12.7178 10.4314 12.2621 11.1135 11.6875
+                      11.6881C11.113 12.2626 10.4308 12.7184 9.68014 13.0294C8.92944
+                      13.3403 8.12484 13.5004 7.31229 13.5004C6.49974 13.5004 5.69514
+                      13.3403 4.94444 13.0294C4.19373 12.7184 3.51163 12.2626 2.93707
+                      11.6881C2.3625 11.1135 1.90674 10.4314 1.59578 9.68071C1.28483
+                      8.93001 1.12479 8.12541 1.12479 7.31286C1.12479 5.67183 1.77669
+                      4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
+                      1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
+                      4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
                         fill="#CDCDCD"
                       />
                     </svg>
@@ -1058,7 +1076,7 @@
                       on:input={() => updateSearchFilter(searchbarValue)}
                       on:change={() => updateSearchFilter(searchbarValue)}
                       class="w-full py-2 px-12 bg-primary-700 text-white
-            placeholder-gray-400 text-md focus:outline-none"
+                    placeholder-gray-400 text-md focus:outline-none"
                       placeholder="Find Profile..."
                     />
                   </div>
