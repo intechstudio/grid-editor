@@ -705,7 +705,6 @@
     isSaveToCloudButtonClicked = true;
     isActionButtonClickedStore.set(true);
 
-
     saveToDirectory(PRESET_PATH, preset.name, preset, "user");
     deleteSessionPreset(preset)
 
