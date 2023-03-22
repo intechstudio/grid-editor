@@ -1,39 +1,17 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store";
   import api from "$lib/api";
+  import { userAccountStore } from "./user-account.store";
 
   let email = "";
   let password = "";
 
   let userData;
 
+  $: console.log($userAccountStore);
+
   async function submitLogin() {
-    // zod validate!
-    const response = await api.post(
-      "auth/login?provider=emailPassword&context=editor",
-      {
-        email,
-        password,
-      }
-    );
-
-    if (response.ok) {
-      $appSettings.persistant.authUser = response.data.user;
-      $appSettings.persistant.authIdToken = response.data.idToken;
-      $appSettings.persistant.authRefreshToken = response.data.refreshToken;
-    } else {
-      userData = response;
-    }
-  }
-
-  async function getUserData() {
-    const response = await api.get(
-      `user/${$appSettings.persistant.authUser.uid}`
-    );
-
-    if (response.ok) {
-      userData = response.data;
-    }
+    userAccountStore.login(email, password);
   }
 </script>
 
