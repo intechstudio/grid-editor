@@ -6,51 +6,43 @@
   const { env } = window.ctxProcess;
 
   import configuration from "../../../../../configuration.json";
+  import { userAccountStore } from "../user-account/user-account.store";
 
+  let iframe_element;
+  let iframe_response_element;
 
-let iframe_element;  
-let iframe_response_element;
+  $: iframe_send($userAccountStore?.credentialStash);
 
-
-function iframe_receive(event){
-
-  console.log("Parent received:  ", event.origin, window.location.origin, event.data)
-
-  if (iframe_response_element){
-
-    iframe_response_element.innerHTML = event.data
-
+  function iframe_send(message) {
+    console.log("Parent sending:  useraccount", message);
+    if (iframe_element == undefined) return;
+    iframe_element.contentWindow.postMessage(message, "*");
   }
 
-
-
-
-}
-  
-
-
-onMount(() => {
-
-  console.log("Initialize Profile Cloud")
-
-  window.addEventListener(
-      "message",
-      iframe_receive,
-      false
+  function iframe_receive(event) {
+    console.log(
+      "Parent received:  ",
+      event.origin,
+      window.location.origin,
+      event.data
     );
 
-    
+    if (iframe_response_element) {
+      iframe_response_element.innerHTML = event.data;
+    }
+  }
 
-});  
+  onMount(() => {
+    console.log("Initialize Profile Cloud");
+    window.addEventListener("message", iframe_receive, false);
+  });
 
-onDestroy(() => {
+  onDestroy(() => {
+    console.log("De-initialize Profile Cloud");
+    window.removeEventListener("message", iframe_receive);
+  });
 
-  console.log("De-initialize Profile Cloud")
-    window.removeEventListener("message", iframe_receive)
-
-});
-
-let srcdoc_content = `
+  let srcdoc_content = `
 
 
 <${"script"} script-src="unsafe-inline">    
@@ -80,53 +72,67 @@ let srcdoc_content = `
 <button onclick="buttonClick()">OK</button>
 
 
-`
-
-
+`;
 </script>
 
+<div class="flex flex-col bg-primary w-full" style="">
+  <div class="flex flex-row items-center bg-primary w-full" style="">
+    <input
+      type="checkbox"
+      class="flex m-2"
+      bind:checked={$appSettings.profileCloudUrlEnabled}
+    />
+    <span class="text-white">Custom URL</span>
+  </div>
 
-<div
-class="flex flex-col bg-primary w-full"
-style=""
->
-
-<div
-class="flex flex-row items-center bg-primary w-full"
-style=""
->
-<input type="checkbox" class="flex m-2" bind:checked={$appSettings.profileCloudUrlEnabled}>
-<span class="text-white">Custom URL</span>
-</div>
-
-
-{#if $appSettings.profileCloudUrlEnabled}
-<div class="flex-row">
-<button on:click={()=>{$appSettings.profileCloudUrl = "http://localhost:5200"}} class="bg-secondary text-white w-36 rounded m-2">localhost:5200</button>
-<button on:click={()=>{$appSettings.profileCloudUrl = "http://example.com"}} class="bg-secondary text-white w-36 rounded m-2">example.com</button>
-<button on:click={()=>{$appSettings.profileCloudUrl = "http://google.com"}} class="bg-secondary text-white w-36 rounded m-2">google.com</button>
-
-</div>
-<input class="flex m-2" bind:value={$appSettings.profileCloudUrl}>
-<iframe style="background-color: white;" bind:this={iframe_element} class="w-full h-[500px]" title="Test" src="{$appSettings.profileCloudUrl}"></iframe>
-
-{:else}
-<iframe style="background-color: white;" bind:this={iframe_element} class="w-full h-[500px]" title="Test"  srcdoc="{srcdoc_content}"></iframe>
-
-
-{/if}
-
+  {#if $appSettings.profileCloudUrlEnabled}
+    <div class="flex-row">
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://localhost:5200";
+        }}
+        class="bg-secondary text-white w-36 rounded m-2">localhost:5200</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://example.com";
+        }}
+        class="bg-secondary text-white w-36 rounded m-2">example.com</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://google.com";
+        }}
+        class="bg-secondary text-white w-36 rounded m-2">google.com</button
+      >
+    </div>
+    <input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
+    <iframe
+      style="background-color: white;"
+      bind:this={iframe_element}
+      class="w-full h-[500px]"
+      title="Test"
+      src={$appSettings.profileCloudUrl}
+    />
+  {:else}
+    <iframe
+      style="background-color: white;"
+      bind:this={iframe_element}
+      class="w-full h-[500px]"
+      title="Test"
+      srcdoc={srcdoc_content}
+    />
+  {/if}
 </div>
 <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
-  
   <button
     on:click={() => {
-
-
       if (iframe_element && iframe_element.contentWindow) {
-        iframe_element.contentWindow.postMessage("HELLO FROM PARENT " + Math.random(), "*");
+        iframe_element.contentWindow.postMessage(
+          "HELLO FROM PARENT " + Math.random(),
+          "*"
+        );
       }
-
     }}
     id="close-btn"
     class="px-3 py-1 cursor-pointer rounded not-draggable
@@ -135,6 +141,7 @@ style=""
     Send
   </button>
 
-
-  <div class="text-white" bind:this={iframe_response_element}>Response text</div>
+  <div class="text-white" bind:this={iframe_response_element}>
+    Response text
+  </div>
 </div>

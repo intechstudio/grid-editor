@@ -13,7 +13,8 @@ function createUserAccountStore() {
   const auth = getAuth(firebaseApp);
 
   const store = writable({
-    account: null
+    account: null,
+    credentialStash: null,
   })
 
   function login(email, password) {
@@ -21,7 +22,7 @@ function createUserAccountStore() {
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     signInWithEmailAndPassword(auth, email, password)
       .then((res) => {
-        store.set({ account: res.user })
+        store.set({ account: res.user, credentialStash: { email, password } })
       })
       .catch((err) => {
         console.log(err);
@@ -30,7 +31,8 @@ function createUserAccountStore() {
 
   onAuthStateChanged(auth, (user) => {
     if (user) {
-      store.set({ account: user })
+      // User is signed in, see docs for a list of available properties
+
     } else {
       store.set({ account: null })
     }
@@ -38,7 +40,8 @@ function createUserAccountStore() {
 
   return {
     subscribe: store.subscribe,
-    login: login
+    login: login,
+    auth: () => auth,
   }
 }
 
