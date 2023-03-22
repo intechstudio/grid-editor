@@ -82,16 +82,39 @@ let srcdoc_content = `
 
 `
 
+
 </script>
 
 
 <div
-class="flex flex-row bg-primary w-full"
+class="flex flex-col bg-primary w-full"
 style=""
 >
 
+<div
+class="flex flex-row items-center bg-primary w-full"
+style=""
+>
+<input type="checkbox" class="flex m-2" bind:checked={$appSettings.profileCloudUrlEnabled}>
+<span class="text-white">Custom URL</span>
+</div>
 
-    <iframe style="background-color: white;" bind:this={iframe_element} class="w-full h-[500px]" title="Test" src="https://example.com" srcdoc="{srcdoc_content}"></iframe>
+
+{#if $appSettings.profileCloudUrlEnabled}
+<div class="flex-row">
+<button on:click={()=>{$appSettings.profileCloudUrl = "http://localhost:5200"}} class="bg-secondary text-white w-36 rounded m-2">localhost:5200</button>
+<button on:click={()=>{$appSettings.profileCloudUrl = "http://example.com"}} class="bg-secondary text-white w-36 rounded m-2">example.com</button>
+<button on:click={()=>{$appSettings.profileCloudUrl = "http://google.com"}} class="bg-secondary text-white w-36 rounded m-2">google.com</button>
+
+</div>
+<input class="flex m-2" bind:value={$appSettings.profileCloudUrl}>
+<iframe style="background-color: white;" bind:this={iframe_element} class="w-full h-[500px]" title="Test" src="{$appSettings.profileCloudUrl}"></iframe>
+
+{:else}
+<iframe style="background-color: white;" bind:this={iframe_element} class="w-full h-[500px]" title="Test"  srcdoc="{srcdoc_content}"></iframe>
+
+
+{/if}
 
 </div>
 <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
@@ -111,5 +134,7 @@ style=""
   >
     Send
   </button>
+
+
   <div class="text-white" bind:this={iframe_response_element}>Response text</div>
 </div>
