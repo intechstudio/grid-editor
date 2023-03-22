@@ -26,7 +26,6 @@
 
   import Export from "./main/modals/Export.svelte";
   import Welcome from "./main/modals/Welcome.svelte";
-  import WebView from "./main/modals/WebView.svelte";
   import Monaco from "./main/modals/Monaco.svelte";
   import Feedback from "./main/modals/Feedback.svelte";
   import ProfileInfo from "./main/modals/ProfileInfo.svelte";
@@ -56,7 +55,6 @@
   modalComponents[""] = undefined;
   modalComponents["export"] = Export;
   modalComponents["welcome"] = Welcome;
-  modalComponents["webView"] = WebView;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
   modalComponents["profileInfo"] = ProfileInfo;
