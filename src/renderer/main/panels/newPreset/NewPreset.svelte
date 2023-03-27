@@ -355,7 +355,6 @@
     runtime.fetch_page_configuration_from_grid(callback);
   }
 
-  /*EZEN DOLGOZZ BETTI!*/
   let number = 0;
   let sessionPresetNumbers = [];
 
@@ -655,6 +654,8 @@
   }
 
   function selectPreset(preset) {
+
+
     selectedPreset = preset;
     selectedPresetStore.set(selectedPreset);
   }
@@ -704,8 +705,8 @@
     isSaveToCloudButtonClicked = true;
     isActionButtonClickedStore.set(true);
 
-    selectPreset(preset);
-    prepareSave("user");
+    saveToDirectory(PRESET_PATH, preset.name, preset, "user");
+    deleteSessionPreset(preset)
 
     selectedPreset = undefined;
     isSaveToCloudButtonClicked = false;
@@ -799,7 +800,7 @@
                     : 'border border-black border-opacity-0'}
         "
                 >
-                  <div class="flex gap-2 items-center">
+                  <div class="flex gap-2 items-center w-full">
                     <div
                       class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
                 rounded-xl {selectedController == sessionPresetElement.type
@@ -809,34 +810,32 @@
                       {sessionPresetElement.type}
                     </div>
 
-                    <div class="flex justify-between flex-row">
-                      <div>
-                        <!--use:clickOutside={{ useCapture: true }}-->
-                        <input
-                          type="text"
-                          value={sessionPresetElement.name}
-                          on:click={() => selectPreset(sessionPresetElement)}
-                          on:blur={(e) => {
+                    <div class="flex justify-between flex-row w-full">
+                      <!--use:clickOutside={{ useCapture: true }}-->
+                      <input
+                        type="text"
+                        value={sessionPresetElement.name}
+                        on:click={() => selectPreset(sessionPresetElement)}
+                        on:blur={(e) => {
+                          let newName = e.target.value.trim();
+                          animateFade = false;
+                          updateSessionPresetTitle(
+                            sessionPresetElement,
+                            newName
+                          );
+                        }}
+                        on:keypress={(e) => {
+                          if (e.key === 13) {
                             let newName = e.target.value.trim();
-                            animateFade = false;
                             updateSessionPresetTitle(
                               sessionPresetElement,
                               newName
                             );
-                          }}
-                          on:keypress={(e) => {
-                            if (e.key === 13) {
-                              let newName = e.target.value.trim();
-                              updateSessionPresetTitle(
-                                sessionPresetElement,
-                                newName
-                              );
-                            }
-                          }}
-                          class="text-zinc-100 min-w-[15px] h-fit break-words
+                          }
+                        }}
+                        class="text-zinc-100 min-w-[15px] px-2 h-fit break-words
               bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
-                        />
-                      </div>
+                      />
                     </div>
                   </div>
 

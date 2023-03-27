@@ -4,6 +4,7 @@
   import WebsocketMonitor from "./panels/WebsocketMonitor/WebsocketMonitor.svelte";
   import Profiles from "./panels/profiles/Profiles.svelte";
   import Presets from "./panels/presets/Presets.svelte";
+  import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from "../runtime/window-size";
@@ -21,7 +22,7 @@
   }
 </script>
 
-{#if $appSettings.leftPanelVisible == true}
+<!-- {#if $appSettings.leftPanelVisible == true} -->
   <div class="{classes} w-full h-full" use:watchResize={resize}>
     <div class="min-w-[200px] h-full">
       {#if $appSettings.leftPanel == "Debug"}
@@ -55,9 +56,19 @@
       {#if $appSettings.leftPanel == "User Account"}
         <UserAccount />
       {/if}
+
+      {#if $appSettings.persistant.showLoginRegister}
+      <div class="min-w-[200px] h-full {$appSettings.leftPanel == "Profile Cloud"?"  ":" hidden "}">
+
+          <ProfileCloud />
+
+
+      </div>
+      {/if}
+
     </div>
   </div>
-{/if}
+<!-- {/if} -->
 
 <style>
   .splitpanes.modern-theme .splitpanes__pane {

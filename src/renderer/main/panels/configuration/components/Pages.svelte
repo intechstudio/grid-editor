@@ -5,11 +5,10 @@
     logger,
     unsaved_changes,
     runtime,
+    user_input,
   } from "../../../../runtime/runtime.store.js";
 
   import TooltipQuestion from "../../../user-interface/tooltip/TooltipQuestion.svelte";
-
-  export let pages;
 
   let alert = false;
 
@@ -50,33 +49,31 @@
     return style;
   };
 
-  $: selectedPage = pages.selected;
-
-  $: lol = pages.selected;
+  user_input.subscribe((ui) => {
+    try {
+      selectedPage = ui.event.pagenumber;
+    } catch (error) {
+      console.log("Get page error", error);
+    }
+  });
 </script>
 
-<page-controller
-  class="{pages.options.includes('') &&
-    'pointer-events-none'} relative   flex flex-col w-full "
->
+<page-controller class=" relative flex flex-col w-full bg-primary">
   <!--   <div class="text-gray-500 flex items-center py-1 text-sm">
     <div>Pages</div>
     <TooltipQuestion key={"configuration_pages"} />
   </div> -->
 
-  <div class="flex bg-primary">
-    {#each pages.options as page}
+  <div class="flex bg-primary w-fit gap-2">
+    {#each [0, 1, 2, 3] as page}
       <button
         on:click={() => {
           handleSelectPage(page);
         }}
         class=" {selectedPage == page
-          ? ' bg-primary'
-          : page == selectedPage - 1
-          ? 'rounded-br bg-secondary'
-          : page == selectedPage + 1
-          ? 'rounded-bl bg-secondary'
-          : `bg-secondary`} p-1 flex-grow border-0  text-gray-50 "
+        ? 'bg-secondary  text-white'
+        : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none  flex-grow border-0 text-gray-50  w-[100px]"
+
       >
         Page {@html page !== ""
           ? page + 1

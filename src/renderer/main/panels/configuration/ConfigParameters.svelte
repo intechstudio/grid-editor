@@ -232,6 +232,7 @@
     <div class="flex flex-col justify-center items-center ">
       <div class="flex shadow overflow-x-auto w-full ">
         {#each events.options as event}
+        
           <!--           <button
             on:click={() => {
               handleSelectEvent(event);
@@ -255,8 +256,8 @@
             }}
             class:dummy={event.desc == undefined}
             class="{selectedEvent === event && event.desc !== undefined
-              ? 'shadow-md border-blue-300  text-blue-300 '
-              : 'hover:border-blue-500  hover:text-blue-500'}   text-white relative m-2 p-1 flex-grow border rounded focus:outline-none"
+              ? 'shadow-md bg-pick text-white'
+            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
           >
             {@html event.desc
               ? event.desc

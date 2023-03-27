@@ -8,8 +8,6 @@
 
   let actionIsDragged = false;
 
-  import Pages from "./components/Pages.svelte";
-
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
@@ -52,7 +50,6 @@
   let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
-  let pages = { options: ["", "", "", ""], selected: "" };
 
   let access_tree = {};
 
@@ -60,7 +57,6 @@
     configs = [];
     events = { options: ["", "", ""], selected: "" };
     elements = { options: [], selected: "" };
-    pages = { options: ["", "", "", ""], selected: "" };
   }
 
   onMount(() => {
@@ -244,9 +240,9 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
+      
       events = active.events;
       elements = active.elements;
-      pages = active.pages;
     }
 
     // set UI to uiEvents, if its not system events
@@ -336,8 +332,6 @@
     ? ''
     : 'pointer-events-none'}"
 >
-  <Pages {pages} />
-
   <div class="bg-primary py-5 flex flex-col justify-center items-center">
     <div class="flex flex-row items-start bg-primary py-2">
       <button
@@ -345,8 +339,8 @@
           changeSelectedConfig("uiEvents");
         }}
         class="{$appSettings.configType == 'uiEvents'
-          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
-          : ''} relative px-4 py-2 cursor-pointer text-white"
+          ? 'shadow-md bg-pick text-white'
+            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
         <TooltipSetter key={"configuration_ui_events"} />
@@ -357,8 +351,8 @@
           changeSelectedConfig("systemEvents");
         }}
         class="{$appSettings.configType == 'systemEvents'
-          ? ' before:content-[""] before:border-b before:px-2 before:absolute before:bottom-0 before:left-0 before:right-0 before:mx-0 before:my-auto '
-          : ''} relative px-4 py-2 cursor-pointer text-white"
+          ? 'shadow-md bg-pick text-white'
+            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />
@@ -493,7 +487,6 @@
                       {configs}
                       {access_tree}
                     />
-                    
 
                     {#if !drag_start}
                       <AddAction

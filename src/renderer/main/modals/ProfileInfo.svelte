@@ -7,6 +7,8 @@
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
   import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
+  import { v4 as uuidv4 } from "uuid";
+
   import { onMount } from "svelte";
   import {
     engine,
@@ -18,6 +20,30 @@
   let editor;
   let modalWidth;
   let modalHeight;
+  let PRESETS;
+  let PROFILE_PATH = [];
+  let PRESET_PATH = [];
+
+  PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  PRESET_PATH = get(appSettings).persistant.presetFolder;
+
+  let sessionPreset = GetSessionPreset();
+
+  async function GetSessionPreset() {
+    if (PRESETS == null) {
+      await loadFromDirectory();
+    }
+    sessionPreset = PRESETS.filter(
+      (element) => element.folder == "sessionPreset"
+    );
+  }
+
+  async function loadFromDirectory() {
+    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+      PRESET_PATH,
+      "presets"
+    );
+  }
 
   let liked = false;
 
@@ -32,11 +58,6 @@
   function isProfileLiked() {
     liked = !liked;
   }
-
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
-
-  $: console.log("PRESET_PATH", PRESET_PATH);
 
   let selectedProfile = get(selectedProfileStore);
 
@@ -99,9 +120,177 @@
 
   function getImgUrl(img) {
     const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
-    console.log("img", img, imgPath);
 
     return imgPath;
+  }
+  let sessionPresetNumbers = [];
+  let numberForSessionPreset = 0;
+
+  async function convertProfileToSessionPreset(profile) {
+    // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
+    // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
+
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "presetsave",
+      message: `Profile to element presets conversion started...`,
+    });
+
+    // analitikiát @tofinak meg kell javítani
+
+    window.electron.analytics.google("preset-library", {
+      value: "save start",
+    });
+
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "save start"
+    );
+
+    /**
+     * Ez egy jó promise pattern.
+     * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
+     * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
+     * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
+     * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
+     *
+     * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
+     * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
+     */
+
+    let isSessionPresetNameUnique = undefined;
+
+    function checkIfPresetTitleUnique(input) {
+      let notUniqueName = [];
+
+      sessionPreset.forEach((element) => {
+        if (element.name.toLowerCase() == input.toLowerCase()) {
+          notUniqueName = [...notUniqueName, element.name];
+        }
+      });
+
+      if (notUniqueName.length > 0) {
+        isSessionPresetNameUnique = false;
+      } else {
+        isSessionPresetNameUnique = true;
+      }
+    }
+
+    const conversionPromises = profile.configs.map((profileElement) => {
+      let user = "sessionPreset";
+
+      let name;
+      let description;
+      let type;
+
+      numberForSessionPreset++;
+
+      //if (user == "sessionPreset") {
+      let sessionPresetName;
+      sessionPresetNumbers = [];
+
+      sessionPreset.forEach((sessionPresetElement) => {
+        sessionPresetName = JSON.stringify(sessionPresetElement.name);
+        if (sessionPresetName.includes("Session Preset")) {
+          sessionPresetNumbers = [
+            ...sessionPresetNumbers,
+            parseInt(sessionPresetName.split(" ").pop(), 10),
+          ];
+        }
+      });
+
+
+      name =  `${profile.name} - Element: ${profileElement.controlElementNumber}`;
+      description = "";
+
+      if (profile.type == "BU16") {
+        type = "button";
+      }
+
+      if (profile.type == "PO16") {
+        type = "potentiometer";
+      }
+
+      if (profile.type == "EN16") {
+        type = "encoder";
+      }
+
+      if (profile.type == "EF44") {
+
+        if ([0,1,2,3].includes(profileElement.controlElementNumber)) {
+          type = "encoder";
+        }
+        if ([4,5,6,7].includes(profileElement.controlElementNumber)) {
+          type = "fader";
+        }
+      }
+
+      if (profile.type == "PBF4") {
+
+       
+        if ( [0,1,2,3].includes(profileElement.controlElementNumber)) {
+          type = "potentiometer";
+        }
+        if ( [4,5,6,7].includes(profileElement.controlElementNumber)) {
+          type = "fader";
+        }
+        if ( [8,9,10,11].includes(profileElement.controlElementNumber)) {
+          type = "button";
+        }
+      }
+
+
+      if (profileElement.controlElementNumber === 255){
+        type="system"
+      }
+
+      checkIfPresetTitleUnique(name);
+      //}
+
+
+
+      let preset = {
+        name: name,
+        description: description,
+        type: type,
+        isGridPreset: true, // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        configs: {
+          ...profileElement,
+        },
+        id: uuidv4(),
+      };
+
+      if (isSessionPresetNameUnique == true) {
+        return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+      }
+    });
+
+    await Promise.all(conversionPromises).then((res) => {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetsave",
+        message: `Profile to element presets conversion finished!`,
+      });
+    });
+  }
+
+  async function saveToSessionPreset(path, name, preset, user) {
+    return await window.electron.configs.saveConfig(
+      path,
+      name,
+      preset,
+      "presets",
+      user
+    );
   }
 </script>
 
@@ -197,7 +386,7 @@
                       />
                     </svg>
                     delete
-                    
+
                     <TooltipConfirm key={"newProfile_desc_delete"} />
                     <TooltipSetter key={"newProfile_desc_delete"} />
                   </button>
@@ -261,7 +450,7 @@
             <p>{selectedProfile.description}</p>
           </div>
         </div>
-        <div class="w-full lg:w-2/6 flex flex-col justify-between">
+        <div class="w-full lg:w-2/6 flex flex-col justify-between gap-y-6">
           <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
             <div>
               <div
@@ -394,6 +583,36 @@
                   Grid Editor v{selectedProfile.version.major}.{selectedProfile
                     .version.minor}.{selectedProfile.version.patch}
                 </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-secondary py-8 px-6 rounded-lg border-cyan-600 border-2 flex flex-col gap-6"
+          >
+            <div
+              class="flex flex-col justify-between 
+                pb-4 gap-6"
+            >
+              <div>
+                <div class=" text-lg mb-4">
+                  Split to control element presets
+                </div>
+                <div class="text-gray-300">
+                  Convert profile to element presets.
+                </div>
+              </div>
+
+              <div>
+                <button
+                  on:click={() => {
+                    convertProfileToSessionPreset(selectedProfile);
+                  }}
+                  class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
+                >
+                  <div>Split</div>
+                  <TooltipConfirm key={"newProfile_desc_split_presets"} />
+                  <TooltipSetter key={"newProfile_desc_split_presets"} />
+                </button>
               </div>
             </div>
           </div>

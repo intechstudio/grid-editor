@@ -617,7 +617,7 @@
       Reset App Settings
     </button>
 
-    <button
+    <!-- <button
       on:click={() => {
         hello["ds"] = 0;
       }}
@@ -632,7 +632,8 @@
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       <div>Trigger error: other</div>
-    </button>
+    </button> -->
+
   </div>
 </preferences>
 
