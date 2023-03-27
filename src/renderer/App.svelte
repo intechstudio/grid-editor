@@ -66,6 +66,7 @@
   let shapeSelected;
   let colorSelected;
   let name;
+  let leftPane, rightPane;
 
   $: {
     if ($appSettings.persistant.helperShape !== undefined) {
@@ -148,7 +149,7 @@
   {attachment}
 />
 
-<Titlebar />
+<Titlebar on:leftPaneCollapse={(e) => {}} on:rightPaneCollapse={(e) => {}} />
 
 <main
   use:watchResize={resize}
@@ -178,11 +179,17 @@
       <Splitpanes
         theme="modern-theme"
         pushOtherPanes={false}
+        dblClickSplitter={false}
         on:resize={handlePaneResize}
         on:resized={handlePaneResized}
         class="w-full"
       >
-        <Pane class="leftPane" bind:size={$splitpanes.left} snapSize={5}>
+        <Pane
+          bind:this={leftPane}
+          class="leftPane"
+          bind:size={$splitpanes.left}
+          snapSize={5}
+        >
           <LeftPanelContainer />
         </Pane>
 
@@ -190,8 +197,8 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane size={$splitpanes.right} minSize={20}>
-          <RightPanelContainer classes={"min-w-[300px]"} />
+        <Pane bind:this={rightPane} bind:size={$splitpanes.right} snapSize={5}>
+          <RightPanelContainer />
         </Pane>
       </Splitpanes>
     </div>
@@ -209,6 +216,7 @@
   .splitpanes.modern-theme .splitpanes__pane.leftPane {
     overflow: hidden;
   }
+
   .splitpanes.modern-theme .splitpanes__splitter {
     background-color: #4c4c4c;
     position: relative;
@@ -220,6 +228,7 @@
     top: 0;
     transition: opacity 0.3s;
     background-color: #2db9d2;
+    width: 200;
     opacity: 0;
     z-index: 1;
   }

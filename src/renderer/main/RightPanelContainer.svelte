@@ -21,16 +21,14 @@
   });
 </script>
 
-<panel-container
-  id="right-panel"
-  class="{classes} h-full"
-  use:watchResize={resize}
->
-  {#if $appSettings.rightPanel == "Configuration"}
-    <Configuration />
-  {:else if $appSettings.rightPanel == "Preferences"}
-    <Preferences />
-  {:else if $appSettings.rightPanel == "MIDI Monitor"}
-    <MidiMonitor />
-  {/if}
-</panel-container>
+<div class="{classes} w-full h-full" use:watchResize={resize}>
+  <div class="min-w-[410px] h-full">
+    {#if $appSettings.rightPanel == "Configuration"}
+      <Configuration />
+    {:else if $appSettings.rightPanel == "Preferences"}
+      <Preferences />
+    {:else if $appSettings.rightPanel == "MIDI Monitor"}
+      <MidiMonitor />
+    {/if}
+  </div>
+</div>
