@@ -203,7 +203,7 @@
       });
 
 
-      name =  `${profile.name} (Element: ${profileElement.controlElementNumber})`;
+      name =  `${profile.name} - Element: ${profileElement.controlElementNumber}`;
       description = "";
 
       if (profile.type == "BU16") {
