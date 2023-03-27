@@ -41,6 +41,7 @@
 
     if (openedBlocks.find((s) => s == config.short)) {
       toggle = true;
+
       animationDuration = 0;
     } else {
       animationDuration =
@@ -154,6 +155,8 @@
         return s;
       });
     }
+
+    console.log(config.information.toggleable, "lol");
   }
 </script>
 
@@ -170,36 +173,38 @@
     config-id={config.id}
   >
     <parent
-      class="flex w-full group {disable_pointer_events
+      class="flex w-full group {disable_pointer_events == true
         ? 'pointer-events-none '
         : ''}"
     >
       <div
-        class="flex  {disable_pointer_events == true
+        class=" contents w-full  {disable_pointer_events == true
           ? 'group-hover:pointer-events-none '
           : ''}"
       >
-        <div
-          class="flex p-2 items-center   {!toggle
-            ? 'group-hover:bg-select-saturate-10'
-            : ''}  bg-secondary cursor-grab"
-        >
-          <svg
-            class="opacity-40  group-hover:opacity-100"
-            width="8"
-            height="13"
-            viewBox="0 0 8 13"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+        {#if config.information.short !== "en"}
+          <div
+            class="flex p-2 items-center  {!toggle
+              ? 'group-hover:bg-select-saturate-10'
+              : ''}  bg-secondary cursor-grab"
           >
-            <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-          </svg>
-        </div>
+            <svg
+              class="opacity-40  group-hover:opacity-100"
+              width="8"
+              height="13"
+              viewBox="0 0 8 13"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+              <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+              <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+              <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+              <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+              <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+            </svg>
+          </div>
+        {/if}
 
         {#if config.information.rendering == "standard"}
           <div
@@ -230,11 +235,7 @@
             style="background-color:{config.information.color}"
             class="{disable_pointer_events
               ? 'pointer-events-none '
-              : ''} {config.information.rounding == 'top'
-              ? 'rounded-tl-2xl '
-              : ''} {config.information.rounding == 'bottom'
-              ? 'rounded-bl-2xl '
-              : ''} flex flex-row w-full min-h-fit {toggle
+              : ''}   flex flex-row w-full min-h-fit {toggle
               ? 'cursor-pointer'
               : 'cursor-grab'}"
           >
@@ -299,7 +300,7 @@
         </name>
       {/if}
 
-      {#if toggle || config.information.toggleable === false}
+      {#if (toggle || config.information.toggleable === false) && config.information.rendering == "standard"}
         <container
           in:slide={{ duration: animationDuration }}
           class=" w-full flex bg-secondary bg-opacity-25 rounded-b-lg"
