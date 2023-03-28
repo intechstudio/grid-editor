@@ -66,7 +66,6 @@
   let shapeSelected;
   let colorSelected;
   let name;
-  let leftPane, rightPane;
 
   $: {
     if ($appSettings.persistant.helperShape !== undefined) {
@@ -104,7 +103,7 @@
         return store;
       });
     }
-    $splitpanes.left = event.detail[0].size;
+    $splitpanes.left.size = event.detail[0].size;
   }
 
   function handlePaneResized(event) {
@@ -122,11 +121,11 @@
       }
       // middle pane
       if (index == 1) {
-        $splitpanes.middle = pane.size;
+        $splitpanes.middle.size = pane.size;
       }
       // right pane
       if (index == 2) {
-        $splitpanes.right = pane.size;
+        $splitpanes.right.size = pane.size;
       }
     });
   }
@@ -149,7 +148,7 @@
   {attachment}
 />
 
-<Titlebar on:leftPaneCollapse={(e) => {}} on:rightPaneCollapse={(e) => {}} />
+<Titlebar />
 
 <main
   use:watchResize={resize}
@@ -184,12 +183,7 @@
         on:resized={handlePaneResized}
         class="w-full"
       >
-        <Pane
-          bind:this={leftPane}
-          class="leftPane"
-          bind:size={$splitpanes.left}
-          snapSize={5}
-        >
+        <Pane class="leftPane" bind:size={$splitpanes.left.size} snapSize={5}>
           <LeftPanelContainer />
         </Pane>
 
@@ -197,7 +191,7 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane bind:this={rightPane} bind:size={$splitpanes.right} snapSize={5}>
+        <Pane bind:size={$splitpanes.right.size} snapSize={5}>
           <RightPanelContainer />
         </Pane>
       </Splitpanes>

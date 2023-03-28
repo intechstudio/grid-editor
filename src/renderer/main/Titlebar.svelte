@@ -84,15 +84,16 @@
         </svg>
       </div>
       <div class="flex justify-between w-full">
+        <!-- TODO: Make use of the Pane Buttons to collapse left and right Panes -->
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <PaneButton
+        <!-- <PaneButton
           inverted={true}
           on:paneCollapse={(e) => {
             dispatch("leftPaneCollapse", {
               isCollapsed: e.detail.isCollapsed,
             });
           }}
-        />
+        /> -->
 
         <!-- Title Text + version -->
 
@@ -104,14 +105,15 @@
         <!-- Min Max Close -->
 
         <div class="flex items-center text-gray-300 not-draggable">
+          <!-- TODO: Make use of the Pane Buttons to collapse left and right Panes -->
           <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <PaneButton
+          <!-- <PaneButton
             on:paneCollapse={(e) => {
               dispatch("rightPaneCollapse", {
                 isCollapsed: e.detail.isCollapsed,
               });
             }}
-          />
+          /> -->
 
           <div
             id="minimize-btn"

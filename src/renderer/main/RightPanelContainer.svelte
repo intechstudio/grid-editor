@@ -22,7 +22,7 @@
 </script>
 
 <div class="{classes} w-full h-full" use:watchResize={resize}>
-  <div class="min-w-[410px] h-full">
+  <div class="h-full">
     {#if $appSettings.rightPanel == "Configuration"}
       <Configuration />
     {:else if $appSettings.rightPanel == "Preferences"}
