@@ -26,6 +26,8 @@
 
   export let animation = false;
   export let userHelper = false;
+  export let config = [];
+  export let configs = [];
 
   const dispatch = createEventDispatcher();
 
@@ -187,6 +189,7 @@
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
       );
+      console.log("change_condition_order", change_condition_order);
       change_condition_order.collection =
         change_condition_order.collection.sort(function (a, b) {
           return (
@@ -219,6 +222,10 @@
 
     initConfig();
   }
+
+  $: console.log(config, "config");
+
+  $: console.log(configs, "configs");
 </script>
 
 {#if !userHelper}
@@ -331,6 +338,9 @@
         {/if}
 
         <div class="flex flex-col w-full overflow-y-auto">
+          {configs.indexOf(config)}
+          {config.information.desc}
+
           {#each action_options as option}
             {#if option.category != "special" || 1}
               <div class="text-gray-500 text-sm">{option.category}</div>
@@ -346,7 +356,25 @@
                     on:double-click={closeActionPicker}
                     class="action-card {selected_action == action.desc
                       ? ' border-pick'
-                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
+                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white           {config
+                      .information.desc == 'IF' &&
+                    (configs[configs.indexOf(config) + 1].information.desc ==
+                      'Else' ||
+                      configs[configs.indexOf(config) + 1].information.desc ==
+                        'Else IF') &&
+                    (action.desc == 'Else' || action.desc == 'IF')
+                      ? 'hidden'
+                      : config.information.desc == 'Else' &&
+                        (action.desc == 'Else IF' ||
+                          action.desc == 'IF' ||
+                          action.desc == 'Else')
+                      ? 'hidden'
+                      : config.information.desc == 'Else IF' &&
+                        configs[configs.indexOf(config) + 1].information.desc ==
+                          'Else' &&
+                        (action.desc == 'Else' || action.desc == 'IF')
+                      ? 'hidden'
+                      : ''}"
                   >
                     <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                     <div

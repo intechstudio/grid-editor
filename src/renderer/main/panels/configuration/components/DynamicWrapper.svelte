@@ -155,8 +155,6 @@
         return s;
       });
     }
-
-    console.log(config.information.toggleable, "lol");
   }
 </script>
 
@@ -182,29 +180,31 @@
           ? 'group-hover:pointer-events-none '
           : ''}"
       >
-        {#if config.information.short !== "en"}
-          <div
-            class="flex p-2 items-center  {!toggle
-              ? 'group-hover:bg-select-saturate-10'
-              : ''}  bg-secondary cursor-grab"
+        <div
+          class="flex p-2 items-center  {!toggle
+            ? 'group-hover:bg-select-saturate-10'
+            : ''}  bg-secondary  {config.information.grabbing !== false
+            ? 'cursor-grab'
+            : 'opacity-0 cursor-default '}"
+        >
+          <svg
+            class=" {config.information.grabbing !== false
+              ? 'opacity-40'
+              : 'opacity-0'}  group-hover:opacity-100"
+            width="8"
+            height="13"
+            viewBox="0 0 8 13"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <svg
-              class="opacity-40  group-hover:opacity-100"
-              width="8"
-              height="13"
-              viewBox="0 0 8 13"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-              <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-              <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-              <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-              <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-              <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-            </svg>
-          </div>
-        {/if}
+            <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+            <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+            <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+            <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+            <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+            <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+          </svg>
+        </div>
 
         {#if config.information.rendering == "standard"}
           <div
@@ -215,7 +215,9 @@
               ? 'group-hover:pointer-events-auto'
               : toggle
               ? 'cursor-pointer '
-              : 'cursor-grab'}"
+              : config.information.grabbing !== false
+              ? 'cursor-grab'
+              : ''}"
           >
             <div>
               <icon
@@ -233,11 +235,14 @@
         {:else}
           <div
             style="background-color:{config.information.color}"
-            class="{disable_pointer_events
-              ? 'pointer-events-none '
-              : ''}   flex flex-row w-full min-h-fit {toggle
-              ? 'cursor-pointer'
-              : 'cursor-grab'}"
+            class=" {config.information.rounding == 'top'
+              ? 'rounded-tr-xl '
+              : ''} {config.information.rounding == 'bottom'
+              ? 'rounded-br-xl '
+              : ''}   flex flex-row w-full min-h-fit {config.information
+              .grabbing !== false
+              ? 'cursor-grab'
+              : ''}"
           >
             <icon
               class="flex items-center p-2 {config.information.hiddenIcon

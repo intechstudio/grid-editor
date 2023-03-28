@@ -240,7 +240,6 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
-      
       events = active.events;
       elements = active.elements;
     }
@@ -340,7 +339,7 @@
         }}
         class="{$appSettings.configType == 'uiEvents'
           ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
         <TooltipSetter key={"configuration_ui_events"} />
@@ -352,7 +351,7 @@
         }}
         class="{$appSettings.configType == 'systemEvents'
           ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />
@@ -491,6 +490,8 @@
                     {#if !drag_start}
                       <AddAction
                         {animation}
+                        {config}
+                        {configs}
                         on:new-config={(e) => {
                           addConfigAtPosition(e, index + 1);
                         }}

@@ -1,15 +1,15 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'bpr',
-    name: 'ButtonPressRelease_If',
-    rendering: 'modifier',
-    rounding: 'top',
-    category: 'special',
+    short: "bpr",
+    name: "ButtonPressRelease_If",
+    rendering: "modifier",
+    rounding: "top",
+    category: "special",
     eventtype: [3], // 2: encoder
-    desc: 'Press/Release',
-    blockTitle: 'Press',
-    defaultLua: 'if self:bst()>0 then--[[@bprel]] else--[[@bpre]] end',
+    desc: "Press/Release",
+    blockTitle: "Press",
+    defaultLua: "if self:bst()>0 then--[[@bprel]] else--[[@bpre]] end",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 327" fill="none" xmlns="http://www.w3.org/2000/svg">
    
@@ -47,64 +47,67 @@
      d="M 294.87925,212.1701 258.78363,274.68955 222.688,337.209 186.59238,274.68955 150.49676,212.1701 l 72.19124,0 z" />
     </svg>
     `,
-    color: '#4A4AA7 '
-  }
+    color: "#4A4AA7 ",
+  };
 </script>
 
 <script>
-  import { createEventDispatcher, onDestroy } from 'svelte';
-  import stringManipulation from '../main/user-interface/_string-operations';
-  import { parenthesis } from './_validators';
+  import { createEventDispatcher, onDestroy } from "svelte";
+  import stringManipulation from "../main/user-interface/_string-operations";
+  import { parenthesis } from "./_validators";
 
-  export let config = ''
+  export let config = "";
   export let index;
 
   export let access_tree;
 
-  import LineEditor from '../main/user-interface/LineEditor.svelte'
+  import LineEditor from "../main/user-interface/LineEditor.svelte";
 
   let sidebarWidth;
 
   const dispatch = createEventDispatcher();
 
-  let scriptSegment = ''; // local script part
+  let scriptSegment = ""; // local script part
 
   let loaded = false;
 
-  $: if(config.script && !loaded){
+  $: if (config.script && !loaded) {
     scriptSegment = stringManipulation.humanize(config.script.slice(3, -5));
     loaded = true;
   }
 
-  onDestroy(()=>{
+  onDestroy(() => {
     loaded = false;
-  })
+  });
 
-  function sendData(e){
-    if(parenthesis(e)){
+  function sendData(e) {
+    if (parenthesis(e)) {
       const script = stringManipulation.shortify(e);
-      dispatch('output', {short: information.short, script: information.defaultLua})
+      dispatch("output", {
+        short: information.short,
+        script: information.defaultLua,
+      });
     }
   }
-
 </script>
-
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<if-block class="w-full h-fit flex flex-col text-white py-1 {information.rounding == 'top'?"rounded-tl-2xl ":""} {information.rounding == 'bottom'?"rounded-bl-2xl ":""} " style="min-height: 2.5rem; background: {information.color};">
-  
-
-
-
-  <div class="bg-secondary p-1 my-auto mr-1 rounded hidden" >
+<if-block
+  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
+  'top'
+    ? 'rounded-tr-xl '
+    : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
+  style="min-height: 2.5rem; background: {information.color};"
+>
+  <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">
     <LineEditor
-      on:output={(e)=>{sendData(e.detail.script)}}
+      on:output={(e) => {
+        sendData(e.detail.script);
+      }}
       {access_tree}
       {sidebarWidth}
       value={scriptSegment}
     />
   </div>
-
-
 </if-block>

@@ -1,13 +1,14 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'elrel',
-    name: 'EncoderLeftRight_Else',
-    rendering: 'modifier',
+    short: "elrel",
+    name: "EncoderLeftRight_Else",
+    rendering: "modifier",
+    grabbing: false,
     category: null,
-    desc: 'Rotate Right',
-    blockTitle: 'Rotate Right',
-    defaultLua: 'else',
+    desc: "Rotate Right",
+    blockTitle: "Rotate Right",
+    defaultLua: "else",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -24,31 +25,28 @@
 
 
     `,
-    color: '#4A4AA7'
-  }
+    color: "#4A4AA7",
+  };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  function sendData(){
-    dispatch('output', {short: information.short, script: information.defaultLua})
+  function sendData() {
+    dispatch("output", {
+      short: information.short,
+      script: information.defaultLua,
+    });
   }
 
-  onMount(()=>{
+  onMount(() => {
     sendData();
-  })
-
+  });
 </script>
 
-
-
-
-<else-block class="w-full h-fit flex flex-col text-white py-1" style="min-height: 2.5rem; background: {information.color};">
-  
- 
-
-</else-block>
-
+<else-block
+  class="w-full h-fit flex flex-col text-white py-1"
+  style="min-height: 2.5rem; background: {information.color};"
+/>
