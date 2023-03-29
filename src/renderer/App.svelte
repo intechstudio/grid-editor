@@ -66,6 +66,7 @@
   let shapeSelected;
   let colorSelected;
   let name;
+  let paneContainerWidth;
 
   $: {
     if ($appSettings.persistant.helperShape !== undefined) {
@@ -81,6 +82,7 @@
 
   function resize() {
     $windowSize.window = $windowSize.window + 1;
+    handlePaneResize();
   }
 
   // websocket rx tx from main for debug
@@ -95,30 +97,37 @@
   });
 
   let leftPaneSize;
-  function handlePaneResize(event) {
-    if (event.detail[0].size > leftPaneSize) {
-      // when left panel is resized to > 0, make leftpanel visible
-      appSettings.update((store) => {
-        store.leftPanelVisible = true;
-        return store;
-      });
+  function handlePaneResize() {
+    console.log(paneContainerWidth);
+
+    return;
+    let paneWidth = Math.floor((paneContainerWidth * -1) / 100);
+    console.log(paneWidth);
+
+    if (paneWidth <= 100) {
+      $splitpanes.left.size = 0;
+      return;
     }
-    $splitpanes.left.size = event.detail[0].size;
+    if (paneWidth > 350) {
+      $splitpanes.left.size = event.detail[0].size;
+    } else {
+      $splitpanes.left.size = Math.floor(350 / (paneContainerWidth / 100));
+    }
   }
 
   function handlePaneResized(event) {
+    console.log("yay2");
     event.detail.forEach((pane, index) => {
       // left pane
       if (index == 0) {
-        if (pane.size == 0) {
-          // when left panel is resized to 0, make leftpanel invisible
-          appSettings.update((store) => {
-            store.leftPanelVisible = false;
-            return store;
-          });
-        }
+        // when left panel is resized to 0, make leftpanel invisible
+        appSettings.update((store) => {
+          store.leftPanelVisible = pane.size > 0 ? true : false;
+          return store;
+        });
         leftPaneSize = pane.size;
       }
+
       // middle pane
       if (index == 1) {
         $splitpanes.middle.size = pane.size;
@@ -183,7 +192,11 @@
         on:resized={handlePaneResized}
         class="w-full"
       >
-        <Pane class="leftPane" bind:size={$splitpanes.left.size} snapSize={5}>
+        <Pane
+          class="leftPane"
+          bind:size={$splitpanes.left.size}
+          bind:clientWidth={paneContainerWidth}
+        >
           <LeftPanelContainer />
         </Pane>
 
@@ -191,7 +204,7 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane bind:size={$splitpanes.right.size} snapSize={5}>
+        <Pane bind:size={$splitpanes.right.size}>
           <RightPanelContainer />
         </Pane>
       </Splitpanes>
@@ -226,8 +239,12 @@
     opacity: 0;
     z-index: 1;
   }
-  .splitpanes.modern-theme .splitpanes__splitter:hover:before {
+
+  .splitpanes.modern-theme .splitpanes__splitter:active:before {
     opacity: 1;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter:hover:before {
+    opacity: 0.5;
   }
   .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
     z-index: 2;

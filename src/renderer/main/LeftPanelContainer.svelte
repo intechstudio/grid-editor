@@ -16,60 +16,56 @@
   import UserAccount from "./panels/user-account/UserAccount.svelte";
 
   export let classes;
-
-  function resize() {
-    $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
-  }
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
-  <div class="{classes} w-full h-full" use:watchResize={resize}>
-    <div class="min-w-[200px] h-full">
-      {#if $appSettings.leftPanel == "Debug"}
-        <DebugMonitor />
-      {/if}
+<div class="{classes} w-full h-full">
+  <div class="min-w-[200px] h-full">
+    {#if $appSettings.leftPanel == "Debug"}
+      <DebugMonitor />
+    {/if}
 
-      {#if $appSettings.leftPanel == "MIDI Monitor"}
-        <MidiMonitor />
-      {/if}
+    {#if $appSettings.leftPanel == "MIDI Monitor"}
+      <MidiMonitor />
+    {/if}
 
-      {#if $appSettings.leftPanel == "Profiles"}
-        <Profiles />
-      {/if}
+    {#if $appSettings.leftPanel == "Profiles"}
+      <Profiles />
+    {/if}
 
-      {#if $appSettings.leftPanel == "Presets"}
-        <Presets />
-      {/if}
+    {#if $appSettings.leftPanel == "Presets"}
+      <Presets />
+    {/if}
 
-      {#if $appSettings.leftPanel == "NewProfile"}
-        <NewProfile />
-      {/if}
+    {#if $appSettings.leftPanel == "NewProfile"}
+      <NewProfile />
+    {/if}
 
-      {#if $appSettings.leftPanel == "NewPreset"}
-        <NewPreset />
-      {/if}
+    {#if $appSettings.leftPanel == "NewPreset"}
+      <NewPreset />
+    {/if}
 
-      {#if $appSettings.leftPanel == "Websocket"}
-        <WebsocketMonitor />
-      {/if}
+    {#if $appSettings.leftPanel == "Websocket"}
+      <WebsocketMonitor />
+    {/if}
 
-      {#if $appSettings.leftPanel == "User Account"}
-        <UserAccount />
-      {/if}
+    {#if $appSettings.leftPanel == "User Account"}
+      <UserAccount />
+    {/if}
 
-      {#if $appSettings.persistant.showLoginRegister}
-      <div class="min-w-[200px] h-full {$appSettings.leftPanel == "Profile Cloud"?"  ":" hidden "}">
-
-          <ProfileCloud />
-
-
+    {#if $appSettings.persistant.showLoginRegister}
+      <div
+        class="min-w-[200px] h-full {$appSettings.leftPanel == 'Profile Cloud'
+          ? '  '
+          : ' hidden '}"
+      >
+        <ProfileCloud />
       </div>
-      {/if}
-
-    </div>
+    {/if}
   </div>
-<!-- {/if} -->
+</div>
 
+<!-- {/if} -->
 <style>
   .splitpanes.modern-theme .splitpanes__pane {
     overflow: visible;
