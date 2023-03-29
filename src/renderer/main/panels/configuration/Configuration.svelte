@@ -491,6 +491,7 @@
                       <AddAction
                         {animation}
                         {config}
+                        {index}
                         {configs}
                         on:new-config={(e) => {
                           addConfigAtPosition(e, index + 1);

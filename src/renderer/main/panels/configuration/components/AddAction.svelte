@@ -28,6 +28,7 @@
   export let userHelper = false;
   export let config = [];
   export let configs = [];
+  export let index;
 
   const dispatch = createEventDispatcher();
 
@@ -104,7 +105,47 @@
   let action_options = [];
   onMount(() => {});
 
+  let i;
+  let j;
   function openActionPicker() {
+    let prevCondition = undefined;
+    let nextCondition = undefined;
+    let selectedCondition = config;
+
+    console.log("ALL WHAT WE HAVE ON ACTION CHAIN", configs);
+
+    console.log(index, "index");
+
+    for (i = index + 1; i < configs.length + 1; i++) {
+      if (configs[i].information.category == "condition") {
+        nextCondition = configs[i];
+        break;
+      } else {
+        nextCondition = undefined;
+      }
+    }
+
+    for (j = index - 1; j > 0; j--) {
+      if (configs[j].information.category == "condition") {
+        prevCondition = configs[j];
+        break;
+      } else {
+        prevCondition = undefined;
+      }
+    }
+    console.log(prevCondition.short, "prevCondition");
+    console.log(selectedCondition.short, "selectedCondition");
+    console.log(nextCondition.short, "nextCondition");
+
+    /*     configs.forEach((element, index) => {
+      console.log(
+        "lol",
+        index,
+        element.information.category,
+        element.information.short
+      );
+    }); */
+
     try {
       const sorting_array = [
         "variables",
@@ -145,10 +186,10 @@
         // check if compatible events are defined in the action component
         if (elem.eventtype !== undefined) {
           elem.eventtype.forEach((ev) => {
-            console.log("HELLO", ev, eventtype);
+            /*  console.log("HELLO", ev, eventtype); */
             if (ev === eventtype) {
               found = true;
-              console.log("FOUND");
+              /* console.log("FOUND"); */
             }
           });
         }
@@ -185,6 +226,8 @@
         );
       });
 
+      console.log("help filtering this", _action_collection);
+
       // custom sorting array
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
@@ -206,7 +249,7 @@
     configSelection = !configSelection;
     appMultiSelect.reset();
 
-    console.log("Open Picker");
+    /* console.log("Open Picker"); */
     actionPickerTimestamp = Date.now();
   }
 
@@ -224,11 +267,10 @@
   }
 
   $: console.log(config, "config");
-
-  $: console.log(configs, "configs");
 </script>
 
 {#if !userHelper}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -262,6 +304,7 @@
     </div>
   </action-placeholder>
 {:else}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -302,6 +345,7 @@
         }}
         class="flex flex-col flex-grow h-full"
       >
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           on:click={() => {
             configSelection = false;
@@ -347,6 +391,7 @@
 
               <div class="w-full flex justify-start py-1 h-full flex-wrap">
                 {#each option.collection as action}
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
                   <div
                     style="--action-color: {action.color};"
                     use:addOnDoubleClick
@@ -356,25 +401,7 @@
                     on:double-click={closeActionPicker}
                     class="action-card {selected_action == action.desc
                       ? ' border-pick'
-                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white           {config
-                      .information.desc == 'IF' &&
-                    (configs[configs.indexOf(config) + 1].information.desc ==
-                      'Else' ||
-                      configs[configs.indexOf(config) + 1].information.desc ==
-                        'Else IF') &&
-                    (action.desc == 'Else' || action.desc == 'IF')
-                      ? 'hidden'
-                      : config.information.desc == 'Else' &&
-                        (action.desc == 'Else IF' ||
-                          action.desc == 'IF' ||
-                          action.desc == 'Else')
-                      ? 'hidden'
-                      : config.information.desc == 'Else IF' &&
-                        configs[configs.indexOf(config) + 1].information.desc ==
-                          'Else' &&
-                        (action.desc == 'Else' || action.desc == 'IF')
-                      ? 'hidden'
-                      : ''}"
+                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white           "
                   >
                     <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                     <div

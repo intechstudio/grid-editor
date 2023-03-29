@@ -156,6 +156,8 @@
       });
     }
   }
+
+  $: console.log(configs, "configs");
 </script>
 
 <wrapper
