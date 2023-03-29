@@ -331,8 +331,8 @@
     ? ''
     : 'pointer-events-none'}"
 >
-  <div class="bg-primary py-5 flex flex-col justify-center items-center">
-    <div class="flex flex-row items-start bg-primary py-2">
+  <div class="bg-primary py-5 flex flex-col justify-center">
+    <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button
         on:click={() => {
           changeSelectedConfig("uiEvents");

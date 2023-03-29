@@ -82,7 +82,6 @@
 
   function resize() {
     $windowSize.window = $windowSize.window + 1;
-    handlePaneResize();
   }
 
   // websocket rx tx from main for debug
@@ -95,49 +94,6 @@
     //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
-
-  let leftPaneSize;
-  function handlePaneResize() {
-    console.log(paneContainerWidth);
-
-    return;
-    let paneWidth = Math.floor((paneContainerWidth * -1) / 100);
-    console.log(paneWidth);
-
-    if (paneWidth <= 100) {
-      $splitpanes.left.size = 0;
-      return;
-    }
-    if (paneWidth > 350) {
-      $splitpanes.left.size = event.detail[0].size;
-    } else {
-      $splitpanes.left.size = Math.floor(350 / (paneContainerWidth / 100));
-    }
-  }
-
-  function handlePaneResized(event) {
-    console.log("yay2");
-    event.detail.forEach((pane, index) => {
-      // left pane
-      if (index == 0) {
-        // when left panel is resized to 0, make leftpanel invisible
-        appSettings.update((store) => {
-          store.leftPanelVisible = pane.size > 0 ? true : false;
-          return store;
-        });
-        leftPaneSize = pane.size;
-      }
-
-      // middle pane
-      if (index == 1) {
-        $splitpanes.middle.size = pane.size;
-      }
-      // right pane
-      if (index == 2) {
-        $splitpanes.right.size = pane.size;
-      }
-    });
-  }
 
   onMount(() => {
     // application mounted, check analytics
@@ -186,16 +142,12 @@
     <div class="flex flex-grow overflow-hidden ">
       <Splitpanes
         theme="modern-theme"
-        pushOtherPanes={false}
-        dblClickSplitter={false}
-        on:resize={handlePaneResize}
-        on:resized={handlePaneResized}
         class="w-full"
       >
         <Pane
           class="leftPane"
           bind:size={$splitpanes.left.size}
-          bind:clientWidth={paneContainerWidth}
+          minSize={$splitpanes.left.default}
         >
           <LeftPanelContainer />
         </Pane>
@@ -204,7 +156,10 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane bind:size={$splitpanes.right.size}>
+        <Pane 
+          bind:size={$splitpanes.right.size} 
+          minSize={$splitpanes.right.default}
+        >
           <RightPanelContainer />
         </Pane>
       </Splitpanes>

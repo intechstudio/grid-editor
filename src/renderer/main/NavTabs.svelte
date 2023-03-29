@@ -27,9 +27,10 @@
     $appSettings.rightPanelVisible = !$appSettings.rightPanelVisible;
     splitpanes.update((store) => {
       store.right.size =
-        $appSettings.rightPanelVisible == true ? store.left.default : 0;
+        $appSettings.rightPanelVisible == true ? store.right.default : 0;
       return store;
     });
+    console.log($appSettings.rightPanelVisible)
   }
 
   function changeLeftTab(tab) {
@@ -102,7 +103,7 @@
         changeRightTab("Configuration");
       }}
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
-        'Configuration' && $appSettings.rightPanel != ''
+        'Configuration' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary "
     >
@@ -119,7 +120,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  
-        {selectedRightTab == 'Configuration'
+        {selectedRightTab == 'Configuration' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -131,7 +132,7 @@
         changeRightTab("Preferences");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg 
-      {selectedRightTab == 'Preferences'
+      {selectedRightTab == 'Preferences' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
     >
@@ -151,7 +152,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  {selectedRightTab ==
-        'Preferences'
+        'Preferences' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />

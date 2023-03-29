@@ -20,27 +20,27 @@ export const statusReport = writable({
 
 function createSplitPanes() {
   const obj = {
-    left: { size: 30 },
-    middle: { size: 35 },
-    right: { size: 35 },
+    left: { size: 25 },
+    middle: { size: 50 },
+    right: { size: 25 },
   };
 
   Object.defineProperty(obj.left, "default", {
-    value: 30,
+    value: 25,
     writable: false,
     enumerable: true,
     configurable: true,
   });
 
   Object.defineProperty(obj.middle, "default", {
-    value: 35,
+    value: 50,
     writable: false,
     enumerable: true,
     configurable: true,
   });
 
   Object.defineProperty(obj.right, "default", {
-    value: 35,
+    value: 25,
     writable: false,
     enumerable: true,
     configurable: true,
