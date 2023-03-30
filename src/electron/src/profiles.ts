@@ -175,7 +175,7 @@ export async function saveConfig(
   await fs.promises.writeFile(
     `${path}/${rootDirectory}/${user}/${name}/${name}.json`,
     JSON.stringify(config, null, 4))
-    .then((data)=>{
+    .then((data) => {
       googleAnalytics('profile-library', { value: 'save success' })
       influxAnalytics('application', 'profiles', 'profile', 'save success')
       console.log('Saved!')

@@ -46,6 +46,7 @@ import { fetchUrlJSON } from './src/fetch';
 import { getLatestVideo } from './src/youtube';
 import { getActiveWindow } from './src/active-window';
 import { desktopAutomationPluginStart, desktopAutomationPluginStop } from './addon/desktopAutomation';
+import { Deeplink } from 'electron-deeplink';
 
 process.env['EDITOR_VERSION'] = app.getVersion()
 
@@ -279,6 +280,10 @@ function createWindow() {
   })
 }
 
+const isDev = process.env.NODE_ENV == 'development' ? true : false
+const protocol = isDev ? 'grid-editor-dev' : 'grid-editor'
+const deeplink = new Deeplink({ app, mainWindow, protocol, isDev })
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -317,6 +322,16 @@ ipcMain.handle('stopPlugin', async (event, arg) => {
   return 'ok';
 })
 
+console.log(deeplink)
+
+deeplink.on('received', (data) => {
+  console.log('deeplink receive', data)
+  if (data.startsWith('grid-editor')) {
+    const splitArray = data.split('://')
+    const credential = splitArray[1].replace('credential=', '')
+    mainWindow.webContents.send('onExternalAuthResponse', credential)
+  }
+})
 
 ipcMain.handle('download', async (event, arg) => {
   let result: any = undefined
@@ -508,7 +523,7 @@ ipcMain.on('app_version', (event) => {
 ipcMain.on('resetAppSettings', (event, arg) => {
   log.info('Clear app settings...')
   store.clear()
-  
+
 
 
   if (process.env.APPIMAGE) {
@@ -522,7 +537,7 @@ ipcMain.on('resetAppSettings', (event, arg) => {
 
     app.relaunch(options);
     app.exit(0);
-  }else{
+  } else {
 
     app.relaunch();
     app.exit()
@@ -549,7 +564,7 @@ ipcMain.on('restartApp', (event, arg) => {
 
     app.relaunch(options);
     app.exit(0);
-  }else{
+  } else {
 
     app.relaunch();
     app.exit()

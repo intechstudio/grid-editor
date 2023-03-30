@@ -11,15 +11,27 @@
   let iframe_element;
   let iframe_response_element;
 
-  $: iframe_send($userAccountStore?.credentialStash);
+  $: iframe_send($userAccountStore);
 
   function iframe_send(message) {
     console.log("Parent sending:  useraccount", message);
     if (iframe_element == undefined) return;
-    iframe_element.contentWindow.postMessage(message, "*");
+    iframe_element.contentWindow.postMessage(
+      { credential: JSON.stringify(message.credential) },
+      "*"
+    );
   }
 
-  function iframe_receive(event) {
+  function canBeParsedAsJSON(data) {
+    try {
+      JSON.parse(data);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  }
+
+  async function iframe_receive(event) {
     console.log(
       "Parent received:  ",
       event.origin,
@@ -27,13 +39,43 @@
       event.data
     );
 
+    if (event.data.messageType === "editorData") {
+      const path = $appSettings.persistant.profileFolder;
+      const { owner, name, editorData, _id } = event.data.document;
+      const profile = JSON.parse(editorData);
+      profile.id = _id; // this should be _id instead of id!
+      await window.electron.configs
+        .saveConfig(path, name, profile, "profiles", owner)
+        .then((res) => {
+          iframe_element.contentWindow.postMessage(
+            { messageType: "editorDataSaved", success: true },
+            "*"
+          );
+        })
+        .catch((err) => {
+          iframe_element.contentWindow.postMessage(
+            { messageType: "editorDataSaved", success: false },
+            "*"
+          );
+        });
+    }
+
     if (iframe_response_element) {
-      iframe_response_element.innerHTML = event.data;
+      //iframe_response_element.innerHTML = JSON.parse(event.data);
     }
   }
 
   onMount(() => {
     console.log("Initialize Profile Cloud");
+
+    if (env().NODE_ENV === "development") {
+      $appSettings.profileCloudUrl = "http://localhost:5200";
+    } else {
+      $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
+    }
+
+    $appSettings.profileCloudUrlEnabled = true;
+
     window.addEventListener("message", iframe_receive, false);
   });
 
@@ -92,6 +134,13 @@
           $appSettings.profileCloudUrl = "http://localhost:5200";
         }}
         class="bg-secondary text-white w-36 rounded m-2">localhost:5200</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
+        }}
+        class="bg-secondary text-white w-36 rounded m-2"
+        >profile-cloud.web.app</button
       >
       <button
         on:click={() => {

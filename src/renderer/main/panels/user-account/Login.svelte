@@ -1,7 +1,17 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store";
-  import api from "$lib/api";
+  import { auth } from "$lib/firebase";
   import { userAccountStore } from "./user-account.store";
+
+  import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+
+  const provider = new GoogleAuthProvider();
+
+  if (auth?.currentUser !== null) {
+    console.log("USER", auth.currentUser);
+  } else {
+    console;
+  }
 
   let email = "";
   let password = "";
@@ -13,11 +23,24 @@
   async function submitLogin() {
     userAccountStore.login(email, password);
   }
+
+  async function logout() {
+    userAccountStore.logout();
+  }
 </script>
+
+<button
+  on:click={() =>
+    window.electron.openInBrowser("http://localhost:5200/authorize")}
+>
+  Google Signin
+</button>
 
 <div
   class="p-4 bg-primary h-full flex flex-col gap-4 items-start justify-start"
 >
+  <button on:click={logout} class="border text-white"> logout </button>
+
   <div class="w-full grid text-white">
     <label class="pb-1 block" for="email">E-Mail</label>
     <input
