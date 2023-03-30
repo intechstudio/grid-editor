@@ -66,7 +66,6 @@
   let shapeSelected;
   let colorSelected;
   let name;
-  let paneContainerWidth;
 
   $: {
     if ($appSettings.persistant.helperShape !== undefined) {
@@ -140,14 +139,12 @@
     <!-- <TopSubMenu /> -->
 
     <div class="flex flex-grow overflow-hidden ">
-      <Splitpanes
-        theme="modern-theme"
-        class="w-full"
-      >
+      <Splitpanes theme="modern-theme" class="w-full">
         <Pane
           class="leftPane"
           bind:size={$splitpanes.left.size}
           minSize={$splitpanes.left.default}
+          maxSize={45}
         >
           <LeftPanelContainer />
         </Pane>
@@ -156,9 +153,10 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane 
-          bind:size={$splitpanes.right.size} 
+        <Pane
+          bind:size={$splitpanes.right.size}
           minSize={$splitpanes.right.default}
+          maxSize={45}
         >
           <RightPanelContainer />
         </Pane>
@@ -194,12 +192,8 @@
     opacity: 0;
     z-index: 1;
   }
-
-  .splitpanes.modern-theme .splitpanes__splitter:active:before {
-    opacity: 1;
-  }
   .splitpanes.modern-theme .splitpanes__splitter:hover:before {
-    opacity: 0.5;
+    opacity: 1;
   }
   .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
     z-index: 2;
