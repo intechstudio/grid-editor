@@ -110,14 +110,18 @@
   function openActionPicker() {
     let prevCondition = undefined;
     let nextCondition = undefined;
-    let selectedCondition = config;
+    let selectedConfig = config;
+    let selectedCondition = undefined;
 
     console.log("ALL WHAT WE HAVE ON ACTION CHAIN", configs);
 
     console.log(index, "index");
 
-    for (i = index + 1; i < configs.length + 1; i++) {
-      if (configs[i].information.category == "condition") {
+    for (i = index + 1; i < configs.length; i++) {
+      if (
+        configs[i]?.information.category == null ||
+        configs[i]?.information.category == "condition"
+      ) {
         nextCondition = configs[i];
         break;
       } else {
@@ -126,16 +130,30 @@
     }
 
     for (j = index - 1; j > 0; j--) {
-      if (configs[j].information.category == "condition") {
+      if (
+        configs[i]?.information.category == null ||
+        configs[j]?.information.category == "condition"
+      ) {
         prevCondition = configs[j];
         break;
       } else {
         prevCondition = undefined;
       }
     }
-    console.log(prevCondition.short, "prevCondition");
-    console.log(selectedCondition.short, "selectedCondition");
-    console.log(nextCondition.short, "nextCondition");
+
+    if (
+      configs[i]?.information.category == null ||
+      config?.information.category == "condition"
+    ) {
+      selectedCondition = config;
+    } else {
+      selectedCondition = undefined;
+    }
+
+    console.log(prevCondition, "prevCondition");
+    console.log(selectedCondition, "selectedCondition");
+    console.log(selectedConfig, "selectedConfig");
+    console.log(nextCondition, "nextCondition");
 
     /*     configs.forEach((element, index) => {
       console.log(
@@ -176,17 +194,18 @@
       const eventtype = parseInt(li.event.eventtype);
 
       blocks.forEach((elem) => {
+        /*     console.log(elem, "elem"); */
         if (elem.category === null) {
           return;
         }
 
         let found = false;
 
-        console.log(elem.eventtype);
         // check if compatible events are defined in the action component
         if (elem.eventtype !== undefined) {
           elem.eventtype.forEach((ev) => {
             /*  console.log("HELLO", ev, eventtype); */
+
             if (ev === eventtype) {
               found = true;
               /* console.log("FOUND"); */
@@ -201,7 +220,37 @@
           }
 
           // push to category
-          object[elem.category].push(elem);
+          if (selectedCondition == undefined) {
+            selectedCondition = prevCondition;
+          }
+
+          //only show correct conditions on the add action panel
+          if (selectedCondition?.short == "if") {
+            if (nextCondition?.short == "el" || nextCondition?.short == "ei") {
+              if (elem?.short !== "el") {
+                console.log(nextCondition?.short, "nextCondition?.short");
+                object[elem.category].push(elem);
+                console.log("hello");
+              }
+            } else {
+              object[elem.category].push(elem);
+            }
+          } else if (selectedCondition?.short == "el") {
+            if (elem?.short !== "el" && elem?.short !== "ei") {
+              object[elem.category].push(elem);
+            }
+          } else if (selectedCondition?.short == "ei") {
+            console.log(nextCondition, "HEY");
+            if (nextCondition?.sort == "el") {
+              if (elem?.short !== "el") {
+                object[elem.category].push(elem);
+              }
+            } else {
+              object[elem.category].push(elem);
+            }
+          } else {
+            object[elem.category].push(elem);
+          }
         }
 
         if (elem.eventtype === eventtype) {
@@ -216,6 +265,8 @@
             category: key,
             collection: object[key],
           };
+
+          /*  console.log(_obj, "obj"); */
           _action_collection.push(_obj);
         }
       }
@@ -226,13 +277,13 @@
         );
       });
 
-      console.log("help filtering this", _action_collection);
+      /*       console.log("help filtering this", _action_collection); */
 
       // custom sorting array
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
       );
-      console.log("change_condition_order", change_condition_order);
+      /*       console.log("change_condition_order", change_condition_order); */
       change_condition_order.collection =
         change_condition_order.collection.sort(function (a, b) {
           return (
@@ -266,7 +317,7 @@
     initConfig();
   }
 
-  $: console.log(config, "config");
+  /*   $: console.log(config, "config"); */
 </script>
 
 {#if !userHelper}
@@ -382,9 +433,6 @@
         {/if}
 
         <div class="flex flex-col w-full overflow-y-auto">
-          {configs.indexOf(config)}
-          {config.information.desc}
-
           {#each action_options as option}
             {#if option.category != "special" || 1}
               <div class="text-gray-500 text-sm">{option.category}</div>
