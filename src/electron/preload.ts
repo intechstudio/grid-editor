@@ -11,6 +11,10 @@ contextBridge.exposeInMainWorld('ctxProcess', {
 })
 
 contextBridge.exposeInMainWorld('electron', {
+  auth: {
+    onExternalResponse: (callback) =>
+      ipcRenderer.on('onExternalAuthResponse', callback),
+  },
   library: {
     download: (targetFolder, packageToDownload) =>
       ipcRenderer.invoke('download', { targetFolder, packageToDownload }),

@@ -49,6 +49,7 @@
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
+  import { userAccountStore } from "./main/panels/user-account/user-account.store";
 
   let modalComponents = {};
 
@@ -92,6 +93,11 @@
   window.electron.websocket.onTransmit((_event, value) => {
     //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
+  });
+
+  window.electron.auth.onExternalResponse((_event, value) => {
+    console.log("VAAAAALLLUUUEEE", value);
+    userAccountStore.socialLogin("google", value);
   });
 
   let leftPaneSize;
