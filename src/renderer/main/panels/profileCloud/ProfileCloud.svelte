@@ -103,7 +103,7 @@
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full">
-  {#if env().NODE_ENV !== "development"}
+  {#if env().NODE_ENV === "development"}
     <div class="flex flex-row items-center bg-primary w-full">
       <input
         type="checkbox"
