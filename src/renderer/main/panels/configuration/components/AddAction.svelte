@@ -23,6 +23,7 @@
   import { addOnDoubleClick } from "../../../_actions/add-on-double-click";
 
   import { getAllComponents } from "../../../../lib/_configs";
+  import { end } from "luaparse";
 
   export let animation = false;
   export let userHelper = false;
@@ -150,10 +151,74 @@
       selectedCondition = undefined;
     }
 
-    console.log(prevCondition, "prevCondition");
+
+    let ends = []
+    let k;
+
+
+
+    for(k = 0; k < configs.length; k++){
+      if(configs[k]?.short == 'en'){
+        ends.push(configs[k])
+      }
+    }
+
+    let l;
+    let endIfPairs=[];
+/*     for(l = 0; l < configs.length; l++){ */
+      
+
+  let newConfigArray = [];
+
+  configs.forEach((config)=>{
+    newConfigArray = [...newConfigArray, config];
+  })
+   
+  // end - if pairs
+      ends.forEach((end)=>{
+        let endIndex = newConfigArray.indexOf(end)
+
+        for (l = endIndex-1; l > 0; l--) {
+          console.log(newConfigArray, "newConfigArray")
+        if (
+          newConfigArray[l]?.short == "if"
+        ) {
+          console.log(end, "end")
+          console.log(newConfigArray[l], "newConfigArray[l]")
+
+          
+          endIfPairs=[...endIfPairs,
+            {if: newConfigArray[l],
+            end:end
+        }]
+        
+        let ifIndex = l;
+        newConfigArray.splice(ifIndex,1)
+        
+         let endIndex = newConfigArray.indexOf(end);
+        newConfigArray.splice(endIndex,1)  
+        
+        console.log(newConfigArray, "newConfigArray")
+        } 
+
+        break;
+    } 
+      })
+
+      console.log("endIfPairs", endIfPairs)
+      console.log("configs", configs)
+     
+
+
+   /*  } */
+
+
+
+
+/*     console.log(prevCondition, "prevCondition");
     console.log(selectedCondition, "selectedCondition");
     console.log(selectedConfig, "selectedConfig");
-    console.log(nextCondition, "nextCondition");
+    console.log(nextCondition, "nextCondition"); */
 
     /*     configs.forEach((element, index) => {
       console.log(
@@ -225,30 +290,44 @@
           }
 
           //only show correct conditions on the add action panel
-          if (selectedCondition?.short == "if") {
-            if (nextCondition?.short == "el" || nextCondition?.short == "ei") {
+          if (selectedCondition?.short == "if" && (nextCondition?.short == "el" || nextCondition?.short == "ei")) {
               if (elem?.short !== "el") {
-                console.log(nextCondition?.short, "nextCondition?.short");
                 object[elem.category].push(elem);
                 console.log("hello");
               }
-            } else {
-              object[elem.category].push(elem);
-            }
           } else if (selectedCondition?.short == "el") {
             if (elem?.short !== "el" && elem?.short !== "ei") {
               object[elem.category].push(elem);
             }
           } else if (selectedCondition?.short == "ei") {
-            console.log(nextCondition, "HEY");
-            if (nextCondition?.sort == "el") {
+
+            if (nextCondition?.short == "el") {
+              console.log("ITS ME")
               if (elem?.short !== "el") {
                 object[elem.category].push(elem);
               }
             } else {
               object[elem.category].push(elem);
             }
-          } else {
+          } else if (selectedCondition?.short == "en" && nextCondition?.short == "en" && prevCondition?.short =="en"){
+            console.log("1")
+            if (elem?.short !== "el" && elem?.short !== "ei") {
+                object[elem.category].push(elem);
+              }
+          }else if (selectedCondition?.short == "en" && nextCondition?.short == "en" && prevCondition?.short =="if"){ /*ha valahol fent van egy else*/
+            console.log("2")
+            if (elem?.short !== "el" && elem?.short !== "ei") {
+                object[elem.category].push(elem); 
+              }
+          }else if (selectedCondition?.short == "en" && nextCondition?.short == "en" && prevCondition?.short =="ei"){
+            console.log("3")
+            if (elem?.short !== "if" ) {
+                object[elem.category].push(elem);
+              }
+          }else if (selectedCondition?.short == "en" && nextCondition?.short == "en" && prevCondition?.short =="el"){
+            console.log("4")
+            object[elem.category].push(elem);
+          }else {
             object[elem.category].push(elem);
           }
         }
