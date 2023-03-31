@@ -7,6 +7,7 @@
 
   import configuration from "../../../../../configuration.json";
   import { userAccountStore } from "../user-account/user-account.store";
+  import { logger } from "../../../runtime/runtime.store";
 
   let iframe_element;
   let iframe_response_element;
@@ -22,52 +23,42 @@
     );
   }
 
-  function canBeParsedAsJSON(data) {
-    try {
-      JSON.parse(data);
-    } catch (e) {
-      return false;
-    }
-    return true;
-  }
-
-  async function iframe_receive(event) {
-    console.log(
-      "Parent received:  ",
-      event.origin,
-      window.location.origin,
-      event.data
-    );
-
-    if (event.data.messageType === "editorData") {
+  async function handleMessageReceive(event) {
+    if (event.data.channelMessageType == "IMPORT_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
-      const { owner, name, editorData, _id } = event.data.document;
+      const { owner, name, editorData, _id } = event.data;
       const profile = JSON.parse(editorData);
       profile.id = _id; // this should be _id instead of id!
       await window.electron.configs
         .saveConfig(path, name, profile, "profiles", owner)
         .then((res) => {
-          iframe_element.contentWindow.postMessage(
-            { messageType: "editorDataSaved", success: true },
-            "*"
-          );
+          logger.set({
+            type: "success",
+            message: `Profile ${name} imported successfully`,
+          });
+          channel.postMessage({ ok: true, data: {} });
         })
         .catch((err) => {
-          iframe_element.contentWindow.postMessage(
-            { messageType: "editorDataSaved", success: false },
-            "*"
-          );
+          logger.set({
+            type: "fail",
+            message: `Profile ${name} import failed`,
+          });
+          channel.postMessage({ ok: false, data: {} });
         });
     }
+  }
 
-    if (iframe_response_element) {
-      //iframe_response_element.innerHTML = JSON.parse(event.data);
+  let channel; // communication channel received from iframe, used for profile import responses
+  function initChannelCommunication(event) {
+    if (event.data == "profileImportCommunication") {
+      if (event.ports && event.ports.length) {
+        channel = event.ports[0];
+        channel.onmessage = handleMessageReceive;
+      }
     }
   }
 
   onMount(() => {
-    console.log("Initialize Profile Cloud");
-
     if (env().NODE_ENV === "development") {
       $appSettings.profileCloudUrl = "http://localhost:5200";
     } else {
@@ -76,121 +67,88 @@
 
     $appSettings.profileCloudUrlEnabled = true;
 
-    window.addEventListener("message", iframe_receive, false);
+    window.addEventListener("message", initChannelCommunication);
+
+    console.log("iframe", iframe_element);
+
+    if (iframe_element) {
+      let doc = iframe_element.contentDocument;
+      doc.body.innerHTML =
+        doc.body.innerHTML +
+        `
+        <style>
+          ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+            background: #1e2628;
+          }
+
+          ::-webkit-scrollbar-thumb {
+            background: #286787;
+            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
+          }
+
+          ::-webkit-scrollbar-corner {
+            background: #1e2628;
+          }
+        </style>
+        `;
+    }
   });
 
   onDestroy(() => {
     console.log("De-initialize Profile Cloud");
-    window.removeEventListener("message", iframe_receive);
+    window.removeEventListener("message", initChannelCommunication);
   });
-
-  let srcdoc_content = `
-
-
-<${"script"} script-src="unsafe-inline">    
-  window.addEventListener(
-    "message",
-    function (event) {
-      console.log("Child received:  ", event.origin, window.location.origin, event.data)
-
-      document.getElementById("my-message").innerHTML = event.data;
-      
-    },
-    false
-  );
-
-  function buttonClick(){
-    parent.postMessage("HELLO FROM CHILD "+ Math.random(), "*");
-    
-  }
-
-</${"script"}>  
-
-<p>
-  <strong>Message:</strong>
-  <span id="my-message">Test Data 12</span>
-</p>
-
-<button onclick="buttonClick()">OK</button>
-
-
-`;
 </script>
 
-<div class="flex flex-col bg-primary w-full" style="">
-  <div class="flex flex-row items-center bg-primary w-full" style="">
-    <input
-      type="checkbox"
-      class="flex m-2"
-      bind:checked={$appSettings.profileCloudUrlEnabled}
-    />
-    <span class="text-white">Custom URL</span>
-  </div>
-
-  {#if $appSettings.profileCloudUrlEnabled}
-    <div class="flex-row">
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://localhost:5200";
-        }}
-        class="bg-secondary text-white w-36 rounded m-2">localhost:5200</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-        }}
-        class="bg-secondary text-white w-36 rounded m-2"
-        >profile-cloud.web.app</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://example.com";
-        }}
-        class="bg-secondary text-white w-36 rounded m-2">example.com</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://google.com";
-        }}
-        class="bg-secondary text-white w-36 rounded m-2">google.com</button
-      >
+<div class="flex flex-col bg-primary w-full h-full">
+  {#if env().NODE_ENV !== "development"}
+    <div class="flex flex-row items-center bg-primary w-full">
+      <input
+        type="checkbox"
+        class="flex m-2"
+        bind:checked={$appSettings.profileCloudUrlEnabled}
+      />
+      <span class="text-white">Custom URL</span>
     </div>
-    <input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
-    <iframe
-      style="background-color: white;"
-      bind:this={iframe_element}
-      class="w-full h-[500px]"
-      title="Test"
-      src={$appSettings.profileCloudUrl}
-    />
-  {:else}
-    <iframe
-      style="background-color: white;"
-      bind:this={iframe_element}
-      class="w-full h-[500px]"
-      title="Test"
-      srcdoc={srcdoc_content}
-    />
-  {/if}
-</div>
-<div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
-  <button
-    on:click={() => {
-      if (iframe_element && iframe_element.contentWindow) {
-        iframe_element.contentWindow.postMessage(
-          "HELLO FROM PARENT " + Math.random(),
-          "*"
-        );
-      }
-    }}
-    id="close-btn"
-    class="px-3 py-1 cursor-pointer rounded not-draggable
-    hover:bg-blue-700 bg-blue-500"
-  >
-    Send
-  </button>
 
-  <div class="text-white" bind:this={iframe_response_element}>
-    Response text
-  </div>
+    {#if $appSettings.profileCloudUrlEnabled}
+      <div class="flex-row">
+        <button
+          on:click={() => {
+            $appSettings.profileCloudUrl = "http://localhost:5200";
+          }}
+          class="bg-secondary text-white w-36 rounded m-2"
+          >localhost:5200</button
+        >
+        <button
+          on:click={() => {
+            $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
+          }}
+          class="bg-secondary text-white w-36 rounded m-2"
+          >profile-cloud.web.app</button
+        >
+        <button
+          on:click={() => {
+            $appSettings.profileCloudUrl = "http://example.com";
+          }}
+          class="bg-secondary text-white w-36 rounded m-2">example.com</button
+        >
+        <button
+          on:click={() => {
+            $appSettings.profileCloudUrl = "http://google.com";
+          }}
+          class="bg-secondary text-white w-36 rounded m-2">google.com</button
+        >
+      </div>
+      <input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
+    {/if}
+  {/if}
+  <iframe
+    bind:this={iframe_element}
+    class="w-full h-full"
+    title="Test"
+    src={$appSettings.profileCloudUrl}
+  />
 </div>
