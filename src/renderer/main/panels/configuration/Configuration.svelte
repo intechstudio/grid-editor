@@ -11,8 +11,11 @@
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
+  import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
+
   import {
     runtime,
+    logger,
     elementNameStore,
     appMultiSelect,
     luadebug_store,
@@ -110,6 +113,32 @@
       });
     }
   }
+
+  lua_error_store.subscribe(() => {
+    let les = get(lua_error_store);
+    let e = les.slice(-1).pop();
+
+    if (e) {
+      switch (e.type) {
+        case "luanotok":
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "luanotok",
+            message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
+          });
+          break;
+        case "kbisdisabled":
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "kbisdisabled",
+            message: `${e.device}: Keyboard events are disabled until storing.`,
+          });
+          break;
+      }
+    }
+  });
 
   user_input.subscribe((ui) => {
     appMultiSelect.reset();

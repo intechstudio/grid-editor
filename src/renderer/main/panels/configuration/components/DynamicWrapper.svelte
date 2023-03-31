@@ -23,6 +23,8 @@
 
   import { getAllComponents } from "../../../../lib/_configs";
 
+  import { checkSyntax } from "../../../../runtime/monaco-helper";
+
   import { onMount } from "svelte";
 
   export let config = ""; //{desc: 'unnamed', rendering: 'standard', id: ''};
@@ -34,6 +36,7 @@
 
   export let toggle = false;
 
+  let syntaxError = false;
   let animationDuration = 0;
 
   onMount(() => {
@@ -49,6 +52,8 @@
           ? 0
           : 400;
     }
+
+    isSyntaxError(config.script);
   });
 
   let informationOverride = {};
@@ -67,6 +72,16 @@
     config.information = new_config.information;
 
     handleConfigChange({ configName: config.information.name });
+  }
+
+  function isSyntaxError(code) {
+    try {
+      syntaxError = false;
+      checkSyntax(config.script);
+    } catch (e) {
+      syntaxError = true;
+    }
+    return syntaxError;
   }
 
   function information_override(e) {
@@ -162,7 +177,9 @@
   class=" flex border-none outline-none transition-opacity duration-300"
 >
   <carousel
-    class=" flex flex-grow text-white   "
+    class=" flex flex-grow text-white {syntaxError
+      ? 'border-red-600 border-opacity-75'
+      : 'border-transparent'} border"
     id="cfg-{index}"
     config-component={config.information.name}
     movable={config.information.rendering == "standard" ||
@@ -175,14 +192,14 @@
         : ''}"
     >
       <div
-        class="flex  {disable_pointer_events == true
+        class="flex {disable_pointer_events == true
           ? 'group-hover:pointer-events-none '
           : ''}"
       >
         <div
-          class="flex p-2 items-center   {!toggle
+          class="flex p-2 items-center {!toggle
             ? 'group-hover:bg-select-saturate-10'
-            : ''}  bg-secondary cursor-grab"
+            : ''} bg-secondary cursor-grab"
         >
           <svg
             class="opacity-40  group-hover:opacity-100"
@@ -202,6 +219,7 @@
         </div>
 
         {#if config.information.rendering == "standard"}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
             on:click={() => {
               handleToggle(config.short);
@@ -277,6 +295,7 @@
               }}
               on:output={(e) => {
                 config.script = e.detail.script;
+                isSyntaxError(config.script);
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
               }}
@@ -286,23 +305,29 @@
       </div>
 
       {#if !(toggle || config.information.toggleable === false) && config.information.rendering == "standard"}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <name
           on:click={() => {
             toggle = true;
           }}
-          class="pl-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2 {disable_pointer_events ==
+          class="px-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2 {disable_pointer_events ==
           true
             ? 'group-hover:pointer-events-auto'
             : 'cursor-pointer'} "
         >
-          <span class="block">{config.information.desc}</span>
+          <div class="flex flex-row justify-between w-full items-center">
+            <span>{config.information.desc}</span>
+            {#if syntaxError}
+              <span class="text-red-600 text-xs">SYNTAX ERROR</span>
+            {/if}
+          </div>
         </name>
       {/if}
 
       {#if toggle || config.information.toggleable === false}
         <container
           in:slide={{ duration: animationDuration }}
-          class=" w-full flex bg-secondary bg-opacity-25 rounded-b-lg"
+          class=" w-full flex bg-secondary bg-opacity-25 rounded-br-lg"
         >
           <fader-transition
             class="w-full"
@@ -322,6 +347,7 @@
               }}
               on:output={(e) => {
                 config.script = e.detail.script;
+                isSyntaxError(config.script);
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
               }}

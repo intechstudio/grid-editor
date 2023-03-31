@@ -16,9 +16,7 @@
     $windowSize.rightSidebarWidth = $windowSize.rightSidebarWidth + 1;
   }
 
-  onMount(() => {
-    console.log("rightpanel");
-  });
+  onMount(() => {});
 </script>
 
 <div class="{classes} w-full h-full" use:watchResize={resize}>
