@@ -152,15 +152,27 @@ function createLuaError() {
 
           switch (type) {
             case "luanotok":
-              const eventtype = [
-                "Init",
-                "Potmeter",
-                "Encoder",
-                "Button",
-                "Utility",
-                "MIDI RX",
-                "Timer",
-              ][event];
+              /*
+              "GRID_EVENT_INIT": "00",
+              "GRID_EVENT_AC": "01",
+              "GRID_EVENT_EC": "02",
+              "GRID_EVENT_BC": "03",
+              "GRID_EVENT_MAP": "04",
+              "GRID_EVENT_MIDIRX": "05",
+              "GRID_EVENT_TIMER": "06",
+              
+              */
+              const eventtype = {
+
+                0: "Init",
+                1: "Potmeter",
+                2: "Encoder",
+                3: "Button",
+                4: "Utility",
+                5: "MIDI RX",
+                6: "Timer",
+              }
+
 
               if (d.length >= 15) {
                 d.shift();
@@ -173,7 +185,7 @@ function createLuaError() {
                   x: sx,
                   y: sy,
                   element: { no: descr.element },
-                  event: { no: descr.event, type: eventtype },
+                  event: { no: descr.event, type: eventtype[descr.event] },
                 },
               ];
               break;

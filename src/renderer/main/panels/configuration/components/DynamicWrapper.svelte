@@ -197,12 +197,12 @@
           : ''}"
       >
         <div
-          class="flex p-2 items-center {!toggle
+          class="flex p-2  items-center {!toggle
             ? 'group-hover:bg-select-saturate-10'
             : ''} bg-secondary cursor-grab"
         >
           <svg
-            class="opacity-40  group-hover:opacity-100"
+            class="opacity-10  group-hover:opacity-100 "
             width="8"
             height="13"
             viewBox="0 0 8 13"
@@ -233,7 +233,7 @@
             <div>
               <icon
                 style="background-color:{config.information.color}"
-                class="flex group-hover:bg-opacity-75 items-center p-2 h-full "
+                class="flex group-hover:bg-opacity-75 items-center p-2 h-full cursor-pointer"
               >
                 <div class="w-6 h-6">
                   {@html config.information.icon

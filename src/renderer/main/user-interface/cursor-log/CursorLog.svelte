@@ -95,21 +95,22 @@
       class:border-yellow-600={setBorderColor(logs[logs.length - 1], "alert")}
       class:border-red-600={setBorderColor(logs[logs.length - 1], "fail")}
       class:border-blue-600={setBorderColor(logs[logs.length - 1], "progress")}
-      class="flex flex-col w-96 px-4 py-1 text-white"
+      class="flex flex-col w-[30rem] px-4 py-1 text-white"
     >
-      {#each logs as log, i (log.n)}
+      {#each logs as log, i}
         <div
           in:fly={{ x: -10, delay: 400 * i }}
           out:fly={{ x: 10, delay: 400 * i }}
         >
-          <div class="flex flex-col">
+          <div class="flex flex-row items-center">
             <div
-              class="grid rounded-full w-7 h-7 -translate-x-1/3 translate-y-2/3 bg-slate-500 content-center"
+              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count === 1? " opacity-0 ": ""}"
             >
-              <div class="text-center w-full h-full">{log.count}</div>
+            
+              <div class="text-center">{log.count}x</div>
             </div>
             <div
-              class="flex flex-row my-1 items-center p-2 bg-primary bg-opacity-50"
+              class="flex flex-row my-1 items-center p-2 bg-primary bg-opacity-50 w-full"
             >
               <div class="px-2 py-1 bg-primary rounded mr-2">
                 {log.data.type == "success"
@@ -122,7 +123,7 @@
                   ? "❌"
                   : null}
               </div>
-              <span>{log.data.message}</span>
+              <div class="w-full">{log.data.message}</div>
             </div>
           </div>
         </div>
