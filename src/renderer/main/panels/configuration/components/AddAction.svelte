@@ -126,7 +126,7 @@
         configList[i]?.information.category == null || //null when 'End'
         configList[i]?.information.category == "condition"
       ) {
-        nextCondition = configList[i];
+        nextCondition = configList[i]?.short;
         break;
       } else {
         nextCondition = undefined;
@@ -138,7 +138,7 @@
         configList[i]?.information.category == null ||
         configList[i]?.information.category == "condition"
       ) {
-        prevCondition = configList[i];
+        prevCondition = configList[i]?.short;
         break;
       } else {
         prevCondition = undefined;
@@ -147,9 +147,9 @@
 
     if (
       configList[insertPosition]?.information.category == null ||
-      config?.information.category == "condition"
+      configList[insertPosition]?.information.category == "condition"
     ) {
-      selectedCondition = config;
+      selectedCondition = configList[insertPosition]?.short;
     } else {
       selectedCondition = undefined;
     }
@@ -166,8 +166,8 @@
 
     let newConfigArray = [];
 
-    configList.forEach((config) => {
-      newConfigArray = [...newConfigArray, config];
+    configList.forEach((element) => {
+      newConfigArray = [...newConfigArray, element?.short];
     });
 
     // end - if pairs
@@ -176,7 +176,7 @@
 
       for (let i = endIndex - 1; i > 0; i--) {
         console.log(newConfigArray, "newConfigArray");
-        if (newConfigArray[i]?.short == "if") {
+        if (newConfigArray[i] == "if") {
           console.log(end, "end");
           console.log(newConfigArray[i], "newConfigArray[l]");
 
@@ -229,19 +229,19 @@
 
     allConditions.forEach((element) => {
       if (
-        selectedCondition?.short == "if" &&
-        (nextCondition?.short == "el" || nextCondition?.short == "ei")
+        selectedCondition == "if" &&
+        (nextCondition == "el" || nextCondition == "ei")
       ) {
         if (element !== "el") {
           allowedConditions.push(element);
           console.log("hello");
         }
-      } else if (selectedCondition?.short == "el") {
+      } else if (selectedCondition == "el") {
         if (element !== "el" && element !== "ei") {
           allowedConditions.push(element);
         }
-      } else if (selectedCondition?.short == "ei") {
-        if (nextCondition?.short == "el") {
+      } else if (selectedCondition == "ei") {
+        if (nextCondition == "el") {
           console.log("ITS ME");
           if (element !== "el") {
             allowedConditions.push(element);
@@ -250,18 +250,18 @@
           allowedConditions.push(element);
         }
       } else if (
-        selectedCondition?.short == "en" &&
-        nextCondition?.short == "en" &&
-        prevCondition?.short == "en"
+        selectedCondition == "en" &&
+        nextCondition == "en" &&
+        prevCondition == "en"
       ) {
         console.log("1");
         if (element !== "el" && element !== "ei") {
           allowedConditions.push(element);
         }
       } else if (
-        selectedCondition?.short == "en" &&
-        nextCondition?.short == "en" &&
-        prevCondition?.short == "if"
+        selectedCondition == "en" &&
+        nextCondition == "en" &&
+        prevCondition == "if"
       ) {
         /*ha valahol fent van egy else*/
         console.log("2");
@@ -269,18 +269,18 @@
           allowedConditions.push(element);
         }
       } else if (
-        selectedCondition?.short == "en" &&
-        nextCondition?.short == "en" &&
-        prevCondition?.short == "ei"
+        selectedCondition == "en" &&
+        nextCondition == "en" &&
+        prevCondition == "ei"
       ) {
         console.log("3");
         if (element !== "if") {
           allowedConditions.push(element);
         }
       } else if (
-        selectedCondition?.short == "en" &&
-        nextCondition?.short == "en" &&
-        prevCondition?.short == "el"
+        selectedCondition == "en" &&
+        nextCondition == "en" &&
+        prevCondition == "el"
       ) {
         console.log("4");
         allowedConditions.push(element);
