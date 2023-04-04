@@ -49,6 +49,7 @@
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
+  import { userAccountStore } from "./main/panels/user-account/user-account.store";
 
   let modalComponents = {};
 
@@ -93,6 +94,47 @@
     //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
   });
+
+  window.electron.auth.onExternalResponse((_event, value) => {
+    console.log("VAAAAALLLUUUEEE", value);
+    userAccountStore.socialLogin("google", value);
+  });
+
+  let leftPaneSize;
+  function handlePaneResize(event) {
+    if (event.detail[0].size > leftPaneSize) {
+      // when left panel is resized to > 0, make leftpanel visible
+      appSettings.update((store) => {
+        store.leftPanelVisible = true;
+        return store;
+      });
+    }
+    $splitpanes.left = event.detail[0].size;
+  }
+
+  function handlePaneResized(event) {
+    event.detail.forEach((pane, index) => {
+      // left pane
+      if (index == 0) {
+        if (pane.size == 0) {
+          // when left panel is resized to 0, make leftpanel invisible
+          appSettings.update((store) => {
+            store.leftPanelVisible = false;
+            return store;
+          });
+        }
+        leftPaneSize = pane.size;
+      }
+      // middle pane
+      if (index == 1) {
+        $splitpanes.middle = pane.size;
+      }
+      // right pane
+      if (index == 2) {
+        $splitpanes.right = pane.size;
+      }
+    });
+  }
 
   onMount(() => {
     // application mounted, check analytics
