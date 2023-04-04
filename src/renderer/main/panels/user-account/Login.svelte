@@ -77,7 +77,7 @@
 
   {#if $appSettings.persistant.authIdToken}
     <button
-      on:click|preventDefault={getUserData}
+      on:click|preventDefault={()=>{console.log("getUserData not implemented")}}
       class="px-8 py-1 bg-gray-500 hover:bg-gray-700 text-white font-medium"
       >Get User Data</button
     >
