@@ -51,7 +51,6 @@
   });
 
   ledColorStore.subscribe((value) => {
-    console.log("value", value);
     try {
       let lcs = value[dx][dy];
 

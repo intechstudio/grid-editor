@@ -4,58 +4,58 @@
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
 
   let selectedRightTab = "Configuration";
-
   let selectedLeftTab = "NewProfile";
-
-  function changeRightTab(tab) {
-    selectedRightTab = tab;
-    appSettings.update((store) => {
-      store.rightPanel = tab;
-      return store;
-    });
-  }
 
   appSettings.subscribe((store) => {
     selectedLeftTab = store.leftPanel;
   });
 
-  function toggleTab() {
-    // toggle the visibility of the left panel
+  // TODO: Move it under the place of functionality
+  // Merge toggleLeftTab() and toggleRightTab() if Possible
+  function toggleLeftTab() {
+    // Update store and global variables
     $appSettings.leftPanelVisible = !$appSettings.leftPanelVisible;
+    splitpanes.update((store) => {
+      store.left.size =
+        $appSettings.leftPanelVisible == true ? store.left.default : 0;
+      return store;
+    });
+  }
 
-    // when visibility changes, update the splitpanes store
-    // TODO... move to splitpane controller as subscription...?
-    if ($appSettings.leftPanelVisible == true) {
-      splitpanes.update((store) => {
-        store.left = 30;
-        return store;
-      });
-    } else {
-      splitpanes.update((store) => {
-        store.left = 0;
-        return store;
-      });
-    }
+  function toggleRightTab() {
+    // Update store and global variables
+    $appSettings.rightPanelVisible = !$appSettings.rightPanelVisible;
+    splitpanes.update((store) => {
+      store.right.size =
+        $appSettings.rightPanelVisible == true ? store.right.default : 0;
+      return store;
+    });
+    console.log($appSettings.rightPanelVisible)
   }
 
   function changeLeftTab(tab) {
-    // when same tab is clicked, toggle the visibility of the left panel
-
-    if (selectedLeftTab == tab) {
-      toggleTab();
+    // When same tab is clicked, toggle the visibility of the panel
+    // Untoggle  when a new selection happened
+    if (selectedLeftTab == tab || $appSettings.leftPanelVisible == false) {
+      toggleLeftTab();
     }
-
-    // when leftpanel is hidden then toggle (show) it, but only if a different tab is clicked from the current one
-    if ($appSettings.leftPanelVisible == false && selectedLeftTab != tab) {
-      toggleTab();
-    }
-
     // update local leftPanel
     selectedLeftTab = tab;
-
     appSettings.update((store) => {
       store.leftPanel = tab;
+      return store;
+    });
+  }
 
+  function changeRightTab(tab) {
+    // When same tab is clicked, toggle the visibility of the panel
+    // Untoggle  when a new selection happened
+    if (selectedRightTab == tab || $appSettings.rightPanelVisible == false) {
+      toggleRightTab();
+    }
+    selectedRightTab = tab;
+    appSettings.update((store) => {
+      store.rightPanel = tab;
       return store;
     });
   }
@@ -103,7 +103,7 @@
         changeRightTab("Configuration");
       }}
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
-        'Configuration' && $appSettings.rightPanel != ''
+        'Configuration' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary "
     >
@@ -120,7 +120,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  
-        {selectedRightTab == 'Configuration'
+        {selectedRightTab == 'Configuration' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -132,7 +132,7 @@
         changeRightTab("Preferences");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg 
-      {selectedRightTab == 'Preferences'
+      {selectedRightTab == 'Preferences' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
     >
@@ -152,7 +152,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  {selectedRightTab ==
-        'Preferences'
+        'Preferences' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -167,7 +167,7 @@
           changeLeftTab("NewProfile");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 
-        {selectedLeftTab == 'NewProfile' && $splitpanes.left != 0
+        {selectedLeftTab == 'NewProfile' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -196,7 +196,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'NewProfile' && $splitpanes.left != 0
+            'NewProfile' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -208,7 +208,7 @@
           changeLeftTab("NewPreset");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 
-        {selectedLeftTab == 'NewPreset' && $splitpanes.left != 0
+        {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -242,7 +242,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'NewPreset' && $splitpanes.left != 0
+            'NewPreset' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -256,7 +256,7 @@
           changeLeftTab("Presets");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-          'Presets' && $splitpanes.left != 0
+          'Presets' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -290,7 +290,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'Presets' && $splitpanes.left != 0
+            'Presets' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -302,7 +302,7 @@
           changeLeftTab("Profiles");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-          'Profiles' && $splitpanes.left != 0
+          'Profiles' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -484,7 +484,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'Profiles' && $splitpanes.left != 0
+            'Profiles' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -497,7 +497,7 @@
         changeLeftTab("Debug");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-        'Debug' && $splitpanes.left != 0
+        'Debug' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
         : 'bg-opacity-40'} bg-secondary "
     >
@@ -546,7 +546,7 @@
 
       <div
         class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'Debug' && $splitpanes.left != 0
+          'Debug' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -558,7 +558,7 @@
         changeLeftTab("MIDI Monitor");
       }}
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-        'MIDI Monitor' && $splitpanes.left != 0
+        'MIDI Monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
     >
@@ -589,7 +589,7 @@
       </svg>
       <div
         class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'MIDI Monitor' && $splitpanes.left != 0
+          'MIDI Monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -601,7 +601,7 @@
           changeLeftTab("Websocket");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-          'Websocket' && $splitpanes.left != 0
+          'Websocket' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
           : 'bg-opacity-40'} bg-secondary "
       >
@@ -650,7 +650,7 @@
 
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'Websocket' && $splitpanes.left != 0
+            'Websocket' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -663,7 +663,7 @@
           changeLeftTab("User Account");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-          'User Account' && $splitpanes.left != 0
+          'User Account' && $splitpanes.left.size != 0
           ? 'bg-opacity-100 '
           : 'bg-opacity-40 '} bg-secondary"
       >
@@ -687,7 +687,7 @@
         </svg>
         <div
           class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-            'User Account' && $splitpanes.left != 0
+            'User Account' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
@@ -695,40 +695,40 @@
     {/if}
 
     {#if $appSettings.persistant.showLoginRegister}
-    <button
-      on:click={() => {
-        changeLeftTab("Profile Cloud");
-      }}
-      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-        'Profile Cloud' && $splitpanes.left != 0
-        ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary"
-    >
-      <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-      <svg
-        width="28"
-        viewBox="0 0 24 24"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+      <button
+        on:click={() => {
+          changeLeftTab("Profile Cloud");
+        }}
+        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
+          'Profile Cloud' && $splitpanes.left.size != 0
+          ? 'bg-opacity-100 '
+          : 'bg-opacity-40 '} bg-secondary"
       >
-        <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M12 1C8.96243 1 6.5 3.46243 6.5 6.5C6.5 9.53757 8.96243 12 12 12C15.0376 12 17.5 9.53757 17.5 6.5C17.5 3.46243 15.0376 1 12 1ZM8.5 6.5C8.5 4.567 10.067 3 12 3C13.933 3 15.5 4.567 15.5 6.5C15.5 8.433 13.933 10 12 10C10.067 10 8.5 8.433 8.5 6.5Z"
-          fill="#fff"
+        <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+        <svg
+          width="28"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M12 1C8.96243 1 6.5 3.46243 6.5 6.5C6.5 9.53757 8.96243 12 12 12C15.0376 12 17.5 9.53757 17.5 6.5C17.5 3.46243 15.0376 1 12 1ZM8.5 6.5C8.5 4.567 10.067 3 12 3C13.933 3 15.5 4.567 15.5 6.5C15.5 8.433 13.933 10 12 10C10.067 10 8.5 8.433 8.5 6.5Z"
+            fill="#fff"
+          />
+          <path
+            d="M8 14C4.68629 14 2 16.6863 2 20V22C2 22.5523 2.44772 23 3 23C3.55228 23 4 22.5523 4 22V20C4 17.7909 5.79086 16 8 16H16C18.2091 16 20 17.7909 20 20V22C20 22.5523 20.4477 23 21 23C21.5523 23 22 22.5523 22 22V20C22 16.6863 19.3137 14 16 14H8Z"
+            fill="#fff"
+          />
+        </svg>
+        <div
+          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+            'Profile Cloud' && $splitpanes.left.size != 0
+            ? 'h-8'
+            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <path
-          d="M8 14C4.68629 14 2 16.6863 2 20V22C2 22.5523 2.44772 23 3 23C3.55228 23 4 22.5523 4 22V20C4 17.7909 5.79086 16 8 16H16C18.2091 16 20 17.7909 20 20V22C20 22.5523 20.4477 23 21 23C21.5523 23 22 22.5523 22 22V20C22 16.6863 19.3137 14 16 14H8Z"
-          fill="#fff"
-        />
-      </svg>
-      <div
-        class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
-          'Profile Cloud' && $splitpanes.left != 0
-          ? 'h-8'
-          : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
-    </button>
-  {/if}
+      </button>
+    {/if}
   </div>
 </nav-tab>

@@ -5075,6 +5075,10 @@ function UglifyVariables(globalScope, rootScope, renameGlobals) {
 
 let luaminp = {}
 
+luaminp.Parse = function(scr) {
+    return CreateLuaParser(scr);
+}
+
 luaminp.Minify = function(scr, options) {
 
     let ast = CreateLuaParser(scr)

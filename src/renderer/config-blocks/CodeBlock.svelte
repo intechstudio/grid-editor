@@ -1,12 +1,12 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'cb',
-    name: 'CodeBlock',
-    rendering: 'standard',
-    category: 'code',
-    desc: 'Code Block',
-    color: '#887880',
+    short: "cb",
+    name: "CodeBlock",
+    rendering: "standard",
+    category: "code",
+    desc: "Code Block",
+    color: "#887880",
     defaultLua: 'print("hello")',
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 333 265" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,27 +14,22 @@
       <path d="M98.5775 205.588L29.6629 132.5L98.5775 59.4133C103.31 54.3925 103.082 46.4798 98.0657 41.7428C93.0537 37.0052 85.1449 37.2344 80.4126 42.2552L3.4058 123.921C-1.13527 128.738 -1.13527 136.267 3.4058 141.084L80.4165 222.754C82.8724 225.358 86.1816 226.671 89.4993 226.671C92.5711 226.671 95.656 225.537 98.0657 223.258C103.086 218.52 103.31 210.608 98.5775 205.588Z" fill="black"/>
       <path d="M186.703 0.142824C179.889 -0.890373 173.512 3.79254 172.471 10.6135L135.841 250.612C134.8 257.437 139.483 263.816 146.301 264.858C146.942 264.954 147.574 265 148.203 265C154.268 265 159.588 260.571 160.533 254.387L197.163 14.3888C198.204 7.56336 193.521 1.18448 186.703 0.142824Z" fill="black"/>
     </svg>
-    `
-  }
-
+    `,
+  };
 </script>
 
 <script>
-
-
   import luamin from "../../external/luamin";
-  import stringManipulation from '../main/user-interface/_string-operations';
+  import stringManipulation from "../main/user-interface/_string-operations";
 
-  import {createEventDispatcher, onMount, onDestroy} from 'svelte';
+  import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
+  import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  import SendFeedback from "../main/user-interface/SendFeedback.svelte"
+  import { appSettings } from "../runtime/app-helper.store";
+  import { monaco_elementtype } from "../lib/CustomMonaco";
 
-  import {appSettings} from "../runtime/app-helper.store"
-  import {monaco_elementtype} from "../runtime/monaco-helper"
-
-  import {monaco_editor, monaco_languages} from '$lib/CustomMonaco';
-
+  import { monaco_editor, monaco_languages } from "$lib/CustomMonaco";
 
   const dispatch = createEventDispatcher();
 
@@ -42,16 +37,14 @@
   export let index;
   export let advanced;
   export let advancedClickAddon;
-  export let access_tree
+  export let access_tree;
 
-  let committedCode = '';
+  let committedCode = "";
 
   let codePreview;
 
-
-
-  const lualogo_foreground = "#808080"
-  const lualogo_background = "#212a2c"
+  const lualogo_foreground = "#808080";
+  const lualogo_background = "#212a2c";
 
   const lualogo = `<svg version="1.0" id="Ebene_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 width="100%" height="100%" viewBox="0 0 947 947" enable-background="new 0 0 947 947" xml:space="preserve">
@@ -76,114 +69,108 @@
 		c33.5,65.8,51,138.6,51,212.5c0,258.4-209.7,468.1-468.1,468.1S5.4,731.9,5.4,473.5C5.4,215.1,215.1,5.4,473.5,5.4
 		c83.1,0,164.6,22.1,236.2,63.9"/>
 </g>
-</svg>`
-
-
+</svg>`;
 
   const creation_timestamp = Date.now();
 
-  onDestroy(()=>{
-
+  onDestroy(() => {
     codePreview.removeEventListener("wheel", (evt) => {
-        evt.preventDefault();
-        codePreview.scrollLeft += evt.deltaY;
+      evt.preventDefault();
+      codePreview.scrollLeft += evt.deltaY;
     });
-
   });
 
-  onMount(()=>{
-
+  onMount(() => {
     codePreview.addEventListener("wheel", (evt) => {
-        evt.preventDefault();
-        codePreview.scrollLeft += evt.deltaY;
+      evt.preventDefault();
+      codePreview.scrollLeft += evt.deltaY;
     });
-    
-    committedCode = config.script
 
-    let human = stringManipulation.humanize(committedCode)
-    let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
-  
-    if( beautified.charAt( 0 ) === '\n' ){
-      beautified = beautified.slice( 1 );
+    committedCode = config.script;
+
+    let human = stringManipulation.humanize(committedCode);
+    let beautified = luamin.Beautify(human, {
+      RenameVariables: false,
+      RenameGlobals: false,
+      SolveMath: false,
+    });
+
+    if (beautified.charAt(0) === "\n") {
+      beautified = beautified.slice(1);
     }
 
-  
-    codePreview.innerHTML  = stringManipulation.noCommentToLineComment(beautified)
-    monaco_editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
+    codePreview.innerHTML =
+      stringManipulation.noCommentToLineComment(beautified);
+    monaco_editor.colorizeElement(codePreview, {
+      theme: "my-theme",
+      tabSize: 2,
+    });
+  });
 
-  })
+  $: if (
+    committedCode != $appSettings.monaco_code_committed &&
+    $appSettings.monaco_code_committed !== undefined
+  ) {
+    if ($appSettings.monaco_timestamp == creation_timestamp) {
+      committedCode = $appSettings.monaco_code_committed;
+      dispatch("output", { short: "cb", script: committedCode });
 
-  $: if(committedCode != $appSettings.monaco_code_committed && $appSettings.monaco_code_committed !== undefined){
+      let human = stringManipulation.humanize(committedCode);
+      let beautified = luamin.Beautify(human, {
+        RenameVariables: false,
+        RenameGlobals: false,
+        SolveMath: false,
+      });
 
-    if ($appSettings.monaco_timestamp == creation_timestamp){
+      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
 
-
-      committedCode = $appSettings.monaco_code_committed
-      dispatch('output', {short: 'cb', script: committedCode});
-
-      let human = stringManipulation.humanize(committedCode)
-      let beautified = luamin.Beautify(human, {RenameVariables: false,RenameGlobals: false, SolveMath: false});
-
-      if( beautified.charAt( 0 ) === '\n' )
-        beautified = beautified.slice( 1 );
-
-      codePreview.innerHTML = beautified
-      monaco_editor.colorizeElement(codePreview, {theme: "my-theme", tabSize: 2});
-
-
-
+      codePreview.innerHTML = beautified;
+      monaco_editor.colorizeElement(codePreview, {
+        theme: "my-theme",
+        tabSize: 2,
+      });
     }
   }
 
-  function open_monaco(){
+  function open_monaco() {
+    $appSettings.monaco_element = "encoder";
 
-    $appSettings.monaco_element = "encoder";  
+    $appSettings.monaco_code_committed = committedCode;
+    $appSettings.monaco_timestamp = creation_timestamp;
 
-    $appSettings.monaco_code_committed = committedCode
-    $appSettings.monaco_timestamp = creation_timestamp
-
-    $monaco_elementtype = access_tree.elementtype
+    $monaco_elementtype = access_tree.elementtype;
     $appSettings.modal = "code";
-
   }
-
-
 </script>
 
+<code-block class="w-full flex flex-col p-4 pb-2">
+  <div class="w-full flex flex-col">
+    <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 
-<code-block   
-  class="w-full flex flex-col p-4 pb-2">
+    <div class="grid w-full">
+      <pre
+        on:dblclick={open_monaco}
+        class="bg-secondary opacity-80 my-4 p-2 w-full overflow-x-auto"
+        bind:this={codePreview}
+        data-lang="intech_lua"
+      />
+    </div>
 
+    <button
+      on:click={open_monaco}
+      class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none"
+      >Edit Code</button
+    >
+  </div>
+
+  <div class="flex flex-row mt-4">
     <div class="w-full flex flex-col">
-
-
-      <div class="text-gray-500 text-sm font-bold">Code preview:</div>
-
-      <div class="grid w-full" >
-        <pre on:dblclick={open_monaco} class="bg-secondary opacity-80 my-4 p-2 w-full overflow-x-auto" bind:this={codePreview}  data-lang="intech_lua" ></pre>
-      </div>
-
-      <button on:click={open_monaco} class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none">Edit Code</button>
-        
+      <div class="text-gray-500 font-bold -mb-2">Powered by Lua</div>
+      <SendFeedback feedback_context="CodeBlock" />
     </div>
 
-    <div class="flex flex-row mt-4">
-
-
-      <div class="w-full flex flex-col">
-
-        <div class="text-gray-500 font-bold -mb-2">Powered by Lua</div>
-        <SendFeedback feedback_context="CodeBlock"/>
-
-      </div>
-      
-      <div class="h-12 w-12">
-
-        {@html lualogo}
-
-      </div>
+    <div class="h-12 w-12">
+      {@html lualogo}
     </div>
-
-
+  </div>
 </code-block>
-

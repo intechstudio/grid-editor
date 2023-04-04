@@ -11,8 +11,11 @@
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
+  import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
+
   import {
     runtime,
+    logger,
     elementNameStore,
     appMultiSelect,
     luadebug_store,
@@ -110,6 +113,32 @@
       });
     }
   }
+
+  lua_error_store.subscribe(() => {
+    let les = get(lua_error_store);
+    let e = les.slice(-1).pop();
+
+    if (e) {
+      switch (e.type) {
+        case "luanotok":
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "luanotok",
+            message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
+          });
+          break;
+        case "kbisdisabled":
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "kbisdisabled",
+            message: `${e.device}: Keyboard events are disabled until storing.`,
+          });
+          break;
+      }
+    }
+  });
 
   user_input.subscribe((ui) => {
     appMultiSelect.reset();
@@ -240,7 +269,6 @@
 
     // let use of default dummy parameters
     if (active.elements.selected !== "") {
-      
       events = active.events;
       elements = active.elements;
     }
@@ -332,15 +360,15 @@
     ? ''
     : 'pointer-events-none'}"
 >
-  <div class="bg-primary py-5 flex flex-col justify-center items-center">
-    <div class="flex flex-row items-start bg-primary py-2">
+  <div class="bg-primary py-5 flex flex-col justify-center">
+    <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button
         on:click={() => {
           changeSelectedConfig("uiEvents");
         }}
         class="{$appSettings.configType == 'uiEvents'
           ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
         <TooltipSetter key={"configuration_ui_events"} />
@@ -352,7 +380,7 @@
         }}
         class="{$appSettings.configType == 'systemEvents'
           ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />

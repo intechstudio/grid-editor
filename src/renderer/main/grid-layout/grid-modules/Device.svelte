@@ -118,6 +118,20 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    transition: filter 0.2s;
+    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.5));
+  }
+
+  .knob-and-led:hover {
+    filter: drop-shadow(0px 0px 13px rgba(255, 255, 255, 0.15));
+    cursor: pointer;
+  }
+
+  .knob-and-led:not(.active-element):hover {
+    background-color: rgba(136, 136, 136, 0.1);
+    box-shadow: inset 0 0 0px #ffffff33;
+    padding: 0.2rem;
+    border-radius: 0.5rem;
   }
 
   .control-row {
@@ -140,7 +154,7 @@
   }
 
   .active-element {
-    background-color: #88888855;
+    background-color: rgba(136, 136, 136, 0.35);
     box-shadow: inset 0 0 0px #ffffff33;
     padding: 0.2rem;
     border-radius: 0.5rem;
