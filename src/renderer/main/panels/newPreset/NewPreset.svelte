@@ -661,6 +661,9 @@
   }
 
   async function deleteFromDirectory(element) {
+
+
+
     disableButton = true;
 
     if (isDeleteButtonClicked) {
@@ -683,6 +686,10 @@
     await loadFromDirectory();
     disableButton = false;
     isActionButtonClickedStore.set(false);
+
+
+    selectedPresetStore.set({});
+
   }
 
   function deleteSessionPreset(preset) {
