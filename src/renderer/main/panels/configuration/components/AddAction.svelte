@@ -108,188 +108,120 @@
   onMount(() => {});
 
   function allowedConditionsAtPosition(configList, insertPosition) {
-    console.log("configList", configList);
-    console.log("insertPosition", insertPosition);
+    let withinIfEndScope = true;
+    let ifEndPairFlagReverse = 0;
+    let ifScopeOfActionReverse = [];
 
-    let allowedConditions = [];
+    for (let i = insertPosition; i >= 0; i--) {
+      if (configList[i].short == "en") {
+        ifEndPairFlagReverse++;
+      }
 
-    let prevCondition = undefined;
-    let nextCondition = undefined;
-    let selectedCondition = undefined;
+      if (configList[i].short == "if") {
+        ifEndPairFlagReverse--;
+      }
 
-    console.log("ALL WHAT WE HAVE ON ACTION CHAIN", configList);
-
-    console.log(insertPosition, "insertPosition");
-
-    for (let i = insertPosition + 1; i < configList.length; i++) {
-      if (
-        configList[i]?.information.category == null || //null when 'End'
-        configList[i]?.information.category == "condition"
-      ) {
-        nextCondition = configList[i]?.short;
+      if (ifEndPairFlagReverse == -1) {
         break;
-      } else {
-        nextCondition = undefined;
       }
-    }
 
-    for (let i = insertPosition - 1; i > 0; i--) {
-      if (
-        configList[i]?.information.category == null ||
-        configList[i]?.information.category == "condition"
-      ) {
-        prevCondition = configList[i]?.short;
-        break;
-      } else {
-        prevCondition = undefined;
-      }
-    }
-
-    if (
-      configList[insertPosition]?.information.category == null ||
-      configList[insertPosition]?.information.category == "condition"
-    ) {
-      selectedCondition = configList[insertPosition]?.short;
-    } else {
-      selectedCondition = undefined;
-    }
-
-    let ends = [];
-
-    for (let i = 0; i < configList.length; i++) {
-      if (configList[i]?.short == "en") {
-        ends.push(configList[i]);
-      }
-    }
-
-    let endIfPairs = [];
-
-    let newConfigArray = [];
-
-    configList.forEach((element) => {
-      newConfigArray = [...newConfigArray, element?.short];
-    });
-
-    // end - if pairs
-    ends.forEach((end) => {
-      let endIndex = newConfigArray.indexOf(end);
-
-      for (let i = endIndex - 1; i > 0; i--) {
-        console.log(newConfigArray, "newConfigArray");
-        if (newConfigArray[i] == "if") {
-          console.log(end, "end");
-          console.log(newConfigArray[i], "newConfigArray[l]");
-
-          endIfPairs = [...endIfPairs, { if: newConfigArray[i], end: end }];
-
-          let ifIndex = i;
-          newConfigArray.splice(ifIndex, 1);
-
-          let endIndex = newConfigArray.indexOf(end);
-          newConfigArray.splice(endIndex, 1);
-
-          console.log(newConfigArray, "newConfigArray");
+      if (ifEndPairFlagReverse == 0) {
+        if (configList[i].short == "el") {
+          ifScopeOfActionReverse.push(configList[i].short);
         }
 
+        if (configList[i].short == "ei") {
+          ifScopeOfActionReverse.push(configList[i].short);
+        }
+      }
+
+      if (ifEndPairFlagReverse !== -1 && i == 0) {
+        withinIfEndScope = false;
+      }
+    }
+
+    let ifEndPairFlagForward = 0;
+    let ifScopeOfActionForward = [];
+
+    for (let i = insertPosition + 1; i < configList.length; i++) {
+      if (configList[i].short == "en") {
+        ifEndPairFlagForward++;
+      }
+
+      if (configList[i].short == "if") {
+        ifEndPairFlagForward--;
+      }
+
+      if (ifEndPairFlagForward == -1) {
         break;
       }
-    });
 
-    console.log("endIfPairs", endIfPairs);
-    console.log("configList", configList);
+      if (ifEndPairFlagForward == 0) {
+        if (configList[i].short == "el") {
+          ifScopeOfActionForward.push(configList[i].short);
+        }
 
-    endIfPairs.forEach((element) => {
-      console.log(element, "end-if-pairs");
-    });
+        if (configList[i].short == "ei") {
+          ifScopeOfActionForward.push(configList[i].short);
+        }
+      }
+    }
 
-    /*  } */
+    console.log("ifScopeOfActionReverse", ifScopeOfActionReverse);
+    console.log("ifScopeOfActionForward", ifScopeOfActionForward);
 
-    /*     console.log(prevCondition, "prevCondition");
-    console.log(selectedCondition, "selectedCondition");
-    console.log(selectedConfig, "selectedConfig");
-    console.log(nextCondition, "nextCondition"); */
+    // default az if mint lehetőség
+    let allowedConditions = ["if"];
 
-    /*     configList.forEach((element, index) => {
-      console.log(
-        "lol",
-        index,
-        element.information.category,
-        element.information.short
-      );
-    }); */
+    if (withinIfEndScope == true) {
+      //
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward.length == 0
+      ) {
+        allowedConditions = ["if", "ei", "el"];
+      }
 
-    // push to category
-    if (selectedCondition == undefined) {
-      selectedCondition = prevCondition;
+      if (
+        ifScopeOfActionReverse.length == 0 &&
+        ifScopeOfActionForward[0] == "ei"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward[0] == "el"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // if után else van
+      if (
+        ifScopeOfActionReverse.length == 0 &&
+        ifScopeOfActionForward[0] == "el"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // két elseif között
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward[0] == "ei"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // pont egy if és end között vagyunk, NINCS elseif vagy else
+      if (
+        ifScopeOfActionForward.length == 0 &&
+        ifScopeOfActionReverse.length == 0
+      ) {
+        allowedConditions = ["if", "ei", "el"];
+      }
     }
 
     //only show correct conditions on the add action panel
-
-    let allConditions = ["if", "ei", "el", "en"];
-
-    allConditions.forEach((element) => {
-      if (
-        selectedCondition == "if" &&
-        (nextCondition == "el" || nextCondition == "ei")
-      ) {
-        if (element !== "el") {
-          allowedConditions.push(element);
-          console.log("hello");
-        }
-      } else if (selectedCondition == "el") {
-        if (element !== "el" && element !== "ei") {
-          allowedConditions.push(element);
-        }
-      } else if (selectedCondition == "ei") {
-        if (nextCondition == "el") {
-          console.log("ITS ME");
-          if (element !== "el") {
-            allowedConditions.push(element);
-          }
-        } else {
-          allowedConditions.push(element);
-        }
-      } else if (
-        selectedCondition == "en" &&
-        nextCondition == "en" &&
-        prevCondition == "en"
-      ) {
-        console.log("1");
-        if (element !== "el" && element !== "ei") {
-          allowedConditions.push(element);
-        }
-      } else if (
-        selectedCondition == "en" &&
-        nextCondition == "en" &&
-        prevCondition == "if"
-      ) {
-        /*ha valahol fent van egy else*/
-        console.log("2");
-        if (element !== "el" && element !== "ei") {
-          allowedConditions.push(element);
-        }
-      } else if (
-        selectedCondition == "en" &&
-        nextCondition == "en" &&
-        prevCondition == "ei"
-      ) {
-        console.log("3");
-        if (element !== "if") {
-          allowedConditions.push(element);
-        }
-      } else if (
-        selectedCondition == "en" &&
-        nextCondition == "en" &&
-        prevCondition == "el"
-      ) {
-        console.log("4");
-        allowedConditions.push(element);
-      } else {
-        allowedConditions.push(element);
-      }
-    });
-
-    //allowedConditions = ["if", "ei", "el", "en"];
 
     console.log("Return allowedConditions", allowedConditions);
     return allowedConditions;
