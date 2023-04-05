@@ -23,9 +23,14 @@
   import { addOnDoubleClick } from "../../../_actions/add-on-double-click";
 
   import { getAllComponents } from "../../../../lib/_configs";
+  import { end } from "luaparse";
+  import { object_without_properties } from "svelte/internal";
 
   export let animation = false;
   export let userHelper = false;
+  export let config = [];
+  export let configs = [];
+  export let index;
 
   const dispatch = createEventDispatcher();
 
@@ -102,6 +107,126 @@
   let action_options = [];
   onMount(() => {});
 
+  function allowedConditionsAtPosition(configList, insertPosition) {
+    let withinIfEndScope = true;
+    let ifEndPairFlagReverse = 0;
+    let ifScopeOfActionReverse = [];
+
+    for (let i = insertPosition; i >= 0; i--) {
+      if (configList[i].short == "en") {
+        ifEndPairFlagReverse++;
+      }
+
+      if (configList[i].short == "if") {
+        ifEndPairFlagReverse--;
+      }
+
+      if (ifEndPairFlagReverse == -1) {
+        break;
+      }
+
+      if (ifEndPairFlagReverse == 0) {
+        if (configList[i].short == "el") {
+          ifScopeOfActionReverse.push(configList[i].short);
+        }
+
+        if (configList[i].short == "ei") {
+          ifScopeOfActionReverse.push(configList[i].short);
+        }
+      }
+
+      if (ifEndPairFlagReverse !== -1 && i == 0) {
+        withinIfEndScope = false;
+      }
+    }
+
+    let ifEndPairFlagForward = 0;
+    let ifScopeOfActionForward = [];
+
+    for (let i = insertPosition + 1; i < configList.length; i++) {
+      if (configList[i].short == "en") {
+        ifEndPairFlagForward++;
+      }
+
+      if (configList[i].short == "if") {
+        ifEndPairFlagForward--;
+      }
+
+      if (ifEndPairFlagForward == -1) {
+        break;
+      }
+
+      if (ifEndPairFlagForward == 0) {
+        if (configList[i].short == "el") {
+          ifScopeOfActionForward.push(configList[i].short);
+        }
+
+        if (configList[i].short == "ei") {
+          ifScopeOfActionForward.push(configList[i].short);
+        }
+      }
+    }
+
+    console.log("ifScopeOfActionReverse", ifScopeOfActionReverse);
+    console.log("ifScopeOfActionForward", ifScopeOfActionForward);
+
+    // default az if mint lehetőség
+    let allowedConditions = ["if"];
+
+    if (withinIfEndScope == true) {
+      //
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward.length == 0
+      ) {
+        allowedConditions = ["if", "ei", "el"];
+      }
+
+      if (
+        ifScopeOfActionReverse.length == 0 &&
+        ifScopeOfActionForward[0] == "ei"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward[0] == "el"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // if után else van
+      if (
+        ifScopeOfActionReverse.length == 0 &&
+        ifScopeOfActionForward[0] == "el"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // két elseif között
+      if (
+        ifScopeOfActionReverse[0] == "ei" &&
+        ifScopeOfActionForward[0] == "ei"
+      ) {
+        allowedConditions = ["if", "ei"];
+      }
+
+      // pont egy if és end között vagyunk, NINCS elseif vagy else
+      if (
+        ifScopeOfActionForward.length == 0 &&
+        ifScopeOfActionReverse.length == 0
+      ) {
+        allowedConditions = ["if", "ei", "el"];
+      }
+    }
+
+    //only show correct conditions on the add action panel
+
+    console.log("Return allowedConditions", allowedConditions);
+    return allowedConditions;
+  }
+
   function openActionPicker() {
     try {
       const sorting_array = [
@@ -132,21 +257,25 @@
       const li = get(user_input);
       const eventtype = parseInt(li.event.eventtype);
 
+      let allowedConditions = allowedConditionsAtPosition(configs, index);
+
+      // Add all blocks to objects :/
       blocks.forEach((elem) => {
+        /*     console.log(elem, "elem"); */
         if (elem.category === null) {
           return;
         }
 
         let found = false;
 
-        console.log(elem.eventtype);
         // check if compatible events are defined in the action component
         if (elem.eventtype !== undefined) {
           elem.eventtype.forEach((ev) => {
-            console.log("HELLO", ev, eventtype);
+            /*  console.log("HELLO", ev, eventtype); */
+
             if (ev === eventtype) {
               found = true;
-              console.log("FOUND");
+              /* console.log("FOUND"); */
             }
           });
         }
@@ -157,8 +286,16 @@
             object[elem.category] = [];
           }
 
-          // push to category
-          object[elem.category].push(elem);
+          if (elem.category == "condition") {
+            if (allowedConditions.includes(elem.short)) {
+              console.log("ALLOWED: ", elem.short);
+              object[elem.category].push(elem);
+            } else {
+              console.log("NOT ALLOWED: ", elem.short);
+            }
+          } else {
+            object[elem.category].push(elem);
+          }
         }
 
         if (elem.eventtype === eventtype) {
@@ -173,6 +310,8 @@
             category: key,
             collection: object[key],
           };
+
+          /*  console.log(_obj, "obj"); */
           _action_collection.push(_obj);
         }
       }
@@ -183,10 +322,13 @@
         );
       });
 
+      /*       console.log("help filtering this", _action_collection); */
+
       // custom sorting array
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
       );
+      /*       console.log("change_condition_order", change_condition_order); */
       change_condition_order.collection =
         change_condition_order.collection.sort(function (a, b) {
           return (
@@ -203,7 +345,7 @@
     configSelection = !configSelection;
     appMultiSelect.reset();
 
-    console.log("Open Picker");
+    /* console.log("Open Picker"); */
     actionPickerTimestamp = Date.now();
   }
 
@@ -219,9 +361,12 @@
 
     initConfig();
   }
+
+  /*   $: console.log(config, "config"); */
 </script>
 
 {#if !userHelper}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -255,6 +400,7 @@
     </div>
   </action-placeholder>
 {:else}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -295,6 +441,7 @@
         }}
         class="flex flex-col flex-grow h-full"
       >
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           on:click={() => {
             configSelection = false;
@@ -337,6 +484,7 @@
 
               <div class="w-full flex justify-start py-1 h-full flex-wrap">
                 {#each option.collection as action}
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
                   <div
                     style="--action-color: {action.color};"
                     use:addOnDoubleClick
@@ -346,7 +494,7 @@
                     on:double-click={closeActionPicker}
                     class="action-card {selected_action == action.desc
                       ? ' border-pick'
-                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
+                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white           "
                   >
                     <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                     <div

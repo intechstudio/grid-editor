@@ -1,13 +1,14 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'eprel',
-    name: 'EncoderPushRot_Else',
-    rendering: 'modifier',
+    short: "eprel",
+    name: "EncoderPushRot_Else",
+    rendering: "modifier",
+    grabbing: false,
     category: null,
-    desc: 'Just Rotate',
-    blockTitle: 'Just Rotate',
-    defaultLua: 'else',
+    desc: "Just Rotate",
+    blockTitle: "Just Rotate",
+    defaultLua: "else",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 327" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M400.392 94.4129C361.836 39.0338 302.088 2.041 233.396 0.250283L223.795 0H221.205L211.604 0.250283C142.912 2.041 83.1639 39.0338 44.6076 94.4129L0 75.9197L16.2197 200.394L116.392 124.173L78.0685 108.285C111.073 64.3807 159.105 36.8329 212.525 35.4403L222.131 35.1899H222.869L232.475 35.4403C285.895 36.8329 333.927 64.3807 366.932 108.285L328.608 124.173L428.78 200.394L445 75.9197L400.392 94.4129Z" fill="black"/>
@@ -15,31 +16,28 @@
     </svg>
 
     `,
-    color: '#4A4AA7'
-  }
+    color: "#4A4AA7",
+  };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from 'svelte';
+  import { onMount, createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  function sendData(){
-    dispatch('output', {short: information.short, script: information.defaultLua})
+  function sendData() {
+    dispatch("output", {
+      short: information.short,
+      script: information.defaultLua,
+    });
   }
 
-  onMount(()=>{
+  onMount(() => {
     sendData();
-  })
-
+  });
 </script>
 
-
-
-
-<else-block class="w-full h-fit flex flex-col text-white py-1" style="min-height: 2.5rem; background: {information.color};">
-  
- 
-
-</else-block>
-
+<else-block
+  class="w-full h-fit flex flex-col text-white py-1"
+  style="min-height: 2.5rem; background: {information.color};"
+/>

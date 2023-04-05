@@ -44,6 +44,7 @@
 
     if (openedBlocks.find((s) => s == config.short)) {
       toggle = true;
+
       animationDuration = 0;
     } else {
       animationDuration =
@@ -170,6 +171,8 @@
       });
     }
   }
+
+  $: console.log(configs, "configs");
 </script>
 
 <wrapper
@@ -187,22 +190,28 @@
     config-id={config.id}
   >
     <parent
-      class="flex w-full group {disable_pointer_events
+      class="flex w-full group {disable_pointer_events == true
         ? 'pointer-events-none '
         : ''}"
     >
       <div
-        class="flex {disable_pointer_events == true
+        class=" contents w-full  {disable_pointer_events == true
+
           ? 'group-hover:pointer-events-none '
           : ''}"
       >
         <div
-          class="flex p-2  items-center {!toggle
+          class="flex p-2 items-center  {!toggle
             ? 'group-hover:bg-select-saturate-10'
-            : ''} bg-secondary cursor-grab"
+            : ''}  bg-secondary  {config.information.grabbing !== false
+            ? 'cursor-grab'
+            : 'opacity-0 cursor-default '}"
         >
           <svg
-            class="opacity-10  group-hover:opacity-100 "
+            class=" {config.information.grabbing !== false
+              ? 'opacity-40'
+              : 'opacity-0'}  group-hover:opacity-100"
+
             width="8"
             height="13"
             viewBox="0 0 8 13"
@@ -228,7 +237,9 @@
               ? 'group-hover:pointer-events-auto'
               : toggle
               ? 'cursor-pointer '
-              : 'cursor-grab'}"
+              : config.information.grabbing !== false
+              ? 'cursor-grab'
+              : ''}"
           >
             <div>
               <icon
@@ -246,15 +257,14 @@
         {:else}
           <div
             style="background-color:{config.information.color}"
-            class="{disable_pointer_events
-              ? 'pointer-events-none '
-              : ''} {config.information.rounding == 'top'
-              ? 'rounded-tl-2xl '
+            class=" {config.information.rounding == 'top'
+              ? 'rounded-tr-xl '
               : ''} {config.information.rounding == 'bottom'
-              ? 'rounded-bl-2xl '
-              : ''} flex flex-row w-full min-h-fit {toggle
-              ? 'cursor-pointer'
-              : 'cursor-grab'}"
+              ? 'rounded-br-xl '
+              : ''}   flex flex-row w-full min-h-fit {config.information
+              .grabbing !== false
+              ? 'cursor-grab'
+              : ''}"
           >
             <icon
               class="flex items-center p-2 {config.information.hiddenIcon
@@ -324,7 +334,7 @@
         </name>
       {/if}
 
-      {#if toggle || config.information.toggleable === false}
+      {#if (toggle || config.information.toggleable === false) && config.information.rendering == "standard"}
         <container
           in:slide={{ duration: animationDuration }}
           class=" w-full flex bg-secondary bg-opacity-25 rounded-br-lg"

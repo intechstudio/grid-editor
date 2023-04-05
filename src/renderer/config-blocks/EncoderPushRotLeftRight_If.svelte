@@ -1,15 +1,16 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'eprlr',
-    name: 'EncoderPushRotLeftRight_If',
-    rendering: 'modifier',
-    rounding: 'top',
-    category: 'special',
+    short: "eprlr",
+    name: "EncoderPushRotLeftRight_If",
+    rendering: "modifier",
+    rounding: "top",
+    category: "special",
     eventtype: [2], // 2: encoder
-    desc: 'Push & Rotate L R',
-    blockTitle: 'Push & Rotate Left',
-    defaultLua: 'if (self:bst()>0 and self:est()<64) then--[[@eprlrei]] elseif (self:bst()>0 and self:est()>63) then--[[@eprlrei]] elseif (self:bst()==0 and self:est()<64) then--[[@eprlrel]] else--[[@eprlre]] end',
+    desc: "Push & Rotate L R",
+    blockTitle: "Push & Rotate Left",
+    defaultLua:
+      "if (self:bst()>0 and self:est()<64) then--[[@eprlrei]] elseif (self:bst()>0 and self:est()>63) then--[[@eprlrei]] elseif (self:bst()==0 and self:est()<64) then--[[@eprlrel]] else--[[@eprlre]] end",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M362.457 89.7861C324.915 49.166 274.186 25.0519 219.158 26.4864C156.42 28.1219 100.935 62.664 65.3279 116.013L100.43 130.565L24.3677 188.441L12.0518 93.9257L49.7542 109.556C87.8058 50.9139 148.732 11.809 218.724 9.98442C279.12 8.40996 334.291 34.9309 374.659 78.6089C399.33 105.302 418.517 138.436 430.113 175.622L432.572 183.505L416.735 188.4L414.277 180.517C403.385 145.588 385.408 114.619 362.457 89.7861Z" fill="black"/>
@@ -18,64 +19,67 @@
     </svg>
 
     `,
-    color: '#4A4AA7 '
-  }
+    color: "#4A4AA7 ",
+  };
 </script>
 
 <script>
-  import { createEventDispatcher, onDestroy } from 'svelte';
-  import stringManipulation from '../main/user-interface/_string-operations';
-  import { parenthesis } from './_validators';
+  import { createEventDispatcher, onDestroy } from "svelte";
+  import stringManipulation from "../main/user-interface/_string-operations";
+  import { parenthesis } from "./_validators";
 
-  export let config = ''
+  export let config = "";
   export let index;
 
   export let access_tree;
 
-  import LineEditor from '../main/user-interface/LineEditor.svelte'
+  import LineEditor from "../main/user-interface/LineEditor.svelte";
 
   let sidebarWidth;
 
   const dispatch = createEventDispatcher();
 
-  let scriptSegment = ''; // local script part
+  let scriptSegment = ""; // local script part
 
   let loaded = false;
 
-  $: if(config.script && !loaded){
+  $: if (config.script && !loaded) {
     scriptSegment = stringManipulation.humanize(config.script.slice(3, -5));
     loaded = true;
   }
 
-  onDestroy(()=>{
+  onDestroy(() => {
     loaded = false;
-  })
+  });
 
-  function sendData(e){
-    if(parenthesis(e)){
+  function sendData(e) {
+    if (parenthesis(e)) {
       const script = stringManipulation.shortify(e);
-      dispatch('output', {short: information.short, script: information.defaultLua})
+      dispatch("output", {
+        short: information.short,
+        script: information.defaultLua,
+      });
     }
   }
-
 </script>
-
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<if-block class="w-full h-fit flex flex-col text-white py-1 {information.rounding == 'top'?"rounded-tl-2xl ":""} {information.rounding == 'bottom'?"rounded-bl-2xl ":""} " style="min-height: 2.5rem; background: {information.color};">
-  
-
-
-
-  <div class="bg-secondary p-1 my-auto mr-1 rounded hidden" >
+<if-block
+  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
+  'top'
+    ? 'rounded-tr-xl '
+    : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
+  style="min-height: 2.5rem; background: {information.color};"
+>
+  <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">
     <LineEditor
-      on:output={(e)=>{sendData(e.detail.script)}}
+      on:output={(e) => {
+        sendData(e.detail.script);
+      }}
       {access_tree}
       {sidebarWidth}
       value={scriptSegment}
     />
   </div>
-
-
 </if-block>

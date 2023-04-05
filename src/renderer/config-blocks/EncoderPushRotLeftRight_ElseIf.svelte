@@ -1,59 +1,58 @@
 <script context="module">
   // config descriptor parameters
   export const information = {
-    short: 'eprlrei',
-    name: 'Condition_ElseIf',
-    rendering: 'modifier',
+    short: "eprlrei",
+    name: "Condition_ElseIf",
+    rendering: "modifier",
+    grabbing: false,
     category: null,
-    desc: 'PRLR Else IF',
-    blockTitle: 'PRLR Else IF',
-    defaultLua: 'else if  then',
+    desc: "PRLR Else IF",
+    blockTitle: "PRLR Else IF",
+    defaultLua: "else if  then",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path fill-rule="evenodd" clip-rule="evenodd" d="M131.429 2.92893C135.334 -0.976311 141.666 -0.976311 145.571 2.92893L274.071 131.429C277.976 135.334 277.976 141.666 274.071 145.571L145.571 274.071C141.666 277.976 135.334 277.976 131.429 274.071L2.92893 145.571C-0.976311 141.666 -0.976311 135.334 2.92893 131.429L131.429 2.92893ZM24.1421 138.5L138.5 252.858L252.858 138.5L138.5 24.1421L24.1421 138.5Z" fill="black"/>
     </svg>
     `,
-    color: '#4A4AA7'
-  }
+    color: "#4A4AA7",
+  };
 </script>
 
 <script>
-  import { createEventDispatcher, onDestroy, onMount } from 'svelte';
-  import stringManipulation from '../main/user-interface/_string-operations';
-  import { parenthesis } from './_validators';
+  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import stringManipulation from "../main/user-interface/_string-operations";
+  import { parenthesis } from "./_validators";
 
   const dispatch = createEventDispatcher();
 
-  export let config = ''
+  export let config = "";
   export let index;
 
   export let access_tree;
 
-  import LineEditor from '../main/user-interface/LineEditor.svelte'
+  import LineEditor from "../main/user-interface/LineEditor.svelte";
 
-  import { windowSize } from '../runtime/window-size';
+  import { windowSize } from "../runtime/window-size";
 
   let sidebarWidth;
 
   export let informationOverride = {
-    blockTitle: ""
+    blockTitle: "",
   };
 
-
-  $: if(windowSize.rightSidebarWidth){
-    sidebarWidth = windowSize.rightSidebarWidth
+  $: if (windowSize.rightSidebarWidth) {
+    sidebarWidth = windowSize.rightSidebarWidth;
   }
-
 
   let loaded = false;
 
-  let scriptSegment = ''; // local script part
+  let scriptSegment = ""; // local script part
 
-  $: if(config.script && !loaded){
+  $: if (config.script && !loaded) {
     scriptSegment = stringManipulation.humanize(config.script.slice(7, -5));
     loaded = true;
 
-    if (scriptSegment.includes("64")){
+    if (scriptSegment.includes("64")) {
       informationOverride.blockTitle = "Just Rotate Left";
       informationOverride.icon = `
       <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -64,9 +63,8 @@
         <path fill-rule="evenodd" clip-rule="evenodd" d="M222.312 307.456C271.609 307.456 311.573 267.492 311.573 218.194C311.573 168.897 271.609 128.933 222.312 128.933C173.014 128.933 133.05 168.897 133.05 218.194C133.05 267.492 173.014 307.456 222.312 307.456ZM222.312 337.209C288.042 337.209 341.327 283.924 341.327 218.194C341.327 152.464 288.042 99.1792 222.312 99.1792C156.581 99.1792 103.296 152.464 103.296 218.194C103.296 283.924 156.581 337.209 222.312 337.209Z" fill="black"/>
       </svg>
 
-      `
-    }
-    else{
+      `;
+    } else {
       informationOverride.blockTitle = "Push & Rotate Right";
       informationOverride.icon = `
       <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -76,42 +74,40 @@
       </svg>
 
 
-      `
+      `;
     }
-
   }
 
-  onDestroy(()=>{
+  onDestroy(() => {
     loaded = false;
-  })
+  });
 
+  onMount(() => {
+    dispatch("informationOverride", informationOverride);
+  });
 
-  onMount(()=>{
-    dispatch('informationOverride',informationOverride)
-  })
-
-  function sendData(e){
-    if(parenthesis(e)){
+  function sendData(e) {
+    if (parenthesis(e)) {
       const script = stringManipulation.shortify(e);
-      dispatch('output', {short: 'ei', script: `elseif ${script} then`})
+      dispatch("output", { short: "ei", script: `elseif ${script} then` });
     }
   }
-  
 </script>
 
-
-<if-block class="w-full h-fit flex flex-col text-white py-1" style="min-height: 2.5rem; background: {information.color};">
-
-    <div class="bg-secondary p-1 my-auto mr-1 rounded flex  items-center  w-full hidden" >
-      <LineEditor
-        on:output={(e)=>{sendData(e.detail.script)}}
-        {access_tree}
-        {sidebarWidth}
-        value={scriptSegment}
-      />
-    </div>
-
-
-
-
+<if-block
+  class="w-full h-fit flex flex-col text-white py-1"
+  style="min-height: 2.5rem; background: {information.color};"
+>
+  <div
+    class="bg-secondary p-1 my-auto mr-1 rounded flex  items-center  w-full hidden"
+  >
+    <LineEditor
+      on:output={(e) => {
+        sendData(e.detail.script);
+      }}
+      {access_tree}
+      {sidebarWidth}
+      value={scriptSegment}
+    />
+  </div>
 </if-block>

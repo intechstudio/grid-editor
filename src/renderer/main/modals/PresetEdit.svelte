@@ -197,7 +197,7 @@
               <label class="mb-1" for="desc">Description</label>
               <textarea
                 id="desc"
-                placeholder="Write a short description about this profile..."
+                placeholder="Write a short description about this preset..."
                 bind:value={editPresetData.description}
                 on:input={checkIfDescFieldEmpty(
                   editPresetData.description.trim()
