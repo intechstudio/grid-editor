@@ -8,7 +8,7 @@
 
   import { monaco_editor, monaco_languages } from "../../lib/CustomMonaco";
 
-  import { find_forbidden_identifiers } from "../../runtime/monaco-helper";
+  import { checkSyntaxAndMinify } from "../../runtime/monaco-helper";
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
@@ -56,38 +56,15 @@
     }
   }
 
-  const luaminOptions = {
-    RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-    RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-    SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-  };
-
   function commit() {
     const editor_code = editor.getValue();
-
-    // test for forbidden identifiers
-
-    let forbiddenList = find_forbidden_identifiers(editor_code);
-
-    if (forbiddenList.length > 0) {
-      const uniqueForbiddenList = [...new Set(forbiddenList)];
-      const readable = uniqueForbiddenList.toString().replaceAll(",", ", ");
-      error_messsage =
-        "Reserved identifiers [" + readable + "] cannot be used!";
-      return;
-    }
-
-    const short_code = stringManipulation.shortify(editor_code);
-    const line_commented_code = stringManipulation.blockCommentToLineComment(short_code);
-    const safe_code = stringManipulation.lineCommentToNoComment(line_commented_code)
-
     try {
-      const minified_code = luamin.Minify(safe_code, luaminOptions);
+      let minified_code = checkSyntaxAndMinify(editor_code);
       $appSettings.monaco_code_committed = minified_code;
       commitState = 0;
       error_messsage = "";
-    } catch (error) {
-      error_messsage = "Syntax Error: " + error;
+    } catch (e) {
+      error_messsage = e;
     }
   }
 
@@ -105,8 +82,7 @@
 
     if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
 
-    const code_preview = stringManipulation.noCommentToLineComment(beautified)
-
+    const code_preview = stringManipulation.noCommentToLineComment(beautified);
 
     editor = monaco_editor.create(monaco_block, {
       value: code_preview,

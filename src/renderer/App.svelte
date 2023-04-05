@@ -49,6 +49,7 @@
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
+  import { userAccountStore } from "./main/panels/user-account/user-account.store";
 
   let modalComponents = {};
 
@@ -92,6 +93,11 @@
   window.electron.websocket.onTransmit((_event, value) => {
     //console.log('websocket',value);
     debug_lowlevel_store.push_outbound(new TextEncoder().encode(value));
+  });
+
+  window.electron.auth.onExternalResponse((_event, value) => {
+    console.log("VAAAAALLLUUUEEE", value);
+    userAccountStore.socialLogin("google", value);
   });
 
   let leftPaneSize;
@@ -175,14 +181,13 @@
     <!-- <TopSubMenu /> -->
 
     <div class="flex flex-grow overflow-hidden ">
-      <Splitpanes
-        theme="modern-theme"
-        pushOtherPanes={false}
-        on:resize={handlePaneResize}
-        on:resized={handlePaneResized}
-        class="w-full"
-      >
-        <Pane class="leftPane" bind:size={$splitpanes.left} snapSize={5}>
+      <Splitpanes theme="modern-theme" class="w-full">
+        <Pane
+          class="leftPane"
+          bind:size={$splitpanes.left.size}
+          minSize={$splitpanes.left.default}
+          maxSize={45}
+        >
           <LeftPanelContainer />
         </Pane>
 
@@ -190,8 +195,12 @@
           <GridLayout classes={"flex-1"} />
         </Pane>
 
-        <Pane size={$splitpanes.right} minSize={20}>
-          <RightPanelContainer classes={"min-w-[300px]"} />
+        <Pane
+          bind:size={$splitpanes.right.size}
+          minSize={$splitpanes.right.default}
+          maxSize={45}
+        >
+          <RightPanelContainer />
         </Pane>
       </Splitpanes>
     </div>
@@ -209,6 +218,7 @@
   .splitpanes.modern-theme .splitpanes__pane.leftPane {
     overflow: hidden;
   }
+
   .splitpanes.modern-theme .splitpanes__splitter {
     background-color: #4c4c4c;
     position: relative;
@@ -220,6 +230,7 @@
     top: 0;
     transition: opacity 0.3s;
     background-color: #2db9d2;
+    width: 200;
     opacity: 0;
     z-index: 1;
   }

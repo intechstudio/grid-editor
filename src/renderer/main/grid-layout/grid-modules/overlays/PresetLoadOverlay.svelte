@@ -150,6 +150,21 @@
       }
     }
   }
+
+  function cancelPresetOverlay() {
+    selectedPresetStore.set({});
+
+    window.electron.analytics.google("preset-library", {
+      value: "cancel overlay",
+    });
+
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "cancel overlay"
+    );
+  }
 </script>
 
 {#if showOverlay}

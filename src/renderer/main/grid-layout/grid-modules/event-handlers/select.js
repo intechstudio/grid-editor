@@ -1,6 +1,7 @@
 import { get } from 'svelte/store'
 import { user_input } from '../../../../runtime/runtime.store.js'
 import { selectedProfileStore } from '../../../../runtime/profile-helper.store'
+import { selectedPresetStore } from '../../../../runtime/preset-helper.store'
 
 export function select(node) {
   function handleMousedown(e) {
@@ -18,6 +19,7 @@ export function select(node) {
 
         //reset of profile selecting
         selectedProfileStore.set({})
+        selectedPresetStore.set({});
         
 
         // this should be checked to not reupdate UI when clicking on a control element.

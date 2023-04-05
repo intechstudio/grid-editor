@@ -654,9 +654,8 @@
     isSaveToCloudButtonClicked = true;
     isActionButtonClickedStore.set(true);
 
-
     saveToDirectory(PROFILE_PATH, profile.name, profile, "user");
-    deleteSessionProfile(profile)
+    deleteSessionProfile(profile);
 
     selectedProfile = undefined;
     isSaveToCloudButtonClicked = false;
