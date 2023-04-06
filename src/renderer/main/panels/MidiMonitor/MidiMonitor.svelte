@@ -24,18 +24,22 @@
   let debug = false;
   let hover = false;
   let last = undefined;
-  let midiList = undefined;
+
+  let midiListElement = undefined;
+  let sysexListElement = undefined;
+
   let activity = false;
   let timer = undefined;
 
 
   $: if ($midi_monitor_store){
-    if (midiList) midiList.scrollTop = midiList.scrollHeight;
+    if (midiListElement) midiListElement.scrollTop = midiListElement.scrollHeight;
     last = $midi_monitor_store[$midi_monitor_store.length-1]
     showActivity();
   }  
   
   $: if ($sysex_monitor_store){
+    if (sysexListElement) sysexListElement.scrollTop = sysexListElement.scrollHeight;
     showActivity();
   }
 
@@ -217,7 +221,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              bind:this={midiList}
+              bind:this={midiListElement}
             >
               {#each $debug_stream as message}
                 <div
@@ -246,7 +250,7 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              bind:this={midiList}
+              bind:this={midiListElement}
             >
               {#each $midi_monitor_store as midi, i}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -289,7 +293,7 @@
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
-            <div
+            <div  bind:this={sysexListElement}
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
             >
               {#each $sysex_monitor_store as sysex}
