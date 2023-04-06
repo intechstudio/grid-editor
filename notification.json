@@ -1,6 +1,6 @@
 [
     {
-        "type": "notification",
+        "type": "notificationBAK",
         "delay": 5000,
         "class": "bg-blue-500 text-white",
         "dismissable": true,
