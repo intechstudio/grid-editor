@@ -49,7 +49,8 @@
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
-  import { userAccountStore } from "./main/panels/user-account/user-account.store";
+  import { userAccountStore } from "$lib/user-account.store";
+  import UserLogin from "./main/modals/UserLogin.svelte";
 
   let modalComponents = {};
 
@@ -63,6 +64,7 @@
   modalComponents["profileEdit"] = ProfileEdit;
   modalComponents["presetInfo"] = PresetInfo;
   modalComponents["presetEdit"] = PresetEdit;
+  modalComponents["userLogin"] = UserLogin;
 
   let shapeSelected;
   let colorSelected;
@@ -96,7 +98,7 @@
   });
 
   window.electron.auth.onExternalResponse((_event, value) => {
-    console.log("VAAAAALLLUUUEEE", value);
+    console.log("external social auth login credentials are received", value);
     userAccountStore.socialLogin("google", value);
   });
 
@@ -180,7 +182,7 @@
 
     <!-- <TopSubMenu /> -->
 
-    <div class="flex flex-grow overflow-hidden ">
+    <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">
         <Pane
           class="leftPane"

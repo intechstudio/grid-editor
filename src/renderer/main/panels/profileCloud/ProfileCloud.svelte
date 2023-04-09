@@ -6,7 +6,7 @@
   const { env } = window.ctxProcess;
 
   import configuration from "../../../../../configuration.json";
-  import { userAccountStore } from "../user-account/user-account.store";
+  import { userAccountStore } from "../../../lib/user-account.store";
   import { logger } from "../../../runtime/runtime.store";
 
   let iframe_element;
@@ -15,10 +15,13 @@
   $: iframe_send($userAccountStore);
 
   function iframe_send(message) {
-    console.log("Parent sending:  useraccount", message);
+    console.log("Parent sending:  useraccount", message.credential);
     if (iframe_element == undefined) return;
     iframe_element.contentWindow.postMessage(
-      { credential: JSON.stringify(message.credential) },
+      {
+        messageType: "userAuthentication",
+        credential: message.credential,
+      },
       "*"
     );
   }

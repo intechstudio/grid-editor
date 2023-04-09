@@ -322,7 +322,6 @@ ipcMain.handle('stopPlugin', async (event, arg) => {
   return 'ok';
 })
 
-console.log(deeplink)
 
 deeplink.on('received', (data) => {
   console.log('deeplink receive', data)
