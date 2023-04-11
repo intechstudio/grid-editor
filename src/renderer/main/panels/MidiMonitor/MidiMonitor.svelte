@@ -3,22 +3,33 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import { midi_monitor_store, sysex_monitor_store, debug_stream } from "./MidiMonitor.store";
+  import {
+    midi_monitor_store,
+    sysex_monitor_store,
+    debug_stream,
+  } from "./MidiMonitor.store";
 
   import { onMount, onDestroy } from "svelte";
 
   // ok but slow nice
 
-
-  onMount(()=>{
-
-    console.log("MIDI MONITOR DEBUGGING:")
-    console.log("navigator.midiAnimations = true/false")
-    console.log("navigator.midiShowActivity = true/false")
-    
-
+  onMount(() => {
+    console.log("MIDI MONITOR DEBUGGING:");
+    console.log("navigator.midiAnimations = true/false");
+    console.log("navigator.midiShowActivity = true/false");
   });
 
+  $: if (midiListElement) {
+    scrollToBottom(midiListElement);
+  }
+
+  $: if (sysexListElement) {
+    scrollToBottom(sysexListElement);
+  }
+
+  const scrollToBottom = async (node) => {
+    node.scroll({ top: node.scrollHeight, behavior: "smooth" });
+  };
 
   //Defines
   let debug = false;
@@ -31,26 +42,17 @@
   let activity = false;
   let timer = undefined;
 
-
-  $: if ($midi_monitor_store){
-    if (midiListElement) midiListElement.scrollTop = midiListElement.scrollHeight;
-    last = $midi_monitor_store[$midi_monitor_store.length-1]
-    showActivity();
-  }  
-  
-  $: if ($sysex_monitor_store){
-    if (sysexListElement) sysexListElement.scrollTop = sysexListElement.scrollHeight;
+  $: if ($midi_monitor_store) {
+    last = $midi_monitor_store[$midi_monitor_store.length - 1];
     showActivity();
   }
 
-
-
-
-
+  $: if ($sysex_monitor_store) {
+    showActivity();
+  }
 
   function showActivity() {
-
-    if (navigator.midiShowActivity !== true){
+    if (navigator.midiShowActivity !== true) {
       return;
     }
 
@@ -63,14 +65,10 @@
     }, 250);
   }
 
-
-
-
-
-  function onLeaveMidiMessage(item, index) {
+  function onLeaveMidiMessage() {
     hover = false;
     let mms = get(midi_monitor_store);
-    last = mms[mms.length-1];
+    last = mms[mms.length - 1];
   }
 
   function onEnterMidiMessage(element) {
@@ -108,7 +106,6 @@
       <Toggle bind:toggleValue={debug} />
     </div>
   </div>
-
   {#if !debug}
     <div class="py-8 px-6">
       <div class="border-gray-700 border rounded flex flex-col col-span-3 mb-2">
@@ -123,24 +120,22 @@
           </div>
           {#if last}
             <div
-              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center  {navigator.midiAnimations?" transition-width duration-200 ":""} {hover
-                ? 'bg-green-400'
-                : 'bg-white'}"
+              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center  {navigator.midiAnimations
+                ? ' transition-width duration-200 '
+                : ''} {hover ? 'bg-green-400' : 'bg-white'}"
             >
               <div
-                class="flex {hover
-                  ? 'text-white'
-                  : 'text-primary'} text-center"
+                class="flex {hover ? 'text-white' : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
-                {#if navigator.midiShowActivity}
-                  <div
-                    class="ml-2 flex place-self-end self-center {activity
-                      ? 'bg-yellow-500'
-                      : 'bg-primary'} rounded-full w-3 h-3 "
-                  />
-                {/if}
+              {#if navigator.midiShowActivity}
+                <div
+                  class="ml-2 flex place-self-end self-center {activity
+                    ? 'bg-yellow-500'
+                    : 'bg-primary'} rounded-full w-3 h-3 "
+                />
+              {/if}
             </div>
           {/if}
         </div>
@@ -252,12 +247,14 @@
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
               bind:this={midiListElement}
             >
-              {#each $midi_monitor_store as midi, i}
+              {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations?" transition-transform origin-left hover:scale-105 duration-100 transform scale-100":""}"
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations
+                    ? ' transition-transform origin-left hover:scale-105 duration-100 transform scale-100'
+                    : ''}"
                   on:mouseover={() => onEnterMidiMessage(midi)}
-                  on:mouseleave={() => onLeaveMidiMessage(this, i)}
+                  on:mouseleave={() => onLeaveMidiMessage()}
                 >
                   <span class="text-white"
                     >{midi.device.name}{midi.data.direction == "REPORT"
@@ -293,7 +290,8 @@
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
-            <div  bind:this={sysexListElement}
+            <div
+              bind:this={sysexListElement}
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
             >
               {#each $sysex_monitor_store as sysex}

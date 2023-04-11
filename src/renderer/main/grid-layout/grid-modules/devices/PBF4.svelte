@@ -3,7 +3,7 @@
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
 
-  import { select } from "../event-handlers/select.js";
+  import { selectElement } from "../event-handlers/select.js";
 
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
@@ -75,8 +75,8 @@
 >
   <slot />
 
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
-    use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
     dy == selectedElement.brc.dy
@@ -96,11 +96,9 @@
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-1"
+          on:click={() => selectElement(elementNumber, "potentiometer", id)}
         >
-          <Led
-            color={ledcolor_array[elementNumber]}
-            size={$appSettings.size}
-          />
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
           <Potentiometer
             {elementNumber}
             {id}
@@ -116,11 +114,9 @@
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-2"
+          on:click={() => selectElement(elementNumber, "fader", id)}
         >
-          <Led
-            color={ledcolor_array[elementNumber]}
-            size={$appSettings.size}
-          />
+          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
 
           <Fader
             {elementNumber}
@@ -139,10 +135,16 @@
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-1"
+          on:click={() => selectElement(elementNumber, "button", id)}
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
 
-          <Button {id}  position={elementposition_array[elementNumber]} {elementNumber} size={$appSettings.size} />
+          <Button
+            {id}
+            position={elementposition_array[elementNumber]}
+            {elementNumber}
+            size={$appSettings.size}
+          />
         </div>
       {/each}
     </div>

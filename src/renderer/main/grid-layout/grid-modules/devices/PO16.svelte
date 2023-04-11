@@ -3,7 +3,7 @@
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
 
-  import { select } from "../event-handlers/select.js";
+  import { selectElement } from "../event-handlers/select.js";
 
   import Potentiometer from "../elements/Potentiometer.svelte";
   import Led from "../elements/Led.svelte";
@@ -78,7 +78,6 @@
   <slot />
 
   <div
-    use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2  {dx == selectedElement.brc.dx &&
     dy == selectedElement.brc.dy
@@ -93,11 +92,13 @@
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
     >
       {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led"
+          on:click={() => selectElement(elementNumber, "potentiometer", id)}
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
           <Potentiometer
