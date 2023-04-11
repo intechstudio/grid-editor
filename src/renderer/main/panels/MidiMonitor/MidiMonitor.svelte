@@ -3,29 +3,57 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import { midi_monitor_store, sysex_monitor_store } from "./MidiMonitor.store";
+  import { midi_monitor_store, sysex_monitor_store, debug_stream } from "./MidiMonitor.store";
+
+  import { onMount, onDestroy } from "svelte";
+
   // ok but slow nice
 
+
+  onMount(()=>{
+
+    console.log("MIDI MONITOR DEBUGGING:")
+    console.log("navigator.midiAnimations = true/false")
+    console.log("navigator.midiShowActivity = true/false")
+    
+
+  });
+
+
   //Defines
-  const debug_stream = writable([]);
   let debug = false;
   let hover = false;
   let last = undefined;
-  let midiList = undefined;
+
+  let midiListElement = undefined;
+  let sysexListElement = undefined;
+
   let activity = false;
   let timer = undefined;
 
-  midi_monitor_store.subscribe(() => {
-    let mms = get(midi_monitor_store);
-    let m = mms.slice(-1).pop();
-    if (m) {
-      last = m;
-      UpdateDebugStream(m, "MIDI");
-      if (midiList) midiList.scrollTop = midiList.scrollHeight;
-    }
-  });
+
+  $: if ($midi_monitor_store){
+    if (midiListElement) midiListElement.scrollTop = midiListElement.scrollHeight;
+    last = $midi_monitor_store[$midi_monitor_store.length-1]
+    showActivity();
+  }  
+  
+  $: if ($sysex_monitor_store){
+    if (sysexListElement) sysexListElement.scrollTop = sysexListElement.scrollHeight;
+    showActivity();
+  }
+
+
+
+
+
 
   function showActivity() {
+
+    if (navigator.midiShowActivity !== true){
+      return;
+    }
+
     activity = true;
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -35,34 +63,20 @@
     }, 250);
   }
 
-  sysex_monitor_store.subscribe(() => {
-    let sms = get(sysex_monitor_store);
-    let m = sms.slice(-1).pop();
-    if (m) UpdateDebugStream(m, "SYSEX");
-  });
 
-  function UpdateDebugStream(item, msg_type) {
-    debug_stream.update((items) => {
-      if (items.length >= 32) {
-        items.shift();
-      }
-      showActivity();
-      item.type = msg_type;
-      return [...items, item];
-    });
-  }
+
+
 
   function onLeaveMidiMessage(item, index) {
     hover = false;
     let mms = get(midi_monitor_store);
-    last = mms.slice(-1).pop();
+    last = mms[mms.length-1];
   }
 
-  function onEnterMidiMessage(item, index) {
+  function onEnterMidiMessage(element) {
     hover = true;
     showActivity();
-    let ms = get(midi_monitor_store);
-    last = ms[index];
+    last = element;
   }
 
   function onClearClicked() {
@@ -109,22 +123,24 @@
           </div>
           {#if last}
             <div
-              class="grid grid-cols-2 items-center rounded-lg text-center transition-width duration-200 mr-2 {hover
-                ? 'bg-green-400 w-24'
-                : 'bg-white w-20'}"
+              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center  {navigator.midiAnimations?" transition-width duration-200 ":""} {hover
+                ? 'bg-green-400'
+                : 'bg-white'}"
             >
               <div
-                class="flex ml-3 mr-1 z-10 {hover
+                class="flex {hover
                   ? 'text-white'
                   : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
-              <div
-                class="flex place-self-end self-center {activity
-                  ? 'bg-yellow-500'
-                  : 'bg-primary'} rounded-full w-3 h-3 mr-2"
-              />
+                {#if navigator.midiShowActivity}
+                  <div
+                    class="ml-2 flex place-self-end self-center {activity
+                      ? 'bg-yellow-500'
+                      : 'bg-primary'} rounded-full w-3 h-3 "
+                  />
+                {/if}
             </div>
           {/if}
         </div>
@@ -205,7 +221,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              bind:this={midiList}
+              bind:this={midiListElement}
             >
               {#each $debug_stream as message}
                 <div
@@ -234,13 +250,13 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              bind:this={midiList}
+              bind:this={midiListElement}
             >
               {#each $midi_monitor_store as midi, i}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
-                  on:mouseover={() => onEnterMidiMessage(this, i)}
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations?" transition-transform origin-left hover:scale-105 duration-100 transform scale-100":""}"
+                  on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage(this, i)}
                 >
                   <span class="text-white"
@@ -277,7 +293,7 @@
             <div class="flex w-full text-white pb-2 pt-6">
               System Exclusive Messages
             </div>
-            <div
+            <div  bind:this={sysexListElement}
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
             >
               {#each $sysex_monitor_store as sysex}

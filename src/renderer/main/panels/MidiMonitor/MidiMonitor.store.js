@@ -209,6 +209,9 @@ function createMidiMonitor(max_val) {
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
+
+        UpdateDebugStream(item, "MIDI");
+
         s = [...s, item];
         return s;
       });
@@ -237,13 +240,28 @@ function createSysExMonitor(max_val) {
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
-        console.log(item);
+
+        UpdateDebugStream(item, "SYSEX");
 
         s = [...s, item];
         return s;
       });
     },
   };
+}
+
+
+export const debug_stream = writable([]);
+
+function UpdateDebugStream(item, msg_type) {
+  debug_stream.update((items) => {
+    if (items.length >= 32) {
+      items.shift();
+    }
+    
+    item.type = msg_type;
+    return [...items, item];
+  });
 }
 
 export const maxMidi = 32;
