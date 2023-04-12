@@ -27,7 +27,7 @@
   const dispatch = createEventDispatcher();
 
   function sendData() {
-    dispatch("output", { short: "en", script: "end" });
+    dispatch("output", { short: "en", script: "end", toValidate: "" });
   }
 
   onMount(() => {

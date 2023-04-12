@@ -58,14 +58,17 @@ export function checkSyntaxAndMinify(code) {
 }
 
 export function checkSyntax(code) {
+  if (!code) return;
   const short_code = stringManipulation.shortify(code);
   const line_commented_code =
     stringManipulation.blockCommentToLineComment(short_code);
-  const safe_code =
-    stringManipulation.lineCommentToNoComment(line_commented_code);
+
+  var safe_code = String(
+    stringManipulation.lineCommentToNoComment(line_commented_code)
+  );
 
   try {
-    return luamin.Parse(safe_code, luaminOptions);
+    luamin.Parse(safe_code, luaminOptions);
   } catch (e) {
     throw "Syntax Error: " + e;
   }

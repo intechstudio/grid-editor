@@ -36,10 +36,10 @@ const _utils = {
       ) {
         element.short = "cb";
       }
-
       return {
         short: element.short,
         script: element.script,
+        toValidate: element.toValidate,
         id: uuidv4(),
         human: getHumanFunctionName({ short: element.short }),
         ...getComponentInformation({ short: element.short }),
@@ -88,7 +88,17 @@ const _utils = {
         configList[i].slice(5, -2),
         configList[i + 1] ? configList[i + 1].trim() : "",
       ];
-      configMatrix.push({ short: short, script: script });
+
+      //TODO: Refactor this out if possible. End is needed for syntactical validation at the end of every if block
+      let toValidate = "";
+      if (/^if.*then$/.test(script)) {
+        toValidate = script + " end";
+      }
+      configMatrix.push({
+        short: short,
+        script: script,
+        toValidate: toValidate,
+      });
     }
 
     return configMatrix;
