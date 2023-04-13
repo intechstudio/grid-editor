@@ -356,7 +356,7 @@
 </script>
 
 <configuration
-  class="w-full h-full flex flex-col  {$engine == 'ENABLED'
+  class="w-full h-full flex flex-col {$engine == 'ENABLED'
     ? ''
     : 'pointer-events-none'}"
 >
@@ -425,8 +425,8 @@
         <div>
           <ConfigParameters {configs} {events} {elements} />
           <div class="px-4">
-            <div class="text-gray-500 text-sm ">Actions</div>
-            <div class="pt-1 flex items-center justify-between w-full ">
+            <div class="text-gray-500 text-sm">Actions</div>
+            <div class="pt-1 flex items-center justify-between w-full">
               <MultiSelect />
             </div>
           </div>
@@ -464,7 +464,7 @@
           on:anim-end={() => {
             animation = false;
           }}
-          class="flex flex-col h-full relative justify-between "
+          class="flex flex-col h-full relative justify-between"
         >
           <config-list
             id="cfg-list"
@@ -473,7 +473,7 @@
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full  h-auto overflow-y-auto px-4 {disable_pointer_events
+            class="flex flex-col w-full h-auto overflow-y-auto px-4 {disable_pointer_events
               ? 'cursor-grabbing'
               : ''}"
           >
@@ -501,8 +501,7 @@
                   <anim-block
                     animate:flip={{ duration: 300 }}
                     in:fade={{ delay: 0 }}
-                    class="select-none   {config.information.rendering ==
-                    'hidden'
+                    class="select-none {config.information.rendering == 'hidden'
                       ? 'hidden'
                       : 'block'}"
                   >

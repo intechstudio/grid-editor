@@ -19,25 +19,54 @@
     console.log("navigator.midiShowActivity = true/false");
   });
 
-  $: if (midiListElement) {
-    scrollToBottom(midiListElement);
-  }
+  const createDebouncedStore = (initialValue, debounceTime) => {
+    let timeoutId;
+    const { subscribe, set } = writable(initialValue);
 
-  $: if (sysexListElement) {
-    scrollToBottom(sysexListElement);
-  }
+    const debouncedSet = (value) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => set(value), debounceTime);
+    };
 
-  const scrollToBottom = async (node) => {
-    node.scroll({ top: node.scrollHeight, behavior: "smooth" });
+    return {
+      subscribe,
+      set: debouncedSet,
+    };
+  };
+
+  const scrollToBottom = (node) => {
+    let isScrolling = false;
+
+    const scroll = () => {
+      if (
+        !isScrolling &&
+        node.scrollTop !== node.scrollHeight - node.offsetHeight
+      ) {
+        isScrolling = true;
+        requestAnimationFrame(() => {
+          node.scroll({
+            top: node.scrollHeight,
+            behavior: "smooth",
+          });
+          isScrolling = false;
+        });
+      }
+    };
+
+    const store = createDebouncedStore(null, 100);
+
+    const unsubscribe = store.subscribe(scroll);
+
+    return {
+      update: (value) => store.set(value),
+      destroy: () => unsubscribe(),
+    };
   };
 
   //Defines
   let debug = false;
   let hover = false;
   let last = undefined;
-
-  let midiListElement = undefined;
-  let sysexListElement = undefined;
 
   let activity = false;
   let timer = undefined;
@@ -216,7 +245,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              bind:this={midiListElement}
+              use:scrollToBottom={$debug_stream}
             >
               {#each $debug_stream as message}
                 <div
@@ -245,7 +274,7 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              bind:this={midiListElement}
+              use:scrollToBottom={$midi_monitor_store}
             >
               {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -291,8 +320,8 @@
               System Exclusive Messages
             </div>
             <div
-              bind:this={sysexListElement}
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
+              use:scrollToBottom={$sysex_monitor_store}
             >
               {#each $sysex_monitor_store as sysex}
                 <div
