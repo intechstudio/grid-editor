@@ -74,6 +74,9 @@ const config = {
           800: "#212a2c",
           900: "#0b0e0f",
         },
+        error: {
+          DEFAULT: "#DC2626",
+        },
         pick: {
           DEFAULT: "#6B7AFF",
           "desaturate-10": "#8591FF",

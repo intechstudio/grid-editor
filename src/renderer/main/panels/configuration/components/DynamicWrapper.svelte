@@ -9,6 +9,7 @@
   import {
     runtime,
     user_input,
+    logger,
     localDefinitions,
     luadebug_store,
     appMultiSelect,
@@ -37,6 +38,7 @@
   export let toggle = false;
 
   let syntaxError = false;
+  let validationError = false;
   let animationDuration = 0;
 
   onMount(() => {
@@ -53,7 +55,7 @@
           ? 0
           : 400;
     }
-    console.log("mount", config.script, config.toValidate);
+    //console.log("mount", config.script, config.toValidate);
     isSyntaxError();
   });
 
@@ -85,6 +87,12 @@
       syntaxError = false;
     } catch (e) {
       syntaxError = true;
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "syntaxerror",
+        message: `Syntax Error`,
+      });
     }
     return syntaxError;
   }
@@ -176,7 +184,7 @@
     }
   }
 
-  $: console.log(configs, "configs");
+  //$: console.log(configs, "configs");
 </script>
 
 <wrapper
@@ -185,7 +193,7 @@
 >
   <carousel
     class=" flex flex-grow text-white {syntaxError
-      ? 'border-red-600 border-opacity-75'
+      ? 'border-error border-opacity-75'
       : 'border-transparent'} border"
     id="cfg-{index}"
     config-component={config.information.name}
@@ -305,10 +313,14 @@
               on:informationOverride={(e) => {
                 information_override(e);
               }}
+              on:validator={(e) => {
+                const data = e.detail;
+                validationError = data.isError;
+              }}
               on:output={(e) => {
                 config.script = e.detail.script;
                 config.toValidate = e.detail.toValidate;
-                console.log("dispatch", config.script, config.toValidate);
+                //console.log("dispatch", config.script, config.toValidate);
                 isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
@@ -332,7 +344,7 @@
           <div class="flex flex-row justify-between w-full items-center">
             <span>{config.information.desc}</span>
             {#if syntaxError}
-              <span class="text-red-600 text-xs">SYNTAX ERROR</span>
+              <span class="text-error text-xs">ERROR</span>
             {/if}
           </div>
         </name>
@@ -359,10 +371,14 @@
               on:informationOverride={(e) => {
                 information_override(e);
               }}
+              on:validator={(e) => {
+                const data = e.detail;
+                validationError = data.isError;
+              }}
               on:output={(e) => {
                 config.script = e.detail.script;
                 config.toValidate = e.detail.toValidate;
-                console.log("dispatch", config.script, config.toValidate);
+                //console.log("dispatch", config.script, config.toValidate);
                 isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;

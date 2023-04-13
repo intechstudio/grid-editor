@@ -45,6 +45,23 @@
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
+  const validators = [
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+  ];
 
   let scriptSegments = [];
 
@@ -180,6 +197,10 @@
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
+          on:validator={(e) => {
+            const data = e.detail;
+            dispatch("validator", data);
+          }}
           on:active-focus={(e) => {
             onActiveFocus(e, i);
           }}
