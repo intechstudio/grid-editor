@@ -22,7 +22,6 @@ export function find_forbidden_identifiers(str) {
 }
 
 import luamin from "../../external/luamin";
-import * as newLuamin from "lua-format";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
