@@ -21,6 +21,7 @@
   let infoValue = "";
 
   $: if (inputValue) {
+    handleValidation();
     infoValue = suggestions.find(
       (s) => String(s.value).trim() == String(inputValue).trim()
     );

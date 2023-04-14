@@ -344,7 +344,7 @@
           <div class="flex flex-row justify-between w-full items-center">
             <span>{config.information.desc}</span>
             {#if syntaxError}
-              <span class="text-error text-xs">ERROR</span>
+              <span class="text-error text-xs">SYNTAX ERROR</span>
             {/if}
           </div>
         </name>

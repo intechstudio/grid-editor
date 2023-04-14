@@ -25,6 +25,8 @@
 
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
 
+  import { Validator } from "./_validators";
+
   export let config;
 
   let loaded = false;
@@ -111,6 +113,7 @@
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
+          validator={validators[i]}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);

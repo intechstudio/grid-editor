@@ -35,7 +35,7 @@
   import _utils from "../runtime/_utils.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
-  import validate from "./_validators";
+  import { Validator } from "./_validators";
 
   export let config = "";
   export let index;
@@ -718,6 +718,7 @@
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
+          validator={validators[i]}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);

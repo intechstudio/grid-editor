@@ -22,6 +22,8 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { localDefinitions } from "../runtime/runtime.store";
+
+  import { Validator } from "./_validators";
   import _utils from "../runtime/_utils";
 
   export let config = "";

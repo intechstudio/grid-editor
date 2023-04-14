@@ -40,7 +40,7 @@ A -> B : AB-First step
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  import validate from "./_validators";
+  import { Validator } from "./_validators";
 
   import _utils from "../runtime/_utils.js";
   import { localDefinitions } from "../runtime/runtime.store";
@@ -457,6 +457,7 @@ A -> B : AB-First step
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
         <AtomicInput
           inputValue={script}
+          validator={validators[i]}
           suggestions={suggestions[i]}
           on:validator={(e) => {
             const data = e.detail;
@@ -516,6 +517,7 @@ A -> B : AB-First step
         <div class="text-gray-500 text-sm pb-1">{parameterNames[i + 2]}</div>
         <AtomicInput
           inputValue={script}
+          validator={validators[i + 2]}
           suggestions={suggestions[i + 2]}
           on:validator={(e) => {
             const data = e.detail;

@@ -35,7 +35,7 @@
   import _utils from "../runtime/_utils.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
-  import validate from "./_validators";
+  import { Validator } from "./_validators";
 
   export let config = "";
   export let index;
@@ -78,37 +78,13 @@
   });
 
   function sendData(e, index) {
-    let valid = 0;
-
-    const validator = new validate.check(e);
-
-    const locals = $localDefinitions.map((l) => l.value);
-
-    if (index == 0) {
-      valid = validator.min(0).max(15).result();
-    }
-
-    if (index == 1) {
-      valid = validator.min(127).max(255).result();
-    }
-
-    if (index == 2) {
-      valid = validator.min(0).max(127).result();
-    }
-
-    if (index == 3) {
-      valid = validator.min(0).max(127).result();
-    }
-
-    if (valid) {
-      scriptSegments[index] = e;
-      const script = _utils.segmentsToScript({
-        human: config.human,
-        short: config.short,
-        array: scriptSegments,
-      }); // important to set the function name
-      dispatch("output", { short: config.short, script: script });
-    }
+    scriptSegments[index] = e;
+    const script = _utils.segmentsToScript({
+      human: config.human,
+      short: config.short,
+      array: scriptSegments,
+    }); // important to set the function name
+    dispatch("output", { short: config.short, script: script });
   }
 
   const channels = (length) => {
@@ -736,6 +712,7 @@
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
+          validator={validators[i]}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
