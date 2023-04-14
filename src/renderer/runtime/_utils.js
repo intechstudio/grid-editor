@@ -90,7 +90,7 @@ const _utils = {
       ];
 
       //TODO: Refactor this out if possible. End is needed for syntactical validation at the end of every if block
-      let toValidate = "";
+      let toValidate = undefined;
       if (/^if.*then$/.test(script)) {
         toValidate = script + " end";
       }

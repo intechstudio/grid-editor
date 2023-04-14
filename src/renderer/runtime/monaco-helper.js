@@ -22,6 +22,7 @@ export function find_forbidden_identifiers(str) {
 }
 
 import luamin from "../../external/luamin";
+import * as newLuamin from "lua-format";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -59,16 +60,15 @@ export function checkSyntaxAndMinify(code) {
 
 export function checkSyntax(code) {
   if (!code) return;
-  const short_code = stringManipulation.shortify(code);
-  const line_commented_code =
-    stringManipulation.blockCommentToLineComment(short_code);
-
-  var safe_code = String(
-    stringManipulation.lineCommentToNoComment(line_commented_code)
-  );
-
   try {
-    luamin.Parse(safe_code, luaminOptions);
+    const short_code = stringManipulation.shortify(code);
+    const line_commented_code =
+      stringManipulation.blockCommentToLineComment(short_code);
+
+    var safe_code = String(
+      stringManipulation.lineCommentToNoComment(line_commented_code)
+    );
+    const res = luamin.Parse(safe_code, luaminOptions);
   } catch (e) {
     throw "Syntax Error: " + e;
   }
