@@ -55,7 +55,6 @@
           ? 0
           : 400;
     }
-    //console.log("mount", config.script, config.toValidate);
     isSyntaxError();
   });
 
@@ -184,7 +183,7 @@
     }
   }
 
-  //$: console.log(configs, "configs");
+  $: console.log(configs, "configs");
 </script>
 
 <wrapper
@@ -320,7 +319,6 @@
               on:output={(e) => {
                 config.script = e.detail.script;
                 config.toValidate = e.detail.toValidate;
-                //console.log("dispatch", config.script, config.toValidate);
                 isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
@@ -378,7 +376,6 @@
               on:output={(e) => {
                 config.script = e.detail.script;
                 config.toValidate = e.detail.toValidate;
-                //console.log("dispatch", config.script, config.toValidate);
                 isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;

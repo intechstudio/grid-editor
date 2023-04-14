@@ -70,7 +70,6 @@ export function checkSyntax(code) {
     );
     const res = luamin.Parse(safe_code, luaminOptions);
   } catch (e) {
-    console.log("Syntax Error: " + e);
     throw "Syntax Error: " + e;
   }
 }
