@@ -9,41 +9,40 @@
 
   let [logClear, popupWindow] = [undefined, undefined];
 
-  onMount(() => {
-    logger.subscribe((log) => {
-      if (log.message != "") {
-        popup = true;
+  $: {
+    const log = $logger;
+    if (log?.message ?? "") {
+      popup = true;
 
-        if (
-          logs.map((l) => l.classname).includes("pagechange") &&
-          log.classname == "strict"
-        ) {
-          logs = [];
-        }
-
-        clearInterval(logClear);
-        clearInterval(popupWindow);
-
-        console.log(logs);
-        if (logs.length > 0) {
-          if (logs.at(-1).data.message === log.message) {
-            logs.at(-1).count += 1;
-            logs = logs;
-          } else {
-            logs = [...logs, { data: log, count: 1 }];
-          }
-        } else logs = [...logs, { data: log, count: 1 }];
-
-        popupWindow = setTimeout(() => {
-          popup = false;
-        }, 5250);
-
-        logClear = setTimeout(() => {
-          logs = [];
-        }, 5000);
+      if (
+        logs.map((l) => l.classname).includes("pagechange") &&
+        log.classname == "strict"
+      ) {
+        logs = [];
       }
-    });
-  });
+
+      clearInterval(logClear);
+      clearInterval(popupWindow);
+
+      console.log(logs);
+      if (logs.length > 0) {
+        if (logs.at(-1).data.message === log.message) {
+          logs.at(-1).count += 1;
+          logs = logs;
+        } else {
+          logs = [...logs, { data: log, count: 1 }];
+        }
+      } else logs = [...logs, { data: log, count: 1 }];
+
+      popupWindow = setTimeout(() => {
+        popup = false;
+      }, 5250);
+
+      logClear = setTimeout(() => {
+        logs = [];
+      }, 5000);
+    }
+  }
 
   $: if (logs.length >= 6) {
     logs.shift();
@@ -52,9 +51,10 @@
 
   let engine_state = 0;
 
-  engine.subscribe((_engine_state) => {
+  $: {
+    const _engine_state = $engine;
     engine_state = _engine_state;
-  });
+  }
 
   export function cursorLog(node, { popup }) {
     const div = document.getElementById("cursor-log");
@@ -104,9 +104,11 @@
         >
           <div class="flex flex-row items-center">
             <div
-              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count === 1? " opacity-0 ": ""}"
+              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count ===
+              1
+                ? ' opacity-0 '
+                : ''}"
             >
-            
               <div class="text-center">{log.count}x</div>
             </div>
             <div

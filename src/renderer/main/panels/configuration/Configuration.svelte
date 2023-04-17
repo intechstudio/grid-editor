@@ -68,9 +68,12 @@
 
   let controllerIndex;
 
-  selectedControllerIndexStore.subscribe((store) => {
-    controllerIndex = store;
-  });
+  $: {
+    const value = $selectedControllerIndexStore;
+    if (value) {
+      controllerIndex = value;
+    }
+  }
 
   $: selectedControllerIndexStore.set(elements);
 

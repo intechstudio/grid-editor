@@ -65,11 +65,15 @@
     moveOld();
   });
 
-  profileListRefresh.subscribe(async (store) => {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      await loadFromDirectory();
+  $: {
+    const value = $profileListRefresh;
+    if (value && PROFILE_PATH) {
+      const loadData = async () => {
+        await loadFromDirectory();
+      };
+      loadData();
     }
-  });
+  }
 
   async function moveOld() {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
@@ -345,7 +349,7 @@
                 bind:value={profile.description}
                 type="text"
                 placeholder="No description available"
-                class="w-full bg-primary p-1 rounded-none h-36 resize-none "
+                class="w-full bg-primary p-1 rounded-none h-36 resize-none"
               />
             {/if}
 

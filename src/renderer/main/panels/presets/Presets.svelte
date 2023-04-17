@@ -50,11 +50,12 @@
     }
   });
 
-  presetListRefresh.subscribe((store) => {
-    if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
-      loadFromDirectory();
+  $: {
+    const value = $presetListRefresh;
+    if (value && PRESET_PATH) {
+      loadFromDirectory(); //await?
     }
-  });
+  }
 
   onMount(() => {
     moveOld();
@@ -320,7 +321,7 @@
             class="{selectedIndex == i
               ? 'border-pick bg-secondary'
               : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'}
-            border-l-4 preset p-2 my-2  relative"
+            border-l-4 preset p-2 my-2 relative"
           >
             <div class="w-full">{preset.name}</div>
 
@@ -331,7 +332,7 @@
                 bind:value={preset.description}
                 type="text"
                 placeholder="No description available"
-                class="w-full bg-primary p-1 rounded-none h-36 resize-none "
+                class="w-full bg-primary p-1 rounded-none h-36 resize-none"
               />
             {/if}
 

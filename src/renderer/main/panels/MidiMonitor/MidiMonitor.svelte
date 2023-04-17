@@ -9,23 +9,15 @@
     debug_stream,
   } from "./MidiMonitor.store";
 
-  import { onMount, onDestroy } from "svelte";
-
   // ok but slow nice
 
-  onMount(() => {
-    console.log("MIDI MONITOR DEBUGGING:");
-    console.log("navigator.midiAnimations = true/false");
-    console.log("navigator.midiShowActivity = true/false");
-  });
-
-  const createDebouncedStore = (initialValue, debounceTime) => {
+  const createDebouncedStore = () => {
     let timeoutId;
-    const { subscribe, set } = writable(initialValue);
+    const { subscribe, set } = writable();
 
     const debouncedSet = (value) => {
       clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => set(value), debounceTime);
+      timeoutId = setTimeout(() => set(value), 100);
     };
 
     return {
@@ -35,31 +27,18 @@
   };
 
   const scrollToBottom = (node) => {
-    let isScrolling = false;
+    const store = createDebouncedStore();
 
-    const scroll = () => {
-      if (
-        !isScrolling &&
-        node.scrollTop !== node.scrollHeight - node.offsetHeight
-      ) {
-        isScrolling = true;
-        requestAnimationFrame(() => {
-          node.scroll({
-            top: node.scrollHeight,
-            behavior: "smooth",
-          });
-          isScrolling = false;
-        });
-      }
-    };
-
-    const store = createDebouncedStore(null, 100);
-
-    const unsubscribe = store.subscribe(scroll);
+    const unsubscribe = store.subscribe(() =>
+      node.scroll({
+        top: node.scrollHeight,
+        behavior: "smooth",
+      })
+    );
 
     return {
       update: (value) => store.set(value),
-      destroy: () => unsubscribe(),
+      destroy: () => unsubscribe(), //Auto deletion
     };
   };
 
@@ -81,10 +60,6 @@
   }
 
   function showActivity() {
-    if (navigator.midiShowActivity !== true) {
-      return;
-    }
-
     activity = true;
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -143,28 +118,26 @@
           class="flex flex-row w-full text-white justify-between align-center items-center"
         >
           <div class="flex items-center py-1 px-3">
-            <span class="flex text-xl text-white "
+            <span class="flex text-xl text-white"
               >{last ? last.data.command.name : "Waiting for MIDI..."}</span
             >
           </div>
           {#if last}
             <div
-              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center  {navigator.midiAnimations
-                ? ' transition-width duration-200 '
-                : ''} {hover ? 'bg-green-400' : 'bg-white'}"
+              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center
+                transition-width duration-200
+                 {hover ? 'bg-green-400' : 'bg-white'}"
             >
               <div
                 class="flex {hover ? 'text-white' : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
-              {#if navigator.midiShowActivity}
-                <div
-                  class="ml-2 flex place-self-end self-center {activity
-                    ? 'bg-yellow-500'
-                    : 'bg-primary'} rounded-full w-3 h-3 "
-                />
-              {/if}
+              <div
+                class="ml-2 flex place-self-end self-center {activity
+                  ? 'bg-yellow-500'
+                  : 'bg-primary'} rounded-full w-3 h-3"
+              />
             </div>
           {/if}
         </div>
@@ -279,9 +252,8 @@
               {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations
-                    ? ' transition-transform origin-left hover:scale-105 duration-100 transform scale-100'
-                    : ''}"
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100
+                    "
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
                 >

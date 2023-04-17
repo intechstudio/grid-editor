@@ -26,11 +26,13 @@
 
   let selectedProfile = {};
 
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store;
-    showControlNameOverlay(selectedProfile);
-    showOverlay;
-  });
+  $: {
+    selectedProfile = $selectedProfileStore;
+    if (selectedProfile) {
+      showControlNameOverlay(selectedProfile);
+      showOverlay = true;
+    }
+  }
 
   function showControlNameOverlay(selectedProfile) {
     if (Object.keys(selectedProfile).length == 0) {

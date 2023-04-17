@@ -36,29 +36,35 @@
     [0, 0, 0],
   ];
 
-  elementPositionStore.subscribe((value) => {
-    try {
-      let eps = value[dx][dy];
+  $: {
+    const value = $elementPositionStore;
+    if (value) {
+      try {
+        let eps = value[dx][dy];
 
-      for (const key in eps) {
-        elementposition_array[key] = eps[key];
+        for (const key in eps) {
+          elementposition_array[key] = eps[key];
+        }
+      } catch (error) {
+        // handle error if needed
       }
-    } catch (error) {
-      return;
     }
-  });
+  }
 
-  ledColorStore.subscribe((value) => {
-    try {
-      let lcs = value[dx][dy];
+  $: {
+    const value = $ledColorStore;
+    if (value) {
+      try {
+        let lcs = value[dx][dy];
 
-      for (const key in lcs) {
-        ledcolor_array[key] = lcs[key];
+        for (const key in lcs) {
+          ledcolor_array[key] = lcs[key];
+        }
+      } catch (error) {
+        // handle error if needed
       }
-    } catch (error) {
-      return;
     }
-  });
+  }
 
   $: if (id) {
     if (id !== undefined && id.length > 4) {
@@ -88,7 +94,7 @@
     style="--module-size: {moduleWidth + 'px'}"
   >
     <div
-      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
+      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3] as elementNumber}
         <div
