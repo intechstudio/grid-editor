@@ -45,6 +45,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   // check for parsed modules
   runtime.subscribe((store) => {
+    console.log("yay");
     let firmwareMismatchFound = false;
 
     if (store.length === 0) {

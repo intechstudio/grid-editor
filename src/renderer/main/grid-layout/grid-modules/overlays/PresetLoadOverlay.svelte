@@ -29,7 +29,6 @@
   }
 
   runtime.subscribe((runtime) => {
-    console.log(runtime);
     let device;
     device = runtime.find((controller) => controller.id == id);
 
