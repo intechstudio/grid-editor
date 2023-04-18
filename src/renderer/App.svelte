@@ -47,9 +47,11 @@
 
   import { windowSize } from "./runtime/window-size";
 
+  import { authStore } from "$lib/auth.store";
+  import { userStore } from "$lib/user.store";
+
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
-  import { userAccountStore } from "$lib/user-account.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
 
   let modalComponents = {};
@@ -99,7 +101,7 @@
 
   window.electron.auth.onExternalResponse((_event, value) => {
     console.log("external social auth login credentials are received", value);
-    userAccountStore.socialLogin("google", value);
+    authStore.socialLogin("google", value);
   });
 
   let leftPaneSize;

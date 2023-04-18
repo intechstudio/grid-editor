@@ -6,21 +6,28 @@
   const { env } = window.ctxProcess;
 
   import configuration from "../../../../../configuration.json";
-  import { userAccountStore } from "../../../lib/user-account.store";
   import { logger } from "../../../runtime/runtime.store";
+
+  import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
+  import { userStore } from "$lib/user.store";
 
   let iframe_element;
   let iframe_response_element;
 
-  $: iframe_send($userAccountStore);
+  $: sendAuthEventToIframe($authStore);
 
-  function iframe_send(message) {
-    console.log("Parent sending:  useraccount", message.credential);
+  function sendAuthEventToIframe(authEvent) {
     if (iframe_element == undefined) return;
+
+    // the authStore should contain an event!
+    if (!authEvent.event) return;
+
+    console.log("Parent sending", authEvent);
+
     iframe_element.contentWindow.postMessage(
       {
         messageType: "userAuthentication",
-        credential: message.credential,
+        authEvent: authEvent,
       },
       "*"
     );
@@ -61,7 +68,10 @@
     }
   }
 
-  onMount(() => {
+  onMount(async () => {
+    await userStore.known;
+    console.log($userStore);
+
     if (env().NODE_ENV === "development") {
       $appSettings.profileCloudUrl = "http://localhost:5200";
     } else {

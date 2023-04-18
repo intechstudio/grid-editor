@@ -3,29 +3,33 @@
     import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
     import { clickOutside } from "../_actions/click-outside.action";
     import { appSettings } from "../../runtime/app-helper.store";
-    import { userAccountStore } from "$lib/user-account.store";
+    import { userStore } from "$lib/user.store";
+    import { authStore } from "$lib/auth.store";
 
-    const provider = new GoogleAuthProvider();
+    const env = window.ctxProcess.env();
 
     if (auth?.currentUser !== null) {
-        console.log("USER", auth.currentUser);
-    } else {
-        console;
+        console.log("user found:", auth.currentUser);
     }
 
     let email = "";
     let password = "";
 
-    let userData;
-
-    $: console.log($userAccountStore);
+    const socialLoginUrl =
+        env["NODE_ENV"] === "development"
+            ? "http://localhost:5200"
+            : "https://profile-cloud.web.app";
 
     async function submitLogin() {
-        userAccountStore.login(email, password);
+        authStore.login(email, password);
     }
 
     async function logout() {
-        userAccountStore.logout();
+        authStore.logout();
+    }
+
+    function closeUserLoginModal() {
+        $appSettings.modal = "";
     }
 </script>
 
@@ -45,7 +49,7 @@
         <div
             class="w-full p-4 bg-primary h-full flex flex-col gap-4 justify-start"
         >
-            {#if !$userAccountStore.account}
+            {#if !$userStore}
                 <div
                     class="self-start flex flex-row justify-start items-center"
                 >
@@ -102,7 +106,7 @@
                     class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
                     on:click={() =>
                         window.electron.openInBrowser(
-                            "http://localhost:5200/authorize"
+                            socialLoginUrl + "/authorize"
                         )}
                 >
                     <div class="w-14 h-14 p-1">
@@ -146,19 +150,26 @@
                 </button>
             {:else}
                 <div class="text-white px-2">
-                    Signed in as: {$userAccountStore.account.email}
+                    Signed in as: {$userStore.email}
                 </div>
-                {#if $userAccountStore.account?.userName}
+                {#if $userStore?.userName}
                     <div class="text-white px-2">
-                        username: {$userAccountStore.account.userName}
+                        username: {$userStore.userName}
                     </div>
                 {/if}
 
-                <button
-                    on:click|preventDefault={logout}
-                    class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-                    >logout</button
-                >
+                <div class="flex justify-between">
+                    <button
+                        on:click|preventDefault={closeUserLoginModal}
+                        class=" px-4 items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
+                        >close</button
+                    >
+                    <button
+                        on:click|preventDefault={logout}
+                        class="px-4 items-center inline-flex justify-center py-1 border dark:border-emerald-600 dark:hover:bg-emerald-700 text-white font-medium rounded active:border-neutral-800 border-neutral-500 active:outline-none active:ring-blue-300 active:ring-2"
+                        >logout</button
+                    >
+                </div>
             {/if}
         </div>
     </div>

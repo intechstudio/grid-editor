@@ -1,5 +1,6 @@
 {
   "name": "grid-editor",
+  "productName": "Grid Editor",
   "version": "1.2.32",
   "main": "dist/main/index.js",
   "repository": {
@@ -74,6 +75,12 @@
           "repo": "grid-editor"
         }
       ],
+      "protocols": {
+        "name": "grid-editor-protocol",
+        "schemes": [
+          "grid-editor"
+        ]
+      },
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
       "target": [
         "nsis"
@@ -93,7 +100,13 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build-assets/entitlements.mac.plist",
-      "entitlementsInherit": "build-assets/entitlements.mac.plist"
+      "entitlementsInherit": "build-assets/entitlements.mac.plist",
+      "protocols": {
+        "name": "grid-editor-protocol",
+        "schemes": [
+          "grid-editor"
+        ]
+      }
     },
     "dmg": {
       "sign": false
