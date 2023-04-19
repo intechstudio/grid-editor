@@ -1,14 +1,14 @@
 <script context="module">
-  // config descriptor parameters
-  export const information = {
-    short: "glat",
-    name: "LedAnimationStart",
-    rendering: "standard",
-    category: "led",
-    desc: "Start Animation",
-    color: "#726E60",
-    defaultLua: "glpfs(num,1,val,1,1)",
-    icon: `
+	// config descriptor parameters
+	export const information = {
+		short: 'glat',
+		name: 'LedAnimationStart',
+		rendering: 'standard',
+		category: 'led',
+		desc: 'Start Animation',
+		color: '#726E60',
+		defaultLua: 'glpfs(num,1,val,1,1)',
+		icon: `
     <svg width="100%" height="100%" viewBox="0 0 303 303" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path d="M204.8 97.6C191.2 84 172 75.2 151.2 75.2C130.4 75.2 111.2 83.6 97.6 97.6C84 111.2 75.2 130.4 75.2 151.2C75.2 172 84 191.2 97.6 204.8C111.2 218.4 130.4 227.2 151.2 227.2C172 227.2 191.2 218.8 204.8 204.8C218.4 191.2 227.2 172 227.2 151.2C227.2 130.4 218.8 111.2 204.8 97.6ZM190.4 190.4C180.4 200.4 166.4 206.4 151.2 206.4C136 206.4 122 200.4 112 190.4C102 180.4 96 166.4 96 151.2C96 136 102 122 112 112C122 102 136 96 151.2 96C166.4 96 180.4 102 190.4 112C200.4 122 206.4 136 206.4 151.2C206.4 166.4 200.4 180.4 190.4 190.4Z" fill="black"/>
       <path d="M292 140.8H261.2C255.6 140.8 250.8 145.6 250.8 151.2C250.8 156.8 255.6 161.6 261.2 161.6H292C297.6 161.6 302.4 156.8 302.4 151.2C302.4 145.6 297.6 140.8 292 140.8Z" fill="black"/>
@@ -21,228 +21,228 @@
       <path d="M80.4 66.4L58.4 44.4C54.4 40.4 48 40.4 44 44.4C40 48.4 40 54.8 44 58.8L66 80.8C70 84.8 76.4 84.8 80.4 80.8C84.4 76.8 84.4 70.4 80.4 66.4Z" fill="black"/>
     </svg>
     `,
-  };
+	};
 </script>
 
 <script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
-  import AtomicInput from "../main/user-interface/AtomicInput.svelte";
+	import { onMount, createEventDispatcher, onDestroy } from 'svelte';
+	import AtomicInput from '../main/user-interface/AtomicInput.svelte';
 
-  import _utils from "../runtime/_utils.js";
-  import { localDefinitions } from "../runtime/runtime.store";
+	import _utils from '../runtime/_utils.js';
+	import { localDefinitions } from '../runtime/runtime.store';
 
-  import { Validator } from "./_validators";
-  import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+	import { Validator } from './_validators';
+	import AtomicSuggestions from '../main/user-interface/AtomicSuggestions.svelte';
 
-  export let config;
-  export let humanScript;
-  export let inputSet;
-  export let blockAddedOnClick;
-  export let index;
+	export let config;
+	export let humanScript;
+	export let inputSet;
+	export let blockAddedOnClick;
+	export let index;
 
-  let loaded = false;
+	let loaded = false;
 
-  const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher();
 
-  const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
-  const validators = [
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
-    },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
-    },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
-    },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
-    },
-    (e) => {
-      return new Validator(e).NotEmpty().Result();
-    },
-  ];
+	const parameterNames = ['LED Number', 'Layer', 'Phase', 'Rate', 'Shape'];
+	const validators = [
+		(e) => {
+			return new Validator(e).NotEmpty().Result();
+		},
+		(e) => {
+			return new Validator(e).NotEmpty().Result();
+		},
+		(e) => {
+			return new Validator(e).NotEmpty().Result();
+		},
+		(e) => {
+			return new Validator(e).NotEmpty().Result();
+		},
+		(e) => {
+			return new Validator(e).NotEmpty().Result();
+		},
+	];
 
-  let scriptSegments = [];
+	let scriptSegments = [];
 
-  // config.script cannot be undefined
-  $: if (config.script && !loaded) {
-    scriptSegments = _utils.scriptToSegments({
-      short: "glpfs",
-      script: config.script,
-    });
-    loaded = true;
-  }
+	// config.script cannot be undefined
+	$: if (config.script && !loaded) {
+		scriptSegments = _utils.scriptToSegments({
+			short: 'glpfs',
+			script: config.script,
+		});
+		loaded = true;
+	}
 
-  let suggestionPlaceMove = false;
+	let suggestionPlaceMove = false;
 
-  onDestroy(() => {
-    loaded = false;
-  });
+	onDestroy(() => {
+		loaded = false;
+	});
 
-  function sendData(e, index) {
-    scriptSegments[index] = e;
-    // important to set the function name = human readable for now
-    const script = _utils.segmentsToScript({
-      human: config.human,
-      short: "glpfs",
-      array: scriptSegments,
-    });
-    dispatch("output", { short: config.short, script: script });
-  }
+	function sendData(e, index) {
+		scriptSegments[index] = e;
+		// important to set the function name = human readable for now
+		const script = _utils.segmentsToScript({
+			human: config.human,
+			short: 'glpfs',
+			array: scriptSegments,
+		});
+		dispatch('output', { short: config.short, script: script });
+	}
 
-  const _suggestions = [
-    // led number
-    [
-      //{value: 'this.ind()', info: 'this led'},
-    ],
-    // layer
-    [
-      { value: "1", info: "layer 1" },
-      { value: "2", info: "layer 2" },
-    ],
-    // phase
-    [
-      //{value: 'to do...', info: 'to do...'}
-    ],
-    // frequency
-    [
-      { value: "1", info: "1 (slow)" },
-      { value: "2", info: "2" },
-      { value: "3", info: "3" },
-      { value: "4", info: "4 (fast)" },
-    ],
-    // shape
-    [
-      { value: "0", info: "Saw Up" },
-      { value: "1", info: "Saw Down" },
-      { value: "2", info: "Square" },
-      { value: "3", info: "Sine" },
-    ],
-  ];
+	const _suggestions = [
+		// led number
+		[
+			//{value: 'this.ind()', info: 'this led'},
+		],
+		// layer
+		[
+			{ value: '1', info: 'layer 1' },
+			{ value: '2', info: 'layer 2' },
+		],
+		// phase
+		[
+			//{value: 'to do...', info: 'to do...'}
+		],
+		// frequency
+		[
+			{ value: '1', info: '1 (slow)' },
+			{ value: '2', info: '2' },
+			{ value: '3', info: '3' },
+			{ value: '4', info: '4 (fast)' },
+		],
+		// shape
+		[
+			{ value: '0', info: 'Saw Up' },
+			{ value: '1', info: 'Saw Down' },
+			{ value: '2', info: 'Square' },
+			{ value: '3', info: 'Sine' },
+		],
+	];
 
-  let suggestions = [];
+	let suggestions = [];
 
-  $: if ($localDefinitions) {
-    suggestions = _suggestions.map((s, i) => {
-      return [...s, ...$localDefinitions];
-    });
-    suggestions = suggestions;
-  }
+	$: if ($localDefinitions) {
+		suggestions = _suggestions.map((s, i) => {
+			return [...s, ...$localDefinitions];
+		});
+		suggestions = suggestions;
+	}
 
-  onMount(() => {
-    suggestions = _suggestions;
-  });
+	onMount(() => {
+		suggestions = _suggestions;
+	});
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
+	let showSuggestions = false;
+	let focusedInput = undefined;
+	let focusGroup = [];
 
-  function onActiveFocus(event, index) {
-    if (index < 2) {
-      suggestionPlaceMove = true;
-    } else {
-      suggestionPlaceMove = false;
-    }
+	function onActiveFocus(event, index) {
+		if (index < 2) {
+			suggestionPlaceMove = true;
+		} else {
+			suggestionPlaceMove = false;
+		}
 
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
+		focusGroup[index] = event.detail.focus;
+		focusedInput = index;
+	}
 
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
+	function onLooseFocus(event, index) {
+		focusGroup[index] = event.detail.focus;
+		showSuggestions = focusGroup.includes(true);
+	}
 </script>
 
 <config-led-phase class="flex flex-col w-full p-2">
-  <div class="w-full flex flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1 font-bold">
-      Start a periodic animation on the LED
-    </div>
-  </div>
+	<div class="w-full flex flex-col p-2">
+		<div class="text-gray-500 text-sm pb-1 font-bold">
+			Start a periodic animation on the LED
+		</div>
+	</div>
 
-  <div class="w-full flex">
-    {#each [scriptSegments[0], scriptSegments[1]] as script, i}
-      <div class={"w-1/2" + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
-        <AtomicInput
-          inputValue={script}
-          suggestions={suggestions[i]}
-          validator={validators[i]}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
-          }}
-          on:change={(e) => {
-            sendData(e.detail, i);
-          }}
-        />
-      </div>
-    {/each}
-  </div>
+	<div class="w-full flex">
+		{#each [scriptSegments[0], scriptSegments[1]] as script, i}
+			<div class={'w-1/2' + ' atomicInput'}>
+				<div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+				<AtomicInput
+					inputValue={script}
+					suggestions={suggestions[i]}
+					validator={validators[i]}
+					on:validator={(e) => {
+						const data = e.detail;
+						dispatch('validator', data);
+					}}
+					on:active-focus={(e) => {
+						onActiveFocus(e, i);
+					}}
+					on:loose-focus={(e) => {
+						onLooseFocus(e, i);
+					}}
+					on:change={(e) => {
+						sendData(e.detail, i);
+					}}
+				/>
+			</div>
+		{/each}
+	</div>
 
-  {#if showSuggestions && suggestionPlaceMove == true}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+	{#if showSuggestions && suggestionPlaceMove == true}
+		<AtomicSuggestions
+			{suggestions}
+			{focusedInput}
+			on:select={(e) => {
+				scriptSegments[e.detail.index] = e.detail.value;
+				sendData(e.detail.value, e.detail.index);
+			}}
+		/>
+	{/if}
 
-  <div class="w-full flex">
-    {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
-      <div class={"w-1/3" + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i + 2]}</div>
-        <AtomicInput
-          inputValue={script}
-          suggestions={suggestions[i + 2]}
-          validator={validators[i + 2]}
-          on:validator={(e) => {
-            const data = e.detail;
-            dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i + 2);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i + 2);
-          }}
-          on:change={(e) => {
-            sendData(e.detail, i + 2);
-          }}
-        />
-      </div>
-    {/each}
-  </div>
+	<div class="w-full flex">
+		{#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
+			<div class={'w-1/3' + ' atomicInput'}>
+				<div class="text-gray-500 text-sm pb-1">{parameterNames[i + 2]}</div>
+				<AtomicInput
+					inputValue={script}
+					suggestions={suggestions[i + 2]}
+					validator={validators[i + 2]}
+					on:validator={(e) => {
+						const data = e.detail;
+						dispatch('validator', data);
+					}}
+					on:active-focus={(e) => {
+						onActiveFocus(e, i + 2);
+					}}
+					on:loose-focus={(e) => {
+						onLooseFocus(e, i + 2);
+					}}
+					on:change={(e) => {
+						sendData(e.detail, i + 2);
+					}}
+				/>
+			</div>
+		{/each}
+	</div>
 
-  {#if showSuggestions && suggestionPlaceMove == false}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+	{#if showSuggestions && suggestionPlaceMove == false}
+		<AtomicSuggestions
+			{suggestions}
+			{focusedInput}
+			on:select={(e) => {
+				scriptSegments[e.detail.index] = e.detail.value;
+				sendData(e.detail.value, e.detail.index);
+			}}
+		/>
+	{/if}
 </config-led-phase>
 
 <style>
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
+	.atomicInput {
+		padding-right: 0.5rem;
+	}
 
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
-  }
+	.atomicInput:first-child {
+		padding-left: 0.5rem;
+	}
 </style>

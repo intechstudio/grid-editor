@@ -1,876 +1,876 @@
 <script>
-  import { clickOutside } from "/main/_actions/click-outside.action";
-  import {
-    appSettings,
-    profileListRefresh,
-    splitpanes,
-  } from "/runtime/app-helper.store";
-  import { get } from "svelte/store";
-  import { onMount } from "svelte";
-  import { selectedProfileStore } from "/runtime/profile-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
-  import { profileChangeCallbackStore } from "./profile-change.store";
-  import { fade, fly } from "svelte/transition";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
-  import TooltipQuestion from "/main/user-interface/tooltip/TooltipQuestion.svelte";
-  import { v4 as uuidv4 } from "uuid";
-  import { Pane, Splitpanes } from "svelte-splitpanes";
-
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store.js";
-
-  let searchSuggestions = [
-    {
-      value: "BU16",
-    },
-    {
-      value: "EF44",
-    },
-    {
-      value: "EN16",
-    },
-    {
-      value: "PBF4",
-    },
-    {
-      value: "PO16",
-    },
-  ];
-
-  let selectedProfile = undefined;
-  let isActionButtonClicked;
-  let disableButton = false;
-  let isDeleteButtonClicked = false;
-  let isSaveToCloudButtonClicked = false;
-  let isSaveToSessionButtonClicked = false;
-
-  let isSearchSortingShows = false;
-  let searchbarValue = "";
-
-  let isSessionProfileOpen = true;
-
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
-  let PROFILES = [];
-  let PRESETS = [];
-  let profileCloud = [];
-  let sessionProfile = [];
-  let sessionPreset = [];
-  let filteredProfileCloud = [];
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder;
-      loadFromDirectory();
-    }
-
-    PRESET_PATH = store.persistant.presetFolder;
-  });
-
-  let animateFade;
-  let animateFly;
-
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store;
-  });
-
-  isActionButtonClickedStore.subscribe((store) => {
-    isActionButtonClicked = store;
-  });
-
-  profileChangeCallbackStore.subscribe(async (store) => {
-    if (store.action == "update" || store.action == "delete") {
-      await loadFromDirectory();
-    }
-  });
-
-  async function loadFromDirectory() {
-    animateFade = false;
-
-    if (PROFILE_PATH == undefined || PROFILE_PATH == "") {
-      return;
-    }
-
-    PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
-      "profiles"
-    );
+	import { clickOutside } from '/main/_actions/click-outside.action';
+	import {
+		appSettings,
+		profileListRefresh,
+		splitpanes,
+	} from '/runtime/app-helper.store';
+	import { get } from 'svelte/store';
+	import { onMount } from 'svelte';
+	import { selectedProfileStore } from '/runtime/profile-helper.store';
+	import { isActionButtonClickedStore } from '/runtime/profile-helper.store';
+	import { profileChangeCallbackStore } from './profile-change.store';
+	import { fade, fly } from 'svelte/transition';
+	import TooltipSetter from '/main/user-interface/tooltip/TooltipSetter.svelte';
+	import TooltipConfirm from '/main/user-interface/tooltip/TooltipConfirm.svelte';
+	import TooltipQuestion from '/main/user-interface/tooltip/TooltipQuestion.svelte';
+	import { v4 as uuidv4 } from 'uuid';
+	import { Pane, Splitpanes } from 'svelte-splitpanes';
+
+	import {
+		engine,
+		logger,
+		runtime,
+		user_input,
+	} from '../../../runtime/runtime.store.js';
+
+	let searchSuggestions = [
+		{
+			value: 'BU16',
+		},
+		{
+			value: 'EF44',
+		},
+		{
+			value: 'EN16',
+		},
+		{
+			value: 'PBF4',
+		},
+		{
+			value: 'PO16',
+		},
+	];
+
+	let selectedProfile = undefined;
+	let isActionButtonClicked;
+	let disableButton = false;
+	let isDeleteButtonClicked = false;
+	let isSaveToCloudButtonClicked = false;
+	let isSaveToSessionButtonClicked = false;
+
+	let isSearchSortingShows = false;
+	let searchbarValue = '';
+
+	let isSessionProfileOpen = true;
+
+	let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+	let PRESET_PATH = get(appSettings).persistant.presetFolder;
+	let PROFILES = [];
+	let PRESETS = [];
+	let profileCloud = [];
+	let sessionProfile = [];
+	let sessionPreset = [];
+	let filteredProfileCloud = [];
+
+	appSettings.subscribe((store) => {
+		let new_folder = store.persistant.profileFolder;
+
+		if (new_folder !== PROFILE_PATH) {
+			PROFILE_PATH = new_folder;
+			loadFromDirectory();
+		}
+
+		PRESET_PATH = store.persistant.presetFolder;
+	});
+
+	let animateFade;
+	let animateFly;
+
+	selectedProfileStore.subscribe((store) => {
+		selectedProfile = store;
+	});
+
+	isActionButtonClickedStore.subscribe((store) => {
+		isActionButtonClicked = store;
+	});
+
+	profileChangeCallbackStore.subscribe(async (store) => {
+		if (store.action == 'update' || store.action == 'delete') {
+			await loadFromDirectory();
+		}
+	});
+
+	async function loadFromDirectory() {
+		animateFade = false;
+
+		if (PROFILE_PATH == undefined || PROFILE_PATH == '') {
+			return;
+		}
+
+		PROFILES = await window.electron.configs.loadConfigsFromDirectory(
+			PROFILE_PATH,
+			'profiles'
+		);
 
-    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
-      PRESET_PATH,
-      "presets"
-    );
+		PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+			PRESET_PATH,
+			'presets'
+		);
 
-    sessionPreset = PRESETS.filter(
-      (element) => element.folder == "sessionPreset"
-    );
+		sessionPreset = PRESETS.filter(
+			(element) => element.folder == 'sessionPreset'
+		);
 
-    PROFILES.forEach((element) => {
-      if (element.id == undefined || element.id == "") {
-        element.id = element.name.replace(/\W+/g, "-");
-      }
-    });
-
-    profileCloud = PROFILES.filter(
-      (element) => element.folder != "sessionProfile"
-    );
-
-    sessionProfile = PROFILES.filter(
-      (element) => element.folder == "sessionProfile"
-    );
-
-    filteredProfileCloud = profileCloud;
-
-    sortProfileCloud(sortField, sortAsc);
-    sessionProfile.sort(compareDateDescending);
-    updateSearchFilter(searchbarValue);
-
-    animateFade = true;
-  }
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder;
-      moveOld();
-    }
-
-    PRESET_PATH = store.persistant.presetFolder;
-  });
-
-  async function moveOld() {
-    await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
-    await loadFromDirectory();
-  }
-
-  function selectProfile(profile) {
-    selectedProfile = profile;
-    selectedProfileStore.set(selectedProfile);
-  }
-
-  let selectedModule;
-
-  user_input.subscribe((ui) => {
-    const rt = get(runtime);
-
-    let device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-    );
-
-    if (device === undefined) {
-      return;
-    }
-
-    selectedModule = device.id.substr(0, 4);
-  });
-
-  function updateSearchFilter(input) {
-    animateFade = false;
-
-    filteredProfileCloud = [];
-
-    const arrayOfSearchTerms = input.trim().toLowerCase().split(" ");
-
-    profileCloud.forEach((profile) => {
-      const currentProfileSearchable =
-        profile.name.toLowerCase() +
-        " " +
-        profile.type.toLowerCase() +
-        " " +
-        profile.folder.toLowerCase();
-      let filterMatch = true;
-
-      arrayOfSearchTerms.forEach((searchTerm) => {
-        if (currentProfileSearchable.indexOf(searchTerm) === -1) {
-          filterMatch = false;
-        }
-      });
-
-      if (filterMatch) {
-        filteredProfileCloud = [...filteredProfileCloud, profile];
-      }
-    });
-
-    sortProfileCloud(sortField, sortAsc);
-  }
-
-  let number = 0;
-  let sessionProfileNumbers = [];
-
-  async function saveToSessionProfile(user) {
-    isSaveToSessionButtonClicked = true;
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_add_to_session",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_add_to_session"
-    );
-
-    let callback = await function () {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "profilesave",
-        message: `Ready to save profile!`,
-      });
-
-      const li = get(user_input);
-
-      const configs = get(runtime);
-
-      let name;
-      let description;
-      let type;
-
-      //session profile numbering, simplify me pls
-      if (user == "sessionProfile") {
-        loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
-
-        let sessionProfileName;
-        sessionProfileNumbers = [];
-
-        sessionProfile.forEach((sessionProfileElement) => {
-          sessionProfileName = JSON.stringify(sessionProfileElement.name);
-
-          if (sessionProfileName.includes("Session Profile")) {
-            sessionProfileNumbers = [
-              ...sessionProfileNumbers,
-              parseInt(sessionProfileName.split(" ").pop(), 10),
-            ];
-          }
-        });
-
-        let largestNumber = Math.max(...sessionProfileNumbers);
-
-        if (largestNumber > 0) {
-          number = largestNumber;
-          number++;
-        } else {
-          number++;
-        }
-
-        name = `Session Profile ${number}`;
-        description = "";
-        type = selectedModule;
-      }
-
-      let profile = {
-        name: name,
-        description: description,
-        type: type,
-        isGridProfile: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        id: uuidv4(),
-      };
-
-      configs.forEach((d) => {
-        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
-
-          profile.configs = page.control_elements.map((cfg) => {
-            return {
-              controlElementNumber: cfg.controlElementNumber,
-              events: cfg.events.map((ev) => {
-                return {
-                  event: ev.event.value,
-                  config: ev.config,
-                };
-              }),
-            };
-          });
-        }
-      });
-
-      saveToDirectory(PROFILE_PATH, name, profile, user);
-      isSaveToSessionButtonClicked = false;
-      engine.set("ENABLED");
-    };
-
-    runtime.fetch_page_configuration_from_grid(callback);
-  }
-
-  function prepareSave(user) {
-    window.electron.analytics.influx("profile-library", {
-      value: "save start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "save start"
-    );
-
-    let callback = function () {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "profilesave",
-        message: `Ready to save profile!`,
-      });
-
-      const li = get(user_input);
-
-      const configs = get(runtime);
-
-      let name = selectedProfile.name;
-      let description = selectedProfile.description;
-      let type = selectedProfile.type;
-      let id = selectedProfile.id;
-
-      let profile = {
-        name: name,
-        description: description,
-        type: type,
-        isGridProfile: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        id: id,
-      };
-
-      configs.forEach((d) => {
-        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
-          profile.configs = page.control_elements.map((cfg) => {
-            return {
-              controlElementNumber: cfg.controlElementNumber,
-              events: cfg.events.map((ev) => {
-                return {
-                  event: ev.event.value,
-                  config: ev.config,
-                };
-              }),
-            };
-          });
-        }
-      });
-
-      if (user == "user") {
-        let isProfileCloudNameUnique;
-
-        profileCloud.forEach((profile) => {
-          if (
-            name.toLowerCase() == profile.name.toLowerCase() &&
-            profile.folder == "user"
-          ) {
-            isProfileCloudNameUnique = false;
-          }
-        });
-
-        if (isProfileCloudNameUnique == false) {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "profilesavefailed",
-            message: `A profile with "${name}" name is already exists in Profile Cloud!`,
-          });
-        } else {
-          saveToDirectory(PROFILE_PATH, name, profile, user);
-          deleteFromDirectory(selectedProfile);
-        }
-      }
-
-      if (user == "sessionProfile") {
-        if (selectedModule != selectedProfile.type) {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "profilesavefailed",
-            message: `Cannot overwrite a profile with different module type!`,
-          });
-        } else {
-          saveToDirectory(PROFILE_PATH, name, profile, user);
-        }
-      }
-
-      engine.set("ENABLED");
-    };
-
-    runtime.fetch_page_configuration_from_grid(callback);
-  }
-
-  async function updateSessionProfileTitle(profile, newName) {
-    checkIfProfileTitleUnique(newName);
-    checkIfTitleFieldEmpty(newName);
-
-    animateFade = false;
-
-    if (isSessionProfileNameUnique && isTitleDirty && profile.name != newName) {
-      let oldName = profile.name;
-      profile.name = newName;
-
-      await window.electron.configs.updateConfig(
-        PROFILE_PATH,
-        newName,
-        profile,
-        "profiles",
-        oldName,
-        "sessionProfile"
-      );
-    } else if (isSessionProfileNameUnique == false && profile.name != newName) {
-      sessionProfile = [];
-
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "sessionprofileeditname",
-        message: `A profile already exists with name "${newName}" in Session Profiles.`,
-      });
-    }
-
-    await loadFromDirectory();
-  }
-
-  async function saveToDirectory(path, name, profile, user) {
-    disableButton = true;
-    if (isSaveToSessionButtonClicked == true) {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "profilesave",
-        message: `${name} saved to Session Profiles!`,
-      });
-    }
-    if (isSaveToCloudButtonClicked == true) {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "profilesave",
-        message: `${name} saved to Profile Cloud!`,
-      });
-    }
-    if (
-      isSaveToSessionButtonClicked != true &&
-      isSaveToCloudButtonClicked != true
-    ) {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "profilesave",
-        message: `${name} saved!`,
-      });
-    }
-    await window.electron.configs.saveConfig(
-      path,
-      name,
-      profile,
-      "profiles",
-      user
-    );
-    animateFly = true;
-    await loadFromDirectory();
-    animateFly = false;
-    disableButton = false;
-  }
-
-  async function deleteFromDirectory(element) {
-    disableButton = true;
-    if (isDeleteButtonClicked) {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "profiledelete",
-        message: `${element.name.trim()} deleted!`,
-      });
-    }
-    isDeleteButtonClicked = false;
-    await window.electron.configs.deleteConfig(
-      PROFILE_PATH,
-      element.name.trim(),
-      "profiles",
-      element.folder
-    );
-    await loadFromDirectory();
-    disableButton = false;
-    isActionButtonClickedStore.set(false);
-  }
-
-  let isSessionProfileNameUnique = undefined;
-
-  async function checkIfProfileTitleUnique(input) {
-    let notUniqueName = [];
-
-    sessionProfile.forEach((element) => {
-      if (element.name == input) {
-        notUniqueName.push(element.name);
-      }
-    });
-
-    if (notUniqueName.length > 0) {
-      isSessionProfileNameUnique = false;
-    } else {
-      isSessionProfileNameUnique = true;
-    }
-  }
-
-  let isTitleDirty = undefined;
-
-  async function checkIfTitleFieldEmpty(input) {
-    if (input.length < 1) {
-      isTitleDirty = false;
-    } else {
-      isTitleDirty = true;
-    }
-  }
-
-  let sortAsc = true;
-  let sortField = "name";
-
-  let compareNameAscending = (a, b) => {
-    return a.name
-      .toLowerCase()
-      .localeCompare(b.name.toLowerCase(), undefined, { numeric: true });
-  };
-
-  let compareNameDescending = (a, b) => {
-    return b.name
-      .toLowerCase()
-      .localeCompare(a.name.toLowerCase(), undefined, { numeric: true });
-  };
-
-  function compareDateAscending(a, b) {
-    return a.fsModifiedAt - b.fsModifiedAt;
-  }
-
-  function compareDateDescending(a, b) {
-    return b.fsModifiedAt - a.fsModifiedAt;
-  }
-
-  function compareModuleAscending(a, b) {
-    return a.type.localeCompare(b.type, undefined, {
-      numeric: true,
-    });
-  }
-
-  function compareModuleDescending(a, b) {
-    return b.type.localeCompare(a.type, undefined, {
-      numeric: true,
-    });
-  }
-
-  function sortProfileCloud(field, asc) {
-    if (field == "name") {
-      if (asc == true) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending);
-      }
-
-      if (asc == false) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending);
-      }
-    }
-
-    if (field == "date") {
-      if (asc == true) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending);
-      }
-
-      if (asc == false) {
-        filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending);
-      }
-    }
-
-    if (field == "module") {
-      if (asc == true) {
-        filteredProfileCloud = filteredProfileCloud.sort(
-          compareModuleAscending
-        );
-      }
-      if (asc == false) {
-        filteredProfileCloud = filteredProfileCloud.sort(
-          compareModuleDescending
-        );
-      }
-    }
-  }
-
-  function filterShowHide() {
-    isSearchSortingShows = !isSearchSortingShows;
-    animateFade = true;
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_filter_show_hide",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_filter_show_hide"
-    );
-  }
-
-  profileListRefresh.subscribe((store) => {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      loadFromDirectory();
-    }
-  });
-
-  function fadeAnimation(node, options) {
-    if (animateFade) {
-      return options.fn(node, options);
-    }
-  }
-
-  function flyAnimation(node, options) {
-    if (animateFly) {
-      return options.fn(node, options);
-    }
-  }
-
-  function deleteSessionProfile(profile) {
-    isActionButtonClickedStore.set(true);
-    isDeleteButtonClicked = true;
-    deleteFromDirectory(profile);
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_delete"
-    );
-  }
-
-  function saveFromSessionToCloud(profile) {
-    isSaveToCloudButtonClicked = true;
-    isActionButtonClickedStore.set(true);
-
-    saveToDirectory(PROFILE_PATH, profile.name, profile, "user");
-    deleteSessionProfile(profile);
-
-    selectedProfile = undefined;
-    isSaveToCloudButtonClicked = false;
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_save",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_save"
-    );
-  }
-
-  function rewriteSessionProfile(profile) {
-    let user = "sessionPreset";
-    isActionButtonClickedStore.set(true);
-
-    selectProfile(profile);
-    prepareSave("sessionProfile");
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_rewrite",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_rewrite"
-    );
-  }
-
-  function useSearchSuggestion(suggestionText) {
-    updateSearchFilter((searchbarValue = suggestionText));
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_use_search_suggestion",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_use_search_suggestion"
-    );
-  }
-
-  function openProfileInfo(profile) {
-    ($appSettings.modal = "profileInfo"), selectProfile(profile);
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_info",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_info"
-    );
-  }
-
-  onMount(() => {
-    animateFade = true;
-    animateFly = false;
-    moveOld();
-  });
+		PROFILES.forEach((element) => {
+			if (element.id == undefined || element.id == '') {
+				element.id = element.name.replace(/\W+/g, '-');
+			}
+		});
+
+		profileCloud = PROFILES.filter(
+			(element) => element.folder != 'sessionProfile'
+		);
+
+		sessionProfile = PROFILES.filter(
+			(element) => element.folder == 'sessionProfile'
+		);
+
+		filteredProfileCloud = profileCloud;
+
+		sortProfileCloud(sortField, sortAsc);
+		sessionProfile.sort(compareDateDescending);
+		updateSearchFilter(searchbarValue);
+
+		animateFade = true;
+	}
+
+	appSettings.subscribe((store) => {
+		let new_folder = store.persistant.profileFolder;
+
+		if (new_folder !== PROFILE_PATH) {
+			PROFILE_PATH = new_folder;
+			moveOld();
+		}
+
+		PRESET_PATH = store.persistant.presetFolder;
+	});
+
+	async function moveOld() {
+		await window.electron.configs.moveOldConfigs(PROFILE_PATH, 'profiles');
+		await loadFromDirectory();
+	}
+
+	function selectProfile(profile) {
+		selectedProfile = profile;
+		selectedProfileStore.set(selectedProfile);
+	}
+
+	let selectedModule;
+
+	user_input.subscribe((ui) => {
+		const rt = get(runtime);
+
+		let device = rt.find(
+			(device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+		);
+
+		if (device === undefined) {
+			return;
+		}
+
+		selectedModule = device.id.substr(0, 4);
+	});
+
+	function updateSearchFilter(input) {
+		animateFade = false;
+
+		filteredProfileCloud = [];
+
+		const arrayOfSearchTerms = input.trim().toLowerCase().split(' ');
+
+		profileCloud.forEach((profile) => {
+			const currentProfileSearchable =
+				profile.name.toLowerCase() +
+				' ' +
+				profile.type.toLowerCase() +
+				' ' +
+				profile.folder.toLowerCase();
+			let filterMatch = true;
+
+			arrayOfSearchTerms.forEach((searchTerm) => {
+				if (currentProfileSearchable.indexOf(searchTerm) === -1) {
+					filterMatch = false;
+				}
+			});
+
+			if (filterMatch) {
+				filteredProfileCloud = [...filteredProfileCloud, profile];
+			}
+		});
+
+		sortProfileCloud(sortField, sortAsc);
+	}
+
+	let number = 0;
+	let sessionProfileNumbers = [];
+
+	async function saveToSessionProfile(user) {
+		isSaveToSessionButtonClicked = true;
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_add_to_session',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_add_to_session'
+		);
+
+		let callback = await function () {
+			logger.set({
+				type: 'progress',
+				mode: 0,
+				classname: 'profilesave',
+				message: `Ready to save profile!`,
+			});
+
+			const li = get(user_input);
+
+			const configs = get(runtime);
+
+			let name;
+			let description;
+			let type;
+
+			//session profile numbering, simplify me pls
+			if (user == 'sessionProfile') {
+				loadFromDirectory(); // ?? @tofi, miért töltjük be itt a profilokat?
+
+				let sessionProfileName;
+				sessionProfileNumbers = [];
+
+				sessionProfile.forEach((sessionProfileElement) => {
+					sessionProfileName = JSON.stringify(sessionProfileElement.name);
+
+					if (sessionProfileName.includes('Session Profile')) {
+						sessionProfileNumbers = [
+							...sessionProfileNumbers,
+							parseInt(sessionProfileName.split(' ').pop(), 10),
+						];
+					}
+				});
+
+				let largestNumber = Math.max(...sessionProfileNumbers);
+
+				if (largestNumber > 0) {
+					number = largestNumber;
+					number++;
+				} else {
+					number++;
+				}
+
+				name = `Session Profile ${number}`;
+				description = '';
+				type = selectedModule;
+			}
+
+			let profile = {
+				name: name,
+				description: description,
+				type: type,
+				isGridProfile: true, // differentiator from different JSON files!
+				version: {
+					major: $appSettings.version.major,
+					minor: $appSettings.version.minor,
+					patch: $appSettings.version.patch,
+				},
+				id: uuidv4(),
+			};
+
+			configs.forEach((d) => {
+				if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+					const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
+
+					profile.configs = page.control_elements.map((cfg) => {
+						return {
+							controlElementNumber: cfg.controlElementNumber,
+							events: cfg.events.map((ev) => {
+								return {
+									event: ev.event.value,
+									config: ev.config,
+								};
+							}),
+						};
+					});
+				}
+			});
+
+			saveToDirectory(PROFILE_PATH, name, profile, user);
+			isSaveToSessionButtonClicked = false;
+			engine.set('ENABLED');
+		};
+
+		runtime.fetch_page_configuration_from_grid(callback);
+	}
+
+	function prepareSave(user) {
+		window.electron.analytics.influx('profile-library', {
+			value: 'save start',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'save start'
+		);
+
+		let callback = function () {
+			logger.set({
+				type: 'progress',
+				mode: 0,
+				classname: 'profilesave',
+				message: `Ready to save profile!`,
+			});
+
+			const li = get(user_input);
+
+			const configs = get(runtime);
+
+			let name = selectedProfile.name;
+			let description = selectedProfile.description;
+			let type = selectedProfile.type;
+			let id = selectedProfile.id;
+
+			let profile = {
+				name: name,
+				description: description,
+				type: type,
+				isGridProfile: true, // differentiator from different JSON files!
+				version: {
+					major: $appSettings.version.major,
+					minor: $appSettings.version.minor,
+					patch: $appSettings.version.patch,
+				},
+				id: id,
+			};
+
+			configs.forEach((d) => {
+				if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+					const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
+					profile.configs = page.control_elements.map((cfg) => {
+						return {
+							controlElementNumber: cfg.controlElementNumber,
+							events: cfg.events.map((ev) => {
+								return {
+									event: ev.event.value,
+									config: ev.config,
+								};
+							}),
+						};
+					});
+				}
+			});
+
+			if (user == 'user') {
+				let isProfileCloudNameUnique;
+
+				profileCloud.forEach((profile) => {
+					if (
+						name.toLowerCase() == profile.name.toLowerCase() &&
+						profile.folder == 'user'
+					) {
+						isProfileCloudNameUnique = false;
+					}
+				});
+
+				if (isProfileCloudNameUnique == false) {
+					logger.set({
+						type: 'fail',
+						mode: 0,
+						classname: 'profilesavefailed',
+						message: `A profile with "${name}" name is already exists in Profile Cloud!`,
+					});
+				} else {
+					saveToDirectory(PROFILE_PATH, name, profile, user);
+					deleteFromDirectory(selectedProfile);
+				}
+			}
+
+			if (user == 'sessionProfile') {
+				if (selectedModule != selectedProfile.type) {
+					logger.set({
+						type: 'fail',
+						mode: 0,
+						classname: 'profilesavefailed',
+						message: `Cannot overwrite a profile with different module type!`,
+					});
+				} else {
+					saveToDirectory(PROFILE_PATH, name, profile, user);
+				}
+			}
+
+			engine.set('ENABLED');
+		};
+
+		runtime.fetch_page_configuration_from_grid(callback);
+	}
+
+	async function updateSessionProfileTitle(profile, newName) {
+		checkIfProfileTitleUnique(newName);
+		checkIfTitleFieldEmpty(newName);
+
+		animateFade = false;
+
+		if (isSessionProfileNameUnique && isTitleDirty && profile.name != newName) {
+			let oldName = profile.name;
+			profile.name = newName;
+
+			await window.electron.configs.updateConfig(
+				PROFILE_PATH,
+				newName,
+				profile,
+				'profiles',
+				oldName,
+				'sessionProfile'
+			);
+		} else if (isSessionProfileNameUnique == false && profile.name != newName) {
+			sessionProfile = [];
+
+			logger.set({
+				type: 'fail',
+				mode: 0,
+				classname: 'sessionprofileeditname',
+				message: `A profile already exists with name "${newName}" in Session Profiles.`,
+			});
+		}
+
+		await loadFromDirectory();
+	}
+
+	async function saveToDirectory(path, name, profile, user) {
+		disableButton = true;
+		if (isSaveToSessionButtonClicked == true) {
+			logger.set({
+				type: 'success',
+				mode: 0,
+				classname: 'profilesave',
+				message: `${name} saved to Session Profiles!`,
+			});
+		}
+		if (isSaveToCloudButtonClicked == true) {
+			logger.set({
+				type: 'success',
+				mode: 0,
+				classname: 'profilesave',
+				message: `${name} saved to Profile Cloud!`,
+			});
+		}
+		if (
+			isSaveToSessionButtonClicked != true &&
+			isSaveToCloudButtonClicked != true
+		) {
+			logger.set({
+				type: 'success',
+				mode: 0,
+				classname: 'profilesave',
+				message: `${name} saved!`,
+			});
+		}
+		await window.electron.configs.saveConfig(
+			path,
+			name,
+			profile,
+			'profiles',
+			user
+		);
+		animateFly = true;
+		await loadFromDirectory();
+		animateFly = false;
+		disableButton = false;
+	}
+
+	async function deleteFromDirectory(element) {
+		disableButton = true;
+		if (isDeleteButtonClicked) {
+			logger.set({
+				type: 'success',
+				mode: 0,
+				classname: 'profiledelete',
+				message: `${element.name.trim()} deleted!`,
+			});
+		}
+		isDeleteButtonClicked = false;
+		await window.electron.configs.deleteConfig(
+			PROFILE_PATH,
+			element.name.trim(),
+			'profiles',
+			element.folder
+		);
+		await loadFromDirectory();
+		disableButton = false;
+		isActionButtonClickedStore.set(false);
+	}
+
+	let isSessionProfileNameUnique = undefined;
+
+	async function checkIfProfileTitleUnique(input) {
+		let notUniqueName = [];
+
+		sessionProfile.forEach((element) => {
+			if (element.name == input) {
+				notUniqueName.push(element.name);
+			}
+		});
+
+		if (notUniqueName.length > 0) {
+			isSessionProfileNameUnique = false;
+		} else {
+			isSessionProfileNameUnique = true;
+		}
+	}
+
+	let isTitleDirty = undefined;
+
+	async function checkIfTitleFieldEmpty(input) {
+		if (input.length < 1) {
+			isTitleDirty = false;
+		} else {
+			isTitleDirty = true;
+		}
+	}
+
+	let sortAsc = true;
+	let sortField = 'name';
+
+	let compareNameAscending = (a, b) => {
+		return a.name
+			.toLowerCase()
+			.localeCompare(b.name.toLowerCase(), undefined, { numeric: true });
+	};
+
+	let compareNameDescending = (a, b) => {
+		return b.name
+			.toLowerCase()
+			.localeCompare(a.name.toLowerCase(), undefined, { numeric: true });
+	};
+
+	function compareDateAscending(a, b) {
+		return a.fsModifiedAt - b.fsModifiedAt;
+	}
+
+	function compareDateDescending(a, b) {
+		return b.fsModifiedAt - a.fsModifiedAt;
+	}
+
+	function compareModuleAscending(a, b) {
+		return a.type.localeCompare(b.type, undefined, {
+			numeric: true,
+		});
+	}
+
+	function compareModuleDescending(a, b) {
+		return b.type.localeCompare(a.type, undefined, {
+			numeric: true,
+		});
+	}
+
+	function sortProfileCloud(field, asc) {
+		if (field == 'name') {
+			if (asc == true) {
+				filteredProfileCloud = filteredProfileCloud.sort(compareNameAscending);
+			}
+
+			if (asc == false) {
+				filteredProfileCloud = filteredProfileCloud.sort(compareNameDescending);
+			}
+		}
+
+		if (field == 'date') {
+			if (asc == true) {
+				filteredProfileCloud = filteredProfileCloud.sort(compareDateAscending);
+			}
+
+			if (asc == false) {
+				filteredProfileCloud = filteredProfileCloud.sort(compareDateDescending);
+			}
+		}
+
+		if (field == 'module') {
+			if (asc == true) {
+				filteredProfileCloud = filteredProfileCloud.sort(
+					compareModuleAscending
+				);
+			}
+			if (asc == false) {
+				filteredProfileCloud = filteredProfileCloud.sort(
+					compareModuleDescending
+				);
+			}
+		}
+	}
+
+	function filterShowHide() {
+		isSearchSortingShows = !isSearchSortingShows;
+		animateFade = true;
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_filter_show_hide',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_filter_show_hide'
+		);
+	}
+
+	profileListRefresh.subscribe((store) => {
+		if (PROFILE_PATH !== undefined && PROFILE_PATH !== '') {
+			loadFromDirectory();
+		}
+	});
+
+	function fadeAnimation(node, options) {
+		if (animateFade) {
+			return options.fn(node, options);
+		}
+	}
+
+	function flyAnimation(node, options) {
+		if (animateFly) {
+			return options.fn(node, options);
+		}
+	}
+
+	function deleteSessionProfile(profile) {
+		isActionButtonClickedStore.set(true);
+		isDeleteButtonClicked = true;
+		deleteFromDirectory(profile);
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_delete',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_delete'
+		);
+	}
+
+	function saveFromSessionToCloud(profile) {
+		isSaveToCloudButtonClicked = true;
+		isActionButtonClickedStore.set(true);
+
+		saveToDirectory(PROFILE_PATH, profile.name, profile, 'user');
+		deleteSessionProfile(profile);
+
+		selectedProfile = undefined;
+		isSaveToCloudButtonClicked = false;
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_save',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_save'
+		);
+	}
+
+	function rewriteSessionProfile(profile) {
+		let user = 'sessionPreset';
+		isActionButtonClickedStore.set(true);
+
+		selectProfile(profile);
+		prepareSave('sessionProfile');
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_rewrite',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_rewrite'
+		);
+	}
+
+	function useSearchSuggestion(suggestionText) {
+		updateSearchFilter((searchbarValue = suggestionText));
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_use_search_suggestion',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_use_search_suggestion'
+		);
+	}
+
+	function openProfileInfo(profile) {
+		($appSettings.modal = 'profileInfo'), selectProfile(profile);
+
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_info',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_info'
+		);
+	}
+
+	onMount(() => {
+		animateFade = true;
+		animateFly = false;
+		moveOld();
+	});
 </script>
 
-<div class=" flex flex-col h-full justify-between p-4 bg-primary ">
-  <div class="flex w-full h-full flex-col overflow-hidden ">
-    <div
-      class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full "
-    >
-      <div>Session Profiles</div>
-    </div>
+<div class=" flex flex-col h-full justify-between p-4 bg-primary">
+	<div class="flex w-full h-full flex-col overflow-hidden">
+		<div
+			class="flex justify-between items-center p-4 text-white font-medium
+      cursor-pointer w-full"
+		>
+			<div>Session Profiles</div>
+		</div>
 
-    <Splitpanes
-      horizontal="true"
-      theme="modern-theme"
-      pushOtherPanes={false}
-      class="flex w-full h-full flex-col overflow-hidden "
-    >
-      <Pane size={31}>
-        <div class=" flex flex-col bg-primary overflow-hidden h-full ">
-          <div
-            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-            class=" flex flex-col p-3 overflow-hidden h-full"
-          >
-            <button
-              on:click={() => {
-                saveToSessionProfile("sessionProfile");
-              }}
-              class="relative bg-commit block  
+		<Splitpanes
+			horizontal="true"
+			theme="modern-theme"
+			pushOtherPanes={false}
+			class="flex w-full h-full flex-col overflow-hidden "
+		>
+			<Pane size={31}>
+				<div class=" flex flex-col bg-primary overflow-hidden h-full">
+					<div
+						in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+						out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+						class=" flex flex-col p-3 overflow-hidden h-full"
+					>
+						<button
+							on:click={() => {
+								saveToSessionProfile('sessionProfile');
+							}}
+							class="relative bg-commit block
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
           hover:border-commit-desaturate-10 focus:outline-none"
-            >
-              <div>Save Session Profile</div>
-              <TooltipSetter key={"newProfile_add_to_session"} />
-            </button>
-            <div class="flex flex-col overflow-y-auto gap-4  ">
-              {#if sessionProfile.length == 0}
-                <div class="text-gray-300">No profile to show</div>
-              {/if}
+						>
+							<div>Save Session Profile</div>
+							<TooltipSetter key={'newProfile_add_to_session'} />
+						</button>
+						<div class="flex flex-col overflow-y-auto gap-4">
+							{#if sessionProfile.length == 0}
+								<div class="text-gray-300">No profile to show</div>
+							{/if}
 
-              {#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
-                <button
-                  in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
-                  out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-                  on:click={() => selectProfile(sessionProfileElement)}
-                  class="cursor-pointer flex justify-between gap-2 items-center
+							{#each sessionProfile as sessionProfileElement (sessionProfileElement.id)}
+								<button
+									in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
+									out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+									on:click={() => selectProfile(sessionProfileElement)}
+									class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
               {sessionProfileElement == selectedProfile
-                    ? 'border border-green-300'
-                    : 'border border-black border-opacity-0'}
+										? 'border border-green-300'
+										: 'border border-black border-opacity-0'}
               "
-                >
-                  <div class="flex gap-2 items-center w-full">
-                    <div
-                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                      rounded-xl  {selectedModule == sessionProfileElement.type
-                        ? 'bg-violet-600'
-                        : 'bg-gray-600 '}"
-                    >
-                      {sessionProfileElement.type}
-                    </div>
+								>
+									<div class="flex gap-2 items-center w-full">
+										<div
+											class="text-zinc-100 text-xs lg:text-sm h-fit px-2
+                      rounded-xl {selectedModule == sessionProfileElement.type
+												? 'bg-violet-600'
+												: 'bg-gray-600 '}"
+										>
+											{sessionProfileElement.type}
+										</div>
 
-                    <div class="flex justify-between flex-row w-full">
-                      <input
-                        type="text"
-                        value={sessionProfileElement.name}
-                        use:clickOutside={{ useCapture: true }}
-                        on:click={() => {
-                          selectProfile(sessionProfileElement);
-                        }}
-                        on:blur={(e) => {
-                          let newName = e.target.value.trim();
-                          animateFade = false;
-                          updateSessionProfileTitle(
-                            sessionProfileElement,
-                            newName
-                          );
-                        }}
-                        on:keypress={(e) => {
-                          if (e.key === 13) {
-                            let newName = e.target.value.trim();
-                            updateSessionProfileTitle(
-                              sessionProfileElement,
-                              newName
-                            );
-                          }
-                        }}
-                        class="text-zinc-100 min-w-[15px] h-fit px-2  break-words
+										<div class="flex justify-between flex-row w-full">
+											<input
+												type="text"
+												value={sessionProfileElement.name}
+												use:clickOutside={{ useCapture: true }}
+												on:click={() => {
+													selectProfile(sessionProfileElement);
+												}}
+												on:blur={(e) => {
+													let newName = e.target.value.trim();
+													animateFade = false;
+													updateSessionProfileTitle(
+														sessionProfileElement,
+														newName
+													);
+												}}
+												on:keypress={(e) => {
+													if (e.key === 13) {
+														let newName = e.target.value.trim();
+														updateSessionProfileTitle(
+															sessionProfileElement,
+															newName
+														);
+													}
+												}}
+												class="text-zinc-100 min-w-[15px] h-fit px-2 break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
-                      />
-                    </div>
-                  </div>
+											/>
+										</div>
+									</div>
 
-                  <div class="flex gap-1 ">
-                    <button
-                      on:click|preventDefault={() => {
-                        deleteSessionProfile(sessionProfileElement);
-                      }}
-                      class="p-1 hover:bg-primary-500 {selectedProfile ==
-                        sessionProfileElement && disableButton == true
-                        ? 'pointer-events-none'
-                        : 0} rounded relative"
-                    >
-                      <svg
-                        class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
-                        viewBox="0 0 39 39"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+									<div class="flex gap-1">
+										<button
+											on:click|preventDefault={() => {
+												deleteSessionProfile(sessionProfileElement);
+											}}
+											class="p-1 hover:bg-primary-500 {selectedProfile ==
+												sessionProfileElement && disableButton == true
+												? 'pointer-events-none'
+												: 0} rounded relative"
+										>
+											<svg
+												class="w-[14px] lg:w-[16px] h-[14px] lg:h-[16px]"
+												viewBox="0 0 39 39"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
-                          stroke="#FFF"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                        />
-                        <path
-                          d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+													stroke="#FFF"
+													stroke-width="2"
+													stroke-linecap="round"
+												/>
+												<path
+													d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
-                          stroke="#FFF"
-                          stroke-width="2"
-                        />
-                      </svg>
-                      <TooltipConfirm key={"newProfile_delete"} />
-                      <TooltipSetter key={"newProfile_delete"} />
-                    </button>
+													stroke="#FFF"
+													stroke-width="2"
+												/>
+											</svg>
+											<TooltipConfirm key={'newProfile_delete'} />
+											<TooltipSetter key={'newProfile_delete'} />
+										</button>
 
-                    <button
-                      class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
-                        sessionProfileElement && disableButton == true
-                        ? 'pointer-events-none'
-                        : 0}"
-                      on:click|preventDefault={() => {
-                        saveFromSessionToCloud(sessionProfileElement);
-                      }}
-                      on:blur={() => {
-                        isActionButtonClickedStore.set(false);
-                      }}
-                    >
-                      <svg
-                        class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                        viewBox="0 0 19 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
+										<button
+											class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
+												sessionProfileElement && disableButton == true
+												? 'pointer-events-none'
+												: 0}"
+											on:click|preventDefault={() => {
+												saveFromSessionToCloud(sessionProfileElement);
+											}}
+											on:blur={() => {
+												isActionButtonClickedStore.set(false);
+											}}
+										>
+											<svg
+												class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+												viewBox="0 0 19 18"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M0.769287 2.57143C0.769287 1.88944 1.0402 1.23539
                       1.52244 0.753154C2.00468 0.270917 2.65873 0 3.34072
                       0H14.1137C14.7956 0.000145639 15.4496 0.271159 15.9317
                       0.753429L18.0159 2.83757C18.4981 3.3197 18.7691 3.97364
@@ -903,31 +903,31 @@
                       10.2857H5.26929C5.09879 10.2857 4.93528 10.3534 4.81472
                       10.474C4.69416 10.5946 4.62643 10.7581 4.62643
                       10.9286V16.7143H14.9121Z"
-                          fill="#F1F1F1"
-                        />
-                      </svg>
+													fill="#F1F1F1"
+												/>
+											</svg>
 
-                      <TooltipSetter key={"newProfile_save"} />
-                    </button>
+											<TooltipSetter key={'newProfile_save'} />
+										</button>
 
-                    <button
-                      class="p-1 hover:bg-primary-500 rounded relative"
-                      on:click|preventDefault={() => {
-                        rewriteSessionProfile(sessionProfileElement);
-                      }}
-                      on:blur={() => {
-                        isActionButtonClickedStore.set(false);
-                      }}
-                    >
-                      <svg
-                        class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                        viewBox="0 0 19 18"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <g clip-path="url(#clip0_262_1198)">
-                          <path
-                            d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
+										<button
+											class="p-1 hover:bg-primary-500 rounded relative"
+											on:click|preventDefault={() => {
+												rewriteSessionProfile(sessionProfileElement);
+											}}
+											on:blur={() => {
+												isActionButtonClickedStore.set(false);
+											}}
+										>
+											<svg
+												class="w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+												viewBox="0 0 19 18"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<g clip-path="url(#clip0_262_1198)">
+													<path
+														d="M18.4932 2.51357L17.2847 3.45857C15.6368 1.35214
                         13.074 0 10.1961 0C5.22682 0 1.20468 4.01786 1.19825
                         8.98929C1.19182 13.965 5.22254 18 10.1961 18C14.0811 18
                         17.3918 15.5357 18.6518 12.0836C18.684 11.9936 18.6368
@@ -955,72 +955,72 @@
                         5.76643L18.5425 6.68786C18.6497 6.71357 18.7547 6.63214
                         18.7547 6.52286L18.7718 2.64643C18.7697 2.505 18.6047
                         2.42571 18.4932 2.51357V2.51357Z"
-                            fill="#F1F1F1"
-                          />
-                        </g>
-                        <defs>
-                          <clipPath id="clip0_262_1198">
-                            <rect
-                              width="18"
-                              height="18"
-                              fill="white"
-                              transform="translate(0.769287)"
-                            />
-                          </clipPath>
-                        </defs>
-                      </svg>
-                      <TooltipSetter key={"newProfile_rewrite"} />
-                    </button>
-                  </div>
-                </button>
-              {/each}
-            </div>
-          </div>
-        </div></Pane
-      >
-      <Pane minSize={28}>
-        <div class=" flex flex-col h-full  overflow-hidden bg-primary">
-          <div
-            class="flex justify-between items-center p-4 
+														fill="#F1F1F1"
+													/>
+												</g>
+												<defs>
+													<clipPath id="clip0_262_1198">
+														<rect
+															width="18"
+															height="18"
+															fill="white"
+															transform="translate(0.769287)"
+														/>
+													</clipPath>
+												</defs>
+											</svg>
+											<TooltipSetter key={'newProfile_rewrite'} />
+										</button>
+									</div>
+								</button>
+							{/each}
+						</div>
+					</div>
+				</div></Pane
+			>
+			<Pane minSize={28}>
+				<div class=" flex flex-col h-full overflow-hidden bg-primary">
+					<div
+						class="flex justify-between items-center p-4
       w-full"
-          >
-            <div class="text-white font-medium">Profile Cloud</div>
-            <button
-              on:click={() => {
-                filterShowHide();
-              }}
-              class="text-white text-left font-xs "
-            >
-              {#if isSearchSortingShows}
-                Hide Filters
-              {:else}
-                Show Filters
-              {/if}
-            </button>
-          </div>
+					>
+						<div class="text-white font-medium">Profile Cloud</div>
+						<button
+							on:click={() => {
+								filterShowHide();
+							}}
+							class="text-white text-left font-xs"
+						>
+							{#if isSearchSortingShows}
+								Hide Filters
+							{:else}
+								Show Filters
+							{/if}
+						</button>
+					</div>
 
-          <div
-            class="flex flex-col overflow-hidden"
-            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-          >
-            {#if isSearchSortingShows == true}
-              <div
-                in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-                out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-              >
-                <div class="flex flex-col gap-1 p-3">
-                  <div class="relative">
-                    <svg
-                      class="absolute left-3 bottom-[28%]"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
+					<div
+						class="flex flex-col overflow-hidden"
+						in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+						out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+					>
+						{#if isSearchSortingShows == true}
+							<div
+								in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+								out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+							>
+								<div class="flex flex-col gap-1 p-3">
+									<div class="relative">
+										<svg
+											class="absolute left-3 bottom-[28%]"
+											width="14"
+											height="14"
+											viewBox="0 0 18 18"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M13.2095 11.6374C14.2989 10.1509 14.7868 8.30791 14.5756
                       6.47715C14.3645 4.64639 13.4699 2.96286 12.0708 1.76338C10.6717
                       0.563893 8.87126 -0.0630888 7.02973 0.0078685C5.1882 0.0788258
                       3.44137 0.84249 2.13872 2.14608C0.83606 3.44967 0.0736462 5.19704
@@ -1042,203 +1042,203 @@
                       4.09802 2.93707 2.93763C4.09745 1.77725 5.67126 1.12536 7.31229
                       1.12536C8.95332 1.12536 10.5271 1.77725 11.6875 2.93763C12.8479
                       4.09802 13.4998 5.67183 13.4998 7.31286V7.31286Z"
-                        fill="#CDCDCD"
-                      />
-                    </svg>
+												fill="#CDCDCD"
+											/>
+										</svg>
 
-                    {#if searchbarValue != ""}
-                      <button
-                        class="absolute right-2 bottom-[25%]"
-                        on:click={() =>
-                          updateSearchFilter((searchbarValue = ""))}
-                      >
-                        <svg
-                          width="28"
-                          height="28"
-                          viewBox="0 0 39 39"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
-                            stroke="#FFF"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                          />
-                        </svg>
-                      </button>
-                    {/if}
+										{#if searchbarValue != ''}
+											<button
+												class="absolute right-2 bottom-[25%]"
+												on:click={() =>
+													updateSearchFilter((searchbarValue = ''))}
+											>
+												<svg
+													width="28"
+													height="28"
+													viewBox="0 0 39 39"
+													fill="none"
+													xmlns="http://www.w3.org/2000/svg"
+												>
+													<path
+														d="M24.25 32.9102L14.75 23.4102M24.25 23.4102L14.75 32.9102"
+														stroke="#FFF"
+														stroke-width="2"
+														stroke-linecap="round"
+													/>
+												</svg>
+											</button>
+										{/if}
 
-                    <input
-                      type="text"
-                      bind:value={searchbarValue}
-                      on:keyup={() => updateSearchFilter(searchbarValue)}
-                      on:input={() => updateSearchFilter(searchbarValue)}
-                      on:change={() => updateSearchFilter(searchbarValue)}
-                      class="w-full py-2 px-12 bg-primary-700 text-white
+										<input
+											type="text"
+											bind:value={searchbarValue}
+											on:keyup={() => updateSearchFilter(searchbarValue)}
+											on:input={() => updateSearchFilter(searchbarValue)}
+											on:change={() => updateSearchFilter(searchbarValue)}
+											class="w-full py-2 px-12 bg-primary-700 text-white
                     placeholder-gray-400 text-md focus:outline-none"
-                      placeholder="Find Profile..."
-                    />
-                  </div>
+											placeholder="Find Profile..."
+										/>
+									</div>
 
-                  <div class="flex flex-row gap-2 py-3 flex-wrap">
-                    {#each searchSuggestions as suggestion}
-                      <button
-                        on:click={() => useSearchSuggestion(suggestion.value)}
-                        class="border  hover:border-primary-500 text-sm text-primary-100 rounded-md
+									<div class="flex flex-row gap-2 py-3 flex-wrap">
+										{#each searchSuggestions as suggestion}
+											<button
+												on:click={() => useSearchSuggestion(suggestion.value)}
+												class="border hover:border-primary-500 text-sm text-primary-100 rounded-md
                   py-1 px-2 h-min {searchbarValue.toLowerCase() ==
-                        suggestion.value.toLowerCase()
-                          ? 'border-primary-100'
-                          : 'border-primary-700'}"
-                      >
-                        {suggestion.value}
-                      </button>
-                    {/each}
-                  </div>
-                </div>
+												suggestion.value.toLowerCase()
+													? 'border-primary-100'
+													: 'border-primary-700'}"
+											>
+												{suggestion.value}
+											</button>
+										{/each}
+									</div>
+								</div>
 
-                <div
-                  class="flex gap-2 items-center justify-between flex-wrap p-3"
-                >
-                  <label
-                    for="sorting select"
-                    class="uppercase text-gray-500 py-1 text-sm"
-                  >
-                    sort by
-                  </label>
+								<div
+									class="flex gap-2 items-center justify-between flex-wrap p-3"
+								>
+									<label
+										for="sorting select"
+										class="uppercase text-gray-500 py-1 text-sm"
+									>
+										sort by
+									</label>
 
-                  <select
-                    class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
-                    id="sortingSelectBox"
-                    on:change={(e) => {
-                      sortField = e.target.value;
-                      sortProfileCloud(sortField, sortAsc);
-                    }}
-                    name="sorting select"
-                  >
-                    <option
-                      selected
-                      class="text-white bg-secondary py-1 border-none"
-                      value="name"
-                    >
-                      name
-                    </option>
+									<select
+										class="bg-secondary border-none flex-grow text-white p-2 focus:outline-none"
+										id="sortingSelectBox"
+										on:change={(e) => {
+											sortField = e.target.value;
+											sortProfileCloud(sortField, sortAsc);
+										}}
+										name="sorting select"
+									>
+										<option
+											selected
+											class="text-white bg-secondary py-1 border-none"
+											value="name"
+										>
+											name
+										</option>
 
-                    <option
-                      class="text-white bg-secondary py-1 border-none"
-                      value="module"
-                    >
-                      module
-                    </option>
-                  </select>
+										<option
+											class="text-white bg-secondary py-1 border-none"
+											value="module"
+										>
+											module
+										</option>
+									</select>
 
-                  <button
-                    on:click={() => {
-                      sortAsc = !sortAsc;
-                      sortProfileCloud(sortField, sortAsc);
-                    }}
-                  >
-                    {#if sortAsc == false}
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
-                          stroke="white"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    {:else}
-                      <svg
-                        width="20"
-                        height="20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
-                          stroke="white"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    {/if}
-                  </button>
-                </div>
-              </div>
-            {/if}
+									<button
+										on:click={() => {
+											sortAsc = !sortAsc;
+											sortProfileCloud(sortField, sortAsc);
+										}}
+									>
+										{#if sortAsc == false}
+											<svg
+												width="20"
+												height="20"
+												viewBox="0 0 24 24"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M11 11H15M11 15H18M11 19H21M9 7L6 4L3 7M6 6V20"
+													stroke="white"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												/>
+											</svg>
+										{:else}
+											<svg
+												width="20"
+												height="20"
+												viewBox="0 0 24 24"
+												fill="none"
+												xmlns="http://www.w3.org/2000/svg"
+											>
+												<path
+													d="M11 5H21M11 9H18M11 13H15M3 17L6 20L9 17M6 18V4"
+													stroke="white"
+													stroke-width="2"
+													stroke-linecap="round"
+													stroke-linejoin="round"
+												/>
+											</svg>
+										{/if}
+									</button>
+								</div>
+							</div>
+						{/if}
 
-            <div class="p-3 gap-6 flex flex-col h-full overflow-auto">
-              <div class="flex flex-col overflow-auto">
-                <div />
-                <div class="overflow-auto flex flex-col gap-4 mb-2">
-                  {#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
-                    <button
-                      in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
-                      out:fadeAnimation|local={{
-                        fn: fade,
-                        y: 50,
-                        duration: 150,
-                      }}
-                      on:click={() => {
-                        selectProfile(profileCloudElement);
-                      }}
-                      class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
+						<div class="p-3 gap-6 flex flex-col h-full overflow-auto">
+							<div class="flex flex-col overflow-auto">
+								<div />
+								<div class="overflow-auto flex flex-col gap-4 mb-2">
+									{#each filteredProfileCloud as profileCloudElement (profileCloudElement.id)}
+										<button
+											in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
+											out:fadeAnimation|local={{
+												fn: fade,
+												y: 50,
+												duration: 150,
+											}}
+											on:click={() => {
+												selectProfile(profileCloudElement);
+											}}
+											class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
                 cursor-pointer {selectedProfile == profileCloudElement
-                        ? 'border border-green-300 bg-primary-600'
-                        : 'border border-black border-opacity-0 bg-secondary'}"
-                    >
-                      <div
-                        class="flex flex-row gap-1 items-center w-full  justify-between"
-                      >
-                        <div class="flex truncate items-center   gap-1">
-                          <div
-                            class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
+												? 'border border-green-300 bg-primary-600'
+												: 'border border-black border-opacity-0 bg-secondary'}"
+										>
+											<div
+												class="flex flex-row gap-1 items-center w-full justify-between"
+											>
+												<div class="flex truncate items-center gap-1">
+													<div
+														class="text-zinc-100 text-xs h-fit px-1 lg:px-2 lg:text-sm xl:text-md
                       rounded-xl {selectedModule == profileCloudElement.type
-                              ? 'bg-violet-600'
-                              : 'bg-gray-600 '}"
-                          >
-                            {profileCloudElement.type}
-                          </div>
+															? 'bg-violet-600'
+															: 'bg-gray-600 '}"
+													>
+														{profileCloudElement.type}
+													</div>
 
-                          <div
-                            class="text-gray-100 text-left text-sm lg:text-md   truncate "
-                          >
-                            {profileCloudElement.name}
-                          </div>
-                        </div>
+													<div
+														class="text-gray-100 text-left text-sm lg:text-md truncate"
+													>
+														{profileCloudElement.name}
+													</div>
+												</div>
 
-                        <div
-                          class="flex flex-row gap-1 items-center justify-end"
-                        >
-                          <div class="flex flex-row gap-1">
-                            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                              <button
-                                class="p-1 hover:bg-primary-500 rounded"
-                                on:click|preventDefault={() => {
-                                  ($appSettings.modal = "profileAttachment"),
-                                    selectProfile(profileCloudElement);
-                                }}
-                              >
-                                <svg
-                                  class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
-                                  width="15"
-                                  height="16"
-                                  viewBox="0 0 20 21"
-                                  fill="none"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <g clip-path="url(#clip0_262_1471)">
-                                    <path
-                                      d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
+												<div
+													class="flex flex-row gap-1 items-center justify-end"
+												>
+													<div class="flex flex-row gap-1">
+														{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+															<button
+																class="p-1 hover:bg-primary-500 rounded"
+																on:click|preventDefault={() => {
+																	($appSettings.modal = 'profileAttachment'),
+																		selectProfile(profileCloudElement);
+																}}
+															>
+																<svg
+																	class="w-[13px] lg:w-[15px] h-[14px] lg:h-[16px]"
+																	width="15"
+																	height="16"
+																	viewBox="0 0 20 21"
+																	fill="none"
+																	xmlns="http://www.w3.org/2000/svg"
+																>
+																	<g clip-path="url(#clip0_262_1471)">
+																		<path
+																			d="M3.37381 20.1806C2.526 20.1806 1.71199 19.8298
                               1.06324 19.1804C-0.375193 17.7373 -0.375193
                               15.3901 1.06291 13.9479L12.2792 2.03728C14.0292
                               0.284467 16.7098 0.441967 18.666 2.40072C19.5426
@@ -1265,38 +1265,38 @@
                               18.991C5.28756 19.7059 4.42723 20.1213 3.5641
                               20.1744C3.50067 20.1787 3.43723 20.1806 3.37379
                               20.1806L3.37381 20.1806Z"
-                                      fill="#F1F1F1"
-                                    />
-                                  </g>
-                                  <defs>
-                                    <clipPath id="clip0_262_1471">
-                                      <rect
-                                        width="20"
-                                        height="20"
-                                        fill="white"
-                                        transform="translate(0 0.5)"
-                                      />
-                                    </clipPath>
-                                  </defs>
-                                </svg>
-                              </button>
-                            {/if}
+																			fill="#F1F1F1"
+																		/>
+																	</g>
+																	<defs>
+																		<clipPath id="clip0_262_1471">
+																			<rect
+																				width="20"
+																				height="20"
+																				fill="white"
+																				transform="translate(0 0.5)"
+																			/>
+																		</clipPath>
+																	</defs>
+																</svg>
+															</button>
+														{/if}
 
-                            <button
-                              class="p-1 hover:bg-primary-500 rounded relative"
-                              on:click|preventDefault={() => {
-                                openProfileInfo(profileCloudElement);
-                              }}
-                            >
-                              <svg
-                                class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
-                                viewBox="0 0 21 20"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <g clip-path="url(#clip0_293_1221)">
-                                  <path
-                                    d="M10.2723 0.489136C5.02014 0.489136 0.761475
+														<button
+															class="p-1 hover:bg-primary-500 rounded relative"
+															on:click|preventDefault={() => {
+																openProfileInfo(profileCloudElement);
+															}}
+														>
+															<svg
+																class="fill-white w-[13px] lg:w-[15px] h-[12px] lg:h-[14px]"
+																viewBox="0 0 21 20"
+																fill="none"
+																xmlns="http://www.w3.org/2000/svg"
+															>
+																<g clip-path="url(#clip0_293_1221)">
+																	<path
+																		d="M10.2723 0.489136C5.02014 0.489136 0.761475
                               4.7478 0.761475 10C0.761475 15.2522 5.02014
                               19.5109 10.2723 19.5109C15.5246 19.5109 19.7832
                               15.2522 19.7832 10C19.7832 4.7478 15.5246 0.489136
@@ -1305,9 +1305,9 @@
                               2.10259 10.2723 2.10259C14.6329 2.10259 18.1698
                               5.63944 18.1698 10C18.1698 14.3606 14.6329 17.8974
                               10.2723 17.8974Z"
-                                  />
-                                  <path
-                                    d="M9.25342 6.26359C9.25342 6.53385 9.36078
+																	/>
+																	<path
+																		d="M9.25342 6.26359C9.25342 6.53385 9.36078
                               6.79304 9.55188 6.98415C9.74299 7.17525 10.0022
                               7.28261 10.2724 7.28261C10.5427 7.28261 10.8019
                               7.17525 10.993 6.98415C11.1841 6.79304 11.2915
@@ -1321,44 +1321,44 @@
                               14.7554 9.76293 14.7554H10.782C10.8754 14.7554
                               10.9518 14.679 10.9518 14.5856V8.81114C10.9518
                               8.71773 10.8754 8.64131 10.782 8.64131Z"
-                                  />
-                                </g>
-                                <defs>
-                                  <clipPath id="clip0_293_1221">
-                                    <rect
-                                      width="20"
-                                      height="20"
-                                      fill="white"
-                                      transform="translate(0.272461)"
-                                    />
-                                  </clipPath>
-                                </defs>
-                              </svg>
+																	/>
+																</g>
+																<defs>
+																	<clipPath id="clip0_293_1221">
+																		<rect
+																			width="20"
+																			height="20"
+																			fill="white"
+																			transform="translate(0.272461)"
+																		/>
+																	</clipPath>
+																</defs>
+															</svg>
 
-                              <TooltipSetter key={"newProfile_info"} />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                      <div class="text-gray-100 text-xs self-end lg:text-sm ">
-                        @{profileCloudElement.folder}
-                      </div>
-                    </button>
-                  {/each}
+															<TooltipSetter key={'newProfile_info'} />
+														</button>
+													</div>
+												</div>
+											</div>
+											<div class="text-gray-100 text-xs self-end lg:text-sm">
+												@{profileCloudElement.folder}
+											</div>
+										</button>
+									{/each}
 
-                  {#if profileCloud.length == 0}
-                    <div class="text-gray-300">No profile to show</div>
-                  {/if}
+									{#if profileCloud.length == 0}
+										<div class="text-gray-300">No profile to show</div>
+									{/if}
 
-                  {#if filteredProfileCloud.length == 0 && profileCloud.length != 0}
-                    <div class="text-gray-300">No result</div>
-                  {/if}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div></Pane
-      >
-    </Splitpanes>
-  </div>
+									{#if filteredProfileCloud.length == 0 && profileCloud.length != 0}
+										<div class="text-gray-300">No result</div>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div></Pane
+			>
+		</Splitpanes>
+	</div>
 </div>
