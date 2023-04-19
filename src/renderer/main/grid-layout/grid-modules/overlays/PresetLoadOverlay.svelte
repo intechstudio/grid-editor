@@ -21,20 +21,14 @@
   let controlElementSettings;
   let selectedIndex;
 
-  selectedControllerIndexStore.subscribe((store) => {
-    selectedIndex = store;
-  });
+  $: selectedIndex = $selectedControllerIndexStore;
 
-  runtime.subscribe((runtime) => {
-    let device;
-    device = runtime.find((controller) => controller.id == id);
-
-    if (typeof device === "undefined") {
-      return;
+  $: {
+    const device = $runtime.find((controller) => controller.id == id);
+    if (typeof device !== "undefined") {
+      controlElementSettings = device.pages[0].control_elements;
     }
-
-    controlElementSettings = device.pages[0].control_elements;
-  });
+  }
 
   let isModuleCompatibleWithPreset = false;
 
@@ -61,10 +55,10 @@
     }
   }
 
-  selectedPresetStore.subscribe((store) => {
-    selectedPreset = store;
+  $: {
+    selectedPreset = $selectedPresetStore;
     showLoadPresetOverlay();
-  });
+  }
 
   $: if (id) {
     if (id.startsWith("PBF4")) {

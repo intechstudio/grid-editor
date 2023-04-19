@@ -44,7 +44,8 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   };
 
   // check for parsed modules
-  runtime.subscribe((store) => {
+  $: {
+    const store = $runtime;
     let firmwareMismatchFound = false;
 
     if (store.length === 0) {
@@ -92,7 +93,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     } else {
       fwMismatch = false;
     }
-  });
+  }
 
   let text = "";
   let uploadProgressText = "";

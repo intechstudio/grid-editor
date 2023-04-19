@@ -77,11 +77,12 @@
 
   const devices = writable([]);
 
-  runtime.subscribe((rt) => {
+  $: {
     let min_x = 0;
     let max_x = 0;
     let min_y = 0;
     let max_y = 0;
+    const rt = $runtime;
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -115,7 +116,7 @@
     surface_origin_y = (min_y + max_y) / 2;
 
     devices.set(rt);
-  });
+  }
 
   function refresh() {
     window.electron.analytics.google("no-module", { value: "restart app" });

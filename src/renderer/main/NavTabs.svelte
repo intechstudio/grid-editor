@@ -6,9 +6,9 @@
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "NewProfile";
 
-  appSettings.subscribe((store) => {
-    selectedLeftTab = store.leftPanel;
-  });
+  $: {
+    selectedLeftTab = $appSettings.leftPanel;
+  }
 
   // TODO: Move it under the place of functionality
   // Merge toggleLeftTab() and toggleRightTab() if Possible
