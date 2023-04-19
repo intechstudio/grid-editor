@@ -3,8 +3,10 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import preprocess from 'svelte-preprocess';
 import path, { resolve } from 'path';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import svelteSVG from "vite-plugin-svelte-svg";
 
-export default defineConfig({    
+
+export default defineConfig({
 
   main: {
     plugins: [
@@ -16,12 +18,12 @@ export default defineConfig({
     optimizeDeps: {
       include: ['esm-dep > cjs-dep']
     },
-    build:{
+    build: {
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/electron/main.ts'),
         }
-      }, 
+      },
       outDir: 'dist/main',
     }
   },
@@ -32,7 +34,7 @@ export default defineConfig({
     define: {
       'process.env': 'process.env'
     },
-    build:{
+    build: {
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/electron/preload.ts'),
@@ -49,23 +51,27 @@ export default defineConfig({
             postcss: true,
           })
         ]
-      }), 
+      }),
+      svelteSVG({
+        svgoConfig: {}, // See https://github.com/svg/svgo#configuration
+        requireSuffix: true, // Set false to accept '.svg' without the '?component'
+      }),
       monacoEditorPlugin([])
     ],
+    publicDir: 'assets', // needed, to copy assets to dist during build
     build: {
       rollupOptions: {
         input: {
           index: resolve(__dirname, 'src/renderer/index.html'),
         }
       },
-      outDir: '../../dist/renderer',
+      outDir: 'dist/renderer'
     },
     resolve: {
       alias: {
         '$lib': path.resolve('src/renderer/lib'),
-        '@assets': path.resolve('src/renderer/assets'),
       },
     },
     target: 'chrome104'
-  }   
+  }
 });

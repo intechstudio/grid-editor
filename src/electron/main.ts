@@ -516,6 +516,10 @@ ipcMain.on('get-env', (event) => {
   event.returnValue = variables
 })
 
+ipcMain.on('get-app-path', (event) => {
+  event.returnValue = app.getAppPath()
+})
+
 ipcMain.on('analytics_uuid', (event) => {
   event.returnValue = store.get('userId')
 })

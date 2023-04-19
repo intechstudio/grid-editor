@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('ctxProcess', {
 })
 
 contextBridge.exposeInMainWorld('electron', {
+  appPath: () => ipcRenderer.sendSync('get-app-path'),
   auth: {
     onExternalResponse: (callback) =>
       ipcRenderer.on('onExternalAuthResponse', callback),
