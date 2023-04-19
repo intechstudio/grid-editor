@@ -525,108 +525,117 @@ function create_runtime() {
     return;
   }
 
-  function incoming_heartbeat_handler(descr) {
-    let controller = this.create_module(
-      descr.brc_parameters,
-      descr.class_parameters,
-      false
-    );
+  function isFirmwareMismatch(currentFirmware, requiredFirmware) {
+    // Extract major, minor, and patch versions from current and required firmware
+    const {
+      major: currentMajor,
+      minor: currentMinor,
+      patch: currentPatch,
+    } = currentFirmware;
+    const {
+      major: requiredMajor,
+      minor: requiredMinor,
+      patch: requiredPatch,
+    } = requiredFirmware;
 
-    if (controller === undefined) {
-      return;
+    // Compare major versions
+    if (currentMajor < requiredMajor) {
+      return true; // Firmware mismatch if current major version is lower
+    } else if (currentMajor > requiredMajor) {
+      return false; // No firmware mismatch if current major version is higher
     }
 
-    let firstConnection = false;
+    // Compare minor versions
+    if (currentMinor < requiredMinor) {
+      return true; // Firmware mismatch if current minor version is lower
+    } else if (currentMinor > requiredMinor) {
+      return false; // No firmware mismatch if current minor version is higher
+    }
 
-    _runtime.update((_runtime) => {
-      let online = false;
-      _runtime.forEach((device) => {
-        // device is online, update the uptime
-        if (device.id == controller.id) {
-          online = true;
+    // Compare patch versions
+    if (currentPatch < requiredPatch) {
+      return true; // Firmware mismatch if current patch version is lower
+    } else {
+      return false; // No firmware mismatch if current patch version is equal or higher
+    }
+  }
+
+  function incoming_heartbeat_handler(descr) {
+    try {
+      const controller = this.create_module(
+        descr.brc_parameters,
+        descr.class_parameters,
+        false
+      );
+
+      let firstConnection = false;
+      const device = get(_runtime).find((device) => device.id == controller.id);
+      if (device) {
+        if (device.rot != controller.rot) {
           device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
-          device.alive = Date.now();
         }
-      });
-      // device not found, add it to runtime and get page count from grid
-      if (!online) {
-        // check if the firmware version of the newly connected device is acceptable
-        let moduleMismatch = true;
 
+        get(heartbeat).find((device) => device.id == controller.id).alive =
+          Date.now();
+      }
+      // device not found, add it to runtime and get page count from grid
+      else {
+        // check if the firmware version of the newly connected device is acceptable
+        console.log("Incoming Device");
         console.log("Architecture", controller.architecture);
 
-        let firmware_required = undefined;
-
-        if (controller.architecture === "esp32") {
-          firmware_required = get(appSettings).firmware_esp32_required;
-        } else {
-          firmware_required = get(appSettings).firmware_d51_required;
-        }
-
-        if (controller.fwVersion.major > firmware_required.major) {
-          moduleMismatch = false;
-        } else if (
-          controller.fwVersion.major == firmware_required.major &&
-          controller.fwVersion.minor > firmware_required.minor
-        ) {
-          moduleMismatch = false;
-        } else if (
-          controller.fwVersion.major == firmware_required.major &&
-          controller.fwVersion.minor == firmware_required.minor &&
-          controller.fwVersion.patch > firmware_required.patch
-        ) {
-          moduleMismatch = false;
-        } else if (
-          controller.fwVersion.major == firmware_required.major &&
-          controller.fwVersion.minor == firmware_required.minor &&
-          controller.fwVersion.patch == firmware_required.patch
-        ) {
-          moduleMismatch = false;
-        }
-
-        if (moduleMismatch === true) {
-          controller.fwMismatch = true;
-        }
+        const as = get(appSettings);
+        const firmware_required =
+          controller.architecture === "esp32"
+            ? as.firmware_esp32_required
+            : as.firmware_d51_required;
+        controller.fwMismatch = isFirmwareMismatch(
+          controller.fwVersion,
+          firmware_required
+        );
 
         console.log(
           "Mismatch: ",
-          moduleMismatch,
+          controller.fwMismatch,
           "Firmware Version: ",
           controller.fwVersion
         );
 
-        _runtime.push(controller);
+        _runtime.update((devices) => {
+          return [...devices, controller];
+        });
+        heartbeat.update((devices) => {
+          return [...devices, { id: controller.id, alive: Date.now() }];
+        });
 
-        if (_runtime.length === 1) {
-          firstConnection = true;
-        }
+        firstConnection = _runtime.length === 1;
 
         window.electron.analytics.influx(
           "application",
           "runtime",
           "module count",
-          _runtime.lengt
+          _runtime.length
         );
       }
 
-      return _runtime;
-    });
+      if (firstConnection) {
+        setTimeout(() => {
+          user_input.update((ui) => {
+            ui.brc.dx = controller.dx;
+            ui.brc.dy = controller.dy;
+            ui.event.elementnumber = 0;
 
-    if (firstConnection) {
-      setTimeout(() => {
-        user_input.update((ui) => {
-          ui.brc.dx = controller.dx;
-          ui.brc.dy = controller.dy;
-          ui.event.elementnumber = 0;
-
-          ui.event.elementtype =
-            controller.pages[
-              ui.event.pagenumber
-            ].control_elements[0].controlElementType;
-          ui.event.eventtype = 0;
-          return ui;
-        });
-      }, 500);
+            ui.event.elementtype =
+              controller.pages[
+                ui.event.pagenumber
+              ].control_elements[0].controlElementType;
+            ui.event.eventtype = 0;
+            return ui;
+          });
+        }, 500);
+      }
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -1107,49 +1116,48 @@ function create_runtime() {
     }
   }
 
-  function create_module(header, heartbeat) {
-    let moduleType = grid.module_type_from_hwcfg(heartbeat.HWCFG);
-
-    let controller = undefined;
+  function create_module(header_param, heartbeat_class_param) {
+    let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
 
     // generic check, code below if works only if all parameters are provided
     if (
-      header !== undefined &&
-      moduleType !== undefined &&
-      heartbeat !== undefined
+      header_param === undefined ||
+      moduleType === undefined ||
+      heartbeat_class_param === undefined
     ) {
-      moduleType = moduleType.substr(0, 4);
-
-      controller = {
-        // implement the module id rep / req
-        architecture: grid.module_architecture_from_hwcfg(heartbeat.HWCFG),
-        id: moduleType + "_" + "dx:" + header.SX + ";dy:" + header.SY,
-        dx: header.SX,
-        dy: header.SY,
-        rot: header.ROT,
-        fwVersion: {
-          major: heartbeat.VMAJOR,
-          minor: heartbeat.VMINOR,
-          patch: heartbeat.VPATCH,
-        },
-        fwMismatch: false,
-        alive: Date.now(),
-        map: {
-          top: { dx: header.SX, dy: header.SY + 1 },
-          right: { dx: header.SX + 1, dy: header.SY },
-          bot: { dx: header.SX, dy: header.SY - 1 },
-          left: { dx: header.SX - 1, dy: header.SY },
-        },
-        pages: [
-          this.create_page(moduleType, 0),
-          this.create_page(moduleType, 1),
-          this.create_page(moduleType, 2),
-          this.create_page(moduleType, 3),
-        ],
-      };
+      throw "Error creating new module.";
     }
+    moduleType = moduleType.substr(0, 4);
 
-    return controller;
+    return {
+      // implement the module id rep / req
+      architecture: grid.module_architecture_from_hwcfg(
+        heartbeat_class_param.HWCFG
+      ),
+      id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
+      dx: header_param.SX,
+      dy: header_param.SY,
+      rot: header_param.ROT,
+      fwVersion: {
+        major: heartbeat_class_param.VMAJOR,
+        minor: heartbeat_class_param.VMINOR,
+        patch: heartbeat_class_param.VPATCH,
+      },
+      fwMismatch: false,
+      alive: Date.now(),
+      map: {
+        top: { dx: header_param.SX, dy: header_param.SY + 1 },
+        right: { dx: header_param.SX + 1, dy: header_param.SY },
+        bot: { dx: header_param.SX, dy: header_param.SY - 1 },
+        left: { dx: header_param.SX - 1, dy: header_param.SY },
+      },
+      pages: [
+        this.create_page(moduleType, 0),
+        this.create_page(moduleType, 1),
+        this.create_page(moduleType, 2),
+        this.create_page(moduleType, 3),
+      ],
+    };
   }
 
   function destroy_module(dx, dy) {
@@ -1261,23 +1269,27 @@ function createEngine() {
 
 export const engine = createEngine();
 
-export const heartbeat = writable({
-  editor: 300,
-  grid: 300,
-});
+export const heartbeat = writable([]);
+
+const heartbeat_editor_ms = 300;
+const heartbeat_grid_ms = 300;
 
 const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
-    if (Date.now() - device.alive > get(heartbeat).grid * 3) {
+    const alive = get(heartbeat).find((e) => e.id == device.id).alive;
+    if (Date.now() - alive > heartbeat_grid_ms * 3) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
+      heartbeat.update((heartbeat) => {
+        return heartbeat.filter((e) => e.id !== device.id);
+      });
     }
   });
 };
 
-setIntervalAsync(grid_heartbeat_interval_handler, get(heartbeat).grid);
+setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 
 setInterval(function () {
   if (!get(appSettings).trayState) {
@@ -1307,7 +1319,7 @@ const editor_heartbeat_interval_handler = async function () {
   }
 };
 
-setIntervalAsync(editor_heartbeat_interval_handler, get(heartbeat).editor);
+setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
 function createLocalDefinitions() {
   const store = writable();
