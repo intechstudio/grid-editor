@@ -1,81 +1,81 @@
 <script>
-	import { get, writable } from 'svelte/store';
-	import { appSettings } from '../runtime/app-helper.store';
-	import { engine, unsaved_changes } from '../runtime/runtime.store';
-	import { writeBuffer } from '../runtime/engine.store';
+  import { get, writable } from "svelte/store";
+  import { appSettings } from "../runtime/app-helper.store";
+  import { engine, unsaved_changes } from "../runtime/runtime.store";
+  import { writeBuffer } from "../runtime/engine.store";
 
-	import { fade } from 'svelte/transition';
+  import { fade } from "svelte/transition";
 
-	import instructions from '../serialport/instructions';
-	import TooltipSetter from './user-interface/tooltip/TooltipSetter.svelte';
-	import TooltipConfirm from './user-interface/tooltip/TooltipConfirm.svelte';
+  import instructions from "../serialport/instructions";
+  import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipConfirm from "./user-interface/tooltip/TooltipConfirm.svelte";
 
-	function store() {
-		window.electron.analytics.google('page-config', { value: 'store' });
-		window.electron.analytics.influx(
-			'application',
-			'topsubmenu',
-			'pageconfig',
-			'store'
-		);
+  function store() {
+    window.electron.analytics.google("page-config", { value: "store" });
+    window.electron.analytics.influx(
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "store"
+    );
 
-		instructions.sendPageStoreToGrid();
-	}
+    instructions.sendPageStoreToGrid();
+  }
 
-	function discard() {
-		instructions.sendPageDiscardToGrid();
+  function discard() {
+    instructions.sendPageDiscardToGrid();
 
-		window.electron.analytics.google('page-config', { value: 'discard' });
-		window.electron.analytics.influx(
-			'application',
-			'topsubmenu',
-			'pageconfig',
-			'discard'
-		);
-	}
+    window.electron.analytics.google("page-config", { value: "discard" });
+    window.electron.analytics.influx(
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "discard"
+    );
+  }
 
-	function clear() {
-		instructions.sendPageClearToGrid();
+  function clear() {
+    instructions.sendPageClearToGrid();
 
-		window.electron.analytics.google('page-config', { value: 'clear' });
-		window.electron.analytics.influx(
-			'application',
-			'topsubmenu',
-			'pageconfig',
-			'clear'
-		);
-	}
+    window.electron.analytics.google("page-config", { value: "clear" });
+    window.electron.analytics.influx(
+      "application",
+      "topsubmenu",
+      "pageconfig",
+      "clear"
+    );
+  }
 
-	async function debugWriteBuffer() {
-		window.electron.discord.sendMessage({
-			title: 'Writebuffer',
-			text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
-		});
+  async function debugWriteBuffer() {
+    window.electron.discord.sendMessage({
+      title: "Writebuffer",
+      text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
+    });
 
-		window.electron.analytics.google('writebuffer', { value: 'clear' });
-		window.electron.analytics.influx(
-			'application',
-			'topsubmenu',
-			'writebuffer',
-			'clear'
-		);
+    window.electron.analytics.google("writebuffer", { value: "clear" });
+    window.electron.analytics.influx(
+      "application",
+      "topsubmenu",
+      "writebuffer",
+      "clear"
+    );
 
-		writeBuffer.clear();
-		engine.set('ENABLED');
-	}
+    writeBuffer.clear();
+    engine.set("ENABLED");
+  }
 </script>
 
 <top-sub-menu
-	style="background-color:rgb(25, 26, 32)"
-	class="w-full z-10 flex text-white"
+  style="background-color:rgb(25, 26, 32)"
+  class="w-full z-10 flex text-white"
 >
-	<div
-		class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg flex
+  <div
+    class="h-14 py-2 px-2 bg-secondary w-full relative rounded-tl-lg flex
     items-center justify-between"
-	>
-		<div class="px-4">{$appSettings.rightPanel}</div>
+  >
+    <div class="px-4">{$appSettings.rightPanel}</div>
 
-		<!--     {#if $unsaved_changes}
+    <!--     {#if $unsaved_changes}
       <div in:fade class="flex items-center">
         <div class="mr-4">Unsaved changes</div>
         <div
@@ -99,7 +99,7 @@
       </div>
     {/if} -->
 
-		<!--     <div class="px-4">
+    <!--     <div class="px-4">
       <div class="flex items-center">
         <button
           on:click={debugWriteBuffer}
@@ -189,5 +189,5 @@
         </button>
       </div>
     </div> -->
-	</div>
+  </div>
 </top-sub-menu>

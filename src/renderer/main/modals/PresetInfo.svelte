@@ -1,206 +1,206 @@
 <script>
-	import { get } from 'svelte/store';
-	import { clickOutside } from '/main/_actions/click-outside.action';
-	import { appSettings } from '/runtime/app-helper.store';
-	import TooltipSetter from '/main/user-interface/tooltip/TooltipSetter.svelte';
-	import TooltipConfirm from '/main/user-interface/tooltip/TooltipConfirm.svelte';
-	import { presetChangeCallbackStore } from '../panels/newPreset/preset-change.store';
-	import { selectedPresetStore } from '../../runtime/preset-helper.store';
-	import { onMount } from 'svelte';
-	import {
-		engine,
-		logger,
-		runtime,
-		user_input,
-	} from '/runtime/runtime.store.js';
+  import { get } from "svelte/store";
+  import { clickOutside } from "/main/_actions/click-outside.action";
+  import { appSettings } from "/runtime/app-helper.store";
+  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
+  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
+  import { selectedPresetStore } from "../../runtime/preset-helper.store";
+  import { onMount } from "svelte";
+  import {
+    engine,
+    logger,
+    runtime,
+    user_input,
+  } from "/runtime/runtime.store.js";
 
-	let editor;
-	let modalWidth;
-	let modalHeight;
+  let editor;
+  let modalWidth;
+  let modalHeight;
 
-	let liked = false;
+  let liked = false;
 
-	modalWidth = 500;
+  modalWidth = 500;
 
-	$: if (modalWidth || modalHeight) {
-		if (editor !== undefined) {
-			editor.layout();
-		}
-	}
+  $: if (modalWidth || modalHeight) {
+    if (editor !== undefined) {
+      editor.layout();
+    }
+  }
 
-	function isPresetLiked() {
-		liked = !liked;
-	}
+  function isPresetLiked() {
+    liked = !liked;
+  }
 
-	let PRESET_PATH = get(appSettings).persistant.presetFolder;
+  let PRESET_PATH = get(appSettings).persistant.presetFolder;
 
-	let selectedPreset = get(selectedPresetStore);
+  let selectedPreset = get(selectedPresetStore);
 
-	async function deletePresetFromDirectory(element) {
-		await window.electron.configs.deleteConfig(
-			PRESET_PATH,
-			element.name,
-			'presets',
-			element.folder
-		);
+  async function deletePresetFromDirectory(element) {
+    await window.electron.configs.deleteConfig(
+      PRESET_PATH,
+      element.name,
+      "presets",
+      element.folder
+    );
 
-		presetChangeCallbackStore.set({
-			action: 'delete',
-			preset: selectedPreset,
-		});
+    presetChangeCallbackStore.set({
+      action: "delete",
+      preset: selectedPreset,
+    });
 
-		logger.set({
-			type: 'success',
-			mode: 0,
-			classname: 'presetdelete',
-			message: `Preset deleted!`,
-		});
+    logger.set({
+      type: "success",
+      mode: 0,
+      classname: "presetdelete",
+      message: `Preset deleted!`,
+    });
 
-		selectedPreset = undefined;
-	}
+    selectedPreset = undefined;
+  }
 
-	function deletePreset() {
-		deletePresetFromDirectory(selectedPreset);
-		$appSettings.modal = '';
+  function deletePreset() {
+    deletePresetFromDirectory(selectedPreset);
+    $appSettings.modal = "";
 
-		window.electron.analytics.influx('preset-library', {
-			value: 'newPreset_desc_delete',
-		});
-		window.electron.analytics.influx(
-			'application',
-			'presets',
-			'preset',
-			'newPreset_desc_delete'
-		);
-	}
+    window.electron.analytics.influx("preset-library", {
+      value: "newPreset_desc_delete",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "newPreset_desc_delete"
+    );
+  }
 
-	function editPreset() {
-		$appSettings.modal = 'presetEdit';
+  function editPreset() {
+    $appSettings.modal = "presetEdit";
 
-		window.electron.analytics.influx('preset-library', {
-			value: 'newPreset_desc_edit',
-		});
-		window.electron.analytics.influx(
-			'application',
-			'presets',
-			'preset',
-			'newPreset_desc_edit'
-		);
-	}
+    window.electron.analytics.influx("preset-library", {
+      value: "newPreset_desc_edit",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "presets",
+      "preset",
+      "newPreset_desc_edit"
+    );
+  }
 
-	function getImgUrl(img) {
-		const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
+  function getImgUrl(img) {
+    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
 
-		return imgPath;
-	}
+    return imgPath;
+  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
-	class=" z-40 flex absolute items-center justify-center w-full h-screen
+  class=" z-40 flex absolute items-center justify-center w-full h-screen
   bg-secondary bg-opacity-50"
 >
-	<div
-		use:clickOutside={{ useCapture: true }}
-		on:click-outside={() => {
-			$appSettings.modal = '';
-		}}
-		class=" z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
+  <div
+    use:clickOutside={{ useCapture: true }}
+    on:click-outside={() => {
+      $appSettings.modal = "";
+    }}
+    class=" z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
     shadow bg-primary bg-opacity-100 items-start opacity-100 p-6"
-	>
-		<div>Preset Info</div>
-		<button
-			on:click={() => {
-				$appSettings.modal = '';
-			}}
-			id="close-btn"
-			class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
+  >
+    <div>Preset Info</div>
+    <button
+      on:click={() => {
+        $appSettings.modal = "";
+      }}
+      id="close-btn"
+      class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
       hover:bg-secondary"
-		>
-			<svg
-				class="w-5 h-5 p-1 fill-current text-gray-300"
-				viewBox="0 0 29 29"
-				fill="none"
-				xmlns="http://www.w3.org/2000/svg"
-			>
-				<path
-					d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
+    >
+      <svg
+        class="w-5 h-5 p-1 fill-current text-gray-300"
+        viewBox="0 0 29 29"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
           2.37512L2.37506 0.142151Z"
-				/>
-				<path
-					d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
+        />
+        <path
+          d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
           0.142151L28.4264 2.37512Z"
-				/>
-			</svg>
-		</button>
+        />
+      </svg>
+    </button>
 
-		<div
-			class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between"
-		>
-			<div class="flex flex-col gap-4 w-full lg:w-3/6">
-				<div>
-					<div class="flex justify-end items-center">
-						{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-							<div class="text-green-400 font-semibold mb-2">Tags</div>
-						{/if}
+    <div
+      class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between"
+    >
+      <div class="flex flex-col gap-4 w-full lg:w-3/6">
+        <div>
+          <div class="flex justify-end items-center">
+            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              <div class="text-green-400 font-semibold mb-2">Tags</div>
+            {/if}
 
-						{#if selectedPreset.folder == 'user'}
-							<div class="flex gap-2 flex-wrap">
-								<button
-									class="flex gap-2 items-center focus:outline-none
+            {#if selectedPreset.folder == "user"}
+              <div class="flex gap-2 flex-wrap">
+                <button
+                  class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-									on:click|preventDefault={() => {
-										deletePreset();
-									}}
-								>
-									<svg
-										width="20"
-										height="20"
-										viewBox="0 0 39 39"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path
-											d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+                  on:click|preventDefault={() => {
+                    deletePreset();
+                  }}
+                >
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 39 39"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
-											stroke="#FFF"
-											stroke-width="2"
-											stroke-linecap="round"
-										/>
-										<path
-											d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+                      stroke="#FFF"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                    />
+                    <path
+                      d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
-											stroke="#FFF"
-											stroke-width="2"
-										/>
-									</svg>
-									delete
-									<TooltipConfirm key={'newPreset_desc_delete'} />
-									<TooltipSetter key={'newPreset_desc_delete'} />
-								</button>
+                      stroke="#FFF"
+                      stroke-width="2"
+                    />
+                  </svg>
+                  delete
+                  <TooltipConfirm key={"newPreset_desc_delete"} />
+                  <TooltipSetter key={"newPreset_desc_delete"} />
+                </button>
 
-								<button
-									class="flex gap-2 items-center focus:outline-none
+                <button
+                  class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-									on:click|preventDefault={() => {
-										editPreset();
-									}}
-								>
-									<svg
-										width="12"
-										height="12"
-										viewBox="0 0 12 12"
-										fill="none"
-										xmlns="http://www.w3.org/2000/svg"
-									>
-										<path
-											d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
+                  on:click|preventDefault={() => {
+                    editPreset();
+                  }}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
                       4.08732L1.31319 9.75047V10.6697ZM10.7025 4.05449L7.912
                       1.29678L8.83123 0.377544C9.08293 0.125848 9.39219 0
                       9.75901 0C10.1254 0 10.4344 0.125848 10.6861
@@ -215,21 +215,21 @@
                       11.9337C2.68395 11.9665 2.59903 11.9829 2.51148
                       11.9829H0.656597ZM7.43596 4.54694L6.97635 4.08732L7.89558
                       5.00656L7.43596 4.54694Z"
-											fill="#FFF"
-										/>
-									</svg>
-									edit
+                      fill="#FFF"
+                    />
+                  </svg>
+                  edit
 
-									<TooltipSetter key={'newPreset_desc_edit'} />
-								</button>
-							</div>
-						{/if}
-					</div>
+                  <TooltipSetter key={"newPreset_desc_edit"} />
+                </button>
+              </div>
+            {/if}
+          </div>
 
-					<div class="text-lg font-medium">{selectedPreset.name}</div>
-				</div>
-				<div>
-					<!--
+          <div class="text-lg font-medium">{selectedPreset.name}</div>
+        </div>
+        <div>
+          <!--
             this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
@@ -237,51 +237,51 @@
             alt="{selectedProfile.type}_img"
           />
           -->
-				</div>
-				<div>
-					<p>{selectedPreset.description}</p>
-				</div>
-			</div>
-			<div class="w-full lg:w-2/6 flex flex-col justify-between">
-				<div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
-					<div>
-						<div
-							class="flex flex-row justify-between border-primary-700 border-b
+        </div>
+        <div>
+          <p>{selectedPreset.description}</p>
+        </div>
+      </div>
+      <div class="w-full lg:w-2/6 flex flex-col justify-between">
+        <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
+          <div>
+            <div
+              class="flex flex-row justify-between border-primary-700 border-b
               border-t-0 border-x-0 pb-4"
-						>
-							<div>
-								<div class="font-medium mb-1">@{selectedPreset.folder}</div>
+            >
+              <div>
+                <div class="font-medium mb-1">@{selectedPreset.folder}</div>
 
-								{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-									<div class="text-zinc-300">
-										Modified at {selectedPreset.fsModifiedAt
-											.toJSON()
-											.split('T')[0]}
-										<!--  something isn't right with the date in the json here -->
-									</div>
-								{/if}
-							</div>
-							{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-								<div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
-									<button
-										class="flex flex-row items-center justify-between"
-										on:click={() => {
-											isPresetLiked();
-										}}
-									>
-										<div class="border-r pr-2">
-											{#if !liked}
-												<svg
-													class="fill-white"
-													width="15"
-													height="12"
-													viewBox="0 0 38 35"
-													fill="none"
-													xmlns="http://www.w3.org/2000/svg"
-												>
-													<path
-														shape-rendering="optimizeQuality"
-														d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
+                {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                  <div class="text-zinc-300">
+                    Modified at {selectedPreset.fsModifiedAt
+                      .toJSON()
+                      .split("T")[0]}
+                    <!--  something isn't right with the date in the json here -->
+                  </div>
+                {/if}
+              </div>
+              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
+                  <button
+                    class="flex flex-row items-center justify-between"
+                    on:click={() => {
+                      isPresetLiked();
+                    }}
+                  >
+                    <div class="border-r pr-2">
+                      {#if !liked}
+                        <svg
+                          class="fill-white"
+                          width="15"
+                          height="12"
+                          viewBox="0 0 38 35"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            shape-rendering="optimizeQuality"
+                            d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
                           34.5591 3.33109C33.4962 2.28917 32.243 1.46117 30.8677
                           0.892121C29.4415 0.299708 27.912 -0.00352347 26.3677
                           3.08886e-05C24.2012 3.08886e-05 22.0874 0.593293
@@ -308,21 +308,21 @@
                           7.75198C20.3691 5.13284 23.1553 3.33987 26.3677
                           3.33987C30.938 3.33987 34.6426 6.96976 34.6426
                           11.4478C34.6426 20.2896 18.998 30.3135 18.998 30.3135Z"
-													/>
-												</svg>
-											{/if}
-											{#if liked}
-												<svg
-													class="fill-red-600"
-													width="15"
-													height="12"
-													viewBox="0 0 38 35"
-													fill="none"
-													xmlns="http://www.w3.org/2000/svg"
-												>
-													<path
-														shape-rendering="optimizeQuality"
-														d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
+                          />
+                        </svg>
+                      {/if}
+                      {#if liked}
+                        <svg
+                          class="fill-red-600"
+                          width="15"
+                          height="12"
+                          viewBox="0 0 38 35"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            shape-rendering="optimizeQuality"
+                            d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
                           34.5454 3.33112C33.4825 2.2892 32.2293 1.4612 30.854
                           0.892151C29.4279 0.299738 27.8983 -0.00349296 26.354
                           6.14062e-05C24.1875 6.14062e-05 22.0737 0.593323
@@ -344,41 +344,41 @@
                           36.5801 17.2838 37.0723 15.9874C37.6655 14.4361
                           37.9644 12.9112 37.9644 11.4478C37.9688 9.89655
                           37.6567 8.38922 37.0459 6.96979Z"
-													/>
-												</svg>
-											{/if}
-										</div>
+                          />
+                        </svg>
+                      {/if}
+                    </div>
 
-										<div class="font-medium pl-2">200</div>
-									</button>
-								</div>
-							{/if}
-						</div>
-					</div>
+                    <div class="font-medium pl-2">200</div>
+                  </button>
+                </div>
+              {/if}
+            </div>
+          </div>
 
-					<div class="flex flex-col gap-1">
-						<div class="flex justify-between items-center">
-							<div class="text-zinc-300">Made for:</div>
-							<div>{selectedPreset.type}</div>
-						</div>
-						{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-							<div class="flex justify-between items-center">
-								<div class="text-zinc-300">Compatible with:</div>
-								<div class="flex items-center gap-1">
-									<div>Ableton</div>
-								</div>
-							</div>
-						{/if}
-						<div class="flex justify-between items-center">
-							<div class="text-zinc-300">Made with:</div>
-							<div>
-								Grid Editor v{selectedPreset.version.major}.{selectedPreset
-									.version.minor}.{selectedPreset.version.patch}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+          <div class="flex flex-col gap-1">
+            <div class="flex justify-between items-center">
+              <div class="text-zinc-300">Made for:</div>
+              <div>{selectedPreset.type}</div>
+            </div>
+            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              <div class="flex justify-between items-center">
+                <div class="text-zinc-300">Compatible with:</div>
+                <div class="flex items-center gap-1">
+                  <div>Ableton</div>
+                </div>
+              </div>
+            {/if}
+            <div class="flex justify-between items-center">
+              <div class="text-zinc-300">Made with:</div>
+              <div>
+                Grid Editor v{selectedPreset.version.major}.{selectedPreset
+                  .version.minor}.{selectedPreset.version.patch}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </modal>

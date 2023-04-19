@@ -1,5 +1,5 @@
 <script>
-	/*
+  /*
 STATE 0 | No notification (Init state)
 STATE 1 | Mismatch notofic.   | Event   -> STATE 2
 STATE 2 | Waiting for bootl.  | Event   -> STATE 3
@@ -9,293 +9,293 @@ STATE 5 | Success             | Timeout -> STATE 0 (Close notification)
 STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 */
 
-	import { onMount } from 'svelte';
+  import { onMount } from "svelte";
 
-	import { appSettings } from '../runtime/app-helper.store';
-	import { runtime } from '../runtime/runtime.store';
+  import { appSettings } from "../runtime/app-helper.store";
+  import { runtime } from "../runtime/runtime.store";
 
-	import { fade } from 'svelte/transition';
-	import { escape } from 'svelte/internal';
+  import { fade } from "svelte/transition";
+  import { escape } from "svelte/internal";
 
-	const { env } = window.ctxProcess;
+  const { env } = window.ctxProcess;
 
-	let fwMismatch = false;
+  let fwMismatch = false;
 
-	let dotdotdot = '';
+  let dotdotdot = "";
 
-	let flagBootloaderCheck = 0;
-	let booloaderConnectionCheck = undefined;
+  let flagBootloaderCheck = 0;
+  let booloaderConnectionCheck = undefined;
 
-	let bootloader_path = undefined;
+  let bootloader_path = undefined;
 
-	const startBootloaderCheck = () => {
-		if (flagBootloaderCheck === 1) {
-			return;
-		}
+  const startBootloaderCheck = () => {
+    if (flagBootloaderCheck === 1) {
+      return;
+    }
 
-		booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750);
-		flagBootloaderCheck = 1;
-	};
+    booloaderConnectionCheck = setInterval(() => find_bootloader_path(), 750);
+    flagBootloaderCheck = 1;
+  };
 
-	const stopBootloaderCheck = () => {
-		////console.log("Stop Trying")
-		clearInterval(booloaderConnectionCheck);
-		flagBootloaderCheck = 0;
-	};
+  const stopBootloaderCheck = () => {
+    ////console.log("Stop Trying")
+    clearInterval(booloaderConnectionCheck);
+    flagBootloaderCheck = 0;
+  };
 
-	// check for parsed modules
-	runtime.subscribe((store) => {
-		let firmwareMismatchFound = false;
+  // check for parsed modules
+  runtime.subscribe((store) => {
+    let firmwareMismatchFound = false;
 
-		if (store.length === 0) {
-			startBootloaderCheck();
-			if ($appSettings.firmwareNotificationState == 1) {
-				$appSettings.firmwareNotificationState = 2;
-			}
-		} else {
-			stopBootloaderCheck();
-		}
+    if (store.length === 0) {
+      startBootloaderCheck();
+      if ($appSettings.firmwareNotificationState == 1) {
+        $appSettings.firmwareNotificationState = 2;
+      }
+    } else {
+      stopBootloaderCheck();
+    }
 
-		// check modules for firmware mismatch
-		store.forEach((device) => {
-			if ($appSettings.firmwareNotificationState == 6) {
-				$appSettings.firmwareNotificationState = 0;
-				uploadProgressText = '';
-				bootloader_path = undefined;
-			}
+    // check modules for firmware mismatch
+    store.forEach((device) => {
+      if ($appSettings.firmwareNotificationState == 6) {
+        $appSettings.firmwareNotificationState = 0;
+        uploadProgressText = "";
+        bootloader_path = undefined;
+      }
 
-			if (device.fwMismatch === true) {
-				firmwareMismatchFound = true;
-			}
-		});
+      if (device.fwMismatch === true) {
+        firmwareMismatchFound = true;
+      }
+    });
 
-		// if mismatch is found, show notification
-		if (firmwareMismatchFound === true) {
-			appSettings.update((s) => {
-				s.firmwareNotificationState = 1;
-				return s;
-			});
+    // if mismatch is found, show notification
+    if (firmwareMismatchFound === true) {
+      appSettings.update((s) => {
+        s.firmwareNotificationState = 1;
+        return s;
+      });
 
-			// only if mismatch is not already detected
-			if (fwMismatch === false) {
-				window.electron.analytics.google('firmware-download', {
-					value: 'mismatch detected',
-				});
-				window.electron.analytics.influx(
-					'application',
-					'firmwarecheck',
-					'firmware update status',
-					'mismatch detected'
-				);
-				fwMismatch = true;
-			}
-		} else {
-			fwMismatch = false;
-		}
-	});
+      // only if mismatch is not already detected
+      if (fwMismatch === false) {
+        window.electron.analytics.google("firmware-download", {
+          value: "mismatch detected",
+        });
+        window.electron.analytics.influx(
+          "application",
+          "firmwarecheck",
+          "firmware update status",
+          "mismatch detected"
+        );
+        fwMismatch = true;
+      }
+    } else {
+      fwMismatch = false;
+    }
+  });
 
-	let text = '';
-	let uploadProgressText = '';
+  let text = "";
+  let uploadProgressText = "";
 
-	window.electron.firmware.onFirmwareUpdate((_event, value) => {
-		if (value.code !== undefined) {
-			if (value.code == 3 && $appSettings.firmwareNotificationState == 4) {
-				return;
-			}
+  window.electron.firmware.onFirmwareUpdate((_event, value) => {
+    if (value.code !== undefined) {
+      if (value.code == 3 && $appSettings.firmwareNotificationState == 4) {
+        return;
+      }
 
-			if ($appSettings.firmwareNotificationState == 5) {
-				return; // already in success state
-			}
+      if ($appSettings.firmwareNotificationState == 5) {
+        return; // already in success state
+      }
 
-			//console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
-			$appSettings.firmwareNotificationState = value.code;
+      //console.log("Set state from ", $appSettings.firmwareNotificationState, " to ",  value.code)
+      $appSettings.firmwareNotificationState = value.code;
 
-			if (value.message !== undefined) {
-				uploadProgressText = value.message;
-			}
+      if (value.message !== undefined) {
+        uploadProgressText = value.message;
+      }
 
-			// when the firmware update is successful, reset the notification state
-			if (value.code == 5) {
-				setTimeout(() => {
-					$appSettings.firmwareNotificationState = 0;
-				}, 2000);
-			}
-		}
-	});
+      // when the firmware update is successful, reset the notification state
+      if (value.code == 5) {
+        setTimeout(() => {
+          $appSettings.firmwareNotificationState = 0;
+        }, 2000);
+      }
+    }
+  });
 
-	onMount(() => {
-		startBootloaderCheck();
+  onMount(() => {
+    startBootloaderCheck();
 
-		if (ctxProcess.platform() == 'darwin') {
-			text = 'Command + Shift + R';
-		} else {
-			text = 'Ctrl + Shift + R';
-		}
-	});
+    if (ctxProcess.platform() == "darwin") {
+      text = "Command + Shift + R";
+    } else {
+      text = "Ctrl + Shift + R";
+    }
+  });
 
-	async function find_bootloader_path() {
-		//console.log("Try Detect Bootloader")
+  async function find_bootloader_path() {
+    //console.log("Try Detect Bootloader")
 
-		const value = await window.electron.firmware.findBootloaderPath();
+    const value = await window.electron.firmware.findBootloaderPath();
 
-		if (value !== undefined) {
-			if (
-				$appSettings.firmwareNotificationState == 1 ||
-				$appSettings.firmwareNotificationState == 2 ||
-				$appSettings.firmwareNotificationState == 6
-			) {
-				//console.log("Successfuly detection", value.path)
+    if (value !== undefined) {
+      if (
+        $appSettings.firmwareNotificationState == 1 ||
+        $appSettings.firmwareNotificationState == 2 ||
+        $appSettings.firmwareNotificationState == 6
+      ) {
+        //console.log("Successfuly detection", value.path)
 
-				bootloader_path = value.path;
-			} else {
-				//console.log("Dont care detection", value.path)
-				bootloader_path = value.path;
-			}
+        bootloader_path = value.path;
+      } else {
+        //console.log("Dont care detection", value.path)
+        bootloader_path = value.path;
+      }
 
-			//stopBootloaderCheck();
-		} else {
-			if (
-				$appSettings.firmwareNotificationState == 4 ||
-				$appSettings.firmwareNotificationState == 5 ||
-				$appSettings.firmwareNotificationState == 6
-			) {
-				bootloader_path = undefined;
-				//console.log("Disconnect but no problem")
-			} else {
-				//console.log("Disconnect from state", $appSettings.firmwareNotificationState)
+      //stopBootloaderCheck();
+    } else {
+      if (
+        $appSettings.firmwareNotificationState == 4 ||
+        $appSettings.firmwareNotificationState == 5 ||
+        $appSettings.firmwareNotificationState == 6
+      ) {
+        bootloader_path = undefined;
+        //console.log("Disconnect but no problem")
+      } else {
+        //console.log("Disconnect from state", $appSettings.firmwareNotificationState)
 
-				if (typeof bootloader_path !== 'undefined') {
-					////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
+        if (typeof bootloader_path !== "undefined") {
+          ////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
 
-					bootloader_path = undefined;
-					uploadProgressText = 'Bootloader connection lost!';
-					$appSettings.firmwareNotificationState = 6;
-				}
-			}
-		}
-	}
+          bootloader_path = undefined;
+          uploadProgressText = "Bootloader connection lost!";
+          $appSettings.firmwareNotificationState = 6;
+        }
+      }
+    }
+  }
 
-	async function firmwareDownload() {
-		const folder = $appSettings.persistant.profileFolder;
-		await window.electron.firmware.firmwareDownload(folder);
-	}
+  async function firmwareDownload() {
+    const folder = $appSettings.persistant.profileFolder;
+    await window.electron.firmware.firmwareDownload(folder);
+  }
 
-	async function firmwareTroubleshooting() {
-		window.electron.analytics.google('firmware-download', {
-			value: 'troubleshooting',
-		});
-		window.electron.analytics.influx(
-			'application',
-			'firmwarecheck',
-			'firmware update status',
-			'open troubleshooting'
-		);
+  async function firmwareTroubleshooting() {
+    window.electron.analytics.google("firmware-download", {
+      value: "troubleshooting",
+    });
+    window.electron.analytics.influx(
+      "application",
+      "firmwarecheck",
+      "firmware update status",
+      "open troubleshooting"
+    );
 
-		const url = env()['DOCUMENTATION_FIRMWAREUPDATE_URL'];
-		window.electron.openInBrowser(url);
-	}
+    const url = env()["DOCUMENTATION_FIRMWAREUPDATE_URL"];
+    window.electron.openInBrowser(url);
+  }
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1}
-	<div
-		class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
-			<div class="mx-2">
-				Reconnect your module in bootloader mode by holding the utility button
-				while plugging in the USB cable!
-			</div>
-		</div>
-	</div>
+  <div
+    class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2"><b>Oops, firmware mismatch is detected! </b></div>
+      <div class="mx-2">
+        Reconnect your module in bootloader mode by holding the utility button
+        while plugging in the USB cable!
+      </div>
+    </div>
+  </div>
 {/if}
 
 {#if $appSettings.firmwareNotificationState === 2}
-	<div
-		class="w-full bg-blue-600 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2">
-				<b>Waiting for the bootloader to enumerate {dotdotdot} </b>
-			</div>
-			<div class="mx-2">Connect the module in bootloader mode!</div>
-		</div>
-		<div in:fade={{ delay: 8000 }}>
-			<button
-				on:click={firmwareTroubleshooting}
-				class="bg-blue-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded"
-			>
-				<div>Troubleshooting Options</div>
-			</button>
-		</div>
-	</div>
+  <div
+    class="w-full bg-blue-600 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2">
+        <b>Waiting for the bootloader to enumerate {dotdotdot} </b>
+      </div>
+      <div class="mx-2">Connect the module in bootloader mode!</div>
+    </div>
+    <div in:fade={{ delay: 8000 }}>
+      <button
+        on:click={firmwareTroubleshooting}
+        class="bg-blue-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded"
+      >
+        <div>Troubleshooting Options</div>
+      </button>
+    </div>
+  </div>
 {/if}
 
 {#if $appSettings.firmwareNotificationState === 3}
-	<div
-		class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2">
-				<b>{uploadProgressText}</b>
-				{bootloader_path}
-			</div>
-			<div class="mx-2">
-				Click Update to start the automatic update process!
-			</div>
-		</div>
+  <div
+    class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2">
+        <b>{uploadProgressText}</b>
+        {bootloader_path}
+      </div>
+      <div class="mx-2">
+        Click Update to start the automatic update process!
+      </div>
+    </div>
 
-		<button
-			on:click={firmwareDownload}
-			class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-		>
-			Update Firmware
-		</button>
-	</div>
+    <button
+      on:click={firmwareDownload}
+      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+    >
+      Update Firmware
+    </button>
+  </div>
 {/if}
 
 {#if $appSettings.firmwareNotificationState === 4}
-	<div
-		class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2">
-				<b>Update is in progress... </b>
-			</div>
-			<div class="mx-2">{uploadProgressText}</div>
-		</div>
-	</div>
+  <div
+    class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2">
+        <b>Update is in progress... </b>
+      </div>
+      <div class="mx-2">{uploadProgressText}</div>
+    </div>
+  </div>
 {/if}
 
 {#if $appSettings.firmwareNotificationState === 5}
-	<div
-		class="w-full bg-green-500 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2"><b>{uploadProgressText}</b></div>
-			<div class="mx-2">Have fun!</div>
-		</div>
-	</div>
+  <div
+    class="w-full bg-green-500 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2"><b>{uploadProgressText}</b></div>
+      <div class="mx-2">Have fun!</div>
+    </div>
+  </div>
 {/if}
 
 {#if $appSettings.firmwareNotificationState === 6}
-	<div
-		class="w-full bg-red-500 text-white justify-center flex items-center text-center p-4"
-	>
-		<div class="flex-col">
-			<div class="mx-2">
-				<b>{uploadProgressText}</b>
-			</div>
-			<div class="mx-2">Click close message</div>
-		</div>
+  <div
+    class="w-full bg-red-500 text-white justify-center flex items-center text-center p-4"
+  >
+    <div class="flex-col">
+      <div class="mx-2">
+        <b>{uploadProgressText}</b>
+      </div>
+      <div class="mx-2">Click close message</div>
+    </div>
 
-		<button
-			on:click={() => {
-				$appSettings.firmwareNotificationState = 0;
-			}}
-			class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-		>
-			Dismiss
-		</button>
-	</div>
+    <button
+      on:click={() => {
+        $appSettings.firmwareNotificationState = 0;
+      }}
+      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+    >
+      Dismiss
+    </button>
+  </div>
 {/if}
