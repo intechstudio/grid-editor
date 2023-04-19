@@ -16,6 +16,7 @@
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
+  import IconKit from "../../user-interface/IconKit.svelte";
 
   export let events;
   export let elements;
@@ -213,8 +214,9 @@
             copyAllEventConfigsFromSelf();
           }}
         >
-          <div>Copy All</div>
-          <TooltipSetter key={"configuration_copy_all"} />
+          <IconKit iconPath={"copy_all"} />
+
+          <TooltipSetter key={"icons/configuration_copy_all"} />
         </button>
 
         <button
@@ -223,7 +225,7 @@
             overwriteAllEventConfigs();
           }}
         >
-          <div>Overwrite</div>
+          <IconKit iconPath={"paste_all"} />
           <TooltipSetter key={"configuration_overwrite"} />
         </button>
       </div>

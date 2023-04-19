@@ -510,17 +510,23 @@ ipcMain.on("get-env", (event) => {
   event.returnValue = variables;
 });
 
-ipcMain.on("analytics_uuid", (event) => {
-  event.returnValue = store.get("userId");
-});
+ipcMain.on('get-app-path', (event) => {
+  event.returnValue = app.getAppPath()
+})
 
-ipcMain.on("app_version", (event) => {
-  event.returnValue = app.getVersion();
-});
+ipcMain.on('analytics_uuid', (event) => {
+  event.returnValue = store.get('userId')
+})
 
-ipcMain.on("resetAppSettings", (event, arg) => {
-  log.info("Clear app settings...");
-  store.clear();
+ipcMain.on('app_version', (event) => {
+  event.returnValue = app.getVersion()
+})
+
+ipcMain.on('resetAppSettings', (event, arg) => {
+  log.info('Clear app settings...')
+  store.clear()
+
+
 
   if (process.env.APPIMAGE) {
     let options;

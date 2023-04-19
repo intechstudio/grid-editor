@@ -53,6 +53,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
+  import IconKit from "./main/user-interface/IconKit.svelte";
 
   let modalComponents = {};
 
@@ -140,6 +141,8 @@
     });
   }
 
+  let testy = "profile_info_image";
+
   onMount(() => {
     // application mounted, check analytics
     window.electron.analytics.influx("application", "init", "init", "init");
@@ -167,7 +170,6 @@
   class="relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
-
   <NavTabs />
 
   <svelte:component this={modalComponents[$appSettings.modal]} />

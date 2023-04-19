@@ -118,11 +118,6 @@
     );
   }
 
-  function getImgUrl(img) {
-    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
-
-    return imgPath;
-  }
   let sessionPresetNumbers = [];
   let numberForSessionPreset = 0;
 
@@ -434,7 +429,7 @@
             this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
-            src="{getImgUrl(selectedProfile.type)}"
+            src="{getImageUrl(`/imgs/sm_${selectedProfile.type}.jpg`)}"
             alt="{selectedProfile.type}_img"
           />
           -->

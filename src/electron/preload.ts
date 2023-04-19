@@ -10,7 +10,8 @@ contextBridge.exposeInMainWorld("ctxProcess", {
   // we can also expose variables, not just functions
 });
 
-contextBridge.exposeInMainWorld("electron", {
+contextBridge.exposeInMainWorld('electron', {
+  appPath: () => ipcRenderer.sendSync('get-app-path'),
   auth: {
     onExternalResponse: (callback) =>
       ipcRenderer.on("onExternalAuthResponse", callback),

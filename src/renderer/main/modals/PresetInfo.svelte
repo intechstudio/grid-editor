@@ -87,12 +87,6 @@
       "newPreset_desc_edit"
     );
   }
-
-  function getImgUrl(img) {
-    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
-
-    return imgPath;
-  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -233,7 +227,7 @@
             this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
-            src="{getImgUrl(selectedProfile.type)}"
+            src="{`imgs/sm_${selectedProfile.type}.jpg`}"
             alt="{selectedProfile.type}_img"
           />
           -->
