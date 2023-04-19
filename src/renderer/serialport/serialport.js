@@ -18,19 +18,19 @@ let latestValue = 0;
 
 
 // INITIALIZE THE INTERVAL
-console.log("Initialize Discovery Interval! ENABLE debugging through navigator.serialDebug = true");
+console.log("Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true");
 window.electron.serial.restartSerialCheckInterval()
 
 
 navigator.serial.addEventListener("disconnect", (e) => {
-  if (navigator.serialDebug)  console.log("Any Device Disconnect", e, navigator.intechPort); 
-  if (navigator.serialDebug)  console.log("Restart Discovery Interval"); 
+  if (navigator.debugSerial)  console.log("Any Device Disconnect", e, navigator.intechPort); 
+  if (navigator.debugSerial)  console.log("Restart Discovery Interval"); 
   
   window.electron.serial.restartSerialCheckInterval()
 });
 navigator.serial.addEventListener("connect", (e) => {
-  if (navigator.serialDebug)  console.log("Any Device Connect", e,  navigator.intechPort);
-  if (navigator.serialDebug)  console.log("Restart Discovery Interval");
+  if (navigator.debugSerial)  console.log("Any Device Connect", e,  navigator.intechPort);
+  if (navigator.debugSerial)  console.log("Restart Discovery Interval");
   window.electron.serial.restartSerialCheckInterval()
 });
 
@@ -38,7 +38,7 @@ navigator.serial.addEventListener("connect", (e) => {
 export async function testIt() {
 
 
-  if (navigator.serialDebug)  console.log("Serial Try Connect");
+  if (navigator.debugSerial)  console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
@@ -62,7 +62,7 @@ export async function testIt() {
         navigator.intechPort = port
 
         port.addEventListener("disconnect", (e) => {
-          if (navigator.serialDebug)  console.log("The Real Disconnect", e);
+          if (navigator.debugSerial)  console.log("The Real Disconnect", e);
           navigator.intechPort = undefined;
         });
 
@@ -75,13 +75,14 @@ export async function testIt() {
 
 
       }).catch(error => {
-        //console.log(error)
+        if (navigator.debugSerial)  console.log("Error on Open: ", error);
       });
 
 
     }).catch(error => {
       //no port selected by the user
       //console.log(error)
+      if (navigator.debugSerial)  console.log("Error on Request: ", error);
     });
 
   }
