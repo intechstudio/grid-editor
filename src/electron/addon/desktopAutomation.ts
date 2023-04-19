@@ -1,10 +1,8 @@
 /**
- * 
+ *
  * This "nutjs" npm package was introduced in 1.2.26 and broke windows 7 and older mac os versions.
- * 
+ *
  */
-
-
 
 // import {keyboard, Key} from "@nut-tree/nut-js";
 // import { shell } from "electron";
@@ -20,24 +18,20 @@
 
 // let websocketInterval: NodeJS.Timeout | undefined = undefined;
 
-export async function desktopAutomationPluginStart(){
-
-//   if(websocketInterval){
-//     clearInterval(websocketInterval);
-//   }
-
-//   websocketInterval = setInterval(()=>{
-//     connectToWebSocket();
-//   }, connectionCheckInterval)
-
+export async function desktopAutomationPluginStart() {
+  //   if(websocketInterval){
+  //     clearInterval(websocketInterval);
+  //   }
+  //   websocketInterval = setInterval(()=>{
+  //     connectToWebSocket();
+  //   }, connectionCheckInterval)
 }
 
-export async function desktopAutomationPluginStop(){
-//   if(websocketInterval){
-//     clearInterval(websocketInterval);
-//   }
-
-//   webSocketClient?.close();
+export async function desktopAutomationPluginStop() {
+  //   if(websocketInterval){
+  //     clearInterval(websocketInterval);
+  //   }
+  //   webSocketClient?.close();
 }
 
 // function connectToWebSocket(){
@@ -87,12 +81,11 @@ export async function desktopAutomationPluginStop(){
 //         webSocketClient?.send(JSON.stringify({"event": "grid_pong"}));
 //         break;
 //       default:
-        
+
 //     }
 //   })
 
 // }
-
 
 // async function dataHandler(data){
 
@@ -119,7 +112,7 @@ export async function desktopAutomationPluginStop(){
 // // example: websocket_send('{"plugin": "desktopAutomation", "data": [{"url": "https://google.com"}] }')
 // // websocket_send('{"plugin": "desktopAutomation", "data": [{"path": "D:\\Content\\examples"}] }')
 
-// async function typeKey(key: Key){ 
+// async function typeKey(key: Key){
 //   await keyboard.type(Key[key]);
 //   return key;
 // }

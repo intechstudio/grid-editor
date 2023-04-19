@@ -1,26 +1,29 @@
-require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
-const { notarize } = require('@electron/notarize');
-const package = require('../package.json');
+require("dotenv").config();
+const fs = require("fs");
+const path = require("path");
+const { notarize } = require("@electron/notarize");
+const package = require("../package.json");
 
 module.exports = async function (params) {
   // Only notarize the app if building for macOS and the NOTARIZE environment
   // variable is present.
-  if (!process.env.NOTARIZE || process.platform !== 'darwin') {
-    return
+  if (!process.env.NOTARIZE || process.platform !== "darwin") {
+    return;
   }
 
-  console.log('afterSign hook triggered', params);
+  console.log("afterSign hook triggered", params);
 
   // This should match the appId from electron-builder. It reads from
   // package.json so you won't have to maintain two separate configurations.
-  let appId = package.build.appId
+  let appId = package.build.appId;
   if (!appId) {
-    console.error("appId is missing from build configuration 'package.json'")
+    console.error("appId is missing from build configuration 'package.json'");
   }
 
-  let appPath = path.join(params.appOutDir, `${params.packager.appInfo.productFilename}.app`);
+  let appPath = path.join(
+    params.appOutDir,
+    `${params.packager.appInfo.productFilename}.app`
+  );
   if (!fs.existsSync(appPath)) {
     throw new Error(`Cannot find application at: ${appPath}`);
   }

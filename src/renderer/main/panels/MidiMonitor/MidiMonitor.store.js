@@ -209,7 +209,6 @@ function createMidiMonitor(max_val) {
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
-
         UpdateDebugStream(item, "MIDI");
 
         s = [...s, item];
@@ -240,7 +239,6 @@ function createSysExMonitor(max_val) {
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
-
         UpdateDebugStream(item, "SYSEX");
 
         s = [...s, item];
@@ -250,7 +248,6 @@ function createSysExMonitor(max_val) {
   };
 }
 
-
 export const debug_stream = writable([]);
 
 function UpdateDebugStream(item, msg_type) {
@@ -258,7 +255,7 @@ function UpdateDebugStream(item, msg_type) {
     if (items.length >= 32) {
       items.shift();
     }
-    
+
     item.type = msg_type;
     return [...items, item];
   });

@@ -1,22 +1,22 @@
 [
-    {
-        "type": "notificationBAK",
-        "delay": 5000,
-        "class": "bg-blue-500 text-white",
-        "dismissable": true,
-        "link": "https://intech.studio/grid-editor",
-        "message": "Please download the new editor version from the Intech Studio website!"
-    },
-    {
-        "type": "error",
-        "match": "hello is not",
-        "link": "https://links.intech.studio/wiki",
-        "message": "You found the hello error :D How to fix this? Click link to learn more"
-    },
-    {
-        "type": "error",
-        "match": "other is not",
-        "link": "",
-        "message": "This is another error that is handled but without solution"
-    }
+  {
+    "type": "notificationBAK",
+    "delay": 5000,
+    "class": "bg-blue-500 text-white",
+    "dismissable": true,
+    "link": "https://intech.studio/grid-editor",
+    "message": "Please download the new editor version from the Intech Studio website!"
+  },
+  {
+    "type": "error",
+    "match": "hello is not",
+    "link": "https://links.intech.studio/wiki",
+    "message": "You found the hello error :D How to fix this? Click link to learn more"
+  },
+  {
+    "type": "error",
+    "match": "other is not",
+    "link": "",
+    "message": "This is another error that is handled but without solution"
+  }
 ]

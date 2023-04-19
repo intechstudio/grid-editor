@@ -1,22 +1,22 @@
 [
   {
-    "info":    "ControlLeft",
+    "info": "ControlLeft",
     "display": "L Strg"
   },
   {
-    "info":    "ShiftLeft",
+    "info": "ShiftLeft",
     "display": "L Umschalt"
   },
   {
-    "info":    "AltLeft",
+    "info": "AltLeft",
     "display": "L Alt"
   },
   {
-    "info":    "MetaLeft",
+    "info": "MetaLeft",
     "display": "L Meta"
   },
   {
-    "info":    "ControlRight",
+    "info": "ControlRight",
     "display": "R Strg"
   },
   {
@@ -143,7 +143,6 @@
   {
     "info": "Digit2",
     "display": "2"
-
   },
   {
     "info": "Digit3",
@@ -167,7 +166,7 @@
   },
   {
     "info": "Digit8",
-    "display": "8"  
+    "display": "8"
   },
   {
     "info": "Digit9",
@@ -425,5 +424,4 @@
     "info": "ContextMenu",
     "display": "Menu"
   }
-
 ]

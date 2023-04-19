@@ -39,7 +39,7 @@
     "info": "MetaRight",
     "is_modifier": true
   },
-  
+
   {
     "value": "0x04",
     "info": "KeyA",
@@ -180,7 +180,6 @@
     "value": "0x1f",
     "info": "Digit2",
     "is_modifier": false
-
   },
   {
     "value": "0x20",
@@ -210,7 +209,7 @@
   {
     "value": "0x25",
     "info": "Digit8",
-    "is_modifier": false  
+    "is_modifier": false
   },
   {
     "value": "0x26",
@@ -533,5 +532,4 @@
     "info": "ContextMenu",
     "is_modifier": false
   }
-
 ]
