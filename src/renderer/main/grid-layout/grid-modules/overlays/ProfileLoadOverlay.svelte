@@ -10,21 +10,15 @@
   let selectedProfile = undefined;
   let isActionButtonClicked = false;
 
-  $: {
-    const value = $selectedProfileStore;
-    if (value) {
-      selectedProfile = value;
-      showLoadProfileOverlay(id, value.type);
-    }
-  }
+  selectedProfileStore.subscribe((store) => {
+    selectedProfile = store;
+    showLoadProfileOverlay(id, store.type);
+  });
 
-  $: {
-    const value = $isActionButtonClickedStore;
-    if (value) {
-      isActionButtonClicked = value;
-      showLoadProfileOverlay(id, store.type);
-    }
-  }
+  isActionButtonClickedStore.subscribe((store) => {
+    isActionButtonClicked = store;
+    showLoadProfileOverlay(id, store.type);
+  });
 
   function showLoadProfileOverlay(moduleId, profileType) {
     let moduleType = moduleId.substr(0, 4);

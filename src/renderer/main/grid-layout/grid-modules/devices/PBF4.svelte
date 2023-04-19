@@ -36,35 +36,29 @@
     [0, 0, 0],
   ];
 
-  $: {
-    const value = $elementPositionStore;
-    if (value) {
-      try {
-        let eps = value[dx][dy];
+  elementPositionStore.subscribe((value) => {
+    try {
+      let eps = value[dx][dy];
 
-        for (const key in eps) {
-          elementposition_array[key] = eps[key];
-        }
-      } catch (error) {
-        // handle error if needed
+      for (const key in eps) {
+        elementposition_array[key] = eps[key];
       }
+    } catch (error) {
+      return;
     }
-  }
+  });
 
-  $: {
-    const value = $ledColorStore;
-    if (value) {
-      try {
-        let lcs = value[dx][dy];
+  ledColorStore.subscribe((value) => {
+    try {
+      let lcs = value[dx][dy];
 
-        for (const key in lcs) {
-          ledcolor_array[key] = lcs[key];
-        }
-      } catch (error) {
-        // handle error if needed
+      for (const key in lcs) {
+        ledcolor_array[key] = lcs[key];
       }
+    } catch (error) {
+      return;
     }
-  }
+  });
 
   $: if (id) {
     if (id !== undefined && id.length > 4) {

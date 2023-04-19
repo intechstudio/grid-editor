@@ -77,29 +77,19 @@
   let animateFade;
   let animateFly;
 
-  $: {
-    const value = $selectedProfileStore;
-    if (value) {
-      selectedProfile = value;
-    }
-  }
+  selectedProfileStore.subscribe((store) => {
+    selectedProfile = store;
+  });
 
-  $: {
-    const value = $isActionButtonClickedStore;
-    if (value) {
-      isActionButtonClicked = store;
-    }
-  }
+  isActionButtonClickedStore.subscribe((store) => {
+    isActionButtonClicked = store;
+  });
 
-  $: {
-    const value = $profileChangeCallbackStore;
-    if (value.action === "update" || value.action === "delete") {
-      const loadData = async () => {
-        await loadFromDirectory();
-      };
-      loadData();
+  profileChangeCallbackStore.subscribe(async (store) => {
+    if (store.action == "update" || store.action == "delete") {
+      await loadFromDirectory();
     }
-  }
+  });
 
   async function loadFromDirectory() {
     animateFade = false;
@@ -626,12 +616,11 @@
     );
   }
 
-  $: {
-    const value = $profileListRefresh;
-    if (value && PROFILE_PATH) {
-      loadFromDirectory(); //await?
+  profileListRefresh.subscribe((store) => {
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+      loadFromDirectory();
     }
-  }
+  });
 
   function fadeAnimation(node, options) {
     if (animateFade) {

@@ -40,35 +40,29 @@
 
   $: selected = components.find((component) => component.type === type);
 
-  $: {
-    const value = $isActionButtonClickedStore;
-    if (value) {
-      isActionButtonClicked = $isActionButtonClickedStore;
-    }
-  }
-
-  $: {
-    const value = $selectedProfileStore;
-    if (value && !$isActionButtonClicked) {
-      selectedElement = { id: "", brc: {}, event: {} };
-    }
-  }
-
-  $: {
-    const value = $selectedProfileStore;
-    if (value && !isActionButtonClicked) {
-      selectedElement = { id: "", brc: {}, event: {} };
-    }
-  }
-
-  $: {
-    const value = $selectedPresetStore;
-    if (value && !isActionButtonClicked) {
-      selectedElement = { id: "", brc: {}, event: {} };
-    }
-  }
-
   onMount(() => {
+    isActionButtonClickedStore.subscribe((store) => {
+      isActionButtonClicked = store;
+    });
+
+    selectedProfileStore.subscribe((store) => {
+      if (
+        Object.keys($selectedProfileStore).length !== 0 &&
+        isActionButtonClicked == false
+      ) {
+        selectedElement = { id: "", brc: {}, event: {} };
+      }
+    });
+
+    selectedPresetStore.subscribe((store) => {
+      if (
+        Object.keys($selectedPresetStore).length !== 0 &&
+        isActionButtonClicked == false
+      ) {
+        selectedElement = { id: "", brc: {}, event: {} };
+      }
+    });
+
     user_input.subscribe((store) => {
       if (
         Object.keys($selectedProfileStore).length === 0 ||

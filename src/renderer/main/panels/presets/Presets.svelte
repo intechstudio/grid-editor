@@ -50,12 +50,11 @@
     }
   });
 
-  $: {
-    const value = $presetListRefresh;
-    if (value && PRESET_PATH) {
-      loadFromDirectory(); //await?
+  presetListRefresh.subscribe((store) => {
+    if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
+      loadFromDirectory();
     }
-  }
+  });
 
   onMount(() => {
     moveOld();

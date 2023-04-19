@@ -1,94 +1,94 @@
 <script>
-  import { onDestroy, onMount } from "svelte";
-  import { appSettings } from "../../../runtime/app-helper.store";
+	import { onDestroy, onMount } from 'svelte';
+	import { appSettings } from '../../../runtime/app-helper.store';
 
-  import { get } from "svelte/store";
-  const { env } = window.ctxProcess;
+	import { get } from 'svelte/store';
+	const { env } = window.ctxProcess;
 
-  import configuration from "../../../../../configuration.json";
-  import { logger } from "../../../runtime/runtime.store";
+	import configuration from '../../../../../configuration.json';
+	import { logger } from '../../../runtime/runtime.store';
 
-  import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
-  import { userStore } from "$lib/user.store";
+	import { authStore } from '$lib/auth.store'; // this only changes if login, logout happens
+	import { userStore } from '$lib/user.store';
 
-  let iframe_element;
-  let iframe_response_element;
+	let iframe_element;
+	let iframe_response_element;
 
-  $: sendAuthEventToIframe($authStore);
+	$: sendAuthEventToIframe($authStore);
 
-  function sendAuthEventToIframe(authEvent) {
-    if (iframe_element == undefined) return;
+	function sendAuthEventToIframe(authEvent) {
+		if (iframe_element == undefined) return;
 
-    // the authStore should contain an event!
-    if (!authEvent.event) return;
+		// the authStore should contain an event!
+		if (!authEvent.event) return;
 
-    console.log("Parent sending", authEvent);
+		console.log('Parent sending', authEvent);
 
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "userAuthentication",
-        authEvent: authEvent,
-      },
-      "*"
-    );
-  }
+		iframe_element.contentWindow.postMessage(
+			{
+				messageType: 'userAuthentication',
+				authEvent: authEvent,
+			},
+			'*'
+		);
+	}
 
-  async function handleMessageReceive(event) {
-    if (event.data.channelMessageType == "IMPORT_PROFILE") {
-      const path = $appSettings.persistant.profileFolder;
-      const { owner, name, editorData, _id } = event.data;
-      const profile = JSON.parse(editorData);
-      profile.id = _id; // this should be _id instead of id!
-      await window.electron.configs
-        .saveConfig(path, name, profile, "profiles", owner)
-        .then((res) => {
-          logger.set({
-            type: "success",
-            message: `Profile ${name} imported successfully`,
-          });
-          channel.postMessage({ ok: true, data: {} });
-        })
-        .catch((err) => {
-          logger.set({
-            type: "fail",
-            message: `Profile ${name} import failed`,
-          });
-          channel.postMessage({ ok: false, data: {} });
-        });
-    }
-  }
+	async function handleMessageReceive(event) {
+		if (event.data.channelMessageType == 'IMPORT_PROFILE') {
+			const path = $appSettings.persistant.profileFolder;
+			const { owner, name, editorData, _id } = event.data;
+			const profile = JSON.parse(editorData);
+			profile.id = _id; // this should be _id instead of id!
+			await window.electron.configs
+				.saveConfig(path, name, profile, 'profiles', owner)
+				.then((res) => {
+					logger.set({
+						type: 'success',
+						message: `Profile ${name} imported successfully`,
+					});
+					channel.postMessage({ ok: true, data: {} });
+				})
+				.catch((err) => {
+					logger.set({
+						type: 'fail',
+						message: `Profile ${name} import failed`,
+					});
+					channel.postMessage({ ok: false, data: {} });
+				});
+		}
+	}
 
-  let channel; // communication channel received from iframe, used for profile import responses
-  function initChannelCommunication(event) {
-    if (event.data == "profileImportCommunication") {
-      if (event.ports && event.ports.length) {
-        channel = event.ports[0];
-        channel.onmessage = handleMessageReceive;
-      }
-    }
-  }
+	let channel; // communication channel received from iframe, used for profile import responses
+	function initChannelCommunication(event) {
+		if (event.data == 'profileImportCommunication') {
+			if (event.ports && event.ports.length) {
+				channel = event.ports[0];
+				channel.onmessage = handleMessageReceive;
+			}
+		}
+	}
 
-  onMount(async () => {
-    await userStore.known;
-    console.log($userStore);
+	onMount(async () => {
+		await userStore.known;
+		console.log($userStore);
 
-    if (env().NODE_ENV === "development") {
-      $appSettings.profileCloudUrl = "http://localhost:5200";
-    } else {
-      $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-    }
+		if (env().NODE_ENV === 'development') {
+			$appSettings.profileCloudUrl = 'http://localhost:5200';
+		} else {
+			$appSettings.profileCloudUrl = 'https://profile-cloud.web.app';
+		}
 
-    $appSettings.profileCloudUrlEnabled = true;
+		$appSettings.profileCloudUrlEnabled = true;
 
-    window.addEventListener("message", initChannelCommunication);
+		window.addEventListener('message', initChannelCommunication);
 
-    console.log("iframe", iframe_element);
+		console.log('iframe', iframe_element);
 
-    if (iframe_element) {
-      let doc = iframe_element.contentDocument;
-      doc.body.innerHTML =
-        doc.body.innerHTML +
-        `
+		if (iframe_element) {
+			let doc = iframe_element.contentDocument;
+			doc.body.innerHTML =
+				doc.body.innerHTML +
+				`
         <style>
           ::-webkit-scrollbar {
             height: 6px;
@@ -106,62 +106,62 @@
           }
         </style>
         `;
-    }
-  });
+		}
+	});
 
-  onDestroy(() => {
-    console.log("De-initialize Profile Cloud");
-    window.removeEventListener("message", initChannelCommunication);
-  });
+	onDestroy(() => {
+		console.log('De-initialize Profile Cloud');
+		window.removeEventListener('message', initChannelCommunication);
+	});
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full">
-  {#if env().NODE_ENV === "development"}
-    <div class="flex flex-row items-center bg-primary w-full">
-      <input
-        type="checkbox"
-        class="flex m-2"
-        bind:checked={$appSettings.profileCloudUrlEnabled}
-      />
-      <span class="text-white">Custom URL</span>
-    </div>
+	{#if env().NODE_ENV === 'development'}
+		<div class="flex flex-row items-center bg-primary w-full">
+			<input
+				type="checkbox"
+				class="flex m-2"
+				bind:checked={$appSettings.profileCloudUrlEnabled}
+			/>
+			<span class="text-white">Custom URL</span>
+		</div>
 
-    {#if $appSettings.profileCloudUrlEnabled}
-      <div class="flex-row">
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://localhost:5200";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2"
-          >localhost:5200</button
-        >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2"
-          >profile-cloud.web.app</button
-        >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://example.com";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2">example.com</button
-        >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://google.com";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2">google.com</button
-        >
-      </div>
-      <input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
-    {/if}
-  {/if}
-  <iframe
-    bind:this={iframe_element}
-    class="w-full h-full"
-    title="Test"
-    src={$appSettings.profileCloudUrl}
-  />
+		{#if $appSettings.profileCloudUrlEnabled}
+			<div class="flex-row">
+				<button
+					on:click={() => {
+						$appSettings.profileCloudUrl = 'http://localhost:5200';
+					}}
+					class="bg-secondary text-white w-36 rounded m-2"
+					>localhost:5200</button
+				>
+				<button
+					on:click={() => {
+						$appSettings.profileCloudUrl = 'https://profile-cloud.web.app';
+					}}
+					class="bg-secondary text-white w-36 rounded m-2"
+					>profile-cloud.web.app</button
+				>
+				<button
+					on:click={() => {
+						$appSettings.profileCloudUrl = 'http://example.com';
+					}}
+					class="bg-secondary text-white w-36 rounded m-2">example.com</button
+				>
+				<button
+					on:click={() => {
+						$appSettings.profileCloudUrl = 'http://google.com';
+					}}
+					class="bg-secondary text-white w-36 rounded m-2">google.com</button
+				>
+			</div>
+			<input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
+		{/if}
+	{/if}
+	<iframe
+		bind:this={iframe_element}
+		class="w-full h-full"
+		title="Test"
+		src={$appSettings.profileCloudUrl}
+	/>
 </div>

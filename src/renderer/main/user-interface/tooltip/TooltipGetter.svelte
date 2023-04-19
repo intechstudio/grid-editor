@@ -8,13 +8,12 @@
 
   let tooltip_text = "";
 
-  $: {
-    const tip = $current_tooltip_store;
-    if (tip) {
+  onMount(() => {
+    current_tooltip_store.subscribe((tip) => {
       tooltip = tip.bool;
       tooltip_text = tooltip_content[tip.key];
-    }
-  }
+    });
+  });
 
   export function cursorLog(node, { tooltip }) {
     const div = document.getElementById("cursor-tooltip");

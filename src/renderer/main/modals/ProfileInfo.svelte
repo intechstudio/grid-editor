@@ -1,414 +1,407 @@
 <script>
-  import { get } from "svelte/store";
-  import { clickOutside } from "/main/_actions/click-outside.action";
-  import { appSettings } from "/runtime/app-helper.store";
-  import { selectedProfileStore } from "/runtime/profile-helper.store";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
-  import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
-  import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
-  import { v4 as uuidv4 } from "uuid";
+	import { get } from 'svelte/store';
+	import { clickOutside } from '/main/_actions/click-outside.action';
+	import { appSettings } from '/runtime/app-helper.store';
+	import { selectedProfileStore } from '/runtime/profile-helper.store';
+	import TooltipSetter from '/main/user-interface/tooltip/TooltipSetter.svelte';
+	import TooltipConfirm from '/main/user-interface/tooltip/TooltipConfirm.svelte';
+	import { profileChangeCallbackStore } from '../panels/newProfile/profile-change.store';
+	import { presetChangeCallbackStore } from '../panels/newPreset/preset-change.store';
+	import { v4 as uuidv4 } from 'uuid';
 
-  import { onMount } from "svelte";
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "/runtime/runtime.store.js";
+	import { onMount } from 'svelte';
+	import {
+		engine,
+		logger,
+		runtime,
+		user_input,
+	} from '/runtime/runtime.store.js';
 
-  let editor;
-  let modalWidth;
-  let modalHeight;
-  let PRESETS;
-  let PROFILE_PATH = [];
-  let PRESET_PATH = [];
+	let editor;
+	let modalWidth;
+	let modalHeight;
+	let PRESETS;
+	let PROFILE_PATH = [];
+	let PRESET_PATH = [];
 
-  PROFILE_PATH = get(appSettings).persistant.profileFolder;
-  PRESET_PATH = get(appSettings).persistant.presetFolder;
+	PROFILE_PATH = get(appSettings).persistant.profileFolder;
+	PRESET_PATH = get(appSettings).persistant.presetFolder;
 
-  let sessionPreset = GetSessionPreset();
+	let sessionPreset = GetSessionPreset();
 
-  async function GetSessionPreset() {
-    if (PRESETS == null) {
-      await loadFromDirectory();
-    }
-    sessionPreset = PRESETS.filter(
-      (element) => element.folder == "sessionPreset"
-    );
-  }
+	async function GetSessionPreset() {
+		if (PRESETS == null) {
+			await loadFromDirectory();
+		}
+		sessionPreset = PRESETS.filter(
+			(element) => element.folder == 'sessionPreset'
+		);
+	}
 
-  async function loadFromDirectory() {
-    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
-      PRESET_PATH,
-      "presets"
-    );
-  }
+	async function loadFromDirectory() {
+		PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+			PRESET_PATH,
+			'presets'
+		);
+	}
 
-  let liked = false;
+	let liked = false;
 
-  modalWidth = 500;
+	modalWidth = 500;
 
-  $: if (modalWidth || modalHeight) {
-    if (editor !== undefined) {
-      editor.layout();
-    }
-  }
+	$: if (modalWidth || modalHeight) {
+		if (editor !== undefined) {
+			editor.layout();
+		}
+	}
 
-  function isProfileLiked() {
-    liked = !liked;
-  }
+	function isProfileLiked() {
+		liked = !liked;
+	}
 
-  let selectedProfile = get(selectedProfileStore);
+	let selectedProfile = get(selectedProfileStore);
 
-  async function deleteProfileFromDirectory(element) {
-    await window.electron.configs.deleteConfig(
-      PROFILE_PATH,
-      element.name,
-      "profiles",
-      element.folder
-    );
+	async function deleteProfileFromDirectory(element) {
+		await window.electron.configs.deleteConfig(
+			PROFILE_PATH,
+			element.name,
+			'profiles',
+			element.folder
+		);
 
-    profileChangeCallbackStore.set({
-      action: "delete",
-      profile: selectedProfile,
-    });
+		profileChangeCallbackStore.set({
+			action: 'delete',
+			profile: selectedProfile,
+		});
 
-    presetChangeCallbackStore.set({
-      action: "delete",
-      profile: selectedProfile,
-    });
+		presetChangeCallbackStore.set({
+			action: 'delete',
+			profile: selectedProfile,
+		});
 
-    logger.set({
-      type: "success",
-      mode: 0,
-      classname: "profiledelete",
-      message: `Profile deleted!`,
-    });
+		logger.set({
+			type: 'success',
+			mode: 0,
+			classname: 'profiledelete',
+			message: `Profile deleted!`,
+		});
 
-    selectedProfile = undefined;
-  }
+		selectedProfile = undefined;
+	}
 
-  function deleteProfile() {
-    deleteProfileFromDirectory(selectedProfile);
-    $appSettings.modal = "";
+	function deleteProfile() {
+		deleteProfileFromDirectory(selectedProfile);
+		$appSettings.modal = '';
 
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_desc_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_delete"
-    );
-  }
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_desc_delete',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_desc_delete'
+		);
+	}
 
-  function editProfile() {
-    $appSettings.modal = "profileEdit";
+	function editProfile() {
+		$appSettings.modal = 'profileEdit';
 
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_desc_edit",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_edit"
-    );
-  }
+		window.electron.analytics.influx('profile-library', {
+			value: 'newProfile_desc_edit',
+		});
+		window.electron.analytics.influx(
+			'application',
+			'profiles',
+			'profile',
+			'newProfile_desc_edit'
+		);
+	}
 
-  function getImgUrl(img) {
-    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
+	function getImgUrl(img) {
+		const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
 
-    return imgPath;
-  }
-  let sessionPresetNumbers = [];
-  let numberForSessionPreset = 0;
+		return imgPath;
+	}
+	let sessionPresetNumbers = [];
+	let numberForSessionPreset = 0;
 
-  async function convertProfileToSessionPreset(profile) {
-    // a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
-    // a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
+	async function convertProfileToSessionPreset(profile) {
+		// a loggert top level állítsuk, nem kell annyi visszajelzés, hogy betöltse a képernyőt. az error handling jelenleg editorban elég random.
+		// a szép megoldás az lenne, hogy itt lentebb lesz egy Promise.all, ha abban valami error-t dob, akkor a logger error-t állít be, és a felhasználó is értesül róla
 
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "presetsave",
-      message: `Profile to element presets conversion started...`,
-    });
+		logger.set({
+			type: 'progress',
+			mode: 0,
+			classname: 'presetsave',
+			message: `Profile to element presets conversion started...`,
+		});
 
-    // analitikiát @tofinak meg kell javítani
+		// analitikiát @tofinak meg kell javítani
 
-    window.electron.analytics.google("preset-library", {
-      value: "save start",
-    });
+		window.electron.analytics.google('preset-library', {
+			value: 'save start',
+		});
 
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
+		window.electron.analytics.influx(
+			'application',
+			'presets',
+			'preset',
+			'save start'
+		);
 
-    /**
-     * Ez egy jó promise pattern.
-     * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
-     * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
-     * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
-     * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
-     *
-     * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
-     * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
-     */
+		/**
+		 * Ez egy jó promise pattern.
+		 * Profile szétbontását csináljuk, külön "control element presetre". Ehhez a profile configján megyünk végig, ahol megkapjuk az összes elemet.
+		 * Ez bemásolja a "utility button" / 255-es eventű control elementnek a configját is, arra figyelni kell hogy neki más az event típusa.
+		 * Csinálunk nevet a bontott element preseteknek. A neveknek egy számozásuk van, hogy ne legyenek duplikációk.
+		 * Figyelni kell, hogy a különböző modul típusok esetetén az elementek más más névvel rendelkeznek.
+		 *
+		 * A szétbontott element presetekre hívunk egy saveToSessionPreset függvényt, hogy mappába kerüljenek. Ezek promisok.
+		 * A promisokat feloldjuk, és .then() után a logger-t állítjuk, hogy sikeres volt a művelet.
+		 */
 
-    let isSessionPresetNameUnique = undefined;
+		let isSessionPresetNameUnique = undefined;
 
-    function checkIfPresetTitleUnique(input) {
-      let notUniqueName = [];
+		function checkIfPresetTitleUnique(input) {
+			let notUniqueName = [];
 
-      sessionPreset.forEach((element) => {
-        if (element.name.toLowerCase() == input.toLowerCase()) {
-          notUniqueName = [...notUniqueName, element.name];
-        }
-      });
+			sessionPreset.forEach((element) => {
+				if (element.name.toLowerCase() == input.toLowerCase()) {
+					notUniqueName = [...notUniqueName, element.name];
+				}
+			});
 
-      if (notUniqueName.length > 0) {
-        isSessionPresetNameUnique = false;
-      } else {
-        isSessionPresetNameUnique = true;
-      }
-    }
+			if (notUniqueName.length > 0) {
+				isSessionPresetNameUnique = false;
+			} else {
+				isSessionPresetNameUnique = true;
+			}
+		}
 
-    const conversionPromises = profile.configs.map((profileElement) => {
-      let user = "sessionPreset";
+		const conversionPromises = profile.configs.map((profileElement) => {
+			let user = 'sessionPreset';
 
-      let name;
-      let description;
-      let type;
+			let name;
+			let description;
+			let type;
 
-      numberForSessionPreset++;
+			numberForSessionPreset++;
 
-      //if (user == "sessionPreset") {
-      let sessionPresetName;
-      sessionPresetNumbers = [];
+			//if (user == "sessionPreset") {
+			let sessionPresetName;
+			sessionPresetNumbers = [];
 
-      sessionPreset.forEach((sessionPresetElement) => {
-        sessionPresetName = JSON.stringify(sessionPresetElement.name);
-        if (sessionPresetName.includes("Session Preset")) {
-          sessionPresetNumbers = [
-            ...sessionPresetNumbers,
-            parseInt(sessionPresetName.split(" ").pop(), 10),
-          ];
-        }
-      });
+			sessionPreset.forEach((sessionPresetElement) => {
+				sessionPresetName = JSON.stringify(sessionPresetElement.name);
+				if (sessionPresetName.includes('Session Preset')) {
+					sessionPresetNumbers = [
+						...sessionPresetNumbers,
+						parseInt(sessionPresetName.split(' ').pop(), 10),
+					];
+				}
+			});
 
+			name = `${profile.name} - Element ${profileElement.controlElementNumber}`;
+			description = '';
 
-      name =  `${profile.name} - Element ${profileElement.controlElementNumber}`;
-      description = "";
+			if (profile.type == 'BU16') {
+				type = 'button';
+			}
 
-      if (profile.type == "BU16") {
-        type = "button";
-      }
+			if (profile.type == 'PO16') {
+				type = 'potentiometer';
+			}
 
-      if (profile.type == "PO16") {
-        type = "potentiometer";
-      }
+			if (profile.type == 'EN16') {
+				type = 'encoder';
+			}
 
-      if (profile.type == "EN16") {
-        type = "encoder";
-      }
+			if (profile.type == 'EF44') {
+				if ([0, 1, 2, 3].includes(profileElement.controlElementNumber)) {
+					type = 'encoder';
+				}
+				if ([4, 5, 6, 7].includes(profileElement.controlElementNumber)) {
+					type = 'fader';
+				}
+			}
 
-      if (profile.type == "EF44") {
+			if (profile.type == 'PBF4') {
+				if ([0, 1, 2, 3].includes(profileElement.controlElementNumber)) {
+					type = 'potentiometer';
+				}
+				if ([4, 5, 6, 7].includes(profileElement.controlElementNumber)) {
+					type = 'fader';
+				}
+				if ([8, 9, 10, 11].includes(profileElement.controlElementNumber)) {
+					type = 'button';
+				}
+			}
 
-        if ([0,1,2,3].includes(profileElement.controlElementNumber)) {
-          type = "encoder";
-        }
-        if ([4,5,6,7].includes(profileElement.controlElementNumber)) {
-          type = "fader";
-        }
-      }
+			if (profileElement.controlElementNumber === 255) {
+				type = 'system';
+			}
 
-      if (profile.type == "PBF4") {
+			checkIfPresetTitleUnique(name);
+			//}
 
-       
-        if ( [0,1,2,3].includes(profileElement.controlElementNumber)) {
-          type = "potentiometer";
-        }
-        if ( [4,5,6,7].includes(profileElement.controlElementNumber)) {
-          type = "fader";
-        }
-        if ( [8,9,10,11].includes(profileElement.controlElementNumber)) {
-          type = "button";
-        }
-      }
+			let preset = {
+				name: name,
+				description: description,
+				type: type,
+				isGridPreset: true, // differentiator from different JSON files!
+				version: {
+					major: $appSettings.version.major,
+					minor: $appSettings.version.minor,
+					patch: $appSettings.version.patch,
+				},
+				configs: {
+					...profileElement,
+				},
+				id: uuidv4(),
+			};
 
+			if (isSessionPresetNameUnique == true) {
+				return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
+			}
+		});
 
-      if (profileElement.controlElementNumber === 255){
-        type="system"
-      }
+		await Promise.all(conversionPromises).then((res) => {
+			logger.set({
+				type: 'success',
+				mode: 0,
+				classname: 'presetsave',
+				message: `Profile to element presets conversion finished!`,
+			});
+		});
+	}
 
-      checkIfPresetTitleUnique(name);
-      //}
-
-
-
-      let preset = {
-        name: name,
-        description: description,
-        type: type,
-        isGridPreset: true, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        configs: {
-          ...profileElement,
-        },
-        id: uuidv4(),
-      };
-
-      if (isSessionPresetNameUnique == true) {
-        return saveToSessionPreset(PRESET_PATH, preset.name, preset, user);
-      }
-    });
-
-    await Promise.all(conversionPromises).then((res) => {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "presetsave",
-        message: `Profile to element presets conversion finished!`,
-      });
-    });
-  }
-
-  async function saveToSessionPreset(path, name, preset, user) {
-    return await window.electron.configs.saveConfig(
-      path,
-      name,
-      preset,
-      "presets",
-      user
-    );
-  }
+	async function saveToSessionPreset(path, name, preset, user) {
+		return await window.electron.configs.saveConfig(
+			path,
+			name,
+			preset,
+			'presets',
+			user
+		);
+	}
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
-  class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50 "
+	class=" z-40 flex absolute items-center justify-center w-full h-screen
+  bg-secondary bg-opacity-50"
 >
-  <div
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={() => {
-      $appSettings.modal = "";
-    }}
-    class=" z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
-    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6 "
-  >
-    <div>
-      {#if $appSettings.leftPanel == "NewPreset"}
-        Profile Preset
-      {/if}
+	<div
+		use:clickOutside={{ useCapture: true }}
+		on:click-outside={() => {
+			$appSettings.modal = '';
+		}}
+		class=" z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
+    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6"
+	>
+		<div>
+			{#if $appSettings.leftPanel == 'NewPreset'}
+				Profile Preset
+			{/if}
 
-      {#if $appSettings.leftPanel == "NewProfile"}
-        Preset Info
-      {/if}
-    </div>
-    <button
-      on:click={() => {
-        $appSettings.modal = "";
-      }}
-      id="close-btn"
-      class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
+			{#if $appSettings.leftPanel == 'NewProfile'}
+				Preset Info
+			{/if}
+		</div>
+		<button
+			on:click={() => {
+				$appSettings.modal = '';
+			}}
+			id="close-btn"
+			class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
       hover:bg-secondary"
-    >
-      <svg
-        class="w-5 h-5 p-1 fill-current text-gray-300"
-        viewBox="0 0 29 29"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
+		>
+			<svg
+				class="w-5 h-5 p-1 fill-current text-gray-300"
+				viewBox="0 0 29 29"
+				fill="none"
+				xmlns="http://www.w3.org/2000/svg"
+			>
+				<path
+					d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091
           2.37512L2.37506 0.142151Z"
-        />
-        <path
-          d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
+				/>
+				<path
+					d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934
           0.142151L28.4264 2.37512Z"
-        />
-      </svg>
-    </button>
-    {#if $appSettings.leftPanel == "NewProfile"}
-      <div
-        class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between "
-      >
-        <div class="flex flex-col gap-4 w-full lg:w-3/6 ">
-          <div>
-            <div class="flex justify-end items-center ">
-              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                <div class="text-green-400 font-semibold mb-2">Tags</div>
-              {/if}
+				/>
+			</svg>
+		</button>
+		{#if $appSettings.leftPanel == 'NewProfile'}
+			<div
+				class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between"
+			>
+				<div class="flex flex-col gap-4 w-full lg:w-3/6">
+					<div>
+						<div class="flex justify-end items-center">
+							{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+								<div class="text-green-400 font-semibold mb-2">Tags</div>
+							{/if}
 
-              {#if selectedProfile.folder == "user"}
-                <div class="flex gap-2 flex-wrap">
-                  <button
-                    class="flex gap-2 items-center focus:outline-none
+							{#if selectedProfile.folder == 'user'}
+								<div class="flex gap-2 flex-wrap">
+									<button
+										class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                    on:click|preventDefault={() => {
-                      deleteProfile();
-                    }}
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 39 39"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
+										on:click|preventDefault={() => {
+											deleteProfile();
+										}}
+									>
+										<svg
+											width="20"
+											height="20"
+											viewBox="0 0 39 39"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M24.25 23.9102L14.75 14.4102M24.25 14.4102L14.75
                       23.9102"
-                        stroke="#FFF"
-                        stroke-width="2"
-                        stroke-linecap="round"
-                      />
-                      <path
-                        d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
+												stroke="#FFF"
+												stroke-width="2"
+												stroke-linecap="round"
+											/>
+											<path
+												d="M19.5001 34.9933C28.2446 34.9933 35.3334 27.9045
                       35.3334 19.16C35.3334 10.4155 28.2446 3.32666 19.5001
                       3.32666C10.7556 3.32666 3.66675 10.4155 3.66675
                       19.16C3.66675 27.9045 10.7556 34.9933 19.5001 34.9933Z"
-                        stroke="#FFF"
-                        stroke-width="2"
-                      />
-                    </svg>
-                    delete
+												stroke="#FFF"
+												stroke-width="2"
+											/>
+										</svg>
+										delete
 
-                    <TooltipConfirm key={"newProfile_desc_delete"} />
-                    <TooltipSetter key={"newProfile_desc_delete"} />
-                  </button>
+										<TooltipConfirm key={'newProfile_desc_delete'} />
+										<TooltipSetter key={'newProfile_desc_delete'} />
+									</button>
 
-                  <button
-                    class="flex gap-2 items-center focus:outline-none
+									<button
+										class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                    on:click|preventDefault={() => {
-                      editProfile();
-                    }}
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 12 12"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
+										on:click|preventDefault={() => {
+											editProfile();
+										}}
+									>
+										<svg
+											width="12"
+											height="12"
+											viewBox="0 0 12 12"
+											fill="none"
+											xmlns="http://www.w3.org/2000/svg"
+										>
+											<path
+												d="M1.31319 10.6697H2.23243L7.89558 5.00656L6.97635
                       4.08732L1.31319 9.75047V10.6697ZM10.7025 4.05449L7.912
                       1.29678L8.83123 0.377544C9.08293 0.125848 9.39219 0
                       9.75901 0C10.1254 0 10.4344 0.125848 10.6861
@@ -423,21 +416,21 @@
                       11.9337C2.68395 11.9665 2.59903 11.9829 2.51148
                       11.9829H0.656597ZM7.43596 4.54694L6.97635 4.08732L7.89558
                       5.00656L7.43596 4.54694Z"
-                        fill="#FFF"
-                      />
-                    </svg>
-                    edit
+												fill="#FFF"
+											/>
+										</svg>
+										edit
 
-                    <TooltipSetter key={"newProfile_desc_edit"} />
-                  </button>
-                </div>
-              {/if}
-            </div>
+										<TooltipSetter key={'newProfile_desc_edit'} />
+									</button>
+								</div>
+							{/if}
+						</div>
 
-            <div class="text-lg font-medium">{selectedProfile.name}</div>
-          </div>
-          <div>
-            <!--
+						<div class="text-lg font-medium">{selectedProfile.name}</div>
+					</div>
+					<div>
+						<!--
             this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
@@ -445,51 +438,51 @@
             alt="{selectedProfile.type}_img"
           />
           -->
-          </div>
-          <div>
-            <p>{selectedProfile.description}</p>
-          </div>
-        </div>
-        <div class="w-full lg:w-2/6 flex flex-col justify-between gap-y-6">
-          <div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
-            <div>
-              <div
-                class="flex flex-row justify-between border-primary-700 border-b
+					</div>
+					<div>
+						<p>{selectedProfile.description}</p>
+					</div>
+				</div>
+				<div class="w-full lg:w-2/6 flex flex-col justify-between gap-y-6">
+					<div class="bg-secondary py-8 px-6 rounded-lg flex flex-col gap-6">
+						<div>
+							<div
+								class="flex flex-row justify-between border-primary-700 border-b
               border-t-0 border-x-0 pb-4"
-              >
-                <div>
-                  <div class="font-medium mb-1">@{selectedProfile.folder}</div>
+							>
+								<div>
+									<div class="font-medium mb-1">@{selectedProfile.folder}</div>
 
-                  {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                    <div class="text-zinc-300">
-                      Modified at {selectedProfile.fsModifiedAt
-                        .toJSON()
-                        .split("T")[0]}
-                      <!--  something isn't right with the date in the json here -->
-                    </div>
-                  {/if}
-                </div>
-                {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                  <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
-                    <button
-                      class="flex flex-row items-center justify-between "
-                      on:click={() => {
-                        isProfileLiked();
-                      }}
-                    >
-                      <div class="border-r pr-2">
-                        {#if !liked}
-                          <svg
-                            class="fill-white "
-                            width="15"
-                            height="12"
-                            viewBox="0 0 38 35"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              shape-rendering="optimizeQuality"
-                              d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
+									{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+										<div class="text-zinc-300">
+											Modified at {selectedProfile.fsModifiedAt
+												.toJSON()
+												.split('T')[0]}
+											<!--  something isn't right with the date in the json here -->
+										</div>
+									{/if}
+								</div>
+								{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+									<div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
+										<button
+											class="flex flex-row items-center justify-between"
+											on:click={() => {
+												isProfileLiked();
+											}}
+										>
+											<div class="border-r pr-2">
+												{#if !liked}
+													<svg
+														class="fill-white"
+														width="15"
+														height="12"
+														viewBox="0 0 38 35"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															shape-rendering="optimizeQuality"
+															d="M37.0596 6.96976C36.4705 5.60586 35.6212 4.3699
                           34.5591 3.33109C33.4962 2.28917 32.243 1.46117 30.8677
                           0.892121C29.4415 0.299708 27.912 -0.00352347 26.3677
                           3.08886e-05C24.2012 3.08886e-05 22.0874 0.593293
@@ -516,21 +509,21 @@
                           7.75198C20.3691 5.13284 23.1553 3.33987 26.3677
                           3.33987C30.938 3.33987 34.6426 6.96976 34.6426
                           11.4478C34.6426 20.2896 18.998 30.3135 18.998 30.3135Z"
-                            />
-                          </svg>
-                        {/if}
-                        {#if liked}
-                          <svg
-                            class="fill-red-600"
-                            width="15"
-                            height="12"
-                            viewBox="0 0 38 35"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              shape-rendering="optimizeQuality"
-                              d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
+														/>
+													</svg>
+												{/if}
+												{#if liked}
+													<svg
+														class="fill-red-600"
+														width="15"
+														height="12"
+														viewBox="0 0 38 35"
+														fill="none"
+														xmlns="http://www.w3.org/2000/svg"
+													>
+														<path
+															shape-rendering="optimizeQuality"
+															d="M37.0459 6.96979C36.4569 5.60589 35.6075 4.36993
                           34.5454 3.33112C33.4825 2.2892 32.2293 1.4612 30.854
                           0.892151C29.4279 0.299738 27.8983 -0.00349296 26.354
                           6.14062e-05C24.1875 6.14062e-05 22.0737 0.593323
@@ -552,72 +545,72 @@
                           36.5801 17.2838 37.0723 15.9874C37.6655 14.4361
                           37.9644 12.9112 37.9644 11.4478C37.9688 9.89655
                           37.6567 8.38922 37.0459 6.96979Z"
-                            />
-                          </svg>
-                        {/if}
-                      </div>
+														/>
+													</svg>
+												{/if}
+											</div>
 
-                      <div class="font-medium pl-2">200</div>
-                    </button>
-                  </div>
-                {/if}
-              </div>
-            </div>
+											<div class="font-medium pl-2">200</div>
+										</button>
+									</div>
+								{/if}
+							</div>
+						</div>
 
-            <div class="flex flex-col gap-1">
-              <div class="flex justify-between items-center">
-                <div class="text-zinc-300">Made for:</div>
-                <div>{selectedProfile.type}</div>
-              </div>
-              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
-                <div class="flex justify-between items-center">
-                  <div class="text-zinc-300">Compatible with:</div>
-                  <div class="flex items-center gap-1">
-                    <div>Ableton</div>
-                  </div>
-                </div>
-              {/if}
-              <div class="flex justify-between items-center">
-                <div class="text-zinc-300">Made with:</div>
-                <div>
-                  Grid Editor v{selectedProfile.version.major}.{selectedProfile
-                    .version.minor}.{selectedProfile.version.patch}
-                </div>
-              </div>
-            </div>
-          </div>
-          <div
-            class="bg-secondary py-8 px-6 rounded-lg border-cyan-600 border-2 flex flex-col gap-6"
-          >
-            <div
-              class="flex flex-col justify-between 
+						<div class="flex flex-col gap-1">
+							<div class="flex justify-between items-center">
+								<div class="text-zinc-300">Made for:</div>
+								<div>{selectedProfile.type}</div>
+							</div>
+							{#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+								<div class="flex justify-between items-center">
+									<div class="text-zinc-300">Compatible with:</div>
+									<div class="flex items-center gap-1">
+										<div>Ableton</div>
+									</div>
+								</div>
+							{/if}
+							<div class="flex justify-between items-center">
+								<div class="text-zinc-300">Made with:</div>
+								<div>
+									Grid Editor v{selectedProfile.version.major}.{selectedProfile
+										.version.minor}.{selectedProfile.version.patch}
+								</div>
+							</div>
+						</div>
+					</div>
+					<div
+						class="bg-secondary py-8 px-6 rounded-lg border-cyan-600 border-2 flex flex-col gap-6"
+					>
+						<div
+							class="flex flex-col justify-between
                 pb-4 gap-6"
-            >
-              <div>
-                <div class=" text-lg mb-4">
-                  Split to control element presets
-                </div>
-                <div class="text-gray-300">
-                  Convert profile to element presets.
-                </div>
-              </div>
+						>
+							<div>
+								<div class=" text-lg mb-4">
+									Split to control element presets
+								</div>
+								<div class="text-gray-300">
+									Convert profile to element presets.
+								</div>
+							</div>
 
-              <div>
-                <button
-                  on:click={() => {
-                    convertProfileToSessionPreset(selectedProfile);
-                  }}
-                  class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
-                >
-                  <div>Split</div>
-                  <TooltipConfirm key={"newProfile_desc_split_presets"} />
-                  <TooltipSetter key={"newProfile_desc_split_presets"} />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    {/if}
-  </div>
+							<div>
+								<button
+									on:click={() => {
+										convertProfileToSessionPreset(selectedProfile);
+									}}
+									class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
+								>
+									<div>Split</div>
+									<TooltipConfirm key={'newProfile_desc_split_presets'} />
+									<TooltipSetter key={'newProfile_desc_split_presets'} />
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
+	</div>
 </modal>

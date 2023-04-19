@@ -65,15 +65,11 @@
     moveOld();
   });
 
-  $: {
-    const value = $profileListRefresh;
-    if (value && PROFILE_PATH) {
-      const loadData = async () => {
-        await loadFromDirectory();
-      };
-      loadData();
+  profileListRefresh.subscribe(async (store) => {
+    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+      await loadFromDirectory();
     }
-  }
+  });
 
   async function moveOld() {
     if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {

@@ -21,12 +21,9 @@
   let controlElementSettings;
   let selectedIndex;
 
-  $: {
-    const value = $selectedControllerIndexStore;
-    if (value) {
-      selectedIndex = value;
-    }
-  }
+  selectedControllerIndexStore.subscribe((store) => {
+    selectedIndex = store;
+  });
 
   runtime.subscribe((runtime) => {
     let device;
@@ -64,13 +61,10 @@
     }
   }
 
-  $: {
-    const value = $selectedPresetStore;
-    if (value) {
-      selectedPreset = value;
-      showLoadPresetOverlay();
-    }
-  }
+  selectedPresetStore.subscribe((store) => {
+    selectedPreset = store;
+    showLoadPresetOverlay();
+  });
 
   $: if (id) {
     if (id.startsWith("PBF4")) {

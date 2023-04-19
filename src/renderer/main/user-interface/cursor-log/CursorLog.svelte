@@ -9,40 +9,41 @@
 
   let [logClear, popupWindow] = [undefined, undefined];
 
-  $: {
-    const log = $logger;
-    if (log?.message ?? "") {
-      popup = true;
+  onMount(() => {
+    logger.subscribe((log) => {
+      if (log.message != "") {
+        popup = true;
 
-      if (
-        logs.map((l) => l.classname).includes("pagechange") &&
-        log.classname == "strict"
-      ) {
-        logs = [];
-      }
-
-      clearInterval(logClear);
-      clearInterval(popupWindow);
-
-      console.log(logs);
-      if (logs.length > 0) {
-        if (logs.at(-1).data.message === log.message) {
-          logs.at(-1).count += 1;
-          logs = logs;
-        } else {
-          logs = [...logs, { data: log, count: 1 }];
+        if (
+          logs.map((l) => l.classname).includes("pagechange") &&
+          log.classname == "strict"
+        ) {
+          logs = [];
         }
-      } else logs = [...logs, { data: log, count: 1 }];
 
-      popupWindow = setTimeout(() => {
-        popup = false;
-      }, 5250);
+        clearInterval(logClear);
+        clearInterval(popupWindow);
 
-      logClear = setTimeout(() => {
-        logs = [];
-      }, 5000);
-    }
-  }
+        console.log(logs);
+        if (logs.length > 0) {
+          if (logs.at(-1).data.message === log.message) {
+            logs.at(-1).count += 1;
+            logs = logs;
+          } else {
+            logs = [...logs, { data: log, count: 1 }];
+          }
+        } else logs = [...logs, { data: log, count: 1 }];
+
+        popupWindow = setTimeout(() => {
+          popup = false;
+        }, 5250);
+
+        logClear = setTimeout(() => {
+          logs = [];
+        }, 5000);
+      }
+    });
+  });
 
   $: if (logs.length >= 6) {
     logs.shift();
@@ -51,10 +52,9 @@
 
   let engine_state = 0;
 
-  $: {
-    const _engine_state = $engine;
+  engine.subscribe((_engine_state) => {
     engine_state = _engine_state;
-  }
+  });
 
   export function cursorLog(node, { popup }) {
     const div = document.getElementById("cursor-log");
