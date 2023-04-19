@@ -450,9 +450,9 @@
           {#each $devices as device}
             <div
               in:fly={{
-                x: calculate_x(device.fly_x, device.fly_y),
-                y: calculate_y(device.fly_x, device.fly_y),
-                duration: 150,
+                x: -calculate_x(device.fly_x, device.fly_y),
+                y: -calculate_y(device.fly_x, device.fly_y),
+                duration: 500,
               }}
               out:fade={{ duration: 150 }}
               id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
@@ -460,7 +460,7 @@
                 device.dx,
                 device.dy
               ) + 'px'};left:{calculate_x(device.dx, device.dy) + 'px'};"
-              class="device"
+              class="device transition-all duration-300"
               class:fwMismatch={device.fwMismatch}
             >
               <Device
