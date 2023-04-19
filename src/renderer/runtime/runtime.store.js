@@ -604,6 +604,7 @@ function create_runtime() {
           return [...devices, controller];
         });
         heartbeat.update((devices) => {
+          console.log("Incoming Device");
           return [...devices, { id: controller.id, alive: Date.now() }];
         });
 
