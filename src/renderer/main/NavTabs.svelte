@@ -30,7 +30,7 @@
         $appSettings.rightPanelVisible == true ? store.right.default : 0;
       return store;
     });
-    console.log($appSettings.rightPanelVisible)
+    console.log($appSettings.rightPanelVisible);
   }
 
   function changeLeftTab(tab) {
@@ -81,7 +81,7 @@
 
 <nav-tab
   style="background-color:rgb(25, 26, 32)"
-  class=" flex px-1 flex-col items-center justify-between  h-full"
+  class=" flex px-1 flex-col items-center justify-between h-full"
 >
   <div class="flex flex-col">
     <!--
@@ -105,7 +105,7 @@
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
         'Configuration' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary "
+        : 'bg-opacity-40'} bg-secondary"
     >
       <svg
         class="stroke-current text-white"
@@ -119,7 +119,7 @@
         <rect x="1.17725" y="12.1777" width="10" height="1" fill="black" />
       </svg>
       <div
-        class="left-0 -ml-3 absolute transition-all  
+        class="left-0 -ml-3 absolute transition-all
         {selectedRightTab == 'Configuration' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -131,7 +131,7 @@
       on:click={() => {
         changeRightTab("Preferences");
       }}
-      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg 
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
       {selectedRightTab == 'Preferences' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100 '
         : 'bg-opacity-40 '} bg-secondary"
@@ -151,8 +151,8 @@
         />
       </svg>
       <div
-        class="left-0 -ml-3 absolute transition-all  {selectedRightTab ==
-        'Preferences' && $appSettings.rightPanelVisible
+        class="left-0 -ml-3 absolute transition-all {selectedRightTab ==
+          'Preferences' && $appSettings.rightPanelVisible
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
@@ -166,10 +166,10 @@
         on:click={() => {
           changeLeftTab("NewProfile");
         }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 
+        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
         {selectedLeftTab == 'NewProfile' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary "
+          : 'bg-opacity-40'} bg-secondary"
       >
         <svg
           class="fill-current text-white p-0.5"
@@ -195,7 +195,7 @@
         </svg>
 
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'NewProfile' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -207,10 +207,10 @@
         on:click={() => {
           changeLeftTab("NewPreset");
         }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 
+        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
         {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary "
+          : 'bg-opacity-40'} bg-secondary"
       >
         <svg
           class="fill-current text-white p-0.5"
@@ -241,7 +241,7 @@
         </svg>
 
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'NewPreset' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -258,7 +258,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
           'Presets' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary "
+          : 'bg-opacity-40'} bg-secondary"
       >
         <svg
           class="fill-current text-white p-0.5"
@@ -289,7 +289,7 @@
         </svg>
 
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'Presets' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -304,7 +304,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
           'Profiles' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary "
+          : 'bg-opacity-40'} bg-secondary"
       >
         <svg
           class="fill-current text-white p-0.5"
@@ -483,7 +483,7 @@
         </svg>
 
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'Profiles' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -499,7 +499,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'Debug' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary "
+        : 'bg-opacity-40'} bg-secondary"
     >
       <svg
         class="fill-current text-white p-0.5"
@@ -545,7 +545,7 @@
       </svg>
 
       <div
-        class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+        class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
           'Debug' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -588,7 +588,7 @@
         />
       </svg>
       <div
-        class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+        class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
           'MIDI Monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -603,7 +603,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
           'Websocket' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary "
+          : 'bg-opacity-40'} bg-secondary"
       >
         <svg
           class="fill-current text-white p-0.5"
@@ -649,7 +649,7 @@
         </svg>
 
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'Websocket' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -660,7 +660,7 @@
     {#if $appSettings.persistant.showLoginRegister}
       <button
         on:click={() => {
-          changeLeftTab("User Account");
+          $appSettings.modal = "userLogin";
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
           'User Account' && $splitpanes.left.size != 0
@@ -686,7 +686,7 @@
           />
         </svg>
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'User Account' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
@@ -723,7 +723,7 @@
           />
         </svg>
         <div
-          class="left-0 -ml-3 absolute transition-all  {selectedLeftTab ==
+          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
             'Profile Cloud' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"

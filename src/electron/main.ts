@@ -61,6 +61,7 @@ let mainWindow
 // To avoid context aware flag.
 app.allowRendererProcessReuse = false
 
+
 let tray = null
 
 function create_tray() {
@@ -143,10 +144,14 @@ if (!gotTheLock) {
     if (process.platform !== 'darwin') {
       create_tray()
     }
-
     createWindow()
   })
 }
+
+// We should be able to set the dock icon and menu name of the app, but it doesnt work
+// app.on('ready', () => {
+//   app.setName('Grid Editor')
+// })
 
 function createWindow() {
   const windowTitle = 'Grid Editor - ' + process.env.EDITOR_VERSION
@@ -322,10 +327,9 @@ ipcMain.handle('stopPlugin', async (event, arg) => {
   return 'ok';
 })
 
-console.log(deeplink)
 
 deeplink.on('received', (data) => {
-  console.log('deeplink receive', data)
+  // we could check if this is grid-editor-dev or other env specific call, but this will do for now
   if (data.startsWith('grid-editor')) {
     const splitArray = data.split('://')
     const credential = splitArray[1].replace('credential=', '')
