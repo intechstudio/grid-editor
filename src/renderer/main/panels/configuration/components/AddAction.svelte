@@ -24,7 +24,7 @@
 
   import { getAllComponents } from "../../../../lib/_configs";
   import { end } from "luaparse";
-  import { object_without_properties } from "svelte/internal";
+  import { insert, object_without_properties } from "svelte/internal";
 
   export let animation = false;
   export let userHelper = false;
@@ -107,6 +107,7 @@
   let action_options = [];
   onMount(() => {});
 
+  //TODO: Simplify this
   function allowedConditionsAtPosition(configList, insertPosition) {
     let withinIfEndScope = true;
     let ifEndPairFlagReverse = 0;
@@ -173,7 +174,8 @@
     // default az if mint lehetőség
     let allowedConditions = ["if"];
 
-    if (withinIfEndScope == true) {
+    //TODO: Remove the type check for undefined and refactor the whole function
+    if (withinIfEndScope == true && typeof insertPosition !== "undefined") {
       //
       if (
         ifScopeOfActionReverse[0] == "ei" &&
@@ -382,7 +384,7 @@
     <div class="h-2 w-full rounded-full bg-pick -mr-1" />
 
     <div
-      class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10 "
+      class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10"
     >
       <svg
         class="w-5 h-5 p-1"
@@ -431,7 +433,7 @@
       }}
       style="right: calc(100% + 2rem);top:{-250 +
         topOffset}px;width:300px;height:500px;z-index:9999"
-      class="absolute shadow-md rounded-md bg-primary border border-gray-700 p-4 "
+      class="absolute shadow-md rounded-md bg-primary border border-gray-700 p-4"
     >
       <wrapper
         use:clickOutside={{ useCapture: true }}
@@ -494,7 +496,7 @@
                     on:double-click={closeActionPicker}
                     class="action-card {selected_action == action.desc
                       ? ' border-pick'
-                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white           "
+                      : ''} border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
                   >
                     <div class="w-6 h-6 p-0.5 m-0.5">{@html action.icon}</div>
                     <div

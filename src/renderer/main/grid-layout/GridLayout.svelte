@@ -46,17 +46,8 @@
   let surface_width = 0;
   let surface_height = 0;
 
-  const surface_origin_x = tweened(0, {
-    duration: 400,
-    delay: 150,
-    easing: cubicOut,
-  });
-
-  const surface_origin_y = tweened(0, {
-    duration: 400,
-    delay: 150,
-    easing: cubicOut,
-  });
+  let surface_origin_x = 0;
+  let surface_origin_y = 0;
 
   // $appSettings.size
   $: gridsize = 2.1 * 106.6 + 10;
@@ -99,46 +90,29 @@
       let connection_right = 0;
 
       rt.forEach((neighbor) => {
-        if (device.dx - neighbor.dx === 1) {
-          connection_right = 1;
-        }
-        if (device.dx - neighbor.dx === -1) {
-          connection_left = 1;
-        }
+        const dxDiff = device.dx - neighbor.dx;
+        const dyDiff = device.dy - neighbor.dy;
 
-        if (device.dy - neighbor.dy === 1) {
-          connection_bottom = 1;
-        }
-        if (device.dy - neighbor.dy === -1) {
-          connection_top = 1;
-        }
+        connection_right = dxDiff > 0 ? 1 : 0;
+        connection_left = dxDiff < 0 ? 1 : 0;
+        connection_bottom = dyDiff > 0 ? 1 : 0;
+        connection_top = dyDiff < 0 ? 1 : 0;
       });
-
-      if (min_x > device.dx) {
-        min_x = device.dx;
-      }
-
-      if (min_y > device.dy) {
-        min_y = device.dy;
-      }
-
-      if (max_x < device.dx) {
-        max_x = device.dx;
-      }
-
-      if (max_y < device.dy) {
-        max_y = device.dy;
-      }
 
       rt[i].fly_x = 100 * (connection_right - connection_left);
       rt[i].fly_y = 100 * (connection_top - connection_bottom);
+
+      min_x = Math.min(min_x, device.dx);
+      min_y = Math.min(min_y, device.dy);
+      max_x = Math.max(max_x, device.dx);
+      max_y = Math.max(max_y, device.dy);
     });
 
     surface_width = max_x - min_x + 1;
     surface_height = max_y - min_y + 1;
 
-    surface_origin_x.set((min_x + max_x) / 2);
-    surface_origin_y.set((min_y + max_y) / 2);
+    surface_origin_x = (min_x + max_x) / 2;
+    surface_origin_y = (min_y + max_y) / 2;
 
     devices.set(rt);
   });
@@ -177,7 +151,7 @@
     let x_rot = x0 * Math.cos(rot) - y0 * Math.sin(rot);
 
     x_rot -=
-      $surface_origin_x * Math.cos(rot) - $surface_origin_y * Math.sin(rot);
+      surface_origin_x * Math.cos(rot) - surface_origin_y * Math.sin(rot);
 
     return x_rot * 106.6 * $appSettings.size * 1.05;
   }
@@ -187,7 +161,7 @@
     let y_rot = x0 * Math.sin(rot) + y0 * Math.cos(rot);
 
     y_rot -=
-      $surface_origin_x * Math.sin(rot) + $surface_origin_y * Math.cos(rot);
+      surface_origin_x * Math.sin(rot) + surface_origin_y * Math.cos(rot);
 
     return -1 * (y_rot * 106.6 * $appSettings.size * 1.05);
   }
@@ -257,14 +231,14 @@
   >
     <grid-layout
       class="relative overflow-hidden w-full flex flex-col h-full
-    focus:outline-none border-none outline-none "
+    focus:outline-none border-none outline-none"
     >
       <Pages />
-      <section class="relative inline-block  mx-auto my-8 ">
+      <section class="relative inline-block mx-auto my-8">
         <div
-          class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg "
+          class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg"
         >
-          <div class="mr-4 text-white font-medium  ">
+          <div class="mr-4 text-white font-medium">
             {$unsaved_changes} active changes
           </div>
           <div>
@@ -273,7 +247,7 @@
                 discard();
               }}
               class="relative flex items-center justify-center focus:outline-none
-          rounded  border-select bg-select border-2 hover:bg-yellow-600
+          rounded border-select bg-select border-2 hover:bg-yellow-600
           hover:border-yellow-600 text-white px-2 py-0.5"
             >
               <div>Discard</div>
@@ -289,10 +263,10 @@
               class="{$engine == 'ENABLED'
                 ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20'
                 : 'opacity-75'}
-          relative flex items-center justify-center rounded 
+          relative flex items-center justify-center rounded
           focus:outline-none border-2 border-commit bg-commit
           hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white
-          px-2 py-0.5  w-24"
+          px-2 py-0.5 w-24"
             >
               <div>Store</div>
               <TooltipSetter key={"configuration_header_store"} />
@@ -318,8 +292,8 @@
           <button
             on:click={debugWriteBuffer}
             class=" relative flex items-center focus:outline-none justify-center
-          rounded  border-select bg-select border-2 text-white px-2 py-0.5
-           w-48 "
+          rounded border-select bg-select border-2 text-white px-2 py-0.5
+           w-48"
           >
             <span class="pr-2 text-gray-200 tracking-wider">
               {$engine}
@@ -471,9 +445,9 @@
           {#each $devices as device}
             <div
               in:fly={{
-                x: calculate_x(device.fly_x, device.fly_y),
-                y: calculate_y(device.fly_x, device.fly_y),
-                duration: 150,
+                x: -calculate_x(device.fly_x, device.fly_y),
+                y: -calculate_y(device.fly_x, device.fly_y),
+                duration: 500,
               }}
               out:fade={{ duration: 150 }}
               id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
@@ -481,7 +455,7 @@
                 device.dx,
                 device.dy
               ) + 'px'};left:{calculate_x(device.dx, device.dy) + 'px'};"
-              class="device"
+              class="device transition-all duration-300"
               class:fwMismatch={device.fwMismatch}
             >
               <Device

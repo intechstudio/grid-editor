@@ -497,7 +497,7 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center  ">
+    <div class="flex py-2 text-white items-center">
       <label class="mx-1">
         <input
           class="mr-1"
@@ -583,7 +583,7 @@
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
           ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5 "
+          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
       >
         NVM Defrag
       </button>
@@ -595,7 +595,7 @@
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
           ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5"
+          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
       >
         NVM Erase
       </button>
@@ -633,7 +633,6 @@
     >
       <div>Trigger error: other</div>
     </button> -->
-
   </div>
 </preferences>
 

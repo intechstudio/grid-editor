@@ -31,7 +31,7 @@
   import _utils from "../runtime/_utils.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
-  import validate from "./_validators";
+  import { Validator } from "./_validators";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
 
   export let config;
@@ -45,6 +45,23 @@
   const dispatch = createEventDispatcher();
 
   const parameterNames = ["LED Number", "Layer", "Phase", "Rate", "Shape"];
+  const validators = [
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+    (e) => {
+      return new Validator(e).NotEmpty().Result();
+    },
+  ];
 
   let scriptSegments = [];
 
@@ -64,42 +81,14 @@
   });
 
   function sendData(e, index) {
-    let valid = 0;
-
-    const validator = new validate.check(e);
-
-    const locals = $localDefinitions.map((l) => l.value);
-
-    if (index == 0) {
-      valid = validator.min(0).max(15).result();
-    }
-
-    if (index == 1) {
-      valid = validator.min(1).max(2).result();
-    }
-
-    if (index == 2) {
-      valid = validator.min(0).max(255).result();
-    }
-
-    if (index == 3) {
-      valid = validator.min(-255).max(255).result();
-    }
-
-    if (index == 4) {
-      valid = validator.min(0).max(3).result();
-    }
-
-    if (valid) {
-      scriptSegments[index] = e;
-      // important to set the function name = human readable for now
-      const script = _utils.segmentsToScript({
-        human: config.human,
-        short: "glpfs",
-        array: scriptSegments,
-      });
-      dispatch("output", { short: config.short, script: script });
-    }
+    scriptSegments[index] = e;
+    // important to set the function name = human readable for now
+    const script = _utils.segmentsToScript({
+      human: config.human,
+      short: "glpfs",
+      array: scriptSegments,
+    });
+    dispatch("output", { short: config.short, script: script });
   }
 
   const _suggestions = [
@@ -180,6 +169,11 @@
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
+          validator={validators[i]}
+          on:validator={(e) => {
+            const data = e.detail;
+            dispatch("validator", data);
+          }}
           on:active-focus={(e) => {
             onActiveFocus(e, i);
           }}

@@ -39,7 +39,7 @@
   >
     <div class="p-8 flex-col w-full flex justify-between items-center">
       <div class="flex w-full text-4xl opacity-90">Send Feedback</div>
-      <div class="flex w-full text-2xl opacity-70 ">Intech Studio</div>
+      <div class="flex w-full text-2xl opacity-70">Intech Studio</div>
 
       <button
         on:click={() => {
@@ -68,14 +68,14 @@
     </div>
 
     <div class="p-8 flex-col w-full flex justify-between ml-auto">
-      <div class="mt-4 mb-1 text-gray-500 ">Feedback Context:</div>
+      <div class="mt-4 mb-1 text-gray-500">Feedback Context:</div>
       <input
         bind:this={feedback.title}
         class="bg-secondary p-2"
         type="text"
         value={$appSettings.feedback_context}
       />
-      <div class="mt-4 mb-1 text-gray-500 ">Text:</div>
+      <div class="mt-4 mb-1 text-gray-500">Text:</div>
       <textarea bind:this={feedback.text} class="bg-secondary p-2 h-36" />
       <button
         on:click={sendFeedback}
@@ -93,10 +93,10 @@
       bg-opacity-10 justify-between items-center"
     >
       <div class="flex flex-col h-full p-6">
-        <div class="flex w-full opacity-70 ">
+        <div class="flex w-full opacity-70">
           Grid Editor is Open-Source Software
         </div>
-        <div class="flex w-full opacity-40 ">Developed by Intech Studio</div>
+        <div class="flex w-full opacity-40">Developed by Intech Studio</div>
       </div>
     </div>
   </div>

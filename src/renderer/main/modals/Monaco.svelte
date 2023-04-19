@@ -150,13 +150,13 @@
       class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center"
     >
       <div
-        class="flex flex-row w-full h-content bg-black bg-opacity-10  justify-between items-center"
+        class="flex flex-row w-full h-content bg-black bg-opacity-10 justify-between items-center"
       >
         <div class="flex flex-col h-full p-6">
-          <div class="flex w-full opacity-70 ">
+          <div class="flex w-full opacity-70">
             Grid Editor is Open-Source Software
           </div>
-          <div class="flex w-full opacity-40 ">Developed by Intech Studio</div>
+          <div class="flex w-full opacity-40">Developed by Intech Studio</div>
         </div>
 
         <div class="flex flex-row items-center h-full p-6">
@@ -189,7 +189,7 @@
               $appSettings.modal = "";
             }}
             id="close-btn"
-            class="p-1  cursor-pointer rounded not-draggable hover:bg-secondary bg-primary"
+            class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary bg-primary"
           >
             Close
           </button>
@@ -206,10 +206,10 @@
 
     <div
       bind:this={scrollDown}
-      class="flex-col  w-full h-1/3 flex overflow-y-scroll bg-secondary"
+      class="flex-col w-full h-1/3 flex overflow-y-scroll bg-secondary"
     >
       {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-1 font-mono text-white ">{debug}</span>
+        <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
       {/each}
     </div>
   </div>

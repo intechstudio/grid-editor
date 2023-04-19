@@ -104,9 +104,11 @@
         >
           <div class="flex flex-row items-center">
             <div
-              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count === 1? " opacity-0 ": ""}"
+              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count ===
+              1
+                ? ' opacity-0 '
+                : ''}"
             >
-            
               <div class="text-center">{log.count}x</div>
             </div>
             <div

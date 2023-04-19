@@ -9,6 +9,7 @@
   import {
     runtime,
     user_input,
+    logger,
     localDefinitions,
     luadebug_store,
     appMultiSelect,
@@ -37,6 +38,7 @@
   export let toggle = false;
 
   let syntaxError = false;
+  let validationError = false;
   let animationDuration = 0;
 
   onMount(() => {
@@ -53,8 +55,7 @@
           ? 0
           : 400;
     }
-
-    isSyntaxError(config.script);
+    isSyntaxError();
   });
 
   let informationOverride = {};
@@ -75,12 +76,22 @@
     handleConfigChange({ configName: config.information.name });
   }
 
-  function isSyntaxError(code) {
+  function isSyntaxError() {
     try {
+      let toValidate =
+        typeof config.toValidate !== "undefined"
+          ? config.toValidate
+          : config.script;
+      checkSyntax(toValidate);
       syntaxError = false;
-      checkSyntax(config.script);
     } catch (e) {
       syntaxError = true;
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "syntaxerror",
+        message: `Syntax Error`,
+      });
     }
     return syntaxError;
   }
@@ -181,7 +192,7 @@
 >
   <carousel
     class=" flex flex-grow text-white {syntaxError
-      ? 'border-red-600 border-opacity-75'
+      ? 'border-error border-opacity-75'
       : 'border-transparent'} border"
     id="cfg-{index}"
     config-component={config.information.name}
@@ -195,15 +206,14 @@
         : ''}"
     >
       <div
-        class=" contents w-full  {disable_pointer_events == true
-
+        class=" contents w-full {disable_pointer_events == true
           ? 'group-hover:pointer-events-none '
           : ''}"
       >
         <div
-          class="flex p-2 items-center  {!toggle
+          class="flex p-2 items-center {!toggle
             ? 'group-hover:bg-select-saturate-10'
-            : ''}  bg-secondary  {config.information.grabbing !== false
+            : ''}  bg-secondary {config.information.grabbing !== false
             ? 'cursor-grab'
             : 'opacity-0 cursor-default '}"
         >
@@ -211,7 +221,6 @@
             class=" {config.information.grabbing !== false
               ? 'opacity-40'
               : 'opacity-0'}  group-hover:opacity-100"
-
             width="8"
             height="13"
             viewBox="0 0 8 13"
@@ -233,7 +242,7 @@
             on:click={() => {
               handleToggle(config.short);
             }}
-            class=" flex relative w-min  {disable_pointer_events && toggle
+            class=" flex relative w-min {disable_pointer_events && toggle
               ? 'group-hover:pointer-events-auto'
               : toggle
               ? 'cursor-pointer '
@@ -303,9 +312,14 @@
               on:informationOverride={(e) => {
                 information_override(e);
               }}
+              on:validator={(e) => {
+                const data = e.detail;
+                validationError = data.isError;
+              }}
               on:output={(e) => {
                 config.script = e.detail.script;
-                isSyntaxError(config.script);
+                config.toValidate = e.detail.toValidate;
+                isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
               }}
@@ -328,7 +342,7 @@
           <div class="flex flex-row justify-between w-full items-center">
             <span>{config.information.desc}</span>
             {#if syntaxError}
-              <span class="text-red-600 text-xs">SYNTAX ERROR</span>
+              <span class="text-error text-xs">SYNTAX ERROR</span>
             {/if}
           </div>
         </name>
@@ -355,9 +369,14 @@
               on:informationOverride={(e) => {
                 information_override(e);
               }}
+              on:validator={(e) => {
+                const data = e.detail;
+                validationError = data.isError;
+              }}
               on:output={(e) => {
                 config.script = e.detail.script;
-                isSyntaxError(config.script);
+                config.toValidate = e.detail.toValidate;
+                isSyntaxError();
                 handleConfigChange({ configName: config.information.name });
                 configs = configs;
               }}

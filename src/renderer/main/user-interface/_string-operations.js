@@ -66,7 +66,7 @@ const stringManipulation = {
       //functions: functions
     };
 
-    console.log(this.VALIDATOR);
+    //console.log(this.VALIDATOR);
   },
 
   checkFn: function (text) {
@@ -175,7 +175,7 @@ const stringManipulation = {
     short_lines.forEach((element, index) => {
       let result = element;
 
-      console.log("LINE: ", result + "\n", inBlockComment);
+      //console.log("LINE: ", result + "\n", inBlockComment);
 
       if (inBlockComment === true) {
         result = "--" + result;
@@ -192,7 +192,7 @@ const stringManipulation = {
         inBlockComment = false;
       }
 
-      console.log("RESULT: ", "$" + result.trim() + "$", inBlockComment);
+      //console.log("RESULT: ", "$" + result.trim() + "$", inBlockComment);
 
       if (result.trim() !== "--") {
         short_code_comment_fixed += result + "\n";
@@ -246,19 +246,19 @@ const stringManipulation = {
     lines.forEach((element, index) => {
       if (element.indexOf("COMMENT = ") !== -1) {
         let parts = element.split("COMMENT = ");
-        console.log("parts", parts);
+        //console.log("parts", parts);
         parts[1] = window.atob(parts[1].split('"')[1]);
-        console.log("parts", parts);
+        //console.log("parts", parts);
 
         if (parts[1].substring(0, 1) === "$") {
           parts[1] = parts[1].substring(1);
           let result = parts.join("--");
-          console.log(result);
-          console.log("$$$$");
+          //console.log(result);
+          //console.log("$$$$");
           lines2[lines2.length - 1] += result;
         } else {
           let result = parts.join("--");
-          console.log(result);
+          //console.log(result);
           lines2.push(result);
         }
       } else {

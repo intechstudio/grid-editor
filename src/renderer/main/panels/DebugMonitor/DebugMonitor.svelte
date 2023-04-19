@@ -150,7 +150,7 @@
     class="w-full cursor-default min-h-[200px] bg-secondary rounded px-1 my-2 text-white font-mono"
   />
 
-  <div class="flex justify-between  min-h-[100px] items-center overflow-y-auto">
+  <div class="flex justify-between min-h-[100px] items-center overflow-y-auto">
     <div class="mx-1 my-2">
       <div class="text-white">Syntax: {runtimeParser}</div>
       <div class="text-white">
@@ -191,13 +191,13 @@
 
     {#if frozen == false}
       <button
-        class="px-3 py-1  bg-select hover:bg-select-saturate-10 rounded"
+        class="px-3 py-1 bg-select hover:bg-select-saturate-10 rounded"
         on:click={freezeDebugtext}
         >Freeze
       </button>
     {:else}
       <button
-        class="px-3 py-1  bg-select hover:bg-select-saturate-10 rounded"
+        class="px-3 py-1 bg-select hover:bg-select-saturate-10 rounded"
         on:click={unfreezeDebugtext}
         >Unfreeze
       </button>
@@ -210,7 +210,7 @@
       class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px]"
     >
       {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-0.5 ">{debug}</span>
+        <span class="debugtexty px-1 py-0.5">{debug}</span>
       {/each}
     </div>
   {/if}
@@ -239,7 +239,7 @@
     </div>
   {/if}
 
-  <div class="inline-flex  flex-row">
+  <div class="inline-flex flex-row">
     <svg width="50%" height="50" viewBox="0 0 100 50">
       <polyline
         id="chart_testchart_0"

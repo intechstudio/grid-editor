@@ -7,16 +7,13 @@ import svelteSVG from "vite-plugin-svelte-svg";
 
 
 export default defineConfig({
-
   main: {
-    plugins: [
-      externalizeDepsPlugin()
-    ],
+    plugins: [externalizeDepsPlugin()],
     define: {
-      'process.env': 'process.env'
+      "process.env": "process.env",
     },
     optimizeDeps: {
-      include: ['esm-dep > cjs-dep']
+      include: ["esm-dep > cjs-dep"],
     },
     build: {
       rollupOptions: {
@@ -28,19 +25,17 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [
-      externalizeDepsPlugin()
-    ],
+    plugins: [externalizeDepsPlugin()],
     define: {
-      'process.env': 'process.env'
+      "process.env": "process.env",
     },
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/electron/preload.ts'),
-        }
+          index: resolve(__dirname, "src/electron/preload.ts"),
+        },
       },
-      outDir: 'dist/preload',
+      outDir: "dist/preload",
     },
   },
   renderer: {
@@ -62,8 +57,8 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/renderer/index.html'),
-        }
+          index: resolve(__dirname, "src/renderer/index.html"),
+        },
       },
       outDir: 'dist/renderer'
     },

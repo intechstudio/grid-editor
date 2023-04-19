@@ -3,29 +3,88 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import { midi_monitor_store, sysex_monitor_store } from "./MidiMonitor.store";
+  import {
+    midi_monitor_store,
+    sysex_monitor_store,
+    debug_stream,
+  } from "./MidiMonitor.store";
+
+  import { onMount, onDestroy } from "svelte";
+
   // ok but slow nice
 
+  onMount(() => {
+    console.log("MIDI MONITOR DEBUGGING:");
+    console.log("navigator.midiAnimations = true/false");
+    console.log("navigator.midiShowActivity = true/false");
+  });
+
+  const createDebouncedStore = (initialValue, debounceTime) => {
+    let timeoutId;
+    const { subscribe, set } = writable(initialValue);
+
+    const debouncedSet = (value) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => set(value), debounceTime);
+    };
+
+    return {
+      subscribe,
+      set: debouncedSet,
+    };
+  };
+
+  const scrollToBottom = (node) => {
+    let isScrolling = false;
+
+    const scroll = () => {
+      if (
+        !isScrolling &&
+        node.scrollTop !== node.scrollHeight - node.offsetHeight
+      ) {
+        isScrolling = true;
+        requestAnimationFrame(() => {
+          node.scroll({
+            top: node.scrollHeight,
+            behavior: "smooth",
+          });
+          isScrolling = false;
+        });
+      }
+    };
+
+    const store = createDebouncedStore(null, 100);
+
+    const unsubscribe = store.subscribe(scroll);
+
+    return {
+      update: (value) => store.set(value),
+      destroy: () => unsubscribe(),
+    };
+  };
+
   //Defines
-  const debug_stream = writable([]);
   let debug = false;
   let hover = false;
   let last = undefined;
-  let midiList = undefined;
+
   let activity = false;
   let timer = undefined;
 
-  midi_monitor_store.subscribe(() => {
-    let mms = get(midi_monitor_store);
-    let m = mms.slice(-1).pop();
-    if (m) {
-      last = m;
-      UpdateDebugStream(m, "MIDI");
-      if (midiList) midiList.scrollTop = midiList.scrollHeight;
-    }
-  });
+  $: if ($midi_monitor_store) {
+    last = $midi_monitor_store[$midi_monitor_store.length - 1];
+    showActivity();
+  }
+
+  $: if ($sysex_monitor_store) {
+    showActivity();
+  }
 
   function showActivity() {
+    if (navigator.midiShowActivity !== true) {
+      return;
+    }
+
     activity = true;
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -35,34 +94,16 @@
     }, 250);
   }
 
-  sysex_monitor_store.subscribe(() => {
-    let sms = get(sysex_monitor_store);
-    let m = sms.slice(-1).pop();
-    if (m) UpdateDebugStream(m, "SYSEX");
-  });
-
-  function UpdateDebugStream(item, msg_type) {
-    debug_stream.update((items) => {
-      if (items.length >= 32) {
-        items.shift();
-      }
-      showActivity();
-      item.type = msg_type;
-      return [...items, item];
-    });
-  }
-
-  function onLeaveMidiMessage(item, index) {
+  function onLeaveMidiMessage() {
     hover = false;
     let mms = get(midi_monitor_store);
-    last = mms.slice(-1).pop();
+    last = mms[mms.length - 1];
   }
 
-  function onEnterMidiMessage(item, index) {
+  function onEnterMidiMessage(element) {
     hover = true;
     showActivity();
-    let ms = get(midi_monitor_store);
-    last = ms[index];
+    last = element;
   }
 
   function onClearClicked() {
@@ -94,7 +135,6 @@
       <Toggle bind:toggleValue={debug} />
     </div>
   </div>
-
   {#if !debug}
     <div class="py-8 px-6">
       <div class="border-gray-700 border rounded flex flex-col col-span-3 mb-2">
@@ -103,28 +143,28 @@
           class="flex flex-row w-full text-white justify-between align-center items-center"
         >
           <div class="flex items-center py-1 px-3">
-            <span class="flex text-xl text-white "
+            <span class="flex text-xl text-white"
               >{last ? last.data.command.name : "Waiting for MIDI..."}</span
             >
           </div>
           {#if last}
             <div
-              class="grid grid-cols-2 items-center rounded-lg text-center transition-width duration-200 mr-2 {hover
-                ? 'bg-green-400 w-24'
-                : 'bg-white w-20'}"
+              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center {navigator.midiAnimations
+                ? ' transition-width duration-200 '
+                : ''} {hover ? 'bg-green-400' : 'bg-white'}"
             >
               <div
-                class="flex ml-3 mr-1 z-10 {hover
-                  ? 'text-white'
-                  : 'text-primary'} text-center"
+                class="flex {hover ? 'text-white' : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
-              <div
-                class="flex place-self-end self-center {activity
-                  ? 'bg-yellow-500'
-                  : 'bg-primary'} rounded-full w-3 h-3 mr-2"
-              />
+              {#if navigator.midiShowActivity}
+                <div
+                  class="ml-2 flex place-self-end self-center {activity
+                    ? 'bg-yellow-500'
+                    : 'bg-primary'} rounded-full w-3 h-3"
+                />
+              {/if}
             </div>
           {/if}
         </div>
@@ -205,7 +245,7 @@
             </div>
             <div
               class="flex flex-col grow overflow-y-auto bg-secondary"
-              bind:this={midiList}
+              use:scrollToBottom={$debug_stream}
             >
               {#each $debug_stream as message}
                 <div
@@ -234,14 +274,16 @@
             <div class="flex w-full text-white pb-2">MIDI Messages</div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
-              bind:this={midiList}
+              use:scrollToBottom={$midi_monitor_store}
             >
-              {#each $midi_monitor_store as midi, i}
+              {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200 transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
-                  on:mouseover={() => onEnterMidiMessage(this, i)}
-                  on:mouseleave={() => onLeaveMidiMessage(this, i)}
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations
+                    ? ' transition-transform origin-left hover:scale-105 duration-100 transform scale-100'
+                    : ''}"
+                  on:mouseover={() => onEnterMidiMessage(midi)}
+                  on:mouseleave={() => onLeaveMidiMessage()}
                 >
                   <span class="text-white"
                     >{midi.device.name}{midi.data.direction == "REPORT"
@@ -279,6 +321,7 @@
             </div>
             <div
               class="flex flex-col h-full bg-secondary overflow-y-auto overflow-x-hidden"
+              use:scrollToBottom={$sysex_monitor_store}
             >
               {#each $sysex_monitor_store as sysex}
                 <div

@@ -724,11 +724,11 @@
   });
 </script>
 
-<div class=" flex flex-col h-full justify-between p-4 bg-primary ">
-  <div class="flex w-full h-full flex-col overflow-hidden ">
+<div class=" flex flex-col h-full justify-between p-4 bg-primary">
+  <div class="flex w-full h-full flex-col overflow-hidden">
     <div
       class="flex justify-between items-center p-4 text-white font-medium
-      cursor-pointer w-full "
+      cursor-pointer w-full"
     >
       <div>Session Profiles</div>
     </div>
@@ -740,7 +740,7 @@
       class="flex w-full h-full flex-col overflow-hidden "
     >
       <Pane size={31}>
-        <div class=" flex flex-col bg-primary overflow-hidden h-full ">
+        <div class=" flex flex-col bg-primary overflow-hidden h-full">
           <div
             in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
             out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
@@ -750,14 +750,14 @@
               on:click={() => {
                 saveToSessionProfile("sessionProfile");
               }}
-              class="relative bg-commit block  
+              class="relative bg-commit block
           w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
           hover:border-commit-desaturate-10 focus:outline-none"
             >
               <div>Save Session Profile</div>
               <TooltipSetter key={"newProfile_add_to_session"} />
             </button>
-            <div class="flex flex-col overflow-y-auto gap-4  ">
+            <div class="flex flex-col overflow-y-auto gap-4">
               {#if sessionProfile.length == 0}
                 <div class="text-gray-300">No profile to show</div>
               {/if}
@@ -776,8 +776,8 @@
                 >
                   <div class="flex gap-2 items-center w-full">
                     <div
-                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
-                      rounded-xl  {selectedModule == sessionProfileElement.type
+                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2
+                      rounded-xl {selectedModule == sessionProfileElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
                     >
@@ -809,13 +809,13 @@
                             );
                           }
                         }}
-                        class="text-zinc-100 min-w-[15px] h-fit px-2  break-words
+                        class="text-zinc-100 min-w-[15px] h-fit px-2 break-words
                     bg-transparent overflow-hidden w-full cursor-text hover:bg-primary-500 truncate text-sm lg:text-md"
                       />
                     </div>
                   </div>
 
-                  <div class="flex gap-1 ">
+                  <div class="flex gap-1">
                     <button
                       on:click|preventDefault={() => {
                         deleteSessionProfile(sessionProfileElement);
@@ -979,9 +979,9 @@
         </div></Pane
       >
       <Pane minSize={28}>
-        <div class=" flex flex-col h-full  overflow-hidden bg-primary">
+        <div class=" flex flex-col h-full overflow-hidden bg-primary">
           <div
-            class="flex justify-between items-center p-4 
+            class="flex justify-between items-center p-4
       w-full"
           >
             <div class="text-white font-medium">Profile Cloud</div>
@@ -989,7 +989,7 @@
               on:click={() => {
                 filterShowHide();
               }}
-              class="text-white text-left font-xs "
+              class="text-white text-left font-xs"
             >
               {#if isSearchSortingShows}
                 Hide Filters
@@ -1085,7 +1085,7 @@
                     {#each searchSuggestions as suggestion}
                       <button
                         on:click={() => useSearchSuggestion(suggestion.value)}
-                        class="border  hover:border-primary-500 text-sm text-primary-100 rounded-md
+                        class="border hover:border-primary-500 text-sm text-primary-100 rounded-md
                   py-1 px-2 h-min {searchbarValue.toLowerCase() ==
                         suggestion.value.toLowerCase()
                           ? 'border-primary-100'
@@ -1197,11 +1197,11 @@
                         : 'border border-black border-opacity-0 bg-secondary'}"
                     >
                       <div
-                        class="flex flex-row gap-1 items-center w-full  justify-between"
+                        class="flex flex-row gap-1 items-center w-full justify-between"
                       >
-                        <div class="flex truncate items-center   gap-1">
+                        <div class="flex truncate items-center gap-1">
                           <div
-                            class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
+                            class="text-zinc-100 text-xs h-fit px-1 lg:px-2 lg:text-sm xl:text-md
                       rounded-xl {selectedModule == profileCloudElement.type
                               ? 'bg-violet-600'
                               : 'bg-gray-600 '}"
@@ -1210,7 +1210,7 @@
                           </div>
 
                           <div
-                            class="text-gray-100 text-left text-sm lg:text-md   truncate "
+                            class="text-gray-100 text-left text-sm lg:text-md truncate"
                           >
                             {profileCloudElement.name}
                           </div>
@@ -1340,7 +1340,7 @@
                           </div>
                         </div>
                       </div>
-                      <div class="text-gray-100 text-xs self-end lg:text-sm ">
+                      <div class="text-gray-100 text-xs self-end lg:text-sm">
                         @{profileCloudElement.folder}
                       </div>
                     </button>

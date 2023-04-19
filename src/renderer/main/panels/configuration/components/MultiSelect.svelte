@@ -13,7 +13,7 @@
 </script>
 
 <app-action-multi-select
-  class=" flex items-center flex-row  justify-between  w-full "
+  class=" flex items-center flex-row justify-between w-full"
 >
   <!-- When any of the array elements is true -->
   <div class="w-fit flex flex-wrap">

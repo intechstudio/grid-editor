@@ -61,6 +61,7 @@
     dispatch("output", {
       short: information.short,
       script: information.defaultLua,
+      toValidate: "",
     });
   }
 

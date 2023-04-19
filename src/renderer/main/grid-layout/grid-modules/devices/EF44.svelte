@@ -3,7 +3,7 @@
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
 
-  import { select } from "../event-handlers/select.js";
+  import { selectElement } from "../event-handlers/select.js";
 
   import Encoder from "../elements/Encoder.svelte";
   import Fader from "../elements/Fader.svelte";
@@ -79,7 +79,6 @@
   <slot />
 
   <div
-    use:select
     class:disable-pointer-events={$appSettings.layoutMode}
     class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
     dy == selectedElement.brc.dy
@@ -91,14 +90,16 @@
     style="--module-size: {moduleWidth + 'px'}"
   >
     <div
-      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
+      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3] as elementNumber}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-1"
+          on:click={() => selectElement(elementNumber, "encoder", id)}
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
           <Encoder
@@ -111,11 +112,13 @@
       {/each}
 
       {#each [4, 5, 6, 7] as elementNumber}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-3"
+          on:click={() => selectElement(elementNumber, "fader", id)}
         >
           <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
           <Fader

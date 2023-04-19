@@ -129,7 +129,7 @@
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
   class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50 "
+  bg-secondary bg-opacity-50"
 >
   <div
     use:clickOutside={{ useCapture: true }}
@@ -168,8 +168,8 @@
       <div class="p-6 flex flex-col w-full">
         <div aclass="flex flex-row gap-10  text-gray-500">
           <div class="w-full flex flex-col gap-4">
-            <div class="flex flex-col ">
-              <label class="mb-1 " for="title">Title</label>
+            <div class="flex flex-col">
+              <label class="mb-1" for="title">Title</label>
               <input
                 id="title"
                 placeholder="Enter profile name..."
@@ -182,7 +182,7 @@
                 maxlength="60"
                 type="text"
                 class="w-full py-2 px-3 bg-secondary text-white
-              placeholder-gray-400 text-md mb-2 "
+              placeholder-gray-400 text-md mb-2"
               />
               {#if isTitleDirty == false}
                 <span class="text-red-500">This field is required</span>
@@ -261,7 +261,7 @@
           <button
             class="flex items-center focus:outline-none justify-center rounded
           my-2 border-select bg-select hover:border-select-saturate-10
-          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24 "
+          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24"
             on:click|preventDefault={() => {
               $appSettings.modal = "profileInfo";
             }}
@@ -273,7 +273,7 @@
             class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
-          w-24 "
+          w-24"
           >
             Save
           </button>
@@ -283,10 +283,10 @@
 
     {#if $appSettings.leftPanel == "NewPreset"}
       <div class="p-6 flex flex-col w-full">
-        <form action="" class="flex flex-row gap-10  text-gray-500">
+        <form action="" class="flex flex-row gap-10 text-gray-500">
           <div class="w-full flex flex-col gap-4">
-            <div class="flex flex-col ">
-              <label class="mb-1 " for="title">Title</label>
+            <div class="flex flex-col">
+              <label class="mb-1" for="title">Title</label>
               <input
                 id="title"
                 placeholder="Enter profile name..."
@@ -299,7 +299,7 @@
                 maxlength="60"
                 type="text"
                 class="w-full py-2 px-3 bg-secondary text-white
-              placeholder-gray-400 text-md mb-2 "
+              placeholder-gray-400 text-md mb-2"
               />
               {#if isTitleDirty == false}
                 <span class="text-red-500">This field is required</span>
@@ -378,7 +378,7 @@
           <button
             class="flex items-center focus:outline-none justify-center rounded
           my-2 border-select bg-select hover:border-select-saturate-10
-          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24 "
+          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24"
             on:click|preventDefault={() => {
               $appSettings.modal = "profileInfo";
             }}
@@ -390,7 +390,7 @@
             class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
-          w-24 "
+          w-24"
           >
             Save
           </button>

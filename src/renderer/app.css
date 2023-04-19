@@ -28,7 +28,7 @@
 
 /* roboto-300 - latin */
 @font-face {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 300;
   src: url('/fonts/roboto-v20-latin-300.eot');
@@ -48,7 +48,7 @@
 
 /* roboto-regular - latin */
 @font-face {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 400;
   src: url('/fonts/roboto-v20-latin-regular.eot');
@@ -68,7 +68,7 @@
 
 /* roboto-500 - latin */
 @font-face {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 500;
   src: url('/fonts/roboto-v20-latin-500.eot');
@@ -88,7 +88,7 @@
 
 /* roboto-700 - latin */
 @font-face {
-  font-family: 'Roboto';
+  font-family: "Roboto";
   font-style: normal;
   font-weight: 700;
   src: url('/fonts/roboto-v20-latin-700.eot');

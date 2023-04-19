@@ -71,9 +71,8 @@
           handleSelectPage(page);
         }}
         class=" {selectedPage == page
-        ? 'bg-secondary  text-white'
-        : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none  flex-grow border-0 text-gray-50  w-[100px]"
-
+          ? 'bg-secondary  text-white'
+          : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none flex-grow border-0 text-gray-50 w-[100px]"
       >
         Page {@html page !== ""
           ? page + 1

@@ -163,7 +163,6 @@ function createLuaError() {
               
               */
               const eventtype = {
-
                 0: "Init",
                 1: "Potmeter",
                 2: "Encoder",
@@ -171,8 +170,7 @@ function createLuaError() {
                 4: "Utility",
                 5: "MIDI RX",
                 6: "Timer",
-              }
-
+              };
 
               if (d.length >= 15) {
                 d.shift();

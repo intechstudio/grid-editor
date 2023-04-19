@@ -345,7 +345,7 @@
                 bind:value={profile.description}
                 type="text"
                 placeholder="No description available"
-                class="w-full bg-primary p-1 rounded-none h-36 resize-none "
+                class="w-full bg-primary p-1 rounded-none h-36 resize-none"
               />
             {/if}
 

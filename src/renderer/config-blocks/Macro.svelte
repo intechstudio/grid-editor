@@ -460,7 +460,7 @@
       on:change={change_layout}
     >
       {#each layouts as layout}
-        <option value={layout.name} class="text-white bg-secondary py-1 "
+        <option value={layout.name} class="text-white bg-secondary py-1"
           >{layout.name}</option
         >
       {/each}
@@ -511,7 +511,7 @@
           class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select"
         >
           {#each layout.lookup as key}
-            <option value={key} class="text-white bg-secondary py-1 "
+            <option value={key} class="text-white bg-secondary py-1"
               >{key.display}</option
             >
           {/each}

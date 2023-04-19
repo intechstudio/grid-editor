@@ -65,7 +65,7 @@
 </script>
 
 <if-block class="w-full h-fit flex text-white py-1">
-  <div class="bg-secondary p-1 my-auto mr-1 rounded flex  items-center  w-full">
+  <div class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full">
     <LineEditor
       on:output={(e) => {
         sendData(e.detail.script);
