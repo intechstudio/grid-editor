@@ -581,6 +581,7 @@ function create_runtime() {
       // device not found, add it to runtime and get page count from grid
       else {
         // check if the firmware version of the newly connected device is acceptable
+        console.log("Incoming Device");
         console.log("Architecture", controller.architecture);
 
         const as = get(appSettings);
@@ -604,7 +605,6 @@ function create_runtime() {
           return [...devices, controller];
         });
         heartbeat.update((devices) => {
-          console.log("Incoming Device");
           return [...devices, { id: controller.id, alive: Date.now() }];
         });
 

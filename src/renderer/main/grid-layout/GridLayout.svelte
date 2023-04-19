@@ -82,7 +82,6 @@
     let max_x = 0;
     let min_y = 0;
     let max_y = 0;
-    console.log("RT", rt);
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -111,13 +110,9 @@
 
     surface_width = max_x - min_x + 1;
     surface_height = max_y - min_y + 1;
-    console.log("mx, my", min_x, max_x, min_y, max_y);
-    console.log("sw", surface_width, surface_height);
-    console.log("origin", (min_x + max_x) / 2, (min_y + max_y) / 2);
+
     surface_origin_x = (min_x + max_x) / 2;
     surface_origin_y = (min_y + max_y) / 2;
-
-    console.log("so", surface_origin_x, surface_origin_y);
 
     devices.set(rt);
   });
