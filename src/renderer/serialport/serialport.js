@@ -1,102 +1,99 @@
+import grid from "../protocol/grid-protocol.js";
 
+import { messageStream } from "./message-stream.store.js";
 
-import grid from '../protocol/grid-protocol.js';
+import { writeBuffer } from "../runtime/engine.store.js";
 
-
-import { messageStream } from './message-stream.store.js';
-
-import { writeBuffer } from '../runtime/engine.store.js';
-
-import { debug_lowlevel_store } from '../main/panels/DebugMonitor/DebugMonitor.store.js';
-
+import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
 // ============= NEW WEBSERIAL BASED IMPLEMENTATION ===================
 
-
-let lineBuffer = '';
+let lineBuffer = "";
 let latestValue = 0;
 
-
 // INITIALIZE THE INTERVAL
-console.log("Initialize Discovery Interval! ENABLE debugging through navigator.serialDebug = true");
-window.electron.serial.restartSerialCheckInterval()
-
+console.log(
+  "Initialize Discovery Interval! ENABLE debugging through navigator.serialDebug = true"
+);
+window.electron.serial.restartSerialCheckInterval();
 
 navigator.serial.addEventListener("disconnect", (e) => {
-  if (navigator.serialDebug)  console.log("Any Device Disconnect", e, navigator.intechPort); 
-  if (navigator.serialDebug)  console.log("Restart Discovery Interval"); 
-  
-  window.electron.serial.restartSerialCheckInterval()
+  if (navigator.serialDebug)
+    console.log("Any Device Disconnect", e, navigator.intechPort);
+  if (navigator.serialDebug) console.log("Restart Discovery Interval");
+
+  window.electron.serial.restartSerialCheckInterval();
 });
 navigator.serial.addEventListener("connect", (e) => {
-  if (navigator.serialDebug)  console.log("Any Device Connect", e,  navigator.intechPort);
-  if (navigator.serialDebug)  console.log("Restart Discovery Interval");
-  window.electron.serial.restartSerialCheckInterval()
+  if (navigator.serialDebug)
+    console.log("Any Device Connect", e, navigator.intechPort);
+  if (navigator.serialDebug) console.log("Restart Discovery Interval");
+  window.electron.serial.restartSerialCheckInterval();
 });
 
-
 export async function testIt() {
-
-
-  if (navigator.serialDebug)  console.log("Serial Try Connect");
+  if (navigator.serialDebug) console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
   if (navigator.intechPort === undefined) {
-
     const filters = [
-      { usbVendorId: parseInt(env.USB_VID_0), usbProductId: parseInt(env.USB_PID_0) },
-      { usbVendorId: parseInt(env.USB_VID_1), usbProductId: parseInt(env.USB_PID_1) },
-      { usbVendorId: parseInt(env.USB_VID_2), usbProductId: parseInt(env.USB_PID_2) }
+      {
+        usbVendorId: parseInt(env.USB_VID_0),
+        usbProductId: parseInt(env.USB_PID_0),
+      },
+      {
+        usbVendorId: parseInt(env.USB_VID_1),
+        usbProductId: parseInt(env.USB_PID_1),
+      },
+      {
+        usbVendorId: parseInt(env.USB_VID_2),
+        usbProductId: parseInt(env.USB_PID_2),
+      },
     ];
 
     // console.log(navigator.serial)
 
-    navigator.serial.requestPort({ filters }).then(port => {
+    navigator.serial
+      .requestPort({ filters })
+      .then((port) => {
+        //console.log('port',port);
 
-      //console.log('port',port);
+        port
+          .open({ baudRate: 2000000 })
+          .then((e) => {
+            navigator.intechPort = port;
 
+            port.addEventListener("disconnect", (e) => {
+              if (navigator.serialDebug) console.log("The Real Disconnect", e);
+              navigator.intechPort = undefined;
+            });
 
-      port.open({ baudRate: 2000000 }).then(e => {
+            fetchStream();
 
-        navigator.intechPort = port
-
-        port.addEventListener("disconnect", (e) => {
-          if (navigator.serialDebug)  console.log("The Real Disconnect", e);
-          navigator.intechPort = undefined;
-        });
-
-
-        fetchStream()
-
-        // port.readable
-        //   .pipeThrough(new TextDecoderStream())
-        //   .pipeTo(appendStream);
-
-
-      }).catch(error => {
+            // port.readable
+            //   .pipeThrough(new TextDecoderStream())
+            //   .pipeTo(appendStream);
+          })
+          .catch((error) => {
+            //console.log(error)
+          });
+      })
+      .catch((error) => {
+        //no port selected by the user
         //console.log(error)
       });
-
-
-    }).catch(error => {
-      //no port selected by the user
-      //console.log(error)
-    });
-
   }
 
   return false;
-
 }
 
-navigator.intechConnect = testIt
+navigator.intechConnect = testIt;
 
 let result = [];
 
 function fetchStream() {
-
-  console.log('--------serial---------')
+  console.log("--------serial---------");
 
   if (navigator.intechPort === undefined) {
     return;
@@ -104,7 +101,7 @@ function fetchStream() {
 
   const reader = navigator.intechPort.readable.getReader();
   let charsReceived = 0;
-  let rxBuffer = []
+  let rxBuffer = [];
 
   // read() returns a promise that resolves
   // when a value has been received
@@ -124,26 +121,27 @@ function fetchStream() {
 
     let buffer = Array.from(chunk);
 
-
     for (let i = 0; i < buffer.length; i++) {
       rxBuffer.push(buffer[i]);
     }
-
 
     let messageStartIndex = 0;
     let messageStopIndex = 0;
 
     for (let i = 0; i < rxBuffer.length; i++) {
-
-      if (rxBuffer[i] === 10) { // newline character found
+      if (rxBuffer[i] === 10) {
+        // newline character found
 
         messageStopIndex = i;
-        let currentMessage = rxBuffer.slice(messageStartIndex, messageStopIndex);
+        let currentMessage = rxBuffer.slice(
+          messageStartIndex,
+          messageStopIndex
+        );
         messageStartIndex = i + 1;
 
         //decode
 
-        debug_lowlevel_store.push_inbound(currentMessage)
+        debug_lowlevel_store.push_inbound(currentMessage);
 
         let class_array = grid.decode_packet_frame(currentMessage);
         grid.decode_packet_classes(class_array);
@@ -151,75 +149,68 @@ function fetchStream() {
         if (class_array !== false) {
           messageStream.deliver_inbound(class_array);
         }
-
-
       }
     }
 
     rxBuffer = rxBuffer.slice(messageStartIndex);
 
-
     // Read some more, and call this function again
-    return reader.read().then(processText).catch(e => { console.log(e) });
+    return reader
+      .read()
+      .then(processText)
+      .catch((e) => {
+        console.log(e);
+      });
   });
 }
 
-
-navigator.intechFetch = fetchStream
-
+navigator.intechFetch = fetchStream;
 
 // Send Serial data to the webserial interface
 
-
 export async function serial_write_islocked() {
-
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return true;
   }
 
-  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null) {
+  if (
+    navigator.intechPort.writable === undefined ||
+    navigator.intechPort.writable === null
+  ) {
     return true;
   }
 
-
-
-  let port = navigator.intechPort
-
-
+  let port = navigator.intechPort;
 
   if (port.writable.locked === true) {
     return false;
   }
-
-
 }
 
 export async function serial_write(param) {
-
   if (param === undefined) {
     return false;
   }
 
-
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return false;
   }
 
-  if (navigator.intechPort.writable === undefined || navigator.intechPort.writable === null) {
+  if (
+    navigator.intechPort.writable === undefined ||
+    navigator.intechPort.writable === null
+  ) {
     return false;
   }
 
-  param.push(10)
+  param.push(10);
 
-  debug_lowlevel_store.push_outbound(param)
+  debug_lowlevel_store.push_outbound(param);
 
-
-  let port = navigator.intechPort
-
-
+  let port = navigator.intechPort;
 
   if (port.writable.locked === true) {
-    console.log("SORRY it's locked")
+    console.log("SORRY it's locked");
     return false;
   }
 
@@ -227,15 +218,14 @@ export async function serial_write(param) {
 
   const data = new Uint8Array(param);
 
-  writer.write(data).then(e => {
-    // Allow the serial port to be closed later.
-    writer.releaseLock();
-    writeBuffer.writeBufferTryNext();
-
-  }).catch(e => {
-    console.log(e)
-  })
-
-
-
+  writer
+    .write(data)
+    .then((e) => {
+      // Allow the serial port to be closed later.
+      writer.releaseLock();
+      writeBuffer.writeBufferTryNext();
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }

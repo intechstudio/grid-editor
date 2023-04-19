@@ -10,23 +10,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ''
+          ref: ""
           submodules: true
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.13.2'        
+          node-version: "16.13.2"
 
       - name: Install dependencies
         run: npm i
         env:
           UA: ${{ secrets.UA }}
-      
-      - name: Build        
+
+      - name: Build
         run: npm run export:nightly
         if: ${{ always() }}
-        env:     
+        env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -39,7 +39,7 @@ jobs:
         with:
           name: windows-nightly
           path: build/*.*
-      
+
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
@@ -50,23 +50,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ''
+          ref: ""
           submodules: true
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.13.2'        
+          node-version: "16.13.2"
 
       - name: Install dependencies
         run: npm i
         env:
           UA: ${{ secrets.UA }}
-      
-      - name: Build        
+
+      - name: Build
         run: npm run export:nightly
         if: ${{ always() }}
-        env:     
+        env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -83,7 +83,7 @@ jobs:
         with:
           name: macos-nightly
           path: build/*.*
-      
+
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
@@ -94,23 +94,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ''
+          ref: ""
           submodules: true
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.13.2'        
+          node-version: "16.13.2"
 
       - name: Install dependencies
         run: npm i
         env:
           UA: ${{ secrets.UA }}
-      
-      - name: Build        
+
+      - name: Build
         run: npm run export:nightly
         if: ${{ always() }}
-        env:     
+        env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -127,7 +127,7 @@ jobs:
         with:
           name: mac-m1-nightly
           path: build/*.*
-      
+
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
@@ -138,23 +138,23 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ''
+          ref: ""
           submodules: true
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.13.2'        
+          node-version: "16.13.2"
 
       - name: Install dependencies
         run: npm i
         env:
           UA: ${{ secrets.UA }}
-      
-      - name: Build        
+
+      - name: Build
         run: npm run export:nightly
         if: ${{ always() }}
-        env:     
+        env:
           # gh repo token
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -163,7 +163,7 @@ jobs:
         with:
           name: linux-nightly
           path: build/*.*
-      
+
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
@@ -174,20 +174,20 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: ''
+          ref: ""
           submodules: true
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: '16.13.2'        
+          node-version: "16.13.2"
 
       - name: Install dependencies
         run: npm i
         env:
           UA: ${{ secrets.UA }}
 
-      - name: 'Unittests'
+      - name: "Unittests"
         run: |
           npm test >> unittest.txt
           cat unittest.txt
@@ -197,7 +197,7 @@ jobs:
         with:
           name: linux-unittest
           path: unittest.txt
-      
+
       - name: Download Artifacts
         uses: actions/download-artifact@v3
 
