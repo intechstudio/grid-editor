@@ -3,8 +3,6 @@ import { svelte } from '@sveltejs/vite-plugin-svelte';
 import preprocess from 'svelte-preprocess';
 import path, { resolve } from 'path';
 import monacoEditorPlugin from 'vite-plugin-monaco-editor';
-import svelteSVG from "vite-plugin-svelte-svg";
-
 
 export default defineConfig({
   main: {
@@ -46,10 +44,6 @@ export default defineConfig({
             postcss: true,
           })
         ]
-      }),
-      svelteSVG({
-        svgoConfig: {}, // See https://github.com/svg/svgo#configuration
-        requireSuffix: true, // Set false to accept '.svg' without the '?component'
       }),
       monacoEditorPlugin([])
     ],

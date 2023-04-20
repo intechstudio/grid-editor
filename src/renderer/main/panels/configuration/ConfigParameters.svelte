@@ -16,7 +16,7 @@
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
-  import IconKit from "../../user-interface/IconKit.svelte";
+  import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
   export let events;
   export let elements;
@@ -207,25 +207,26 @@
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
-      <div class="flex text-gray-400">
+      <div class="flex text-gray-400 mr-2">
         <button
-          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1"
           on:click={() => {
             copyAllEventConfigsFromSelf();
           }}
         >
-          <IconKit iconPath={"copy_all"} />
+          <SvgIcon iconPath={"copy_all"} />
 
-          <TooltipSetter key={"icons/configuration_copy_all"} />
+          <TooltipSetter key={"configuration_copy_all"} />
         </button>
 
         <button
-          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1"
           on:click={() => {
             overwriteAllEventConfigs();
           }}
         >
-          <IconKit iconPath={"paste_all"} />
+          <SvgIcon iconPath={"paste_all"} />
+
           <TooltipSetter key={"configuration_overwrite"} />
         </button>
       </div>

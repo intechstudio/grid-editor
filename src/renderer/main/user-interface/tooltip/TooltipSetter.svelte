@@ -279,6 +279,7 @@
 
 <!-- Button Hover -->
 {#if tooltip_text !== undefined}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     bind:this={parent_element}
     on:mouseenter={mouseenterCallback}

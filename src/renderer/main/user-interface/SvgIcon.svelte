@@ -5,7 +5,7 @@
   importAsComponent(iconPath).then((res) => {
     rawSvg = res.default.replace(
       /<svg/g,
-      `<svg class="w-5 h-5 text-white fill-current hover:text-yellow-500"`
+      `<svg class="w-5 h-5 text-white fill-current text-opacity-60 group-hover:text-opacity-100 hover:text-opacity-100"`
     );
   });
 
