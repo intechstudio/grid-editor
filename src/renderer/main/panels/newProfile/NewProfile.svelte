@@ -13,7 +13,6 @@
   import { fade, fly } from "svelte/transition";
   import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
-  import TooltipQuestion from "/main/user-interface/tooltip/TooltipQuestion.svelte";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
@@ -42,8 +41,6 @@
     },
   ];
 
-  let selectedProfile = undefined;
-  let isActionButtonClicked;
   let disableButton = false;
   let isDeleteButtonClicked = false;
   let isSaveToCloudButtonClicked = false;
@@ -52,65 +49,46 @@
   let isSearchSortingShows = false;
   let searchbarValue = "";
 
-  let isSessionProfileOpen = true;
-
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
   let PROFILES = [];
   let PRESETS = [];
   let profileCloud = [];
   let sessionProfile = [];
-  let sessionPreset = [];
   let filteredProfileCloud = [];
 
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder;
+  $: {
+    if ($appSettings.persistant.profileFolder) {
       loadFromDirectory();
     }
-
-    PRESET_PATH = store.persistant.presetFolder;
-  });
+  }
 
   let animateFade;
   let animateFly;
 
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store;
-  });
-
-  isActionButtonClickedStore.subscribe((store) => {
-    isActionButtonClicked = store;
-  });
-
-  profileChangeCallbackStore.subscribe(async (store) => {
+  $: {
+    const store = $profileChangeCallbackStore;
     if (store.action == "update" || store.action == "delete") {
-      await loadFromDirectory();
+      loadFromDirectory();
     }
-  });
+  }
 
   async function loadFromDirectory() {
     animateFade = false;
 
-    if (PROFILE_PATH == undefined || PROFILE_PATH == "") {
-      return;
-    }
-
     PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-      PROFILE_PATH,
+      $appSettings.persistant.profileFolder,
       "profiles"
     );
 
     PRESETS = await window.electron.configs.loadConfigsFromDirectory(
-      PRESET_PATH,
+      $appSettings.persistant.presetFolder,
       "presets"
     );
 
+    /*
     sessionPreset = PRESETS.filter(
       (element) => element.folder == "sessionPreset"
     );
+    */
 
     PROFILES.forEach((element) => {
       if (element.id == undefined || element.id == "") {
@@ -135,19 +113,17 @@
     animateFade = true;
   }
 
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder;
+  $: {
+    if ($appSettings.persistant.profileFolder) {
       moveOld();
     }
-
-    PRESET_PATH = store.persistant.presetFolder;
-  });
+  }
 
   async function moveOld() {
-    await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
+    await window.electron.configs.moveOldConfigs(
+      $appSettings.persistant.profileFolder,
+      "profiles"
+    );
     await loadFromDirectory();
   }
 
@@ -158,19 +134,16 @@
 
   let selectedModule;
 
-  user_input.subscribe((ui) => {
-    const rt = get(runtime);
-
-    let device = rt.find(
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
-    if (device === undefined) {
-      return;
+    if (typeof device !== "undefined") {
+      selectedModule = device.id.substr(0, 4);
     }
-
-    selectedModule = device.id.substr(0, 4);
-  });
+  }
 
   function updateSearchFilter(input) {
     animateFade = false;
@@ -297,7 +270,12 @@
         }
       });
 
-      saveToDirectory(PROFILE_PATH, name, profile, user);
+      saveToDirectory(
+        $appSettings.persistant.profileFolder,
+        name,
+        profile,
+        user
+      );
       isSaveToSessionButtonClicked = false;
       engine.set("ENABLED");
     };
@@ -383,7 +361,12 @@
             message: `A profile with "${name}" name is already exists in Profile Cloud!`,
           });
         } else {
-          saveToDirectory(PROFILE_PATH, name, profile, user);
+          saveToDirectory(
+            $appSettings.persistant.profileFolder,
+            name,
+            profile,
+            user
+          );
           deleteFromDirectory(selectedProfile);
         }
       }
@@ -397,7 +380,12 @@
             message: `Cannot overwrite a profile with different module type!`,
           });
         } else {
-          saveToDirectory(PROFILE_PATH, name, profile, user);
+          saveToDirectory(
+            $appSettings.persistant.profileFolder,
+            name,
+            profile,
+            user
+          );
         }
       }
 
@@ -418,7 +406,7 @@
       profile.name = newName;
 
       await window.electron.configs.updateConfig(
-        PROFILE_PATH,
+        $appSettings.persistant.profileFolder,
         newName,
         profile,
         "profiles",
@@ -493,7 +481,7 @@
     }
     isDeleteButtonClicked = false;
     await window.electron.configs.deleteConfig(
-      PROFILE_PATH,
+      $appSettings.persistant.profileFolder,
       element.name.trim(),
       "profiles",
       element.folder
@@ -616,11 +604,11 @@
     );
   }
 
-  profileListRefresh.subscribe((store) => {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+  $: {
+    if ($profileListRefresh) {
       loadFromDirectory();
     }
-  });
+  }
 
   function fadeAnimation(node, options) {
     if (animateFade) {
@@ -654,7 +642,12 @@
     isSaveToCloudButtonClicked = true;
     isActionButtonClickedStore.set(true);
 
-    saveToDirectory(PROFILE_PATH, profile.name, profile, "user");
+    saveToDirectory(
+      $appSettings.persistant.profileFolder,
+      profile.name,
+      profile,
+      "user"
+    );
     deleteSessionProfile(profile);
 
     selectedProfile = undefined;
@@ -769,7 +762,7 @@
                   on:click={() => selectProfile(sessionProfileElement)}
                   class="cursor-pointer flex justify-between gap-2 items-center
               text-left p-2 bg-secondary hover:bg-primary-600
-              {sessionProfileElement == selectedProfile
+              {sessionProfileElement == $selectedProfileStore
                     ? 'border border-green-300'
                     : 'border border-black border-opacity-0'}
               "
@@ -820,7 +813,7 @@
                       on:click|preventDefault={() => {
                         deleteSessionProfile(sessionProfileElement);
                       }}
-                      class="p-1 hover:bg-primary-500 {selectedProfile ==
+                      class="p-1 hover:bg-primary-500 {$selectedProfileStore ==
                         sessionProfileElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0} rounded relative"
@@ -852,7 +845,7 @@
                     </button>
 
                     <button
-                      class="p-1 hover:bg-primary-500 rounded relative {selectedProfile ==
+                      class="p-1 hover:bg-primary-500 rounded relative {$selectedProfileStore ==
                         sessionProfileElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0}"
@@ -1192,7 +1185,7 @@
                         selectProfile(profileCloudElement);
                       }}
                       class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedProfile == profileCloudElement
+                cursor-pointer {$selectedProfileStore == profileCloudElement
                         ? 'border border-green-300 bg-primary-600'
                         : 'border border-black border-opacity-0 bg-secondary'}"
                     >

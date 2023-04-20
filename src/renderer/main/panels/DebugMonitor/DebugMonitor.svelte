@@ -18,8 +18,8 @@
 
   let configs = [];
 
-  luadebug_store.subscribe((active) => {
-    let res = _utils.gridLuaToEditorLua(active.config);
+  $: {
+    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
 
     configs = res;
     let code = "";
@@ -28,7 +28,7 @@
     });
     runtimeScript = "<?lua " + "\n" + code + "?>";
     runtimeParser = luaParser(code, { comments: true });
-  });
+  }
 
   function charCount(text) {
     return text.length;

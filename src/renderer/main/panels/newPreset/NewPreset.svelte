@@ -18,7 +18,6 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import TooltipConfirm from "../../user-interface/tooltip/TooltipConfirm.svelte";
 
   let newPreset = {
@@ -27,20 +26,8 @@
     type: "",
   };
 
-  let selectedPreset = undefined;
-  let presetsOfSelectedDevice;
-  let isActionButtonClicked;
   let isDeleteButtonClicked = false;
 
-  selectedPresetStore.subscribe((store) => {
-    selectedPreset = store;
-  });
-
-  isActionButtonClickedStore.subscribe((store) => {
-    isActionButtonClicked = store;
-  });
-
-  let selectedModule;
   let selectedController;
 
   let PRESET_PATH = get(appSettings).persistant.presetFolder;
@@ -76,44 +63,42 @@
 
   let sortAsc = true;
   let sortField = "name";
-  let selectedPage;
 
-  user_input.subscribe((ui) => {
-    const rt = get(runtime);
-
-    let device = rt.find(
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
-    if (typeof device === "undefined") {
-      return;
+    if (typeof device !== "undefined") {
+      newPreset.type = ui.event.elementtype;
+      selectedController = ui.event.elementtype;
+      selectedModule = device.id.substr(0, 4);
+      selectedPage = ui.event.pagenumber;
+      /*     presetsOfSelectedDevice = device.pages[selectedPage].control_elements; */
     }
+  }
 
-    newPreset.type = ui.event.elementtype;
-    selectedController = ui.event.elementtype;
-    selectedModule = device.id.substr(0, 4);
-    selectedPage = ui.event.pagenumber;
-    /*     presetsOfSelectedDevice = device.pages[selectedPage].control_elements; */
-  });
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.presetFolder;
+  $: {
+    let new_folder = $appSettings.persistant.presetFolder;
     if (new_folder !== PRESET_PATH) {
       PRESET_PATH = new_folder;
     }
-  });
+  }
 
-  presetListRefresh.subscribe((store) => {
-    if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
+  $: {
+    const value = $presetListRefresh;
+    if (PRESET_PATH && value) {
       loadFromDirectory();
     }
-  });
+  }
 
-  presetChangeCallbackStore.subscribe(async (store) => {
+  $: {
+    const store = $presetChangeCallbackStore;
     if (store.action == "update" || store.action == "delete") {
-      await loadFromDirectory();
+      loadFromDirectory();
     }
-  });
+  }
 
   async function moveOld() {
     await window.electron.configs.moveOldConfigs(PRESET_PATH, "presets");
@@ -795,7 +780,7 @@
                   on:click={() => selectPreset(sessionPresetElement)}
                   class="cursor-pointer flex justify-between gap-2 items-center
         text-left p-2 bg-secondary hover:bg-primary-600
-        {sessionPresetElement == selectedPreset
+        {sessionPresetElement == $selectedPresetStore
                     ? 'border border-green-300'
                     : 'border border-black border-opacity-0'}
         "
@@ -844,7 +829,7 @@
                       on:click|preventDefault={() => {
                         deleteSessionPreset(sessionPresetElement);
                       }}
-                      class="p-1 hover:bg-primary-500 {selectedPreset ==
+                      class="p-1 hover:bg-primary-500 {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0} rounded relative"
@@ -876,7 +861,7 @@
                     </button>
 
                     <button
-                      class="p-1 hover:bg-primary-500 rounded relative {selectedPreset ==
+                      class="p-1 hover:bg-primary-500 rounded relative {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0}"
@@ -1227,7 +1212,7 @@
                         selectedPresetStore.set(preset);
                       }}
                       class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedPreset == preset
+                cursor-pointer {$selectedPresetStore == preset
                         ? 'border border-green-300 bg-primary-600'
                         : 'border border-black border-opacity-0 bg-secondary'}"
                     >

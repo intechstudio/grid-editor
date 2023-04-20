@@ -151,14 +151,14 @@
         (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
       );
 
-      if (device === undefined) {
+      if (typeof device === "undefined") {
         if (rt.length === 0) {
           console.log("ACTIVE_CONFIG: disconnect");
           configuration_panel_reset();
           throw new Exception();
         }
 
-        throw new Exception();
+        throw new Exception("device is undefined");
       }
 
       let module_type = device.id.split("_")[0];
@@ -193,9 +193,9 @@
           ];
       }
 
-      if (selectedEvent === undefined) {
+      if (typeof selectedEvent === "undefined") {
         //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-        throw new Exception();
+        throw new Exception("selectedEvent is undefined");
       }
 
       if (selectedEvent.config.length) {
@@ -241,14 +241,14 @@
         },
       };
 
-      if (active === undefined) {
-        throw new Exception();
+      if (typeof active === "undefined") {
+        throw new Exception("active is undefined");
       }
 
       let res = _utils.gridLuaToEditorLua(active.config);
 
-      if (res === undefined) {
-        throw new Exception();
+      if (typeof res === "undefined") {
+        throw new Exception("Grid Lua to Editor Lua failed.");
       }
 
       let res_is_valid = true;
@@ -278,7 +278,9 @@
       if (elements.selected !== 255) {
         $appSettings.configType = "uiEvents";
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log("Error:", error);
+    }
   }
 
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
