@@ -60,7 +60,7 @@ export default defineConfig({
           index: resolve(__dirname, "src/renderer/index.html"),
         },
       },
-      outDir: 'dist/renderer'
+      outDir: '../../dist/renderer'
     },
     resolve: {
       alias: {
