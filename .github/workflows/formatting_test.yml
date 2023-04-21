@@ -28,7 +28,7 @@ jobs:
           echo 'Changed Files:'
           git diff --name-only
           git diff --name-only >> format_error.txt
-          if [ ! -s format_error.txt ]; then
+          if [ -s format_error.txt ]; then
             echo "File is empty"
             exit 1
           fi
