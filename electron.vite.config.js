@@ -1,8 +1,8 @@
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
-import preprocess from 'svelte-preprocess';
-import path, { resolve } from 'path';
-import monacoEditorPlugin from 'vite-plugin-monaco-editor';
+import { defineConfig, externalizeDepsPlugin } from "electron-vite";
+import { svelte } from "@sveltejs/vite-plugin-svelte";
+import preprocess from "svelte-preprocess";
+import path, { resolve } from "path";
+import monacoEditorPlugin from "vite-plugin-monaco-editor";
 
 export default defineConfig({
   main: {
@@ -16,11 +16,11 @@ export default defineConfig({
     build: {
       rollupOptions: {
         input: {
-          index: resolve(__dirname, 'src/electron/main.ts'),
-        }
+          index: resolve(__dirname, "src/electron/main.ts"),
+        },
       },
-      outDir: 'dist/main',
-    }
+      outDir: "dist/main",
+    },
   },
   preload: {
     plugins: [externalizeDepsPlugin()],
@@ -42,12 +42,12 @@ export default defineConfig({
         preprocess: [
           preprocess({
             postcss: true,
-          })
-        ]
+          }),
+        ],
       }),
-      monacoEditorPlugin([])
+      monacoEditorPlugin([]),
     ],
-    publicDir: 'assets', // needed, to copy assets to dist during build
+    publicDir: "assets", // needed, to copy assets to dist during build
     build: {
       rollupOptions: {
         input: {
@@ -58,9 +58,9 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '$lib': path.resolve('src/renderer/lib'),
+        $lib: path.resolve("src/renderer/lib"),
       },
     },
-    target: 'chrome104'
-  }
+    target: "chrome104",
+  },
 });

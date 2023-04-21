@@ -68,9 +68,7 @@
 
   let controllerIndex;
 
-  selectedControllerIndexStore.subscribe((store) => {
-    controllerIndex = store;
-  });
+  $: controllerIndex = $selectedControllerIndexStore;
 
   $: selectedControllerIndexStore.set(elements);
 
@@ -114,8 +112,8 @@
     }
   }
 
-  lua_error_store.subscribe(() => {
-    let les = get(lua_error_store);
+  $: {
+    let les = $lua_error_store;
     let e = les.slice(-1).pop();
 
     if (e) {
@@ -138,146 +136,150 @@
           break;
       }
     }
-  });
+  }
 
-  user_input.subscribe((ui) => {
-    appMultiSelect.reset();
+  $: {
+    try {
+      const ui = $user_input;
+      appMultiSelect.reset();
 
-    let config = [];
-    let selectedEvent = "";
+      let config = [];
+      let selectedEvent = "";
 
-    const rt = get(runtime);
-    const device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-    );
+      const rt = get(runtime);
+      const device = rt.find(
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+      );
 
-    if (device === undefined) {
-      if (rt.length === 0) {
-        console.log("ACTIVE_CONFIG: disconnect");
-        configuration_panel_reset();
-        return;
+      if (typeof device === "undefined") {
+        if (rt.length === 0) {
+          configuration_panel_reset();
+          throw "ACTIVE_CONFIG: disconnect";
+        }
+
+        throw "device is undefined";
       }
 
-      return;
-    }
+      let module_type = device.id.split("_")[0];
 
-    let module_type = device.id.split("_")[0];
+      let element_type =
+        grid.moduleElements[module_type][ui.event.elementnumber];
 
-    let element_type = grid.moduleElements[module_type][ui.event.elementnumber];
+      let pageIndex = device.pages.findIndex(
+        (x) => x.pageNumber == ui.event.pagenumber
+      );
+      let elementIndex = device.pages[pageIndex].control_elements.findIndex(
+        (x) => x.controlElementNumber == ui.event.elementnumber
+      );
 
-    let pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == ui.event.pagenumber
-    );
-    let elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == ui.event.elementnumber
-    );
+      if (elementIndex === -1) {
+        //console.log("MAXOS PARA")
+        elementIndex = 0;
+      }
 
-    if (elementIndex === -1) {
-      //console.log("MAXOS PARA")
-      elementIndex = 0;
-    }
+      const eventIndex = device.pages[pageIndex].control_elements[
+        elementIndex
+      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
 
-    const eventIndex = device.pages[pageIndex].control_elements[
-      elementIndex
-    ].events.findIndex((x) => x.event.value == ui.event.eventtype);
+      if (eventIndex === -1) {
+        selectedEvent =
+          device.pages[pageIndex].control_elements[elementIndex].events[0];
+        ui.event.eventtype = 0;
+      } else {
+        selectedEvent =
+          device.pages[pageIndex].control_elements[elementIndex].events[
+            eventIndex
+          ];
+      }
 
-    if (eventIndex === -1) {
-      selectedEvent =
-        device.pages[pageIndex].control_elements[elementIndex].events[0];
-      ui.event.eventtype = 0;
-    } else {
-      selectedEvent =
-        device.pages[pageIndex].control_elements[elementIndex].events[
-          eventIndex
-        ];
-    }
+      if (typeof selectedEvent === "undefined") {
+        //console.log("SORRY", pageIndex, elementIndex, eventIndex);
+        throw "selectedEvent is undefined";
+      }
 
-    if (selectedEvent === undefined) {
-      //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-      return;
-    }
+      if (selectedEvent.config.length) {
+        config = selectedEvent.config.trim();
+      }
 
-    if (selectedEvent.config.length) {
-      config = selectedEvent.config.trim();
-    }
+      const cfgstatus = selectedEvent.cfgStatus;
 
-    const cfgstatus = selectedEvent.cfgStatus;
+      if (
+        cfgstatus == "GRID_REPORT" ||
+        cfgstatus == "EDITOR_EXECUTE" ||
+        cfgstatus == "EDITOR_BACKGROUND"
+      ) {
+        // its loaded
+      } else {
+        // fetch
+        const callback = function () {
+          // trigger change detection
+          user_input.update((n) => n);
+        };
 
-    if (
-      cfgstatus == "GRID_REPORT" ||
-      cfgstatus == "EDITOR_EXECUTE" ||
-      cfgstatus == "EDITOR_BACKGROUND"
-    ) {
-      // its loaded
-    } else {
-      // fetch
-      const callback = function () {
-        // trigger change detection
-        user_input.update((n) => n);
+        runtime.fetchOrLoadConfig(ui, callback);
+      }
+
+      let active = {
+        elementtype: element_type,
+        config: config,
+        events: {
+          selected: selectedEvent.event,
+          options: device.pages[pageIndex].control_elements[
+            elementIndex
+          ].events.map((e) => e.event),
+        },
+        elements: {
+          selected: ui.event.elementnumber,
+          options: device.pages[pageIndex].control_elements.map(
+            (n) => n.controlElementNumber
+          ),
+        },
+        pages: {
+          selected: ui.event.pagenumber,
+          options: device.pages.map((n) => n.pageNumber),
+        },
       };
 
-      runtime.fetchOrLoadConfig(ui, callback);
-    }
-
-    let active = {
-      elementtype: element_type,
-      config: config,
-      events: {
-        selected: selectedEvent.event,
-        options: device.pages[pageIndex].control_elements[
-          elementIndex
-        ].events.map((e) => e.event),
-      },
-      elements: {
-        selected: ui.event.elementnumber,
-        options: device.pages[pageIndex].control_elements.map(
-          (n) => n.controlElementNumber
-        ),
-      },
-      pages: {
-        selected: ui.event.pagenumber,
-        options: device.pages.map((n) => n.pageNumber),
-      },
-    };
-
-    if (active === undefined) {
-      return;
-    }
-
-    let res = _utils.gridLuaToEditorLua(active.config);
-
-    if (res === undefined) {
-      return;
-    }
-
-    let res_is_valid = true;
-
-    res.forEach((element) => {
-      if (element.information === undefined) {
-        res_is_valid = false;
+      if (typeof active === "undefined") {
+        throw "active is undefined";
       }
-    });
 
-    if (res !== undefined && res_is_valid) {
-      configs = res;
-      dropStore.update(res);
-      conditionalConfigPlacement.set(configs);
-      localDefinitions.update(configs);
+      let res = _utils.gridLuaToEditorLua(active.config);
+      if (typeof res === "undefined") {
+        throw "Grid Lua to Editor Lua failed.";
+      }
 
-      access_tree.elementtype = active.elementtype;
+      let res_is_valid = true;
+
+      res.forEach((element) => {
+        if (element.information === undefined) {
+          res_is_valid = false;
+        }
+      });
+
+      if (res !== undefined && res_is_valid) {
+        configs = res;
+        dropStore.update(res);
+        conditionalConfigPlacement.set(configs);
+        localDefinitions.update(configs);
+
+        access_tree.elementtype = active.elementtype;
+      }
+
+      // let use of default dummy parameters
+      if (active.elements.selected !== "") {
+        events = active.events;
+        elements = active.elements;
+      }
+
+      // set UI to uiEvents, if its not system events
+      if (elements.selected !== 255) {
+        $appSettings.configType = "uiEvents";
+      }
+    } catch (error) {
+      console.log("Error:", error);
     }
-
-    // let use of default dummy parameters
-    if (active.elements.selected !== "") {
-      events = active.events;
-      elements = active.elements;
-    }
-
-    // set UI to uiEvents, if its not system events
-    if (elements.selected !== 255) {
-      $appSettings.configType = "uiEvents";
-    }
-  });
+  }
 
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 

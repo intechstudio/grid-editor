@@ -38,7 +38,8 @@
     [0, 0, 0],
   ];
 
-  elementPositionStore.subscribe((value) => {
+  $: {
+    const value = $elementPositionStore;
     try {
       let eps = value[dx][dy];
 
@@ -46,11 +47,12 @@
         elementposition_array[key] = eps[key];
       }
     } catch (error) {
-      return;
+      //ERROR
     }
-  });
+  }
 
-  ledColorStore.subscribe((value) => {
+  $: {
+    const value = $ledColorStore;
     try {
       let lcs = value[dx][dy];
 
@@ -58,9 +60,9 @@
         ledcolor_array[key] = lcs[key];
       }
     } catch (error) {
-      return;
+      //ERROR
     }
-  });
+  }
 
   $: if (id) {
     if (id !== undefined && id.length > 4) {

@@ -10,15 +10,15 @@
   let selectedProfile = undefined;
   let isActionButtonClicked = false;
 
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store;
-    showLoadProfileOverlay(id, store.type);
-  });
+  $: {
+    selectedProfile = $selectedProfileStore;
+    showLoadProfileOverlay(id, $selectedProfileStore.type);
+  }
 
-  isActionButtonClickedStore.subscribe((store) => {
-    isActionButtonClicked = store;
-    showLoadProfileOverlay(id, store.type);
-  });
+  $: {
+    isActionButtonClicked = $isActionButtonClickedStore;
+    showLoadProfileOverlay(id, $isActionButtonClickedStore.type);
+  }
 
   function showLoadProfileOverlay(moduleId, profileType) {
     let moduleType = moduleId.substr(0, 4);

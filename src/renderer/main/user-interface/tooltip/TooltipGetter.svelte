@@ -1,19 +1,6 @@
 <script>
-  import { onMount } from "svelte";
-  import { fly, fade } from "svelte/transition";
+  import { fade } from "svelte/transition";
   import { current_tooltip_store } from "../../../runtime/app-helper.store";
-  import { tooltip_content } from "./tooltip-content.json.js";
-
-  let tooltip = false;
-
-  let tooltip_text = "";
-
-  onMount(() => {
-    current_tooltip_store.subscribe((tip) => {
-      tooltip = tip.bool;
-      tooltip_text = tooltip_content[tip.key];
-    });
-  });
 
   export function cursorLog(node, { tooltip }) {
     const div = document.getElementById("cursor-tooltip");
@@ -66,18 +53,18 @@
   }
 </script>
 
-{#if tooltip}
+{#if $current_tooltip_store.bool}
   <div
     id="cursor-tooltip"
     style="z-index:20;"
-    use:cursorLog={{ tooltip }}
+    use:cursorLog={$current_tooltip_store.bool}
     class="absolute"
   >
     <div
       in:fade={{ duration: 100, delay: 500 }}
       class="border-primary flex flex-col w-72 rounded-lg bg-thirdery shadow border-2 px-4 py-1 text-white"
     >
-      {tooltip_text}
+      {$current_tooltip_store.key}
     </div>
   </div>
 {/if}

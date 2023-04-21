@@ -6,33 +6,28 @@ import { writeBuffer } from "../runtime/engine.store.js";
 
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
-// ============= NEW WEBSERIAL BASED IMPLEMENTATION ===================
-
-let lineBuffer = "";
-let latestValue = 0;
-
 // INITIALIZE THE INTERVAL
 console.log(
-  "Initialize Discovery Interval! ENABLE debugging through navigator.serialDebug = true"
+  "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true"
 );
 window.electron.serial.restartSerialCheckInterval();
 
 navigator.serial.addEventListener("disconnect", (e) => {
-  if (navigator.serialDebug)
+  if (navigator.debugSerial)
     console.log("Any Device Disconnect", e, navigator.intechPort);
-  if (navigator.serialDebug) console.log("Restart Discovery Interval");
+  if (navigator.debugSerial) console.log("Restart Discovery Interval");
 
   window.electron.serial.restartSerialCheckInterval();
 });
 navigator.serial.addEventListener("connect", (e) => {
-  if (navigator.serialDebug)
+  if (navigator.debugSerial)
     console.log("Any Device Connect", e, navigator.intechPort);
-  if (navigator.serialDebug) console.log("Restart Discovery Interval");
+  if (navigator.debugSerial) console.log("Restart Discovery Interval");
   window.electron.serial.restartSerialCheckInterval();
 });
 
 export async function testIt() {
-  if (navigator.serialDebug) console.log("Serial Try Connect");
+  if (navigator.debugSerial) console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
@@ -71,17 +66,27 @@ export async function testIt() {
 
             fetchStream();
 
+            navigator.intechPort = port;
+
+            port.addEventListener("disconnect", (e) => {
+              if (navigator.debugSerial) console.log("The Real Disconnect", e);
+              navigator.intechPort = undefined;
+            });
+
+            fetchStream();
+
             // port.readable
             //   .pipeThrough(new TextDecoderStream())
             //   .pipeTo(appendStream);
           })
           .catch((error) => {
-            //console.log(error)
+            if (navigator.debugSerial) console.log("Error on Open: ", error);
           });
       })
       .catch((error) => {
         //no port selected by the user
         //console.log(error)
+        if (navigator.debugSerial) console.log("Error on Request: ", error);
       });
   }
 

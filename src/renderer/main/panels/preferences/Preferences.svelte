@@ -69,21 +69,6 @@
   let download_status = "";
   let download_status_interval;
 
-  let preferences = ["MIDI Monitor", "Debug", "Advanced"];
-
-  let window_name = "";
-  let window_title = "";
-
-  appSettings.subscribe((s) => {
-    try {
-      window_name = s.activeWindowResult.owner.name;
-      window_title = s.activeWindowResult.title;
-    } catch (e) {
-      window_name = "";
-      window_title = "";
-    }
-  });
-
   async function selectDirectory() {
     appSettings.update((s) => {
       s.intervalPause = true;
@@ -461,12 +446,16 @@
 
       <div class="text-gray-400 py-1 mt-1 text-sm">
         <b>Active window:</b>
-        {$appSettings.persistant.pageActivatorEnabled ? window_name : "N/A"}
+        {$appSettings.persistant.pageActivatorEnabled
+          ? $appSettings.activeWindowResult.owner.name
+          : "N/A"}
       </div>
 
       <div class="text-gray-400 py-1 mt-1 text-sm">
         <b>Active title:</b>
-        {$appSettings.persistant.pageActivatorEnabled ? window_title : "N/A"}
+        {$appSettings.persistant.pageActivatorEnabled
+          ? $appSettings.activeWindowResult.title
+          : "N/A"}
       </div>
 
       <input
