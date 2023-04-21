@@ -15,4 +15,14 @@ restart
 
 ```
 
+## Code formatting using prettier
+
+Format validator is run on every push, please make sure to run the prettier code formatter before pushing code to the repository!
+
+```
+npm i prettier --global
+npm i prettier-plugin-svelte --global
+prettier --write .
+```
+
 © Intech Studio Ltd.
