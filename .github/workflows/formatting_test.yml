@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          .gitignore >> "src/external/grid-protocol/*"
+          echo "src/external/grid-protocol/*" >> .gitignore
           npm i prettier --global
           npm i prettier-plugin-svelte --global
           prettier --write .
