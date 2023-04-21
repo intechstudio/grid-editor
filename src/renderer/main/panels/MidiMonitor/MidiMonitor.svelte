@@ -306,8 +306,22 @@
       <Pane size={50}>
         <div class="flex flex-col h-full w-full">
           {#if debug}
-            <div class="flex w-full font-medium text-white pb-2 pt-6">
-              Debug Text
+            <div
+              class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
+            >
+              <div>Debug Text</div>
+              <div class="flex flex-row">
+                <div class="pr-2">Char Count:</div>
+                <div
+                  class={runtimeScript.length >= 400
+                    ? "text-error"
+                    : runtimeScript.length >= 120
+                    ? "text-yellow-400"
+                    : "text-white"}
+                >
+                  {runtimeScript.length}
+                </div>
+              </div>
             </div>
             <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
               {#if $debug_monitor_store.length != 0}
@@ -315,11 +329,6 @@
                   <span class="font-mono text-white debugtexty">{debug}</span>
                 {/each}
               {/if}
-            </div>
-            <div class="text-white">
-              Char count: {@html runtimeScript.length > 120
-                ? `<span class="text-yellow-400">${runtimeScript.length}</span>`
-                : `${runtimeScript.length}`}
             </div>
           {:else}
             <div class="flex w-full text-white pb-2 pt-6">
