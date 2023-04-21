@@ -24,4 +24,5 @@ jobs:
           npm i prettier-plugin-svelte --global
           prettier --write .
           git status
+          echo 'Changed Files:'
           git diff --name-only

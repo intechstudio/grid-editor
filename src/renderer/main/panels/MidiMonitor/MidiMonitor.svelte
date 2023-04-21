@@ -45,6 +45,11 @@
   const scrollToBottom = (node) => {
     let isScrolling = false;
 
+
+
+
+    
+
     const scroll = () => {
       if (
         !isScrolling &&
