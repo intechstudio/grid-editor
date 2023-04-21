@@ -29,12 +29,13 @@ jobs:
           git diff --name-only
           git diff --name-only >> format_error.txt
           if [ -s format_error.txt ]; then
-            echo "File is empty"
+            echo "ERROR IN FORMATTING, PLEASE RUN PRETTIER ON THE CODEBASE BEFORE COMMITTING"
             exit 1
           fi
 
       - uses: tsickert/discord-webhook@v4.0.0
+        if: ${{ failure() }}
         with:
           webhook-url: ${{ secrets.DISCORD_DEV_WEBHOOK }}
-          content: "Format report!"
+          content: "Format error in the following files!"
           filename: "format_error.txt"
