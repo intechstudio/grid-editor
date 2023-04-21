@@ -8,12 +8,13 @@
   import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
 
   import TooltipSetter from "../../../user-interface/tooltip/TooltipSetter.svelte";
+  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
 
   function multiSelectToggle() {}
 </script>
 
 <app-action-multi-select
-  class=" flex items-center flex-row  justify-between  w-full "
+  class=" flex items-center flex-row justify-between w-full"
 >
   <!-- When any of the array elements is true -->
   <div class="w-fit flex flex-wrap">
@@ -22,7 +23,7 @@
         configManagement().on_click.converttocodeblock();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-gray-500 hover:bg-gray-600 mr-2 rounded-full ${
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
         $appMultiSelect.selection.includes(true)
           ? ""
           : "opacity-50 pointer-events-none"
@@ -31,7 +32,7 @@
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
-        <span>Merge as Code</span>
+        <SvgIcon iconPath={"merge_as_code"} />
       </span>
     </BtnAndPopUp>
 
@@ -40,16 +41,16 @@
         configManagement().on_click.cut();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-yellow-500 hover:bg-yellow-600 mr-2 rounded-full ${
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
         $appMultiSelect.selection.includes(true)
           ? ""
           : "opacity-50 pointer-events-none"
       }`}
-      popStyle={"bg-yellow-500 "}
+      popStyle={"bg-sencodary"}
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
-        <span>Cut</span>
+        <SvgIcon iconPath={"cut"} />
         <TooltipSetter key={"configuration_cut_one"} />
       </span>
     </BtnAndPopUp>
@@ -59,16 +60,16 @@
         configManagement().on_click.copy();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-pick hover:bg-pick-saturate-10 mr-2 rounded-full ${
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
         $appMultiSelect.selection.includes(true)
           ? ""
           : "opacity-50 pointer-events-none"
       }`}
-      popStyle={"bg-pick "}
+      popStyle={"bg-sencodary"}
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
-        <span>Copy</span>
+        <SvgIcon iconPath={"copy"} />
         <TooltipSetter key={"configuration_copy_one"} />
       </span>
     </BtnAndPopUp>
@@ -78,14 +79,14 @@
         configManagement().on_click.paste();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-purple-500 hover:bg-purple-600 mr-2 rounded-full ${
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
         $appActionClipboard.length > 0 ? "" : "opacity-50 pointer-events-none"
       }`}
-      popStyle={"bg-purple-500 "}
+      popStyle={"bg-sencodary"}
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
-        <span>Paste</span>
+        <SvgIcon iconPath={"paste"} />
         <TooltipSetter key={"configuration_paste_one"} />
       </span>
     </BtnAndPopUp>
@@ -95,16 +96,16 @@
         configManagement().on_click.remove();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-red-500 hover:bg-red-600 mr-2 rounded-full ${
+      btnStyle={`relative bg-sencodary mr-2 group rounded-md ${
         $appMultiSelect.selection.includes(true)
           ? ""
           : "opacity-50 pointer-events-none"
       }`}
-      popStyle={"bg-red-500 "}
+      popStyle={"bg-sencodary "}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
-        <span>Remove</span>
+        <SvgIcon iconPath={"remove"} />
         <TooltipSetter key={"configuration_remove_one"} />
       </span>
     </BtnAndPopUp>

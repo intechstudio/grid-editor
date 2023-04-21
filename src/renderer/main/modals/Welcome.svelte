@@ -65,7 +65,7 @@
   >
     <div class="p-6 flex-col w-full flex justify-between items-center">
       <div class="flex w-full text-4xl opacity-90">Grid Editor {version}</div>
-      <div class="flex w-full text-2xl opacity-70 ">Intech Studio</div>
+      <div class="flex w-full text-2xl opacity-70">Intech Studio</div>
 
       <button
         on:click={() => {
@@ -100,9 +100,7 @@
     >
       <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
         <div class="p-4 flex-col w-7/12 flex justify-between">
-          <div class="flex w-full text-xl opacity-70 ">
-            Latest Release Video
-          </div>
+          <div class="flex w-full text-xl opacity-70">Latest Release Video</div>
 
           <iframe
             crossorigin="anonymous"
@@ -113,7 +111,7 @@
         </div>
 
         <div class="p-4 flex-col w-5/12 flex justify-between">
-          <div class="flex w-full text-xl opacity-70 ">Getting started</div>
+          <div class="flex w-full text-xl opacity-70">Getting started</div>
           <button
             on:click={(e) => window.electron.openInBrowser(video_link)}
             class="flex w-full text-blue-500 cursor-pointer"
@@ -142,7 +140,7 @@
 
           <br />
 
-          <div class="flex w-full text-xl opacity-70 ">Troubleshooting</div>
+          <div class="flex w-full text-xl opacity-70">Troubleshooting</div>
           <button
             on:click={(e) =>
               window.electron.openInBrowser(
@@ -173,7 +171,7 @@
 
           <br />
 
-          <div class="flex w-full text-xl opacity-70 ">Suggest Features</div>
+          <div class="flex w-full text-xl opacity-70">Suggest Features</div>
 
           <div class="flex w-full">
             <button
@@ -194,7 +192,7 @@
       justify-between items-center"
     >
       <div class="flex flex-col h-full p-6">
-        <div class="flex w-full opacity-70 ">
+        <div class="flex w-full opacity-70">
           Grid Editor is Open-Source Software
         </div>
         <button
@@ -232,11 +230,11 @@
 
       <div class="flex flex-row items-center h-full p-6">
         <input
-          class="mr-1 opacity-70 "
+          class="mr-1 opacity-70"
           type="checkbox"
           bind:checked={$appSettings.persistant.welcomeOnStartup}
         />
-        <div class="mx-1 mr-4 opacity-70 ">Always show on startup</div>
+        <div class="mx-1 mr-4 opacity-70">Always show on startup</div>
 
         <button
           on:click={() => {

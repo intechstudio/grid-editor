@@ -40,47 +40,32 @@
 
   $: selected = components.find((component) => component.type === type);
 
-  onMount(() => {
-    isActionButtonClickedStore.subscribe((store) => {
-      isActionButtonClicked = store;
-    });
+  $: {
+    isActionButtonClicked = $isActionButtonClickedStore;
+  }
 
-    selectedProfileStore.subscribe((store) => {
-      if (
-        Object.keys($selectedProfileStore).length !== 0 &&
-        isActionButtonClicked == false
-      ) {
-        selectedElement = { id: "", brc: {}, event: {} };
-      }
-    });
+  $: {
+    const store = $selectedProfileStore;
+    if (store && !isActionButtonClicked) {
+      selectedElement = { id: "", brc: {}, event: {} };
+    }
+  }
 
-    selectedPresetStore.subscribe((store) => {
-      if (
-        Object.keys($selectedPresetStore).length !== 0 &&
-        isActionButtonClicked == false
-      ) {
-        selectedElement = { id: "", brc: {}, event: {} };
-      }
-    });
+  $: {
+    const store = $selectedPresetStore;
+    if (store && !isActionButtonClicked) {
+      selectedElement = { id: "", brc: {}, event: {} };
+    }
+  }
 
-    user_input.subscribe((store) => {
-      if (
-        Object.keys($selectedProfileStore).length === 0 ||
-        Object.keys($selectedPresetStore).length === 0
-      ) {
-        selectedElement = store;
-      }
-    });
-  });
-
-  $: user_input.subscribe((store) => {
+  $: {
     if (
       Object.keys($selectedProfileStore).length === 0 ||
       Object.keys($selectedPresetStore).length === 0
     ) {
-      selectedElement = store;
+      selectedElement = $user_input;
     }
-  });
+  }
 </script>
 
 {#if selected}

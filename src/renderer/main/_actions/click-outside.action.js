@@ -1,19 +1,16 @@
 /** Dispatch event on click outside of node */
-export function clickOutside(node, {useCapture = false}) {
-  
-  const handleClick = event => {
+export function clickOutside(node, { useCapture = false }) {
+  const handleClick = (event) => {
     if (node && !node.contains(event.target) && !event.defaultPrevented) {
-      node.dispatchEvent(
-        new CustomEvent('click-outside', node)
-      )
+      node.dispatchEvent(new CustomEvent("click-outside", node));
     }
-  }
+  };
 
-	document.addEventListener('click', handleClick, useCapture);
-  
+  document.addEventListener("click", handleClick, useCapture);
+
   return {
     destroy() {
-      document.removeEventListener('click', handleClick, useCapture);
-    }
-	}
+      document.removeEventListener("click", handleClick, useCapture);
+    },
+  };
 }

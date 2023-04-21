@@ -1,7 +1,5 @@
 <script>
-
-
-/*
+  /*
 STATE 0 | No notification (Init state)
 STATE 1 | Mismatch notofic.   | Event   -> STATE 2
 STATE 2 | Waiting for bootl.  | Event   -> STATE 3
@@ -17,7 +15,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   import { runtime } from "../runtime/runtime.store";
 
   import { fade } from "svelte/transition";
-    import { escape } from "svelte/internal";
+  import { escape } from "svelte/internal";
 
   const { env } = window.ctxProcess;
 
@@ -31,7 +29,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   let bootloader_path = undefined;
 
   const startBootloaderCheck = () => {
-
     if (flagBootloaderCheck === 1) {
       return;
     }
@@ -46,33 +43,26 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     flagBootloaderCheck = 0;
   };
 
-
   // check for parsed modules
-  runtime.subscribe((store) => {
-
+  $: {
+    const store = $runtime;
     let firmwareMismatchFound = false;
 
-    if (store.length === 0){
+    if (store.length === 0) {
       startBootloaderCheck();
-      if ($appSettings.firmwareNotificationState  == 1){
+      if ($appSettings.firmwareNotificationState == 1) {
         $appSettings.firmwareNotificationState = 2;
       }
-    }else{
-
+    } else {
       stopBootloaderCheck();
-
     }
-
 
     // check modules for firmware mismatch
     store.forEach((device) => {
-
-
-      if ($appSettings.firmwareNotificationState == 6){
+      if ($appSettings.firmwareNotificationState == 6) {
         $appSettings.firmwareNotificationState = 0;
         uploadProgressText = "";
         bootloader_path = undefined;
-
       }
 
       if (device.fwMismatch === true) {
@@ -103,21 +93,18 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     } else {
       fwMismatch = false;
     }
-  });
+  }
 
   let text = "";
   let uploadProgressText = "";
 
   window.electron.firmware.onFirmwareUpdate((_event, value) => {
-
-
     if (value.code !== undefined) {
-
-      if (value.code == 3 && $appSettings.firmwareNotificationState == 4){
-        return
+      if (value.code == 3 && $appSettings.firmwareNotificationState == 4) {
+        return;
       }
 
-      if ($appSettings.firmwareNotificationState == 5){
+      if ($appSettings.firmwareNotificationState == 5) {
         return; // already in success state
       }
 
@@ -128,7 +115,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         uploadProgressText = value.message;
       }
 
-
       // when the firmware update is successful, reset the notification state
       if (value.code == 5) {
         setTimeout(() => {
@@ -136,71 +122,57 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
         }, 2000);
       }
     }
-
-
   });
 
   onMount(() => {
-
     startBootloaderCheck();
 
-    if (ctxProcess.platform()== "darwin") {
+    if (ctxProcess.platform() == "darwin") {
       text = "Command + Shift + R";
     } else {
       text = "Ctrl + Shift + R";
     }
   });
 
-
-
   async function find_bootloader_path() {
-
     //console.log("Try Detect Bootloader")
 
     const value = await window.electron.firmware.findBootloaderPath();
 
     if (value !== undefined) {
-
-      if ($appSettings.firmwareNotificationState == 1 || $appSettings.firmwareNotificationState == 2 || $appSettings.firmwareNotificationState == 6){
-
+      if (
+        $appSettings.firmwareNotificationState == 1 ||
+        $appSettings.firmwareNotificationState == 2 ||
+        $appSettings.firmwareNotificationState == 6
+      ) {
         //console.log("Successfuly detection", value.path)
 
-        bootloader_path = value.path
-      }
-      else{
-
+        bootloader_path = value.path;
+      } else {
         //console.log("Dont care detection", value.path)
-        bootloader_path = value.path
+        bootloader_path = value.path;
       }
-
 
       //stopBootloaderCheck();
-    }
-    else{
-      
-      if ( $appSettings.firmwareNotificationState == 4 || $appSettings.firmwareNotificationState == 5 || $appSettings.firmwareNotificationState == 6){
-
-        bootloader_path = undefined
+    } else {
+      if (
+        $appSettings.firmwareNotificationState == 4 ||
+        $appSettings.firmwareNotificationState == 5 ||
+        $appSettings.firmwareNotificationState == 6
+      ) {
+        bootloader_path = undefined;
         //console.log("Disconnect but no problem")
-
-      }
-      else{
-
-
+      } else {
         //console.log("Disconnect from state", $appSettings.firmwareNotificationState)
-        
-        if (typeof bootloader_path !== 'undefined'){
 
-        ////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
+        if (typeof bootloader_path !== "undefined") {
+          ////console.log("Disconnect because lost", $appSettings.firmwareNotificationState)
 
-          bootloader_path = undefined
-          uploadProgressText = "Bootloader connection lost!"
+          bootloader_path = undefined;
+          uploadProgressText = "Bootloader connection lost!";
           $appSettings.firmwareNotificationState = 6;
-
         }
       }
-
-
     }
   }
 
@@ -307,7 +279,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-
 {#if $appSettings.firmwareNotificationState === 6}
   <div
     class="w-full bg-red-500 text-white justify-center flex items-center text-center p-4"
@@ -316,17 +287,16 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       <div class="mx-2">
         <b>{uploadProgressText}</b>
       </div>
-      <div class="mx-2">
-        Click close message
-      </div>
+      <div class="mx-2">Click close message</div>
     </div>
 
     <button
-      on:click={()=>{$appSettings.firmwareNotificationState = 0}}
+      on:click={() => {
+        $appSettings.firmwareNotificationState = 0;
+      }}
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       Dismiss
     </button>
   </div>
 {/if}
-

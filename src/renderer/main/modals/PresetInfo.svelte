@@ -87,26 +87,20 @@
       "newPreset_desc_edit"
     );
   }
-
-  function getImgUrl(img) {
-    const imgPath = new URL(`/assets/imgs/sm_${img}.jpg`, import.meta.url).href;
-
-    return imgPath;
-  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
   class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50 "
+  bg-secondary bg-opacity-50"
 >
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class=" z-50  w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
-    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6 "
+    class=" z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col
+    shadow bg-primary bg-opacity-100 items-start opacity-100 p-6"
   >
     <div>Preset Info</div>
     <button
@@ -135,11 +129,11 @@
     </button>
 
     <div
-      class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between "
+      class="p-6 flex flex-row gap-4 overflow-auto w-full flex-wrap justify-between"
     >
-      <div class="flex flex-col gap-4 w-full lg:w-3/6 ">
+      <div class="flex flex-col gap-4 w-full lg:w-3/6">
         <div>
-          <div class="flex justify-end items-center ">
+          <div class="flex justify-end items-center">
             {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
               <div class="text-green-400 font-semibold mb-2">Tags</div>
             {/if}
@@ -233,7 +227,7 @@
             this is not working somehow only in dev. will fix next release.
           <img
             class="w-full h-48 object-cover"
-            src="{getImgUrl(selectedProfile.type)}"
+            src="{`imgs/sm_${selectedProfile.type}.jpg`}"
             alt="{selectedProfile.type}_img"
           />
           -->
@@ -264,7 +258,7 @@
               {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
                 <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
                   <button
-                    class="flex flex-row items-center justify-between "
+                    class="flex flex-row items-center justify-between"
                     on:click={() => {
                       isPresetLiked();
                     }}
@@ -272,7 +266,7 @@
                     <div class="border-r pr-2">
                       {#if !liked}
                         <svg
-                          class="fill-white "
+                          class="fill-white"
                           width="15"
                           height="12"
                           viewBox="0 0 38 35"

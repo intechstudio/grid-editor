@@ -18,7 +18,6 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import TooltipConfirm from "../../user-interface/tooltip/TooltipConfirm.svelte";
 
   let newPreset = {
@@ -27,18 +26,7 @@
     type: "",
   };
 
-  let selectedPreset = undefined;
-  let presetsOfSelectedDevice;
-  let isActionButtonClicked;
   let isDeleteButtonClicked = false;
-
-  selectedPresetStore.subscribe((store) => {
-    selectedPreset = store;
-  });
-
-  isActionButtonClickedStore.subscribe((store) => {
-    isActionButtonClicked = store;
-  });
 
   let selectedModule;
   let selectedController;
@@ -78,42 +66,41 @@
   let sortField = "name";
   let selectedPage;
 
-  user_input.subscribe((ui) => {
-    const rt = get(runtime);
-
-    let device = rt.find(
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
-    if (typeof device === "undefined") {
-      return;
+    if (typeof device !== "undefined") {
+      newPreset.type = ui.event.elementtype;
+      selectedController = ui.event.elementtype;
+      selectedModule = device.id.substr(0, 4);
+      selectedPage = ui.event.pagenumber;
+      /*     presetsOfSelectedDevice = device.pages[selectedPage].control_elements; */
     }
+  }
 
-    newPreset.type = ui.event.elementtype;
-    selectedController = ui.event.elementtype;
-    selectedModule = device.id.substr(0, 4);
-    selectedPage = ui.event.pagenumber;
-    /*     presetsOfSelectedDevice = device.pages[selectedPage].control_elements; */
-  });
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.presetFolder;
+  $: {
+    let new_folder = $appSettings.persistant.presetFolder;
     if (new_folder !== PRESET_PATH) {
       PRESET_PATH = new_folder;
     }
-  });
+  }
 
-  presetListRefresh.subscribe((store) => {
-    if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
+  $: {
+    const value = $presetListRefresh;
+    if (PRESET_PATH && value) {
       loadFromDirectory();
     }
-  });
+  }
 
-  presetChangeCallbackStore.subscribe(async (store) => {
+  $: {
+    const store = $presetChangeCallbackStore;
     if (store.action == "update" || store.action == "delete") {
-      await loadFromDirectory();
+      loadFromDirectory();
     }
-  });
+  }
 
   async function moveOld() {
     await window.electron.configs.moveOldConfigs(PRESET_PATH, "presets");
@@ -654,16 +641,11 @@
   }
 
   function selectPreset(preset) {
-
-
     selectedPreset = preset;
     selectedPresetStore.set(selectedPreset);
   }
 
   async function deleteFromDirectory(element) {
-
-
-
     disableButton = true;
 
     if (isDeleteButtonClicked) {
@@ -687,9 +669,7 @@
     disableButton = false;
     isActionButtonClickedStore.set(false);
 
-
     selectedPresetStore.set({});
-
   }
 
   function deleteSessionPreset(preset) {
@@ -713,7 +693,7 @@
     isActionButtonClickedStore.set(true);
 
     saveToDirectory(PRESET_PATH, preset.name, preset, "user");
-    deleteSessionPreset(preset)
+    deleteSessionPreset(preset);
 
     selectedPreset = undefined;
     isSaveToCloudButtonClicked = false;
@@ -759,10 +739,10 @@
     ? ''
     : 'pointer-events-none'}"
 >
-  <div class="flex w-full h-full flex-col overflow-hidden ">
+  <div class="flex w-full h-full flex-col overflow-hidden">
     <div
       class="flex justify-between items-center p-4 text-white font-medium
-  cursor-pointer w-full "
+  cursor-pointer w-full"
     >
       <div>Session Presets</div>
     </div>
@@ -783,14 +763,14 @@
               on:click={() => {
                 saveToSessionPreset();
               }}
-              class="relative bg-commit block  
+              class="relative bg-commit block
     w-full text-white mb-4 py-2 px-2 rounded border-commit-saturate-10
     hover:border-commit-desaturate-10 focus:outline-none"
             >
               <div>Save Session Preset</div>
               <TooltipSetter key={"newPreset_add_to_session"} />
             </button>
-            <div class="flex flex-col overflow-y-auto gap-4  ">
+            <div class="flex flex-col overflow-y-auto gap-4">
               {#if sessionPreset.length == 0}
                 <div class="text-gray-300">No preset to show</div>
               {/if}
@@ -802,14 +782,14 @@
                   on:click={() => selectPreset(sessionPresetElement)}
                   class="cursor-pointer flex justify-between gap-2 items-center
         text-left p-2 bg-secondary hover:bg-primary-600
-        {sessionPresetElement == selectedPreset
+        {sessionPresetElement == $selectedPresetStore
                     ? 'border border-green-300'
                     : 'border border-black border-opacity-0'}
         "
                 >
                   <div class="flex gap-2 items-center w-full">
                     <div
-                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2 
+                      class="text-zinc-100 text-xs lg:text-sm h-fit px-2
                 rounded-xl {selectedController == sessionPresetElement.type
                         ? 'bg-violet-600'
                         : 'bg-gray-600 '}"
@@ -846,12 +826,12 @@
                     </div>
                   </div>
 
-                  <div class="flex gap-1 ">
+                  <div class="flex gap-1">
                     <button
                       on:click|preventDefault={() => {
                         deleteSessionPreset(sessionPresetElement);
                       }}
-                      class="p-1 hover:bg-primary-500 {selectedPreset ==
+                      class="p-1 hover:bg-primary-500 {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0} rounded relative"
@@ -883,7 +863,7 @@
                     </button>
 
                     <button
-                      class="p-1 hover:bg-primary-500 rounded relative {selectedPreset ==
+                      class="p-1 hover:bg-primary-500 rounded relative {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
                         : 0}"
@@ -1010,9 +990,9 @@
         </div>
       </Pane>
       <Pane minSize={28}>
-        <div class="flex flex-col h-full  overflow-hidden bg-primary">
+        <div class="flex flex-col h-full overflow-hidden bg-primary">
           <div
-            class="flex justify-between items-center p-4 
+            class="flex justify-between items-center p-4
     w-full"
           >
             <div class="text-white font-medium">Preset Cloud</div>
@@ -1020,7 +1000,7 @@
               on:click={() => {
                 filterShowHide();
               }}
-              class="text-white text-left font-xs "
+              class="text-white text-left font-xs"
             >
               {#if isSearchSortingShows}
                 Hide Filters
@@ -1117,7 +1097,7 @@
                     {#each searchSuggestions as suggestion}
                       <button
                         on:click={() => useSearchSuggestion(suggestion.value)}
-                        class="border  hover:border-primary-500 text-sm text-primary-100 rounded-md
+                        class="border hover:border-primary-500 text-sm text-primary-100 rounded-md
                   py-1 px-2 h-min {searchbarValue.toLowerCase() ==
                         suggestion.value.toLowerCase()
                           ? 'border-primary-100'
@@ -1233,17 +1213,17 @@
                       on:click={() => {
                         selectedPresetStore.set(preset);
                       }}
-                      class="w-full  flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
-                cursor-pointer {selectedPreset == preset
+                      class="w-full flex gap-1 flex-col justify-between bg-secondary hover:bg-primary-600 p-2
+                cursor-pointer {$selectedPresetStore == preset
                         ? 'border border-green-300 bg-primary-600'
                         : 'border border-black border-opacity-0 bg-secondary'}"
                     >
                       <div
-                        class="flex flex-row gap-1 items-center w-full  justify-between"
+                        class="flex flex-row gap-1 items-center w-full justify-between"
                       >
-                        <div class="flex truncate items-center   gap-1">
+                        <div class="flex truncate items-center gap-1">
                           <div
-                            class="text-zinc-100 text-xs h-fit px-1 lg:px-2  lg:text-sm xl:text-md  
+                            class="text-zinc-100 text-xs h-fit px-1 lg:px-2 lg:text-sm xl:text-md
                       rounded-xl {preset.type == selectedController
                               ? 'bg-violet-600'
                               : 'bg-gray-600 '}"
@@ -1252,7 +1232,7 @@
                           </div>
 
                           <div
-                            class="text-gray-100 text-left text-sm lg:text-md   truncate "
+                            class="text-gray-100 text-left text-sm lg:text-md truncate"
                           >
                             {preset.name}
                           </div>
@@ -1382,7 +1362,7 @@
                           </div>
                         </div>
                       </div>
-                      <div class="text-gray-100 text-xs self-end lg:text-sm ">
+                      <div class="text-gray-100 text-xs self-end lg:text-sm">
                         @{preset.folder}
                       </div>
                     </button>

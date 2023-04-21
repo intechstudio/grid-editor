@@ -99,7 +99,7 @@
   style="min-height: 2.5rem; background: {information.color};"
 >
   <div
-    class="bg-secondary p-1 my-auto mr-1 rounded flex  items-center  w-full hidden"
+    class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full hidden"
   >
     <LineEditor
       on:output={(e) => {

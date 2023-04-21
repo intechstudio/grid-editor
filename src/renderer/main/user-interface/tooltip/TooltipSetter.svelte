@@ -279,12 +279,13 @@
 
 <!-- Button Hover -->
 {#if tooltip_text !== undefined}
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     bind:this={parent_element}
     on:mouseenter={mouseenterCallback}
     on:mouseleave={mouseleaveCallback}
     on:click|stopPropagation={buttonClick}
-    class="w-full flex h-full absolute right-0 top-0 "
+    class="w-full flex h-full absolute right-0 top-0"
   >
     {#if tooltip_isvisible}
       <div in:fade={{ duration: 0, delay: 750 }} on:introend={tooltipAppear}>

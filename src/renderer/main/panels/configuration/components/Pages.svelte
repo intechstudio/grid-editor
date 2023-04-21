@@ -49,13 +49,13 @@
     return style;
   };
 
-  user_input.subscribe((ui) => {
+  $: {
     try {
-      selectedPage = ui.event.pagenumber;
+      selectedPage = $user_input.event.pagenumber;
     } catch (error) {
       console.log("Get page error", error);
     }
-  });
+  }
 </script>
 
 <page-controller class=" relative flex flex-col w-full bg-primary">
@@ -71,9 +71,8 @@
           handleSelectPage(page);
         }}
         class=" {selectedPage == page
-        ? 'bg-secondary  text-white'
-        : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none  flex-grow border-0 text-gray-50  w-[100px]"
-
+          ? 'bg-secondary  text-white'
+          : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative p-1 flex-grow border-0 focus:outline-none flex-grow border-0 text-gray-50 w-[100px]"
       >
         Page {@html page !== ""
           ? page + 1

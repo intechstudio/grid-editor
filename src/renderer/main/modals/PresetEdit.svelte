@@ -129,14 +129,14 @@
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
 <modal
   class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50 "
+  bg-secondary bg-opacity-50"
 >
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
       $appSettings.modal = "";
     }}
-    class="z-50  w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col shadow
+    class="z-50 w-3/6 3xl:w-2/6 h-fit min-h-[379px] max-h-[3/4] text-white relative flex flex-col shadow
     bg-primary bg-opacity-100 items-start opacity-100 p-6 overflow-auto"
   >
     <div>Profile Info - Edit</div>
@@ -167,10 +167,10 @@
 
     {#if $appSettings.leftPanel == "NewPreset"}
       <div class="p-6 flex flex-col w-full">
-        <div class="flex flex-row gap-10  text-gray-500">
+        <div class="flex flex-row gap-10 text-gray-500">
           <div class="w-full flex flex-col gap-4">
-            <div class="flex flex-col ">
-              <label class="mb-1 " for="title">Title</label>
+            <div class="flex flex-col">
+              <label class="mb-1" for="title">Title</label>
               <input
                 id="title"
                 placeholder="Enter profile name..."
@@ -183,7 +183,7 @@
                 maxlength="60"
                 type="text"
                 class="w-full py-2 px-3 bg-secondary text-white
-              placeholder-gray-400 text-md mb-2 "
+              placeholder-gray-400 text-md mb-2"
               />
               {#if isTitleDirty == false}
                 <span class="text-red-500">This field is required</span>
@@ -262,7 +262,7 @@
           <button
             class="flex items-center focus:outline-none justify-center rounded
           my-2 border-select bg-select hover:border-select-saturate-10
-          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24 "
+          hover:bg-select-saturate-10 border-2 text-white px-2 py-0.5 mx-1 w-24"
             on:click|preventDefault={() => {
               $appSettings.modal = "presetInfo";
             }}
@@ -274,7 +274,7 @@
             class=" flex items-center focus:outline-none justify-center rounded
           my-22 border-commit bg-commit hover:bg-commit-saturate-20
           hover:border-commit-saturate-20 text-white border-2 px-2 py-0.5 mx-1
-          w-24 "
+          w-24"
           >
             Save
           </button>

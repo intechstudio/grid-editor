@@ -140,6 +140,8 @@
     });
   }
 
+  let testy = "profile_info_image";
+
   onMount(() => {
     // application mounted, check analytics
     window.electron.analytics.influx("application", "init", "init", "init");
@@ -167,7 +169,6 @@
   class="relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
-
   <NavTabs />
 
   <svelte:component this={modalComponents[$appSettings.modal]} />

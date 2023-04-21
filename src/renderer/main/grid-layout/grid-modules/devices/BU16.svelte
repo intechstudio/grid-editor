@@ -38,7 +38,8 @@
     [0, 0, 0],
   ];
 
-  elementPositionStore.subscribe((value) => {
+  $: {
+    const value = $elementPositionStore;
     try {
       let eps = value[dx][dy];
 
@@ -46,11 +47,12 @@
         elementposition_array[key] = eps[key];
       }
     } catch (error) {
-      return;
+      //ERROR
     }
-  });
+  }
 
-  ledColorStore.subscribe((value) => {
+  $: {
+    const value = $ledColorStore;
     try {
       let lcs = value[dx][dy];
 
@@ -58,9 +60,9 @@
         ledcolor_array[key] = lcs[key];
       }
     } catch (error) {
-      return;
+      //ERROR
     }
-  });
+  }
 
   $: if (id) {
     if (id !== undefined && id.length > 4) {
@@ -89,7 +91,7 @@
     style="--module-size: {moduleWidth + 'px'}"
   >
     <div
-      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center "
+      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->

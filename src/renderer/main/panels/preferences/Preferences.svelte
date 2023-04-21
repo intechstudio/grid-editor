@@ -69,21 +69,6 @@
   let download_status = "";
   let download_status_interval;
 
-  let preferences = ["MIDI Monitor", "Debug", "Advanced"];
-
-  let window_name = "";
-  let window_title = "";
-
-  appSettings.subscribe((s) => {
-    try {
-      window_name = s.activeWindowResult.owner.name;
-      window_title = s.activeWindowResult.title;
-    } catch (e) {
-      window_name = "";
-      window_title = "";
-    }
-  });
-
   async function selectDirectory() {
     appSettings.update((s) => {
       s.intervalPause = true;
@@ -461,12 +446,16 @@
 
       <div class="text-gray-400 py-1 mt-1 text-sm">
         <b>Active window:</b>
-        {$appSettings.persistant.pageActivatorEnabled ? window_name : "N/A"}
+        {$appSettings.persistant.pageActivatorEnabled
+          ? $appSettings.activeWindowResult.owner.name
+          : "N/A"}
       </div>
 
       <div class="text-gray-400 py-1 mt-1 text-sm">
         <b>Active title:</b>
-        {$appSettings.persistant.pageActivatorEnabled ? window_title : "N/A"}
+        {$appSettings.persistant.pageActivatorEnabled
+          ? $appSettings.activeWindowResult.title
+          : "N/A"}
       </div>
 
       <input
@@ -497,7 +486,7 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center  ">
+    <div class="flex py-2 text-white items-center">
       <label class="mx-1">
         <input
           class="mr-1"
@@ -583,7 +572,7 @@
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
           ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5 "
+          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
       >
         NVM Defrag
       </button>
@@ -595,7 +584,7 @@
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
           ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2  text-white px-2 py-0.5"
+          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
       >
         NVM Erase
       </button>
@@ -633,7 +622,6 @@
     >
       <div>Trigger error: other</div>
     </button> -->
-
   </div>
 </preferences>
 

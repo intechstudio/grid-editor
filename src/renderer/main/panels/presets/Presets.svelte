@@ -29,47 +29,45 @@
   let newPreset = {
     name: "",
     description: "",
-    type: "",
+    type: $user_input.event.elementtype,
   };
 
   let selectedIndex = undefined;
 
-  let PRESET_PATH = get(appSettings).persistant.profileFolder;
-
   let PRESETS = [];
 
-  user_input.subscribe((ui) => {
-    newPreset.type = ui.event.elementtype;
-  });
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-    if (new_folder !== PRESET_PATH) {
-      PRESET_PATH = new_folder;
+  $: {
+    if ($appSettings.persistant.profileFolder) {
       moveOld();
     }
-  });
+  }
 
-  presetListRefresh.subscribe((store) => {
-    if (PRESET_PATH !== undefined && PRESET_PATH !== "") {
+  $: {
+    if ($presetListRefresh) {
       loadFromDirectory();
     }
-  });
+  }
 
   onMount(() => {
     moveOld();
   });
 
   async function moveOld() {
-    await window.electron.configs.moveOldConfigs(PRESET_PATH, "presets");
-    loadFromDirectory();
+    const path = $appSettings.persistant.profileFolder;
+    if (typeof path !== "undefined" && path !== "") {
+      await window.electron.configs.moveOldConfigs(path, "presets");
+      loadFromDirectory();
+    }
   }
 
   async function loadFromDirectory() {
-    PRESETS = await window.electron.configs.loadConfigsFromDirectory(
-      PRESET_PATH,
-      "presets"
-    );
+    const path = $appSettings.persistant.profileFolder;
+    if (typeof path !== "undefined" && path !== "") {
+      PRESETS = await window.electron.configs.loadConfigsFromDirectory(
+        path,
+        "presets"
+      );
+    }
   }
 
   async function saveToDirectory(path, name, preset) {
@@ -144,8 +142,11 @@
           };
         }
       });
-
-      saveToDirectory(PRESET_PATH, newPreset.name, preset);
+      saveToDirectory(
+        $appSettings.persistant.profileFolder,
+        newPreset.name,
+        preset
+      );
 
       engine.set("ENABLED");
     };
@@ -308,6 +309,7 @@
         {/if}
 
         {#each PRESETS.sort(compare) as preset, i}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
           <li
             on:click={() => {
               selected = preset;
@@ -320,7 +322,7 @@
             class="{selectedIndex == i
               ? 'border-pick bg-secondary'
               : 'bg-secondary bg-opacity-40 border-primary hover:bg-opacity-70 hover:border-pick-desaturate-10'}
-            border-l-4 preset p-2 my-2  relative"
+            border-l-4 preset p-2 my-2 relative"
           >
             <div class="w-full">{preset.name}</div>
 
@@ -331,36 +333,35 @@
                 bind:value={preset.description}
                 type="text"
                 placeholder="No description available"
-                class="w-full bg-primary p-1 rounded-none h-36 resize-none "
+                class="w-full bg-primary p-1 rounded-none h-36 resize-none"
               />
             {/if}
 
             <div class="flex text-xs opacity-80 font-semibold">
               <div
                 class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block {newPreset.type == preset.type
+                {newPreset.type == preset.type
                   ? 'bg-green-500'
-                  : 'bg-gray-600'}
-                "
+                  : 'bg-gray-600'}"
               >
                 {preset.type === "potentiometer" ? "potmeter" : preset.type}
               </div>
               <div
                 class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block bg-gray-900"
+                bg-gray-900"
               >
                 v{preset.version.major}.{preset.version.minor}.{preset.version
                   .patch}
               </div>
               <div
-                class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block"
+                class="m-1 flex justify-center text-center rounded-full px-2"
                 style="background-color: {preset.color}"
               >
                 by {preset.folder}
               </div>
             </div>
 
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
             <div
               in:fade
               class="opacity-10 w-6 h-6 bg-primary absolute hover:opacity-70

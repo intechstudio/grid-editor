@@ -16,6 +16,7 @@
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
+  import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
   export let events;
   export let elements;
@@ -135,7 +136,7 @@
   >
     <div class="w-3/4 p-1">
       <div class="flex items-center py-1">
-        <div class="text-gray-500 text-sm ">Element Name</div>
+        <div class="text-gray-500 text-sm">Element Name</div>
         <button
           on:click={showControlElementNameOverlay}
           class="border-none focus:outline-none ml-1"
@@ -199,40 +200,41 @@
     </div> -->
   </div>
 
-  <div class="pb-2  flex flex-col justify-center">
+  <div class="pb-2 flex flex-col justify-center">
     <!--     <div class="  flex justify-center items-center">
       <hr class="w-[90%] my-6 border-white border-opacity-10 " />
     </div> -->
-    <div class="py-2  text-sm flex justify-between items-center">
+    <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
-      <div class="flex text-gray-400">
+      <div class="flex text-gray-400 mr-2">
         <button
-          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary mx-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1"
           on:click={() => {
             copyAllEventConfigsFromSelf();
           }}
         >
-          <div>Copy All</div>
+          <SvgIcon iconPath={"copy_all"} />
+
           <TooltipSetter key={"configuration_copy_all"} />
         </button>
 
         <button
-          class="relative px-4 py-0.5 rounded-full cursor-pointer bg-secondary ml-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1"
           on:click={() => {
             overwriteAllEventConfigs();
           }}
         >
-          <div>Overwrite</div>
+          <SvgIcon iconPath={"paste_all"} />
+
           <TooltipSetter key={"configuration_overwrite"} />
         </button>
       </div>
     </div>
 
-    <div class="flex flex-col justify-center items-center ">
-      <div class="flex shadow overflow-x-auto w-full ">
+    <div class="flex flex-col justify-center items-center">
+      <div class="flex shadow overflow-x-auto w-full">
         {#each events.options as event}
-        
           <!--           <button
             on:click={() => {
               handleSelectEvent(event);
@@ -257,7 +259,7 @@
             class:dummy={event.desc == undefined}
             class="{selectedEvent === event && event.desc !== undefined
               ? 'shadow-md bg-pick text-white'
-            : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
           >
             {@html event.desc
               ? event.desc
