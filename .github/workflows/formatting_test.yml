@@ -24,9 +24,14 @@ jobs:
           npm i prettier-plugin-svelte --global
           prettier --write .
           git status
+          touch format_error.txt
           echo 'Changed Files:'
           git diff --name-only
           git diff --name-only >> format_error.txt
+          if [ ! -s format_error.txt ]; then
+            echo "File is empty"
+            exit 1
+          fi
 
       - uses: tsickert/discord-webhook@v4.0.0
         with:
