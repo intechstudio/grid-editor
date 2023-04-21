@@ -19,11 +19,10 @@
     document.getElementById("temp-clip").remove();
   }
 
-  onMount(() => {
-    luadebug_store.subscribe((data) => {
-      config = data.config !== undefined ? `${data.config}` : "<?lua ?>";
-    });
-  });
+  $: {
+    const data = $luadebug_store;
+    config = data.config !== undefined ? `${data.config}` : "<?lua ?>";
+  }
 </script>
 
 <div id="modal-copy-placeholder" />

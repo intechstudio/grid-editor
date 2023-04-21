@@ -35,53 +35,49 @@
 
   let selectedIndex = undefined;
 
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
-
   let PROFILES = [];
 
-  user_input.subscribe((ui) => {
-    const rt = get(runtime);
-
-    let device = rt.find(
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
       (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
 
-    if (device === undefined) {
-      return;
+    if (typeof device !== "undefined") {
+      const moduleType = device.id.substr(0, 4);
+      newProfile.type = moduleType;
     }
+  }
 
-    newProfile.type = device.id.substr(0, 4);
-  });
-
-  appSettings.subscribe((store) => {
-    let new_folder = store.persistant.profileFolder;
-    if (new_folder !== PROFILE_PATH) {
-      PROFILE_PATH = new_folder;
+  $: {
+    if ($appSettings.persistant.profileFolder) {
       moveOld();
     }
-  });
+  }
 
   onMount(() => {
     moveOld();
   });
 
-  profileListRefresh.subscribe(async (store) => {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      await loadFromDirectory();
+  $: {
+    if ($profileListRefresh) {
+      loadFromDirectory();
     }
-  });
+  }
 
   async function moveOld() {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
-      await window.electron.configs.moveOldConfigs(PROFILE_PATH, "profiles");
+    const path = $appSettings.persistant.profileFolder;
+    if (typeof path !== "undefined" && path !== "") {
+      await window.electron.configs.moveOldConfigs(path, "profiles");
       await loadFromDirectory();
     }
   }
 
   async function loadFromDirectory() {
-    if (PROFILE_PATH !== undefined && PROFILE_PATH !== "") {
+    const path = $appSettings.persistant.profileFolder;
+    if (typeof path !== "undefined" && path !== "") {
       PROFILES = await window.electron.configs.loadConfigsFromDirectory(
-        PROFILE_PATH,
+        path,
         "profiles"
       );
     }
@@ -157,7 +153,12 @@
         }
       });
 
-      saveToDirectory(PROFILE_PATH, newProfile.name, profile, user);
+      saveToDirectory(
+        $appSettings.persistant.profileFolder,
+        newProfile.name,
+        profile,
+        user
+      );
 
       engine.set("ENABLED");
     };
@@ -322,6 +323,7 @@
         {/if}
 
         {#each PROFILES.sort(compare) as profile, i}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
           <li
             on:click={() => {
               selected = profile;
@@ -352,7 +354,7 @@
             <div class="flex text-xs opacity-80 font-semibold">
               <div
                 class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block {newProfile.type == profile.type
+                {newProfile.type == profile.type
                   ? 'bg-green-500'
                   : 'bg-gray-600'}
                 "
@@ -360,21 +362,20 @@
                 {profile.type}
               </div>
               <div
-                class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block bg-gray-900"
+                class="m-1 flex justify-center text-center rounded-full px-2 bg-gray-900"
               >
                 v{profile.version.major}.{profile.version.minor}.{profile
                   .version.patch}
               </div>
               <div
-                class="m-1 flex justify-center text-center rounded-full px-2
-                inline-block"
+                class="m-1 flex justify-center text-center rounded-full px-2"
                 style="background-color: {profile.color}"
               >
                 by {profile.folder}
               </div>
             </div>
 
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
             <div
               in:fade
               class="opacity-10 w-6 h-6 bg-primary absolute hover:opacity-70

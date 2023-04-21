@@ -183,7 +183,7 @@
     }
   }
 
-  $: console.log(configs, "configs");
+  //$: console.log(configs, "configs");
 </script>
 
 <wrapper

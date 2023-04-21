@@ -49,13 +49,13 @@
     return style;
   };
 
-  user_input.subscribe((ui) => {
+  $: {
     try {
-      selectedPage = ui.event.pagenumber;
+      selectedPage = $user_input.event.pagenumber;
     } catch (error) {
       console.log("Get page error", error);
     }
-  });
+  }
 </script>
 
 <page-controller class=" relative flex flex-col w-full bg-primary">

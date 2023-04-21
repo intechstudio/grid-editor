@@ -1,5 +1,4 @@
 <script>
-  import { get } from "svelte/store";
   import {
     debug_monitor_store,
     debug_lowlevel_store,
@@ -18,8 +17,8 @@
 
   let configs = [];
 
-  luadebug_store.subscribe((active) => {
-    let res = _utils.gridLuaToEditorLua(active.config);
+  $: {
+    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
 
     configs = res;
     let code = "";
@@ -28,7 +27,7 @@
     });
     runtimeScript = "<?lua " + "\n" + code + "?>";
     runtimeParser = luaParser(code, { comments: true });
-  });
+  }
 
   function charCount(text) {
     return text.length;
@@ -153,10 +152,17 @@
   <div class="flex justify-between min-h-[100px] items-center overflow-y-auto">
     <div class="mx-1 my-2">
       <div class="text-white">Syntax: {runtimeParser}</div>
-      <div class="text-white">
-        Char count: {@html charCount(runtimeScript) > 120
-          ? `<span class="text-yellow-400">${charCount(runtimeScript)}</span>`
-          : `${charCount(runtimeScript)}`}
+      <div class="flex flex-row">
+        <div class="pr-2 text-white">Char Count:</div>
+        <div
+          class={runtimeScript.length >= 400
+            ? "text-error"
+            : runtimeScript.length >= 120
+            ? "text-yellow-400"
+            : "text-white"}
+        >
+          {runtimeScript.length}
+        </div>
       </div>
     </div>
   </div>

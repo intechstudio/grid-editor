@@ -3,21 +3,29 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
+  import { luadebug_store } from "../../../runtime/runtime.store";
+  import _utils, { luaParser } from "../../../runtime/_utils";
   import {
     midi_monitor_store,
     sysex_monitor_store,
     debug_stream,
   } from "./MidiMonitor.store";
 
-  import { onMount, onDestroy } from "svelte";
-
   // ok but slow nice
 
-  onMount(() => {
-    console.log("MIDI MONITOR DEBUGGING:");
-    console.log("navigator.midiAnimations = true/false");
-    console.log("navigator.midiShowActivity = true/false");
-  });
+  let runtimeScript = "";
+  let runtimeParser = "";
+
+  $: {
+    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
+    const configs = res;
+    let code = "";
+    configs.forEach((e, i) => {
+      code += `--[[@${e.short}]] ` + e.script + "\n";
+    });
+    runtimeScript = "<?lua " + "\n" + code + "?>";
+    runtimeParser = luaParser(code, { comments: true });
+  }
 
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;
@@ -81,10 +89,6 @@
   }
 
   function showActivity() {
-    if (navigator.midiShowActivity !== true) {
-      return;
-    }
-
     activity = true;
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -149,22 +153,20 @@
           </div>
           {#if last}
             <div
-              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center {navigator.midiAnimations
-                ? ' transition-width duration-200 '
-                : ''} {hover ? 'bg-green-400' : 'bg-white'}"
+              class="items-center px-2 mx-2 flex flex-row rounded-lg text-center transition-width duration-200 {hover
+                ? 'bg-green-400'
+                : 'bg-white'}"
             >
               <div
                 class="flex {hover ? 'text-white' : 'text-primary'} text-center"
               >
                 {hover ? "SELECT" : "LAST"}
               </div>
-              {#if navigator.midiShowActivity}
-                <div
-                  class="ml-2 flex place-self-end self-center {activity
-                    ? 'bg-yellow-500'
-                    : 'bg-primary'} rounded-full w-3 h-3"
-                />
-              {/if}
+              <div
+                class="ml-2 flex place-self-end self-center {activity
+                  ? 'bg-yellow-500'
+                  : 'bg-primary'} rounded-full w-3 h-3"
+              />
             </div>
           {/if}
         </div>
@@ -279,9 +281,8 @@
               {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
                 <div
-                  class="grid grid-cols-7 text-green-400 hover:text-green-200 {navigator.midiAnimations
-                    ? ' transition-transform origin-left hover:scale-105 duration-100 transform scale-100'
-                    : ''}"
+                  class="grid grid-cols-7 text-green-400 hover:text-green-200
+                  transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
                 >
@@ -305,8 +306,22 @@
       <Pane size={50}>
         <div class="flex flex-col h-full w-full">
           {#if debug}
-            <div class="flex w-full font-medium text-white pb-2 pt-6">
-              Debug Text
+            <div
+              class="text-white flex flex-row pb-2 pt-6 font-medium justify-between"
+            >
+              <div>Debug Text</div>
+              <div class="flex flex-row">
+                <div class="pr-2">Char Count:</div>
+                <div
+                  class={runtimeScript.length >= 400
+                    ? "text-error"
+                    : runtimeScript.length >= 120
+                    ? "text-yellow-400"
+                    : "text-white"}
+                >
+                  {runtimeScript.length}
+                </div>
+              </div>
             </div>
             <div class="flex flex-col flex-grow overflow-y-auto bg-secondary">
               {#if $debug_monitor_store.length != 0}

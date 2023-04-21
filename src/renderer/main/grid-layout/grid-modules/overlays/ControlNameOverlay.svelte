@@ -26,11 +26,11 @@
 
   let selectedProfile = {};
 
-  selectedProfileStore.subscribe((store) => {
-    selectedProfile = store;
+  $: {
+    selectedProfile = $selectedProfileStore;
     showControlNameOverlay(selectedProfile);
     showOverlay;
-  });
+  }
 
   function showControlNameOverlay(selectedProfile) {
     if (Object.keys(selectedProfile).length == 0) {
@@ -49,12 +49,12 @@
     return array;
   };
 
-  runtime.subscribe((runtime) => {
-    const device = runtime.find((controller) => controller.id == id);
+  $: {
+    const device = $runtime.find((controller) => controller.id == id);
     if (device !== undefined) {
       controlElementSettings = device.pages[0].control_elements;
     }
-  });
+  }
 
   $: if (id) {
     if (id.startsWith("PBF4")) {
