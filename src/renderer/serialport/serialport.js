@@ -12,25 +12,26 @@ let lineBuffer = "";
 let latestValue = 0;
 
 // INITIALIZE THE INTERVAL
-console.log("Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true");
-window.electron.serial.restartSerialCheckInterval()
-
+console.log(
+  "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true"
+);
+window.electron.serial.restartSerialCheckInterval();
 
 navigator.serial.addEventListener("disconnect", (e) => {
-  if (navigator.debugSerial)  console.log("Any Device Disconnect", e, navigator.intechPort); 
-  if (navigator.debugSerial)  console.log("Restart Discovery Interval"); 
-  
-  window.electron.serial.restartSerialCheckInterval()
+  if (navigator.debugSerial)
+    console.log("Any Device Disconnect", e, navigator.intechPort);
+  if (navigator.debugSerial) console.log("Restart Discovery Interval");
+
+  window.electron.serial.restartSerialCheckInterval();
 });
 navigator.serial.addEventListener("connect", (e) => {
-  if (navigator.debugSerial)  console.log("Any Device Connect", e,  navigator.intechPort);
-  if (navigator.debugSerial)  console.log("Restart Discovery Interval");
-  window.electron.serial.restartSerialCheckInterval()
+  if (navigator.debugSerial)
+    console.log("Any Device Connect", e, navigator.intechPort);
+  if (navigator.debugSerial) console.log("Restart Discovery Interval");
+  window.electron.serial.restartSerialCheckInterval();
 });
 
 export async function testIt() {
-
-
   if (navigator.debugSerial) console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
@@ -70,32 +71,28 @@ export async function testIt() {
 
             fetchStream();
 
-        navigator.intechPort = port
+            navigator.intechPort = port;
 
-        port.addEventListener("disconnect", (e) => {
-          if (navigator.debugSerial)  console.log("The Real Disconnect", e);
-          navigator.intechPort = undefined;
-        });
+            port.addEventListener("disconnect", (e) => {
+              if (navigator.debugSerial) console.log("The Real Disconnect", e);
+              navigator.intechPort = undefined;
+            });
 
+            fetchStream();
 
-        fetchStream()
-
-        // port.readable
-        //   .pipeThrough(new TextDecoderStream())
-        //   .pipeTo(appendStream);
-
-
-      }).catch(error => {
-        if (navigator.debugSerial)  console.log("Error on Open: ", error);
+            // port.readable
+            //   .pipeThrough(new TextDecoderStream())
+            //   .pipeTo(appendStream);
+          })
+          .catch((error) => {
+            if (navigator.debugSerial) console.log("Error on Open: ", error);
+          });
+      })
+      .catch((error) => {
+        //no port selected by the user
+        //console.log(error)
+        if (navigator.debugSerial) console.log("Error on Request: ", error);
       });
-
-
-    }).catch(error => {
-      //no port selected by the user
-      //console.log(error)
-      if (navigator.debugSerial)  console.log("Error on Request: ", error);
-    });
-
   }
 
   return false;
