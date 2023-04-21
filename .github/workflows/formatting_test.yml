@@ -1,11 +1,10 @@
-name: Build Nightly Grid Editor
+name: Firmatting validator
 
 on: push
 
 jobs:
-
   formatting-validator:
-    name: Linux Build
+    name: Prettier validation
     runs-on: ubuntu-latest
 
     steps:
