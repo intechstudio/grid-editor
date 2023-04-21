@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          git submodule update --remote --merge
+          .gitignore >> "src/external/grid-protocol/*"
           npm i prettier --global
           npm i prettier-plugin-svelte --global
           prettier --write .
