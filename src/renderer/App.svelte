@@ -173,6 +173,11 @@
 
   <svelte:component this={modalComponents[$appSettings.modal]} />
 
+  <div>
+    <img src={"imgs/profile_info_image.png"} alt="whatever" />
+    <img src={`imgs/${testy}.png`} alt="twoo" />
+  </div>
+
   <!-- Update notification -->
   <Updater />
 
