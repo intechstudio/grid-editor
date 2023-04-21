@@ -1,4 +1,4 @@
-name: Firmatting validator
+name: Formatting validator
 
 on: push
 
@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           npm i prettier --global
+          npm i prettier-plugin-svelte --global
           prettier --write .
           git status
           git diff --name-only
