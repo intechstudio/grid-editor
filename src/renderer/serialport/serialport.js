@@ -6,10 +6,6 @@ import { writeBuffer } from "../runtime/engine.store.js";
 
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
-// ============= NEW WEBSERIAL BASED IMPLEMENTATION ===================
-
-let lineBuffer = "";
-let latestValue = 0;
 
 // INITIALIZE THE INTERVAL
 console.log(
@@ -32,7 +28,13 @@ navigator.serial.addEventListener("connect", (e) => {
 });
 
 export async function testIt() {
-  if (navigator.debugSerial) console.log("Serial Try Connect");
+                
+  
+  
+  
+  
+  
+                if (navigator.debugSerial) console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
