@@ -153,12 +153,11 @@
 
       if (typeof device === "undefined") {
         if (rt.length === 0) {
-          console.log("ACTIVE_CONFIG: disconnect");
           configuration_panel_reset();
-          throw new Exception();
+          throw "ACTIVE_CONFIG: disconnect";
         }
 
-        throw new Exception("device is undefined");
+        throw "device is undefined";
       }
 
       let module_type = device.id.split("_")[0];
@@ -195,7 +194,7 @@
 
       if (typeof selectedEvent === "undefined") {
         //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-        throw new Exception("selectedEvent is undefined");
+        throw "selectedEvent is undefined";
       }
 
       if (selectedEvent.config.length) {
@@ -242,13 +241,12 @@
       };
 
       if (typeof active === "undefined") {
-        throw new Exception("active is undefined");
+        throw "active is undefined";
       }
 
       let res = _utils.gridLuaToEditorLua(active.config);
-
       if (typeof res === "undefined") {
-        throw new Exception("Grid Lua to Editor Lua failed.");
+        throw "Grid Lua to Editor Lua failed.";
       }
 
       let res_is_valid = true;

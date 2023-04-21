@@ -28,6 +28,7 @@
 
   let isDeleteButtonClicked = false;
 
+  let selectedModule;
   let selectedController;
 
   let PRESET_PATH = get(appSettings).persistant.presetFolder;
@@ -63,6 +64,7 @@
 
   let sortAsc = true;
   let sortField = "name";
+  let selectedPage;
 
   $: {
     const ui = $user_input;

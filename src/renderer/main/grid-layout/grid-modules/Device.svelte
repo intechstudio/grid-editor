@@ -59,7 +59,10 @@
   }
 
   $: {
-    if (!$selectedProfileStore || !$selectedPresetStore) {
+    if (
+      Object.keys($selectedProfileStore).length === 0 ||
+      Object.keys($selectedPresetStore).length === 0
+    ) {
       selectedElement = $user_input;
     }
   }

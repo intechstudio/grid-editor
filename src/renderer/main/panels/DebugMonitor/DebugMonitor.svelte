@@ -1,5 +1,4 @@
 <script>
-  import { get } from "svelte/store";
   import {
     debug_monitor_store,
     debug_lowlevel_store,

@@ -28,15 +28,14 @@ const _utils = {
 
     let configs = this.rawLuaToConfigList(fullConfig);
     configs = this.configBreakDown(configs);
-
-    return configs.map((element, index) => {
+    const res = configs.map((element, index) => {
       // if short is not in lua... revert to codeblock!
       if (
         !config_components.find((l) => l.information.short == element.short)
       ) {
         element.short = "cb";
       }
-      return {
+      const obj = {
         short: element.short,
         script: element.script,
         toValidate: element.toValidate,
@@ -44,7 +43,9 @@ const _utils = {
         human: getHumanFunctionName({ short: element.short }),
         ...getComponentInformation({ short: element.short }),
       };
+      return obj;
     });
+    return res;
   },
 
   // make smaller chunks from <?lua ... ?>, huge raw lua

@@ -132,7 +132,7 @@
     selectedProfileStore.set(selectedProfile);
   }
 
-  let selectedModule;
+  let selectedModule = undefined;
 
   $: {
     const ui = $user_input;
