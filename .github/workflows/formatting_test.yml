@@ -26,3 +26,10 @@ jobs:
           git status
           echo 'Changed Files:'
           git diff --name-only
+          git diff --name-only >> format_error.txt
+
+      - uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+          content: "Format report!"
+          filename: "format_error.txt"
