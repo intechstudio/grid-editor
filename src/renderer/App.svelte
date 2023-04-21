@@ -140,7 +140,7 @@
     });
   }
 
-  let testy = "profile_info_image";
+  let testy = "test";
 
   onMount(() => {
     // application mounted, check analytics

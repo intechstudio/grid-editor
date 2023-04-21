@@ -13,9 +13,7 @@
   function multiSelectToggle() {}
 </script>
 
-<app-action-multi-select
-  class=" flex items-center flex-row justify-between w-full"
->
+<app-action-multi-select class=" flex items-center flex-row">
   <!-- When any of the array elements is true -->
   <div class="w-fit flex flex-wrap">
     <BtnAndPopUp
@@ -96,12 +94,12 @@
         configManagement().on_click.remove();
         appMultiSelect.reset();
       }}
-      btnStyle={`relative bg-sencodary mr-2 group rounded-md ${
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
         $appMultiSelect.selection.includes(true)
           ? ""
           : "opacity-50 pointer-events-none"
       }`}
-      popStyle={"bg-sencodary "}
+      popStyle={"bg-sencodary"}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
@@ -116,10 +114,16 @@
       configManagement().on_click.select_all(); /* appMultiSelect.select({config: configs[index], selected: selected})*/
     }}
     class="{$appMultiSelect.all_selected
-      ? 'bg-pick'
-      : ''} relative flex items-center justify-center p-2 w-6 h-6 border-2 border-pick rounded-full text-white cursor-pointer text-xs"
+      ? 'border-opacity-80 bg-secondary'
+      : 'h-[18px] w-[18px]'} border border-white border-opacity-20 hover:border-opacity-80 rounded-md text-white cursor-pointer hover:bg-secondary"
   >
-    {$appMultiSelect.all_selected ? "✔" : ""}
+    {#if $appMultiSelect.all_selected}
+      <SvgIcon
+        class="h-[16px] w-[16px]"
+        activeState={$appMultiSelect.all_selected}
+        iconPath={"tick"}
+      />
+    {/if}
   </button>
 </app-action-multi-select>
 

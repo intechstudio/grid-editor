@@ -29,7 +29,7 @@
   {/if}
   <button
     on:click={clicked}
-    class="{btnStyle} text-sm py-1 px-2 text-white focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500"
+    class="{btnStyle} text-sm py-1 px-2 text-white focus:ring-1 focus:outline-none shadow border border-white border-opacity-5 hover:border-opacity-25"
   >
     <slot name="button" />
   </button>
