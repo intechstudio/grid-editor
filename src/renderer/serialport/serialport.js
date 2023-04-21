@@ -6,7 +6,6 @@ import { writeBuffer } from "../runtime/engine.store.js";
 
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
-
 // INITIALIZE THE INTERVAL
 console.log(
   "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true"
@@ -28,13 +27,7 @@ navigator.serial.addEventListener("connect", (e) => {
 });
 
 export async function testIt() {
-                
-  
-  
-  
-  
-  
-                if (navigator.debugSerial) console.log("Serial Try Connect");
+  if (navigator.debugSerial) console.log("Serial Try Connect");
 
   const env = window.ctxProcess.env();
 
