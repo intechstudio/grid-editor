@@ -56,6 +56,7 @@
             top: node.scrollHeight,
             behavior: "smooth",
           });
+
           isScrolling = false;
         });
       }
