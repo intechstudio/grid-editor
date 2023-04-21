@@ -426,11 +426,9 @@
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
         <div>
           <ConfigParameters {configs} {events} {elements} />
-          <div class="px-4">
+          <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
-            <div class="pt-1 flex items-center justify-between w-full">
-              <MultiSelect />
-            </div>
+            <MultiSelect />
           </div>
         </div>
 

@@ -207,9 +207,9 @@
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
-      <div class="flex text-gray-400 mr-2">
+      <div class="flex text-gray-400">
         <button
-          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             copyAllEventConfigsFromSelf();
           }}
@@ -220,7 +220,7 @@
         </button>
 
         <button
-          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1"
+          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             overwriteAllEventConfigs();
           }}
@@ -233,25 +233,8 @@
     </div>
 
     <div class="flex flex-col justify-center items-center">
-      <div class="flex shadow overflow-x-auto w-full">
+      <div class="flex overflow-x-auto w-full">
         {#each events.options as event}
-          <!--           <button
-            on:click={() => {
-              handleSelectEvent(event);
-            }}
-            class:dummy={event.desc == undefined}
-            class="{selectedEvent === event && event.desc !== undefined
-              ? 'shadow-md bg-pick text-white'
-              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none"
-          >
-            {@html event.desc
-              ? event.desc
-              : `<span class="invisible">null</span>`}
-            {#if event.desc != undefined}
-              <TooltipSetter key={`event_${event.desc}`} />
-            {/if}
-          </button> -->
-
           <button
             on:click={() => {
               handleSelectEvent(event);
@@ -259,7 +242,7 @@
             class:dummy={event.desc == undefined}
             class="{selectedEvent === event && event.desc !== undefined
               ? 'shadow-md bg-pick text-white'
-              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
           >
             {@html event.desc
               ? event.desc

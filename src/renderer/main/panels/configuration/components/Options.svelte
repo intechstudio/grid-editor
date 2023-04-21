@@ -1,5 +1,6 @@
 <script>
   import { appMultiSelect } from "../../../../runtime/runtime.store.js";
+  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
 
   export let index;
   export let rendering;
@@ -85,45 +86,63 @@
 
 {#if (rendering == "standard" || rendering == "fixed") && true}
   <select-box class="flex pl-2 justify-center items-center bg-transparent">
-    <div
+    <button
       on:click={() => {
         $appMultiSelect.selection[index] = !$appMultiSelect.selection[index];
       }}
       class="{$appMultiSelect.selection[index]
-        ? 'bg-pick'
-        : ''} flex items-center justify-center p-2 w-6 h-6 border-2 transition-opacity {!$appMultiSelect
-        .selection[index]
-        ? 'opacity-50 hover:opacity-100'
-        : ''} border-pick rounded-full text-white text-xs cursor-pointer"
+        ? ' border-opacity-80 bg-secondary'
+        : ''} {!$appMultiSelect.selection[index]
+        ? 'h-[18px] w-[18px] border-opacity-20 hover:border-opacity-100'
+        : ''} cursor-pointer border-white justify-center border transition-opacity rounded-md"
     >
-      {$appMultiSelect.selection[index] ? "✔" : ""}
-    </div>
+      {#if $appMultiSelect.selection[index]}
+        <SvgIcon
+          class="h-[16px] w-[16px]"
+          activeState={$appMultiSelect.selection[index]}
+          iconPath={"tick"}
+        />
+      {/if}
+    </button>
   </select-box>
 {:else if componentName.endsWith("_If") && showSelectBox}
   <select-box class="flex pl-2 justify-center items-center bg-transparent">
-    <div
+    <button
       on:click={() => {
         handleMultiSelect();
       }}
       class="{$appMultiSelect.selection[index]
-        ? 'bg-pink-500'
-        : ''}  flex items-center justify-center p-2 w-6 h-6 border-2 transition-opacity {!$appMultiSelect
-        .selection[index]
-        ? 'opacity-50 hover:opacity-100'
-        : ''} border-pink-500 rounded-full text-white text-xs cursor-pointer"
+        ? 'border-opacity-80 bg-pink-600'
+        : ''}  {!$appMultiSelect.selection[index]
+        ? 'h-[18px] w-[18px] opacity-50 hover:opacity-100'
+        : ''} cursor-pointer border-pink-600 justify-center border transition-opacity rounded-md"
     >
-      {$appMultiSelect.selection[index] ? "✔" : ""}
-    </div>
+      {#if $appMultiSelect.selection[index]}
+        <SvgIcon
+          class="h-[16px] w-[16px]"
+          activeState={$appMultiSelect.selection[index]}
+          iconPath={"tick"}
+        />
+      {/if}
+    </button>
   </select-box>
 {:else}
-  <select-box class="flex pl-2 justify-center items-center bg-transparent">
+  <select-box
+    class="flex pl-2 justify-center items-center bg-transparent pointer-events-none"
+  >
     {#if true}
       <div
         class="{$appMultiSelect.selection[index]
-          ? 'bg-select border-2 border-select'
-          : ''} transition-opacity flex items-center justify-center p-2 w-6 h-6 rounded-full text-white text-xs cursor-pointer"
+          ? 'border-opacity-80 bg-pink-600'
+          : 'h-[18px] w-[18px] border-opacity-30'} cursor-pointer border-pink-600 justify-center border transition-opacity rounded-md"
       >
-        {$appMultiSelect.selection[index] ? "✔" : ""}
+        {#if $appMultiSelect.selection[index]}
+          <SvgIcon
+            class="h-[16px] w-[16px]"
+            activeState={$appMultiSelect.selection[index]}
+            iconPath={"tick"}
+          />
+        {/if}
       </div>
     {:else}
       <div
