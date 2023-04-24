@@ -9,7 +9,7 @@ import {
   user_input,
 } from "../../../runtime/runtime.store";
 
-import luamin from "../../../../external/luamin";
+import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
 
