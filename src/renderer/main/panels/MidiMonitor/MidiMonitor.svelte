@@ -9,7 +9,9 @@
     midi_monitor_store,
     sysex_monitor_store,
     debug_stream,
+    MusicalNotes,
   } from "./MidiMonitor.store";
+  import { validate } from "uuid";
 
   // ok but slow nice
 
@@ -80,7 +82,25 @@
   let activity = false;
   let timer = undefined;
 
+  //Assign PARAM1 value aliases e.g.: musical note names to Int values
+  //If possible: display these values instead of the Int values
+  function assignP1ValueAliases(store) {
+    store.forEach((obj) => {
+      switch (obj.data.params.p1.name) {
+        case "Note":
+          if (typeof obj.data.params.p1.value_alias === "undefined") {
+            obj.data.params.p1.value_alias = MusicalNotes.FromInt(
+              obj.data.params.p1.value
+            );
+          }
+          break;
+      }
+      return obj;
+    });
+  }
+
   $: if ($midi_monitor_store) {
+    assignP1ValueAliases($midi_monitor_store);
     last = $midi_monitor_store[$midi_monitor_store.length - 1];
     showActivity();
   }
@@ -207,7 +227,11 @@
           </div>
 
           <span class="text-xl text-white text-center"
-            >{last ? last.data.params.p1.value : "---"}</span
+            >{last
+              ? last.data.params.p1.value_alias
+                ? last.data.params.p1.value_alias
+                : last.data.params.p1.value
+              : "---"}</span
           >
         </div>
         <div class="border-gray-700 border rounded flex flex-col w-44">
@@ -295,7 +319,11 @@
                   <span>Ch: {midi.data.channel}</span>
                   <span>{midi.data.command.short}</span>
                   <span>{midi.data.params.p1.short}:</span>
-                  <span>{midi.data.params.p1.value}</span>
+                  <span
+                    >{midi.data.params.p1.value_alias
+                      ? midi.data.params.p1.value_alias
+                      : midi.data.params.p1.value}</span
+                  >
                   <span>{midi.data.params.p2.short}:</span>
                   <span>{midi.data.params.p2.value}</span>
                 </div>
