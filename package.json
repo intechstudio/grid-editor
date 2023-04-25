@@ -134,7 +134,7 @@
     "export:local": "run-s clean-up s:build e:builder:local",
     "s:build": "cross-env NODE_ENV=production electron-vite build",
     "s:build:local": "cross-env NODE_ENV=production electron-vite build",
-    "postinstall": "patch-package electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
