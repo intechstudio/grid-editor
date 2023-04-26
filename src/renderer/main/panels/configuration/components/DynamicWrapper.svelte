@@ -191,9 +191,10 @@
   class=" flex border-none outline-none transition-opacity duration-300"
 >
   <carousel
-    class=" flex flex-grow text-white {syntaxError
-      ? 'border-error border-opacity-75'
-      : 'border-transparent'} border"
+    class=" flex flex-grow text-white {syntaxError &&
+    config.information.rendering == 'standard'
+      ? 'border-error border'
+      : 'border-transparent'}"
     id="cfg-{index}"
     config-component={config.information.name}
     movable={config.information.rendering == "standard" ||
@@ -215,7 +216,10 @@
             ? 'group-hover:bg-select-saturate-10'
             : ''}  bg-secondary {config.information.grabbing !== false
             ? 'cursor-grab'
-            : 'opacity-0 cursor-default '}"
+            : 'opacity-0 cursor-default '}
+            {syntaxError && config.information.rendering != 'standard'
+            ? 'border-error border-y border-l'
+            : 'border-transparent'}"
         >
           <svg
             class=" {config.information.grabbing !== false
@@ -248,7 +252,8 @@
               ? 'cursor-pointer '
               : config.information.grabbing !== false
               ? 'cursor-grab'
-              : ''}"
+              : ''}
+              "
           >
             <div>
               <icon
@@ -267,13 +272,16 @@
           <div
             style="background-color:{config.information.color}"
             class=" {config.information.rounding == 'top'
-              ? 'rounded-tr-xl '
+              ? 'rounded-tr-xl  '
               : ''} {config.information.rounding == 'bottom'
               ? 'rounded-br-xl '
               : ''}   flex flex-row w-full min-h-fit {config.information
               .grabbing !== false
               ? 'cursor-grab'
-              : ''}"
+              : ''}
+              {syntaxError
+              ? 'border-error border-y border-r'
+              : 'border-transparent'}"
           >
             <icon
               class="flex items-center p-2 {config.information.hiddenIcon
