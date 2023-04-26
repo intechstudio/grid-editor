@@ -1,5 +1,6 @@
 import { language } from "$lib/CustomMonaco";
 import stringManipulation from "../main/user-interface/_string-operations";
+import * as luamin from "lua-format";
 
 export function find_forbidden_identifiers(str) {
   const identifier_match_expr = /[a-zA-Z0-9_]+/g;
@@ -20,8 +21,6 @@ export function find_forbidden_identifiers(str) {
 
   return forbiddenList;
 }
-
-import * as luamin from "lua-format";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
