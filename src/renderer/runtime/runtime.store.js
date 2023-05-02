@@ -229,26 +229,7 @@ export function update_ledColorStore(descr) {
   }
 }
 
-function createLogger() {
-  const _log_store = writable({ type: "", message: "", classname: "" });
-  const _trigger = writable(0);
-
-  function set_log(value) {
-    _log_store.set(value);
-    _trigger.update((n) => n + 1);
-  }
-
-  const _log = derived([_trigger], ([$t]) => {
-    return { ...get(_log_store), n: $t };
-  });
-
-  return {
-    set: set_log,
-    subscribe: _log.subscribe,
-  };
-}
-
-export const logger = createLogger();
+export const logger = writable({ type: "", message: "", classname: "" });
 
 //debug monitor lua section
 function create_luadebug_store() {
