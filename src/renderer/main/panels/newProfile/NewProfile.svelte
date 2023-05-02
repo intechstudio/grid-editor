@@ -41,6 +41,7 @@
     },
   ];
 
+  let selectedProfile = undefined;
   let disableButton = false;
   let isDeleteButtonClicked = false;
   let isSaveToCloudButtonClicked = false;

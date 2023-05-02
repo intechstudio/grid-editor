@@ -608,7 +608,7 @@ function create_runtime() {
           return [...devices, { id: controller.id, alive: Date.now() }];
         });
 
-        firstConnection = _runtime.length === 1;
+        firstConnection = get(_runtime).length === 1;
 
         window.electron.analytics.influx(
           "application",
