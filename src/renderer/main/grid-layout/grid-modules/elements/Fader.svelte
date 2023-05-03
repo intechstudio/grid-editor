@@ -9,9 +9,9 @@
 
   const faderWidth = 16;
 
-  export let faderHeight; // was 37 or 68
+  export let faderHeight = 0; // was 37 or 68
 
-  export let position;
+  export let position = 0;
   export let id;
 
   let move = 0;
@@ -23,6 +23,10 @@
   let svgMove;
 
   $: range = faderHeight * size;
+
+  $: {
+    console.log(faderHeight, size, rotation, elementNumber, position, id);
+  }
 
   const rotMode = (rotation) => {
     rotation == undefined ? (rotation = 0) : null;
@@ -142,7 +146,7 @@
         x="9"
         y="-4"
         width="8"
-        height={faderHeight + 23 + 4}
+        height={1000 + 23 + 4}
         filterUnits="userSpaceOnUse"
         color-interpolation-filters="sRGB"
       >
