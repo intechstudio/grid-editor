@@ -28,7 +28,7 @@
 
   let isDeleteButtonClicked = false;
 
-  let selectedPreset = undefined
+  let selectedPreset = undefined;
   let selectedModule;
   let selectedController;
 
