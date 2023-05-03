@@ -187,9 +187,9 @@ function isHighResMidi(lastMessage, currentMessage) {
   return offset_diff === -32;
 }
 
-function createMidiMonitor(max_val) {
+function createMidiMonitor(max_length) {
   const store = writable([]);
-  let midiBuffer = null;
+  let lastMessage = null;
 
   return {
     ...store,
@@ -197,13 +197,15 @@ function createMidiMonitor(max_val) {
       if (descr.class_name !== "MIDI") return;
 
       store.update((s) => {
-        if (s.length >= max_val) {
+        //Shift store length if max length is reached
+        if (s.length >= max_length) {
           s.shift();
         }
 
         let bc = descr.brc_parameters;
         let cp = descr.class_parameters;
 
+        //Make full MIDI message from raw data (param names, command name, etc.)
         let item = {
           id: uuidv4(),
           data: new MidiMessage(
@@ -218,17 +220,23 @@ function createMidiMonitor(max_val) {
 
         //Check if it was 14bit MIDI message
         if (
-          midiBuffer !== null &&
+          lastMessage !== null &&
           getCommandShortName(item.data.command.value) === "CC" &&
-          isHighResMidi(midiBuffer, item)
+          isHighResMidi(lastMessage, item)
         ) {
-          const hires = s.find((e) => e.id === midiBuffer.id);
-          const upper_value = midiBuffer.data.params.p2.value << 7;
+          //Last message was a 14bit MIDI message, find it
+          const hires = s.find((e) => e.id === lastMessage.id);
+
+          //Get the two half of the high res value from current and last message
+          const upper_value = lastMessage.data.params.p2.value << 7;
           const lower_value = item.data.params.p2.value;
 
           //Update display values instead of pushing to the store
           hires.data.command.name += " (14)";
           hires.data.command.short += " (14)";
+
+          //Set the high resolutin messages value to the combined
+          //value of the current and last message
           hires.data.params.p2.value = upper_value + lower_value;
         } else {
           //Normal message, put it into the store as it is
@@ -237,6 +245,7 @@ function createMidiMonitor(max_val) {
 
         //Update buffer
         midiBuffer = item;
+
         UpdateDebugStream(item, "MIDI");
         return s;
       });
