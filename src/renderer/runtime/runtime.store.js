@@ -229,7 +229,8 @@ export function update_ledColorStore(descr) {
   }
 }
 
-export const logger = writable({ type: "", message: "", classname: "" });
+//Template logger object: { type: "", message: "", classname: "" }
+export const logger = writable();
 
 //debug monitor lua section
 function create_luadebug_store() {

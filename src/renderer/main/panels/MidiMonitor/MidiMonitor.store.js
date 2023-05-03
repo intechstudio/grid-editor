@@ -244,7 +244,7 @@ function createMidiMonitor(max_length) {
         }
 
         //Update buffer
-        midiBuffer = item;
+        lastMessage = item;
 
         UpdateDebugStream(item, "MIDI");
         return s;
