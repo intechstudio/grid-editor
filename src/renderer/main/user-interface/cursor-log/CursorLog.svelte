@@ -1,130 +1,84 @@
 <script>
-  import { onMount } from "svelte";
-  import { fly, fade } from "svelte/transition";
-  import { engine, logger } from "../../../runtime/runtime.store";
+  import { fly } from "svelte/transition";
+  import { logger } from "../../../runtime/runtime.store";
 
-  let statusColor = "";
   let logs = [];
-  let popup = false;
-
-  let [logClear, popupWindow] = [undefined, undefined];
+  let logClearTimeout = undefined;
 
   $: {
-    const log = $logger;
-    if (log.message != "") {
-      popup = true;
-
+    if (typeof $logger !== "undefined") {
       if (
         logs.map((l) => l.classname).includes("pagechange") &&
-        log.classname == "strict"
+        $logger.classname == "strict"
       ) {
         logs = [];
       }
 
-      clearInterval(logClear);
-      clearInterval(popupWindow);
+      clearTimeout(logClearTimeout);
 
-      console.log(logs);
-      if (logs.length > 0) {
-        if (logs.at(-1).data.message === log.message) {
-          logs.at(-1).count += 1;
-          logs = logs;
-        } else {
-          logs = [...logs, { data: log, count: 1 }];
+      const last = logs.at(-1);
+      if (
+        typeof last !== "undefined" &&
+        last.data.message === $logger.message
+      ) {
+        last.count++;
+      } else {
+        if (logs.length >= 6) {
+          logs.shift();
         }
-      } else logs = [...logs, { data: log, count: 1 }];
+        logs = [
+          ...logs,
+          {
+            data: $logger,
+            count: 1,
+          },
+        ];
+      }
 
-      popupWindow = setTimeout(() => {
-        popup = false;
-      }, 5250);
-
-      logClear = setTimeout(() => {
+      logClearTimeout = setTimeout(() => {
         logs = [];
+        logger.set(undefined);
       }, 5000);
     }
   }
-
-  $: if (logs.length >= 6) {
-    logs.shift();
-    logs = logs;
-  }
-
-  export function cursorLog(node, { popup }) {
-    const div = document.getElementById("cursor-log");
-
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    let mouseX, mouseY;
-
-    return {
-      update(popup) {},
-      destroy() {},
-    };
-  }
-
-  function setBorderColor(log, msg) {
-    let bool = false;
-    if (log) {
-      if (log.type == msg) {
-        bool = true;
-      }
-    }
-    return bool;
-  }
 </script>
 
-<div
-  id="cursor-log"
-  style="z-index:9999;"
-  use:cursorLog={{ popup }}
-  class="flex mx-auto"
->
-  {#if popup}
-    <div
-      transition:fade={{ duration: 400 }}
-      class:border-primary={logs.length == 0}
-      class:border-green-600={setBorderColor(logs[logs.length - 1], "success")}
-      class:border-yellow-600={setBorderColor(logs[logs.length - 1], "alert")}
-      class:border-red-600={setBorderColor(logs[logs.length - 1], "fail")}
-      class:border-blue-600={setBorderColor(logs[logs.length - 1], "progress")}
-      class="flex flex-col w-[30rem] px-4 py-1 text-white"
-    >
-      {#each logs as log, i}
-        <div
-          in:fly={{ x: -10, delay: 400 * i }}
-          out:fly={{ x: 10, delay: 400 * i }}
-        >
-          <div class="flex flex-row items-center">
-            <div
-              class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count ===
-              1
-                ? ' opacity-0 '
-                : ''}"
-            >
-              <div class="text-center">{log.count}x</div>
+<div id="cursor-log" style="z-index:9999;" class="flex mx-auto">
+  <div class="flex flex-col w-[30rem] px-4 py-1 text-white">
+    {#each logs as log, i}
+      <div
+        in:fly={{ x: -10, delay: 400 * i }}
+        out:fly={{ x: 10, delay: 400 * i }}
+      >
+        <div class="flex flex-row items-center">
+          <div
+            class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count ===
+            1
+              ? ' opacity-0 '
+              : ''}"
+          >
+            <div class="text-center">{log.count}x</div>
+          </div>
+          <div
+            class="flex flex-row my-1 items-center p-2 bg-primary bg-opacity-50 w-full"
+          >
+            <div class="px-2 py-1 bg-primary rounded mr-2">
+              {log.data.type == "success"
+                ? "✔️"
+                : log.data.type == "alert"
+                ? "⚠️"
+                : log.data.type == "progress"
+                ? "⏳"
+                : log.data.type == "fail"
+                ? "❌"
+                : null}
             </div>
-            <div
-              class="flex flex-row my-1 items-center p-2 bg-primary bg-opacity-50 w-full"
-            >
-              <div class="px-2 py-1 bg-primary rounded mr-2">
-                {log.data.type == "success"
-                  ? "✔️"
-                  : log.data.type == "alert"
-                  ? "⚠️"
-                  : log.data.type == "progress"
-                  ? "⏳"
-                  : log.data.type == "fail"
-                  ? "❌"
-                  : null}
-              </div>
-              <div class="w-full">{log.data.message}</div>
-            </div>
+            <div class="w-full">{log.data.message}</div>
           </div>
         </div>
-      {/each}
-    </div>
-  {/if}
+      </div>
+    {/each}
+  </div>
 </div>
 
 <style>

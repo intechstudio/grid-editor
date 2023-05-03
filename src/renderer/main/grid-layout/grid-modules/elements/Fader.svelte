@@ -9,9 +9,9 @@
 
   const faderWidth = 16;
 
-  export let faderHeight; // was 37 or 68
+  export let faderHeight = 0; // was 37 or 68
 
-  export let position;
+  export let position = 0;
   export let id;
 
   let move = 0;
@@ -137,12 +137,14 @@
       </g>
     </g>
     <defs>
+      <!-- Previously used value for height instead of 1000: faderHeight + 23 + 4 -->
+      <!-- This was causing a visual bug when PBF4 as host, and EF44 was connected -->
       <filter
         id="filter0_i"
         x="9"
         y="-4"
         width="8"
-        height={faderHeight + 23 + 4}
+        height={1000}
         filterUnits="userSpaceOnUse"
         color-interpolation-filters="sRGB"
       >

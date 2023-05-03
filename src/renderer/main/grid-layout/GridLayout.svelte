@@ -53,6 +53,8 @@
   $: gridsize = 2.1 * 106.6 + 10;
 
   let ready = false;
+  let isStoreEnabled = false;
+  $: isStoreEnabled = $engine == "ENABLED" && $unsaved_changes > 0;
 
   onMount(() => {
     createPanZoom(map, {
@@ -242,48 +244,40 @@
           <div class="mr-4 text-white font-medium">
             {$unsaved_changes} active changes
           </div>
-          <div>
-            <button
-              on:click={() => {
-                discard();
-              }}
-              class="relative flex items-center justify-center focus:outline-none
-          rounded border-select bg-select border-2 hover:bg-yellow-600
-          hover:border-yellow-600 text-white px-2 py-0.5"
-            >
-              <div>Discard</div>
-              <TooltipSetter key={"configuration_header_clear"} />
-            </button>
-          </div>
-          <div>
-            <button
-              on:click={() => {
-                store();
-              }}
-              disabled={$engine != "ENABLED"}
-              class="{$engine == 'ENABLED'
-                ? 'hover:bg-commit-saturate-20 hover:border-commit-saturate-20'
-                : 'opacity-75'}
-          relative flex items-center justify-center rounded
-          focus:outline-none border-2 border-commit bg-commit
-          hover:bg-commit-saturate-20 hover:border-commit-saturate-20 text-white
-          px-2 py-0.5 w-24"
-            >
-              <div>Store</div>
-              <TooltipSetter key={"configuration_header_store"} />
-            </button>
-          </div>
+          <button
+            on:click={() => {
+              discard();
+            }}
+            class="relative {isStoreEnabled
+              ? 'flex'
+              : 'hidden gap-0'} items-center justify-center focus:outline-none
+          rounded bg-select hover:bg-yellow-600 text-white py-1 w-24"
+          >
+            <div>Discard</div>
+            <TooltipSetter key={"configuration_header_clear"} />
+          </button>
+          <button
+            on:click={() => {
+              store();
+            }}
+            class="relative {isStoreEnabled
+              ? 'flex'
+              : 'hidden gap-0'} items-center justify-center rounded
+              focus:outline-none text-white py-1 w-24 bg-commit
+              hover:bg-commit-saturate-20"
+          >
+            <div>Store</div>
+            <TooltipSetter key={"configuration_header_store"} />
+          </button>
 
           <button
             on:click={() => {
               clear();
             }}
             disabled={$engine != "ENABLED"}
-            class="{$engine == 'ENABLED'
-              ? 'hover:bg-red-500 hover:border-red-500'
-              : 'opacity-75'}
+            class="{$engine == 'ENABLED' ? 'hover:bg-red-500' : 'opacity-75'}
           relative flex items-center focus:outline-none justify-center rounded
-           border-select bg-select border-2 text-white px-2 py-0.5 w-24"
+            bg-select text-white py-1 w-24"
           >
             <div>Clear</div>
             <TooltipConfirm key={"configuration_header_clear"} />
@@ -293,7 +287,7 @@
           <button
             on:click={debugWriteBuffer}
             class=" relative flex items-center focus:outline-none justify-center
-          rounded border-select bg-select border-2 text-white px-2 py-0.5
+          rounded bg-select text-white py-1
            w-48"
           >
             <span class="pr-2 text-gray-200 tracking-wider">

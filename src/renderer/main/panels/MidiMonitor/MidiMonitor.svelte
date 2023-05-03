@@ -84,24 +84,25 @@
 
   //Assign PARAM1 value aliases e.g.: musical note names to Int values
   //If possible: display these values instead of the Int values
-  function assignP1ValueAliases(store) {
-    store.forEach((obj) => {
-      switch (obj.data.params.p1.name) {
+  function assignP1ValueAlias(obj) {
+    let p1 = obj.data.params.p1;
+
+    //Does not have alias yet
+    if (typeof p1.value_alias === "undefined") {
+      switch (p1.name) {
         case "Note":
-          if (typeof obj.data.params.p1.value_alias === "undefined") {
-            obj.data.params.p1.value_alias = MusicalNotes.FromInt(
-              obj.data.params.p1.value
-            );
-          }
+          p1.value_alias = MusicalNotes.FromInt(p1.value);
           break;
       }
-      return obj;
-    });
+    }
+    return obj;
   }
 
-  $: if ($midi_monitor_store) {
-    assignP1ValueAliases($midi_monitor_store);
-    last = $midi_monitor_store[$midi_monitor_store.length - 1];
+  $: {
+    last = $midi_monitor_store.at(-1);
+    if (last) {
+      assignP1ValueAlias(last);
+    }
     showActivity();
   }
 

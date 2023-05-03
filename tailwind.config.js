@@ -41,6 +41,9 @@ const config = {
         300: "300px",
         calc: "calc(100vh - 62px)",
       },
+      width: {
+        26: "26px",
+      },
       inset: {
         "1/2": "50%",
         1: "1em",
@@ -147,7 +150,6 @@ const config = {
       },
     },
   },
-
   plugins: [],
 };
 
