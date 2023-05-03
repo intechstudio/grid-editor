@@ -181,8 +181,15 @@ function getCommand(int_value) {
   }
 }
 
+function isHighResMidi(lastMessage, currentMessage) {
+  const offset_diff =
+    lastMessage.data.params.p1.value - currentMessage.data.params.p1.value;
+  return offset_diff === -32;
+}
+
 function createMidiMonitor(max_val) {
   const store = writable([]);
+  let midiBuffer = null;
 
   return {
     ...store,
@@ -209,9 +216,28 @@ function createMidiMonitor(max_val) {
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
 
-        UpdateDebugStream(item, "MIDI");
+        //Check if it was 14bit MIDI message
+        if (
+          midiBuffer !== null &&
+          getCommandShortName(item.data.command.value) === "CC" &&
+          isHighResMidi(midiBuffer, item)
+        ) {
+          const hires = s.find((e) => e.id === midiBuffer.id);
+          const upper_value = midiBuffer.data.params.p2.value << 7;
+          const lower_value = item.data.params.p2.value;
 
-        s = [...s, item];
+          //Update display values instead of pushing to the store
+          hires.data.command.name += " (14)";
+          hires.data.command.short += " (14)";
+          hires.data.params.p2.value = upper_value + lower_value;
+        } else {
+          //Normal message, put it into the store as it is
+          s = [...s, item];
+        }
+
+        //Update buffer
+        midiBuffer = item;
+        UpdateDebugStream(item, "MIDI");
         return s;
       });
     },

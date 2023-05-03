@@ -214,7 +214,7 @@
             copyAllEventConfigsFromSelf();
           }}
         >
-          <SvgIcon iconPath={"copy_all"} />
+          <SvgIcon displayMode="button" iconPath={"copy_all"} />
 
           <TooltipSetter key={"configuration_copy_all"} />
         </button>
@@ -225,7 +225,7 @@
             overwriteAllEventConfigs();
           }}
         >
-          <SvgIcon iconPath={"paste_all"} />
+          <SvgIcon displayMode="button" iconPath={"paste_all"} />
 
           <TooltipSetter key={"configuration_overwrite"} />
         </button>
