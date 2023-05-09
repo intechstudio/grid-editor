@@ -1,5 +1,5 @@
 <script>
-  import { sineOut } from "svelte/easing";
+  import { quadIn } from "svelte/easing";
 
   import { fade, slide } from "svelte/transition";
   import { get } from "svelte/store";
@@ -27,6 +27,7 @@
   import { checkSyntax } from "../../../../runtime/monaco-helper";
 
   import { onMount } from "svelte";
+  import { append_hydration_dev } from "svelte/internal";
 
   export let config = ""; //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs;
@@ -144,21 +145,6 @@
     luadebug_store.update_config(_utils.configMerge({ config: configs }));
   }
 
-  function heightChange(
-    node,
-    { delay = 0, duration = 200, position = "relative" }
-  ) {
-    let h = +getComputedStyle(node)["height"].slice(0, -2);
-
-    return {
-      delay,
-      duration,
-      css: (t) => {
-        return `position: ${position}; height: ${sineOut(t) * h}px;`;
-      },
-    };
-  }
-
   function handleToggle(short) {
     if (toggle === true) {
       toggle = false;
@@ -188,211 +174,125 @@
 
 <wrapper
   bind:this={$configNodeBinding[config.id]}
-  class=" flex border-none outline-none transition-opacity duration-300"
+  class="flex border-none outline-none transition-opacity duration-300"
 >
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <carousel
-    class=" flex flex-grow text-white {syntaxError &&
-    config.information.rendering == 'standard'
-      ? 'border-error border'
-      : 'border-transparent'}"
+    class="group flex flex-grow"
+    class:cursor-pointer={!disable_pointer_events}
     id="cfg-{index}"
     config-component={config.information.name}
     movable={config.information.rendering == "standard" ||
       config.information.name.endsWith("_If")}
     config-id={config.id}
+    on:click={() => {
+      if (config.information.rendering !== "standard") return;
+      handleToggle(config.short);
+    }}
   >
-    <parent
-      class="flex w-full group {disable_pointer_events == true
-        ? 'pointer-events-none '
-        : ''}"
-    >
+    <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
+    <div class="w-full flex flex-row pointer-events-none">
+      <!-- Six dots to the left -->
       <div
-        class=" contents w-full {disable_pointer_events == true
-          ? 'group-hover:pointer-events-none '
-          : ''}"
+        class="flex p-2 items-center bg-secondary"
+        class:group-hover:bg-select-saturate-10={!toggle}
+        class:invisible={config.information.rendering !== "standard" &&
+          !config.information.name.endsWith("_If")}
       >
-        <div
-          class="flex p-2 items-center {!toggle
-            ? 'group-hover:bg-select-saturate-10'
-            : ''}  bg-secondary {config.information.grabbing !== false
-            ? 'cursor-grab'
-            : 'opacity-0 cursor-default '}
-            {syntaxError && config.information.rendering != 'standard'
-            ? 'border-error border-y border-l'
-            : 'border-transparent'}"
+        <svg
+          class="opacity-40 group-hover:opacity-100"
+          width="8"
+          height="13"
+          viewBox="0 0 8 13"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <svg
-            class=" {config.information.grabbing !== false
-              ? 'opacity-40'
-              : 'opacity-0'}  group-hover:opacity-100"
-            width="8"
-            height="13"
-            viewBox="0 0 8 13"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-            <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-          </svg>
-        </div>
-
-        {#if config.information.rendering == "standard"}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <div
-            on:click={() => {
-              handleToggle(config.short);
-            }}
-            class=" flex relative w-min {disable_pointer_events && toggle
-              ? 'group-hover:pointer-events-auto'
-              : toggle
-              ? 'cursor-pointer '
-              : config.information.grabbing !== false
-              ? 'cursor-grab'
-              : ''}
-              "
-          >
-            <div>
-              <icon
-                style="background-color:{config.information.color}"
-                class="flex group-hover:bg-opacity-75 items-center p-2 h-full cursor-pointer"
-              >
-                <div class="w-6 h-6">
-                  {@html config.information.icon
-                    ? config.information.icon
-                    : " "}
-                </div>
-              </icon>
-            </div>
-          </div>
-        {:else}
-          <div
-            style="background-color:{config.information.color}"
-            class=" {config.information.rounding == 'top'
-              ? 'rounded-tr-xl  '
-              : ''} {config.information.rounding == 'bottom'
-              ? 'rounded-br-xl '
-              : ''}   flex flex-row w-full min-h-fit {config.information
-              .grabbing !== false
-              ? 'cursor-grab'
-              : ''}
-              {syntaxError
-              ? 'border-error border-y border-r'
-              : 'border-transparent'}"
-          >
-            <icon
-              class="flex items-center p-2 {config.information.hiddenIcon
-                ? ' hidden '
-                : ' '}"
-            >
-              <div class="w-6 h-6">
-                {#if informationOverride.icon !== undefined}
-                  {@html informationOverride.icon
-                    ? informationOverride.icon
-                    : " "}
-                {:else}
-                  {@html config.information.icon
-                    ? config.information.icon
-                    : " "}
-                {/if}
-              </div>
-            </icon>
-
-            <div style="white-space: nowrap" class="mx-2 flex items-center">
-              {#if informationOverride.blockTitle !== undefined}
-                {informationOverride.blockTitle}
-              {:else}
-                {config.information.blockTitle}
-              {/if}
-            </div>
-
-            <svelte:component
-              this={config.component}
-              {index}
-              {config}
-              {access_tree}
-              on:replace={(e) => {
-                replace_me(e);
-              }}
-              on:informationOverride={(e) => {
-                information_override(e);
-              }}
-              on:validator={(e) => {
-                const data = e.detail;
-                validationError = data.isError;
-              }}
-              on:output={(e) => {
-                config.script = e.detail.script;
-                config.toValidate = e.detail.toValidate;
-                isSyntaxError();
-                handleConfigChange({ configName: config.information.name });
-                configs = configs;
-              }}
-            />
-          </div>
-        {/if}
+          <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+          <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+          <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+          <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
+          <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
+          <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
+        </svg>
       </div>
 
-      {#if !(toggle || config.information.toggleable === false) && config.information.rendering == "standard"}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <name
-          on:click={() => {
-            toggle = true;
-          }}
-          class="px-4 flex items-center w-full bg-secondary group-hover:bg-select-saturate-10 py-2 {disable_pointer_events ==
-          true
-            ? 'group-hover:pointer-events-auto'
-            : 'cursor-pointer'} "
-        >
-          <div class="flex flex-row justify-between w-full items-center">
-            <span>{config.information.desc}</span>
+      <div
+        style="background-color:{config.information.color}"
+        class="flex items-center p-2 w-min text-center"
+      >
+        <div class="w-6 h-6 whitespace-nowrap">
+          {#if config.information.icon !== undefined}
+            {@html config.information.icon}
+          {:else}
+            <span class="text-white">
+              {config.information.blockTitle}
+            </span>
+          {/if}
+        </div>
+      </div>
+
+      <!-- Body of the config block -->
+      <div
+        style="background-color:{config.information.rendering !== 'standard'
+          ? config.information.color
+          : ''}"
+        class="w-full bg-secondary"
+        class:rounded-tr-xl={config.information.rounding == "top"}
+        class:rounded-br-xl={config.information.rounding == "bottom"}
+        class:group-hover:bg-select-saturate-10={!toggle}
+      >
+        {#if toggle || config.information.rendering !== "standard"}
+          <container
+            in:slide={{ duration: animationDuration }}
+            class="flex items-center h-full w-full bg-opacity-60 pointer-events-auto"
+            class:bg-primary={toggle}
+            class:pr-2={config.information.rendering !== "standard"}
+          >
+            <fader-transition
+              class="w-full"
+              in:fade={{
+                easing: quadIn,
+                delay: animationDuration / 3,
+                duration: animationDuration,
+              }}
+            >
+              <svelte:component
+                this={config.component}
+                {index}
+                {config}
+                {access_tree}
+                on:replace={(e) => {
+                  replace_me(e);
+                }}
+                on:informationOverride={(e) => {
+                  information_override(e);
+                }}
+                on:validator={(e) => {
+                  const data = e.detail;
+                  validationError = data.isError;
+                }}
+                on:output={(e) => {
+                  config.script = e.detail.script;
+                  config.toValidate = e.detail.toValidate;
+                  isSyntaxError();
+                  handleConfigChange({ configName: config.information.name });
+                  configs = configs;
+                }}
+              />
+            </fader-transition>
+          </container>
+        {:else}
+          <div
+            class="ml-4 flex flex-row justify-between w-full items-center h-full"
+          >
+            <span class="text-white">{config.information.desc}</span>
             {#if syntaxError}
               <span class="text-error text-xs">SYNTAX ERROR</span>
             {/if}
           </div>
-        </name>
-      {/if}
-
-      {#if (toggle || config.information.toggleable === false) && config.information.rendering == "standard"}
-        <container
-          in:slide={{ duration: animationDuration }}
-          class=" w-full flex bg-secondary bg-opacity-25 rounded-br-lg"
-        >
-          <fader-transition
-            class="w-full"
-            in:fade={{ delay: animationDuration, duration: animationDuration }}
-          >
-            <svelte:component
-              this={config.component}
-              {index}
-              {config}
-              {access_tree}
-              {informationOverride}
-              on:replace={(e) => {
-                replace_me(e);
-              }}
-              on:informationOverride={(e) => {
-                information_override(e);
-              }}
-              on:validator={(e) => {
-                const data = e.detail;
-                validationError = data.isError;
-              }}
-              on:output={(e) => {
-                config.script = e.detail.script;
-                config.toValidate = e.detail.toValidate;
-                isSyntaxError();
-                handleConfigChange({ configName: config.information.name });
-                configs = configs;
-              }}
-            />
-          </fader-transition>
-        </container>
-      {/if}
-    </parent>
+        {/if}
+      </div>
+    </div>
   </carousel>
 
   <Options
