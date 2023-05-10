@@ -56,6 +56,7 @@
   class="w-full relative"
   use:clickOutside={{ useCapture: false }}
   on:click-outside={() => {
+    console.log("yay");
     focus = false;
     handleFocus("loose", false);
   }}
@@ -63,7 +64,7 @@
   <input
     {disabled}
     bind:value={inputValue}
-    on:click={() => {
+    on:click={(e) => {
       handleFocus("active", true);
     }}
     on:change={handleChange}
