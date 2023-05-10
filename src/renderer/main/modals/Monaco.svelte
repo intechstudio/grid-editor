@@ -15,6 +15,9 @@
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
 
+  import _utils, { luaParser } from "../../runtime/_utils";
+  import { luadebug_store } from "../../runtime/runtime.store";
+
   let scrollDown;
   let autoscroll;
 
@@ -43,6 +46,20 @@
 
   let modalWidth;
   let modalHeight;
+
+  let runtimeScript = "";
+  let runtimeParser = "";
+
+  $: {
+    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
+    const configs = res;
+    let code = "";
+    configs.forEach((e, i) => {
+      code += `--[[@${e.short}]] ` + e.script + "\n";
+    });
+    runtimeScript = "<?lua " + "\n" + code + "?>";
+    runtimeParser = luaParser(code, { comments: true });
+  }
 
   $: if (modalWidth || modalHeight) {
     if (editor !== undefined) {
@@ -209,8 +226,20 @@
       class="flex-col w-full h-1/3 flex overflow-y-scroll bg-secondary"
     >
       {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
+        <span class="debugtexty p-1 font-mono text-white">{debug}</span>
       {/each}
+    </div>
+    <div class="flex flex-row">
+      <div class="pr-2">Char Count:</div>
+      <div
+        class={runtimeScript.length >= 400
+          ? "text-error"
+          : runtimeScript.length >= 120
+          ? "text-yellow-400"
+          : "text-white"}
+      >
+        {runtimeScript.length}
+      </div>
     </div>
   </div>
 </modal>

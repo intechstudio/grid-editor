@@ -19,8 +19,7 @@
   let runtimeParser = "";
 
   $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    const configs = res;
+    const configs = _utils.gridLuaToEditorLua($luadebug_store.config);
     let code = "";
     configs.forEach((e, i) => {
       code += `--[[@${e.short}]] ` + e.script + "\n";
