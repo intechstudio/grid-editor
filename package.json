@@ -55,6 +55,7 @@
     "set-interval-async": "^3.0.3",
     "simple-discord-webhooks": "^2.1.0",
     "svelte-splitpanes": "^0.7.12",
+    "svelte-virtual-list": "^3.0.1",
     "svelte-watch-resize": "^1.0.3",
     "typescript": "^4.8.4",
     "uuid": "^9.0.0",

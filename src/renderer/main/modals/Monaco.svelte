@@ -18,19 +18,7 @@
   import _utils, { luaParser } from "../../runtime/_utils";
   import { luadebug_store } from "../../runtime/runtime.store";
 
-  let scrollDown;
-  let autoscroll;
-
-  beforeUpdate(() => {
-    autoscroll =
-      scrollDown &&
-      scrollDown.offsetHeight + scrollDown.scrollTop >
-        scrollDown.scrollHeight - 20;
-  });
-
-  afterUpdate(() => {
-    if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
-  });
+  import VirtualList from "svelte-virtual-list";
 
   import { attachment } from "../user-interface/Monster.store";
 
@@ -49,6 +37,19 @@
 
   let runtimeScript = "";
   let runtimeParser = "";
+
+  const items = [
+    "Item 1",
+    "Item 2",
+    "Item 3",
+    "Item 4",
+    "Item 5",
+    "Item 6",
+    "Item 7",
+    "Item 8",
+    "Item 9",
+    "Item 10",
+  ];
 
   $: {
     let res = _utils.gridLuaToEditorLua($luadebug_store.config);
@@ -84,8 +85,6 @@
       error_messsage = e;
     }
   }
-
-  let toColorize;
 
   let modalElement;
 
@@ -128,8 +127,6 @@
       }
     });
 
-    scrollDown.scrollTo(0, scrollDown.scrollHeight);
-
     $attachment = {
       element: modalElement,
       hpos: "60%",
@@ -167,16 +164,16 @@
       class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center"
     >
       <div
-        class="flex flex-row w-full h-content bg-black bg-opacity-10 justify-between items-center"
+        class="flex flex-row w-full bg-black bg-opacity-10 justify-between items-center p-6"
       >
-        <div class="flex flex-col h-full p-6">
+        <div class="flex flex-col h-full">
           <div class="flex w-full opacity-70">
             Grid Editor is Open-Source Software
           </div>
           <div class="flex w-full opacity-40">Developed by Intech Studio</div>
         </div>
 
-        <div class="flex flex-row items-center h-full p-6">
+        <div class="flex flex-row items-center h-full gap-2">
           {#key commitState + error_messsage}
             <div class="flex flex-col">
               <div
@@ -186,7 +183,7 @@
               >
                 {commitState ? "Unsaved changes!" : "Synced with Grid!"}
               </div>
-              <div class="text-right text-sm text-red-600">
+              <div class="text-right text-sm text-error">
                 {error_messsage}
               </div>
             </div>
@@ -195,18 +192,18 @@
           <button
             on:click={commit}
             disabled={!commitState}
-            class="mx-2 p-2 {commitState
-              ? 'opacity-100'
-              : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded text-sm focus:outline-none"
-            >Commit</button
+            class="w-24 p-2 bg-commit hover:bg-commit-saturate-20 text-white rounded
+            {commitState ? 'opacity-100' : 'opacity-50 pointer-events-none'}"
           >
+            Commit
+          </button>
 
           <button
             on:click={() => {
               $appSettings.modal = "";
             }}
             id="close-btn"
-            class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary bg-primary"
+            class="w-24 p-2 rounded text-white hover:bg-secondary bg-primary"
           >
             Close
           </button>
@@ -214,31 +211,13 @@
       </div>
     </div>
 
-    <div class="flex-col w-full h-full flex justify-between">
-      <div
-        bind:this={monaco_block}
-        class="flex-col w-full h-full flex justify-between"
-      />
-    </div>
+    <div class="h-full w-full border border-red-400">
+      <div bind:this={monaco_block} class="h-2/3" />
 
-    <div
-      bind:this={scrollDown}
-      class="flex-col w-full h-1/3 flex overflow-y-scroll bg-secondary"
-    >
-      {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty p-1 font-mono text-white">{debug}</span>
-      {/each}
-    </div>
-    <div class="flex flex-row">
-      <div class="pr-2">Char Count:</div>
-      <div
-        class={runtimeScript.length >= 400
-          ? "text-error"
-          : runtimeScript.length >= 120
-          ? "text-yellow-400"
-          : "text-white"}
-      >
-        {runtimeScript.length}
+      <div class="flex flex-col font-mono bg-secondary m-1 min-h-[200px]">
+        <VirtualList {items} let:item>
+          <span class="debugtexty text-white">{item}</span>
+        </VirtualList>
       </div>
     </div>
   </div>
