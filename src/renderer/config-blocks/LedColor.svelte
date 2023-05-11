@@ -514,7 +514,9 @@ A -> B : AB-First step
   <div class="w-full flex">
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
       <div class={"w-1/3 atomicInput "}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i + 2]}</div>
+        <div class="text-gray-500 text-sm pb-1">
+          {parameterNames[i + 2]}
+        </div>
         <AtomicInput
           inputValue={script}
           validator={validators[i + 2]}
