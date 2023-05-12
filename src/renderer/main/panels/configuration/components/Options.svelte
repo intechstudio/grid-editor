@@ -98,6 +98,7 @@
     >
       {#if $appMultiSelect.selection[index]}
         <SvgIcon
+          displayMode="button"
           class="h-[16px] w-[16px]"
           activeState={$appMultiSelect.selection[index]}
           iconPath={"tick"}
@@ -119,6 +120,7 @@
     >
       {#if $appMultiSelect.selection[index]}
         <SvgIcon
+          displayMode="button"
           class="h-[16px] w-[16px]"
           activeState={$appMultiSelect.selection[index]}
           iconPath={"tick"}
@@ -138,6 +140,7 @@
       >
         {#if $appMultiSelect.selection[index]}
           <SvgIcon
+            displayMode="button"
             class="h-[16px] w-[16px]"
             activeState={$appMultiSelect.selection[index]}
             iconPath={"tick"}

@@ -11,7 +11,7 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import { validate } from "uuid";
+  import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
   // ok but slow nice
 
@@ -293,7 +293,13 @@
                     </div>
                   {/if}
                   <div class="flex items-center">
-                    {message.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}
+                    {#if message.data.direction == "REPORT"}
+                      <span>RX</span>
+                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                    {:else}
+                      <span>TX</span>
+                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                    {/if}
                   </div>
                 </div>
               {/each}
@@ -312,11 +318,14 @@
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
                 >
-                  <span class="text-white"
-                    >{midi.device.name}{midi.data.direction == "REPORT"
-                      ? " 🡐"
-                      : " 🡒"}</span
-                  >
+                  <div class="flex flex-row text-white">
+                    <span>{midi.device.name}</span>
+                    {#if midi.data.direction == "REPORT"}
+                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                    {:else}
+                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                    {/if}
+                  </div>
                   <span>Ch: {midi.data.channel}</span>
                   <span>{midi.data.command.short}</span>
                   <span>{midi.data.params.p1.short}:</span>
@@ -374,17 +383,21 @@
                     ? 'text-blue-400'
                     : 'text-green-400'} font-mono"
                 >
-                  <div class="block">
-                    <span class="text-white"
-                      >{sysex.device.name}{sysex.data.direction == "REPORT"
-                        ? " 🡐"
-                        : " 🡒"}</span
-                    >
-                    <span
-                      >{String.fromCharCode
+                  <div class="flex flex-row gap-2">
+                    <div class="flex flex-row text-white">
+                      <span>{sysex.device.name}</span>
+                      {#if sysex.data.direction == "REPORT"}
+                        <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      {:else}
+                        <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      {/if}
+                    </div>
+
+                    <span>
+                      {String.fromCharCode
                         .apply(String, sysex.data.raw)
-                        .substr(8)}</span
-                    >
+                        .substr(8)}
+                    </span>
                   </div>
                 </div>
               {/each}

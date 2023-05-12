@@ -30,7 +30,7 @@
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
-        <SvgIcon iconPath={"merge_as_code"} />
+        <SvgIcon displayMode="button" iconPath={"merge_as_code"} />
       </span>
     </BtnAndPopUp>
 
@@ -48,7 +48,7 @@
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
-        <SvgIcon iconPath={"cut"} />
+        <SvgIcon displayMode="button" iconPath={"cut"} />
         <TooltipSetter key={"configuration_cut_one"} />
       </span>
     </BtnAndPopUp>
@@ -67,7 +67,7 @@
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
-        <SvgIcon iconPath={"copy"} />
+        <SvgIcon displayMode="button" iconPath={"copy"} />
         <TooltipSetter key={"configuration_copy_one"} />
       </span>
     </BtnAndPopUp>
@@ -84,7 +84,7 @@
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
-        <SvgIcon iconPath={"paste"} />
+        <SvgIcon displayMode="button" iconPath={"paste"} />
         <TooltipSetter key={"configuration_paste_one"} />
       </span>
     </BtnAndPopUp>
@@ -103,7 +103,7 @@
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
-        <SvgIcon iconPath={"remove"} />
+        <SvgIcon displayMode="button" iconPath={"remove"} />
         <TooltipSetter key={"configuration_remove_one"} />
       </span>
     </BtnAndPopUp>
@@ -119,6 +119,7 @@
   >
     {#if $appMultiSelect.all_selected}
       <SvgIcon
+        displayMode="button"
         class="h-[16px] w-[16px]"
         activeState={$appMultiSelect.all_selected}
         iconPath={"tick"}
