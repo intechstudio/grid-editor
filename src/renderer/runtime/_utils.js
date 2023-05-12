@@ -1,5 +1,7 @@
 // es6 import
 import { getComponentInformation, config_components } from "../lib/_configs.js";
+import { get } from "svelte/store";
+import { luadebug_store } from "./runtime.store.js";
 import grid from "../protocol/grid-protocol.js";
 import { v4 as uuidv4 } from "uuid";
 
@@ -15,6 +17,16 @@ const _utils = {
    *
    * @config = --[[@ @short ]] + @script
    */
+
+  getCurrentConfigScript: function () {
+    const store = get(luadebug_store);
+    const configs = this.gridLuaToEditorLua(store.config);
+    let code = "";
+    configs.forEach((e, i) => {
+      code += `--[[@${e.short}]] ` + e.script + "\n";
+    });
+    return "<?lua " + "\n" + code + "?>";
+  },
 
   gridLuaToEditorLua: function (fullConfig) {
     if (fullConfig.length == 0) {

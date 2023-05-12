@@ -12,6 +12,7 @@ import {
 import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
+import { maxConfigLimit } from "../../../runtime/app-helper.store";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -36,15 +37,27 @@ function get_configs() {
 export function configManagement() {
   const drag_and_drop = function () {
     this.add = ({ configs, index, newConfig }) => {
-      let res = _utils.gridLuaToEditorLua(newConfig);
+      newConfig = _utils.gridLuaToEditorLua(newConfig);
 
-      if (res === undefined) {
+      if (newConfig === undefined) {
         console.log("NO CONFIG PASSED");
         return undefined;
       }
 
-      configs.splice(index, 0, ...res);
-      return configs;
+      let res = [...configs];
+      res.splice(index, 0, ...newConfig);
+      const actionstring = _utils.configMerge({ config: res });
+      if (actionstring.length > maxConfigLimit) {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "config_limit_reached",
+          message: `Config limit reached, shorten your code or delete actions before adding new actions!`,
+        });
+        return configs;
+      }
+
+      return res;
     };
 
     this.remove = ({ configs, array }) => {
@@ -131,6 +144,16 @@ export function configManagement() {
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
         const actionstring = "<?lua " + configs.join("") + " ?>";
+
+        if (actionstring.length > maxConfigLimit) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "config_limit_reached",
+            message: `Paste failed! Config limit was reached, shorten your code or delete actions!`,
+          });
+          return;
+        }
 
         runtime.update_event_configuration(
           dx,

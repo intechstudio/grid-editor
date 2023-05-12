@@ -125,6 +125,7 @@ function createAppSettingsStore() {
 }
 
 export const appSettings = createAppSettingsStore();
+export const maxConfigLimit = 400;
 
 export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);

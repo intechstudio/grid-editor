@@ -1,5 +1,5 @@
 <script>
-  import { writable, get, derived } from "svelte/store";
+  import { get } from "svelte/store";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -9,14 +9,12 @@
   let actionIsDragged = false;
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
   import {
     runtime,
     logger,
-    elementNameStore,
     appMultiSelect,
     luadebug_store,
     localDefinitions,

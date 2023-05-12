@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { appSettings } from "../../runtime/app-helper.store";
+  import { appSettings, maxConfigLimit } from "../../runtime/app-helper.store";
 
   import { clickOutside } from "../_actions/click-outside.action";
 
@@ -14,6 +14,8 @@
 
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
+  import _utils from "../../runtime/_utils.js";
+  import { attachment } from "../user-interface/Monster.store";
 
   let scrollDown;
   let autoscroll;
@@ -28,8 +30,6 @@
   afterUpdate(() => {
     if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
-
-  import { attachment } from "../user-interface/Monster.store";
 
   let monaco_block;
 
@@ -58,8 +58,14 @@
 
   function commit() {
     const editor_code = editor.getValue();
+
     try {
       let minified_code = checkSyntaxAndMinify(editor_code);
+      const addedCodeLength = minified_code.length - initCodeLength;
+      const newConfigLength = initConfigLength + addedCodeLength;
+      if (newConfigLength > maxConfigLimit) {
+        throw "Config limit reached!";
+      }
       $appSettings.monaco_code_committed = minified_code;
       commitState = 0;
       error_messsage = "";
@@ -68,11 +74,13 @@
     }
   }
 
-  let toColorize;
-
   let modalElement;
 
+  let initCodeLength;
+  const initConfigLength = _utils.getCurrentConfigScript().length;
+
   onMount(() => {
+    initCodeLength = $appSettings.monaco_code_committed.length;
     let human = stringManipulation.humanize($appSettings.monaco_code_committed);
     let beautified = luamin.Beautify(human, {
       RenameVariables: false,
