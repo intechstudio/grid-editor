@@ -113,7 +113,18 @@ const instructions = {
   },
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
-    unsaved_changes.update((n) => n + 1);
+    const objIndex = get(unsaved_changes).findIndex(
+      (e) => e.x == dx && e.y == dy
+    );
+    if (objIndex !== -1) {
+      unsaved_changes.update((s) => {
+        const updatedChanges = [...s];
+        updatedChanges[objIndex].changes += 1;
+        return updatedChanges;
+      });
+    } else {
+      unsaved_changes.update((s) => [...s, { x: dx, y: dy, changes: 1 }]);
+    }
 
     let buffer_element = {
       descr: {
@@ -254,7 +265,7 @@ const instructions = {
       },
       successCb: function () {
         engine.set("ENABLED");
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         logger.set({
           type: "success",
           mode: 0,
@@ -308,7 +319,7 @@ const instructions = {
         //console.log('NVM erase execute - fail')
       },
       successCb: function () {
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         runtime.erase();
         engine.set("ENABLED");
         logger.set({

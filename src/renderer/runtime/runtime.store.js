@@ -398,6 +398,7 @@ function create_user_input() {
   }
 
   function module_destroy_handler(dx, dy) {
+    console.log("yay");
     // This is used to re-init local settings panel if a module is removed which values have been displayed
     const li = get(_event);
 
@@ -424,7 +425,7 @@ function create_user_input() {
 
 export const user_input = create_user_input();
 
-export const unsaved_changes = writable(0);
+export const unsaved_changes = writable([]);
 
 function create_runtime() {
   const _runtime = writable([]);
@@ -601,24 +602,26 @@ function create_runtime() {
       }
 
       if (firstConnection) {
-        setTimeout(() => {
-          user_input.update((ui) => {
-            ui.brc.dx = controller.dx;
-            ui.brc.dy = controller.dy;
-            ui.event.elementnumber = 0;
-
-            ui.event.elementtype =
-              controller.pages[
-                ui.event.pagenumber
-              ].control_elements[0].controlElementType;
-            ui.event.eventtype = 0;
-            return ui;
-          });
-        }, 500);
+        setDefaultSelectedElement(controller);
       }
     } catch (error) {
       console.error(error);
     }
+  }
+
+  function setDefaultSelectedElement(controller) {
+    user_input.update((ui) => {
+      ui.brc.dx = controller.dx;
+      ui.brc.dy = controller.dy;
+      ui.event.elementnumber = 0;
+
+      ui.event.elementtype =
+        controller.pages[
+          ui.event.pagenumber
+        ].control_elements[0].controlElementType;
+      ui.event.eventtype = 0;
+      return ui;
+    });
   }
 
   function erase_all() {
@@ -1046,7 +1049,7 @@ function create_runtime() {
       return _runtime;
     });
 
-    unsaved_changes.set(0);
+    unsaved_changes.set([]);
 
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
@@ -1168,6 +1171,11 @@ function create_runtime() {
         lcs[dx][dy] = undefined;
         return lcs;
       });
+
+      const rt = get(_runtime);
+      if (rt.length > 0) {
+        setDefaultSelectedElement(rt[0]);
+      }
     } catch (error) {}
 
     window.electron.analytics.influx(
@@ -1182,7 +1190,7 @@ function create_runtime() {
     _runtime.set([]);
 
     user_input.reset();
-    unsaved_changes.set(0);
+    unsaved_changes.set([]);
     writeBuffer.clear();
   }
 
@@ -1290,7 +1298,7 @@ setInterval(function () {
 
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
-  if (get(unsaved_changes) != 0 || get(appSettings).modal !== "") {
+  if (get(unsaved_changes).total != 0 || get(appSettings).modal !== "") {
     type = 254;
   }
 

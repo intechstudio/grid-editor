@@ -54,7 +54,22 @@
 
   let ready = false;
   let isStoreEnabled = false;
-  $: isStoreEnabled = $engine == "ENABLED" && $unsaved_changes > 0;
+
+  const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
+    return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
+  });
+
+  const devices = writable([]);
+
+  $: {
+    unsaved_changes.set(
+      $unsaved_changes.filter((chg) =>
+        $runtime.some((d) => chg.x === d.dx && chg.y === d.dy)
+      )
+    );
+  }
+
+  $: isStoreEnabled = $engine == "ENABLED" && $totalChanges > 0;
 
   onMount(() => {
     createPanZoom(map, {
@@ -76,8 +91,6 @@
 
     ready = true;
   });
-
-  const devices = writable([]);
 
   $: {
     let min_x = 0;
@@ -242,7 +255,7 @@
           class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg"
         >
           <div class="mr-4 text-white font-medium">
-            {$unsaved_changes} active changes
+            {$totalChanges} active changes
           </div>
           <button
             on:click={() => {

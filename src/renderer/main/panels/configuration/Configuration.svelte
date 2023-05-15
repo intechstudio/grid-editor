@@ -298,13 +298,16 @@
       return;
     }
 
-    configs = await configManagement().drag_and_drop.add({
+    const res = await configManagement().drag_and_drop.add({
       configs: configs,
       index: index,
       newConfig: config,
     });
 
-    send_to_grid();
+    if (configs != res) {
+      configs = res;
+      send_to_grid();
+    }
   }
 
   function send_to_grid() {
