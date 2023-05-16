@@ -5,7 +5,7 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { store } from "../main-store";
-import { googleAnalytics} from "./analytics";
+import { googleAnalytics } from "./analytics";
 
 /**
  *

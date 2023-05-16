@@ -435,7 +435,6 @@ ipcMain.handle("googleAnalytics", async (event, arg) => {
   return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
 });
 
-
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
   return await getLatestVideo();

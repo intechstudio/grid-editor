@@ -3,7 +3,7 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-import { googleAnalytics} from "./analytics";
+import { googleAnalytics } from "./analytics";
 
 export const firmware = {
   mainWindow: undefined,
@@ -137,7 +137,6 @@ export async function firmwareDownload(targetFolder) {
 
     googleAnalytics("firmware-download", { value: "download fail" });
 
-
     return;
   }
 
@@ -171,7 +170,6 @@ export async function firmwareDownload(targetFolder) {
     });
 
     googleAnalytics("firmware-download", { value: "update success" });
-
   } else {
     log.warn("GRID_NOT_FOUND");
 

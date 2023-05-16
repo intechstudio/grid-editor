@@ -156,7 +156,7 @@ export function configManagement() {
 
       let i = 0;
       let j = 0;
-      for (; i < configs.length;) {
+      for (; i < configs.length; ) {
         if (selection[i] !== true) {
           edited.push(configs[i]);
           j++;
