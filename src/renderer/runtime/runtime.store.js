@@ -398,7 +398,6 @@ function create_user_input() {
   }
 
   function module_destroy_handler(dx, dy) {
-    console.log("yay");
     // This is used to re-init local settings panel if a module is removed which values have been displayed
     const li = get(_event);
 
@@ -859,19 +858,34 @@ function create_runtime() {
     page,
     element,
     event,
-    actionstring,
+    actionString,
     status
   ) {
     // config
     _runtime.update((_runtime) => {
       let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
       if (dest) {
-        dest.config = actionstring;
+        dest.config = actionString;
         dest.cfgStatus = status;
       }
       return _runtime;
     });
   }
+
+  function check_action_string_length(configs) {
+    const maxConfigLength = grid.properties.CONFIG_LENGTH;
+    const configLength = configs.length;
+    console.log(configs.length, maxConfigLength);
+    return new Promise((resolve, reject) => {
+      //dest.config.length >= grid.properties.CONFIG_LENGTH
+      if (maxConfigLength < configLength) {
+        reject(new Error(""));
+      } else {
+        resolve(configLength);
+      }
+    });
+  }
+
   function send_event_configuration_to_grid(
     dx,
     dy,
@@ -1237,6 +1251,7 @@ function create_runtime() {
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
+    check_action_string_length: check_action_string_length,
   };
 }
 

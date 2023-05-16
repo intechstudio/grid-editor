@@ -115,6 +115,10 @@
     const page = li.event.pagenumber;
     const element = li.event.elementnumber;
     const event = li.event.eventtype;
+
+    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
+    console.log(dest.config);
+    console.log(configs);
     const actionstring = _utils.configMerge({ config: configs });
 
     // EncoderPushRotElse, EncoderPushRotEnd ects
@@ -129,16 +133,27 @@
         "EDITOR_EXECUTE"
       );
     } else {
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+      runtime
+        .check_action_string_length(actionstring)
+        .then(() => {
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionstring,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
+        })
+        .catch();
     }
 
     localDefinitions.update(configs);

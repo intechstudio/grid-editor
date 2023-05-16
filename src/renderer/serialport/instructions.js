@@ -87,8 +87,6 @@ const instructions = {
         const event = descr.class_parameters.EVENTTYPE;
         const actionstring = descr.class_parameters.ACTIONSTRING;
 
-        // console.log("SUCCESS: ", descr.class_parameters.PAGENUMBER, descr.class_parameters.ELEMENTNUMBER, descr.class_parameters.EVENTTYPE );
-
         runtime.update_event_configuration(
           dx,
           dy,
@@ -113,6 +111,17 @@ const instructions = {
   },
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
+    console.log("SCTG", actionstring, actionstring.length);
+    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "configlength",
+        message: `Config is too long! ${actionstring.length} characters`,
+      });
+      return;
+    }
+
     const objIndex = get(unsaved_changes).findIndex(
       (e) => e.x == dx && e.y == dy
     );
@@ -159,16 +168,6 @@ const instructions = {
       },
       successCb: callback,
     };
-
-    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
-      logger.set({
-        type: "alert",
-        mode: 0,
-        classname: "configlength",
-        message: `Config is too long! ${actionstring.length} characters`,
-      });
-      return;
-    }
 
     writeBuffer.add_last(buffer_element);
 

@@ -1,6 +1,7 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { appSettings, maxConfigLimit } from "../../runtime/app-helper.store";
+  import { appSettings } from "../../runtime/app-helper.store";
+  import grid from "../../protocol/grid-protocol.js";
 
   import { clickOutside } from "../_actions/click-outside.action";
 
@@ -58,6 +59,7 @@
 
   function commit() {
     const editor_code = editor.getValue();
+    const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
     try {
       let minified_code = checkSyntaxAndMinify(editor_code);

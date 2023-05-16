@@ -157,6 +157,10 @@ const _utils = {
     lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
     return lua;
   },
+
+  configsToActionString: function (configs) {
+    return "<?lua " + configs.join("").replace(/(\r\n|\n|\r)/gm, "") + " ?>";
+  },
 };
 
 function getHumanFunctionName({ short }) {

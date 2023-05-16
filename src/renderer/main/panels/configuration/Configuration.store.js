@@ -12,7 +12,7 @@ import {
 import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
-import { maxConfigLimit } from "../../../runtime/app-helper.store";
+import grid from "../../../protocol/grid-protocol.js";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -38,6 +38,7 @@ export function configManagement() {
   const drag_and_drop = function () {
     this.add = ({ configs, index, newConfig }) => {
       newConfig = _utils.gridLuaToEditorLua(newConfig);
+      const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
       if (newConfig === undefined) {
         console.log("NO CONFIG PASSED");
@@ -143,31 +144,35 @@ export function configManagement() {
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
-        const actionstring = "<?lua " + configs.join("") + " ?>";
+        const actionString = _utils.configsToActionString(configs);
 
-        if (actionstring.length > maxConfigLimit) {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "config_limit_reached",
-            message: `Paste failed! Config limit was reached, shorten your code or delete actions!`,
+        runtime
+          .check_action_string_length(actionString)
+          .then(() => {
+            runtime.update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionString,
+              "EDITOR_EXECUTE"
+            );
+            runtime.send_event_configuration_to_grid(
+              dx,
+              dy,
+              page,
+              element,
+              event
+            );
+
+            // trigger change detection
+            user_input.update((n) => n);
+          })
+          .catch((error) => {
+            // Handle error
+            console.error(error);
           });
-          return;
-        }
-
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-
-        // trigger change detection
-        user_input.update((n) => n);
 
         window.electron.analytics.influx(
           "application",
@@ -239,21 +244,32 @@ export function configManagement() {
       const page = li.event.pagenumber;
       const element = li.event.elementnumber;
       const event = li.event.eventtype;
-      const actionstring = "<?lua " + edited.join("") + " ?>";
+      const actionString = _utils.configsToActionString(edited);
 
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+      runtime
+        .check_action_string_length(actionString)
+        .then(() => {
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionString,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
 
-      // trigger change detection
-      user_input.update((n) => n);
+          // trigger change detection
+          user_input.update((n) => n);
+        })
+        .catch();
     };
 
     this.cut = function () {
@@ -290,21 +306,32 @@ export function configManagement() {
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
-        const actionstring = "<?lua " + filtered.join("") + " ?>";
+        const actionString = _utils.configsToActionString(filtered);
 
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+        runtime
+          .check_action_string_length(actionString)
+          .then(() => {
+            runtime.update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionString,
+              "EDITOR_EXECUTE"
+            );
+            runtime.send_event_configuration_to_grid(
+              dx,
+              dy,
+              page,
+              element,
+              event
+            );
 
-        // trigger change detection
-        user_input.update((n) => n);
+            // trigger change detection
+            user_input.update((n) => n);
+          })
+          .catch();
 
         window.electron.analytics.influx(
           "application",

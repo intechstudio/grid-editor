@@ -318,18 +318,23 @@
     const page = li.event.pagenumber;
     const element = li.event.elementnumber;
     const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({ config: configs });
+    const actionString = _utils.configsToActionString(configs);
 
-    runtime.update_event_configuration(
-      dx,
-      dy,
-      page,
-      element,
-      event,
-      actionstring,
-      "EDITOR_EXECUTE"
-    );
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    runtime
+      .check_action_string_length(actionString)
+      .then(() => {
+        runtime.update_event_configuration(
+          dx,
+          dy,
+          page,
+          element,
+          event,
+          actionString,
+          "EDITOR_EXECUTE"
+        );
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+      })
+      .catch();
   }
 
   function handleDrop(e) {
