@@ -62,30 +62,10 @@
   function deletePreset() {
     deletePresetFromDirectory(selectedPreset);
     $appSettings.modal = "";
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_desc_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_desc_delete"
-    );
   }
 
   function editPreset() {
     $appSettings.modal = "presetEdit";
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_desc_edit",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_desc_edit"
-    );
   }
 </script>
 

@@ -6,6 +6,9 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedProfileStore } from "./profile-helper.store";
 import { selectedPresetStore } from "./preset-helper.store";
 
+
+import mixpanel from "mixpanel-browser";
+
 import _utils from "./_utils";
 
 import { appSettings } from "./app-helper.store";
@@ -106,7 +109,7 @@ export function update_elementPositionStore(descr) {
   }
   if (
     eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.ELEMENTNUMBER
+    descr.class_parameters.ELEMENTNUMBER
     ] === undefined
   ) {
     eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
@@ -132,7 +135,7 @@ export function update_elementNameStore(descr) {
   }
   if (
     ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-      descr.class_parameters.NUM
+    descr.class_parameters.NUM
     ] === undefined
   ) {
     ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
@@ -160,13 +163,13 @@ export function update_elementPositionStore_fromPreview(descr) {
   for (let i = 1; i < descr.class_parameters.LENGTH / 4; i++) {
     const num = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-        String.fromCharCode(descr.raw[4 + i * 4 + 1])
+      String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
+      String.fromCharCode(descr.raw[4 + i * 4 + 1])
     );
     const val = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-        String.fromCharCode(descr.raw[4 + i * 4 + 3])
+      String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
+      String.fromCharCode(descr.raw[4 + i * 4 + 3])
     );
     //console.log(num, val)
 
@@ -186,23 +189,23 @@ export function update_ledColorStore(descr) {
   for (let i = 0; i < descr.class_parameters.LENGTH / 8; i++) {
     const num = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 1])
+      String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
+      String.fromCharCode(descr.raw[8 + i * 8 + 1])
     );
     const red = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 3])
+      String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
+      String.fromCharCode(descr.raw[8 + i * 8 + 3])
     );
     const gre = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 5])
+      String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
+      String.fromCharCode(descr.raw[8 + i * 8 + 5])
     );
     const blu = parseInt(
       "0x" +
-        String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 7])
+      String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
+      String.fromCharCode(descr.raw[8 + i * 8 + 7])
     );
 
     //console.log(num, red, gre, blu)
@@ -365,7 +368,7 @@ function create_user_input() {
 
         let elementtype =
           grid.moduleElements[device.id.split("_")[0]][
-            store.event.elementnumber
+          store.event.elementnumber
           ];
         store.event.elementtype = elementtype;
 
@@ -592,12 +595,11 @@ function create_runtime() {
 
         firstConnection = get(_runtime).length === 1;
 
-        window.electron.analytics.influx(
-          "application",
-          "runtime",
-          "module count",
-          _runtime.length
-        );
+        mixpanel.track("Connect Module", {
+          action: "Connect",
+          controller: controller,
+          moduleCount: get(runtime).length
+        });
       }
 
       if (firstConnection) {
@@ -1168,14 +1170,13 @@ function create_runtime() {
         lcs[dx][dy] = undefined;
         return lcs;
       });
-    } catch (error) {}
+    } catch (error) { }
 
-    window.electron.analytics.influx(
-      "application",
-      "runtime",
-      "module count",
-      get(runtime).length
-    );
+
+    mixpanel.track("Disconnect Module", {
+      action: "Disconnect",
+      moduleCount: get(runtime).length
+    });
   }
 
   function reset() {
@@ -1273,20 +1274,7 @@ const grid_heartbeat_interval_handler = async function () {
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 
-setInterval(function () {
-  if (!get(appSettings).trayState) {
-    window.electron.analytics.influx("application", "runtime", "tray state", 1);
-  } else {
-    window.electron.analytics.influx("application", "runtime", "tray state", 0);
-  }
 
-  window.electron.analytics.influx(
-    "application",
-    "runtime",
-    "module count",
-    get(runtime).length
-  );
-}, 10000);
 
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;

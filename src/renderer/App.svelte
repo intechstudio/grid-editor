@@ -24,7 +24,6 @@
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
   import GridLayout from "./main/grid-layout/GridLayout.svelte";
-  import TopSubMenu from "./main/TopSubMenu.svelte";
 
   import Export from "./main/modals/Export.svelte";
   import Welcome from "./main/modals/Welcome.svelte";
@@ -146,7 +145,6 @@
 
   onMount(() => {
     // application mounted, check analytics
-    window.electron.analytics.influx("application", "init", "init", "init");
     window.electron.analytics.google("fw-editor-version", {
       value: `v${get(appSettings).version.major}.${
         get(appSettings).version.minor
@@ -184,8 +182,6 @@
     <FirmwareCheck />
 
     <ErrorConsole />
-
-    <!-- <TopSubMenu /> -->
 
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">

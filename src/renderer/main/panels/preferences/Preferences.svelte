@@ -95,16 +95,6 @@
       return;
     }
 
-    window.electron.analytics.google("library-download", {
-      value: "download start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "profile downloader status",
-      "download started"
-    );
-
     clearTimeout(download_status_interval);
 
     download_status = "Starting the download...";
@@ -121,16 +111,6 @@
     });
 
     download_status = "Library updated!";
-
-    window.electron.analytics.google("library-download", {
-      value: "download success",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "profile downloader status",
-      "download success"
-    );
 
     download_status_interval = setTimeout(() => {
       download_status = "";
@@ -168,42 +148,17 @@
 
   function setModuleRotation(rot) {
     $appSettings.persistant.moduleRotation = rot;
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "module rotation",
-      "set to " + rot
-    );
   }
 
   function setHelperShape(shape) {
     $appSettings.persistant.helperShape = shape;
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "helper shape",
-      "set to " + shape
-    );
   }
 
   function setHelperColor(color) {
     $appSettings.persistant.helperColor = color;
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "helper color",
-      "set to " + color
-    );
   }
 
-  function setHelperName() {
-    window.electron.analytics.influx(
-      "application",
-      "preferences",
-      "helper color",
-      "set to ..."
-    );
-  }
+  function setHelperName() {}
 </script>
 
 <preferences

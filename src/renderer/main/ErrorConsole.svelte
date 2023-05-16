@@ -4,6 +4,8 @@
 
   import configuration from "../../../configuration.json";
 
+  import mixpanel from "mixpanel-browser";
+
   const ctxProcess = window.ctxProcess;
 
   let logelement;
@@ -63,19 +65,9 @@
 
     logtext = [...logtext, { reason: displaytext, solution: solution }];
 
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "error event"
-    );
-
-    try {
-      window.electron.discord.sendMessage({
-        title: "Error",
-        text: displaytext,
-      });
-    } catch (error) {}
+    mixpanel.track("ErrorConsole", {
+      message: displaytext,
+    });
   }
 
   onMount(async () => {
@@ -123,34 +115,25 @@
   });
 
   function refresh() {
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "app restart"
-    );
+    mixpanel.track("ErrorConsole", {
+      click: "Refresh",
+    });
     window.electron.restartApp();
   }
 
   function solution(link) {
     window.electron.openInBrowser(link);
 
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "app restart"
-    );
+    mixpanel.track("ErrorConsole", {
+      click: "Solution",
+    });
   }
 
   function dismiss() {
     logtext = [];
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "dismiss"
-    );
+    mixpanel.track("ErrorConsole", {
+      click: "Dismiss",
+    });
   }
 
   function close_notification(index) {

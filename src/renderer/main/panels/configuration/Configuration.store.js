@@ -1,5 +1,6 @@
 import { writable, get } from "svelte/store";
 
+import mixpanel from "mixpanel-browser";
 import {
   runtime,
   logger,
@@ -110,12 +111,7 @@ export function configManagement() {
       appActionClipboard.set(clipboard);
 
       if (isCut === false) {
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "copy"
-        );
+        mixpanel.track("Config Action", { click: "Copy" });
       }
     };
 
@@ -146,12 +142,7 @@ export function configManagement() {
         // trigger change detection
         user_input.update((n) => n);
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "paste"
-        );
+        mixpanel.track("Config Action", { click: "Paste" });
       }
     };
 
@@ -165,7 +156,7 @@ export function configManagement() {
 
       let i = 0;
       let j = 0;
-      for (; i < configs.length; ) {
+      for (; i < configs.length;) {
         if (selection[i] !== true) {
           edited.push(configs[i]);
           j++;
@@ -234,12 +225,7 @@ export function configManagement() {
     };
 
     this.cut = function () {
-      window.electron.analytics.influx(
-        "application",
-        "configuration",
-        "multiselect",
-        "cut"
-      );
+      mixpanel.track("Config Action", { click: "Cut" });
       this.copy(true);
       this.remove();
     };
@@ -283,12 +269,7 @@ export function configManagement() {
         // trigger change detection
         user_input.update((n) => n);
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "remove"
-        );
+        mixpanel.track("Config Action", { click: "Remove" });
       }
     };
   };

@@ -39,7 +39,7 @@ import {
   updateConfig,
   deleteConfig,
 } from "./src/profiles";
-import { influxAnalytics, googleAnalytics } from "./src/analytics";
+import { googleAnalytics } from "./src/analytics";
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
@@ -434,9 +434,7 @@ ipcMain.handle("fetchUrlJSON", (event, arg) => {
 ipcMain.handle("googleAnalytics", async (event, arg) => {
   return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
 });
-ipcMain.handle("influxAnalytics", async (event, arg) => {
-  return await influxAnalytics(arg.category, arg.action, arg.label, arg.value);
-});
+
 
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
