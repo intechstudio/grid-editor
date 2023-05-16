@@ -79,6 +79,10 @@ const config = {
         },
         error: {
           DEFAULT: "#DC2626",
+          "desaturate-10": "#DC4B4B",
+          "desaturate-20": "#DC7474",
+          "saturate-10": "#DC0F0F",
+          "saturate-20": "#FF0000",
         },
         pick: {
           DEFAULT: "#6B7AFF",
