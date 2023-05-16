@@ -177,7 +177,14 @@ function getCommand(int_value) {
     return cmd;
   } catch (e) {
     console.log("MIDI message parsing error: " + e);
-    return undefined;
+    return {
+      name: "Unknown",
+      short: int_value.toString(),
+      params: {
+        p1: { name: "P1", short: "P1" },
+        p2: { name: "P2", short: "P2" },
+      },
+    };
   }
 }
 

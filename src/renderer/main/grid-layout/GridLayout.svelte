@@ -444,7 +444,10 @@
         <div
           use:clickOutside={{ useCapture: true }}
           on:click-outside={() => {
-            if ($appSettings.modal == "") {
+            const selection =
+              Object.keys($selectedProfileStore).length !== 0 ||
+              Object.keys($selectedPresetStore).length !== 0;
+            if ($appSettings.modal == "" && selection) {
               selectedProfileStore.set({});
               selectedPresetStore.set({});
             }

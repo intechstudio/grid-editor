@@ -690,7 +690,8 @@
 <action-midi class="flex flex-col w-full p-2">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row">
-      {#each tabs as element, i}
+      {#each tabs as element}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           on:click={(e) => {
             dispatch("replace", element.component);
@@ -705,10 +706,12 @@
     </div>
   {/if}
 
-  <div class="w-full flex">
+  <div class="w-full grid grid-cols-{scriptSegments.length}">
     {#each scriptSegments as script, i}
-      <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+      <div class="flex flex-col atomicInput gap-1">
+        <div class="text-gray-500 text-sm truncate">
+          {parameterNames[i]}
+        </div>
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}
