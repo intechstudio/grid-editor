@@ -488,7 +488,7 @@
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_profiles_icon"} />
+        <TooltipSetter instant={true} key={"sidebar_profiles_icon"} />
       </button>
     {/if}
 

@@ -6,6 +6,8 @@
   import { attachment } from "../Monster.store";
 
   export let key = "";
+  export let instant = false;
+  export let direction = "top";
 
   const TOOLTIP_MAX_HEIGHT = 200;
   const TOOLTIP_MAX_WIDTH = 250;
@@ -62,6 +64,7 @@
     let self = { width: TOOLTIP_MAX_WIDTH, height: 0 };
 
     let xoffset = 0;
+    let yoffset = 0;
 
     if (
       parent.left - self.width / 2 + parent.width / 2 + self.width >
@@ -75,19 +78,6 @@
     if (parent.left - self.width / 2 + parent.width / 2 < 5) {
       xoffset = 5 - (parent.left - self.width / 2 + parent.width / 2);
     }
-
-    // if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
-
-    //   tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
-    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
-    //   tooltip_isbelow = false;
-
-    // }else{
-
-    //   tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
-    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
-    //   tooltip_isbelow = true;
-    // }
 
     if (TOOLTIP_MAX_HEIGHT < parent.top) {
       tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${
@@ -288,7 +278,7 @@
     class="w-full flex h-full absolute right-0 top-0"
   >
     {#if tooltip_isvisible}
-      <div in:fade={{ duration: 0, delay: 750 }} on:introend={tooltipAppear}>
+      <div in:fade={{ duration: 0, delay: 0 }} on:introend={tooltipAppear}>
         {#if tooltip_delaydone}
           <div
             bind:this={tooltip_element}

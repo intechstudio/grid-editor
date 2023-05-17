@@ -1164,8 +1164,13 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
+
+    const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
+
     _runtime.update((rt) => {
-      return rt.filter((g) => g.dx != dx || g.dy != dy);
+      const index = rt.indexOf(removed);
+      rt.splice(index, 1);
+      return rt;
     });
 
     user_input.module_destroy_handler(dx, dy);
@@ -1191,7 +1196,16 @@ function create_runtime() {
 
       const rt = get(_runtime);
       if (rt.length > 0) {
-        setDefaultSelectedElement(rt[0]);
+        const selectedElementsModule = {
+          dx: get(user_input).brc.dx,
+          dy: get(user_input).brc.dy,
+        };
+        if (
+          selectedElementsModule.dx == removed.dx &&
+          selectedElementsModule.dy == removed.dy
+        ) {
+          setDefaultSelectedElement(rt[0]);
+        }
       }
     } catch (error) {}
 
