@@ -92,6 +92,7 @@ function createAppSettingsStore() {
       owner: { neme: undefined },
     },
     persistant: {
+      userId: "",
       wssPort: 1337,
       moduleRotation: 0,
       welcomeOnStartup: true,
@@ -130,6 +131,7 @@ export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
 
 let persistant = {
+  userId: "",
   wssPort: 1337,
   moduleRotation: 0,
   welcomeOnStartup: true,

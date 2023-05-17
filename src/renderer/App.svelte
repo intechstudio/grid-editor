@@ -16,6 +16,8 @@
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
+  import "./runtime/analytics";
+
   import Titlebar from "./main/Titlebar.svelte";
   import NavTabs from "./main/NavTabs.svelte";
 
