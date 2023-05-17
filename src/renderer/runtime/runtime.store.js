@@ -875,13 +875,16 @@ function create_runtime() {
   function check_action_string_length(configs) {
     const maxConfigLength = grid.properties.CONFIG_LENGTH;
     const configLength = configs.length;
-    console.log(configs.length, maxConfigLength);
     return new Promise((resolve, reject) => {
       //dest.config.length >= grid.properties.CONFIG_LENGTH
       if (maxConfigLength < configLength) {
-        reject(new Error(""));
+        throw {
+          what: `Config limit reached! Max character count is ${maxConfigLength}.`,
+          length: configLength,
+          max: maxConfigLength,
+        };
       } else {
-        resolve(configLength);
+        resolve({ length: configLength, max: maxConfigLength });
       }
     });
   }

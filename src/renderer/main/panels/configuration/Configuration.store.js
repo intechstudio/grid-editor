@@ -38,27 +38,15 @@ export function configManagement() {
   const drag_and_drop = function () {
     this.add = ({ configs, index, newConfig }) => {
       newConfig = _utils.gridLuaToEditorLua(newConfig);
-      const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
       if (newConfig === undefined) {
         console.log("NO CONFIG PASSED");
         return undefined;
       }
 
-      let res = [...configs];
-      res.splice(index, 0, ...newConfig);
-      const actionstring = _utils.configMerge({ config: res });
-      if (actionstring.length > maxConfigLimit) {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "config_limit_reached",
-          message: `Config limit reached, shorten your code or delete actions before adding new actions!`,
-        });
-        return configs;
-      }
+      configs.splice(index, 0, ...newConfig);
 
-      return res;
+      return configs;
     };
 
     this.remove = ({ configs, array }) => {
@@ -170,8 +158,12 @@ export function configManagement() {
             user_input.update((n) => n);
           })
           .catch((error) => {
-            // Handle error
-            console.error(error);
+            logger.set({
+              type: "fail",
+              mode: 0,
+              classname: "check_action_string_length_error",
+              message: `Config length is too long, shorten your code or delete actions!`,
+            });
           });
 
         window.electron.analytics.influx(
@@ -269,7 +261,65 @@ export function configManagement() {
           // trigger change detection
           user_input.update((n) => n);
         })
-        .catch();
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
+    };
+
+    this.add = function (newConfig, index) {
+      const configs = [...get_configs()];
+
+      if (typeof newConfig === "undefined") {
+        console.log("NO CONFIG PASSED");
+        return configs;
+      }
+
+      configs.splice(index, 0, newConfig);
+      const actionString = _utils.configsToActionString(configs);
+
+      runtime
+        .check_action_string_length(actionString)
+        .then(() => {
+          const li = get(user_input);
+          const dx = li.brc.dx;
+          const dy = li.brc.dy;
+          const page = li.event.pagenumber;
+          const element = li.event.elementnumber;
+          const event = li.event.eventtype;
+
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionString,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
+
+          // trigger change detection
+          user_input.update((n) => n);
+        })
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
     };
 
     this.cut = function () {
@@ -331,7 +381,14 @@ export function configManagement() {
             // trigger change detection
             user_input.update((n) => n);
           })
-          .catch();
+          .catch((error) => {
+            logger.set({
+              type: "fail",
+              mode: 0,
+              classname: "check_action_string_length_error",
+              message: `Config length is too long, shorten your code or delete actions!`,
+            });
+          });
 
         window.electron.analytics.influx(
           "application",

@@ -27,7 +27,6 @@
   import { checkSyntax } from "../../../../runtime/monaco-helper";
 
   import { onMount } from "svelte";
-  import { append_hydration_dev } from "svelte/internal";
 
   export let config = ""; //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs;
@@ -153,7 +152,14 @@
             event
           );
         })
-        .catch();
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
     }
 
     localDefinitions.update(configs);

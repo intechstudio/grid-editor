@@ -289,52 +289,16 @@
 
   let scrollHeight = "100%";
 
-  async function addConfigAtPosition(arg, index) {
-    // console.log("addConfigAtPosition")
+  function addConfigAtPosition(arg, index) {
+    console.log("addConfigAtPosition");
 
-    const { config } = arg.detail;
+    const newConfig = arg.detail.config;
 
-    if (config === undefined || config === "") {
+    if (typeof newConfig === "undefined" || newConfig === "") {
       return;
     }
 
-    const res = await configManagement().drag_and_drop.add({
-      configs: configs,
-      index: index,
-      newConfig: config,
-    });
-
-    if (configs != res) {
-      configs = res;
-      send_to_grid();
-    }
-  }
-
-  function send_to_grid() {
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionString = _utils.configsToActionString(configs);
-
-    runtime
-      .check_action_string_length(actionString)
-      .then(() => {
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionString,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-      })
-      .catch();
+    const res = configManagement().on_click.add(newConfig, index);
   }
 
   function handleDrop(e) {
@@ -356,8 +320,6 @@
         array: drag_target,
       });
     }
-
-    send_to_grid();
   }
 
   $: luadebug_store.update_config(_utils.configMerge({ config: configs }));

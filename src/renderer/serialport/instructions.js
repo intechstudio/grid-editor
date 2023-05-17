@@ -111,7 +111,6 @@ const instructions = {
   },
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
-    console.log("SCTG", actionstring, actionstring.length);
     if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
       logger.set({
         type: "alert",
