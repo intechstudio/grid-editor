@@ -18,9 +18,11 @@
   import _utils, { luaParser } from "../../runtime/_utils";
   import { luadebug_store } from "../../runtime/runtime.store";
 
-  import VirtualList from "svelte-virtual-list";
-
   import { attachment } from "../user-interface/Monster.store";
+
+  import grid from "../../protocol/grid-protocol";
+  import { KeyCode } from "monaco-editor";
+  import { init } from "svelte/internal";
 
   let monaco_block;
 
@@ -37,6 +39,20 @@
 
   let runtimeScript = "";
   let runtimeParser = "";
+
+  let scrollDown;
+  let autoscroll;
+
+  beforeUpdate(() => {
+    autoscroll =
+      scrollDown &&
+      scrollDown.offsetHeight + scrollDown.scrollTop >
+        scrollDown.scrollHeight - 20;
+  });
+
+  afterUpdate(() => {
+    if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
+  });
 
   const items = [
     "Item 1",
@@ -73,6 +89,10 @@
       $appSettings.modal = "";
     }
   }
+
+  let monacoTextLength = 0;
+  let initCodeLength = 0;
+  let addedCodeLength = 0;
 
   function commit() {
     const editor_code = editor.getValue();
@@ -127,6 +147,12 @@
       }
     });
 
+    initCodeLength = editor.getValue().length;
+    editor.onDidChangeModelContent(() => {
+      monacoTextLength = editor.getValue().length;
+      addedCodeLength = monacoTextLength - initCodeLength;
+    });
+
     $attachment = {
       element: modalElement,
       hpos: "60%",
@@ -167,10 +193,13 @@
         class="flex flex-row w-full bg-black bg-opacity-10 justify-between items-center p-6"
       >
         <div class="flex flex-col h-full">
-          <div class="flex w-full opacity-70">
-            Grid Editor is Open-Source Software
+          <div class="flex w-full opacity-70">Edit Code</div>
+          <div class="flex w-full opacity-40">
+            <span class="mr-2">Character Count:</span>
+            <span>{runtimeScript.length + addedCodeLength}</span>
+            <span>/</span>
+            <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>
-          <div class="flex w-full opacity-40">Developed by Intech Studio</div>
         </div>
 
         <div class="flex flex-row items-center h-full gap-2">
@@ -211,14 +240,30 @@
       </div>
     </div>
 
-    <div class="h-full w-full border border-red-400">
-      <div bind:this={monaco_block} class="h-2/3" />
+    <div class="flex-col w-full h-full flex justify-between">
+      <div
+        bind:this={monaco_block}
+        on:keyup={() => {
+          /*
+          if (typeof editor !== "undefined") {
+            const newCodeLength = editor.getValue().length;
+            addedCodeLength = editor.getValue().length - initCodeLength;
+            //codeLength = editor.getValue().length;
+            console.log(initCodeLength, newCodeLength);
+          }
+          */
+        }}
+        class="flex-col w-full h-full flex justify-between"
+      />
+    </div>
 
-      <div class="flex flex-col font-mono bg-secondary m-1 min-h-[200px]">
-        <VirtualList {items} let:item>
-          <span class="debugtexty text-white">{item}</span>
-        </VirtualList>
-      </div>
+    <div
+      bind:this={scrollDown}
+      class="flex-col w-full h-1/3 flex overflow-y-scroll bg-secondary"
+    >
+      {#each $debug_monitor_store as debug, i}
+        <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
+      {/each}
     </div>
   </div>
 </modal>
