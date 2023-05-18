@@ -73,14 +73,21 @@ export async function findBootloaderPath() {
         code: 3,
         path: gridDrive.mounted,
       });
-      return { path: gridDrive.mounted, architecture: "d51" };
-    } else if (data.indexOf("ESP32S3") !== -1) {
+      return { path: gridDrive.mounted, architecture: "d51", product: "grid" };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1 ) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
         message: "Grid ESP32 bootloader is detected!",
         code: 3,
         path: gridDrive.mounted,
       });
-      return { path: gridDrive.mounted, architecture: "esp32" };
+      return { path: gridDrive.mounted, architecture: "esp32", product: "grid" };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Knot") !== -1 ) {
+      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+        message: "Knot ESP32 bootloader is detected!",
+        code: 3,
+        path: gridDrive.mounted,
+      });
+      return { path: gridDrive.mounted, architecture: "esp32", product: "knot" };
     }
   }
 }
@@ -107,7 +114,12 @@ export async function firmwareDownload(targetFolder) {
     "update started"
   );
 
-  const link = process.env.FIRMWARE_URL_BEGINING + process.env.FIRMWARE_URL_END;
+  let link = process.env.FIRMWARE_GRID_URL_BEGINING + process.env.FIRMWARE_GRID_URL_END;
+
+  if (result.product === "knot"){
+    link = process.env.FIRMWARE_KNOT_URL_BEGINING + process.env.FIRMWARE_KNOT_URL_END;
+  }
+  
 
   firmware.mainWindow.webContents.send("onFirmwareUpdate", {
     message: "Downloading firmware image...",
@@ -128,12 +140,27 @@ export async function firmwareDownload(targetFolder) {
 
   let firmwareFileName = undefined;
 
-  filePathArray.forEach((element) => {
-    if (element.indexOf(result.architecture) !== -1) {
-      firmwareFileName = element;
-      console.log("Correct firmware is: ", firmwareFileName);
-    }
-  });
+  if (result.product === "grid"){
+    filePathArray.forEach((element) => {
+      if (element.indexOf(result.architecture) !== -1) {
+        firmwareFileName = element;
+        console.log("Correct firmware is: ", firmwareFileName);
+      }
+    });
+  }
+  else if (result.product === "knot"){
+    filePathArray.forEach((element) => {
+      if (element.indexOf("knot") !== -1) {
+        firmwareFileName = element;
+        console.log("Correct firmware is: ", firmwareFileName);
+      }
+    });
+  }
+  else{
+    //unknown product
+  }
+
+
 
   if (firmwareFileName === undefined) {
     firmware.mainWindow.webContents.send("onFirmwareUpdate", {
