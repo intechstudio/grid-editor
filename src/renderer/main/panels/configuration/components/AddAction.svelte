@@ -4,7 +4,7 @@
   import { clickOutside } from "../../../_actions/click-outside.action";
 
   import { menuBoundaries } from "../../../_actions/boundaries.action.js";
-
+  import mixpanel from "mixpanel-browser";
   import _utils from "../../../../runtime/_utils";
 
   import {
@@ -58,12 +58,10 @@
 
     let action_name = get(presetManagement.selected_action).name;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "added action",
-      action_name
-    );
+    mixpanel.track("Config Action", {
+      click: "Add Action",
+      actionBlock: action_name,
+    });
 
     dispatch("new-config", {
       config: cfg,
@@ -96,12 +94,7 @@
     configSelection = false;
     visible = false;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "multiselect",
-      "paste"
-    );
+    mixpanel.track("Config Action", { click: "Paste" });
   }
 
   let action_options = [];
@@ -354,12 +347,10 @@
   function closeActionPicker() {
     let actionPickerDuration = Date.now() - actionPickerTimestamp;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "time to pick",
-      actionPickerDuration
-    );
+    mixpanel.track("Config Action", {
+      click: "Add Action Duration",
+      duration: actionPickerDuration,
+    });
 
     initConfig();
   }

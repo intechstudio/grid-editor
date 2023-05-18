@@ -182,16 +182,6 @@
   async function saveToSessionProfile(user) {
     isSaveToSessionButtonClicked = true;
 
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_add_to_session",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_add_to_session"
-    );
-
     let callback = await function () {
       logger.set({
         type: "progress",
@@ -285,16 +275,6 @@
   }
 
   function prepareSave(user) {
-    window.electron.analytics.influx("profile-library", {
-      value: "save start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "save start"
-    );
-
     let callback = function () {
       logger.set({
         type: "progress",
@@ -593,16 +573,6 @@
   function filterShowHide() {
     isSearchSortingShows = !isSearchSortingShows;
     animateFade = true;
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_filter_show_hide",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_filter_show_hide"
-    );
   }
 
   $: {
@@ -627,16 +597,6 @@
     isActionButtonClickedStore.set(true);
     isDeleteButtonClicked = true;
     deleteFromDirectory(profile);
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_delete"
-    );
   }
 
   function saveFromSessionToCloud(profile) {
@@ -653,16 +613,6 @@
 
     selectedProfile = undefined;
     isSaveToCloudButtonClicked = false;
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_save",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_save"
-    );
   }
 
   function rewriteSessionProfile(profile) {
@@ -671,44 +621,14 @@
 
     selectProfile(profile);
     prepareSave("sessionProfile");
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_rewrite",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_rewrite"
-    );
   }
 
   function useSearchSuggestion(suggestionText) {
     updateSearchFilter((searchbarValue = suggestionText));
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_use_search_suggestion",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_use_search_suggestion"
-    );
   }
 
   function openProfileInfo(profile) {
     ($appSettings.modal = "profileInfo"), selectProfile(profile);
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_info",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_info"
-    );
   }
 
   onMount(() => {

@@ -3,7 +3,7 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-import { googleAnalytics, influxAnalytics } from "./analytics";
+import { googleAnalytics } from "./analytics";
 
 export const firmware = {
   mainWindow: undefined,
@@ -115,12 +115,6 @@ export async function firmwareDownload(targetFolder) {
   let path = result.path;
 
   googleAnalytics("firmware-download", { value: "update start" });
-  influxAnalytics(
-    "application",
-    "firmwarecheck",
-    "firmware update status",
-    "update started"
-  );
 
   let link =
     process.env.FIRMWARE_GRID_URL_BEGINING + process.env.FIRMWARE_GRID_URL_END;
@@ -175,12 +169,6 @@ export async function firmwareDownload(targetFolder) {
     });
 
     googleAnalytics("firmware-download", { value: "download fail" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "download fail"
-    );
 
     return;
   }
@@ -215,21 +203,9 @@ export async function firmwareDownload(targetFolder) {
     });
 
     googleAnalytics("firmware-download", { value: "update success" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "update success"
-    );
   } else {
     log.warn("GRID_NOT_FOUND");
 
     googleAnalytics("firmware-download", { value: "update fail" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "update fail"
-    );
   }
 }

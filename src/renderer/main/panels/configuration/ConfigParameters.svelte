@@ -18,6 +18,8 @@
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
+  import mixpanel from "mixpanel-browser";
+
   export let events;
   export let elements;
 
@@ -94,24 +96,14 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    window.electron.analytics.influx(
-      "application",
-      "configuration",
-      "whole element",
-      "copy"
-    );
+    mixpanel.track("Config Action", { click: "Whole Element Copy" });
   }
 
   function overwriteAllEventConfigs() {
     let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    window.electron.analytics.influx(
-      "application",
-      "configuration",
-      "whole element",
-      "overwrite"
-    );
+    mixpanel.track("Config Action", { click: "Whole Element Overwrite" });
   }
 
   function updateStringName(e) {

@@ -216,15 +216,6 @@
       "presets",
       user
     );
-    window.electron.analytics.google("preset-library", {
-      value: "save success",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save success"
-    );
 
     animateFly = true;
     /* 
@@ -237,16 +228,6 @@
   }
 
   function prepareSave(user) {
-    window.electron.analytics.google("preset-library", {
-      value: "save start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
-
     let elementnumber = $user_input.event.elementnumber;
     let dx = $user_input.brc.dx;
     let dy = $user_input.brc.dy;
@@ -348,16 +329,6 @@
 
   async function saveToSessionPreset() {
     let user = "sessionPreset";
-
-    window.electron.analytics.google("preset-library", {
-      value: "save start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
 
     let elementnumber = $user_input.event.elementnumber;
     let dx = $user_input.brc.dx;
@@ -465,31 +436,11 @@
 
   function openPresetInfo() {
     $appSettings.modal = "presetInfo";
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_info",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_info"
-    );
   }
 
   function filterShowHide() {
     isSearchSortingShows = !isSearchSortingShows;
     animateFade = true;
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_filter_show_hide",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_filter_show_hide"
-    );
   }
 
   function updateSearchFilter(input) {
@@ -588,16 +539,6 @@
 
   function useSearchSuggestion(suggestionText) {
     updateSearchFilter((searchbarValue = suggestionText));
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_use_search_suggestion",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_use_search_suggestion"
-    );
   }
 
   async function checkIfPresetTitleUnique(input) {
@@ -677,16 +618,6 @@
     isActionButtonClickedStore.set(true);
     isDeleteButtonClicked = true;
     deleteFromDirectory(preset);
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_delete"
-    );
   }
 
   function saveFromSessionToCloud(preset) {
@@ -698,16 +629,6 @@
 
     selectedPreset = undefined;
     isSaveToCloudButtonClicked = false;
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_save",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "newPreset_save"
-    );
   }
 
   function rewriteSessionPreset(preset) {
@@ -715,16 +636,6 @@
 
     selectPreset(preset);
     prepareSave("sessionPreset");
-
-    window.electron.analytics.influx("preset-library", {
-      value: "newPreset_rewrite",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "presets",
-      "newPreset_rewrite"
-    );
   }
 
   onMount(() => {
