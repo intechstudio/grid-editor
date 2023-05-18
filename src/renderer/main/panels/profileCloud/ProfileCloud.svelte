@@ -4,7 +4,6 @@
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import { get } from "svelte/store";
-  const { env } = window.ctxProcess;
 
   import {
     engine,
@@ -16,6 +15,8 @@
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
+
+  const { env } = window.ctxProcess;
 
   let iframe_element;
 
@@ -137,16 +138,6 @@
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
 
-      window.electron.analytics.influx("profile-library", {
-        value: "newProfile_add_to_session",
-      });
-      window.electron.analytics.influx(
-        "application",
-        "profiles",
-        "profile",
-        "newProfile_add_to_session"
-      );
-
       let callback = await async function () {
         logger.set({
           type: "progress",
@@ -218,6 +209,108 @@
     }
   }
 
+  async function handleRenameLocalProfile(event) {
+    if (event.data.channelMessageType == "RENAME_LOCAL_PROFILE") {
+      console.log("rename", event.data);
+      const { newName, profile } = event.data;
+      const oldName = profile.name;
+      profile.name = newName;
+
+      await window.electron.configs.updateConfig(
+        $appSettings.persistant.profileFolder,
+        newName,
+        profile,
+        "profiles",
+        oldName,
+        "local"
+      );
+
+      channel.postMessage({ ok: true, data: {} });
+    }
+  }
+
+  async function handleOverwriteLocalProfile(event) {
+    if (event.data.channelMessageType == "OVERWRITE_LOCAL_PROFILE") {
+      console.log("overwrite", event.data);
+      const { profileToOverwrite } = event.data;
+
+      console.log(profileToOverwrite);
+
+      const path = $appSettings.persistant.profileFolder;
+      // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
+      // const { owner, name, editorData, _id } = event.data;
+
+      let callback = await async function () {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "profilesave",
+          message: `Overwriting profile!`,
+        });
+
+        const li = get(user_input);
+        const configs = get(runtime);
+
+        let name = profileToOverwrite.name;
+        let description = profileToOverwrite.description;
+        let id = profileToOverwrite.id;
+        let type = selectedModule;
+
+        let profile = {
+          name: name,
+          description: description,
+          type: type,
+          isGridProfile: true, // differentiator from different JSON files!
+          version: {
+            major: $appSettings.version.major,
+            minor: $appSettings.version.minor,
+            patch: $appSettings.version.patch,
+          },
+          id: id,
+        };
+
+        configs.forEach((d) => {
+          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+            const page = d.pages.find(
+              (x) => x.pageNumber == li.event.pagenumber
+            );
+
+            profile.configs = page.control_elements.map((cfg) => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map((ev) => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config,
+                  };
+                }),
+              };
+            });
+          }
+        });
+
+        await window.electron.configs.saveConfig(
+          path,
+          name,
+          profile,
+          "profiles",
+          "local"
+        );
+
+        logger.set({
+          type: "success",
+          message: `Profile saved!`,
+        });
+
+        engine.set("ENABLED");
+
+        channel.postMessage({ ok: true, data: {} });
+      };
+
+      runtime.fetch_page_configuration_from_grid(callback);
+    }
+  }
+
   let channel; // communication channel received from iframe
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
@@ -244,6 +337,12 @@
       ) {
         channel.onmessage =
           handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor;
+      }
+      if (event.data == "renameLocalProfile") {
+        channel.onmessage = handleRenameLocalProfile;
+      }
+      if (event.data == "overwriteLocalProfile") {
+        channel.onmessage = handleOverwriteLocalProfile;
       }
     }
   }
