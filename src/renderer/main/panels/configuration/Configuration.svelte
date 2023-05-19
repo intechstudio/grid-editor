@@ -32,7 +32,6 @@
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
   import MultiSelect from "./components/MultiSelect.svelte";
-  import Bin from "./components/Bin.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
 
@@ -301,21 +300,14 @@
   function handleDrop(e) {
     //console.log("handleDrop")
 
-    if (drop_target !== "bin") {
-      // if only cfg-list is selected, don't let dnd happen nor delete.
-      if (!Number.isNaN(drop_target)) {
-        configManagement().drag_and_drop.reorder(
-          configs,
-          drag_target,
-          drop_target,
-          e.detail.multi
-        );
-      }
-    } else {
-      configs = configManagement().drag_and_drop.remove({
-        configs: configs,
-        array: drag_target,
-      });
+    // if only cfg-list is selected, don't let dnd happen nor delete.
+    if (!Number.isNaN(drop_target)) {
+      configManagement().drag_and_drop.reorder(
+        configs,
+        drag_target,
+        drop_target,
+        e.detail.multi
+      );
     }
   }
 
@@ -484,20 +476,16 @@
           </config-list>
         </div>
         <container class="flex flex-col w-full">
-          {#if !drag_start}
-            <div class="w-full flex justify-between mb-3">
-              <AddAction
-                userHelper={true}
-                {animation}
-                on:new-config={(e) => {
-                  addConfigAtPosition(e, configs.length + 1);
-                }}
-              />
-              <ExportConfigs />
-            </div>
-          {:else}
-            <Bin />
-          {/if}
+          <div class="w-full flex justify-between mb-3">
+            <AddAction
+              userHelper={true}
+              {animation}
+              on:new-config={(e) => {
+                addConfigAtPosition(e, configs.length + 1);
+              }}
+            />
+            <ExportConfigs />
+          </div>
         </container>
       </configs>
     </container>

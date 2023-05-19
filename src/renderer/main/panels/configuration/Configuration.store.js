@@ -50,13 +50,6 @@ export function configManagement() {
       return configs;
     };
 
-    this.remove = ({ configs, array }) => {
-      array.forEach((elem) => {
-        configs = configs.filter((a) => a.id !== elem);
-      });
-      return configs;
-    };
-
     this.reorder = (configs, drag_target, drop_target, isMultiDrag) => {
       let grabbed = [];
       drag_target.forEach((id) => {
