@@ -73,6 +73,10 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 }
 
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
+  if (typeof configPath === "undefined" || configPath === "") {
+    return [];
+  }
+
   let path = configPath;
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path);
