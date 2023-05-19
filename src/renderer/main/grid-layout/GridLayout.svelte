@@ -1,5 +1,6 @@
 <script>
   import createPanZoom from "panzoom";
+  import mixpanel from "mixpanel-browser";
 
   import { writable, readable, derived, get } from "svelte/store";
 
@@ -135,12 +136,9 @@
 
   function refresh() {
     window.electron.analytics.google("no-module", { value: "restart app" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "app restart"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Refresh",
+    });
 
     setTimeout(() => {
       window.electron.restartApp();
@@ -153,12 +151,9 @@
     window.electron.openInBrowser(url);
 
     window.electron.analytics.google("no-module", { value: "troubleshooting" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "open troubleshooting"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Troubleshooting",
+    });
   }
 
   function calculate_x(x0, y0) {
@@ -191,12 +186,9 @@
     });
 
     window.electron.analytics.google("writebuffer", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "writebuffer",
-      "clear"
-    );
+    mixpanel.track("Writebuffer", {
+      click: "Clear",
+    });
 
     writeBuffer.clear();
     engine.set("ENABLED");
@@ -204,12 +196,9 @@
 
   function store() {
     window.electron.analytics.google("page-config", { value: "store" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "store"
-    );
+    mixpanel.track("Page Config", {
+      click: "Store",
+    });
 
     instructions.sendPageStoreToGrid();
   }
@@ -218,24 +207,18 @@
     instructions.sendPageClearToGrid();
 
     window.electron.analytics.google("page-config", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "clear"
-    );
+    mixpanel.track("Page Config", {
+      click: "Clear",
+    });
   }
 
   function discard() {
     instructions.sendPageDiscardToGrid();
 
     window.electron.analytics.google("page-config", { value: "discard" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "discard"
-    );
+    mixpanel.track("Page Config", {
+      click: "Discard",
+    });
   }
 </script>
 

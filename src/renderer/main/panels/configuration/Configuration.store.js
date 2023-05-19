@@ -1,5 +1,6 @@
 import { writable, get } from "svelte/store";
 
+import mixpanel from "mixpanel-browser";
 import {
   runtime,
   logger,
@@ -112,12 +113,7 @@ export function configManagement() {
       appActionClipboard.set(clipboard);
 
       if (isCut === false) {
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "copy"
-        );
+        mixpanel.track("Config Action", { click: "Copy" });
       }
     };
 
@@ -166,12 +162,7 @@ export function configManagement() {
             });
           });
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "paste"
-        );
+        mixpanel.track("Config Action", { click: "Paste" });
       }
     };
 
@@ -323,12 +314,7 @@ export function configManagement() {
     };
 
     this.cut = function () {
-      window.electron.analytics.influx(
-        "application",
-        "configuration",
-        "multiselect",
-        "cut"
-      );
+      mixpanel.track("Config Action", { click: "Cut" });
       this.copy(true);
       this.remove();
     };
@@ -390,12 +376,7 @@ export function configManagement() {
             });
           });
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "remove"
-        );
+        mixpanel.track("Config Action", { click: "Remove" });
       }
     };
   };

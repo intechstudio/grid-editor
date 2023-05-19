@@ -6,6 +6,8 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedProfileStore } from "./profile-helper.store";
 import { selectedPresetStore } from "./preset-helper.store";
 
+import mixpanel from "mixpanel-browser";
+
 import _utils from "./_utils";
 
 import { appSettings } from "./app-helper.store";
@@ -592,12 +594,11 @@ function create_runtime() {
 
         firstConnection = get(_runtime).length === 1;
 
-        window.electron.analytics.influx(
-          "application",
-          "runtime",
-          "module count",
-          _runtime.length
-        );
+        mixpanel.track("Connect Module", {
+          action: "Connect",
+          controller: controller,
+          moduleCount: get(runtime).length,
+        });
       }
 
       if (firstConnection) {
@@ -1209,12 +1210,10 @@ function create_runtime() {
       }
     } catch (error) {}
 
-    window.electron.analytics.influx(
-      "application",
-      "runtime",
-      "module count",
-      get(runtime).length
-    );
+    mixpanel.track("Disconnect Module", {
+      action: "Disconnect",
+      moduleCount: get(runtime).length,
+    });
   }
 
   function reset() {
@@ -1312,21 +1311,6 @@ const grid_heartbeat_interval_handler = async function () {
 };
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
-
-setInterval(function () {
-  if (!get(appSettings).trayState) {
-    window.electron.analytics.influx("application", "runtime", "tray state", 1);
-  } else {
-    window.electron.analytics.influx("application", "runtime", "tray state", 0);
-  }
-
-  window.electron.analytics.influx(
-    "application",
-    "runtime",
-    "module count",
-    get(runtime).length
-  );
-}, 10000);
 
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;

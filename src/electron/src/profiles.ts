@@ -1,7 +1,7 @@
 import fs from "fs";
 import log from "electron-log";
 
-import { googleAnalytics, influxAnalytics } from "./analytics";
+import { googleAnalytics } from "./analytics";
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -178,12 +178,10 @@ export async function saveConfig(
     )
     .then((data) => {
       googleAnalytics("profile-library", { value: "save success" });
-      influxAnalytics("application", "profiles", "profile", "save success");
       console.log("Saved!");
     })
     .catch((err) => {
       googleAnalytics("profile-library", { value: "save fail" });
-      influxAnalytics("application", "profiles", "profile", "save fail");
       console.log("Error:", err);
       throw err;
     });

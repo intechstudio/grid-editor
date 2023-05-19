@@ -5,6 +5,8 @@
 
   import { attachment } from "../Monster.store";
 
+  import mixpanel from "mixpanel-browser";
+
   export let key = "";
 
   const TOOLTIP_MAX_HEIGHT = 200;
@@ -143,12 +145,10 @@
 
   $: if (tooltip_isvisible && tooltip_delaydone) {
     calculate_position();
-    window.electron.analytics.influx(
-      "application",
-      "tooltip",
-      "show tooltip",
-      key
-    );
+
+    mixpanel.track("Show Tooltip", {
+      message: key,
+    });
 
     if (tooltip_helperOnLeft) {
       $attachment = {
