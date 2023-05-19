@@ -78,19 +78,6 @@
       xoffset = 5 - (parent.left - self.width / 2 + parent.width / 2);
     }
 
-    // if (TOOLTIP_MAX_HEIGHT + parent.top + parent.height < docu.height){
-
-    //   tooltip_style = `width: ${self.width}px; top: ${parent.top+parent.height}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; `
-    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
-    //   tooltip_isbelow = false;
-
-    // }else{
-
-    //   tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${parent.left - self.width/2 + parent.width/2 + xoffset}px; transform: translateY(-100%);  `
-    //   arrow_style = `margin-left: ${self.width/2-10-xoffset}px; `
-    //   tooltip_isbelow = true;
-    // }
-
     if (TOOLTIP_MAX_HEIGHT < parent.top) {
       tooltip_style = `width: ${self.width}px; top: ${parent.top}px; left: ${
         parent.left - self.width / 2 + parent.width / 2 + xoffset

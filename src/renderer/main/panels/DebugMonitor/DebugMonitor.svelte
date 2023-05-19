@@ -11,26 +11,14 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { luadebug_store } from "../../../runtime/runtime.store";
   import { fade } from "svelte/transition";
+  import grid from "../../../protocol/grid-protocol";
 
   let runtimeScript = "";
   let runtimeParser = "";
 
-  let configs = [];
-
   $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-
-    configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
-  }
-
-  function charCount(text) {
-    return text.length;
+    runtimeScript = $luadebug_store.config;
+    runtimeParser = luaParser(runtimeScript, { comments: true });
   }
 
   let frozen = false;
@@ -154,14 +142,14 @@
       <div class="text-white">Syntax: {runtimeParser}</div>
       <div class="flex flex-row">
         <div class="pr-2 text-white">Char Count:</div>
-        <div
-          class={runtimeScript.length >= 400
-            ? "text-error"
-            : runtimeScript.length >= 120
-            ? "text-yellow-400"
-            : "text-white"}
-        >
-          {runtimeScript.length}
+        <div class="text-white">
+          <span
+            class:text-error={runtimeScript.length >=
+              grid.properties.CONFIG_LENGTH}
+            class:text-yellow-400={runtimeScript.length >
+              (grid.properties.CONFIG_LENGTH / 3) * 2}
+            >{runtimeScript.length}
+          </span>
         </div>
       </div>
     </div>
