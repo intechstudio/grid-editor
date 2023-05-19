@@ -6,8 +6,6 @@
   import { attachment } from "../Monster.store";
 
   export let key = "";
-  export let instant = false;
-  export let direction = "top";
 
   const TOOLTIP_MAX_HEIGHT = 200;
   const TOOLTIP_MAX_WIDTH = 250;
@@ -64,7 +62,6 @@
     let self = { width: TOOLTIP_MAX_WIDTH, height: 0 };
 
     let xoffset = 0;
-    let yoffset = 0;
 
     if (
       parent.left - self.width / 2 + parent.width / 2 + self.width >
@@ -278,7 +275,7 @@
     class="w-full flex h-full absolute right-0 top-0"
   >
     {#if tooltip_isvisible}
-      <div in:fade={{ duration: 0, delay: 0 }} on:introend={tooltipAppear}>
+      <div in:fade={{ duration: 0, delay: 750 }} on:introend={tooltipAppear}>
         {#if tooltip_delaydone}
           <div
             bind:this={tooltip_element}

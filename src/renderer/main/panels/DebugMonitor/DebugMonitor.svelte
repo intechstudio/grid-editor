@@ -144,7 +144,7 @@
         <div class="pr-2 text-white">Char Count:</div>
         <div class="text-white">
           <span
-            class:text-error={runtimeScript.length >
+            class:text-error={runtimeScript.length >=
               grid.properties.CONFIG_LENGTH}
             class:text-yellow-400={runtimeScript.length >
               (grid.properties.CONFIG_LENGTH / 3) * 2}
