@@ -115,7 +115,6 @@
     const element = li.event.elementnumber;
     const event = li.event.eventtype;
 
-    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
     const actionstring = _utils.configMerge({ config: configs });
 
     // EncoderPushRotElse, EncoderPushRotEnd ects

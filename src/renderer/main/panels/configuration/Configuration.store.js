@@ -57,33 +57,46 @@ export function configManagement() {
       return configs;
     };
 
-    this.reorder = ({ configs, drag_target, drop_target, isMultiDrag }) => {
-      function isDropZoneAvailable(drop_target, isMultiDrag) {
-        return 1;
+    this.reorder = (configs, drag_target, drop_target, isMultiDrag) => {
+      let grabbed = [];
+      drag_target.forEach((id) => {
+        grabbed.push(configs.find((act) => id === act.id));
+      });
+      const cutIndex = configs.indexOf(grabbed.at(0));
+      const cutLength = grabbed.length;
+
+      let pasteIndex = Number(drop_target) + 1;
+      // correction for multidrag
+      if (pasteIndex > cutIndex) {
+        pasteIndex = pasteIndex - drag_target.length;
       }
 
-      if (isDropZoneAvailable(drop_target, isMultiDrag)) {
-        let grabbed = [];
-        drag_target.forEach((id) => {
-          grabbed.push(configs.find((act) => id === act.id));
-        });
-        const firstElem = configs.indexOf(grabbed[0]);
-        const lastElem = configs.indexOf(grabbed[grabbed.length - 1]);
+      //Remove grabbed
+      configs.splice(cutIndex, cutLength);
+      //Add grabbed to index
+      configs.splice(pasteIndex, 0, ...grabbed);
 
-        let to = Number(drop_target) + 1;
-        // correction for multidrag
-        if (to > firstElem) {
-          to = to - drag_target.length;
-        }
+      const li = get(user_input);
+      const dx = li.brc.dx;
+      const dy = li.brc.dy;
+      const page = li.event.pagenumber;
+      const element = li.event.elementnumber;
+      const event = li.event.eventtype;
+      const actionString = _utils.configMerge({ config: configs });
 
-        configs = [
-          ...configs.slice(0, firstElem),
-          ...configs.slice(lastElem + 1),
-        ];
-        configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-      }
+      runtime.update_event_configuration(
+        dx,
+        dy,
+        page,
+        element,
+        event,
+        actionString,
+        "EDITOR_EXECUTE"
+      );
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
-      return configs;
+      // trigger change detection
+      user_input.update((n) => n);
     };
   };
 

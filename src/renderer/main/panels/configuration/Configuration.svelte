@@ -290,10 +290,7 @@
   let scrollHeight = "100%";
 
   function addConfigAtPosition(arg, index) {
-    console.log("addConfigAtPosition");
-
     const newConfig = arg.detail.config;
-
     if (typeof newConfig === "undefined" || newConfig === "") {
       return;
     }
@@ -307,12 +304,12 @@
     if (drop_target !== "bin") {
       // if only cfg-list is selected, don't let dnd happen nor delete.
       if (!Number.isNaN(drop_target)) {
-        configs = configManagement().drag_and_drop.reorder({
-          configs: configs,
-          drag_target: drag_target,
-          drop_target: drop_target,
-          isMultiDrag: e.detail.multi,
-        });
+        configManagement().drag_and_drop.reorder(
+          configs,
+          drag_target,
+          drop_target,
+          e.detail.multi
+        );
       }
     } else {
       configs = configManagement().drag_and_drop.remove({
@@ -355,29 +352,6 @@
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />
       </button>
-      <!--       <button
-        on:click={() => {
-          changeSelectedConfig("uiEvents");
-        }}
-        class="{$appSettings.configType == 'uiEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
-      >
-        <span> UI Events </span>
-        <TooltipSetter key={"configuration_ui_events"} />
-      </button>
-
-      <button
-        on:click={() => {
-          changeSelectedConfig("systemEvents");
-        }}
-        class="{$appSettings.configType == 'systemEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white"
-      >
-        <span> System Events </span>
-        <TooltipSetter key={"configuration_system_events"} />
-      </button> -->
     </div>
   </div>
 
