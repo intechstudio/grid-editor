@@ -52,16 +52,21 @@
     );
   }
 
+  async function handleLoginToProfileCloud(event) {
+    if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
+      $appSettings.modal = "userLogin";
+      channel.postMessage({ ok: true, data: {} });
+    }
+  }
+
   async function handleImportProfile(event) {
     if (event.data.channelMessageType == "IMPORT_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
       // owner is not used, but user instead
-      const { owner, name, editorData, _id } = event.data;
-      const profile = JSON.parse(editorData);
-      profile.id = _id; // this should be _id instead of id!
-      profile.name = uuidv4();
+      const profile = event.data;
+      const importName = uuidv4();
       await window.electron.configs
-        .saveConfig(path, profile.name, profile, "profiles", "local")
+        .saveConfig(path, importName, profile, "profiles", "local")
         .then((res) => {
           logger.set({
             type: "success",
@@ -343,6 +348,9 @@
       }
       if (event.data == "overwriteLocalProfile") {
         channel.onmessage = handleOverwriteLocalProfile;
+      }
+      if (event.data == "loginToProfileCloud") {
+        channel.onmessage = handleLoginToProfileCloud;
       }
     }
   }
