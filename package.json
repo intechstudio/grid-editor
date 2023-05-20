@@ -108,7 +108,7 @@
         "zip"
       ],
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
-      "icon": "build-assets/icon.png",
+      "icon": "build-assets/icon_mac.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build-assets/entitlements.mac.plist",
