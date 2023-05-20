@@ -1,5 +1,5 @@
 <script>
-  import { writable, get, derived } from "svelte/store";
+  import { get } from "svelte/store";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -9,14 +9,12 @@
   let actionIsDragged = false;
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
   import {
     runtime,
     logger,
-    elementNameStore,
     appMultiSelect,
     luadebug_store,
     localDefinitions,
@@ -34,7 +32,6 @@
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
   import MultiSelect from "./components/MultiSelect.svelte";
-  import Bin from "./components/Bin.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
 
@@ -291,67 +288,27 @@
 
   let scrollHeight = "100%";
 
-  async function addConfigAtPosition(arg, index) {
-    // console.log("addConfigAtPosition")
-
-    const { config } = arg.detail;
-
-    if (config === undefined || config === "") {
+  function addConfigAtPosition(arg, index) {
+    const newConfig = arg.detail.config;
+    if (typeof newConfig === "undefined" || newConfig === "") {
       return;
     }
 
-    configs = await configManagement().drag_and_drop.add({
-      configs: configs,
-      index: index,
-      newConfig: config,
-    });
-
-    send_to_grid();
-  }
-
-  function send_to_grid() {
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({ config: configs });
-
-    runtime.update_event_configuration(
-      dx,
-      dy,
-      page,
-      element,
-      event,
-      actionstring,
-      "EDITOR_EXECUTE"
-    );
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    const res = configManagement().on_click.add(newConfig, index);
   }
 
   function handleDrop(e) {
     //console.log("handleDrop")
 
-    if (drop_target !== "bin") {
-      // if only cfg-list is selected, don't let dnd happen nor delete.
-      if (!Number.isNaN(drop_target)) {
-        configs = configManagement().drag_and_drop.reorder({
-          configs: configs,
-          drag_target: drag_target,
-          drop_target: drop_target,
-          isMultiDrag: e.detail.multi,
-        });
-      }
-    } else {
-      configs = configManagement().drag_and_drop.remove({
-        configs: configs,
-        array: drag_target,
-      });
+    // if only cfg-list is selected, don't let dnd happen nor delete.
+    if (!Number.isNaN(drop_target)) {
+      configManagement().drag_and_drop.reorder(
+        configs,
+        drag_target,
+        drop_target,
+        e.detail.multi
+      );
     }
-
-    send_to_grid();
   }
 
   $: luadebug_store.update_config(_utils.configMerge({ config: configs }));
@@ -387,29 +344,6 @@
         <span> System Events </span>
         <TooltipSetter key={"configuration_system_events"} />
       </button>
-      <!--       <button
-        on:click={() => {
-          changeSelectedConfig("uiEvents");
-        }}
-        class="{$appSettings.configType == 'uiEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
-      >
-        <span> UI Events </span>
-        <TooltipSetter key={"configuration_ui_events"} />
-      </button>
-
-      <button
-        on:click={() => {
-          changeSelectedConfig("systemEvents");
-        }}
-        class="{$appSettings.configType == 'systemEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white"
-      >
-        <span> System Events </span>
-        <TooltipSetter key={"configuration_system_events"} />
-      </button> -->
     </div>
   </div>
 
@@ -542,20 +476,16 @@
           </config-list>
         </div>
         <container class="flex flex-col w-full">
-          {#if !drag_start}
-            <div class="w-full flex justify-between mb-3">
-              <AddAction
-                userHelper={true}
-                {animation}
-                on:new-config={(e) => {
-                  addConfigAtPosition(e, configs.length + 1);
-                }}
-              />
-              <ExportConfigs />
-            </div>
-          {:else}
-            <Bin />
-          {/if}
+          <div class="w-full flex justify-between mb-3">
+            <AddAction
+              userHelper={true}
+              {animation}
+              on:new-config={(e) => {
+                addConfigAtPosition(e, configs.length + 1);
+              }}
+            />
+            <ExportConfigs />
+          </div>
         </container>
       </configs>
     </container>

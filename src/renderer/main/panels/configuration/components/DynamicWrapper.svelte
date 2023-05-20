@@ -27,7 +27,6 @@
   import { checkSyntax } from "../../../../runtime/monaco-helper";
 
   import { onMount } from "svelte";
-  import { append_hydration_dev } from "svelte/internal";
 
   export let config = ""; //{desc: 'unnamed', rendering: 'standard', id: ''};
   export let configs;
@@ -115,6 +114,7 @@
     const page = li.event.pagenumber;
     const element = li.event.elementnumber;
     const event = li.event.eventtype;
+
     const actionstring = _utils.configMerge({ config: configs });
 
     // EncoderPushRotElse, EncoderPushRotEnd ects
@@ -129,16 +129,34 @@
         "EDITOR_EXECUTE"
       );
     } else {
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+      runtime
+        .check_action_string_length(actionstring)
+        .then(() => {
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionstring,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
+        })
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
     }
 
     localDefinitions.update(configs);

@@ -6,6 +6,8 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedProfileStore } from "./profile-helper.store";
 import { selectedPresetStore } from "./preset-helper.store";
 
+import mixpanel from "mixpanel-browser";
+
 import _utils from "./_utils";
 
 import { appSettings } from "./app-helper.store";
@@ -424,7 +426,7 @@ function create_user_input() {
 
 export const user_input = create_user_input();
 
-export const unsaved_changes = writable(0);
+export const unsaved_changes = writable([]);
 
 function create_runtime() {
   const _runtime = writable([]);
@@ -592,33 +594,34 @@ function create_runtime() {
 
         firstConnection = get(_runtime).length === 1;
 
-        window.electron.analytics.influx(
-          "application",
-          "runtime",
-          "module count",
-          _runtime.length
-        );
+        mixpanel.track("Connect Module", {
+          action: "Connect",
+          controller: controller,
+          moduleCount: get(runtime).length,
+        });
       }
 
       if (firstConnection) {
-        setTimeout(() => {
-          user_input.update((ui) => {
-            ui.brc.dx = controller.dx;
-            ui.brc.dy = controller.dy;
-            ui.event.elementnumber = 0;
-
-            ui.event.elementtype =
-              controller.pages[
-                ui.event.pagenumber
-              ].control_elements[0].controlElementType;
-            ui.event.eventtype = 0;
-            return ui;
-          });
-        }, 500);
+        setDefaultSelectedElement(controller);
       }
     } catch (error) {
       console.error(error);
     }
+  }
+
+  function setDefaultSelectedElement(controller) {
+    user_input.update((ui) => {
+      ui.brc.dx = controller.dx;
+      ui.brc.dy = controller.dy;
+      ui.event.elementnumber = 0;
+
+      ui.event.elementtype =
+        controller.pages[
+          ui.event.pagenumber
+        ].control_elements[0].controlElementType;
+      ui.event.eventtype = 0;
+      return ui;
+    });
   }
 
   function erase_all() {
@@ -856,19 +859,37 @@ function create_runtime() {
     page,
     element,
     event,
-    actionstring,
+    actionString,
     status
   ) {
     // config
     _runtime.update((_runtime) => {
       let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
       if (dest) {
-        dest.config = actionstring;
+        dest.config = actionString;
         dest.cfgStatus = status;
       }
       return _runtime;
     });
   }
+
+  function check_action_string_length(configs) {
+    const maxConfigLength = grid.properties.CONFIG_LENGTH;
+    const configLength = configs.length;
+    return new Promise((resolve, reject) => {
+      //dest.config.length >= grid.properties.CONFIG_LENGTH
+      if (maxConfigLength < configLength) {
+        throw {
+          what: `Config limit reached! Max character count is ${maxConfigLength}.`,
+          length: configLength,
+          max: maxConfigLength,
+        };
+      } else {
+        resolve({ length: configLength, max: maxConfigLength });
+      }
+    });
+  }
+
   function send_event_configuration_to_grid(
     dx,
     dy,
@@ -1046,7 +1067,7 @@ function create_runtime() {
       return _runtime;
     });
 
-    unsaved_changes.set(0);
+    unsaved_changes.set([]);
 
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
@@ -1144,8 +1165,13 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
+
+    const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
+
     _runtime.update((rt) => {
-      return rt.filter((g) => g.dx != dx || g.dy != dy);
+      const index = rt.indexOf(removed);
+      rt.splice(index, 1);
+      return rt;
     });
 
     user_input.module_destroy_handler(dx, dy);
@@ -1168,21 +1194,33 @@ function create_runtime() {
         lcs[dx][dy] = undefined;
         return lcs;
       });
+
+      const rt = get(_runtime);
+      if (rt.length > 0) {
+        const selectedElementsModule = {
+          dx: get(user_input).brc.dx,
+          dy: get(user_input).brc.dy,
+        };
+        if (
+          selectedElementsModule.dx == removed.dx &&
+          selectedElementsModule.dy == removed.dy
+        ) {
+          setDefaultSelectedElement(rt[0]);
+        }
+      }
     } catch (error) {}
 
-    window.electron.analytics.influx(
-      "application",
-      "runtime",
-      "module count",
-      get(runtime).length
-    );
+    mixpanel.track("Disconnect Module", {
+      action: "Disconnect",
+      moduleCount: get(runtime).length,
+    });
   }
 
   function reset() {
     _runtime.set([]);
 
     user_input.reset();
-    unsaved_changes.set(0);
+    unsaved_changes.set([]);
     writeBuffer.clear();
   }
 
@@ -1229,6 +1267,7 @@ function create_runtime() {
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
+    check_action_string_length: check_action_string_length,
   };
 }
 
@@ -1273,23 +1312,9 @@ const grid_heartbeat_interval_handler = async function () {
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 
-setInterval(function () {
-  if (!get(appSettings).trayState) {
-    window.electron.analytics.influx("application", "runtime", "tray state", 1);
-  } else {
-    window.electron.analytics.influx("application", "runtime", "tray state", 0);
-  }
-
-  window.electron.analytics.influx(
-    "application",
-    "runtime",
-    "module count",
-    get(runtime).length
-  );
-}, 10000);
-
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
+
   if (get(unsaved_changes) != 0 || get(appSettings).modal !== "") {
     type = 254;
   }

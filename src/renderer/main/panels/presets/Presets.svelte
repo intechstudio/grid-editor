@@ -17,6 +17,8 @@
 
   import { addOnDoubleClick } from "../../_actions/add-on-double-click";
 
+  import mixpanel from "mixpanel-browser";
+
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
@@ -79,26 +81,9 @@
       classname: "presetsave",
       message: `Preset saved!`,
     });
-    window.electron.analytics.google("preset-library", {
-      value: "save success",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save success"
-    );
   }
 
   function prepareSave() {
-    window.electron.analytics.google("preset-library", { value: "save start" });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
-
     let elementnumber = $user_input.event.elementnumber;
     let dx = $user_input.brc.dx;
     let dy = $user_input.brc.dy;
@@ -155,14 +140,6 @@
   }
 
   function loadPreset() {
-    window.electron.analytics.google("preset-library", { value: "load start" });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "load start"
-    );
-
     if (selected !== undefined) {
       const preset = selected;
 
@@ -174,26 +151,7 @@
 
       if (ui.event.elementtype == preset.type) {
         runtime.element_preset_load(preset);
-
-        window.electron.analytics.google("preset-library", {
-          value: "load success",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load success"
-        );
       } else {
-        window.electron.analytics.google("preset-library", {
-          value: "load mismatch",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load mismatch"
-        );
         let element =
           currentModule.pages[ui.event.pagenumber].control_elements[
             ui.event.elementnumber

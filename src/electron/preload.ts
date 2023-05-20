@@ -29,7 +29,7 @@ contextBridge.exposeInMainWorld("electron", {
     onFirmwareUpdate: (callback) =>
       ipcRenderer.on("onFirmwareUpdate", callback),
     findBootloaderPath: () => ipcRenderer.invoke("findBootloaderPath"),
-    firmwareDownload: (targetFolder, arch) =>
+    firmwareDownload: (targetFolder, arch, product) =>
       ipcRenderer.invoke("firmwareDownload", { targetFolder }),
   },
   serial: {
@@ -91,8 +91,6 @@ contextBridge.exposeInMainWorld("electron", {
   analytics: {
     google: (name, params) =>
       ipcRenderer.invoke("googleAnalytics", { name, params }),
-    influx: (category, action, label, value) =>
-      ipcRenderer.invoke("influxAnalytics", { category, action, label, value }),
   },
   persistentStorage: {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),

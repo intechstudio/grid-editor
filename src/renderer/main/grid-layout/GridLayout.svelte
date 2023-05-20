@@ -1,5 +1,6 @@
 <script>
   import createPanZoom from "panzoom";
+  import mixpanel from "mixpanel-browser";
 
   import { writable, readable, derived, get } from "svelte/store";
 
@@ -54,7 +55,22 @@
 
   let ready = false;
   let isStoreEnabled = false;
-  $: isStoreEnabled = $engine == "ENABLED" && $unsaved_changes > 0;
+
+  const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
+    return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
+  });
+
+  const devices = writable([]);
+
+  $: {
+    unsaved_changes.set(
+      $unsaved_changes.filter((chg) =>
+        $runtime.some((d) => chg.x === d.dx && chg.y === d.dy)
+      )
+    );
+  }
+
+  $: isStoreEnabled = $engine == "ENABLED" && $totalChanges > 0;
 
   onMount(() => {
     createPanZoom(map, {
@@ -76,8 +92,6 @@
 
     ready = true;
   });
-
-  const devices = writable([]);
 
   $: {
     let min_x = 0;
@@ -122,12 +136,9 @@
 
   function refresh() {
     window.electron.analytics.google("no-module", { value: "restart app" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "app restart"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Refresh",
+    });
 
     setTimeout(() => {
       window.electron.restartApp();
@@ -140,12 +151,9 @@
     window.electron.openInBrowser(url);
 
     window.electron.analytics.google("no-module", { value: "troubleshooting" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "open troubleshooting"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Troubleshooting",
+    });
   }
 
   function calculate_x(x0, y0) {
@@ -178,12 +186,9 @@
     });
 
     window.electron.analytics.google("writebuffer", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "writebuffer",
-      "clear"
-    );
+    mixpanel.track("Writebuffer", {
+      click: "Clear",
+    });
 
     writeBuffer.clear();
     engine.set("ENABLED");
@@ -191,12 +196,9 @@
 
   function store() {
     window.electron.analytics.google("page-config", { value: "store" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "store"
-    );
+    mixpanel.track("Page Config", {
+      click: "Store",
+    });
 
     instructions.sendPageStoreToGrid();
   }
@@ -205,24 +207,18 @@
     instructions.sendPageClearToGrid();
 
     window.electron.analytics.google("page-config", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "clear"
-    );
+    mixpanel.track("Page Config", {
+      click: "Clear",
+    });
   }
 
   function discard() {
     instructions.sendPageDiscardToGrid();
 
     window.electron.analytics.google("page-config", { value: "discard" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "discard"
-    );
+    mixpanel.track("Page Config", {
+      click: "Discard",
+    });
   }
 </script>
 
@@ -242,7 +238,7 @@
           class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg"
         >
           <div class="mr-4 text-white font-medium">
-            {$unsaved_changes} active changes
+            {$totalChanges} active changes
           </div>
           <button
             on:click={() => {
@@ -431,7 +427,10 @@
         <div
           use:clickOutside={{ useCapture: true }}
           on:click-outside={() => {
-            if ($appSettings.modal == "") {
+            const selection =
+              Object.keys($selectedProfileStore).length !== 0 ||
+              Object.keys($selectedPresetStore).length !== 0;
+            if ($appSettings.modal == "" && selection) {
               selectedProfileStore.set({});
               selectedPresetStore.set({});
             }

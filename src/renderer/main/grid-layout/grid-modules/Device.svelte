@@ -10,13 +10,13 @@
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
-  import { clickOutside } from "/main/_actions/click-outside.action";
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { runtime, user_input } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store.js";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
   import { selectedPresetStore } from "../../../runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { get } from "svelte/store";
 
   const components = [
     { type: "BU16", component: BU16 },
@@ -45,25 +45,15 @@
   }
 
   $: {
-    const store = $selectedProfileStore;
-    if (store && !isActionButtonClicked) {
-      selectedElement = { id: "", brc: {}, event: {} };
-    }
-  }
-
-  $: {
-    const store = $selectedPresetStore;
-    if (store && !isActionButtonClicked) {
-      selectedElement = { id: "", brc: {}, event: {} };
-    }
-  }
-
-  $: {
-    if (
-      Object.keys($selectedProfileStore).length === 0 ||
-      Object.keys($selectedPresetStore).length === 0
-    ) {
-      selectedElement = $user_input;
+    if (!isActionButtonClicked) {
+      if (
+        Object.keys($selectedProfileStore).length !== 0 ||
+        Object.keys($selectedPresetStore).length !== 0
+      ) {
+        selectedElement = { id: "", brc: {}, event: {} };
+      } else {
+        selectedElement = $user_input;
+      }
     }
   }
 </script>

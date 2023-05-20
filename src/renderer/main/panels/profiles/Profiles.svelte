@@ -103,16 +103,6 @@
   }
 
   function prepareSave(user) {
-    window.electron.analytics.influx("profile-library", {
-      value: "save start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "save start"
-    );
-
     let callback = function () {
       logger.set({
         type: "progress",
@@ -167,16 +157,6 @@
   }
 
   function loadProfile() {
-    window.electron.analytics.google("profile-library", {
-      value: "load start",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "load start"
-    );
-
     if (selected !== undefined) {
       const profile = selected;
 
@@ -189,26 +169,7 @@
 
       if (currentModule.id.substr(0, 4) == profile.type) {
         runtime.whole_page_overwrite(profile.configs);
-
-        window.electron.analytics.google("profile-library", {
-          value: "load success",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "profiles",
-          "profile",
-          "load success"
-        );
       } else {
-        window.electron.analytics.google("profile-library", {
-          value: "load mismatch",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "profiles",
-          "profile",
-          "load mismatch"
-        );
         logger.set({
           type: "alert",
           mode: 0,

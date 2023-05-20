@@ -1,5 +1,6 @@
 import { writable, get } from "svelte/store";
 
+import mixpanel from "mixpanel-browser";
 import {
   runtime,
   logger,
@@ -12,6 +13,7 @@ import {
 import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
+import grid from "../../../protocol/grid-protocol.js";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -36,51 +38,58 @@ function get_configs() {
 export function configManagement() {
   const drag_and_drop = function () {
     this.add = ({ configs, index, newConfig }) => {
-      let res = _utils.gridLuaToEditorLua(newConfig);
+      newConfig = _utils.gridLuaToEditorLua(newConfig);
 
-      if (res === undefined) {
+      if (newConfig === undefined) {
         console.log("NO CONFIG PASSED");
         return undefined;
       }
 
-      configs.splice(index, 0, ...res);
+      configs.splice(index, 0, ...newConfig);
+
       return configs;
     };
 
-    this.remove = ({ configs, array }) => {
-      array.forEach((elem) => {
-        configs = configs.filter((a) => a.id !== elem);
+    this.reorder = (configs, drag_target, drop_target, isMultiDrag) => {
+      let grabbed = [];
+      drag_target.forEach((id) => {
+        grabbed.push(configs.find((act) => id === act.id));
       });
-      return configs;
-    };
+      const cutIndex = configs.indexOf(grabbed.at(0));
+      const cutLength = grabbed.length;
 
-    this.reorder = ({ configs, drag_target, drop_target, isMultiDrag }) => {
-      function isDropZoneAvailable(drop_target, isMultiDrag) {
-        return 1;
+      let pasteIndex = Number(drop_target) + 1;
+      // correction for multidrag
+      if (pasteIndex > cutIndex) {
+        pasteIndex = pasteIndex - drag_target.length;
       }
 
-      if (isDropZoneAvailable(drop_target, isMultiDrag)) {
-        let grabbed = [];
-        drag_target.forEach((id) => {
-          grabbed.push(configs.find((act) => id === act.id));
-        });
-        const firstElem = configs.indexOf(grabbed[0]);
-        const lastElem = configs.indexOf(grabbed[grabbed.length - 1]);
+      //Remove grabbed
+      configs.splice(cutIndex, cutLength);
+      //Add grabbed to index
+      configs.splice(pasteIndex, 0, ...grabbed);
 
-        let to = Number(drop_target) + 1;
-        // correction for multidrag
-        if (to > firstElem) {
-          to = to - drag_target.length;
-        }
+      const li = get(user_input);
+      const dx = li.brc.dx;
+      const dy = li.brc.dy;
+      const page = li.event.pagenumber;
+      const element = li.event.elementnumber;
+      const event = li.event.eventtype;
+      const actionString = _utils.configMerge({ config: configs });
 
-        configs = [
-          ...configs.slice(0, firstElem),
-          ...configs.slice(lastElem + 1),
-        ];
-        configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-      }
+      runtime.update_event_configuration(
+        dx,
+        dy,
+        page,
+        element,
+        event,
+        actionString,
+        "EDITOR_EXECUTE"
+      );
+      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
-      return configs;
+      // trigger change detection
+      user_input.update((n) => n);
     };
   };
 
@@ -110,12 +119,7 @@ export function configManagement() {
       appActionClipboard.set(clipboard);
 
       if (isCut === false) {
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "copy"
-        );
+        mixpanel.track("Config Action", { click: "Copy" });
       }
     };
 
@@ -130,28 +134,41 @@ export function configManagement() {
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
-        const actionstring = "<?lua " + configs.join("") + " ?>";
+        const actionString = _utils.configsToActionString(configs);
 
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+        runtime
+          .check_action_string_length(actionString)
+          .then(() => {
+            runtime.update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionString,
+              "EDITOR_EXECUTE"
+            );
+            runtime.send_event_configuration_to_grid(
+              dx,
+              dy,
+              page,
+              element,
+              event
+            );
 
-        // trigger change detection
-        user_input.update((n) => n);
+            // trigger change detection
+            user_input.update((n) => n);
+          })
+          .catch((error) => {
+            logger.set({
+              type: "fail",
+              mode: 0,
+              classname: "check_action_string_length_error",
+              message: `Config length is too long, shorten your code or delete actions!`,
+            });
+          });
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "paste"
-        );
+        mixpanel.track("Config Action", { click: "Paste" });
       }
     };
 
@@ -216,30 +233,94 @@ export function configManagement() {
       const page = li.event.pagenumber;
       const element = li.event.elementnumber;
       const event = li.event.eventtype;
-      const actionstring = "<?lua " + edited.join("") + " ?>";
+      const actionString = _utils.configsToActionString(edited);
 
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+      runtime
+        .check_action_string_length(actionString)
+        .then(() => {
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionString,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
 
-      // trigger change detection
-      user_input.update((n) => n);
+          // trigger change detection
+          user_input.update((n) => n);
+        })
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
+    };
+
+    this.add = function (newConfig, index) {
+      const configs = [...get_configs()];
+
+      if (typeof newConfig === "undefined") {
+        console.log("NO CONFIG PASSED");
+        return configs;
+      }
+
+      configs.splice(index, 0, newConfig);
+      const actionString = _utils.configsToActionString(configs);
+
+      runtime
+        .check_action_string_length(actionString)
+        .then(() => {
+          const li = get(user_input);
+          const dx = li.brc.dx;
+          const dy = li.brc.dy;
+          const page = li.event.pagenumber;
+          const element = li.event.elementnumber;
+          const event = li.event.eventtype;
+
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionString,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
+
+          // trigger change detection
+          user_input.update((n) => n);
+        })
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
     };
 
     this.cut = function () {
-      window.electron.analytics.influx(
-        "application",
-        "configuration",
-        "multiselect",
-        "cut"
-      );
+      mixpanel.track("Config Action", { click: "Cut" });
       this.copy(true);
       this.remove();
     };
@@ -267,28 +348,41 @@ export function configManagement() {
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
-        const actionstring = "<?lua " + filtered.join("") + " ?>";
+        const actionString = _utils.configsToActionString(filtered);
 
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+        runtime
+          .check_action_string_length(actionString)
+          .then(() => {
+            runtime.update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionString,
+              "EDITOR_EXECUTE"
+            );
+            runtime.send_event_configuration_to_grid(
+              dx,
+              dy,
+              page,
+              element,
+              event
+            );
 
-        // trigger change detection
-        user_input.update((n) => n);
+            // trigger change detection
+            user_input.update((n) => n);
+          })
+          .catch((error) => {
+            logger.set({
+              type: "fail",
+              mode: 0,
+              classname: "check_action_string_length_error",
+              message: `Config length is too long, shorten your code or delete actions!`,
+            });
+          });
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "remove"
-        );
+        mixpanel.track("Config Action", { click: "Remove" });
       }
     };
   };

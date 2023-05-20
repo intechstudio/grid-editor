@@ -101,7 +101,9 @@
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
-        <div class="text-gray-500 text-sm pb-1">{parameterNames[i]}</div>
+        <div class="text-gray-500 text-sm pb-1 truncate">
+          {parameterNames[i]}
+        </div>
         <AtomicInput
           inputValue={script}
           suggestions={suggestions[i]}

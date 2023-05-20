@@ -3,7 +3,7 @@
   import { runtime, user_input } from "../../../../runtime/runtime.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
-
+  import mixpanel from "mixpanel-browser";
   export let id;
 
   let showOverlay = false;
@@ -46,12 +46,7 @@
     window.electron.analytics.google("profile-library", {
       value: "load start",
     });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "load start"
-    );
+    mixpanel.track("Profile Load Start", {});
 
     // to do.. if undefined configs
 
@@ -60,12 +55,7 @@
     window.electron.analytics.google("profile-library", {
       value: "load success",
     });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "load success"
-    );
+    mixpanel.track("Profile Load Success", {});
   }
 
   function cancelProfileOverlay() {
@@ -74,13 +64,6 @@
     window.electron.analytics.google("profile-library", {
       value: "cancel overlay",
     });
-
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "cancel overlay"
-    );
   }
 </script>
 
