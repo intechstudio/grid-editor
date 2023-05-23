@@ -39,7 +39,7 @@
 
   import { changeOrder } from "../../_actions/move.action.js";
 
-  import { configManagement } from "./Configuration.store.js";
+  import { ConfigManager } from "./Configuration.store.js";
   import AddAction from "./components/AddAction.svelte";
 
   import grid from "../../../protocol/grid-protocol";
@@ -294,7 +294,8 @@
       return;
     }
 
-    const res = configManagement().on_click.add(newConfig, index);
+    const list = new ConfigManager();
+    const res = list.add(newConfig, index);
   }
 
   function handleDrop(e) {
@@ -302,12 +303,8 @@
 
     // if only cfg-list is selected, don't let dnd happen nor delete.
     if (!Number.isNaN(drop_target)) {
-      configManagement().drag_and_drop.reorder(
-        configs,
-        drag_target,
-        drop_target,
-        e.detail.multi
-      );
+      const list = new ConfigManager();
+      list.reorder(configs, drag_target, drop_target, e.detail.multi);
     }
   }
 

@@ -1,5 +1,5 @@
 <script>
-  import { configManagement } from "../Configuration.store.js";
+  import { ConfigManager } from "../Configuration.store.js";
 
   import {
     appActionClipboard,
@@ -18,7 +18,8 @@
   <div class="w-fit flex flex-wrap">
     <BtnAndPopUp
       on:clicked={() => {
-        configManagement().on_click.converttocodeblock();
+        const list = new ConfigManager();
+        list.converttocodeblock();
         appMultiSelect.reset();
       }}
       btnStyle={`relative bg-secondary mr-2 group rounded-md ${
@@ -36,7 +37,8 @@
 
     <BtnAndPopUp
       on:clicked={() => {
-        configManagement().on_click.cut();
+        const list = new ConfigManager();
+        list.cut();
         appMultiSelect.reset();
       }}
       btnStyle={`relative bg-secondary mr-2 group rounded-md ${
@@ -55,7 +57,8 @@
 
     <BtnAndPopUp
       on:clicked={() => {
-        configManagement().on_click.copy();
+        const list = new ConfigManager();
+        list.copy();
         appMultiSelect.reset();
       }}
       btnStyle={`relative bg-secondary mr-2 group rounded-md ${
@@ -74,7 +77,8 @@
 
     <BtnAndPopUp
       on:clicked={() => {
-        configManagement().on_click.paste();
+        const list = new ConfigManager();
+        list.paste();
         appMultiSelect.reset();
       }}
       btnStyle={`relative bg-secondary mr-2 group rounded-md ${
@@ -91,7 +95,8 @@
 
     <BtnAndPopUp
       on:clicked={() => {
-        configManagement().on_click.remove();
+        const list = new ConfigManager();
+        list.remove();
         appMultiSelect.reset();
       }}
       btnStyle={`relative bg-secondary mr-2 group rounded-md ${
@@ -111,7 +116,8 @@
 
   <button
     on:click={() => {
-      configManagement().on_click.select_all(); /* appMultiSelect.select({config: configs[index], selected: selected})*/
+      const list = new ConfigManager();
+      list.select_all(); /* appMultiSelect.select({config: configs[index], selected: selected})*/
     }}
     class="{$appMultiSelect.all_selected
       ? 'border-opacity-80 bg-secondary'

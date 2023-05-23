@@ -25,7 +25,7 @@ function get_configs() {
   let configs = "";
   const unsubscribe = luadebug_store.subscribe((data) => {
     let arr = [];
-    configs = _utils.rawLuaToConfigList(data.config);
+    const tmp = new ConfigList(data.config);
     for (let i = 0; i < configs.length; i += 2) {
       arr.push(`${configs[i]}${configs[i + 1]}`.trim());
     }
@@ -35,196 +35,172 @@ function get_configs() {
   return configs;
 }
 
-export function configManagement() {
-  const drag_and_drop = function () {
-    this.add = ({ configs, index, newConfig }) => {
-      newConfig = _utils.gridLuaToEditorLua(newConfig);
+export class ConfigObject {
+  constructor({ short, script }) {
+    this.short = short;
+    this.script = script;
+    this.rawLua = `--[[@${short}]] ` + script;
+  }
+}
 
-      if (newConfig === undefined) {
-        console.log("NO CONFIG PASSED");
-        return undefined;
-      }
+export class ConfigList {
+  constructor(rawLua) {
+    // get rid of new line, enter
+    rawLua = rawLua.replace(/[\n\r]+/g, "");
+    // get rid of more than 2 spaces
+    rawLua = rawLua.replace(/\s{2,10}/g, " ");
 
-      configs.splice(index, 0, ...newConfig);
+    // remove lua opening and closing characters
+    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+    if (rawLua.startsWith("<?lua")) {
+      rawLua = rawLua.split("<?lua")[1].split("?>")[0];
+    }
 
-      return configs;
-    };
+    // splt by meta comments
+    let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
 
-    this.reorder = (configs, drag_target, drop_target, isMultiDrag) => {
-      let grabbed = [];
-      drag_target.forEach((id) => {
-        grabbed.push(configs.find((act) => id === act.id));
-      });
-      const cutIndex = configs.indexOf(grabbed.at(0));
-      const cutLength = grabbed.length;
+    // filter "*space*" with regex or empty string
+    // configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
 
-      let pasteIndex = Number(drop_target) + 1;
-      // correction for multidrag
-      if (pasteIndex > cutIndex) {
-        pasteIndex = pasteIndex - drag_target.length;
-      }
+    configList = configList.slice(1);
 
-      //Remove grabbed
-      configs.splice(cutIndex, cutLength);
-      //Add grabbed to index
-      configs.splice(pasteIndex, 0, ...grabbed);
+    console.log(configList);
+  }
 
-      const li = get(user_input);
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionString = _utils.configMerge({ config: configs });
+  toRawLua() {
+    let lua = "";
+    this.#list.forEach((e) => (lua += e.rawLua));
+    lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
+    return Promise.resolve(lua);
+  }
 
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionString,
-        "EDITOR_EXECUTE"
+  #list = [];
+  add(config, atIndex = undefined) {
+    if (!(config instanceof ConfigObject)) {
+      return Promise.reject(
+        new Error(
+          "Invalid config object. Expected an instance of ConfigObject."
+        )
       );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    }
+    if (typeof atIndex === "undefined") {
+      this.#list.push(config);
+    } else {
+      this.#list.splice(atIndex, 0, config);
+    }
+    return Promise.resolve(this);
+  }
 
-      // trigger change detection
-      user_input.update((n) => n);
-    };
-  };
+  remove(start, length = 1) {
+    this.#list.splice(start, length);
+    return Promise.resolve(this);
+  }
 
-  const on_click = function () {
-    this.select_all = function () {
-      const configs = get_configs();
-      appMultiSelect.update((s) => {
-        s.all_selected = !s.all_selected;
-        s.selection = configs.map((v) => s.all_selected);
-        return s;
-      });
-    };
+  checkSyntax() {
+    const code = this.toRawLua();
+    try {
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
 
-    this.copy = function (isCut = false) {
-      const selection = get(appMultiSelect).selection;
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return Promise.resolve(this);
+    } catch (e) {
+      return Promise.reject(new Error("Syntax Error: " + e));
+    }
+  }
 
-      const configs = get_configs();
+  checkLength() {
+    if (this.length() > grid.properties.CONFIG_LENGTH) {
+      return Promise.reject(
+        new Error("Config length exceeds the maximum limit.")
+      );
+    }
+    return Promise.resolve(this);
+  }
+}
 
-      let clipboard = [];
+export class ConfigManager {
+  #list = [];
+  constructor() {}
 
-      selection.forEach((elem, index) => {
-        if (elem) {
-          clipboard.push(configs[index]);
-        }
-      });
+  reorder(configs, drag_target, drop_target, isMultiDrag) {
+    let grabbed = [];
+    drag_target.forEach((id) => {
+      grabbed.push(configs.find((act) => id === act.id));
+    });
+    const cutIndex = configs.indexOf(grabbed.at(0));
+    const cutLength = grabbed.length;
 
-      appActionClipboard.set(clipboard);
+    let pasteIndex = Number(drop_target) + 1;
+    // correction for multidrag
+    if (pasteIndex > cutIndex) {
+      pasteIndex = pasteIndex - drag_target.length;
+    }
 
-      if (isCut === false) {
-        mixpanel.track("Config Action", { click: "Copy" });
+    //Remove grabbed
+    configs.splice(cutIndex, cutLength);
+    //Add grabbed to index
+    configs.splice(pasteIndex, 0, ...grabbed);
+
+    const li = get(user_input);
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page = li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionString = _utils.configMerge({ config: configs });
+
+    runtime.update_event_configuration(
+      dx,
+      dy,
+      page,
+      element,
+      event,
+      actionString,
+      "EDITOR_EXECUTE"
+    );
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+    // trigger change detection
+    user_input.update((n) => n);
+  }
+
+  select_all() {
+    const configs = get_configs();
+    appMultiSelect.update((s) => {
+      s.all_selected = !s.all_selected;
+      s.selection = configs.map((v) => s.all_selected);
+      return s;
+    });
+  }
+
+  copy(isCut = false) {
+    const selection = get(appMultiSelect).selection;
+
+    const configs = get_configs();
+
+    let clipboard = [];
+
+    selection.forEach((elem, index) => {
+      if (elem) {
+        clipboard.push(configs[index]);
       }
-    };
+    });
 
-    this.paste = function () {
-      if (get(appActionClipboard).length) {
-        const configs = [...get_configs(), ...get(appActionClipboard)];
+    appActionClipboard.set(clipboard);
 
-        const li = get(user_input);
+    if (isCut === false) {
+      mixpanel.track("Config Action", { click: "Copy" });
+    }
+  }
 
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-        const actionString = _utils.configsToActionString(configs);
-
-        runtime
-          .check_action_string_length(actionString)
-          .then(() => {
-            runtime.update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actionString,
-              "EDITOR_EXECUTE"
-            );
-            runtime.send_event_configuration_to_grid(
-              dx,
-              dy,
-              page,
-              element,
-              event
-            );
-
-            // trigger change detection
-            user_input.update((n) => n);
-          })
-          .catch((error) => {
-            logger.set({
-              type: "fail",
-              mode: 0,
-              classname: "check_action_string_length_error",
-              message: `Config length is too long, shorten your code or delete actions!`,
-            });
-          });
-
-        mixpanel.track("Config Action", { click: "Paste" });
-      }
-    };
-
-    this.converttocodeblock = function () {
-      const selection = get(appMultiSelect).selection;
-      const configs = get_configs();
-
-      // EDIT
-
-      let edited = [];
-
-      let i = 0;
-      let j = 0;
-      for (; i < configs.length; ) {
-        if (selection[i] !== true) {
-          edited.push(configs[i]);
-          j++;
-        } else {
-          // edit these
-          if (i > 0 && selection[i - 1] == true) {
-            const [first, ...rest] = configs[i].split("]]");
-            edited[j - 1] += rest.join("]]");
-          } else {
-            const [first, ...rest] = configs[i].split("]]");
-            edited.push("--[[@cb]]" + rest.join("]]"));
-            j++;
-          }
-        }
-
-        i++;
-      }
-
-      // check if resulting codesections are valid
-
-      let error_count = 0;
-
-      for (let v = 0; v < edited.length; v++) {
-        if (selection[v] == true) {
-          try {
-            const minified_code = luamin.Minify(edited[v], luaminOptions);
-          } catch (error) {
-            error_count++;
-          }
-        }
-      }
-
-      if (error_count) {
-        console.log("Merge Rejected");
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "configuration",
-          message: `Code Merge Rejected`,
-        });
-        return;
-      }
+  paste() {
+    if (get(appActionClipboard).length) {
+      const configs = [...get_configs(), ...get(appActionClipboard)];
 
       const li = get(user_input);
 
@@ -233,62 +209,11 @@ export function configManagement() {
       const page = li.event.pagenumber;
       const element = li.event.elementnumber;
       const event = li.event.eventtype;
-      const actionString = _utils.configsToActionString(edited);
-
-      runtime
-        .check_action_string_length(actionString)
-        .then(() => {
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionString,
-            "EDITOR_EXECUTE"
-          );
-          runtime.send_event_configuration_to_grid(
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-
-          // trigger change detection
-          user_input.update((n) => n);
-        })
-        .catch((error) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "check_action_string_length_error",
-            message: `Config length is too long, shorten your code or delete actions!`,
-          });
-        });
-    };
-
-    this.add = function (newConfig, index) {
-      const configs = [...get_configs()];
-
-      if (typeof newConfig === "undefined") {
-        console.log("NO CONFIG PASSED");
-        return configs;
-      }
-
-      configs.splice(index, 0, newConfig);
       const actionString = _utils.configsToActionString(configs);
 
       runtime
         .check_action_string_length(actionString)
         .then(() => {
-          const li = get(user_input);
-          const dx = li.brc.dx;
-          const dy = li.brc.dy;
-          const page = li.event.pagenumber;
-          const element = li.event.elementnumber;
-          const event = li.event.eventtype;
-
           runtime.update_event_configuration(
             dx,
             dy,
@@ -317,80 +242,212 @@ export function configManagement() {
             message: `Config length is too long, shorten your code or delete actions!`,
           });
         });
-    };
 
-    this.cut = function () {
-      mixpanel.track("Config Action", { click: "Cut" });
-      this.copy(true);
-      this.remove();
-    };
+      mixpanel.track("Config Action", { click: "Paste" });
+    }
+  }
 
-    this.remove = function () {
-      const selection = get(appMultiSelect).selection;
+  converttocodeblocky() {
+    const selection = get(appMultiSelect).selection;
+    const configs = get_configs();
 
-      if (selection.length) {
-        const configs = [...get_configs()];
+    // EDIT
 
-        let filtered = [];
+    let edited = [];
 
-        for (let i = 0; i < configs.length; i++) {
-          if (selection[i] !== true) {
-            filtered.push(configs[i]);
-          } else {
-            // dont return
-          }
+    let i = 0;
+    let j = 0;
+    for (; i < configs.length; ) {
+      if (selection[i] !== true) {
+        edited.push(configs[i]);
+        j++;
+      } else {
+        // edit these
+        if (i > 0 && selection[i - 1] == true) {
+          const [first, ...rest] = configs[i].split("]]");
+          edited[j - 1] += rest.join("]]");
+        } else {
+          const [first, ...rest] = configs[i].split("]]");
+          edited.push("--[[@cb]]" + rest.join("]]"));
+          j++;
         }
+      }
 
+      i++;
+    }
+
+    // check if resulting codesections are valid
+
+    let error_count = 0;
+
+    for (let v = 0; v < edited.length; v++) {
+      if (selection[v] == true) {
+        try {
+          const minified_code = luamin.Minify(edited[v], luaminOptions);
+        } catch (error) {
+          error_count++;
+        }
+      }
+    }
+
+    if (error_count) {
+      console.log("Merge Rejected");
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "configuration",
+        message: `Code Merge Rejected`,
+      });
+      return;
+    }
+
+    const li = get(user_input);
+
+    const dx = li.brc.dx;
+    const dy = li.brc.dy;
+    const page = li.event.pagenumber;
+    const element = li.event.elementnumber;
+    const event = li.event.eventtype;
+    const actionString = _utils.configsToActionString(edited);
+
+    runtime
+      .check_action_string_length(actionString)
+      .then(() => {
+        runtime.update_event_configuration(
+          dx,
+          dy,
+          page,
+          element,
+          event,
+          actionString,
+          "EDITOR_EXECUTE"
+        );
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+
+        // trigger change detection
+        user_input.update((n) => n);
+      })
+      .catch((error) => {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "check_action_string_length_error",
+          message: `Config length is too long, shorten your code or delete actions!`,
+        });
+      });
+  }
+
+  add(newConfig, index) {
+    const configs = [...get_configs()];
+
+    if (typeof newConfig === "undefined") {
+      console.log("NO CONFIG PASSED");
+      return configs;
+    }
+
+    configs.splice(index, 0, newConfig);
+    const actionString = _utils.configsToActionString(configs);
+
+    runtime
+      .check_action_string_length(actionString)
+      .then(() => {
         const li = get(user_input);
-
         const dx = li.brc.dx;
         const dy = li.brc.dy;
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
-        const actionString = _utils.configsToActionString(filtered);
 
-        runtime
-          .check_action_string_length(actionString)
-          .then(() => {
-            runtime.update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actionString,
-              "EDITOR_EXECUTE"
-            );
-            runtime.send_event_configuration_to_grid(
-              dx,
-              dy,
-              page,
-              element,
-              event
-            );
+        runtime.update_event_configuration(
+          dx,
+          dy,
+          page,
+          element,
+          event,
+          actionString,
+          "EDITOR_EXECUTE"
+        );
+        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
-            // trigger change detection
-            user_input.update((n) => n);
-          })
-          .catch((error) => {
-            logger.set({
-              type: "fail",
-              mode: 0,
-              classname: "check_action_string_length_error",
-              message: `Config length is too long, shorten your code or delete actions!`,
-            });
-          });
+        // trigger change detection
+        user_input.update((n) => n);
+      })
+      .catch((error) => {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "check_action_string_length_error",
+          message: `Config length is too long, shorten your code or delete actions!`,
+        });
+      });
+  }
 
-        mixpanel.track("Config Action", { click: "Remove" });
+  cut() {
+    mixpanel.track("Config Action", { click: "Cut" });
+    this.copy(true);
+    this.remove();
+  }
+
+  remove() {
+    const selection = get(appMultiSelect).selection;
+
+    if (selection.length) {
+      const configs = [...get_configs()];
+
+      let filtered = [];
+
+      for (let i = 0; i < configs.length; i++) {
+        if (selection[i] !== true) {
+          filtered.push(configs[i]);
+        } else {
+          // dont return
+        }
       }
-    };
-  };
 
-  return {
-    drag_and_drop: new drag_and_drop(),
-    on_click: new on_click(),
-  };
+      const li = get(user_input);
+
+      const dx = li.brc.dx;
+      const dy = li.brc.dy;
+      const page = li.event.pagenumber;
+      const element = li.event.elementnumber;
+      const event = li.event.eventtype;
+      const actionString = _utils.configsToActionString(filtered);
+
+      runtime
+        .check_action_string_length(actionString)
+        .then(() => {
+          runtime.update_event_configuration(
+            dx,
+            dy,
+            page,
+            element,
+            event,
+            actionString,
+            "EDITOR_EXECUTE"
+          );
+          runtime.send_event_configuration_to_grid(
+            dx,
+            dy,
+            page,
+            element,
+            event
+          );
+
+          // trigger change detection
+          user_input.update((n) => n);
+        })
+        .catch((error) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "check_action_string_length_error",
+            message: `Config length is too long, shorten your code or delete actions!`,
+          });
+        });
+
+      mixpanel.track("Config Action", { click: "Remove" });
+    }
+  }
 }
 
 function createDropStore() {
