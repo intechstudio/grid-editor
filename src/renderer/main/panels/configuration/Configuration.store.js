@@ -10,6 +10,7 @@ import {
   user_input,
 } from "../../../runtime/runtime.store";
 
+import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
@@ -25,7 +26,14 @@ function get_configs() {
   let configs = "";
   const unsubscribe = luadebug_store.subscribe((data) => {
     let arr = [];
-    const tmp = new ConfigList(data.config);
+    const temp = new ConfigList(data.config);
+    for (const value in temp) console.log(value);
+    temp
+      .checkLength()
+      .then((e) => e.checkSyntax())
+      .then(console.log("yay"))
+      .catch((e) => console.log(e));
+    configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i += 2) {
       arr.push(`${configs[i]}${configs[i + 1]}`.trim());
     }
@@ -44,34 +52,66 @@ export class ConfigObject {
 }
 
 export class ConfigList {
+  //TODO: check rawLuas format
   constructor(rawLua) {
     // get rid of new line, enter
     rawLua = rawLua.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
     rawLua = rawLua.replace(/\s{2,10}/g, " ");
-
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
     if (rawLua.startsWith("<?lua")) {
       rawLua = rawLua.split("<?lua")[1].split("?>")[0];
     }
-
-    // splt by meta comments
+    // split by meta comments
     let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
-
-    // filter "*space*" with regex or empty string
-    // configList = configList.filter(function(el){ return !el.match(/(^\s+$)|(^$)/)});
-
     configList = configList.slice(1);
-
-    console.log(configList);
+    for (var i = 0; i < configList.length; i += 2) {
+      this.add(
+        new ConfigObject({
+          //Extract short, e.g.: '--[[@gms]]' => 'gms'
+          short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+          script: configList[i + 1].trim(),
+        })
+      );
+    }
   }
 
   toRawLua() {
     let lua = "";
     this.#list.forEach((e) => (lua += e.rawLua));
     lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
-    return Promise.resolve(lua);
+    return lua;
+  }
+
+  get length() {
+    return this.#list.length;
+  }
+
+  get configLength() {
+    return this.toRawLua().length;
+  }
+
+  at(index) {
+    if (index >= 0 && index < this.#list.length) {
+      return this.#list[index];
+    } else {
+      return undefined;
+    }
+  }
+
+  [Symbol.iterator]() {
+    let index = 0;
+
+    // Define the next() method for iterator
+    return {
+      next() {
+        if (index < this.#list.length) {
+          return { value: this.#list[index++], done: false };
+        }
+        return { done: true };
+      },
+    };
   }
 
   #list = [];
@@ -97,7 +137,7 @@ export class ConfigList {
   }
 
   checkSyntax() {
-    const code = this.toRawLua();
+    const code = this.#list.map((e) => e.script).join("");
     try {
       const short_code = stringManipulation.shortify(code);
       const line_commented_code =
@@ -114,12 +154,172 @@ export class ConfigList {
   }
 
   checkLength() {
-    if (this.length() > grid.properties.CONFIG_LENGTH) {
+    if (this.configLength > grid.properties.CONFIG_LENGTH) {
       return Promise.reject(
         new Error("Config length exceeds the maximum limit.")
       );
     }
     return Promise.resolve(this);
+  }
+}
+
+export class ConfigManager2 {
+  getCurrentConfig() {
+    try {
+      const ui = get(user_input);
+      const rt = get(runtime);
+
+      if (rt.length === 0) {
+        //ERROR
+      }
+
+      if (ui.length === 0) {
+        //ERROR, not so possible
+      }
+
+      const currentDevice = rt.find(
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+      );
+
+      let module_type = device.id.split("_")[0];
+
+      let element_type =
+        grid.moduleElements[module_type][ui.event.elementnumber];
+
+      let pageIndex = device.pages.findIndex(
+        (x) => x.pageNumber == ui.event.pagenumber
+      );
+      let elementIndex = device.pages[pageIndex].control_elements.findIndex(
+        (x) => x.controlElementNumber == ui.event.elementnumber
+      );
+
+      if (elementIndex === -1) {
+        //console.log("MAXOS PARA")
+        elementIndex = 0;
+      }
+
+      const eventIndex = device.pages[pageIndex].control_elements[
+        elementIndex
+      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
+
+      if (eventIndex === -1) {
+        selectedEvent =
+          device.pages[pageIndex].control_elements[elementIndex].events[0];
+        ui.event.eventtype = 0;
+      } else {
+        selectedEvent =
+          device.pages[pageIndex].control_elements[elementIndex].events[
+            eventIndex
+          ];
+      }
+
+      if (typeof selectedEvent === "undefined") {
+        //console.log("SORRY", pageIndex, elementIndex, eventIndex);
+        throw "selectedEvent is undefined";
+      }
+
+      if (selectedEvent.config.length) {
+        config = selectedEvent.config.trim();
+      }
+
+      const cfgstatus = selectedEvent.cfgStatus;
+
+      if (
+        cfgstatus == "GRID_REPORT" ||
+        cfgstatus == "EDITOR_EXECUTE" ||
+        cfgstatus == "EDITOR_BACKGROUND"
+      ) {
+        // its loaded
+      } else {
+        // fetch
+        const callback = function () {
+          // trigger change detection
+          user_input.update((n) => n);
+        };
+
+        runtime.fetchOrLoadConfig(ui, callback);
+      }
+
+      let active = {
+        elementtype: element_type,
+        config: config,
+        events: {
+          selected: selectedEvent.event,
+          options: device.pages[pageIndex].control_elements[
+            elementIndex
+          ].events.map((e) => e.event),
+        },
+        elements: {
+          selected: ui.event.elementnumber,
+          options: device.pages[pageIndex].control_elements.map(
+            (n) => n.controlElementNumber
+          ),
+        },
+        pages: {
+          selected: ui.event.pagenumber,
+          options: device.pages.map((n) => n.pageNumber),
+        },
+      };
+
+      if (typeof active === "undefined") {
+        throw "active is undefined";
+      }
+
+      let res = _utils.gridLuaToEditorLua(active.config);
+      if (typeof res === "undefined") {
+        throw "Grid Lua to Editor Lua failed.";
+      }
+
+      let res_is_valid = true;
+
+      res.forEach((element) => {
+        if (element.information === undefined) {
+          res_is_valid = false;
+        }
+      });
+
+      if (res !== undefined && res_is_valid) {
+        configs = res;
+        dropStore.update(res);
+        conditionalConfigPlacement.set(configs);
+        localDefinitions.update(configs);
+
+        access_tree.elementtype = active.elementtype;
+      }
+
+      // let use of default dummy parameters
+      if (active.elements.selected !== "") {
+        events = active.events;
+        elements = active.elements;
+      }
+
+      // set UI to uiEvents, if its not system events
+      if (elements.selected !== 255) {
+        $appSettings.configType = "uiEvents";
+      }
+    } catch (error) {
+      console.log("Error:", error);
+    }
+
+    //////
+    let configs = "";
+    const unsubscribe = luadebug_store.subscribe((data) => {
+      let arr = [];
+      const temp = new ConfigList(data.config);
+      for (const value in temp) console.log(value);
+      temp
+        .checkLength()
+        .then((e) => e.checkSyntax())
+        .then(console.log("yay"))
+        .catch((e) => console.log(e));
+      configs = _utils.rawLuaToConfigList(data.config);
+      for (let i = 0; i < configs.length; i += 2) {
+        arr.push(`${configs[i]}${configs[i + 1]}`.trim());
+      }
+      configs = arr;
+    });
+    unsubscribe();
+    return configs;
   }
 }
 
