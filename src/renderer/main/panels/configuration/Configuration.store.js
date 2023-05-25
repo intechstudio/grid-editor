@@ -26,13 +26,8 @@ function get_configs() {
   let configs = "";
   const unsubscribe = luadebug_store.subscribe((data) => {
     let arr = [];
-    const temp = new ConfigList(data.config);
-    for (const value in temp) console.log(value);
-    temp
-      .checkLength()
-      .then((e) => e.checkSyntax())
-      .then(console.log("yay"))
-      .catch((e) => console.log(e));
+    const temp = ConfigList.getCurrent();
+    console.log(temp);
     configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i += 2) {
       arr.push(`${configs[i]}${configs[i + 1]}`.trim());
@@ -52,22 +47,50 @@ export class ConfigObject {
 }
 
 export class ConfigList {
-  //TODO: check rawLuas format
-  constructor(rawLua) {
+  //Internal private list
+  #list = [];
+
+  static getCurrent() {
+    const ui = get(user_input);
+    return new ConfigList({
+      device: { dx: ui.brc.dx, dy: ui.brc.dy },
+      pageIndex: ui.event.pagenumber,
+      elementIndex: ui.event.elementnumber,
+      eventType: ui.event.eventtype,
+    });
+  }
+
+  constructor({ device: { dx, dy }, pageIndex, elementIndex, eventType }) {
+    let actionString;
+    try {
+      const rt = get(runtime);
+      const device = rt.find((e) => e.dx == dx && e.dy == dy);
+      const page = device.pages.at(pageIndex);
+      const element = page.control_elements.at(elementIndex);
+      const event = element.events.find((e) => e.event.value == eventType);
+      actionString = event.config;
+    } catch (e) {
+      console.error(e);
+      return undefined;
+    }
+
+    //Parse actionString
+    //TODO: do rawLuas format checking during parsing
+
     // get rid of new line, enter
-    rawLua = rawLua.replace(/[\n\r]+/g, "");
+    actionString = actionString.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
-    rawLua = rawLua.replace(/\s{2,10}/g, " ");
+    actionString = actionString.replace(/\s{2,10}/g, " ");
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (rawLua.startsWith("<?lua")) {
-      rawLua = rawLua.split("<?lua")[1].split("?>")[0];
+    if (actionString.startsWith("<?lua")) {
+      actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = rawLua.split(/(--\[\[@+[a-z]+\]\])/);
+    let configList = actionString.split(/(--\[\[@+[a-z]+\]\])/);
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
-      this.add(
+      this.push(
         new ConfigObject({
           //Extract short, e.g.: '--[[@gms]]' => 'gms'
           short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
@@ -77,7 +100,7 @@ export class ConfigList {
     }
   }
 
-  toRawLua() {
+  toConfigScript() {
     let lua = "";
     this.#list.forEach((e) => (lua += e.rawLua));
     lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
@@ -86,10 +109,6 @@ export class ConfigList {
 
   get length() {
     return this.#list.length;
-  }
-
-  get configLength() {
-    return this.toRawLua().length;
   }
 
   at(index) {
@@ -114,8 +133,7 @@ export class ConfigList {
     };
   }
 
-  #list = [];
-  add(config, atIndex = undefined) {
+  insert(config, atPosition) {
     if (!(config instanceof ConfigObject)) {
       return Promise.reject(
         new Error(
@@ -123,16 +141,19 @@ export class ConfigList {
         )
       );
     }
-    if (typeof atIndex === "undefined") {
-      this.#list.push(config);
-    } else {
-      this.#list.splice(atIndex, 0, config);
-    }
+    this.#list.splice(atPosition, 0, config);
     return Promise.resolve(this);
   }
 
-  remove(start, length = 1) {
-    this.#list.splice(start, length);
+  push(config) {
+    if (!(config instanceof ConfigObject)) {
+      throw "ERROR";
+    }
+    this.#list.push(config);
+  }
+
+  remove(atPosition) {
+    this.#list.splice(atPosition, 1);
     return Promise.resolve(this);
   }
 
@@ -147,179 +168,14 @@ export class ConfigList {
         stringManipulation.lineCommentToNoComment(line_commented_code)
       );
       luamin.Minify(safe_code, luaminOptions);
-      return Promise.resolve(this);
+      return true;
     } catch (e) {
-      return Promise.reject(new Error("Syntax Error: " + e));
+      return false;
     }
   }
 
   checkLength() {
-    if (this.configLength > grid.properties.CONFIG_LENGTH) {
-      return Promise.reject(
-        new Error("Config length exceeds the maximum limit.")
-      );
-    }
-    return Promise.resolve(this);
-  }
-}
-
-export class ConfigManager2 {
-  getCurrentConfig() {
-    try {
-      const ui = get(user_input);
-      const rt = get(runtime);
-
-      if (rt.length === 0) {
-        //ERROR
-      }
-
-      if (ui.length === 0) {
-        //ERROR, not so possible
-      }
-
-      const currentDevice = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      let module_type = device.id.split("_")[0];
-
-      let element_type =
-        grid.moduleElements[module_type][ui.event.elementnumber];
-
-      let pageIndex = device.pages.findIndex(
-        (x) => x.pageNumber == ui.event.pagenumber
-      );
-      let elementIndex = device.pages[pageIndex].control_elements.findIndex(
-        (x) => x.controlElementNumber == ui.event.elementnumber
-      );
-
-      if (elementIndex === -1) {
-        //console.log("MAXOS PARA")
-        elementIndex = 0;
-      }
-
-      const eventIndex = device.pages[pageIndex].control_elements[
-        elementIndex
-      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
-
-      if (eventIndex === -1) {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[0];
-        ui.event.eventtype = 0;
-      } else {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[
-            eventIndex
-          ];
-      }
-
-      if (typeof selectedEvent === "undefined") {
-        //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-        throw "selectedEvent is undefined";
-      }
-
-      if (selectedEvent.config.length) {
-        config = selectedEvent.config.trim();
-      }
-
-      const cfgstatus = selectedEvent.cfgStatus;
-
-      if (
-        cfgstatus == "GRID_REPORT" ||
-        cfgstatus == "EDITOR_EXECUTE" ||
-        cfgstatus == "EDITOR_BACKGROUND"
-      ) {
-        // its loaded
-      } else {
-        // fetch
-        const callback = function () {
-          // trigger change detection
-          user_input.update((n) => n);
-        };
-
-        runtime.fetchOrLoadConfig(ui, callback);
-      }
-
-      let active = {
-        elementtype: element_type,
-        config: config,
-        events: {
-          selected: selectedEvent.event,
-          options: device.pages[pageIndex].control_elements[
-            elementIndex
-          ].events.map((e) => e.event),
-        },
-        elements: {
-          selected: ui.event.elementnumber,
-          options: device.pages[pageIndex].control_elements.map(
-            (n) => n.controlElementNumber
-          ),
-        },
-        pages: {
-          selected: ui.event.pagenumber,
-          options: device.pages.map((n) => n.pageNumber),
-        },
-      };
-
-      if (typeof active === "undefined") {
-        throw "active is undefined";
-      }
-
-      let res = _utils.gridLuaToEditorLua(active.config);
-      if (typeof res === "undefined") {
-        throw "Grid Lua to Editor Lua failed.";
-      }
-
-      let res_is_valid = true;
-
-      res.forEach((element) => {
-        if (element.information === undefined) {
-          res_is_valid = false;
-        }
-      });
-
-      if (res !== undefined && res_is_valid) {
-        configs = res;
-        dropStore.update(res);
-        conditionalConfigPlacement.set(configs);
-        localDefinitions.update(configs);
-
-        access_tree.elementtype = active.elementtype;
-      }
-
-      // let use of default dummy parameters
-      if (active.elements.selected !== "") {
-        events = active.events;
-        elements = active.elements;
-      }
-
-      // set UI to uiEvents, if its not system events
-      if (elements.selected !== 255) {
-        $appSettings.configType = "uiEvents";
-      }
-    } catch (error) {
-      console.log("Error:", error);
-    }
-
-    //////
-    let configs = "";
-    const unsubscribe = luadebug_store.subscribe((data) => {
-      let arr = [];
-      const temp = new ConfigList(data.config);
-      for (const value in temp) console.log(value);
-      temp
-        .checkLength()
-        .then((e) => e.checkSyntax())
-        .then(console.log("yay"))
-        .catch((e) => console.log(e));
-      configs = _utils.rawLuaToConfigList(data.config);
-      for (let i = 0; i < configs.length; i += 2) {
-        arr.push(`${configs[i]}${configs[i + 1]}`.trim());
-      }
-      configs = arr;
-    });
-    unsubscribe();
-    return configs;
+    return this.configLength <= grid.properties.CONFIG_LENGTH;
   }
 }
 
