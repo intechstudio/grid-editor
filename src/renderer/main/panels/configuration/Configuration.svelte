@@ -16,18 +16,15 @@
     runtime,
     logger,
     appMultiSelect,
-    luadebug_store,
-    localDefinitions,
-    conditionalConfigPlacement,
     user_input,
     engine,
   } from "../../../runtime/runtime.store.js";
 
-  import { dropStore } from "./Configuration.store.js";
+  import { ConfigList } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
 
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
@@ -42,36 +39,23 @@
   import { ConfigManager } from "./Configuration.store.js";
   import AddAction from "./components/AddAction.svelte";
 
-  import grid from "../../../protocol/grid-protocol";
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
-  let configs = [];
+  let configs = undefined;
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
   let access_tree = {};
 
-  function configuration_panel_reset() {
-    configs = [];
-    events = { options: ["", "", ""], selected: "" };
-    elements = { options: [], selected: "" };
-  }
-
-  onMount(() => {
-    console.log("configuration mount.y");
-  });
+  onMount(() => {});
 
   let controllerIndex;
 
   $: controllerIndex = $selectedControllerIndexStore;
 
   $: selectedControllerIndexStore.set(elements);
-
-  const ui = get(user_input);
-
-  $: console.log(ui.event.elementtype, "ui.event.elementtype");
 
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;
@@ -135,152 +119,33 @@
     }
   }
 
-  $: {
+  const ui_unsubscribe = user_input.subscribe((ui) => {
     try {
-      const ui = $user_input;
-      appMultiSelect.reset();
-
-      let config = [];
-      let selectedEvent = "";
-
-      const rt = get(runtime);
-      const device = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      if (typeof device === "undefined") {
-        if (rt.length === 0) {
-          configuration_panel_reset();
-          throw "ACTIVE_CONFIG: disconnect";
+      if ($user_input) {
+        appMultiSelect.reset();
+        configs = ConfigList.getCurrent();
+        if (typeof configs === "undefined") {
+          throw "Error loading current config.";
         }
-
-        throw "device is undefined";
-      }
-
-      let module_type = device.id.split("_")[0];
-
-      let element_type =
-        grid.moduleElements[module_type][ui.event.elementnumber];
-
-      let pageIndex = device.pages.findIndex(
-        (x) => x.pageNumber == ui.event.pagenumber
-      );
-      let elementIndex = device.pages[pageIndex].control_elements.findIndex(
-        (x) => x.controlElementNumber == ui.event.elementnumber
-      );
-
-      if (elementIndex === -1) {
-        //console.log("MAXOS PARA")
-        elementIndex = 0;
-      }
-
-      const eventIndex = device.pages[pageIndex].control_elements[
-        elementIndex
-      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
-
-      if (eventIndex === -1) {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[0];
-        ui.event.eventtype = 0;
-      } else {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[
-            eventIndex
-          ];
-      }
-
-      if (typeof selectedEvent === "undefined") {
-        //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-        throw "selectedEvent is undefined";
-      }
-
-      if (selectedEvent.config.length) {
-        config = selectedEvent.config.trim();
-      }
-
-      const cfgstatus = selectedEvent.cfgStatus;
-
-      if (
-        cfgstatus == "GRID_REPORT" ||
-        cfgstatus == "EDITOR_EXECUTE" ||
-        cfgstatus == "EDITOR_BACKGROUND"
-      ) {
-        // its loaded
-      } else {
-        // fetch
-        const callback = function () {
-          // trigger change detection
-          user_input.update((n) => n);
-        };
-
-        runtime.fetchOrLoadConfig(ui, callback);
-      }
-
-      let active = {
-        elementtype: element_type,
-        config: config,
-        events: {
-          selected: selectedEvent.event,
-          options: device.pages[pageIndex].control_elements[
-            elementIndex
-          ].events.map((e) => e.event),
-        },
-        elements: {
-          selected: ui.event.elementnumber,
-          options: device.pages[pageIndex].control_elements.map(
-            (n) => n.controlElementNumber
-          ),
-        },
-        pages: {
-          selected: ui.event.pagenumber,
-          options: device.pages.map((n) => n.pageNumber),
-        },
-      };
-
-      if (typeof active === "undefined") {
-        throw "active is undefined";
-      }
-
-      let res = _utils.gridLuaToEditorLua(active.config);
-      if (typeof res === "undefined") {
-        throw "Grid Lua to Editor Lua failed.";
-      }
-
-      let res_is_valid = true;
-
-      res.forEach((element) => {
-        if (element.information === undefined) {
-          res_is_valid = false;
-        }
-      });
-
-      if (res !== undefined && res_is_valid) {
-        configs = res;
-        dropStore.update(res);
-        conditionalConfigPlacement.set(configs);
-        localDefinitions.update(configs);
-
-        access_tree.elementtype = active.elementtype;
-      }
-
-      // let use of default dummy parameters
-      if (active.elements.selected !== "") {
-        events = active.events;
-        elements = active.elements;
       }
 
       // set UI to uiEvents, if its not system events
-      if (elements.selected !== 255) {
+      if (configs.target.element !== 255) {
         $appSettings.configType = "uiEvents";
       }
-    } catch (error) {
-      console.log("Error:", error);
+    } catch (e) {
+      console.error(e);
     }
-  }
+  });
+
+  onDestroy(() => {
+    ui_unsubscribe();
+  });
+
+  $: console.log("CONFIGSSSS", configs);
 
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 
-  let disable_pointer_events = false;
   let animation = false;
   let drag_start = false;
   let drag_target = "";
@@ -299,16 +164,13 @@
   }
 
   function handleDrop(e) {
-    //console.log("handleDrop")
-
     // if only cfg-list is selected, don't let dnd happen nor delete.
     if (!Number.isNaN(drop_target)) {
       const list = new ConfigManager();
+      console.log(configs, drag_target, drop_target, undefined);
       list.reorder(configs, drag_target, drop_target, e.detail.multi);
     }
   }
-
-  $: luadebug_store.update_config(_utils.configMerge({ config: configs }));
 </script>
 
 <configuration
@@ -356,7 +218,7 @@
     >
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
         <div>
-          <ConfigParameters {configs} {events} {elements} />
+          <ConfigParameters {events} />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
             <MultiSelect />
@@ -365,9 +227,6 @@
 
         <div
           use:changeOrder={{ configs }}
-          on:disable-pointer-events={(e) => {
-            disable_pointer_events = true;
-          }}
           on:drag-start={(e) => {
             drag_start = true;
             actionIsDragged = true;
@@ -386,9 +245,6 @@
             drop_target = undefined;
             drag_target = [];
           }}
-          on:enable-pointer-events={(e) => {
-            disable_pointer_events = false;
-          }}
           on:anim-start={() => {
             animation = true;
           }}
@@ -404,11 +260,9 @@
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full h-auto overflow-y-auto px-4 {disable_pointer_events
-              ? 'cursor-grabbing'
-              : ''}"
+            class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
-            {#if configs.length !== 0}
+            {#if typeof configs !== "undefined"}
               {#if !drag_start}
                 <AddAction
                   {animation}
@@ -427,48 +281,39 @@
                 />
               {/if}
 
-              {#if configs !== undefined}
-                {#each configs as config, index (config.id)}
-                  <anim-block
-                    animate:flip={{ duration: 300 }}
-                    in:fade={{ delay: 0 }}
-                    class="select-none {config.information.rendering == 'hidden'
-                      ? 'hidden'
-                      : 'block'}"
-                  >
-                    <DynamicWrapper
-                      let:toggle
-                      {drag_start}
-                      {disable_pointer_events}
-                      {index}
-                      {config}
-                      {configs}
-                      {access_tree}
-                    />
+              {#each configs as config, index}
+                <anim-block in:fade={{ delay: 0 }} class="select-none">
+                  <DynamicWrapper
+                    let:toggle
+                    {drag_start}
+                    {index}
+                    {config}
+                    {configs}
+                    {access_tree}
+                  />
 
-                    {#if !drag_start}
-                      <AddAction
-                        {animation}
-                        {config}
-                        {index}
-                        {configs}
-                        on:new-config={(e) => {
-                          addConfigAtPosition(e, index + 1);
-                        }}
-                      />
-                    {:else}
-                      <DropZone
-                        {configs}
-                        {index}
-                        {drag_target}
-                        {drop_target}
-                        {animation}
-                        {drag_start}
-                      />
-                    {/if}
-                  </anim-block>
-                {/each}
-              {/if}
+                  {#if !drag_start}
+                    <AddAction
+                      {animation}
+                      {config}
+                      {index}
+                      {configs}
+                      on:new-config={(e) => {
+                        addConfigAtPosition(e, index + 1);
+                      }}
+                    />
+                  {:else}
+                    <DropZone
+                      {configs}
+                      {index}
+                      {drag_target}
+                      {drop_target}
+                      {animation}
+                      {drag_start}
+                    />
+                  {/if}
+                </anim-block>
+              {/each}
             {/if}
           </config-list>
         </div>

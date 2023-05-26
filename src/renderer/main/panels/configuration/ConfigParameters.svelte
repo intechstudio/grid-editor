@@ -21,7 +21,6 @@
   import mixpanel from "mixpanel-browser";
 
   export let events;
-  export let elements;
 
   let stringname;
 

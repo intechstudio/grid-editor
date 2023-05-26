@@ -91,7 +91,6 @@ let selection_changed_timestamp = 0;
 
 export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
-export const conditionalConfigPlacement = writable();
 
 export const elementPositionStore = writable({});
 export const elementNameStore = writable({});

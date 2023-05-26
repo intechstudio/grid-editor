@@ -26,8 +26,6 @@ function get_configs() {
   let configs = "";
   const unsubscribe = luadebug_store.subscribe((data) => {
     let arr = [];
-    const temp = ConfigList.getCurrent();
-    console.log(temp);
     configs = _utils.rawLuaToConfigList(data.config);
     for (let i = 0; i < configs.length; i += 2) {
       arr.push(`${configs[i]}${configs[i + 1]}`.trim());
@@ -49,45 +47,69 @@ export class ConfigObject {
 export class ConfigList {
   //Internal private list
   #list = [];
+  target = undefined;
 
   static getCurrent() {
     const ui = get(user_input);
-    return new ConfigList({
-      device: { dx: ui.brc.dx, dy: ui.brc.dy },
-      pageIndex: ui.event.pagenumber,
-      elementIndex: ui.event.elementnumber,
-      eventType: ui.event.eventtype,
-    });
+    try {
+      return new ConfigList({
+        device: { dx: ui.brc.dx, dy: ui.brc.dy },
+        pageIndex: ui.event.pagenumber,
+        elementIndex: ui.event.elementnumber,
+        eventType: ui.event.eventtype,
+      });
+    } catch (e) {
+      console.error("ConfigList:", e);
+      return undefined;
+    }
   }
 
   constructor({ device: { dx, dy }, pageIndex, elementIndex, eventType }) {
-    let actionString;
-    try {
-      const rt = get(runtime);
-      const device = rt.find((e) => e.dx == dx && e.dy == dy);
-      const page = device.pages.at(pageIndex);
-      const element = page.control_elements.at(elementIndex);
-      const event = element.events.find((e) => e.event.value == eventType);
-      actionString = event.config;
-    } catch (e) {
-      console.error(e);
-      return undefined;
+    const rt = get(runtime);
+    const device = rt.find((e) => e.dx == dx && e.dy == dy);
+
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
     }
 
-    //Parse actionString
+    const page = device.pages.at(pageIndex);
+    const element = page.control_elements.at(elementIndex);
+    let event = element.events.find((e) => e.event.value == eventType);
+    const cfgstatus = event.cfgStatus;
+    if (
+      cfgstatus != "GRID_REPORT" &&
+      cfgstatus != "EDITOR_EXECUTE" &&
+      cfgstatus != "EDITOR_BACKGROUND"
+    ) {
+      const ui = get(user_input);
+      const callback = () => user_input.update((n) => n);
+      runtime.fetchOrLoadConfig(ui, callback);
+    }
+
+    const configScript = event.config;
+
+    this.target = {
+      dx: dx,
+      dy: dy,
+      page: pageIndex,
+      element: elementIndex,
+      eventType: eventType,
+    };
+
+    //Parse configScript
     //TODO: do rawLuas format checking during parsing
 
     // get rid of new line, enter
-    actionString = actionString.replace(/[\n\r]+/g, "");
+    configScript = configScript.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
-    actionString = actionString.replace(/\s{2,10}/g, " ");
+    configScript = configScript.replace(/\s{2,10}/g, " ");
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (actionString.startsWith("<?lua")) {
-      actionString = actionString.split("<?lua")[1].split("?>")[0];
+    if (configScript.startsWith("<?lua")) {
+      configScript = configScript.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = actionString.split(/(--\[\[@+[a-z]+\]\])/);
+    let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       this.push(
@@ -120,17 +142,7 @@ export class ConfigList {
   }
 
   [Symbol.iterator]() {
-    let index = 0;
-
-    // Define the next() method for iterator
-    return {
-      next() {
-        if (index < this.#list.length) {
-          return { value: this.#list[index++], done: false };
-        }
-        return { done: true };
-      },
-    };
+    return this.#list[Symbol.iterator]();
   }
 
   insert(config, atPosition) {
@@ -181,7 +193,6 @@ export class ConfigList {
 
 export class ConfigManager {
   #list = [];
-  constructor() {}
 
   reorder(configs, drag_target, drop_target, isMultiDrag) {
     let grabbed = [];
@@ -237,13 +248,13 @@ export class ConfigManager {
   copy(isCut = false) {
     const selection = get(appMultiSelect).selection;
 
-    const configs = get_configs();
+    const configs = ConfigList.getCurrent();
 
     let clipboard = [];
 
     selection.forEach((elem, index) => {
       if (elem) {
-        clipboard.push(configs[index]);
+        clipboard.push(configs.at(index));
       }
     });
 
@@ -256,7 +267,10 @@ export class ConfigManager {
 
   paste() {
     if (get(appActionClipboard).length) {
-      const configs = [...get_configs(), ...get(appActionClipboard)];
+      const configs = ConfigList.getCurrent();
+      for (var config in get(appActionClipboard)) {
+        configs.push(config);
+      }
 
       const li = get(user_input);
 
@@ -265,7 +279,7 @@ export class ConfigManager {
       const page = li.event.pagenumber;
       const element = li.event.elementnumber;
       const event = li.event.eventtype;
-      const actionString = _utils.configsToActionString(configs);
+      const actionString = configs.toConfigScript();
 
       runtime
         .check_action_string_length(actionString)
@@ -505,39 +519,3 @@ export class ConfigManager {
     }
   }
 }
-
-function createDropStore() {
-  const store = writable([]);
-
-  return {
-    ...store,
-    update: (configs) => {
-      let disabled_blocks = [];
-      let if_block = false;
-      configs.forEach((a, index) => {
-        try {
-          // check if it's and if block
-          if (a.information.name.endsWith("_If")) {
-            if_block = true;
-          }
-
-          // don't add +1 id in the array (end)
-          if (if_block && !a.information.name.endsWith("_End")) {
-            disabled_blocks.push(index);
-          }
-
-          // this is the last, as END has to be disabled too!
-          if (a.information.name.endsWith("_End")) {
-            if_block = false;
-          }
-        } catch (e) {
-          console.log(e);
-        }
-      });
-
-      store.set(disabled_blocks);
-    },
-  };
-}
-
-export const dropStore = createDropStore();
