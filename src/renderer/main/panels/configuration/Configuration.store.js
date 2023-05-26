@@ -86,7 +86,7 @@ export class ConfigList {
       runtime.fetchOrLoadConfig(ui, callback);
     }
 
-    const configScript = event.config;
+    let configScript = event.config;
 
     this.target = {
       dx: dx,

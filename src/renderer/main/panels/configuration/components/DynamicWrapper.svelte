@@ -31,9 +31,7 @@
 
   export let config;
   export let configs;
-  let configInformation = getComponentInformation({
-    short: config.short,
-  });
+  let configInformation = {};
 
   $: console.log("yaaay", config, configInformation);
 
@@ -48,6 +46,9 @@
 
   onMount(() => {
     let openedBlocks = $openedActionBlocks;
+    configInformation = getComponentInformation({
+      short: config.short,
+    });
     console.log("Mount", config);
 
     console.log(configInformation);
