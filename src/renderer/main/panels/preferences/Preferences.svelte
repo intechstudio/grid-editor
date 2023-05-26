@@ -19,6 +19,8 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  const { env } = window.ctxProcess;
+
   let helperPreviewElement;
 
   let helperAttachment = writable({
@@ -368,6 +370,45 @@
     >
       Download UXP Plugin
     </button>
+  </div>
+
+  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="pb-2">Profile Cloud URL</div>
+    <div class="flex flex-wrap gap-1">
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://localhost:5200";
+        }}
+        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >localhost:5200</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
+        }}
+        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >profile-cloud.web.app</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://google.com";
+        }}
+        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >google.com</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl =
+            "https://links.intech.studio/profile-cloud";
+        }}
+        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >links/profile-cloud</button
+      >
+    </div>
+    <input
+      class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
+      bind:value={$appSettings.profileCloudUrl}
+    />
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">

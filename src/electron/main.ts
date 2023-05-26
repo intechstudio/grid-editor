@@ -37,6 +37,7 @@ import {
   moveOldConfigs,
   saveConfig,
   updateConfig,
+  updateLocal,
   deleteConfig,
 } from "./src/profiles";
 import { googleAnalytics } from "./src/analytics";
@@ -397,6 +398,16 @@ ipcMain.handle("updateConfig", async (event, arg) => {
     arg.config,
     arg.rootDirectory,
     arg.oldName,
+    arg.profileFolder
+  );
+});
+
+ipcMain.handle("updateLocal", async (event, arg) => {
+  return await updateLocal(
+    arg.configPath,
+    arg.name,
+    arg.config,
+    arg.rootDirectory,
     arg.profileFolder
   );
 });

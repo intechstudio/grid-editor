@@ -209,6 +209,16 @@ export async function deleteConfig(
     });
 }
 
+export async function updateLocal(
+  configPath,
+  id,
+  config,
+  rootDirectory,
+  profileFolder
+) {
+  await saveConfig(configPath, id, config, rootDirectory, profileFolder);
+}
+
 export async function updateConfig(
   configPath,
   name,

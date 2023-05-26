@@ -68,6 +68,14 @@ contextBridge.exposeInMainWorld("electron", {
         oldName,
         profileFolder,
       }),
+    updateLocal: (configPath, name, config, rootDirectory, profileFolder) =>
+      ipcRenderer.invoke("updateLocal", {
+        configPath,
+        name,
+        config,
+        rootDirectory,
+        profileFolder,
+      }),
     deleteConfig: (configPath, name, rootDirectory, profileFolder) =>
       ipcRenderer.invoke("deleteConfig", {
         configPath,
