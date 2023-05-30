@@ -1,4 +1,5 @@
 import { writable, get } from "svelte/store";
+import { v4 as uuidv4 } from "uuid";
 
 import mixpanel from "mixpanel-browser";
 import {
@@ -9,6 +10,8 @@ import {
   appActionClipboard,
   user_input,
 } from "../../../runtime/runtime.store";
+
+import { getComponentInformation } from "../../../lib/_configs";
 
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
@@ -38,9 +41,18 @@ function get_configs() {
 
 export class ConfigObject {
   constructor({ short, script }) {
+    this.id = uuidv4();
     this.short = short;
     this.script = script;
     this.rawLua = `--[[@${short}]] ` + script;
+
+    const res = getComponentInformation({ short: short });
+    if (typeof res === "undefined") {
+      throw "Config component information not found.";
+    }
+
+    this.information = res.information;
+    this.component = res.component;
   }
 }
 
@@ -137,8 +149,12 @@ export class ConfigList {
     if (index >= 0 && index < this.#list.length) {
       return this.#list[index];
     } else {
-      return undefined;
+      return null;
     }
+  }
+
+  toArray() {
+    return [...this.#list];
   }
 
   [Symbol.iterator]() {

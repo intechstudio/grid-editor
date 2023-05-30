@@ -7,10 +7,7 @@
   import mixpanel from "mixpanel-browser";
   import _utils from "../../../../runtime/_utils";
 
-  import {
-    presetManagement,
-    openedActionBlocks,
-  } from "../../../../runtime/app-helper.store";
+  import { presetManagement } from "../../../../runtime/app-helper.store";
 
   import { get } from "svelte/store";
 
@@ -73,12 +70,6 @@
 
   function pickAction(action) {
     const short = action.short;
-
-    openedActionBlocks.update((s) => {
-      s = s.filter((v) => v !== short);
-      s.push(short);
-      return s;
-    });
 
     selected_action = action.desc;
     presetManagement.selected_action.update({

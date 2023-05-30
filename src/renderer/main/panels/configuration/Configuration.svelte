@@ -43,7 +43,7 @@
 
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
-  let configs = undefined;
+  let configs = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -123,15 +123,16 @@
     try {
       if ($user_input) {
         appMultiSelect.reset();
-        configs = ConfigList.getCurrent();
-        if (typeof configs === "undefined") {
+        const list = ConfigList.getCurrent();
+        if (typeof list === "undefined") {
           throw "Error loading current config.";
         }
-      }
+        configs = list.toArray();
 
-      // set UI to uiEvents, if its not system events
-      if (configs.target.element !== 255) {
-        $appSettings.configType = "uiEvents";
+        // set UI to uiEvents, if its not system events
+        if (list.target.element !== 255) {
+          $appSettings.configType = "uiEvents";
+        }
       }
     } catch (e) {
       console.error(e);
@@ -141,8 +142,6 @@
   onDestroy(() => {
     ui_unsubscribe();
   });
-
-  $: console.log("CONFIGSSSS", configs);
 
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 

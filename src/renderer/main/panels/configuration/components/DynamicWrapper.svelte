@@ -10,17 +10,10 @@
     runtime,
     user_input,
     logger,
-    luadebug_store,
     appMultiSelect,
   } from "../../../../runtime/runtime.store.js";
 
   import _utils from "../../../../runtime/_utils";
-  import { getComponentInformation } from "../../../../lib/_configs";
-
-  import {
-    configNodeBinding,
-    openedActionBlocks,
-  } from "../../../../runtime/app-helper.store.js";
 
   import { getAllComponents } from "../../../../lib/_configs";
 
@@ -30,61 +23,33 @@
   import { ConfigObject } from "../Configuration.store";
 
   export let config;
-  export let configs;
-  let configInformation = {};
-
-  $: console.log("yaaay", config, configInformation);
 
   export let access_tree;
   export let index = undefined;
 
-  export let toggle = false;
+  let toggled = false;
+  let carousel = undefined;
 
   let syntaxError = false;
   let validationError = false;
-  let animationDuration = 0;
 
   onMount(() => {
-    let openedBlocks = $openedActionBlocks;
-    configInformation = getComponentInformation({
-      short: config.short,
-    });
-    console.log("Mount", config);
-
-    console.log(configInformation);
-
-    if (openedBlocks.find((s) => s == config.short)) {
-      toggle = true;
-
-      animationDuration = 0;
-    } else {
-      animationDuration =
-        configInformation.rendering != "standard" ||
-        configInformation.toggleable === false
-          ? 0
-          : 400;
-    }
     isSyntaxError();
   });
-
-  let informationOverride = {};
 
   function replace_me(e) {
     appMultiSelect.reset();
 
-    let components = getAllComponents();
-
-    let new_config = components.find((c) => c.information.name == e.detail);
+    let new_config = getAllComponents().find(
+      (c) => c.information.name == e.detail
+    );
 
     config = new ConfigObject(
       new_config.information.short,
       new_config.information.defaultLua
     );
 
-    config.component = new_config.component;
-    configInformation = new_config.information;
-
-    handleConfigChange({ configName: configInformation.name });
+    handleConfigChange({ configName: component.information.name });
   }
 
   function isSyntaxError() {
@@ -105,13 +70,6 @@
       });
     }
     return syntaxError;
-  }
-
-  function information_override(e) {
-    Object.keys(e.detail).forEach((k) => {
-      //console.log("k-v", k, e.detail[k]);
-      informationOverride[k] = e.detail[k];
-    });
   }
 
   function handleConfigChange({ configName }) {
@@ -160,7 +118,7 @@
             event
           );
         })
-        .catch((error) => {
+        .catch((e) => {
           logger.set({
             type: "fail",
             mode: 0,
@@ -171,56 +129,66 @@
     }
   }
 
-  function handleToggle(short) {
-    if (toggle === true) {
-      toggle = false;
-      animationDuration =
-        configInformation.rendering != "standard" ||
-        configInformation.toggleable === false
-          ? 0
-          : 400;
-
-      openedActionBlocks.update((s) => {
-        s = s.filter((v) => v !== short);
-        return s;
-      });
-    } else {
-      toggle = true;
-
-      openedActionBlocks.update((s) => {
-        s = s.filter((v) => v !== short);
-        s.push(short);
-        return s;
-      });
-    }
+  function handleToggle() {
+    toggled = !toggled;
   }
+
+  function openAnimation(node, isOpen) {
+    let initialHeight = node.offsetHeight;
+    node.style.height = isOpen ? "auto" : 0;
+    node.style.overflow = "hidden";
+    return {
+      update(isOpen) {
+        let animation = node.animate(
+          [
+            {
+              height: initialHeight + "px",
+              overflow: "hidden",
+            },
+            {
+              height: 0,
+              overflow: "hidden",
+            },
+          ],
+          { duration: 100, fill: "both" }
+        );
+        animation.pause();
+        if (!isOpen) {
+          animation.play();
+        } else {
+          animation.reverse();
+        }
+      },
+    };
+  }
+
+  //$: $openedActionBlocks.forEach();
 </script>
 
-<wrapper
-  bind:this={$configNodeBinding[config.id]}
-  class="flex border-none outline-none transition-opacity duration-300"
->
+<wrapper class="flex border-none outline-none transition-opacity duration-300">
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+
   <carousel
-    class="group flex flex-grow {toggle ? 'h-auto' : 'h-10'} "
+    bind:this={carousel}
+    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
-    config-component={configInformation.name}
-    movable={configInformation.rendering == "standard" ||
-      configInformation.name.endsWith("_If")}
+    config-component={config.information.name}
     config-id={config.id}
+    movable={config.information.rendering == "standard" ||
+      config.information.name.endsWith("_If")}
     on:click|self={() => {
-      if (configInformation.rendering !== "standard") return;
-      handleToggle(config.short);
+      handleToggle();
+      openAnimation(carousel, toggled);
     }}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
-    <div class="w-full flex flex-row pointer-events-none">
+    <div
+      class="w-full flex flex-row pointer-events-none transition-all duration-300"
+    >
       <!-- Six dots to the left -->
       <div
         class="flex p-2 items-center bg-secondary"
-        class:group-hover:bg-select-saturate-10={!toggle}
-        class:invisible={configInformation.rendering !== "standard" &&
-          !configInformation.name.endsWith("_If")}
+        class:group-hover:bg-select-saturate-10={!toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-l={syntaxError}
@@ -242,55 +210,44 @@
         </svg>
       </div>
 
-      {#if configInformation && configInformation.blockTitle !== "End"}
-        <div
-          style="background-color:{configInformation.color}"
-          class="flex items-center p-2 w-min text-center"
-          class:border-y={syntaxError}
-          class:border-error={syntaxError}
-        >
-          <div class="w-6 h-6 whitespace-nowrap">
-            {#if configInformation && configInformation.blockTitle !== "IF"}
-              {@html configInformation.icon}
-            {:else}
-              <span class="text-white">
-                {configInformation.blockTitle}
-              </span>
-            {/if}
-          </div>
+      <!-- Icon -->
+      <div
+        style="background-color:{config.information.color}"
+        class="flex items-center p-2 w-min text-center"
+        class:border-y={syntaxError}
+        class:border-error={syntaxError}
+      >
+        <div class="w-6 h-6 whitespace-nowrap">
+          {#if config.information.blockTitle !== "IF"}
+            {@html config.information.icon}
+          {:else}
+            <span class="text-white">
+              {config.information.blockTitle}
+            </span>
+          {/if}
         </div>
-      {/if}
+      </div>
 
       <!-- Body of the config block -->
       <div
-        style="background-color:{configInformation.rendering !== 'standard'
-          ? configInformation.color
+        style="background-color:{config.information.rendering !== 'standard'
+          ? config.information.color
           : ''}"
         class="w-full bg-secondary cur"
-        class:rounded-tr-xl={configInformation.rounding == "top"}
-        class:rounded-br-xl={configInformation.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggle}
+        class:rounded-tr-xl={config.information.rounding == "top"}
+        class:rounded-br-xl={config.information.rounding == "bottom"}
+        class:group-hover:bg-select-saturate-10={!toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-r={syntaxError}
-        class:cursor-auto={toggle}
+        class:cursor-auto={toggled}
+        class:bg-opacity-30={toggled}
       >
-        {#if configInformation && (toggle || configInformation.blockTitle === "IF")}
+        {#if toggled}
           <container
-            in:slide={{ duration: animationDuration }}
             class="flex items-center h-full w-full pointer-events-auto"
-            class:bg-primary={toggle && configInformation.blockTitle !== "IF"}
-            class:bg-opacity-60={toggle}
-            class:pr-2={configInformation.rendering !== "standard"}
           >
-            <fader-transition
-              class="w-full"
-              in:fade={{
-                easing: quadIn,
-                delay: animationDuration / 3,
-                duration: animationDuration,
-              }}
-            >
+            <fader-transition class="w-full">
               <svelte:component
                 this={config.component}
                 {index}
@@ -298,9 +255,6 @@
                 {access_tree}
                 on:replace={(e) => {
                   replace_me(e);
-                }}
-                on:informationOverride={(e) => {
-                  information_override(e);
                 }}
                 on:validator={(e) => {
                   const data = e.detail;
@@ -310,7 +264,9 @@
                   config.script = e.detail.script;
                   config.toValidate = e.detail.toValidate;
                   isSyntaxError();
-                  handleConfigChange({ configName: configInformation.name });
+                  handleConfigChange({
+                    configName: config.information.name,
+                  });
                 }}
               />
             </fader-transition>
@@ -319,23 +275,23 @@
           <div
             class="px-4 flex flex-row justify-between w-full items-center h-full"
           >
-            <span class="text-white">{configInformation.desc}</span>
-            {#if syntaxError}
-              <span class="text-error text-xs">SYNTAX ERROR</span>
-            {/if}
+            <span class="text-white">{config.information.desc}</span>
+            <span class="text-error text-xs" class:hidden={!syntaxError}>
+              SYNTAX ERROR
+            </span>
           </div>
         {/if}
       </div>
     </div>
   </carousel>
 
-  <Options
+  <!-- <Options
     {toggle}
     {index}
     {configs}
     rendering={configInformation.rendering}
     componentName={configInformation.name}
-  />
+  /> -->
 </wrapper>
 
 <style global>

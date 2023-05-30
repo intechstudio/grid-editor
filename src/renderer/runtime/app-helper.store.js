@@ -258,8 +258,6 @@ async function init_appsettings() {
 
 export const preferenceStore = writable();
 
-export const openedActionBlocks = writable([]);
-
 export const action_collection = readable(Promise.all([getAllComponents()]));
 
 function createPresetManagement() {
@@ -310,5 +308,3 @@ export const layout = writable([]);
 export const numberOfModulesStore = writable();
 
 export const focusedCodeEditor = writable();
-
-export const configNodeBinding = writable([]);
