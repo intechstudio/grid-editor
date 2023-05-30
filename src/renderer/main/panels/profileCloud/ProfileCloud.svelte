@@ -59,6 +59,13 @@
     }
   }
 
+  async function handleLogoutFromProfileCloud(event) {
+    if (event.data.channelMessageType == "LOGOUT_FROM_PROFILE_CLOUD") {
+      await authStore.logout();
+      channel.postMessage({ ok: true, data: {} });
+    }
+  }
+
   async function handleImportProfile(event) {
     if (event.data.channelMessageType == "IMPORT_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
@@ -429,6 +436,9 @@
       }
       if (event.data == "loginToProfileCloud") {
         channel.onmessage = handleLoginToProfileCloud;
+      }
+      if (event.data == "logoutFromProfileCloud") {
+        channel.onmessage = handleLogoutFromProfileCloud;
       }
       if (event.data == "splitLocalProfile") {
         channel.onmessage = handleSplitLocalProfile;
