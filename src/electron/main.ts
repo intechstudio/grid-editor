@@ -335,20 +335,20 @@ deeplink.on("received", (data) => {
   if (data.startsWith("grid-editor")) {
     const url = new URL(data);
     if (url.searchParams.get("credential") !== null) {
-      const credential = url.searchParams.get("credential")
+      const credential = url.searchParams.get("credential");
       mainWindow.webContents.send("onExternalAuthResponse", credential);
     }
     if (url.searchParams.get("profile-link") !== null) {
-      const profileLink = url.searchParams.get("profile-link")
+      const profileLink = url.searchParams.get("profile-link");
       mainWindow.webContents.send("onExternalProfileLinkResponse", profileLink);
     }
   }
 });
 
 ipcMain.handle("clipboardWriteText", async (event, arg) => {
-  console.log(arg.text)
+  console.log(arg.text);
   clipboard.writeText(arg.text);
-})
+});
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;

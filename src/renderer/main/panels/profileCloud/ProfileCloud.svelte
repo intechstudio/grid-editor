@@ -38,13 +38,15 @@
     }
   }
 
-  function sendProfileLinkToIframe(profileLink) {
+  function sendProfileLinkToIframe(id) {
     if (iframe_element == undefined) return;
+
+    console.log("got this id");
 
     iframe_element.contentWindow.postMessage(
       {
         messageType: "profileLink",
-        profileLink: profileLink,
+        profileLinkId: id,
       },
       "*"
     );
@@ -142,6 +144,7 @@
     if (event.data.channelMessageType == "DELETE_LOCAL_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
       const { folder, id } = event.data?.profile;
+      console.log(folder, id);
       await window.electron.configs
         .deleteConfig(path, id, "profiles", folder)
         .then((res) => {
