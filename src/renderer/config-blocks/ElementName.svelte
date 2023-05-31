@@ -11,6 +11,9 @@
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
     `,
+    blockIcon: `
+    <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
+    `,
     color: "#887880",
   };
 </script>

@@ -20,7 +20,11 @@
     engine,
   } from "../../../runtime/runtime.store.js";
 
-  import { ConfigList } from "./Configuration.store.js";
+  import {
+    ConfigList,
+    ConfigTarget,
+    ConfigObject,
+  } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
 
@@ -48,8 +52,6 @@
   let elements = { options: [], selected: "" };
 
   let access_tree = {};
-
-  onMount(() => {});
 
   let controllerIndex;
 
@@ -119,29 +121,23 @@
     }
   }
 
-  const ui_unsubscribe = user_input.subscribe((ui) => {
+  $: if ($user_input) {
+    appMultiSelect.reset();
     try {
-      if ($user_input) {
-        appMultiSelect.reset();
-        const list = ConfigList.getCurrent();
-        if (typeof list === "undefined") {
-          throw "Error loading current config.";
-        }
-        configs = list.toArray();
+      const target = ConfigTarget.getCurrent();
+      configs = target.getConfig();
+      if (typeof configs === "undefined") {
+        throw "Error loading current config.";
+      }
 
-        // set UI to uiEvents, if its not system events
-        if (list.target.element !== 255) {
-          $appSettings.configType = "uiEvents";
-        }
+      // set UI to uiEvents, if its not system events
+      if (configs.target.element !== 255) {
+        $appSettings.configType = "uiEvents";
       }
     } catch (e) {
-      console.error(e);
+      console.error("Configuration:", e);
     }
-  });
-
-  onDestroy(() => {
-    ui_unsubscribe();
-  });
+  }
 
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 
@@ -169,6 +165,20 @@
       console.log(configs, drag_target, drop_target, undefined);
       list.reorder(configs, drag_target, drop_target, e.detail.multi);
     }
+  }
+
+  function handleConfigUpdate(e) {
+    const { configId, newConfig } = e.detail;
+    const index = configs.findIndex((e) => e.id === configId);
+    if (index !== -1) {
+      throw "Unknown Error";
+    }
+
+    configs[index] = newConfig;
+    ConfigManager.update({
+      target: configs.target,
+      newConfig: configs,
+    });
   }
 </script>
 
@@ -289,6 +299,7 @@
                     {config}
                     {configs}
                     {access_tree}
+                    on:update={handleConfigUpdate}
                   />
 
                   {#if !drag_start}

@@ -8,6 +8,7 @@
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
+    blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
   };
 </script>
 

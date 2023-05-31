@@ -872,23 +872,6 @@ function create_runtime() {
     });
   }
 
-  function check_action_string_length(configs) {
-    const maxConfigLength = grid.properties.CONFIG_LENGTH;
-    const configLength = configs.length;
-    return new Promise((resolve, reject) => {
-      //dest.config.length >= grid.properties.CONFIG_LENGTH
-      if (maxConfigLength < configLength) {
-        throw {
-          what: `Config limit reached! Max character count is ${maxConfigLength}.`,
-          length: configLength,
-          max: maxConfigLength,
-        };
-      } else {
-        resolve({ length: configLength, max: maxConfigLength });
-      }
-    });
-  }
-
   function send_event_configuration_to_grid(
     dx,
     dy,
@@ -1266,7 +1249,6 @@ function create_runtime() {
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
-    check_action_string_length: check_action_string_length,
   };
 }
 

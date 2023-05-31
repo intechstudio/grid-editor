@@ -25,20 +25,6 @@ const luaminOptions = {
   SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
 };
 
-function get_configs() {
-  let configs = "";
-  const unsubscribe = luadebug_store.subscribe((data) => {
-    let arr = [];
-    configs = _utils.rawLuaToConfigList(data.config);
-    for (let i = 0; i < configs.length; i += 2) {
-      arr.push(`${configs[i]}${configs[i + 1]}`.trim());
-    }
-    configs = arr;
-  });
-  unsubscribe();
-  return configs;
-}
-
 export class ConfigObject {
   constructor({ short, script }) {
     this.id = uuidv4();
@@ -54,39 +40,63 @@ export class ConfigObject {
     this.information = res.information;
     this.component = res.component;
   }
+
+  checkSyntax() {
+    try {
+      const code = this.script;
+      checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
 }
 
-export class ConfigList {
+export class ConfigList extends Array {
   //Internal private list
-  #list = [];
   target = undefined;
 
-  static getCurrent() {
-    const ui = get(user_input);
+  static FromTarget(target) {
+    if (!(target instanceof ConfigTarget)) {
+      throw "Invalid target object. Expected an instance of ConfigTarget.";
+    }
+
+    this.target = target;
+
     try {
-      return new ConfigList({
-        device: { dx: ui.brc.dx, dy: ui.brc.dy },
-        pageIndex: ui.event.pagenumber,
-        elementIndex: ui.event.elementnumber,
-        eventType: ui.event.eventtype,
-      });
+      const config = new ConfigList();
+      config.target = target;
+      config.#Init();
+      return config;
     } catch (e) {
       console.error("ConfigList:", e);
       return undefined;
     }
   }
 
-  constructor({ device: { dx, dy }, pageIndex, elementIndex, eventType }) {
+  #Init() {
     const rt = get(runtime);
-    const device = rt.find((e) => e.dx == dx && e.dy == dy);
+    const device = rt.find(
+      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy
+    );
 
     if (typeof device === "undefined") {
       throw "Unknown device!";
     }
 
-    const page = device.pages.at(pageIndex);
-    const element = page.control_elements.at(elementIndex);
-    let event = element.events.find((e) => e.event.value == eventType);
+    const page = device.pages.at(this.target.page);
+    const element = page.control_elements.at(this.target.element);
+    let event = element.events.find(
+      (e) => e.event.value == this.target.eventType
+    );
     const cfgstatus = event.cfgStatus;
     if (
       cfgstatus != "GRID_REPORT" &&
@@ -99,14 +109,6 @@ export class ConfigList {
     }
 
     let configScript = event.config;
-
-    this.target = {
-      dx: dx,
-      dy: dy,
-      page: pageIndex,
-      element: elementIndex,
-      eventType: eventType,
-    };
 
     //Parse configScript
     //TODO: do rawLuas format checking during parsing
@@ -124,7 +126,7 @@ export class ConfigList {
     let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
-      this.push(
+      super.push(
         new ConfigObject({
           //Extract short, e.g.: '--[[@gms]]' => 'gms'
           short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
@@ -136,79 +138,104 @@ export class ConfigList {
 
   toConfigScript() {
     let lua = "";
-    this.#list.forEach((e) => (lua += e.rawLua));
+    super.forEach((e) => (lua += e.rawLua));
     lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
     return lua;
   }
 
-  get length() {
-    return this.#list.length;
-  }
-
-  at(index) {
-    if (index >= 0 && index < this.#list.length) {
-      return this.#list[index];
-    } else {
-      return null;
-    }
-  }
-
-  toArray() {
-    return [...this.#list];
-  }
-
-  [Symbol.iterator]() {
-    return this.#list[Symbol.iterator]();
-  }
-
   insert(config, atPosition) {
     if (!(config instanceof ConfigObject)) {
-      return Promise.reject(
-        new Error(
-          "Invalid config object. Expected an instance of ConfigObject."
-        )
-      );
+      throw "Invalid config object. Expected an instance of ConfigObject.";
     }
-    this.#list.splice(atPosition, 0, config);
-    return Promise.resolve(this);
+    super.splice(atPosition, 0, config);
   }
 
   push(config) {
     if (!(config instanceof ConfigObject)) {
-      throw "ERROR";
+      throw "Invalid config object. Expected an instance of ConfigObject.";
     }
-    this.#list.push(config);
+    super.push(config);
   }
 
   remove(atPosition) {
-    this.#list.splice(atPosition, 1);
-    return Promise.resolve(this);
+    super.splice(atPosition, 1);
   }
 
   checkSyntax() {
-    const code = this.#list.map((e) => e.script).join("");
-    try {
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      luamin.Minify(safe_code, luaminOptions);
-      return true;
-    } catch (e) {
-      return false;
-    }
+    super.forEach((e) => {
+      if (!e.checkSyntax()) {
+        return false;
+      }
+    });
+    return true;
   }
 
   checkLength() {
-    return this.configLength <= grid.properties.CONFIG_LENGTH;
+    return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
+  }
+}
+
+export class ConfigTarget {
+  constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
+    this.device = { dx: dx, dy: dy };
+    this.page = page;
+    this.element = element;
+    this.eventType = eventType;
+  }
+
+  static getCurrent() {
+    const ui = get(user_input);
+    try {
+      const currentTarget = new ConfigTarget({
+        device: { dx: ui.brc.dx, dy: ui.brc.dy },
+        page: ui.event.pagenumber,
+        element: ui.event.elementnumber,
+        eventType: ui.event.eventtype,
+      });
+
+      return currentTarget;
+    } catch (e) {
+      console.error("ConfigTarget:", e);
+      return undefined;
+    }
+  }
+
+  getConfig() {
+    return ConfigList.FromTarget(this);
   }
 }
 
 export class ConfigManager {
-  #list = [];
+  #list = writable([]);
+
+  store() {
+    console.log(this.target);
+    return;
+
+    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+  }
+
+  static update({ target, newConfig }) {
+    if (!(target instanceof ConfigTarget)) {
+      throw "Invalid target object. Expected an instance of ConfigTarget.";
+    }
+    if (!(newConfig instanceof ConfigList)) {
+      throw "Invalid config object. Expected an instance of ConfigList.";
+    }
+
+    const actionString = newConfig.toConfigScript();
+    console.log(actionString);
+
+    runtime.update_event_configuration(
+      target.device.dx,
+      target.device.dy,
+      target.page,
+      target.element,
+      target.eventType,
+      actionString,
+      "EDITOR_EXECUTE"
+    );
+  }
 
   reorder(configs, drag_target, drop_target, isMultiDrag) {
     let grabbed = [];

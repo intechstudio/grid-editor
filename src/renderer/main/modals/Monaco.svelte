@@ -9,8 +9,6 @@
 
   import { monaco_editor, monaco_languages } from "../../lib/CustomMonaco";
 
-  import { checkSyntaxAndMinify } from "../../runtime/monaco-helper";
-
   import { beforeUpdate, afterUpdate } from "svelte";
 
   import * as luamin from "lua-format";
@@ -62,7 +60,7 @@
     const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
     try {
-      let minified_code = checkSyntaxAndMinify(editor_code);
+      let minified_code = checkSyntaxAndMinify(editor_code); //ADAM FIX THIS
       const addedCodeLength = minified_code.length - initCodeLength;
       const newConfigLength = initConfigLength + addedCodeLength;
       if (newConfigLength > maxConfigLimit) {

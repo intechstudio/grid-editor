@@ -16,6 +16,7 @@
     </svg>
     `,
     color: "#F84AA7",
+    blockIcon: `<span class="text-white">Else</span>`,
   };
 </script>
 
