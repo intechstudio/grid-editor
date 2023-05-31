@@ -36,6 +36,9 @@ contextBridge.exposeInMainWorld("electron", {
     restartSerialCheckInterval: () =>
       ipcRenderer.invoke("restartSerialCheckInterval"),
   },
+  clipboard: {
+    writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
+  },
   configs: {
     moveOldConfigs: (configPath, rootDirectory) =>
       ipcRenderer.invoke("moveOldConfigs", { configPath, rootDirectory }),
@@ -83,6 +86,7 @@ contextBridge.exposeInMainWorld("electron", {
         rootDirectory,
         profileFolder,
       }),
+    onExternalResponse: (callback) => ipcRenderer.on("onExternalProfileLinkResponse", callback),
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),

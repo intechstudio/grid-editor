@@ -49,7 +49,7 @@
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
-  import { userStore } from "$lib/user.store";
+  import { profileLinkStore } from "$lib/profilelink.store";
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
@@ -101,8 +101,11 @@
   });
 
   window.electron.auth.onExternalResponse((_event, value) => {
-    console.log("external social auth login credentials are received", value);
     authStore.socialLogin("google", value);
+  });
+
+  window.electron.configs.onExternalResponse((_event, value) => {
+    profileLinkStore.set(value);
   });
 
   let leftPaneSize;

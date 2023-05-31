@@ -2,10 +2,8 @@ import { Readable, derived, readable, writable } from "svelte/store";
 
 import { firebaseApp } from "$lib/firebase";
 import {
-  Auth,
   EmailAuthProvider,
   GoogleAuthProvider,
-  User,
   getAuth,
   signInWithCredential,
   signOut,

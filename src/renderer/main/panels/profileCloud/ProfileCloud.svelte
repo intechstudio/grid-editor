@@ -14,6 +14,7 @@
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
+  import { profileLinkStore } from "$lib/profilelink.store";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
 
   const { env } = window.ctxProcess;
@@ -21,6 +22,8 @@
   let iframe_element;
 
   $: sendAuthEventToIframe($authStore);
+
+  $: sendProfileLinkToIframe($profileLinkStore);
 
   let selectedModule = undefined;
 
@@ -35,13 +38,23 @@
     }
   }
 
+  function sendProfileLinkToIframe(profileLink) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "profileLink",
+        profileLink: profileLink,
+      },
+      "*"
+    );
+  }
+
   function sendAuthEventToIframe(authEvent) {
     if (iframe_element == undefined) return;
 
     // the authStore should contain an event!
     if (!authEvent.event) return;
-
-    console.log("Parent sending", authEvent);
 
     iframe_element.contentWindow.postMessage(
       {
@@ -55,6 +68,13 @@
   async function handleLoginToProfileCloud(event) {
     if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
       $appSettings.modal = "userLogin";
+      channel.postMessage({ ok: true, data: {} });
+    }
+  }
+
+  async function handleCreateCloudProfileLink(event) {
+    if (event.data.channelMessageType == "CREATE_CLOUD_PROFILE_LINK") {
+      await window.electron.clipboard.writeText(event.data.profileLinkUrl);
       channel.postMessage({ ok: true, data: {} });
     }
   }
@@ -443,6 +463,9 @@
       if (event.data == "splitLocalProfile") {
         channel.onmessage = handleSplitLocalProfile;
       }
+      if (event.data == "createCloudProfileLink") {
+        channel.onmessage = handleCreateCloudProfileLink;
+      }
     }
   }
 
@@ -472,6 +495,7 @@
     bind:this={iframe_element}
     class="w-full h-full"
     title="Test"
+    allow="clipboard-read; clipboard-write;}"
     src={$appSettings.profileCloudUrl}
   />
 </div>

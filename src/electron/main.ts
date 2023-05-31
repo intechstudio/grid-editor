@@ -6,6 +6,7 @@ import {
   Menu,
   nativeImage,
   shell,
+  clipboard,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -332,11 +333,22 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
 deeplink.on("received", (data) => {
   // we could check if this is grid-editor-dev or other env specific call, but this will do for now
   if (data.startsWith("grid-editor")) {
-    const splitArray = data.split("://");
-    const credential = splitArray[1].replace("credential=", "");
-    mainWindow.webContents.send("onExternalAuthResponse", credential);
+    const url = new URL(data);
+    if (url.searchParams.get("credential") !== null) {
+      const credential = url.searchParams.get("credential")
+      mainWindow.webContents.send("onExternalAuthResponse", credential);
+    }
+    if (url.searchParams.get("profile-link") !== null) {
+      const profileLink = url.searchParams.get("profile-link")
+      mainWindow.webContents.send("onExternalProfileLinkResponse", profileLink);
+    }
   }
 });
+
+ipcMain.handle("clipboardWriteText", async (event, arg) => {
+  console.log(arg.text)
+  clipboard.writeText(arg.text);
+})
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;

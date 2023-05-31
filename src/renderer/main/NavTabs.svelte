@@ -730,52 +730,6 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
     {#if $appSettings.persistant.showLoginRegister}
       <button
         on:click={() => {
-          $appSettings.modal = "userLogin";
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
-          'User Account' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100 '
-          : 'bg-opacity-40 '} bg-secondary"
-      >
-        <svg
-          class="w-full h-full fill-current text-white p-1.5"
-          version="1.1"
-          id="Réteg_2"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 16 24"
-          style="enable-background:new 0 0 16 24;"
-          xml:space="preserve"
-        >
-          <g>
-            <path
-              class="st0"
-              d="M8,9C5.5,9,3.5,7,3.5,4.5S5.5,0,8,0c2.5,0,4.5,2,4.5,4.5S10.5,9,8,9z M8,1.8C6.5,1.8,5.3,3,5.3,4.5
-		S6.5,7.2,8,7.2c1.5,0,2.7-1.2,2.7-2.7S9.5,1.8,8,1.8z"
-            />
-            <path
-              class="st0"
-              d="M12.9,24H3.1C1.4,24,0,22.6,0,20.9l0-3.1c0-3.5,2.2-6.6,5.4-7.6c2.6-0.8,5.2-0.4,7.3,1.1
-		c2.1,1.5,3.3,3.9,3.3,6.4v3.2c0,0.8-0.3,1.6-0.9,2.2S13.7,24,12.9,24z M8,11.6c-0.7,0-1.4,0.1-2,0.3c-2.4,0.8-4.1,3.2-4.1,5.9
-		l0,3.2c0,0.7,0.6,1.3,1.3,1.3h9.8c0.3,0,0.7-0.1,0.9-0.4c0.2-0.2,0.4-0.6,0.4-0.9v-3.2c0-2-0.9-3.8-2.5-5C10.6,12,9.3,11.6,8,11.6z
-		"
-            />
-          </g>
-        </svg>
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'User Account' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-      </button>
-    {/if}
-
-    {#if $appSettings.persistant.showLoginRegister}
-      <button
-        on:click={() => {
           changeLeftTab("Profile Cloud");
         }}
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
