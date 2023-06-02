@@ -40,13 +40,13 @@
     }
   }
 
-  function sendProfileLinkToIframe(id) {
+  function sendProfileLinkToIframe(storeValue) {
     if (iframe_element == undefined) return;
 
     iframe_element.contentWindow.postMessage(
       {
         messageType: "profileLink",
-        profileLinkId: id,
+        profileLinkId: storeValue.id,
       },
       "*"
     );

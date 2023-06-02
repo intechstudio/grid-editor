@@ -521,7 +521,7 @@
         type="checkbox"
         bind:checked={$appSettings.persistant.showLoginRegister}
       />
-      <div class="mx-1">Show Login/Register</div>
+      <div class="mx-1">Profile Cloud Beta</div>
     </div>
 
     <div class="flex py-2 text-white items-center">
