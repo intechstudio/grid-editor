@@ -25,6 +25,8 @@
 
   $: sendProfileLinkToIframe($profileLinkStore);
 
+  $: sendSelectedModuleInfo(selectedModule);
+
   let selectedModule = undefined;
 
   $: {
@@ -41,12 +43,22 @@
   function sendProfileLinkToIframe(id) {
     if (iframe_element == undefined) return;
 
-    console.log("got this id");
-
     iframe_element.contentWindow.postMessage(
       {
         messageType: "profileLink",
         profileLinkId: id,
+      },
+      "*"
+    );
+  }
+
+  function sendSelectedModuleInfo(selectedModuleType) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "selectedModuleType",
+        selectedModuleType: selectedModuleType,
       },
       "*"
     );
