@@ -5,7 +5,6 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { store } from "../main-store";
-import { googleAnalytics } from "./analytics";
 
 /**
  *
@@ -45,8 +44,6 @@ export async function extractArchiveToTemp(data, endOfEntryName, folder) {
 }
 
 export async function libraryDownload(targetFolder) {
-  googleAnalytics("library-download", { value: "download start" });
-
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(
@@ -91,13 +88,9 @@ export async function libraryDownload(targetFolder) {
 
     log.info("Profiles copied!");
 
-    googleAnalytics("library-download", { value: "download success" });
-
     return "success";
   } else {
     log.error("Fail after archive extraction!");
-
-    googleAnalytics("library-download", { value: "download failed" });
 
     return "failed";
   }

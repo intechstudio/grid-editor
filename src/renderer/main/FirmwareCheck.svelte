@@ -81,9 +81,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
       // only if mismatch is not already detected
       if (fwMismatch === false) {
-        window.electron.analytics.google("firmware-download", {
-          value: "mismatch detected",
-        });
         mixpanel.track("FirmwareCheck", {
           message: "Mismatch Detected",
         });
@@ -190,10 +187,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   }
 
   async function firmwareTroubleshooting() {
-    window.electron.analytics.google("firmware-download", {
-      value: "troubleshooting",
-    });
-
     mixpanel.track("FirmwareCheck", {
       click: "Troubleshooting",
     });
