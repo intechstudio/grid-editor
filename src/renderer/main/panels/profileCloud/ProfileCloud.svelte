@@ -70,21 +70,36 @@
   async function handleLoginToProfileCloud(event) {
     if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
       $appSettings.modal = "userLogin";
-      channel.postMessage({ ok: true, data: {} });
+      return;
     }
   }
 
   async function handleCreateCloudProfileLink(event) {
     if (event.data.channelMessageType == "CREATE_CLOUD_PROFILE_LINK") {
-      await window.electron.clipboard.writeText(event.data.profileLinkUrl);
-      channel.postMessage({ ok: true, data: {} });
+      return await window.electron.clipboard.writeText(
+        event.data.profileLinkUrl
+      );
     }
   }
 
   async function handleLogoutFromProfileCloud(event) {
     if (event.data.channelMessageType == "LOGOUT_FROM_PROFILE_CLOUD") {
-      await authStore.logout();
-      channel.postMessage({ ok: true, data: {} });
+      return await authStore.logout();
+    }
+  }
+
+  function channelMessageWrapper(event, func) {
+    const channel = event.ports[0];
+    if (channel) {
+      channel.onmessage = (event) =>
+        func(event)
+          .then((res) => {
+            console.log(func.name);
+            channel.postMessage({ ok: true, data: res });
+          })
+          .catch((err) => {
+            channel.postMessage({ ok: false, data: err });
+          });
     }
   }
 
@@ -94,24 +109,22 @@
       // owner is not used, but user instead
       const profile = event.data;
       const importName = profile.name;
-      console.log(profile.id);
 
-      await window.electron.configs
+      return await window.electron.configs
         .saveConfig(path, profile.id, profile, "profiles", "local")
         .then((res) => {
           logger.set({
             type: "success",
             message: `Profile ${importName} imported successfully`,
           });
-          console.log(channel);
-          channel.postMessage({ ok: true, data: {} });
+          return;
         })
         .catch((err) => {
           logger.set({
             type: "fail",
             message: `Profile ${importName} import failed`,
           });
-          channel.postMessage({ ok: false, data: {} });
+          throw err;
         });
     }
   }
@@ -123,8 +136,7 @@
         path,
         "profiles"
       );
-      console.log(profiles);
-      channel.postMessage({ ok: true, data: profiles });
+      return profiles;
     }
   }
 
@@ -136,7 +148,7 @@
       "PROVIDE_SELECTED_PROFILE_FOR_OPTIONAL_UPLOADING_TO_ONE_OR_MORE_MODULES"
     ) {
       selectedProfileStore.set(event.data.profile);
-      channel.postMessage({ ok: true, data: "" });
+      return;
     }
   }
 
@@ -144,7 +156,6 @@
     if (event.data.channelMessageType == "DELETE_LOCAL_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
       const { folder, id } = event.data?.profile;
-      console.log(folder, id);
       await window.electron.configs
         .deleteConfig(path, id, "profiles", folder)
         .then((res) => {
@@ -152,25 +163,27 @@
             type: "success",
             message: `Profile ${id} deleted successfully`,
           });
-          channel.postMessage({ ok: true, data: {} });
+          return res;
         })
         .catch((err) => {
           logger.set({
             type: "fail",
             message: `Profile ${name} deletion failed`,
           });
-          channel.postMessage({ ok: false, data: {} });
+          throw err;
         });
     }
   }
 
   async function handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
-    event
+    event,
+    channel
   ) {
     if (
       event.data.channelMessageType ==
       "CREATE_NEW_LOCAL_PROFILE_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
     ) {
+      console.log("supppp handle created..");
       const path = $appSettings.persistant.profileFolder;
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
@@ -241,6 +254,68 @@
         engine.set("ENABLED");
 
         channel.postMessage({ ok: true, data: {} });
+
+        return;
+      };
+
+      return runtime.fetch_page_configuration_from_grid(callback);
+    }
+  }
+
+  async function handleOverwriteLocalProfile(event, channel) {
+    if (event.data.channelMessageType == "OVERWRITE_LOCAL_PROFILE") {
+      const { profileToOverwrite } = event.data;
+
+      const path = $appSettings.persistant.profileFolder;
+
+      let callback = await async function () {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "profilesave",
+          message: `Overwriting profile!`,
+        });
+
+        const li = get(user_input);
+        const configs = get(runtime);
+
+        configs.forEach((d) => {
+          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+            const page = d.pages.find(
+              (x) => x.pageNumber == li.event.pagenumber
+            );
+
+            profileToOverwrite.configs = page.control_elements.map((cfg) => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map((ev) => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config,
+                  };
+                }),
+              };
+            });
+          }
+        });
+
+        // tofi: here we could use updateLocal as well?
+        await window.electron.configs.saveConfig(
+          path,
+          profileToOverwrite.id,
+          profileToOverwrite,
+          "profiles",
+          "local"
+        );
+
+        logger.set({
+          type: "success",
+          message: `Profile saved!`,
+        });
+
+        engine.set("ENABLED");
+
+        channel.postMessage({ ok: true, data: {} });
       };
 
       runtime.fetch_page_configuration_from_grid(callback);
@@ -252,15 +327,13 @@
       const { name, description, profile } = event.data;
       if (name) profile.name = name;
       if (description) profile.description = description;
-      await window.electron.configs.updateLocal(
+      return await window.electron.configs.updateLocal(
         $appSettings.persistant.profileFolder,
         profile.id,
         profile,
         "profiles",
         "local"
       );
-
-      channel.postMessage({ ok: true, data: {} });
     }
   }
 
@@ -364,110 +437,62 @@
     }
   }
 
-  async function handleOverwriteLocalProfile(event) {
-    if (event.data.channelMessageType == "OVERWRITE_LOCAL_PROFILE") {
-      const { profileToOverwrite } = event.data;
-
-      const path = $appSettings.persistant.profileFolder;
-
-      let callback = await async function () {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "profilesave",
-          message: `Overwriting profile!`,
-        });
-
-        const li = get(user_input);
-        const configs = get(runtime);
-
-        configs.forEach((d) => {
-          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-            const page = d.pages.find(
-              (x) => x.pageNumber == li.event.pagenumber
-            );
-
-            profileToOverwrite.configs = page.control_elements.map((cfg) => {
-              return {
-                controlElementNumber: cfg.controlElementNumber,
-                events: cfg.events.map((ev) => {
-                  return {
-                    event: ev.event.value,
-                    config: ev.config,
-                  };
-                }),
-              };
-            });
-          }
-        });
-
-        // tofi: here we could use updateLocal as well?
-        await window.electron.configs.saveConfig(
-          path,
-          profileToOverwrite.id,
-          profileToOverwrite,
-          "profiles",
-          "local"
-        );
-
-        logger.set({
-          type: "success",
-          message: `Profile saved!`,
-        });
-
-        engine.set("ENABLED");
-
-        channel.postMessage({ ok: true, data: {} });
-      };
-
-      runtime.fetch_page_configuration_from_grid(callback);
-    }
-  }
-
-  let channel; // communication channel received from iframe
+  //let channel; // communication channel received from iframe
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
-      channel = event.ports[0];
+      //channel = event.ports[0];
       if (event.data == "profileImportCommunication") {
-        channel.onmessage = handleImportProfile;
+        channelMessageWrapper(event, handleImportProfile);
       }
       if (event.data == "getListOfLocalProfiles") {
-        channel.onmessage = handleGetListOfLocalProfiles;
+        channelMessageWrapper(event, handleGetListOfLocalProfiles);
       }
       if (
         event.data ==
         "provideSelectedProfileForOptionalUploadingToOneOreMoreModules"
       ) {
-        channel.onmessage =
-          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules;
+        channelMessageWrapper(
+          event,
+          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules
+        );
       }
       if (event.data == "deleteLocalProfile") {
-        channel.onmessage = handleDeleteLocalProfile;
+        channelMessageWrapper(event, handleDeleteLocalProfile);
       }
+      // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
       if (
         event.data ==
         "createNewLocalProfileWithTheSelectedModulesConfigurationFromEditor"
       ) {
-        channel.onmessage =
-          handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor;
+        const channel = event.ports[0];
+        channel.onmessage = (event) =>
+          handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
+            event,
+            channel
+          );
+      }
+      // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
+      if (event.data == "overwriteLocalProfile") {
+        const channel = event.ports[0];
+        channel.onmessage = (event) =>
+          handleOverwriteLocalProfile(event, channel);
       }
       if (event.data == "textEditLocalProfile") {
-        channel.onmessage = handleTextEditLocalProfile;
-      }
-      if (event.data == "overwriteLocalProfile") {
-        channel.onmessage = handleOverwriteLocalProfile;
+        channelMessageWrapper(event, handleTextEditLocalProfile);
       }
       if (event.data == "loginToProfileCloud") {
-        channel.onmessage = handleLoginToProfileCloud;
+        channelMessageWrapper(event, handleLoginToProfileCloud);
       }
       if (event.data == "logoutFromProfileCloud") {
-        channel.onmessage = handleLogoutFromProfileCloud;
+        channelMessageWrapper(event, handleLogoutFromProfileCloud);
       }
       if (event.data == "splitLocalProfile") {
-        channel.onmessage = handleSplitLocalProfile;
+        channel.onmessage = (event) => {
+          throw Error("Not implemented yet");
+        };
       }
       if (event.data == "createCloudProfileLink") {
-        channel.onmessage = handleCreateCloudProfileLink;
+        channelMessageWrapper(event, handleCreateCloudProfileLink);
       }
     }
   }
