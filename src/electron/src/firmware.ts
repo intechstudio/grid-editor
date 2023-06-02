@@ -3,7 +3,6 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-import { googleAnalytics } from "./analytics";
 
 export const firmware = {
   mainWindow: undefined,
@@ -114,8 +113,6 @@ export async function firmwareDownload(targetFolder) {
 
   let path = result.path;
 
-  googleAnalytics("firmware-download", { value: "update start" });
-
   let link =
     process.env.FIRMWARE_GRID_URL_BEGINING + process.env.FIRMWARE_GRID_URL_END;
 
@@ -168,8 +165,6 @@ export async function firmwareDownload(targetFolder) {
       code: 3,
     });
 
-    googleAnalytics("firmware-download", { value: "download fail" });
-
     return;
   }
 
@@ -201,11 +196,7 @@ export async function firmwareDownload(targetFolder) {
       message: "Update completed successfully!",
       code: 5,
     });
-
-    googleAnalytics("firmware-download", { value: "update success" });
   } else {
     log.warn("GRID_NOT_FOUND");
-
-    googleAnalytics("firmware-download", { value: "update fail" });
   }
 }

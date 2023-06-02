@@ -39,7 +39,6 @@ import {
   updateConfig,
   deleteConfig,
 } from "./src/profiles";
-import { googleAnalytics } from "./src/analytics";
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
@@ -90,8 +89,6 @@ function create_tray() {
         mainWindow.show();
 
         mainWindow.webContents.send("trayState", false);
-
-        googleAnalytics("tray", { value: "show window" });
       },
     },
     {
@@ -101,8 +98,6 @@ function create_tray() {
         mainWindow.setSkipTaskbar(true);
 
         mainWindow.webContents.send("trayState", true);
-
-        googleAnalytics("tray", { value: "hide window" });
       },
     },
     {
@@ -431,10 +426,6 @@ ipcMain.handle("fetchUrlJSON", (event, arg) => {
   return fetchUrlJSON(arg);
 });
 
-ipcMain.handle("googleAnalytics", async (event, arg) => {
-  return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
-});
-
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
   return await getLatestVideo();
@@ -481,17 +472,14 @@ ipcMain.handle("closeWindow", async (event, args) => {
 
 ipcMain.handle("minimizeWindow", async (event, args) => {
   mainWindow.minimize();
-  googleAnalytics("tray", { value: "minimize window" });
 });
 
 ipcMain.handle("maximizeWindow", async (event, args) => {
   mainWindow.maximize();
-  googleAnalytics("tray", { value: "maximize window" });
 });
 
 ipcMain.handle("restoreWindow", async (event, args) => {
   mainWindow.restore();
-  googleAnalytics("tray", { value: "restore window" });
 });
 
 ipcMain.handle("isMaximized", async (event, args) => {
