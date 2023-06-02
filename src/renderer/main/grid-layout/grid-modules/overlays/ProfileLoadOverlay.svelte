@@ -46,7 +46,6 @@
     mixpanel.track("Profile Load Start", {});
 
     // to do.. if undefined configs
-
     runtime.whole_page_overwrite(selectedProfile.configs);
 
     mixpanel.track("Profile Load Success", {});
