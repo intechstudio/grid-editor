@@ -23,17 +23,23 @@ const devCentralAuthConfig = {
   projectId: "is-auth-dev",
   storageBucket: "is-auth-dev.appspot.com",
   messagingSenderId: "610580654354",
-  appId: "1:610580654354:web:d7dc9982f52ece959c2bcb"
+  appId: "1:610580654354:web:d7dc9982f52ece959c2bcb",
 };
 
-const prodCentralAuthConfig = {}
+const prodCentralAuthConfig = {};
 
-const profileCloudConfig = env.NODE_ENV === 'production' ? prodProfileCloudConfig : devProfileCloudConfig;
-const centralAuthConfig = env.NODE_ENV === 'production' ? prodCentralAuthConfig : devCentralAuthConfig;
+const profileCloudConfig =
+  env.NODE_ENV === "production"
+    ? prodProfileCloudConfig
+    : devProfileCloudConfig;
+const centralAuthConfig =
+  env.NODE_ENV === "production" ? prodCentralAuthConfig : devCentralAuthConfig;
 
-
-export const profileCloudApp = initializeApp(profileCloudConfig, 'profile-cloud');
+export const profileCloudApp = initializeApp(
+  profileCloudConfig,
+  "profile-cloud"
+);
 export const profileCloudAuth = getAuth(profileCloudApp);
 
-export const centralApp = initializeApp(centralAuthConfig, 'central');
+export const centralApp = initializeApp(centralAuthConfig, "central");
 export const centralAuth = getAuth(centralApp);

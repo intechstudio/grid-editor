@@ -20,7 +20,6 @@ interface AuthStore {
 }
 
 const createAuth = () => {
-
   const { subscribe, set } = writable<AuthStore | null>(null);
 
   async function login(email, password) {
@@ -28,10 +27,12 @@ const createAuth = () => {
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     const credential = EmailAuthProvider.credential(email, password);
 
-    await signInWithCredential(centralAuth, credential).then(async (userCredential) => {
-      const userIdToken = await centralAuth.currentUser!.getIdToken();
-      set({ event: "login", providerId: "oidc", idToken: userIdToken });
-    });
+    await signInWithCredential(centralAuth, credential).then(
+      async (userCredential) => {
+        const userIdToken = await centralAuth.currentUser!.getIdToken();
+        set({ event: "login", providerId: "oidc", idToken: userIdToken });
+      }
+    );
   }
 
   async function socialLogin(provider, idToken) {
