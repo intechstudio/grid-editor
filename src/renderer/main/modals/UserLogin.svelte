@@ -1,15 +1,14 @@
 <script>
-  import { auth } from "$lib/firebase";
-  import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
   import { clickOutside } from "../_actions/click-outside.action";
   import { appSettings } from "../../runtime/app-helper.store";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
+  import { profileCloudAuth } from "$lib/firebase";
 
   const env = window.ctxProcess.env();
 
-  if (auth?.currentUser !== null) {
-    console.log("user found:", auth.currentUser);
+  if (profileCloudAuth?.currentUser !== null) {
+    console.log("user found:", profileCloudAuth.currentUser);
   }
 
   let email = "";
