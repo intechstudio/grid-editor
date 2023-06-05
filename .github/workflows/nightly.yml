@@ -13,10 +13,12 @@ jobs:
           ref: ""
           submodules: true
 
-      #- name: Update configuration.json
-      #  run: echo "jq '.NODE_ENV="nightly"' configuration.json" > configuration.json
-      - name: Read configuration.json
-        run: cat configuration.json
+      - name: Update configuration.json NODE_ENV
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: configuration.json
+          field: NODE_ENV
+          value: nightly
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -57,6 +59,13 @@ jobs:
         with:
           ref: ""
           submodules: true
+
+      - name: Update configuration.json NODE_ENV
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: configuration.json
+          field: NODE_ENV
+          value: nightly
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -102,6 +111,13 @@ jobs:
           ref: ""
           submodules: true
 
+      - name: Update configuration.json NODE_ENV
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: configuration.json
+          field: NODE_ENV
+          value: nightly
+
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
@@ -146,6 +162,13 @@ jobs:
           ref: ""
           submodules: true
 
+      - name: Update configuration.json NODE_ENV
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: configuration.json
+          field: NODE_ENV
+          value: nightly
+
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
@@ -181,6 +204,13 @@ jobs:
         with:
           ref: ""
           submodules: true
+
+      - name: Update configuration.json NODE_ENV
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: configuration.json
+          field: NODE_ENV
+          value: nightly
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
