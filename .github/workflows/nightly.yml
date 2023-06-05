@@ -13,9 +13,10 @@ jobs:
           ref: ""
           submodules: true
 
+      # this is written with powershell
       - name: Update configuration.json
-        run: | 
-          echo "`jq '.NODE_ENV="prod" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
+        run: |  
+          jq '.NODE_ENV = \"nightly\" ' configuration.json | Set-Content -Path configuration.json
           cat configuration.json
 
       - name: Setup NodeJs
