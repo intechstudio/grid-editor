@@ -20,15 +20,12 @@
   import { addOnDoubleClick } from "../../../_actions/add-on-double-click";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import { end } from "luaparse";
-  import { insert, object_without_properties } from "svelte/internal";
 
   export let animation = false;
   export let userHelper = false;
   export let config = [];
-  export let configs = [];
   export let index;
-
+  export let configs = [];
   const dispatch = createEventDispatcher();
 
   let configSelection = false;
@@ -62,6 +59,7 @@
 
     dispatch("new-config", {
       config: cfg,
+      index: index,
     });
 
     configSelection = false;
@@ -81,6 +79,7 @@
   function paste() {
     dispatch("new-config", {
       config: get(appActionClipboard).join(""),
+      index: index,
     });
     configSelection = false;
     visible = false;
@@ -89,7 +88,6 @@
   }
 
   let action_options = [];
-  onMount(() => {});
 
   //TODO: Simplify this
   function allowedConditionsAtPosition(configList, insertPosition) {
@@ -257,11 +255,8 @@
         // check if compatible events are defined in the action component
         if (elem.eventtype !== undefined) {
           elem.eventtype.forEach((ev) => {
-            /*  console.log("HELLO", ev, eventtype); */
-
             if (ev === eventtype) {
               found = true;
-              /* console.log("FOUND"); */
             }
           });
         }
@@ -274,10 +269,8 @@
 
           if (elem.category == "condition") {
             if (allowedConditions.includes(elem.short)) {
-              console.log("ALLOWED: ", elem.short);
               object[elem.category].push(elem);
             } else {
-              console.log("NOT ALLOWED: ", elem.short);
             }
           } else {
             object[elem.category].push(elem);
@@ -308,13 +301,11 @@
         );
       });
 
-      /*       console.log("help filtering this", _action_collection); */
-
       // custom sorting array
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
       );
-      /*       console.log("change_condition_order", change_condition_order); */
+
       change_condition_order.collection =
         change_condition_order.collection.sort(function (a, b) {
           return (

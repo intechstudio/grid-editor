@@ -17,7 +17,6 @@
   }
 
   function handleDrag(dragIndex) {
-    console.log(index, dragIndex);
     dropZoneEnabled = index != dragIndex - 1 && index != dragIndex;
   }
 

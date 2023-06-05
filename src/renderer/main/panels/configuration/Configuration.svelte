@@ -146,22 +146,36 @@
 
   let scrollHeight = "100%";
 
-  function addConfigAtPosition(arg, index) {
-    const newConfig = arg.detail.config;
-    if (typeof newConfig === "undefined" || newConfig === "") {
+  function handleConfigInsertion(e) {
+    const { config, index } = e.detail;
+    console.log(config, index);
+    if (typeof config === "undefined") {
+      //ERROR
       return;
     }
 
-    const list = new ConfigManager();
-    const res = list.add(newConfig, index);
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+    return;
+
+    list.insert(config, index);
+
+    list
+      .sendTo({ target: target })
+      .then((e) => {
+        configs.set(list);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   function handleDrop(e) {
-    //const isMultiDrag = e.detail.multi;
-
     const target = ConfigTarget.getCurrent();
     const list = ConfigList.createFrom(target);
 
+    //TODO: Make this prettier as a code
+    ///////////////////////////////////////////////////////////
     let grabbed = [];
     dragIndexes.forEach((i) => grabbed.push(list[i]));
 
@@ -180,6 +194,7 @@
     //Add grabbed to index
     list.splice(pasteIndex, 0, ...grabbed);
     console.log(list);
+    ///////////////////////////////////////////////////////////
 
     list
       .sendTo({ target: target })
@@ -305,9 +320,8 @@
             {#if !isDragged}
               <AddAction
                 {animation}
-                on:new-config={(e) => {
-                  addConfigAtPosition(e, 0);
-                }}
+                configs={$configs}
+                on:new-config={handleConfigInsertion}
               />
             {:else}
               <DropZone
@@ -339,11 +353,9 @@
                   <AddAction
                     {animation}
                     {config}
+                    configs={$configs}
                     {index}
-                    {configs}
-                    on:new-config={(e) => {
-                      addConfigAtPosition(e, index + 1);
-                    }}
+                    on:new-config={handleConfigInsertion}
                   />
                 {:else}
                   <DropZone
@@ -363,9 +375,9 @@
             <AddAction
               userHelper={true}
               {animation}
-              on:new-config={(e) => {
-                addConfigAtPosition(e, $configs.length + 1);
-              }}
+              configs={$configs}
+              index={$configs.length}
+              on:new-config={handleConfigInsertion}
             />
             <ExportConfigs />
           </div>

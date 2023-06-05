@@ -414,51 +414,6 @@ export class ConfigManager {
       });
   }
 
-  add(newConfig, index) {
-    const configs = [...get_configs()];
-
-    if (typeof newConfig === "undefined") {
-      console.log("NO CONFIG PASSED");
-      return configs;
-    }
-
-    configs.splice(index, 0, newConfig);
-    const actionString = _utils.configsToActionString(configs);
-
-    runtime
-      .check_action_string_length(actionString)
-      .then(() => {
-        const li = get(user_input);
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionString,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-
-        // trigger change detection
-        user_input.update((n) => n);
-      })
-      .catch((error) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "check_action_string_length_error",
-          message: `Config length is too long, shorten your code or delete actions!`,
-        });
-      });
-  }
-
   cut() {
     mixpanel.track("Config Action", { click: "Cut" });
     this.copy(true);
