@@ -16,13 +16,10 @@
   import { ConfigObject, ConfigList } from "../Configuration.store";
 
   export let config;
-
   export let access_tree;
   export let index = undefined;
 
   let toggled = false;
-  let carousel = undefined;
-
   let syntaxError = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
@@ -73,7 +70,7 @@
     class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
     config-component={config.information.name}
-    config-id={config.id}
+    config-id={index}
     movable={true}
     on:click|self={() => {
       handleToggle();

@@ -64,7 +64,7 @@ export class ConfigList extends Array {
   //Internal private list
   target = undefined;
 
-  static FromTarget(target) {
+  static createFrom(target) {
     if (!(target instanceof ConfigTarget)) {
       throw "Invalid target object. Expected an instance of ConfigTarget.";
     }
@@ -80,6 +80,47 @@ export class ConfigList extends Array {
       console.error("ConfigList:", e);
       return undefined;
     }
+  }
+
+  sendTo({ target }) {
+    return new Promise((resolve, reject) => {
+      if (!(target instanceof ConfigTarget)) {
+        reject(
+          new Error(
+            `Invalid target object (${target}). Expected an instance of ConfigTarget.`
+          )
+        );
+      }
+
+      if (!this.checkSyntax()) {
+        reject(new Error("Syntax error!"));
+      }
+
+      if (!this.checkLength()) {
+        reject(new Error("Length error!"));
+      }
+
+      const actionString = this.toConfigScript();
+      runtime.update_event_configuration(
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType,
+        actionString,
+        "EDITOR_EXECUTE"
+      );
+
+      runtime.send_event_configuration_to_grid(
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType
+      );
+
+      resolve("Event sent to grid.");
+    });
   }
 
   #Init() {
@@ -199,86 +240,9 @@ export class ConfigTarget {
       return undefined;
     }
   }
-
-  getConfig() {
-    return ConfigList.FromTarget(this);
-  }
 }
 
 export class ConfigManager {
-  #list = writable([]);
-
-  store() {
-    console.log(this.target);
-    return;
-
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-  }
-
-  static update({ target, newConfig }) {
-    if (!(target instanceof ConfigTarget)) {
-      throw "Invalid target object. Expected an instance of ConfigTarget.";
-    }
-    if (!(newConfig instanceof ConfigList)) {
-      throw "Invalid config object. Expected an instance of ConfigList.";
-    }
-
-    const actionString = newConfig.toConfigScript();
-    console.log(actionString);
-
-    runtime.update_event_configuration(
-      target.device.dx,
-      target.device.dy,
-      target.page,
-      target.element,
-      target.eventType,
-      actionString,
-      "EDITOR_EXECUTE"
-    );
-  }
-
-  reorder(configs, drag_target, drop_target, isMultiDrag) {
-    let grabbed = [];
-    drag_target.forEach((id) => {
-      grabbed.push(configs.find((act) => id === act.id));
-    });
-    const cutIndex = configs.indexOf(grabbed.at(0));
-    const cutLength = grabbed.length;
-
-    let pasteIndex = Number(drop_target) + 1;
-    // correction for multidrag
-    if (pasteIndex > cutIndex) {
-      pasteIndex = pasteIndex - drag_target.length;
-    }
-
-    //Remove grabbed
-    configs.splice(cutIndex, cutLength);
-    //Add grabbed to index
-    configs.splice(pasteIndex, 0, ...grabbed);
-
-    const li = get(user_input);
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionString = _utils.configMerge({ config: configs });
-
-    runtime.update_event_configuration(
-      dx,
-      dy,
-      page,
-      element,
-      event,
-      actionString,
-      "EDITOR_EXECUTE"
-    );
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-
-    // trigger change detection
-    user_input.update((n) => n);
-  }
-
   select_all() {
     const configs = get_configs();
     appMultiSelect.update((s) => {

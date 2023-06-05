@@ -1,12 +1,10 @@
 <script>
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
 
   import ConfigParameters from "./ConfigParameters.svelte";
-
-  let actionIsDragged = false;
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
 
@@ -47,7 +45,7 @@
 
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
-  let configs = [];
+  let configs = writable([]);
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -125,13 +123,15 @@
     appMultiSelect.reset();
     try {
       const target = ConfigTarget.getCurrent();
-      configs = target.getConfig();
-      if (typeof configs === "undefined") {
+      const list = ConfigList.createFrom(target);
+      if (typeof list === "undefined") {
         throw "Error loading current config.";
       }
 
+      configs.set(list);
+
       // set UI to uiEvents, if its not system events
-      if (configs.target.element !== 255) {
+      if ($configs.target.element !== 255) {
         $appSettings.configType = "uiEvents";
       }
     } catch (e) {
@@ -142,9 +142,7 @@
   // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 
   let animation = false;
-  let drag_start = false;
-  let drag_target = "";
-  let drop_target = "";
+  let isDragged = false;
 
   let scrollHeight = "100%";
 
@@ -159,33 +157,79 @@
   }
 
   function handleDrop(e) {
-    // if only cfg-list is selected, don't let dnd happen nor delete.
-    if (!Number.isNaN(drop_target)) {
-      const list = new ConfigManager();
-      console.log(configs, drag_target, drop_target, undefined);
-      list.reorder(configs, drag_target, drop_target, e.detail.multi);
+    //const isMultiDrag = e.detail.multi;
+
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+
+    let grabbed = [];
+    dragIndexes.forEach((i) => grabbed.push(list[i]));
+
+    const cutIndex = list.indexOf(grabbed.at(0));
+    const cutLength = grabbed.length;
+    let pasteIndex = Number(dropIndex) + 1;
+
+    // correction for multidrag
+    if (pasteIndex > cutIndex) {
+      pasteIndex = pasteIndex - dragIndexes.length;
     }
+
+    //Remove grabbed
+    console.log(list);
+    list.splice(cutIndex, cutLength);
+    //Add grabbed to index
+    list.splice(pasteIndex, 0, ...grabbed);
+    console.log(list);
+
+    list
+      .sendTo({ target: target })
+      .then((e) => {
+        configs.set(list);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   function handleConfigUpdate(e) {
     const { configId, newConfig } = e.detail;
-    const index = configs.findIndex((e) => e.id === configId);
+    const index = $configs.findIndex((e) => e.id === configId);
     if (index !== -1) {
       throw "Unknown Error";
     }
 
-    configs[index] = newConfig;
+    $configs[index] = newConfig;
     ConfigManager.update({
-      target: configs.target,
-      newConfig: configs,
+      target: $configs.target,
+      newConfig: $configs,
     });
+  }
+
+  function handleDragStart(e) {
+    isDragged = true;
+    appMultiSelect.reset();
+  }
+
+  function handleDragEnd(e) {
+    isDragged = false;
+    dropIndex = undefined;
+    dragIndexes = [];
+  }
+
+  let dragIndexes = [];
+  function handleDragTargetChange(e) {
+    dragIndexes = e.detail.id;
+  }
+
+  let dropIndex = undefined;
+  function handleDropTargetChange(e) {
+    dropIndex = e.detail.drop_target;
   }
 </script>
 
 <configuration
-  class="w-full h-full flex flex-col {$engine == 'ENABLED'
-    ? ''
-    : 'pointer-events-none'}"
+  class="w-full h-full flex flex-col"
+  class:pointer-events-none={$engine != "ENABLED"}
 >
   <div class="bg-primary py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start bg-primary py-2 px-10">
@@ -235,25 +279,12 @@
         </div>
 
         <div
-          use:changeOrder={{ configs }}
-          on:drag-start={(e) => {
-            drag_start = true;
-            actionIsDragged = true;
-            appMultiSelect.reset();
-          }}
-          on:drag-target={(e) => {
-            drag_target = e.detail.id;
-          }}
-          on:drop-target={(e) => {
-            drop_target = e.detail.drop_target;
-          }}
+          use:changeOrder={{ $configs }}
+          on:drag-start={handleDragStart}
+          on:drag-target={handleDragTargetChange}
+          on:drop-target={handleDropTargetChange}
           on:drop={handleDrop}
-          on:drag-end={(e) => {
-            drag_start = false;
-            actionIsDragged = true;
-            drop_target = undefined;
-            drag_target = [];
-          }}
+          on:drag-end={handleDragEnd}
           on:anim-start={() => {
             animation = true;
           }}
@@ -265,66 +296,66 @@
           <config-list
             id="cfg-list"
             style="height:{scrollHeight}"
-            use:configListScrollSize={configs}
+            use:configListScrollSize={$configs}
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
-            {#if typeof configs !== "undefined"}
-              {#if !drag_start}
-                <AddAction
-                  {animation}
-                  on:new-config={(e) => {
-                    addConfigAtPosition(e, 0);
-                  }}
-                />
-              {:else}
-                <DropZone
-                  index={-1}
-                  {configs}
-                  {drop_target}
-                  {drag_target}
-                  {animation}
-                  {drag_start}
-                />
-              {/if}
-
-              {#each configs as config, index}
-                <anim-block in:fade={{ delay: 0 }} class="select-none">
-                  <DynamicWrapper
-                    let:toggle
-                    {drag_start}
-                    {index}
-                    {config}
-                    {configs}
-                    {access_tree}
-                    on:update={handleConfigUpdate}
-                  />
-
-                  {#if !drag_start}
-                    <AddAction
-                      {animation}
-                      {config}
-                      {index}
-                      {configs}
-                      on:new-config={(e) => {
-                        addConfigAtPosition(e, index + 1);
-                      }}
-                    />
-                  {:else}
-                    <DropZone
-                      {configs}
-                      {index}
-                      {drag_target}
-                      {drop_target}
-                      {animation}
-                      {drag_start}
-                    />
-                  {/if}
-                </anim-block>
-              {/each}
+            {#if !isDragged}
+              <AddAction
+                {animation}
+                on:new-config={(e) => {
+                  addConfigAtPosition(e, 0);
+                }}
+              />
+            {:else}
+              <DropZone
+                index={-1}
+                drop_target={dropIndex}
+                drag_target={dragIndexes}
+                {animation}
+                drag_start={isDragged}
+              />
             {/if}
+
+            {#each $configs as config, index (config.id)}
+              <anim-block
+                animate:flip={{ duration: 500 }}
+                in:fade={{ duration: 500 }}
+                class="select-none"
+              >
+                <DynamicWrapper
+                  let:toggle
+                  drag_start={isDragged}
+                  {index}
+                  {config}
+                  configs={$configs}
+                  {access_tree}
+                  on:update={handleConfigUpdate}
+                />
+
+                {#if !isDragged}
+                  <AddAction
+                    {animation}
+                    {config}
+                    {index}
+                    {configs}
+                    on:new-config={(e) => {
+                      addConfigAtPosition(e, index + 1);
+                    }}
+                  />
+                {:else}
+                  <DropZone
+                    {index}
+                    drag_target={dragIndexes}
+                    drop_target={dropIndex}
+                    {animation}
+                    drag_start={isDragged}
+                  />
+                {/if}
+              </anim-block>
+            {/each}
           </config-list>
         </div>
         <container class="flex flex-col w-full">
@@ -333,7 +364,7 @@
               userHelper={true}
               {animation}
               on:new-config={(e) => {
-                addConfigAtPosition(e, configs.length + 1);
+                addConfigAtPosition(e, $configs.length + 1);
               }}
             />
             <ExportConfigs />
