@@ -21,8 +21,8 @@ const prodCentralAuthConfig = {
   projectId: "is-api-auth",
   storageBucket: "is-api-auth.appspot.com",
   messagingSenderId: "611038678816",
-  appId: "1:611038678816:web:5d8fab312b614702539145"
-};;
+  appId: "1:611038678816:web:5d8fab312b614702539145",
+};
 
 const centralAuthConfig =
   env.NODE_ENV === "production" ? prodCentralAuthConfig : devCentralAuthConfig;

@@ -15,7 +15,7 @@ jobs:
 
       # this is written with powershell
       - name: Update configuration.json
-        run: |  
+        run: |
           jq '.NODE_ENV = \"nightly\" | .PROFILE_CLOUD_URL = \"https://profile-cloud-dev.web.app\" ' configuration.json | Set-Content -Path configuration.json
           cat configuration.json
 
@@ -60,7 +60,7 @@ jobs:
           submodules: true
 
       - name: Update configuration.json
-        run: | 
+        run: |
           echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
           cat configuration.json
 
@@ -109,7 +109,7 @@ jobs:
           submodules: true
 
       - name: Update configuration.json
-        run: | 
+        run: |
           echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
           cat configuration.json
 
@@ -158,10 +158,9 @@ jobs:
           submodules: true
 
       - name: Update configuration.json
-        run: | 
+        run: |
           echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
           cat configuration.json
-
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -200,7 +199,7 @@ jobs:
           submodules: true
 
       - name: Update configuration.json
-        run: | 
+        run: |
           echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
           cat configuration.json
 

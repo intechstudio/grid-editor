@@ -31,7 +31,6 @@ navigator.serial.addEventListener("connect", (e) => {
 export async function testIt() {
   if (navigator.debugSerial) console.log("Serial Try Connect");
 
-
   if (navigator.intechPort === undefined) {
     const filters = [
       {
