@@ -3,13 +3,8 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
-  import { profileCloudAuth } from "$lib/firebase";
 
   const env = window.ctxProcess.env();
-
-  if (profileCloudAuth?.currentUser !== null) {
-    console.log("user found:", profileCloudAuth.currentUser);
-  }
 
   let email = "";
   let password = "";
