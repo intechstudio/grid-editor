@@ -1,5 +1,5 @@
 {
-  "NODE_ENV": "development",
+  "NODE_ENV": "nightly",
   "MIXPANEL_TOKEN": "d5072f1b11e0a753c9f655dc3ddf7b8d",
   "YOUTUBE_EDITORRELEASENOTES_PLAYLISTKEY": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
   "YOUTUBE_API_KEY": "AIzaSyBSwx2yH2mSGKhyduMtakjpdMU_s7Jhdkw",
