@@ -17,12 +17,11 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json NODE_ENV
-        uses: jossef/action-set-json-field@v2.1
-        with:
-          file: configuration.json
-          field: NODE_ENV
-          value: production
+      # this is written with powershell
+      - name: Update configuration.json
+        run: |  
+          jq '.NODE_ENV = \"production\" ' configuration.json | Set-Content -Path configuration.json
+          cat configuration.json
 
       - name: Set env
         shell: bash
@@ -72,12 +71,10 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json NODE_ENV
-        uses: jossef/action-set-json-field@v2.1
-        with:
-          file: configuration.json
-          field: NODE_ENV
-          value: production
+      - name: Update configuration.json
+        run: | 
+          echo "`jq '.NODE_ENV="production"' configuration.json`" > configuration.json
+          cat configuration.json
 
       - name: Set env
         shell: bash
@@ -131,12 +128,10 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json NODE_ENV
-        uses: jossef/action-set-json-field@v2.1
-        with:
-          file: configuration.json
-          field: NODE_ENV
-          value: production
+      - name: Update configuration.json
+        run: | 
+          echo "`jq '.NODE_ENV="production"' configuration.json`" > configuration.json
+          cat configuration.json
 
       - name: Set env
         shell: bash

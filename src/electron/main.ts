@@ -21,6 +21,9 @@ import grid_env from "../../configuration.json";
 for (const key in grid_env) {
   process.env[key] = grid_env[key];
 }
+if (process.env.NODE_ENV == undefined) {
+  process.env.NODE_ENV = "development";
+}
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -288,7 +291,8 @@ function createWindow() {
   });
 }
 
-const isDev = process.env.NODE_ENV === "development" ? true : false;
+// isDev can be nightly or dev
+const isDev = process.env.NODE_ENV !== "production" ? true : false;
 const protocol = isDev ? "grid-editor-dev" : "grid-editor";
 const deeplink = new Deeplink({ app, mainWindow, protocol, isDev });
 
