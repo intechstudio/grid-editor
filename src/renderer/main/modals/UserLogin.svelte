@@ -10,9 +10,9 @@
   let password = "";
 
   const socialLoginUrl =
-    env["NODE_ENV"] === "development"
+    env.NODE_ENV === "development"
       ? "http://localhost:5200"
-      : "https://profile-cloud.web.app";
+      : env.PROFILE_CLOUD_URL;
 
   async function submitLogin() {
     authStore.login(email, password);

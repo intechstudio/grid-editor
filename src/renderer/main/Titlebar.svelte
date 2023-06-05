@@ -10,6 +10,8 @@
 
   const { platform } = window.ctxProcess;
 
+  const env = window.ctxProcess.env();
+
   function init() {
     document
       .getElementById("minimize-btn")
@@ -100,6 +102,9 @@
         <div class="flex items-center text-gray-500 text-sm pt-1">
           Grid Editor v{$appSettings.version.major}.{$appSettings.version
             .minor}.{$appSettings.version.patch}
+          {#if env.NODE_ENV === "development"}
+            DEVELOPMENT BUILD
+          {/if}
         </div>
 
         <!-- Min Max Close -->
@@ -194,6 +199,9 @@
       <div class="flex text-gray-500 text-sm pt-1">
         Grid Editor v{$appSettings.version.major}.{$appSettings.version
           .minor}.{$appSettings.version.patch}
+        {#if env.NODE_ENV !== "production"}
+          - <span>{env.NODE_ENV.toUpperCase()} BUILD</span>
+        {/if}
       </div>
     </div>
   {/if}

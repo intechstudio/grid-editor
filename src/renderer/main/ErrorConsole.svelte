@@ -2,11 +2,10 @@
   import { onMount } from "svelte";
   import { fly, fade, slide } from "svelte/transition";
 
-  import configuration from "../../../configuration.json";
-
   import mixpanel from "mixpanel-browser";
 
   const ctxProcess = window.ctxProcess;
+  const env = ctxProcess.env();
 
   let logelement;
   let text = "";
@@ -90,7 +89,7 @@
     }
 
     window.electron
-      .fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
+      .fetchUrlJSON(env.NOTIFICATION_JSON_URL)
       .then((data) => {
         console.log("RESPONSE", data);
 

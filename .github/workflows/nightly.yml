@@ -13,6 +13,11 @@ jobs:
           ref: ""
           submodules: true
 
+      - name: Update configuration.json
+        run: echo "`jq '.NODE_ENV="nightly"' configuration.json`" > configuration.json
+      - name: Read configuration.json
+        run: cat configuration.json
+
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:

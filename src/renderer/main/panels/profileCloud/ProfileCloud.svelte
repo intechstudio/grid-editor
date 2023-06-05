@@ -17,7 +17,7 @@
   import { profileLinkStore } from "$lib/profilelink.store";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
 
-  const { env } = window.ctxProcess;
+  const env = window.ctxProcess.env();
 
   let iframe_element;
 
@@ -513,10 +513,10 @@
     // get to know the user
     await userStore.known;
 
-    if (env().NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
       $appSettings.profileCloudUrl = "http://localhost:5200";
     } else {
-      $appSettings.profileCloudUrl = env().PROFILE_CLOUD_URL;
+      $appSettings.profileCloudUrl = env.PROFILE_CLOUD_URL;
     }
 
     $appSettings.profileCloudUrlEnabled = true;

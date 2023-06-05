@@ -210,12 +210,12 @@ function createWindow() {
     restartAfterUpdate();
   });
 
-  if (process.env.NODE_ENV == "development") {
+  if (process.env.NODE_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();
   } else {
-    // this is lazy, we should launch electron explicitly with node_env production, but this works as well
+    // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
       `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
@@ -288,7 +288,7 @@ function createWindow() {
   });
 }
 
-const isDev = process.env.NODE_ENV == "development" ? true : false;
+const isDev = process.env.NODE_ENV === "development" ? true : false;
 const protocol = isDev ? "grid-editor-dev" : "grid-editor";
 const deeplink = new Deeplink({ app, mainWindow, protocol, isDev });
 
