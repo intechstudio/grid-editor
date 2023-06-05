@@ -58,12 +58,10 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json NODE_ENV
-        uses: jossef/action-set-json-field@v2.1
-        with:
-          file: configuration.json
-          field: NODE_ENV
-          value: nightly
+      - name: Update configuration.json
+        run: | 
+          echo "`jq '.NODE_ENV="prod" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
+          cat configuration.json
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
