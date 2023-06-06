@@ -20,12 +20,13 @@
   import { addOnDoubleClick } from "../../../_actions/add-on-double-click";
 
   import { getAllComponents } from "../../../../lib/_configs";
+  import { ConfigObject } from "../Configuration.store";
 
   export let animation = false;
   export let userHelper = false;
-  export let config = [];
   export let index;
   export let configs = [];
+
   const dispatch = createEventDispatcher();
 
   let configSelection = false;
@@ -58,7 +59,7 @@
     });
 
     dispatch("new-config", {
-      config: cfg,
+      config: new ConfigObject({ short: cfg.short, script: cfg.script }),
       index: index,
     });
 
@@ -72,7 +73,7 @@
     selected_action = action.desc;
     presetManagement.selected_action.update({
       name: action.desc,
-      configs: `--[[@${action.short}]] ${action.defaultLua}`,
+      configs: { short: action.short, script: action.defaultLua },
     });
   }
 

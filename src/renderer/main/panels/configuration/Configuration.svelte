@@ -148,17 +148,15 @@
 
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
-    console.log(config, index);
     if (typeof config === "undefined") {
-      //ERROR
-      return;
+      throw "Unknown Error";
     }
 
     const target = ConfigTarget.getCurrent();
     const list = ConfigList.createFrom(target);
-    return;
 
-    list.insert(config, index);
+    //Think through the indexing
+    list.insert(config, index + 1);
 
     list
       .sendTo({ target: target })
@@ -294,7 +292,7 @@
         </div>
 
         <div
-          use:changeOrder={{ $configs }}
+          use:changeOrder={(this, { config: $configs })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop-target={handleDropTargetChange}
@@ -321,6 +319,7 @@
               <AddAction
                 {animation}
                 configs={$configs}
+                index={-1}
                 on:new-config={handleConfigInsertion}
               />
             {:else}
@@ -376,7 +375,7 @@
               userHelper={true}
               {animation}
               configs={$configs}
-              index={$configs.length}
+              index={undefined}
               on:new-config={handleConfigInsertion}
             />
             <ExportConfigs />

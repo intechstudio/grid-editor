@@ -158,6 +158,9 @@ export function changeOrder(node, { configs }) {
 
       if (component.endsWith("_If")) {
         const _id = id.substr(4);
+        console.log("YAY", component);
+        console.log("YAY", _configs);
+        console.log("YAY", _id);
         const nodes = _configs.slice(_id);
         const end_of_if = if_end_pairs(_configs, _id);
         const drag_configs = nodes.slice(0, end_of_if);
