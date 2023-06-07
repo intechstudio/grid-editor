@@ -111,6 +111,9 @@
           })
           .catch((err) => {
             channel.postMessage({ ok: false, data: err });
+          })
+          .finally(() => {
+            channel.close();
           });
     }
   }
