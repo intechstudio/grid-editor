@@ -91,10 +91,6 @@ export class ConfigList extends Array {
         );
       }
 
-      if (!this.checkSyntax()) {
-        reject(new Error("Syntax error!"));
-      }
-
       if (!this.checkLength()) {
         reject(new Error("Length error!"));
       }
@@ -242,35 +238,6 @@ export class ConfigTarget {
 }
 
 export class ConfigManager {
-  select_all() {
-    const configs = get_configs();
-    appMultiSelect.update((s) => {
-      s.all_selected = !s.all_selected;
-      s.selection = configs.map((v) => s.all_selected);
-      return s;
-    });
-  }
-
-  copy(isCut = false) {
-    const selection = get(appMultiSelect).selection;
-
-    const configs = ConfigList.getCurrent();
-
-    let clipboard = [];
-
-    selection.forEach((elem, index) => {
-      if (elem) {
-        clipboard.push(configs.at(index));
-      }
-    });
-
-    appActionClipboard.set(clipboard);
-
-    if (isCut === false) {
-      mixpanel.track("Config Action", { click: "Copy" });
-    }
-  }
-
   paste() {
     if (get(appActionClipboard).length) {
       const configs = ConfigList.getCurrent();

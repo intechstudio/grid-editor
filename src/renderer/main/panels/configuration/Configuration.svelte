@@ -1,5 +1,5 @@
 <script>
-  import { get, writable } from "svelte/store";
+  import { get, writable, derived } from "svelte/store";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -39,7 +39,9 @@
 
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
-  let configs = writable([]);
+  const configs = writable([]);
+  const selectedConfigIndexes = new Map();
+
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -114,7 +116,6 @@
   }
 
   $: if ($user_input) {
-    selectedConfigs.clear();
     try {
       const target = ConfigTarget.getCurrent();
       const list = ConfigList.createFrom(target);
@@ -123,6 +124,7 @@
       }
 
       configs.set(list);
+      selectedConfigIndexes.set([]);
 
       // set UI to uiEvents, if its not system events
       if ($configs.target.element !== 255) {
@@ -137,9 +139,12 @@
 
   let animation = false;
   let isDragged = false;
-  let selectedConfigs = new Map();
 
   let scrollHeight = "100%";
+
+  function resetSelection() {
+    selectedConfigIndexes.clear();
+  }
 
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
@@ -157,6 +162,7 @@
       .sendTo({ target: target })
       .then((e) => {
         configs.set(list);
+        resetSelection();
       })
       .catch((e) => {
         console.error(e);
@@ -236,8 +242,7 @@
 
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
-    selectedConfigs.set(index, value);
-    console.log(selectedConfigs);
+    selectedConfigIndexes.set(index, value);
   }
 
   function handleConvertToCodeBlock(e) {
@@ -253,9 +258,20 @@
   }
 
   function handleCopy(e) {
-    const list = new ConfigManager();
-    list.copy();
     selectedConfigs.clear();
+    let clipboard = [];
+
+    selectedConfigs.forEach((index) => {
+      if (elem) {
+        clipboard.push(configs.at(index));
+      }
+    });
+
+    appActionClipboard.set(clipboard);
+
+    if (isCut === false) {
+      mixpanel.track("Config Action", { click: "Copy" });
+    }
   }
 
   function handlePaste(e) {
@@ -271,9 +287,10 @@
   }
 
   function handleSelectAll(e) {
-    const list = new ConfigManager();
-    list.select_all();
+    selectedConfigs.forEach((e) => true);
   }
+
+  $: console.log($configs);
 </script>
 
 <configuration
