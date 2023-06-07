@@ -250,30 +250,6 @@ function create_luadebug_store() {
 
 export const luadebug_store = create_luadebug_store();
 
-function createMultiSelect() {
-  const default_values = {
-    multiselect: false,
-    selection: [],
-    all_selected: false,
-  };
-
-  const store = writable(default_values);
-
-  return {
-    ...store,
-    reset: () => {
-      store.update((s) => {
-        s.multiselect = false;
-        s.all_selected = false;
-        s.selection = [];
-        return s;
-      });
-    },
-  };
-}
-
-export const appMultiSelect = createMultiSelect();
-
 function create_user_input() {
   const defaultValues = {
     brc: {

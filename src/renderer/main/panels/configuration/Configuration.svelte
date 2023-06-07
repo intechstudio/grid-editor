@@ -13,26 +13,20 @@
   import {
     runtime,
     logger,
-    appMultiSelect,
     user_input,
     engine,
   } from "../../../runtime/runtime.store.js";
 
-  import {
-    ConfigList,
-    ConfigTarget,
-    ConfigObject,
-  } from "./Configuration.store.js";
+  import { ConfigList, ConfigTarget } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
-
-  import { onMount, onDestroy } from "svelte";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
   import MultiSelect from "./components/MultiSelect.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
+  import Options from "./components/Options.svelte";
 
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
@@ -120,7 +114,7 @@
   }
 
   $: if ($user_input) {
-    appMultiSelect.reset();
+    selectedConfigs.clear();
     try {
       const target = ConfigTarget.getCurrent();
       const list = ConfigList.createFrom(target);
@@ -143,6 +137,7 @@
 
   let animation = false;
   let isDragged = false;
+  let selectedConfigs = new Map();
 
   let scrollHeight = "100%";
 
@@ -220,7 +215,7 @@
 
   function handleDragStart(e) {
     isDragged = true;
-    appMultiSelect.reset();
+    selectedConfigs.clear();
   }
 
   function handleDragEnd(e) {
@@ -237,6 +232,47 @@
   let dropIndex = undefined;
   function handleDropTargetChange(e) {
     dropIndex = e.detail.drop_target;
+  }
+
+  function handleSelectionChange(e) {
+    const { value, index } = e.detail;
+    selectedConfigs.set(index, value);
+    console.log(selectedConfigs);
+  }
+
+  function handleConvertToCodeBlock(e) {
+    const list = new ConfigManager();
+    list.converttocodeblock();
+    selectedConfigs.clear();
+  }
+
+  function handleCut(e) {
+    const list = new ConfigManager();
+    list.cut();
+    selectedConfigs.clear();
+  }
+
+  function handleCopy(e) {
+    const list = new ConfigManager();
+    list.copy();
+    selectedConfigs.clear();
+  }
+
+  function handlePaste(e) {
+    const list = new ConfigManager();
+    list.paste();
+    selectedConfigs.clear();
+  }
+
+  function handleRemove(e) {
+    const list = new ConfigManager();
+    list.remove();
+    selectedConfigs.clear();
+  }
+
+  function handleSelectAll(e) {
+    const list = new ConfigManager();
+    list.select_all();
   }
 </script>
 
@@ -287,7 +323,14 @@
           <ConfigParameters {events} />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
-            <MultiSelect />
+            <MultiSelect
+              on:convert-to-code-block={handleConvertToCodeBlock}
+              on:copy={handleCopy}
+              on:cut={handleCut}
+              on:paste={handlePaste}
+              on:remove={handleRemove}
+              on:select-all={handleSelectAll}
+            />
           </div>
         </div>
 
@@ -317,9 +360,9 @@
           >
             {#if !isDragged}
               <AddAction
+                index={-1}
                 {animation}
                 configs={$configs}
-                index={-1}
                 on:new-config={handleConfigInsertion}
               />
             {:else}
@@ -336,17 +379,23 @@
               <anim-block
                 animate:flip={{ duration: 500 }}
                 in:fade={{ duration: 500 }}
-                class="select-none"
               >
-                <DynamicWrapper
-                  let:toggle
-                  drag_start={isDragged}
-                  {index}
-                  {config}
-                  configs={$configs}
-                  {access_tree}
-                  on:update={handleConfigUpdate}
-                />
+                <div class="flex flex-row justify-between">
+                  <DynamicWrapper
+                    let:toggle
+                    drag_start={isDragged}
+                    {index}
+                    {config}
+                    configs={$configs}
+                    {access_tree}
+                    on:update={handleConfigUpdate}
+                  />
+
+                  <Options
+                    {index}
+                    on:selection-change={handleSelectionChange}
+                  />
+                </div>
 
                 {#if !isDragged}
                   <AddAction

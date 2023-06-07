@@ -13,7 +13,6 @@
 
   import {
     appActionClipboard,
-    appMultiSelect,
     user_input,
   } from "../../../../runtime/runtime.store";
 
@@ -321,7 +320,6 @@
     }
 
     configSelection = !configSelection;
-    appMultiSelect.reset();
 
     /* console.log("Open Picker"); */
     actionPickerTimestamp = Date.now();

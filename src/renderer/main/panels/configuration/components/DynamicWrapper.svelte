@@ -4,9 +4,7 @@
   import { fade, slide } from "svelte/transition";
   import { get } from "svelte/store";
 
-  import Options from "./Options.svelte";
-
-  import { logger, appMultiSelect } from "../../../../runtime/runtime.store.js";
+  import { logger } from "../../../../runtime/runtime.store.js";
 
   import _utils from "../../../../runtime/_utils";
 
@@ -29,8 +27,6 @@
   });
 
   function replace_me(e) {
-    appMultiSelect.reset();
-
     let new_config = getAllComponents().find(
       (c) => c.information.name == e.detail
     );
@@ -63,7 +59,9 @@
   }
 </script>
 
-<wrapper class="flex border-none outline-none transition-opacity duration-300">
+<wrapper
+  class="flex flex-grow border-none outline-none transition-opacity duration-300"
+>
   <!-- svelte-ignore a11y-click-events-have-key-events -->
 
   <carousel
@@ -163,14 +161,6 @@
       </div>
     </div>
   </carousel>
-
-  <!-- <Options
-    {toggle}
-    {index}
-    {configs}
-    rendering={configInformation.rendering}
-    componentName={configInformation.name}
-  /> -->
 </wrapper>
 
 <style global>
