@@ -3,6 +3,8 @@
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  import mixpanel from "mixpanel-browser";
+
   import { get } from "svelte/store";
 
   import {
@@ -70,6 +72,8 @@
     // the authStore should contain an event!
     if (!authEvent.event) return;
 
+    console.log("authevent!", authEvent);
+
     iframe_element.contentWindow.postMessage(
       {
         messageType: "userAuthentication",
@@ -115,6 +119,14 @@
           .finally(() => {
             channel.close();
           });
+    }
+  }
+
+  async function handleSubmitAnalytics(event) {
+    if (event.data.channelMessageType == "SUBMIT_ANALYTICS") {
+      const { payload, eventName } = event.data;
+      mixpanel.track(eventName, payload);
+      return;
     }
   }
 
@@ -198,7 +210,6 @@
       event.data.channelMessageType ==
       "CREATE_NEW_LOCAL_PROFILE_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
     ) {
-      console.log("supppp handle created..");
       const path = $appSettings.persistant.profileFolder;
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
@@ -508,6 +519,9 @@
       }
       if (event.data == "createCloudProfileLink") {
         channelMessageWrapper(event, handleCreateCloudProfileLink);
+      }
+      if (event.data == "submitAnalytics") {
+        channelMessageWrapper(event, handleSubmitAnalytics);
       }
     }
   }

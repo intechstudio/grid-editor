@@ -1,4 +1,4 @@
-import { Readable, derived, readable, writable } from "svelte/store";
+import { writable } from "svelte/store";
 
 import { centralAuth } from "./firebase";
 import {
@@ -39,9 +39,9 @@ const createAuth = () => {
     if (provider == "google") {
       const credential = GoogleAuthProvider.credential(idToken);
       await signInWithCredential(centralAuth, credential)
-        .then(async (res) => {
-          const userIdToken = await centralAuth.currentUser!.getIdToken();
-          set({ event: "login", providerId: "oidc", idToken: userIdToken });
+        .then(async (userCredential) => {
+          const idToken = await centralAuth.currentUser?.getIdToken();
+          set({ event: "login", providerId: "oidc", idToken: idToken });
         })
         .catch((error) => {
           console.log(error);
