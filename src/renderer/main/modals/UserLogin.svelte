@@ -4,15 +4,12 @@
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
 
-  const env = window.ctxProcess.env();
+  const buildVariables = window.ctxProcess.buildVariables();
 
   let email = "";
   let password = "";
 
-  const socialLoginUrl =
-    env.NODE_ENV === "development"
-      ? "http://localhost:5200"
-      : env.PROFILE_CLOUD_URL;
+  const socialLoginUrl = buildVariables.PROFILE_CLOUD_URL;
 
   async function submitLogin() {
     authStore.login(email, password);

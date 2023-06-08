@@ -6,7 +6,7 @@ import { writeBuffer } from "../runtime/engine.store.js";
 
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
-const env = window.ctxProcess.env();
+const configuration = window.ctxProcess.configuration();
 
 // INITIALIZE THE INTERVAL
 console.log(
@@ -34,16 +34,16 @@ export async function testIt() {
   if (navigator.intechPort === undefined) {
     const filters = [
       {
-        usbVendorId: parseInt(env.USB_VID_0),
-        usbProductId: parseInt(env.USB_PID_0),
+        usbVendorId: parseInt(configuration.USB_VID_0),
+        usbProductId: parseInt(configuration.USB_PID_0),
       },
       {
-        usbVendorId: parseInt(env.USB_VID_1),
-        usbProductId: parseInt(env.USB_PID_1),
+        usbVendorId: parseInt(configuration.USB_VID_1),
+        usbProductId: parseInt(configuration.USB_PID_1),
       },
       {
-        usbVendorId: parseInt(env.USB_VID_2),
-        usbProductId: parseInt(env.USB_PID_2),
+        usbVendorId: parseInt(configuration.USB_VID_2),
+        usbProductId: parseInt(configuration.USB_PID_2),
       },
     ];
 

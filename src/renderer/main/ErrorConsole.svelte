@@ -5,7 +5,7 @@
   import mixpanel from "mixpanel-browser";
 
   const ctxProcess = window.ctxProcess;
-  const env = ctxProcess.env();
+  const configuration = ctxProcess.configuration();
 
   let logelement;
   let text = "";
@@ -89,7 +89,7 @@
     }
 
     window.electron
-      .fetchUrlJSON(env.NOTIFICATION_JSON_URL)
+      .fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
       .then((data) => {
         console.log("RESPONSE", data);
 

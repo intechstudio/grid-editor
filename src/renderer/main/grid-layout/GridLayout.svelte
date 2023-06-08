@@ -34,7 +34,7 @@
 
   import Pages from "/main/panels/configuration/components/Pages.svelte";
 
-  const env = window.ctxProcess.env();
+  const configuration = window.ctxProcess.configuration();
 
   export let classes;
 
@@ -146,7 +146,7 @@
   }
 
   async function troubleshoot() {
-    const url = env.DOCUMENTATION_TROUBLESHOOTING_URL;
+    const url = configuration.DOCUMENTATION_TROUBLESHOOTING_URL;
 
     window.electron.openInBrowser(url);
 

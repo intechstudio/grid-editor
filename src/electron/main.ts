@@ -11,19 +11,16 @@ import {
 import path from "path";
 import log from "electron-log";
 import fs from "fs-extra";
-import dotenv from "dotenv";
+import dotenv, { config } from "dotenv";
 dotenv.config();
 
 import { autoUpdater } from "electron-updater";
 
 // might be environment variables as well.
-import grid_env from "../../configuration.json";
-for (const key in grid_env) {
-  process.env[key] = grid_env[key];
-}
-if (process.env.NODE_ENV == undefined) {
-  process.env.NODE_ENV = "development";
-}
+import configuration from "../../configuration.json";
+import buildVariables from "../../buildVariables.json";
+
+configuration.EDITOR_VERSION = app.getVersion();
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -55,7 +52,6 @@ import {
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
 
-process.env["EDITOR_VERSION"] = app.getVersion();
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
@@ -160,7 +156,7 @@ if (!gotTheLock) {
 // })
 
 function createWindow() {
-  const windowTitle = "Grid Editor - " + process.env.EDITOR_VERSION;
+  const windowTitle = "Grid Editor - " + configuration.EDITOR_VERSION;
 
   // First we'll get our height and width. This will be the defaults if there wasn't anything saved
   let { width, height } = store.get("windowBounds");
@@ -213,7 +209,7 @@ function createWindow() {
     restartAfterUpdate();
   });
 
-  if (process.env.NODE_ENV === "development") {
+  if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();
@@ -292,7 +288,7 @@ function createWindow() {
 }
 
 // isDev can be nightly or dev
-const isDev = process.env.NODE_ENV !== "production" ? true : false;
+const isDev = buildVariables.BUILD_ENV !== "production" ? true : false;
 const protocol = isDev ? "grid-editor-dev" : "grid-editor";
 const deeplink = new Deeplink({ app, mainWindow, protocol, isDev });
 
@@ -358,7 +354,6 @@ ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;
   if (arg.packageToDownload == "library") {
     result = await libraryDownload(arg.targetFolder);
-    console.log("library", result);
   }
   if (arg.packageToDownload == "uxpPhotoshop") {
     result = await uxpPhotoshopDownload(arg.targetFolder);
@@ -525,13 +520,14 @@ ipcMain.handle("isMaximized", async (event, args) => {
   return mainWindow.isMaximized();
 });
 
-// environment variables for renderer
-ipcMain.on("get-env", (event) => {
-  let variables = {};
-  for (const key in process.env) {
-    variables[key] = process.env[key];
-  }
-  event.returnValue = variables;
+// configuration variables
+ipcMain.on("getConfiguration", (event) => {
+  event.returnValue = configuration;
+});
+
+// build variables
+ipcMain.on("getBuildVariables", (event) => {
+  event.returnValue = buildVariables;
 });
 
 ipcMain.on("get-app-path", (event) => {
@@ -556,9 +552,7 @@ ipcMain.on("resetAppSettings", (event, arg) => {
     options.execPath = process.execPath;
     options.execPath = process.env.APPIMAGE;
     options.args.unshift("--appimage-extract-and-run");
-
     log.info("ARGS: ", options);
-
     app.relaunch(options);
     app.exit(0);
   } else {
@@ -578,9 +572,7 @@ ipcMain.on("restartApp", (event, arg) => {
     options.execPath = process.execPath;
     options.execPath = process.env.APPIMAGE;
     options.args.unshift("--appimage-extract-and-run");
-
     log.info("ARGS: ", options);
-
     app.relaunch(options);
     app.exit(0);
   } else {

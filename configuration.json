@@ -36,7 +36,5 @@
   "DOCUMENTATION_MAINTENANCE_URL": "https://links.intech.studio/grid-maintanance",
   "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
   "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor",
-  "HQ_API_URL_PROD": "https://hq.intech.studio",
-  "HQ_API_URL_DEV": "http://localhost:4000",
-  "PROFILE_CLOUD_URL": "https://links.intech.studio/profile-cloud"
+  "EDITOR_VERSION": ""
 }

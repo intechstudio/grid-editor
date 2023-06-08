@@ -1,7 +1,7 @@
 import { writable, get, readable } from "svelte/store";
 import { getAllComponents } from "$lib/_configs";
 
-const env = window.ctxProcess.env();
+const configuration = window.ctxProcess.configuration();
 
 function checkOS() {
   if (typeof window.ctxProcess === "object") {
@@ -53,9 +53,9 @@ function createAppSettingsStore() {
   const store = writable({
     size: 2.1,
     version: {
-      major: env.EDITOR_VERSION.split(".")[0],
-      minor: env.EDITOR_VERSION.split(".")[1],
-      patch: env.EDITOR_VERSION.split(".")[2],
+      major: configuration.EDITOR_VERSION.split(".")[0],
+      minor: configuration.EDITOR_VERSION.split(".")[1],
+      patch: configuration.EDITOR_VERSION.split(".")[2],
     },
     overlays: { controlElementName: false },
     debugMode: false,
@@ -75,14 +75,14 @@ function createAppSettingsStore() {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: parseInt(env.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
-      minor: parseInt(env.FIRMWARE_GRID_D51_REQUIRED_MINOR),
-      patch: parseInt(env.FIRMWARE_GRID_D51_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH),
     },
     firmware_esp32_required: {
-      major: parseInt(env.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
-      minor: parseInt(env.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
-      patch: parseInt(env.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
     },
     sizeChange: 0,
     activeWindowResult: {
@@ -233,10 +233,10 @@ async function init_appsettings() {
         get(appSettings).persistant.welcomeOnStartup === undefined ||
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != env["EDITOR_VERSION"]
+        get(appSettings).persistant.lastVersion != configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
-          s.persistant.lastVersion = env["EDITOR_VERSION"];
+          s.persistant.lastVersion = configuration["EDITOR_VERSION"];
           s.persistant.welcomeOnStartup = true;
           s.modal = "welcome";
           return s;

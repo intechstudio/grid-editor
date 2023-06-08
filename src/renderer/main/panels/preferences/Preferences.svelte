@@ -19,8 +19,6 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  const { env } = window.ctxProcess;
-
   let helperPreviewElement;
 
   let helperAttachment = writable({

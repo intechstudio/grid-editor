@@ -1,0 +1,59 @@
+name: Build Nightly Grid Editor
+
+on: 
+  push:
+    pull-request:
+      types: [opened, synchronize, reopened]
+
+jobs:
+  matrix-build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+     - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "16.13.2"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app", "PULL_REQUEST_NAME": ${{ github.event.pull_request.title }}}'
+
+      - name: Update my-file.json description
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: package.json
+          field: build.productName
+          value: Grid Editor (Nightly) - ${{ matrix.os }}
+
+      - name: Build
+        run: npm run export:nightly
+        if: ${{ always() }}
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-nightly
+          path: build/*.*
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3

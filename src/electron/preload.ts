@@ -6,7 +6,8 @@ contextBridge.exposeInMainWorld("ctxProcess", {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   platform: () => process.platform,
-  env: () => ipcRenderer.sendSync("get-env"),
+  configuration: () => ipcRenderer.sendSync("getConfiguration"),
+  buildVariables: () => ipcRenderer.sendSync("getBuildVariables"),
   // we can also expose variables, not just functions
 });
 

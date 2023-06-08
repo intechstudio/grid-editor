@@ -10,7 +10,8 @@
 
   const { platform } = window.ctxProcess;
 
-  const env = window.ctxProcess.env();
+  const configuration = window.ctxProcess.configuration();
+  const buildVariables = window.ctxProcess.buildVariables();
 
   function init() {
     document
@@ -102,7 +103,7 @@
         <div class="flex items-center text-gray-500 text-sm pt-1">
           Grid Editor v{$appSettings.version.major}.{$appSettings.version
             .minor}.{$appSettings.version.patch}
-          {#if env.NODE_ENV === "development"}
+          {#if buildVariables.BUILD_ENV === "development"}
             DEVELOPMENT BUILD
           {/if}
         </div>
@@ -199,8 +200,8 @@
       <div class="flex text-gray-500 text-sm pt-1">
         Grid Editor v{$appSettings.version.major}.{$appSettings.version
           .minor}.{$appSettings.version.patch}
-        {#if env.NODE_ENV !== "production"}
-          - <span>{env.NODE_ENV.toUpperCase()} BUILD</span>
+        {#if buildVariables.BUILD_ENV !== "production"}
+          - <span>{buildVariables.BUILD_ENV.toUpperCase()} BUILD</span>
         {/if}
       </div>
     </div>
