@@ -1,9 +1,9 @@
 name: Build Nightly Grid Editor
 
 on: 
-  push:
-    pull-request:
-      types: [opened, synchronize, reopened]
+  push
+  pull-request:
+    types: [opened, synchronize, reopened]
 
 jobs:
   matrix-build:
@@ -12,7 +12,7 @@ jobs:
         os: [ubuntu-22.04, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-     - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
         with:
           ref: ""
           submodules: true
