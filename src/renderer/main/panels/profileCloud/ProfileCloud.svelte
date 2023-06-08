@@ -83,6 +83,18 @@
     );
   }
 
+  function sendHandshakeToIframe() {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "handshake",
+        handshake: "ping",
+      },
+      "*"
+    );
+  }
+
   async function handleLoginToProfileCloud(event) {
     if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
       $appSettings.modal = "userLogin";
@@ -463,10 +475,19 @@
     }
   }
 
-  //let channel; // communication channel received from iframe
+  let profileCloudIsMounted = false;
+  async function handleProfileCloudMounted(event) {
+    if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
+      profileCloudIsMounted = true;
+      return;
+    }
+  }
+
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
-      //channel = event.ports[0];
+      if (event.data == "profileCloudMounted") {
+        channelMessageWrapper(event, handleProfileCloudMounted);
+      }
       if (event.data == "profileImportCommunication") {
         channelMessageWrapper(event, handleImportProfile);
       }
@@ -539,6 +560,10 @@
     $appSettings.profileCloudUrlEnabled = true;
 
     window.addEventListener("message", initChannelCommunication);
+
+    // const iframeLoaded = iframe_element.addEventListener("load", () => {
+    //   console.log("iframe loaded");
+    // });
   });
 
   onDestroy(() => {
@@ -548,9 +573,20 @@
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full">
+  {#if profileCloudIsMounted == false}
+    <div class="flex items-center justify-center h-full">
+      <div class="p-4">
+        <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
+        <div class="text-white text-opacity-80">
+          You need internet access to load it. We are going to build an offline
+          version of it in the future.
+        </div>
+      </div>
+    </div>
+  {/if}
   <iframe
     bind:this={iframe_element}
-    class="w-full h-full"
+    class="w-full h-full {profileCloudIsMounted == false ? 'hidden' : ''}"
     title="Test"
     allow="clipboard-read; clipboard-write;}"
     src={$appSettings.profileCloudUrl}
