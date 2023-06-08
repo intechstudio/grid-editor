@@ -1,9 +1,6 @@
 name: Build Nightly Grid Editor
 
-on: 
-  push
-  pull-request:
-    types: [opened, synchronize, reopened]
+on: push
 
 jobs:
   matrix-build:

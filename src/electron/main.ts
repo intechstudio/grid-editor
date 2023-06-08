@@ -52,7 +52,6 @@ import {
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
 
-
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 log.info("App starting...");

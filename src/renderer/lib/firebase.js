@@ -25,7 +25,9 @@ const prodCentralAuthConfig = {
 };
 
 const centralAuthConfig =
-  buildVariables.BUILD_ENV === "production" ? prodCentralAuthConfig : devCentralAuthConfig;
+  buildVariables.BUILD_ENV === "production"
+    ? prodCentralAuthConfig
+    : devCentralAuthConfig;
 
 export const centralApp = initializeApp(centralAuthConfig, "central");
 export const centralAuth = getAuth(centralApp);
