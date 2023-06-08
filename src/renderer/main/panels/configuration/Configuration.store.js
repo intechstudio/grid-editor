@@ -1,11 +1,10 @@
-import { writable, get } from "svelte/store";
+import { get } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 
 import mixpanel from "mixpanel-browser";
 import {
   runtime,
   logger,
-  luadebug_store,
   appActionClipboard,
   user_input,
 } from "../../../runtime/runtime.store";
@@ -38,6 +37,7 @@ export class ConfigObject {
 
     this.information = res.information;
     this.component = res.component;
+    this.selected = false;
   }
 
   checkSyntax() {
@@ -233,217 +233,6 @@ export class ConfigTarget {
     } catch (e) {
       console.error("ConfigTarget:", e);
       return undefined;
-    }
-  }
-}
-
-export class ConfigManager {
-  paste() {
-    if (get(appActionClipboard).length) {
-      const configs = ConfigList.getCurrent();
-      for (var config in get(appActionClipboard)) {
-        configs.push(config);
-      }
-
-      const li = get(user_input);
-
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionString = configs.toConfigScript();
-
-      runtime
-        .check_action_string_length(actionString)
-        .then(() => {
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionString,
-            "EDITOR_EXECUTE"
-          );
-          runtime.send_event_configuration_to_grid(
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-
-          // trigger change detection
-          user_input.update((n) => n);
-        })
-        .catch((error) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "check_action_string_length_error",
-            message: `Config length is too long, shorten your code or delete actions!`,
-          });
-        });
-
-      mixpanel.track("Config Action", { click: "Paste" });
-    }
-  }
-
-  converttocodeblocky() {
-    const selection = get(appMultiSelect).selection;
-    const configs = get_configs();
-
-    // EDIT
-
-    let edited = [];
-
-    let i = 0;
-    let j = 0;
-    for (; i < configs.length; ) {
-      if (selection[i] !== true) {
-        edited.push(configs[i]);
-        j++;
-      } else {
-        // edit these
-        if (i > 0 && selection[i - 1] == true) {
-          const [first, ...rest] = configs[i].split("]]");
-          edited[j - 1] += rest.join("]]");
-        } else {
-          const [first, ...rest] = configs[i].split("]]");
-          edited.push("--[[@cb]]" + rest.join("]]"));
-          j++;
-        }
-      }
-
-      i++;
-    }
-
-    // check if resulting codesections are valid
-
-    let error_count = 0;
-
-    for (let v = 0; v < edited.length; v++) {
-      if (selection[v] == true) {
-        try {
-          const minified_code = luamin.Minify(edited[v], luaminOptions);
-        } catch (error) {
-          error_count++;
-        }
-      }
-    }
-
-    if (error_count) {
-      console.log("Merge Rejected");
-      logger.set({
-        type: "alert",
-        mode: 0,
-        classname: "configuration",
-        message: `Code Merge Rejected`,
-      });
-      return;
-    }
-
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionString = _utils.configsToActionString(edited);
-
-    runtime
-      .check_action_string_length(actionString)
-      .then(() => {
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionString,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-
-        // trigger change detection
-        user_input.update((n) => n);
-      })
-      .catch((error) => {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "check_action_string_length_error",
-          message: `Config length is too long, shorten your code or delete actions!`,
-        });
-      });
-  }
-
-  cut() {
-    mixpanel.track("Config Action", { click: "Cut" });
-    this.copy(true);
-    this.remove();
-  }
-
-  remove() {
-    const selection = get(appMultiSelect).selection;
-
-    if (selection.length) {
-      const configs = [...get_configs()];
-
-      let filtered = [];
-
-      for (let i = 0; i < configs.length; i++) {
-        if (selection[i] !== true) {
-          filtered.push(configs[i]);
-        } else {
-          // dont return
-        }
-      }
-
-      const li = get(user_input);
-
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionString = _utils.configsToActionString(filtered);
-
-      runtime
-        .check_action_string_length(actionString)
-        .then(() => {
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionString,
-            "EDITOR_EXECUTE"
-          );
-          runtime.send_event_configuration_to_grid(
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-
-          // trigger change detection
-          user_input.update((n) => n);
-        })
-        .catch((error) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "check_action_string_length_error",
-            message: `Config length is too long, shorten your code or delete actions!`,
-          });
-        });
-
-      mixpanel.track("Config Action", { click: "Remove" });
     }
   }
 }

@@ -4,14 +4,12 @@
 
   const dispatch = createEventDispatcher();
 
-  export let index = undefined;
-  export let isSelected = false;
+  export let selected = false;
 
   function handleClick(e) {
-    isSelected = !isSelected;
+    selected = !selected;
     dispatch("selection-change", {
-      value: isSelected,
-      index: index,
+      value: selected,
     });
   }
 </script>
@@ -19,15 +17,15 @@
 <select-box class="flex pl-2 justify-center items-center bg-transparent">
   <button
     on:click={handleClick}
-    class="{isSelected ? ' border-opacity-80 bg-secondary' : ''} {!isSelected
+    class="{selected ? ' border-opacity-80 bg-secondary' : ''} {!selected
       ? 'h-[18px] w-[18px] border-opacity-20 hover:border-opacity-100'
       : ''} cursor-pointer border-white justify-center border transition-opacity rounded-md"
   >
-    {#if isSelected}
+    {#if selected}
       <SvgIcon
         displayMode="button"
         class="h-[16px] w-[16px]"
-        activeState={isSelected}
+        activeState={selected}
         iconPath={"tick"}
       />
     {/if}

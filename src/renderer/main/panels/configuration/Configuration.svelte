@@ -1,5 +1,7 @@
 <script>
-  import { get, writable, derived } from "svelte/store";
+  import { get, writable } from "svelte/store";
+
+  import mixpanel from "mixpanel-browser";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -15,6 +17,7 @@
     logger,
     user_input,
     engine,
+    appActionClipboard,
   } from "../../../runtime/runtime.store.js";
 
   import { ConfigList, ConfigTarget } from "./Configuration.store.js";
@@ -31,8 +34,6 @@
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
   import { changeOrder } from "../../_actions/move.action.js";
-
-  import { ConfigManager } from "./Configuration.store.js";
   import AddAction from "./components/AddAction.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -40,7 +41,6 @@
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   const configs = writable([]);
-  const selectedConfigIndexes = new Map();
 
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
@@ -124,10 +124,8 @@
       }
 
       configs.set(list);
-      selectedConfigIndexes.set([]);
 
-      // set UI to uiEvents, if its not system events
-      if ($configs.target.element !== 255) {
+      if (target.element !== 255) {
         $appSettings.configType = "uiEvents";
       }
     } catch (e) {
@@ -141,10 +139,6 @@
   let isDragged = false;
 
   let scrollHeight = "100%";
-
-  function resetSelection() {
-    selectedConfigIndexes.clear();
-  }
 
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
@@ -188,11 +182,9 @@
     }
 
     //Remove grabbed
-    console.log(list);
     list.splice(cutIndex, cutLength);
     //Add grabbed to index
     list.splice(pasteIndex, 0, ...grabbed);
-    console.log(list);
     ///////////////////////////////////////////////////////////
 
     list
@@ -213,6 +205,7 @@
     }
 
     $configs[index] = newConfig;
+    //TODO:
     ConfigManager.update({
       target: $configs.target,
       newConfig: $configs,
@@ -221,7 +214,6 @@
 
   function handleDragStart(e) {
     isDragged = true;
-    selectedConfigs.clear();
   }
 
   function handleDragEnd(e) {
@@ -240,57 +232,105 @@
     dropIndex = e.detail.drop_target;
   }
 
+  let enableConvert = false;
+  let enableCut = false;
+  let enableCopy = false;
+  let enablePaste = false;
+  let enableRemove = false;
+
   function handleSelectionChange(e) {
-    const { value, index } = e.detail;
-    selectedConfigIndexes.set(index, value);
+    //const { value } = e.detail;
+    const selectionCount = $configs.reduce((acc, curr) => {
+      if (curr.selected) {
+        acc += 1;
+      }
+      return acc;
+    }, 0);
+
+    const value = selectionCount > 0;
+
+    enableCopy = value;
+    enableConvert = value;
+    enableCut = value;
+    enableRemove = value;
   }
 
-  function handleConvertToCodeBlock(e) {
-    const list = new ConfigManager();
-    list.converttocodeblock();
-    selectedConfigs.clear();
-  }
+  function handleConvertToCodeBlock(e) {}
 
   function handleCut(e) {
-    const list = new ConfigManager();
-    list.cut();
-    selectedConfigs.clear();
+    handleCopy(e);
+    handleRemove(e);
+    mixpanel.track("Config Action", { click: "Cut" });
   }
 
   function handleCopy(e) {
-    selectedConfigs.clear();
     let clipboard = [];
-
-    selectedConfigs.forEach((index) => {
-      if (elem) {
-        clipboard.push(configs.at(index));
+    $configs.forEach((e) => {
+      if (e.selected) {
+        clipboard.push(e);
       }
     });
-
     appActionClipboard.set(clipboard);
-
-    if (isCut === false) {
-      mixpanel.track("Config Action", { click: "Copy" });
-    }
+    mixpanel.track("Config Action", { click: "Copy" });
   }
 
+  $: enablePaste = $appActionClipboard.length > 0;
+
   function handlePaste(e) {
-    const list = new ConfigManager();
-    list.paste();
-    selectedConfigs.clear();
+    let list = $configs;
+    const target = $configs.target;
+
+    for (let config in get(appActionClipboard)) {
+      list.push(config);
+    }
+
+    list
+      .sendTo({ target: target })
+      .then(displayCurrentConfigs)
+      .catch((e) => {
+        console.error(e);
+      });
+    mixpanel.track("Config Action", { click: "Paste" });
+  }
+
+  function displayCurrentConfigs() {
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+    configs.set(list);
   }
 
   function handleRemove(e) {
-    const list = new ConfigManager();
-    list.remove();
-    selectedConfigs.clear();
+    let list = $configs;
+    const target = $configs.target;
+
+    list = list.filter((e) => !e.selected);
+
+    list
+      .sendTo({ target: target })
+      .then(displayCurrentConfigs)
+      .catch((e) => {
+        console.error(e);
+      });
+    mixpanel.track("Config Action", { click: "Remove" });
   }
 
   function handleSelectAll(e) {
-    selectedConfigs.forEach((e) => true);
+    const { value } = e.detail;
+
+    enableCopy = value;
+    enableConvert = value;
+    enableCut = value;
+    enableRemove = value;
+
+    configs.update((s) => {
+      s.forEach((e) => {
+        e.selected = value;
+      });
+      return s;
+    });
   }
 
-  $: console.log($configs);
+  let multiSelect = undefined;
 </script>
 
 <configuration
@@ -341,6 +381,11 @@
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
             <MultiSelect
+              {enableConvert}
+              {enableCut}
+              {enableCopy}
+              {enablePaste}
+              {enableRemove}
               on:convert-to-code-block={handleConvertToCodeBlock}
               on:copy={handleCopy}
               on:cut={handleCut}
@@ -409,7 +454,7 @@
                   />
 
                   <Options
-                    {index}
+                    bind:selected={config.selected}
                     on:selection-change={handleSelectionChange}
                   />
                 </div>

@@ -34,7 +34,8 @@
   }
 
   function handleSelectAllClicked(e) {
-    dispatch("select-all");
+    const { value } = e.detail;
+    dispatch("select-all", { value: value });
   }
 </script>
 
