@@ -1,4 +1,4 @@
-name: Build Nightly Grid Editor
+name: Matrix Build Grid Editor (Nightly)
 
 on: push
 
@@ -34,7 +34,7 @@ jobs:
           file: package.json
           field: build.productName
           value: Grid Editor (Nightly)
-          
+
       - name: Build
         run: npm run export:nightly
         if: ${{ always() }}
@@ -58,7 +58,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: windows-nightly
+          name: ${{ matrix.os }}-nightly
           path: build/*.*
 
       - name: Download Artifacts
