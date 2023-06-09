@@ -56,12 +56,8 @@ jobs:
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
 
-
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}-nightly
-          path: build/*.*
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
+          path: build/*

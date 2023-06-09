@@ -118,7 +118,8 @@ export async function firmwareDownload(targetFolder) {
   let path = result.path;
 
   let link =
-    configuration.FIRMWARE_GRID_URL_BEGINING + configuration.FIRMWARE_GRID_URL_END;
+    configuration.FIRMWARE_GRID_URL_BEGINING +
+    configuration.FIRMWARE_GRID_URL_END;
 
   if (result.product === "knot") {
     link =
@@ -200,9 +201,7 @@ export async function firmwareDownload(targetFolder) {
       message: "Update completed successfully!",
       code: 5,
     });
-
   } else {
     log.warn("GRID_NOT_FOUND");
-
   }
 }

@@ -17,10 +17,9 @@ import { autoUpdater } from "electron-updater";
 import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
-
 configuration.EDITOR_VERSION = app.getVersion();
 
-console.log(buildVariables, configuration)
+console.log(buildVariables, configuration);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -53,9 +52,6 @@ import { Deeplink } from "electron-deeplink";
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
-
-
-
 
 log.info("App starting...");
 
@@ -93,7 +89,6 @@ function create_tray() {
         mainWindow.show();
 
         mainWindow.webContents.send("trayState", false);
-
       },
     },
     {
@@ -103,7 +98,6 @@ function create_tray() {
         mainWindow.setSkipTaskbar(true);
 
         mainWindow.webContents.send("trayState", true);
-
       },
     },
     {
@@ -209,7 +203,7 @@ function createWindow() {
     restartAfterUpdate();
   });
 
-  console.log('here what is buildVariables.BUILD_ENV')
+  console.log("here what is buildVariables.BUILD_ENV");
   if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
@@ -453,7 +447,6 @@ ipcMain.handle("sendToDiscord", async (event, arg) => {
 ipcMain.handle("fetchUrlJSON", (event, arg) => {
   return fetchUrlJSON(arg);
 });
-
 
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
