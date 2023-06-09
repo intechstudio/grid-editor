@@ -1,4 +1,4 @@
-name: Matrix Build Grid Editor (Nightly)
+name: Matrix build Grid Editor (Nightly)
 
 on: push
 
@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     steps:
@@ -16,7 +16,8 @@ jobs:
           ref: ""
           submodules: true
 
-      - uses: actions/setup-node@v3
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
         with:
           node-version: "16.13.2"
 
