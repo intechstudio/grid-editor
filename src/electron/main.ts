@@ -284,13 +284,12 @@ function createWindow() {
 
 console.log(buildVariables.BUILD_ENV);
 // isDev can be nightly or dev
-const isDev = buildVariables.BUILD_ENV !== "production" ? true : false;
-const protocol = "grid-editor";
+//const isDev = buildVariables.BUILD_ENV !== "production" ? true : false;
 const deeplink = new Deeplink({
   app,
   mainWindow,
-  protocol,
-  isDev,
+  protocol: "grid-editor",
+  isDev: true,
   debugLogging: true,
 });
 
