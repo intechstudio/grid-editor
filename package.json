@@ -70,6 +70,15 @@
     "directories": {
       "output": "build/"
     },
+    "protocols": [
+      {
+        "name": "grid-editor-protocol",
+        "schemes": [
+          "grid-editor",
+          "grid-editor-dev"
+        ]
+      }
+    ],
     "extraResources": [
       {
         "from": "src/renderer/assets/**/*",

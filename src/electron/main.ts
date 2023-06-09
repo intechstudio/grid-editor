@@ -282,14 +282,13 @@ function createWindow() {
   });
 }
 
-console.log(buildVariables.BUILD_ENV);
-// isDev can be nightly or dev
-//const isDev = buildVariables.BUILD_ENV !== "production" ? true : false;
+// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
+const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
 const deeplink = new Deeplink({
   app,
   mainWindow,
   protocol: "grid-editor",
-  isDev: true,
+  isDev,
   debugLogging: true,
 });
 
