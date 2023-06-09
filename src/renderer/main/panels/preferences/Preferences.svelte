@@ -517,9 +517,9 @@
       <input
         class="mr-1"
         type="checkbox"
-        bind:checked={$appSettings.persistant.showLoginRegister}
+        bind:checked={$appSettings.persistant.useProfileCloud}
       />
-      <div class="mx-1">Profile Cloud Beta</div>
+      <div class="mx-1">Offline mode profiles</div>
     </div>
 
     <div class="flex py-2 text-white items-center">

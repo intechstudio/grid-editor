@@ -51,7 +51,7 @@
     <WebsocketMonitor />
   {/if}
 
-  {#if $appSettings.persistant.showLoginRegister}
+  {#if $appSettings.persistant.useProfileCloud}
     <div
       class="min-w-[200px] h-full {$appSettings.leftPanel == 'Profile Cloud'
         ? '  '

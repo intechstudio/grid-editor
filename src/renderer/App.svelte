@@ -163,7 +163,7 @@
   use:watchResize={resize}
   id="app"
   spellcheck="false"
-  class="relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
