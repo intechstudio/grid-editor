@@ -13,11 +13,18 @@ jobs:
           ref: ""
           submodules: true
 
-      # this is written with powershell
-      - name: Update configuration.json
-        run: |
-          jq '.NODE_ENV = \"nightly\" | .PROFILE_CLOUD_URL = \"https://profile-cloud-dev.web.app\" ' configuration.json | Set-Content -Path configuration.json
-          cat configuration.json
+      # # this is written with powershell
+      # - name: Update configuration.json
+      #   run: |
+      #     jq '.NODE_ENV = \"nightly\" | .PROFILE_CLOUD_URL = \"https://profile-cloud-dev.web.app\" ' configuration.json | Set-Content -Path configuration.json
+      #     cat configuration.json
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app"}'
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -46,9 +53,6 @@ jobs:
           name: windows-nightly
           path: build/*.*
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-
   mac-build:
     name: MacOS Build
     runs-on: macos-latest
@@ -59,10 +63,17 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json
-        run: |
-          echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
-          cat configuration.json
+      # - name: Update configuration.json
+      #   run: |
+      #     echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
+      #     cat configuration.json
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app"}'
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -95,9 +106,6 @@ jobs:
           name: macos-nightly
           path: build/*.*
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-
   mac-m1-build:
     name: Apple M1 Build
     runs-on: m1
@@ -108,10 +116,17 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json
-        run: |
-          echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
-          cat configuration.json
+      # - name: Update configuration.json
+      #   run: |
+      #     echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
+      #     cat configuration.json
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app"}'
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -144,9 +159,6 @@ jobs:
           name: mac-m1-nightly
           path: build/*.*
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-
   linux-build:
     name: Linux Build
     runs-on: ubuntu-latest
@@ -157,10 +169,17 @@ jobs:
           ref: ""
           submodules: true
 
-      - name: Update configuration.json
-        run: |
-          echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
-          cat configuration.json
+      # - name: Update configuration.json
+      #   run: |
+      #     echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
+      #     cat configuration.json
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app"}'
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -185,8 +204,7 @@ jobs:
           name: linux-nightly
           path: build/*.*
 
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
+
 
   linux-unittest:
     name: Linux Unit Test
@@ -197,11 +215,6 @@ jobs:
         with:
           ref: ""
           submodules: true
-
-      - name: Update configuration.json
-        run: |
-          echo "`jq '.NODE_ENV="nightly" | .PROFILE_CLOUD_URL="https://profile-cloud-dev.web.app"' configuration.json`" > configuration.json
-          cat configuration.json
 
       - name: Setup NodeJs
         uses: actions/setup-node@v3
@@ -223,9 +236,6 @@ jobs:
         with:
           name: linux-unittest
           path: unittest.txt
-
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
 
       - uses: tsickert/discord-webhook@v4.0.0
         with:
