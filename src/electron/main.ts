@@ -282,10 +282,17 @@ function createWindow() {
   });
 }
 
+console.log(buildVariables.BUILD_ENV);
 // isDev can be nightly or dev
 const isDev = buildVariables.BUILD_ENV !== "production" ? true : false;
-const protocol = isDev ? "grid-editor-dev" : "grid-editor";
-const deeplink = new Deeplink({ app, mainWindow, protocol, isDev });
+const protocol = "grid-editor";
+const deeplink = new Deeplink({
+  app,
+  mainWindow,
+  protocol,
+  isDev,
+  debugLogging: true,
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -326,7 +333,6 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
 });
 
 deeplink.on("received", (data) => {
-  // we could check if this is grid-editor-dev or other env specific call, but this will do for now
   if (data.startsWith("grid-editor")) {
     const url = new URL(data);
     if (url.searchParams.get("credential") !== null) {
