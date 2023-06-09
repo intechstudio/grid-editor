@@ -7,7 +7,6 @@ on:
       - "v*.*.*"
 
 jobs:
-  jobs:
   matrix-build:
     strategy:
       fail-fast: false
