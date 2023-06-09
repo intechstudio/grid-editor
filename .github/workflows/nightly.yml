@@ -53,6 +53,9 @@ jobs:
           name: windows-nightly
           path: build/*.*
 
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
   mac-build:
     name: MacOS Build
     runs-on: macos-latest
@@ -105,6 +108,9 @@ jobs:
         with:
           name: macos-nightly
           path: build/*.*
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
 
   mac-m1-build:
     name: Apple M1 Build
@@ -159,6 +165,9 @@ jobs:
           name: mac-m1-nightly
           path: build/*.*
 
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+
   linux-build:
     name: Linux Build
     runs-on: ubuntu-latest
@@ -204,7 +213,11 @@ jobs:
           name: linux-nightly
           path: build/*.*
 
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
 
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
 
   linux-unittest:
     name: Linux Unit Test
