@@ -135,7 +135,6 @@
   }
 
   function refresh() {
-    window.electron.analytics.google("no-module", { value: "restart app" });
     mixpanel.track("No Module Connected", {
       click: "Refresh",
     });
@@ -150,7 +149,6 @@
 
     window.electron.openInBrowser(url);
 
-    window.electron.analytics.google("no-module", { value: "troubleshooting" });
     mixpanel.track("No Module Connected", {
       click: "Troubleshooting",
     });
@@ -185,7 +183,6 @@
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
     });
 
-    window.electron.analytics.google("writebuffer", { value: "clear" });
     mixpanel.track("Writebuffer", {
       click: "Clear",
     });
@@ -195,7 +192,6 @@
   }
 
   function store() {
-    window.electron.analytics.google("page-config", { value: "store" });
     mixpanel.track("Page Config", {
       click: "Store",
     });
@@ -206,7 +202,6 @@
   function clear() {
     instructions.sendPageClearToGrid();
 
-    window.electron.analytics.google("page-config", { value: "clear" });
     mixpanel.track("Page Config", {
       click: "Clear",
     });
@@ -215,7 +210,6 @@
   function discard() {
     instructions.sendPageDiscardToGrid();
 
-    window.electron.analytics.google("page-config", { value: "discard" });
     mixpanel.track("Page Config", {
       click: "Discard",
     });

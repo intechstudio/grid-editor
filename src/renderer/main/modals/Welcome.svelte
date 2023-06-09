@@ -10,8 +10,6 @@
 
   const configuration = window.ctxProcess.configuration();
 
-  console.log("config", configuration.DOCUMENTATION_REFERENCEMANUAL_URL);
-
   let video_link = "";
 
   let modalElement;

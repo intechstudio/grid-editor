@@ -5,22 +5,22 @@ import {
   Tray,
   Menu,
   nativeImage,
-  shell,
   clipboard,
+  shell,
 } from "electron";
 import path from "path";
 import log from "electron-log";
-import fs from "fs-extra";
-import dotenv, { config } from "dotenv";
-dotenv.config();
-
+import fs from "fs";
 import { autoUpdater } from "electron-updater";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
+
 configuration.EDITOR_VERSION = app.getVersion();
+
+console.log(buildVariables, configuration)
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -41,7 +41,6 @@ import {
   updateLocal,
   deleteConfig,
 } from "./src/profiles";
-import { googleAnalytics } from "./src/analytics";
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
@@ -54,6 +53,10 @@ import { Deeplink } from "electron-deeplink";
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
+
+
+
+
 log.info("App starting...");
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -61,7 +64,7 @@ log.info("App starting...");
 let mainWindow;
 
 // To avoid context aware flag.
-app.allowRendererProcessReuse = false;
+//app.allowRendererProcessReuse = false;
 
 let tray = null;
 
@@ -91,7 +94,6 @@ function create_tray() {
 
         mainWindow.webContents.send("trayState", false);
 
-        googleAnalytics("tray", { value: "show window" });
       },
     },
     {
@@ -102,7 +104,6 @@ function create_tray() {
 
         mainWindow.webContents.send("trayState", true);
 
-        googleAnalytics("tray", { value: "hide window" });
       },
     },
     {
@@ -208,6 +209,7 @@ function createWindow() {
     restartAfterUpdate();
   });
 
+  console.log('here what is buildVariables.BUILD_ENV')
   if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
@@ -452,9 +454,6 @@ ipcMain.handle("fetchUrlJSON", (event, arg) => {
   return fetchUrlJSON(arg);
 });
 
-ipcMain.handle("googleAnalytics", async (event, arg) => {
-  return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
-});
 
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
@@ -502,17 +501,14 @@ ipcMain.handle("closeWindow", async (event, args) => {
 
 ipcMain.handle("minimizeWindow", async (event, args) => {
   mainWindow.minimize();
-  googleAnalytics("tray", { value: "minimize window" });
 });
 
 ipcMain.handle("maximizeWindow", async (event, args) => {
   mainWindow.maximize();
-  googleAnalytics("tray", { value: "maximize window" });
 });
 
 ipcMain.handle("restoreWindow", async (event, args) => {
   mainWindow.restore();
-  googleAnalytics("tray", { value: "restore window" });
 });
 
 ipcMain.handle("isMaximized", async (event, args) => {

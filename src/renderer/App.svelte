@@ -147,14 +147,7 @@
 
   let testy = "test";
 
-  onMount(() => {
-    // application mounted, check analytics
-    window.electron.analytics.google("fw-editor-version", {
-      value: `v${get(appSettings).version.major}.${
-        get(appSettings).version.minor
-      }.${get(appSettings).version.patch}`,
-    });
-  });
+  onMount(() => {});
 </script>
 
 <Monster

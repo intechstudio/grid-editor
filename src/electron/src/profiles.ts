@@ -1,8 +1,6 @@
 import fs from "fs";
 import log from "electron-log";
 
-import { googleAnalytics } from "./analytics";
-
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
     isFile: res.isFile(),
