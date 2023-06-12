@@ -20,7 +20,11 @@
     appActionClipboard,
   } from "../../../runtime/runtime.store.js";
 
-  import { ConfigList, ConfigTarget } from "./Configuration.store.js";
+  import {
+    ConfigList,
+    ConfigObject,
+    ConfigTarget,
+  } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
 
@@ -115,6 +119,19 @@
     }
   }
 
+  function setSelectedEvent() {
+    const target = $configs.target;
+    if (typeof target === "undefined") {
+      throw "Unknown Error";
+    }
+    events.options = [];
+    for (const event of target.events) {
+      events.options.push(event.event);
+    }
+    events.selected = target.events[0].event;
+    console.log(events);
+  }
+
   $: if ($user_input) {
     try {
       const target = ConfigTarget.getCurrent();
@@ -124,12 +141,13 @@
       }
 
       configs.set(list);
+      setSelectedEvent();
 
       if (target.element !== 255) {
         $appSettings.configType = "uiEvents";
       }
     } catch (e) {
-      console.error("Configuration:", e);
+      console.error(`Configuration: ${e}`);
     }
   }
 
@@ -150,13 +168,17 @@
     const list = ConfigList.createFrom(target);
 
     //Think through the indexing
-    list.insert(config, index + 1);
+    if (typeof index !== "undefined") {
+      list.insert(config, index + 1);
+    } else {
+      list.push(config);
+    }
 
     list
       .sendTo({ target: target })
       .then((e) => {
-        configs.set(list);
-        resetSelection();
+        displayCurrentConfigs();
+        deselectAll();
       })
       .catch((e) => {
         console.error(e);
@@ -190,7 +212,8 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        configs.set(list);
+        displayCurrentConfigs();
+        deselectAll();
       })
       .catch((e) => {
         console.error(e);
@@ -255,7 +278,32 @@
     enableRemove = value;
   }
 
-  function handleConvertToCodeBlock(e) {}
+  function handleConvertToCodeBlock(e) {
+    let list = $configs;
+    const target = $configs.target;
+
+    let script = "";
+    for (let config of $configs) {
+      if (config.selected) {
+        script += config.script + " ";
+      }
+    }
+
+    const codeBlock = new ConfigObject({ short: "cb", script: script });
+    const index = list.findIndex((e) => e.selected); //First
+    list.splice(index, 0, codeBlock);
+    list = list.filter((e) => !e.selected);
+
+    list
+      .sendTo({ target: target })
+      .then((e) => {
+        displayCurrentConfigs();
+        deselectAll();
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
 
   function handleCut(e) {
     handleCopy(e);
@@ -263,13 +311,17 @@
     mixpanel.track("Config Action", { click: "Cut" });
   }
 
+  function clearClipboard() {
+    appActionClipboard.set([]);
+  }
+
   function handleCopy(e) {
     let clipboard = [];
-    $configs.forEach((e) => {
-      if (e.selected) {
-        clipboard.push(e);
+    for (let config of $configs) {
+      if (config.selected) {
+        clipboard.push(config);
       }
-    });
+    }
     appActionClipboard.set(clipboard);
     mixpanel.track("Config Action", { click: "Copy" });
   }
@@ -280,13 +332,17 @@
     let list = $configs;
     const target = $configs.target;
 
-    for (let config in get(appActionClipboard)) {
+    for (let config of $appActionClipboard) {
       list.push(config);
     }
 
     list
       .sendTo({ target: target })
-      .then(displayCurrentConfigs)
+      .then((e) => {
+        displayCurrentConfigs();
+        deselectAll();
+        clearClipboard();
+      })
       .catch((e) => {
         console.error(e);
       });
@@ -307,11 +363,28 @@
 
     list
       .sendTo({ target: target })
-      .then(displayCurrentConfigs)
+      .then((e) => {
+        displayCurrentConfigs();
+        deselectAll();
+      })
       .catch((e) => {
         console.error(e);
       });
     mixpanel.track("Config Action", { click: "Remove" });
+  }
+
+  function deselectAll() {
+    enableCopy = false;
+    enableConvert = false;
+    enableCut = false;
+    enableRemove = false;
+
+    configs.update((s) => {
+      s.forEach((e) => {
+        e.selected = false;
+      });
+      return s;
+    });
   }
 
   function handleSelectAll(e) {

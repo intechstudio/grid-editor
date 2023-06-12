@@ -10,7 +10,6 @@
     user_input,
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
-  import { ConfigManager } from "./Configuration.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 

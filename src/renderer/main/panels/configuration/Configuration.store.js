@@ -217,6 +217,17 @@ export class ConfigTarget {
     this.page = page;
     this.element = element;
     this.eventType = eventType;
+
+    //Get events
+    try {
+      const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+      if (typeof device === "undefined") {
+        throw "Unknown device!";
+      }
+      this.events = device.pages.at(page).control_elements.at(element).events;
+    } catch (e) {
+      console.error(`ConfigTarget: ${e}`);
+    }
   }
 
   static getCurrent() {
