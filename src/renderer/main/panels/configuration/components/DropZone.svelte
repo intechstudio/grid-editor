@@ -21,7 +21,7 @@
   }
 
   function handleMultiDrag(firstDragIndex, lastDragIndex) {
-    dropZoneEnabled = index < firstDragIndex - 1 && index > lastDragIndex;
+    dropZoneEnabled = index < firstDragIndex - 1 || index > lastDragIndex;
   }
 </script>
 

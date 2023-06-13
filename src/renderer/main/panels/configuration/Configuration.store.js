@@ -1,13 +1,9 @@
 import { get } from "svelte/store";
 import { v4 as uuidv4 } from "uuid";
 
-import mixpanel from "mixpanel-browser";
-import {
-  runtime,
-  logger,
-  appActionClipboard,
-  user_input,
-} from "../../../runtime/runtime.store";
+import { runtime, user_input } from "../../../runtime/runtime.store";
+
+import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
 
 import { getComponentInformation } from "../../../lib/_configs";
 
@@ -41,9 +37,18 @@ export class ConfigObject {
   }
 
   checkSyntax() {
+    //If not a CodeBlock, and script contains if, add end to if.
+    //If not done, it will always fail.
+    //TODO: Rework composite blocks in a way, so this exception
+    //does not occure.
+    let code = this.script;
+    if (this.short !== "cb" && code.startsWith("if")) {
+      code += " end";
+    }
+
     try {
-      const code = this.script;
-      checkForbiddenIdentifiers(code);
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
       const short_code = stringManipulation.shortify(code);
       const line_commented_code =
         stringManipulation.blockCommentToLineComment(short_code);
@@ -54,6 +59,8 @@ export class ConfigObject {
       luamin.Minify(safe_code, luaminOptions);
       return true;
     } catch (e) {
+      //console.log(code);
+      //console.log(e);
       return false;
     }
   }
@@ -213,18 +220,27 @@ export class ConfigList extends Array {
 
 export class ConfigTarget {
   constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
-    this.device = { dx: dx, dy: dy };
-    this.page = page;
-    this.element = element;
-    this.eventType = eventType;
-
-    //Get events
     try {
       const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
       if (typeof device === "undefined") {
         throw "Unknown device!";
       }
-      this.events = device.pages.at(page).control_elements.at(element).events;
+
+      this.device = { dx: dx, dy: dy };
+      this.page = page;
+
+      //TODO: is this a bug?
+      if (element === 255) {
+        this.element = device.pages.at(page).control_elements.length - 1;
+      } else {
+        this.element = element;
+      }
+      this.eventType = eventType;
+
+      //Get events
+      this.events = device.pages
+        .at(this.page)
+        .control_elements.at(this.element).events;
     } catch (e) {
       console.error(`ConfigTarget: ${e}`);
     }

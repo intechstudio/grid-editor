@@ -15,6 +15,7 @@
     <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
     `,
     color: "#887880",
+    selectable: true,
   };
 </script>
 

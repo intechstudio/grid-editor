@@ -36,6 +36,7 @@
      id="path1628" />
     </svg>`,
     color: "#4A4AA7",
+    selectable: false,
   };
 </script>
 

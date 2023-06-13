@@ -10,6 +10,7 @@
     defaultLua: "self:emo(0) self:ev0(50)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
+    selectable: true,
   };
 </script>
 

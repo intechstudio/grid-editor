@@ -17,6 +17,7 @@
     `,
     blockIcon: `<span class="text-white">?</span>`,
     color: "#F84AA7",
+    selectable: true,
   };
 </script>
 

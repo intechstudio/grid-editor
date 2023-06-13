@@ -32,6 +32,8 @@ const config = {
         300: "300px",
       },
       height: {
+        "16px": "16px",
+        "18px": "18px",
         32: "8rem",
         14: "3.5rem",
         64: "16rem",
@@ -42,6 +44,8 @@ const config = {
         calc: "calc(100vh - 62px)",
       },
       width: {
+        "16px": "16px",
+        "18px": "18px",
         26: "26px",
       },
       inset: {

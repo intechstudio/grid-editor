@@ -22,6 +22,7 @@
         <path d="M4.66667 10.318V8.49984H3L5.5 5.31802L8 8.49984H6.33333V10.318H4.66667Z" fill="black"/>
       </svg>
     `,
+    selectable: true,
   };
 </script>
 

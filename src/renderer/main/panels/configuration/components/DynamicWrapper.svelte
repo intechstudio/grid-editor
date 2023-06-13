@@ -1,30 +1,20 @@
 <script>
-  import { quadIn } from "svelte/easing";
-
-  import { fade, slide } from "svelte/transition";
-  import { get } from "svelte/store";
-
-  import { logger } from "../../../../runtime/runtime.store.js";
-
   import _utils from "../../../../runtime/_utils";
 
   import { getAllComponents } from "../../../../lib/_configs";
 
-  import { onMount, createEventDispatcher } from "svelte";
-  import { ConfigObject, ConfigList } from "../Configuration.store";
+  import { createEventDispatcher } from "svelte";
+  import { ConfigObject } from "../Configuration.store";
 
-  export let config;
   export let access_tree;
   export let index = undefined;
+  export let config;
+  $: syntaxError = !config.checkSyntax();
 
-  let toggled = false;
   let syntaxError = false;
+  let toggled = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
-
-  onMount(() => {
-    syntaxError = config.checkSyntax();
-  });
 
   function replace_me(e) {
     let new_config = getAllComponents().find(
@@ -41,7 +31,7 @@
 
   function handleOutput(e) {
     dispatch("update", {
-      configId: config.id,
+      index: index,
       newConfig: new ConfigObject({
         short: e.detail.short,
         script: e.detail.script,
@@ -85,6 +75,7 @@
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-l={syntaxError}
+        class:invisible={!config.information.selectable}
       >
         <svg
           class="opacity-40 group-hover:opacity-100"
@@ -130,7 +121,7 @@
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
-        {#if toggled}
+        {#if toggled || config.information.rendering === "modifier"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"
           >

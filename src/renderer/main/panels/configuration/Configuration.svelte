@@ -57,6 +57,7 @@
 
   $: selectedControllerIndexStore.set(elements);
 
+  //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;
 
@@ -127,31 +128,20 @@
     events.options = [];
     for (const event of target.events) {
       events.options.push(event.event);
+      if (target.eventType == event.event.value) {
+        events.selected = event.event;
+      }
     }
-    events.selected = target.events[0].event;
-    console.log(events);
   }
 
   $: if ($user_input) {
     try {
-      const target = ConfigTarget.getCurrent();
-      const list = ConfigList.createFrom(target);
-      if (typeof list === "undefined") {
-        throw "Error loading current config.";
-      }
-
-      configs.set(list);
+      displayCurrentConfigs();
       setSelectedEvent();
-
-      if (target.element !== 255) {
-        $appSettings.configType = "uiEvents";
-      }
     } catch (e) {
       console.error(`Configuration: ${e}`);
     }
   }
-
-  // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
 
   let animation = false;
   let isDragged = false;
@@ -164,8 +154,8 @@
       throw "Unknown Error";
     }
 
-    const target = ConfigTarget.getCurrent();
-    const list = ConfigList.createFrom(target);
+    let list = $configs;
+    const target = $configs.target;
 
     //Think through the indexing
     if (typeof index !== "undefined") {
@@ -186,26 +176,34 @@
   }
 
   function handleDrop(e) {
-    const target = ConfigTarget.getCurrent();
-    const list = ConfigList.createFrom(target);
+    let list = $configs;
+    const target = $configs.target;
 
     //TODO: Make this prettier as a code
     ///////////////////////////////////////////////////////////
     let grabbed = [];
     dragIndexes.forEach((i) => grabbed.push(list[i]));
 
+    //Remove grabbed
     const cutIndex = list.indexOf(grabbed.at(0));
     const cutLength = grabbed.length;
-    let pasteIndex = Number(dropIndex) + 1;
 
-    // correction for multidrag
-    if (pasteIndex > cutIndex) {
-      pasteIndex = pasteIndex - dragIndexes.length;
+    const multiGrab = grabbed.length > 1;
+    //Check for incorrect dropzones
+    if (multiGrab) {
+      const cond1 = cutIndex > dropIndex + 1;
+      const cond2 = dropIndex + 1 > cutIndex + cutLength;
+
+      console.log("test", cond1, cond2);
+      if (cond1 || cond2) {
+        //REFACTOR!!!!!!!!!!!!!!!!!!!!!!!!!!!
+      } else return;
     }
 
-    //Remove grabbed
     list.splice(cutIndex, cutLength);
+
     //Add grabbed to index
+    const pasteIndex = Number(dropIndex) + 1;
     list.splice(pasteIndex, 0, ...grabbed);
     ///////////////////////////////////////////////////////////
 
@@ -221,18 +219,25 @@
   }
 
   function handleConfigUpdate(e) {
-    const { configId, newConfig } = e.detail;
-    const index = $configs.findIndex((e) => e.id === configId);
-    if (index !== -1) {
-      throw "Unknown Error";
+    const { index, newConfig } = e.detail;
+    let list = $configs;
+    const target = $configs.target;
+
+    try {
+      $configs[index] = newConfig;
+    } catch (e) {
+      console.error(e);
     }
 
-    $configs[index] = newConfig;
-    //TODO:
-    ConfigManager.update({
-      target: $configs.target,
-      newConfig: $configs,
-    });
+    list
+      .sendTo({ target: target })
+      .then((e) => {
+        displayCurrentConfigs();
+        deselectAll();
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   function handleDragStart(e) {
@@ -262,7 +267,44 @@
   let enableRemove = false;
 
   function handleSelectionChange(e) {
-    //const { value } = e.detail;
+    const { value, index } = e.detail;
+
+    const selectedConfig = $configs[index];
+    if (typeof selectedConfig === "undefined") {
+      throw `Can't find selected config by index (${index})`;
+    }
+
+    //Check if selection was multi selection
+    const component = [{ start: "Condition_If", end: "Condition_End" }].find(
+      (e) => e.start === selectedConfig.information.name
+    );
+    if (typeof component !== "undefined") {
+      //Find the closing tag of the multiselect component
+      let indentationDepth = 1;
+      for (
+        let i = index + 1;
+        i < $configs.length && indentationDepth > 0;
+        ++i
+      ) {
+        //Another component is found inside the component, increase
+        //indentation depth.
+        if ($configs[i].information.name === component.start) {
+          ++indentationDepth;
+        }
+        //Closing tag found inside the component, decrease
+        //indentation depth.
+        else if ($configs[i].information.name === component.end) {
+          --indentationDepth;
+        }
+        $configs[i].selected = value;
+      }
+
+      if (indentationDepth !== 0) {
+        throw `No closing tag found for ${component.start}`;
+      }
+    }
+
+    //Set MultiOptions values
     const selectionCount = $configs.reduce((acc, curr) => {
       if (curr.selected) {
         acc += 1;
@@ -270,12 +312,12 @@
       return acc;
     }, 0);
 
-    const value = selectionCount > 0;
+    const isSelection = selectionCount > 0;
 
-    enableCopy = value;
-    enableConvert = value;
-    enableCut = value;
-    enableRemove = value;
+    enableCopy = isSelection;
+    enableConvert = isSelection;
+    enableCut = isSelection;
+    enableRemove = isSelection;
   }
 
   function handleConvertToCodeBlock(e) {
@@ -352,6 +394,9 @@
   function displayCurrentConfigs() {
     const target = ConfigTarget.getCurrent();
     const list = ConfigList.createFrom(target);
+    if (typeof list === "undefined") {
+      throw "Error loading current config.";
+    }
     configs.set(list);
   }
 
@@ -402,8 +447,6 @@
       return s;
     });
   }
-
-  let multiSelect = undefined;
 </script>
 
 <configuration
@@ -470,7 +513,7 @@
         </div>
 
         <div
-          use:changeOrder={(this, { config: $configs })}
+          use:changeOrder={(this, { configs: $configs })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop-target={handleDropTargetChange}
@@ -510,11 +553,8 @@
               />
             {/if}
 
-            {#each $configs as config, index (config.id)}
-              <anim-block
-                animate:flip={{ duration: 500 }}
-                in:fade={{ duration: 500 }}
-              >
+            {#each $configs as config, index}
+              <anim-block in:fade={{ duration: 500 }}>
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     let:toggle
@@ -527,7 +567,9 @@
                   />
 
                   <Options
+                    {index}
                     bind:selected={config.selected}
+                    disabled={!config.information.selectable}
                     on:selection-change={handleSelectionChange}
                   />
                 </div>

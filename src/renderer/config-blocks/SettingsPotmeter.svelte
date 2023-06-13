@@ -10,6 +10,7 @@
     defaultLua: "self:pmo(7) self:pma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
+    selectable: true,
   };
 </script>
 

@@ -12,7 +12,6 @@ export function changeOrder(node, { configs }) {
 
   let cursor = undefined;
   let dragged = undefined;
-  let multiDragFlag = undefined;
   let moveDisabled = false;
   let drag_block = [];
 
@@ -152,33 +151,33 @@ export function changeOrder(node, { configs }) {
     if (drag == 2 && !moveDisabled) {
       dragged = e.target;
       let _configIds = [];
-      // multidrag, added component type on dynamic wrapper
-      // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
       const component = dragged.getAttribute("config-component");
 
       if (component.endsWith("_If")) {
-        const _id = id.substr(4);
-        const nodes = _configs.slice(_id);
-        const end_of_if = if_end_pairs(_configs, _id);
-        const drag_configs = nodes.slice(0, end_of_if);
-        multiDragFlag = true;
-        for (const item of drag_configs) {
-          // using configs array, so dom elements need to be discovered by custom id
-          const drag_item = document.querySelectorAll(
-            `[config-id="${item.id}"]`
-          )[0];
+        const index = Number(id.substr(4));
+        const drag_indexes = [index];
+        let depth = 1;
+        for (let i = index + 1; i < _configs.length && depth > 0; ++i) {
+          if (_configs[i].information.name.endsWith("_If")) {
+            ++depth;
+          } else if (_configs[i].information.name.endsWith("_End")) {
+            --depth;
+          }
+          drag_indexes.push(i);
+        }
+
+        for (const i of drag_indexes) {
+          const drag_item = document.getElementById("cfg-" + i);
           // before starting cursor, set the "left behind" configs to half opacity
           drag_item.style.opacity = "0.2";
           // drag_block is a collection of config-ids, original gen unique key ids.
           drag_block.push(drag_item);
-          // attribute "config-id" refers to initial keyed id of config
-          _configIds.push(item.id);
+          _configIds.push(i);
         }
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
         // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
         _configIds = [dragged.getAttribute("config-id")]; // this is used as an array, as multidrag is supported
-        multiDragFlag = false;
         dragged.style.opacity = "0.2";
         createCursor(dragged, dragged.clientWidth);
       }
@@ -240,9 +239,7 @@ export function changeOrder(node, { configs }) {
 
     if (!moveDisabled && dragged !== undefined) {
       if (drag) {
-        node.dispatchEvent(
-          new CustomEvent("drop", { detail: { multi: multiDragFlag } })
-        );
+        node.dispatchEvent(new CustomEvent("drop"));
         node.dispatchEvent(new CustomEvent("anim-start"));
       }
 

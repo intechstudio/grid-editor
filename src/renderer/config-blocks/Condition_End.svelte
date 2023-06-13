@@ -18,6 +18,7 @@
     `,
     blockIcon: `<span class="text-white">End</span>`,
     color: "#F84AA7",
+    selectable: false,
   };
 </script>
 
