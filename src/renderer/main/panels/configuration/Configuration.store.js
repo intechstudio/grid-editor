@@ -1,9 +1,12 @@
 import { get } from "svelte/store";
-import { v4 as uuidv4 } from "uuid";
 
-import { runtime, user_input } from "../../../runtime/runtime.store";
+import {
+  runtime,
+  user_input,
+  luadebug_store,
+} from "../../../runtime/runtime.store";
 
-import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
+//import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
 
 import { getComponentInformation } from "../../../lib/_configs";
 
@@ -119,6 +122,8 @@ export class ConfigList extends Array {
         target.element,
         target.eventType
       );
+
+      luadebug_store.update_config(actionString);
 
       resolve("Event sent to grid.");
     });
