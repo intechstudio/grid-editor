@@ -43,27 +43,16 @@
   function loadProfileToThisModule() {
     selectModuleWhereProfileIsLoaded();
 
-    window.electron.analytics.google("profile-library", {
-      value: "load start",
-    });
     mixpanel.track("Profile Load Start", {});
 
     // to do.. if undefined configs
-
     runtime.whole_page_overwrite(selectedProfile.configs);
 
-    window.electron.analytics.google("profile-library", {
-      value: "load success",
-    });
     mixpanel.track("Profile Load Success", {});
   }
 
   function cancelProfileOverlay() {
     selectedProfileStore.set({});
-
-    window.electron.analytics.google("profile-library", {
-      value: "cancel overlay",
-    });
   }
 </script>
 

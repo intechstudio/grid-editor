@@ -14,9 +14,6 @@
 
   import Device from "./grid-modules/Device.svelte";
 
-  import { tweened } from "svelte/motion";
-  import { cubicOut } from "svelte/easing";
-
   import { fade, fly } from "svelte/transition";
 
   import CursorLog from "../user-interface/cursor-log/CursorLog.svelte";
@@ -54,7 +51,7 @@
   $: gridsize = 2.1 * 106.6 + 10;
 
   let ready = false;
-  let isStoreEnabled = false;
+  const isStoreEnabled = writable(false);
 
   const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
     return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
@@ -70,7 +67,7 @@
     );
   }
 
-  $: isStoreEnabled = $engine == "ENABLED" && $totalChanges > 0;
+  $: isStoreEnabled.set($engine == "ENABLED" && $totalChanges > 0);
 
   onMount(() => {
     createPanZoom(map, {
@@ -135,7 +132,6 @@
   }
 
   function refresh() {
-    window.electron.analytics.google("no-module", { value: "restart app" });
     mixpanel.track("No Module Connected", {
       click: "Refresh",
     });
@@ -150,7 +146,6 @@
 
     window.electron.openInBrowser(url);
 
-    window.electron.analytics.google("no-module", { value: "troubleshooting" });
     mixpanel.track("No Module Connected", {
       click: "Troubleshooting",
     });
@@ -185,7 +180,6 @@
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
     });
 
-    window.electron.analytics.google("writebuffer", { value: "clear" });
     mixpanel.track("Writebuffer", {
       click: "Clear",
     });
@@ -195,7 +189,6 @@
   }
 
   function store() {
-    window.electron.analytics.google("page-config", { value: "store" });
     mixpanel.track("Page Config", {
       click: "Store",
     });
@@ -206,7 +199,6 @@
   function clear() {
     instructions.sendPageClearToGrid();
 
-    window.electron.analytics.google("page-config", { value: "clear" });
     mixpanel.track("Page Config", {
       click: "Clear",
     });
@@ -215,7 +207,6 @@
   function discard() {
     instructions.sendPageDiscardToGrid();
 
-    window.electron.analytics.google("page-config", { value: "discard" });
     mixpanel.track("Page Config", {
       click: "Discard",
     });
@@ -242,25 +233,24 @@
           </div>
           <button
             on:click={() => {
-              discard();
+              if ($isStoreEnabled) discard();
             }}
-            class="relative {isStoreEnabled
-              ? 'flex'
-              : 'hidden gap-0'} items-center justify-center focus:outline-none
-          rounded bg-select hover:bg-yellow-600 text-white py-1 w-24"
+            class="relative items-center justify-center focus:outline-none bg-select
+          rounded text-white py-1 w-24"
+            class:hover:bg-yellow-600={$isStoreEnabled}
+            class:brightness-75={!$isStoreEnabled}
           >
             <div>Discard</div>
             <TooltipSetter key={"configuration_header_clear"} />
           </button>
           <button
             on:click={() => {
-              store();
+              if ($isStoreEnabled) store();
             }}
-            class="relative {isStoreEnabled
-              ? 'flex'
-              : 'hidden gap-0'} items-center justify-center rounded
-              focus:outline-none text-white py-1 w-24 bg-commit
-              hover:bg-commit-saturate-20"
+            class="relative items-center justify-center rounded
+              focus:outline-none text-white py-1 w-24 bg-commit"
+            class:hover:bg-commit-saturate-20={$isStoreEnabled}
+            class:brightness-75={!$isStoreEnabled}
           >
             <div>Store</div>
             <TooltipSetter key={"configuration_header_store"} />

@@ -98,7 +98,6 @@
   function loadPreset(element) {
     selectModuleWhereProfileIsLoaded(element);
 
-    window.electron.analytics.google("preset-library", { value: "load start" });
     mixpanel.track("Preset Load Start", {});
 
     if (selectedPreset !== undefined) {
@@ -112,16 +111,8 @@
 
       if (ui.event.elementtype == preset.type) {
         runtime.element_preset_load(preset);
-
-        window.electron.analytics.google("preset-library", {
-          value: "load success",
-        });
         mixpanel.track("Preset Load Success", {});
       } else {
-        window.electron.analytics.google("preset-library", {
-          value: "load mismatch",
-        });
-
         mixpanel.track("Preset Load Mismatch", {});
       }
     }
@@ -129,10 +120,6 @@
 
   function cancelPresetOverlay() {
     selectedPresetStore.set({});
-
-    window.electron.analytics.google("preset-library", {
-      value: "cancel overlay",
-    });
   }
 </script>
 

@@ -88,10 +88,6 @@ contextBridge.exposeInMainWorld("electron", {
   discord: {
     sendMessage: (message) => ipcRenderer.invoke("sendToDiscord", { message }),
   },
-  analytics: {
-    google: (name, params) =>
-      ipcRenderer.invoke("googleAnalytics", { name, params }),
-  },
   persistentStorage: {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),
     set: (object) => ipcRenderer.invoke("setPersistentStore", object),
