@@ -21,7 +21,6 @@ const luaminOptions = {
 
 export class ConfigObject {
   constructor({ short, script }) {
-    this.id = uuidv4();
     this.short = short;
     this.script = script;
     this.rawLua = `--[[@${short}]] ` + script;
@@ -215,6 +214,34 @@ export class ConfigList extends Array {
 
   checkLength() {
     return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
+  }
+
+  // Override the slice() method to ensure custom properties are copied
+  slice(...args) {
+    const copy = super.slice(...args);
+    copy.target = this.target;
+    return copy;
+  }
+
+  // Override the concat() method to ensure custom properties are copied
+  concat(...args) {
+    const copy = super.concat(...args);
+    copy.target = this.target;
+    return copy;
+  }
+
+  // Override the splice() method to ensure custom properties are copied
+  splice(start, deleteCount, ...items) {
+    const copy = super.splice(start, deleteCount, ...items);
+    copy.target = this.target;
+    return copy;
+  }
+
+  //Use this insead of the spread (...) operator
+  copy() {
+    const copy = new ConfigList(...this);
+    copy.target = this.target;
+    return copy;
   }
 }
 

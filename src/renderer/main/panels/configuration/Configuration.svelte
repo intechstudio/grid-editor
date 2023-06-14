@@ -45,9 +45,14 @@
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   const configs = writable([]);
-
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
+
+  function displayDefault() {
+    configs.set([]);
+    events = { options: ["", "", ""], selected: "" };
+    elements = { options: [], selected: "" };
+  }
 
   let access_tree = {};
 
@@ -140,6 +145,7 @@
       setSelectedEvent();
     } catch (e) {
       console.error(`Configuration: ${e}`);
+      displayDefault();
     }
   }
 
@@ -154,7 +160,7 @@
       throw "Unknown Error";
     }
 
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
 
     //Think through the indexing
@@ -176,36 +182,48 @@
   }
 
   function handleDrop(e) {
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
+    const targetIndex = ++dropIndex;
 
-    //TODO: Make this prettier as a code
-    ///////////////////////////////////////////////////////////
-    let grabbed = [];
-    dragIndexes.forEach((i) => grabbed.push(list[i]));
-
-    //Remove grabbed
-    const cutIndex = list.indexOf(grabbed.at(0));
-    const cutLength = grabbed.length;
-
-    const multiGrab = grabbed.length > 1;
     //Check for incorrect dropzones
-    if (multiGrab) {
-      const cond1 = cutIndex > dropIndex + 1;
-      const cond2 = dropIndex + 1 > cutIndex + cutLength;
-
-      console.log("test", cond1, cond2);
-      if (cond1 || cond2) {
-        //REFACTOR!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      } else return;
+    const multiDrag = draggedIndexes.length > 1;
+    if (multiDrag) {
+      const firstIndex = draggedIndexes.at(0);
+      const lastIndex = draggedIndexes.at(-1);
+      const dist1 = targetIndex - firstIndex;
+      const dist2 = targetIndex - lastIndex;
+      if ([0, 1].includes(dist1) || [0, 1].includes(dist2)) {
+        //Drop target is next to, or inside target,
+        //no swap is needed, or is forbidden
+        return;
+      }
+    } else {
+      const sourceIndex = draggedIndexes.at(0);
+      const dist = targetIndex - sourceIndex;
+      if ([0, 1].includes(dist)) {
+        //Drop target is next to target, no swap is needed
+        return;
+      }
     }
 
-    list.splice(cutIndex, cutLength);
+    let temp = [];
+    for (let i = 0; i < draggedIndexes.length; ++i) {
+      const sourceIndex = draggedIndexes[i];
+      temp.push(list[sourceIndex]);
+      list[sourceIndex] = undefined;
+    }
 
-    //Add grabbed to index
-    const pasteIndex = Number(dropIndex) + 1;
-    list.splice(pasteIndex, 0, ...grabbed);
-    ///////////////////////////////////////////////////////////
+    for (let i = 0; i < temp.length; ++i) {
+      if (targetIndex + i < list.length) {
+        list.splice(targetIndex + i, 0, temp[i]);
+      } else {
+        list.push(temp[i]);
+      }
+    }
+
+    list = list.filter((e) => typeof e !== "undefined");
+    console.log(list);
 
     list
       .sendTo({ target: target })
@@ -220,11 +238,11 @@
 
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
 
     try {
-      $configs[index] = newConfig;
+      list[index] = newConfig;
     } catch (e) {
       console.error(e);
     }
@@ -247,12 +265,12 @@
   function handleDragEnd(e) {
     isDragged = false;
     dropIndex = undefined;
-    dragIndexes = [];
+    draggedIndexes = [];
   }
 
-  let dragIndexes = [];
+  let draggedIndexes = [];
   function handleDragTargetChange(e) {
-    dragIndexes = e.detail.id;
+    draggedIndexes = e.detail.id;
   }
 
   let dropIndex = undefined;
@@ -321,7 +339,7 @@
   }
 
   function handleConvertToCodeBlock(e) {
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
 
     let script = "";
@@ -371,7 +389,7 @@
   $: enablePaste = $appActionClipboard.length > 0;
 
   function handlePaste(e) {
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
 
     for (let config of $appActionClipboard) {
@@ -401,7 +419,7 @@
   }
 
   function handleRemove(e) {
-    let list = $configs;
+    let list = $configs.copy();
     const target = $configs.target;
 
     list = list.filter((e) => !e.selected);
@@ -547,7 +565,7 @@
               <DropZone
                 index={-1}
                 drop_target={dropIndex}
-                drag_target={dragIndexes}
+                drag_target={draggedIndexes}
                 {animation}
                 drag_start={isDragged}
               />
@@ -585,7 +603,7 @@
                 {:else}
                   <DropZone
                     {index}
-                    drag_target={dragIndexes}
+                    drag_target={draggedIndexes}
                     drop_target={dropIndex}
                     {animation}
                     drag_start={isDragged}
