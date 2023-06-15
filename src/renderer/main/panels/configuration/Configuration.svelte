@@ -142,7 +142,14 @@
 
   $: if ($user_input) {
     try {
-      refreshDisplayedConfigs();
+      const target = ConfigTarget.getCurrent();
+      const list = ConfigList.createFrom(target);
+      if (typeof list === "undefined") {
+        throw "Error loading current config.";
+      }
+
+      configs.set(list);
+      toggleLastConfigs();
       setSelectedEvent();
     } catch (e) {
       console.error(`Configuration: ${e}`);
@@ -174,6 +181,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
+        configs.set(list);
         deselectAll();
       })
       .catch((e) => {
@@ -227,7 +235,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        refreshDisplayedConfigs();
+        configs.set(list);
         deselectAll();
       })
       .catch((e) => {
@@ -249,7 +257,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        deselectAll();
+        //deselectAll();
       })
       .catch((e) => {
         console.error(e);
@@ -357,6 +365,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
+        configs.set(list);
         deselectAll();
       })
       .catch((e) => {
@@ -398,6 +407,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
+        configs.set(list);
         deselectAll();
         clearClipboard();
       })
@@ -407,19 +417,16 @@
     mixpanel.track("Config Action", { click: "Paste" });
   }
 
-  function refreshDisplayedConfigs() {
-    const target = ConfigTarget.getCurrent();
-    const list = ConfigList.createFrom(target);
-    if (typeof list === "undefined") {
-      throw "Error loading current config.";
+  function toggleLastConfigs() {
+    if (typeof $configs === "undefined") {
+      return;
     }
 
-    for (const config of list) {
+    for (const config of $configs) {
       if (config.short === lastOpenedElementsType) {
         config.toggled = true;
       }
     }
-    configs.set(list);
   }
 
   function handleRemove(e) {
@@ -431,6 +438,7 @@
     list
       .sendTo({ target: target })
       .then((e) => {
+        configs.set(list);
         deselectAll();
       })
       .catch((e) => {
