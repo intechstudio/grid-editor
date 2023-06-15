@@ -669,7 +669,8 @@
 
   $: if (scriptSegments[1] || $localDefinitions) {
     renderSuggestions();
-    suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
+    console.log($localDefinitions);
+    //suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
   }
 
   let ready = false;

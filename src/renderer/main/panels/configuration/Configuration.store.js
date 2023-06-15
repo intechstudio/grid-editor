@@ -15,6 +15,7 @@ import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
 import grid from "../../../protocol/grid-protocol.js";
+import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -36,6 +37,8 @@ export class ConfigObject {
     this.information = res.information;
     this.component = res.component;
     this.selected = false;
+    this.toggled = false;
+    this.id = uuidv4();
   }
 
   checkSyntax() {

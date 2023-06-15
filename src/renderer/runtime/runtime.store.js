@@ -1287,6 +1287,7 @@ setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
 function createLocalDefinitions() {
   const store = writable();
+  console.log("yay", store);
 
   return {
     ...store,

@@ -45,6 +45,7 @@
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   const configs = writable([]);
+  let lastOpenedElementsType = undefined;
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -141,7 +142,7 @@
 
   $: if ($user_input) {
     try {
-      displayCurrentConfigs();
+      refreshDisplayedConfigs();
       setSelectedEvent();
     } catch (e) {
       console.error(`Configuration: ${e}`);
@@ -173,7 +174,6 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
         deselectAll();
       })
       .catch((e) => {
@@ -223,12 +223,11 @@
     }
 
     list = list.filter((e) => typeof e !== "undefined");
-    console.log(list);
 
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
+        refreshDisplayedConfigs();
         deselectAll();
       })
       .catch((e) => {
@@ -250,7 +249,6 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
         deselectAll();
       })
       .catch((e) => {
@@ -271,11 +269,13 @@
   let draggedIndexes = [];
   function handleDragTargetChange(e) {
     draggedIndexes = e.detail.id;
+    console.log(draggedIndexes);
   }
 
   let dropIndex = undefined;
   function handleDropTargetChange(e) {
     dropIndex = e.detail.drop_target;
+    console.log(dropIndex);
   }
 
   let enableConvert = false;
@@ -357,7 +357,6 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
         deselectAll();
       })
       .catch((e) => {
@@ -399,7 +398,6 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
         deselectAll();
         clearClipboard();
       })
@@ -409,11 +407,17 @@
     mixpanel.track("Config Action", { click: "Paste" });
   }
 
-  function displayCurrentConfigs() {
+  function refreshDisplayedConfigs() {
     const target = ConfigTarget.getCurrent();
     const list = ConfigList.createFrom(target);
     if (typeof list === "undefined") {
       throw "Error loading current config.";
+    }
+
+    for (const config of list) {
+      if (config.short === lastOpenedElementsType) {
+        config.toggled = true;
+      }
     }
     configs.set(list);
   }
@@ -427,7 +431,6 @@
     list
       .sendTo({ target: target })
       .then((e) => {
-        displayCurrentConfigs();
         deselectAll();
       })
       .catch((e) => {
@@ -464,6 +467,13 @@
       });
       return s;
     });
+  }
+
+  function handleToggleChange(e) {
+    const { value, index } = e.detail;
+    if (value) {
+      lastOpenedElementsType = $configs[index].short;
+    }
   }
 </script>
 
@@ -571,8 +581,11 @@
               />
             {/if}
 
-            {#each $configs as config, index}
-              <anim-block in:fade={{ duration: 500 }}>
+            {#each $configs as config, index (config.id)}
+              <anim-block
+                animate:flip={{ duration: 300 }}
+                in:fade={{ delay: 0 }}
+              >
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     let:toggle
@@ -582,6 +595,7 @@
                     configs={$configs}
                     {access_tree}
                     on:update={handleConfigUpdate}
+                    on:toggle={handleToggleChange}
                   />
 
                   <Options

@@ -9,10 +9,10 @@
   export let access_tree;
   export let index = undefined;
   export let config;
+
   $: syntaxError = !config.checkSyntax();
 
   let syntaxError = false;
-  let toggled = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
 
@@ -44,8 +44,9 @@
     validationError = data.isError;
   }
 
-  function handleToggle() {
-    toggled = !toggled;
+  function handleToggle(e) {
+    config.toggled = !config.toggled;
+    dispatch("toggle", { value: config.toggled, index: index });
   }
 </script>
 
@@ -55,14 +56,12 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
 
   <carousel
-    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
+    class="group flex flex-grow {config.toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
     config-component={config.information.name}
     config-id={index}
     movable={true}
-    on:click|self={() => {
-      handleToggle();
-    }}
+    on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <div
@@ -71,7 +70,7 @@
       <!-- Six dots to the left -->
       <div
         class="flex p-2 items-center bg-secondary"
-        class:group-hover:bg-select-saturate-10={!toggled}
+        class:group-hover:bg-select-saturate-10={!config.toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-l={syntaxError}
@@ -114,14 +113,14 @@
         class="w-full bg-secondary cur"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggled}
+        class:group-hover:bg-select-saturate-10={!config.toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-r={syntaxError}
-        class:cursor-auto={toggled}
-        class:bg-opacity-30={toggled}
+        class:cursor-auto={config.toggled}
+        class:bg-opacity-30={config.toggled}
       >
-        {#if toggled || config.information.rendering === "modifier"}
+        {#if config.toggled || config.information.rendering === "modifier"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"
           >
