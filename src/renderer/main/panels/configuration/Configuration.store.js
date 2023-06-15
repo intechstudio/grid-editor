@@ -4,6 +4,7 @@ import {
   runtime,
   user_input,
   luadebug_store,
+  localDefinitions,
 } from "../../../runtime/runtime.store";
 
 //import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
@@ -106,6 +107,8 @@ export class ConfigList extends Array {
       if (!this.checkLength()) {
         reject(new Error("Length error!"));
       }
+
+      localDefinitions.update(this);
 
       const actionString = this.toConfigScript();
       runtime.update_event_configuration(
