@@ -17,25 +17,30 @@
   const dispatch = createEventDispatcher();
 
   function replace_me(e) {
-    let new_config = getAllComponents().find(
-      (c) => c.information.name == e.detail
-    );
-
-    config = new ConfigObject(
-      new_config.information.short,
-      new_config.information.defaultLua
-    );
-
-    handleConfigChange({ configName: component.information.name });
+    const name = e.detail;
+    const components = getAllComponents();
+    const new_config = components.find((e) => e.information.name === name);
+    const obj = new ConfigObject({
+      short: new_config.information.short,
+      script: new_config.information.defaultLua,
+    });
+    config = obj;
+    dispatch("update", {
+      index: index,
+      newConfig: obj,
+    });
+    config.toggled = true;
   }
 
   function handleOutput(e) {
+    const obj = new ConfigObject({
+      short: e.detail.short,
+      script: e.detail.script,
+    });
+    config = obj;
     dispatch("update", {
       index: index,
-      newConfig: new ConfigObject({
-        short: e.detail.short,
-        script: e.detail.script,
-      }),
+      newConfig: obj,
     });
   }
 
@@ -130,9 +135,7 @@
                 {index}
                 {config}
                 {access_tree}
-                on:replace={(e) => {
-                  replace_me(e);
-                }}
+                on:replace={replace_me}
                 on:validator={handleValidator}
                 on:output={handleOutput}
               />

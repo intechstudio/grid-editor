@@ -235,7 +235,12 @@ export const logger = writable();
 
 //debug monitor lua section
 function create_luadebug_store() {
-  const store = writable({ config: "", enabled: true, data: [] });
+  const store = writable({
+    configScript: "",
+    syntaxError: false,
+    enabled: true,
+    data: [],
+  });
 
   return {
     ...store,
@@ -1286,7 +1291,7 @@ const editor_heartbeat_interval_handler = async function () {
 setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
 function createLocalDefinitions() {
-  const store = writable();
+  const store = writable([]);
 
   return {
     ...store,

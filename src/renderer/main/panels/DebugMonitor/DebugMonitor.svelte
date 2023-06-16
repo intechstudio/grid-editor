@@ -7,18 +7,21 @@
     inbound_data_rate_history,
     outbound_data_rate_history,
   } from "./DebugMonitor.store";
-  import _utils, { luaParser } from "../../../runtime/_utils";
+  import _utils from "../../../runtime/_utils";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { luadebug_store } from "../../../runtime/runtime.store";
   import { fade } from "svelte/transition";
   import grid from "../../../protocol/grid-protocol";
+  import { writable } from "svelte/store";
 
-  let runtimeScript = "";
-  let runtimeParser = "";
+  const configScriptLength = writable(0);
+  const syntaxError = writable(false);
+  const configScript = writable("");
 
   $: {
-    runtimeScript = $luadebug_store.config;
-    runtimeParser = luaParser(runtimeScript, { comments: true });
+    configScriptLength.set($luadebug_store.configScript.length);
+    configScript.set($luadebug_store.configScript);
+    syntaxError.set($luadebug_store.syntaxError);
   }
 
   let frozen = false;
@@ -133,22 +136,23 @@
   </div>
   <textarea
     spellcheck="false"
-    bind:value={runtimeScript}
+    bind:value={$configScript}
+    disabled="true"
     class="w-full cursor-default min-h-[200px] bg-secondary rounded px-1 my-2 text-white font-mono"
   />
 
   <div class="flex justify-between min-h-[100px] items-center overflow-y-auto">
     <div class="mx-1 my-2">
-      <div class="text-white">Syntax: {runtimeParser}</div>
+      <div class="text-white">Syntax: {$syntaxError}</div>
       <div class="flex flex-row">
         <div class="pr-2 text-white">Char Count:</div>
         <div class="text-white">
           <span
-            class:text-error={runtimeScript.length >=
+            class:text-error={$configScriptLength >=
               grid.properties.CONFIG_LENGTH}
-            class:text-yellow-400={runtimeScript.length >
+            class:text-yellow-400={$configScriptLength >
               (grid.properties.CONFIG_LENGTH / 3) * 2}
-            >{runtimeScript.length}
+            >{$configScriptLength}
           </span>
         </div>
       </div>

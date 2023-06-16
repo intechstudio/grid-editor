@@ -20,14 +20,6 @@
   let configs = [];
 
   $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
   }
 
   function charCount(text) {

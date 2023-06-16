@@ -4,12 +4,15 @@ import {
   runtime,
   user_input,
   luadebug_store,
-  localDefinitions,
 } from "../../../runtime/runtime.store";
 
 //import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
 
-import { getComponentInformation } from "../../../lib/_configs";
+import {
+  getComponentInformation,
+  config_components,
+  init_config_block_library,
+} from "../../../lib/_configs";
 
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
@@ -30,16 +33,33 @@ export class ConfigObject {
     this.script = script;
     this.rawLua = `--[[@${short}]] ` + script;
 
+    (async () => {
+      if (config_components == []) {
+        await init_config_block_library();
+      }
+    })();
+
     const res = getComponentInformation({ short: short });
     if (typeof res === "undefined") {
-      throw "Config component information not found.";
+      throw `Config component information not found (${short}).`;
     }
 
     this.information = res.information;
     this.component = res.component;
     this.selected = false;
     this.toggled = false;
-    this.id = uuidv4();
+  }
+
+  makeCopy() {
+    const copy = new ConfigObject({
+      short: this.short,
+      script: this.script,
+    });
+    copy.information = this.information;
+    copy.component = this.component;
+    copy.selected = this.selected;
+    copy.toggled = this.toggled;
+    return copy;
   }
 
   checkSyntax() {
@@ -65,9 +85,25 @@ export class ConfigObject {
       luamin.Minify(safe_code, luaminOptions);
       return true;
     } catch (e) {
-      //console.log(code);
-      //console.log(e);
       return false;
+    }
+  }
+
+  getSyntaxError() {
+    try {
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return "OK";
+    } catch (e) {
+      return e;
     }
   }
 }
@@ -75,6 +111,15 @@ export class ConfigObject {
 export class ConfigList extends Array {
   //Internal private list
   target = undefined;
+
+  makeCopy() {
+    const copy = new ConfigList();
+    for (const config of this) {
+      copy.push(config);
+    }
+    copy.target = this.target;
+    return copy;
+  }
 
   static createFrom(target) {
     if (!(target instanceof ConfigTarget)) {
@@ -108,8 +153,6 @@ export class ConfigList extends Array {
         reject(new Error("Length error!"));
       }
 
-      localDefinitions.update(this);
-
       const actionString = this.toConfigScript();
       runtime.update_event_configuration(
         target.device.dx,
@@ -129,6 +172,7 @@ export class ConfigList extends Array {
         target.eventType
       );
 
+      //TODO: Refactor this out
       luadebug_store.update_config(actionString);
 
       resolve("Event sent to grid.");
@@ -179,13 +223,13 @@ export class ConfigList extends Array {
     let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
-      super.push(
-        new ConfigObject({
-          //Extract short, e.g.: '--[[@gms]]' => 'gms'
-          short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
-          script: configList[i + 1].trim(),
-        })
-      );
+      const obj = new ConfigObject({
+        //Extract short, e.g.: '--[[@gms]]' => 'gms'
+        short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+        script: configList[i + 1].trim(),
+      });
+      obj.id = uuidv4();
+      super.push(obj);
     }
   }
 
@@ -200,14 +244,20 @@ export class ConfigList extends Array {
     if (!(config instanceof ConfigObject)) {
       throw "Invalid config object. Expected an instance of ConfigObject.";
     }
-    super.splice(atPosition, 0, config);
+    //Make a deep copy
+    const copy = config.makeCopy();
+    copy.id = uuidv4();
+    super.splice(atPosition, 0, copy);
   }
 
   push(config) {
     if (!(config instanceof ConfigObject)) {
       throw "Invalid config object. Expected an instance of ConfigObject.";
     }
-    super.push(config);
+    //Make a deep copy
+    const copy = config.makeCopy();
+    copy.id = uuidv4();
+    super.push(copy);
   }
 
   remove(atPosition) {
@@ -244,13 +294,6 @@ export class ConfigList extends Array {
   // Override the splice() method to ensure custom properties are copied
   splice(start, deleteCount, ...items) {
     const copy = super.splice(start, deleteCount, ...items);
-    copy.target = this.target;
-    return copy;
-  }
-
-  //Use this insead of the spread (...) operator
-  copy() {
-    const copy = new ConfigList(...this);
     copy.target = this.target;
     return copy;
   }

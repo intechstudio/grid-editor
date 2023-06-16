@@ -15,6 +15,10 @@
   import stringManipulation from "../../main/user-interface/_string-operations";
   import _utils from "../../runtime/_utils.js";
   import { attachment } from "../user-interface/Monster.store";
+  import {
+    ConfigTarget,
+    ConfigList,
+  } from "../panels/configuration/Configuration.store";
 
   let scrollDown;
   let autoscroll;
@@ -60,7 +64,22 @@
     const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
     try {
-      let minified_code = checkSyntaxAndMinify(editor_code); //ADAM FIX THIS
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(editor_code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      const luaminOptions = {
+        RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+        RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+        SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+      };
+      let minified_code = luamin.Minify(safe_code, luaminOptions);
+
       const addedCodeLength = minified_code.length - initCodeLength;
       const newConfigLength = initConfigLength + addedCodeLength;
       if (newConfigLength > maxConfigLimit) {
@@ -77,9 +96,15 @@
   let modalElement;
 
   let initCodeLength;
-  const initConfigLength = _utils.getCurrentConfigScript().length;
+  let initConfigLength = undefined;
 
   onMount(() => {
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+    if (typeof list === "undefined") {
+      throw "Error loading current config.";
+    }
+    initConfigLength = list.toConfigScript().length;
     initCodeLength = $appSettings.monaco_code_committed.length;
     let human = stringManipulation.humanize($appSettings.monaco_code_committed);
     let beautified = luamin.Beautify(human, {

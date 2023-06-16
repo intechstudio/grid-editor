@@ -18,6 +18,8 @@
     user_input,
     engine,
     appActionClipboard,
+    luadebug_store,
+    localDefinitions,
   } from "../../../runtime/runtime.store.js";
 
   import {
@@ -140,6 +142,21 @@
     }
   }
 
+  function updateLuaDebugStore(list) {
+    if (!(list instanceof ConfigList)) {
+      throw "Invalid list object. Expected an instance of ConfigList.";
+    }
+    $luadebug_store.configScript = list.toConfigScript();
+    $luadebug_store.syntaxError = list.checkSyntax();
+  }
+
+  function updateLocalSuggestions(list) {
+    if (!(list instanceof ConfigList)) {
+      throw "Invalid list object. Expected an instance of ConfigList.";
+    }
+    localDefinitions.update(list);
+  }
+
   $: if ($user_input) {
     try {
       const target = ConfigTarget.getCurrent();
@@ -151,6 +168,8 @@
       configs.set(list);
       toggleLastConfigs();
       setSelectedEvent();
+      updateLuaDebugStore(list);
+      updateLocalSuggestions(list);
     } catch (e) {
       console.error(`Configuration: ${e}`);
       displayDefault();
@@ -168,8 +187,7 @@
       throw "Unknown Error";
     }
 
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
 
     //Think through the indexing
     if (typeof index !== "undefined") {
@@ -179,10 +197,19 @@
     }
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
+        //TODO: refactor this out, it is needed because of inserting an IF
+        //TODO: rethink composit block creation
+        const target = ConfigTarget.getCurrent();
+        const list = ConfigList.createFrom(target);
+        if (typeof list === "undefined") {
+          throw "Error loading current config.";
+        }
         configs.set(list);
         deselectAll();
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
       })
       .catch((e) => {
         console.error(e);
@@ -190,8 +217,7 @@
   }
 
   function handleDrop(e) {
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
     const targetIndex = ++dropIndex;
 
     //Check for incorrect dropzones
@@ -233,10 +259,12 @@
     list = list.filter((e) => typeof e !== "undefined");
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         configs.set(list);
         deselectAll();
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
       })
       .catch((e) => {
         console.error(e);
@@ -245,8 +273,7 @@
 
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
 
     try {
       list[index] = newConfig;
@@ -255,8 +282,10 @@
     }
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
         //deselectAll();
       })
       .catch((e) => {
@@ -277,13 +306,11 @@
   let draggedIndexes = [];
   function handleDragTargetChange(e) {
     draggedIndexes = e.detail.id;
-    console.log(draggedIndexes);
   }
 
   let dropIndex = undefined;
   function handleDropTargetChange(e) {
     dropIndex = e.detail.drop_target;
-    console.log(dropIndex);
   }
 
   let enableConvert = false;
@@ -347,8 +374,7 @@
   }
 
   function handleConvertToCodeBlock(e) {
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
 
     let script = "";
     for (let config of $configs) {
@@ -363,10 +389,12 @@
     list = list.filter((e) => !e.selected);
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         configs.set(list);
         deselectAll();
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
       })
       .catch((e) => {
         console.error(e);
@@ -397,19 +425,20 @@
   $: enablePaste = $appActionClipboard.length > 0;
 
   function handlePaste(e) {
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
 
     for (let config of $appActionClipboard) {
       list.push(config);
     }
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         configs.set(list);
         deselectAll();
         clearClipboard();
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
       })
       .catch((e) => {
         console.error(e);
@@ -430,16 +459,17 @@
   }
 
   function handleRemove(e) {
-    let list = $configs.copy();
-    const target = $configs.target;
+    let list = $configs.makeCopy();
 
     list = list.filter((e) => !e.selected);
 
     list
-      .sendTo({ target: target })
+      .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         configs.set(list);
         deselectAll();
+        updateLuaDebugStore(list);
+        updateLocalSuggestions(list);
       })
       .catch((e) => {
         console.error(e);
