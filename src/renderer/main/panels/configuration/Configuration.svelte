@@ -284,6 +284,8 @@
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
+        //TODO: Refactor this out
+        $configs[index].script = newConfig.script;
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
         //deselectAll();
@@ -423,10 +425,17 @@
   $: enablePaste = $appActionClipboard.length > 0;
 
   function handlePaste(e) {
+    const { index } = e.detail;
     let list = $configs.makeCopy();
 
-    for (let config of $appActionClipboard) {
-      list.push(config);
+    //TODO: Refactor this out
+    //DropZone indexing is shifted with -1
+    if (typeof index !== "undefined" && index + 1 < list.length) {
+      list.splice(index + 1, 0, ...$appActionClipboard);
+    } else {
+      for (const config of $appActionClipboard) {
+        list.push(config);
+      }
     }
 
     list
@@ -605,6 +614,7 @@
             {#if !isDragged}
               <AddAction
                 index={-1}
+                on:paste={handlePaste}
                 {animation}
                 configs={$configs}
                 on:new-config={handleConfigInsertion}
@@ -646,6 +656,7 @@
 
                 {#if !isDragged}
                   <AddAction
+                    on:paste={handlePaste}
                     {animation}
                     {config}
                     configs={$configs}
@@ -672,6 +683,7 @@
               {animation}
               configs={$configs}
               index={undefined}
+              on:paste={handlePaste}
               on:new-config={handleConfigInsertion}
             />
             <ExportConfigs />

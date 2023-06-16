@@ -109,7 +109,7 @@
       </div>
 
       <!-- Icon -->
-      <!-- Refactor out the special case of IF -->
+      <!-- Refactor out the special cases -->
       {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
         <div
           style="background-color:{config.information.color}"

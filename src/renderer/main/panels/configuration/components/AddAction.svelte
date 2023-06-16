@@ -76,9 +76,8 @@
     });
   }
 
-  function paste() {
-    dispatch("new-config", {
-      config: get(appActionClipboard).join(""),
+  function handlePaste() {
+    dispatch("paste", {
       index: index,
     });
     configSelection = false;
@@ -442,9 +441,7 @@
 
         {#if $appActionClipboard.length}
           <button
-            on:click={() => {
-              paste();
-            }}
+            on:click={handlePaste}
             class="flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-sm mr-8 mb-2 px-4 py-1 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500"
           >
             Paste
