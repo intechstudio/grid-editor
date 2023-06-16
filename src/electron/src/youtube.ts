@@ -3,13 +3,15 @@ import log from "electron-log";
 
 const youtube = google.youtube("v3");
 
+import configuration from "../../../configuration.json";
+
 export async function getLatestVideo() {
   return new Promise((resolve, reject) => {
     youtube.playlistItems.list(
       {
-        key: process.env["YOUTUBE_API_KEY"],
+        key: configuration["YOUTUBE_API_KEY"],
         part: ["snippet"],
-        playlistId: process.env["YOUTUBE_RELEASENOTES_PLAYLIST_ID"],
+        playlistId: configuration["YOUTUBE_RELEASENOTES_PLAYLIST_ID"],
         maxResults: 100,
       },
       (err, results) => {

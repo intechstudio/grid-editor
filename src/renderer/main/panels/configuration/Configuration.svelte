@@ -71,8 +71,6 @@
 
   const ui = get(user_input);
 
-  $: console.log(ui.event.elementtype, "ui.event.elementtype");
-
   function changeSelectedConfig(arg) {
     $appSettings.configType = arg;
 

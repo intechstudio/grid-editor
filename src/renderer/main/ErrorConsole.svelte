@@ -2,11 +2,10 @@
   import { onMount } from "svelte";
   import { fly, fade, slide } from "svelte/transition";
 
-  import configuration from "../../../configuration.json";
-
   import mixpanel from "mixpanel-browser";
 
   const ctxProcess = window.ctxProcess;
+  const configuration = ctxProcess.configuration();
 
   let logelement;
   let text = "";

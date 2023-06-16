@@ -12,8 +12,6 @@ import _utils from "./_utils";
 
 import { appSettings } from "./app-helper.store";
 
-const { env } = window.ctxProcess;
-
 let lastPageActivator = "";
 
 async function detectActiveWindow() {
@@ -1040,7 +1038,6 @@ function create_runtime() {
         }
       });
     }
-
     return;
   }
 

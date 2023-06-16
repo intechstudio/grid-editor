@@ -1,5 +1,5 @@
 <script>
-  import { engine } from "../../../runtime/runtime.store.js";
+  import { engine, logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
   import {
@@ -8,7 +8,6 @@
   } from "../../../runtime/app-helper.store.js";
 
   import Monster from "../../user-interface/Monster.svelte";
-  import { attachment } from "../../user-interface/Monster.store";
 
   import instructions from "../../../serialport/instructions";
 
@@ -38,25 +37,29 @@
       hpos: "50%",
     });
 
-    if ($appSettings.persistant.newProfileBrowserEnabled) {
-      selected = "newLibrary";
-    } else {
-      selected = "legacyLibrary";
+    switch ($appSettings.profileBrowserMode) {
+      case "newLibrary":
+        selected = "newLibrary";
+      case "legacyLibrary":
+        selected = "legacyLibrary";
+      case "profileCloud":
+        selected = "profileCloud";
+      default:
+        selected = "profileCloud";
     }
   });
 
   // profile browser radio handler
-
   $: {
-    // string "newLibrary" bbecause radio button value is string!!!
     if (selected === "newLibrary") {
-      $appSettings.persistant.newProfileBrowserEnabled = true;
-      $appSettings.persistant.legacyProfileBrowserEnabled = false;
+      $appSettings.profileBrowserMode = "newLibrary";
+      $appSettings.leftPanel = "NewProfile";
     } else if (selected === "legacyLibrary") {
-      $appSettings.persistant.newProfileBrowserEnabled = false;
-      $appSettings.persistant.legacyProfileBrowserEnabled = true;
-    } // bwecause it is initialized to undefined
-    else {
+      $appSettings.profileBrowserMode = "legacyLibrary";
+      $appSettings.leftPanel = "Profiles";
+    } else if (selected == "profileCloud") {
+      $appSettings.profileBrowserMode = "profileCloud";
+      $appSettings.leftPanel = "ProfileCloud";
     }
   }
 
@@ -87,6 +90,33 @@
       s.intervalPause = false;
       return s;
     });
+  }
+
+  let migrationComplete = false;
+
+  async function migrateProfiles() {
+    mixpanel.track("Migrate Profiles");
+
+    const dir = $appSettings.persistant.profileFolder;
+
+    window.electron.configs
+      .migrateToProfileCloud(dir + "/profiles", dir + "/profiles/local")
+      .then((res) => {
+        migrationComplete = true;
+        $appSettings.persistant.useProfileCloud = true;
+        logger.set({
+          type: "success",
+          message: `Profile to local migration complete.`,
+        });
+        return;
+      })
+      .catch((err) => {
+        logger.set({
+          type: "fail",
+          message: `Profile migration failed, contact support!`,
+        });
+        throw err;
+      });
   }
 
   async function libraryDownload() {
@@ -368,6 +398,69 @@
     >
       Download UXP Plugin
     </button>
+
+    <div class="text-gray-400 py-1 mt-1 text-sm">
+      <b>Migrate to Profile Cloud</b>
+    </div>
+    {#if !migrationComplete}
+      <div>
+        Before migration, it's safest to archive (.zip) your grid-userdata.
+        Through support we can help restore your work if you have the archive
+        before migration!
+      </div>
+      <button
+        on:click={() => migrateProfiles()}
+        class="w-1/2 px-2 py-1 rounded bg-amber-700 text-white hover:bg-amber-800 focus:outline-none relative"
+      >
+        Migrate Profiles v1.2.35
+      </button>
+    {:else}
+      <button
+        on:click={() => window.electron.restartApp()}
+        class="w-1/2 px-2 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 focus:outline-none relative"
+      >
+        Reload app
+      </button>
+    {/if}
+  </div>
+
+  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="pb-2">Profile Cloud URL</div>
+    <div class="flex flex-wrap gap-1">
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://localhost:5200";
+        }}
+        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >localhost:5200</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
+        }}
+        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >profile-cloud.web.app</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl = "http://google.com";
+        }}
+        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >google.com</button
+      >
+      <button
+        on:click={() => {
+          $appSettings.profileCloudUrl =
+            "https://links.intech.studio/profile-cloud";
+        }}
+        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        >links/profile-cloud</button
+      >
+    </div>
+    <input
+      class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
+      bind:value={$appSettings.profileCloudUrl}
+    />
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
@@ -441,6 +534,18 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="flex py-2 text-white items-center mb-1">
+      <label class="mx-1">
+        <input
+          class="mr-1"
+          type="radio"
+          value="profileCloud"
+          bind:group={selected}
+        />
+        Profile Cloud & Preset Browser Mode</label
+      >
+    </div>
+
     <div class="flex py-2 text-white items-center">
       <label class="mx-1">
         <input
@@ -472,15 +577,6 @@
         bind:checked={$appSettings.persistant.welcomeOnStartup}
       />
       <div class="ml-1">Show welcome on startup</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.showLoginRegister}
-      />
-      <div class="mx-1">Show Login/Register</div>
     </div>
 
     <div class="flex py-2 text-white items-center">

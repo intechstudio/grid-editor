@@ -6,7 +6,8 @@ contextBridge.exposeInMainWorld("ctxProcess", {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   platform: () => process.platform,
-  env: () => ipcRenderer.sendSync("get-env"),
+  configuration: () => ipcRenderer.sendSync("getConfiguration"),
+  buildVariables: () => ipcRenderer.sendSync("getBuildVariables"),
   // we can also expose variables, not just functions
 });
 
@@ -36,7 +37,12 @@ contextBridge.exposeInMainWorld("electron", {
     restartSerialCheckInterval: () =>
       ipcRenderer.invoke("restartSerialCheckInterval"),
   },
+  clipboard: {
+    writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
+  },
   configs: {
+    migrateToProfileCloud: (oldPath, newPath) =>
+      ipcRenderer.invoke("migrateToProfileCloud", { oldPath, newPath }),
     moveOldConfigs: (configPath, rootDirectory) =>
       ipcRenderer.invoke("moveOldConfigs", { configPath, rootDirectory }),
     loadConfigsFromDirectory: (configPath, rootDirectory) =>
@@ -68,6 +74,14 @@ contextBridge.exposeInMainWorld("electron", {
         oldName,
         profileFolder,
       }),
+    updateLocal: (configPath, name, config, rootDirectory, profileFolder) =>
+      ipcRenderer.invoke("updateLocal", {
+        configPath,
+        name,
+        config,
+        rootDirectory,
+        profileFolder,
+      }),
     deleteConfig: (configPath, name, rootDirectory, profileFolder) =>
       ipcRenderer.invoke("deleteConfig", {
         configPath,
@@ -75,6 +89,8 @@ contextBridge.exposeInMainWorld("electron", {
         rootDirectory,
         profileFolder,
       }),
+    onExternalResponse: (callback) =>
+      ipcRenderer.on("onExternalProfileLinkResponse", callback),
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),

@@ -207,7 +207,6 @@
       }
 
       checkIfPresetTitleUnique(name);
-      //}
 
       let preset = {
         name: name,

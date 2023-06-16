@@ -7,7 +7,7 @@
   let updateProgress = 0;
   let updateError = "";
 
-  const env = window.ctxProcess.env();
+  const configuration = window.ctxProcess.configuration();
 
   function restartApp() {
     window.electron.updater.restartAfterUpdate();
@@ -73,7 +73,7 @@
         <button
           class="cursor-pointer relative px-2 py-1 mt-2 mr-2 bg-commit rounded hover:bg-commit-saturate-20 focus:outline-none"
           on:click={() => {
-            window.electron.openInBrowser(env.EDITOR_DOWNLOAD_URL);
+            window.electron.openInBrowser(configuration.EDITOR_DOWNLOAD_URL);
           }}
         >
           Download

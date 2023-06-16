@@ -1,0 +1,99 @@
+name: Matrix build Grid Editor (Nightly)
+
+on: push
+
+jobs:
+  matrix-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.13.2"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Create buildVariables.json
+        id: create-json-1
+        uses: jsdaniell/create-json@v1.2.2
+        with:
+          name: "buildVariables.json"
+          json: '{"BUILD_ENV":"nightly", "PROFILE_CLOUD_URL":"https://profile-cloud-dev.web.app"}'
+
+      - name: Update package.json description
+        uses: jossef/action-set-json-field@v2.1
+        with:
+          file: package.json
+          field: build.productName
+          value: Grid Editor (Nightly)
+
+      - name: Build
+        run: npm run export:nightly
+        if: ${{ always() }}
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+          # Apple ID
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_ID_PASSWORD: ${{secrets.APPLE_ID_PASSWORD}}
+
+          # macOS Code signing
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.os }}-nightly
+          path: build/*.*
+
+  linux-unit-test:
+    name: Linux Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Setup nodeJS
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.13.2"
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: "Run unit tests"
+        run: |
+          npm test >> unit_test.txt
+          cat unit_test.txt
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: linux-unit-test
+          path: unit_test.txt
+
+      - uses: tsickert/discord-webhook@v4.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_DEV_WEBHOOK }}
+          content: "Heyo, here are the editor unit test results!"
+          filename: "unit_test.txt"

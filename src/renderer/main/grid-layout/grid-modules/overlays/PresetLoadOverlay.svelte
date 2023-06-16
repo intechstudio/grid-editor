@@ -111,15 +111,12 @@
 
       if (ui.event.elementtype == preset.type) {
         runtime.element_preset_load(preset);
+
         mixpanel.track("Preset Load Success", {});
       } else {
         mixpanel.track("Preset Load Mismatch", {});
       }
     }
-  }
-
-  function cancelPresetOverlay() {
-    selectedPresetStore.set({});
   }
 </script>
 
