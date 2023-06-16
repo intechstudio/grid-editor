@@ -8,7 +8,6 @@
   } from "../../../runtime/app-helper.store.js";
 
   import Monster from "../../user-interface/Monster.svelte";
-  import { attachment } from "../../user-interface/Monster.store";
 
   import instructions from "../../../serialport/instructions";
 
@@ -96,6 +95,8 @@
   let migrationComplete = false;
 
   async function migrateProfiles() {
+    mixpanel.track("Migrate Profiles");
+
     const dir = $appSettings.persistant.profileFolder;
 
     window.electron.configs

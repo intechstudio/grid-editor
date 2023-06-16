@@ -3,6 +3,7 @@ import { get } from "svelte/store";
 import { appSettings } from "/runtime/app-helper.store";
 
 const configuration = window.ctxProcess.configuration();
+const buildVariables = window.ctxProcess.buildVariables();
 
 console.log("Analytics Hello", get(appSettings));
 
@@ -14,4 +15,5 @@ mixpanel.identify(get(appSettings).persistant.userId);
 
 mixpanel.track("App Start", {
   Version: get(appSettings).version,
+  ...buildVariables,
 });
