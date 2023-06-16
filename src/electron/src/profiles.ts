@@ -1,4 +1,7 @@
 import fs from "fs";
+import path from 'path';
+import { v4 as uuidv4 } from "uuid";
+import util from 'util';
 import log from "electron-log";
 
 async function checkIfWritableDirectory(path) {
@@ -9,6 +12,62 @@ async function checkIfWritableDirectory(path) {
 
   return await Promise.all([stats]);
 }
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const readdir = util.promisify(fs.readdir);
+
+interface OldProfile {
+  version: {
+    major: number,
+    minor: number,
+    patch: number
+  };
+}
+
+interface NewProfile {
+  id: string;
+  version: {
+    major: string,
+    minor: string,
+    patch: string
+  };
+}
+
+export async function migrateToProfileCloud(oldPath: string, newPath: string): Promise<void> {
+  const entries = await readdir(oldPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+
+    const fullOldPath = path.join(oldPath, entry.name);
+
+    if (entry.isDirectory()) {
+      // If the entry is a directory, recurse into it
+      await migrateToProfileCloud(fullOldPath, newPath);
+    } else if (entry.isFile() && path.extname(entry.name) === '.json') {
+
+      const id = uuidv4();
+      const fullNewPath = path.join(newPath, id);
+      // If the entry is a file and ends in '.json', process it
+      const oldProfileBuffer = await readFile(fullOldPath);
+      const oldProfile: OldProfile = JSON.parse(oldProfileBuffer.toString());
+
+      const newProfile: NewProfile = {
+        ...oldProfile,
+        id: id,
+        version: {
+          major: oldProfile.version.major.toString(),
+          minor: oldProfile.version.minor.toString(),
+          patch: oldProfile.version.patch.toString(),
+        },
+      };
+      fs.mkdirSync(fullNewPath, { recursive: true });
+      await writeFile(path.join(fullNewPath, `${newProfile.id}.json`), JSON.stringify(newProfile, null, 2));
+    }
+  }
+}
+
+
 
 export async function moveOldConfigs(configPath, rootDirectory) {
   if (configPath === undefined) return;

@@ -195,6 +195,7 @@
     if (event.data.channelMessageType == "DELETE_LOCAL_PROFILE") {
       const path = $appSettings.persistant.profileFolder;
       const { folder, id } = event.data?.profile;
+
       await window.electron.configs
         .deleteConfig(path, id, "profiles", folder)
         .then((res) => {
@@ -207,7 +208,7 @@
         .catch((err) => {
           logger.set({
             type: "fail",
-            message: `Profile ${name} deletion failed`,
+            message: `Profile ${id} deletion failed`,
           });
           throw err;
         });

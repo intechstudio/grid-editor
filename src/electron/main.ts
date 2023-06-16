@@ -39,6 +39,7 @@ import {
   updateConfig,
   updateLocal,
   deleteConfig,
+  migrateToProfileCloud,
 } from "./src/profiles";
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
@@ -390,6 +391,10 @@ ipcMain.handle("moveOldConfigs", async (event, arg) => {
 ipcMain.handle("loadConfigsFromDirectory", async (event, arg) => {
   return await loadConfigsFromDirectory(arg.configPath, arg.rootDirectory);
 });
+
+ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
+  return await migrateToProfileCloud(arg.oldPath, arg.newPath);
+})
 
 ipcMain.handle("saveConfig", async (event, arg) => {
   return await saveConfig(

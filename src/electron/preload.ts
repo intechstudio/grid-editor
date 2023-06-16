@@ -41,6 +41,7 @@ contextBridge.exposeInMainWorld("electron", {
     writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
   },
   configs: {
+    migrateToProfileCloud: (oldPath, newPath) => ipcRenderer.invoke("migrateToProfileCloud", { oldPath, newPath }),
     moveOldConfigs: (configPath, rootDirectory) =>
       ipcRenderer.invoke("moveOldConfigs", { configPath, rootDirectory }),
     loadConfigsFromDirectory: (configPath, rootDirectory) =>

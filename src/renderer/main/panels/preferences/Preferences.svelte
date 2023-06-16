@@ -1,5 +1,5 @@
 <script>
-  import { engine } from "../../../runtime/runtime.store.js";
+  import { engine, logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
   import {
@@ -87,6 +87,31 @@
       s.intervalPause = false;
       return s;
     });
+  }
+
+  let migrationComplete = false;
+
+  async function migrateProfiles() {
+    const dir = $appSettings.persistant.profileFolder;
+
+    window.electron.configs
+      .migrateToProfileCloud(dir + "/profiles", dir + "/profiles/local")
+      .then((res) => {
+        migrationComplete = true;
+        $appSettings.persistant.useProfileCloud = true;
+        logger.set({
+          type: "success",
+          message: `Profile to local migration complete.`,
+        });
+        return;
+      })
+      .catch((err) => {
+        logger.set({
+          type: "fail",
+          message: `Profile migration failed, contact support!`,
+        });
+        throw err;
+      });
   }
 
   async function libraryDownload() {
@@ -368,6 +393,30 @@
     >
       Download UXP Plugin
     </button>
+
+    <div class="text-gray-400 py-1 mt-1 text-sm">
+      <b>Migrate to Profile Cloud</b>
+    </div>
+    {#if !migrationComplete}
+      <div>
+        Before migration, it's safest to archive (.zip) your grid-userdata.
+        Through support we can help restore your work if you have the archive
+        before migration!
+      </div>
+      <button
+        on:click={() => migrateProfiles()}
+        class="w-1/2 px-2 py-1 rounded bg-amber-700 text-white hover:bg-amber-800 focus:outline-none relative"
+      >
+        Migrate Profiles v1.2.35
+      </button>
+    {:else}
+      <button
+        on:click={() => window.electron.restartApp()}
+        class="w-1/2 px-2 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 focus:outline-none relative"
+      >
+        Reload app
+      </button>
+    {/if}
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
