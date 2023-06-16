@@ -89,7 +89,6 @@ let selection_changed_timestamp = 0;
 
 export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
-export const conditionalConfigPlacement = writable();
 
 export const elementPositionStore = writable({});
 export const elementNameStore = writable({});
@@ -234,7 +233,12 @@ export const logger = writable();
 
 //debug monitor lua section
 function create_luadebug_store() {
-  const store = writable({ config: "", enabled: true, data: [] });
+  const store = writable({
+    configScript: "",
+    syntaxError: false,
+    enabled: true,
+    data: [],
+  });
 
   return {
     ...store,
@@ -248,30 +252,6 @@ function create_luadebug_store() {
 }
 
 export const luadebug_store = create_luadebug_store();
-
-function createMultiSelect() {
-  const default_values = {
-    multiselect: false,
-    selection: [],
-    all_selected: false,
-  };
-
-  const store = writable(default_values);
-
-  return {
-    ...store,
-    reset: () => {
-      store.update((s) => {
-        s.multiselect = false;
-        s.all_selected = false;
-        s.selection = [];
-        return s;
-      });
-    },
-  };
-}
-
-export const appMultiSelect = createMultiSelect();
 
 function create_user_input() {
   const defaultValues = {
@@ -871,23 +851,6 @@ function create_runtime() {
     });
   }
 
-  function check_action_string_length(configs) {
-    const maxConfigLength = grid.properties.CONFIG_LENGTH;
-    const configLength = configs.length;
-    return new Promise((resolve, reject) => {
-      //dest.config.length >= grid.properties.CONFIG_LENGTH
-      if (maxConfigLength < configLength) {
-        throw {
-          what: `Config limit reached! Max character count is ${maxConfigLength}.`,
-          length: configLength,
-          max: maxConfigLength,
-        };
-      } else {
-        resolve({ length: configLength, max: maxConfigLength });
-      }
-    });
-  }
-
   function send_event_configuration_to_grid(
     dx,
     dy,
@@ -1264,7 +1227,6 @@ function create_runtime() {
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
-    check_action_string_length: check_action_string_length,
   };
 }
 
@@ -1326,7 +1288,7 @@ const editor_heartbeat_interval_handler = async function () {
 setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
 function createLocalDefinitions() {
-  const store = writable();
+  const store = writable([]);
 
   return {
     ...store,

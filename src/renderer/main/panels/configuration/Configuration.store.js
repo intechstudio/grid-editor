@@ -1,19 +1,25 @@
-import { writable, get } from "svelte/store";
+import { get } from "svelte/store";
 
-import mixpanel from "mixpanel-browser";
 import {
   runtime,
-  logger,
-  luadebug_store,
-  appMultiSelect,
-  appActionClipboard,
   user_input,
+  luadebug_store,
 } from "../../../runtime/runtime.store";
 
+//import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
+
+import {
+  getComponentInformation,
+  config_components,
+  init_config_block_library,
+} from "../../../lib/_configs";
+
+import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
 import grid from "../../../protocol/grid-protocol.js";
+import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -21,410 +27,320 @@ const luaminOptions = {
   SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
 };
 
-function get_configs() {
-  let configs = "";
-  const unsubscribe = luadebug_store.subscribe((data) => {
-    let arr = [];
-    configs = _utils.rawLuaToConfigList(data.config);
-    for (let i = 0; i < configs.length; i += 2) {
-      arr.push(`${configs[i]}${configs[i + 1]}`.trim());
+export class ConfigObject {
+  constructor({ short, script }) {
+    this.short = short;
+    this.script = script;
+    this.rawLua = `--[[@${short}]] ` + script;
+
+    (async () => {
+      if (config_components == []) {
+        await init_config_block_library();
+      }
+    })();
+
+    const res = getComponentInformation({ short: short });
+    if (typeof res === "undefined") {
+      throw `Config component information not found (${short}).`;
     }
-    configs = arr;
-  });
-  unsubscribe();
-  return configs;
+
+    this.information = res.information;
+    this.component = res.component;
+    this.selected = false;
+    this.toggled = false;
+  }
+
+  makeCopy() {
+    const copy = new ConfigObject({
+      short: this.short,
+      script: this.script,
+    });
+    copy.information = this.information;
+    copy.component = this.component;
+    copy.selected = this.selected;
+    copy.toggled = this.toggled;
+    return copy;
+  }
+
+  checkSyntax() {
+    //If not a CodeBlock, and script contains if, add end to if.
+    //If not done, it will always fail.
+    //TODO: Rework composite blocks in a way, so this exception
+    //does not occure.
+    let code = this.script;
+    if (this.short !== "cb" && code.startsWith("if")) {
+      code += " end";
+    }
+
+    try {
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  getSyntaxError() {
+    try {
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return "OK";
+    } catch (e) {
+      return e;
+    }
+  }
 }
 
-export function configManagement() {
-  const drag_and_drop = function () {
-    this.add = ({ configs, index, newConfig }) => {
-      newConfig = _utils.gridLuaToEditorLua(newConfig);
+export class ConfigList extends Array {
+  //Internal private list
+  target = undefined;
 
-      if (newConfig === undefined) {
-        console.log("NO CONFIG PASSED");
-        return undefined;
+  makeCopy() {
+    const copy = new ConfigList();
+    for (const config of this) {
+      copy.push(config);
+    }
+    copy.target = this.target;
+    return copy;
+  }
+
+  static createFrom(target) {
+    if (!(target instanceof ConfigTarget)) {
+      throw "Invalid target object. Expected an instance of ConfigTarget.";
+    }
+
+    this.target = target;
+
+    try {
+      const config = new ConfigList();
+      config.target = target;
+      config.#Init();
+      return config;
+    } catch (e) {
+      console.error("ConfigList:", e);
+      return undefined;
+    }
+  }
+
+  sendTo({ target }) {
+    return new Promise((resolve, reject) => {
+      if (!(target instanceof ConfigTarget)) {
+        reject(
+          new Error(
+            `Invalid target object (${target}). Expected an instance of ConfigTarget.`
+          )
+        );
       }
 
-      configs.splice(index, 0, ...newConfig);
-
-      return configs;
-    };
-
-    this.reorder = (configs, drag_target, drop_target, isMultiDrag) => {
-      let grabbed = [];
-      drag_target.forEach((id) => {
-        grabbed.push(configs.find((act) => id === act.id));
-      });
-      const cutIndex = configs.indexOf(grabbed.at(0));
-      const cutLength = grabbed.length;
-
-      let pasteIndex = Number(drop_target) + 1;
-      // correction for multidrag
-      if (pasteIndex > cutIndex) {
-        pasteIndex = pasteIndex - drag_target.length;
+      if (!this.checkLength()) {
+        reject(new Error("Length error!"));
       }
 
-      //Remove grabbed
-      configs.splice(cutIndex, cutLength);
-      //Add grabbed to index
-      configs.splice(pasteIndex, 0, ...grabbed);
-
-      const li = get(user_input);
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionString = _utils.configMerge({ config: configs });
-
+      const actionString = this.toConfigScript();
       runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType,
         actionString,
         "EDITOR_EXECUTE"
       );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
-      // trigger change detection
-      user_input.update((n) => n);
-    };
-  };
+      runtime.send_event_configuration_to_grid(
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType
+      );
 
-  const on_click = function () {
-    this.select_all = function () {
-      const configs = get_configs();
-      appMultiSelect.update((s) => {
-        s.all_selected = !s.all_selected;
-        s.selection = configs.map((v) => s.all_selected);
-        return s;
+      //TODO: Refactor this out
+      luadebug_store.update_config(actionString);
+
+      resolve("Event sent to grid.");
+    });
+  }
+
+  #Init() {
+    const rt = get(runtime);
+    const device = rt.find(
+      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy
+    );
+
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
+    }
+
+    const page = device.pages.at(this.target.page);
+    const element = page.control_elements.at(this.target.element);
+    let event = element.events.find(
+      (e) => e.event.value == this.target.eventType
+    );
+    const cfgstatus = event.cfgStatus;
+    if (
+      cfgstatus != "GRID_REPORT" &&
+      cfgstatus != "EDITOR_EXECUTE" &&
+      cfgstatus != "EDITOR_BACKGROUND"
+    ) {
+      const ui = get(user_input);
+      const callback = () => user_input.update((n) => n);
+      runtime.fetchOrLoadConfig(ui, callback);
+    }
+
+    let configScript = event.config;
+
+    //Parse configScript
+    //TODO: do rawLuas format checking during parsing
+
+    // get rid of new line, enter
+    configScript = configScript.replace(/[\n\r]+/g, "");
+    // get rid of more than 2 spaces
+    configScript = configScript.replace(/\s{2,10}/g, " ");
+    // remove lua opening and closing characters
+    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+    if (configScript.startsWith("<?lua")) {
+      configScript = configScript.split("<?lua")[1].split("?>")[0];
+    }
+    // split by meta comments
+    let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
+    configList = configList.slice(1);
+    for (var i = 0; i < configList.length; i += 2) {
+      const obj = new ConfigObject({
+        //Extract short, e.g.: '--[[@gms]]' => 'gms'
+        short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+        script: configList[i + 1].trim(),
       });
-    };
+      obj.id = uuidv4();
+      super.push(obj);
+    }
+  }
 
-    this.copy = function (isCut = false) {
-      const selection = get(appMultiSelect).selection;
+  toConfigScript() {
+    let lua = "";
+    super.forEach((e) => (lua += e.rawLua));
+    lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
+    return lua;
+  }
 
-      const configs = get_configs();
+  insert(config, atPosition) {
+    if (!(config instanceof ConfigObject)) {
+      throw "Invalid config object. Expected an instance of ConfigObject.";
+    }
+    //Make a deep copy
+    const copy = config.makeCopy();
+    copy.id = uuidv4();
+    super.splice(atPosition, 0, copy);
+  }
 
-      let clipboard = [];
+  push(config) {
+    if (!(config instanceof ConfigObject)) {
+      throw "Invalid config object. Expected an instance of ConfigObject.";
+    }
+    //Make a deep copy
+    const copy = config.makeCopy();
+    copy.id = uuidv4();
+    super.push(copy);
+  }
 
-      selection.forEach((elem, index) => {
-        if (elem) {
-          clipboard.push(configs[index]);
-        }
-      });
+  remove(atPosition) {
+    super.splice(atPosition, 1);
+  }
 
-      appActionClipboard.set(clipboard);
-
-      if (isCut === false) {
-        mixpanel.track("Config Action", { click: "Copy" });
+  checkSyntax() {
+    super.forEach((e) => {
+      if (!e.checkSyntax()) {
+        return false;
       }
-    };
+    });
+    return true;
+  }
 
-    this.paste = function () {
-      if (get(appActionClipboard).length) {
-        const configs = [...get_configs(), ...get(appActionClipboard)];
+  checkLength() {
+    return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
+  }
 
-        const li = get(user_input);
+  // Override the slice() method to ensure custom properties are copied
+  slice(...args) {
+    const copy = super.slice(...args);
+    copy.target = this.target;
+    return copy;
+  }
 
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-        const actionString = _utils.configsToActionString(configs);
+  // Override the concat() method to ensure custom properties are copied
+  concat(...args) {
+    const copy = super.concat(...args);
+    copy.target = this.target;
+    return copy;
+  }
 
-        runtime
-          .check_action_string_length(actionString)
-          .then(() => {
-            runtime.update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actionString,
-              "EDITOR_EXECUTE"
-            );
-            runtime.send_event_configuration_to_grid(
-              dx,
-              dy,
-              page,
-              element,
-              event
-            );
-
-            // trigger change detection
-            user_input.update((n) => n);
-          })
-          .catch((error) => {
-            logger.set({
-              type: "fail",
-              mode: 0,
-              classname: "check_action_string_length_error",
-              message: `Config length is too long, shorten your code or delete actions!`,
-            });
-          });
-
-        mixpanel.track("Config Action", { click: "Paste" });
-      }
-    };
-
-    this.converttocodeblock = function () {
-      const selection = get(appMultiSelect).selection;
-      const configs = get_configs();
-
-      // EDIT
-
-      let edited = [];
-
-      let i = 0;
-      let j = 0;
-      for (; i < configs.length; ) {
-        if (selection[i] !== true) {
-          edited.push(configs[i]);
-          j++;
-        } else {
-          // edit these
-          if (i > 0 && selection[i - 1] == true) {
-            const [first, ...rest] = configs[i].split("]]");
-            edited[j - 1] += rest.join("]]");
-          } else {
-            const [first, ...rest] = configs[i].split("]]");
-            edited.push("--[[@cb]]" + rest.join("]]"));
-            j++;
-          }
-        }
-
-        i++;
-      }
-
-      // check if resulting codesections are valid
-
-      let error_count = 0;
-
-      for (let v = 0; v < edited.length; v++) {
-        if (selection[v] == true) {
-          try {
-            const minified_code = luamin.Minify(edited[v], luaminOptions);
-          } catch (error) {
-            error_count++;
-          }
-        }
-      }
-
-      if (error_count) {
-        console.log("Merge Rejected");
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "configuration",
-          message: `Code Merge Rejected`,
-        });
-        return;
-      }
-
-      const li = get(user_input);
-
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionString = _utils.configsToActionString(edited);
-
-      runtime
-        .check_action_string_length(actionString)
-        .then(() => {
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionString,
-            "EDITOR_EXECUTE"
-          );
-          runtime.send_event_configuration_to_grid(
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-
-          // trigger change detection
-          user_input.update((n) => n);
-        })
-        .catch((error) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "check_action_string_length_error",
-            message: `Config length is too long, shorten your code or delete actions!`,
-          });
-        });
-    };
-
-    this.add = function (newConfig, index) {
-      const configs = [...get_configs()];
-
-      if (typeof newConfig === "undefined") {
-        console.log("NO CONFIG PASSED");
-        return configs;
-      }
-
-      configs.splice(index, 0, newConfig);
-      const actionString = _utils.configsToActionString(configs);
-
-      runtime
-        .check_action_string_length(actionString)
-        .then(() => {
-          const li = get(user_input);
-          const dx = li.brc.dx;
-          const dy = li.brc.dy;
-          const page = li.event.pagenumber;
-          const element = li.event.elementnumber;
-          const event = li.event.eventtype;
-
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionString,
-            "EDITOR_EXECUTE"
-          );
-          runtime.send_event_configuration_to_grid(
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-
-          // trigger change detection
-          user_input.update((n) => n);
-        })
-        .catch((error) => {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "check_action_string_length_error",
-            message: `Config length is too long, shorten your code or delete actions!`,
-          });
-        });
-    };
-
-    this.cut = function () {
-      mixpanel.track("Config Action", { click: "Cut" });
-      this.copy(true);
-      this.remove();
-    };
-
-    this.remove = function () {
-      const selection = get(appMultiSelect).selection;
-
-      if (selection.length) {
-        const configs = [...get_configs()];
-
-        let filtered = [];
-
-        for (let i = 0; i < configs.length; i++) {
-          if (selection[i] !== true) {
-            filtered.push(configs[i]);
-          } else {
-            // dont return
-          }
-        }
-
-        const li = get(user_input);
-
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-        const actionString = _utils.configsToActionString(filtered);
-
-        runtime
-          .check_action_string_length(actionString)
-          .then(() => {
-            runtime.update_event_configuration(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              actionString,
-              "EDITOR_EXECUTE"
-            );
-            runtime.send_event_configuration_to_grid(
-              dx,
-              dy,
-              page,
-              element,
-              event
-            );
-
-            // trigger change detection
-            user_input.update((n) => n);
-          })
-          .catch((error) => {
-            logger.set({
-              type: "fail",
-              mode: 0,
-              classname: "check_action_string_length_error",
-              message: `Config length is too long, shorten your code or delete actions!`,
-            });
-          });
-
-        mixpanel.track("Config Action", { click: "Remove" });
-      }
-    };
-  };
-
-  return {
-    drag_and_drop: new drag_and_drop(),
-    on_click: new on_click(),
-  };
+  // Override the splice() method to ensure custom properties are copied
+  splice(start, deleteCount, ...items) {
+    const copy = super.splice(start, deleteCount, ...items);
+    copy.target = this.target;
+    return copy;
+  }
 }
 
-function createDropStore() {
-  const store = writable([]);
+export class ConfigTarget {
+  constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
+    try {
+      const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+      if (typeof device === "undefined") {
+        throw "Unknown device!";
+      }
 
-  return {
-    ...store,
-    update: (configs) => {
-      let disabled_blocks = [];
-      let if_block = false;
-      configs.forEach((a, index) => {
-        try {
-          // check if it's and if block
-          if (a.information.name.endsWith("_If")) {
-            if_block = true;
-          }
+      this.device = { dx: dx, dy: dy };
+      this.page = page;
 
-          // don't add +1 id in the array (end)
-          if (if_block && !a.information.name.endsWith("_End")) {
-            disabled_blocks.push(index);
-          }
+      //TODO: is this a bug?
+      if (element === 255) {
+        this.element = device.pages.at(page).control_elements.length - 1;
+      } else {
+        this.element = element;
+      }
+      this.eventType = eventType;
 
-          // this is the last, as END has to be disabled too!
-          if (a.information.name.endsWith("_End")) {
-            if_block = false;
-          }
-        } catch (e) {
-          console.log(e);
-        }
+      //Get events
+      this.events = device.pages
+        .at(this.page)
+        .control_elements.at(this.element).events;
+    } catch (e) {
+      console.error(`ConfigTarget: ${e}`);
+    }
+  }
+
+  static getCurrent() {
+    const ui = get(user_input);
+    try {
+      const currentTarget = new ConfigTarget({
+        device: { dx: ui.brc.dx, dy: ui.brc.dy },
+        page: ui.event.pagenumber,
+        element: ui.event.elementnumber,
+        eventType: ui.event.eventtype,
       });
 
-      store.set(disabled_blocks);
-    },
-  };
+      return currentTarget;
+    } catch (e) {
+      console.error("ConfigTarget:", e);
+      return undefined;
+    }
+  }
 }
-
-export const dropStore = createDropStore();

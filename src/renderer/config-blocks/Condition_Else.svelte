@@ -16,6 +16,8 @@
     </svg>
     `,
     color: "#F84AA7",
+    blockIcon: `<span class="text-white">Else</span>`,
+    selectable: false,
   };
 </script>
 
@@ -27,10 +29,6 @@
   function sendData() {
     dispatch("output", { short: "el", script: "else" });
   }
-
-  onMount(() => {
-    sendData();
-  });
 </script>
 
 <else-block

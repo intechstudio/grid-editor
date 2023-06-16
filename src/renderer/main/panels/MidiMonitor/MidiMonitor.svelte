@@ -3,30 +3,25 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import { luadebug_store } from "../../../runtime/runtime.store";
-  import _utils, { luaParser } from "../../../runtime/_utils";
+  import _utils from "../../../runtime/_utils";
   import {
     midi_monitor_store,
     sysex_monitor_store,
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
+  import { luadebug_store } from "../../../runtime/runtime.store";
+  import grid from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
   // ok but slow nice
 
-  let runtimeScript = "";
-  let runtimeParser = "";
+  const configScriptLength = writable("");
+  const syntaxError = writable(false);
 
   $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    const configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
+    configScriptLength.set($luadebug_store.configScript.length);
+    syntaxError.set($luadebug_store.syntaxError);
   }
 
   const createDebouncedStore = (initialValue, debounceTime) => {
@@ -352,13 +347,14 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={runtimeScript.length >= 400
+                  class={$configScriptLength >= grid.properties.CONFIG_LENGTH
                     ? "text-error"
-                    : runtimeScript.length >= 120
+                    : $configScriptLength >=
+                      (grid.properties.CONFIG_LENGTH / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >
-                  {runtimeScript.length}
+                  {$configScriptLength}
                 </div>
               </div>
             </div>

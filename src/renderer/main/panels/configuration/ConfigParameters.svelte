@@ -10,7 +10,6 @@
     user_input,
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
-  import { configManagement } from "./Configuration.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 
@@ -21,7 +20,6 @@
   import mixpanel from "mixpanel-browser";
 
   export let events;
-  export let elements;
 
   let stringname;
 
