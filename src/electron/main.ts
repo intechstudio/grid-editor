@@ -394,7 +394,7 @@ ipcMain.handle("loadConfigsFromDirectory", async (event, arg) => {
 
 ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
   return await migrateToProfileCloud(arg.oldPath, arg.newPath);
-})
+});
 
 ipcMain.handle("saveConfig", async (event, arg) => {
   return await saveConfig(

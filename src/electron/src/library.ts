@@ -46,7 +46,6 @@ export async function extractArchiveToTemp(data, endOfEntryName, folder) {
 }
 
 export async function libraryDownload(targetFolder) {
-
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(

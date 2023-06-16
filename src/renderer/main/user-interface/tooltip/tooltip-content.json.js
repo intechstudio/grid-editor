@@ -166,7 +166,7 @@ export const tooltip_content = {
     "Previously saved profiles stored in your Local Folder are shown here.",
 
   newPreset_delete: "Delete this Session Preset permanently.",
-  newPreset_save: "Move this Session Preset to the Preset Cloud folder",
+  newPreset_save: "Move this Session Preset to the Preset Storage folder",
   newPreset_rewrite:
     "Overwrite this Session Preset with the selected element's configuration.",
   newPreset_info: "Open the Preset description window.",
@@ -174,7 +174,7 @@ export const tooltip_content = {
     "Save the currently active element configuration locally as a Session Preset.",
   newPreset_exit_overlay: "Hide the Overlay.",
   newPreset_desc_delete:
-    "Delete this Preset from the Preset Cloud permanently.",
+    "Delete this Preset from the Preset Storage permanently.",
   newPreset_desc_edit: "Edit the description of this Preset.",
   newPreset_load_preset:
     "Previously saved presets stored in your Local Folder are shown here.",
