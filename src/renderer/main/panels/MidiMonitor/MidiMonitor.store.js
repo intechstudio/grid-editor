@@ -213,6 +213,7 @@ function createMidiMonitor(max_length) {
         let cp = descr.class_parameters;
 
         //Make full MIDI message from raw data (param names, command name, etc.)
+
         let item = {
           id: uuidv4(),
           data: new MidiMessage(
@@ -224,7 +225,6 @@ function createMidiMonitor(max_length) {
           ),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };
-
         //Check if it was 14bit MIDI message
         if (
           lastMessage !== null &&

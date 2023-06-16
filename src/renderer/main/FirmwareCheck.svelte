@@ -19,7 +19,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   import mixpanel from "mixpanel-browser";
 
-  const { env } = window.ctxProcess;
+  const configuration = window.ctxProcess.configuration();
 
   let fwMismatch = false;
 
@@ -191,7 +191,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       click: "Troubleshooting",
     });
 
-    const url = env()["DOCUMENTATION_FIRMWAREUPDATE_URL"];
+    const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;
     window.electron.openInBrowser(url);
   }
 </script>

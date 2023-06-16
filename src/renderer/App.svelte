@@ -49,7 +49,7 @@
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
-  import { userStore } from "$lib/user.store";
+  import { profileLinkStore } from "$lib/profilelink.store";
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
@@ -101,8 +101,12 @@
   });
 
   window.electron.auth.onExternalResponse((_event, value) => {
-    console.log("external social auth login credentials are received", value);
     authStore.socialLogin("google", value);
+  });
+
+  window.electron.configs.onExternalResponse((_event, value) => {
+    // listening to this store on ProfileCloud.svelte
+    profileLinkStore.set({ id: value });
   });
 
   let leftPaneSize;
@@ -159,7 +163,7 @@
   use:watchResize={resize}
   id="app"
   spellcheck="false"
-  class="relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
   <NavTabs />

@@ -6,6 +6,8 @@ import fs from "fs-extra";
 
 import { store } from "../main-store";
 
+import configuration from "../../../configuration.json";
+
 /**
  *
  * @param {string} url Download link url
@@ -47,7 +49,7 @@ export async function libraryDownload(targetFolder) {
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(
-    process.env.LIBRARY_GITHUB_URL,
+    configuration.LIBRARY_GITHUB_URL,
     "temp"
   );
 
@@ -99,21 +101,21 @@ export async function libraryDownload(targetFolder) {
 export async function uxpPhotoshopDownload(targetFolder) {
   const version =
     "v" +
-    process.env.UXP_PHOTOSHOP_REQUIRED_MAJOR +
+    configuration.UXP_PHOTOSHOP_REQUIRED_MAJOR +
     "." +
-    process.env.UXP_PHOTOSHOP_REQUIRED_MINOR +
+    configuration.UXP_PHOTOSHOP_REQUIRED_MINOR +
     "." +
-    process.env.UXP_PHOTOSHOP_REQUIRED_PATCH;
+    configuration.UXP_PHOTOSHOP_REQUIRED_PATCH;
 
   let link =
-    process.env.UXP_PHOTOSHOP_URL_BEGINING +
+    configuration.UXP_PHOTOSHOP_URL_BEGINING +
     version +
-    process.env.UXP_PHOTOSHOP_URL_END;
+    configuration.UXP_PHOTOSHOP_URL_END;
 
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(
-    process.env.LIBRARY_GITHUB_URL,
+    configuration.LIBRARY_GITHUB_URL,
     "temp"
   );
 

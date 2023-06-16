@@ -1,13 +1,12 @@
 import { User, getAuth, onAuthStateChanged } from "firebase/auth";
 import { readable } from "svelte/store";
-import { firebaseApp } from "$lib/firebase";
+import { centralAuth } from "./firebase";
 
 function createUserStore() {
   // this is code for awaiting the currentUser by CaptainCodeman
-  const auth = getAuth(firebaseApp);
 
   const { subscribe } = readable<User | null>(undefined, (set) =>
-    onAuthStateChanged(auth, set)
+    onAuthStateChanged(centralAuth, set)
   );
 
   // onAuthStateChange can be null if getAuth.currentUser is not ready

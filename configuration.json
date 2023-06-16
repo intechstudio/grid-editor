@@ -1,6 +1,5 @@
 {
   "MIXPANEL_TOKEN": "d5072f1b11e0a753c9f655dc3ddf7b8d",
-  "GOOGLEUA_TOKEN": "UA-151670067-3",
   "YOUTUBE_EDITORRELEASENOTES_PLAYLISTKEY": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
   "YOUTUBE_API_KEY": "AIzaSyBSwx2yH2mSGKhyduMtakjpdMU_s7Jhdkw",
   "YOUTUBE_RELEASENOTES_PLAYLIST_ID": "PLtMbdpAm17zdDZ9jkStSFvdWJdVi3skVu",
@@ -37,6 +36,5 @@
   "DOCUMENTATION_MAINTENANCE_URL": "https://links.intech.studio/grid-maintanance",
   "PUBLIC_ROADMAP_URL": "https://intechstudio.hellonext.co/",
   "EDITOR_REPOSITORY_URL": "https://github.com/intechstudio/grid-editor",
-  "HQ_API_URL_PROD": "https://hq.intech.studio",
-  "HQ_API_URL_DEV": "http://localhost:4000"
+  "EDITOR_VERSION": ""
 }

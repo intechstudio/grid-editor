@@ -193,7 +193,7 @@
         type: "success",
         mode: 0,
         classname: "presetsave",
-        message: `${name} saved to Preset Cloud!`,
+        message: `${name} saved to Preset Storage!`,
       });
     }
 
@@ -297,7 +297,7 @@
             type: "fail",
             mode: 0,
             classname: "presetsavefailed",
-            message: `A preset with "${name}" name is already exists in Preset Cloud!`,
+            message: `A preset with "${name}" name is already exists in Preset Storage!`,
           });
         } else {
           saveToDirectory(PRESET_PATH, preset.name, preset, user);
@@ -907,7 +907,7 @@
             class="flex justify-between items-center p-4
     w-full"
           >
-            <div class="text-white font-medium">Preset Cloud</div>
+            <div class="text-white font-medium">Preset Storage</div>
             <button
               on:click={() => {
                 filterShowHide();

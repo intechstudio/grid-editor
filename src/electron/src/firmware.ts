@@ -1,8 +1,12 @@
 import nodeDiskInfo from "node-disk-info";
+import Drive from "node-disk-info/dist/classes/drive";
+
 import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
+
+import configuration from "../../../configuration.json";
 
 export const firmware = {
   mainWindow: undefined,
@@ -10,12 +14,12 @@ export const firmware = {
 
 function delay(time) {
   return new Promise((resolve) => {
-    setTimeout(() => resolve(), time);
+    setTimeout(() => resolve({}), time);
   });
 }
 
 export async function findBootloaderPath() {
-  let diskInfo = undefined;
+  let diskInfo: Drive[] = [];
 
   try {
     diskInfo = nodeDiskInfo.getDiskInfoSync();
@@ -64,7 +68,7 @@ export async function findBootloaderPath() {
     }
   }
 
-  if (data !== undefined) {
+  if (data !== undefined && gridDrive !== undefined) {
     // is it grid
     if (data.indexOf("SAMD51N20A-GRID") !== -1) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
@@ -114,12 +118,13 @@ export async function firmwareDownload(targetFolder) {
   let path = result.path;
 
   let link =
-    process.env.FIRMWARE_GRID_URL_BEGINING + process.env.FIRMWARE_GRID_URL_END;
+    configuration.FIRMWARE_GRID_URL_BEGINING +
+    configuration.FIRMWARE_GRID_URL_END;
 
   if (result.product === "knot") {
     link =
-      process.env.FIRMWARE_KNOT_URL_BEGINING +
-      process.env.FIRMWARE_KNOT_URL_END;
+      configuration.FIRMWARE_KNOT_URL_BEGINING +
+      configuration.FIRMWARE_KNOT_URL_END;
   }
 
   firmware.mainWindow.webContents.send("onFirmwareUpdate", {
