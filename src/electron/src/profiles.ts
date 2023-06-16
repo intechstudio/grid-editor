@@ -42,8 +42,12 @@ export async function migrateToProfileCloud(oldPath: string, newPath: string): P
     const fullOldPath = path.join(oldPath, entry.name);
 
     if (entry.isDirectory()) {
-      // If the entry is a directory, recurse into it
-      await migrateToProfileCloud(fullOldPath, newPath);
+      if (entry.name == "intech" || entry.name == "intechstudio") {
+        // do nothing
+      } else {
+        // If the entry is a directory, recurse into it
+        await migrateToProfileCloud(fullOldPath, newPath);
+      }
     } else if (entry.isFile() && path.extname(entry.name) === '.json') {
 
       const id = uuidv4();

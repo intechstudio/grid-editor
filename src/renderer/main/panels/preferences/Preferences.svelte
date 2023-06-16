@@ -38,25 +38,29 @@
       hpos: "50%",
     });
 
-    if ($appSettings.persistant.newProfileBrowserEnabled) {
-      selected = "newLibrary";
-    } else {
-      selected = "legacyLibrary";
+    switch ($appSettings.profileBrowserMode) {
+      case "newLibrary":
+        selected = "newLibrary";
+      case "legacyLibrary":
+        selected = "legacyLibrary";
+      case "profileCloud":
+        selected = "profileCloud";
+      default:
+        selected = "profileCloud";
     }
   });
 
   // profile browser radio handler
-
   $: {
-    // string "newLibrary" bbecause radio button value is string!!!
     if (selected === "newLibrary") {
-      $appSettings.persistant.newProfileBrowserEnabled = true;
-      $appSettings.persistant.legacyProfileBrowserEnabled = false;
+      $appSettings.profileBrowserMode = "newLibrary";
+      $appSettings.leftPanel = "NewProfile";
     } else if (selected === "legacyLibrary") {
-      $appSettings.persistant.newProfileBrowserEnabled = false;
-      $appSettings.persistant.legacyProfileBrowserEnabled = true;
-    } // bwecause it is initialized to undefined
-    else {
+      $appSettings.profileBrowserMode = "legacyLibrary";
+      $appSettings.leftPanel = "Profiles";
+    } else if (selected == "profileCloud") {
+      $appSettings.profileBrowserMode = "profileCloud";
+      $appSettings.leftPanel = "ProfileCloud";
     }
   }
 
@@ -529,6 +533,18 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="flex py-2 text-white items-center mb-1">
+      <label class="mx-1">
+        <input
+          class="mr-1"
+          type="radio"
+          value="profileCloud"
+          bind:group={selected}
+        />
+        Profile Cloud & Preset Browser Mode</label
+      >
+    </div>
+
     <div class="flex py-2 text-white items-center">
       <label class="mx-1">
         <input
@@ -560,15 +576,6 @@
         bind:checked={$appSettings.persistant.welcomeOnStartup}
       />
       <div class="ml-1">Show welcome on startup</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.useProfileCloud}
-      />
-      <div class="mx-1">Offline mode profiles</div>
     </div>
 
     <div class="flex py-2 text-white items-center">

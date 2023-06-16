@@ -51,14 +51,8 @@
     <WebsocketMonitor />
   {/if}
 
-  {#if $appSettings.persistant.useProfileCloud}
-    <div
-      class="min-w-[200px] h-full {$appSettings.leftPanel == 'Profile Cloud'
-        ? '  '
-        : ' hidden '}"
-    >
-      <ProfileCloud />
-    </div>
+  {#if $appSettings.leftPanel == "ProfileCloud"}
+    <ProfileCloud />
   {/if}
 </div>
 
