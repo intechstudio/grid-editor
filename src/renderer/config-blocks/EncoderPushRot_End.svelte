@@ -37,10 +37,6 @@
       script: information.defaultLua,
     });
   }
-
-  onMount(() => {
-    sendData();
-  });
 </script>
 
 <else-block

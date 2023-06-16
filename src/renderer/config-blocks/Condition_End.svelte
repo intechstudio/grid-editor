@@ -31,10 +31,6 @@
   function sendData() {
     dispatch("output", { short: "en", script: "end" });
   }
-
-  onMount(() => {
-    sendData();
-  });
 </script>
 
 <endif-block

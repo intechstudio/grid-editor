@@ -12,6 +12,7 @@
   export let enableCopy = false;
   export let enablePaste = false;
   export let enableRemove = false;
+  export let selectAll = undefined;
 
   function handleConvertToCodeBlockClicked(e) {
     dispatch("convert-to-code-block");
@@ -106,7 +107,10 @@
       </span>
     </BtnAndPopUp>
 
-    <Options on:selection-change={handleSelectAllClicked} />
+    <Options
+      on:selection-change={handleSelectAllClicked}
+      bind:selected={selectAll}
+    />
   </div>
 </app-action-multi-select>
 

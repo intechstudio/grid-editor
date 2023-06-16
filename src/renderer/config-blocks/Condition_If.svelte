@@ -59,6 +59,7 @@
   function sendData(e) {
     if (parenthesis(e)) {
       const script = stringManipulation.shortify(e);
+
       dispatch("output", {
         short: `if`,
         script: `if ${script} then`,

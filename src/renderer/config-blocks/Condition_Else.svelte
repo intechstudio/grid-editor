@@ -29,10 +29,6 @@
   function sendData() {
     dispatch("output", { short: "el", script: "else" });
   }
-
-  onMount(() => {
-    sendData();
-  });
 </script>
 
 <else-block

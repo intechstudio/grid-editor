@@ -318,6 +318,7 @@
   let enableCopy = false;
   let enablePaste = false;
   let enableRemove = false;
+  let selectAllChecked = false;
 
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
@@ -327,12 +328,9 @@
       throw `Can't find selected config by index (${index})`;
     }
 
-    //Check if selection was multi selection
-    const component = [{ start: "Condition_If", end: "Condition_End" }].find(
-      (e) => e.start === selectedConfig.information.name
-    );
-    if (typeof component !== "undefined") {
-      //Find the closing tag of the multiselect component
+    //Find the closing tag of the multiselect component
+    const multiSelect = selectedConfig.information.name.endsWith("_If");
+    if (multiSelect) {
       let indentationDepth = 1;
       for (
         let i = index + 1;
@@ -341,19 +339,19 @@
       ) {
         //Another component is found inside the component, increase
         //indentation depth.
-        if ($configs[i].information.name === component.start) {
+        if ($configs[i].information.name.endsWith("_If")) {
           ++indentationDepth;
         }
         //Closing tag found inside the component, decrease
         //indentation depth.
-        else if ($configs[i].information.name === component.end) {
+        else if ($configs[i].information.name.endsWith("_End")) {
           --indentationDepth;
         }
         $configs[i].selected = value;
       }
 
       if (indentationDepth !== 0) {
-        throw `No closing tag found for ${component.start}`;
+        throw `No closing tag found for ${selectedConfig.information.name}`;
       }
     }
 
@@ -482,6 +480,7 @@
     enableConvert = false;
     enableCut = false;
     enableRemove = false;
+    selectAllChecked = false;
 
     configs.update((s) => {
       s.forEach((e) => {
@@ -568,6 +567,7 @@
               {enableCopy}
               {enablePaste}
               {enableRemove}
+              bind:selectAll={selectAllChecked}
               on:convert-to-code-block={handleConvertToCodeBlock}
               on:copy={handleCopy}
               on:cut={handleCut}

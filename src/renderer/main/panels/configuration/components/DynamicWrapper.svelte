@@ -30,6 +30,7 @@
       newConfig: obj,
     });
     config.toggled = true;
+    toggled = true;
   }
 
   function handleOutput(e) {
@@ -37,6 +38,7 @@
       short: e.detail.short,
       script: e.detail.script,
     });
+    console.log("output");
     config = obj;
     dispatch("update", {
       index: index,
@@ -49,8 +51,16 @@
     validationError = data.isError;
   }
 
+  //TODO: Refactor this out by refactoring the handling of
+  //modifier rendering style blocks
+  let toggled = false;
   function handleToggle(e) {
+    if (config.information.rendering === "modifier") {
+      return;
+    }
+
     config.toggled = !config.toggled;
+    toggled = config.toggled;
     dispatch("toggle", { value: config.toggled, index: index });
   }
 </script>
@@ -61,7 +71,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
 
   <carousel
-    class="group flex flex-grow {config.toggled ? 'h-auto' : 'h-10'}"
+    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
     config-component={config.information.name}
     config-id={index}
@@ -75,7 +85,7 @@
       <!-- Six dots to the left -->
       <div
         class="flex p-2 items-center bg-secondary"
-        class:group-hover:bg-select-saturate-10={!config.toggled}
+        class:group-hover:bg-select-saturate-10={!toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-l={syntaxError}
@@ -99,16 +109,19 @@
       </div>
 
       <!-- Icon -->
-      <div
-        style="background-color:{config.information.color}"
-        class="flex items-center p-2 w-min text-center"
-        class:border-y={syntaxError}
-        class:border-error={syntaxError}
-      >
-        <div class="w-6 h-6 whitespace-nowrap">
-          {@html config.information.blockIcon}
+      <!-- Refactor out the special case of IF -->
+      {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
+        <div
+          style="background-color:{config.information.color}"
+          class="flex items-center p-2 w-min text-center"
+          class:border-y={syntaxError}
+          class:border-error={syntaxError}
+        >
+          <div class="w-6 h-6 whitespace-nowrap">
+            {@html config.information.blockIcon}
+          </div>
         </div>
-      </div>
+      {/if}
 
       <!-- Body of the config block -->
       <div
@@ -118,14 +131,15 @@
         class="w-full bg-secondary cur"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!config.toggled}
+        class:group-hover:bg-select-saturate-10={!toggled}
         class:border-error={syntaxError}
         class:border-y={syntaxError}
         class:border-r={syntaxError}
-        class:cursor-auto={config.toggled}
-        class:bg-opacity-30={config.toggled}
+        class:cursor-auto={toggled}
+        class:bg-opacity-30={toggled}
       >
-        {#if config.toggled || config.information.rendering === "modifier"}
+        <!-- Refactor out the special case of IF -->
+        {#if toggled || config.information.name === "Condition_If"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"
           >
