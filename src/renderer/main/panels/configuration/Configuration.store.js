@@ -4,6 +4,8 @@ import {
   runtime,
   user_input,
   luadebug_store,
+  getDeviceName,
+  eventType,
 } from "../../../runtime/runtime.store";
 
 //import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
@@ -31,7 +33,6 @@ export class ConfigObject {
   constructor({ short, script }) {
     this.short = short;
     this.script = script;
-    this.rawLua = `--[[@${short}]] ` + script;
 
     (async () => {
       if (config_components == []) {
@@ -50,6 +51,10 @@ export class ConfigObject {
     this.toggled = false;
   }
 
+  toRawLua() {
+    return `--[[@${this.short}]] ${this.script}`;
+  }
+
   makeCopy() {
     const copy = new ConfigObject({
       short: this.short,
@@ -62,6 +67,7 @@ export class ConfigObject {
     return copy;
   }
 
+  //Returns true if syntax is OK
   checkSyntax() {
     //If not a CodeBlock, and script contains if, add end to if.
     //If not done, it will always fail.
@@ -150,10 +156,31 @@ export class ConfigList extends Array {
       }
 
       if (!this.checkLength()) {
-        reject(new Error("Length error!"));
+        throw {
+          type: "lengthError",
+          device: getDeviceName(target.device.dx, target.device.dy),
+          x: target.device.dx,
+          y: target.device.dy,
+          element: { no: target.element },
+          event: { no: target.eventType, type: eventType[target.eventType] },
+        };
       }
 
+      /*
+      if (!this.checkSyntax()) {
+        throw {
+          type: "syntaxError",
+          device: getDeviceName(target.device.dx, target.device.dy),
+          x: target.device.dx,
+          y: target.device.dy,
+          element: { no: target.element },
+          event: { no: target.eventType, type: eventType[target.eventType] },
+        };
+      }
+      */
+
       const actionString = this.toConfigScript();
+
       runtime.update_event_configuration(
         target.device.dx,
         target.device.dy,
@@ -190,7 +217,13 @@ export class ConfigList extends Array {
     }
 
     const page = device.pages.at(this.target.page);
-    const element = page.control_elements.at(this.target.element);
+
+    const element = device.pages
+      .at(page)
+      .control_elements.find(
+        (e) => e.controlElementNumber == this.target.element
+      );
+
     let event = element.events.find(
       (e) => e.event.value == this.target.eventType
     );
@@ -235,7 +268,7 @@ export class ConfigList extends Array {
 
   toConfigScript() {
     let lua = "";
-    super.forEach((e) => (lua += e.rawLua));
+    super.forEach((e) => (lua += e.toRawLua()));
     lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
     return lua;
   }
@@ -264,15 +297,17 @@ export class ConfigList extends Array {
     super.splice(atPosition, 1);
   }
 
+  //Returns true if config syntax is OK
   checkSyntax() {
-    super.forEach((e) => {
+    for (const e of this) {
       if (!e.checkSyntax()) {
         return false;
       }
-    });
+    }
     return true;
   }
 
+  //Returns true if config limit is NOT reached
   checkLength() {
     return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
   }
@@ -309,19 +344,12 @@ export class ConfigTarget {
 
       this.device = { dx: dx, dy: dy };
       this.page = page;
-
-      //TODO: is this a bug?
-      if (element === 255) {
-        this.element = device.pages.at(page).control_elements.length - 1;
-      } else {
-        this.element = element;
-      }
+      this.element = element;
       this.eventType = eventType;
 
-      //Get events
       this.events = device.pages
-        .at(this.page)
-        .control_elements.at(this.element).events;
+        .at(page)
+        .control_elements.find((e) => e.controlElementNumber == element).events;
     } catch (e) {
       console.error(`ConfigTarget: ${e}`);
     }
