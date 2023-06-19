@@ -30,7 +30,6 @@
       newConfig: obj,
     });
     config.toggled = true;
-    toggled = true;
   }
 
   function handleOutput(e) {
@@ -54,13 +53,14 @@
   //TODO: Refactor this out by refactoring the handling of
   //modifier rendering style blocks
   let toggled = false;
+  $: toggled = config.toggled;
+
   function handleToggle(e) {
     if (config.information.rendering === "modifier") {
       return;
     }
 
     config.toggled = !config.toggled;
-    toggled = config.toggled;
     dispatch("toggle", { value: config.toggled, index: index });
   }
 </script>
