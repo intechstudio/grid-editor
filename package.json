@@ -35,6 +35,7 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
+    "@popperjs/core": "^2.11.8",
     "adm-zip": "^0.5.9",
     "discord.js": "^13.6.0",
     "electron-deeplink": "^1.0.10",
@@ -56,6 +57,7 @@
     "panzoom": "^9.3.0",
     "set-interval-async": "^3.0.3",
     "simple-discord-webhooks": "^2.1.0",
+    "svelte-easy-popover": "^1.0.0",
     "svelte-splitpanes": "^0.7.12",
     "svelte-watch-resize": "^1.0.3",
     "typescript": "^4.8.4",

@@ -4,9 +4,13 @@
   import SvgIcon from "./user-interface/SvgIcon.svelte";
 
   import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "./user-interface/tooltip/Tooltip.svelte";
+  import createPopperAction from "./user-interface/tooltip/popper-action";
 
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "ProfileCloud";
+
+  const [usePopperElement, usePopperToolip] = createPopperAction();
 
   $: {
     selectedLeftTab = $appSettings.leftPanel;
@@ -401,6 +405,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
       on:click={() => {
         changeLeftTab("Debug");
       }}
+      use:usePopperElement
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'Debug' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
@@ -447,7 +452,11 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <TooltipSetter key={"sidebar_debugger_icon"} />
+      <Tooltip
+        key={"sidebar_debugger_icon"}
+        placement={"right"}
+        instant={true}
+      />
     </button>
 
     <button
