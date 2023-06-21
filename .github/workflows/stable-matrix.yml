@@ -39,7 +39,7 @@ jobs:
         uses: jsdaniell/create-json@v1.2.2
         with:
           name: "buildVariables.json"
-          json: '{"BUILD_ENV":"production", "PROFILE_CLOUD_URL":"https://profile-cloud.web.app"}'
+          json: '{"BUILD_ENV":"production", "PROFILE_CLOUD_URL":"https://profiles.intech.studio"}'
 
       - name: Build
         run: npm run export

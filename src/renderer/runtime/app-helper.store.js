@@ -225,7 +225,6 @@ async function init_appsettings() {
           if (value !== undefined) {
             s.persistant[key] = value;
           }
-          console.log("appsettings: ", key, value);
         });
 
         return s;
@@ -237,7 +236,7 @@ async function init_appsettings() {
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
         get(appSettings).persistant.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistant.lastVersion = configuration["EDITOR_VERSION"];
