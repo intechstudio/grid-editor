@@ -30,19 +30,14 @@
       newConfig: obj,
     });
     config.toggled = true;
-    toggled = true;
   }
 
   function handleOutput(e) {
-    const obj = new ConfigObject({
-      short: e.detail.short,
-      script: e.detail.script,
-    });
-    console.log("output");
-    config = obj;
+    config.short = e.detail.short;
+    config.script = e.detail.script;
     dispatch("update", {
       index: index,
-      newConfig: obj,
+      newConfig: config,
     });
   }
 
@@ -51,16 +46,19 @@
     validationError = data.isError;
   }
 
+  let toggled;
+  $: {
+    toggled = config.toggled;
+  }
+
   //TODO: Refactor this out by refactoring the handling of
   //modifier rendering style blocks
-  let toggled = false;
   function handleToggle(e) {
     if (config.information.rendering === "modifier") {
       return;
     }
 
     config.toggled = !config.toggled;
-    toggled = config.toggled;
     dispatch("toggle", { value: config.toggled, index: index });
   }
 </script>
@@ -109,7 +107,7 @@
       </div>
 
       <!-- Icon -->
-      <!-- Refactor out the special cases -->
+      <!-- //TODO: Refactor out the special cases -->
       {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
         <div
           style="background-color:{config.information.color}"
@@ -138,7 +136,7 @@
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
-        <!-- Refactor out the special case of IF -->
+        <!-- //TODO: Refactor out the special case of IF -->
         {#if toggled || config.information.name === "Condition_If"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"

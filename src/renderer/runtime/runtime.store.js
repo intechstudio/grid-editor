@@ -14,6 +14,16 @@ import { appSettings } from "./app-helper.store";
 
 let lastPageActivator = "";
 
+export const eventType = {
+  0: "Init",
+  1: "Potmeter",
+  2: "Encoder",
+  3: "Button",
+  4: "Utility",
+  5: "MIDI RX",
+  6: "Timer",
+};
+
 async function detectActiveWindow() {
   if (get(appSettings).persistant.pageActivatorEnabled !== true) {
     return;

@@ -1,5 +1,5 @@
 import { writable, get } from "svelte/store";
-import { getDeviceName } from "../../../runtime/runtime.store";
+import { getDeviceName, eventType } from "../../../runtime/runtime.store";
 
 function createDebugMonitor() {
   const store = writable([]);
@@ -162,15 +162,6 @@ function createLuaError() {
               "GRID_EVENT_TIMER": "06",
               
               */
-              const eventtype = {
-                0: "Init",
-                1: "Potmeter",
-                2: "Encoder",
-                3: "Button",
-                4: "Utility",
-                5: "MIDI RX",
-                6: "Timer",
-              };
 
               if (d.length >= 15) {
                 d.shift();
@@ -183,7 +174,7 @@ function createLuaError() {
                   x: sx,
                   y: sy,
                   element: { no: descr.element },
-                  event: { no: descr.event, type: eventtype[descr.event] },
+                  event: { no: descr.event, type: eventType[descr.event] },
                 },
               ];
               break;

@@ -103,28 +103,10 @@
   }
 
   $: {
-    let les = $lua_error_store;
-    let e = les.slice(-1).pop();
-
-    if (e) {
-      switch (e.type) {
-        case "luanotok":
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "luanotok",
-            message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
-          });
-          break;
-        case "kbisdisabled":
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "kbisdisabled",
-            message: `${e.device}: Keyboard events are disabled until storing.`,
-          });
-          break;
-      }
+    const les = $lua_error_store;
+    const error = les.slice(-1).pop();
+    if (typeof error !== "undefined") {
+      handleError(error);
     }
   }
 
@@ -139,6 +121,12 @@
       if (target.eventType == event.event.value) {
         events.selected = event.event;
       }
+    }
+
+    if (target.element == 255) {
+      $appSettings.configType = "systemEvents";
+    } else {
+      $appSettings.configType = "uiEvents";
     }
   }
 
@@ -181,6 +169,44 @@
 
   let scrollHeight = "100%";
 
+  function handleError(e) {
+    switch (e.type) {
+      case "lengthError":
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Modifications can not be synced with grid, 
+          maximum character limit reached. Shorten your code or delete action blocks.`,
+        });
+        break;
+      case "syntaxError":
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
+        });
+        break;
+      case "luanotok":
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
+        });
+        break;
+      case "kbisdisabled":
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "kbisdisabled",
+          message: `${e.device}: Keyboard events are disabled until storing.`,
+        });
+        break;
+    }
+  }
+
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
     if (typeof config === "undefined") {
@@ -211,9 +237,7 @@
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
   }
 
   function handleDrop(e) {
@@ -266,13 +290,12 @@
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
   }
 
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
+
     let list = $configs.makeCopy();
 
     try {
@@ -285,14 +308,14 @@
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         //TODO: Refactor this out
+        $configs[index].short = newConfig.short;
         $configs[index].script = newConfig.script;
+
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
         //deselectAll();
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
   }
 
   function handleDragStart(e) {
@@ -396,9 +419,7 @@
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
   }
 
   function handleCut(e) {
@@ -447,9 +468,7 @@
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
     mixpanel.track("Config Action", { click: "Paste" });
   }
 
@@ -478,9 +497,7 @@
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
-      .catch((e) => {
-        console.error(e);
-      });
+      .catch((e) => handleError(e));
     mixpanel.track("Config Action", { click: "Remove" });
   }
 
@@ -517,6 +534,7 @@
 
   function handleToggleChange(e) {
     const { value, index } = e.detail;
+
     if (value) {
       lastOpenedElementsType = $configs[index].short;
     }
