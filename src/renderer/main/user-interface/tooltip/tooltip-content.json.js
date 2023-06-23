@@ -134,16 +134,16 @@ export const tooltip_content = {
     "Send a mouse move or scroll wheel message to the host device.",
   action_mouse_button: "Send mouse button change messages to the host device.",
 
-  sidebar_configuration_icon: "Configure your Grid modules.",
-  sidebar_preferences_icon: "Change your Grid Editor settings.",
+  sidebar_configuration_icon: "Configuration",
+  sidebar_preferences_icon: "Preferences",
   sidebar_new_profiles_icon: "Profile Manager",
   sidebar_new_presets_icon: "Preset Manager",
+  sidebar_profile_cloud_icon: "Profile Cloud",
   sidebar_profiles_icon: "Manage locally stored module configurations.",
   sidebar_presets_icon: "Manage locally stored element configurations.",
-  sidebar_debugger_icon:
-    "Access the debugger window for troubleshooting purposes.",
-  sidebar_midi_monitor_icon:
-    "Access the MIDI monitor for MIDI-specific troubleshooting.",
+  sidebar_debugger_icon: "Debug Monitor",
+  sidebar_websocket_monitor_icon: "Websocket Monitor",
+  sidebar_midi_monitor_icon: "MIDI Monitor",
 
   engine_clear:
     "Clear the writebuffer after a module crash, and re-enable the Editor engine!",

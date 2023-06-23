@@ -9,6 +9,7 @@
   export let key = "";
   export let placement = "top";
   export let instant = false;
+  export let nowrap = false;
 
   let tooltip_text = tooltip_content[key];
   let parent_element = undefined;
@@ -17,31 +18,35 @@
 <div
   bind:this={parent_element}
   class="w-full flex h-full absolute right-0 top-0"
+/>
+
+<Popover
+  triggerEvents={["hover"]}
+  referenceElement={parent_element}
+  remainOpenOnPopoverHover={false}
+  {placement}
+  spaceAway={10}
 >
-  <Popover
-    triggerEvents={["hover", "focus"]}
-    referenceElement={parent_element}
-    {placement}
-    spaceAway={10}
+  <div
+    id="tooltip"
+    data-placement={placement}
+    class="tooltip-bg cursor-default text-base flex flex-col text-white text-left"
+    class:p-4={!instant}
+    class:px-2={instant}
+    class:py-1={instant}
+    in:fade={{
+      duration: instant ? 100 : 250,
+      delay: instant ? 0 : 750,
+    }}
+    out:fade={{
+      duration: 100,
+      delay: 0,
+    }}
   >
-    <div
-      id="tooltip"
-      data-placement={placement}
-      class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left"
-      in:fade={{
-        duration: instant ? 100 : 250,
-        delay: instant ? 0 : 750,
-      }}
-      out:fade={{
-        duration: 100,
-        delay: 0,
-      }}
-    >
-      <span> {tooltip_text}</span>
-      <div id="arrow" data-popper-arrow />
-    </div>
-  </Popover>
-</div>
+    <span class:whitespace-nowrap={nowrap}> {tooltip_text}</span>
+    <div id="arrow" data-popper-arrow />
+  </div>
+</Popover>
 
 <style>
   :root {
