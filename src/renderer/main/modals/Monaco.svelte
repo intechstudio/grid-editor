@@ -35,9 +35,6 @@
   let modalWidth;
   let modalHeight;
 
-  let runtimeScript = "";
-  let runtimeParser = "";
-
   let scrollDown;
   let autoscroll;
 
@@ -51,30 +48,6 @@
   afterUpdate(() => {
     if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
-
-  const items = [
-    "Item 1",
-    "Item 2",
-    "Item 3",
-    "Item 4",
-    "Item 5",
-    "Item 6",
-    "Item 7",
-    "Item 8",
-    "Item 9",
-    "Item 10",
-  ];
-
-  $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    const configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
-  }
 
   $: if (modalWidth || modalHeight) {
     if (editor !== undefined) {
@@ -225,7 +198,7 @@
           <div class="flex w-full opacity-70">Edit Code</div>
           <div class="flex w-full opacity-40">
             <span class="mr-2">Character Count:</span>
-            <span>{runtimeScript.length + addedCodeLength}</span>
+            <!-- <span>{runtimeScript.length + addedCodeLength}</span> -->
             <span>/</span>
             <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>
