@@ -8,11 +8,7 @@
 
   import { get } from "svelte/store";
 
-  const { env } = window.ctxProcess;
-
-  import configuration from "../../../../configuration.json";
-
-  console.log("config", configuration.DOCUMENTATION_REFERENCEMANUAL_URL);
+  const configuration = window.ctxProcess.configuration();
 
   let video_link = "";
 
@@ -22,7 +18,7 @@
   let video_id;
 
   onMount(async () => {
-    video_link = env()["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
+    video_link = configuration["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
 
     const { videoLink, videoId } = await window.electron.getLatestVideo();
 

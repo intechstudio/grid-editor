@@ -1,6 +1,7 @@
 <script>
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
+  import grid from "../../protocol/grid-protocol.js";
 
   import { clickOutside } from "../_actions/click-outside.action";
 
@@ -8,21 +9,18 @@
 
   import { monaco_editor, monaco_languages } from "../../lib/CustomMonaco";
 
-  import { checkSyntaxAndMinify } from "../../runtime/monaco-helper";
-
   import { beforeUpdate, afterUpdate } from "svelte";
 
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
-
-  import _utils, { luaParser } from "../../runtime/_utils";
-  import { luadebug_store } from "../../runtime/runtime.store";
-
+  import _utils from "../../runtime/_utils.js";
   import { attachment } from "../user-interface/Monster.store";
+  import {
+    ConfigTarget,
+    ConfigList,
+  } from "../panels/configuration/Configuration.store";
 
-  import grid from "../../protocol/grid-protocol";
-  import { KeyCode } from "monaco-editor";
-  import { init } from "svelte/internal";
+  import { luadebug_store } from "../../runtime/runtime.store";
 
   let monaco_block;
 
@@ -91,13 +89,34 @@
   }
 
   let monacoTextLength = 0;
-  let initCodeLength = 0;
   let addedCodeLength = 0;
 
   function commit() {
     const editor_code = editor.getValue();
+    const maxConfigLimit = grid.properties.CONFIG_LENGTH;
+
     try {
-      let minified_code = checkSyntaxAndMinify(editor_code);
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(editor_code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      const luaminOptions = {
+        RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+        RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+        SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+      };
+      let minified_code = luamin.Minify(safe_code, luaminOptions);
+
+      const addedCodeLength = minified_code.length - initCodeLength;
+      const newConfigLength = initConfigLength + addedCodeLength;
+      if (newConfigLength > maxConfigLimit) {
+        throw "Config limit reached!";
+      }
       $appSettings.monaco_code_committed = minified_code;
       commitState = 0;
       error_messsage = "";
@@ -108,7 +127,17 @@
 
   let modalElement;
 
+  let initCodeLength;
+  let initConfigLength = undefined;
+
   onMount(() => {
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+    if (typeof list === "undefined") {
+      throw "Error loading current config.";
+    }
+    initConfigLength = list.toConfigScript().length;
+    initCodeLength = $appSettings.monaco_code_committed.length;
     let human = stringManipulation.humanize($appSettings.monaco_code_committed);
     let beautified = luamin.Beautify(human, {
       RenameVariables: false,

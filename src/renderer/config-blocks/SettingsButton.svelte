@@ -9,6 +9,8 @@
     color: "#5F416D",
     defaultLua: "self:bmo(0)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
+    selectable: true,
   };
 </script>
 

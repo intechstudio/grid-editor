@@ -1,5 +1,6 @@
 <script>
   import createPanZoom from "panzoom";
+  import mixpanel from "mixpanel-browser";
 
   import { writable, readable, derived, get } from "svelte/store";
 
@@ -12,9 +13,6 @@
   } from "../../runtime/runtime.store.js";
 
   import Device from "./grid-modules/Device.svelte";
-
-  import { tweened } from "svelte/motion";
-  import { cubicOut } from "svelte/easing";
 
   import { fade, fly } from "svelte/transition";
 
@@ -33,7 +31,7 @@
 
   import Pages from "/main/panels/configuration/components/Pages.svelte";
 
-  const { env } = window.ctxProcess;
+  const configuration = window.ctxProcess.configuration();
 
   export let classes;
 
@@ -53,8 +51,23 @@
   $: gridsize = 2.1 * 106.6 + 10;
 
   let ready = false;
-  let isStoreEnabled = false;
-  $: isStoreEnabled = $engine == "ENABLED" && $unsaved_changes > 0;
+  const isStoreEnabled = writable(false);
+
+  const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
+    return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
+  });
+
+  const devices = writable([]);
+
+  $: {
+    unsaved_changes.set(
+      $unsaved_changes.filter((chg) =>
+        $runtime.some((d) => chg.x === d.dx && chg.y === d.dy)
+      )
+    );
+  }
+
+  $: isStoreEnabled.set($engine == "ENABLED" && $totalChanges > 0);
 
   onMount(() => {
     createPanZoom(map, {
@@ -76,8 +89,6 @@
 
     ready = true;
   });
-
-  const devices = writable([]);
 
   $: {
     let min_x = 0;
@@ -121,13 +132,9 @@
   }
 
   function refresh() {
-    window.electron.analytics.google("no-module", { value: "restart app" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "app restart"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Refresh",
+    });
 
     setTimeout(() => {
       window.electron.restartApp();
@@ -135,17 +142,13 @@
   }
 
   async function troubleshoot() {
-    const url = env()["DOCUMENTATION_TROUBLESHOOTING_URL"];
+    const url = configuration.DOCUMENTATION_TROUBLESHOOTING_URL;
 
     window.electron.openInBrowser(url);
 
-    window.electron.analytics.google("no-module", { value: "troubleshooting" });
-    window.electron.analytics.influx(
-      "application",
-      "gridlayout",
-      "no module",
-      "open troubleshooting"
-    );
+    mixpanel.track("No Module Connected", {
+      click: "Troubleshooting",
+    });
   }
 
   function calculate_x(x0, y0) {
@@ -177,26 +180,18 @@
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
     });
 
-    window.electron.analytics.google("writebuffer", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "writebuffer",
-      "clear"
-    );
+    mixpanel.track("Writebuffer", {
+      click: "Clear",
+    });
 
     writeBuffer.clear();
     engine.set("ENABLED");
   }
 
   function store() {
-    window.electron.analytics.google("page-config", { value: "store" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "store"
-    );
+    mixpanel.track("Page Config", {
+      click: "Store",
+    });
 
     instructions.sendPageStoreToGrid();
   }
@@ -204,25 +199,17 @@
   function clear() {
     instructions.sendPageClearToGrid();
 
-    window.electron.analytics.google("page-config", { value: "clear" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "clear"
-    );
+    mixpanel.track("Page Config", {
+      click: "Clear",
+    });
   }
 
   function discard() {
     instructions.sendPageDiscardToGrid();
 
-    window.electron.analytics.google("page-config", { value: "discard" });
-    window.electron.analytics.influx(
-      "application",
-      "topsubmenu",
-      "pageconfig",
-      "discard"
-    );
+    mixpanel.track("Page Config", {
+      click: "Discard",
+    });
   }
 </script>
 
@@ -242,29 +229,28 @@
           class="flex items-center bg-primary mb-2 py-2 px-3 gap-2 flex-wrap justify-center rounded-lg"
         >
           <div class="mr-4 text-white font-medium">
-            {$unsaved_changes} active changes
+            {$totalChanges} active changes
           </div>
           <button
             on:click={() => {
-              discard();
+              if ($isStoreEnabled) discard();
             }}
-            class="relative {isStoreEnabled
-              ? 'flex'
-              : 'hidden gap-0'} items-center justify-center focus:outline-none
-          rounded bg-select hover:bg-yellow-600 text-white py-1 w-24"
+            class="relative items-center justify-center focus:outline-none bg-select
+          rounded text-white py-1 w-24 {$isStoreEnabled
+              ? 'hover:bg-yellow-600'
+              : 'opacity-75'}"
           >
             <div>Discard</div>
             <TooltipSetter key={"configuration_header_clear"} />
           </button>
           <button
             on:click={() => {
-              store();
+              if ($isStoreEnabled) store();
             }}
-            class="relative {isStoreEnabled
-              ? 'flex'
-              : 'hidden gap-0'} items-center justify-center rounded
-              focus:outline-none text-white py-1 w-24 bg-commit
-              hover:bg-commit-saturate-20"
+            class="relative items-center justify-center rounded
+              focus:outline-none text-white py-1 w-24 bg-commit {$isStoreEnabled
+              ? 'hover:bg-commit-saturate-20'
+              : 'opacity-75'}"
           >
             <div>Store</div>
             <TooltipSetter key={"configuration_header_store"} />

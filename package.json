@@ -1,7 +1,7 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.33",
+  "version": "1.2.35",
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
@@ -35,7 +35,6 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
-    "@influxdata/influxdb-client": "^1.31.0",
     "adm-zip": "^0.5.9",
     "discord.js": "^13.6.0",
     "electron-deeplink": "^1.0.10",
@@ -71,6 +70,15 @@
     "directories": {
       "output": "build/"
     },
+    "protocols": [
+      {
+        "name": "grid-editor-protocol",
+        "schemes": [
+          "grid-editor",
+          "grid-editor-dev"
+        ]
+      }
+    ],
     "extraResources": [
       {
         "from": "src/renderer/assets/**/*",
@@ -88,12 +96,6 @@
           "repo": "grid-editor"
         }
       ],
-      "protocols": {
-        "name": "grid-editor-protocol",
-        "schemes": [
-          "grid-editor"
-        ]
-      },
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
       "target": [
         "nsis"
@@ -109,17 +111,11 @@
         "zip"
       ],
       "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
-      "icon": "build-assets/icon.png",
+      "icon": "build-assets/icon_mac.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build-assets/entitlements.mac.plist",
-      "entitlementsInherit": "build-assets/entitlements.mac.plist",
-      "protocols": {
-        "name": "grid-editor-protocol",
-        "schemes": [
-          "grid-editor"
-        ]
-      }
+      "entitlementsInherit": "build-assets/entitlements.mac.plist"
     },
     "dmg": {
       "sign": false
@@ -128,19 +124,20 @@
   },
   "scripts": {
     "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
-    "e:builder:nightly": "cross-env NODE_ENV=production NOTARIZE=true DEBUG=electron-builder MODE=nightly electron-builder --publish onTagOrDraft",
-    "e:builder:local": "cross-env NODE_ENV=production MODE=nightly electron-builder --publish never",
+    "e:builder:nightly": "cross-env NODE_ENV=development NOTARIZE=true DEBUG=electron-builder MODE=nightly electron-builder --publish onTagOrDraft",
+    "e:builder:local": "cross-env NODE_ENV=development MODE=nightly electron-builder --publish never",
     "export": "run-s s:build e:builder",
-    "export:nightly": "run-s s:build e:builder:nightly",
+    "export:nightly": "run-s s:build:nightly e:builder:nightly",
     "clean-up": "rm -rf dist && rm -rf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
-    "export:local": "run-s clean-up s:build e:builder:local",
+    "export:local": "run-s clean-up s:build:local e:builder:local",
     "s:build": "cross-env NODE_ENV=production electron-vite build",
-    "s:build:local": "cross-env NODE_ENV=production electron-vite build",
+    "s:build:nightly": "cross-env NODE_ENV=development electron-vite build",
+    "s:build:local": "cross-env NODE_ENV=development electron-vite build",
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
-    "electron-dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 DEBUG=universal-analytics NODE_ENV=development electron-vite dev --watch"
+    "electron-dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch"
   }
 }

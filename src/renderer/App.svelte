@@ -24,7 +24,6 @@
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
   import GridLayout from "./main/grid-layout/GridLayout.svelte";
-  import TopSubMenu from "./main/TopSubMenu.svelte";
 
   import Export from "./main/modals/Export.svelte";
   import Welcome from "./main/modals/Welcome.svelte";
@@ -50,7 +49,7 @@
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
-  import { userStore } from "$lib/user.store";
+  import { profileLinkStore } from "$lib/profilelink.store";
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
@@ -102,8 +101,12 @@
   });
 
   window.electron.auth.onExternalResponse((_event, value) => {
-    console.log("external social auth login credentials are received", value);
     authStore.socialLogin("google", value);
+  });
+
+  window.electron.configs.onExternalResponse((_event, value) => {
+    // listening to this store on ProfileCloud.svelte
+    profileLinkStore.set({ id: value });
   });
 
   let leftPaneSize;
@@ -144,15 +147,7 @@
 
   let testy = "test";
 
-  onMount(() => {
-    // application mounted, check analytics
-    window.electron.analytics.influx("application", "init", "init", "init");
-    window.electron.analytics.google("fw-editor-version", {
-      value: `v${get(appSettings).version.major}.${
-        get(appSettings).version.minor
-      }.${get(appSettings).version.patch}`,
-    });
-  });
+  onMount(() => {});
 </script>
 
 <Monster
@@ -168,7 +163,7 @@
   use:watchResize={resize}
   id="app"
   spellcheck="false"
-  class="relative flex w-full h-full flex-row justify-between overflow-hidden"
+  class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
 >
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
@@ -184,8 +179,6 @@
     <FirmwareCheck />
 
     <ErrorConsole />
-
-    <!-- <TopSubMenu /> -->
 
     <div class="flex flex-grow overflow-hidden">
       <Splitpanes theme="modern-theme" class="w-full">

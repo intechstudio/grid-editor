@@ -87,8 +87,6 @@ const instructions = {
         const event = descr.class_parameters.EVENTTYPE;
         const actionstring = descr.class_parameters.ACTIONSTRING;
 
-        // console.log("SUCCESS: ", descr.class_parameters.PAGENUMBER, descr.class_parameters.ELEMENTNUMBER, descr.class_parameters.EVENTTYPE );
-
         runtime.update_event_configuration(
           dx,
           dy,
@@ -113,7 +111,28 @@ const instructions = {
   },
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
-    unsaved_changes.update((n) => n + 1);
+    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "configlength",
+        message: `Config is too long! ${actionstring.length} characters`,
+      });
+      return;
+    }
+
+    const objIndex = get(unsaved_changes).findIndex(
+      (e) => e.x == dx && e.y == dy
+    );
+    if (objIndex !== -1) {
+      unsaved_changes.update((s) => {
+        const updatedChanges = [...s];
+        updatedChanges[objIndex].changes += 1;
+        return updatedChanges;
+      });
+    } else {
+      unsaved_changes.update((s) => [...s, { x: dx, y: dy, changes: 1 }]);
+    }
 
     let buffer_element = {
       descr: {
@@ -148,16 +167,6 @@ const instructions = {
       },
       successCb: callback,
     };
-
-    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
-      logger.set({
-        type: "alert",
-        mode: 0,
-        classname: "configlength",
-        message: `Config is too long! ${actionstring.length} characters`,
-      });
-      return;
-    }
 
     writeBuffer.add_last(buffer_element);
 
@@ -254,7 +263,7 @@ const instructions = {
       },
       successCb: function () {
         engine.set("ENABLED");
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         logger.set({
           type: "success",
           mode: 0,
@@ -308,7 +317,7 @@ const instructions = {
         //console.log('NVM erase execute - fail')
       },
       successCb: function () {
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         runtime.erase();
         engine.set("ENABLED");
         logger.set({

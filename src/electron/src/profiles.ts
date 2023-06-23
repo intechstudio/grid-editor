@@ -1,7 +1,8 @@
 import fs from "fs";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
+import util from "util";
 import log from "electron-log";
-
-import { googleAnalytics, influxAnalytics } from "./analytics";
 
 async function checkIfWritableDirectory(path) {
   const stats = fs.promises.stat(path).then((res) => ({
@@ -10,6 +11,68 @@ async function checkIfWritableDirectory(path) {
   }));
 
   return await Promise.all([stats]);
+}
+
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const readdir = util.promisify(fs.readdir);
+
+interface OldProfile {
+  version: {
+    major: number;
+    minor: number;
+    patch: number;
+  };
+}
+
+interface NewProfile {
+  id: string;
+  version: {
+    major: string;
+    minor: string;
+    patch: string;
+  };
+}
+
+export async function migrateToProfileCloud(
+  oldPath: string,
+  newPath: string
+): Promise<void> {
+  const entries = await readdir(oldPath, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullOldPath = path.join(oldPath, entry.name);
+
+    if (entry.isDirectory()) {
+      if (entry.name == "intech" || entry.name == "intechstudio") {
+        // do nothing
+      } else {
+        // If the entry is a directory, recurse into it
+        await migrateToProfileCloud(fullOldPath, newPath);
+      }
+    } else if (entry.isFile() && path.extname(entry.name) === ".json") {
+      const id = uuidv4();
+      const fullNewPath = path.join(newPath, id);
+      // If the entry is a file and ends in '.json', process it
+      const oldProfileBuffer = await readFile(fullOldPath);
+      const oldProfile: OldProfile = JSON.parse(oldProfileBuffer.toString());
+
+      const newProfile: NewProfile = {
+        ...oldProfile,
+        id: id,
+        version: {
+          major: oldProfile.version.major.toString(),
+          minor: oldProfile.version.minor.toString(),
+          patch: oldProfile.version.patch.toString(),
+        },
+      };
+      fs.mkdirSync(fullNewPath, { recursive: true });
+      await writeFile(
+        path.join(fullNewPath, `${newProfile.id}.json`),
+        JSON.stringify(newProfile, null, 2)
+      );
+    }
+  }
 }
 
 export async function moveOldConfigs(configPath, rootDirectory) {
@@ -73,6 +136,10 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 }
 
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
+  if (typeof configPath === "undefined" || configPath === "") {
+    return [];
+  }
+
   let path = configPath;
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path);
@@ -177,13 +244,9 @@ export async function saveConfig(
       JSON.stringify(config, null, 4)
     )
     .then((data) => {
-      googleAnalytics("profile-library", { value: "save success" });
-      influxAnalytics("application", "profiles", "profile", "save success");
       console.log("Saved!");
     })
     .catch((err) => {
-      googleAnalytics("profile-library", { value: "save fail" });
-      influxAnalytics("application", "profiles", "profile", "save fail");
       console.log("Error:", err);
       throw err;
     });
@@ -205,6 +268,16 @@ export async function deleteConfig(
     .catch((err) => {
       throw err;
     });
+}
+
+export async function updateLocal(
+  configPath,
+  id,
+  config,
+  rootDirectory,
+  profileFolder
+) {
+  await saveConfig(configPath, id, config, rootDirectory, profileFolder);
 }
 
 export async function updateConfig(

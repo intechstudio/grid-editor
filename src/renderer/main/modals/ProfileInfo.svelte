@@ -92,30 +92,10 @@
   function deleteProfile() {
     deleteProfileFromDirectory(selectedProfile);
     $appSettings.modal = "";
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_desc_delete",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_delete"
-    );
   }
 
   function editProfile() {
     $appSettings.modal = "profileEdit";
-
-    window.electron.analytics.influx("profile-library", {
-      value: "newProfile_desc_edit",
-    });
-    window.electron.analytics.influx(
-      "application",
-      "profiles",
-      "profile",
-      "newProfile_desc_edit"
-    );
   }
 
   let sessionPresetNumbers = [];
@@ -133,17 +113,6 @@
     });
 
     // analitikiát @tofinak meg kell javítani
-
-    window.electron.analytics.google("preset-library", {
-      value: "save start",
-    });
-
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "save start"
-    );
 
     /**
      * Ez egy jó promise pattern.
@@ -238,7 +207,6 @@
       }
 
       checkIfPresetTitleUnique(name);
-      //}
 
       let preset = {
         name: name,

@@ -106,7 +106,7 @@ html {
 
 body {
   @apply select-none;
-  @apply flex flex-col bg-secondary font-roboto p-0 m-0 h-screen;
+  @apply m-0 flex h-screen flex-col bg-secondary p-0 font-roboto;
 }
 
 @tailwind utilities;

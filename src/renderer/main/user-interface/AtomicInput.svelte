@@ -56,7 +56,6 @@
   class="w-full relative"
   use:clickOutside={{ useCapture: false }}
   on:click-outside={() => {
-    console.log("yay");
     focus = false;
     handleFocus("loose", false);
   }}

@@ -1,6 +1,6 @@
 export let config_components = [];
 
-async function init_config_block_library() {
+export async function init_config_block_library() {
   console.info("Init config block library!");
 
   let _files = import.meta.glob("../config-blocks/*.svelte");

@@ -4,25 +4,24 @@
   export let drop_target;
   export let drag_target;
   export let animation;
-  export let configs;
 
   let dropZoneEnabled = true;
-  $: if (drag_target.length > 0) {
-    const _index_low = configs.findIndex((a) => a.id == drag_target[0]);
 
-    if (_index_low == index || _index_low - 1 == index) {
-      dropZoneEnabled = false;
-    }
+  $: if (drag_target.length === 1) {
+    const dragIndex = Number(drag_target.at(0));
+    handleDrag(dragIndex);
+  } else if (drag_target.length > 1) {
+    const firstDragIndex = Number(drag_target.at(0));
+    const lastDragIndex = Number(drag_target.at(-1));
+    handleMultiDrag(firstDragIndex, lastDragIndex);
+  }
 
-    if (drag_target.length > 1) {
-      const _index_high = configs.findIndex(
-        (a) => a.id == drag_target[drag_target.length - 1]
-      );
+  function handleDrag(dragIndex) {
+    dropZoneEnabled = index != dragIndex - 1 && index != dragIndex;
+  }
 
-      if (_index_low <= index && index <= _index_high) {
-        dropZoneEnabled = false;
-      }
-    }
+  function handleMultiDrag(firstDragIndex, lastDragIndex) {
+    dropZoneEnabled = index < firstDragIndex - 1 || index > lastDragIndex;
   }
 </script>
 

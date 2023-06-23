@@ -10,7 +10,6 @@
     user_input,
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
-  import { configManagement } from "./Configuration.store.js";
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 
@@ -18,8 +17,9 @@
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
+  import mixpanel from "mixpanel-browser";
+
   export let events;
-  export let elements;
 
   let stringname;
 
@@ -94,24 +94,14 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    window.electron.analytics.influx(
-      "application",
-      "configuration",
-      "whole element",
-      "copy"
-    );
+    mixpanel.track("Config Action", { click: "Whole Element Copy" });
   }
 
   function overwriteAllEventConfigs() {
     let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    window.electron.analytics.influx(
-      "application",
-      "configuration",
-      "whole element",
-      "overwrite"
-    );
+    mixpanel.track("Config Action", { click: "Whole Element Overwrite" });
   }
 
   function updateStringName(e) {

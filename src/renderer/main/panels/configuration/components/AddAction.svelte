@@ -4,33 +4,27 @@
   import { clickOutside } from "../../../_actions/click-outside.action";
 
   import { menuBoundaries } from "../../../_actions/boundaries.action.js";
-
+  import mixpanel from "mixpanel-browser";
   import _utils from "../../../../runtime/_utils";
 
-  import {
-    presetManagement,
-    openedActionBlocks,
-  } from "../../../../runtime/app-helper.store";
+  import { presetManagement } from "../../../../runtime/app-helper.store";
 
   import { get } from "svelte/store";
 
   import {
     appActionClipboard,
-    appMultiSelect,
     user_input,
   } from "../../../../runtime/runtime.store";
 
   import { addOnDoubleClick } from "../../../_actions/add-on-double-click";
 
   import { getAllComponents } from "../../../../lib/_configs";
-  import { end } from "luaparse";
-  import { insert, object_without_properties } from "svelte/internal";
+  import { ConfigObject } from "../Configuration.store";
 
   export let animation = false;
   export let userHelper = false;
-  export let config = [];
-  export let configs = [];
   export let index;
+  export let configs = [];
 
   const dispatch = createEventDispatcher();
 
@@ -58,15 +52,14 @@
 
     let action_name = get(presetManagement.selected_action).name;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "added action",
-      action_name
-    );
+    mixpanel.track("Config Action", {
+      click: "Add Action",
+      actionBlock: action_name,
+    });
 
     dispatch("new-config", {
-      config: cfg,
+      config: new ConfigObject({ short: cfg.short, script: cfg.script }),
+      index: index,
     });
 
     configSelection = false;
@@ -76,36 +69,24 @@
   function pickAction(action) {
     const short = action.short;
 
-    openedActionBlocks.update((s) => {
-      s = s.filter((v) => v !== short);
-      s.push(short);
-      return s;
-    });
-
     selected_action = action.desc;
     presetManagement.selected_action.update({
       name: action.desc,
-      configs: `--[[@${action.short}]] ${action.defaultLua}`,
+      configs: { short: action.short, script: action.defaultLua },
     });
   }
 
-  function paste() {
-    dispatch("new-config", {
-      config: get(appActionClipboard).join(""),
+  function handlePaste() {
+    dispatch("paste", {
+      index: index,
     });
     configSelection = false;
     visible = false;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "multiselect",
-      "paste"
-    );
+    mixpanel.track("Config Action", { click: "Paste" });
   }
 
   let action_options = [];
-  onMount(() => {});
 
   //TODO: Simplify this
   function allowedConditionsAtPosition(configList, insertPosition) {
@@ -273,11 +254,8 @@
         // check if compatible events are defined in the action component
         if (elem.eventtype !== undefined) {
           elem.eventtype.forEach((ev) => {
-            /*  console.log("HELLO", ev, eventtype); */
-
             if (ev === eventtype) {
               found = true;
-              /* console.log("FOUND"); */
             }
           });
         }
@@ -290,10 +268,8 @@
 
           if (elem.category == "condition") {
             if (allowedConditions.includes(elem.short)) {
-              console.log("ALLOWED: ", elem.short);
               object[elem.category].push(elem);
             } else {
-              console.log("NOT ALLOWED: ", elem.short);
             }
           } else {
             object[elem.category].push(elem);
@@ -324,13 +300,11 @@
         );
       });
 
-      /*       console.log("help filtering this", _action_collection); */
-
       // custom sorting array
       let change_condition_order = _action_collection.find(
         (x) => x.category == "condition"
       );
-      /*       console.log("change_condition_order", change_condition_order); */
+
       change_condition_order.collection =
         change_condition_order.collection.sort(function (a, b) {
           return (
@@ -345,7 +319,6 @@
     }
 
     configSelection = !configSelection;
-    appMultiSelect.reset();
 
     /* console.log("Open Picker"); */
     actionPickerTimestamp = Date.now();
@@ -354,12 +327,10 @@
   function closeActionPicker() {
     let actionPickerDuration = Date.now() - actionPickerTimestamp;
 
-    window.electron.analytics.influx(
-      "application",
-      "configpicker",
-      "time to pick",
-      actionPickerDuration
-    );
+    mixpanel.track("Config Action", {
+      click: "Add Action Duration",
+      duration: actionPickerDuration,
+    });
 
     initConfig();
   }
@@ -470,9 +441,7 @@
 
         {#if $appActionClipboard.length}
           <button
-            on:click={() => {
-              paste();
-            }}
+            on:click={handlePaste}
             class="flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-sm mr-8 mb-2 px-4 py-1 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500"
           >
             Paste

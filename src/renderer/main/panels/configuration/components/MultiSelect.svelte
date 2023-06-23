@@ -1,32 +1,53 @@
 <script>
-  import { configManagement } from "../Configuration.store.js";
-
-  import {
-    appActionClipboard,
-    appMultiSelect,
-  } from "../../../../runtime/runtime.store.js";
   import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
-
   import TooltipSetter from "../../../user-interface/tooltip/TooltipSetter.svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import Options from "./Options.svelte";
+  import { createEventDispatcher } from "svelte";
 
-  function multiSelectToggle() {}
+  const dispatch = createEventDispatcher();
+
+  export let enableConvert = true;
+  export let enableCut = false;
+  export let enableCopy = false;
+  export let enablePaste = false;
+  export let enableRemove = false;
+  export let selectAll = undefined;
+
+  function handleConvertToCodeBlockClicked(e) {
+    dispatch("convert-to-code-block");
+  }
+
+  function handleCutClicked(e) {
+    dispatch("cut");
+  }
+
+  function handleCopyClicked(e) {
+    dispatch("copy");
+  }
+
+  function handlePasteClicked(e) {
+    dispatch("paste", { index: undefined });
+  }
+
+  function handleRemoveClicked(e) {
+    dispatch("remove");
+  }
+
+  function handleSelectAllClicked(e) {
+    const { value } = e.detail;
+    dispatch("select-all", { value: value });
+  }
 </script>
 
 <app-action-multi-select class=" flex items-center flex-row">
   <!-- When any of the array elements is true -->
   <div class="w-fit flex flex-wrap">
     <BtnAndPopUp
-      on:clicked={() => {
-        configManagement().on_click.converttocodeblock();
-        appMultiSelect.reset();
-      }}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        $appMultiSelect.selection.includes(true)
-          ? ""
-          : "opacity-50 pointer-events-none"
-      }`}
+      on:clicked={handleConvertToCodeBlockClicked}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
       popStyle={"bg-gray-500 "}
+      enabled={enableConvert}
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
@@ -35,16 +56,10 @@
     </BtnAndPopUp>
 
     <BtnAndPopUp
-      on:clicked={() => {
-        configManagement().on_click.cut();
-        appMultiSelect.reset();
-      }}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        $appMultiSelect.selection.includes(true)
-          ? ""
-          : "opacity-50 pointer-events-none"
-      }`}
+      on:clicked={handleCutClicked}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
       popStyle={"bg-sencodary"}
+      enabled={enableCut}
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
@@ -54,16 +69,10 @@
     </BtnAndPopUp>
 
     <BtnAndPopUp
-      on:clicked={() => {
-        configManagement().on_click.copy();
-        appMultiSelect.reset();
-      }}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        $appMultiSelect.selection.includes(true)
-          ? ""
-          : "opacity-50 pointer-events-none"
-      }`}
+      on:clicked={handleCopyClicked}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
       popStyle={"bg-sencodary"}
+      enabled={enableCopy}
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
@@ -73,14 +82,10 @@
     </BtnAndPopUp>
 
     <BtnAndPopUp
-      on:clicked={() => {
-        configManagement().on_click.paste();
-        appMultiSelect.reset();
-      }}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        $appActionClipboard.length > 0 ? "" : "opacity-50 pointer-events-none"
-      }`}
+      on:clicked={handlePasteClicked}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
       popStyle={"bg-sencodary"}
+      enabled={enablePaste}
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
@@ -90,16 +95,10 @@
     </BtnAndPopUp>
 
     <BtnAndPopUp
-      on:clicked={() => {
-        configManagement().on_click.remove();
-        appMultiSelect.reset();
-      }}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        $appMultiSelect.selection.includes(true)
-          ? ""
-          : "opacity-50 pointer-events-none"
-      }`}
+      on:clicked={handleRemoveClicked}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
       popStyle={"bg-sencodary"}
+      enabled={enableRemove}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
@@ -107,25 +106,12 @@
         <TooltipSetter key={"configuration_remove_one"} />
       </span>
     </BtnAndPopUp>
-  </div>
 
-  <button
-    on:click={() => {
-      configManagement().on_click.select_all(); /* appMultiSelect.select({config: configs[index], selected: selected})*/
-    }}
-    class="{$appMultiSelect.all_selected
-      ? 'border-opacity-80 bg-secondary'
-      : 'h-[18px] w-[18px]'} border border-white border-opacity-20 hover:border-opacity-80 rounded-md text-white cursor-pointer hover:bg-secondary"
-  >
-    {#if $appMultiSelect.all_selected}
-      <SvgIcon
-        displayMode="button"
-        class="h-[16px] w-[16px]"
-        activeState={$appMultiSelect.all_selected}
-        iconPath={"tick"}
-      />
-    {/if}
-  </button>
+    <Options
+      on:selection-change={handleSelectAllClicked}
+      bind:selected={selectAll}
+    />
+  </div>
 </app-action-multi-select>
 
 <style>

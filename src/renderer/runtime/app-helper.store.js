@@ -1,9 +1,7 @@
 import { writable, get, readable } from "svelte/store";
 import { getAllComponents } from "$lib/_configs";
 
-const { env } = window.ctxProcess;
-
-let envs = env();
+const configuration = window.ctxProcess.configuration();
 
 function checkOS() {
   if (typeof window.ctxProcess === "object") {
@@ -55,9 +53,9 @@ function createAppSettingsStore() {
   const store = writable({
     size: 2.1,
     version: {
-      major: envs.EDITOR_VERSION.split(".")[0],
-      minor: envs.EDITOR_VERSION.split(".")[1],
-      patch: envs.EDITOR_VERSION.split(".")[2],
+      major: configuration.EDITOR_VERSION.split(".")[0],
+      minor: configuration.EDITOR_VERSION.split(".")[1],
+      patch: configuration.EDITOR_VERSION.split(".")[2],
     },
     overlays: { controlElementName: false },
     debugMode: false,
@@ -69,7 +67,8 @@ function createAppSettingsStore() {
     preferences: false,
     rightPanel: "Configuration",
     rightPanelVisible: true,
-    leftPanel: "Profiles",
+    leftPanel: "ProfileCloud",
+    profileBrowserMode: "profileCloud",
     leftPanelVisible: true,
     modal: "",
     trayState: false,
@@ -77,14 +76,14 @@ function createAppSettingsStore() {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: parseInt(envs.FIRMWARE_D51_REQUIRED_MAJOR),
-      minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR),
-      patch: parseInt(envs.FIRMWARE_D51_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH),
     },
     firmware_esp32_required: {
-      major: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MAJOR),
-      minor: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MINOR),
-      patch: parseInt(envs.FIRMWARE_ESP32_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
     },
     sizeChange: 0,
     activeWindowResult: {
@@ -110,6 +109,7 @@ function createAppSettingsStore() {
       newProfileBrowserEnabled: true,
       legacyProfileBrowserEnabled: false,
       profileCloudDevFeaturesEnabled: false,
+      useProfileCloud: true,
       helperShape: 0,
       helperColor: 0,
       helperName: "Monster",
@@ -149,7 +149,7 @@ let persistant = {
   newProfileBrowserEnabled: true,
   legacyProfileBrowserEnabled: false,
   profileCloudDevFeaturesEnabled: false,
-  showLoginRegister: false,
+  useProfileCloud: true,
   helperShape: 0,
   helperColor: 0,
   helperName: "Monster",
@@ -235,10 +235,11 @@ async function init_appsettings() {
         get(appSettings).persistant.welcomeOnStartup === undefined ||
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != envs["EDITOR_VERSION"]
+        get(appSettings).persistant.lastVersion !=
+          configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
-          s.persistant.lastVersion = envs["EDITOR_VERSION"];
+          s.persistant.lastVersion = configuration["EDITOR_VERSION"];
           s.persistant.welcomeOnStartup = true;
           s.modal = "welcome";
           return s;
@@ -257,8 +258,6 @@ async function init_appsettings() {
 }
 
 export const preferenceStore = writable();
-
-export const openedActionBlocks = writable([]);
 
 export const action_collection = readable(Promise.all([getAllComponents()]));
 
@@ -310,5 +309,3 @@ export const layout = writable([]);
 export const numberOfModulesStore = writable();
 
 export const focusedCodeEditor = writable();
-
-export const configNodeBinding = writable([]);

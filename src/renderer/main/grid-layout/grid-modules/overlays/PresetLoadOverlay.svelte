@@ -9,6 +9,8 @@
   import { get } from "svelte/store";
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
+  import mixpanel from "mixpanel-browser";
+
   export let id;
   export let moduleWidth;
 
@@ -96,13 +98,7 @@
   function loadPreset(element) {
     selectModuleWhereProfileIsLoaded(element);
 
-    window.electron.analytics.google("preset-library", { value: "load start" });
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "load start"
-    );
+    mixpanel.track("Preset Load Start", {});
 
     if (selectedPreset !== undefined) {
       const preset = selectedPreset;
@@ -116,46 +112,11 @@
       if (ui.event.elementtype == preset.type) {
         runtime.element_preset_load(preset);
 
-        window.electron.analytics.google("preset-library", {
-          value: "load success",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load success"
-        );
+        mixpanel.track("Preset Load Success", {});
       } else {
-        window.electron.analytics.google("preset-library", {
-          value: "load mismatch",
-        });
-        window.electron.analytics.influx(
-          "application",
-          "presets",
-          "preset",
-          "load mismatch"
-        );
-        /*         let element =
-          currentModule.pages[ui.event.pagenumber].control_elements[
-            ui.event.elementnumber
-          ].controlElementType; */
+        mixpanel.track("Preset Load Mismatch", {});
       }
     }
-  }
-
-  function cancelPresetOverlay() {
-    selectedPresetStore.set({});
-
-    window.electron.analytics.google("preset-library", {
-      value: "cancel overlay",
-    });
-
-    window.electron.analytics.influx(
-      "application",
-      "presets",
-      "preset",
-      "cancel overlay"
-    );
   }
 </script>
 
