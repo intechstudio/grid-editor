@@ -20,18 +20,8 @@
   const syntaxError = writable(false);
 
   $: {
-<<<<<<< HEAD
-    const configs = _utils.gridLuaToEditorLua($luadebug_store.config);
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
-=======
     configScriptLength.set($luadebug_store.configScript.length);
     syntaxError.set($luadebug_store.syntaxError);
->>>>>>> stable
   }
 
   const createDebouncedStore = (initialValue, debounceTime) => {
