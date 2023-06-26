@@ -199,6 +199,7 @@
           <div class="flex w-full opacity-40">
             <span class="mr-2">Character Count:</span>
             <!-- <span>{runtimeScript.length + addedCodeLength}</span> -->
+            {$luadebug_store.configScript.length}
             <span>/</span>
             <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>
