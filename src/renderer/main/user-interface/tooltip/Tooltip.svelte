@@ -13,17 +13,35 @@
 
   let tooltip_text = tooltip_content[key];
   let parent_element = undefined;
+  let isOpen = false;
+
+  function handleMouseEnter(e) {
+    isOpen = true;
+  }
+
+  function handleMouseLeave(e) {
+    isOpen = false;
+  }
+
+  function handleClick(e) {
+    isOpen = false;
+  }
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   bind:this={parent_element}
   class="w-full flex h-full absolute right-0 top-0"
+  on:mouseenter={handleMouseEnter}
+  on:mouseleave={handleMouseLeave}
+  on:click={handleClick}
 />
 
 <Popover
   triggerEvents={["hover"]}
   referenceElement={parent_element}
   remainOpenOnPopoverHover={false}
+  bind:isOpen
   {placement}
   spaceAway={10}
 >
