@@ -1,37 +1,20 @@
 <script>
-  import { createEventDispatcher } from "svelte";
+  // based on suggestions from:
+  // Sami Keijonen https://webdesign.tutsplus.com/tutorials/how-to-make-custom-accessible-checkboxes-and-radio-buttons--cms-32074
+  // and Inclusive Components by Heydon Pickering https://inclusive-components.design/toggle-button/
 
-  const dispatch = createEventDispatcher();
+  export let options;
+  export let userSelected = options[0].value;
 
-  export let radioValue = "";
-  export let pairs = [];
+  const uniqueID = Math.floor(Math.random() * 100);
 
-  function handleChange(arg) {
-    radioValue = arg;
-    dispatch("change", {});
-  }
+  const slugify = (str = "") =>
+    str.toLowerCase().replace(/ /g, "-").replace(/\./g, "");
 </script>
 
 <div
-  class="flex border-collapse text-sm cursor-pointer text-gray-700 border-secondary border-2 rounded-lg"
->
-  {#each pairs as pair, i}
-    <div
-      class:tab={radioValue == pair.value}
-      on:click={() => {
-        handleChange(pair.value);
-      }}
-      class:rounded-r-none={i == 0}
-      class:rounded-l-none={i == 1}
-      class="px-2 py-1 w-full transition-all ease-in-out duration-500 text-center rounded-lg rounded-r-none"
-    >
-      {pair.key}
-    </div>
-  {/each}
-</div>
-
-<style>
-  .tab {
-    box-shadow: 0 0px 0px 2px #cc5b5b;
-  }
-</style>
+  role="radiogroup"
+  class="group-container flex flex-row"
+  aria-labelledby={`label-${uniqueID}`}
+  id={`group-${uniqueID}`}
+/>

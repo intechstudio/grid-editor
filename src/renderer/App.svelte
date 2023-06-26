@@ -54,6 +54,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
+  import Tracker from "./main/grid-layout/Tracker.svelte";
 
   let modalComponents = {};
 

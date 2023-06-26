@@ -350,7 +350,7 @@ function create_user_input() {
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
         store.brc.rot = descr.brc_parameters.ROT;
 
-        store.event.eventtype = descr.class_parameters.EVENTTYPE;
+        //store.event.eventtype = descr.class_parameters.EVENTTYPE;
         store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
 
         let elementtype =
