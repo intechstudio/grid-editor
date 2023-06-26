@@ -20,17 +20,16 @@
     ConfigList,
   } from "../panels/configuration/Configuration.store";
 
-  import { luadebug_store } from "../../runtime/runtime.store";
-
   let monaco_block;
 
   let monaco_disposables = [];
 
   let editor;
 
-  let commitState = 0;
-
-  let error_messsage = "";
+  let pendingChanges = false;
+  let errorMesssage = "";
+  let scriptLength = undefined;
+  let currentConfig = undefined;
 
   let modalWidth;
   let modalHeight;
@@ -56,22 +55,45 @@
   }
 
   function clickOutsideHandler() {
-    if (!commitState) {
+    if (!pendingChanges) {
       $appSettings.modal = "";
     }
   }
 
-  let monacoTextLength = 0;
-  let addedCodeLength = 0;
-
   function commit() {
+    //TODO: Error on length
     const editor_code = editor.getValue();
-    const maxConfigLimit = grid.properties.CONFIG_LENGTH;
 
     try {
-      //Is this necessary?
-      //checkForbiddenIdentifiers(code);
-      const short_code = stringManipulation.shortify(editor_code);
+      $appSettings.monaco_config = minifyCode(editor_code);
+      pendingChanges = false;
+      errorMesssage = "";
+    } catch (e) {
+      errorMesssage = e;
+    }
+  }
+
+  let modalElement;
+
+  function expandCode(code) {
+    try {
+      let human = stringManipulation.humanize(code);
+      let beautified = luamin.Beautify(human, {
+        RenameVariables: false,
+        RenameGlobals: false,
+        SolveMath: false,
+      });
+
+      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+      return stringManipulation.noCommentToLineComment(beautified);
+    } catch (e) {
+      throw `Error during expanding ${code}`;
+    }
+  }
+
+  function minifyCode(code) {
+    try {
+      const short_code = stringManipulation.shortify(code);
       const line_commented_code =
         stringManipulation.blockCommentToLineComment(short_code);
 
@@ -83,45 +105,24 @@
         RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
         SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
       };
-      let minified_code = luamin.Minify(safe_code, luaminOptions);
-
-      const addedCodeLength = minified_code.length - initCodeLength;
-      const newConfigLength = initConfigLength + addedCodeLength;
-      if (newConfigLength > maxConfigLimit) {
-        throw "Config limit reached!";
-      }
-      $appSettings.monaco_code_committed = minified_code;
-      commitState = 0;
-      error_messsage = "";
+      return luamin.Minify(safe_code, luaminOptions);
     } catch (e) {
-      error_messsage = e;
+      throw `Error during minifying ${code}`;
     }
   }
 
-  let modalElement;
-
-  let initCodeLength;
-  let initConfigLength = undefined;
-
   onMount(() => {
     const target = ConfigTarget.getCurrent();
-    const list = ConfigList.createFrom(target);
-    if (typeof list === "undefined") {
+    currentConfig = ConfigList.createFrom(target);
+    if (typeof currentConfig === "undefined") {
       throw "Error loading current config.";
     }
-    initConfigLength = list.toConfigScript().length;
-    initCodeLength = $appSettings.monaco_code_committed.length;
-    let human = stringManipulation.humanize($appSettings.monaco_code_committed);
-    let beautified = luamin.Beautify(human, {
-      RenameVariables: false,
-      RenameGlobals: false,
-      SolveMath: false,
-    });
 
-    if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+    //To be displayed in Editor
+    const code_preview = expandCode($appSettings.monaco_config.script);
+    scriptLength = currentConfig.toConfigScript().length;
 
-    const code_preview = stringManipulation.noCommentToLineComment(beautified);
-
+    //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
       value: code_preview,
       language: "intech_lua",
@@ -141,18 +142,25 @@
       },
     });
 
-    editor.getModel().onDidChangeContent((event) => {
-      if (editor.getValue() !== $appSettings.monaco_code_committed) {
-        commitState = 1;
-      } else {
-        commitState = 0;
-      }
-    });
-
-    initCodeLength = editor.getValue().length;
     editor.onDidChangeModelContent(() => {
-      monacoTextLength = editor.getValue().length;
-      addedCodeLength = monacoTextLength - initCodeLength;
+      const obj = currentConfig.find(
+        (e) => (e.id = $appSettings.monaco_config.id)
+      );
+      if (typeof obj === "undefined") {
+        throw "Unknown error while getting ConfigObject!";
+      }
+
+      const editor_code = editor.getValue();
+
+      try {
+        obj.script = minifyCode(editor_code);
+        scriptLength = currentConfig.toConfigScript().length;
+        errorMesssage = "";
+      } catch (e) {
+        scriptLength = undefined;
+        errorMesssage = e;
+      }
+      pendingChanges = true;
     });
 
     $attachment = {
@@ -172,6 +180,10 @@
       element.dispose();
     });
   });
+
+  function handleKeyUp(e) {
+    console.log("yay");
+  }
 </script>
 
 <svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
@@ -198,37 +210,34 @@
           <div class="flex w-full opacity-70">Edit Code</div>
           <div class="flex w-full opacity-40">
             <span class="mr-2">Character Count:</span>
-            <!-- <span>{runtimeScript.length + addedCodeLength}</span> -->
-            {$luadebug_store.configScript.length}
+            {typeof scriptLength === "undefined" ? "?" : scriptLength}
             <span>/</span>
             <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>
         </div>
 
         <div class="flex flex-row items-center h-full gap-2">
-          {#key commitState + error_messsage}
-            <div class="flex flex-col">
-              <div
-                class="text-right text-sm {commitState
-                  ? 'text-yellow-600'
-                  : 'text-green-500'} "
-              >
-                {commitState ? "Unsaved changes!" : "Synced with Grid!"}
-              </div>
-              <div class="text-right text-sm text-error">
-                {error_messsage}
-              </div>
+          <div class="flex flex-col">
+            <div
+              class="text-right text-sm {pendingChanges
+                ? 'text-yellow-600'
+                : 'text-green-500'} "
+            >
+              {pendingChanges ? "Unsaved changes!" : "Synced with Grid!"}
             </div>
-          {/key}
+            <div class="text-right text-sm text-error">
+              {errorMesssage}
+            </div>
+          </div>
 
           <button
             on:click={commit}
-            disabled={!commitState}
-            class="w-24 p-2 bg-commit hover:bg-commit-saturate-20 text-white rounded
-            {commitState ? 'opacity-100' : 'opacity-50 pointer-events-none'}"
+            disabled={pendingChanges}
+            class="mx-2 p-2 {!pendingChanges
+              ? 'opacity-100'
+              : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded text-sm focus:outline-none"
+            >Commit</button
           >
-            Commit
-          </button>
 
           <button
             on:click={() => {
@@ -246,16 +255,6 @@
     <div class="flex-col w-full h-full flex justify-between">
       <div
         bind:this={monaco_block}
-        on:keyup={() => {
-          /*
-          if (typeof editor !== "undefined") {
-            const newCodeLength = editor.getValue().length;
-            addedCodeLength = editor.getValue().length - initCodeLength;
-            //codeLength = editor.getValue().length;
-            console.log(initCodeLength, newCodeLength);
-          }
-          */
-        }}
         class="flex-col w-full h-full flex justify-between"
       />
     </div>

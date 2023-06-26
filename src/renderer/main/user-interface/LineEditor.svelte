@@ -75,19 +75,11 @@
       dispatch("output", { script: editor.getValue() });
 
       update_codeblock_height();
-
-      /*
-            if (editor.getValue() !== $appSettings.monaco_code_committed){
-                commitState = 1;
-            }
-            else{
-                commitState = 0;
-            }
-            */
     });
   });
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}

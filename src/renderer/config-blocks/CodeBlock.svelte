@@ -115,35 +115,35 @@
     });
   });
 
-  $: if (
-    committedCode != $appSettings.monaco_code_committed &&
-    $appSettings.monaco_code_committed !== undefined
-  ) {
+  $: if (typeof $appSettings.monaco_config !== "undefined") {
     if ($appSettings.monaco_timestamp == creation_timestamp) {
-      committedCode = $appSettings.monaco_code_committed;
+      committedCode = $appSettings.monaco_config.script;
       dispatch("output", { short: "cb", script: committedCode });
 
-      let human = stringManipulation.humanize(committedCode);
-      let beautified = luamin.Beautify(human, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
+      try {
+        let human = stringManipulation.humanize(committedCode);
+        let beautified = luamin.Beautify(human, {
+          RenameVariables: false,
+          RenameGlobals: false,
+          SolveMath: false,
+        });
 
-      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-
-      codePreview.innerHTML = beautified;
-      monaco_editor.colorizeElement(codePreview, {
-        theme: "my-theme",
-        tabSize: 2,
-      });
+        if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+        codePreview.innerHTML = beautified;
+        monaco_editor.colorizeElement(codePreview, {
+          theme: "my-theme",
+          tabSize: 2,
+        });
+      } catch (e) {
+        throw `Error during expanding ${committedCode}`;
+      }
     }
   }
 
   function open_monaco() {
     $appSettings.monaco_element = "encoder";
 
-    $appSettings.monaco_code_committed = committedCode;
+    $appSettings.monaco_config = config;
     $appSettings.monaco_timestamp = creation_timestamp;
 
     $monaco_elementtype = access_tree.elementtype;
