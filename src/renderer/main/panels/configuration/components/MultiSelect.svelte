@@ -64,8 +64,8 @@
       <span slot="popup">Cutted!</span>
       <span slot="button">
         <SvgIcon displayMode="button" iconPath={"cut"} />
-        <TooltipSetter key={"configuration_cut_one"} />
       </span>
+      <TooltipSetter key={"configuration_cut_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -77,8 +77,8 @@
       <span slot="popup">Copied!</span>
       <span slot="button">
         <SvgIcon displayMode="button" iconPath={"copy"} />
-        <TooltipSetter key={"configuration_copy_one"} />
       </span>
+      <TooltipSetter key={"configuration_copy_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -90,21 +90,21 @@
       <span slot="popup">Pasted!</span>
       <span slot="button">
         <SvgIcon displayMode="button" iconPath={"paste"} />
-        <TooltipSetter key={"configuration_paste_one"} />
       </span>
+      <TooltipSetter key={"configuration_paste_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
       on:clicked={handleRemoveClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
+      btnStyle={`relative  mr-2 group rounded-md bg-secondary`}
       popStyle={"bg-sencodary"}
       enabled={enableRemove}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
         <SvgIcon displayMode="button" iconPath={"remove"} />
-        <TooltipSetter key={"configuration_remove_one"} />
       </span>
+      <TooltipSetter key={"configuration_remove_one"} />
     </BtnAndPopUp>
 
     <Options
