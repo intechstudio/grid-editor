@@ -479,6 +479,7 @@
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
     if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
+      console.log("profile cloud is mounted received");
       profileCloudIsMounted = true;
       return;
     }
@@ -555,6 +556,8 @@
     $appSettings.profileCloudUrl = buildVariables.PROFILE_CLOUD_URL;
 
     $appSettings.profileCloudUrlEnabled = true;
+
+    console.log("profile cloud is mounted status", profileCloudIsMounted);
 
     window.addEventListener("message", initChannelCommunication);
 

@@ -225,7 +225,6 @@ async function init_appsettings() {
           if (value !== undefined) {
             s.persistant[key] = value;
           }
-          console.log("appsettings: ", key, value);
         });
 
         return s;

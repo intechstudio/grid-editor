@@ -236,9 +236,9 @@
               if ($isStoreEnabled) discard();
             }}
             class="relative items-center justify-center focus:outline-none bg-select
-          rounded text-white py-1 w-24"
-            class:hover:bg-yellow-600={$isStoreEnabled}
-            class:brightness-75={!$isStoreEnabled}
+          rounded text-white py-1 w-24 {$isStoreEnabled
+              ? 'hover:bg-yellow-600'
+              : 'opacity-75'}"
           >
             <div>Discard</div>
             <TooltipSetter key={"configuration_header_clear"} />
@@ -248,9 +248,9 @@
               if ($isStoreEnabled) store();
             }}
             class="relative items-center justify-center rounded
-              focus:outline-none text-white py-1 w-24 bg-commit"
-            class:hover:bg-commit-saturate-20={$isStoreEnabled}
-            class:brightness-75={!$isStoreEnabled}
+              focus:outline-none text-white py-1 w-24 bg-commit {$isStoreEnabled
+              ? 'hover:bg-commit-saturate-20'
+              : 'opacity-75'}"
           >
             <div>Store</div>
             <TooltipSetter key={"configuration_header_store"} />
