@@ -4,6 +4,7 @@
   import Popover from "svelte-easy-popover";
   import { attachment } from "../Monster.store";
 
+  //TODO: Make tracking later
   import mixpanel from "mixpanel-browser";
 
   export let key = "";
