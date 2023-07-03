@@ -37,14 +37,11 @@
   import { appSettings } from "../runtime/app-helper.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
-  import { monaco_editor, monaco_languages } from "$lib/CustomMonaco";
+  import { monaco_editor } from "$lib/CustomMonaco";
 
   const dispatch = createEventDispatcher();
 
   export let config;
-  export let index;
-  export let advanced;
-  export let advancedClickAddon;
   export let access_tree;
 
   let committedCode = "";
@@ -116,8 +113,11 @@
   });
 
   $: if (typeof $appSettings.monaco_config !== "undefined") {
+    console.log($appSettings.monaco_config);
+    /*
     if ($appSettings.monaco_timestamp == creation_timestamp) {
       committedCode = $appSettings.monaco_config.script;
+      console.log($appSettings.monaco_config);
       dispatch("output", { short: "cb", script: committedCode });
 
       try {
@@ -135,9 +135,10 @@
           tabSize: 2,
         });
       } catch (e) {
-        throw `Error during expanding ${committedCode}`;
+        console.error(`Error during expanding ${committedCode}`);
       }
     }
+    */
   }
 
   function open_monaco() {

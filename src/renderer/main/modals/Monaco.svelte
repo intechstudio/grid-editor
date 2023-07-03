@@ -26,7 +26,8 @@
 
   let editor;
 
-  let pendingChanges = false;
+  let commitEnabled = false;
+  let unsavedChanges = false;
   let errorMesssage = "";
   let scriptLength = undefined;
   let currentConfig = undefined;
@@ -37,79 +38,9 @@
   let scrollDown;
   let autoscroll;
 
-  beforeUpdate(() => {
-    autoscroll =
-      scrollDown &&
-      scrollDown.offsetHeight + scrollDown.scrollTop >
-        scrollDown.scrollHeight - 20;
-  });
-
-  afterUpdate(() => {
-    if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
-  });
-
-  $: if (modalWidth || modalHeight) {
-    if (editor !== undefined) {
-      editor.layout();
-    }
-  }
-
-  function clickOutsideHandler() {
-    if (!pendingChanges) {
-      $appSettings.modal = "";
-    }
-  }
-
-  function commit() {
-    //TODO: Error on length
-    const editor_code = editor.getValue();
-
-    try {
-      $appSettings.monaco_config = minifyCode(editor_code);
-      pendingChanges = false;
-      errorMesssage = "";
-    } catch (e) {
-      errorMesssage = e;
-    }
-  }
-
-  let modalElement;
-
-  function expandCode(code) {
-    try {
-      let human = stringManipulation.humanize(code);
-      let beautified = luamin.Beautify(human, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
-
-      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-      return stringManipulation.noCommentToLineComment(beautified);
-    } catch (e) {
-      throw `Error during expanding ${code}`;
-    }
-  }
-
-  function minifyCode(code) {
-    try {
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      const luaminOptions = {
-        RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-        RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-        SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-      };
-      return luamin.Minify(safe_code, luaminOptions);
-    } catch (e) {
-      throw `Error during minifying ${code}`;
-    }
-  }
+  //This is the currently edited CodeBlocks config
+  //It is binded by reference
+  const referenceConfig = $appSettings.monaco_config;
 
   onMount(() => {
     const target = ConfigTarget.getCurrent();
@@ -118,8 +49,13 @@
       throw "Error loading current config.";
     }
 
+    let script = referenceConfig.script;
+    script = script + "a";
+    return;
+
     //To be displayed in Editor
-    const code_preview = expandCode($appSettings.monaco_config.script);
+    const code_preview = expandCode(referenceConfig.script);
+
     scriptLength = currentConfig.toConfigScript().length;
 
     //Creating and configuring the editor
@@ -143,24 +79,36 @@
     });
 
     editor.onDidChangeModelContent(() => {
-      const obj = currentConfig.find(
-        (e) => (e.id = $appSettings.monaco_config.id)
-      );
+      const obj = currentConfig.find((e) => (e.id = referenceConfig.id));
+
       if (typeof obj === "undefined") {
         throw "Unknown error while getting ConfigObject!";
       }
 
       const editor_code = editor.getValue();
+      unsavedChanges = true;
 
       try {
+        //Throws error on syntax error
+
         obj.script = minifyCode(editor_code);
         scriptLength = currentConfig.toConfigScript().length;
+
+        //Check the minified config length
+        if (scriptLength > grid.properties.CONFIG_LENGTH) {
+          throw "Config limit reached.";
+        }
+
+        //Everything is ok if no error was thrown previously
         errorMesssage = "";
+        commitEnabled = true;
+
+        //Syntax or Length Error
       } catch (e) {
-        scriptLength = undefined;
+        scriptLength = undefined; //Length can not be determined
+        commitEnabled = false; //Lengthy or syntax failed code can not be committed
         errorMesssage = e;
       }
-      pendingChanges = true;
     });
 
     $attachment = {
@@ -171,7 +119,81 @@
     };
   });
 
+  beforeUpdate(() => {
+    autoscroll =
+      scrollDown &&
+      scrollDown.offsetHeight + scrollDown.scrollTop >
+        scrollDown.scrollHeight - 20;
+  });
+
+  afterUpdate(() => {
+    if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
+  });
+
+  $: if (modalWidth || modalHeight) {
+    if (editor !== undefined) {
+      editor.layout();
+    }
+  }
+
+  function handleClickOutside(e) {
+    if (!commitEnabled) {
+      handleClose(e);
+    }
+  }
+
+  function handleCommit() {
+    try {
+      const editor_code = editor.getValue();
+      $appSettings.monaco_config = minifyCode(editor_code);
+      commitEnabled = false;
+      unsavedChanges = false;
+      errorMesssage = "";
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  let modalElement;
+
+  function expandCode(code) {
+    try {
+      let human = stringManipulation.humanize(code);
+      let beautified = luamin.Beautify(human, {
+        RenameVariables: false,
+        RenameGlobals: false,
+        SolveMath: false,
+      });
+
+      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+      return stringManipulation.noCommentToLineComment(beautified);
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  function minifyCode(code) {
+    const short_code = stringManipulation.shortify(code);
+    const line_commented_code =
+      stringManipulation.blockCommentToLineComment(short_code);
+
+    var safe_code = String(
+      stringManipulation.lineCommentToNoComment(line_commented_code)
+    );
+    const luaminOptions = {
+      RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
+      RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
+      SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
+    };
+    try {
+      return luamin.Minify(safe_code, luaminOptions);
+    } catch (e) {
+      throw `Syntax Error: ${e}`;
+    }
+  }
+
   onDestroy(() => {
+    /*
     if ($attachment.element === modalElement) {
       $attachment = undefined;
     }
@@ -179,10 +201,12 @@
     monaco_disposables.forEach((element) => {
       element.dispose();
     });
+    */
   });
 
-  function handleKeyUp(e) {
-    console.log("yay");
+  function handleClose(e) {
+    referenceConfig.script += "b";
+    $appSettings.modal = "";
   }
 </script>
 
@@ -196,7 +220,7 @@
   <div
     bind:this={modalElement}
     use:clickOutside={{ useCapture: true }}
-    on:click-outside={clickOutsideHandler}
+    on:click-outside={handleClickOutside}
     id="clickbox"
     class=" z-50 w-3/4 h-3/4 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100"
   >
@@ -219,11 +243,11 @@
         <div class="flex flex-row items-center h-full gap-2">
           <div class="flex flex-col">
             <div
-              class="text-right text-sm {pendingChanges
+              class="text-right text-sm {unsavedChanges
                 ? 'text-yellow-600'
                 : 'text-green-500'} "
             >
-              {pendingChanges ? "Unsaved changes!" : "Synced with Grid!"}
+              {unsavedChanges ? "Unsaved changes!" : "Synced with Grid!"}
             </div>
             <div class="text-right text-sm text-error">
               {errorMesssage}
@@ -231,19 +255,14 @@
           </div>
 
           <button
-            on:click={commit}
-            disabled={pendingChanges}
-            class="mx-2 p-2 {!pendingChanges
-              ? 'opacity-100'
-              : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded text-sm focus:outline-none"
-            >Commit</button
+            on:click={handleCommit}
+            disabled={!commitEnabled}
+            class="w-24 p-2 bg-commit hover:bg-commit-saturate-20 text-white rounded focus:outline-none
+            {commitEnabled ? 'opacity-100' : 'opacity-50'}">Commit</button
           >
 
           <button
-            on:click={() => {
-              $appSettings.modal = "";
-            }}
-            id="close-btn"
+            on:click={handleClose}
             class="w-24 p-2 rounded text-white hover:bg-secondary bg-primary"
           >
             Close
