@@ -221,13 +221,11 @@ export class ConfigList extends Array {
       throw "Unknown device!";
     }
 
-    const page = device.pages.at(this.target.page);
+    const page = device.pages[this.target.page];
 
-    const element = device.pages
-      .at(page)
-      .control_elements.find(
-        (e) => e.controlElementNumber == this.target.element
-      );
+    const element = page.control_elements.find(
+      (e) => e.controlElementNumber == this.target.element
+    );
 
     let event = element.events.find(
       (e) => e.event.value == this.target.eventType
