@@ -58,7 +58,11 @@
     });
 
     dispatch("new-config", {
-      config: new ConfigObject({ short: cfg.short, script: cfg.script }),
+      config: new ConfigObject({
+        parent: undefined,
+        short: cfg.short,
+        script: cfg.script,
+      }),
       index: index,
     });
 

@@ -35,6 +35,7 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { appSettings } from "../runtime/app-helper.store";
+  import { monaco_store } from "../main/modals/Monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
@@ -43,6 +44,7 @@
 
   export let config;
   export let access_tree;
+  export let index;
 
   let committedCode = "";
 
@@ -112,40 +114,34 @@
     });
   });
 
-  $: if (typeof $appSettings.monaco_config !== "undefined") {
-    console.log($appSettings.monaco_config);
-    /*
-    if ($appSettings.monaco_timestamp == creation_timestamp) {
-      committedCode = $appSettings.monaco_config.script;
-      console.log($appSettings.monaco_config);
-      dispatch("output", { short: "cb", script: committedCode });
+  $: {
+    committedCode = $appSettings.monaco_config.script;
+    dispatch("output", { short: "cb", script: committedCode });
 
-      try {
-        let human = stringManipulation.humanize(committedCode);
-        let beautified = luamin.Beautify(human, {
-          RenameVariables: false,
-          RenameGlobals: false,
-          SolveMath: false,
-        });
+    try {
+      let human = stringManipulation.humanize(committedCode);
+      let beautified = luamin.Beautify(human, {
+        RenameVariables: false,
+        RenameGlobals: false,
+        SolveMath: false,
+      });
 
-        if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-        codePreview.innerHTML = beautified;
-        monaco_editor.colorizeElement(codePreview, {
-          theme: "my-theme",
-          tabSize: 2,
-        });
-      } catch (e) {
-        console.error(`Error during expanding ${committedCode}`);
-      }
+      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
+      codePreview.innerHTML = beautified;
+      monaco_editor.colorizeElement(codePreview, {
+        theme: "my-theme",
+        tabSize: 2,
+      });
+    } catch (e) {
+      console.error(`Error during expanding ${committedCode}`);
     }
-    */
   }
 
   function open_monaco() {
     $appSettings.monaco_element = "encoder";
 
-    $appSettings.monaco_config = config;
-    $appSettings.monaco_timestamp = creation_timestamp;
+    $monaco_store = config;
+    console.log($monaco_store);
 
     $monaco_elementtype = access_tree.elementtype;
     $appSettings.modal = "code";

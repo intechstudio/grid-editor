@@ -1,8 +1,6 @@
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
-  import { monaco_elementtype } from "../../lib/CustomMonaco";
-
   import { monaco_editor } from "$lib/CustomMonaco";
 
   const dispatch = createEventDispatcher();
@@ -38,8 +36,6 @@
   });
 
   onMount(() => {
-    $monaco_elementtype = access_tree.elementtype;
-
     editor = monaco_editor.create(monaco_block, {
       value: value,
       language: "intech_lua",

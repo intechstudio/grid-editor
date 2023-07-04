@@ -7,7 +7,9 @@
 
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
-  import { monaco_editor, monaco_languages } from "../../lib/CustomMonaco";
+  import { monaco_editor } from "../../lib/CustomMonaco";
+  import { committed_code_store } from "../../config-blocks/Committed_Code.store";
+  import { monaco_store } from "./Monaco.store";
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
@@ -29,8 +31,7 @@
   let commitEnabled = false;
   let unsavedChanges = false;
   let errorMesssage = "";
-  let scriptLength = undefined;
-  let currentConfig = undefined;
+  let editedScriptLength = undefined;
 
   let modalWidth;
   let modalHeight;
@@ -38,25 +39,18 @@
   let scrollDown;
   let autoscroll;
 
-  //This is the currently edited CodeBlocks config
-  //It is binded by reference
-  const referenceConfig = $appSettings.monaco_config;
+  const editedConfig = $monaco_store;
 
   onMount(() => {
-    const target = ConfigTarget.getCurrent();
-    currentConfig = ConfigList.createFrom(target);
-    if (typeof currentConfig === "undefined") {
-      throw "Error loading current config.";
-    }
-
-    let script = referenceConfig.script;
-    script = script + "a";
+    //To be displayed in Editor
+    //const code_preview = expandCode(editedConfig.script);
+    console.log($monaco_store);
     return;
 
-    //To be displayed in Editor
-    const code_preview = expandCode(referenceConfig.script);
-
-    scriptLength = currentConfig.toConfigScript().length;
+    const target = ConfigTarget.getCurrent();
+    const list = ConfigList.createFrom(target);
+    configListLength = list.toConfigScript().length;
+    editedScriptLength = configListLength;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
@@ -79,23 +73,21 @@
     });
 
     editor.onDidChangeModelContent(() => {
-      const obj = currentConfig.find((e) => (e.id = referenceConfig.id));
-
-      if (typeof obj === "undefined") {
-        throw "Unknown error while getting ConfigObject!";
-      }
-
       const editor_code = editor.getValue();
       unsavedChanges = true;
 
       try {
         //Throws error on syntax error
+        referenceConfig.script = minifyCode(editor_code);
 
-        obj.script = minifyCode(editor_code);
-        scriptLength = currentConfig.toConfigScript().length;
+        //Calculate length (this already includes the new value of referenceConfig)
+        const target = ConfigTarget.getCurrent();
+        const list = ConfigList.createFrom(target);
+        editedScriptLength = list.toConfigScript().length;
+        console.log(referenceConfig);
 
         //Check the minified config length
-        if (scriptLength > grid.properties.CONFIG_LENGTH) {
+        if (editedScriptLength > grid.properties.CONFIG_LENGTH) {
           throw "Config limit reached.";
         }
 
@@ -105,7 +97,7 @@
 
         //Syntax or Length Error
       } catch (e) {
-        scriptLength = undefined; //Length can not be determined
+        editedScriptLength = undefined; //Length can not be determined
         commitEnabled = false; //Lengthy or syntax failed code can not be committed
         errorMesssage = e;
       }
@@ -145,7 +137,7 @@
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
-      $appSettings.monaco_config = minifyCode(editor_code);
+      lastCommittedScript = minifyCode(editor_code);
       commitEnabled = false;
       unsavedChanges = false;
       errorMesssage = "";
@@ -193,7 +185,6 @@
   }
 
   onDestroy(() => {
-    /*
     if ($attachment.element === modalElement) {
       $attachment = undefined;
     }
@@ -201,11 +192,10 @@
     monaco_disposables.forEach((element) => {
       element.dispose();
     });
-    */
   });
 
   function handleClose(e) {
-    referenceConfig.script += "b";
+    referenceConfig.script = lastCommittedScript;
     $appSettings.modal = "";
   }
 </script>
@@ -234,7 +224,9 @@
           <div class="flex w-full opacity-70">Edit Code</div>
           <div class="flex w-full opacity-40">
             <span class="mr-2">Character Count:</span>
-            {typeof scriptLength === "undefined" ? "?" : scriptLength}
+            {typeof editedScriptLength === "undefined"
+              ? "?"
+              : editedScriptLength}
             <span>/</span>
             <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>
