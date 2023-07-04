@@ -31,7 +31,6 @@
   let commitEnabled = false;
   let unsavedChanges = false;
   let errorMesssage = "";
-  let editedScriptLength = undefined;
 
   let modalWidth;
   let modalHeight;
@@ -40,17 +39,13 @@
   let autoscroll;
 
   const editedConfig = $monaco_store;
+  let commitedScript = $monaco_store.script;
+  let scriptLength = undefined;
 
   onMount(() => {
     //To be displayed in Editor
-    //const code_preview = expandCode(editedConfig.script);
-    console.log($monaco_store);
-    return;
-
-    const target = ConfigTarget.getCurrent();
-    const list = ConfigList.createFrom(target);
-    configListLength = list.toConfigScript().length;
-    editedScriptLength = configListLength;
+    const code_preview = expandCode(editedConfig.script);
+    scriptLength = editedConfig.parent.toConfigScript().length;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
@@ -78,16 +73,13 @@
 
       try {
         //Throws error on syntax error
-        referenceConfig.script = minifyCode(editor_code);
+        editedConfig.script = minifyCode(editor_code);
 
         //Calculate length (this already includes the new value of referenceConfig)
-        const target = ConfigTarget.getCurrent();
-        const list = ConfigList.createFrom(target);
-        editedScriptLength = list.toConfigScript().length;
-        console.log(referenceConfig);
+        scriptLength = editedConfig.parent.toConfigScript().length;
 
         //Check the minified config length
-        if (editedScriptLength > grid.properties.CONFIG_LENGTH) {
+        if (scriptLength > grid.properties.CONFIG_LENGTH) {
           throw "Config limit reached.";
         }
 
@@ -97,7 +89,7 @@
 
         //Syntax or Length Error
       } catch (e) {
-        editedScriptLength = undefined; //Length can not be determined
+        scriptLength = undefined; //Length can not be determined
         commitEnabled = false; //Lengthy or syntax failed code can not be committed
         errorMesssage = e;
       }
@@ -137,7 +129,7 @@
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
-      lastCommittedScript = minifyCode(editor_code);
+      commitedScript = minifyCode(editor_code);
       commitEnabled = false;
       unsavedChanges = false;
       errorMesssage = "";
@@ -195,7 +187,8 @@
   });
 
   function handleClose(e) {
-    referenceConfig.script = lastCommittedScript;
+    editedConfig.script = commitedScript;
+    $committed_code_store = editedConfig.script;
     $appSettings.modal = "";
   }
 </script>
@@ -224,9 +217,7 @@
           <div class="flex w-full opacity-70">Edit Code</div>
           <div class="flex w-full opacity-40">
             <span class="mr-2">Character Count:</span>
-            {typeof editedScriptLength === "undefined"
-              ? "?"
-              : editedScriptLength}
+            {typeof scriptLength === "undefined" ? "?" : scriptLength}
             <span>/</span>
             <span>{grid.properties.CONFIG_LENGTH}</span>
           </div>

@@ -34,7 +34,7 @@ export class ConfigObject {
       throw "Invalid parent object. Expected an instance of ConfigList.";
     }
 
-    this.parent = undefined;
+    this.parent = parent;
     this.short = short;
     this.script = script;
 
@@ -294,7 +294,6 @@ export class ConfigList extends Array {
     }
     //Make a deep copy
     const copy = config.makeCopy();
-    console.log(config, copy, this);
     copy.parent = this;
     super.push(copy);
   }

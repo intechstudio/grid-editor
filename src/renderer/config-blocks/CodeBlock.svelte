@@ -39,6 +39,7 @@
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
   import { monaco_editor } from "$lib/CustomMonaco";
+  import { committed_code_store } from "./Committed_Code.store";
 
   const dispatch = createEventDispatcher();
 
@@ -78,8 +79,6 @@
 </g>
 </svg>`;
 
-  const creation_timestamp = Date.now();
-
   onDestroy(() => {
     codePreview.removeEventListener("wheel", (evt) => {
       evt.preventDefault();
@@ -114,8 +113,8 @@
     });
   });
 
-  $: {
-    committedCode = $appSettings.monaco_config.script;
+  $: if (typeof $committed_code_store !== "undefined") {
+    committedCode = $committed_code_store;
     dispatch("output", { short: "cb", script: committedCode });
 
     try {
@@ -133,6 +132,7 @@
         tabSize: 2,
       });
     } catch (e) {
+      console.log(committedCode);
       console.error(`Error during expanding ${committedCode}`);
     }
   }
@@ -141,7 +141,6 @@
     $appSettings.monaco_element = "encoder";
 
     $monaco_store = config;
-    console.log($monaco_store);
 
     $monaco_elementtype = access_tree.elementtype;
     $appSettings.modal = "code";
