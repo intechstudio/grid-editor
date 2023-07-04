@@ -47,8 +47,6 @@
   export let access_tree;
   export let index;
 
-  let committedCode = "";
-
   let codePreview;
 
   const lualogo_foreground = "#808080";
@@ -86,15 +84,8 @@
     });
   });
 
-  onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
-    });
-
-    committedCode = config.script;
-
-    let human = stringManipulation.humanize(committedCode);
+  function displayConfigScript(script) {
+    let human = stringManipulation.humanize(String(script));
     let beautified = luamin.Beautify(human, {
       RenameVariables: false,
       RenameGlobals: false,
@@ -111,30 +102,19 @@
       theme: "my-theme",
       tabSize: 2,
     });
+  }
+
+  onMount(() => {
+    codePreview.addEventListener("wheel", (evt) => {
+      evt.preventDefault();
+      codePreview.scrollLeft += evt.deltaY;
+    });
+    displayConfigScript(config.script);
   });
 
   $: if (typeof $committed_code_store !== "undefined") {
-    committedCode = $committed_code_store;
-    dispatch("output", { short: "cb", script: committedCode });
-
-    try {
-      let human = stringManipulation.humanize(committedCode);
-      let beautified = luamin.Beautify(human, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
-
-      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-      codePreview.innerHTML = beautified;
-      monaco_editor.colorizeElement(codePreview, {
-        theme: "my-theme",
-        tabSize: 2,
-      });
-    } catch (e) {
-      console.log(committedCode);
-      console.error(`Error during expanding ${committedCode}`);
-    }
+    dispatch("output", { short: "cb", script: $committed_code_store });
+    displayConfigScript($committed_code_store);
   }
 
   function open_monaco() {
