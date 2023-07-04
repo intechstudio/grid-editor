@@ -31,11 +31,13 @@
   {/if}
   <button
     on:click={handleClicked}
-    class="{btnStyle} text-sm py-1 px-2 text-white focus:ring-1 focus:outline-none shadow border border-white border-opacity-5 hover:border-opacity-25"
+    disabled={!enabled}
     class:opacity-50={!enabled}
+    class="{btnStyle} text-sm py-1 px-2 text-white focus:ring-1 focus:outline-none shadow border border-white border-opacity-5 hover:border-opacity-25"
   >
     <slot name="button" />
   </button>
+  <slot class="opacity-100" />
 </div>
 
 <style>
