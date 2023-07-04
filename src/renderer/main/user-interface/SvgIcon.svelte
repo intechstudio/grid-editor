@@ -1,7 +1,7 @@
 <script>
   export let iconPath = "";
   export let activeState = false;
-  export let displayMode = "static";
+  export let displayMode = "button";
   let rawSvg;
 
   importAsComponent(iconPath).then((res) => {
