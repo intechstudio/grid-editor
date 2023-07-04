@@ -42,6 +42,8 @@
   let commitedScript = $monaco_store.script;
   let scriptLength = undefined;
 
+  class LengthError extends String {}
+
   onMount(() => {
     //To be displayed in Editor
     const code_preview = expandCode(editedConfig.script);
@@ -80,7 +82,7 @@
 
         //Check the minified config length
         if (scriptLength > grid.properties.CONFIG_LENGTH) {
-          throw "Config limit reached.";
+          throw new LengthError("Config limit reached.");
         }
 
         //Everything is ok if no error was thrown previously
@@ -89,8 +91,10 @@
 
         //Syntax or Length Error
       } catch (e) {
-        scriptLength = undefined; //Length can not be determined
-        commitEnabled = false; //Lengthy or syntax failed code can not be committed
+        if (!(e instanceof LengthError)) {
+          scriptLength = undefined;
+        }
+        commitEnabled = false;
         errorMesssage = e;
       }
     });
