@@ -425,7 +425,7 @@
 
         <CursorLog />
       </div>
-      <Tracker class="absolute bottom-0 right-0 mb-5 mr-7" />
+      <Tracker class="absolute bottom-0 right-0 mb-7 mr-10" />
     </grid-layout>
   </div>
 </layout-container>

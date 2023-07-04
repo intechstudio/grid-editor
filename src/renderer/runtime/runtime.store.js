@@ -285,8 +285,8 @@ function create_user_input() {
       return;
     }
 
-    // track physical interaction
-    if (!get(appSettings).changeOnContact) {
+    // Don't track physical interaction
+    if (get(appSettings).changeOnEvent === "none") {
       return;
     }
 
@@ -357,7 +357,11 @@ function create_user_input() {
           grid.moduleElements[device.id.split("_")[0]][
             store.event.elementnumber
           ];
-        store.event.elementtype = elementtype;
+
+        //If tracking is set to Event, only then set the event
+        if (get(appSettings).changeOnEvent === "event") {
+          store.event.elementtype = elementtype;
+        }
 
         return store;
       });
