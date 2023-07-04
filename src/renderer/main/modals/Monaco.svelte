@@ -111,7 +111,8 @@
   });
 
   afterUpdate(() => {
-    if (autoscroll) scrollDown.scrollTo(0, scrollDown.scrollHeight);
+    if (autoscroll && scrollDown)
+      scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
   $: if (modalWidth || modalHeight) {
