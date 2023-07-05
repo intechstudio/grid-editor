@@ -34,6 +34,7 @@
 
   onMount(() => {
     ready = true;
+    console.log(key);
   });
 
   function appear(node, { duration }) {
@@ -272,7 +273,7 @@
     on:mouseenter={mouseenterCallback}
     on:mouseleave={mouseleaveCallback}
     on:click|stopPropagation={buttonClick}
-    class="w-full flex h-full absolute right-0 top-0"
+    class="w-full flex h-full absolute right-0 top-0 font-w"
   >
     {#if tooltip_isvisible}
       <div in:fade={{ duration: 0, delay: 750 }} on:introend={tooltipAppear}>
@@ -293,7 +294,7 @@
               {/if}
               <div
                 bind:this={attachmentElement}
-                class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left"
+                class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left font-normal"
                 style={tooltiptext_style}
               >
                 {tooltip_text}
