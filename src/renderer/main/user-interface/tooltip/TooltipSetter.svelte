@@ -34,7 +34,6 @@
 
   onMount(() => {
     ready = true;
-    console.log(key);
   });
 
   function appear(node, { duration }) {
