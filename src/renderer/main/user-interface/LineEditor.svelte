@@ -1,6 +1,8 @@
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
+  import { monaco_elementtype } from "../../lib/CustomMonaco";
+
   import { monaco_editor } from "$lib/CustomMonaco";
 
   const dispatch = createEventDispatcher();
@@ -36,6 +38,8 @@
   });
 
   onMount(() => {
+    $monaco_elementtype = access_tree.elementtype;
+
     editor = monaco_editor.create(monaco_block, {
       value: value,
       language: "intech_lua",
@@ -71,11 +75,19 @@
       dispatch("output", { script: editor.getValue() });
 
       update_codeblock_height();
+
+      /*
+            if (editor.getValue() !== $appSettings.monaco_code_committed){
+                commitState = 1;
+            }
+            else{
+                commitState = 0;
+            }
+            */
     });
   });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
 <div
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
