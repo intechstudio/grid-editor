@@ -118,11 +118,10 @@
   }
 
   function open_monaco() {
-    $appSettings.monaco_element = "encoder";
-
     $monaco_store = config;
 
     $monaco_elementtype = access_tree.elementtype;
+    console.log(access_tree);
     $appSettings.modal = "code";
   }
 </script>
