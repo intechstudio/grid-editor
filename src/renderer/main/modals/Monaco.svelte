@@ -38,15 +38,22 @@
   let scrollDown;
   let autoscroll;
 
-  const editedConfig = $monaco_store;
-  let commitedScript = $monaco_store.script;
+  let editedConfig = undefined;
+  let editedList = undefined;
   let scriptLength = undefined;
 
   class LengthError extends String {}
 
   onMount(() => {
+    //Make local copies
+    editedConfig = $monaco_store.makeCopy();
+    editedList = editedConfig.parent.makeCopy();
+    editedConfig.parent = editedList;
+
     //To be displayed in Editor
     const code_preview = expandCode(editedConfig.script);
+
+    //Set initial code length
     scriptLength = editedConfig.parent.toConfigScript().length;
 
     //Creating and configuring the editor
@@ -134,7 +141,10 @@
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
-      commitedScript = minifyCode(editor_code);
+      const minifiedCode = minifyCode(editor_code);
+
+      $committed_code_store = minifiedCode;
+
       commitEnabled = false;
       unsavedChanges = false;
       errorMesssage = "";
@@ -192,8 +202,6 @@
   });
 
   function handleClose(e) {
-    editedConfig.script = commitedScript;
-    $committed_code_store = editedConfig.script;
     $appSettings.modal = "";
   }
 </script>

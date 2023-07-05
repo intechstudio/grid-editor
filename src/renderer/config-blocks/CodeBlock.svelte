@@ -118,10 +118,8 @@
   }
 
   function open_monaco() {
-    $monaco_store = config;
-
+    $monaco_store = config.makeCopy();
     $monaco_elementtype = access_tree.elementtype;
-    console.log(access_tree);
     $appSettings.modal = "code";
   }
 </script>
