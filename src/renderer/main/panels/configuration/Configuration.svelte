@@ -154,12 +154,14 @@
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = availableEvents.find((e) => Number(e) > 0);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
         user_input.update((s) => {
-          s.event.eventtype = closestEvent;
+          s.event.eventtype = String(closestEvent);
           return s;
         });
-        target.eventType = closestEvent;
+        target.eventType = String(closestEvent);
         list = ConfigList.createFrom(target);
       } else {
         //Unknown Error
