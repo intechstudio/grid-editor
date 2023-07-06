@@ -119,6 +119,13 @@ export class ConfigObject {
   }
 }
 
+export class UnknownEventException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "UnknownEventException";
+  }
+}
+
 export class ConfigList extends Array {
   //Internal private list
   target = undefined;
@@ -139,15 +146,10 @@ export class ConfigList extends Array {
 
     this.target = target;
 
-    try {
-      const config = new ConfigList();
-      config.target = target;
-      config.#Init();
-      return config;
-    } catch (e) {
-      console.error("ConfigList:", e);
-      return undefined;
-    }
+    const config = new ConfigList();
+    config.target = target;
+    config.#Init();
+    return config;
   }
 
   sendTo({ target }) {
@@ -230,6 +232,13 @@ export class ConfigList extends Array {
     let event = element.events.find(
       (e) => e.event.value == this.target.eventType
     );
+
+    if (typeof event === "undefined") {
+      throw new UnknownEventException(
+        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+      );
+    }
+
     const cfgstatus = event.cfgStatus;
     if (
       cfgstatus != "GRID_REPORT" &&

@@ -26,6 +26,7 @@
     ConfigList,
     ConfigObject,
     ConfigTarget,
+    UnknownEventException,
   } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
@@ -145,23 +146,39 @@
     localDefinitions.update(list);
   }
 
-  $: if ($user_input) {
+  function handleUserInputchange() {
+    let target = ConfigTarget.getCurrent();
+    let list = undefined;
     try {
-      const target = ConfigTarget.getCurrent();
-      const list = ConfigList.createFrom(target);
-      if (typeof list === "undefined") {
-        throw "Error loading current config.";
-      }
-
-      configs.set(list);
-      toggleLastConfigs();
-      setSelectedEvent();
-      updateLuaDebugStore(list);
-      updateLocalSuggestions(list);
+      list = ConfigList.createFrom(target);
     } catch (e) {
-      console.error(`Configuration: ${e}`);
-      displayDefault();
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+        target.eventType = String(closestEvent);
+        list = ConfigList.createFrom(target);
+      } else {
+        //Unknown Error
+        console.error(`Configuration: ${e}`);
+        displayDefault();
+        return;
+      }
     }
+    configs.set(list);
+    toggleLastConfigs();
+    setSelectedEvent();
+    updateLuaDebugStore(list);
+    updateLocalSuggestions(list);
+  }
+
+  $: if ($user_input) {
+    handleUserInputchange();
   }
 
   let animation = false;
