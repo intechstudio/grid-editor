@@ -45,66 +45,101 @@
   <div class="w-fit flex flex-wrap">
     <BtnAndPopUp
       on:clicked={handleConvertToCodeBlockClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+        !enableConvert ? "hover:border-opacity-5" : "border-opacity-20"
+      }`}
       popStyle={"bg-gray-500 "}
       enabled={enableConvert}
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
-        <SvgIcon displayMode="button" iconPath={"merge_as_code"} />
+        <SvgIcon
+          class={!enableConvert
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"merge_as_code"}
+        />
       </span>
     </BtnAndPopUp>
 
     <BtnAndPopUp
       on:clicked={handleCutClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
-      popStyle={"bg-sencodary"}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+        !enableCut ? "hover:border-opacity-5" : "border-opacity-20"
+      }`}
+      popStyle={"bg-secondary"}
       enabled={enableCut}
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
-        <SvgIcon displayMode="button" iconPath={"cut"} />
+        <SvgIcon
+          class={!enableCut
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"cut"}
+        />
+        <TooltipSetter key={"configuration_cut_one"} />
       </span>
-      <TooltipSetter key={"configuration_cut_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
       on:clicked={handleCopyClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+        !enableCopy ? "hover:border-opacity-5" : "border-opacity-20"
+      }`}
       popStyle={"bg-sencodary"}
       enabled={enableCopy}
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
-        <SvgIcon displayMode="button" iconPath={"copy"} />
+        <SvgIcon
+          class={!enableCopy
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"copy"}
+        />
+        <TooltipSetter key={"configuration_copy_one"} />
       </span>
-      <TooltipSetter key={"configuration_copy_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
       on:clicked={handlePasteClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md`}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+        !enablePaste ? "hover:border-opacity-5" : "border-opacity-20"
+      }`}
       popStyle={"bg-sencodary"}
       enabled={enablePaste}
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
-        <SvgIcon displayMode="button" iconPath={"paste"} />
+        <SvgIcon
+          class={!enablePaste
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"paste"}
+        />
+        <TooltipSetter key={"configuration_paste_one"} />
       </span>
-      <TooltipSetter key={"configuration_paste_one"} />
     </BtnAndPopUp>
 
     <BtnAndPopUp
       on:clicked={handleRemoveClicked}
-      btnStyle={`relative  mr-2 group rounded-md bg-secondary`}
+      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+        !enableRemove ? "hover:border-opacity-5" : "border-opacity-20"
+      }`}
       popStyle={"bg-sencodary"}
       enabled={enableRemove}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
-        <SvgIcon displayMode="button" iconPath={"remove"} />
+        <SvgIcon
+          class={!enableRemove
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"remove"}
+        />
+        <TooltipSetter key={"configuration_remove_one"} />
       </span>
-      <TooltipSetter key={"configuration_remove_one"} />
     </BtnAndPopUp>
 
     <Options
