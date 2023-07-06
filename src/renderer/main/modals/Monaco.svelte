@@ -46,7 +46,7 @@
 
   onMount(() => {
     //Make local copies
-    editedConfig = $monaco_store.makeCopy();
+    editedConfig = $monaco_store.config.makeCopy();
     editedList = editedConfig.parent.makeCopy();
     editedConfig.parent = editedList;
 
@@ -143,7 +143,10 @@
       const editor_code = editor.getValue();
       const minifiedCode = minifyCode(editor_code);
 
-      $committed_code_store = minifiedCode;
+      $committed_code_store = {
+        script: minifiedCode,
+        index: $monaco_store.index,
+      };
 
       commitEnabled = false;
       unsavedChanges = false;

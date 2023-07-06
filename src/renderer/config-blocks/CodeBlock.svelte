@@ -85,6 +85,7 @@
   });
 
   function displayConfigScript(script) {
+    if (typeof codePreview === "undefined") return;
     let human = stringManipulation.humanize(String(script));
     let beautified = luamin.Beautify(human, {
       RenameVariables: false,
@@ -113,12 +114,17 @@
   });
 
   $: if (typeof $committed_code_store !== "undefined") {
-    dispatch("output", { short: "cb", script: $committed_code_store });
-    displayConfigScript($committed_code_store);
+    if ($committed_code_store.index == index) {
+      dispatch("output", {
+        short: "cb",
+        script: $committed_code_store.script,
+      });
+      displayConfigScript($committed_code_store.script);
+    }
   }
 
   function open_monaco() {
-    $monaco_store = config.makeCopy();
+    $monaco_store = { config: config.makeCopy(), index: index };
     $monaco_elementtype = access_tree.elementtype;
     $appSettings.modal = "code";
   }
