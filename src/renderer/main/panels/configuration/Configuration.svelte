@@ -406,7 +406,11 @@
       }
     }
 
-    const codeBlock = new ConfigObject({ short: "cb", script: script });
+    const codeBlock = new ConfigObject({
+      parent: list,
+      short: "cb",
+      script: script,
+    });
     const index = list.findIndex((e) => e.selected); //First
     list.splice(index, 0, codeBlock);
     list = list.filter((e) => !e.selected);
@@ -647,7 +651,7 @@
               />
             {/if}
 
-            {#each $configs as config, index (config.id)}
+            {#each $configs as config, index (config)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade={{ delay: 0 }}
