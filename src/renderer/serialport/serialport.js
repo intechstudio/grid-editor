@@ -97,6 +97,8 @@ navigator.intechConnect = testIt;
 
 let result = [];
 
+// add comment to test run
+
 function fetchStream() {
   console.log("--------serial---------");
 
