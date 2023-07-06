@@ -21,7 +21,6 @@ import * as luamin from "lua-format";
 
 import _utils from "../../../runtime/_utils.js";
 import grid from "../../../protocol/grid-protocol.js";
-import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -30,7 +29,12 @@ const luaminOptions = {
 };
 
 export class ConfigObject {
-  constructor({ short, script }) {
+  constructor({ parent, short, script }) {
+    if (!(parent instanceof ConfigList) && typeof parent !== "undefined") {
+      throw "Invalid parent object. Expected an instance of ConfigList.";
+    }
+
+    this.parent = parent;
     this.short = short;
     this.script = script;
 
@@ -57,6 +61,7 @@ export class ConfigObject {
 
   makeCopy() {
     const copy = new ConfigObject({
+      parent: this.parent,
       short: this.short,
       script: this.script,
     });
@@ -114,6 +119,13 @@ export class ConfigObject {
   }
 }
 
+export class UnknownEventException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "UnknownEventException";
+  }
+}
+
 export class ConfigList extends Array {
   //Internal private list
   target = undefined;
@@ -134,15 +146,10 @@ export class ConfigList extends Array {
 
     this.target = target;
 
-    try {
-      const config = new ConfigList();
-      config.target = target;
-      config.#Init();
-      return config;
-    } catch (e) {
-      console.error("ConfigList:", e);
-      return undefined;
-    }
+    const config = new ConfigList();
+    config.target = target;
+    config.#Init();
+    return config;
   }
 
   sendTo({ target }) {
@@ -225,6 +232,13 @@ export class ConfigList extends Array {
     let event = element.events.find(
       (e) => e.event.value == this.target.eventType
     );
+
+    if (typeof event === "undefined") {
+      throw new UnknownEventException(
+        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+      );
+    }
+
     const cfgstatus = event.cfgStatus;
     if (
       cfgstatus != "GRID_REPORT" &&
@@ -255,11 +269,11 @@ export class ConfigList extends Array {
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({
+        parent: this,
         //Extract short, e.g.: '--[[@gms]]' => 'gms'
         short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
         script: configList[i + 1].trim(),
       });
-      obj.id = uuidv4();
       super.push(obj);
     }
   }
@@ -277,7 +291,7 @@ export class ConfigList extends Array {
     }
     //Make a deep copy
     const copy = config.makeCopy();
-    copy.id = uuidv4();
+    copy.parent = this;
     super.splice(atPosition, 0, copy);
   }
 
@@ -287,7 +301,7 @@ export class ConfigList extends Array {
     }
     //Make a deep copy
     const copy = config.makeCopy();
-    copy.id = uuidv4();
+    copy.parent = this;
     super.push(copy);
   }
 
@@ -313,6 +327,9 @@ export class ConfigList extends Array {
   // Override the slice() method to ensure custom properties are copied
   slice(...args) {
     const copy = super.slice(...args);
+    for (const obj of copy) {
+      obj.parent = copy;
+    }
     copy.target = this.target;
     return copy;
   }
@@ -320,6 +337,9 @@ export class ConfigList extends Array {
   // Override the concat() method to ensure custom properties are copied
   concat(...args) {
     const copy = super.concat(...args);
+    for (const obj of copy) {
+      obj.parent = copy;
+    }
     copy.target = this.target;
     return copy;
   }
@@ -327,6 +347,9 @@ export class ConfigList extends Array {
   // Override the splice() method to ensure custom properties are copied
   splice(start, deleteCount, ...items) {
     const copy = super.splice(start, deleteCount, ...items);
+    for (const obj of copy) {
+      obj.parent = copy;
+    }
     copy.target = this.target;
     return copy;
   }
