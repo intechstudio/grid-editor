@@ -178,4 +178,10 @@ export const tooltip_content = {
   newPreset_desc_edit: "Edit the description of this Preset.",
   newPreset_load_preset:
     "Previously saved presets stored in your Local Folder are shown here.",
+  tracker_none:
+    "Never change the selected element and event when interacting with the grid module(s)",
+  tracker_element:
+    "Only change the selected element when interacting with the grid module(s). This is useful when configuring the same events of your module(s)",
+  tracker_event:
+    "Always change to the element and event of your grid module(s) on interaction. This is useful when you want to configure the functions (e.g.: slider potmeter event) of your grid module(s)",
 };

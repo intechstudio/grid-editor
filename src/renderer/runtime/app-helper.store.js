@@ -60,7 +60,7 @@ function createAppSettingsStore() {
     overlays: { controlElementName: false },
     debugMode: false,
     selectedDisplay: "",
-    changeOnContact: true,
+    changeOnEvent: "event",
     layoutMode: false,
     configType: "uiEvents",
     stringNameOverlay: false,

@@ -285,8 +285,8 @@ function create_user_input() {
       return;
     }
 
-    // track physical interaction
-    if (!get(appSettings).changeOnContact) {
+    // Don't track physical interaction
+    if (get(appSettings).changeOnEvent === "none") {
       return;
     }
 
@@ -319,7 +319,12 @@ function create_user_input() {
     let sxDifferent = store.brc.dx != descr.brc_parameters.SX;
     let syDifferent = store.brc.dy != descr.brc_parameters.SY;
 
-    if (eventDifferent || elementDifferent || sxDifferent || syDifferent) {
+    if (
+      (eventDifferent && get(appSettings).changeOnEvent === "event") ||
+      elementDifferent ||
+      sxDifferent ||
+      syDifferent
+    ) {
       let current_timestamp = Date.now();
 
       if (current_timestamp - 100 > selection_changed_timestamp) {
@@ -345,18 +350,35 @@ function create_user_input() {
           return store;
         }
 
+        if (get(appSettings).changeOnEvent === "element") {
+          const incomingEventTypes = getElementEventTypes(
+            descr.brc_parameters.SX,
+            descr.brc_parameters.SY,
+            descr.class_parameters.ELEMENTNUMBER
+          );
+
+          if (!incomingEventTypes.includes(store.event.eventtype)) {
+            //Select closest event type if incoming device does not have the corrently selected event type
+            const closestEvent = Math.min(
+              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
+            );
+            store.event.eventtype = String(closestEvent);
+          }
+        } else if (get(appSettings).changeOnEvent === "event") {
+          store.event.eventtype = descr.class_parameters.EVENTTYPE;
+        }
+
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
         store.brc.rot = descr.brc_parameters.ROT;
-
-        store.event.eventtype = descr.class_parameters.EVENTTYPE;
         store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
 
         let elementtype =
           grid.moduleElements[device.id.split("_")[0]][
             store.event.elementnumber
           ];
+
         store.event.elementtype = elementtype;
 
         return store;
@@ -1247,6 +1269,16 @@ export function getDeviceName(x, y) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
   return currentModule?.id.slice(0, 4);
+}
+
+export function getElementEventTypes(x, y, elementNumber) {
+  const rt = get(runtime);
+  const currentModule = rt.find((device) => device.dx == x && device.dy == y);
+  const element = currentModule.pages[0].control_elements.find(
+    (e) => e.controlElementNumber == elementNumber
+  );
+
+  return element.events.map((e) => e.event.value);
 }
 
 function createEngine() {

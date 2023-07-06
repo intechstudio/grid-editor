@@ -293,7 +293,7 @@
               {/if}
               <div
                 bind:this={attachmentElement}
-                class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left"
+                class="tooltip-bg cursor-default text-base flex flex-col px-4 py-4 text-white text-left font-normal"
                 style={tooltiptext_style}
               >
                 {tooltip_text}

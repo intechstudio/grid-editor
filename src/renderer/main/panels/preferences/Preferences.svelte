@@ -240,16 +240,6 @@
         bind:value={$appSettings.size}
       />
     </div>
-
-    <div class="flex my-1 relative text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.changeOnContact}
-      />
-      <div class="mx-1">Track Physical Grid interaction</div>
-      <TooltipQuestion key={"preferences_track_physical"} />
-    </div>
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-row mb-4">
