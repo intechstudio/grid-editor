@@ -358,7 +358,11 @@ function create_user_input() {
           );
 
           if (!incomingEventTypes.includes(store.event.eventtype)) {
-            store.event.eventtype = 0; //Select INIT if incoming device does not have the corrently selected event type
+            //Select closest event type if incoming device does not have the corrently selected event type
+            const closestEvent = Math.min(
+              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
+            );
+            store.event.eventtype = String(closestEvent);
           }
         } else if (get(appSettings).changeOnEvent === "event") {
           store.event.eventtype = descr.class_parameters.EVENTTYPE;
