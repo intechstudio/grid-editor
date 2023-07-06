@@ -145,8 +145,6 @@
     });
   }
 
-  let testy = "test";
-
   onMount(() => {});
 </script>
 
