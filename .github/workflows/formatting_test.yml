@@ -30,6 +30,8 @@ jobs:
           git diff --name-only >> format_error.txt
           if [ -s format_error.txt ]; then
             echo "ERROR IN FORMATTING, PLEASE RUN PRETTIER ON THE CODEBASE BEFORE COMMITTING"
+            echo "Files:"
+            cat format_error.txt
             exit 1
           fi
 
