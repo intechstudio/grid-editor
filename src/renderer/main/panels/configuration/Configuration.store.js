@@ -235,7 +235,7 @@ export class ConfigList extends Array {
 
     if (typeof event === "undefined") {
       throw new UnknownEventException(
-        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`,
       );
     }
 

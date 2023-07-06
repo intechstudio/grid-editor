@@ -354,13 +354,13 @@ function create_user_input() {
           const incomingEventTypes = getElementEventTypes(
             descr.brc_parameters.SX,
             descr.brc_parameters.SY,
-            descr.class_parameters.ELEMENTNUMBER
+            descr.class_parameters.ELEMENTNUMBER,
           );
 
           if (!incomingEventTypes.includes(store.event.eventtype)) {
             //Select closest event type if incoming device does not have the corrently selected event type
             const closestEvent = Math.min(
-              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
+              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0),
             );
             store.event.eventtype = String(closestEvent);
           }
@@ -1275,7 +1275,7 @@ export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
   const element = currentModule.pages[0].control_elements.find(
-    (e) => e.controlElementNumber == elementNumber
+    (e) => e.controlElementNumber == elementNumber,
   );
 
   return element.events.map((e) => e.event.value);
