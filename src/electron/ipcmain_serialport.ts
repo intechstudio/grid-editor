@@ -19,7 +19,7 @@ async function listSerialPorts() {
     try {
       let foo = await serial.mainWindow.webContents.executeJavaScript(
         `if(navigator.intechConnect){navigator.intechConnect()}`,
-        true
+        true,
       );
       //console.log('serial conn',foo)
     } catch (e) {
