@@ -56,7 +56,8 @@ export const tooltip_content = {
     "Remove the marked Action(s) from the Action Chain permanently.",
   configuration_export:
     "Export the configuration of the currently active Control Element in lua language.",
-
+  configuration_merge_as_code:
+    "Merge selected actions into a single code block.",
   event_init:
     "Each time a Page gets loaded (both when powering up and on page change) an Init Event will take place. Actions set to trigger on the Init Event will only trigger once on startup and on each page change. ",
   event_button:

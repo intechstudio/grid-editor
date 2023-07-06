@@ -46,9 +46,8 @@
 
   onMount(() => {
     //Make local copies
-    editedConfig = $monaco_store.config.makeCopy();
-    editedList = editedConfig.parent.makeCopy();
-    editedConfig.parent = editedList;
+    editedList = $monaco_store.config.parent.makeCopy();
+    editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor
     const code_preview = expandCode(editedConfig.script);
@@ -88,7 +87,7 @@
         scriptLength = editedConfig.parent.toConfigScript().length;
 
         //Check the minified config length
-        if (scriptLength > grid.properties.CONFIG_LENGTH) {
+        if (scriptLength >= grid.properties.CONFIG_LENGTH) {
           throw new LengthError("Config limit reached.");
         }
 
@@ -235,7 +234,7 @@
             <span class="mr-2">Character Count:</span>
             {typeof scriptLength === "undefined" ? "?" : scriptLength}
             <span>/</span>
-            <span>{grid.properties.CONFIG_LENGTH}</span>
+            <span>{grid.properties.CONFIG_LENGTH - 1}</span>
           </div>
         </div>
 

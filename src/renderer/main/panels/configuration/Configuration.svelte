@@ -175,6 +175,7 @@
     setSelectedEvent();
     updateLuaDebugStore(list);
     updateLocalSuggestions(list);
+    deselectAll();
   }
 
   $: if ($user_input) {

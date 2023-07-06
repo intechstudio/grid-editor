@@ -59,6 +59,7 @@
             : ""}
           iconPath={"merge_as_code"}
         />
+        <TooltipSetter key={"configuration_merge_as_code"} />
       </span>
     </BtnAndPopUp>
 
