@@ -17,11 +17,24 @@ let port_disovery_interval;
 async function listSerialPorts() {
   if (serial.mainWindow !== undefined) {
     try {
-      let foo = await serial.mainWindow.webContents.executeJavaScript(
-        `if(navigator.intechConnect){navigator.intechConnect()}`,
-        true,
+      const timeoutPromise = new Promise((res) =>
+        setTimeout(() => res("Serial port connect request timed out!"), 1000)
       );
-      //console.log('serial conn',foo)
+
+      //Always return with a false if successful
+      const portRequestPromise =
+        serial.mainWindow.webContents.executeJavaScript(
+          `if(navigator.intechConnect){navigator.intechConnect()}`,
+          true
+        );
+
+      //Check which async function return first
+      const result = await Promise.race([timeoutPromise, portRequestPromise]);
+
+      //If the timeout function returns first, do the error handling
+      if (typeof result === "string") {
+        throw new Error(result);
+      }
     } catch (e) {
       console.log(e);
     }
