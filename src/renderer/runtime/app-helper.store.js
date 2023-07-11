@@ -117,6 +117,8 @@ function createAppSettingsStore() {
       authUser: {},
       authIdToken: "",
       authRefreshToken: "",
+      analyticsEnabled: false,
+      firstLaunch: true,
     },
   });
 
@@ -157,6 +159,8 @@ let persistant = {
   authUser: {},
   authIdToken: "",
   authRefreshToken: "",
+  analyticsEnabled: false,
+  firstLaunch: true,
 };
 
 init_appsettings();
@@ -169,7 +173,7 @@ appSettings.subscribe((store) => {
 
     if (persistant[key] !== instore[key]) {
       persistant[key] = instore[key];
-
+      console.log("asd");
       let settings = {};
       settings[key] = instore[key];
       window.electron.persistentStorage.set(settings);

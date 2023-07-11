@@ -1,7 +1,7 @@
 <script>
   import { get, writable } from "svelte/store";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -447,7 +447,11 @@
   function handleCut(e) {
     handleCopy(e);
     handleRemove(e);
-    mixpanel.track("Config Action", { click: "Cut" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Cut" },
+      mandatory: false,
+    });
   }
 
   function clearClipboard() {
@@ -462,7 +466,11 @@
       }
     }
     appActionClipboard.set(clipboard);
-    mixpanel.track("Config Action", { click: "Copy" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Copy" },
+      mandatory: false,
+    });
   }
 
   $: enablePaste = $appActionClipboard.length > 0;
@@ -491,7 +499,11 @@
         updateLocalSuggestions(list);
       })
       .catch((e) => handleError(e));
-    mixpanel.track("Config Action", { click: "Paste" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Paste" },
+      mandatory: false,
+    });
   }
 
   function toggleLastConfigs() {
@@ -520,7 +532,11 @@
         updateLocalSuggestions(list);
       })
       .catch((e) => handleError(e));
-    mixpanel.track("Config Action", { click: "Remove" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Remove" },
+      mandatory: false,
+    });
   }
 
   function deselectAll() {

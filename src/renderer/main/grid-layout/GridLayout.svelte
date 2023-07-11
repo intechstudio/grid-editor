@@ -1,6 +1,6 @@
 <script>
   import createPanZoom from "panzoom";
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../runtime/analytics.js";
 
   import { writable, readable, derived, get } from "svelte/store";
 
@@ -133,8 +133,12 @@
   }
 
   function refresh() {
-    mixpanel.track("No Module Connected", {
-      click: "Refresh",
+    Analytics.track({
+      event: "No Module Connected",
+      payload: {
+        click: "Refresh",
+      },
+      mandatory: false,
     });
 
     setTimeout(() => {
@@ -147,8 +151,12 @@
 
     window.electron.openInBrowser(url);
 
-    mixpanel.track("No Module Connected", {
-      click: "Troubleshooting",
+    Analytics.track({
+      event: "No Module Connected",
+      payload: {
+        click: "Troubleshooting",
+      },
+      mandatory: false,
     });
   }
 
@@ -181,8 +189,12 @@
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
     });
 
-    mixpanel.track("Writebuffer", {
-      click: "Clear",
+    Analytics.track({
+      event: "Writebuffer",
+      payload: {
+        click: "Clear",
+      },
+      mandatory: false,
     });
 
     writeBuffer.clear();
@@ -190,8 +202,12 @@
   }
 
   function store() {
-    mixpanel.track("Page Config", {
-      click: "Store",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Store",
+      },
+      mandatory: false,
     });
 
     instructions.sendPageStoreToGrid();
@@ -200,16 +216,24 @@
   function clear() {
     instructions.sendPageClearToGrid();
 
-    mixpanel.track("Page Config", {
-      click: "Clear",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Clear",
+      },
+      mandatory: false,
     });
   }
 
   function discard() {
     instructions.sendPageDiscardToGrid();
 
-    mixpanel.track("Page Config", {
-      click: "Discard",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Discard",
+      },
+      mandatory: false,
     });
   }
 </script>
