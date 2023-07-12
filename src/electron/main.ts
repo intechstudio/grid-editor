@@ -7,6 +7,7 @@ import {
   nativeImage,
   clipboard,
   shell,
+  MessageChannelMain
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -44,12 +45,12 @@ import {
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { getActiveWindow } from "./src/active-window";
 import {
   desktopAutomationPluginStart,
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
+import { setPluginManagerMessagePort } from "./plugin/pluginManager";
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
@@ -64,6 +65,8 @@ let mainWindow;
 //app.allowRendererProcessReuse = false;
 
 let tray = null;
+
+const {port1, port2} = new MessageChannelMain()
 
 function create_tray() {
   /* ===============================================================================
@@ -281,6 +284,19 @@ function createWindow() {
       return true;
     }
   });
+
+  // Handle plugin configuration, action
+  mainWindow.webContents.postMessage('plugin-manager-port', null, [port1])
+  /*mainWindow.webContents.on("did-finish-load", () => {
+    setPluginController({
+      sendMessageToRuntime: function (payload: any): void {
+        mainWindow.webContents.send('sendMessageToRuntime', payload);
+      },
+      pluginListChanged: function (plugins: { id: string; name: string; isLoaded: boolean; preference: string }[]): void {
+        mainWindow.webContents.send('sendPluginList', plugins);
+      }
+    })
+  })*/
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
@@ -298,38 +314,6 @@ const deeplink = new Deeplink({
 // Some APIs can only be used after this event occurs.
 
 autoUpdater.checkForUpdatesAndNotify();
-
-ipcMain.handle("startPlugin", async (event, arg) => {
-  console.log("pluginstart!", arg.name);
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPluginStart();
-      break;
-    }
-    case "photoshop": {
-      // this plugin is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
-
-ipcMain.handle("stopPlugin", async (event, arg) => {
-  console.log("stop plugin");
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPluginStop();
-      break;
-    }
-    case "photoshop": {
-      // this plugin is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
 
 deeplink.on("received", (data) => {
   if (data.startsWith("grid-editor")) {
@@ -467,11 +451,6 @@ ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
 });
 
-// get the active window, user must give permissons for this
-ipcMain.handle("activeWindow", async (event, arg) => {
-  return await getActiveWindow();
-});
-
 // persistent storage for the app
 ipcMain.handle("getPersistentStore", (event, arg) => {
   let result = {};
@@ -577,6 +556,19 @@ ipcMain.on("restartApp", (event, arg) => {
     app.exit();
   }
 });
+
+/*ipcMain.handle('loadPlugin', async (event, pluginName, persistedData) => {
+  return await loadPlugin(pluginName, persistedData)
+})
+
+ipcMain.handle('unloadPlugin', async (event, pluginName) => {
+  return await unloadPlugin(pluginName)
+})
+
+ipcMain.handle('executeAction', async (event, pluginName, actionId, payload) => {
+  return await executeAction(pluginName, actionId, payload)
+})*/
+setPluginManagerMessagePort(port2)
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {

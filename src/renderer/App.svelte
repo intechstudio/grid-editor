@@ -11,7 +11,7 @@
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { get } from "svelte/store";
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
@@ -54,6 +54,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
+    import { runtime } from "./runtime/runtime.store";
 
   let modalComponents = {};
 
@@ -109,6 +110,35 @@
     profileLinkStore.set({ id: value });
   });
 
+  window.onmessage = (event) => {
+    if (event.source === window && event.data === 'plugin-manager-port') {
+      const [ port ] = event.ports
+      window.pluginManagerPort = port
+      port.onmessage = (event) => {
+        const data = event.data;
+        console.log(`MESSAGE FROM PORT: ${JSON.stringify(data)}`);
+        if (data.type == 'plugin-action'){
+          if (data.id == 'change-page'){
+            runtime.change_page(data.num)
+          } else if (data.id == 'persist-data') {
+            appSettings.update((s) => {
+              let dataCopy = Object.create(data)
+              delete dataCopy.id
+              delete dataCopy.pluginId
+              s.persistant.pluginsDataStorage[data.pluginId] = dataCopy
+              return s
+            })
+          }
+        } else if (data.type == 'plugins') {
+          appSettings.update((s) => {
+            s.pluginList = data.plugins
+            return s
+          })
+        }
+      }
+    }
+  }
+
   let leftPaneSize;
   function handlePaneResize(event) {
     if (event.detail[0].size > leftPaneSize) {
@@ -148,6 +178,9 @@
   let testy = "test";
 
   onMount(() => {});
+  onDestroy(() => {
+    unsubscriber()
+  })
 </script>
 
 <Monster

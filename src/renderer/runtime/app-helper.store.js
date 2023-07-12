@@ -90,6 +90,7 @@ function createAppSettingsStore() {
       title: undefined,
       owner: { neme: undefined },
     },
+    pluginList: [],
     persistant: {
       userId: "",
       wssPort: 1337,
@@ -98,13 +99,8 @@ function createAppSettingsStore() {
       lastVersion: "",
       profileFolder: "",
       presetFolder: "",
-      pageActivatorEnabled: false,
-      pageActivatorCriteria_0: "",
-      pageActivatorCriteria_1: "",
-      pageActivatorCriteria_2: "",
-      pageActivatorCriteria_3: "",
+      pluginsDataStorage: {},
       keyboardLayout: "",
-      pageActivatorInterval: 1000,
       websocketMonitorEnabled: false,
       newProfileBrowserEnabled: true,
       legacyProfileBrowserEnabled: false,
@@ -138,13 +134,8 @@ let persistant = {
   lastVersion: "",
   profileFolder: "",
   presetFolder: "",
-  pageActivatorEnabled: false,
-  pageActivatorCriteria_0: "",
-  pageActivatorCriteria_1: "",
-  pageActivatorCriteria_2: "",
-  pageActivatorCriteria_3: "",
+  pluginsDataStorage: {},
   keyboardLayout: "",
-  pageActivatorInterval: 1000,
   websocketMonitorEnabled: false,
   newProfileBrowserEnabled: true,
   legacyProfileBrowserEnabled: false,
@@ -246,14 +237,15 @@ async function init_appsettings() {
         });
       }
 
-      if (get(appSettings).persistant.desktopAutomationPlugin === true) {
+      //TODO
+      /*if (get(appSettings).persistant.desktopAutomationPlugin === true) {
         console.log("start plugin");
 
         window.electron.plugin.start("desktopAutomation");
       } else {
         console.log("stop plugin");
         window.electron.plugin.stop("desktopAutomation");
-      }
+      }*/
     });
 }
 

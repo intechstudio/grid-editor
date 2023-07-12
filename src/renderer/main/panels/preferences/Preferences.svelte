@@ -72,6 +72,8 @@
   let download_status = "";
   let download_status_interval;
 
+
+
   async function selectDirectory() {
     appSettings.update((s) => {
       s.intervalPause = true;
@@ -189,6 +191,10 @@
   }
 
   function setHelperName() {}
+
+  let pluginPreferenceComponents = []
+  let loadedPluginPreferences = []
+
 </script>
 
 <preferences
@@ -464,75 +470,31 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="rounded-t-lg py-4 text-teal-200 font-bold">
-      This features is currently reworked with a new plugin system.
+    {#each $appSettings.pluginList as plugin}
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="bg-primary my-1"
+        type="checkbox"
+        checked={plugin.isLoaded}
+        on:change={async e => {
+          if (e.target.checked){
+            window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id})
+            pluginPreferenceComponents.push((await import('C:/prog/grid-editor-2/plugins/plugin-active-win-wip/ActiveWinPreferences.svelte')).default)
+            pluginPreferenceComponents = pluginPreferenceComponents
+          } else {
+            window.pluginManagerPort.postMessage({type: 'unload-plugin', id : plugin.id})
+            pluginPreferenceComponents = []
+          }
+        }}     
+    />
+    <div class="mx-1">{plugin.name}</div>
     </div>
-    <div class="flex flex-col opacity-50 pointer-events-none">
-      <div class="pb-2">Page Activator</div>
-      <div class="flex py-2 text-white items-center">
-        <input
-          class="mr-1"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.pageActivatorEnabled}
-        />
-        <div class="mx-1">Enable/Disable page activator</div>
-      </div>
-      <div class="flex py-2 text-white items-center">
-        <div class="mx-1">Poll interval</div>
-        <input
-          class="bg-primary m-1"
-          type="range"
-          min="200"
-          max="2000"
-          step="50"
-          bind:value={$appSettings.persistant.pageActivatorInterval}
-        />
-        <div class="mx-1">
-          {$appSettings.persistant.pageActivatorInterval} ms
-        </div>
-      </div>
-
-      <div class="text-gray-400 py-1 mt-1 text-sm">
-        <b>Active window:</b>
-        {$appSettings.persistant.pageActivatorEnabled
-          ? $appSettings.activeWindowResult.owner.name
-          : "N/A"}
-      </div>
-
-      <div class="text-gray-400 py-1 mt-1 text-sm">
-        <b>Active title:</b>
-        {$appSettings.persistant.pageActivatorEnabled
-          ? $appSettings.activeWindowResult.title
-          : "N/A"}
-      </div>
-
-      <input
-        type="text"
-        placeholder="Page 0 trigger application"
-        class="bg-primary my-1"
-        bind:value={$appSettings.persistant.pageActivatorCriteria_0}
-      />
-      <input
-        type="text"
-        placeholder="Page 1 trigger application"
-        class="bg-primary my-1"
-        bind:value={$appSettings.persistant.pageActivatorCriteria_1}
-      />
-      <input
-        type="text"
-        placeholder="Page 2 trigger application"
-        class="bg-primary my-1"
-        bind:value={$appSettings.persistant.pageActivatorCriteria_2}
-      />
-      <input
-        type="text"
-        placeholder="Page 3 trigger application"
-        class="bg-primary my-1"
-        bind:value={$appSettings.persistant.pageActivatorCriteria_3}
-      />
-    </div>
+    {/each}
   </div>
 
+  {#each pluginPreferenceComponents as preference}
+    <svelte:component this={preference} sendMessageToPlugin={(actionId, payload) => window.pluginManagerPort.postMessage({type: 'plugin-action', pluginId: 'plugin-active-win', actionId, payload})} />
+  {/each}
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center mb-1">
       <label class="mx-1">

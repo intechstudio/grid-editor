@@ -122,8 +122,13 @@ contextBridge.exposeInMainWorld("electron", {
     transmit: (message) => ipcRenderer.invoke("websocketTransmit", { message }),
     changePort: (port) => ipcRenderer.invoke("websocketChangePort", { port }),
   },
-  plugin: {
-    start: (name) => ipcRenderer.invoke("startPlugin", { name }),
-    stop: (name) => ipcRenderer.invoke("stopPlugin", { name }),
-  },
 });
+
+const windowLoaded = new Promise(resolve => {
+  window.onload = resolve
+})
+
+ipcRenderer.on('plugin-manager-port', async (event) => {
+  await windowLoaded
+  window.postMessage('plugin-manager-port', '*', event.ports)
+})
