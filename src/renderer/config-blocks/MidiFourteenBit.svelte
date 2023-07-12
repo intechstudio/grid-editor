@@ -35,13 +35,7 @@
 </script>
 
 <script>
-  import {
-    onMount,
-    beforeUpdate,
-    afterUpdate,
-    createEventDispatcher,
-    onDestroy,
-  } from "svelte";
+  import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import _utils from "../runtime/_utils.js";
@@ -53,6 +47,7 @@
   export let index;
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
+  import TabButton from "../main/user-interface/TabButton.svelte";
 
   let loaded = false;
 
@@ -703,22 +698,22 @@
     { name: "14 bit MIDI", component: "MidiFourteenBit" },
     { name: "MIDI SysEX", component: "MidiSysEx" },
   ];
+
+  function handleTabButtonClicked(element) {
+    dispatch("replace", element.component);
+  }
 </script>
 
-<action-midi class="flex flex-col w-full p-2">
+<action-midi class="flex flex-col w-full pb-2 px-2">
   {#if tabs !== undefined}
-    <div class="ml-auto flex flex-row">
+    <div class="ml-auto flex flex-row mb-2">
+      <div />
       {#each tabs as element}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          on:click={(e) => {
-            dispatch("replace", element.component);
-          }}
-          class="tab"
-          class:selected={config.information.name == element.component}
-        >
-          {element.name}
-        </div>
+        <TabButton
+          selected={config.information.name == element.component}
+          text={element.name}
+          on:click={() => handleTabButtonClicked(element)}
+        />
       {/each}
     </div>
   {/if}
@@ -766,89 +761,6 @@
 </action-midi>
 
 <style global>
-  :root {
-    --tab_left_color: #372c32;
-    --tab_right_color: #372c32;
-    --tab_selected_left_color: #da4167;
-    --tab_selected_right_color: #da4167;
-    --tab_hover_left_color: #7d3549;
-    --tab_hover_right_color: #7d3549;
-  }
-
-  .tab {
-    color: rgba(0, 0, 0, 0.5);
-    margin-top: -0.5rem;
-    margin-bottom: 0.5rem;
-    text-align: center;
-    position: relative;
-    margin-left: 4px;
-    margin-right: 4px;
-    height: 18px;
-    background-image: linear-gradient(
-      to right,
-      var(--tab_left_color),
-      var(--tab_right_color)
-    );
-    cursor: pointer;
-  }
-  .tab:last-of-type {
-    margin-right: -2px;
-  }
-  .tab::before {
-    position: absolute;
-    left: -6px;
-    content: "";
-    width: 0px;
-    border-top: 18px solid var(--tab_left_color);
-    border-left: 6px solid transparent;
-  }
-  .tab::after {
-    position: absolute;
-    right: -6px;
-    content: "";
-    width: 0px;
-    border-top: 18px solid var(--tab_right_color);
-    border-right: 6px solid transparent;
-  }
-  .tab:last-of-type:after {
-    border-top: 18px solid var(--tab_right_color);
-    right: -4px;
-    width: 4px;
-    border-right: 0px solid transparent;
-    border-left: 0px solid transparent;
-  }
-  .tab.selected {
-    z-index: 2;
-    color: rgba(0, 0, 0, 1) !important;
-    background-image: linear-gradient(
-      to right,
-      var(--tab_selected_left_color),
-      var(--tab_selected_right_color)
-    ) !important;
-  }
-  .tab.selected:before {
-    border-top-color: var(--tab_selected_left_color) !important;
-  }
-  .tab.selected:after {
-    border-top-color: var(--tab_selected_right_color) !important;
-  }
-
-  .tab:hover {
-    z-index: 1;
-    color: rgba(0, 0, 0, 0.8);
-    background-image: linear-gradient(
-      to right,
-      var(--tab_hover_left_color),
-      var(--tab_hover_right_color)
-    );
-  }
-  .tab:hover:before {
-    border-top-color: var(--tab_hover_left_color);
-  }
-  .tab:hover:after {
-    border-top-color: var(--tab_hover_right_color);
-  }
-
   .atomicInput {
     padding-right: 0.5rem;
   }
