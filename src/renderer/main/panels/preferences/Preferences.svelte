@@ -475,11 +475,12 @@
       <input
         class="bg-primary my-1"
         type="checkbox"
-        checked={plugin.isLoaded}
+        checked={plugin.status == 'Enabled'}
+        visibility={plugin.status == 'Downloaded' ? 'visible' : 'hidden'}
         on:change={async e => {
           if (e.target.checked){
             window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id})
-            pluginPreferenceComponents.push((await import('C:/prog/grid-editor-2/plugins/plugin-active-win-wip/ActiveWinPreferences.svelte')).default)
+            //pluginPreferenceComponents.push((await import(plugin.preference)).default)
             pluginPreferenceComponents = pluginPreferenceComponents
           } else {
             window.pluginManagerPort.postMessage({type: 'unload-plugin', id : plugin.id})
@@ -488,6 +489,14 @@
         }}     
     />
     <div class="mx-1">{plugin.name}</div>
+    <div class="mx-1">
+      <button 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+        on:click={window.pluginManagerPort.postMessage({type: 'download-plugin', id : plugin.id})}
+        >
+        Download
+        </button>  
+    </div>
     </div>
     {/each}
   </div>

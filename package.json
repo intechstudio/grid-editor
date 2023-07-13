@@ -35,7 +35,8 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
-    "adm-zip": "^0.5.9",
+    "adm-zip": "^0.5.10",
+    "axios": "^1.4.0",
     "discord.js": "^13.6.0",
     "electron-deeplink": "^1.0.10",
     "electron-dl": "^3.4.1",
