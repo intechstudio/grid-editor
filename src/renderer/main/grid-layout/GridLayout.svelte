@@ -31,6 +31,7 @@
 
   import Pages from "/main/panels/configuration/components/Pages.svelte";
   import Tracker from "./Tracker.svelte";
+  import { logStreamStore } from "../user-interface/cursor-log/LogStream.store.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -500,10 +501,12 @@
 
       <div class="w-full flex flex-col items-center min-h-fit mt-auto">
         <div class="w-full flex flex-row items-center min-h-fit mt-auto" />
-
+        <Tracker
+          visible={$logStreamStore.length === 0}
+          class="absolute bottom-0 right-0 mb-7 mr-10"
+        />
         <CursorLog />
       </div>
-      <Tracker class="absolute bottom-0 right-0 mb-7 mr-10" />
     </grid-layout>
   </div>
 </layout-container>
