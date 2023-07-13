@@ -117,6 +117,7 @@ function createAppSettingsStore() {
       authUser: {},
       authIdToken: "",
       authRefreshToken: "",
+      alwaysRunInTheBackground: true,
     },
   });
 
@@ -157,6 +158,7 @@ let persistant = {
   authUser: {},
   authIdToken: "",
   authRefreshToken: "",
+  alwaysRunInTheBackground: true,
 };
 
 init_appsettings();
