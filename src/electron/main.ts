@@ -229,7 +229,7 @@ function createWindow() {
 
       // only hide, keep in the background
       const keepRunning = store.get("alwaysRunInTheBackground");
-      if (keepRunning || typeof keepRunning === "undefined") {
+      if (keepRunning === true) {
         mainWindow.hide();
       } else {
         app.quit();
