@@ -465,8 +465,10 @@
       class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
       bind:value={$appSettings.profileCloudUrl}
     />
-    <div class="pb-2">Analytics</div>
-    <div class="flex flex-row gap-2 items-center">
+    <!-- Spacer -->
+    <div class="border-b border-white h-0 w-full my-2" />
+    <div class="pb-2 pt-">Analytics Settings</div>
+    <div class="flex flex-row gap-2 items-center justify-between">
       <label class="mx-1 items-center">
         <input
           class="mr-1"
