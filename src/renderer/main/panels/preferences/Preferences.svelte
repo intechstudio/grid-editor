@@ -476,12 +476,10 @@
         class="bg-primary my-1"
         type="checkbox"
         checked={plugin.status == 'Enabled'}
-        visibility={plugin.status == 'Downloaded' ? 'visible' : 'hidden'}
+        style="visibility:{plugin.status == 'Downloaded' || plugin.status == 'Enabled' ? 'visible' : 'hidden'}"
         on:change={async e => {
           if (e.target.checked){
             window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id})
-            //pluginPreferenceComponents.push((await import(plugin.preference)).default)
-            pluginPreferenceComponents = pluginPreferenceComponents
           } else {
             window.pluginManagerPort.postMessage({type: 'unload-plugin', id : plugin.id})
             pluginPreferenceComponents = []
@@ -490,12 +488,22 @@
     />
     <div class="mx-1">{plugin.name}</div>
     <div class="mx-1">
+      {#if plugin.status == 'Downloading' || plugin.status == 'Uninstalled' || plugin.status == 'MarkedForDeletion'}
       <button 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
         on:click={window.pluginManagerPort.postMessage({type: 'download-plugin', id : plugin.id})}
+        disabled={plugin.status == 'Downloading'}
         >
         Download
         </button>  
+      {:else}
+      <button 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+        on:click={window.pluginManagerPort.postMessage({type: 'uninstall-plugin', id : plugin.id})}
+        >
+        Uninstall
+        </button>
+      {/if}
     </div>
     </div>
     {/each}

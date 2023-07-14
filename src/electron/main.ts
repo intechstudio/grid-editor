@@ -13,6 +13,7 @@ import path from "path";
 import log from "electron-log";
 import fs from "fs";
 import { autoUpdater } from "electron-updater";
+import { spawn } from "child_process";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
@@ -557,17 +558,6 @@ ipcMain.on("restartApp", (event, arg) => {
   }
 });
 
-/*ipcMain.handle('loadPlugin', async (event, pluginName, persistedData) => {
-  return await loadPlugin(pluginName, persistedData)
-})
-
-ipcMain.handle('unloadPlugin', async (event, pluginName) => {
-  return await unloadPlugin(pluginName)
-})
-
-ipcMain.handle('executeAction', async (event, pluginName, actionId, payload) => {
-  return await executeAction(pluginName, actionId, payload)
-})*/
 setPluginManagerMessagePort(port2)
 
 // Quit when all windows are closed.

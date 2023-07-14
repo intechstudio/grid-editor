@@ -130,11 +130,21 @@
             })
           }
         } else if (data.type == 'plugins') {
+          const markedForDeletionPlugins = data.plugins.filter((e) => e.status == "MarkedForDeletion")
+          const enabledPlugins = data.plugins.filter((e) => e.status == "Enabled")
           appSettings.update((s) => {
             s.pluginList = data.plugins
+            s.persistant.markedForDeletionPlugins = markedForDeletionPlugins
+            s.persistant.enabledPlugins = enabledPlugins
             return s
           })
         }
+      }
+      for (const plugin of ($appSettings.persistant.markedForDeletionPlugins ?? [])){
+        port.postMessage({type: 'uninstall-plugin', id : plugin.id})
+      }
+      for (const plugin of ($appSettings.persistant.enabledPlugins ?? [])){
+        port.postMessage({type: 'load-plugin', id : plugin.id})
       }
     }
   }
