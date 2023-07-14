@@ -13,6 +13,8 @@
   import { fade } from "svelte/transition";
   import grid from "../../../protocol/grid-protocol";
   import { writable } from "svelte/store";
+  import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
+  import { incoming_messages } from "../../../serialport/message-stream.store";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);
@@ -236,6 +238,13 @@
       {/each}
     </div>
   {/if}
+
+  <span class="w-full mt-5 mb-1 text-white">Watched Values:</span>
+  <div class="w-full border border-white mb-5">
+    {#each $incoming_messages as message (message)}
+      <PolyLineGraph bind:incomingData={message.data} label={message.type} />
+    {/each}
+  </div>
 
   <div class="inline-flex flex-row">
     <svg width="50%" height="50" viewBox="0 0 100 50">

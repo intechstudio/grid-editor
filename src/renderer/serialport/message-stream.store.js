@@ -19,6 +19,10 @@ import {
   sysex_monitor_store,
 } from "../main/panels/MidiMonitor/MidiMonitor.store";
 
+import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
+
+export const incoming_messages = writable([]);
+
 function createMessageStream() {
   const _deliver_inbound = function (class_array) {
     if (class_array === undefined) {
@@ -39,8 +43,46 @@ function createMessageStream() {
       if (class_descr.class_name === "DEBUGTEXT") {
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
+
+        //LUA not OK
         const regex = /EL:\s*(\d+(?:\.\d+)?)\s*EV:\s*(\d+(?:\.\d+)?)/;
         const match = regex.exec(text);
+
+        // Remove the trailing period
+        const jsonString = text.replace(/\.$/, "");
+
+        try {
+          const jsonObject = JSON.parse(jsonString);
+          for (const key in jsonObject) {
+            if (jsonObject.hasOwnProperty(key)) {
+              const value = jsonObject[key];
+              const message = new PolyLineGraphData({
+                type: key,
+                value: value,
+              });
+
+              const im = get(incoming_messages);
+              const contains = im.some((e) => {
+                return e.type === message.type;
+              });
+              if (!contains) {
+                incoming_messages.update((s) => [...s, message]);
+              } else {
+                incoming_messages.update((s) => {
+                  const index = s.indexOf((e) => e.type === message.type);
+                  console.log(message, index);
+                  if (index > -1) {
+                    s[index] = message;
+                  }
+                  return s;
+                });
+              }
+              console.log(get(incoming_messages));
+            }
+          }
+        } catch (e) {
+          //Do nothing
+        }
         //LUA not OK
         if (match) {
           class_descr.element = match[1];
