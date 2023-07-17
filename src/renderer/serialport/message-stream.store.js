@@ -53,34 +53,29 @@ function createMessageStream() {
 
         try {
           const jsonObject = JSON.parse(jsonString);
-          for (const key in jsonObject) {
-            if (jsonObject.hasOwnProperty(key)) {
-              const value = jsonObject[key];
-              const message = new PolyLineGraphData({
-                type: key,
-                value: value,
-              });
-
-              const im = get(incoming_messages);
-              const contains = im.some((e) => {
-                return e.type === message.type;
-              });
-              if (!contains) {
-                incoming_messages.update((s) => [...s, message]);
-              } else {
-                incoming_messages.update((s) => {
-                  const index = s.indexOf((e) => e.type === message.type);
-                  console.log(message, index);
-                  if (index > -1) {
-                    s[index] = message;
-                  }
-                  return s;
+          incoming_messages.update((s) => {
+            s.forEach((e) => (e.value = undefined));
+            for (const key in jsonObject) {
+              if (jsonObject.hasOwnProperty(key)) {
+                const value = jsonObject[key];
+                const message = new PolyLineGraphData({
+                  type: key,
+                  value: value,
                 });
+
+                console.log(s);
+                const element = s.find((e) => e.type === message.type);
+                if (typeof element === "undefined") {
+                  s.push(message);
+                } else {
+                  element.value = message.value;
+                }
               }
-              console.log(get(incoming_messages));
             }
-          }
+            return s;
+          });
         } catch (e) {
+          console.log(e);
           //Do nothing
         }
         //LUA not OK

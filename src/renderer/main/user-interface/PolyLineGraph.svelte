@@ -1,33 +1,77 @@
 <script>
   import { createDataPointsStore, PolyLineGraphData } from "./PolyLineGraph";
   import { onMount } from "svelte";
+  import { writable } from "svelte/store";
+
+  export let incomingData = writable();
+  let label = undefined;
+  let width = 0;
+
+  let max_value = 0;
+  let min_value = 0;
+  let avg_value = 0;
+  let last_value = 0;
+
+  const data_points = createDataPointsStore({ max_x: 0, max_y: 0 });
+
+  $: if (typeof $incomingData.value !== "undefined") {
+    label = $incomingData.type;
+    data_points.add($incomingData.value);
+    const values = data_points.get_values();
+    max_value = Math.floor(Math.max(...values));
+    min_value = Math.floor(Math.min(...values));
+    avg_value = Math.floor(values.reduce((a, b) => a + b, 0) / values.length);
+    last_value = Math.floor($incomingData.value);
+  }
+
+  $: data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });
 
   onMount(() => {
-    console.log("Mount");
+    data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });
   });
-
-  export let incomingData = undefined;
-  export let label = undefined;
-
-  const data = [];
-  const data_points = createDataPointsStore(data);
-
-  $: if (typeof incomingData !== "undefined") {
-    console.log("yay");
-    data_points.add(incomingData);
-  }
 </script>
 
-<container class="flex flex-col border border-red-500"
-  ><span class="text-whites">{label}</span>
-  <svg viewBox="0 0 100 50">
-    <polyline class="chart" fill="none" points={$data_points} />
-  </svg>
+<container
+  class="container flex justify-center flex-col border border-green-400"
+  bind:offsetWidth={width}
+>
+  <div class="relative">
+    <svg
+      class="chart stroke-green-400 stroke-1perc"
+      viewBox="0 0 {width} {(width / 3) * 2}"
+    >
+      <polyline class="chart" fill="none" points={$data_points} />
+    </svg>
+    <div class="flex justify-between w-full h-full px-2">
+      <div
+        class="text-white absolute left-0 top-1/2 bg-primary bg-opacity-40 transform-translate-y-1/2 text-sm"
+      >
+        Avg: {avg_value}
+      </div>
+      <div
+        class="text-white absolute left-0 top-3/4 bg-primary bg-opacity-40 transform-translate-y-3/4 text-sm"
+      >
+        Min: {min_value}
+      </div>
+      <div
+        class="text-white absolute left-0 top-1/4 bg-primary bg-opacity-40 transform -translate-y-1/4 text-sm"
+      >
+        Max: {max_value}
+      </div>
+      <div
+        class="absolute left-1/2 top-1/2 bg-primary bg-opacity-40 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <div class="flex flex-col">
+          <span class="text-white font-bold text-xl">{label}</span>
+          <span class="text-white text-center text-xs">Last: {last_value}</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </container>
 
 <style>
-  .chart {
-    stroke-width: 1;
-    stroke: rgba(255, 0, 0, 1);
+  .stroke-1perc {
+    stroke-width: 1%;
   }
 </style>
