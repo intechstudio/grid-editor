@@ -18,14 +18,14 @@ async function listSerialPorts() {
   if (serial.mainWindow !== undefined) {
     try {
       const timeoutPromise = new Promise((res) =>
-        setTimeout(() => res("Serial port connect request timed out!"), 1000)
+        setTimeout(() => res("Serial port connect request timed out!"), 1000),
       );
 
       //Always return with a false if successful
       const portRequestPromise =
         serial.mainWindow.webContents.executeJavaScript(
           `if(navigator.intechConnect){navigator.intechConnect()}`,
-          true
+          true,
         );
 
       //Check which async function return first

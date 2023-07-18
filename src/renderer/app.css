@@ -10,7 +10,8 @@
   font-family: "Aldo-SemiBold";
   src: url("/fonts/AldoPC.eot");
   /* IE9 Compat Modes */
-  src: url("/fonts/AldoPC.eot?#iefix") format("embedded-opentype"),
+  src:
+    url("/fonts/AldoPC.eot?#iefix") format("embedded-opentype"),
     /* IE6-IE8 */ url("/fonts/AldoPC.otf") format("opentype"),
     /* Open Type Font */ url("/fonts/AldoPC.svg") format("svg"),
     /* Legacy iOS */ url("/fonts/AldoPC.ttf") format("truetype"),
@@ -28,7 +29,9 @@
   font-weight: 300;
   src: url("/fonts/roboto-v20-latin-300.eot");
   /* IE9 Compat Modes */
-  src: local("Roboto Light"), local("Roboto-Light"),
+  src:
+    local("Roboto Light"),
+    local("Roboto-Light"),
     url("/fonts/roboto-v20-latin-300.eot?#iefix") format("embedded-opentype"),
     /* IE6-IE8 */ url("/fonts/roboto-v20-latin-300.woff2") format("woff2"),
     /* Super Modern Browsers */ url("/fonts/roboto-v20-latin-300.woff")
@@ -47,7 +50,9 @@
   font-weight: 400;
   src: url("/fonts/roboto-v20-latin-regular.eot");
   /* IE9 Compat Modes */
-  src: local("Roboto"), local("Roboto-Regular"),
+  src:
+    local("Roboto"),
+    local("Roboto-Regular"),
     url("/fonts/roboto-v20-latin-regular.eot?#iefix")
       format("embedded-opentype"),
     /* IE6-IE8 */ url("/fonts/roboto-v20-latin-regular.woff2") format("woff2"),
@@ -67,7 +72,9 @@
   font-weight: 500;
   src: url("/fonts/roboto-v20-latin-500.eot");
   /* IE9 Compat Modes */
-  src: local("Roboto Medium"), local("Roboto-Medium"),
+  src:
+    local("Roboto Medium"),
+    local("Roboto-Medium"),
     url("/fonts/roboto-v20-latin-500.eot?#iefix") format("embedded-opentype"),
     /* IE6-IE8 */ url("/fonts/roboto-v20-latin-500.woff2") format("woff2"),
     /* Super Modern Browsers */ url("/fonts/roboto-v20-latin-500.woff")
@@ -86,7 +93,9 @@
   font-weight: 700;
   src: url("/fonts/roboto-v20-latin-700.eot");
   /* IE9 Compat Modes */
-  src: local("Roboto Bold"), local("Roboto-Bold"),
+  src:
+    local("Roboto Bold"),
+    local("Roboto-Bold"),
     url("/fonts/roboto-v20-latin-700.eot?#iefix") format("embedded-opentype"),
     /* IE6-IE8 */ url("/fonts/roboto-v20-latin-700.woff2") format("woff2"),
     /* Super Modern Browsers */ url("/fonts/roboto-v20-latin-700.woff")
