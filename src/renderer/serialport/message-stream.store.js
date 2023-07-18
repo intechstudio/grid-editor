@@ -20,6 +20,10 @@ import {
 } from "../main/panels/MidiMonitor/MidiMonitor.store";
 import { logger } from "../runtime/runtime.store";
 
+import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
+
+export const incoming_messages = writable([]);
+
 function createMessageStream() {
   const _deliver_inbound = function (class_array) {
     if (class_array === undefined) {
@@ -40,8 +44,41 @@ function createMessageStream() {
       if (class_descr.class_name === "DEBUGTEXT") {
         debug_monitor_store.update_debugtext(class_descr);
         const text = class_descr.class_parameters.TEXT;
+
+        //LUA not OK
         const regex = /EL:\s*(\d+(?:\.\d+)?)\s*EV:\s*(\d+(?:\.\d+)?)/;
         const luaNotOKMatch = regex.exec(text);
+
+        // Remove the trailing period
+        const jsonString = text.replace(/\.$/, "");
+
+        try {
+          const jsonObject = JSON.parse(jsonString);
+          incoming_messages.update((s) => {
+            s.forEach((e) => (e.value = undefined));
+            for (const key in jsonObject) {
+              if (jsonObject.hasOwnProperty(key)) {
+                const value = jsonObject[key];
+                const message = new PolyLineGraphData({
+                  type: key,
+                  value: value,
+                });
+
+                console.log(s);
+                const element = s.find((e) => e.type === message.type);
+                if (typeof element === "undefined") {
+                  s.push(message);
+                } else {
+                  element.value = message.value;
+                }
+              }
+            }
+            return s;
+          });
+        } catch (e) {
+          //Do nothing
+        }
+
         //LUA not OK
         if (luaNotOKMatch) {
           class_descr.element = luaNotOKMatch[1];
@@ -114,7 +151,7 @@ function createMessageStream() {
         class_descr.class_name === "PAGEACTIVE" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        //console.log("PAGE")
+        //console.log("PAGE");
         //runtime.change_page(class_descr.class_parameters.PAGENUMBER);
       }
       if (
@@ -122,7 +159,6 @@ function createMessageStream() {
         class_descr.class_instr === "REPORT"
       ) {
         //After page change set user_input so it does not get cleared from writebuffer
-
         if (get(user_input).event === undefined) return;
 
         //return;

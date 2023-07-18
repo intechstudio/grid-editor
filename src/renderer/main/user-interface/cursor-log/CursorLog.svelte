@@ -1,51 +1,11 @@
 <script>
   import { fly } from "svelte/transition";
-  import { logger } from "../../../runtime/runtime.store";
-
-  let logs = [];
-  let logClearTimeout = undefined;
-
-  $: {
-    if (typeof $logger !== "undefined") {
-      if (
-        logs.map((l) => l.classname).includes("pagechange") &&
-        $logger.classname == "strict"
-      ) {
-        logs = [];
-      }
-
-      clearTimeout(logClearTimeout);
-
-      const last = logs.at(-1);
-      if (
-        typeof last !== "undefined" &&
-        last.data.message === $logger.message
-      ) {
-        last.count++;
-      } else {
-        if (logs.length >= 6) {
-          logs.shift();
-        }
-        logs = [
-          ...logs,
-          {
-            data: $logger,
-            count: 1,
-          },
-        ];
-      }
-
-      logClearTimeout = setTimeout(() => {
-        logs = [];
-        logger.set(undefined);
-      }, 5000);
-    }
-  }
+  import { logStreamStore } from "./LogStream.store";
 </script>
 
 <div id="cursor-log" style="z-index:9999;" class="flex mx-auto">
   <div class="flex flex-col w-[30rem] px-4 py-1 text-white">
-    {#each logs as log, i}
+    {#each $logStreamStore as log, i}
       <div
         in:fly={{ x: -10, delay: 400 * i }}
         out:fly={{ x: 10, delay: 400 * i }}

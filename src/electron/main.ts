@@ -134,7 +134,7 @@ if (!gotTheLock) {
           mainWindow.focus();
         }
       }
-    },
+    }
   );
 
   app.whenReady().then(() => {
@@ -190,7 +190,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    },
+    }
   );
 
   serial.mainWindow = mainWindow;
@@ -213,10 +213,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
   }
 
@@ -225,9 +225,15 @@ function createWindow() {
     if (app.quitting) {
       mainWindow = null;
     } else {
-      // only hide, keep in the background
       evt.preventDefault();
-      mainWindow.hide();
+
+      // only hide, keep in the background
+      const keepRunning = store.get("alwaysRunInTheBackground");
+      if (keepRunning === true) {
+        mainWindow.hide();
+      } else {
+        app.quit();
+      }
     }
   });
 
@@ -247,7 +253,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -268,7 +274,7 @@ function createWindow() {
       ) {
         return true;
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -402,7 +408,7 @@ ipcMain.handle("saveConfig", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.user,
+    arg.user
   );
 });
 
@@ -413,7 +419,7 @@ ipcMain.handle("updateConfig", async (event, arg) => {
     arg.config,
     arg.rootDirectory,
     arg.oldName,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 
@@ -423,7 +429,7 @@ ipcMain.handle("updateLocal", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 
@@ -432,7 +438,7 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
     arg.configPath,
     arg.name,
     arg.rootDirectory,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 
