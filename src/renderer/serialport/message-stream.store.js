@@ -143,7 +143,7 @@ function createMessageStream() {
         class_descr.class_name === "PAGEACTIVE" &&
         class_descr.class_instr === "EXECUTE"
       ) {
-        //console.log("PAGE")
+        //console.log("PAGE");
         //runtime.change_page(class_descr.class_parameters.PAGENUMBER);
       }
       if (
@@ -151,7 +151,6 @@ function createMessageStream() {
         class_descr.class_instr === "REPORT"
       ) {
         //After page change set user_input so it does not get cleared from writebuffer
-
         if (get(user_input).event === undefined) return;
 
         //return;

@@ -240,6 +240,15 @@
         bind:value={$appSettings.size}
       />
     </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.alwaysRunInTheBackground}
+      />
+      <div class="ml-1">Always run in the background</div>
+    </div>
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-row mb-4">
