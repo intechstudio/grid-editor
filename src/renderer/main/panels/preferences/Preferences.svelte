@@ -53,13 +53,10 @@
   $: {
     if (selected === "newLibrary") {
       $appSettings.profileBrowserMode = "newLibrary";
-      $appSettings.leftPanel = "NewProfile";
     } else if (selected === "legacyLibrary") {
       $appSettings.profileBrowserMode = "legacyLibrary";
-      $appSettings.leftPanel = "Profiles";
     } else if (selected == "profileCloud") {
       $appSettings.profileBrowserMode = "profileCloud";
-      $appSettings.leftPanel = "ProfileCloud";
     }
   }
 
