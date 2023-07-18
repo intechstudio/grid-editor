@@ -27,7 +27,7 @@
   />
 </div>
 
-<style global>
+<style>
   :root {
     --tab_color: #372c32;
     --tab_selected_color: #da4167;
@@ -80,13 +80,5 @@
     border-style: solid;
     border-width: 17px 4px 0 0;
     border-color: var(--tab_selected_color) transparent transparent transparent;
-  }
-
-  .atomicInput {
-    padding-right: 0.5rem;
-  }
-
-  .atomicInput:first-child {
-    padding-left: 0.5rem;
   }
 </style>
