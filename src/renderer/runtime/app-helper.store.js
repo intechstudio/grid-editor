@@ -3,6 +3,36 @@ import { getAllComponents } from "$lib/_configs";
 
 const configuration = window.ctxProcess.configuration();
 
+const persistant = {
+  userId: "",
+  wssPort: 1337,
+  moduleRotation: 0,
+  welcomeOnStartup: true,
+  lastVersion: "",
+  profileFolder: "",
+  presetFolder: "",
+  pageActivatorEnabled: false,
+  pageActivatorCriteria_0: "",
+  pageActivatorCriteria_1: "",
+  pageActivatorCriteria_2: "",
+  pageActivatorCriteria_3: "",
+  keyboardLayout: "",
+  pageActivatorInterval: 1000,
+  websocketMonitorEnabled: false,
+  newProfileBrowserEnabled: true,
+  legacyProfileBrowserEnabled: false,
+  profileCloudDevFeaturesEnabled: false,
+  useProfileCloud: true,
+  helperShape: 0,
+  helperColor: 0,
+  helperName: "Monster",
+  desktopAutomationPlugin: false,
+  authUser: {},
+  authIdToken: "",
+  authRefreshToken: "",
+  alwaysRunInTheBackground: true,
+};
+
 function checkOS() {
   if (typeof window.ctxProcess === "object") {
     return ctxProcess.platform;
@@ -49,7 +79,7 @@ function createSplitPanes() {
 
 export const splitpanes = createSplitPanes();
 
-function createAppSettingsStore() {
+function createAppSettingsStore(persistant) {
   const store = writable({
     size: 2.1,
     version: {
@@ -90,36 +120,7 @@ function createAppSettingsStore() {
       title: undefined,
       owner: { neme: undefined },
     },
-    persistant: {
-      userId: "",
-      wssPort: 1337,
-      moduleRotation: 0,
-      welcomeOnStartup: true,
-      lastVersion: "",
-      profileFolder: "",
-      presetFolder: "",
-      pageActivatorEnabled: false,
-      pageActivatorCriteria_0: "",
-      pageActivatorCriteria_1: "",
-      pageActivatorCriteria_2: "",
-      pageActivatorCriteria_3: "",
-      keyboardLayout: "",
-      pageActivatorInterval: 1000,
-      websocketMonitorEnabled: false,
-      newProfileBrowserEnabled: true,
-      legacyProfileBrowserEnabled: false,
-      profileCloudDevFeaturesEnabled: false,
-      useProfileCloud: true,
-      helperShape: 0,
-      helperColor: 0,
-      helperName: "Monster",
-      desktopAutomationPlugin: false,
-      authUser: {},
-      authIdToken: "",
-      authRefreshToken: "",
-      analyticsEnabled: false,
-      firstLaunch: true,
-    },
+    persistant: structuredClone(persistant),
   });
 
   return {
@@ -127,41 +128,10 @@ function createAppSettingsStore() {
   };
 }
 
-export const appSettings = createAppSettingsStore();
+export const appSettings = createAppSettingsStore(persistant);
 
 export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
-
-let persistant = {
-  userId: "",
-  wssPort: 1337,
-  moduleRotation: 0,
-  welcomeOnStartup: true,
-  lastVersion: "",
-  profileFolder: "",
-  presetFolder: "",
-  pageActivatorEnabled: false,
-  pageActivatorCriteria_0: "",
-  pageActivatorCriteria_1: "",
-  pageActivatorCriteria_2: "",
-  pageActivatorCriteria_3: "",
-  keyboardLayout: "",
-  pageActivatorInterval: 1000,
-  websocketMonitorEnabled: false,
-  newProfileBrowserEnabled: true,
-  legacyProfileBrowserEnabled: false,
-  profileCloudDevFeaturesEnabled: false,
-  useProfileCloud: true,
-  helperShape: 0,
-  helperColor: 0,
-  helperName: "Monster",
-  desktopAutomationPlugin: false,
-  authUser: {},
-  authIdToken: "",
-  authRefreshToken: "",
-  analyticsEnabled: false,
-  firstLaunch: true,
-};
 
 init_appsettings();
 
