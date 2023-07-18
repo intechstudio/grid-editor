@@ -1,12 +1,23 @@
 <script>
-  import { fly } from "svelte/transition";
+  import LogMessage from "./LogMessage.svelte";
   import { logStreamStore } from "./LogStream.store";
+  import { fly } from "svelte/transition";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  function handleClick(log) {
-    logStreamStore.dismissLog(log);
+  function handleClick(i) {
+    const logDOMElements = document.getElementsByClassName(`log-message`);
+    console.log(logDOMElements);
+    let element = undefined;
+    for (const e of logDOMElements) {
+      if (Number(e.getAttribute("data-id")) === i) {
+        element = e;
+        break;
+      }
+    }
+    element.remove();
+    //logStreamStore.dismissLog({ index: i });
   }
 
   function handleMouseEnter(e) {
@@ -17,17 +28,9 @@
     logStreamStore.enableTimeout(true);
   }
 
-  $: console.log($logStreamStore.length);
-
-  function handleOutroEnd(i) {
+  function handleContentChange() {
     const logDOMelements = document.getElementsByClassName("log-message");
-    if (logDOMelements.length === 1) {
-      dispatch("cleared");
-    }
-  }
-
-  $: if ($logStreamStore.length > 0) {
-    dispatch("incoming-log");
+    dispatch("content-change", { DOMElementCount: logDOMelements.length });
   }
 </script>
 
@@ -39,43 +42,22 @@
   on:mouseleave={handleMouseLeave}
 >
   <div class="flex flex-col w-[30rem]">
-    {#each $logStreamStore as log, i (log)}
-      <button
-        class="log-message"
+    {#each $logStreamStore as log, i}
+      <div
         in:fly={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
         out:fly={{ x: 10, delay: 400 * i, duration: 500 }}
-        on:click={() => handleClick(log)}
-        on:outroend={() => handleOutroEnd()}
+        class="log-message"
       >
-        <div class="relative flex flex-row items-center">
-          {#if log.count > 1}
-            <div
-              class="absolute -left-12 grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 text-white"
-            >
-              <div class="text-center">{log.count}x</div>
-            </div>
-          {/if}
-          <div
-            class="flex flex-row my-1 items-center p-2 bg-primary rounded-md border border-opacity-0 hover:border-opacity-60 border-primary-800 hover:bg-primary-700 hover:bg-opacity-80 bg-opacity-50 w-full transition-color duration-[30ms]"
-          >
-            <div class="px-2 py-1 bg-primary rounded mr-2 text-white">
-              {log.data.type == "success"
-                ? "✔️"
-                : log.data.type == "alert"
-                ? "⚠️"
-                : log.data.type == "progress"
-                ? "⏳"
-                : log.data.type == "fail"
-                ? "❌"
-                : null}
-            </div>
-            <div class="w-full flex flex-col">
-              <span class="text-white">{log.data.message}</span>
-              <span class="text-sm text-gray-400">(Click to Dismiss!)</span>
-            </div>
-          </div>
-        </div>
-      </button>
+        <LogMessage
+          data-id={i}
+          count={log.count}
+          type={log.data.type}
+          message={log.data.message}
+          on:destroy={handleContentChange}
+          on:creation={handleContentChange}
+          on:click={() => handleClick(i)}
+        />
+      </div>
     {/each}
   </div>
 </container>

@@ -216,14 +216,9 @@
     });
   }
 
-  function handleCleared(e) {
-    console.log("cleared");
-    trackerVisible = true;
-  }
-
-  function handleIncomingLog(e) {
-    console.log("incoming");
-    trackerVisible = false;
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
   }
 </script>
 
@@ -517,10 +512,7 @@
           visible={trackerVisible}
           class="absolute bottom-0 right-0 mb-7 mr-10"
         />
-        <CursorLog
-          on:cleared={handleCleared}
-          on:incoming-log={handleIncomingLog}
-        />
+        <CursorLog on:content-change={handleContentChange} />
       </div>
     </grid-layout>
   </div>

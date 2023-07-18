@@ -12,26 +12,17 @@ function createLogStream() {
   function clearLogs(force = false) {
     if (isTimeoutEnabled || force) {
       logStream.set([]);
-      /*
-      for (const [index, object] of get(logStream).reverse().entries()) {
-        setTimeout(() => dismissLog(object), 500 * index);
-      }
-      */
       logger.set(undefined);
     } else {
       logClearTimeout = setTimeout(clearLogs, 500);
     }
   }
 
-  function dismissLog(log) {
-    const ls = get(logStream);
-    const index = ls.indexOf(log);
-    if (index > -1) {
-      logStream.update((s) => {
-        s.splice(index, 1);
-        return s;
-      });
-    }
+  function dismissLog({ index }) {
+    logStream.update((s) => {
+      s.splice(index, 1);
+      return s;
+    });
   }
 
   function enableTimeout(value) {
