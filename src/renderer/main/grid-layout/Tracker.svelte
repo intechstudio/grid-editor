@@ -34,8 +34,8 @@
 
 {#if visible}
   <div
-    in:fly={{ x: -10, delay: 100 }}
-    out:fly={{ x: 10, delay: 0 }}
+    in:fly={{ x: -10 }}
+    out:fly={{ x: 10 }}
     class="{classProps} flex flex-row gap-4 items-center bg-primary py-2 px-3 flex-wrap justify-center rounded-lg"
   >
     <span class="text-white">Interaction Tracking:</span>

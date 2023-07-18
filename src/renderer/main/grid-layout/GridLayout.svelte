@@ -49,6 +49,8 @@
   let surface_origin_x = 0;
   let surface_origin_y = 0;
 
+  let trackerVisible = true;
+
   // $appSettings.size
   $: gridsize = 2.1 * 106.6 + 10;
 
@@ -212,6 +214,16 @@
     mixpanel.track("Page Config", {
       click: "Discard",
     });
+  }
+
+  function handleCleared(e) {
+    console.log("cleared");
+    trackerVisible = true;
+  }
+
+  function handleIncomingLog(e) {
+    console.log("incoming");
+    trackerVisible = false;
   }
 </script>
 
@@ -499,13 +511,16 @@
         </div>
       {/if}
 
-      <div class="w-full flex flex-col items-center min-h-fit mt-auto">
+      <div class="w-full flex flex-col items-center min-h-fit mt-auto mb-5">
         <div class="w-full flex flex-row items-center min-h-fit mt-auto" />
         <Tracker
-          visible={$logStreamStore.length === 0}
+          visible={trackerVisible}
           class="absolute bottom-0 right-0 mb-7 mr-10"
         />
-        <CursorLog />
+        <CursorLog
+          on:cleared={handleCleared}
+          on:incoming-log={handleIncomingLog}
+        />
       </div>
     </grid-layout>
   </div>
