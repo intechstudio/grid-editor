@@ -7,43 +7,68 @@ let logClearTimeout = undefined;
 
 function createLogStream() {
   const logStream = writable([]);
+  let isTimeoutEnabled = true;
 
-  const unsubscribe = logger.subscribe((store) => {
-    const logs = get(logStream);
-    if (typeof store !== "undefined") {
+  function clearLogs(force = false) {
+    if (isTimeoutEnabled || force) {
+      logStream.set([]);
+      logger.set(undefined);
+    } else {
+      logClearTimeout = setTimeout(clearLogs, 500);
+    }
+  }
+
+  function dismissLog({ index }) {
+    logStream.update((s) => {
+      s.splice(index, 1);
+      return s;
+    });
+  }
+
+  function enableTimeout(value) {
+    isTimeoutEnabled = value;
+  }
+
+  const unsubscribe = logger.subscribe((l) => {
+    if (typeof l !== "undefined") {
       if (
-        logs.map((l) => l.classname).includes("pagechange") &&
-        store.classname == "strict"
+        get(logStream)
+          .map((l) => l.classname)
+          .includes("pagechange") &&
+        l.classname == "strict"
       ) {
         logStream.set([]);
       }
 
       clearTimeout(logClearTimeout);
 
-      const last = logs.at(-1);
-      if (typeof last !== "undefined" && last.data.message === store.message) {
-        last.count++;
-      } else {
-        if (logs.length >= 6) {
-          logs.shift();
-        }
-        logStream.update((store) => {
+      logStream.update((ls) => {
+        const last = ls.at(-1);
+        if (typeof last !== "undefined" && last.data.message === l.message) {
+          last.count++;
+          return ls;
+        } else {
+          if (ls.length >= 6) {
+            ls.shift();
+          }
+
           return [
-            ...logs,
+            ...ls,
             {
               data: get(logger),
               count: 1,
             },
           ];
-        });
-      }
+        }
+      });
 
-      logClearTimeout = setTimeout(() => {
-        logStream.set([]);
-        logger.set(undefined);
-      }, 5000);
+      logClearTimeout = setTimeout(clearLogs, 5000);
     }
   });
 
-  return logStream;
+  return {
+    ...logStream,
+    dismissLog: dismissLog,
+    enableTimeout: enableTimeout,
+  };
 }

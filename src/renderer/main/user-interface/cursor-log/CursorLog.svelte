@@ -1,45 +1,56 @@
 <script>
-  import { fly } from "svelte/transition";
+  import LogMessage from "./LogMessage.svelte";
   import { logStreamStore } from "./LogStream.store";
+  import { fly } from "svelte/transition";
+  import { createEventDispatcher } from "svelte";
+
+  const dispatch = createEventDispatcher();
+
+  function handleClick(i) {
+    logStreamStore.dismissLog({ index: i });
+  }
+
+  function handleMouseEnter(e) {
+    logStreamStore.enableTimeout(false);
+  }
+
+  function handleMouseLeave(e) {
+    logStreamStore.enableTimeout(true);
+  }
+
+  function handleContentChange() {
+    const logDOMelements = document.getElementsByClassName("log-message");
+    dispatch("content-change", { DOMElementCount: logDOMelements.length });
+  }
 </script>
 
-<div id="cursor-log" style="z-index:9999;" class="flex mx-auto">
-  <div class="flex flex-col w-[30rem] px-4 py-1 text-white">
-    {#each $logStreamStore as log, i}
+<container
+  id="cursor-log"
+  style="z-index:9999;"
+  class="flex mx-auto"
+  on:mouseenter={handleMouseEnter}
+  on:mouseleave={handleMouseLeave}
+>
+  <div class="flex flex-col w-[30rem]">
+    {#each $logStreamStore as log, i (log)}
       <div
-        in:fly={{ x: -10, delay: 400 * i }}
-        out:fly={{ x: 10, delay: 400 * i }}
+        in:fly={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
+        out:fly={{ x: 10, delay: 400 * i, duration: 500 }}
+        class="log-message"
       >
-        <div class="flex flex-row items-center">
-          <div
-            class="grid rounded-full w-10 h-8 bg-slate-500 content-center mr-4 {log.count ===
-            1
-              ? ' opacity-0 '
-              : ''}"
-          >
-            <div class="text-center">{log.count}x</div>
-          </div>
-          <div
-            class="flex flex-row my-1 items-center p-2 bg-primary bg-opacity-50 w-full"
-          >
-            <div class="px-2 py-1 bg-primary rounded mr-2">
-              {log.data.type == "success"
-                ? "✔️"
-                : log.data.type == "alert"
-                ? "⚠️"
-                : log.data.type == "progress"
-                ? "⏳"
-                : log.data.type == "fail"
-                ? "❌"
-                : null}
-            </div>
-            <div class="w-full">{log.data.message}</div>
-          </div>
-        </div>
+        <LogMessage
+          data-id={i}
+          count={log.count}
+          type={log.data.type}
+          message={log.data.message}
+          on:destroy={handleContentChange}
+          on:creation={handleContentChange}
+          on:click={() => handleClick(i)}
+        />
       </div>
     {/each}
   </div>
-</div>
+</container>
 
 <style>
   @keyframes blink {
