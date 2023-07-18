@@ -138,7 +138,7 @@
         class:bg-opacity-30={toggled}
       >
         <!-- //TODO: Refactor out the special case of IF -->
-        {#if toggled || config.information.name === "Condition_If"}
+        {#if toggled || config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"
           >

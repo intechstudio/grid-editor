@@ -12,15 +12,25 @@
   import { luadebug_store } from "../../../runtime/runtime.store";
   import { fade } from "svelte/transition";
   import grid from "../../../protocol/grid-protocol";
-  import { writable } from "svelte/store";
+  import { writable, readable } from "svelte/store";
+  import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
+  import { incoming_messages } from "../../../serialport/message-stream.store";
+  import { Pane, Splitpanes } from "svelte-splitpanes";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);
-  const configScript = writable("");
+  const incoming_messages_stores = writable([]);
+
+  $: if (typeof $incoming_messages !== "undefined") {
+    handleIncomingMessage($incoming_messages);
+  }
+
+  function handleIncomingMessage(messages) {
+    incoming_messages_stores.set(messages.map((e) => readable(e)));
+  }
 
   $: {
     configScriptLength.set($luadebug_store.configScript.length);
-    configScript.set($luadebug_store.configScript);
     syntaxError.set($luadebug_store.syntaxError);
   }
 
@@ -124,6 +134,10 @@
     });
     return s;
   }
+
+  function handleShowCode(e) {
+    $appSettings.modal = "export";
+  }
 </script>
 
 <config-debug
@@ -134,15 +148,9 @@
     Editor v{$appSettings.version.major}.{$appSettings.version
       .minor}.{$appSettings.version.patch}
   </div>
-  <textarea
-    spellcheck="false"
-    bind:value={$configScript}
-    disabled="true"
-    class="w-full cursor-default min-h-[200px] bg-secondary rounded px-1 my-2 text-white font-mono"
-  />
 
-  <div class="flex justify-between min-h-[100px] items-center overflow-y-auto">
-    <div class="mx-1 my-2">
+  <div class="grid grid-cols-[auto_1fr] w-full">
+    <div class="flex flex-col">
       <div class="text-white">Syntax: {$syntaxError}</div>
       <div class="flex flex-row">
         <div class="pr-2 text-white">Char Count:</div>
@@ -156,6 +164,13 @@
           </span>
         </div>
       </div>
+    </div>
+    <div class="flex items-center justify-end">
+      <button
+        class="text-white bg-select hover:bg-select-saturate-10 rounded px-2 py-1"
+        on:click={handleShowCode}
+        >Show Code
+      </button>
     </div>
   </div>
 
@@ -201,43 +216,71 @@
       </button>
     {/if}
   </div>
-
-  {#if $debug_monitor_store.length != 0}
-    <div class="text-white">Debug Text:</div>
-    <div
-      class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px]"
-    >
-      {#each $debug_monitor_store as debug, i}
-        <span class="debugtexty px-1 py-0.5">{debug}</span>
-      {/each}
-    </div>
-  {/if}
-
-  {#if $debug_lowlevel_store.length != 0}
-    <div class="text-white">Raw Packet:</div>
-
-    <div
-      class="selectable flex flex-col w-full font-mono overflow-y-auto text-white m-1 h-1/2"
-    >
-      {#each $debug_lowlevel_store as debug, i}
-        <span
-          class="px-1 py-0.5 my-1 w-full break-all {debug.direction == 'IN'
-            ? 'input'
-            : 'output'} "
+  <Splitpanes
+    theme="modern-theme"
+    class="w-full overflow-hidden"
+    horizontal="true"
+  >
+    <Pane class="overflow-hidden bg-primary">
+      {#if $debug_monitor_store.length != 0}
+        <div class="text-white mt-2">Debug Text:</div>
+        <div
+          class="flex flex-col font-mono overflow-y-auto text-white bg-secondary m-1 min-h-[200px] h-full"
         >
-          {#if display == "DEC"}
-            {toDecString(debug.data)}
-          {:else if display == "HEX"}
-            {toHexString(debug.data)}
-          {:else}
-            {toCharString(debug.data)}
-          {/if}
-        </span>
-      {/each}
-    </div>
-  {/if}
+          {#each $debug_monitor_store as debug, i}
+            <span class="debugtexty px-1 py-0.5">{debug}</span>
+          {/each}
+        </div>
+      {/if}
+    </Pane>
+    <Pane class="overflow-hidden bg-primary">
+      {#if $debug_lowlevel_store.length != 0}
+        <div class="text-white mt-2">Raw Packet:</div>
 
-  <div class="inline-flex flex-row">
+        <div
+          class="selectable flex flex-col flex-grow min-h-[100px] h-full w-full font-mono overflow-y-auto text-white m-1"
+        >
+          {#each $debug_lowlevel_store as debug, i}
+            <span
+              class="px-1 py-0.5 my-1 w-full break-all {debug.direction == 'IN'
+                ? 'input'
+                : 'output'} "
+            >
+              {#if display == "DEC"}
+                {toDecString(debug.data)}
+              {:else if display == "HEX"}
+                {toHexString(debug.data)}
+              {:else}
+                {toCharString(debug.data)}
+              {/if}
+            </span>
+          {/each}
+        </div>
+      {/if}
+    </Pane>
+    <Pane class="overflow-hidden bg-primary">
+      <div class="text-white mt-2">Watched values:</div>
+      <div
+        class="mb-5 overflow-y-auto bg-secondary bg-opacity-40 flex flex-grow"
+      >
+        {#if $incoming_messages_stores.length > 0}
+          <div class="w-full h-full grid grid-cols-2">
+            {#each $incoming_messages_stores as store}
+              <div class="m-1">
+                <PolyLineGraph incomingData={store} />
+              </div>
+            {/each}
+          </div>
+        {:else}
+          <div class="flex w-full h-full justify-center items-center">
+            <span class="text-white">None</span>
+          </div>
+        {/if}
+      </div>
+    </Pane>
+  </Splitpanes>
+
+  <div class="inline-flex flex-row bg-primary">
     <svg width="50%" height="50" viewBox="0 0 100 50">
       <polyline
         id="chart_testchart_0"
@@ -395,5 +438,68 @@
 
   .selectable {
     user-select: text;
+  }
+
+  .splitpanes.modern-theme .splitpanes__pane {
+    /*  @apply bg-secondary; */
+    position: relative;
+    overflow: visible;
+  }
+
+  /*betty magic selector*/
+  .splitpanes.modern-theme .splitpanes__pane.leftPane {
+    overflow: hidden;
+  }
+
+  .splitpanes.modern-theme .splitpanes__splitter {
+    background-color: #4c4c4c;
+    position: relative;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter:before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    transition: opacity 0.3s;
+    background-color: #2db9d2;
+    width: 200;
+    opacity: 0;
+    z-index: 1;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter:hover:before {
+    opacity: 1;
+  }
+  .splitpanes.modern-theme .splitpanes__splitter.splitpanes__splitter__active {
+    z-index: 2;
+    /* Fix an issue of overlap fighting with a near hovered splitter */
+  }
+  .modern-theme.splitpanes--vertical > .splitpanes__splitter:before {
+    left: -3px;
+    right: -3px;
+    height: 100%;
+    cursor: col-resize;
+  }
+  .modern-theme.splitpanes--horizontal > .splitpanes__splitter:before {
+    top: -3px;
+    bottom: -3px;
+    width: 100%;
+    cursor: row-resize;
+  }
+  .splitpanes.no-splitter .splitpanes__pane {
+    background-color: #0e100f;
+  }
+  .splitpanes.no-splitter .splitpanes__splitter {
+    background-color: #4c4c4c;
+    position: relative;
+  }
+  .no-splitter.splitpanes--horizontal > .splitpanes__splitter:before {
+    width: 0.05rem;
+    pointer-events: none;
+    cursor: none;
+  }
+  .no-splitter.splitpanes--vertical > .splitpanes__splitter:before {
+    height: 0.05rem;
+    pointer-events: none;
+    cursor: none;
   }
 </style>

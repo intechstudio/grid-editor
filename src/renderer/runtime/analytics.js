@@ -16,9 +16,24 @@ mixpanel.identify(get(appSettings).persistant.userId);
 
 export class Analytics {
   static track({ event, payload, mandatory }) {
-    const trackingEnabled = get(appSettings).persistant.analyticsEnabled;
-    if (mandatory || trackingEnabled) {
-      mixpanel.track(event, payload);
+    try {
+      if (typeof event === "undefined") {
+        throw "Event must be provided";
+      }
+
+      if (typeof event === "undefined") {
+        throw "Payload object must be provided";
+      }
+      if (typeof event === "undefined") {
+        throw "Mandatory flag must be set";
+      }
+
+      const trackingEnabled = get(appSettings).persistant.analyticsEnabled;
+      if (mandatory || trackingEnabled) {
+        mixpanel.track(event, payload);
+      }
+    } catch (e) {
+      console.error(e);
     }
   }
 }

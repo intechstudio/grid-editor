@@ -31,6 +31,7 @@
 
   import Pages from "/main/panels/configuration/components/Pages.svelte";
   import Tracker from "./Tracker.svelte";
+  import { logStreamStore } from "../user-interface/cursor-log/LogStream.store.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -47,6 +48,8 @@
 
   let surface_origin_x = 0;
   let surface_origin_y = 0;
+
+  let trackerVisible = true;
 
   // $appSettings.size
   $: gridsize = 2.1 * 106.6 + 10;
@@ -235,6 +238,11 @@
       },
       mandatory: false,
     });
+  }
+
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
   }
 </script>
 
@@ -522,12 +530,14 @@
         </div>
       {/if}
 
-      <div class="w-full flex flex-col items-center min-h-fit mt-auto">
+      <div class="w-full flex flex-col items-center min-h-fit mt-auto mb-5">
         <div class="w-full flex flex-row items-center min-h-fit mt-auto" />
-
-        <CursorLog />
+        <Tracker
+          visible={trackerVisible}
+          class="absolute bottom-0 right-0 mb-7 mr-10"
+        />
+        <CursorLog on:content-change={handleContentChange} />
       </div>
-      <Tracker class="absolute bottom-0 right-0 mb-7 mr-10" />
     </grid-layout>
   </div>
 </layout-container>
