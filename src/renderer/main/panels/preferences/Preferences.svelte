@@ -53,13 +53,10 @@
   $: {
     if (selected === "newLibrary") {
       $appSettings.profileBrowserMode = "newLibrary";
-      $appSettings.leftPanel = "NewProfile";
     } else if (selected === "legacyLibrary") {
       $appSettings.profileBrowserMode = "legacyLibrary";
-      $appSettings.leftPanel = "Profiles";
     } else if (selected == "profileCloud") {
       $appSettings.profileBrowserMode = "profileCloud";
-      $appSettings.leftPanel = "ProfileCloud";
     }
   }
 
@@ -239,6 +236,15 @@
         step="0.1"
         bind:value={$appSettings.size}
       />
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
+        bind:checked={$appSettings.persistant.alwaysRunInTheBackground}
+      />
+      <div class="ml-1">Always run in the background</div>
     </div>
   </div>
 

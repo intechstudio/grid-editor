@@ -225,9 +225,15 @@ function createWindow() {
     if (app.quitting) {
       mainWindow = null;
     } else {
-      // only hide, keep in the background
       evt.preventDefault();
-      mainWindow.hide();
+
+      // only hide, keep in the background
+      const keepRunning = store.get("alwaysRunInTheBackground");
+      if (keepRunning === true) {
+        mainWindow.hide();
+      } else {
+        app.quit();
+      }
     }
   });
 

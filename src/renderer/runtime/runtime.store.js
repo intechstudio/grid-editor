@@ -309,6 +309,7 @@ function create_user_input() {
     if (descr.class_parameters.ELEMENTNUMBER == 255) {
       return;
     }
+
     const store = get(_event);
 
     // filter same control element had multiple interactions
