@@ -326,8 +326,9 @@
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         //TODO: Refactor this out
-        $configs[index].short = newConfig.short;
-        $configs[index].script = newConfig.script;
+        if ($configs[index].short != newConfig.short) {
+          $configs[index] = newConfig;
+        } else $configs[index].script = newConfig.script;
 
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
