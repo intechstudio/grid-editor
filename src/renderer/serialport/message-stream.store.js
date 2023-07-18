@@ -18,6 +18,7 @@ import {
   midi_monitor_store,
   sysex_monitor_store,
 } from "../main/panels/MidiMonitor/MidiMonitor.store";
+import { logger } from "../runtime/runtime.store";
 
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 
@@ -46,7 +47,7 @@ function createMessageStream() {
 
         //LUA not OK
         const regex = /EL:\s*(\d+(?:\.\d+)?)\s*EV:\s*(\d+(?:\.\d+)?)/;
-        const match = regex.exec(text);
+        const luaNotOKMatch = regex.exec(text);
 
         // Remove the trailing period
         const jsonString = text.replace(/\.$/, "");
@@ -74,18 +75,25 @@ function createMessageStream() {
             return s;
           });
         } catch (e) {
-          console.log(e);
           //Do nothing
         }
+
         //LUA not OK
-        if (match) {
-          class_descr.element = match[1];
-          class_descr.event = match[2];
+        if (luaNotOKMatch) {
+          class_descr.element = luaNotOKMatch[1];
+          class_descr.event = luaNotOKMatch[2];
           lua_error_store.update_lua_error("luanotok", class_descr);
         }
         //KB IS DISABLED
         else if (text == "KB IS DISABLED") {
           lua_error_store.update_lua_error("kbisdisabled", class_descr);
+        } else if (text == "page change is disabled") {
+          logger.set({
+            type: "alert",
+            classname: "pagechange",
+            mode: 0,
+            message: "Store your config before switching pages!",
+          });
         }
       }
 
