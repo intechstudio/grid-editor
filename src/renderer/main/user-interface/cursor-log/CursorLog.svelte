@@ -7,17 +7,7 @@
   const dispatch = createEventDispatcher();
 
   function handleClick(i) {
-    const logDOMElements = document.getElementsByClassName(`log-message`);
-    console.log(logDOMElements);
-    let element = undefined;
-    for (const e of logDOMElements) {
-      if (Number(e.getAttribute("data-id")) === i) {
-        element = e;
-        break;
-      }
-    }
-    element.remove();
-    //logStreamStore.dismissLog({ index: i });
+    logStreamStore.dismissLog({ index: i });
   }
 
   function handleMouseEnter(e) {
@@ -42,7 +32,7 @@
   on:mouseleave={handleMouseLeave}
 >
   <div class="flex flex-col w-[30rem]">
-    {#each $logStreamStore as log, i}
+    {#each $logStreamStore as log, i (log)}
       <div
         in:fly={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
         out:fly={{ x: 10, delay: 400 * i, duration: 500 }}
