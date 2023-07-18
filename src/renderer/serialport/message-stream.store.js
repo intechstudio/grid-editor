@@ -63,7 +63,6 @@ function createMessageStream() {
                   value: value,
                 });
 
-                console.log(s);
                 const element = s.find((e) => e.type === message.type);
                 if (typeof element === "undefined") {
                   s.push(message);

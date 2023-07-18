@@ -64,7 +64,7 @@ contextBridge.exposeInMainWorld("electron", {
       config,
       rootDirectory,
       oldName,
-      profileFolder,
+      profileFolder
     ) =>
       ipcRenderer.invoke("updateConfig", {
         configPath,

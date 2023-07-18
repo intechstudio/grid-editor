@@ -2,7 +2,7 @@ import { writable, get } from "svelte/store";
 
 export class PolyLineGraphData {
   constructor({ value, type }) {
-    this.value = Number(value);
+    this.value = String(value);
     this.type = String(type);
   }
 }
@@ -39,14 +39,20 @@ export function createDataPointsStore({ max_y, max_x }) {
     get_values: () => {
       return values;
     },
-    add: (value) => {
+    add: (value, isPercentage) => {
       if (values.length >= STORE_CAPACITY) {
         values.shift();
       }
       values.push(Number(value));
 
-      min_value = Math.min(...values);
-      max_value = Math.max(...values);
+      if (isPercentage) {
+        min_value = 0;
+        max_value = 100;
+      } else {
+        min_value = Math.min(...values);
+        max_value = Math.max(...values);
+      }
+
       update_values();
     },
     set_max_x: (value) => {

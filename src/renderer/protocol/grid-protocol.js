@@ -788,13 +788,13 @@ const grid = {
       CLASS_ARRAY,
       1,
       3,
-      parseInt(class_code_from_name[descr.class_name]),
+      parseInt(class_code_from_name[descr.class_name])
     );
     write_integer_to_asciicode_array(
       CLASS_ARRAY,
       4,
       1,
-      parseInt(instr_code_from_name[descr.class_instr]),
+      parseInt(instr_code_from_name[descr.class_instr])
     );
 
     for (const key in class_parameters[descr.class_name]) {
@@ -815,7 +815,7 @@ const grid = {
             CLASS_ARRAY,
             offset,
             value.length,
-            value,
+            value
           );
         }
       }
@@ -831,7 +831,7 @@ const grid = {
       MESSAGE_ARRAY,
       brc_parameters.LEN.offset,
       brc_parameters.LEN.length,
-      len,
+      len
     );
 
     let checksum = [...MESSAGE_ARRAY]
@@ -848,11 +848,11 @@ const grid = {
     // use the last two characters to determine the received checksum
     let received_checksum =
       parseInt(
-        "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 1]),
+        "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 1])
       ) *
         1 +
       parseInt(
-        "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 2]),
+        "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 2])
       ) *
         16;
 
@@ -870,7 +870,7 @@ const grid = {
         "Checksum mismatch, packet dropped! Received: " +
           received_checksum +
           " Calculated: " +
-          calculated_checksum,
+          calculated_checksum
       );
       return undefined;
     }
@@ -903,7 +903,7 @@ const grid = {
       brc[brc_parameters[key].name] = read_integer_from_asciicode_array(
         asciicode_array,
         brc_parameters[key].offset,
-        brc_parameters[key].length,
+        brc_parameters[key].length
       );
     }
 
@@ -919,7 +919,7 @@ const grid = {
           asciicode_array.length
         }, brc.LEN: ${brc.LEN}, brc_len should be: ${
           asciicode_array.length - 2
-        }`,
+        }`
       );
       return undefined;
     }
@@ -999,14 +999,14 @@ const grid = {
             parameter_value = read_integer_from_asciicode_array(
               raw_class.raw,
               parameter_offset,
-              parameter_length,
+              parameter_length
             );
           } else {
             // variable length string
             parameter_value = read_string_from_asciicode_array(
               raw_class.raw,
               parameter_offset,
-              parameter_length,
+              parameter_length
             );
           }
 
