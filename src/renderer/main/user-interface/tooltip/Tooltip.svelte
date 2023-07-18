@@ -5,8 +5,7 @@
   import { attachment } from "../Monster.store";
 
   //TODO: Make tracking later
-  import mixpanel from "mixpanel-browser";
-
+  import { Analytics } from "../../../runtime/analytics.js";
   export let key = "";
   export let placement = "top";
   export let instant = false;

@@ -5,7 +5,7 @@
 
   import { attachment } from "../Monster.store";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   export let key = "";
 
@@ -146,8 +146,12 @@
   $: if (tooltip_isvisible && tooltip_delaydone) {
     calculate_position();
 
-    mixpanel.track("Show Tooltip", {
-      message: key,
+    Analytics.track({
+      event: "Show Tooltip",
+      payload: {
+        message: key,
+      },
+      mandatory: false,
     });
 
     if (tooltip_helperOnLeft) {

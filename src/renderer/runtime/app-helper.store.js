@@ -143,7 +143,6 @@ appSettings.subscribe((store) => {
 
     if (persistant[key] !== instore[key]) {
       persistant[key] = instore[key];
-
       let settings = {};
       settings[key] = instore[key];
       window.electron.persistentStorage.set(settings);

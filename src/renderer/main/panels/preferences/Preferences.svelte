@@ -18,6 +18,10 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  import { Analytics } from "../../../runtime/analytics.js";
+
+  const configuration = window.ctxProcess.configuration();
+
   let helperPreviewElement;
 
   let helperAttachment = writable({
@@ -92,7 +96,11 @@
   let migrationComplete = false;
 
   async function migrateProfiles() {
-    mixpanel.track("Migrate Profiles");
+    Analytics.track({
+      event: "Migrate Profiles",
+      payload: {},
+      mandatory: false,
+    });
 
     const dir = $appSettings.persistant.profileFolder;
 
@@ -186,6 +194,12 @@
   }
 
   function setHelperName() {}
+
+  function handleOpenPolicyClicked(e) {
+    window.electron.openInBrowser(
+      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
+    );
+  }
 </script>
 
 <preferences
@@ -457,6 +471,25 @@
       class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
       bind:value={$appSettings.profileCloudUrl}
     />
+    <!-- Spacer -->
+    <div class="border-b border-white h-0 w-full my-2" />
+    <div class="pb-2 pt-">Analytics Settings</div>
+    <div class="flex flex-row gap-2 items-center justify-between">
+      <label class="mx-1 items-center">
+        <input
+          class="mr-1"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.analyticsEnabled}
+        />
+        Analytics gathering enabled
+      </label>
+      <button
+        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
+        on:click={handleOpenPolicyClicked}
+      >
+        Open Policy
+      </button>
+    </div>
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">

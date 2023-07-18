@@ -1,6 +1,6 @@
 <script>
   import { appSettings } from "../../runtime/app-helper.store";
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../runtime/analytics.js";
   import TooltipSetter from "../user-interface/tooltip/TooltipSetter.svelte";
   import { fly } from "svelte/transition";
 
@@ -27,7 +27,11 @@
   ];
 
   function handleClick(value) {
-    mixpanel.track("Tracking Changed", { click: value });
+    Analytics.track({
+      event: "Tracking Changed",
+      payload: { click: value },
+      mandatory: false,
+    });
     $appSettings.changeOnEvent = value;
   }
 </script>

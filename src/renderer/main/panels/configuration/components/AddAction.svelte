@@ -4,7 +4,7 @@
   import { clickOutside } from "../../../_actions/click-outside.action";
 
   import { menuBoundaries } from "../../../_actions/boundaries.action.js";
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../../runtime/analytics.js";
   import _utils from "../../../../runtime/_utils";
 
   import { presetManagement } from "../../../../runtime/app-helper.store";
@@ -52,9 +52,13 @@
 
     let action_name = get(presetManagement.selected_action).name;
 
-    mixpanel.track("Config Action", {
-      click: "Add Action",
-      actionBlock: action_name,
+    Analytics.track({
+      event: "Config Action",
+      payload: {
+        click: "Add Action",
+        actionBlock: action_name,
+      },
+      mandatory: false,
     });
 
     dispatch("new-config", {
@@ -87,7 +91,11 @@
     configSelection = false;
     visible = false;
 
-    mixpanel.track("Config Action", { click: "Paste" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Paste" },
+      mandatory: false,
+    });
   }
 
   let action_options = [];
@@ -331,9 +339,13 @@
   function closeActionPicker() {
     let actionPickerDuration = Date.now() - actionPickerTimestamp;
 
-    mixpanel.track("Config Action", {
-      click: "Add Action Duration",
-      duration: actionPickerDuration,
+    Analytics.track({
+      event: "Config Action",
+      payload: {
+        click: "Add Action Duration",
+        duration: actionPickerDuration,
+      },
+      mandatory: false,
     });
 
     initConfig();

@@ -17,7 +17,7 @@
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   export let events;
 
@@ -94,14 +94,22 @@
 
     runtime.fetch_element_configuration_from_grid(callback);
 
-    mixpanel.track("Config Action", { click: "Whole Element Copy" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
   }
 
   function overwriteAllEventConfigs() {
     let clipboard = get(controlElementClipboard);
     runtime.whole_element_overwrite(clipboard);
 
-    mixpanel.track("Config Action", { click: "Whole Element Overwrite" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
   }
 
   function updateStringName(e) {

@@ -6,7 +6,7 @@ import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedProfileStore } from "./profile-helper.store";
 import { selectedPresetStore } from "./preset-helper.store";
 
-import mixpanel from "mixpanel-browser";
+import { Analytics } from "./analytics.js";
 
 import _utils from "./_utils";
 
@@ -605,10 +605,14 @@ function create_runtime() {
 
         firstConnection = get(_runtime).length === 1;
 
-        mixpanel.track("Connect Module", {
-          action: "Connect",
-          controller: controller,
-          moduleCount: get(runtime).length,
+        Analytics.track({
+          event: "Connect Module",
+          payload: {
+            action: "Connect",
+            controller: controller,
+            moduleCount: get(runtime).length,
+          },
+          mandatory: false,
         });
       }
 
@@ -1203,9 +1207,13 @@ function create_runtime() {
       }
     } catch (error) {}
 
-    mixpanel.track("Disconnect Module", {
-      action: "Disconnect",
-      moduleCount: get(runtime).length,
+    track({
+      event: "Disconnect Module",
+      payload: {
+        action: "Disconnect",
+        moduleCount: get(runtime).length,
+      },
+      mandatory: false,
     });
   }
 

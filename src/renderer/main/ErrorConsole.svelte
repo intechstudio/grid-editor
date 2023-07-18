@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { fly, fade, slide } from "svelte/transition";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../runtime/analytics.js";
 
   const ctxProcess = window.ctxProcess;
   const configuration = ctxProcess.configuration();
@@ -64,8 +64,12 @@
 
     logtext = [...logtext, { reason: displaytext, solution: solution }];
 
-    mixpanel.track("ErrorConsole", {
-      message: displaytext,
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        message: displaytext,
+      },
+      mandatory: true,
     });
   }
 
@@ -114,8 +118,12 @@
   });
 
   function refresh() {
-    mixpanel.track("ErrorConsole", {
-      click: "Refresh",
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Refresh",
+      },
+      mandatory: true,
     });
     window.electron.restartApp();
   }
@@ -123,15 +131,23 @@
   function solution(link) {
     window.electron.openInBrowser(link);
 
-    mixpanel.track("ErrorConsole", {
-      click: "Solution",
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Solution",
+      },
+      mandatory: true,
     });
   }
 
   function dismiss() {
     logtext = [];
-    mixpanel.track("ErrorConsole", {
-      click: "Dismiss",
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Dismiss",
+      },
+      mandatory: true,
     });
   }
 
