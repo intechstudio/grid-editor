@@ -15,13 +15,20 @@
   const data_points = createDataPointsStore({ max_x: 0, max_y: 0 });
 
   $: if (typeof $incomingData.value !== "undefined") {
+    let isPercentage = false;
+
+    if ($incomingData.value.slice(-1) === "%") {
+      isPercentage = true;
+      console.log("Percent", parseInt($incomingData.value));
+    }
+
     label = $incomingData.type;
-    data_points.add($incomingData.value);
+    data_points.add(parseInt($incomingData.value), isPercentage);
     const values = data_points.get_values();
     max_value = Math.floor(Math.max(...values));
     min_value = Math.floor(Math.min(...values));
     avg_value = Math.floor(values.reduce((a, b) => a + b, 0) / values.length);
-    last_value = Math.floor($incomingData.value);
+    last_value = Math.floor(parseInt($incomingData.value));
   }
 
   $: data_points.set_max_values({ max_x: width, max_y: (width / 3) * 2 });
