@@ -18,8 +18,14 @@
     logStreamStore.enableTimeout(true);
   }
 
-  function handleContentChange() {
+  function handleCreation(e) {
     const logDOMelements = document.getElementsByClassName("log-message");
+    dispatch("content-change", { DOMElementCount: logDOMelements.length });
+  }
+
+  function handleDestroy(e) {
+    const logDOMelements = document.getElementsByClassName("log-message");
+    logStreamStore.enableTimeout(true);
     dispatch("content-change", { DOMElementCount: logDOMelements.length });
   }
 </script>
@@ -27,7 +33,7 @@
 <container
   id="cursor-log"
   style="z-index:9999;"
-  class="flex mx-auto"
+  class="flex mx-auto bg-red-300"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >
@@ -43,8 +49,8 @@
           count={log.count}
           type={log.data.type}
           message={log.data.message}
-          on:destroy={handleContentChange}
-          on:creation={handleContentChange}
+          on:destroy={handleDestroy}
+          on:creation={handleCreation}
           on:click={() => handleClick(i)}
         />
       </div>
