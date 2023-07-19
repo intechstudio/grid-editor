@@ -33,7 +33,7 @@
 <container
   id="cursor-log"
   style="z-index:9999;"
-  class="flex mx-auto bg-red-300"
+  class="flex mx-auto"
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
 >

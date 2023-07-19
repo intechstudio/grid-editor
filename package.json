@@ -1,7 +1,7 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.37",
+  "version": "1.2.38",
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@electron/notarize": "^1.2.3",
+    "@playwright/test": "^1.36.1",
     "@sveltejs/vite-plugin-svelte": "^1.0.9",
     "autoprefixer": "^10.4.12",
     "chai": "^4.3.4",
