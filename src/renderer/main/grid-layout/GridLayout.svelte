@@ -478,6 +478,7 @@
               <Device
                 type={device.id.substr(0, 4)}
                 id={device.id}
+                arch={device.architecture}
                 rotation={device.rot +
                   $appSettings.persistant.moduleRotation / 90}
               />
