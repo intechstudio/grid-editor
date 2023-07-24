@@ -1,9 +1,9 @@
 import path from "path"
 import fs from "fs"
 import { MessagePortMain } from "electron/main"
-import axios from 'axios'
+import axios from "axios"
 import AdmZip from "adm-zip";
-import os from 'os'
+import os from "os"
 import { app } from "electron"
 
 enum PluginStatus {
@@ -21,11 +21,11 @@ if (!fs.existsSync(pluginFolder)){
 }
 
 const availablePlugins = {
-    'plugin-active-win': { 
-        name: 'Active Window', 
-        description: 'Short description of Active Window plugin', 
-        gitHubRepositoryOwner: 'intechstudio',
-        gitHubRepositoryName: 'plugin-active-win-wip',
+    "plugin-active-win": { 
+        name: "Active Window", 
+        description: "Short description of Active Window plugin", 
+        gitHubRepositoryOwner: "intechstudio",
+        gitHubRepositoryName: "plugin-active-win-wip",
     }
 }
 
@@ -38,14 +38,14 @@ let messagePort: MessagePortMain
 
 export function setPluginManagerMessagePort(port: MessagePortMain) {
     messagePort = port;
-    messagePort.on('message', (event) => {
+    messagePort.on("message", (event) => {
         const data = event.data
         switch (data.type){
-            case 'load-plugin': loadPlugin(data.id, undefined); break;
-            case 'unload-plugin': unloadPlugin(data.id); break;
-            case 'download-plugin': downloadPlugin(data.id); break;
-            case 'uninstall-plugin': uninstallPlugin(data.id); break;
-            case 'plugin-action': executeAction(data.pluginId, data.actionId, data.payload); break;
+            case "load-plugin": loadPlugin(data.id, undefined); break;
+            case "unload-plugin": unloadPlugin(data.id); break;
+            case "download-plugin": downloadPlugin(data.id); break;
+            case "uninstall-plugin": uninstallPlugin(data.id); break;
+            case "plugin-action": executeAction(data.pluginId, data.actionId, data.payload); break;
         }
     })
     port.start()
@@ -59,7 +59,7 @@ async function loadPlugin(pluginName: string, persistedData: any) {
 
     const pluginDirectory = path.join(pluginFolder, pluginName)
     const plugin = require(pluginDirectory)
-    await plugin.loadPlugin({ sendMessageToRuntime: (payload) => { messagePort.postMessage({ type: 'plugin-action', pluginId: pluginName, ...payload }) } }, persistedData)
+    await plugin.loadPlugin({ sendMessageToRuntime: (payload) => { messagePort.postMessage({ type: "plugin-action", pluginId: pluginName, ...payload }) } }, persistedData)
     currentlyLoadedPlugins[pluginName] = plugin
     haveBeenLoadedPlugins.add(pluginName)
     notifyListener()
@@ -82,11 +82,14 @@ async function downloadPlugin(pluginName: string) {
         notifyListener()
         return
     }
+
     if (downloadingPlugins.has(pluginName)) return
     downloadingPlugins.add(pluginName)
     notifyListener()
+    
     const gitHubRepositoryName = availablePlugins[pluginName].gitHubRepositoryName
     const gitHubRepositoryOwner = availablePlugins[pluginName].gitHubRepositoryOwner
+    
     try {
         const pluginReleasesResponse = await axios.get(`https://api.github.com/repos/${gitHubRepositoryOwner}/${gitHubRepositoryName}/releases`, {
             headers: {
@@ -95,6 +98,7 @@ async function downloadPlugin(pluginName: string) {
           })
         const pluginReleases = pluginReleasesResponse.data
         const assets = pluginReleases[0].assets
+        
         let platform = "macos"
         switch(os.platform()){
             case "win32": platform = "windows"; break;
@@ -105,14 +109,14 @@ async function downloadPlugin(pluginName: string) {
         const url = assets.find((e) => e.name.includes(platform)).browser_download_url
         const response = await axios({
           url: url,
-          responseType: 'arraybuffer',
+          responseType: "arraybuffer",
         });
     
         const zipPath = path.join(pluginFolder, `${pluginName}.zip`);
         fs.writeFileSync(zipPath, response.data);
     
         const zip = new AdmZip(zipPath);
-        zip.extractAllTo(path.join(pluginFolder, pluginName), true);
+        zip.extractAllTo(path.join(pluginFolder, pluginName), true, true);
     
         fs.unlinkSync(zipPath);
       } finally {
@@ -142,7 +146,7 @@ async function executeAction(pluginName: string, actionId: number, payload: any)
 
 function notifyListener() {
     const plugins = getAvailablePlugins()
-    messagePort.postMessage({type: 'plugins', plugins})
+    messagePort.postMessage({type: "plugins", plugins})
 }
 
 function getAvailablePlugins() {
@@ -155,7 +159,7 @@ function getAvailablePlugins() {
   
         let pluginName : string | undefined = undefined 
         if (fs.statSync(pluginPath).isDirectory()) {
-            const packageJsonPath = path.join(pluginPath, 'package.json');
+            const packageJsonPath = path.join(pluginPath, "package.json");
             if (fs.existsSync(packageJsonPath)) {
                 const packageJson = require(packageJsonPath);
                 pluginName = packageJson.description;
@@ -174,7 +178,7 @@ function getAvailablePlugins() {
             status = PluginStatus.Enabled
         } else if (markedForDeletionPlugins.has(key)) {
             status = PluginStatus.MarkedForDeletion
-        } else if (installedPlugins.filter((e) => e.pluginId == key).length > 0){
+        } else if (installedPlugins.filter((e) => e.pluginId === key).length > 0){
             status = PluginStatus.Downloaded
         } else if (downloadingPlugins.has(key)){
             status = PluginStatus.Downloading
@@ -188,7 +192,7 @@ function getAvailablePlugins() {
         }
     })
     for (const plugin of installedPlugins){
-        if (pluginList.filter(e => e.id == plugin.pluginId).length > 0) continue
+        if (pluginList.filter(e => e.id === plugin.pluginId).length > 0) continue
         let status: PluginStatus
         if (Object.keys(currentlyLoadedPlugins).includes(plugin.pluginId)){
             status = PluginStatus.Enabled
