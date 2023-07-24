@@ -1,50 +1,57 @@
+import { expect, test } from "@playwright/test";
+import {
+  clickMenuItemById,
+  findLatestBuild,
+  ipcMainCallFirstListener,
+  ipcRendererCallFirstListener,
+  parseElectronApp,
+  ipcMainInvokeHandler,
+  ipcRendererInvoke,
+} from "electron-playwright-helpers";
 import { _electron as electron } from "@playwright/test";
-import { test, expect } from "@playwright/test";
 
-/*
-let electronApp = undefined;
-let window = undefined;
+let electronApp;
 
-test.beforeEach(async () => {
-  electronApp = await electron.launch({ args: ["."] });
-  const appPath = await electronApp.evaluate(async ({ app }) => {
-    return app.getAppPath();
+test.beforeAll(async () => {
+  // find the latest build in the out directory
+  const latestBuild = findLatestBuild();
+  // parse the directory and find paths and other info
+  const appInfo = parseElectronApp(latestBuild);
+  // set the CI environment variable to true
+  //process.env.CI = "e2e";
+
+  electronApp = await electron.launch({
+    args: [appInfo.main],
+    executablePath: appInfo.executable,
   });
 
-  console.log(appPath);
-  window = await electronApp.firstWindow();
-  console.log(await window.title());
-});*/
+  electronApp.on("window", async (page) => {
+    const filename = page.url()?.split("/").pop();
+    console.log(`Window opened: ${filename}`);
 
-test.beforeEach(async ({ page }, testInfo) => {
-  // Extend timeout for all tests running this hook by 30 seconds.
-  test.setTimeout(24000);
+    // capture errors
+    page.on("pageerror", (error) => {
+      console.error(error);
+    });
+    // capture console messages
+    page.on("console", (msg) => {
+      console.log(msg.text());
+    });
+  });
 });
 
-test("Launch electron app", async () => {
-  // Launch Electron app.
-  const electronApp = await electron.launch({ args: ["src/electron/main.ts"] });
+/*
+test.afterAll(async () => {
+  await electronApp.close();
+});*/
 
-  // Evaluation expression in the Electron context.
-  const appPath = await electronApp.evaluate(async ({ app }) => {
-    // This runs in the main Electron process, parameter here is always
-    // the result of the require('electron') in the main app script.
-    return app.getAppPath();
-  });
-  console.log(appPath);
+let window;
 
-  // Get the first window that the app opens, wait if necessary.
-  const window = await electronApp.firstWindow({
-    timeout: 24000,
-  });
-  // Print the title.
+test("renders the first page", async () => {
+  window = await electronApp.firstWindow();
   console.log(await window.title());
   // Capture a screenshot.
   await window.screenshot({ path: "intro.png" });
   // Direct Electron console to Node terminal.
   window.on("console", console.log);
-  // Click button.
-  await window.click("text=Click me");
-  // Exit app.
-  await electronApp.close();
 });
