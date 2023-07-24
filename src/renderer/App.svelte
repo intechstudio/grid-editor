@@ -190,7 +190,7 @@
         </Pane>
 
         <Pane>
-          <GridLayout classes={"flex-1"} />
+          <GridLayout class="h-full w-full" />
         </Pane>
 
         <Pane
