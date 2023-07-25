@@ -98,6 +98,8 @@
     let max_y = 0;
     const rt = $runtime;
 
+    console.log(rt);
+
     rt.forEach((device, i) => {
       let connection_top = 0;
       let connection_bottom = 0;
@@ -362,7 +364,7 @@
         bind:clientWidth={map_w}
         bind:clientHeight={map_h}
         class="w-full h-full focus:outline-none border-none
-      outline-none justify-center items-center flex overflow-hidden"
+      outline-none justify-center items-center grid grid-cols-{$devices.length} overflow-hidden"
       >
         <div
           class="bg-red-300 p-1 flex"
@@ -378,24 +380,28 @@
           }}
         >
           {#each $devices as device}
-            <div
-              in:fly={{
-                x: -calculate_x(device.fly_x, device.fly_y),
-                y: -calculate_y(device.fly_x, device.fly_y),
-                duration: 500,
-              }}
-              out:fade={{ duration: 150 }}
-              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-              class="flex device transition-all duration-300"
-              class:fwMismatch={device.fwMismatch}
-            >
-              <Device
-                type={device.id.substr(0, 4)}
-                id={device.id}
-                rotation={device.rot +
-                  $appSettings.persistant.moduleRotation / 90}
-              />
-            </div>
+            {#if typeof device !== null}
+              <div
+                in:fly={{
+                  x: -calculate_x(device.fly_x, device.fly_y),
+                  y: -calculate_y(device.fly_x, device.fly_y),
+                  duration: 500,
+                }}
+                out:fade={{ duration: 150 }}
+                id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+                class="flex device transition-all duration-300"
+                class:fwMismatch={device.fwMismatch}
+              >
+                <Device
+                  type={device.id.substr(0, 4)}
+                  id={device.id}
+                  rotation={device.rot +
+                    $appSettings.persistant.moduleRotation / 90}
+                />
+              </div>
+            {:else}
+              <div>dummy</div>
+            {/if}
           {/each}
         </div>
       </div>
