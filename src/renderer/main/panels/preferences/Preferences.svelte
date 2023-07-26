@@ -245,7 +245,7 @@
       <div class="mb-1">Controller Scaling</div>
       <input
         type="range"
-        min="1.7"
+        min="0.5"
         max="2.6"
         step="0.1"
         bind:value={$appSettings.size}

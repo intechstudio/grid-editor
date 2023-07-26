@@ -100,12 +100,12 @@
           class="knob-and-led row-span-1"
           on:click={() => selectElement(elementNumber, "potentiometer", id)}
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Potentiometer
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber]}
-            size={$appSettings.size}
+            size={2.1}
           />
         </div>
       {/each}
@@ -118,13 +118,13 @@
           class="knob-and-led row-span-2"
           on:click={() => selectElement(elementNumber, "fader", id)}
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
           <Fader
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber]}
-            size={$appSettings.size}
+            size={2.1}
             rotation={rotation * -90}
             faderHeight={37}
           />
@@ -139,13 +139,13 @@
           class="knob-and-led row-span-1"
           on:click={() => selectElement(elementNumber, "button", id)}
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
           <Button
             {id}
             position={elementposition_array[elementNumber]}
             {elementNumber}
-            size={$appSettings.size}
+            size={2.1}
           />
         </div>
       {/each}

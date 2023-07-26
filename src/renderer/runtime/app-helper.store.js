@@ -81,7 +81,7 @@ export const splitpanes = createSplitPanes();
 
 function createAppSettingsStore(persistant) {
   const store = writable({
-    size: 2.1,
+    size: 1.0,
     version: {
       major: configuration.EDITOR_VERSION.split(".")[0],
       minor: configuration.EDITOR_VERSION.split(".")[1],

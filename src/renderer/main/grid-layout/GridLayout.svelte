@@ -1,5 +1,5 @@
 <script>
-  import { writable } from "svelte/store";
+  import { writable, derived } from "svelte/store";
 
   import { engine, runtime } from "../../runtime/runtime.store.js";
 
@@ -13,33 +13,8 @@
 
   const devices = writable([]);
 
-  function updateGridLayout() {
-    n = n_new;
-    m = m_new;
-  }
-
-  let [n, m] = [0, 0];
-  let [n_new, m_new] = [undefined, undefined];
-
-  $: if ($runtime.length > 0) {
+  $: {
     const rt = $runtime;
-    let min_x = Math.min(...rt.map((e) => e.dx));
-    let max_x = Math.max(...rt.map((e) => e.dx));
-    let min_y = Math.min(...rt.map((e) => e.dy));
-    let max_y = Math.max(...rt.map((e) => e.dy));
-
-    //Create an NxN matrix
-    n_new = Math.abs(min_x - max_x) + 1;
-    m_new = Math.abs(min_y - max_y) + 1;
-
-    //Arrival
-    if (n_new > n || m_new > m) {
-      updateGridLayout();
-    }
-
-    const newDevices = Array(m_new)
-      .fill(null)
-      .map(() => Array(n_new).fill(null));
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -62,18 +37,19 @@
       rt[i].fly_x_direction = connection_right - connection_left;
       rt[i].fly_y_direction = connection_top - connection_bottom;
       rt[i].type = rt[i].id.substr(0, 4);
-
-      const x = device.dx + Math.abs(min_x);
-      const y = device.dy + Math.abs(min_y);
-      newDevices[y][x] = device;
+      rt[i].shift_x = 200 * rt[i].dx;
+      rt[i].shift_y = 200 * rt[i].dy;
+      console.log(rt[i]);
     });
-
-    devices.set(newDevices.reverse().flat());
-  } else {
-    n = 0;
-    m = 0;
-    devices.set([]);
+    devices.set(rt);
   }
+
+  let scalingPercent = derived(
+    appSettings,
+    ($appSettings) => 1 * $appSettings.size
+  );
+
+  $: console.log($scalingPercent);
 </script>
 
 <layout-container
@@ -81,33 +57,30 @@
   class:pointer-events-none={$engine != "ENABLED"}
 >
   <div
-    class="absolute grid grid-cols-{n} gap-1 bg-lime-300 w-fit h-fit bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
+    style="transform: scale({$scalingPercent})"
+    class="absolute p-4 bg-lime-300 w-fit h-fit left-1/2 bottom-1/2 translate-x-1/2 -translate-y-1/2"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
-      {#if device !== null}
-        <div
-          in:fly={{
-            x: device.fly_x_direction * 100,
-            y: device.fly_y_direction * 100,
-            duration: 300,
-          }}
-          out:fade={{ duration: 150 }}
-          id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-          class="transition-all"
-          class:bg-error={device.fwMismatch}
-          class:rounded-lg={device.fwMismatch}
-          on:animationend={updateGridLayout}
-        >
-          <Device
-            type={device.type}
-            id={device.id}
-            rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
-          />
-        </div>
-      {:else}
-        <div class="w-full h-full invisible">Dummy (is not displayed)</div>
-      {/if}
+      <div
+        in:fly={{
+          x: device.fly_x_direction * 100,
+          y: device.fly_y_direction * 100,
+          duration: 300,
+        }}
+        out:fade={{ duration: 150 }}
+        id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+        style="top: {-device.dy * 230 + 'px'};left:{device.dx * 230 + 'px'};"
+        class="absolute"
+        class:bg-error={device.fwMismatch}
+        class:rounded-lg={device.fwMismatch}
+      >
+        <Device
+          type={device.type}
+          id={device.id}
+          rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
+        />
+      </div>
     {/each}
   </div>
 </layout-container>

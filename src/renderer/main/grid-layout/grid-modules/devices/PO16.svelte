@@ -102,12 +102,12 @@
           class="knob-and-led"
           on:click={() => selectElement(elementNumber, "potentiometer", id)}
         >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Potentiometer
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber]}
-            size={$appSettings.size}
+            size={2.1}
           />
         </div>
       {/each}
