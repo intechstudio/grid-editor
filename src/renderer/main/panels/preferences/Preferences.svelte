@@ -160,6 +160,53 @@
     );
   }
 
+  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences()
+
+  function refreshPluginPreferences() {
+    const loadedPlugins = $appSettings.persistant.enabledPlugins
+    const pluginListDiv = document.getElementById("pluginList")
+    if (!pluginListDiv) {
+      return
+    }
+    // Remove existing divs not found in the external set of IDs
+    const existingDivs = Array.from(pluginListDiv.children);
+    const existingDivIds = [] 
+    existingDivs.forEach((existingDiv) => {
+        if (!loadedPlugins.find((e) => e.id === existingDiv.id)){
+          existingDiv.remove();
+        } else {
+          existingDivIds.push(existingDiv.id)
+        }
+    });
+
+    function executeScriptElements(containerElement) {
+      const scriptElements = containerElement.querySelectorAll('script');
+
+      Array.from(scriptElements).forEach((scriptElement) => {
+        const clonedElement = document.createElement('script');
+
+        Array.from(scriptElement.attributes).forEach((attribute) => {
+          clonedElement.setAttribute(attribute.name, attribute.value);
+        });
+
+        clonedElement.text = scriptElement.text;
+
+        scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
+      });
+    }
+
+    for (const plugin of loadedPlugins){
+      if (!existingDivIds.includes(plugin.id)){
+        const tempContainer = document.createElement("div")
+        tempContainer.id = plugin.id
+        tempContainer.innerHTML = plugin.preferenceHtml
+        pluginListDiv.appendChild(tempContainer)
+        executeScriptElements(tempContainer)
+      }
+    }
+    pluginListDiv.style.display = pluginListDiv.childElementCount == 0 ? "none" : "block"
+  }
+
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
       get(appSettings).persistant.profileFolder
@@ -191,9 +238,6 @@
   }
 
   function setHelperName() {}
-
-  let pluginPreferenceComponents = []
-  let loadedPluginPreferences = []
 
 </script>
 
@@ -475,14 +519,13 @@
       <input
         class="bg-primary my-1"
         type="checkbox"
-        checked={plugin.status == 'Enabled'}
-        style="visibility:{plugin.status == 'Downloaded' || plugin.status == 'Enabled' ? 'visible' : 'hidden'}"
+        checked={plugin.status === 'Enabled'}
+        style="visibility:{plugin.status === 'Downloaded' || plugin.status === 'Enabled' ? 'visible' : 'hidden'}"
         on:change={async e => {
           if (e.target.checked){
-            window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id})
+            window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
           } else {
             window.pluginManagerPort.postMessage({type: 'unload-plugin', id : plugin.id})
-            pluginPreferenceComponents = []
           }
         }}     
     />
@@ -509,9 +552,8 @@
     {/each}
   </div>
 
-  {#each pluginPreferenceComponents as preference}
-    <svelte:component this={preference} sendMessageToPlugin={(actionId, payload) => window.pluginManagerPort.postMessage({type: 'plugin-action', pluginId: 'plugin-active-win', actionId, payload})} />
-  {/each}
+  <div id="pluginList" class="p-4 bg-secondary rounded-lg flex flex-col mb-4"/>
+
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center mb-1">
       <label class="mx-1">

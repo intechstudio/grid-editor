@@ -116,16 +116,13 @@
       window.pluginManagerPort = port
       port.onmessage = (event) => {
         const data = event.data;
-        console.log(`MESSAGE FROM PORT: ${JSON.stringify(data)}`);
+        console.log(data)
         if (data.type == 'plugin-action'){
           if (data.id == 'change-page'){
             runtime.change_page(data.num)
           } else if (data.id == 'persist-data') {
             appSettings.update((s) => {
-              let dataCopy = Object.create(data)
-              delete dataCopy.id
-              delete dataCopy.pluginId
-              s.persistant.pluginsDataStorage[data.pluginId] = dataCopy
+              s.persistant.pluginsDataStorage[data.pluginId] = data.data
               return s
             })
           }
@@ -144,7 +141,12 @@
         port.postMessage({type: 'uninstall-plugin', id : plugin.id})
       }
       for (const plugin of ($appSettings.persistant.enabledPlugins ?? [])){
-        port.postMessage({type: 'load-plugin', id : plugin.id})
+        port.postMessage({type: 'load-plugin', id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
+      }
+      window.createPluginMessagePort = (id) => {
+        const channel = new MessageChannel()
+        port.postMessage({type: "create-plugin-message-port", id}, [channel.port1])
+        return channel.port2
       }
     }
   }
@@ -188,9 +190,6 @@
   let testy = "test";
 
   onMount(() => {});
-  onDestroy(() => {
-    unsubscriber()
-  })
 </script>
 
 <Monster

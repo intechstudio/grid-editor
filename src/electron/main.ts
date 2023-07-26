@@ -67,8 +67,6 @@ let mainWindow;
 
 let tray = null;
 
-const {port1, port2} = new MessageChannelMain()
-
 function create_tray() {
   /* ===============================================================================
 // Conde snippet to generate JSON file from PNG. Use this when creating a new icon
@@ -287,17 +285,11 @@ function createWindow() {
   });
 
   // Handle plugin configuration, action
-  mainWindow.webContents.postMessage('plugin-manager-port', null, [port1])
-  /*mainWindow.webContents.on("did-finish-load", () => {
-    setPluginController({
-      sendMessageToRuntime: function (payload: any): void {
-        mainWindow.webContents.send('sendMessageToRuntime', payload);
-      },
-      pluginListChanged: function (plugins: { id: string; name: string; isLoaded: boolean; preference: string }[]): void {
-        mainWindow.webContents.send('sendPluginList', plugins);
-      }
-    })
-  })*/
+  mainWindow.webContents.on("did-finish-load", () => {
+    const {port1, port2} = new MessageChannelMain()
+    setPluginManagerMessagePort(port2)
+    mainWindow.webContents.postMessage('plugin-manager-port', null, [port1])
+  })
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
@@ -557,8 +549,6 @@ ipcMain.on("restartApp", (event, arg) => {
     app.exit();
   }
 });
-
-setPluginManagerMessagePort(port2)
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
