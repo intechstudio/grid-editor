@@ -8,8 +8,6 @@
     user_input,
   } from "../../../../runtime/runtime.store.js";
 
-  let manage = false;
-
   let selectedPage = undefined;
   function handleSelectPage(page) {
     if (get(unsaved_changes) == 0) {
@@ -40,11 +38,16 @@
       on:click={() => {
         handleSelectPage(page);
       }}
-      class=" {selectedPage == page
-        ? 'bg-secondary  text-white'
-        : 'hover:bg-secondary hover:opacity-50 text-gray-50'} relative py-1 px-8 focus:outline-none flex-grow border-0 text-gray-50"
+      class="{selectedPage == page
+        ? 'bg-secondary rounded-t'
+        : 'hover:bg-secondary hover:bg-opacity-50 transition-colors duration-75'} py-1 px-8 group"
     >
-      <span>Page {page + 1}</span>
+      <span
+        class="{selectedPage == page
+          ? 'text-white'
+          : 'text-gray-300 group-hover:text-white transition-colors duration-100'} "
+        >Page {page + 1}</span
+      >
     </button>
   {/each}
 </page-controller>

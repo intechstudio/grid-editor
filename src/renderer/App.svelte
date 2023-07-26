@@ -1,18 +1,9 @@
 <script>
-  /*
-   *   tailwindcss
-   */
-
   import "./app.css";
-
-  /**
-   *  svelte UI parts and components
-   */
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
   import { onMount } from "svelte";
-  import { get } from "svelte/store";
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
@@ -54,6 +45,13 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
+  import Pages from "./main/panels/configuration/components/Pages.svelte";
+  import CursorLog from "./main/user-interface/cursor-log/CursorLog.svelte";
+  import Tracker from "./main/user-interface/Tracker.svelte";
+  import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
+  import ConnectModule from "./main/user-interface/ConnectModule.svelte";
+  import { runtime } from "./runtime/runtime.store";
+  import { fly } from "svelte/transition";
 
   let modalComponents = {};
 
@@ -146,6 +144,13 @@
   }
 
   onMount(() => {});
+
+  let trackerVisible = true;
+
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
+  }
 </script>
 
 <Monster
@@ -189,8 +194,31 @@
           <LeftPanelContainer />
         </Pane>
 
-        <Pane>
-          <GridLayout class="h-full w-full" />
+        <Pane class="overflow-clip z-10">
+          <div class="flex flex-col h-full">
+            <Pages class="w-full" />
+
+            <ActiveChanges class="w-fit self-center" />
+
+            {#if $runtime.length === 0 && $appSettings.firmwareNotificationState === 0}
+              <ConnectModule />
+            {:else}
+              <GridLayout
+                class="flex flex-grow w-full bg-red-400 overflow-clip"
+              />
+            {/if}
+            <div
+              in:fly={{ x: -10 }}
+              out:fly={{ x: 10 }}
+              class="w-fit ml-auto mr-5 {trackerVisible ? '' : 'hidden'}"
+            >
+              <Tracker />
+            </div>
+            <CursorLog
+              class="self-center"
+              on:content-change={handleContentChange}
+            />
+          </div>
         </Pane>
 
         <Pane
@@ -206,6 +234,12 @@
 </main>
 
 <style global>
+  .grid-layout-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
   .splitpanes.modern-theme .splitpanes__pane {
     /*  @apply bg-secondary; */
     position: relative;
