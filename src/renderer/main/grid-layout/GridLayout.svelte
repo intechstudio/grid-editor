@@ -12,9 +12,28 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
 
   const devices = writable([]);
+  const deviceGap = 5;
+  const deviceWidth = 225 + deviceGap;
+
+  let deviceXcount = 0;
+  let deviceYcount = 0;
+  let shiftX = 0;
+  let shiftY = 0;
 
   $: {
     const rt = $runtime;
+    deviceXcount =
+      Math.abs(
+        Math.min(...rt.map((e) => e.dx)) + Math.max(...rt.map((e) => e.dx))
+      ) + 1;
+    deviceYcount =
+      Math.abs(
+        Math.min(...rt.map((e) => e.dy)) + Math.max(...rt.map((e) => e.dy))
+      ) + 1;
+    shiftX = (deviceXcount * deviceWidth) / 2;
+    shiftY = (deviceYcount * deviceWidth) / 2;
+
+    console.log(shiftX, shiftY);
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -39,8 +58,8 @@
       rt[i].type = rt[i].id.substr(0, 4);
       rt[i].shift_x = 200 * rt[i].dx;
       rt[i].shift_y = 200 * rt[i].dy;
-      console.log(rt[i]);
     });
+
     devices.set(rt);
   }
 
@@ -48,8 +67,6 @@
     appSettings,
     ($appSettings) => 1 * $appSettings.size
   );
-
-  $: console.log($scalingPercent);
 </script>
 
 <layout-container
@@ -57,8 +74,15 @@
   class:pointer-events-none={$engine != "ENABLED"}
 >
   <div
-    style="transform: scale({$scalingPercent})"
-    class="absolute p-4 bg-lime-300 w-fit h-fit left-1/2 bottom-1/2 translate-x-1/2 -translate-y-1/2"
+    style="
+      --device-width: {deviceWidth}px; 
+      --shift-x: -{shiftX}px; 
+      --shift-y: -{shiftY}px; 
+      --scaling-percent: {$scalingPercent};
+      width: calc({deviceXcount} * {deviceWidth}px);
+      height: calc({deviceYcount} * {deviceWidth}px);
+    "
+    class="left-1/2 bottom-1/2 centered transition-all duration-75"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
@@ -70,7 +94,9 @@
         }}
         out:fade={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-        style="top: {-device.dy * 230 + 'px'};left:{device.dx * 230 + 'px'};"
+        style="top: {-device.dy * deviceWidth + 'px'};left:{device.dx *
+          deviceWidth +
+          'px'};"
         class="absolute"
         class:bg-error={device.fwMismatch}
         class:rounded-lg={device.fwMismatch}
@@ -83,4 +109,15 @@
       </div>
     {/each}
   </div>
+  <slot />
 </layout-container>
+
+<style>
+  .centered {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(var(--shift-x), var(--shift-y))
+      scale(var(--scaling-percent));
+  }
+</style>

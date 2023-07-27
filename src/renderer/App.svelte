@@ -51,7 +51,7 @@
   import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
   import ConnectModule from "./main/user-interface/ConnectModule.svelte";
   import { runtime } from "./runtime/runtime.store";
-  import { fly } from "svelte/transition";
+  import { fade, blur, fly, slide, scale } from "svelte/transition";
 
   let modalComponents = {};
 
@@ -195,29 +195,42 @@
         </Pane>
 
         <Pane class="overflow-clip z-10">
-          <div class="flex flex-col h-full">
-            <Pages class="w-full" />
-
-            <ActiveChanges class="w-fit self-center" />
-
-            {#if $runtime.length === 0 && $appSettings.firmwareNotificationState === 0}
-              <ConnectModule />
-            {:else}
-              <GridLayout
-                class="flex flex-grow w-full bg-red-400 overflow-clip"
-              />
-            {/if}
+          <div class="h-full w-full relative">
             <div
-              in:fly={{ x: -10 }}
-              out:fly={{ x: 10 }}
-              class="w-fit ml-auto mr-5 {trackerVisible ? '' : 'hidden'}"
+              class="absolute bottom-0 top-0 flex w-full h-full overflow-clip items-center justify-center"
             >
-              <Tracker />
+              {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
+                <div
+                  in:fade={{ delay: 2000, duration: 1000 }}
+                  out:blur={{ duration: 150 }}
+                  class="self-center"
+                >
+                  <ConnectModule />
+                </div>
+              {:else}
+                <GridLayout class="relative w-full h-full flex flex-col">
+                  <Pages class="w-full" />
+
+                  <ActiveChanges class="w-fit self-center mt-10" />
+
+                  <div class="flex h-full">
+                    <div
+                      in:fly={{ x: -10 }}
+                      out:fly={{ x: 10 }}
+                      class="w-fit {trackerVisible
+                        ? ''
+                        : 'hidden'} absolute right-0 bottom-0 mb-12 mr-10"
+                    >
+                      <Tracker />
+                    </div>
+                    <CursorLog
+                      class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
+                      on:content-change={handleContentChange}
+                    />
+                  </div>
+                </GridLayout>
+              {/if}
             </div>
-            <CursorLog
-              class="self-center"
-              on:content-change={handleContentChange}
-            />
           </div>
         </Pane>
 
