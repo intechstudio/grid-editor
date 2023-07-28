@@ -112,7 +112,7 @@
 
 <!-- Button Hover -->
 {#if tooltip_text !== undefined}
-  <div
+  <button
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
       tooltip_isvisible = false;
@@ -124,7 +124,7 @@
     class="tooltipconfirm w-full flex h-full absolute right-0 top-0"
   >
     {#if tooltip_isvisible}
-      <div
+      <button
         bind:this={tooltip_element}
         on:click|stopPropagation={() => {}}
         style="z-index: 60; {tooltip_style}"
@@ -169,9 +169,9 @@
             />
           {/if}
         </div>
-      </div>
+      </button>
     {/if}
-  </div>
+  </button>
 {/if}
 
 <style>

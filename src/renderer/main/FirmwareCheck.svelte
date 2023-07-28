@@ -17,7 +17,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   import { fade } from "svelte/transition";
   import { escape } from "svelte/internal";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../runtime/analytics.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -81,8 +81,12 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
       // only if mismatch is not already detected
       if (fwMismatch === false) {
-        mixpanel.track("FirmwareCheck", {
-          message: "Mismatch Detected",
+        Analytics.track({
+          event: "FirmwareCheck",
+          payload: {
+            message: "Mismatch Detected",
+          },
+          mandatory: false,
         });
         fwMismatch = true;
       }
@@ -174,21 +178,31 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
   async function firmwareDownload() {
     const folder = $appSettings.persistant.profileFolder;
-
-    mixpanel.track("FirmwareCheck", {
-      message: "Firmware Download Start",
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        message: "Firmware Download Start",
+      },
+      mandatory: false,
     });
 
     await window.electron.firmware.firmwareDownload(folder);
-
-    mixpanel.track("FirmwareCheck", {
-      message: "Firmware Download Finished",
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        message: "Firmware Download Finished",
+      },
+      mandatory: false,
     });
   }
 
   async function firmwareTroubleshooting() {
-    mixpanel.track("FirmwareCheck", {
-      click: "Troubleshooting",
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        click: "Troubleshooting",
+      },
+      mandatory: false,
     });
 
     const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;

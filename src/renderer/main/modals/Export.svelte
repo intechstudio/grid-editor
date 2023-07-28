@@ -20,8 +20,7 @@
   }
 
   $: {
-    const data = $luadebug_store;
-    config = data.config !== undefined ? `${data.config}` : "<?lua ?>";
+    config = $luadebug_store.configScript;
   }
 </script>
 

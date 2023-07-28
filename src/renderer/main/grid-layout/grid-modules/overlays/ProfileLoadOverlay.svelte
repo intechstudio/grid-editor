@@ -3,7 +3,7 @@
   import { runtime, user_input } from "../../../../runtime/runtime.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../../runtime/analytics.js";
   export let id;
 
   let showOverlay = false;
@@ -43,12 +43,20 @@
   function loadProfileToThisModule() {
     selectModuleWhereProfileIsLoaded();
 
-    mixpanel.track("Profile Load Start", {});
+    Analytics.track({
+      event: "Profile Load Start",
+      payload: {},
+      mandatory: false,
+    });
 
     // to do.. if undefined configs
     runtime.whole_page_overwrite(selectedProfile.configs);
 
-    mixpanel.track("Profile Load Success", {});
+    Analytics.track({
+      event: "Profile Load Success",
+      payload: {},
+      mandatory: false,
+    });
   }
 
   function cancelProfileOverlay() {

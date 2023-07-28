@@ -21,6 +21,7 @@
     const components = getAllComponents();
     const new_config = components.find((e) => e.information.name === name);
     const obj = new ConfigObject({
+      parent: config.parent,
       short: new_config.information.short,
       script: new_config.information.defaultLua,
     });
@@ -137,7 +138,7 @@
         class:bg-opacity-30={toggled}
       >
         <!-- //TODO: Refactor out the special case of IF -->
-        {#if toggled || config.information.name === "Condition_If"}
+        {#if toggled || config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
           <container
             class="flex items-center h-full w-full pointer-events-auto"
           >

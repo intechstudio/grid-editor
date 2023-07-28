@@ -17,7 +17,7 @@
 
   import { addOnDoubleClick } from "../../_actions/add-on-double-click";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";

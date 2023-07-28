@@ -49,6 +49,7 @@
   import { localDefinitions } from "../runtime/runtime.store";
 
   import validate from "./_validators";
+  import TabButton from "../main/user-interface/TabButton.svelte";
 
   export let config = "";
   export let index;
@@ -97,22 +98,22 @@
     { name: "14 bit MIDI", component: "MidiFourteenBit" },
     { name: "MIDI SysEX", component: "MidiSysEx" },
   ];
+
+  function handleTabButtonClicked(element) {
+    dispatch("replace", element.component);
+  }
 </script>
 
-<action-midi class="flex flex-col w-full p-2">
+<action-midi class="flex flex-col w-full pb-2 px-2">
   {#if tabs !== undefined}
-    <div class="ml-auto flex flex-row">
-      {#each tabs as element, i}
-        <div
-          on:click={(e) => {
-            dispatch("replace", element.component);
-          }}
-          class="tab {config.information.name == element.component
-            ? 'selected'
-            : ''}"
-        >
-          {element.name}
-        </div>
+    <div class="ml-auto flex flex-row mb-2">
+      <div />
+      {#each tabs as element}
+        <TabButton
+          selected={config.information.name == element.component}
+          text={element.name}
+          on:click={() => handleTabButtonClicked(element)}
+        />
       {/each}
     </div>
   {/if}

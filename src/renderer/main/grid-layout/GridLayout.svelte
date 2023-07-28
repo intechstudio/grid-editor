@@ -1,6 +1,6 @@
 <script>
   import createPanZoom from "panzoom";
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../runtime/analytics.js";
 
   import { writable, readable, derived, get } from "svelte/store";
 
@@ -30,6 +30,8 @@
   import instructions from "../../serialport/instructions";
 
   import Pages from "/main/panels/configuration/components/Pages.svelte";
+  import Tracker from "./Tracker.svelte";
+  import { logStreamStore } from "../user-interface/cursor-log/LogStream.store.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -46,6 +48,8 @@
 
   let surface_origin_x = 0;
   let surface_origin_y = 0;
+
+  let trackerVisible = true;
 
   // $appSettings.size
   $: gridsize = 2.1 * 106.6 + 10;
@@ -132,8 +136,12 @@
   }
 
   function refresh() {
-    mixpanel.track("No Module Connected", {
-      click: "Refresh",
+    Analytics.track({
+      event: "No Module Connected",
+      payload: {
+        click: "Refresh",
+      },
+      mandatory: false,
     });
 
     setTimeout(() => {
@@ -146,8 +154,12 @@
 
     window.electron.openInBrowser(url);
 
-    mixpanel.track("No Module Connected", {
-      click: "Troubleshooting",
+    Analytics.track({
+      event: "No Module Connected",
+      payload: {
+        click: "Troubleshooting",
+      },
+      mandatory: false,
     });
   }
 
@@ -180,8 +192,12 @@
       text: JSON.stringify(get(writeBuffer)).substring(0, 1000),
     });
 
-    mixpanel.track("Writebuffer", {
-      click: "Clear",
+    Analytics.track({
+      event: "Writebuffer",
+      payload: {
+        click: "Clear",
+      },
+      mandatory: false,
     });
 
     writeBuffer.clear();
@@ -189,8 +205,12 @@
   }
 
   function store() {
-    mixpanel.track("Page Config", {
-      click: "Store",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Store",
+      },
+      mandatory: false,
     });
 
     instructions.sendPageStoreToGrid();
@@ -199,17 +219,30 @@
   function clear() {
     instructions.sendPageClearToGrid();
 
-    mixpanel.track("Page Config", {
-      click: "Clear",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Clear",
+      },
+      mandatory: false,
     });
   }
 
   function discard() {
     instructions.sendPageDiscardToGrid();
 
-    mixpanel.track("Page Config", {
-      click: "Discard",
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Discard",
+      },
+      mandatory: false,
     });
+  }
+
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
   }
 </script>
 
@@ -497,10 +530,13 @@
         </div>
       {/if}
 
-      <div class="w-full flex flex-col items-center min-h-fit mt-auto">
+      <div class="w-full flex flex-col items-center min-h-fit mt-auto mb-5">
         <div class="w-full flex flex-row items-center min-h-fit mt-auto" />
-
-        <CursorLog />
+        <Tracker
+          visible={trackerVisible}
+          class="absolute bottom-0 right-0 mb-7 mr-10"
+        />
+        <CursorLog on:content-change={handleContentChange} />
       </div>
     </grid-layout>
   </div>

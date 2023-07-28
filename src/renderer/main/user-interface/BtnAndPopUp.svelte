@@ -31,8 +31,8 @@
   {/if}
   <button
     on:click={handleClicked}
+    disabled={!enabled}
     class="{btnStyle} text-sm py-1 px-2 text-white focus:ring-1 focus:outline-none shadow border border-white border-opacity-5 hover:border-opacity-25"
-    class:opacity-50={!enabled}
   >
     <slot name="button" />
   </button>

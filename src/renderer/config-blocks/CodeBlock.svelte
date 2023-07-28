@@ -35,19 +35,17 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import { appSettings } from "../runtime/app-helper.store";
+  import { monaco_store } from "../main/modals/Monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
-  import { monaco_editor, monaco_languages } from "$lib/CustomMonaco";
+  import { monaco_editor } from "$lib/CustomMonaco";
+  import { committed_code_store } from "./Committed_Code.store";
 
   const dispatch = createEventDispatcher();
 
   export let config;
-  export let index;
-  export let advanced;
-  export let advancedClickAddon;
   export let access_tree;
-
-  let committedCode = "";
+  export let index;
 
   let codePreview;
 
@@ -79,8 +77,6 @@
 </g>
 </svg>`;
 
-  const creation_timestamp = Date.now();
-
   onDestroy(() => {
     codePreview.removeEventListener("wheel", (evt) => {
       evt.preventDefault();
@@ -88,15 +84,9 @@
     });
   });
 
-  onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
-    });
-
-    committedCode = config.script;
-
-    let human = stringManipulation.humanize(committedCode);
+  function displayConfigScript(script) {
+    if (typeof codePreview === "undefined") return;
+    let human = stringManipulation.humanize(String(script));
     let beautified = luamin.Beautify(human, {
       RenameVariables: false,
       RenameGlobals: false,
@@ -113,39 +103,28 @@
       theme: "my-theme",
       tabSize: 2,
     });
+  }
+
+  onMount(() => {
+    codePreview.addEventListener("wheel", (evt) => {
+      evt.preventDefault();
+      codePreview.scrollLeft += evt.deltaY;
+    });
+    displayConfigScript(config.script);
   });
 
-  $: if (
-    committedCode != $appSettings.monaco_code_committed &&
-    $appSettings.monaco_code_committed !== undefined
-  ) {
-    if ($appSettings.monaco_timestamp == creation_timestamp) {
-      committedCode = $appSettings.monaco_code_committed;
-      dispatch("output", { short: "cb", script: committedCode });
-
-      let human = stringManipulation.humanize(committedCode);
-      let beautified = luamin.Beautify(human, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
+  $: if (typeof $committed_code_store !== "undefined") {
+    if ($committed_code_store.index == index) {
+      dispatch("output", {
+        short: "cb",
+        script: $committed_code_store.script,
       });
-
-      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-
-      codePreview.innerHTML = beautified;
-      monaco_editor.colorizeElement(codePreview, {
-        theme: "my-theme",
-        tabSize: 2,
-      });
+      displayConfigScript($committed_code_store.script);
     }
   }
 
   function open_monaco() {
-    $appSettings.monaco_element = "encoder";
-
-    $appSettings.monaco_code_committed = committedCode;
-    $appSettings.monaco_timestamp = creation_timestamp;
-
+    $monaco_store = { config: config.makeCopy(), index: index };
     $monaco_elementtype = access_tree.elementtype;
     $appSettings.modal = "code";
   }

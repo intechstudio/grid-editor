@@ -9,7 +9,7 @@
   import { get } from "svelte/store";
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../../runtime/analytics.js";
 
   export let id;
   export let moduleWidth;
@@ -98,7 +98,11 @@
   function loadPreset(element) {
     selectModuleWhereProfileIsLoaded(element);
 
-    mixpanel.track("Preset Load Start", {});
+    Analytics.track({
+      event: "Preset Load Start",
+      payload: {},
+      mandatory: false,
+    });
 
     if (selectedPreset !== undefined) {
       const preset = selectedPreset;
@@ -112,9 +116,17 @@
       if (ui.event.elementtype == preset.type) {
         runtime.element_preset_load(preset);
 
-        mixpanel.track("Preset Load Success", {});
+        Analytics.track({
+          event: "Preset Load Success",
+          payload: {},
+          mandatory: false,
+        });
       } else {
-        mixpanel.track("Preset Load Mismatch", {});
+        Analytics.track({
+          event: "Preset Load Mismatch",
+          payload: {},
+          mandatory: false,
+        });
       }
     }
   }

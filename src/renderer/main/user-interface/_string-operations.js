@@ -22,7 +22,7 @@ const stringManipulation = {
         .map((v) =>
           type == "arithmetic_operator" || type == "relational_operator"
             ? `${"\\" + v.human}`
-            : `${"\\b" + v.human + "\\b"}`
+            : `${"\\b" + v.human + "\\b"}`,
         )
         .join("|");
       regex_short[type] = inputSet
@@ -30,7 +30,7 @@ const stringManipulation = {
         .map((v) =>
           type == "arithmetic_operator" || type == "relational_operator"
             ? `${"\\" + v.short}`
-            : `${"\\b" + v.short + "\\b"}`
+            : `${"\\b" + v.short + "\\b"}`,
         )
         .join("|");
       lookup[i] = inputSet
@@ -110,7 +110,7 @@ const stringManipulation = {
 
     for (const key in this.VALIDATOR[lookupType]) {
       pattern.push(
-        `${"(?<" + key + ">" + this.VALIDATOR[lookupType][key] + ")"}`
+        `${"(?<" + key + ">" + this.VALIDATOR[lookupType][key] + ")"}`,
       );
     }
 
@@ -315,7 +315,7 @@ const stringManipulation = {
 
     splitArray.forEach((element) => {
       const found = this.VALIDATOR.lookup.find(
-        (lookup_element) => lookup_element[lookupFormat] == element.value
+        (lookup_element) => lookup_element[lookupFormat] == element.value,
       );
 
       try {
@@ -408,7 +408,7 @@ const stringManipulation = {
         }
         validity.push(
           indices.length ===
-            this.VALIDATOR.functions.values[fn[0]].parameters.length - 1
+            this.VALIDATOR.functions.values[fn[0]].parameters.length - 1,
         );
       } else {
         validity.push(false);

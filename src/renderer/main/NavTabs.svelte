@@ -1,9 +1,7 @@
 <script>
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
-  import SvgIcon from "./user-interface/SvgIcon.svelte";
-
-  import TooltipSetter from "./user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "./user-interface/tooltip/Tooltip.svelte";
 
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "ProfileCloud";
@@ -108,7 +106,12 @@
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <TooltipSetter key={"sidebar_configuration_icon"} />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_configuration_icon"}
+      />
     </button>
 
     <button
@@ -157,7 +160,12 @@
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <TooltipSetter key={"sidebar_preferences_icon"} />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_preferences_icon"}
+      />
     </button>
   </div>
 
@@ -200,7 +208,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_new_profiles_icon"} />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_new_profiles_icon"}
+        />
       </button>
       <button
         on:click={() => {
@@ -240,7 +253,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_new_presets_icon"} />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_new_presets_icon"}
+        />
       </button>
     {:else if $appSettings.profileBrowserMode === "profileCloud"}
       <button
@@ -268,6 +286,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_profile_cloud_icon"}
+        />
       </button>
       <button
         on:click={() => {
@@ -307,7 +331,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_new_presets_icon"} />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_new_presets_icon"}
+        />
       </button>
     {:else if $appSettings.profileBrowserMode === "legacyLibrary"}
       <button
@@ -353,7 +382,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_presets_icon"} />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_presets_icon"}
+        />
       </button>
 
       <button
@@ -393,7 +427,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <TooltipSetter key={"sidebar_profiles_icon"} />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_profiles_icon"}
+        />
       </button>
     {/if}
 
@@ -447,7 +486,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <TooltipSetter key={"sidebar_debugger_icon"} />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_debugger_icon"}
+      />
     </button>
 
     <button
@@ -490,6 +534,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           'MIDI Monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+      />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_midi_monitor_icon"}
       />
     </button>
 
@@ -551,6 +601,12 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             'Websocket' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+        />
+        <Tooltip
+          nowrap={true}
+          placement={"right"}
+          instant={true}
+          key={"sidebar_websocket_monitor_icon"}
         />
       </button>
     {/if}

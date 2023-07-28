@@ -3,7 +3,7 @@
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   import { get } from "svelte/store";
 
@@ -137,7 +137,11 @@
   async function handleSubmitAnalytics(event) {
     if (event.data.channelMessageType == "SUBMIT_ANALYTICS") {
       const { payload, eventName } = event.data;
-      mixpanel.track(eventName, payload);
+      Analytics.track({
+        event: eventName,
+        payload: payload,
+        mandatory: false,
+      });
       return;
     }
   }

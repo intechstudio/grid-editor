@@ -361,7 +361,7 @@ function initialize_autocomplete() {
             suggestions: createProposals(range),
           };
         },
-      }
+      },
     );
   })();
 }

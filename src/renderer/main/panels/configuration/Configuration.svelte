@@ -1,7 +1,7 @@
 <script>
   import { get, writable } from "svelte/store";
 
-  import mixpanel from "mixpanel-browser";
+  import { Analytics } from "../../../runtime/analytics.js";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
@@ -26,6 +26,7 @@
     ConfigList,
     ConfigObject,
     ConfigTarget,
+    UnknownEventException,
   } from "./Configuration.store.js";
 
   import _utils from "../../../runtime/_utils.js";
@@ -145,23 +146,40 @@
     localDefinitions.update(list);
   }
 
-  $: if ($user_input) {
+  function handleUserInputchange() {
+    let target = ConfigTarget.getCurrent();
+    let list = undefined;
     try {
-      const target = ConfigTarget.getCurrent();
-      const list = ConfigList.createFrom(target);
-      if (typeof list === "undefined") {
-        throw "Error loading current config.";
-      }
-
-      configs.set(list);
-      toggleLastConfigs();
-      setSelectedEvent();
-      updateLuaDebugStore(list);
-      updateLocalSuggestions(list);
+      list = ConfigList.createFrom(target);
     } catch (e) {
-      console.error(`Configuration: ${e}`);
-      displayDefault();
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+        target.eventType = String(closestEvent);
+        list = ConfigList.createFrom(target);
+      } else {
+        //Unknown Error
+        console.error(`Configuration: ${e}`);
+        displayDefault();
+        return;
+      }
     }
+    configs.set(list);
+    toggleLastConfigs();
+    setSelectedEvent();
+    updateLuaDebugStore(list);
+    updateLocalSuggestions(list);
+    deselectAll();
+  }
+
+  $: if ($user_input) {
+    handleUserInputchange();
   }
 
   let animation = false;
@@ -308,8 +326,9 @@
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         //TODO: Refactor this out
-        $configs[index].short = newConfig.short;
-        $configs[index].script = newConfig.script;
+        if ($configs[index].short != newConfig.short) {
+          $configs[index] = newConfig;
+        } else $configs[index].script = newConfig.script;
 
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -406,7 +425,11 @@
       }
     }
 
-    const codeBlock = new ConfigObject({ short: "cb", script: script });
+    const codeBlock = new ConfigObject({
+      parent: list,
+      short: "cb",
+      script: script,
+    });
     const index = list.findIndex((e) => e.selected); //First
     list.splice(index, 0, codeBlock);
     list = list.filter((e) => !e.selected);
@@ -425,7 +448,11 @@
   function handleCut(e) {
     handleCopy(e);
     handleRemove(e);
-    mixpanel.track("Config Action", { click: "Cut" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Cut" },
+      mandatory: false,
+    });
   }
 
   function clearClipboard() {
@@ -440,7 +467,11 @@
       }
     }
     appActionClipboard.set(clipboard);
-    mixpanel.track("Config Action", { click: "Copy" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Copy" },
+      mandatory: false,
+    });
   }
 
   $: enablePaste = $appActionClipboard.length > 0;
@@ -469,7 +500,11 @@
         updateLocalSuggestions(list);
       })
       .catch((e) => handleError(e));
-    mixpanel.track("Config Action", { click: "Paste" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Paste" },
+      mandatory: false,
+    });
   }
 
   function toggleLastConfigs() {
@@ -498,7 +533,11 @@
         updateLocalSuggestions(list);
       })
       .catch((e) => handleError(e));
-    mixpanel.track("Config Action", { click: "Remove" });
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Remove" },
+      mandatory: false,
+    });
   }
 
   function deselectAll() {
@@ -647,7 +686,7 @@
               />
             {/if}
 
-            {#each $configs as config, index (config.id)}
+            {#each $configs as config, index (config)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade={{ delay: 0 }}
