@@ -180,10 +180,10 @@
     });
 
     function executeScriptElements(containerElement) {
-      const scriptElements = containerElement.querySelectorAll('script');
+      const scriptElements = containerElement.querySelectorAll("script");
 
       Array.from(scriptElements).forEach((scriptElement) => {
-        const clonedElement = document.createElement('script');
+        const clonedElement = document.createElement("script");
 
         Array.from(scriptElement.attributes).forEach((attribute) => {
           clonedElement.setAttribute(attribute.name, attribute.value);
@@ -196,13 +196,14 @@
     }
 
     for (const plugin of loadedPlugins){
-      if (!existingDivIds.includes(plugin.id)){
-        const tempContainer = document.createElement("div")
-        tempContainer.id = plugin.id
-        tempContainer.innerHTML = plugin.preferenceHtml
-        pluginListDiv.appendChild(tempContainer)
-        executeScriptElements(tempContainer)
-      }
+      if (!plugin.preferenceHtml) continue;
+      if (existingDivIds.includes(plugin.id)) continue;
+
+      const tempContainer = document.createElement("div")
+      tempContainer.id = plugin.id
+      tempContainer.innerHTML = plugin.preferenceHtml
+      pluginListDiv.appendChild(tempContainer)
+      executeScriptElements(tempContainer)
     }
     pluginListDiv.style.display = pluginListDiv.childElementCount == 0 ? "none" : "block"
   }
@@ -519,30 +520,30 @@
       <input
         class="bg-primary my-1"
         type="checkbox"
-        checked={plugin.status === 'Enabled'}
-        style="visibility:{plugin.status === 'Downloaded' || plugin.status === 'Enabled' ? 'visible' : 'hidden'}"
+        checked={plugin.status === "Enabled"}
+        style="visibility:{plugin.status === "Downloaded" || plugin.status === "Enabled" ? "visible" : "hidden"}"
         on:change={async e => {
           if (e.target.checked){
-            window.pluginManagerPort.postMessage({type: 'load-plugin', id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
+            window.pluginManagerPort.postMessage({type: "load-plugin", id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
           } else {
-            window.pluginManagerPort.postMessage({type: 'unload-plugin', id : plugin.id})
+            window.pluginManagerPort.postMessage({type: "unload-plugin", id : plugin.id})
           }
         }}     
     />
     <div class="mx-1">{plugin.name}</div>
     <div class="mx-1">
-      {#if plugin.status == 'Downloading' || plugin.status == 'Uninstalled' || plugin.status == 'MarkedForDeletion'}
+      {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
       <button 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={window.pluginManagerPort.postMessage({type: 'download-plugin', id : plugin.id})}
-        disabled={plugin.status == 'Downloading'}
+        on:click={window.pluginManagerPort.postMessage({type: "download-plugin", id : plugin.id})}
+        disabled={plugin.status == "Downloading"}
         >
         Download
         </button>  
       {:else}
       <button 
         class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={window.pluginManagerPort.postMessage({type: 'uninstall-plugin', id : plugin.id})}
+        on:click={window.pluginManagerPort.postMessage({type: "uninstall-plugin", id : plugin.id})}
         >
         Uninstall
         </button>

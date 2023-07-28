@@ -7,7 +7,7 @@ import {
   nativeImage,
   clipboard,
   shell,
-  MessageChannelMain
+  MessageChannelMain,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -136,7 +136,7 @@ if (!gotTheLock) {
           mainWindow.focus();
         }
       }
-    }
+    },
   );
 
   app.whenReady().then(() => {
@@ -192,7 +192,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    }
+    },
   );
 
   serial.mainWindow = mainWindow;
@@ -215,10 +215,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
     );
   }
 
@@ -249,7 +249,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    }
+    },
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -270,7 +270,7 @@ function createWindow() {
       ) {
         return true;
       }
-    }
+    },
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -286,10 +286,10 @@ function createWindow() {
 
   // Handle plugin configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
-    const {port1, port2} = new MessageChannelMain()
-    setPluginManagerMessagePort(port2)
-    mainWindow.webContents.postMessage('plugin-manager-port', null, [port1])
-  })
+    const { port1, port2 } = new MessageChannelMain();
+    setPluginManagerMessagePort(port2);
+    mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+  });
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
@@ -379,7 +379,7 @@ ipcMain.handle("saveConfig", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.user
+    arg.user,
   );
 });
 
@@ -390,7 +390,7 @@ ipcMain.handle("updateConfig", async (event, arg) => {
     arg.config,
     arg.rootDirectory,
     arg.oldName,
-    arg.profileFolder
+    arg.profileFolder,
   );
 });
 
@@ -400,7 +400,7 @@ ipcMain.handle("updateLocal", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.profileFolder
+    arg.profileFolder,
   );
 });
 
@@ -409,7 +409,7 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
     arg.configPath,
     arg.name,
     arg.rootDirectory,
-    arg.profileFolder
+    arg.profileFolder,
   );
 });
 

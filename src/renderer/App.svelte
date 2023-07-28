@@ -111,22 +111,22 @@
   });
 
   window.onmessage = (event) => {
-    if (event.source === window && event.data === 'plugin-manager-port') {
+    if (event.source === window && event.data === "plugin-manager-port") {
       const [ port ] = event.ports
       window.pluginManagerPort = port
       port.onmessage = (event) => {
         const data = event.data;
         console.log(data)
-        if (data.type == 'plugin-action'){
-          if (data.id == 'change-page'){
+        if (data.type == "plugin-action"){
+          if (data.id == "change-page"){
             runtime.change_page(data.num)
-          } else if (data.id == 'persist-data') {
+          } else if (data.id == "persist-data") {
             appSettings.update((s) => {
               s.persistant.pluginsDataStorage[data.pluginId] = data.data
               return s
             })
           }
-        } else if (data.type == 'plugins') {
+        } else if (data.type == "plugins") {
           const markedForDeletionPlugins = data.plugins.filter((e) => e.status == "MarkedForDeletion")
           const enabledPlugins = data.plugins.filter((e) => e.status == "Enabled")
           appSettings.update((s) => {
@@ -138,10 +138,10 @@
         }
       }
       for (const plugin of ($appSettings.persistant.markedForDeletionPlugins ?? [])){
-        port.postMessage({type: 'uninstall-plugin', id : plugin.id})
+        port.postMessage({type: "uninstall-plugin", id : plugin.id})
       }
       for (const plugin of ($appSettings.persistant.enabledPlugins ?? [])){
-        port.postMessage({type: 'load-plugin', id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
+        port.postMessage({type: "load-plugin", id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
       }
       window.createPluginMessagePort = (id) => {
         const channel = new MessageChannel()

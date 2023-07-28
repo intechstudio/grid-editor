@@ -64,7 +64,7 @@ contextBridge.exposeInMainWorld("electron", {
       config,
       rootDirectory,
       oldName,
-      profileFolder
+      profileFolder,
     ) =>
       ipcRenderer.invoke("updateConfig", {
         configPath,
@@ -124,11 +124,11 @@ contextBridge.exposeInMainWorld("electron", {
   },
 });
 
-const windowLoaded = new Promise(resolve => {
-  window.onload = resolve
-})
+const windowLoaded = new Promise((resolve) => {
+  window.onload = resolve;
+});
 
-ipcRenderer.on('plugin-manager-port', async (event) => {
-  await windowLoaded
-  window.postMessage('plugin-manager-port', '*', event.ports)
-})
+ipcRenderer.on("plugin-manager-port", async (event) => {
+  await windowLoaded;
+  window.postMessage("plugin-manager-port", "*", event.ports);
+});
