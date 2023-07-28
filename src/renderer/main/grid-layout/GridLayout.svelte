@@ -15,25 +15,27 @@
   const deviceGap = 5;
   const deviceWidth = 225 + deviceGap;
 
-  let deviceXcount = 0;
-  let deviceYcount = 0;
   let shiftX = 0;
   let shiftY = 0;
 
   $: {
     const rt = $runtime;
-    deviceXcount =
-      Math.abs(
-        Math.min(...rt.map((e) => e.dx)) + Math.max(...rt.map((e) => e.dx))
-      ) + 1;
-    deviceYcount =
-      Math.abs(
-        Math.min(...rt.map((e) => e.dy)) + Math.max(...rt.map((e) => e.dy))
-      ) + 1;
-    shiftX = (deviceXcount * deviceWidth) / 2;
-    shiftY = (deviceYcount * deviceWidth) / 2;
+    const min_x = Math.min(...rt.map((e) => e.dx));
+    const max_x = Math.max(...rt.map((e) => e.dx));
+    const min_y = Math.min(...rt.map((e) => e.dy));
+    const max_y = Math.max(...rt.map((e) => e.dy));
 
-    console.log(shiftX, shiftY);
+    //Initial center shift
+    shiftX = -deviceWidth / 2;
+    shiftY = -deviceWidth / 2;
+
+    //And the other
+    shiftX -= (deviceWidth / 2) * (min_x + max_x);
+    shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+
+    //Add scaling
+    //shiftX *= $scalingPercent;
+    //shiftY *= $scalingPercent;
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -56,8 +58,8 @@
       rt[i].fly_x_direction = connection_right - connection_left;
       rt[i].fly_y_direction = connection_top - connection_bottom;
       rt[i].type = rt[i].id.substr(0, 4);
-      rt[i].shift_x = 200 * rt[i].dx;
-      rt[i].shift_y = 200 * rt[i].dy;
+      rt[i].shift_x = deviceWidth * rt[i].dx;
+      rt[i].shift_y = -deviceWidth * rt[i].dy;
     });
 
     devices.set(rt);
@@ -65,7 +67,7 @@
 
   let scalingPercent = derived(
     appSettings,
-    ($appSettings) => 1 * $appSettings.size
+    ($appSettings) => 1 * $appSettings.persistant.size
   );
 </script>
 
@@ -76,13 +78,11 @@
   <div
     style="
       --device-width: {deviceWidth}px; 
-      --shift-x: -{shiftX}px; 
-      --shift-y: -{shiftY}px; 
+      --shift-x: {shiftX}px; 
+      --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
-      width: calc({deviceXcount} * {deviceWidth}px);
-      height: calc({deviceYcount} * {deviceWidth}px);
     "
-    class="left-1/2 bottom-1/2 centered transition-all duration-75"
+    class="absolute centered transition-all duration-75 w-[300px] h-[300px]"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
@@ -94,9 +94,7 @@
         }}
         out:fade={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-        style="top: {-device.dy * deviceWidth + 'px'};left:{device.dx *
-          deviceWidth +
-          'px'};"
+        style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
         class="absolute"
         class:bg-error={device.fwMismatch}
         class:rounded-lg={device.fwMismatch}
@@ -114,10 +112,10 @@
 
 <style>
   .centered {
-    position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(var(--shift-x), var(--shift-y))
-      scale(var(--scaling-percent));
+    transform-origin: top left;
+    transform: scale(var(--scaling-percent))
+      translate(var(--shift-x), var(--shift-y));
   }
 </style>

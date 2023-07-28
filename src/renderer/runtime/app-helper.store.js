@@ -5,6 +5,7 @@ const configuration = window.ctxProcess.configuration();
 
 const persistant = {
   userId: "",
+  size: 1.0,
   wssPort: 1337,
   moduleRotation: 0,
   welcomeOnStartup: true,
@@ -81,7 +82,6 @@ export const splitpanes = createSplitPanes();
 
 function createAppSettingsStore(persistant) {
   const store = writable({
-    size: 1.0,
     version: {
       major: configuration.EDITOR_VERSION.split(".")[0],
       minor: configuration.EDITOR_VERSION.split(".")[1],
