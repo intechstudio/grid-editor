@@ -1,30 +1,36 @@
 <script>
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { fade, slide, scale } from "svelte/transition";
-  import { backIn, backOut } from "svelte/easing";
+  import { fade, scale } from "svelte/transition";
+  import { backOut } from "svelte/easing";
 
   import { clickOutside } from "../_actions/click-outside.action";
-
-  let feedback = {
-    title: "",
-    text: "",
-  };
+  import { Analytics } from "../../runtime/analytics.js";
 
   let textArea = undefined;
+  let inputField = undefined;
 
   onMount(() => {
     textArea.focus();
   });
 
   async function sendFeedback() {
-    showThankYou = !showThankYou;
-    return;
+    feedbackSubmitted = true;
+    setTimeout(handleClose, 3000);
+    const [title, text] = [inputField.value, textArea.value];
     await window.electron.discord.sendMessage({
-      title: feedback.title.value,
-      text: feedback.text.value,
+      title: title,
+      text: text,
     });
-    thank_you = "Thank you for your feedback!";
+
+    Analytics.track({
+      event: "Feedback",
+      payload: {
+        title: title,
+        text: text,
+      },
+      mandatory: true,
+    });
   }
 
   function handleClose(e) {
@@ -32,13 +38,12 @@
   }
 
   function handleClickOutside(e) {
-    console.log(textArea.value.length);
     if (textArea.value === "") {
       handleClose(e);
     }
   }
 
-  let showThankYou = false;
+  let feedbackSubmitted = false;
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -92,7 +97,7 @@ bg-opacity-100 overflow-auto rounded-lg"
       <div class="flex flex-col gap-1">
         <div class="text-gray-500">Feedback Context:</div>
         <input
-          bind:this={feedback.title}
+          bind:this={inputField}
           class="bg-secondary p-2 text-white"
           type="text"
           value={$appSettings.feedback_context}
@@ -104,26 +109,14 @@ bg-opacity-100 overflow-auto rounded-lg"
           <textarea
             bind:this={textArea}
             class="bg-secondary p-2 w-full h-full text-white outline-none"
-          >
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam quis
-            justo tortor. Sed ac augue luctus, elementum purus eget, ultricies
-            est. Nulla facilisi. Ut malesuada gravida velit. Nulla pharetra
-            iaculis lacus. Proin ut metus vel quam porttitor malesuada.
-            Phasellus posuere et nunc eget commodo. Morbi condimentum nibh
-            accumsan, fringilla augue sed, tincidunt felis. Aliquam lectus nisi,
-            faucibus ac volutpat eget, egestas vel ligula. Morbi pellentesque
-            maximus ante, nec fermentum justo eleifend in. Cras varius mi ut
-            eros feugiat feugiat. Morbi vitae leo in est finibus lobortis eu sit
-            amet nisl. Phasellus condimentum venenatis urna, ac luctus ipsum
-            luctus eu. Etiam cursus ligula vitae sem feugiat venenatis.
-          </textarea>
-          {#if showThankYou}
+          />
+          {#if feedbackSubmitted}
             <div
-              transition:fade={{ duration: 100 }}
+              in:fade={{ duration: 100 }}
               class="bg-primary bg-opacity-50 absolute flex w-full h-full justify-center items-center backdrop-blur-sm"
             >
               <span
-                transition:scale={{
+                in:scale={{
                   start: 0.5,
                   easing: backOut,
                   duration: 300,
@@ -137,8 +130,11 @@ bg-opacity-100 overflow-auto rounded-lg"
       <button
         on:click={sendFeedback}
         id="close-btn"
-        class="py-2 px-8 w-fit rounded not-draggable hover:bg-commit
-        bg-secondary disabled:bg-secondary transition-colors duration-75"
+        class="py-2 px-8 w-fit rounded not-draggable
+        bg-secondary transition-colors duration-75"
+        class:hover:bg-commit={!feedbackSubmitted}
+        class:opacity-50={feedbackSubmitted}
+        class:cursor-default={feedbackSubmitted}
       >
         <span class="text-white">Submit Feedback!</span>
       </button>
