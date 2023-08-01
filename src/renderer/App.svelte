@@ -194,43 +194,41 @@
           <LeftPanelContainer />
         </Pane>
 
-        <Pane class="overflow-clip z-10">
-          <div class="h-full w-full relative">
-            <div
-              class="absolute bottom-0 top-0 flex w-full h-full overflow-clip items-center justify-center"
-            >
+        <Pane class="overflow-clip z-10 w-full h-full">
+          <div
+            class="relative flex w-full h-full overflow-clip items-center justify-center"
+          >
+            <GridLayout class="relative w-full h-full flex flex-col">
+              <Pages class="w-full" />
+
+              <ActiveChanges class="w-fit self-center mt-10" />
+
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
                 <div
                   in:fade={{ delay: 2000, duration: 1000 }}
                   out:blur={{ duration: 150 }}
-                  class="self-center"
+                  class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
                 >
                   <ConnectModule />
                 </div>
-              {:else}
-                <GridLayout class="relative w-full h-full flex flex-col">
-                  <Pages class="w-full" />
-
-                  <ActiveChanges class="w-fit self-center mt-10" />
-
-                  <div class="flex h-full">
-                    <div
-                      in:fly={{ x: -10 }}
-                      out:fly={{ x: 10 }}
-                      class="w-fit {trackerVisible
-                        ? ''
-                        : 'hidden'} absolute right-0 bottom-0 mb-12 mr-10"
-                    >
-                      <Tracker />
-                    </div>
-                    <CursorLog
-                      class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
-                      on:content-change={handleContentChange}
-                    />
-                  </div>
-                </GridLayout>
               {/if}
-            </div>
+
+              <div class="flex h-full">
+                <div
+                  in:fly={{ x: -10 }}
+                  out:fly={{ x: 10 }}
+                  class="w-fit {trackerVisible
+                    ? ''
+                    : 'hidden'} absolute right-0 bottom-0 mb-12 mr-10"
+                >
+                  <Tracker />
+                </div>
+                <CursorLog
+                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
+                  on:content-change={handleContentChange}
+                />
+              </div>
+            </GridLayout>
           </div>
         </Pane>
 
