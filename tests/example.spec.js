@@ -14,11 +14,13 @@ let electronApp;
 
 test.beforeAll(async () => {
   // find the latest build in the out directory
-  const latestBuild = findLatestBuild();
+  const latestBuild = findLatestBuild("build");
   // parse the directory and find paths and other info
   const appInfo = parseElectronApp(latestBuild);
   // set the CI environment variable to true
   //process.env.CI = "e2e";
+
+  console.log(appInfo);
 
   electronApp = await electron.launch({
     args: [appInfo.main],
