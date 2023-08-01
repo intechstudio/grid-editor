@@ -20,22 +20,20 @@
 
   $: {
     const rt = $runtime;
-    const min_x = Math.min(...rt.map((e) => e.dx));
-    const max_x = Math.max(...rt.map((e) => e.dx));
-    const min_y = Math.min(...rt.map((e) => e.dy));
-    const max_y = Math.max(...rt.map((e) => e.dy));
-
     //Initial center shift
     shiftX = -deviceWidth / 2;
     shiftY = -deviceWidth / 2;
 
-    //And the other
-    shiftX -= (deviceWidth / 2) * (min_x + max_x);
-    shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+    if (rt.length > 0) {
+      //And the other
+      const min_x = Math.min(...rt.map((e) => e.dx));
+      const max_x = Math.max(...rt.map((e) => e.dx));
+      const min_y = Math.min(...rt.map((e) => e.dy));
+      const max_y = Math.max(...rt.map((e) => e.dy));
 
-    //Add scaling
-    //shiftX *= $scalingPercent;
-    //shiftY *= $scalingPercent;
+      shiftX -= (deviceWidth / 2) * (min_x + max_x);
+      shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+    }
 
     rt.forEach((device, i) => {
       let connection_top = 0;
@@ -57,6 +55,7 @@
 
       rt[i].fly_x_direction = connection_right - connection_left;
       rt[i].fly_y_direction = connection_top - connection_bottom;
+
       rt[i].type = rt[i].id.substr(0, 4);
       rt[i].shift_x = deviceWidth * rt[i].dx;
       rt[i].shift_y = -deviceWidth * rt[i].dy;
@@ -82,7 +81,7 @@
       --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
     "
-    class="absolute centered transition-all duration-75 w-[300px] h-[300px]"
+    class="absolute centered duration-75 transition-all"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
