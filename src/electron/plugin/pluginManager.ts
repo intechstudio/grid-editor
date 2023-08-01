@@ -3,7 +3,6 @@ import fs from "fs";
 import { MessagePortMain } from "electron/main";
 import AdmZip from "adm-zip";
 import os from "os";
-import { app } from "electron";
 import util from "util";
 import fetch from "node-fetch";
 
@@ -15,13 +14,17 @@ enum PluginStatus {
   MarkedForDeletion = "MarkedForDeletion",
 }
 
-const pluginFolder = path.resolve(
-  path.join(app.getPath("documents"), "grid-userdata", "plugins"),
-);
+let pluginFolder : string = "";
 
-if (!fs.existsSync(pluginFolder)) {
-  fs.mkdirSync(pluginFolder, { recursive: true });
-}
+process.parentPort.on("message", (e) => {
+  pluginFolder = e.data.pluginFolder
+  if (!fs.existsSync(pluginFolder)) {
+    fs.mkdirSync(pluginFolder, { recursive: true });
+  }
+  
+  const port = e.ports[0]
+  setPluginManagerMessagePort(port)
+});
 
 const availablePlugins = {
   "plugin-active-win": {
@@ -39,7 +42,7 @@ const downloadingPlugins = new Set<string>();
 
 let messagePort: MessagePortMain;
 
-export function setPluginManagerMessagePort(port: MessagePortMain) {
+function setPluginManagerMessagePort(port: MessagePortMain) {
   messagePort = port;
   messagePort.on("message", async (event) => {
     try {
@@ -61,6 +64,7 @@ export function setPluginManagerMessagePort(port: MessagePortMain) {
           await notifyListener();
           break;
         case "create-plugin-message-port":
+          messagePort.postMessage({ type: "debug-error", keys: Object.keys(currentlyLoadedPlugins), id: data.id });
           await currentlyLoadedPlugins[data.id].addMessagePort(
             event.ports?.[0],
           );
@@ -75,27 +79,34 @@ export function setPluginManagerMessagePort(port: MessagePortMain) {
 }
 
 async function loadPlugin(pluginName: string, persistedData: any) {
-  if (currentlyLoadedPlugins[pluginName]) {
-    return true;
-  }
+  try {
+    if (currentlyLoadedPlugins[pluginName]) {
+      return true;
+    }
 
-  const pluginDirectory = path.join(pluginFolder, pluginName);
-  const plugin = require(pluginDirectory);
-  await plugin.loadPlugin(
-    {
-      sendMessageToRuntime: (payload) => {
-        messagePort.postMessage({
-          type: "plugin-action",
-          pluginId: pluginName,
-          ...payload,
-        });
+    const pluginDirectory = path.join(pluginFolder, pluginName);
+    const plugin = require(pluginDirectory);
+    await plugin.loadPlugin(
+      {
+        sendMessageToRuntime: (payload) => {
+          messagePort.postMessage({
+            type: "plugin-action",
+            pluginId: pluginName,
+            ...payload,
+          });
+        },
       },
-    },
-    persistedData,
-  );
-  currentlyLoadedPlugins[pluginName] = plugin;
-  haveBeenLoadedPlugins.add(pluginName);
-  notifyListener();
+      persistedData,
+    );
+    currentlyLoadedPlugins[pluginName] = plugin;
+    haveBeenLoadedPlugins.add(pluginName);
+    notifyListener();
+  } catch (e) {
+    messagePort.postMessage({
+      type: "plugin-error",
+      error: e.message,
+    });
+  }
   return true;
 }
 

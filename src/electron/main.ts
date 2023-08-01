@@ -8,12 +8,12 @@ import {
   clipboard,
   shell,
   MessageChannelMain,
+  utilityProcess,
 } from "electron";
 import path from "path";
 import log from "electron-log";
 import fs from "fs";
 import { autoUpdater } from "electron-updater";
-import { spawn } from "child_process";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
@@ -51,7 +51,7 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
-import { setPluginManagerMessagePort } from "./plugin/pluginManager";
+//import { setPluginManagerMessagePort } from "./plugin/pluginManager";
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
@@ -293,8 +293,13 @@ function createWindow() {
   // Handle plugin configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     const { port1, port2 } = new MessageChannelMain();
-    setPluginManagerMessagePort(port2);
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+    const process = utilityProcess.fork(path.resolve(path.join(__dirname, './pluginManager.js')));
+    process.postMessage({
+      pluginFolder: path.resolve(
+        path.join(app.getPath("documents"), "grid-userdata", "plugins"),
+      )
+    }, [port2]);
   });
 }
 
