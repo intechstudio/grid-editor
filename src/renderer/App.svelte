@@ -49,7 +49,7 @@
   import CursorLog from "./main/user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./main/user-interface/Tracker.svelte";
   import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
-  import ConnectModule from "./main/user-interface/ConnectModule.svelte";
+  import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
   import { runtime } from "./runtime/runtime.store";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
@@ -194,14 +194,14 @@
           <LeftPanelContainer />
         </Pane>
 
-        <Pane class="overflow-clip z-10 w-full h-full">
+        <Pane class="overflow-clip w-full h-full">
           <div
             class="relative flex w-full h-full overflow-clip items-center justify-center"
           >
-            <GridLayout class="relative w-full h-full flex flex-col">
-              <Pages class="w-full" />
+            <GridLayout class="relative w-full h-full flex flex-col z-1">
+              <Pages class="w-full z-10" />
 
-              <ActiveChanges class="w-fit self-center mt-10" />
+              <ActiveChanges class="w-fit self-center mt-10 z-10" />
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
                 <div
@@ -209,11 +209,11 @@
                   out:blur={{ duration: 150 }}
                   class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
                 >
-                  <ConnectModule />
+                  <ModulConnectionDialog />
                 </div>
               {/if}
 
-              <div class="flex h-full">
+              <div class="flex h-ful z-10l">
                 <div
                   in:fly={{ x: -10 }}
                   out:fly={{ x: 10 }}
@@ -245,12 +245,6 @@
 </main>
 
 <style global>
-  .grid-layout-container {
-    position: relative;
-    display: flex;
-    justify-content: center;
-  }
-
   .splitpanes.modern-theme .splitpanes__pane {
     /*  @apply bg-secondary; */
     position: relative;

@@ -170,7 +170,6 @@
           }}
           on:change={(e) => {
             let newValue = e.detail;
-            console.log("yay");
             sendData(newValue, i);
           }}
         />

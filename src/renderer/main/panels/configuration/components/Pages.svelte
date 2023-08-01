@@ -32,7 +32,7 @@
   }
 </script>
 
-<page-controller class="{$$props.class} grid-last-auto bg-primary">
+<page-controller class="{$$props.class} flex flex-row bg-primary">
   {#each [0, 1, 2, 3] as page}
     <button
       on:click={() => {
@@ -50,18 +50,5 @@
       >
     </button>
   {/each}
+  <div class="hidden">Dummy for layout reasons (hidden)</div>
 </page-controller>
-
-<style>
-  .grid-last-auto {
-    display: grid;
-    grid-auto-flow: column;
-    /* Define the columns to take up as much as their content */
-    grid-template-columns: repeat(auto-fit, minmax(0, max-content));
-  }
-
-  .grid-last-auto > :last-child {
-    /* The last grid cell will take up all the remaining space */
-    grid-column: span 1;
-  }
-</style>

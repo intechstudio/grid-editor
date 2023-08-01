@@ -8,10 +8,10 @@
   } from "../../runtime/runtime.store";
   import { writeBuffer } from "../../runtime/engine.store";
   import { Analytics } from "../../runtime/analytics.js";
-  import { writable, derived, get } from "svelte/store";
+  import { derived, get } from "svelte/store";
   import instructions from "../../serialport/instructions";
 
-  const isStoreEnabled = writable(false);
+  let isStoreEnabled = false;
 
   const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
     return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
@@ -25,7 +25,7 @@
     );
   }
 
-  $: isStoreEnabled.set($engine == "ENABLED" && $totalChanges > 0);
+  $: isStoreEnabled = $engine == "ENABLED" && $totalChanges > 0;
 
   async function debugWriteBuffer() {
     window.electron.discord.sendMessage({
@@ -46,7 +46,7 @@
   }
 
   function handleStore() {
-    if ($isStoreEnabled) {
+    if (isStoreEnabled) {
       Analytics.track({
         event: "Page Config",
         payload: {
@@ -72,7 +72,7 @@
   }
 
   function handleDiscard() {
-    if ($isStoreEnabled) {
+    if (isStoreEnabled) {
       instructions.sendPageDiscardToGrid();
 
       Analytics.track({
@@ -96,7 +96,7 @@
     <button
       on:click={handleDiscard}
       class="relative items-center justify-center focus:outline-none bg-select
-      rounded text-white py-1 w-24 {$isStoreEnabled
+      rounded text-white py-1 w-24 {isStoreEnabled
         ? 'hover:bg-yellow-600'
         : 'opacity-75'}"
     >
@@ -106,7 +106,7 @@
     <button
       on:click={handleStore}
       class="relative items-center justify-center rounded
-          focus:outline-none text-white py-1 w-24 bg-commit {$isStoreEnabled
+          focus:outline-none text-white py-1 w-24 bg-commit {isStoreEnabled
         ? 'hover:bg-commit-saturate-20'
         : 'opacity-75'}"
     >
