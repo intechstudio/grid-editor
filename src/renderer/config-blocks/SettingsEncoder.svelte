@@ -108,7 +108,9 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={emo}
+          on:change={(e) => {
+            emo = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -131,7 +133,9 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={ev0}
+          on:change={(e) => {
+            ev0 = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);

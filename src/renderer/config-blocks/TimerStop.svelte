@@ -100,7 +100,9 @@
     <div class="text-gray-500 text-sm pb-1">Element Number</div>
     <AtomicInput
       suggestions={suggestions[0]}
-      bind:inputValue={scriptValue}
+      on:change={(e) => {
+        scriptValue = e.detail;
+      }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}

@@ -58,7 +58,9 @@
     <div class="text-gray-500 text-sm pb-1">Element Name</div>
     <input
       type="text"
-      bind:value={scriptValue}
+      on:change={(e) => {
+        scriptValue = e.detail;
+      }}
       class="w-full border bg-secondary border-secondary text-white py-0.5 pl-2 rounded-none"
     />
   </div>

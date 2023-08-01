@@ -99,7 +99,9 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={pmo}
+          on:change={(e) => {
+            pmo = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -122,7 +124,9 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={pma}
+          on:change={(e) => {
+            pma = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
