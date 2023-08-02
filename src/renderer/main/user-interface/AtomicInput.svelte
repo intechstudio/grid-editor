@@ -81,11 +81,13 @@
       : 'focus:border-select border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
   />
 
-  {#if !focus && infoValue !== undefined}
-    <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm py-1">
-      {infoValue}
-    </div>
-  {/if}
+  <div class=" py-1">
+    {#if !focus && infoValue !== undefined}
+      <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm">
+        {infoValue}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>

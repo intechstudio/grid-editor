@@ -128,6 +128,7 @@
     <AtomicInput
       suggestions={$localDefinitions}
       placeholder={"Incoming value to match"}
+      inputValue={lookupTable.source}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
@@ -214,6 +215,7 @@
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
       suggestions={$localDefinitions}
+      inputValue={lookupTable.destination}
       on:change={(e) => {
         lookupTable.destination = e.detail;
       }}

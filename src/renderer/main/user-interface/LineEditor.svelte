@@ -14,6 +14,7 @@
   let monaco_block;
 
   let editor;
+  let value_buffer = "";
 
   $: update_codeblock_height(sidebarWidth);
 
@@ -39,6 +40,7 @@
 
   onMount(() => {
     $monaco_elementtype = access_tree.elementtype;
+    value_buffer = value;
 
     editor = monaco_editor.create(monaco_block, {
       value: value,
@@ -83,6 +85,15 @@
       dispatch("output", { script: editor.getValue() });
 
       update_codeblock_height();
+    });
+
+    //Handler for loosing focus
+    editor.onDidBlurEditorWidget(() => {
+      const new_value = editor.getValue();
+      if (value_buffer !== new_value) {
+        dispatch("change", { script: editor.getValue() });
+      }
+      value_buffer = new_value;
     });
   });
 </script>
