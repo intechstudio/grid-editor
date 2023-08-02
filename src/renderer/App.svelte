@@ -115,7 +115,6 @@
       // register message handler
       port.onmessage = (event) => {
         const data = event.data;
-        console.log(data)
         // action towards runtime
         if (data.type == "plugin-action"){
           if (data.id == "change-page"){

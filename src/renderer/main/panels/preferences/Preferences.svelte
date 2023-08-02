@@ -178,7 +178,7 @@
     // Remove existing divs not found in the external set of IDs
     const existingDivIds = Object.keys(pluginPreferenceElements);
     existingDivIds.forEach((existingDivId) => {
-        if (!loadedPlugins.find((e) => e.id === existingDivId)){
+        if (!loadedPlugins.includes(existingDivId)){
           pluginPreferenceElements[existingDivId].remove()
           delete pluginPreferenceElements[existingDivId]
         }
@@ -200,7 +200,8 @@
       });
     }
 
-    for (const plugin of loadedPlugins){
+    for (const pluginId of loadedPlugins){
+      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId)
       if (!plugin.preferenceHtml) continue;
       if (existingDivIds.includes(plugin.id)) continue;
 
