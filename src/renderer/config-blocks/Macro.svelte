@@ -67,6 +67,15 @@
   let loaded = false;
   let macroInputField;
 
+  let isStored = true;
+  let storedScript = undefined;
+
+  $: isStored = config.script === storedScript;
+
+  $: if ($unsaved_changes.length === 0) {
+    storedScript = config.script;
+  }
+
   onMount(() => {
     selectedLayout = $appSettings.persistant.keyboardLayout;
     change_layout();
@@ -483,7 +492,7 @@
     <div
       use:clickOutside={{ useCapture: true }}
       bind:this={macroInputField}
-      class="{$unsaved_changes
+      class="{!isStored
         ? 'focus:border-error-desaturate-20 border-error'
         : 'focus:border-select-desaturate-20 border-select'} editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
       on:keydown|preventDefault={identifyKey}
@@ -507,7 +516,7 @@
       {/each}
     </div>
 
-    <div class="text-sm text-error truncate" class:hidden={$unsaved_changes}>
+    <div class="text-sm text-error truncate" class:hidden={isStored}>
       Macros will take effect after storing
     </div>
   </div>
