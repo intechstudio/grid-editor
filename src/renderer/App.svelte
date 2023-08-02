@@ -138,10 +138,10 @@
         }
       }
       for (const plugin of ($appSettings.persistant.markedForDeletionPlugins ?? [])){
-        port.postMessage({type: "uninstall-plugin", id : plugin.id})
+        port.postMessage({type: "uninstall-plugin", id : plugin})
       }
       for (const plugin of ($appSettings.persistant.enabledPlugins ?? [])){
-        port.postMessage({type: "load-plugin", id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
+        port.postMessage({type: "load-plugin", id : plugin, payload: $appSettings.persistant.pluginsDataStorage[plugin]})
       }
       // register global createPluginMessagePort for direct plugin communication
       window.createPluginMessagePort = (id) => {

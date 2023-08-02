@@ -5,6 +5,7 @@ import AdmZip from "adm-zip";
 import os from "os";
 import util from "util";
 import fetch from "node-fetch";
+import semver from "semver";
 
 enum PluginStatus {
   Uninstalled = "Uninstalled",
@@ -15,8 +16,11 @@ enum PluginStatus {
 }
 
 let pluginFolder: string = "";
+let editorVersion: string = "";
 
 process.parentPort.on("message", (e) => {
+  editorVersion = e.data.version;
+
   pluginFolder = e.data.pluginFolder;
   if (!fs.existsSync(pluginFolder)) {
     fs.mkdirSync(pluginFolder, { recursive: true });
@@ -31,7 +35,7 @@ const availablePlugins = {
     name: "Active Window",
     description: "Short description of Active Window plugin",
     gitHubRepositoryOwner: "intechstudio",
-    gitHubRepositoryName: "plugin-active-win-wip",
+    gitHubRepositoryName: "plugin-active-win",
   },
 };
 
@@ -148,7 +152,18 @@ async function downloadPlugin(pluginName: string) {
       },
     );
     const pluginReleases = await pluginReleasesResponse.json();
-    const assets = pluginReleases[0].assets;
+    const compatibleRelease = pluginReleases.find((e) => {
+      const description = e.body;
+      const lastLine = description.split("\n").pop() ?? "";
+      if (semver.valid(lastLine)) {
+        return !semver.gt(lastLine, editorVersion);
+      } else {
+        return true;
+      }
+    });
+    if (!compatibleRelease) return;
+
+    const assets = compatibleRelease.assets;
 
     let platform = "macos";
     switch (os.platform()) {

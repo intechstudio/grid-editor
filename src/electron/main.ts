@@ -51,7 +51,6 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
-//import { setPluginManagerMessagePort } from "./plugin/pluginManager";
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
