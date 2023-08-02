@@ -14,16 +14,16 @@ enum PluginStatus {
   MarkedForDeletion = "MarkedForDeletion",
 }
 
-let pluginFolder : string = "";
+let pluginFolder: string = "";
 
 process.parentPort.on("message", (e) => {
-  pluginFolder = e.data.pluginFolder
+  pluginFolder = e.data.pluginFolder;
   if (!fs.existsSync(pluginFolder)) {
     fs.mkdirSync(pluginFolder, { recursive: true });
   }
-  
-  const port = e.ports[0]
-  setPluginManagerMessagePort(port)
+
+  const port = e.ports[0];
+  setPluginManagerMessagePort(port);
 });
 
 const availablePlugins = {
@@ -64,7 +64,11 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
           await notifyListener();
           break;
         case "create-plugin-message-port":
-          messagePort.postMessage({ type: "debug-error", keys: Object.keys(currentlyLoadedPlugins), id: data.id });
+          messagePort.postMessage({
+            type: "debug-error",
+            keys: Object.keys(currentlyLoadedPlugins),
+            id: data.id,
+          });
           await currentlyLoadedPlugins[data.id].addMessagePort(
             event.ports?.[0],
           );
@@ -81,7 +85,7 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
 async function loadPlugin(pluginName: string, persistedData: any) {
   try {
     if (currentlyLoadedPlugins[pluginName]) {
-      return true;
+      return;
     }
 
     const pluginDirectory = path.join(pluginFolder, pluginName);
@@ -107,7 +111,6 @@ async function loadPlugin(pluginName: string, persistedData: any) {
       error: e.message,
     });
   }
-  return true;
 }
 
 async function unloadPlugin(pluginName: string) {
@@ -116,8 +119,6 @@ async function unloadPlugin(pluginName: string) {
     delete currentlyLoadedPlugins[pluginName];
     notifyListener();
   }
-
-  return true;
 }
 
 async function downloadPlugin(pluginName: string) {
@@ -205,56 +206,76 @@ async function uninstallPlugin(pluginName: string) {
   }
 }
 
-async function executeAction(
-  pluginName: string,
-  actionId: number,
-  payload: any,
-) {
-  const plugin = currentlyLoadedPlugins[pluginName];
-  await plugin.executeAction(actionId, payload);
-}
-
 async function notifyListener() {
   const plugins = await getAvailablePlugins();
   messagePort.postMessage({ type: "plugins", plugins });
 }
 
-async function getAvailablePlugins() {
+async function getInstalledPlugins(): Promise<
+  {
+    pluginId: string;
+    pluginName: string;
+    pluginPreferenceHtml?: string;
+  }[]
+> {
   const readdir = util.promisify(fs.readdir);
   const folders = await readdir(pluginFolder);
+  return Promise.all(
+    folders
+      .filter((folder) => !folder.toLowerCase().includes("ds_store"))
+      .map(async (folder) => {
+        const pluginId = folder;
+        const pluginPath = path.join(pluginFolder, folder);
 
-  // Iterate over each subfolder
-  let installedPlugins = await Promise.all(
-    folders.map(async (folder) => {
-      const pluginId = folder;
-      const pluginPath = path.join(pluginFolder, folder);
-
-      let pluginName: string | undefined = undefined;
-      let pluginPreferenceHtml: string | undefined = undefined;
-      if (fs.statSync(pluginPath).isDirectory()) {
-        const packageJsonPath = path.join(pluginPath, "package.json");
-        if (fs.existsSync(packageJsonPath)) {
-          const packageJson = require(packageJsonPath);
-          pluginName = packageJson.description;
-          const preferenceRelativePath = packageJson.grid_editor.preference;
-          if (preferenceRelativePath) {
-            const preferencePath = path.join(
-              pluginPath,
-              preferenceRelativePath,
-            );
-            const readFile = util.promisify(fs.readFile);
-            pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
+        let pluginName: string | undefined = undefined;
+        let pluginPreferenceHtml: string | undefined = undefined;
+        if (fs.statSync(pluginPath).isDirectory()) {
+          const packageJsonPath = path.join(pluginPath, "package.json");
+          if (fs.existsSync(packageJsonPath)) {
+            const packageJson = require(packageJsonPath);
+            pluginName = packageJson.description;
+            const preferenceRelativePath = packageJson.grid_editor.preference;
+            if (preferenceRelativePath) {
+              const preferencePath = path.join(
+                pluginPath,
+                preferenceRelativePath,
+              );
+              const readFile = util.promisify(fs.readFile);
+              pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
+            }
           }
         }
-      }
-      pluginName = pluginName ?? pluginId;
-      return {
-        pluginId,
-        pluginName,
-        pluginPreferenceHtml,
-      };
-    }),
+        pluginName = pluginName ?? pluginId;
+        return {
+          pluginId,
+          pluginName,
+          pluginPreferenceHtml,
+        };
+      }),
   );
+}
+
+function getPluginStatus(
+  pluginId: string,
+  installedPlugins: { pluginId: string }[],
+): PluginStatus {
+  if (Object.keys(currentlyLoadedPlugins).includes(pluginId)) {
+    return PluginStatus.Enabled;
+  } else if (markedForDeletionPlugins.has(pluginId)) {
+    return PluginStatus.MarkedForDeletion;
+  } else if (
+    installedPlugins.filter((e) => e.pluginId === pluginId).length > 0
+  ) {
+    return PluginStatus.Downloaded;
+  } else if (downloadingPlugins.has(pluginId)) {
+    return PluginStatus.Downloading;
+  } else {
+    return PluginStatus.Uninstalled;
+  }
+}
+
+async function getAvailablePlugins() {
+  let installedPlugins = await getInstalledPlugins();
 
   const pluginList: {
     id: string;
@@ -264,40 +285,21 @@ async function getAvailablePlugins() {
   }[] = [];
   for (const plugin of installedPlugins) {
     if (pluginList.filter((e) => e.id === plugin.pluginId).length > 0) continue;
-    let status: PluginStatus;
-    if (Object.keys(currentlyLoadedPlugins).includes(plugin.pluginId)) {
-      status = PluginStatus.Enabled;
-    } else if (markedForDeletionPlugins.has(plugin.pluginId)) {
-      status = PluginStatus.MarkedForDeletion;
-    } else {
-      status = PluginStatus.Downloaded;
-    }
 
     pluginList.push({
       id: plugin.pluginId,
       name: plugin.pluginName,
-      status,
+      status: getPluginStatus(plugin.pluginId, installedPlugins),
       preferenceHtml: plugin.pluginPreferenceHtml,
     });
   }
   Object.entries(availablePlugins).forEach(([key, entry]) => {
     if (pluginList.filter((e) => e.id === key).length > 0) return;
-    let status: PluginStatus;
-    if (Object.keys(currentlyLoadedPlugins).includes(key)) {
-      status = PluginStatus.Enabled;
-    } else if (markedForDeletionPlugins.has(key)) {
-      status = PluginStatus.MarkedForDeletion;
-    } else if (installedPlugins.filter((e) => e.pluginId === key).length > 0) {
-      status = PluginStatus.Downloaded;
-    } else if (downloadingPlugins.has(key)) {
-      status = PluginStatus.Downloading;
-    } else {
-      status = PluginStatus.Uninstalled;
-    }
+
     pluginList.push({
       id: key,
       name: entry.name,
-      status,
+      status: getPluginStatus(key, installedPlugins),
     });
   });
   return pluginList;

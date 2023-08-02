@@ -17,7 +17,10 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, "src/electron/main.ts"),
-          pluginManager: resolve(__dirname, 'src/electron/plugin/pluginManager.ts')
+          pluginManager: resolve(
+            __dirname,
+            "src/electron/plugin/pluginManager.ts",
+          ),
         },
       },
       outDir: "dist/main",

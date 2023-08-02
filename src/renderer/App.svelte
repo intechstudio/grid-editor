@@ -111,12 +111,15 @@
   });
 
   window.onmessage = (event) => {
+    // extract this part on refactor
     if (event.source === window && event.data === "plugin-manager-port") {
       const [ port ] = event.ports
       window.pluginManagerPort = port
+      // register message handler
       port.onmessage = (event) => {
         const data = event.data;
         console.log(data)
+        // action towards runtime
         if (data.type == "plugin-action"){
           if (data.id == "change-page"){
             runtime.change_page(data.num)
@@ -127,8 +130,9 @@
             })
           }
         } else if (data.type == "plugins") {
-          const markedForDeletionPlugins = data.plugins.filter((e) => e.status == "MarkedForDeletion")
-          const enabledPlugins = data.plugins.filter((e) => e.status == "Enabled")
+          // refresh pluginlist
+          const markedForDeletionPlugins = data.plugins.filter((e) => e.status == "MarkedForDeletion").map((e) => e.id)
+          const enabledPlugins = data.plugins.filter((e) => e.status == "Enabled").map((e) => e.id)
           appSettings.update((s) => {
             s.pluginList = data.plugins
             s.persistant.markedForDeletionPlugins = markedForDeletionPlugins
@@ -143,6 +147,7 @@
       for (const plugin of ($appSettings.persistant.enabledPlugins ?? [])){
         port.postMessage({type: "load-plugin", id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
       }
+      // register global createPluginMessagePort for direct plugin communication
       window.createPluginMessagePort = (id) => {
         const channel = new MessageChannel()
         port.postMessage({type: "create-plugin-message-port", id}, [channel.port1])

@@ -167,20 +167,20 @@
 
   $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences()
 
+  let pluginListDiv;
+  let pluginPreferenceElements = {}
+
   function refreshPluginPreferences() {
     const loadedPlugins = $appSettings.persistant.enabledPlugins
-    const pluginListDiv = document.getElementById("pluginList")
     if (!pluginListDiv) {
       return
     }
     // Remove existing divs not found in the external set of IDs
-    const existingDivs = Array.from(pluginListDiv.children);
-    const existingDivIds = [] 
-    existingDivs.forEach((existingDiv) => {
-        if (!loadedPlugins.find((e) => e.id === existingDiv.id)){
-          existingDiv.remove();
-        } else {
-          existingDivIds.push(existingDiv.id)
+    const existingDivIds = Object.keys(pluginPreferenceElements);
+    existingDivIds.forEach((existingDivId) => {
+        if (!loadedPlugins.find((e) => e.id === existingDivId)){
+          pluginPreferenceElements[existingDivId].remove()
+          delete pluginPreferenceElements[existingDivId]
         }
     });
 
@@ -205,8 +205,8 @@
       if (existingDivIds.includes(plugin.id)) continue;
 
       const tempContainer = document.createElement("div")
-      tempContainer.id = plugin.id
       tempContainer.innerHTML = plugin.preferenceHtml
+      pluginPreferenceElements[plugin.id] = tempContainer
       pluginListDiv.appendChild(tempContainer)
       executeScriptElements(tempContainer)
     }
@@ -249,6 +249,36 @@
     window.electron.openInBrowser(
       configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
     );
+  }
+
+  function changePluginStatus(pluginId, enabled){
+    if (enabled){
+      window.pluginManagerPort.postMessage(
+        {
+          type: "load-plugin", 
+          id : pluginId, 
+          payload: $appSettings.persistant.pluginsDataStorage[pluginId],
+        }
+      )
+    } else {
+      window.pluginManagerPort.postMessage({type: "unload-plugin", id : pluginId})
+    }
+  }
+
+  function refreshPluginList(){
+    window.pluginManagerPort.postMessage({type: "refresh-plugin-list"})
+  }
+
+  function downloadPlugin(pluginId){
+    window.pluginManagerPort.postMessage({type: "download-plugin", id : pluginId})
+  }
+
+  function uninstallPlugin(pluginId){
+    window.pluginManagerPort.postMessage({type: "uninstall-plugin", id : pluginId})
+    appSettings.update((s) => {
+      delete s.persistant.pluginsDataStorage[pluginId]
+      return s
+    })
   }
 </script>
 
@@ -543,6 +573,16 @@
   </div>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
+    <div class="flex py-2 text-white items-center">
+      <div class="mx-2">Plugins</div>
+      <div class="mx-2">
+        <button 
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={refreshPluginList}>
+          Refresh
+          </button>
+      </div>
+    </div>
     {#each $appSettings.pluginList as plugin}
     <div class="flex py-2 text-white items-center">
       <input
@@ -550,38 +590,32 @@
         type="checkbox"
         checked={plugin.status === "Enabled"}
         style="visibility:{plugin.status === "Downloaded" || plugin.status === "Enabled" ? "visible" : "hidden"}"
-        on:change={async e => {
-          if (e.target.checked){
-            window.pluginManagerPort.postMessage({type: "load-plugin", id : plugin.id, payload: $appSettings.persistant.pluginsDataStorage[plugin.id]})
-          } else {
-            window.pluginManagerPort.postMessage({type: "unload-plugin", id : plugin.id})
-          }
-        }}     
-    />
-    <div class="mx-1">{plugin.name}</div>
-    <div class="mx-1">
-      {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
-      <button 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={window.pluginManagerPort.postMessage({type: "download-plugin", id : plugin.id})}
-        disabled={plugin.status == "Downloading"}
-        >
-        Download
-        </button>  
-      {:else}
-      <button 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={window.pluginManagerPort.postMessage({type: "uninstall-plugin", id : plugin.id})}
-        >
-        Uninstall
-        </button>
-      {/if}
-    </div>
+        on:change={async e => changePluginStatus(plugin.id, e.target.checked)}     
+      />
+      <div class="mx-1">{plugin.name}</div>
+      <div class="mx-1">
+        {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
+        <button 
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={downloadPlugin(plugin.id)}
+          disabled={plugin.status == "Downloading"}
+          >
+          Download
+          </button>  
+        {:else}
+        <button 
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={uninstallPlugin(plugin.id)}
+          >
+          Uninstall
+          </button>
+        {/if}
+      </div>
     </div>
     {/each}
   </div>
 
-  <div id="pluginList" class="p-4 bg-secondary rounded-lg flex flex-col mb-4"/>
+  <div bind:this={pluginListDiv} class="p-4 bg-secondary rounded-lg flex flex-col mb-4"/>
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center mb-1">

@@ -294,12 +294,18 @@ function createWindow() {
   mainWindow.webContents.on("did-finish-load", () => {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
-    const process = utilityProcess.fork(path.resolve(path.join(__dirname, './pluginManager.js')));
-    process.postMessage({
-      pluginFolder: path.resolve(
-        path.join(app.getPath("documents"), "grid-userdata", "plugins"),
-      )
-    }, [port2]);
+    const process = utilityProcess.fork(
+      path.resolve(path.join(__dirname, "./pluginManager.js")),
+    );
+    process.postMessage(
+      {
+        pluginFolder: path.resolve(
+          path.join(app.getPath("documents"), "grid-userdata", "plugins"),
+        ),
+        version: configuration.EDITOR_VERSION,
+      },
+      [port2],
+    );
   });
 }
 
