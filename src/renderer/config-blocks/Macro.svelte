@@ -493,7 +493,7 @@
       use:clickOutside={{ useCapture: true }}
       bind:this={macroInputField}
       class="{!isStored
-        ? 'focus:border-error-desaturate-20 border-error'
+        ? 'focus:border-warning-desaturate-20 border-warning'
         : 'focus:border-select-desaturate-20 border-select'} editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
@@ -516,7 +516,7 @@
       {/each}
     </div>
 
-    <div class="text-sm text-error truncate" class:hidden={isStored}>
+    <div class="text-sm text-warning truncate" class:hidden={isStored}>
       Macros will take effect after storing
     </div>
   </div>

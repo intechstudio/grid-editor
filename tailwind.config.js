@@ -81,6 +81,13 @@ const config = {
           800: "#212a2c",
           900: "#0b0e0f",
         },
+        warning: {
+          DEFAULT: "#F0AD4E",
+          "desaturate-20": "#FFD2B1",
+          "desaturate-10": "#FAB17C",
+          "saturate-10": "#EF9E4D",
+          "saturate-20": "#EF914D",
+        },
         error: {
           DEFAULT: "#DC2626",
           "desaturate-10": "#DC4B4B",
