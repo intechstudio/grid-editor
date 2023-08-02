@@ -40,7 +40,7 @@
 
   let isActionButtonClicked;
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2;
+  let moduleWidth = 2.1 * 106.6 + 2;
 
   $: selected = components.find((component) => component.type === type);
 

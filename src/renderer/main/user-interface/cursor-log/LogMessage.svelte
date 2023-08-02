@@ -30,23 +30,25 @@
         <div class="text-center">{count}x</div>
       </div>
     {/if}
-    <div
-      class="flex flex-row my-1 items-center p-2 bg-primary rounded-md border border-opacity-0 hover:border-opacity-60 border-primary-800 hover:bg-primary-700 hover:bg-opacity-80 bg-opacity-50 w-full transition-color duration-[30ms]"
-    >
-      <div class="px-2 py-1 bg-primary rounded mr-2 text-white">
-        {type == "success"
-          ? "✔️"
-          : type == "alert"
-          ? "⚠️"
-          : type == "progress"
-          ? "⏳"
-          : type == "fail"
-          ? "❌"
-          : null}
-      </div>
-      <div class="w-full flex flex-col">
-        <span class="text-white">{message}</span>
-        <span class="text-sm text-gray-400">(Click to Dismiss!)</span>
+    <div class="flex bg-secondary my-1 rounded-md bg-opacity-70 w-full">
+      <div
+        class="flex flex-row items-center p-2 bg-primary rounded-md border border-opacity-0 hover:border-opacity-60 border-primary-800 hover:bg-primary-700 hover:bg-opacity-80 bg-opacity-50 w-full shadow-md transition-color duration-[30ms]"
+      >
+        <div class="px-2 py-1 bg-primary rounded mr-2 text-white">
+          {type == "success"
+            ? "✔️"
+            : type == "alert"
+            ? "⚠️"
+            : type == "progress"
+            ? "⏳"
+            : type == "fail"
+            ? "❌"
+            : null}
+        </div>
+        <div class="w-full flex flex-col">
+          <span class="text-white">{message}</span>
+          <span class="text-sm text-gray-400">(Click to Dismiss!)</span>
+        </div>
       </div>
     </div>
   </div>

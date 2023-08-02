@@ -1,18 +1,9 @@
 <script>
-  /*
-   *   tailwindcss
-   */
-
   import "./app.css";
-
-  /**
-   *  svelte UI parts and components
-   */
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
   import { onMount } from "svelte";
-  import { get } from "svelte/store";
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
@@ -54,6 +45,13 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
+  import Pages from "./main/panels/configuration/components/Pages.svelte";
+  import CursorLog from "./main/user-interface/cursor-log/CursorLog.svelte";
+  import Tracker from "./main/user-interface/Tracker.svelte";
+  import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
+  import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
+  import { runtime } from "./runtime/runtime.store";
+  import { fade, blur, fly, slide, scale } from "svelte/transition";
 
   let modalComponents = {};
 
@@ -146,6 +144,13 @@
   }
 
   onMount(() => {});
+
+  let trackerVisible = true;
+
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
+  }
 </script>
 
 <Monster
@@ -189,8 +194,42 @@
           <LeftPanelContainer />
         </Pane>
 
-        <Pane>
-          <GridLayout classes={"flex-1"} />
+        <Pane class="overflow-clip w-full h-full">
+          <div
+            class="relative flex w-full h-full overflow-clip items-center justify-center"
+          >
+            <GridLayout class="relative w-full h-full flex flex-col z-1">
+              <Pages class="w-full z-10" />
+
+              <ActiveChanges class="w-fit self-center mt-10 z-10" />
+
+              {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
+                <div
+                  in:fade={{ delay: 2000, duration: 1000 }}
+                  out:blur={{ duration: 150 }}
+                  class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
+                >
+                  <ModulConnectionDialog />
+                </div>
+              {/if}
+
+              <div class="flex h-ful z-10l">
+                <div
+                  in:fly={{ x: -10 }}
+                  out:fly={{ x: 10 }}
+                  class="w-fit {trackerVisible
+                    ? ''
+                    : 'hidden'} absolute right-0 bottom-0 mb-12 mr-10"
+                >
+                  <Tracker />
+                </div>
+                <CursorLog
+                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
+                  on:content-change={handleContentChange}
+                />
+              </div>
+            </GridLayout>
+          </div>
         </Pane>
 
         <Pane
