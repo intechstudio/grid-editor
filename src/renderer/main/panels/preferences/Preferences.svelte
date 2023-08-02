@@ -321,15 +321,25 @@
       </div>
     </div>
 
-    <div class="flex w-40 flex-col my-1 relative text-white">
+    <div class="flex flex-col my-1 relative text-white">
       <div class="mb-1">Controller Scaling</div>
-      <input
-        type="range"
-        min="1.7"
-        max="2.6"
-        step="0.1"
-        bind:value={$appSettings.size}
-      />
+      <div class="flex flex-row w-full gap-4">
+        <input
+          class="flex flex-grow"
+          type="range"
+          min="0.5"
+          max="2.6"
+          step="0.1"
+          bind:value={$appSettings.persistant.size}
+        />
+        <button
+          class="mr-2 w-28 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
+          on:click={() => {
+            $appSettings.persistant.size = 1.0;
+          }}
+          >Reset
+        </button>
+      </div>
     </div>
 
     <div class="flex py-2 text-white items-center">

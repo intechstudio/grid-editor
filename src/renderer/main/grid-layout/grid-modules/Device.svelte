@@ -32,11 +32,15 @@
 
   export let selected;
 
+  export let arch;
+
+  console.log("arch", arch);
+
   let selectedElement;
 
   let isActionButtonClicked;
 
-  $: moduleWidth = $appSettings.size * 106.6 + 2;
+  let moduleWidth = 2.1 * 106.6 + 2;
 
   $: selected = components.find((component) => component.type === type);
 
@@ -69,6 +73,16 @@
     {#if $appSettings.overlays.controlElementName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
     {/if}
+
+    <div
+      class="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
+    >
+      {#if arch === "esp32"}
+        E-32
+      {:else}
+        D-51
+      {/if}
+    </div>
 
     <ProfileLoadOverlay {id} />
     <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
