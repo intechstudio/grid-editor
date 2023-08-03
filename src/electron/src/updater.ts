@@ -1,10 +1,15 @@
 import { autoUpdater } from "electron-updater";
 import log from "electron-log";
 
-export const updater = {
-  mainWindow: undefined,
+interface Updater {
+  mainWindow: any;
+}
+
+export const updater: Updater = {
+  mainWindow: null,
 };
 
+autoUpdater.channel = "latest";
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = "info";
 
@@ -19,8 +24,8 @@ autoUpdater.on("error", (error) => {
   });
 });
 
-autoUpdater.on("update-available", () => {
-  log.info("update-available...");
+autoUpdater.on("update-available", (info) => {
+  log.info("update-available...", info);
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-available",
   });
@@ -34,7 +39,7 @@ autoUpdater.on("download-progress", (progressObj) => {
   });
 });
 
-autoUpdater.on("update-downloaded", () => {
+autoUpdater.on("update-downloaded", (info) => {
   log.info("update downloaded...!");
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-downloaded",

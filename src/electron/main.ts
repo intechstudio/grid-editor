@@ -11,14 +11,12 @@ import {
 import path from "path";
 import log from "electron-log";
 import fs from "fs";
-import { autoUpdater } from "electron-updater";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
-
 console.log(buildVariables, configuration);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
@@ -50,9 +48,6 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
-
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
 
 log.info("App starting...");
 
@@ -195,9 +190,7 @@ function createWindow() {
 
   serial.mainWindow = mainWindow;
   websocket.mainWindow = mainWindow;
-
   firmware.mainWindow = mainWindow;
-
   updater.mainWindow = mainWindow;
 
   ipcMain.on("restartAfterUpdate", () => {
@@ -302,8 +295,6 @@ const deeplink = new Deeplink({
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-
-autoUpdater.checkForUpdatesAndNotify();
 
 ipcMain.handle("startPlugin", async (event, arg) => {
   console.log("pluginstart!", arg.name);

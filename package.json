@@ -68,7 +68,8 @@
     "asar": true,
     "appId": "intechstudio.grid-editor.app",
     "productName": "Grid Editor",
-    "copyright": "Copyright © 2022 Intech Studio Ltd.",
+    "copyright": "Copyright © Intech Studio Ltd.",
+    "generateUpdatesFilesForAllChannels": true,
     "directories": {
       "output": "build/"
     },
@@ -125,21 +126,26 @@
     "afterSign": "build-assets/notarize.js"
   },
   "scripts": {
-    "e:builder": "cross-env NODE_ENV=production NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
-    "e:builder:nightly": "cross-env NODE_ENV=development NOTARIZE=true DEBUG=electron-builder MODE=nightly electron-builder --publish onTagOrDraft",
-    "e:builder:local": "cross-env NODE_ENV=development MODE=nightly electron-builder --publish never",
-    "export": "run-s s:build e:builder",
-    "export:nightly": "run-s s:build:nightly e:builder:nightly",
+    "e:builder": "cross-env NOTARIZE=true MODE=release electron-builder --publish onTagOrDraft",
+    "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder MODE=nightly electron-builder --publish onTagOrDraft",
+    "e:builder:local": "cross-env MODE=nightly electron-builder --publish never",
+    "export": "run-s gen:buildVars:prod s:build e:builder",
+    "export:nightly": "run-s gen:buildVars:nightly s:build:nightly e:builder:nightly",
+    "export:local": "run-s clean-up gen:buildVars:local s:build:local e:builder:local",
     "clean-up": "rm -rf dist && rm -rf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
-    "export:local": "run-s clean-up s:build:local e:builder:local",
-    "s:build": "cross-env NODE_ENV=production electron-vite build",
-    "s:build:nightly": "cross-env NODE_ENV=development electron-vite build",
-    "s:build:local": "cross-env NODE_ENV=development electron-vite build",
+    "s:build": "electron-vite build",
+    "s:build:nightly": "electron-vite build",
+    "s:build:local": "electron-vite build",
+    "gen:buildVars:dev": "node ./build-scripts/dev-buildVars.js",
+    "gen:buildVars:local": "node ./build-scripts/local-buildVars.js",
+    "gen:buildVars:nightly": "node ./build-scripts/nightly-buildVars.js",
+    "gen:buildVars:prod": "node ./build-scripts/local-buildVars.js",
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron": "run-s build pure-electron",
     "pure-electron": "electron .",
-    "electron-dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch"
+    "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
+    "electron-dev": "run-s gen:buildVars:dev electron:dev"
   }
 }
