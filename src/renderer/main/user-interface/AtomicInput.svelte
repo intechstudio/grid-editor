@@ -39,16 +39,22 @@
     dispatch("validator", { isError: isError });
   }
 
-  function handleChange() {
-    handleValidation();
-    dispatch("change", inputValue);
-  }
-
   function handleFocus(mode, bool) {
     focus = bool;
     dispatch(`${mode}-focus`, {
       focus: bool,
     });
+
+    if (input && !focus) {
+      input = false;
+      dispatch("change", inputValue);
+    }
+  }
+
+  let input = false;
+  function handleInput() {
+    input = true;
+    handleValidation();
   }
 </script>
 
@@ -56,7 +62,6 @@
   class="w-full relative"
   use:clickOutside={{ useCapture: false }}
   on:click-outside={() => {
-    focus = false;
     handleFocus("loose", false);
   }}
 >
@@ -66,11 +71,7 @@
     on:click={(e) => {
       handleFocus("active", true);
     }}
-    on:change={handleChange}
-    on:input={(e) => {
-      handleChange();
-      handleFocus("loose", false);
-    }}
+    on:input={handleInput}
     type="text"
     {placeholder}
     class="{customClasses} w-full border
@@ -80,11 +81,13 @@
       : 'focus:border-select border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
   />
 
-  {#if !focus && infoValue !== undefined}
-    <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm py-1">
-      {infoValue}
-    </div>
-  {/if}
+  <div class=" py-1">
+    {#if !focus && infoValue !== undefined}
+      <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm">
+        {infoValue}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>

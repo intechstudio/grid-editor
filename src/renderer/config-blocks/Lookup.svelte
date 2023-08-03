@@ -128,10 +128,13 @@
     <AtomicInput
       suggestions={$localDefinitions}
       placeholder={"Incoming value to match"}
+      inputValue={lookupTable.source}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      bind:inputValue={lookupTable.source}
+      on:change={(e) => {
+        lookupTable.source = e.detail;
+      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
@@ -177,6 +180,7 @@
           />
         </div>
         {#if i !== 0}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
           <div
             on:click={() => {
               removeLine(i);
@@ -211,7 +215,10 @@
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
       suggestions={$localDefinitions}
-      bind:inputValue={lookupTable.destination}
+      inputValue={lookupTable.destination}
+      on:change={(e) => {
+        lookupTable.destination = e.detail;
+      }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
@@ -238,6 +245,7 @@
   {/if}
 
   <div class="w-full flex group p-2">
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
     <div
       on:click={() => {
         addNewLine();
