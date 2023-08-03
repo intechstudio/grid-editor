@@ -203,7 +203,7 @@
 
               <ActiveChanges class="w-fit self-center mt-10 z-10" />
 
-              {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
+              {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0 && false}
                 <div
                   in:fade={{ delay: 2000, duration: 1000 }}
                   out:blur={{ duration: 150 }}

@@ -208,9 +208,10 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;
     window.electron.openInBrowser(url);
   }
+  let test = false;
 </script>
 
-{#if $appSettings.firmwareNotificationState === 1}
+{#if $appSettings.firmwareNotificationState === 1 || test}
   <div
     class="w-full bg-red-600 text-white justify-center flex items-center text-center p-4"
   >
@@ -224,7 +225,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-{#if $appSettings.firmwareNotificationState === 2}
+{#if $appSettings.firmwareNotificationState === 2 || test}
   <div
     class="w-full bg-blue-600 text-white justify-center flex items-center text-center p-4"
   >
@@ -245,7 +246,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-{#if $appSettings.firmwareNotificationState === 3}
+{#if $appSettings.firmwareNotificationState === 3 || test}
   <div
     class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
   >
@@ -268,7 +269,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-{#if $appSettings.firmwareNotificationState === 4}
+{#if $appSettings.firmwareNotificationState === 4 || test}
   <div
     class="w-full bg-blue-500 text-white justify-center flex items-center text-center p-4"
   >
@@ -281,7 +282,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-{#if $appSettings.firmwareNotificationState === 5}
+{#if $appSettings.firmwareNotificationState === 5 || test}
   <div
     class="w-full bg-green-500 text-white justify-center flex items-center text-center p-4"
   >
@@ -292,7 +293,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   </div>
 {/if}
 
-{#if $appSettings.firmwareNotificationState === 6}
+{#if $appSettings.firmwareNotificationState === 6 || test}
   <div
     class="w-full bg-red-500 text-white justify-center flex items-center text-center p-4"
   >

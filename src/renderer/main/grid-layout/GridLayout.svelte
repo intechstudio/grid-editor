@@ -4,6 +4,7 @@
   import { engine, runtime } from "../../runtime/runtime.store.js";
 
   import Device from "./grid-modules/Device.svelte";
+  import Dummy from "./grid-modules/devices/Dummy.svelte";
 
   import { fade, fly } from "svelte/transition";
 
@@ -105,6 +106,11 @@
         />
       </div>
     {/each}
+    <Dummy
+      type={"Dummy"}
+      id={"test"}
+      rotation={0 + $appSettings.persistant.moduleRotation / 90}
+    />
   </div>
   <slot />
 </layout-container>
