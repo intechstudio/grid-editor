@@ -3,7 +3,7 @@ name: Matrix build Grid Editor (Nightly)
 on:
   push:
     branches:
-      - "*"
+      - "**"
     tags-ignore:
       - "*"
 
