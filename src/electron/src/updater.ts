@@ -17,14 +17,20 @@ function init() {
 
   if (buildVariables.BUILD_ENV === "production") {
     autoUpdater.channel = "latest";
-  } else {
+  }
+
+  if (buildVariables.BUILD_ENV === "alpha") {
     autoUpdater.channel = "alpha";
   }
 
   log.info("check for update and notify...", autoUpdater.channel);
 
-  // here we could implement autoDownload = false logic based on settings
-  autoUpdater.checkForUpdatesAndNotify();
+  if (
+    buildVariables.BUILD_ENV !== "nightly" &&
+    buildVariables.BUILD_ENV !== "development"
+  ) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 }
 
 init();
