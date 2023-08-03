@@ -119,7 +119,7 @@
           ]
         }
       ],
-      "artifactName": "${name}-setup-${version}.${ext}",
+      "artifactName": "${name}-setup-${version}-${arch}.${ext}",
       "icon": "build-assets/icon_mac.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
