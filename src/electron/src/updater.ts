@@ -30,7 +30,7 @@ function init() {
     autoUpdater.allowPrerelease = true;
   }
 
-  const temporaryVersionCheck = semver.lte(app.getVersion(), "1.2.38");
+  const temporaryVersionCheck = semver.lte(app.getVersion(), "1.2.39");
 
   log.info(
     "checkForUpdatesAndNotify ---> ",
