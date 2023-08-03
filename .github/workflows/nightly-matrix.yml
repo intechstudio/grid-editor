@@ -1,4 +1,4 @@
-name: 🦇 Nightly build (every commit except tags!)
+name: 🦇 Nightly build
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: 💀 Alpha build on -alpha tag
+name: 💀 Alpha build
 
 on:
   push:
