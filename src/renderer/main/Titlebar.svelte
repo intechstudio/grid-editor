@@ -197,8 +197,7 @@
   {:else}
     <div class="draggable flex items-center justify-center h-7">
       <div class="flex text-gray-500 text-sm pt-1">
-        Grid Editor v{$appSettings.version.major}.{$appSettings.version
-          .minor}.{$appSettings.version.patch}
+        Grid Editor {configuration.EDITOR_VERSION}
         {#if buildVariables.BUILD_ENV !== "production"}
           - <span>{buildVariables.BUILD_ENV.toUpperCase()} BUILD</span>
         {/if}

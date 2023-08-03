@@ -10,6 +10,7 @@ let branchName = process.env.BRANCH_NAME;
 console.log("branchName: ", branchName);
 
 packageJson.build.productName += ` (Nightly) ${branchName}`;
+packageJson.version += `-nightly`;
 
 fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), (err) => {
   if (err) throw err;

@@ -19,6 +19,14 @@ import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
+configuration.EDITOR_NAME = app.getName();
+
+log.info(
+  "NAME: ",
+  configuration.EDITOR_NAME,
+  " VERSION: ",
+  configuration.EDITOR_VERSION,
+);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";

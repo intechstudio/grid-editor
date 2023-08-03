@@ -51,9 +51,7 @@
     );
   }
 
-  let version = `${get(appSettings).version.major}.${
-    get(appSettings).version.minor
-  }.${get(appSettings).version.patch}`;
+  let version = `${configuration.EDITOR_VERSION}`;
 </script>
 
 <div id="modal-copy-placeholder" />
