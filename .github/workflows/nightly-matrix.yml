@@ -24,8 +24,8 @@ jobs:
       - name: Set Env
         shell: bash
         run: |
-          echo "BRANCH_NAME=${GITHUB_REF}" >> $GITHUB_ENV
-          echo "${{ env.GITHUB_REF }}"
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "${{ env.BRANCH_NAME }}"
           echo "RELEASE_CHANNEL=alpha" >> $GITHUB_ENV
 
       - name: Update package.json
