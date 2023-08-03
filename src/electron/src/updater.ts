@@ -1,4 +1,6 @@
 import { autoUpdater } from "electron-updater";
+import { app } from "electron";
+import semver from "semver";
 import log from "electron-log";
 
 import buildVariables from "../../../buildVariables.json";
@@ -28,11 +30,13 @@ function init() {
     autoUpdater.allowPrerelease = true;
   }
 
-  log.info("checkForUpdatesAndNotify ---> ", "BULD_ENV: ", buildVariables.BUILD_ENV, " CHANNEL: ", autoUpdater.channel);
+  const temporaryVersionCheck = semver.lte('1.2.38', app.getVersion())
 
+  log.info("checkForUpdatesAndNotify ---> ", "TEMP_CHECK: ", temporaryVersionCheck, "BULD_ENV: ", buildVariables.BUILD_ENV, " CHANNEL: ", autoUpdater.channel);
 
-  autoUpdater.checkForUpdatesAndNotify();
-
+  if (temporaryVersionCheck || buildVariables.BUILD_ENV === "alpha" || buildVariables.BUILD_ENV === "production") {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 }
 
 init();
