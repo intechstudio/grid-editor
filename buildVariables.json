@@ -1,4 +1,0 @@
-{
-  "BUILD_ENV": "development",
-  "PROFILE_CLOUD_URL": "http://localhost:5200"
-}

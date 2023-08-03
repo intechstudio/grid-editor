@@ -8,3 +8,4 @@ build
 /test-results/
 /playwright-report/
 /playwright/.cache/
+buildVariables.json
