@@ -4,15 +4,15 @@ const fs = require("fs");
 const path = require("path");
 
 let buildVariables = {
-  BUILD_END: "nightly",
-  PROFILE_CLOUD_URL: "http://localhost:5200",
+    BUILD_ENV: "nightly",
+    PROFILE_CLOUD_URL: "http://localhost:5200",
 };
 
 fs.writeFile(
-  path.join(__dirname, "../buildVariables.json"),
-  JSON.stringify(buildVariables, null, 2),
-  (err) => {
-    if (err) throw err;
-    console.log("buildVariables.json has been saved in the root folder!");
-  },
+    path.join(__dirname, "../buildVariables.json"),
+    JSON.stringify(buildVariables, null, 2),
+    (err) => {
+        if (err) throw err;
+        console.log("buildVariables.json has been saved in the root folder!");
+    },
 );
