@@ -30,11 +30,23 @@ function init() {
     autoUpdater.allowPrerelease = true;
   }
 
-  const temporaryVersionCheck = semver.lte('1.2.38', app.getVersion())
+  const temporaryVersionCheck = semver.lte("1.2.38", app.getVersion());
 
-  log.info("checkForUpdatesAndNotify ---> ", "TEMP_CHECK: ", temporaryVersionCheck, "BULD_ENV: ", buildVariables.BUILD_ENV, " CHANNEL: ", autoUpdater.channel);
+  log.info(
+    "checkForUpdatesAndNotify ---> ",
+    "TEMP_CHECK: ",
+    temporaryVersionCheck,
+    "BULD_ENV: ",
+    buildVariables.BUILD_ENV,
+    " CHANNEL: ",
+    autoUpdater.channel,
+  );
 
-  if (temporaryVersionCheck || buildVariables.BUILD_ENV === "alpha" || buildVariables.BUILD_ENV === "production") {
+  if (
+    temporaryVersionCheck ||
+    buildVariables.BUILD_ENV === "alpha" ||
+    buildVariables.BUILD_ENV === "production"
+  ) {
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
