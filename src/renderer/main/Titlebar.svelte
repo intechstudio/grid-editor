@@ -101,8 +101,7 @@
         <!-- Title Text + version -->
 
         <div class="flex items-center text-gray-500 text-sm pt-1">
-          Grid Editor v{$appSettings.version.major}.{$appSettings.version
-            .minor}.{$appSettings.version.patch}
+          Grid Editor {configuration?.EDITOR_VERSION}
           {#if buildVariables.BUILD_ENV === "development"}
             DEVELOPMENT BUILD
           {/if}

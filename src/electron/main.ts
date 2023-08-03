@@ -17,7 +17,6 @@ import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
-console.log(buildVariables, configuration);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
