@@ -7,6 +7,7 @@ let packageJsonPath = path.join(__dirname, "../package.json");
 let packageJson = require(packageJsonPath);
 
 let branchName = process.env.BRANCH_NAME;
+console.log("branchName: ", branchName);
 
 packageJson.build.productName += ` (Nightly) ${branchName}`;
 

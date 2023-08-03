@@ -29,11 +29,10 @@ jobs:
       - name: Set Env
         shell: bash
         run: |
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "${{ env.BRANCH_NAME }}"
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_OUTPUT
 
       - name: Update package.json
-        run: node ./build-scripts/nightly-packageModifier.js
+        run: BRANCH_NAME=${{ steps.vars.outputs.BRANCH_NAME }} node ./build-scripts/nightly-packageModifier.js
 
       - name: Install dependencies
         run: npm i
