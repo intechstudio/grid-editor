@@ -7,6 +7,8 @@ import {
   nativeImage,
   clipboard,
   shell,
+  MessageChannelMain,
+  utilityProcess,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -41,7 +43,6 @@ import {
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { getActiveWindow } from "./src/active-window";
 import {
   desktopAutomationPluginStart,
   desktopAutomationPluginStop,
@@ -279,6 +280,24 @@ function createWindow() {
       return true;
     }
   });
+
+  // Handle plugin configuration, action
+  mainWindow.webContents.on("did-finish-load", () => {
+    const { port1, port2 } = new MessageChannelMain();
+    mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+    const process = utilityProcess.fork(
+      path.resolve(path.join(__dirname, "./pluginManager.js")),
+    );
+    process.postMessage(
+      {
+        pluginFolder: path.resolve(
+          path.join(app.getPath("documents"), "grid-userdata", "plugins"),
+        ),
+        version: configuration.EDITOR_VERSION,
+      },
+      [port2],
+    );
+  });
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
@@ -461,11 +480,6 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
-});
-
-// get the active window, user must give permissons for this
-ipcMain.handle("activeWindow", async (event, arg) => {
-  return await getActiveWindow();
 });
 
 // persistent storage for the app

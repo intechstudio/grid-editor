@@ -9,3 +9,4 @@ build
 /playwright-report/
 /playwright/.cache/
 buildVariables.json
+.vscode/launch.json
