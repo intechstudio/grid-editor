@@ -146,6 +146,18 @@
     localDefinitions.update(list);
   }
 
+  function setIndentationDepth(list) {
+    let indentationDepth = 0;
+    for (const config of list) {
+      if (config.information.name.endsWith("_If")) {
+        ++indentationDepth;
+      } else if (config.information.name.endsWith("_End")) {
+        --indentationDepth;
+      }
+      config.indentation = indentationDepth;
+    }
+  }
+
   function handleUserInputchange() {
     let target = ConfigTarget.getCurrent();
     let list = undefined;
@@ -181,6 +193,9 @@
   $: if ($user_input) {
     handleUserInputchange();
   }
+
+  //USE THIS TO OUR ADVANTAGE!
+  $: setIndentationDepth($configs);
 
   let animation = false;
   let isDragged = false;
@@ -375,27 +390,13 @@
     //Find the closing tag of the multiselect component
     const multiSelect = selectedConfig.information.name.endsWith("_If");
     if (multiSelect) {
-      let indentationDepth = 1;
-      for (
-        let i = index + 1;
-        i < $configs.length && indentationDepth > 0;
-        ++i
-      ) {
-        //Another component is found inside the component, increase
-        //indentation depth.
-        if ($configs[i].information.name.endsWith("_If")) {
-          ++indentationDepth;
-        }
-        //Closing tag found inside the component, decrease
-        //indentation depth.
-        else if ($configs[i].information.name.endsWith("_End")) {
-          --indentationDepth;
-        }
+      let indentation = $configs[index].indentation;
+      for (let i = index; i < $configs.length; ++i) {
         $configs[i].selected = value;
-      }
-
-      if (indentationDepth !== 0) {
-        throw `No closing tag found for ${selectedConfig.information.name}`;
+        console.log($configs[i].indentation);
+        if (indentation > $configs[i].indentation) {
+          break;
+        }
       }
     }
 

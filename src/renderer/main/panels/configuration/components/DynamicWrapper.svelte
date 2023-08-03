@@ -5,6 +5,7 @@
 
   import { createEventDispatcher } from "svelte";
   import { ConfigObject } from "../Configuration.store";
+  import { onMount } from "svelte";
 
   export let access_tree;
   export let index = undefined;
@@ -15,6 +16,19 @@
   let syntaxError = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
+
+  let containedBlocksCount = 0;
+  onMount(() => {
+    const list = config.parent;
+    const index = list.indexOf(config);
+    for (let i = index + 1; i < list.length; ++i) {
+      const item = list[i];
+      if (item.indentation <= config.indentation) {
+        break;
+      }
+      ++containedBlocksCount;
+    }
+  });
 
   function replace_me(e) {
     const name = e.detail;
@@ -65,12 +79,17 @@
 </script>
 
 <wrapper
-  class="flex flex-grow border-none outline-none transition-opacity duration-300"
+  class="flex flex-row flex-grow border-none outline-none transition-opacity duration-300"
 >
+  <div
+    style="width: {config.information.name === 'Condition_If' ||
+    config.information.name === 'Condition_ElseIf'
+      ? 0
+      : config.indentation * 45}px"
+  />
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-
   <carousel
-    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
+    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'} "
     id="cfg-{index}"
     config-component={config.information.name}
     config-id={index}
@@ -81,44 +100,28 @@
     <div
       class="w-full flex flex-row pointer-events-none transition-all duration-300"
     >
-      <!-- Six dots to the left -->
-      <div
-        class="flex p-2 items-center bg-secondary"
-        class:group-hover:bg-select-saturate-10={!toggled}
-        class:border-error={syntaxError}
-        class:border-y={syntaxError}
-        class:border-l={syntaxError}
-        class:invisible={!config.information.selectable}
-      >
-        <svg
-          class="opacity-40 group-hover:opacity-100"
-          width="8"
-          height="13"
-          viewBox="0 0 8 13"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-        </svg>
-      </div>
-
       <!-- Icon -->
       <!-- //TODO: Refactor out the special cases -->
       {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
         <div
           style="background-color:{config.information.color}"
-          class="flex items-center p-2 w-min text-center"
+          class="flex items-center p-2 w-min text-center relative"
           class:border-y={syntaxError}
           class:border-error={syntaxError}
         >
           <div class="w-6 h-6 whitespace-nowrap">
             {@html config.information.blockIcon}
           </div>
+
+          {#if config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
+            <div
+              style="background-color:{config.information.color}; height: {15 +
+                Number(containedBlocksCount + 1) *
+                  46}px; transform: translateY({15 +
+                Number(containedBlocksCount + 1) * 46}px);"
+              class=" absolute w-10 bottom-0 left-0 z-10"
+            />
+          {/if}
         </div>
       {/if}
 
@@ -127,7 +130,7 @@
         style="background-color:{config.information.rendering !== 'standard'
           ? config.information.color
           : ''}"
-        class="w-full bg-secondary cur"
+        class="w-full bg-secondary"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
         class:group-hover:bg-select-saturate-10={!toggled}
