@@ -193,6 +193,7 @@ function createWindow() {
   updater.mainWindow = mainWindow;
 
   ipcMain.on("restartAfterUpdate", () => {
+    log.info('Calling "restartAfterUpdate" from main.ts')
     restartAfterUpdate();
   });
 
