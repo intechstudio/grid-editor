@@ -1,4 +1,4 @@
-name: Matrix build Grid Editor
+name: 🚀 Release
 
 on:
   workflow_dispatch:

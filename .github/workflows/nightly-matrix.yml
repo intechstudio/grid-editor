@@ -1,4 +1,4 @@
-name: Matrix build Grid Editor (Nightly)
+name: 🦇 Nightly build (every commit except tags!)
 
 on:
   push:

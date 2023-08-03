@@ -1,4 +1,4 @@
-name: Matrix build Grid Editor (ALPHA)
+name: 💀 Alpha build on -alpha tag
 
 on:
   push:
