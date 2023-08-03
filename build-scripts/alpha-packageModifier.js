@@ -6,7 +6,6 @@ const path = require("path");
 let packageJsonPath = path.join(__dirname, "../package.json");
 let packageJson = require(packageJsonPath);
 
-let branchName = process.env.BRANCH_NAME;
 let releaseVersion = process.env.RELEASE_VERSION;
 
 packageJson.build.productName += ` (Alpha)`;

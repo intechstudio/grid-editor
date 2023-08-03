@@ -1,5 +1,4 @@
 // This is for local packaged app testing. It will create a buildVariables.json file in the root folder.
-
 const fs = require("fs");
 const path = require("path");
 

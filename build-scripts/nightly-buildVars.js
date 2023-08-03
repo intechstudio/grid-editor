@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 
 let buildVariables = {
-  BUILD_END: "nightly",
+  BUILD_ENV: "nightly",
   PROFILE_CLOUD_URL: "https://profile-cloud-dev.web.app",
 };
 
