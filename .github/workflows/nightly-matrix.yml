@@ -24,7 +24,8 @@ jobs:
       - name: Set Env
         shell: bash
         run: |
-          echo "BRANCH_NAME=${GITHUB_BASE_REF}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${GITHUB_REF}" >> $GITHUB_ENV
+          echo "${{ env.GITHUB_REF }}"
           echo "RELEASE_CHANNEL=alpha" >> $GITHUB_ENV
 
       - name: Update package.json
@@ -57,6 +58,17 @@ jobs:
         with:
           name: ${{ matrix.os }}-nightly
           path: build/*.*
+      
+      # - name: Release
+      #   uses: softprops/action-gh-release@v1
+      #   with:
+      #     tag_name: ${{ env.RELEASE_VERSION }}
+      #     name: Release ${{ env.RELEASE_VERSION }}
+      #     files: build/*.*
+      #     draft: false
+      #     prerelease: true
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   linux-unit-test:
     name: Linux Unit Test

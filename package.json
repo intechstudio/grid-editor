@@ -99,21 +99,21 @@
           "repo": "grid-editor"
         }
       ],
-      "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
+      "artifactName": "${name}-setup-${version}.${ext}",
       "target": [
         "nsis"
       ],
       "icon": "build-assets/icon.png"
     },
     "linux": {
-      "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}"
+      "artifactName": "${name}-setup-${version}.${ext}"
     },
     "mac": {
       "target": [
         "dmg",
         "zip"
       ],
-      "artifactName": "${name}-setup-${version}-${env.MODE}.${ext}",
+      "artifactName": "${name}-setup-${version}.${ext}",
       "icon": "build-assets/icon_mac.png",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
