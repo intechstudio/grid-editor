@@ -21,7 +21,7 @@ function init() {
     autoUpdater.channel = "alpha";
   }
 
-  log.info("check for update and notify...");
+  log.info("check for update and notify...", autoUpdater.channel);
 
   // here we could implement autoDownload = false logic based on settings
   autoUpdater.checkForUpdatesAndNotify();
