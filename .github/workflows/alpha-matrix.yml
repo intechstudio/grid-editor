@@ -30,10 +30,9 @@ jobs:
           echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
           echo "${{ env.BRANCH_NAME }}"
-          echo "RELEASE_CHANNEL=alpha" >> $GITHUB_ENV
 
       - name: Update package.json
-        run: node ./build-scripts/nightly-packageModifier.js
+        run: node ./build-scripts/alpha-packageModifier.js
 
       - name: Install dependencies
         run: npm i
