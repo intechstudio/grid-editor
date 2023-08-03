@@ -121,7 +121,9 @@
             runtime.change_page(data.num)
           } else if (data.id == "persist-data") {
             appSettings.update((s) => {
-              s.persistant.pluginsDataStorage[data.pluginId] = data.data
+              const newStorage = structuredClone(s.persistant.pluginsDataStorage)
+              newStorage[data.pluginId] = data.data
+              s.persistant.pluginsDataStorage = newStorage
               return s
             })
           }
