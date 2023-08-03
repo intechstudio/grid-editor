@@ -19,19 +19,20 @@ function init() {
     autoUpdater.channel = "latest";
   }
 
+  if (buildVariables.BUILD_ENV === "nightly") {
+    autoUpdater.channel = "latest";
+  }
+
   if (buildVariables.BUILD_ENV === "alpha") {
     autoUpdater.channel = "alpha";
     autoUpdater.allowPrerelease = true;
   }
 
-  log.info("check for update and notify...", autoUpdater.channel);
+  log.info("checkForUpdatesAndNotify ---> ", "BULD_ENV: ", buildVariables.BUILD_ENV, " CHANNEL: ", autoUpdater.channel);
 
-  if (
-    buildVariables.BUILD_ENV !== "nightly" &&
-    buildVariables.BUILD_ENV !== "development"
-  ) {
-    autoUpdater.checkForUpdatesAndNotify();
-  }
+
+  autoUpdater.checkForUpdatesAndNotify();
+
 }
 
 init();
