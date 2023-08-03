@@ -24,74 +24,11 @@ export const eventType = {
   6: "Timer",
 };
 
-async function detectActiveWindow() {
-  if (get(appSettings).persistant.pageActivatorEnabled !== true) {
-    return;
-  }
-
-  try {
-    if (get(appSettings).intervalPause) return;
-
-    let result = await window.electron.activeWindow();
-
-    if (result === undefined) {
-      result = { owner: { name: "Unknown!" }, title: "Invalid title!" };
-    }
-
-    if (get(appSettings).intervalPause) return;
-    if (get(unsaved_changes) !== 0) return;
-
-    appSettings.update((s) => {
-      s.activeWindowResult = result;
-      return s;
-    });
-
-    if (get(appSettings).persistant.pageActivatorEnabled !== true) {
-      return;
-    }
-
-    if (lastPageActivator === result.owner.name) {
-      return;
-    }
-
-    let criteria = [
-      get(appSettings).persistant.pageActivatorCriteria_0,
-      get(appSettings).persistant.pageActivatorCriteria_1,
-      get(appSettings).persistant.pageActivatorCriteria_2,
-      get(appSettings).persistant.pageActivatorCriteria_3,
-    ];
-
-    for (let i = 0; i < 4; i++) {
-      if (criteria[i] === result.owner.name) {
-        lastPageActivator = result.owner.name;
-
-        runtime.change_page(i);
-        return;
-      }
-    }
-
-    // default to page 0 if not found
-    lastPageActivator = result.owner.name;
-    runtime.change_page(0);
-  } catch (e) {
-    console.error("detectActiveWindow failed", e);
-  }
-}
-
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
     setTimeout(() => setIntervalAsync(fn, ms), ms);
   });
 };
-
-const setIntervalAsyncActiveWindow = (fn) => {
-  fn().then(() => {
-    let interval = get(appSettings).persistant.pageActivatorInterval;
-    setTimeout(() => setIntervalAsyncActiveWindow(fn), interval);
-  });
-};
-
-setIntervalAsyncActiveWindow(detectActiveWindow);
 
 // The controller which is added to runtime first, load a default config!
 
