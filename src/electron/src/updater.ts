@@ -1,6 +1,8 @@
 import { autoUpdater } from "electron-updater";
 import log from "electron-log";
 
+import buildVariables from "../../../buildVariables.json";
+
 interface Updater {
   mainWindow: any;
 }
@@ -9,12 +11,23 @@ export const updater: Updater = {
   mainWindow: null,
 };
 
-autoUpdater.channel = "latest";
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
+function init() {
+  autoUpdater.logger = log;
+  log.transports.file.level = "info"
 
-log.info("check for update and notify...");
-autoUpdater.checkForUpdatesAndNotify();
+  if (buildVariables.BUILD_ENV === "production") {
+    autoUpdater.channel = "latest";
+  } else {
+    autoUpdater.channel = "alpha";
+  }
+
+  log.info("check for update and notify...");
+
+  // here we could implement autoDownload = false logic based on settings
+  autoUpdater.checkForUpdatesAndNotify();
+}
+
+init();
 
 autoUpdater.on("error", (error) => {
   log.info("Error..", error);

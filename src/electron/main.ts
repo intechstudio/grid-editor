@@ -577,7 +577,6 @@ ipcMain.on("restartApp", (event, arg) => {
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
-  console.log("window-all-closed", app.quitting);
   const keepRunning = store.get("alwaysRunInTheBackground");
   if (keepRunning === true) {
     // On macOS it is common for applications and their menu bar
@@ -599,5 +598,4 @@ app.on("activate", () => {
 // termination of application, closing the windows, used for macOS hide flag
 app.on("before-quit", () => {
   app.quitting = true;
-  console.log("before quit");
 });
