@@ -72,20 +72,14 @@
 </script>
 
 <layout-container
-  class="{$$props.class} relative flex overflow-hidden"
+  class="{$$props.class} relative flex overflow-hidde"
   class:pointer-events-none={$engine != "ENABLED"}
 >
   <div
-    style="
-      --device-width: {deviceWidth}px; 
-      --shift-x: {shiftX}px; 
-      --shift-y: {shiftY}px; 
-      --scaling-percent: {$scalingPercent};
-    "
-    class="absolute centered duration-75 transition-all"
+    class="absolute left-1/2 top-1/2 flex flex-row -translate-x-1/2 -translate-y-1/2"
     use:clickOutside={{ useCapture: true }}
   >
-    {#each $devices as device (device)}
+    <!-- {#each $devices as device (device)}
       <div
         in:fly={{
           x: device.fly_x_direction * 100,
@@ -105,7 +99,12 @@
           rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
         />
       </div>
-    {/each}
+    {/each} -->
+    <Device
+      type={"EF44"}
+      id={"EF44_dx:0;dy:0"}
+      rotation={0 + $appSettings.persistant.moduleRotation / 90}
+    />
     <Dummy
       type={"Dummy"}
       id={"test"}

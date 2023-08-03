@@ -208,7 +208,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;
     window.electron.openInBrowser(url);
   }
-  let test = false;
+  let test = true;
 </script>
 
 {#if $appSettings.firmwareNotificationState === 1 || test}
