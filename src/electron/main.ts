@@ -219,7 +219,6 @@ function createWindow() {
       mainWindow = null;
     } else {
       evt.preventDefault();
-
       // only hide, keep in the background
       const keepRunning = store.get("alwaysRunInTheBackground");
       if (keepRunning === true) {
@@ -492,6 +491,7 @@ ipcMain.handle("setPersistentStore", (event, arg) => {
   });
   return "saved";
 });
+
 // app window management
 ipcMain.handle("closeWindow", async (event, args) => {
   mainWindow.close();
@@ -577,9 +577,15 @@ ipcMain.on("restartApp", (event, arg) => {
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
+  console.log("window-all-closed", app.quitting);
+  const keepRunning = store.get("alwaysRunInTheBackground");
+  if (keepRunning === true) {
+    // On macOS it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  } else {
     app.quit();
   }
 });
@@ -591,4 +597,7 @@ app.on("activate", () => {
 });
 
 // termination of application, closing the windows, used for macOS hide flag
-app.on("before-quit", () => (app.quitting = true));
+app.on("before-quit", () => {
+  app.quitting = true;
+  console.log("before quit");
+});

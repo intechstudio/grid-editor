@@ -79,6 +79,7 @@
   onMount(() => {
     selectedLayout = $appSettings.persistant.keyboardLayout;
     change_layout();
+    keys_buffer = keys;
   });
 
   $: if (config.script && !loaded) {
@@ -165,6 +166,7 @@
   }
 
   let keys = "";
+  let keys_buffer = "";
   let parameters = [];
   let caretKeyBuffer = [];
   let keyBuffer = [];
@@ -212,8 +214,6 @@
       keyBuffer = tempKeyBuffer;
 
       keys = colorize(tempKeyBuffer);
-
-      manageMacro();
     }
 
     // filter same keypress type
@@ -256,8 +256,6 @@
       }
 
       keys = colorize(tempKeyBuffer);
-
-      manageMacro();
     }
 
     // update last key...
@@ -457,6 +455,13 @@
 
     sendData(parameters);
   }
+
+  function onBlur(e) {
+    if (keys_buffer !== keys) {
+      manageMacro();
+    }
+    keys_buffer = keys;
+  }
 </script>
 
 <div
@@ -497,6 +502,7 @@
         : 'focus:border-select-desaturate-20 border-select'} editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
+      on:blur={onBlur}
       contenteditable="true"
       on:click={(e) => {
         caretFocus = true;
