@@ -21,6 +21,7 @@ function init() {
 
   if (buildVariables.BUILD_ENV === "alpha") {
     autoUpdater.channel = "alpha";
+    autoUpdater.allowPrerelease = true;
   }
 
   log.info("check for update and notify...", autoUpdater.channel);
