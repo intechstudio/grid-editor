@@ -13,7 +13,7 @@ export const updater: Updater = {
 
 function init() {
   autoUpdater.logger = log;
-  log.transports.file.level = "info"
+  log.transports.file.level = "info";
 
   if (buildVariables.BUILD_ENV === "production") {
     autoUpdater.channel = "latest";
