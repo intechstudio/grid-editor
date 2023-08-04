@@ -86,4 +86,6 @@ autoUpdater.on("update-downloaded", (info) => {
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
   autoUpdater.quitAndInstall();
+  app.relaunch();
+  app.exit();
 }

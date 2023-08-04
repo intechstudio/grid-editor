@@ -9,6 +9,7 @@ import {
   shell,
   MessageChannelMain,
   utilityProcess,
+  autoUpdater,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -309,6 +310,7 @@ function createWindow() {
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
+// isDev needs to know if app is packaged
 const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
 const deeplink = new Deeplink({
   app,
@@ -600,6 +602,7 @@ ipcMain.on("restartApp", (event, arg) => {
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
   const keepRunning = store.get("alwaysRunInTheBackground");
+
   if (keepRunning === true) {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
@@ -618,6 +621,7 @@ app.on("activate", () => {
 });
 
 // termination of application, closing the windows, used for macOS hide flag
-app.on("before-quit", () => {
+app.on("before-quit", (evt) => {
+  log.info("before-quit evt", evt);
   app.quitting = true;
 });

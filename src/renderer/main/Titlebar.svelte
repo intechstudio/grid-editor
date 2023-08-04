@@ -106,7 +106,7 @@
             {buildVariables?.BRANCH_NAME}
           {/if}
           {#if buildVariables.BUILD_ENV === "development"}
-            DEVELOPMENT BUILD
+            {buildVariables.BUILD_ENV}
           {/if}
         </div>
 
@@ -203,6 +203,9 @@
         Grid Editor {configuration.EDITOR_VERSION}
         {#if buildVariables.BUILD_ENV == "nightly"}
           {buildVariables?.BRANCH_NAME}
+        {/if}
+        {#if buildVariables.BUILD_ENV == "development"}
+          {buildVariables?.BUILD_ENV}
         {/if}
       </div>
     </div>
