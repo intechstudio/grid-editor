@@ -1,11 +1,11 @@
 [
   {
-    "type": "notificationBAK",
+    "type": "notification",
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
-    "link": "https://intech.studio/grid-editor",
-    "message": "Please download the new editor version from the Intech Studio website!"
+    "link": "https://github.com/intechstudio/grid-editor/releases/tag/v1.2.39",
+    "message": "Editor v1.2.39 is here with apple silicon builds. Avaialable through GitHub. Auto updates may not work without downloading manually!"
   },
   {
     "type": "notificationBAK",
