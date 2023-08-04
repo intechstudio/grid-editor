@@ -146,7 +146,7 @@
     "gen:buildVars:local": "node ./build-scripts/local-buildVars.js",
     "gen:buildVars:nightly": "node ./build-scripts/nightly-buildVars.js",
     "gen:buildVars:alpha": "node ./build-scripts/alpha-buildVars.js",
-    "gen:buildVars:prod": "node ./build-scripts/local-buildVars.js",
+    "gen:buildVars:prod": "node ./build-scripts/prod-buildVars.js",
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
