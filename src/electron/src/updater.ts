@@ -4,6 +4,7 @@ import semver from "semver";
 import log from "electron-log";
 
 import buildVariables from "../../../buildVariables.json";
+import { store } from "../main-store";
 
 interface Updater {
   mainWindow: any;
@@ -85,8 +86,7 @@ autoUpdater.on("update-downloaded", (info) => {
 
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
+  store.set("alwaysRunInTheBackground", false);
   autoUpdater.quitAndInstall();
   // we must specifically exit the app here
-  app.relaunch();
-  app.exit();
 }
