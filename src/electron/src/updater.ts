@@ -86,6 +86,7 @@ autoUpdater.on("update-downloaded", (info) => {
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
   autoUpdater.quitAndInstall();
+  // we must specifically exit the app here
   app.relaunch();
   app.exit();
 }
