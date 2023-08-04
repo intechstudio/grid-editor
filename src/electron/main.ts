@@ -241,7 +241,6 @@ function createWindow() {
 
   mainWindow.on("resize", () => {
     let { width, height } = mainWindow.getBounds();
-
     store.set("windowBounds", { width, height });
     mainWindow.webContents.send("window_size", { width, height });
   });
