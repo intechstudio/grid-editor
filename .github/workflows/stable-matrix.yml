@@ -1,10 +1,10 @@
-name: Matrix build Grid Editor
+name: 🚀 Release build
 
 on:
   workflow_dispatch:
   push:
     tags:
-      - "v*.*.*"
+      - "v[12].[0-9]+.[0-9]+"
 
 jobs:
   matrix-build:
@@ -34,13 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm i
 
-      - name: Create buildVariables.json
-        id: create-json-1
-        uses: jsdaniell/create-json@v1.2.2
-        with:
-          name: "buildVariables.json"
-          json: '{"BUILD_ENV":"production", "PROFILE_CLOUD_URL":"https://profiles.intech.studio"}'
-
       - name: Build
         run: npm run export
         env:
@@ -69,5 +62,6 @@ jobs:
           name: Release ${{ env.RELEASE_VERSION }}
           files: build/*.*
           draft: true
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

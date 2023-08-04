@@ -9,19 +9,25 @@ import {
   shell,
   MessageChannelMain,
   utilityProcess,
+  autoUpdater,
 } from "electron";
 import path from "path";
 import log from "electron-log";
 import fs from "fs";
-import { autoUpdater } from "electron-updater";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
 
 configuration.EDITOR_VERSION = app.getVersion();
+configuration.EDITOR_NAME = app.getName();
 
-console.log(buildVariables, configuration);
+log.info(
+  "NAME: ",
+  configuration.EDITOR_NAME,
+  " VERSION: ",
+  configuration.EDITOR_VERSION,
+);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -51,9 +57,6 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
-
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
 
 log.info("App starting...");
 
@@ -196,12 +199,11 @@ function createWindow() {
 
   serial.mainWindow = mainWindow;
   websocket.mainWindow = mainWindow;
-
   firmware.mainWindow = mainWindow;
-
   updater.mainWindow = mainWindow;
 
   ipcMain.on("restartAfterUpdate", () => {
+    log.info('Calling "restartAfterUpdate" from main.ts');
     restartAfterUpdate();
   });
 
@@ -239,7 +241,6 @@ function createWindow() {
 
   mainWindow.on("resize", () => {
     let { width, height } = mainWindow.getBounds();
-
     store.set("windowBounds", { width, height });
     mainWindow.webContents.send("window_size", { width, height });
   });
@@ -308,6 +309,7 @@ function createWindow() {
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
+// isDev needs to know if app is packaged
 const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
 const deeplink = new Deeplink({
   app,
@@ -321,7 +323,37 @@ const deeplink = new Deeplink({
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-autoUpdater.checkForUpdatesAndNotify();
+ipcMain.handle("startPlugin", async (event, arg) => {
+  console.log("pluginstart!", arg.name);
+  switch (arg.name) {
+    case "desktopAutomation": {
+      desktopAutomationPluginStart();
+      break;
+    }
+    case "photoshop": {
+      // this plugin is hosted in photoshop itself
+      break;
+    }
+  }
+
+  return "ok";
+});
+
+ipcMain.handle("stopPlugin", async (event, arg) => {
+  console.log("stop plugin");
+  switch (arg.name) {
+    case "desktopAutomation": {
+      desktopAutomationPluginStop();
+      break;
+    }
+    case "photoshop": {
+      // this plugin is hosted in photoshop itself
+      break;
+    }
+  }
+
+  return "ok";
+});
 
 deeplink.on("received", (data) => {
   if (data.startsWith("grid-editor")) {
@@ -568,8 +600,8 @@ ipcMain.on("restartApp", (event, arg) => {
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
-  console.log("window-all-closed", app.quitting);
   const keepRunning = store.get("alwaysRunInTheBackground");
+
   if (keepRunning === true) {
     // On macOS it is common for applications and their menu bar
     // to stay active until the user quits explicitly with Cmd + Q
@@ -588,7 +620,7 @@ app.on("activate", () => {
 });
 
 // termination of application, closing the windows, used for macOS hide flag
-app.on("before-quit", () => {
+app.on("before-quit", (evt) => {
+  log.info("before-quit evt", evt);
   app.quitting = true;
-  console.log("before quit");
 });

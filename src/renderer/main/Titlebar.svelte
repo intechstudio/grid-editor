@@ -101,10 +101,12 @@
         <!-- Title Text + version -->
 
         <div class="flex items-center text-gray-500 text-sm pt-1">
-          Grid Editor v{$appSettings.version.major}.{$appSettings.version
-            .minor}.{$appSettings.version.patch}
+          Grid Editor {configuration?.EDITOR_VERSION}
+          {#if buildVariables.BUILD_ENV == "nightly"}
+            {buildVariables?.BRANCH_NAME}
+          {/if}
           {#if buildVariables.BUILD_ENV === "development"}
-            DEVELOPMENT BUILD
+            {buildVariables.BUILD_ENV}
           {/if}
         </div>
 
@@ -198,10 +200,12 @@
   {:else}
     <div class="draggable flex items-center justify-center h-7">
       <div class="flex text-gray-500 text-sm pt-1">
-        Grid Editor v{$appSettings.version.major}.{$appSettings.version
-          .minor}.{$appSettings.version.patch}
-        {#if buildVariables.BUILD_ENV !== "production"}
-          - <span>{buildVariables.BUILD_ENV.toUpperCase()} BUILD</span>
+        Grid Editor {configuration.EDITOR_VERSION}
+        {#if buildVariables.BUILD_ENV == "nightly"}
+          {buildVariables?.BRANCH_NAME}
+        {/if}
+        {#if buildVariables.BUILD_ENV == "development"}
+          {buildVariables?.BUILD_ENV}
         {/if}
       </div>
     </div>
