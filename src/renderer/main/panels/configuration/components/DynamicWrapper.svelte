@@ -18,17 +18,26 @@
   const dispatch = createEventDispatcher();
 
   let containedBlocksCount = 0;
-  onMount(() => {
-    const list = config.parent;
-    const index = list.indexOf(config);
-    for (let i = index + 1; i < list.length; ++i) {
-      const item = list[i];
-      if (item.indentation <= config.indentation) {
-        break;
+  let legHeight = "0px";
+  let indentWidth = "0px";
+
+  $: {
+    if (typeof config !== undefined) {
+      if (config.short === "if" || config.short === "ei") {
+        const list = config.parent;
+        const index = list.indexOf(config);
+        for (let i = index; i < list.length; ++i) {
+          const item = list[i];
+          if (item.short === "en" || item.short === "ei") {
+            break;
+          }
+          ++containedBlocksCount;
+        }
+        legHeight = 16 + containedBlocksCount * 46;
       }
-      ++containedBlocksCount;
+      indentWidth = getIndentationDepth(config);
     }
-  });
+  }
 
   function replace_me(e) {
     const name = e.detail;
@@ -76,17 +85,41 @@
     config.toggled = !config.toggled;
     dispatch("toggle", { value: config.toggled, index: index });
   }
+
+  function getIndentationDepth(config) {
+    let indentationDepth = 0;
+    try {
+      const list = config.parent;
+      for (const obj of list) {
+        if (obj.short === "if") {
+          ++indentationDepth;
+        } else if (obj.short === "en") {
+          --indentationDepth;
+        }
+
+        if (obj === config) {
+          break;
+        }
+      }
+      return indentationDepth;
+    } catch (e) {
+      console.error(e);
+    }
+  }
 </script>
 
 <wrapper
   class="flex flex-row flex-grow border-none outline-none transition-opacity duration-300"
 >
-  <div
-    style="width: {config.information.name === 'Condition_If' ||
-    config.information.name === 'Condition_ElseIf'
-      ? 0
-      : config.indentation * 45}px"
-  />
+  {#if config.information.name !== "Condition_If" && config.information.name !== "Condition_ElseIf"}
+    {#key indentWidth}
+      {#each Array(indentWidth) as obj}
+        <div class="h-full w-10 items-center flex justify-center">
+          <div class="h-5 w-5 rounded-full bg-secondary" />
+        </div>
+      {/each}
+    {/key}
+  {/if}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <carousel
     class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'} "
@@ -113,15 +146,15 @@
             {@html config.information.blockIcon}
           </div>
 
-          {#if config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
-            <div
-              style="background-color:{config.information.color}; height: {15 +
-                Number(containedBlocksCount + 1) *
-                  46}px; transform: translateY({15 +
-                Number(containedBlocksCount + 1) * 46}px);"
-              class=" absolute w-10 bottom-0 left-0 z-10"
-            />
-          {/if}
+          <!-- {#if config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
+            {#key legHeight}
+              <div
+                style="background-color:{config.information
+                  .color}; height: {legHeight}px; transform: translateY({legHeight}px);"
+                class=" absolute w-10 bottom-0 left-0 z-10"
+              />
+            {/key}
+          {/if} -->
         </div>
       {/if}
 
