@@ -104,6 +104,7 @@
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1 truncate">Encoder Mode</div>
         <AtomicInput
+          inputValue={emo}
           suggestions={suggestions[0]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
@@ -129,6 +130,7 @@
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1 truncate">Encoder Velocity</div>
         <AtomicInput
+          inputValue={ev0}
           suggestions={suggestions[1]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();

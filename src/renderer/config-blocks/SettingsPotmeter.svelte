@@ -95,6 +95,7 @@
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1">Bit depth</div>
         <AtomicInput
+          inputValue={pmo}
           suggestions={suggestions[0]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
@@ -120,6 +121,7 @@
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1">Max Value</div>
         <AtomicInput
+          inputValue={pma}
           suggestions={suggestions[1]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
