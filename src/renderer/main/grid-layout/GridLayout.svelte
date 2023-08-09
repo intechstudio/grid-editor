@@ -102,6 +102,7 @@
           type={device.type}
           id={device.id}
           arch={device.architecture}
+          portstate={device.portstate}
           rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
         />
       </div>
