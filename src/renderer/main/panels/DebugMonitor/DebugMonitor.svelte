@@ -7,7 +7,6 @@
     inbound_data_rate_history,
     outbound_data_rate_history,
   } from "./DebugMonitor.store";
-  import _utils from "../../../runtime/_utils";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { luadebug_store } from "../../../runtime/runtime.store";
   import { fade } from "svelte/transition";

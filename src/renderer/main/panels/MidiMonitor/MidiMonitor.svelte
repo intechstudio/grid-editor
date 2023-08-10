@@ -3,7 +3,6 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import _utils from "../../../runtime/_utils";
   import {
     midi_monitor_store,
     sysex_monitor_store,

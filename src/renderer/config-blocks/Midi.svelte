@@ -44,7 +44,7 @@
   } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import _utils from "../runtime/_utils.js";
+  import { Script } from "./_script_parsers.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
@@ -79,7 +79,7 @@
 
   // config.script cannot be undefined
   $: if (config.script && !loaded) {
-    scriptSegments = _utils.scriptToSegments({
+    scriptSegments = Script.toSegments({
       short: config.short,
       script: config.script,
     });
@@ -92,7 +92,7 @@
 
   function sendData(e, index) {
     scriptSegments[index] = e;
-    const script = _utils.segmentsToScript({
+    const script = Script.toScript({
       human: config.human,
       short: config.short,
       array: scriptSegments,

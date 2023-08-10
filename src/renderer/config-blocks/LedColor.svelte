@@ -47,7 +47,7 @@ A -> B : AB-First step
 
   import { Validator } from "./_validators";
 
-  import _utils from "../runtime/_utils.js";
+  import { Script } from "./_script_parsers.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
   export let config;
@@ -86,7 +86,7 @@ A -> B : AB-First step
 
   // config.script cannot be undefined
   $: if (config.script && !loaded) {
-    const _segments = _utils.scriptToSegments({
+    const _segments = Script.toSegments({
       human: config.human,
       short: config.short,
       script: config.script,
@@ -122,7 +122,7 @@ A -> B : AB-First step
 
     const _temp_segments = [...scriptSegments, beautyMode];
 
-    const script = _utils.segmentsToScript({
+    const script = Script.toScript({
       human: config.human,
       short: config.short,
       array: _temp_segments,
