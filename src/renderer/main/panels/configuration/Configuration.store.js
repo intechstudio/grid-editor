@@ -95,7 +95,7 @@ export class ConfigObject {
         stringManipulation.blockCommentToLineComment(short_code);
 
       var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
+        stringManipulation.lineCommentToNoComment(line_commented_code),
       );
       luamin.Minify(safe_code, luaminOptions);
       return true;
@@ -113,7 +113,7 @@ export class ConfigObject {
         stringManipulation.blockCommentToLineComment(short_code);
 
       var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
+        stringManipulation.lineCommentToNoComment(line_commented_code),
       );
       luamin.Minify(safe_code, luaminOptions);
       return "OK";
@@ -161,8 +161,8 @@ export class ConfigList extends Array {
       if (!(target instanceof ConfigTarget)) {
         reject(
           new Error(
-            `Invalid target object (${target}). Expected an instance of ConfigTarget.`
-          )
+            `Invalid target object (${target}). Expected an instance of ConfigTarget.`,
+          ),
         );
       }
 
@@ -199,7 +199,7 @@ export class ConfigList extends Array {
         target.element,
         target.eventType,
         actionString,
-        "EDITOR_EXECUTE"
+        "EDITOR_EXECUTE",
       );
 
       runtime.send_event_configuration_to_grid(
@@ -207,7 +207,7 @@ export class ConfigList extends Array {
         target.device.dy,
         target.page,
         target.element,
-        target.eventType
+        target.eventType,
       );
 
       //TODO: Refactor this out
@@ -220,7 +220,7 @@ export class ConfigList extends Array {
   #Init() {
     const rt = get(runtime);
     const device = rt.find(
-      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy
+      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy,
     );
 
     if (typeof device === "undefined") {
@@ -230,16 +230,16 @@ export class ConfigList extends Array {
     const page = device.pages[this.target.page];
 
     const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.target.element
+      (e) => e.controlElementNumber == this.target.element,
     );
 
     let event = element.events.find(
-      (e) => e.event.value == this.target.eventType
+      (e) => e.event.value == this.target.eventType,
     );
 
     if (typeof event === "undefined") {
       throw new UnknownEventException(
-        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`,
       );
     }
 
