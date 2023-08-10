@@ -3,7 +3,7 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
   import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
@@ -344,7 +344,11 @@
                     delete
 
                     <TooltipConfirm key={"newProfile_desc_delete"} />
-                    <TooltipSetter key={"newProfile_desc_delete"} />
+                    <Tooltip
+                      key={"newProfile_desc_delete"}
+                      placement="bottom"
+                      class="w-60 p-4"
+                    />
                   </button>
 
                   <button
@@ -384,7 +388,11 @@
                     </svg>
                     edit
 
-                    <TooltipSetter key={"newProfile_desc_edit"} />
+                    <Tooltip
+                      key={"newProfile_desc_edit"}
+                      placement="bottom"
+                      class="w-60 p-4"
+                    />
                   </button>
                 </div>
               {/if}
@@ -567,7 +575,11 @@
                 >
                   <div>Split</div>
                   <TooltipConfirm key={"newProfile_desc_split_presets"} />
-                  <TooltipSetter key={"newProfile_desc_split_presets"} />
+                  <Tooltip
+                    key={"newProfile_desc_split_presets"}
+                    placement="bottom"
+                    class="w-60 p-4"
+                  />
                 </button>
               </div>
             </div>

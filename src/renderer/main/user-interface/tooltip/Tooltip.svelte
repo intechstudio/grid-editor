@@ -2,9 +2,8 @@
   import { fade } from "svelte/transition";
   import { tooltip_content } from "./tooltip-content.json.js";
   import Popover from "svelte-easy-popover";
-  import { attachment } from "../Monster.store";
   import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
-  import { onMount, onDestroy, createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -12,8 +11,7 @@
   export let placement = "top";
   export let instant = false;
   export let nowrap = false;
-  export let buttons = ["btn-confirm", "btn-cancel"];
-  export let monster = false;
+  export let buttons = [];
   export const btn_confirm = "btn-confirm";
   export const btn_cancel = "btn-cancel";
   export const bhv_hover = "bhv-hover";
@@ -68,22 +66,6 @@
     }
   }
 
-  onMount(() => {
-    if (monster) {
-      $attachment = { element: attachmentElement, hpos: "100%", vpos: "50%" };
-    }
-  });
-
-  onDestroy(() => {
-    if (monster) {
-      if ($attachment !== undefined) {
-        if ($attachment.element === attachmentElement) {
-          $attachment = undefined;
-        }
-      }
-    }
-  });
-
   function handleCancel(e) {
     isOpen = false;
   }
@@ -128,7 +110,6 @@
     <div
       class="text-white text-left font-normal"
       class:whitespace-nowrap={nowrap}
-      class:pl-20={monster}
     >
       {tooltip_text}
     </div>
@@ -153,7 +134,7 @@
 
 <style>
   :root {
-    --tooltip-bg-color: rgba(14, 20, 24, 0.92);
+    --tooltip-bg-color: rgba(14, 20, 24, 1);
   }
 
   .tooltip-bg {

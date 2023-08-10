@@ -1,6 +1,5 @@
 <script>
   import Tooltip from "./tooltip/Tooltip.svelte";
-  import TooltipSetter from "./tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./tooltip/TooltipConfirm.svelte";
   import {
     engine,
@@ -102,7 +101,11 @@
         : 'opacity-75'}"
     >
       <div>Discard</div>
-      <TooltipSetter key={"configuration_header_clear"} />
+      <Tooltip
+        key={"configuration_header_clear"}
+        placement="bottom"
+        class="w-60 p-4"
+      />
     </button>
     <button
       on:click={handleStore}
@@ -116,8 +119,6 @@
         key={"configuration_header_store"}
         placement="bottom"
         class="w-60 p-4"
-        instant={true}
-        on:confirm={{}}
       />
     </button>
 
@@ -130,7 +131,11 @@
     >
       <div>Clear</div>
       <TooltipConfirm key={"configuration_header_clear"} />
-      <TooltipSetter key={"configuration_header_clear"} />
+      <Tooltip
+        key={"configuration_header_clear"}
+        placement="bottom"
+        class="w-60 p-4"
+      />
     </button>
 
     <button
@@ -184,7 +189,7 @@
           256.001 440.001 256.001Z"
         />
       </svg>
-      <TooltipSetter key={"engine_clear"} />
+      <Tooltip key={"engine_clear"} placement="bottom" class="w-60 p-4" />
     </button>
   </div>
 </container>

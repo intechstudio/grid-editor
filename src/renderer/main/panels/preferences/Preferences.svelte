@@ -13,7 +13,7 @@
 
   import { onMount, onDestroy } from "svelte";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -72,8 +72,6 @@
 
   let download_status = "";
   let download_status_interval;
-
-
 
   async function selectDirectory() {
     appSettings.update((s) => {
@@ -165,23 +163,23 @@
     );
   }
 
-  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences()
+  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences();
 
   let pluginListDiv;
-  let pluginPreferenceElements = {}
+  let pluginPreferenceElements = {};
 
   function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistant.enabledPlugins
+    const loadedPlugins = $appSettings.persistant.enabledPlugins;
     if (!pluginListDiv) {
-      return
+      return;
     }
     // Remove existing divs not found in the external set of IDs
     const existingDivIds = Object.keys(pluginPreferenceElements);
     existingDivIds.forEach((existingDivId) => {
-        if (!loadedPlugins.includes(existingDivId)){
-          pluginPreferenceElements[existingDivId].remove()
-          delete pluginPreferenceElements[existingDivId]
-        }
+      if (!loadedPlugins.includes(existingDivId)) {
+        pluginPreferenceElements[existingDivId].remove();
+        delete pluginPreferenceElements[existingDivId];
+      }
     });
 
     function executeScriptElements(containerElement) {
@@ -200,18 +198,19 @@
       });
     }
 
-    for (const pluginId of loadedPlugins){
-      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId)
+    for (const pluginId of loadedPlugins) {
+      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId);
       if (!plugin.preferenceHtml) continue;
       if (existingDivIds.includes(plugin.id)) continue;
 
-      const tempContainer = document.createElement("div")
-      tempContainer.innerHTML = plugin.preferenceHtml
-      pluginPreferenceElements[plugin.id] = tempContainer
-      pluginListDiv.appendChild(tempContainer)
-      executeScriptElements(tempContainer)
+      const tempContainer = document.createElement("div");
+      tempContainer.innerHTML = plugin.preferenceHtml;
+      pluginPreferenceElements[plugin.id] = tempContainer;
+      pluginListDiv.appendChild(tempContainer);
+      executeScriptElements(tempContainer);
     }
-    pluginListDiv.style.display = pluginListDiv.childElementCount == 0 ? "none" : "block"
+    pluginListDiv.style.display =
+      pluginListDiv.childElementCount == 0 ? "none" : "block";
   }
 
   async function viewDirectory() {
@@ -252,34 +251,41 @@
     );
   }
 
-  function changePluginStatus(pluginId, enabled){
-    if (enabled){
-      window.pluginManagerPort.postMessage(
-        {
-          type: "load-plugin", 
-          id : pluginId, 
-          payload: $appSettings.persistant.pluginsDataStorage[pluginId],
-        }
-      )
+  function changePluginStatus(pluginId, enabled) {
+    if (enabled) {
+      window.pluginManagerPort.postMessage({
+        type: "load-plugin",
+        id: pluginId,
+        payload: $appSettings.persistant.pluginsDataStorage[pluginId],
+      });
     } else {
-      window.pluginManagerPort.postMessage({type: "unload-plugin", id : pluginId})
+      window.pluginManagerPort.postMessage({
+        type: "unload-plugin",
+        id: pluginId,
+      });
     }
   }
 
-  function refreshPluginList(){
-    window.pluginManagerPort.postMessage({type: "refresh-plugin-list"})
+  function refreshPluginList() {
+    window.pluginManagerPort.postMessage({ type: "refresh-plugin-list" });
   }
 
-  function downloadPlugin(pluginId){
-    window.pluginManagerPort.postMessage({type: "download-plugin", id : pluginId})
+  function downloadPlugin(pluginId) {
+    window.pluginManagerPort.postMessage({
+      type: "download-plugin",
+      id: pluginId,
+    });
   }
 
-  function uninstallPlugin(pluginId){
-    window.pluginManagerPort.postMessage({type: "uninstall-plugin", id : pluginId})
+  function uninstallPlugin(pluginId) {
+    window.pluginManagerPort.postMessage({
+      type: "uninstall-plugin",
+      id: pluginId,
+    });
     appSettings.update((s) => {
-      delete s.persistant.pluginsDataStorage[pluginId]
-      return s
-    })
+      delete s.persistant.pluginsDataStorage[pluginId];
+      return s;
+    });
   }
 </script>
 
@@ -454,14 +460,22 @@
         class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>View in explorer</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
+        <Tooltip
+          key={"profile_select_local_folder"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </button>
       <button
         on:click={selectDirectory}
         class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>Select Folder</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
+        <Tooltip
+          key={"profile_select_local_folder"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </button>
     </div>
 
@@ -474,7 +488,11 @@
       class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
     >
       <div>Reset to Default</div>
-      <TooltipSetter key={"profile_select_local_folder"} />
+      <Tooltip
+        key={"profile_select_local_folder"}
+        placement="bottom"
+        class="w-60 p-4"
+      />
     </button>
 
     <div class="text-gray-400 py-1 mt-1 text-sm">
@@ -587,46 +605,54 @@
     <div class="flex py-2 text-white items-center">
       <div class="mx-2">Plugins</div>
       <div class="mx-2">
-        <button 
+        <button
           class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={refreshPluginList}>
+          on:click={refreshPluginList}
+        >
           Refresh
-          </button>
+        </button>
       </div>
     </div>
     {#each $appSettings.pluginList as plugin}
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="bg-primary my-1"
-        type="checkbox"
-        checked={plugin.status === "Enabled"}
-        style="visibility:{plugin.status === "Downloaded" || plugin.status === "Enabled" ? "visible" : "hidden"}"
-        on:change={async e => changePluginStatus(plugin.id, e.target.checked)}     
-      />
-      <div class="mx-1">{plugin.name}</div>
-      <div class="mx-1">
-        {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
-        <button 
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={downloadPlugin(plugin.id)}
-          disabled={plugin.status == "Downloading"}
-          >
-          Download
-          </button>  
-        {:else}
-        <button 
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={uninstallPlugin(plugin.id)}
-          >
-          Uninstall
-          </button>
-        {/if}
+      <div class="flex py-2 text-white items-center">
+        <input
+          class="bg-primary my-1"
+          type="checkbox"
+          checked={plugin.status === "Enabled"}
+          style="visibility:{plugin.status === 'Downloaded' ||
+          plugin.status === 'Enabled'
+            ? 'visible'
+            : 'hidden'}"
+          on:change={async (e) =>
+            changePluginStatus(plugin.id, e.target.checked)}
+        />
+        <div class="mx-1">{plugin.name}</div>
+        <div class="mx-1">
+          {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
+            <button
+              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+              on:click={downloadPlugin(plugin.id)}
+              disabled={plugin.status == "Downloading"}
+            >
+              Download
+            </button>
+          {:else}
+            <button
+              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+              on:click={uninstallPlugin(plugin.id)}
+            >
+              Uninstall
+            </button>
+          {/if}
+        </div>
       </div>
-    </div>
     {/each}
   </div>
 
-  <div bind:this={pluginListDiv} class="p-4 bg-secondary rounded-lg flex flex-col mb-4"/>
+  <div
+    bind:this={pluginListDiv}
+    class="p-4 bg-secondary rounded-lg flex flex-col mb-4"
+  />
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center mb-1">

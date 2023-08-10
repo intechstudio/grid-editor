@@ -1,6 +1,6 @@
 <script>
   import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
-  import TooltipSetter from "../../../user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "../../../user-interface/tooltip/Tooltip.svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
@@ -59,7 +59,11 @@
             : ""}
           iconPath={"merge_as_code"}
         />
-        <TooltipSetter key={"configuration_merge_as_code"} />
+        <Tooltip
+          key={"configuration_merge_as_code"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </span>
     </BtnAndPopUp>
 
@@ -79,7 +83,11 @@
             : ""}
           iconPath={"cut"}
         />
-        <TooltipSetter key={"configuration_cut_one"} />
+        <Tooltip
+          key={"configuration_cut_one"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </span>
     </BtnAndPopUp>
 
@@ -99,7 +107,11 @@
             : ""}
           iconPath={"copy"}
         />
-        <TooltipSetter key={"configuration_copy_one"} />
+        <Tooltip
+          key={"configuration_copy_one"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </span>
     </BtnAndPopUp>
 
@@ -119,7 +131,11 @@
             : ""}
           iconPath={"paste"}
         />
-        <TooltipSetter key={"configuration_paste_one"} />
+        <Tooltip
+          key={"configuration_paste_one"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </span>
     </BtnAndPopUp>
 
@@ -139,7 +155,11 @@
             : ""}
           iconPath={"remove"}
         />
-        <TooltipSetter key={"configuration_remove_one"} />
+        <Tooltip
+          key={"configuration_remove_one"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </span>
     </BtnAndPopUp>
 

@@ -8,7 +8,7 @@
 
   import ConfigParameters from "./ConfigParameters.svelte";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
@@ -595,7 +595,11 @@
           : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
-        <TooltipSetter key={"configuration_ui_events"} />
+        <Tooltip
+          key={"configuration_ui_events"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </button>
 
       <button
@@ -607,7 +611,11 @@
           : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
-        <TooltipSetter key={"configuration_system_events"} />
+        <Tooltip
+          key={"configuration_system_events"}
+          placement="bottom"
+          class="w-60 p-4"
+        />
       </button>
     </div>
   </div>

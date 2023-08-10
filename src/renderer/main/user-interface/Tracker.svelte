@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
-  import TooltipSetter from "./tooltip/TooltipSetter.svelte";
+  import Tooltip from "./tooltip/Tooltip.svelte";
 
   const options = [
     {
@@ -42,7 +42,7 @@
           class="relative w-24 rounded bg-select text-white hover:bg-select-saturate-10 py-1"
         >
           <span>{label}</span>
-          <TooltipSetter key={tooltip_key} />
+          <Tooltip key={tooltip_key} placement="bottom" class="w-60 p-4" />
         </button>
       {/each}
     </div>

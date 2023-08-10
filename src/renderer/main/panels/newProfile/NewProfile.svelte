@@ -11,7 +11,7 @@
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -669,7 +669,11 @@
           hover:border-commit-desaturate-10 focus:outline-none"
             >
               <div>Save Session Profile</div>
-              <TooltipSetter key={"newProfile_add_to_session"} />
+              <Tooltip
+                key={"newProfile_add_to_session"}
+                placement="bottom"
+                class="w-60 p-4"
+              />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
               {#if sessionProfile.length == 0}
@@ -762,7 +766,11 @@
                         />
                       </svg>
                       <TooltipConfirm key={"newProfile_delete"} />
-                      <TooltipSetter key={"newProfile_delete"} />
+                      <Tooltip
+                        key={"newProfile_delete"}
+                        placement="bottom"
+                        class="w-60 p-4"
+                      />
                     </button>
 
                     <button
@@ -821,7 +829,11 @@
                         />
                       </svg>
 
-                      <TooltipSetter key={"newProfile_save"} />
+                      <Tooltip
+                        key={"newProfile_save"}
+                        placement="bottom"
+                        class="w-60 p-4"
+                      />
                     </button>
 
                     <button
@@ -883,7 +895,11 @@
                           </clipPath>
                         </defs>
                       </svg>
-                      <TooltipSetter key={"newProfile_rewrite"} />
+                      <Tooltip
+                        key={"newProfile_rewrite"}
+                        placement="bottom"
+                        class="w-60 p-4"
+                      />
                     </button>
                   </div>
                 </button>
@@ -1249,7 +1265,11 @@
                                 </defs>
                               </svg>
 
-                              <TooltipSetter key={"newProfile_info"} />
+                              <Tooltip
+                                key={"newProfile_info"}
+                                placement="bottom"
+                                class="w-60 p-4"
+                              />
                             </button>
                           </div>
                         </div>

@@ -18,7 +18,7 @@
 
   import { addOnDoubleClick } from "../../_actions/add-on-double-click";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   let selected = {
@@ -251,7 +251,7 @@
       relative border-none focus:outline-none"
     >
       <div>Save</div>
-      <TooltipSetter key={"profile_save"} />
+      <Tooltip key={"profile_save"} placement="bottom" class="w-60 p-4" />
     </button>
   </div>
 
@@ -363,7 +363,11 @@
     hover:border-commit-desaturate-10 focus:outline-none"
   >
     <div>Load Profile To Module</div>
-    <TooltipSetter key={"profile_load_to_module"} />
+    <Tooltip
+      key={"profile_load_to_module"}
+      placement="bottom"
+      class="w-60 p-4"
+    />
   </button>
 </profiles>
 

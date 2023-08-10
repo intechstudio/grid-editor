@@ -13,7 +13,7 @@
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
@@ -214,7 +214,11 @@
         >
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
 
-          <TooltipSetter key={"configuration_copy_all"} />
+          <Tooltip
+            key={"configuration_copy_all"}
+            placement="bottom"
+            class="w-60 p-4"
+          />
         </button>
 
         <button
@@ -225,7 +229,11 @@
         >
           <SvgIcon displayMode="button" iconPath={"paste_all"} />
 
-          <TooltipSetter key={"configuration_overwrite"} />
+          <Tooltip
+            key={"configuration_overwrite"}
+            placement="bottom"
+            class="w-60 p-4"
+          />
         </button>
       </div>
     </div>
@@ -246,7 +254,11 @@
               ? event.desc
               : `<span class="invisible">null</span>`}
             {#if event.desc != undefined}
-              <TooltipSetter key={`event_${event.desc}`} />
+              <Tooltip
+                key={`event_${event.desc}`}
+                placement="bottom"
+                class="w-60 p-4"
+              />
             {/if}
           </button>
         {/each}

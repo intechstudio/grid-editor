@@ -2,7 +2,7 @@
   import { get } from "svelte/store";
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
+  import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { selectedPresetStore } from "../../runtime/preset-helper.store";
@@ -154,7 +154,11 @@
                   </svg>
                   delete
                   <TooltipConfirm key={"newPreset_desc_delete"} />
-                  <TooltipSetter key={"newPreset_desc_delete"} />
+                  <Tooltip
+                    key={"newPreset_desc_delete"}
+                    placement="bottom"
+                    class="w-60 p-4"
+                  />
                 </button>
 
                 <button
@@ -194,7 +198,11 @@
                   </svg>
                   edit
 
-                  <TooltipSetter key={"newPreset_desc_edit"} />
+                  <Tooltip
+                    key={"newPreset_desc_edit"}
+                    placement="bottom"
+                    class="w-60 p-4"
+                  />
                 </button>
               </div>
             {/if}
