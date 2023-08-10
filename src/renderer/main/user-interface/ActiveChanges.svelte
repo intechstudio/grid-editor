@@ -1,4 +1,5 @@
 <script>
+  import Tooltip from "./tooltip/Tooltip.svelte";
   import TooltipSetter from "./tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "./tooltip/TooltipConfirm.svelte";
   import {
@@ -111,7 +112,13 @@
         : 'opacity-75'}"
     >
       <div>Store</div>
-      <TooltipSetter key={"configuration_header_store"} />
+      <Tooltip
+        key={"configuration_header_store"}
+        placement="bottom"
+        class="w-60 p-4"
+        instant={true}
+        on:confirm={{}}
+      />
     </button>
 
     <button

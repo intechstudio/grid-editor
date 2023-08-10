@@ -110,6 +110,7 @@
         nowrap={true}
         placement={"right"}
         instant={true}
+        class="px-2 py-1"
         key={"sidebar_configuration_icon"}
       />
     </button>
@@ -164,6 +165,7 @@
         nowrap={true}
         placement={"right"}
         instant={true}
+        class="px-2 py-1"
         key={"sidebar_preferences_icon"}
       />
     </button>
@@ -212,6 +214,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_new_profiles_icon"}
         />
       </button>
@@ -257,6 +260,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_new_presets_icon"}
         />
       </button>
@@ -290,6 +294,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_profile_cloud_icon"}
         />
       </button>
@@ -335,6 +340,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_new_presets_icon"}
         />
       </button>
@@ -386,6 +392,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_presets_icon"}
         />
       </button>
@@ -431,6 +438,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_profiles_icon"}
         />
       </button>
@@ -490,6 +498,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         nowrap={true}
         placement={"right"}
         instant={true}
+        class="px-2 py-1"
         key={"sidebar_debugger_icon"}
       />
     </button>
@@ -539,6 +548,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         nowrap={true}
         placement={"right"}
         instant={true}
+        class="px-2 py-1"
         key={"sidebar_midi_monitor_icon"}
       />
     </button>
@@ -606,6 +616,7 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           nowrap={true}
           placement={"right"}
           instant={true}
+          class="px-2 py-1"
           key={"sidebar_websocket_monitor_icon"}
         />
       </button>

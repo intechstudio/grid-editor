@@ -3,28 +3,94 @@
   import { tooltip_content } from "./tooltip-content.json.js";
   import Popover from "svelte-easy-popover";
   import { attachment } from "../Monster.store";
+  import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
+  import { onMount, onDestroy, createEventDispatcher } from "svelte";
 
-  //TODO: Make tracking later
-  import { Analytics } from "../../../runtime/analytics.js";
+  const dispatch = createEventDispatcher();
+
   export let key = "";
   export let placement = "top";
   export let instant = false;
   export let nowrap = false;
+  export let buttons = ["btn-confirm", "btn-cancel"];
+  export let monster = false;
+  export const btn_confirm = "btn-confirm";
+  export const btn_cancel = "btn-cancel";
+  export const bhv_hover = "bhv-hover";
+  export const bhv_click = "bhv-click";
+  export let behaviour = bhv_click;
 
   let tooltip_text = tooltip_content[key];
   let parent_element = undefined;
   let isOpen = false;
+  let attachmentElement;
 
   function handleMouseEnter(e) {
-    isOpen = true;
+    switch (behaviour) {
+      case bhv_hover: {
+        isOpen = true;
+        break;
+      }
+      case bhv_click: {
+        break;
+      }
+      default:
+        console.error("Tooltip: Unknown behaviour.");
+    }
   }
 
   function handleMouseLeave(e) {
-    isOpen = false;
+    switch (behaviour) {
+      case bhv_hover: {
+        isOpen = false;
+        break;
+      }
+      case bhv_click: {
+        break;
+      }
+      default:
+        console.error("Tooltip: Unknown behaviour.");
+    }
   }
 
   function handleClick(e) {
+    switch (behaviour) {
+      case bhv_hover: {
+        isOpen = false;
+        break;
+      }
+      case bhv_click: {
+        isOpen = true;
+        break;
+      }
+      default:
+        console.error("Tooltip: Unknown behaviour.");
+    }
+  }
+
+  onMount(() => {
+    if (monster) {
+      $attachment = { element: attachmentElement, hpos: "100%", vpos: "50%" };
+    }
+  });
+
+  onDestroy(() => {
+    if (monster) {
+      if ($attachment !== undefined) {
+        if ($attachment.element === attachmentElement) {
+          $attachment = undefined;
+        }
+      }
+    }
+  });
+
+  function handleCancel(e) {
     isOpen = false;
+  }
+
+  function handleConfirm(e) {
+    isOpen = false;
+    dispatch("confirm");
   }
 </script>
 
@@ -38,6 +104,7 @@
 />
 
 <Popover
+  bind:this={attachmentElement}
   triggerEvents={["hover"]}
   referenceElement={parent_element}
   remainOpenOnPopoverHover={false}
@@ -48,10 +115,7 @@
   <div
     id="tooltip"
     data-placement={placement}
-    class="tooltip-bg cursor-default text-base flex flex-col text-white text-left"
-    class:p-4={!instant}
-    class:px-2={instant}
-    class:py-1={instant}
+    class="{$$props.class} w-80 tooltip-bg cursor-default flex flex-col relative z-50"
     in:fade={{
       duration: instant ? 100 : 250,
       delay: instant ? 0 : 750,
@@ -61,7 +125,28 @@
       delay: 0,
     }}
   >
-    <span class:whitespace-nowrap={nowrap}> {tooltip_text}</span>
+    <div
+      class="text-white text-left font-normal"
+      class:whitespace-nowrap={nowrap}
+      class:pl-20={monster}
+    >
+      {tooltip_text}
+    </div>
+    <div class="flex flex-row gap-2 mt-2">
+      {#if buttons.includes(btn_cancel)}
+        <button
+          class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+          on:click|stopPropagation={handleCancel}>Cancel</button
+        >
+      {/if}
+
+      {#if buttons.includes(btn_confirm)}
+        <button
+          class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+          on:click|stopPropagation={handleConfirm}>Confirm</button
+        >
+      {/if}
+    </div>
     <div id="arrow" data-popper-arrow />
   </div>
 </Popover>
@@ -84,26 +169,26 @@
 
   #tooltip[data-placement^="top"] > #arrow {
     bottom: -10px;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
 
-    border-top: 20px solid var(--tooltip-bg-color);
+    border-top: 10px solid var(--tooltip-bg-color);
   }
 
   #tooltip[data-placement^="bottom"] > #arrow {
     top: -10px;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
 
-    border-bottom: 5px solid var(--tooltip-bg-color);
+    border-bottom: 10px solid var(--tooltip-bg-color);
   }
 
   #tooltip[data-placement^="left"] > #arrow {
     right: -10px;
-    border-top: 60px solid transparent;
-    border-bottom: 60px solid transparent;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
 
-    border-left: 60px solid var(--tooltip-bg-color);
+    border-left: 10px solid var(--tooltip-bg-color);
   }
 
   #tooltip[data-placement^="right"] > #arrow {
