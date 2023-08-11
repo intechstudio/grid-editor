@@ -18,7 +18,7 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
   import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
-  import TooltipConfirm from "../../user-interface/tooltip/TooltipConfirm.svelte";
+  import { Button, Behaviour } from "../../enums.js";
 
   let newPreset = {
     name: "",
@@ -744,9 +744,6 @@
 
                   <div class="flex gap-1">
                     <button
-                      on:click|preventDefault={() => {
-                        deleteSessionPreset(sessionPresetElement);
-                      }}
                       class="p-1 hover:bg-primary-500 {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
@@ -774,12 +771,23 @@
                           stroke-width="2"
                         />
                       </svg>
-                      <TooltipConfirm key={"newPreset_delete"} />
                       <Tooltip
                         key={"newPreset_delete"}
                         placement="bottom"
                         class="w-60 p-4"
-                      />
+                      >
+                        <Tooltip
+                          key={"newPreset_delete"}
+                          placement="bottom"
+                          class="w-60 p-4"
+                          instant={true}
+                          buttons={[Button.CONFIRM, Button.CANCEL]}
+                          behaviour={Behaviour.CLICK}
+                          on:confirm={() => {
+                            deleteSessionPreset(sessionPresetElement);
+                          }}
+                        />
+                      </Tooltip>
                     </button>
 
                     <button

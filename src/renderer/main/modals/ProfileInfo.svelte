@@ -4,7 +4,7 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { Button, Behaviour } from "../enums.js";
   import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { v4 as uuidv4 } from "uuid";
@@ -314,9 +314,6 @@
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                    on:click|preventDefault={() => {
-                      deleteProfile();
-                    }}
                   >
                     <svg
                       width="20"
@@ -343,12 +340,21 @@
                     </svg>
                     delete
 
-                    <TooltipConfirm key={"newProfile_desc_delete"} />
                     <Tooltip
                       key={"newProfile_desc_delete"}
                       placement="bottom"
                       class="w-60 p-4"
-                    />
+                    >
+                      <Tooltip
+                        key={"newProfile_desc_delete"}
+                        placement="bottom"
+                        class="w-60 p-4"
+                        instant={true}
+                        buttons={[Button.CONFIRM, Button.CANCEL]}
+                        behaviour={Behaviour.CLICK}
+                        on:confirm={deleteProfile}
+                      />
+                    </Tooltip>
                   </button>
 
                   <button
@@ -568,18 +574,26 @@
 
               <div>
                 <button
-                  on:click={() => {
-                    convertProfileToSessionPreset(selectedProfile);
-                  }}
                   class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
                 >
                   <div>Split</div>
-                  <TooltipConfirm key={"newProfile_desc_split_presets"} />
                   <Tooltip
                     key={"newProfile_desc_split_presets"}
                     placement="bottom"
                     class="w-60 p-4"
-                  />
+                  >
+                    <Tooltip
+                      key={"newProfile_desc_split_presets"}
+                      placement="bottom"
+                      class="w-60 p-4"
+                      instant={true}
+                      buttons={[Button.CONFIRM, Button.CANCEL]}
+                      behaviour={Behaviour.CLICK}
+                      on:confirm={() => {
+                        convertProfileToSessionPreset(selectedProfile);
+                      }}
+                    />
+                  </Tooltip>
                 </button>
               </div>
             </div>

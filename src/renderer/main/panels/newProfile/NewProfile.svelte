@@ -12,7 +12,7 @@
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { Button, Behaviour } from "../../enums.js";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
@@ -765,12 +765,23 @@
                           stroke-width="2"
                         />
                       </svg>
-                      <TooltipConfirm key={"newProfile_delete"} />
                       <Tooltip
                         key={"newProfile_delete"}
                         placement="bottom"
                         class="w-60 p-4"
-                      />
+                      >
+                        <Tooltip
+                          key={"newProfile_delete"}
+                          placement="bottom"
+                          class="w-60 p-4"
+                          instant={true}
+                          buttons={[Button.CONFIRM, Button.CANCEL]}
+                          behaviour={Behaviour.CLICK}
+                          on:confirm={() => {
+                            deleteSessionProfile(sessionProfileElement);
+                          }}
+                        />
+                      </Tooltip>
                     </button>
 
                     <button

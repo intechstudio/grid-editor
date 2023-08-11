@@ -239,7 +239,7 @@
     </div>
 
     <div class="flex flex-col justify-center items-center">
-      <div class="flex overflow-x-auto w-full">
+      <div class="flex w-full">
         {#each events.options as event}
           <button
             on:click={() => {
@@ -257,7 +257,7 @@
               <Tooltip
                 key={`event_${event.desc}`}
                 placement="bottom"
-                class="w-60 p-4"
+                class="w-80 p-4"
               />
             {/if}
           </button>

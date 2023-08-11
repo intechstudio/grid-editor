@@ -2,12 +2,11 @@
   import Tooltip from "./Tooltip.svelte";
 
   export let key = "";
-  export let mode = 0;
 </script>
 
 <div
-  class="w-6 h-6 mx-2 border border-solid border-primary cursor-pointer relative rounded-full bg-secondary text-center text-xs flex items-center justify-center hover:text-important p-1"
+  class="w-6 h-6 mx-2 border border-solid border-primary cursor-pointer relative rounded-full bg-secondary text-center flex items-center justify-center p-1 group"
 >
-  ?
-  <Tooltip {key} placement="bottom" class="w-60 p-4" />
+  <span class="group-hover:text-important text-xs">?</span>
+  <Tooltip {key} placement="bottom" class="w-60 p-4" instant={true} />
 </div>

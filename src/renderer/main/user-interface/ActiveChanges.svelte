@@ -1,6 +1,6 @@
 <script>
   import Tooltip from "./tooltip/Tooltip.svelte";
-  import TooltipConfirm from "./tooltip/TooltipConfirm.svelte";
+  import { Behaviour, Button } from "../enums";
   import {
     engine,
     runtime,
@@ -123,19 +123,29 @@
     </button>
 
     <button
-      on:click={handleClear}
       disabled={$engine != "ENABLED"}
       class="{$engine == 'ENABLED' ? 'hover:bg-red-500' : 'opacity-75'}
       relative flex items-center focus:outline-none justify-center rounded
         bg-select text-white py-1 w-24"
     >
       <div>Clear</div>
-      <TooltipConfirm key={"configuration_header_clear"} />
       <Tooltip
         key={"configuration_header_clear"}
         placement="bottom"
         class="w-60 p-4"
-      />
+      >
+        <Tooltip
+          key={"configuration_header_clear"}
+          placement="bottom"
+          class="w-60 p-4"
+          instant={true}
+          buttons={[Button.CONFIRM, Button.CANCEL]}
+          behaviour={Behaviour.CLICK}
+          on:confirm={() => {
+            handleClear();
+          }}
+        />
+      </Tooltip>
     </button>
 
     <button

@@ -4,6 +4,7 @@
   import Popover from "svelte-easy-popover";
   import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
   import { createEventDispatcher } from "svelte";
+  import { Behaviour, Button } from "../../enums";
 
   const dispatch = createEventDispatcher();
 
@@ -12,62 +13,61 @@
   export let instant = false;
   export let nowrap = false;
   export let buttons = [];
-  export const btn_confirm = "btn-confirm";
-  export const btn_cancel = "btn-cancel";
-  export const bhv_hover = "bhv-hover";
-  export const bhv_click = "bhv-click";
-  export let behaviour = bhv_click;
+  export let behaviour = Behaviour.HOVER;
 
   let tooltip_text = tooltip_content[key];
   let parent_element = undefined;
   let isOpen = false;
-  let attachmentElement;
 
   function handleMouseEnter(e) {
     switch (behaviour) {
-      case bhv_hover: {
+      case Behaviour.HOVER: {
         isOpen = true;
         break;
       }
-      case bhv_click: {
+      case Behaviour.CLICK: {
         break;
       }
       default:
         console.error("Tooltip: Unknown behaviour.");
     }
+    dispatch("mouse-enter");
   }
 
   function handleMouseLeave(e) {
     switch (behaviour) {
-      case bhv_hover: {
+      case Behaviour.HOVER: {
         isOpen = false;
         break;
       }
-      case bhv_click: {
+      case Behaviour.CLICK: {
         break;
       }
       default:
         console.error("Tooltip: Unknown behaviour.");
     }
+    dispatch("mouse-leave");
   }
 
   function handleClick(e) {
     switch (behaviour) {
-      case bhv_hover: {
+      case Behaviour.HOVER: {
         isOpen = false;
         break;
       }
-      case bhv_click: {
+      case Behaviour.CLICK: {
         isOpen = true;
         break;
       }
       default:
         console.error("Tooltip: Unknown behaviour.");
     }
+    dispatch("click");
   }
 
   function handleCancel(e) {
     isOpen = false;
+    dispatch("cancer");
   }
 
   function handleConfirm(e) {
@@ -83,54 +83,58 @@
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}
   on:click={handleClick}
-/>
-
-<Popover
-  bind:this={attachmentElement}
-  triggerEvents={["hover"]}
-  referenceElement={parent_element}
-  remainOpenOnPopoverHover={false}
-  bind:isOpen
-  {placement}
-  spaceAway={10}
 >
-  <div
-    id="tooltip"
-    data-placement={placement}
-    class="{$$props.class} w-80 tooltip-bg cursor-default flex flex-col relative z-50"
-    in:fade={{
-      duration: instant ? 100 : 250,
-      delay: instant ? 0 : 750,
-    }}
-    out:fade={{
-      duration: 100,
-      delay: 0,
-    }}
+  <slot />
+
+  <Popover
+    triggerEvents={["hover"]}
+    referenceElement={parent_element}
+    remainOpenOnPopoverHover={false}
+    bind:isOpen
+    {placement}
+    spaceAway={10}
   >
     <div
-      class="text-white text-left font-normal"
-      class:whitespace-nowrap={nowrap}
+      id="tooltip"
+      data-placement={placement}
+      class="{$$props.class} tooltip-bg cursor-default flex flex-col relative z-50"
+      in:fade={{
+        duration: instant ? 100 : 250,
+        delay: instant ? 0 : 750,
+      }}
+      out:fade={{
+        duration: 100,
+        delay: 0,
+      }}
     >
-      {tooltip_text}
-    </div>
-    <div class="flex flex-row gap-2 mt-2">
-      {#if buttons.includes(btn_cancel)}
-        <button
-          class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
-          on:click|stopPropagation={handleCancel}>Cancel</button
+      <div class="flex flex-col" class:gap-2={buttons.length > 0}>
+        <div
+          class="text-white text-left font-normal"
+          class:whitespace-nowrap={nowrap}
         >
-      {/if}
+          {tooltip_text}
+        </div>
 
-      {#if buttons.includes(btn_confirm)}
-        <button
-          class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
-          on:click|stopPropagation={handleConfirm}>Confirm</button
-        >
-      {/if}
+        <div class="flex flex-row gap-2">
+          {#if buttons.includes(Button.CANCEL)}
+            <button
+              class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+              on:click|stopPropagation={handleCancel}>Cancel</button
+            >
+          {/if}
+
+          {#if buttons.includes(Button.CONFIRM)}
+            <button
+              class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+              on:click|stopPropagation={handleConfirm}>Confirm</button
+            >
+          {/if}
+        </div>
+      </div>
+      <!-- <div id="arrow" data-popper-arrow /> -->
     </div>
-    <div id="arrow" data-popper-arrow />
-  </div>
-</Popover>
+  </Popover>
+</div>
 
 <style>
   :root {
@@ -148,7 +152,7 @@
     height: 0px;
   }
 
-  #tooltip[data-placement^="top"] > #arrow {
+  /* #tooltip[data-placement^="top"] > #arrow {
     bottom: -10px;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
@@ -178,5 +182,5 @@
     border-bottom: 10px solid transparent;
 
     border-right: 10px solid var(--tooltip-bg-color);
-  }
+  } */
 </style>

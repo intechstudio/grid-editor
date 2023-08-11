@@ -3,7 +3,7 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { Button, Behaviour } from "../enums.js";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { selectedPresetStore } from "../../runtime/preset-helper.store";
   import { onMount } from "svelte";
@@ -125,9 +125,6 @@
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                  on:click|preventDefault={() => {
-                    deletePreset();
-                  }}
                 >
                   <svg
                     width="20"
@@ -153,12 +150,21 @@
                     />
                   </svg>
                   delete
-                  <TooltipConfirm key={"newPreset_desc_delete"} />
                   <Tooltip
                     key={"newPreset_desc_delete"}
                     placement="bottom"
                     class="w-60 p-4"
-                  />
+                  >
+                    <Tooltip
+                      key={"newPreset_desc_delete"}
+                      placement="bottom"
+                      class="w-60 p-4"
+                      instant={true}
+                      buttons={[Button.CONFIRM, Button.CANCEL]}
+                      behaviour={Behaviour.CLICK}
+                      on:confirm={deletePreset}
+                    />
+                  </Tooltip>
                 </button>
 
                 <button
