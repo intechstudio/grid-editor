@@ -256,7 +256,7 @@
             {#if event.desc != undefined}
               <Tooltip
                 key={`event_${event.desc}`}
-                placement="bottom"
+                placement="top"
                 class="w-80 p-4"
               />
             {/if}

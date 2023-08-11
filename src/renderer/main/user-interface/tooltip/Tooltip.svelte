@@ -74,6 +74,8 @@
     isOpen = false;
     dispatch("confirm");
   }
+
+  let arrow;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -90,6 +92,16 @@
     triggerEvents={["hover"]}
     referenceElement={parent_element}
     remainOpenOnPopoverHover={false}
+    popperOptions={{
+      modifiers: [
+        {
+          name: "arrow",
+          options: {
+            element: arrow,
+          },
+        },
+      ],
+    }}
     bind:isOpen
     {placement}
     spaceAway={10}
@@ -97,7 +109,7 @@
     <div
       id="tooltip"
       data-placement={placement}
-      class="{$$props.class} tooltip-bg cursor-default flex flex-col relative z-50"
+      class="{$$props.class} tooltip-bg cursor-default flex flex-col relative z-50 rounded-md"
       in:fade={{
         duration: instant ? 100 : 250,
         delay: instant ? 0 : 750,
@@ -131,7 +143,7 @@
           {/if}
         </div>
       </div>
-      <!-- <div id="arrow" data-popper-arrow /> -->
+      <!-- <div class="bg-red-300" bind:this={arrow} data-popper-arrow /> -->
     </div>
   </Popover>
 </div>
@@ -145,12 +157,12 @@
     background-color: var(--tooltip-bg-color);
   }
 
-  #arrow,
+  /* #arrow,
   #arrow::before {
     position: absolute;
-    width: 0px;
-    height: 0px;
-  }
+    width: 10px;
+    height: 10px;
+  } */
 
   /* #tooltip[data-placement^="top"] > #arrow {
     bottom: -10px;
