@@ -17,6 +17,7 @@ const persistant = {
   markedForDeletionPlugins: [],
   keyboardLayout: "",
   websocketMonitorEnabled: false,
+  portstateOverlayEnabled: false,
   newProfileBrowserEnabled: true,
   legacyProfileBrowserEnabled: false,
   profileCloudDevFeaturesEnabled: false,
@@ -207,7 +208,7 @@ async function init_appsettings() {
         get(appSettings).persistant.welcomeOnStartup === true ||
         get(appSettings).persistant.lastVersion === undefined ||
         get(appSettings).persistant.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistant.lastVersion = configuration["EDITOR_VERSION"];
