@@ -574,6 +574,12 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
   });
+
+  async function loadOfflineProfileCloud(){
+    const serverAddress = await window.electron.startOfflineProfileCloud();
+    const url = `http://${serverAddress.address}:${serverAddress.port}`;
+    iframe_element.src = url;
+  }
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full">
@@ -582,9 +588,13 @@
       <div class="p-4">
         <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
         <div class="text-white text-opacity-80">
-          You need internet access to load it. We are going to build an offline
-          version of it in the future.
+          You need internet access to load it. You can load the offline version as well.
         </div>
+        <button 
+        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+        on:click={loadOfflineProfileCloud}>
+        Load Offline
+        </button>
       </div>
     </div>
   {/if}

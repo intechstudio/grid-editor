@@ -57,6 +57,8 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
+import polka from "polka";
+import sirv from "sirv";
 
 log.info("App starting...");
 
@@ -489,6 +491,17 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
+});
+
+ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
+  return await new Promise((resolve, reject) => {
+    const assets = sirv("profile-cloud");
+    const app = polka().use(assets);
+    app.listen(0, "localhost", err => {
+      if (err) return reject(err);
+      return resolve(app.server.address());
+    });
+  })
 });
 
 // persistent storage for the app
