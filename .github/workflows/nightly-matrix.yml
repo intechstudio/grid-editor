@@ -8,13 +8,39 @@ on:
       - "*"
 
 jobs:
+  profile-cloud-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Profile Cloud repository
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.PROFILE_CLOUD_KEY }}
+          repository: intechstudio/profile-cloud
+          
+      - name: Create public env file
+        run: |
+            touch .env
+            echo PUBLIC_APP_ENV=development >> .env
+            echo PUBLIC_GOOGLE_CLIENT_ID=610580654354-j8lr11nb3n0etnmh0k1tuoupsrjbvlmd.apps.googleusercontent.com >> .env
+      
+      - name: Build profile cloud project
+        run: npm ci && npm run build
+      
+      - name: Upload profile cloud folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: profile-cloud
+          path: public/
+          retention-days: 1
   matrix-build:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+#        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
+    needs: profile-cloud-build
     steps:
       - uses: actions/checkout@v3
         with:
@@ -25,6 +51,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "16.13.2"
+          
+      - name: Download profile cloud artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: profile-cloud
+
 
       - name: Set Env
         shell: bash
