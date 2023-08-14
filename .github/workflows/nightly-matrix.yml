@@ -36,8 +36,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-#        os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     needs: profile-cloud-build
@@ -56,6 +55,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: profile-cloud
+          path: profile-cloud/
 
 
       - name: Set Env
