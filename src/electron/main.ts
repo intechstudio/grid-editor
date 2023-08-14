@@ -497,11 +497,11 @@ ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
   return await new Promise((resolve, reject) => {
     const assets = sirv("profile-cloud");
     const app = polka().use(assets);
-    app.listen(0, "localhost", err => {
+    app.listen(0, "localhost", (err) => {
       if (err) return reject(err);
       return resolve(app.server.address());
     });
-  })
+  });
 });
 
 // persistent storage for the app
