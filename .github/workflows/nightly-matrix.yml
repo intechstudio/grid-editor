@@ -16,6 +16,10 @@ jobs:
         with:
           ssh-key: ${{ secrets.PROFILE_CLOUD_KEY }}
           repository: intechstudio/profile-cloud
+          fetch-depth: 0
+
+      - name: Checkout latest tag
+        run: git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
 
       - name: Create public env file
         run: |
