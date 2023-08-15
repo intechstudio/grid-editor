@@ -83,11 +83,10 @@
     >
       <!-- Six dots to the left -->
       <div
-        class="flex p-2 items-center bg-secondary"
+        class="flex p-2 items-center bg-secondary border-y border-l {syntaxError
+          ? 'border-error'
+          : 'border-transparent'}"
         class:group-hover:bg-select-saturate-10={!toggled}
-        class:border-error={syntaxError}
-        class:border-y={syntaxError}
-        class:border-l={syntaxError}
         class:invisible={!config.information.selectable}
       >
         <svg
@@ -112,9 +111,9 @@
       {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
         <div
           style="background-color:{config.information.color}"
-          class="flex items-center p-2 w-min text-center"
-          class:border-y={syntaxError}
-          class:border-error={syntaxError}
+          class="flex items-center p-2 w-min text-center border-y {syntaxError
+            ? 'border-error'
+            : 'border-transparent'}"
         >
           <div class="w-6 h-6 whitespace-nowrap">
             {@html config.information.blockIcon}
@@ -127,13 +126,12 @@
         style="background-color:{config.information.rendering !== 'standard'
           ? config.information.color
           : ''}"
-        class="w-full bg-secondary cur"
+        class="w-full bg-secondary border-y border-r {syntaxError
+          ? 'border-error'
+          : 'border-transparent'}"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
         class:group-hover:bg-select-saturate-10={!toggled}
-        class:border-error={syntaxError}
-        class:border-y={syntaxError}
-        class:border-r={syntaxError}
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
