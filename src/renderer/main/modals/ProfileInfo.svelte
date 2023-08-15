@@ -4,7 +4,6 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import { Button, Behaviour } from "../enums.js";
   import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { v4 as uuidv4 } from "uuid";
@@ -342,19 +341,18 @@
 
                     <Tooltip
                       key={"newProfile_desc_delete"}
-                      placement="bottom"
+                      placement={"top"}
                       class="w-60 p-4"
-                    >
-                      <Tooltip
-                        key={"newProfile_desc_delete"}
-                        placement="bottom"
-                        class="w-60 p-4"
-                        instant={true}
-                        buttons={[Button.CONFIRM, Button.CANCEL]}
-                        behaviour={Behaviour.CLICK}
-                        on:confirm={deleteProfile}
-                      />
-                    </Tooltip>
+                      instant={true}
+                      buttons={[
+                        {
+                          label: "Cancel",
+                          handler: undefined,
+                        },
+                        { label: "Confirm", handler: deleteProfile },
+                      ]}
+                      triggerEvents={["click", "hover"]}
+                    />
                   </button>
 
                   <button
@@ -396,8 +394,9 @@
 
                     <Tooltip
                       key={"newProfile_desc_edit"}
-                      placement="bottom"
+                      placement={"top"}
                       class="w-60 p-4"
+                      triggerEvents={["hover"]}
                     />
                   </button>
                 </div>
@@ -579,21 +578,21 @@
                   <div>Split</div>
                   <Tooltip
                     key={"newProfile_desc_split_presets"}
-                    placement="bottom"
+                    placement={"top"}
                     class="w-60 p-4"
-                  >
-                    <Tooltip
-                      key={"newProfile_desc_split_presets"}
-                      placement="bottom"
-                      class="w-60 p-4"
-                      instant={true}
-                      buttons={[Button.CONFIRM, Button.CANCEL]}
-                      behaviour={Behaviour.CLICK}
-                      on:confirm={() => {
-                        convertProfileToSessionPreset(selectedProfile);
-                      }}
-                    />
-                  </Tooltip>
+                    instant={true}
+                    buttons={[
+                      {
+                        label: "Cancel",
+                        handler: undefined,
+                      },
+                      {
+                        label: "Confirm",
+                        handler: () =>
+                          convertProfileToSessionPreset(selectedProfile),
+                      },
+                    ]}
+                  />
                 </button>
               </div>
             </div>

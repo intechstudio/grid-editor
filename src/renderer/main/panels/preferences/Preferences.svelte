@@ -372,8 +372,9 @@
         <div>View in explorer</div>
         <Tooltip
           key={"profile_select_local_folder"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </button>
       <button
@@ -383,8 +384,9 @@
         <div>Select Folder</div>
         <Tooltip
           key={"profile_select_local_folder"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </button>
     </div>
@@ -400,8 +402,9 @@
       <div>Reset to Default</div>
       <Tooltip
         key={"profile_select_local_folder"}
-        placement="bottom"
+        placement={"top"}
         class="w-60 p-4"
+        triggerEvents={["hover"]}
       />
     </button>
 

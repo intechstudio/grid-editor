@@ -597,8 +597,9 @@
         <span> UI Events </span>
         <Tooltip
           key={"configuration_ui_events"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </button>
 
@@ -613,8 +614,9 @@
         <span> System Events </span>
         <Tooltip
           key={"configuration_system_events"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </button>
     </div>

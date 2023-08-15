@@ -251,7 +251,12 @@
       relative border-none focus:outline-none"
     >
       <div>Save</div>
-      <Tooltip key={"profile_save"} placement="bottom" class="w-60 p-4" />
+      <Tooltip
+        key={"profile_save"}
+        placement={"top"}
+        class="w-60 p-4"
+        triggerEvents={["hover"]}
+      />
     </button>
   </div>
 
@@ -365,8 +370,9 @@
     <div>Load Profile To Module</div>
     <Tooltip
       key={"profile_load_to_module"}
-      placement="bottom"
+      placement={"top"}
       class="w-60 p-4"
+      triggerEvents={["hover"]}
     />
   </button>
 </profiles>

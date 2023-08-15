@@ -3,7 +3,6 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import { Button, Behaviour } from "../enums.js";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { selectedPresetStore } from "../../runtime/preset-helper.store";
   import { onMount } from "svelte";
@@ -152,19 +151,18 @@
                   delete
                   <Tooltip
                     key={"newPreset_desc_delete"}
-                    placement="bottom"
+                    placement={"top"}
                     class="w-60 p-4"
-                  >
-                    <Tooltip
-                      key={"newPreset_desc_delete"}
-                      placement="bottom"
-                      class="w-60 p-4"
-                      instant={true}
-                      buttons={[Button.CONFIRM, Button.CANCEL]}
-                      behaviour={Behaviour.CLICK}
-                      on:confirm={deletePreset}
-                    />
-                  </Tooltip>
+                    instant={true}
+                    buttons={[
+                      {
+                        label: "Cancel",
+                        handler: undefined,
+                      },
+                      { label: "Confirm", handler: deletePreset },
+                    ]}
+                    triggerEvents={["click", "hover"]}
+                  />
                 </button>
 
                 <button
@@ -206,8 +204,9 @@
 
                   <Tooltip
                     key={"newPreset_desc_edit"}
-                    placement="bottom"
+                    placement={"top"}
                     class="w-60 p-4"
+                    triggerEvents={["hover"]}
                   />
                 </button>
               </div>

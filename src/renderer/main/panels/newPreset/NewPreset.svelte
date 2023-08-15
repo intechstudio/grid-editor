@@ -18,7 +18,6 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
   import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
-  import { Button, Behaviour } from "../../enums.js";
 
   let newPreset = {
     name: "",
@@ -682,8 +681,9 @@
               <div>Save Session Preset</div>
               <Tooltip
                 key={"newPreset_add_to_session"}
-                placement="bottom"
+                placement={"top"}
                 class="w-60 p-4"
+                triggerEvents={["hover"]}
               />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
@@ -771,23 +771,25 @@
                           stroke-width="2"
                         />
                       </svg>
+
                       <Tooltip
                         key={"newPreset_delete"}
-                        placement="bottom"
+                        placement={"top"}
                         class="w-60 p-4"
-                      >
-                        <Tooltip
-                          key={"newPreset_delete"}
-                          placement="bottom"
-                          class="w-60 p-4"
-                          instant={true}
-                          buttons={[Button.CONFIRM, Button.CANCEL]}
-                          behaviour={Behaviour.CLICK}
-                          on:confirm={() => {
-                            deleteSessionPreset(sessionPresetElement);
-                          }}
-                        />
-                      </Tooltip>
+                        instant={true}
+                        buttons={[
+                          {
+                            label: "Cancel",
+                            handler: undefined,
+                          },
+                          {
+                            label: "Confirm",
+                            handler: () =>
+                              deleteSessionPreset(sessionPresetElement),
+                          },
+                        ]}
+                        triggerEvents={["click", "hover"]}
+                      />
                     </button>
 
                     <button
@@ -848,8 +850,9 @@
 
                       <Tooltip
                         key={"newPreset_save"}
-                        placement="bottom"
+                        placement={"top"}
                         class="w-60 p-4"
+                        triggerEvents={["hover"]}
                       />
                     </button>
 
@@ -914,8 +917,9 @@
                       </svg>
                       <Tooltip
                         key={"newPreset_rewrite"}
-                        placement="bottom"
+                        placement={"top"}
                         class="w-60 p-4"
+                        triggerEvents={["hover"]}
                       />
                     </button>
                   </div>
@@ -1295,8 +1299,9 @@
 
                               <Tooltip
                                 key={"newPreset_info"}
-                                placement="bottom"
+                                placement={"top"}
                                 class="w-60 p-4"
+                                triggerEvents={["hover"]}
                               />
                             </button>
                           </div>

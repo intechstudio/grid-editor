@@ -12,7 +12,6 @@
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
   import Tooltip from "/main/user-interface/tooltip/Tooltip.svelte";
-  import { Button, Behaviour } from "../../enums.js";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
@@ -671,8 +670,9 @@
               <div>Save Session Profile</div>
               <Tooltip
                 key={"newProfile_add_to_session"}
-                placement="bottom"
+                placement={"top"}
                 class="w-60 p-4"
+                triggerEvents={["hover"]}
               />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
@@ -765,23 +765,25 @@
                           stroke-width="2"
                         />
                       </svg>
-                      <Tooltip
-                        key={"newProfile_delete"}
-                        placement="bottom"
-                        class="w-60 p-4"
-                      >
+
                         <Tooltip
                           key={"newProfile_delete"}
-                          placement="bottom"
+                          placement={"top"}
                           class="w-60 p-4"
                           instant={true}
-                          buttons={[Button.CONFIRM, Button.CANCEL]}
-                          behaviour={Behaviour.CLICK}
-                          on:confirm={() => {
-                            deleteSessionProfile(sessionProfileElement);
-                          }}
+                          buttons={[
+                            {
+                              label: "Cancel",
+                              handler: undefined,
+                            },
+                            {
+                              label: "Confirm",
+                              handler: () =>
+                                deleteSessionProfile(sessionProfileElement),
+                            },
+                          ]}
+                          triggerEvents={["click", "hover"]}
                         />
-                      </Tooltip>
                     </button>
 
                     <button
@@ -842,8 +844,9 @@
 
                       <Tooltip
                         key={"newProfile_save"}
-                        placement="bottom"
+                        placement={"top"}
                         class="w-60 p-4"
+                        triggerEvents={["hover"]}
                       />
                     </button>
 
@@ -908,8 +911,9 @@
                       </svg>
                       <Tooltip
                         key={"newProfile_rewrite"}
-                        placement="bottom"
+                        placement={"top"}
                         class="w-60 p-4"
+                        triggerEvents={["hover"]}
                       />
                     </button>
                   </div>
@@ -1278,8 +1282,9 @@
 
                               <Tooltip
                                 key={"newProfile_info"}
-                                placement="bottom"
+                                placement={"top"}
                                 class="w-60 p-4"
+                                triggerEvents={["hover"]}
                               />
                             </button>
                           </div>

@@ -1,6 +1,5 @@
 <script>
   import Tooltip from "./tooltip/Tooltip.svelte";
-  import { Behaviour, Button } from "../enums";
   import {
     engine,
     runtime,
@@ -103,8 +102,9 @@
       <div>Discard</div>
       <Tooltip
         key={"configuration_header_clear"}
-        placement="bottom"
+        placement={"top"}
         class="w-60 p-4"
+        triggerEvents={["hover"]}
       />
     </button>
     <button
@@ -117,8 +117,9 @@
       <div>Store</div>
       <Tooltip
         key={"configuration_header_store"}
-        placement="bottom"
+        placement={"top"}
         class="w-60 p-4"
+        triggerEvents={["hover"]}
       />
     </button>
 
@@ -131,21 +132,18 @@
       <div>Clear</div>
       <Tooltip
         key={"configuration_header_clear"}
-        placement="bottom"
+        placement={"top"}
         class="w-60 p-4"
-      >
-        <Tooltip
-          key={"configuration_header_clear"}
-          placement="bottom"
-          class="w-60 p-4"
-          instant={true}
-          buttons={[Button.CONFIRM, Button.CANCEL]}
-          behaviour={Behaviour.CLICK}
-          on:confirm={() => {
-            handleClear();
-          }}
-        />
-      </Tooltip>
+        instant={true}
+        buttons={[
+          {
+            label: "Cancel",
+            handler: undefined,
+          },
+          { label: "Confirm", handler: handleClear },
+        ]}
+        triggerEvents={["click", "hover"]}
+      />
     </button>
 
     <button
@@ -199,7 +197,7 @@
           256.001 440.001 256.001Z"
         />
       </svg>
-      <Tooltip key={"engine_clear"} placement="bottom" class="w-60 p-4" />
+      <Tooltip key={"engine_clear"} placement={"top"} class="w-60 p-4" />
     </button>
   </div>
 </container>

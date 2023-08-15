@@ -164,44 +164,10 @@
 
         <TooltipQuestion key={"configuration_element_name"} />
       </div>
-
-      <!--       <input
-        disabled
-        type="text"
-        bind:value={stringname}
-        on:input={updateStringName}
-        class="w-full bg-secondary border-none text-white py-1.5 pl-2 rounded-none"
-      /> -->
     </div>
-
-    <!--     <div class="w-1/2 p-1">
-      <div class="text-gray-500 py-1 text-sm">Selected Element</div>
-
-      <div class="flex flex-col relative  font-bold text-white">
-
-        <select
-          bind:value={elements.selected}
-          on:change={(e) => {
-            handleSelectElement(elements.selected);
-          }}
-          class="bg-secondary border-none flex-grow text-white p-2 shadow"
-        >
-          {#each elements.options.slice(0, -1) as element}
-            <option
-              value={element}
-              class="text-white bg-secondary py-1 border-none"
-              >Element {element}</option
-            >
-          {/each}
-        </select>
-      </div>
-    </div> -->
   </div>
 
   <div class="pb-2 flex flex-col justify-center">
-    <!--     <div class="  flex justify-center items-center">
-      <hr class="w-[90%] my-6 border-white border-opacity-10 " />
-    </div> -->
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
@@ -216,8 +182,9 @@
 
           <Tooltip
             key={"configuration_copy_all"}
-            placement="bottom"
+            placement={"top"}
             class="w-60 p-4"
+            triggerEvents={["hover"]}
           />
         </button>
 
@@ -231,8 +198,9 @@
 
           <Tooltip
             key={"configuration_overwrite"}
-            placement="bottom"
+            placement={"top"}
             class="w-60 p-4"
+            triggerEvents={["hover"]}
           />
         </button>
       </div>
@@ -256,19 +224,20 @@
             {#if event.desc != undefined}
               <Tooltip
                 key={`event_${event.desc}`}
-                placement="top"
+                placement={"top"}
                 class="w-80 p-4"
+                triggerEvents={["hover"]}
               />
             {/if}
           </button>
         {/each}
       </div>
-      <!-- <hr class="w-[90%] my-6 border-white border-opacity-10 " /> -->
     </div>
   </div>
 </div>
 
 <style>
+  /* TODO: What..? */
   .dummy {
     @apply bg-select;
     @apply bg-opacity-50;

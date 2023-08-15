@@ -61,8 +61,9 @@
         />
         <Tooltip
           key={"configuration_merge_as_code"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -85,8 +86,9 @@
         />
         <Tooltip
           key={"configuration_cut_one"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -109,8 +111,9 @@
         />
         <Tooltip
           key={"configuration_copy_one"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -133,8 +136,9 @@
         />
         <Tooltip
           key={"configuration_paste_one"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -157,8 +161,9 @@
         />
         <Tooltip
           key={"configuration_remove_one"}
-          placement="bottom"
+          placement={"top"}
           class="w-60 p-4"
+          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
