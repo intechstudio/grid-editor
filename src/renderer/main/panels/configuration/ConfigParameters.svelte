@@ -11,7 +11,6 @@
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
   import { onDestroy, onMount } from "svelte";
-  import _utils from "../../../runtime/_utils.js";
 
   import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
