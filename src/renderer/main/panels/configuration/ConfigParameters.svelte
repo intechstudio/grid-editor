@@ -184,7 +184,6 @@
             key={"configuration_copy_all"}
             placement={"top"}
             class="w-60 p-4"
-            triggerEvents={["hover"]}
           />
         </button>
 
@@ -200,7 +199,6 @@
             key={"configuration_overwrite"}
             placement={"top"}
             class="w-60 p-4"
-            triggerEvents={["hover"]}
           />
         </button>
       </div>
@@ -226,7 +224,6 @@
                 key={`event_${event.desc}`}
                 placement={"top"}
                 class="w-80 p-4"
-                triggerEvents={["hover"]}
               />
             {/if}
           </button>

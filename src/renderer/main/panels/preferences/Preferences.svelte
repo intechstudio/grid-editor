@@ -374,7 +374,6 @@
           key={"profile_select_local_folder"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </button>
       <button
@@ -386,7 +385,6 @@
           key={"profile_select_local_folder"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </button>
     </div>
@@ -404,7 +402,6 @@
         key={"profile_select_local_folder"}
         placement={"top"}
         class="w-60 p-4"
-        triggerEvents={["hover"]}
       />
     </button>
 

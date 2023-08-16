@@ -63,7 +63,6 @@
           key={"configuration_merge_as_code"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -88,7 +87,6 @@
           key={"configuration_cut_one"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -113,7 +111,6 @@
           key={"configuration_copy_one"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -138,7 +135,6 @@
           key={"configuration_paste_one"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>
@@ -163,7 +159,6 @@
           key={"configuration_remove_one"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </span>
     </BtnAndPopUp>

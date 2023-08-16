@@ -161,7 +161,7 @@
                       },
                       { label: "Confirm", handler: deletePreset },
                     ]}
-                    triggerEvents={["click", "hover"]}
+                    triggerEvents={["show-buttons", "hover"]}
                   />
                 </button>
 
@@ -206,7 +206,6 @@
                     key={"newPreset_desc_edit"}
                     placement={"top"}
                     class="w-60 p-4"
-                    triggerEvents={["hover"]}
                   />
                 </button>
               </div>

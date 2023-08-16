@@ -683,7 +683,6 @@
                 key={"newPreset_add_to_session"}
                 placement={"top"}
                 class="w-60 p-4"
-                triggerEvents={["hover"]}
               />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
@@ -788,7 +787,7 @@
                               deleteSessionPreset(sessionPresetElement),
                           },
                         ]}
-                        triggerEvents={["click", "hover"]}
+                        triggerEvents={["show-buttons", "hover"]}
                       />
                     </button>
 
@@ -852,7 +851,6 @@
                         key={"newPreset_save"}
                         placement={"top"}
                         class="w-60 p-4"
-                        triggerEvents={["hover"]}
                       />
                     </button>
 
@@ -919,7 +917,6 @@
                         key={"newPreset_rewrite"}
                         placement={"top"}
                         class="w-60 p-4"
-                        triggerEvents={["hover"]}
                       />
                     </button>
                   </div>
@@ -1301,7 +1298,6 @@
                                 key={"newPreset_info"}
                                 placement={"top"}
                                 class="w-60 p-4"
-                                triggerEvents={["hover"]}
                               />
                             </button>
                           </div>

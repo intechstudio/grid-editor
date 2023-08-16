@@ -109,10 +109,10 @@
       <Tooltip
         nowrap={true}
         placement={"right"}
+        duration={75}
         instant={true}
         class="px-2 py-1"
         key={"sidebar_configuration_icon"}
-        triggerEvents={["hover"]}
       />
     </button>
 
@@ -165,10 +165,10 @@
       <Tooltip
         nowrap={true}
         placement={"right"}
+        duration={75}
         instant={true}
         class="px-2 py-1"
         key={"sidebar_preferences_icon"}
-        triggerEvents={["hover"]}
       />
     </button>
   </div>
@@ -215,10 +215,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_new_profiles_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
       <button
@@ -262,10 +262,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_new_presets_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
     {:else if $appSettings.profileBrowserMode === "profileCloud"}
@@ -297,10 +297,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_profile_cloud_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
       <button
@@ -344,10 +344,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_new_presets_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
     {:else if $appSettings.profileBrowserMode === "legacyLibrary"}
@@ -397,10 +397,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_presets_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
 
@@ -444,10 +444,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_profiles_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
     {/if}
@@ -505,10 +505,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
       <Tooltip
         nowrap={true}
         placement={"right"}
+        duration={75}
         instant={true}
         class="px-2 py-1"
         key={"sidebar_debugger_icon"}
-        triggerEvents={["hover"]}
       />
     </button>
 
@@ -556,10 +556,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
       <Tooltip
         nowrap={true}
         placement={"right"}
+        duration={75}
         instant={true}
         class="px-2 py-1"
         key={"sidebar_midi_monitor_icon"}
-        triggerEvents={["hover"]}
       />
     </button>
 
@@ -625,10 +625,10 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
         <Tooltip
           nowrap={true}
           placement={"right"}
+          duration={75}
           instant={true}
           class="px-2 py-1"
           key={"sidebar_websocket_monitor_icon"}
-          triggerEvents={["hover"]}
         />
       </button>
     {/if}

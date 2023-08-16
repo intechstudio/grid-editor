@@ -42,12 +42,7 @@
           class="relative w-24 rounded bg-select text-white hover:bg-select-saturate-10 py-1"
         >
           <span>{label}</span>
-          <Tooltip
-            key={tooltip_key}
-            placement={"top"}
-            class="w-60 p-4"
-            triggerEvents={["hover"]}
-          />
+          <Tooltip key={tooltip_key} placement={"top"} class="w-60 p-4" />
         </button>
       {/each}
     </div>

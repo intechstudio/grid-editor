@@ -599,7 +599,6 @@
           key={"configuration_ui_events"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </button>
 
@@ -616,7 +615,6 @@
           key={"configuration_system_events"}
           placement={"top"}
           class="w-60 p-4"
-          triggerEvents={["hover"]}
         />
       </button>
     </div>

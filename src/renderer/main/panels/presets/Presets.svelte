@@ -234,12 +234,7 @@
       relative border-none focus:outline-none"
     >
       <div>Save</div>
-      <Tooltip
-        key={"preset_save"}
-        placement={"top"}
-        class="w-60 p-4"
-        triggerEvents={["hover"]}
-      />
+      <Tooltip key={"preset_save"} placement={"top"} class="w-60 p-4" />
     </button>
   </div>
 
@@ -351,12 +346,7 @@
     hover:border-commit-desaturate-10 focus:outline-none"
   >
     <div>Load Preset To Element</div>
-    <Tooltip
-      key={"preset_load_to_module"}
-      placement={"top"}
-      class="w-60 p-4"
-      triggerEvents={["hover"]}
-    />
+    <Tooltip key={"preset_load_to_module"} placement={"top"} class="w-60 p-4" />
   </button>
 </presets>
 

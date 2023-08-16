@@ -83,30 +83,33 @@
       });
     }
   }
+
+  let discardButton;
 </script>
 
 <container class={$$props.class}>
   <div
-    class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2"
+    class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2 relative"
   >
     <div class="mx-4 text-white font-medium">
       {$totalChanges} active changes
     </div>
     <button
+      bind:this={discardButton}
       on:click={handleDiscard}
       class="relative items-center justify-center focus:outline-none bg-select
       rounded text-white py-1 w-24 {isStoreEnabled
         ? 'hover:bg-yellow-600'
-        : 'opacity-75'}"
+        : 'opacity-75'} hover:bg-red-300"
     >
       <div>Discard</div>
-      <Tooltip
-        key={"configuration_header_clear"}
-        placement={"top"}
-        class="w-60 p-4"
-        triggerEvents={["hover"]}
-      />
     </button>
+    <Tooltip
+      referenceElement={discardButton}
+      key={"configuration_header_clear"}
+      placement={"top"}
+      class="w-60 p-4 z-10"
+    />
     <button
       on:click={handleStore}
       class="relative items-center justify-center rounded
@@ -119,7 +122,6 @@
         key={"configuration_header_store"}
         placement={"top"}
         class="w-60 p-4"
-        triggerEvents={["hover"]}
       />
     </button>
 
@@ -134,7 +136,6 @@
         key={"configuration_header_clear"}
         placement={"top"}
         class="w-60 p-4"
-        instant={true}
         buttons={[
           {
             label: "Cancel",
@@ -142,7 +143,7 @@
           },
           { label: "Confirm", handler: handleClear },
         ]}
-        triggerEvents={["click", "hover"]}
+        triggerEvents={["show-buttons", "hover"]}
       />
     </button>
 

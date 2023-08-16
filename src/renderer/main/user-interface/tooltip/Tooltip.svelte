@@ -3,83 +3,136 @@
   import { tooltip_content } from "./tooltip-content.json.js";
   import Popover from "svelte-easy-popover";
   import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
-  import { createEventDispatcher, onMount } from "svelte";
-  import { expoIn } from "svelte/easing";
-
-  const dispatch = createEventDispatcher();
+  import { onMount, onDestroy } from "svelte";
 
   export let key = "";
   export let placement = "top";
+  export let duration = 250;
+  export let delay = 750;
   export let instant = false;
   export let nowrap = false;
   export let buttons = [];
   export let triggerEvents = ["hover"];
+  export let referenceElement = undefined;
 
   let tooltip_text = tooltip_content[key];
-  let parent_element = undefined;
   let showbuttons = false;
   let isOpen;
-  let closeTimeout;
 
-  function handleParentClick(e) {
-    if (triggerEvents.includes("click")) {
-      if (!showbuttons) {
-        showbuttons = true;
-      }
-    } else {
-      isOpen = false;
-    }
+  let closeTimeout;
+  let openTimeout;
+
+  function handleClick(e) {
+    handleReferenceElementClick(e);
+    e.stopPropagation();
   }
 
   function handleMouseEnter(e) {
-    if (triggerEvents.includes("hover")) {
-      isOpen = true;
-      clearTimeout(closeTimeout);
-    }
+    handleReferenceElementMouseEnter(e);
+    e.stopPropagation();
   }
 
   function handleMouseLeave(e) {
+    handleReferenceElementMouseLeave(e);
+    e.stopPropagation();
+  }
+
+  function handleReferenceElementClick(e) {
+    if (triggerEvents.includes("show-buttons")) {
+      if (!showbuttons) {
+        clearTimeout(openTimeout);
+        isOpen = true;
+        showbuttons = true;
+      }
+    }
     if (triggerEvents.includes("hover") && !showbuttons) {
+      isOpen = false;
+    }
+    e.stopPropagation();
+  }
+
+  function handleReferenceElementMouseEnter(e) {
+    if (triggerEvents.includes("hover")) {
+      clearTimeout(closeTimeout);
+      if (instant) {
+        isOpen = true;
+      } else {
+        openTimeout = setTimeout(() => {
+          isOpen = true;
+        }, delay);
+      }
+    }
+    e.stopPropagation();
+  }
+
+  function handleReferenceElementMouseLeave(e) {
+    if (triggerEvents.includes("hover") && !showbuttons) {
+      clearTimeout(openTimeout);
       closeTimeout = setTimeout(() => {
         isOpen = false;
       }, 100);
     }
+    e.stopPropagation();
   }
-</script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  bind:this={parent_element}
-  class="w-full flex h-full absolute right-0 top-0"
-  on:click={handleParentClick}
-  on:mouseenter={handleMouseEnter}
-  on:mouseleave={handleMouseLeave}
->
-  <slot />
-</div>
+  $: handleEventListeners(referenceElement);
+
+  let elementBuffer = undefined;
+  function handleEventListeners(element) {
+    if (typeof elementBuffer !== "undefined") {
+      elementBuffer.removeEventListener(
+        "mouseenter",
+        handleReferenceElementMouseEnter
+      );
+      elementBuffer.removeEventListener(
+        "mouseleave",
+        handleReferenceElementMouseLeave
+      );
+      elementBuffer.removeEventListener("click", handleReferenceElementClick);
+    }
+    if (typeof element !== "undefined") {
+      element.addEventListener("mouseenter", handleReferenceElementMouseEnter);
+      element.addEventListener("mouseleave", handleReferenceElementMouseLeave);
+      element.addEventListener("click", handleReferenceElementClick);
+    }
+    elementBuffer = element;
+  }
+
+  onDestroy(() => {
+    if (typeof referenceElement !== "undefined") {
+      referenceElement.removeEventListener(
+        "mouseenter",
+        handleReferenceElementMouseEnter
+      );
+      referenceElement.removeEventListener(
+        "mouseleave",
+        handleReferenceElementMouseLeave
+      );
+      referenceElement.removeEventListener(
+        "click",
+        handleReferenceElementClick
+      );
+    }
+  });
+</script>
 
 <Popover
   bind:isOpen
   id="tooltip"
-  referenceElement={parent_element}
+  triggerEvents={["manual"]}
+  {referenceElement}
   bind:placement
   spaceAway={10}
 >
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
-    class="{$$props.class} tooltip-bg cursor-default flex flex-col relative z-50 rounded-md"
-    in:fade={{
-      duration: instant ? 50 : 125,
-      delay: instant ? 0 : 750,
-      easing: expoIn,
-    }}
-    out:fade={{
-      duration: 100,
-      delay: 0,
-    }}
-    on:click={handleParentClick}
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
+    on:click={handleClick}
+    class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md"
+    transition:fade={{
+      duration: duration, //Make it instant when explicitly clicked
+    }}
   >
     <div class="flex flex-col" class:gap-2={buttons.length > 0}>
       <div
@@ -90,7 +143,7 @@
       </div>
 
       {#if showbuttons}
-        <div class="flex flex-row gap-2">
+        <div transition:slide={{ duration: 100 }} class="flex flex-row gap-2">
           {#each buttons as button}
             <button
               class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
@@ -108,14 +161,8 @@
     </div>
   </div>
   <div
-    in:fade={{
-      duration: instant ? 50 : 125,
-      delay: instant ? 0 : 750,
-      easing: expoIn,
-    }}
-    out:fade={{
-      duration: 100,
-      delay: 0,
+    transition:fade={{
+      duration: duration,
     }}
     class="absolute"
     id="arrow"

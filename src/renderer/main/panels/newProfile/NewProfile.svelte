@@ -672,7 +672,6 @@
                 key={"newProfile_add_to_session"}
                 placement={"top"}
                 class="w-60 p-4"
-                triggerEvents={["hover"]}
               />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
@@ -766,24 +765,24 @@
                         />
                       </svg>
 
-                        <Tooltip
-                          key={"newProfile_delete"}
-                          placement={"top"}
-                          class="w-60 p-4"
-                          instant={true}
-                          buttons={[
-                            {
-                              label: "Cancel",
-                              handler: undefined,
-                            },
-                            {
-                              label: "Confirm",
-                              handler: () =>
-                                deleteSessionProfile(sessionProfileElement),
-                            },
-                          ]}
-                          triggerEvents={["click", "hover"]}
-                        />
+                      <Tooltip
+                        key={"newProfile_delete"}
+                        placement={"top"}
+                        class="w-60 p-4"
+                        instant={true}
+                        buttons={[
+                          {
+                            label: "Cancel",
+                            handler: undefined,
+                          },
+                          {
+                            label: "Confirm",
+                            handler: () =>
+                              deleteSessionProfile(sessionProfileElement),
+                          },
+                        ]}
+                        triggerEvents={["show-buttons", "hover"]}
+                      />
                     </button>
 
                     <button
@@ -846,7 +845,6 @@
                         key={"newProfile_save"}
                         placement={"top"}
                         class="w-60 p-4"
-                        triggerEvents={["hover"]}
                       />
                     </button>
 
@@ -913,7 +911,6 @@
                         key={"newProfile_rewrite"}
                         placement={"top"}
                         class="w-60 p-4"
-                        triggerEvents={["hover"]}
                       />
                     </button>
                   </div>
@@ -1284,7 +1281,6 @@
                                 key={"newProfile_info"}
                                 placement={"top"}
                                 class="w-60 p-4"
-                                triggerEvents={["hover"]}
                               />
                             </button>
                           </div>
