@@ -1,6 +1,4 @@
 <script>
-  import _utils from "../../../../runtime/_utils";
-
   import { getAllComponents } from "../../../../lib/_configs";
 
   import { createEventDispatcher } from "svelte";
