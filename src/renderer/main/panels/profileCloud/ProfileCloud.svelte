@@ -485,6 +485,9 @@
     if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
       console.log("profile cloud is mounted received");
       profileCloudIsMounted = true;
+      if (selectedModule !== undefined){
+        sendSelectedModuleInfo(selectedModule)
+      }
       return;
     }
   }
