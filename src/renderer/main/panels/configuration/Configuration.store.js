@@ -19,7 +19,6 @@ import {
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
-import _utils from "../../../runtime/_utils.js";
 import grid from "../../../protocol/grid-protocol.js";
 
 const luaminOptions = {

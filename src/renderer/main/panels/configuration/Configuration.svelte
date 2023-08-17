@@ -29,8 +29,6 @@
     UnknownEventException,
   } from "./Configuration.store.js";
 
-  import _utils from "../../../runtime/_utils.js";
-
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
   import MultiSelect from "./components/MultiSelect.svelte";

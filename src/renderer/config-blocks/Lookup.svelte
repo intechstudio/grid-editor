@@ -32,7 +32,7 @@
   import { localDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
-  import _utils from "../runtime/_utils";
+  import { Script } from "./_script_parsers.js";
 
   export let config = "";
   export let index;
@@ -65,7 +65,7 @@
 
     array = [lookupTable.source, ...array];
 
-    const script = _utils.segmentsToScript({
+    const script = Script.toScript({
       human: config.human,
       short: config.short,
       array: array,

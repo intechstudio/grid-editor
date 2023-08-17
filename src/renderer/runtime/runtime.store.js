@@ -8,8 +8,6 @@ import { selectedPresetStore } from "./preset-helper.store";
 
 import { Analytics } from "./analytics.js";
 
-import _utils from "./_utils";
-
 import { appSettings } from "./app-helper.store";
 
 let lastPageActivator = "";
