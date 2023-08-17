@@ -8,7 +8,7 @@
 
   import ConfigParameters from "./ConfigParameters.svelte";
 
-  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
@@ -587,6 +587,11 @@
   <div class="bg-primary py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button
+        use:setTooltip={{
+          key: "configuration_ui_events",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={() => {
           changeSelectedConfig("uiEvents");
         }}
@@ -595,14 +600,14 @@
           : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> UI Events </span>
-        <Tooltip
-          key={"configuration_ui_events"}
-          placement={"top"}
-          class="w-60 p-4"
-        />
       </button>
 
       <button
+        use:setTooltip={{
+          key: "configuration_system_events",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={() => {
           changeSelectedConfig("systemEvents");
         }}
@@ -611,11 +616,6 @@
           : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
       >
         <span> System Events </span>
-        <Tooltip
-          key={"configuration_system_events"}
-          placement={"top"}
-          class="w-60 p-4"
-        />
       </button>
     </div>
   </div>

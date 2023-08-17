@@ -11,7 +11,7 @@
 
   import { onMount, onDestroy } from "svelte";
 
-  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -366,26 +366,26 @@
 
     <div class="flex">
       <button
+        use:setTooltip={{
+          key: "profile_select_local_folder",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={viewDirectory}
         class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>View in explorer</div>
-        <Tooltip
-          key={"profile_select_local_folder"}
-          placement={"top"}
-          class="w-60 p-4"
-        />
       </button>
       <button
+        use:setTooltip={{
+          key: "profile_select_local_folder",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={selectDirectory}
         class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>Select Folder</div>
-        <Tooltip
-          key={"profile_select_local_folder"}
-          placement={"top"}
-          class="w-60 p-4"
-        />
       </button>
     </div>
 
@@ -394,15 +394,15 @@
       {DEFAULT_PATH}
     </div>
     <button
+      use:setTooltip={{
+        key: "profile_select_local_folder",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={resetDirectory}
       class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
     >
       <div>Reset to Default</div>
-      <Tooltip
-        key={"profile_select_local_folder"}
-        placement={"top"}
-        class="w-60 p-4"
-      />
     </button>
 
     <div class="text-gray-400 py-1 mt-1 text-sm">

@@ -13,7 +13,7 @@
   import { onDestroy, onMount } from "svelte";
   import _utils from "../../../runtime/_utils.js";
 
-  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
@@ -173,33 +173,31 @@
 
       <div class="flex text-gray-400">
         <button
+          use:setTooltip={{
+            key: "configuration_copy_all",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             copyAllEventConfigsFromSelf();
           }}
         >
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
-
-          <Tooltip
-            key={"configuration_copy_all"}
-            placement={"top"}
-            class="w-60 p-4"
-          />
         </button>
 
         <button
+          use:setTooltip={{
+            key: "configuration_overwrite",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             overwriteAllEventConfigs();
           }}
         >
           <SvgIcon displayMode="button" iconPath={"paste_all"} />
-
-          <Tooltip
-            key={"configuration_overwrite"}
-            placement={"top"}
-            class="w-60 p-4"
-          />
         </button>
       </div>
     </div>
@@ -207,26 +205,29 @@
     <div class="flex flex-col justify-center items-center">
       <div class="flex w-full">
         {#each events.options as event}
-          <button
-            on:click={() => {
-              handleSelectEvent(event);
-            }}
-            class:dummy={event.desc == undefined}
-            class="{selectedEvent === event && event.desc !== undefined
-              ? 'shadow-md bg-pick text-white'
-              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
-          >
-            {@html event.desc
-              ? event.desc
-              : `<span class="invisible">null</span>`}
-            {#if event.desc != undefined}
-              <Tooltip
-                key={`event_${event.desc}`}
-                placement={"top"}
-                class="w-80 p-4"
-              />
-            {/if}
-          </button>
+          {#key event.desc}
+            <button
+              use:setTooltip={{
+                key:
+                  typeof event.desc !== "undefined"
+                    ? `event_${event.desc}`
+                    : "",
+                placement: "top",
+                class: "w-80 p-4",
+              }}
+              on:click={() => {
+                handleSelectEvent(event);
+              }}
+              class:dummy={event.desc == undefined}
+              class="{selectedEvent === event && event.desc !== undefined
+                ? 'shadow-md bg-pick text-white'
+                : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+            >
+              {@html event.desc
+                ? event.desc
+                : `<span class="invisible">null</span>`}
+            </button>
+          {/key}
         {/each}
       </div>
     </div>

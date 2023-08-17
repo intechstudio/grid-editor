@@ -19,7 +19,7 @@
 
   import { Analytics } from "../../../runtime/analytics.js";
 
-  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   let selected = {
@@ -225,6 +225,11 @@
     </div>
 
     <button
+      use:setTooltip={{
+        key: "preset_save",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={prepareSave}
       disabled={!checkIfOk(newPreset)}
       class="{!checkIfOk(newPreset)
@@ -234,7 +239,6 @@
       relative border-none focus:outline-none"
     >
       <div>Save</div>
-      <Tooltip key={"preset_save"} placement={"top"} class="w-60 p-4" />
     </button>
   </div>
 
@@ -337,6 +341,11 @@
   </div>
 
   <button
+    use:setTooltip={{
+      key: "preset_load_to_module",
+      placement: "top",
+      class: "w-60 p-4",
+    }}
     on:click={loadPreset}
     disabled={selectedIndex === undefined}
     class="relative bg-commit block {selectedIndex !== undefined
@@ -346,7 +355,6 @@
     hover:border-commit-desaturate-10 focus:outline-none"
   >
     <div>Load Preset To Element</div>
-    <Tooltip key={"preset_load_to_module"} placement={"top"} class="w-60 p-4" />
   </button>
 </presets>
 

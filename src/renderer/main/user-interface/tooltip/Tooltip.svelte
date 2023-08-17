@@ -1,11 +1,10 @@
 <script>
   import { fade, slide } from "svelte/transition";
-  import { tooltip_content } from "./tooltip-content.json.js";
   import Popover from "svelte-easy-popover";
   import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
-  import { onMount, onDestroy } from "svelte";
+  import { onDestroy } from "svelte";
 
-  export let key = "";
+  export let text = "";
   export let placement = "top";
   export let duration = 250;
   export let delay = 750;
@@ -15,7 +14,6 @@
   export let triggerEvents = ["hover"];
   export let referenceElement = undefined;
 
-  let tooltip_text = tooltip_content[key];
   let showbuttons = false;
   let isOpen;
 
@@ -139,7 +137,7 @@
         class="text-white text-left font-normal"
         class:whitespace-nowrap={nowrap}
       >
-        {tooltip_text}
+        {text}
       </div>
 
       {#if showbuttons}
@@ -151,6 +149,8 @@
                 if (typeof button.handler !== "undefined") {
                   button.handler();
                 }
+                clearTimeout(openTimeout);
+                clearTimeout(closeTimeout);
                 isOpen = false;
                 showbuttons = false;
               }}>{button.label}</button

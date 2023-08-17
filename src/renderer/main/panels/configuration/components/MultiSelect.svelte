@@ -1,6 +1,5 @@
 <script>
   import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
-  import Tooltip from "../../../user-interface/tooltip/Tooltip.svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
@@ -50,6 +49,7 @@
       }`}
       popStyle={"bg-gray-500 "}
       enabled={enableConvert}
+      tooltipKey={"configuration_merge_as_code"}
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
@@ -58,11 +58,6 @@
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"merge_as_code"}
-        />
-        <Tooltip
-          key={"configuration_merge_as_code"}
-          placement={"top"}
-          class="w-60 p-4"
         />
       </span>
     </BtnAndPopUp>
@@ -74,6 +69,7 @@
       }`}
       popStyle={"bg-secondary"}
       enabled={enableCut}
+      tooltipKey={"configuration_cut_one"}
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
@@ -82,11 +78,6 @@
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"cut"}
-        />
-        <Tooltip
-          key={"configuration_cut_one"}
-          placement={"top"}
-          class="w-60 p-4"
         />
       </span>
     </BtnAndPopUp>
@@ -98,6 +89,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableCopy}
+      tooltipKey={"configuration_copy_one"}
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
@@ -106,11 +98,6 @@
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"copy"}
-        />
-        <Tooltip
-          key={"configuration_copy_one"}
-          placement={"top"}
-          class="w-60 p-4"
         />
       </span>
     </BtnAndPopUp>
@@ -122,6 +109,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enablePaste}
+      tooltipKey={"configuration_paste_one"}
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
@@ -130,11 +118,6 @@
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"paste"}
-        />
-        <Tooltip
-          key={"configuration_paste_one"}
-          placement={"top"}
-          class="w-60 p-4"
         />
       </span>
     </BtnAndPopUp>
@@ -146,6 +129,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableRemove}
+      tooltipKey={"configuration_remove_one"}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
@@ -154,11 +138,6 @@
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"remove"}
-        />
-        <Tooltip
-          key={"configuration_remove_one"}
-          placement={"top"}
-          class="w-60 p-4"
         />
       </span>
     </BtnAndPopUp>

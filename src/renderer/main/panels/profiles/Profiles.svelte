@@ -18,7 +18,7 @@
 
   import { addOnDoubleClick } from "../../_actions/add-on-double-click";
 
-  import Tooltip from "../../user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   let selected = {
@@ -242,6 +242,11 @@
     </div>
 
     <button
+      use:setTooltip={{
+        key: "profile_save",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={() => prepareSave("user")}
       disabled={!checkIfOk(newProfile)}
       class="{!checkIfOk(newProfile)
@@ -251,7 +256,6 @@
       relative border-none focus:outline-none"
     >
       <div>Save</div>
-      <Tooltip key={"profile_save"} placement={"top"} class="w-60 p-4" />
     </button>
   </div>
 
@@ -354,6 +358,11 @@
   </div>
 
   <button
+    use:setTooltip={{
+      key: "profile_load_to_module",
+      placement: "top",
+      class: "w-60 p-4",
+    }}
     on:click={loadProfile}
     disabled={selectedIndex === undefined}
     class="relative bg-commit block {selectedIndex !== undefined
@@ -363,11 +372,6 @@
     hover:border-commit-desaturate-10 focus:outline-none"
   >
     <div>Load Profile To Module</div>
-    <Tooltip
-      key={"profile_load_to_module"}
-      placement={"top"}
-      class="w-60 p-4"
-    />
   </button>
 </profiles>
 
