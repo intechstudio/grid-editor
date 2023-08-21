@@ -17,6 +17,7 @@ const persistant = {
   markedForDeletionPlugins: [],
   keyboardLayout: "",
   websocketMonitorEnabled: false,
+  portstateOverlayEnabled: false,
   newProfileBrowserEnabled: true,
   legacyProfileBrowserEnabled: false,
   profileCloudDevFeaturesEnabled: false,
