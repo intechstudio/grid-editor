@@ -71,7 +71,7 @@ let mainWindow;
 
 let tray = null;
 
-let offlineProfileCloudServer : any = undefined;
+let offlineProfileCloudServer: any = undefined;
 
 function create_tray() {
   /* ===============================================================================
@@ -508,7 +508,7 @@ ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
 });
 
 ipcMain.handle("stopOfflineProfileCloud", async (event, arg) => {
-  if (offlineProfileCloudServer){
+  if (offlineProfileCloudServer) {
     offlineProfileCloudServer.server.close();
     offlineProfileCloudServer = undefined;
   }
