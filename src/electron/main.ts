@@ -71,6 +71,8 @@ let mainWindow;
 
 let tray = null;
 
+let offlineProfileCloudServer : any = undefined;
+
 function create_tray() {
   /* ===============================================================================
 // Conde snippet to generate JSON file from PNG. Use this when creating a new icon
@@ -499,9 +501,17 @@ ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
     const app = polka().use(assets);
     app.listen(0, "localhost", (err) => {
       if (err) return reject(err);
+      offlineProfileCloudServer = app;
       return resolve(app.server.address());
     });
   });
+});
+
+ipcMain.handle("stopOfflineProfileCloud", async (event, arg) => {
+  if (offlineProfileCloudServer){
+    offlineProfileCloudServer.server.close();
+    offlineProfileCloudServer = undefined;
+  }
 });
 
 // persistent storage for the app

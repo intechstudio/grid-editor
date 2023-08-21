@@ -573,6 +573,7 @@
   onDestroy(() => {
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
+    window.electron.stopOfflineProfileCloud();
   });
 
   async function loadOfflineProfileCloud(){

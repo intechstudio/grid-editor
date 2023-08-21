@@ -97,6 +97,8 @@ contextBridge.exposeInMainWorld("electron", {
   openInBrowser: (url) => ipcRenderer.invoke("openInBrowser", { url }),
   startOfflineProfileCloud: () =>
     ipcRenderer.invoke("startOfflineProfileCloud"),
+  stopOfflineProfileCloud: () =>
+    ipcRenderer.invoke("stopOfflineProfileCloud"),
   fetchUrlJSON: (url) => ipcRenderer.invoke("fetchUrlJSON", url),
   restartApp: () => ipcRenderer.sendSync("restartApp"),
   updater: {
