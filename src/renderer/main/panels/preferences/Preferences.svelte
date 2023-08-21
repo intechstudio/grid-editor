@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { engine, logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
@@ -19,6 +19,8 @@
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import { Analytics } from "../../../runtime/analytics.js";
+  import VRadioButton from "./VRadioButton.svelte";
+  import VCheckbox from "./VCheckbox.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -72,8 +74,6 @@
 
   let download_status = "";
   let download_status_interval;
-
-
 
   async function selectDirectory() {
     appSettings.update((s) => {
@@ -165,23 +165,23 @@
     );
   }
 
-  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences()
+  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences();
 
   let pluginListDiv;
-  let pluginPreferenceElements = {}
+  let pluginPreferenceElements = {};
 
   function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistant.enabledPlugins
+    const loadedPlugins = $appSettings.persistant.enabledPlugins;
     if (!pluginListDiv) {
-      return
+      return;
     }
     // Remove existing divs not found in the external set of IDs
     const existingDivIds = Object.keys(pluginPreferenceElements);
     existingDivIds.forEach((existingDivId) => {
-        if (!loadedPlugins.includes(existingDivId)){
-          pluginPreferenceElements[existingDivId].remove()
-          delete pluginPreferenceElements[existingDivId]
-        }
+      if (!loadedPlugins.includes(existingDivId)) {
+        pluginPreferenceElements[existingDivId].remove();
+        delete pluginPreferenceElements[existingDivId];
+      }
     });
 
     function executeScriptElements(containerElement) {
@@ -200,18 +200,19 @@
       });
     }
 
-    for (const pluginId of loadedPlugins){
-      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId)
+    for (const pluginId of loadedPlugins) {
+      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId);
       if (!plugin.preferenceHtml) continue;
       if (existingDivIds.includes(plugin.id)) continue;
 
-      const tempContainer = document.createElement("div")
-      tempContainer.innerHTML = plugin.preferenceHtml
-      pluginPreferenceElements[plugin.id] = tempContainer
-      pluginListDiv.appendChild(tempContainer)
-      executeScriptElements(tempContainer)
+      const tempContainer = document.createElement("div");
+      tempContainer.innerHTML = plugin.preferenceHtml;
+      pluginPreferenceElements[plugin.id] = tempContainer;
+      pluginListDiv.appendChild(tempContainer);
+      executeScriptElements(tempContainer);
     }
-    pluginListDiv.style.display = pluginListDiv.childElementCount == 0 ? "none" : "block"
+    pluginListDiv.style.display =
+      pluginListDiv.childElementCount == 0 ? "none" : "block";
   }
 
   async function viewDirectory() {
@@ -252,81 +253,193 @@
     );
   }
 
-  function changePluginStatus(pluginId, enabled){
-    if (enabled){
-      window.pluginManagerPort.postMessage(
-        {
-          type: "load-plugin", 
-          id : pluginId, 
-          payload: $appSettings.persistant.pluginsDataStorage[pluginId],
-        }
-      )
+  function changePluginStatus(pluginId, enabled) {
+    if (enabled) {
+      window.pluginManagerPort.postMessage({
+        type: "load-plugin",
+        id: pluginId,
+        payload: $appSettings.persistant.pluginsDataStorage[pluginId],
+      });
     } else {
-      window.pluginManagerPort.postMessage({type: "unload-plugin", id : pluginId})
+      window.pluginManagerPort.postMessage({
+        type: "unload-plugin",
+        id: pluginId,
+      });
     }
   }
 
-  function refreshPluginList(){
-    window.pluginManagerPort.postMessage({type: "refresh-plugin-list"})
+  function refreshPluginList() {
+    window.pluginManagerPort.postMessage({ type: "refresh-plugin-list" });
   }
 
-  function downloadPlugin(pluginId){
-    window.pluginManagerPort.postMessage({type: "download-plugin", id : pluginId})
+  function downloadPlugin(pluginId) {
+    window.pluginManagerPort.postMessage({
+      type: "download-plugin",
+      id: pluginId,
+    });
   }
 
-  function uninstallPlugin(pluginId){
-    window.pluginManagerPort.postMessage({type: "uninstall-plugin", id : pluginId})
+  function uninstallPlugin(pluginId) {
+    window.pluginManagerPort.postMessage({
+      type: "uninstall-plugin",
+      id: pluginId,
+    });
     appSettings.update((s) => {
-      delete s.persistant.pluginsDataStorage[pluginId]
-      return s
-    })
+      delete s.persistant.pluginsDataStorage[pluginId];
+      return s;
+    });
   }
+
+  enum PreferenceMenu {
+    GENERAL = "general",
+    USER_LIBRARY = "user_library",
+    PRIVACY = "privacy",
+    ADVANCED = "advanced",
+    DEVELOPER = "developer",
+  }
+
+  const preferencesNavigation = [
+    { title: "General settings", route: PreferenceMenu.GENERAL },
+    { title: "Privacy settings", route: PreferenceMenu.PRIVACY },
+    { title: "User Library", route: PreferenceMenu.USER_LIBRARY },
+    { title: "Advanced", route: PreferenceMenu.ADVANCED },
+    { title: "Developer settings", route: PreferenceMenu.DEVELOPER },
+  ];
+
+  let activePreferenceMenu = PreferenceMenu.GENERAL;
+  function setActiveNavItem(item: PreferenceMenu) {
+    activePreferenceMenu = item;
+  }
+
+  const generalSettings = {
+    moduleRotation: {
+      title: "Control surface rotation",
+      description:
+        "Changes how the controllers are rotated in Grid Editor. Useful when the plugged-in module is rotated.",
+      type: "radio",
+      options: [
+        { title: "0°", value: 0 },
+        { title: "90°", value: 90 },
+        { title: "180°", value: 180 },
+        { title: "270°", value: 270 },
+      ],
+    },
+    controllerScaling: {
+      title: "Controller scaling",
+      description: "Size of the controllers in the application.",
+    },
+    welcomeScreen: {
+      title: "Welcome screen",
+      description:
+        "News and quick links are shown every time you launch Grid Editor.",
+      type: "checkbox",
+      label: "Show welcome screen",
+    },
+    runAppInBackground: {
+      title: "Run application in background",
+      description:
+        "Change what happens when you close the application window. Some features, plugins might only work when the application always runs.",
+      type: "radio",
+      options: [
+        {
+          title: "Keep the application running on the tray or dock",
+          value: true,
+        },
+        { title: "On close, quit the application", value: false },
+      ],
+    },
+    resetSettings: {
+      level: "danger",
+      title: "Reset settings",
+      description:
+        "Reset all preferences settings to their default values. This will not affect your profiles or other data.",
+    },
+  };
+
+  const privacySettings = {
+    requiredInformation: {
+      title: "Use data to make Editor work",
+      description:
+        "We process anonymized logs and errors the application produces to promptly respond to failing services. This analytics data is automatically captured when Editor has access to the internet.",
+    },
+    improveApp: {
+      title: "Use data to improve Editor",
+      description:
+        "Using your interactions with the Editor software we can get insight how the software is being used and we can continue improving it.",
+      type: "checkbox",
+      value: 1,
+      label: "Track interaction with the Editor application",
+    },
+  };
+
+  const userLibrarySettings = {
+    libraryLocation: {
+      title: "Grid Editor user data folder",
+      description:
+        "Local folder on your hard drive where local profiles, temporary downloads and other Editor related files are saved.",
+    },
+  };
 </script>
 
-<preferences
-  class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto"
+<div
+  class="bg-primary flex flex-col h-full w-full text-white px-8 py-4 overflow-y-auto"
 >
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">General Settings</div>
-    <div class="flex my-1 flex-col relative text-white">
-      <div class="mb-1">Module Rotation</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(0);
-          }}>0°</button
-        >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 90}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(90);
-          }}>90°</button
-        >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 180}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(180);
-          }}>180°</button
-        >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 270}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(270);
-          }}>270°</button
-        >
+  <div class="mb-8 flex gap-2">
+    {#each preferencesNavigation as navItem}
+      <button
+        on:click={() => {
+          setActiveNavItem(navItem.route);
+        }}
+        class="hover:underline cursor-pointer text-white {activePreferenceMenu ==
+        navItem.route
+          ? 'underline text-opacity-100'
+          : 'text-opacity-80'}">{navItem.title}</button
+      >
+    {/each}
+  </div>
+
+  {#if activePreferenceMenu == PreferenceMenu.GENERAL}
+    <div class="py-4">
+      <div class="text-white">{generalSettings.moduleRotation.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.moduleRotation.description}
+      </div>
+      <div
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 text-white grid gap-4 grid-flow-col p-2"
+      >
+        {#each generalSettings.moduleRotation.options as option}
+          <label class=" group flex w-full items-center cursor-pointer">
+            <VRadioButton
+              selectedState={$appSettings.persistant.moduleRotation ==
+                option.value}
+            />
+            <input
+              type="radio"
+              class="hidden"
+              name="scoops"
+              value={option.value}
+              bind:group={$appSettings.persistant.moduleRotation}
+            />
+            <span
+              class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
+                .persistant.moduleRotation == option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'}"
+              >{option.title}
+            </span>
+          </label>
+        {/each}
       </div>
     </div>
 
-    <div class="flex flex-col my-1 relative text-white">
-      <div class="mb-1">Controller Scaling</div>
-      <div class="flex flex-row w-full gap-4">
+    <div class="py-4">
+      <div class="text-white">{generalSettings.controllerScaling.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.controllerScaling.description}
+      </div>
+      <div class="flex flex-row w-full gap-y-1 gap-x-8 py-2">
         <input
-          class="flex flex-grow"
+          class="flex flex-grow accent-neutral-500"
           type="range"
           min="0.5"
           max="2.6"
@@ -334,7 +447,7 @@
           bind:value={$appSettings.persistant.size}
         />
         <button
-          class="mr-2 w-28 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
+          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-40"
           on:click={() => {
             $appSettings.persistant.size = 1.0;
           }}
@@ -343,374 +456,145 @@
       </div>
     </div>
 
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.alwaysRunInTheBackground}
-      />
-      <div class="ml-1">Always run in the background</div>
-    </div>
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-row mb-4">
-    <div class="flex my-1 flex-col relative text-white">
-      <div class="mb-1">Grid Helper Name</div>
-      <div class="flex flex-row">
+    <div class="py-4">
+      <div class="text-white">{generalSettings.welcomeScreen.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.welcomeScreen.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 group flex text-white items-center cursor-pointer p-2"
+      >
+        <VCheckbox checkedState={$appSettings.persistant.welcomeOnStartup} />
         <input
-          type="text"
-          placeholder="Helper Name"
-          class="bg-primary my-1"
-          on:blur={setHelperName}
-          bind:value={$appSettings.persistant.helperName}
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.welcomeOnStartup}
         />
+        <div
+          class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
+            .persistant.welcomeOnStartup
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {generalSettings.welcomeScreen.label}
+        </div>
+      </label>
+    </div>
+
+    <div class="py-4">
+      <div class="text-white">{generalSettings.runAppInBackground.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.runAppInBackground.description}
       </div>
-      <div class="mb-1">Style</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.helperShape === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(0);
-          }}>Star</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 1}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(1);
-          }}>Play</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 2}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(2);
-          }}>Circle</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 3}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(3);
-          }}>Wave</button
-        >
+      <div class="text-white grid grid-flow-row gap-4 py-2">
+        {#each generalSettings.runAppInBackground.options as option}
+          <label
+            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+          >
+            <VRadioButton
+              selectedState={$appSettings.persistant.alwaysRunInTheBackground ==
+                option.value}
+            />
+            <input
+              class="hidden"
+              type="radio"
+              name="scoops"
+              value={option.value}
+              bind:group={$appSettings.persistant.alwaysRunInTheBackground}
+            />
+            <span
+              class="pl-2 text-white {$appSettings.persistant
+                .alwaysRunInTheBackground == option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'} group-hover:text-opacity-100"
+              >{option.title}</span
+            >
+          </label>
+        {/each}
       </div>
-      <div class="mb-1">Color</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.helperColor === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(0);
-          }}>Green</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 1}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(1);
-          }}>Purple</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 2}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(2);
-          }}>Yellow</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 3}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(3);
-          }}>Blue</button
-        >
+    </div>
+  {/if}
+
+  {#if activePreferenceMenu == PreferenceMenu.PRIVACY}
+    <div class="py-4">
+      <div class="text-white">{privacySettings.requiredInformation.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {privacySettings.requiredInformation.description}
       </div>
     </div>
 
-    <div
-      bind:this={helperPreviewElement}
-      class="flex relative my-1 flex-col text-white w-full"
-    >
-      <Monster
-        shapeSelected={$appSettings.persistant.helperShape}
-        colorSelected={$appSettings.persistant.helperColor}
-        attachment={helperAttachment}
-      />
-    </div>
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">User Library</div>
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Selected folder:</b>
-      {$appSettings.persistant.profileFolder}
-    </div>
-
-    <div class="flex">
-      <button
-        on:click={viewDirectory}
-        class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-      >
-        <div>View in explorer</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
-      </button>
-      <button
-        on:click={selectDirectory}
-        class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-      >
-        <div>Select Folder</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
-      </button>
-    </div>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Default folder:</b>
-      {DEFAULT_PATH}
-    </div>
-    <button
-      on:click={resetDirectory}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      <div>Reset to Default</div>
-      <TooltipSetter key={"profile_select_local_folder"} />
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Default Profile & Preset libraries:</b>
-      {download_status}
-    </div>
-    <button
-      on:click={() => {
-        libraryDownload();
-      }}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      Download Library
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm"><b>Photoshop Plugin</b></div>
-    <button
-      on:click={() => {
-        uxpPhotoshopDownload();
-      }}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      Download UXP Plugin
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Migrate to Profile Cloud</b>
-    </div>
-    {#if !migrationComplete}
-      <div>
-        Before migration, it's safest to archive (.zip) your grid-userdata.
-        Through support we can help restore your work if you have the archive
-        before migration!
+    <div class="py-4">
+      <div class="text-white">{privacySettings.improveApp.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {privacySettings.improveApp.description}
       </div>
-      <button
-        on:click={() => migrateProfiles()}
-        class="w-1/2 px-2 py-1 rounded bg-amber-700 text-white hover:bg-amber-800 focus:outline-none relative"
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
       >
-        Migrate Profiles v1.2.35
-      </button>
-    {:else}
-      <button
-        on:click={() => window.electron.restartApp()}
-        class="w-1/2 px-2 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 focus:outline-none relative"
-      >
-        Reload app
-      </button>
-    {/if}
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">Profile Cloud URL</div>
-    <div class="flex flex-wrap gap-1">
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://localhost:5200";
-        }}
-        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >localhost:5200</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-        }}
-        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >profile-cloud.web.app</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://google.com";
-        }}
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >google.com</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl =
-            "https://links.intech.studio/profile-cloud";
-        }}
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >links/profile-cloud</button
-      >
-    </div>
-    <input
-      class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
-      bind:value={$appSettings.profileCloudUrl}
-    />
-    <!-- Spacer -->
-    <div class="border-b border-white h-0 w-full my-2" />
-    <div class="pb-2 pt-">Analytics Settings</div>
-    <div class="flex flex-row gap-2 items-center justify-between">
-      <label class="mx-1 items-center">
+        <VCheckbox checkedState={$appSettings.persistant.analyticsEnabled} />
         <input
-          class="mr-1"
+          class="hidden"
           type="checkbox"
           bind:checked={$appSettings.persistant.analyticsEnabled}
         />
-        Analytics gathering enabled
+        <div
+          class="pl-2 text-white {$appSettings.persistant.analyticsEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {privacySettings.improveApp.label}
+        </div>
       </label>
+    </div>
+  {/if}
+
+  {#if activePreferenceMenu == PreferenceMenu.USER_LIBRARY}
+    <div>
+      <div class="text-white">{userLibrarySettings.libraryLocation.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {userLibrarySettings.libraryLocation.description}
+      </div>
+      <div class="text-white text-opacity-40 pt-2">Current selection</div>
+      <div class="flex flex-row gap-4 py-2">
+        <input
+          disabled={true}
+          class="flex px-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20"
+          type="text"
+          bind:value={$appSettings.persistant.profileFolder}
+        />
+        <button
+          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-40 active:border-green-500"
+          on:click={() => {
+            selectDirectory();
+          }}
+          >Select Folder
+        </button>
+      </div>
+      <div class="text-white text-opacity-40 py-2">
+        Open grid-userdata folder to view the contents
+      </div>
       <button
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        on:click={handleOpenPolicyClicked}
-      >
-        Open Policy
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-40 active:border-green-500"
+        on:click={() => {
+          viewDirectory();
+        }}
+        >Open grid-userdata
+      </button>
+      <div class="text-white text-opacity-40 py-2">
+        Reset folder selection to default
+      </div>
+      <button
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-40 active:border-green-500"
+        on:click={() => {
+          resetDirectory();
+        }}
+        >Reset to default
       </button>
     </div>
-  </div>
+  {/if}
 
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center">
-      <div class="mx-2">Plugins</div>
-      <div class="mx-2">
-        <button 
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={refreshPluginList}>
-          Refresh
-          </button>
-      </div>
-    </div>
-    {#each $appSettings.pluginList as plugin}
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="bg-primary my-1"
-        type="checkbox"
-        checked={plugin.status === "Enabled"}
-        style="visibility:{plugin.status === "Downloaded" || plugin.status === "Enabled" ? "visible" : "hidden"}"
-        on:change={async e => changePluginStatus(plugin.id, e.target.checked)}     
-      />
-      <div class="mx-1">{plugin.name}</div>
-      <div class="mx-1">
-        {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
-        <button 
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={downloadPlugin(plugin.id)}
-          disabled={plugin.status == "Downloading"}
-          >
-          Download
-          </button>  
-        {:else}
-        <button 
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={uninstallPlugin(plugin.id)}
-          >
-          Uninstall
-          </button>
-        {/if}
-      </div>
-    </div>
-    {/each}
-  </div>
-
-  <div bind:this={pluginListDiv} class="p-4 bg-secondary rounded-lg flex flex-col mb-4"/>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center mb-1">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="profileCloud"
-          bind:group={selected}
-        />
-        Profile Cloud & Preset Browser Mode</label
-      >
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="newLibrary"
-          bind:group={selected}
-        />
-        New Profile & Preset Browser Mode</label
-      >
-    </div>
-
-    <div class="flex py-2 text-white items-center border-b mb-1">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="legacyLibrary"
-          bind:group={selected}
-        />
-        Legacy Profile & Preset Browser Mode</label
-      >
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.welcomeOnStartup}
-      />
-      <div class="ml-1">Show welcome on startup</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.websocketMonitorEnabled}
-      />
-      <div class="mx-1">Enable/Disable websocket monitor</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.profileCloudDevFeaturesEnabled}
-      />
-      <div class="mx-1">Enable/Disable Profile Cloud Dev Features</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.debugMode}
-      />
-      <div class="ml-1">Glitch Debug Mode</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.desktopAutomationPlugin}
-      />
-      <div class="ml-1">EXPERIMENTAL Desktop Automation Plugin</div>
-    </div>
-
-    <div class="flex flex-col items-start">
+  {#if activePreferenceMenu == PreferenceMenu.ADVANCED}
+    <div class="py-4">
       <button
         on:click={() => {
           instructions.sendNVMDefragToGrid();
@@ -736,44 +620,18 @@
       </button>
     </div>
 
-    <button
-      on:click={() => {
-        engine.set("ENABLED");
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      Enable Engine and User Inputs
-    </button>
-
-    <button
-      on:click={resetAppSettings}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      Reset App Settings
-    </button>
-
-    <!-- <button
-      on:click={() => {
-        hello["ds"] = 0;
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      <div>Trigger error: hello</div>
-    </button>
-    <button
-      on:click={() => {
-        other["ds"] = 0;
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      <div>Trigger error: other</div>
-    </button> -->
-  </div>
-</preferences>
-
-<style>
-  button.selected {
-    font-weight: bold;
-    box-shadow: inset 0 0 100px #ffffff60;
-  }
-</style>
+    <div class="border border-yellow-500 p-4">
+      <div class="text-white">{generalSettings.resetSettings.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.resetSettings.description}
+      </div>
+      <button
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-40"
+        on:click={() => {
+          resetAppSettings();
+        }}
+        >Reset application settings
+      </button>
+    </div>
+  {/if}
+</div>
