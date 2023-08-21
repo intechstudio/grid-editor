@@ -5,6 +5,7 @@
   import Profiles from "./panels/profiles/Profiles.svelte";
   import Presets from "./panels/presets/Presets.svelte";
   import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
+  import Packages from "./panels/packages/Packages.svelte";
   import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from "../runtime/window-size";
@@ -53,6 +54,10 @@
 
   {#if $appSettings.leftPanel == "ProfileCloud"}
     <ProfileCloud />
+  {/if}
+
+  {#if $appSettings.leftPanel == "Packages"}
+    <Packages />
   {/if}
 </div>
 

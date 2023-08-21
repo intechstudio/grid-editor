@@ -145,6 +145,7 @@ export const tooltip_content = {
   sidebar_debugger_icon: "Debug Monitor",
   sidebar_websocket_monitor_icon: "Websocket Monitor",
   sidebar_midi_monitor_icon: "MIDI Monitor",
+  sidebar_packages_icon: "Package Manager",
 
   engine_clear:
     "Clear the writebuffer after a module crash, and re-enable the Editor engine!",
