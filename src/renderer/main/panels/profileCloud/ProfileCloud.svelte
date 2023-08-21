@@ -578,7 +578,7 @@
   async function loadOfflineProfileCloud(){
     const serverAddress = await window.electron.startOfflineProfileCloud();
     const url = `http://${serverAddress.address}:${serverAddress.port}`;
-    iframe_element.src = url;
+    $appSettings.profileCloudUrl = url;
   }
 </script>
 
