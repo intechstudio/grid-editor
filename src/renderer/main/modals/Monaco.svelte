@@ -15,7 +15,6 @@
 
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
-  import { attachment } from "../user-interface/Monster.store";
   import {
     ConfigTarget,
     ConfigList,
@@ -103,13 +102,6 @@
         errorMesssage = e;
       }
     });
-
-    $attachment = {
-      element: modalElement,
-      hpos: "60%",
-      vpos: "0%",
-      scale: 0.75,
-    };
   });
 
   beforeUpdate(() => {
@@ -193,10 +185,6 @@
   }
 
   onDestroy(() => {
-    if ($attachment.element === modalElement) {
-      $attachment = undefined;
-    }
-
     monaco_disposables.forEach((element) => {
       element.dispose();
     });

@@ -12,7 +12,7 @@
   } from "../../../runtime/runtime.store.js";
   import { onDestroy, onMount } from "svelte";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
 
@@ -163,99 +163,78 @@
 
         <TooltipQuestion key={"configuration_element_name"} />
       </div>
-
-      <!--       <input
-        disabled
-        type="text"
-        bind:value={stringname}
-        on:input={updateStringName}
-        class="w-full bg-secondary border-none text-white py-1.5 pl-2 rounded-none"
-      /> -->
     </div>
-
-    <!--     <div class="w-1/2 p-1">
-      <div class="text-gray-500 py-1 text-sm">Selected Element</div>
-
-      <div class="flex flex-col relative  font-bold text-white">
-
-        <select
-          bind:value={elements.selected}
-          on:change={(e) => {
-            handleSelectElement(elements.selected);
-          }}
-          class="bg-secondary border-none flex-grow text-white p-2 shadow"
-        >
-          {#each elements.options.slice(0, -1) as element}
-            <option
-              value={element}
-              class="text-white bg-secondary py-1 border-none"
-              >Element {element}</option
-            >
-          {/each}
-        </select>
-      </div>
-    </div> -->
   </div>
 
   <div class="pb-2 flex flex-col justify-center">
-    <!--     <div class="  flex justify-center items-center">
-      <hr class="w-[90%] my-6 border-white border-opacity-10 " />
-    </div> -->
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
       <div class="flex text-gray-400">
         <button
+          use:setTooltip={{
+            key: "configuration_copy_all",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             copyAllEventConfigsFromSelf();
           }}
         >
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
-
-          <TooltipSetter key={"configuration_copy_all"} />
         </button>
 
         <button
+          use:setTooltip={{
+            key: "configuration_overwrite",
+            placement: "top",
+            class: "w-60 p-4",
+          }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
             overwriteAllEventConfigs();
           }}
         >
           <SvgIcon displayMode="button" iconPath={"paste_all"} />
-
-          <TooltipSetter key={"configuration_overwrite"} />
         </button>
       </div>
     </div>
 
     <div class="flex flex-col justify-center items-center">
-      <div class="flex overflow-x-auto w-full">
+      <div class="flex w-full">
         {#each events.options as event}
-          <button
-            on:click={() => {
-              handleSelectEvent(event);
-            }}
-            class:dummy={event.desc == undefined}
-            class="{selectedEvent === event && event.desc !== undefined
-              ? 'shadow-md bg-pick text-white'
-              : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
-          >
-            {@html event.desc
-              ? event.desc
-              : `<span class="invisible">null</span>`}
-            {#if event.desc != undefined}
-              <TooltipSetter key={`event_${event.desc}`} />
-            {/if}
-          </button>
+          {#key event.desc}
+            <button
+              use:setTooltip={{
+                key:
+                  typeof event.desc !== "undefined"
+                    ? `event_${event.desc}`
+                    : "",
+                placement: "top",
+                class: "w-80 p-4",
+              }}
+              on:click={() => {
+                handleSelectEvent(event);
+              }}
+              class:dummy={event.desc == undefined}
+              class="{selectedEvent === event && event.desc !== undefined
+                ? 'shadow-md bg-pick text-white'
+                : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+            >
+              {@html event.desc
+                ? event.desc
+                : `<span class="invisible">null</span>`}
+            </button>
+          {/key}
         {/each}
       </div>
-      <!-- <hr class="w-[90%] my-6 border-white border-opacity-10 " /> -->
     </div>
   </div>
 </div>
 
 <style>
+  /* TODO: What..? */
   .dummy {
     @apply bg-select;
     @apply bg-opacity-50;

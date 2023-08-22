@@ -57,6 +57,8 @@ import {
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
+import polka from "polka";
+import sirv from "sirv";
 
 log.info("App starting...");
 
@@ -68,6 +70,8 @@ let mainWindow;
 //app.allowRendererProcessReuse = false;
 
 let tray = null;
+
+let offlineProfileCloudServer: any = undefined;
 
 function create_tray() {
   /* ===============================================================================
@@ -489,6 +493,25 @@ ipcMain.handle("getLatestVideo", async (event, arg) => {
 // launch browser and open url
 ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
+});
+
+ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
+  return await new Promise((resolve, reject) => {
+    const assets = sirv(path.join(__dirname, "../../profile-cloud"));
+    const app = polka().use(assets);
+    app.listen(0, "localhost", (err) => {
+      if (err) return reject(err);
+      offlineProfileCloudServer = app;
+      return resolve(app.server.address());
+    });
+  });
+});
+
+ipcMain.handle("stopOfflineProfileCloud", async (event, arg) => {
+  if (offlineProfileCloudServer) {
+    offlineProfileCloudServer.server.close();
+    offlineProfileCloudServer = undefined;
+  }
 });
 
 // persistent storage for the app
