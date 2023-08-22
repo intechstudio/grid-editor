@@ -11,8 +11,7 @@
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { profileChangeCallbackStore } from "./profile-change.store";
   import { fade, fly } from "svelte/transition";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { setTooltip } from "/main/user-interface/tooltip/Tooltip.js";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
@@ -661,6 +660,11 @@
             class=" flex flex-col p-3 overflow-hidden h-full"
           >
             <button
+              use:setTooltip={{
+                key: "newProfile_add_to_session",
+                placement: "top",
+                class: "w-60 p-4",
+              }}
               on:click={() => {
                 saveToSessionProfile("sessionProfile");
               }}
@@ -669,7 +673,6 @@
           hover:border-commit-desaturate-10 focus:outline-none"
             >
               <div>Save Session Profile</div>
-              <TooltipSetter key={"newProfile_add_to_session"} />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
               {#if sessionProfile.length == 0}
@@ -731,6 +734,24 @@
 
                   <div class="flex gap-1">
                     <button
+                      use:setTooltip={{
+                        key: "newProfile_delete",
+                        placement: "top",
+                        class: "w-60 p-4",
+                        instant: true,
+                        buttons: [
+                          {
+                            label: "Cancel",
+                            handler: undefined,
+                          },
+                          {
+                            label: "Confirm",
+                            handler: () =>
+                              deleteSessionProfile(sessionProfileElement),
+                          },
+                        ],
+                        triggerEvents: ["show-buttons", "hover"],
+                      }}
                       on:click|preventDefault={() => {
                         deleteSessionProfile(sessionProfileElement);
                       }}
@@ -761,11 +782,14 @@
                           stroke-width="2"
                         />
                       </svg>
-                      <TooltipConfirm key={"newProfile_delete"} />
-                      <TooltipSetter key={"newProfile_delete"} />
                     </button>
 
                     <button
+                      use:setTooltip={{
+                        key: "newProfile_save",
+                        placement: "top",
+                        class: "w-60 p-4",
+                      }}
                       class="p-1 hover:bg-primary-500 rounded relative {$selectedProfileStore ==
                         sessionProfileElement && disableButton == true
                         ? 'pointer-events-none'
@@ -820,11 +844,14 @@
                           fill="#F1F1F1"
                         />
                       </svg>
-
-                      <TooltipSetter key={"newProfile_save"} />
                     </button>
 
                     <button
+                      use:setTooltip={{
+                        key: "newProfile_rewrite",
+                        placement: "top",
+                        class: "w-60 p-4",
+                      }}
                       class="p-1 hover:bg-primary-500 rounded relative"
                       on:click|preventDefault={() => {
                         rewriteSessionProfile(sessionProfileElement);
@@ -883,7 +910,6 @@
                           </clipPath>
                         </defs>
                       </svg>
-                      <TooltipSetter key={"newProfile_rewrite"} />
                     </button>
                   </div>
                 </button>
@@ -1197,6 +1223,11 @@
                             {/if}
 
                             <button
+                              use:setTooltip={{
+                                key: "newProfile_info",
+                                placement: "top",
+                                class: "w-60 p-4",
+                              }}
                               class="p-1 hover:bg-primary-500 rounded relative"
                               on:click|preventDefault={() => {
                                 openProfileInfo(profileCloudElement);
@@ -1248,8 +1279,6 @@
                                   </clipPath>
                                 </defs>
                               </svg>
-
-                              <TooltipSetter key={"newProfile_info"} />
                             </button>
                           </div>
                         </div>

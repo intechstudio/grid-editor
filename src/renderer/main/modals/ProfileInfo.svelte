@@ -3,8 +3,7 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
   import { selectedProfileStore } from "/runtime/profile-helper.store";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { setTooltip } from "/main/user-interface/tooltip/Tooltip.js";
   import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { v4 as uuidv4 } from "uuid";
@@ -310,13 +309,24 @@
               {#if selectedProfile.folder == "user"}
                 <div class="flex gap-2 flex-wrap">
                   <button
+                    use:setTooltip={{
+                      key: "newProfile_desc_delete",
+                      placement: "top",
+                      class: "w-60 p-4",
+                      instant: true,
+                      buttons: [
+                        {
+                          label: "Cancel",
+                          handler: undefined,
+                        },
+                        { label: "Confirm", handler: deleteProfile },
+                      ],
+                      triggerEvents: ["show-buttons", "hover"],
+                    }}
                     class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                    on:click|preventDefault={() => {
-                      deleteProfile();
-                    }}
                   >
                     <svg
                       width="20"
@@ -342,12 +352,14 @@
                       />
                     </svg>
                     delete
-
-                    <TooltipConfirm key={"newProfile_desc_delete"} />
-                    <TooltipSetter key={"newProfile_desc_delete"} />
                   </button>
 
                   <button
+                    use:setTooltip={{
+                      key: "newProfile_desc_edit",
+                      placement: "top",
+                      class: "w-60 p-4",
+                    }}
                     class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
@@ -383,8 +395,6 @@
                       />
                     </svg>
                     edit
-
-                    <TooltipSetter key={"newProfile_desc_edit"} />
                   </button>
                 </div>
               {/if}
@@ -560,14 +570,26 @@
 
               <div>
                 <button
-                  on:click={() => {
-                    convertProfileToSessionPreset(selectedProfile);
+                  use:setTooltip={{
+                    key: "newProfile_desc_split_presets",
+                    placement: "top",
+                    class: "w-60 p-4",
+                    instant: true,
+                    buttons: [
+                      {
+                        label: "Cancel",
+                        handler: undefined,
+                      },
+                      {
+                        label: "Confirm",
+                        handler: () =>
+                          convertProfileToSessionPreset(selectedProfile),
+                      },
+                    ],
                   }}
                   class="bg-green-500 py-2 px-10 rounded cursor-pointer relative"
                 >
                   <div>Split</div>
-                  <TooltipConfirm key={"newProfile_desc_split_presets"} />
-                  <TooltipSetter key={"newProfile_desc_split_presets"} />
                 </button>
               </div>
             </div>

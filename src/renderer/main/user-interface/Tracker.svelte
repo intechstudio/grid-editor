@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
-  import TooltipSetter from "./tooltip/TooltipSetter.svelte";
+  import { setTooltip } from "./tooltip/Tooltip.js";
 
   const options = [
     {
@@ -37,12 +37,16 @@
     <div class="flex flex-row gap-2 items-center">
       {#each options as { value, label, tooltip_key }}
         <button
+          use:setTooltip={{
+            key: tooltip_key,
+            placement: "top",
+            class: "w-60 p-4",
+          }}
           class:selected={value === $appSettings.changeOnEvent}
           on:click={() => handleClick(value)}
           class="relative w-24 rounded bg-select text-white hover:bg-select-saturate-10 py-1"
         >
           <span>{label}</span>
-          <TooltipSetter key={tooltip_key} />
         </button>
       {/each}
     </div>

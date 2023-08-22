@@ -24,7 +24,6 @@ const persistant = {
   useProfileCloud: true,
   helperShape: 0,
   helperColor: 0,
-  helperName: "Monster",
   desktopAutomationPlugin: false,
   authUser: {},
   authIdToken: "",
@@ -38,8 +37,6 @@ function checkOS() {
   }
   return "browser";
 }
-
-export const current_tooltip_store = writable({ key: "", bool: false });
 
 export const statusReport = writable({
   serialport: {},

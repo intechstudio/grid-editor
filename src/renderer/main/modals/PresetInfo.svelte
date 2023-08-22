@@ -2,8 +2,7 @@
   import { get } from "svelte/store";
   import { clickOutside } from "/main/_actions/click-outside.action";
   import { appSettings } from "/runtime/app-helper.store";
-  import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
+  import { setTooltip } from "/main/user-interface/tooltip/Tooltip.js";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { selectedPresetStore } from "../../runtime/preset-helper.store";
   import { onMount } from "svelte";
@@ -121,13 +120,24 @@
             {#if selectedPreset.folder == "user"}
               <div class="flex gap-2 flex-wrap">
                 <button
+                  use:setTooltip={{
+                    key: "newPreset_desc_delete",
+                    placement: "top",
+                    class: "w-60 p-4",
+                    instant: true,
+                    buttons: [
+                      {
+                        label: "Cancel",
+                        handler: undefined,
+                      },
+                      { label: "Confirm", handler: deletePreset },
+                    ],
+                    triggerEvents: ["show-buttons", "hover"],
+                  }}
                   class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
                   border-2 text-white px-2 py-0.5 mx-1 w-24 relative"
-                  on:click|preventDefault={() => {
-                    deletePreset();
-                  }}
                 >
                   <svg
                     width="20"
@@ -153,11 +163,14 @@
                     />
                   </svg>
                   delete
-                  <TooltipConfirm key={"newPreset_desc_delete"} />
-                  <TooltipSetter key={"newPreset_desc_delete"} />
                 </button>
 
                 <button
+                  use:setTooltip={{
+                    key: "newPreset_desc_edit",
+                    placement: "top",
+                    class: "w-60 p-4",
+                  }}
                   class="flex gap-2 items-center focus:outline-none
                   justify-center rounded my-2 border-select bg-select
                   hover:border-select-saturate-10 hover:bg-select-saturate-10
@@ -193,8 +206,6 @@
                     />
                   </svg>
                   edit
-
-                  <TooltipSetter key={"newPreset_desc_edit"} />
                 </button>
               </div>
             {/if}

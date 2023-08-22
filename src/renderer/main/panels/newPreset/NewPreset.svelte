@@ -17,8 +17,7 @@
     appSettings,
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "../../user-interface/tooltip/TooltipConfirm.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
   let newPreset = {
     name: "",
@@ -672,6 +671,11 @@
             class=" flex flex-col p-3 overflow-hidden h-full"
           >
             <button
+              use:setTooltip={{
+                key: "newPreset_add_to_session",
+                placement: "top",
+                class: "w-60 p-4",
+              }}
               on:click={() => {
                 saveToSessionPreset();
               }}
@@ -680,7 +684,6 @@
     hover:border-commit-desaturate-10 focus:outline-none"
             >
               <div>Save Session Preset</div>
-              <TooltipSetter key={"newPreset_add_to_session"} />
             </button>
             <div class="flex flex-col overflow-y-auto gap-4">
               {#if sessionPreset.length == 0}
@@ -740,8 +743,23 @@
 
                   <div class="flex gap-1">
                     <button
-                      on:click|preventDefault={() => {
-                        deleteSessionPreset(sessionPresetElement);
+                      use:setTooltip={{
+                        key: "newPreset_delete",
+                        placement: "top",
+                        class: "w-60 p-4",
+                        instant: true,
+                        buttons: [
+                          {
+                            label: "Cancel",
+                            handler: undefined,
+                          },
+                          {
+                            label: "Confirm",
+                            handler: () =>
+                              deleteSessionPreset(sessionPresetElement),
+                          },
+                        ],
+                        triggerEvents: ["show-buttons", "hover"],
                       }}
                       class="p-1 hover:bg-primary-500 {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
@@ -770,11 +788,14 @@
                           stroke-width="2"
                         />
                       </svg>
-                      <TooltipConfirm key={"newPreset_delete"} />
-                      <TooltipSetter key={"newPreset_delete"} />
                     </button>
 
                     <button
+                      use:setTooltip={{
+                        key: "newPreset_save",
+                        placement: "top",
+                        class: "w-60 p-4",
+                      }}
                       class="p-1 hover:bg-primary-500 rounded relative {$selectedPresetStore ==
                         sessionPresetElement && disableButton == true
                         ? 'pointer-events-none'
@@ -829,11 +850,14 @@
                           fill="#F1F1F1"
                         />
                       </svg>
-
-                      <TooltipSetter key={"newPreset_save"} />
                     </button>
 
                     <button
+                      use:setTooltip={{
+                        key: "newPreset_rewrite",
+                        placement: "top",
+                        class: "w-60 p-4",
+                      }}
                       class="p-1 hover:bg-primary-500 rounded relative"
                       on:click|preventDefault={() => {
                         rewriteSessionPreset(sessionPresetElement);
@@ -892,7 +916,6 @@
                           </clipPath>
                         </defs>
                       </svg>
-                      <TooltipSetter key={"newPreset_rewrite"} />
                     </button>
                   </div>
                 </button>
@@ -1216,6 +1239,11 @@
                             {/if}
 
                             <button
+                              use:setTooltip={{
+                                key: "newPreset_info",
+                                placement: "top",
+                                class: "w-60 p-4",
+                              }}
                               class="p-1 hover:bg-primary-500 rounded relative"
                               on:click|preventDefault={() => {
                                 selectPreset(preset);
@@ -1268,8 +1296,6 @@
                                   </clipPath>
                                 </defs>
                               </svg>
-
-                              <TooltipSetter key={"newPreset_info"} />
                             </button>
                           </div>
                         </div>
@@ -1286,72 +1312,5 @@
         </div></Pane
       >
     </Splitpanes>
-
-    <!--     <div class="flex flex-col w-full py-2">
-      <div class="text-sm text-gray-500 pb-1">Preset name</div>
-      <input
-        bind:value={newPreset.name}
-        on:input={checkIfPresetTitleUnique(newPreset.name.trim())}
-        type="text"
-        placeholder="Name of this preset..."
-        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
-      />
-      {#if isTitleUnique == false}
-        <span class="text-red-500 py-2">This name is already in use.</span>
-      {/if}
-    </div>
-
-    <div class="flex flex-col w-full py-2">
-      <div class="text-sm text-gray-500 pb-1">Description</div>
-      <textarea
-        bind:value={newPreset.description}
-        type="text"
-        placeholder="What does this preset do?"
-        class="w-full bg-secondary text-white py-1 pl-2 rounded-none"
-      />
-    </div>
-
-    <button
-      on:click={() => {
-        prepareSave("user");
-      }}
-      disabled={!checkIfOk(newPreset) || !isTitleUnique}
-      class="{!checkIfOk(newPreset) || !isTitleUnique
-        ? 'cursor-not-allowed opacity-50'
-        : 'cursor-pointer opacity-100  hover:bg-commit-saturate-10'}
-      transition w-full px-2 py-2 my-2 block rounded text-white bg-commit
-      relative border-none focus:outline-none"
-    >
-      <div>Save</div>
-      <TooltipSetter key={"newPreset_save"} />
-    </button>
-  </div>
-
-  <div>
-    <button on:click={()=>{saveToSessionPreset()}}>add to Session Preset</button>
-    {#each sessionPreset as sessionPresetElement}
-      <div class="text-white">{sessionPresetElement.name}</div>
-    {/each}
-
-    {#each presetsOfSelectedDevice as presetsOfDevice}
-      <div>
-        {presetsOfDevice.controlElementName}, {presetsOfDevice.controlElementType}
-      </div>
-    {/each}
-  </div>
-
--->
   </div>
 </presets>
-
-<!-- <style>
-.preset:first-child {
-    margin-top: 0;
-}
-
-.preset:last-child {
-    margin-bottom: 0;
-}
-</style>
-
--->

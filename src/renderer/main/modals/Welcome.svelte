@@ -4,8 +4,6 @@
 
   import { clickOutside } from "../_actions/click-outside.action";
 
-  import { attachment } from "../user-interface/Monster.store";
-
   import { get } from "svelte/store";
 
   const configuration = window.ctxProcess.configuration();
@@ -13,7 +11,6 @@
   let video_link = "";
 
   let modalElement;
-  let attachmentElement;
 
   let video_id;
 
@@ -31,18 +28,11 @@
       video_link = videoLink;
       video_id = videoId;
     }
-
-    $attachment = { element: attachmentElement, hpos: "100%", vpos: "50%" };
   });
 
   onDestroy(() => {
     $appSettings.persistant.firstLaunch = false;
     $appSettings.persistant.analyticsEnabled = analyticsEnabled;
-    if ($attachment !== undefined) {
-      if ($attachment.element === attachmentElement) {
-        $attachment = undefined;
-      }
-    }
   });
 
   function handleOpenPolicyClicked(e) {
@@ -100,11 +90,7 @@
       </button>
     </div>
 
-    <div
-      bind:this={attachmentElement}
-      class="flex flex-row bg-primary w-full"
-      style=""
-    >
+    <div class="flex flex-row bg-primary w-full" style="">
       <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
         <div class="p-4 flex-col w-7/12 flex justify-between">
           <div class="flex w-full text-xl opacity-70">Latest Release Video</div>

@@ -1,6 +1,5 @@
 <script>
-  import TooltipSetter from "./tooltip/TooltipSetter.svelte";
-  import TooltipConfirm from "./tooltip/TooltipConfirm.svelte";
+  import { setTooltip } from "./tooltip/Tooltip.js";
   import {
     engine,
     runtime,
@@ -88,12 +87,17 @@
 
 <container class={$$props.class}>
   <div
-    class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2"
+    class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2 relative"
   >
     <div class="mx-4 text-white font-medium">
       {$totalChanges} active changes
     </div>
     <button
+      use:setTooltip={{
+        key: "configuration_header_clear",
+        placement: "top",
+        class: "w-60 p-4 z-10",
+      }}
       on:click={handleDiscard}
       class="relative items-center justify-center focus:outline-none bg-select
       rounded text-white py-1 w-24 {isStoreEnabled
@@ -101,9 +105,13 @@
         : 'opacity-75'}"
     >
       <div>Discard</div>
-      <TooltipSetter key={"configuration_header_clear"} />
     </button>
     <button
+      use:setTooltip={{
+        key: "configuration_header_store",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={handleStore}
       class="relative items-center justify-center rounded
           focus:outline-none text-white py-1 w-24 bg-commit {isStoreEnabled
@@ -111,22 +119,36 @@
         : 'opacity-75'}"
     >
       <div>Store</div>
-      <TooltipSetter key={"configuration_header_store"} />
     </button>
 
     <button
-      on:click={handleClear}
+      use:setTooltip={{
+        key: "configuration_header_clear",
+        placement: "top",
+        class: "w-60 p-4",
+        buttons: [
+          {
+            label: "Cancel",
+            handler: undefined,
+          },
+          { label: "Confirm", handler: handleClear },
+        ],
+        triggerEvents: ["show-buttons", "hover"],
+      }}
       disabled={$engine != "ENABLED"}
       class="{$engine == 'ENABLED' ? 'hover:bg-red-500' : 'opacity-75'}
       relative flex items-center focus:outline-none justify-center rounded
         bg-select text-white py-1 w-24"
     >
       <div>Clear</div>
-      <TooltipConfirm key={"configuration_header_clear"} />
-      <TooltipSetter key={"configuration_header_clear"} />
     </button>
 
     <button
+      use:setTooltip={{
+        key: "engine_clear",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={debugWriteBuffer}
       class=" relative flex items-center focus:outline-none justify-center
       rounded bg-select text-white py-1
@@ -177,7 +199,6 @@
           256.001 440.001 256.001Z"
         />
       </svg>
-      <TooltipSetter key={"engine_clear"} />
     </button>
   </div>
 </container>

@@ -1,7 +1,7 @@
 <script>
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
-  import Tooltip from "./user-interface/tooltip/Tooltip.svelte";
+  import { setTooltip } from "./user-interface/tooltip/Tooltip.js";
 
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "ProfileCloud";
@@ -81,6 +81,14 @@
     -->
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        duration: 75,
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_configuration_icon",
+      }}
       on:click={() => {
         changeRightTab("Configuration");
       }}
@@ -106,15 +114,17 @@
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_configuration_icon"}
-      />
     </button>
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        duration: 75,
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_preferences_icon",
+      }}
       on:click={() => {
         changeRightTab("Preferences");
       }}
@@ -160,18 +170,20 @@
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_preferences_icon"}
-      />
     </button>
   </div>
 
   <div class="flex flex-col">
     {#if $appSettings.profileBrowserMode === "newLibrary"}
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_new_profiles_icon",
+        }}
         on:click={() => {
           changeLeftTab("NewProfile");
         }}
@@ -208,14 +220,16 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_profiles_icon"}
-        />
       </button>
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_new_presets_icon",
+        }}
         on:click={() => {
           changeLeftTab("NewPreset");
         }}
@@ -253,15 +267,17 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_presets_icon"}
-        />
       </button>
     {:else if $appSettings.profileBrowserMode === "profileCloud"}
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_profile_cloud_icon",
+        }}
         on:click={() => {
           changeLeftTab("ProfileCloud");
         }}
@@ -286,14 +302,16 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_profile_cloud_icon"}
-        />
       </button>
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_new_presets_icon",
+        }}
         on:click={() => {
           changeLeftTab("NewPreset");
         }}
@@ -331,15 +349,17 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_presets_icon"}
-        />
       </button>
     {:else if $appSettings.profileBrowserMode === "legacyLibrary"}
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_presets_icon",
+        }}
         on:click={() => {
           changeLeftTab("Presets");
         }}
@@ -382,15 +402,17 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_presets_icon"}
-        />
       </button>
 
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_profiles_icon",
+        }}
         on:click={() => {
           changeLeftTab("Profiles");
         }}
@@ -427,16 +449,18 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_profiles_icon"}
-        />
       </button>
     {/if}
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        duration: 75,
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_debugger_icon",
+      }}
       on:click={() => {
         changeLeftTab("Debug");
       }}
@@ -486,15 +510,17 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_debugger_icon"}
-      />
     </button>
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        duration: 75,
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_midi_monitor_icon",
+      }}
       on:click={() => {
         changeLeftTab("MIDI Monitor");
       }}
@@ -535,15 +561,16 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_midi_monitor_icon"}
-      />
     </button>
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_packages_icon",
+      }}
       on:click={() => {
         changeLeftTab("Packages");
       }}
@@ -577,16 +604,18 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_packages_icon"}
-      />
     </button>
 
     {#if $appSettings.persistant.websocketMonitorEnabled === true}
       <button
+        use:setTooltip={{
+          nowrap: true,
+          placement: "right",
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+          key: "sidebar_websocket_monitor_icon",
+        }}
         on:click={() => {
           changeLeftTab("Websocket");
         }}
@@ -643,12 +672,6 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
             'Websocket' && $splitpanes.left.size != 0
             ? 'h-8'
             : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_websocket_monitor_icon"}
         />
       </button>
     {/if}

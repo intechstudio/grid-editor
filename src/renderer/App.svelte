@@ -30,11 +30,6 @@
 
   import ErrorConsole from "./main/ErrorConsole.svelte";
 
-  import TooltipGetter from "./main/user-interface/tooltip/TooltipGetter.svelte";
-
-  import Monster from "./main/user-interface/Monster.svelte";
-  import { attachment } from "./main/user-interface/Monster.store";
-
   import Updater from "./shared/updater/Updater.svelte";
 
   import { windowSize } from "./runtime/window-size";
@@ -213,13 +208,6 @@
   }
 </script>
 
-<Monster
-  {name}
-  shapeSelected={$appSettings.persistant.helperShape}
-  colorSelected={$appSettings.persistant.helperColor}
-  {attachment}
-/>
-
 <Titlebar />
 
 <main
@@ -235,8 +223,6 @@
 
   <!-- Update notification -->
   <Updater />
-
-  <TooltipGetter />
 
   <div class="flex flex-col w-full h-full">
     <FirmwareCheck />

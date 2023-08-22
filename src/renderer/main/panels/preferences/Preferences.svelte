@@ -7,13 +7,11 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
 
-  import Monster from "../../user-interface/Monster.svelte";
-
   import instructions from "../../../serialport/instructions";
 
   import { onMount, onDestroy } from "svelte";
 
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -359,94 +357,6 @@
     </div>
   </div>
 
-  <div class="p-4 bg-secondary rounded-lg flex flex-row mb-4">
-    <div class="flex my-1 flex-col relative text-white">
-      <div class="mb-1">Grid Helper Name</div>
-      <div class="flex flex-row">
-        <input
-          type="text"
-          placeholder="Helper Name"
-          class="bg-primary my-1"
-          on:blur={setHelperName}
-          bind:value={$appSettings.persistant.helperName}
-        />
-      </div>
-      <div class="mb-1">Style</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.helperShape === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(0);
-          }}>Star</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 1}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(1);
-          }}>Play</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 2}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(2);
-          }}>Circle</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperShape === 3}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperShape(3);
-          }}>Wave</button
-        >
-      </div>
-      <div class="mb-1">Color</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.helperColor === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(0);
-          }}>Green</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 1}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(1);
-          }}>Purple</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 2}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(2);
-          }}>Yellow</button
-        >
-        <button
-          class:selected={$appSettings.persistant.helperColor === 3}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setHelperColor(3);
-          }}>Blue</button
-        >
-      </div>
-    </div>
-
-    <div
-      bind:this={helperPreviewElement}
-      class="flex relative my-1 flex-col text-white w-full"
-    >
-      <Monster
-        shapeSelected={$appSettings.persistant.helperShape}
-        colorSelected={$appSettings.persistant.helperColor}
-        attachment={helperAttachment}
-      />
-    </div>
-  </div>
-
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="pb-2">User Library</div>
     <div class="text-gray-400 py-1 mt-1 text-sm">
@@ -456,18 +366,26 @@
 
     <div class="flex">
       <button
+        use:setTooltip={{
+          key: "profile_select_local_folder",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={viewDirectory}
         class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>View in explorer</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
       </button>
       <button
+        use:setTooltip={{
+          key: "profile_select_local_folder",
+          placement: "top",
+          class: "w-60 p-4",
+        }}
         on:click={selectDirectory}
         class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
       >
         <div>Select Folder</div>
-        <TooltipSetter key={"profile_select_local_folder"} />
       </button>
     </div>
 
@@ -476,11 +394,15 @@
       {DEFAULT_PATH}
     </div>
     <button
+      use:setTooltip={{
+        key: "profile_select_local_folder",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
       on:click={resetDirectory}
       class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
     >
       <div>Reset to Default</div>
-      <TooltipSetter key={"profile_select_local_folder"} />
     </button>
 
     <div class="text-gray-400 py-1 mt-1 text-sm">
