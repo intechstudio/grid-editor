@@ -502,7 +502,19 @@ function create_runtime() {
       const device = get(_runtime).find((device) => device.id == controller.id);
       if (device) {
         if (device.rot != controller.rot) {
-          device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
+          _runtime.update((rt) => {
+            const index = rt.findIndex((device) => device.id == controller.id);
+            rt[index].rot = controller.rot;
+            return rt;
+          });
+        }
+
+        if (device.portstate != controller.portstate) {
+          _runtime.update((rt) => {
+            const index = rt.findIndex((device) => device.id == controller.id);
+            rt[index].portstate = controller.portstate;
+            return rt;
+          });
         }
 
         get(heartbeat).find((device) => device.id == controller.id).alive =
@@ -1069,6 +1081,7 @@ function create_runtime() {
       architecture: grid.module_architecture_from_hwcfg(
         heartbeat_class_param.HWCFG,
       ),
+      portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
       dy: header_param.SY,

@@ -33,6 +33,7 @@
   export let selected;
 
   export let arch;
+  export let portstate;
 
   console.log("arch", arch);
 
@@ -46,6 +47,10 @@
 
   $: {
     isActionButtonClicked = $isActionButtonClickedStore;
+  }
+
+  $: {
+    console.log($appSettings.portstateOverlayEnabled);
   }
 
   $: {
@@ -83,6 +88,32 @@
         D-51
       {/if}
     </div>
+
+    {#if $appSettings.persistant.portstateOverlayEnabled}
+      {#if (portstate & 1) !== 0}
+        <div
+          class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+        />
+      {/if}
+
+      {#if (portstate & 2) !== 0}
+        <div
+          class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+        />
+      {/if}
+
+      {#if (portstate & 4) !== 0}
+        <div
+          class="absolute bottom-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+        />
+      {/if}
+
+      {#if (portstate & 8) !== 0}
+        <div
+          class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+        />
+      {/if}
+    {/if}
 
     <ProfileLoadOverlay {id} />
     <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />

@@ -623,6 +623,15 @@
       <input
         class="mr-1"
         type="checkbox"
+        bind:checked={$appSettings.persistant.portstateOverlayEnabled}
+      />
+      <div class="mx-1">Enable/Disable port state overlay</div>
+    </div>
+
+    <div class="flex py-2 text-white items-center">
+      <input
+        class="mr-1"
+        type="checkbox"
         bind:checked={$appSettings.persistant.profileCloudDevFeaturesEnabled}
       />
       <div class="mx-1">Enable/Disable Profile Cloud Dev Features</div>
