@@ -564,6 +564,13 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
     </button>
 
     <button
+      use:setTooltip={{
+        nowrap: true,
+        placement: "right",
+        instant: true,
+        class: "px-2 py-1",
+        key: "sidebar_packages_icon",
+      }}
       on:click={() => {
         changeLeftTab("Packages");
       }}
@@ -596,12 +603,6 @@ c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21
           'MIDI Monitor' && $splitpanes.left.size != 0
           ? 'h-8'
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
-      <Tooltip
-        nowrap={true}
-        placement={"right"}
-        instant={true}
-        key={"sidebar_packages_icon"}
       />
     </button>
 
