@@ -24,7 +24,7 @@ jobs:
         run: |
           touch .env
           echo PUBLIC_APP_ENV=development >> .env
-          echo PUBLIC_GOOGLE_CLIENT_ID=${{ PUBLIC_GOOGLE_CLIENT_ID_PROD }} >> .env
+          echo PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.PUBLIC_GOOGLE_CLIENT_ID_PROD }} >> .env
 
       - name: Build profile cloud project
         run: npm ci && npm run build
