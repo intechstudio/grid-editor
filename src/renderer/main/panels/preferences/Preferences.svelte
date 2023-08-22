@@ -643,42 +643,6 @@
   />
 
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center mb-1">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="profileCloud"
-          bind:group={selected}
-        />
-        Profile Cloud & Preset Browser Mode</label
-      >
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="newLibrary"
-          bind:group={selected}
-        />
-        New Profile & Preset Browser Mode</label
-      >
-    </div>
-
-    <div class="flex py-2 text-white items-center border-b mb-1">
-      <label class="mx-1">
-        <input
-          class="mr-1"
-          type="radio"
-          value="legacyLibrary"
-          bind:group={selected}
-        />
-        Legacy Profile & Preset Browser Mode</label
-      >
-    </div>
-
     <div class="flex py-2 text-white items-center">
       <input
         class="mr-1"

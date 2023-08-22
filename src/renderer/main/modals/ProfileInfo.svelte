@@ -5,7 +5,6 @@
   import { selectedProfileStore } from "/runtime/profile-helper.store";
   import TooltipSetter from "/main/user-interface/tooltip/TooltipSetter.svelte";
   import TooltipConfirm from "/main/user-interface/tooltip/TooltipConfirm.svelte";
-  import { profileChangeCallbackStore } from "../panels/newProfile/profile-change.store";
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { v4 as uuidv4 } from "uuid";
 
@@ -68,11 +67,6 @@
       "profiles",
       element.folder
     );
-
-    profileChangeCallbackStore.set({
-      action: "delete",
-      profile: selectedProfile,
-    });
 
     presetChangeCallbackStore.set({
       action: "delete",
@@ -266,10 +260,6 @@
     <div>
       {#if $appSettings.leftPanel == "NewPreset"}
         Profile Preset
-      {/if}
-
-      {#if $appSettings.leftPanel == "NewProfile"}
-        Preset Info
       {/if}
     </div>
     <button

@@ -170,271 +170,83 @@
   </div>
 
   <div class="flex flex-col">
-    {#if $appSettings.profileBrowserMode === "newLibrary"}
-      <button
-        on:click={() => {
-          changeLeftTab("NewProfile");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
-        {selectedLeftTab == 'NewProfile' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
+    <button
+      on:click={() => {
+        changeLeftTab("ProfileCloud");
+      }}
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
+        'ProfileCloud' && $splitpanes.left.size != 0
+        ? 'bg-opacity-100 '
+        : 'bg-opacity-40 '} bg-secondary"
+    >
+      <svg
+        class="w-full h-full p-1.5 text-white fill-current"
+        id="Réteg_2"
+        data-name="Réteg 2"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 21.12 20.58"
+        ><path
+          d="M17.9,5.26a2.73,2.73,0,0,0-.41,0A4.44,4.44,0,0,0,13.67,2.9,5.85,5.85,0,0,0,3,4.36a3.71,3.71,0,0,0,.82,7.34H6.06v5.73a1.48,1.48,0,0,0,.65,1.22l2.43,1.67a1.42,1.42,0,0,0,.84.26,1.44,1.44,0,0,0,.69-.17,1.48,1.48,0,0,0,.79-1.31v-.46h2.11a1.48,1.48,0,0,0,1.48-1.48V11.7h2.87a3.22,3.22,0,0,0,0-6.44ZM9.66,18.5l-1.8-1.24V10.52l1.8,1.23Zm3.59-1.66H11.46V11.58a1.5,1.5,0,0,0-.64-1.22l-1-.65h3.39ZM17.92,9.9H15.05V9.39a1.48,1.48,0,0,0-1.48-1.48h-6A1.49,1.49,0,0,0,6.06,9.39V9.9H3.71a1.91,1.91,0,1,1,0-3.82.9.9,0,0,0,.9-.78,4,4,0,0,1,7.71-1.1.88.88,0,0,0,.93.52,2.65,2.65,0,0,1,2.83,1.89.9.9,0,0,0,.49.57.86.86,0,0,0,.75,0,1.44,1.44,0,0,1,.58-.13,1.43,1.43,0,0,1,1.42,1.42A1.4,1.4,0,0,1,17.92,9.9Z"
+        /></svg
       >
-        <svg
-          class="w-full h-full p-2 text-white fill-current"
-          version="1.1"
-          id="Réteg_3"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 23.9 24.4"
-          style="enable-background:new 0 0 23.9 24.4;"
-          xml:space="preserve"
-        >
-          <path
-            d="M21,9.4h-4.2V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
-c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h0.7v0.1c0,1.6,1.3,2.9,2.9,2.9H21
-c1.6,0,2.9-1.3,2.9-2.9v-8.1C23.9,10.7,22.6,9.4,21,9.4z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0c0,0,0,0,0,0l-5-3.5
-c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z
-M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3v7.3h-2.1c-1.6,0-2.9,1.3-2.9,2.9v6.3H9.3z M22.1,20.4
-c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21c0.6,0,1.1,0.5,1.1,1.1V20.4z"
-          />
-        </svg>
-
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'NewProfile' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_profiles_icon"}
-        />
-      </button>
-      <button
-        on:click={() => {
-          changeLeftTab("NewPreset");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
-        {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
-      >
-        <svg
-          class="p-2 w-full h-full text-white fill-current"
-          version="1.1"
-          id="Réteg_2"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 23.5 24.4"
-          style="enable-background:new 0 0 23.5 24.4;"
-          xml:space="preserve"
-        >
-          <path
-            d="M16.9,9.7c-0.1,0-0.1,0-0.2,0V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
-      c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h2.4c1.2,1.6,3.1,2.6,5.3,2.6c3.6,0,6.6-3,6.6-6.6
-      C23.5,12.7,20.5,9.7,16.9,9.7z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0l-5-3.5c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15
-      C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7
-      L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3V10c-2.7,0.8-4.6,3.4-4.6,6.3c0,0.8,0.1,1.5,0.4,2.2H9.3z M16.9,21.1c-2.7,0-4.8-2.2-4.8-4.8
-      c0-1,0.3-1.9,0.8-2.7l3.3,3.3c0.2,0.2,0.4,0.3,0.6,0.3s0.5-0.1,0.6-0.3c0.4-0.4,0.4-0.9,0-1.3l-3.3-3.3c0.8-0.5,1.7-0.8,2.7-0.8
-      c2.7,0,4.8,2.2,4.8,4.8S19.5,21.1,16.9,21.1z"
-          />
-        </svg>
-
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'NewPreset' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_presets_icon"}
-        />
-      </button>
-    {:else if $appSettings.profileBrowserMode === "profileCloud"}
-      <button
-        on:click={() => {
-          changeLeftTab("ProfileCloud");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
+      <div
+        class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
           'ProfileCloud' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100 '
-          : 'bg-opacity-40 '} bg-secondary"
+          ? 'h-8'
+          : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+      />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_profile_cloud_icon"}
+      />
+    </button>
+    <button
+      on:click={() => {
+        changeLeftTab("NewPreset");
+      }}
+      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
+      {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
+        ? 'bg-opacity-100'
+        : 'bg-opacity-40'} bg-secondary"
+    >
+      <svg
+        class="p-2 w-full h-full text-white fill-current"
+        version="1.1"
+        id="Réteg_2"
+        xmlns="http://www.w3.org/2000/svg"
+        xmlns:xlink="http://www.w3.org/1999/xlink"
+        x="0px"
+        y="0px"
+        viewBox="0 0 23.5 24.4"
+        style="enable-background:new 0 0 23.5 24.4;"
+        xml:space="preserve"
       >
-        <svg
-          class="w-full h-full p-1.5 text-white fill-current"
-          id="Réteg_2"
-          data-name="Réteg 2"
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 21.12 20.58"
-          ><path
-            d="M17.9,5.26a2.73,2.73,0,0,0-.41,0A4.44,4.44,0,0,0,13.67,2.9,5.85,5.85,0,0,0,3,4.36a3.71,3.71,0,0,0,.82,7.34H6.06v5.73a1.48,1.48,0,0,0,.65,1.22l2.43,1.67a1.42,1.42,0,0,0,.84.26,1.44,1.44,0,0,0,.69-.17,1.48,1.48,0,0,0,.79-1.31v-.46h2.11a1.48,1.48,0,0,0,1.48-1.48V11.7h2.87a3.22,3.22,0,0,0,0-6.44ZM9.66,18.5l-1.8-1.24V10.52l1.8,1.23Zm3.59-1.66H11.46V11.58a1.5,1.5,0,0,0-.64-1.22l-1-.65h3.39ZM17.92,9.9H15.05V9.39a1.48,1.48,0,0,0-1.48-1.48h-6A1.49,1.49,0,0,0,6.06,9.39V9.9H3.71a1.91,1.91,0,1,1,0-3.82.9.9,0,0,0,.9-.78,4,4,0,0,1,7.71-1.1.88.88,0,0,0,.93.52,2.65,2.65,0,0,1,2.83,1.89.9.9,0,0,0,.49.57.86.86,0,0,0,.75,0,1.44,1.44,0,0,1,.58-.13,1.43,1.43,0,0,1,1.42,1.42A1.4,1.4,0,0,1,17.92,9.9Z"
-          /></svg
-        >
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'ProfileCloud' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+        <path
+          d="M16.9,9.7c-0.1,0-0.1,0-0.2,0V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
+    c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h2.4c1.2,1.6,3.1,2.6,5.3,2.6c3.6,0,6.6-3,6.6-6.6
+    C23.5,12.7,20.5,9.7,16.9,9.7z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0l-5-3.5c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15
+    C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7
+    L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3V10c-2.7,0.8-4.6,3.4-4.6,6.3c0,0.8,0.1,1.5,0.4,2.2H9.3z M16.9,21.1c-2.7,0-4.8-2.2-4.8-4.8
+    c0-1,0.3-1.9,0.8-2.7l3.3,3.3c0.2,0.2,0.4,0.3,0.6,0.3s0.5-0.1,0.6-0.3c0.4-0.4,0.4-0.9,0-1.3l-3.3-3.3c0.8-0.5,1.7-0.8,2.7-0.8
+    c2.7,0,4.8,2.2,4.8,4.8S19.5,21.1,16.9,21.1z"
         />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_profile_cloud_icon"}
-        />
-      </button>
-      <button
-        on:click={() => {
-          changeLeftTab("NewPreset");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
-        {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
-      >
-        <svg
-          class="p-2 w-full h-full text-white fill-current"
-          version="1.1"
-          id="Réteg_2"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 23.5 24.4"
-          style="enable-background:new 0 0 23.5 24.4;"
-          xml:space="preserve"
-        >
-          <path
-            d="M16.9,9.7c-0.1,0-0.1,0-0.2,0V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
-      c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h2.4c1.2,1.6,3.1,2.6,5.3,2.6c3.6,0,6.6-3,6.6-6.6
-      C23.5,12.7,20.5,9.7,16.9,9.7z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0l-5-3.5c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15
-      C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7
-      L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3V10c-2.7,0.8-4.6,3.4-4.6,6.3c0,0.8,0.1,1.5,0.4,2.2H9.3z M16.9,21.1c-2.7,0-4.8-2.2-4.8-4.8
-      c0-1,0.3-1.9,0.8-2.7l3.3,3.3c0.2,0.2,0.4,0.3,0.6,0.3s0.5-0.1,0.6-0.3c0.4-0.4,0.4-0.9,0-1.3l-3.3-3.3c0.8-0.5,1.7-0.8,2.7-0.8
-      c2.7,0,4.8,2.2,4.8,4.8S19.5,21.1,16.9,21.1z"
-          />
-        </svg>
+      </svg>
 
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'NewPreset' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_new_presets_icon"}
-        />
-      </button>
-    {:else if $appSettings.profileBrowserMode === "legacyLibrary"}
-      <button
-        on:click={() => {
-          changeLeftTab("Presets");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-          'Presets' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
-      >
-        <svg
-          class="fill-current text-white p-0.5"
-          width="27"
-          height="22"
-          viewBox="0 0 27 22"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M3 2C2.44771 2 2 2.44771 2 3V4.5H10.0002V3C10.0002 2.44771 9.55251 2 9.00019 2H3ZM12.0002 4.5V3C12.0002 1.34315 10.6571 0 9.00019 0H3C1.34315 0 0 1.34315 0 3L0.000280023 19C0.000310004 20.6569 1.34344 22 3.00028 22H24C25.6569 22 27 20.6569 27 19V7.5C27 5.84315 25.6569 4.5 24 4.5H12.0002ZM2.00002 6.5L2.00028 19C2.00029 19.5523 2.44801 20 3.00028 20H24C24.5523 20 25 19.5523 25 19V7.5C25 6.9477 24.5523 6.5 24 6.5H2.00002Z"
-            fill="white"
-          />
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M13.5 9.625C11.3599 9.625 9.625 11.3599 9.625 13.5C9.625 15.6401 11.3599 17.375 13.5 17.375C15.6401 17.375 17.375 15.6401 17.375 13.5C17.375 11.3599 15.6401 9.625 13.5 9.625ZM8.375 13.5C8.375 10.6695 10.6695 8.375 13.5 8.375C16.3305 8.375 18.625 10.6695 18.625 13.5C18.625 16.3305 16.3305 18.625 13.5 18.625C10.6695 18.625 8.375 16.3305 8.375 13.5Z"
-            fill="white"
-          />
-          <path
-            fill-rule="evenodd"
-            clip-rule="evenodd"
-            d="M14.1433 14.1429L11.5719 17.5007L10.5795 16.7407L13.1509 13.3829L14.1433 14.1429Z"
-            fill="white"
-          />
-        </svg>
-
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'Presets' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_presets_icon"}
-        />
-      </button>
-
-      <button
-        on:click={() => {
-          changeLeftTab("Profiles");
-        }}
-        class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
-          'Profiles' && $splitpanes.left.size != 0
-          ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
-      >
-        <svg
-          class="w-full h-full p-2 text-white fill-current"
-          version="1.1"
-          id="Réteg_3"
-          xmlns="http://www.w3.org/2000/svg"
-          xmlns:xlink="http://www.w3.org/1999/xlink"
-          x="0px"
-          y="0px"
-          viewBox="0 0 23.9 24.4"
-          style="enable-background:new 0 0 23.9 24.4;"
-          xml:space="preserve"
-        >
-          <path
-            d="M21,9.4h-4.2V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
-	c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h0.7v0.1c0,1.6,1.3,2.9,2.9,2.9H21
-	c1.6,0,2.9-1.3,2.9-2.9v-8.1C23.9,10.7,22.6,9.4,21,9.4z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0c0,0,0,0,0,0l-5-3.5
-	c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z
-	 M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3v7.3h-2.1c-1.6,0-2.9,1.3-2.9,2.9v6.3H9.3z M22.1,20.4
-	c0,0.6-0.5,1.1-1.1,1.1h-8.1c-0.6,0-1.1-0.5-1.1-1.1v-8.1c0-0.6,0.5-1.1,1.1-1.1H21c0.6,0,1.1,0.5,1.1,1.1V20.4z"
-          />
-        </svg>
-
-        <div
-          class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-            'Profiles' && $splitpanes.left.size != 0
-            ? 'h-8'
-            : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-        />
-        <Tooltip
-          nowrap={true}
-          placement={"right"}
-          instant={true}
-          key={"sidebar_profiles_icon"}
-        />
-      </button>
-    {/if}
+      <div
+        class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
+          'NewPreset' && $splitpanes.left.size != 0
+          ? 'h-8'
+          : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
+      />
+      <Tooltip
+        nowrap={true}
+        placement={"right"}
+        instant={true}
+        key={"sidebar_new_presets_icon"}
+      />
+    </button>
 
     <button
       on:click={() => {
