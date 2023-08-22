@@ -306,7 +306,7 @@
     { title: "Developer settings", route: PreferenceMenu.DEVELOPER },
   ];
 
-  let activePreferenceMenu = PreferenceMenu.ADVANCED;
+  let activePreferenceMenu = PreferenceMenu.GENERAL;
   function setActiveNavItem(item: PreferenceMenu) {
     activePreferenceMenu = item;
   }
@@ -413,7 +413,7 @@
       class="px-2 py-2 rounded order border border-black border-opacity-20 bg-black hover:bg-opacity-40 bg-opacity-10 focus:outline-none"
     >
       {#each preferencesNavigation as navItem}
-        <option value={navItem.route}>{navItem.title}</option>
+        <option class="bg-black text-white" value={navItem.route}>{navItem.title}</option>
       {/each}
     </select>
   </div>
