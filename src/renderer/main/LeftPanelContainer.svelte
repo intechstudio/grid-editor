@@ -2,8 +2,6 @@
   import MidiMonitor from "./panels/MidiMonitor/MidiMonitor.svelte";
   import DebugMonitor from "./panels/DebugMonitor/DebugMonitor.svelte";
   import WebsocketMonitor from "./panels/WebsocketMonitor/WebsocketMonitor.svelte";
-  import Profiles from "./panels/profiles/Profiles.svelte";
-  import Presets from "./panels/presets/Presets.svelte";
   import ProfileCloud from "./panels/profileCloud/ProfileCloud.svelte";
   import Packages from "./panels/packages/Packages.svelte";
   import { appSettings } from "../runtime/app-helper.store";
@@ -12,7 +10,6 @@
 
   import { watchResize } from "svelte-watch-resize";
 
-  import NewProfile from "./panels/newProfile/NewProfile.svelte";
   import NewPreset from "./panels/newPreset/NewPreset.svelte";
 
   export let classes;
@@ -31,19 +28,7 @@
   {#if $appSettings.leftPanel == "MIDI Monitor"}
     <MidiMonitor />
   {/if}
-
-  {#if $appSettings.leftPanel == "Profiles"}
-    <Profiles />
-  {/if}
-
-  {#if $appSettings.leftPanel == "Presets"}
-    <Presets />
-  {/if}
-
-  {#if $appSettings.leftPanel == "NewProfile"}
-    <NewProfile />
-  {/if}
-
+  
   {#if $appSettings.leftPanel == "NewPreset"}
     <NewPreset />
   {/if}
