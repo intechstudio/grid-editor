@@ -400,6 +400,37 @@
         "Erase the NVM memory of the module. This will take some time.",
       label: "Erase",
     },
+    portstateOverlayEnabled: {
+      title: "Port state overlay",
+      description:
+        "Enable/Disable the port state overlay. This will show the port state on the module.",
+      label: "Activate port sate overlay",
+    },
+    websocketMonitorEnabled: {
+      title: "Websocket monitor",
+      description:
+        "Enable/Disable the websocket monitor. This will show the websocket messages in the console and add the websocket panel.",
+      label: "Activate websocket monitor",
+    },
+    profileCloudUrl: {
+      title: "Profile cloud URL",
+      description: "Change the url used in the Profile Cloud Iframe.",
+      type: "radio",
+      options: [
+        {
+          title: "Development (localhost)",
+          value: "http://localhost:5200",
+        },
+        {
+          title: "Nightly (profile-cloud-dev)",
+          value: "https://profile-cloud-dev.web.app",
+        },
+        {
+          title: "Production (profile-cloud)",
+          value: "https://profile-cloud.web.app",
+        },
+      ],
+    },
   };
 </script>
 
@@ -413,7 +444,9 @@
       class="px-2 py-2 rounded order border border-black border-opacity-20 bg-black hover:bg-opacity-40 bg-opacity-10 focus:outline-none"
     >
       {#each preferencesNavigation as navItem}
-        <option class="bg-black text-white" value={navItem.route}>{navItem.title}</option>
+        <option class="bg-black text-white" value={navItem.route}
+          >{navItem.title}</option
+        >
       {/each}
     </select>
   </div>
@@ -684,6 +717,105 @@
       >
         {developerSettings.nvmErase.label}
       </button>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.websocketMonitorEnabled.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.websocketMonitorEnabled.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      >
+        <VCheckbox
+          checkedState={$appSettings.persistant.websocketMonitorEnabled}
+        />
+        <input
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.websocketMonitorEnabled}
+        />
+        <div
+          class="pl-2 text-white {$appSettings.persistant
+            .websocketMonitorEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {developerSettings.websocketMonitorEnabled.label}
+        </div>
+      </label>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.portstateOverlayEnabled.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.portstateOverlayEnabled.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      >
+        <VCheckbox
+          checkedState={$appSettings.persistant.portstateOverlayEnabled}
+        />
+        <input
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.portstateOverlayEnabled}
+        />
+        <div
+          class="pl-2 text-white {$appSettings.persistant
+            .portstateOverlayEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {developerSettings.portstateOverlayEnabled.label}
+        </div>
+      </label>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.profileCloudUrl.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.profileCloudUrl.description}
+      </div>
+      <div class="flex w-full py-2">
+        <input
+          class="flex px-2 py-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20 focus:border-green-500 focus:outline-none"
+          type="text"
+          bind:value={$appSettings.profileCloudUrl}
+        />
+      </div>
+      <div class="text-white grid grid-flow-row gap-4 py-2">
+        {#each developerSettings.profileCloudUrl.options as option}
+          <label
+            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+          >
+            <VRadioButton
+              selectedState={$appSettings.profileCloudUrl == option.value}
+            />
+            <input
+              class="hidden"
+              type="radio"
+              name="profile-cloud-url"
+              value={option.value}
+              bind:group={$appSettings.profileCloudUrl}
+            />
+            <span
+              class="pl-2 text-white {$appSettings.profileCloudUrl ==
+              option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'} group-hover:text-opacity-100"
+              >{option.title}</span
+            >
+          </label>
+        {/each}
+      </div>
     </div>
   {/if}
 </div>
