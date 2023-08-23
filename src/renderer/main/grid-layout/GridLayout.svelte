@@ -24,15 +24,44 @@
     shiftX = -deviceWidth / 2;
     shiftY = -deviceWidth / 2;
 
+    //Compensate for rotation
+    const rotation = $appSettings.persistant.moduleRotation;
+    if (rotation == 90 || rotation == 180) {
+      shiftX += deviceWidth;
+    }
+    if (rotation == 180 || rotation == 270) {
+      shiftY += deviceWidth;
+    }
+
+    //And the other transformations
     if (rt.length > 0) {
-      //And the other
       const min_x = Math.min(...rt.map((e) => e.dx));
       const max_x = Math.max(...rt.map((e) => e.dx));
       const min_y = Math.min(...rt.map((e) => e.dy));
       const max_y = Math.max(...rt.map((e) => e.dy));
 
-      shiftX -= (deviceWidth / 2) * (min_x + max_x);
-      shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+      switch (rotation) {
+        case 0: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x);
+          shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+          break;
+        }
+        case 90: {
+          shiftY -= (deviceWidth / 2) * (min_x + max_x);
+          shiftX -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 180: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x) * -1;
+          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 270: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x);
+          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+      }
     }
 
     rt.forEach((device, i) => {
@@ -80,6 +109,7 @@
       --shift-x: {shiftX}px; 
       --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
+      --rotation-degree: {$appSettings.persistant.moduleRotation}deg;
     "
     class="absolute centered duration-75 transition-all"
     use:clickOutside={{ useCapture: true }}
@@ -103,7 +133,7 @@
           id={device.id}
           arch={device.architecture}
           portstate={device.portstate}
-          rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
+          rotation={0}
         />
       </div>
     {/each}
@@ -115,8 +145,8 @@
   .centered {
     top: 50%;
     left: 50%;
-    transform-origin: top left;
+    transform-origin: center;
     transform: scale(var(--scaling-percent))
-      translate(var(--shift-x), var(--shift-y));
+      translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
   }
 </style>
