@@ -5,7 +5,7 @@
     "class": "bg-blue-500 text-white",
     "dismissable": true,
     "link": "https://github.com/intechstudio/grid-editor/releases/tag/v1.2.39",
-    "message": "Editor v1.2.39 is here with apple silicon builds. Avaialable through GitHub. Auto updates may not work without downloading manually!"
+    "message": "Editor is now available with apple silicon builds. Auto updates may not work without downloading manually first!"
   },
   {
     "type": "notificationBAK",

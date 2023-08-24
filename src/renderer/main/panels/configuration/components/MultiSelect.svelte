@@ -1,6 +1,5 @@
 <script>
   import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
-  import TooltipSetter from "../../../user-interface/tooltip/TooltipSetter.svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
@@ -50,6 +49,7 @@
       }`}
       popStyle={"bg-gray-500 "}
       enabled={enableConvert}
+      tooltipKey={"configuration_merge_as_code"}
     >
       <span slot="popup">Actions merged!</span>
       <span slot="button">
@@ -59,7 +59,6 @@
             : ""}
           iconPath={"merge_as_code"}
         />
-        <TooltipSetter key={"configuration_merge_as_code"} />
       </span>
     </BtnAndPopUp>
 
@@ -70,6 +69,7 @@
       }`}
       popStyle={"bg-secondary"}
       enabled={enableCut}
+      tooltipKey={"configuration_cut_one"}
     >
       <span slot="popup">Cutted!</span>
       <span slot="button">
@@ -79,7 +79,6 @@
             : ""}
           iconPath={"cut"}
         />
-        <TooltipSetter key={"configuration_cut_one"} />
       </span>
     </BtnAndPopUp>
 
@@ -90,6 +89,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableCopy}
+      tooltipKey={"configuration_copy_one"}
     >
       <span slot="popup">Copied!</span>
       <span slot="button">
@@ -99,7 +99,6 @@
             : ""}
           iconPath={"copy"}
         />
-        <TooltipSetter key={"configuration_copy_one"} />
       </span>
     </BtnAndPopUp>
 
@@ -110,6 +109,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enablePaste}
+      tooltipKey={"configuration_paste_one"}
     >
       <span slot="popup">Pasted!</span>
       <span slot="button">
@@ -119,7 +119,6 @@
             : ""}
           iconPath={"paste"}
         />
-        <TooltipSetter key={"configuration_paste_one"} />
       </span>
     </BtnAndPopUp>
 
@@ -130,6 +129,7 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableRemove}
+      tooltipKey={"configuration_remove_one"}
     >
       <span slot="popup">Removed!</span>
       <span slot="button">
@@ -139,7 +139,6 @@
             : ""}
           iconPath={"remove"}
         />
-        <TooltipSetter key={"configuration_remove_one"} />
       </span>
     </BtnAndPopUp>
 

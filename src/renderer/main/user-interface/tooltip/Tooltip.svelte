@@ -1,113 +1,228 @@
 <script>
-  import { fade } from "svelte/transition";
-  import { tooltip_content } from "./tooltip-content.json.js";
+  import { fade, slide } from "svelte/transition";
   import Popover from "svelte-easy-popover";
-  import { attachment } from "../Monster.store";
+  import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
+  import { onDestroy } from "svelte";
 
-  //TODO: Make tracking later
-  import { Analytics } from "../../../runtime/analytics.js";
-  export let key = "";
+  export let text = "";
   export let placement = "top";
+  export let duration = 250;
+  export let delay = 750;
   export let instant = false;
   export let nowrap = false;
+  export let buttons = [];
+  export let triggerEvents = ["hover"];
+  export let referenceElement = undefined;
 
-  let tooltip_text = tooltip_content[key];
-  let parent_element = undefined;
-  let isOpen = false;
+  let showbuttons = false;
+  let isOpen;
+
+  let closeTimeout;
+  let openTimeout;
+
+  function handleClick(e) {
+    handleReferenceElementClick(e);
+    e.stopPropagation();
+  }
 
   function handleMouseEnter(e) {
-    isOpen = true;
+    handleReferenceElementMouseEnter(e);
+    e.stopPropagation();
   }
 
   function handleMouseLeave(e) {
-    isOpen = false;
+    handleReferenceElementMouseLeave(e);
+    e.stopPropagation();
   }
 
-  function handleClick(e) {
-    isOpen = false;
+  function handleReferenceElementClick(e) {
+    if (triggerEvents.includes("show-buttons")) {
+      if (!showbuttons) {
+        clearTimeout(openTimeout);
+        isOpen = true;
+        showbuttons = true;
+      }
+    }
+    if (triggerEvents.includes("hover") && !showbuttons) {
+      isOpen = false;
+    }
+    e.stopPropagation();
   }
+
+  function handleReferenceElementMouseEnter(e) {
+    if (triggerEvents.includes("hover")) {
+      clearTimeout(closeTimeout);
+      if (instant) {
+        isOpen = true;
+      } else {
+        openTimeout = setTimeout(() => {
+          isOpen = true;
+        }, delay);
+      }
+    }
+    e.stopPropagation();
+  }
+
+  function handleReferenceElementMouseLeave(e) {
+    if (triggerEvents.includes("hover") && !showbuttons) {
+      clearTimeout(openTimeout);
+      closeTimeout = setTimeout(() => {
+        isOpen = false;
+      }, 100);
+    }
+    e.stopPropagation();
+  }
+
+  $: handleEventListeners(referenceElement);
+
+  let elementBuffer = undefined;
+  function handleEventListeners(element) {
+    if (typeof elementBuffer !== "undefined") {
+      elementBuffer.removeEventListener(
+        "mouseenter",
+        handleReferenceElementMouseEnter
+      );
+      elementBuffer.removeEventListener(
+        "mouseleave",
+        handleReferenceElementMouseLeave
+      );
+      elementBuffer.removeEventListener("click", handleReferenceElementClick);
+    }
+    if (typeof element !== "undefined") {
+      element.addEventListener("mouseenter", handleReferenceElementMouseEnter);
+      element.addEventListener("mouseleave", handleReferenceElementMouseLeave);
+      element.addEventListener("click", handleReferenceElementClick);
+    }
+    elementBuffer = element;
+  }
+
+  onDestroy(() => {
+    if (typeof referenceElement !== "undefined") {
+      referenceElement.removeEventListener(
+        "mouseenter",
+        handleReferenceElementMouseEnter
+      );
+      referenceElement.removeEventListener(
+        "mouseleave",
+        handleReferenceElementMouseLeave
+      );
+      referenceElement.removeEventListener(
+        "click",
+        handleReferenceElementClick
+      );
+    }
+  });
 </script>
 
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  bind:this={parent_element}
-  class="w-full flex h-full absolute right-0 top-0"
-  on:mouseenter={handleMouseEnter}
-  on:mouseleave={handleMouseLeave}
-  on:click={handleClick}
-/>
-
 <Popover
-  triggerEvents={["hover"]}
-  referenceElement={parent_element}
-  remainOpenOnPopoverHover={false}
   bind:isOpen
-  {placement}
+  id="tooltip"
+  triggerEvents={["manual"]}
+  {referenceElement}
+  bind:placement
   spaceAway={10}
 >
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
-    id="tooltip"
-    data-placement={placement}
-    class="tooltip-bg cursor-default text-base flex flex-col text-white text-left"
-    class:p-4={!instant}
-    class:px-2={instant}
-    class:py-1={instant}
-    in:fade={{
-      duration: instant ? 100 : 250,
-      delay: instant ? 0 : 750,
-    }}
-    out:fade={{
-      duration: 100,
-      delay: 0,
+    on:mouseenter={handleMouseEnter}
+    on:mouseleave={handleMouseLeave}
+    on:click={handleClick}
+    class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md"
+    transition:fade={{
+      duration: duration, //Make it instant when explicitly clicked
     }}
   >
-    <span class:whitespace-nowrap={nowrap}> {tooltip_text}</span>
-    <div id="arrow" data-popper-arrow />
+    <div class="flex flex-col" class:gap-2={buttons.length > 0}>
+      <div
+        class="text-white text-left font-normal"
+        class:whitespace-nowrap={nowrap}
+      >
+        {text}
+      </div>
+
+      {#if showbuttons}
+        <div transition:slide={{ duration: 100 }} class="flex flex-row gap-2">
+          {#each buttons as button}
+            <button
+              class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+              on:click|stopPropagation={() => {
+                if (typeof button.handler !== "undefined") {
+                  button.handler();
+                }
+                clearTimeout(openTimeout);
+                clearTimeout(closeTimeout);
+                isOpen = false;
+                showbuttons = false;
+              }}>{button.label}</button
+            >
+          {/each}
+        </div>
+      {/if}
+    </div>
+  </div>
+  <div
+    transition:fade={{
+      duration: duration,
+    }}
+    class="absolute"
+    id="arrow"
+    data-popper-arrow
+  >
+    <div class="absolute" id="arrow_face" />
   </div>
 </Popover>
 
-<style>
+<style global>
   :root {
-    --tooltip-bg-color: rgba(14, 20, 24, 0.92);
+    --tooltip-bg-color: rgba(14, 20, 24, 0.7);
   }
 
   .tooltip-bg {
     background-color: var(--tooltip-bg-color);
   }
 
-  #arrow,
-  #arrow::before {
-    position: absolute;
-    width: 0px;
-    height: 0px;
+  .svelte-easy-popover[data-popper-placement^="top"] > #arrow {
+    bottom: 0px;
   }
 
-  #tooltip[data-placement^="top"] > #arrow {
-    bottom: -10px;
-    border-left: 20px solid transparent;
-    border-right: 20px solid transparent;
+  .svelte-easy-popover[data-popper-placement^="top"] > #arrow > #arrow_face {
+    transform: translateX(-10px);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
 
-    border-top: 20px solid var(--tooltip-bg-color);
+    border-top: 10px solid var(--tooltip-bg-color);
   }
 
-  #tooltip[data-placement^="bottom"] > #arrow {
+  .svelte-easy-popover[data-popper-placement^="bottom"] > #arrow {
     top: -10px;
-    border-left: 5px solid transparent;
-    border-right: 5px solid transparent;
-
-    border-bottom: 5px solid var(--tooltip-bg-color);
   }
 
-  #tooltip[data-placement^="left"] > #arrow {
-    right: -10px;
-    border-top: 60px solid transparent;
-    border-bottom: 60px solid transparent;
+  .svelte-easy-popover[data-popper-placement^="bottom"] > #arrow > #arrow_face {
+    transform: translateX(-10px);
+    border-left: 10px solid transparent;
+    border-right: 10px solid transparent;
 
-    border-left: 60px solid var(--tooltip-bg-color);
+    border-bottom: 10px solid var(--tooltip-bg-color);
   }
 
-  #tooltip[data-placement^="right"] > #arrow {
-    left: -10px;
+  .svelte-easy-popover[data-popper-placement^="left"] > #arrow {
+    right: 0px;
+  }
+
+  .svelte-easy-popover[data-popper-placement^="left"] > #arrow > #arrow_face {
+    transform: translateY(-10px);
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+
+    border-left: 10px solid var(--tooltip-bg-color);
+  }
+
+  .svelte-easy-popover[data-popper-placement^="right"] > #arrow {
+    left: -9px;
+  }
+
+  .svelte-easy-popover[data-popper-placement^="right"] > #arrow > #arrow_face {
+    transform: translateY(-10px);
     border-top: 10px solid transparent;
     border-bottom: 10px solid transparent;
 

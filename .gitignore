@@ -1,6 +1,7 @@
 .DS_Store
 node_modules
 public/build/*
+profile-cloud/
 dist-svelte
 dist
 build

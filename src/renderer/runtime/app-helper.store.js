@@ -17,13 +17,11 @@ const persistant = {
   markedForDeletionPlugins: [],
   keyboardLayout: "",
   websocketMonitorEnabled: false,
-  newProfileBrowserEnabled: true,
-  legacyProfileBrowserEnabled: false,
+  portstateOverlayEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
   helperColor: 0,
-  helperName: "Monster",
   desktopAutomationPlugin: false,
   authUser: {},
   authIdToken: "",
@@ -37,8 +35,6 @@ function checkOS() {
   }
   return "browser";
 }
-
-export const current_tooltip_store = writable({ key: "", bool: false });
 
 export const statusReport = writable({
   serialport: {},
@@ -95,7 +91,6 @@ function createAppSettingsStore(persistant) {
     rightPanel: "Configuration",
     rightPanelVisible: true,
     leftPanel: "ProfileCloud",
-    profileBrowserMode: "profileCloud",
     leftPanelVisible: true,
     modal: "",
     trayState: false,
