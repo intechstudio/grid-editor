@@ -7,14 +7,9 @@
     presetListRefresh,
   } from "../../../runtime/app-helper.store.js";
 
-  import Monster from "../../user-interface/Monster.svelte";
-
   import instructions from "../../../serialport/instructions";
 
   import { onMount, onDestroy } from "svelte";
-
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
@@ -154,67 +149,6 @@
     }, 2500);
   }
 
-  async function uxpPhotoshopDownload() {
-    if (!(await isOnline())) {
-      return;
-    }
-
-    await window.electron.library.download(
-      get(appSettings).persistant.profileFolder,
-      "uxpPhotoshop"
-    );
-  }
-
-  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences();
-
-  let pluginListDiv;
-  let pluginPreferenceElements = {};
-
-  function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistant.enabledPlugins;
-    if (!pluginListDiv) {
-      return;
-    }
-    // Remove existing divs not found in the external set of IDs
-    const existingDivIds = Object.keys(pluginPreferenceElements);
-    existingDivIds.forEach((existingDivId) => {
-      if (!loadedPlugins.includes(existingDivId)) {
-        pluginPreferenceElements[existingDivId].remove();
-        delete pluginPreferenceElements[existingDivId];
-      }
-    });
-
-    function executeScriptElements(containerElement) {
-      const scriptElements = containerElement.querySelectorAll("script");
-
-      Array.from(scriptElements).forEach((scriptElement) => {
-        const clonedElement = document.createElement("script");
-
-        Array.from(scriptElement.attributes).forEach((attribute) => {
-          clonedElement.setAttribute(attribute.name, attribute.value);
-        });
-
-        clonedElement.text = scriptElement.text;
-
-        scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
-      });
-    }
-
-    for (const pluginId of loadedPlugins) {
-      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId);
-      if (!plugin.preferenceHtml) continue;
-      if (existingDivIds.includes(plugin.id)) continue;
-
-      const tempContainer = document.createElement("div");
-      tempContainer.innerHTML = plugin.preferenceHtml;
-      pluginPreferenceElements[plugin.id] = tempContainer;
-      pluginListDiv.appendChild(tempContainer);
-      executeScriptElements(tempContainer);
-    }
-    pluginListDiv.style.display =
-      pluginListDiv.childElementCount == 0 ? "none" : "block";
-  }
-
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
       get(appSettings).persistant.profileFolder
@@ -251,43 +185,6 @@
     window.electron.openInBrowser(
       configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
     );
-  }
-
-  function changePluginStatus(pluginId, enabled) {
-    if (enabled) {
-      window.pluginManagerPort.postMessage({
-        type: "load-plugin",
-        id: pluginId,
-        payload: $appSettings.persistant.pluginsDataStorage[pluginId],
-      });
-    } else {
-      window.pluginManagerPort.postMessage({
-        type: "unload-plugin",
-        id: pluginId,
-      });
-    }
-  }
-
-  function refreshPluginList() {
-    window.pluginManagerPort.postMessage({ type: "refresh-plugin-list" });
-  }
-
-  function downloadPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "download-plugin",
-      id: pluginId,
-    });
-  }
-
-  function uninstallPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "uninstall-plugin",
-      id: pluginId,
-    });
-    appSettings.update((s) => {
-      delete s.persistant.pluginsDataStorage[pluginId];
-      return s;
-    });
   }
 
   enum PreferenceMenu {
