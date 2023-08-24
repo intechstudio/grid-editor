@@ -18,21 +18,65 @@
   let shiftX = 0;
   let shiftY = 0;
 
+  let rotation = $appSettings.persistant.moduleRotation;
+  let rotationBuffer = $appSettings.persistant.moduleRotation;
+  let trueRotation = $appSettings.persistant.moduleRotation;
+
   $: {
     const rt = $runtime;
     //Initial center shift
     shiftX = -deviceWidth / 2;
     shiftY = -deviceWidth / 2;
 
+    //Compensate for rotation
+    rotationBuffer = rotation;
+    rotation = $appSettings.persistant.moduleRotation;
+
+    let deltaRotation = rotation - rotationBuffer;
+    if (deltaRotation > 180) {
+      deltaRotation -= 360;
+    }
+    if (deltaRotation < -180) {
+      deltaRotation += 360;
+    }
+    trueRotation += deltaRotation;
+
+    if (rotation == 90 || rotation == 180) {
+      shiftX += deviceWidth;
+    }
+    if (rotation == 180 || rotation == 270) {
+      shiftY += deviceWidth;
+    }
+
+    //And the other transformations
     if (rt.length > 0) {
-      //And the other
       const min_x = Math.min(...rt.map((e) => e.dx));
       const max_x = Math.max(...rt.map((e) => e.dx));
       const min_y = Math.min(...rt.map((e) => e.dy));
       const max_y = Math.max(...rt.map((e) => e.dy));
 
-      shiftX -= (deviceWidth / 2) * (min_x + max_x);
-      shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+      switch (rotation) {
+        case 0: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x);
+          shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+          break;
+        }
+        case 90: {
+          shiftY -= (deviceWidth / 2) * (min_x + max_x);
+          shiftX -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 180: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x) * -1;
+          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 270: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x);
+          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+      }
     }
 
     rt.forEach((device, i) => {
@@ -80,8 +124,9 @@
       --shift-x: {shiftX}px; 
       --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
+      --rotation-degree: {trueRotation}deg;
     "
-    class="absolute centered duration-75 transition-all"
+    class="absolute centered"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
@@ -94,7 +139,7 @@
         out:fade={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute"
+        class="absolute transition-all"
         class:bg-error={device.fwMismatch}
         class:rounded-lg={device.fwMismatch}
       >
@@ -103,7 +148,7 @@
           id={device.id}
           arch={device.architecture}
           portstate={device.portstate}
-          rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
+          rotation={0}
         />
       </div>
     {/each}
@@ -115,8 +160,8 @@
   .centered {
     top: 50%;
     left: 50%;
-    transform-origin: top left;
+    transform-origin: center;
     transform: scale(var(--scaling-percent))
-      translate(var(--shift-x), var(--shift-y));
+      translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
   }
 </style>

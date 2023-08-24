@@ -1,6 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { MessagePortMain } from "electron/main";
+import { compile } from "svelte/compiler";
 import AdmZip from "adm-zip";
 import os from "os";
 import util from "util";
@@ -74,7 +75,7 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
             id: data.id,
           });
           await currentlyLoadedPlugins[data.id].addMessagePort(
-            event.ports?.[0],
+            event.ports?.[0]
           );
           break;
       }
@@ -104,7 +105,7 @@ async function loadPlugin(pluginName: string, persistedData: any) {
           });
         },
       },
-      persistedData,
+      persistedData
     );
     currentlyLoadedPlugins[pluginName] = plugin;
     haveBeenLoadedPlugins.add(pluginName);
@@ -149,7 +150,7 @@ async function downloadPlugin(pluginName: string) {
         headers: {
           "User-Agent": "Grid Editor",
         },
-      },
+      }
     );
     const pluginReleases = await pluginReleasesResponse.json();
     const compatibleRelease = pluginReleases.find((e) => {
@@ -179,7 +180,7 @@ async function downloadPlugin(pluginName: string) {
     }
 
     const url = assets.find((e) =>
-      e.name.includes(platform),
+      e.name.includes(platform)
     ).browser_download_url;
     const response = await fetch(url);
     const filePath = path.join(pluginFolder, `${pluginName}.zip`);
@@ -253,10 +254,15 @@ async function getInstalledPlugins(): Promise<
             if (preferenceRelativePath) {
               const preferencePath = path.join(
                 pluginPath,
-                preferenceRelativePath,
+                preferenceRelativePath
               );
               const readFile = util.promisify(fs.readFile);
               pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
+              const result = compile(pluginPreferenceHtml, {
+                // options
+              });
+              //pluginPreferenceHtml = result.js.code;
+              //console.log("YAY:", result.js);
             }
           }
         }
@@ -266,13 +272,13 @@ async function getInstalledPlugins(): Promise<
           pluginName,
           pluginPreferenceHtml,
         };
-      }),
+      })
   );
 }
 
 function getPluginStatus(
   pluginId: string,
-  installedPlugins: { pluginId: string }[],
+  installedPlugins: { pluginId: string }[]
 ): PluginStatus {
   if (Object.keys(currentlyLoadedPlugins).includes(pluginId)) {
     return PluginStatus.Enabled;
