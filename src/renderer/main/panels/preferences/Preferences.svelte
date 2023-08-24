@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
   import { engine, logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
@@ -11,12 +11,11 @@
 
   import { onMount, onDestroy } from "svelte";
 
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
-
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import { Analytics } from "../../../runtime/analytics.js";
+  import VRadioButton from "./VRadioButton.svelte";
+  import VCheckbox from "./VCheckbox.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -150,67 +149,6 @@
     }, 2500);
   }
 
-  async function uxpPhotoshopDownload() {
-    if (!(await isOnline())) {
-      return;
-    }
-
-    await window.electron.library.download(
-      get(appSettings).persistant.profileFolder,
-      "uxpPhotoshop"
-    );
-  }
-
-  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences();
-
-  let pluginListDiv;
-  let pluginPreferenceElements = {};
-
-  function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistant.enabledPlugins;
-    if (!pluginListDiv) {
-      return;
-    }
-    // Remove existing divs not found in the external set of IDs
-    const existingDivIds = Object.keys(pluginPreferenceElements);
-    existingDivIds.forEach((existingDivId) => {
-      if (!loadedPlugins.includes(existingDivId)) {
-        pluginPreferenceElements[existingDivId].remove();
-        delete pluginPreferenceElements[existingDivId];
-      }
-    });
-
-    function executeScriptElements(containerElement) {
-      const scriptElements = containerElement.querySelectorAll("script");
-
-      Array.from(scriptElements).forEach((scriptElement) => {
-        const clonedElement = document.createElement("script");
-
-        Array.from(scriptElement.attributes).forEach((attribute) => {
-          clonedElement.setAttribute(attribute.name, attribute.value);
-        });
-
-        clonedElement.text = scriptElement.text;
-
-        scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
-      });
-    }
-
-    for (const pluginId of loadedPlugins) {
-      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId);
-      if (!plugin.preferenceHtml) continue;
-      if (existingDivIds.includes(plugin.id)) continue;
-
-      const tempContainer = document.createElement("div");
-      tempContainer.innerHTML = plugin.preferenceHtml;
-      pluginPreferenceElements[plugin.id] = tempContainer;
-      pluginListDiv.appendChild(tempContainer);
-      executeScriptElements(tempContainer);
-    }
-    pluginListDiv.style.display =
-      pluginListDiv.childElementCount == 0 ? "none" : "block";
-  }
-
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
       get(appSettings).persistant.profileFolder
@@ -249,88 +187,209 @@
     );
   }
 
-  function changePluginStatus(pluginId, enabled) {
-    if (enabled) {
-      window.pluginManagerPort.postMessage({
-        type: "load-plugin",
-        id: pluginId,
-        payload: $appSettings.persistant.pluginsDataStorage[pluginId],
-      });
-    } else {
-      window.pluginManagerPort.postMessage({
-        type: "unload-plugin",
-        id: pluginId,
-      });
-    }
+  enum PreferenceMenu {
+    GENERAL = "general",
+    USER_LIBRARY = "user_library",
+    PRIVACY = "privacy",
+    ADVANCED = "advanced",
+    DEVELOPER = "developer",
   }
 
-  function refreshPluginList() {
-    window.pluginManagerPort.postMessage({ type: "refresh-plugin-list" });
+  const preferencesNavigation = [
+    { title: "General settings", route: PreferenceMenu.GENERAL },
+    { title: "Privacy settings", route: PreferenceMenu.PRIVACY },
+    { title: "User Library", route: PreferenceMenu.USER_LIBRARY },
+    { title: "Advanced", route: PreferenceMenu.ADVANCED },
+    { title: "Developer settings", route: PreferenceMenu.DEVELOPER },
+  ];
+
+  let activePreferenceMenu = PreferenceMenu.GENERAL;
+  function setActiveNavItem(item: PreferenceMenu) {
+    activePreferenceMenu = item;
   }
 
-  function downloadPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "download-plugin",
-      id: pluginId,
-    });
-  }
+  const generalSettings = {
+    moduleRotation: {
+      title: "Control surface rotation",
+      description:
+        "Changes how the controllers are rotated in Grid Editor. Useful when the plugged-in module is rotated.",
+      type: "radio",
+      options: [
+        { title: "0°", value: 0 },
+        { title: "90°", value: 90 },
+        { title: "180°", value: 180 },
+        { title: "270°", value: 270 },
+      ],
+    },
+    controllerScaling: {
+      title: "Controller scaling",
+      description: "Size of the controllers in the application.",
+    },
+    welcomeScreen: {
+      title: "Welcome screen",
+      description:
+        "News and quick links are shown every time you launch Grid Editor.",
+      type: "checkbox",
+      label: "Show welcome screen",
+    },
+    runAppInBackground: {
+      title: "Run application in background",
+      description:
+        "Change what happens when you close the application window. Some features, plugins might only work when the application always runs.",
+      type: "radio",
+      options: [
+        {
+          title: "Keep the application running on the tray or dock",
+          value: true,
+        },
+        { title: "On close, quit the application", value: false },
+      ],
+    },
+    resetSettings: {
+      level: "danger",
+      title: "Reset settings",
+      description:
+        "Reset all preferences settings to their default values. This will not affect your profiles or other data.",
+      label: "Reset application settings",
+    },
+    migrateProfiles: {
+      title: "Convert profiles to new format",
+      description:
+        "Before migration, it's safest to archive (.zip) your grid-userdata! After v1.2.35, we introduced Profile Cloud. Moving forward, we will develop this feature. To move your profiles to the new format, click the button below.",
+      label: "Migrate profiles",
+    },
+  };
 
-  function uninstallPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "uninstall-plugin",
-      id: pluginId,
-    });
-    appSettings.update((s) => {
-      delete s.persistant.pluginsDataStorage[pluginId];
-      return s;
-    });
-  }
+  const privacySettings = {
+    requiredInformation: {
+      title: "Use data to make Editor work",
+      description:
+        "We process anonymized logs and errors the application produces to promptly respond to failing services. This analytics data is automatically captured when Editor has access to the internet.",
+    },
+    improveApp: {
+      title: "Use data to improve Editor",
+      description:
+        "Using your interactions with the Editor software we can get insight how the software is being used and we can continue improving it.",
+      type: "checkbox",
+      value: 1,
+      label: "Track interaction with the Editor application",
+    },
+  };
+
+  const userLibrarySettings = {
+    libraryLocation: {
+      title: "Grid Editor user data folder",
+      description:
+        "Local folder on your hard drive where local profiles, temporary downloads and other Editor related files are saved.",
+    },
+  };
+
+  const developerSettings = {
+    nvmDefrag: {
+      title: "NVM Defrag",
+      description:
+        "Defragment the NVM memory of the module. This will take some time.",
+      label: "Defrag",
+    },
+    nvmErase: {
+      title: "NVM Erase",
+      description:
+        "Erase the NVM memory of the module. This will take some time.",
+      label: "Erase",
+    },
+    portstateOverlayEnabled: {
+      title: "Port state overlay",
+      description:
+        "Enable/Disable the port state overlay. This will show the port state on the module.",
+      label: "Activate port sate overlay",
+    },
+    websocketMonitorEnabled: {
+      title: "Websocket monitor",
+      description:
+        "Enable/Disable the websocket monitor. This will show the websocket messages in the console and add the websocket panel.",
+      label: "Activate websocket monitor",
+    },
+    profileCloudUrl: {
+      title: "Profile cloud URL",
+      description: "Change the url used in the Profile Cloud Iframe.",
+      type: "radio",
+      options: [
+        {
+          title: "Development (localhost)",
+          value: "http://localhost:5200",
+        },
+        {
+          title: "Nightly (profile-cloud-dev)",
+          value: "https://profile-cloud-dev.web.app",
+        },
+        {
+          title: "Production (profile-cloud)",
+          value: "https://profile-cloud.web.app",
+        },
+      ],
+    },
+  };
 </script>
 
-<preferences
-  class="bg-primary flex flex-col h-full w-full text-white p-4 overflow-y-auto"
+<div
+  class="bg-primary flex flex-col h-full w-full text-white px-4 py-4 overflow-y-auto"
 >
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">General Settings</div>
-    <div class="flex my-1 flex-col relative text-white">
-      <div class="mb-1">Module Rotation</div>
-      <div class="flex flex-row">
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 0}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(0);
-          }}>0°</button
+  <div class="mb-4">
+    <div class="pb-2 text-white text-opacity-60">Preferences menu</div>
+    <select
+      on:change={(event) => setActiveNavItem(event.target.value)}
+      class="px-2 py-2 rounded order border border-black border-opacity-20 bg-black hover:bg-opacity-40 bg-opacity-10 focus:outline-none"
+    >
+      {#each preferencesNavigation as navItem}
+        <option class="bg-black text-white" value={navItem.route}
+          >{navItem.title}</option
         >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 90}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(90);
-          }}>90°</button
-        >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 180}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(180);
-          }}>180°</button
-        >
-        <button
-          class:selected={$appSettings.persistant.moduleRotation === 270}
-          class="w-16 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
-          on:click={() => {
-            setModuleRotation(270);
-          }}>270°</button
-        >
+      {/each}
+    </select>
+  </div>
+
+  {#if activePreferenceMenu == PreferenceMenu.GENERAL}
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{generalSettings.moduleRotation.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.moduleRotation.description}
+      </div>
+      <div
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 text-white grid gap-4 grid-flow-col p-2"
+      >
+        {#each generalSettings.moduleRotation.options as option}
+          <label class=" group flex w-full items-center cursor-pointer">
+            <VRadioButton
+              selectedState={$appSettings.persistant.moduleRotation ==
+                option.value}
+            />
+            <input
+              type="radio"
+              class="hidden"
+              name="scoops"
+              value={option.value}
+              bind:group={$appSettings.persistant.moduleRotation}
+            />
+            <span
+              class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
+                .persistant.moduleRotation == option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'}"
+              >{option.title}
+            </span>
+          </label>
+        {/each}
       </div>
     </div>
 
-    <div class="flex flex-col my-1 relative text-white">
-      <div class="mb-1">Controller Scaling</div>
-      <div class="flex flex-row w-full gap-4">
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{generalSettings.controllerScaling.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.controllerScaling.description}
+      </div>
+      <div class="flex flex-row w-full gap-y-1 gap-x-8 py-2">
         <input
-          class="flex flex-grow"
+          class="flex flex-grow accent-neutral-500"
           type="range"
           min="0.5"
           max="2.6"
@@ -338,7 +397,7 @@
           bind:value={$appSettings.persistant.size}
         />
         <button
-          class="mr-2 w-28 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 relative"
+          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
           on:click={() => {
             $appSettings.persistant.size = 1.0;
           }}
@@ -347,342 +406,313 @@
       </div>
     </div>
 
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.alwaysRunInTheBackground}
-      />
-      <div class="ml-1">Always run in the background</div>
-    </div>
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">User Library</div>
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Selected folder:</b>
-      {$appSettings.persistant.profileFolder}
-    </div>
-
-    <div class="flex">
-      <button
-        use:setTooltip={{
-          key: "profile_select_local_folder",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={viewDirectory}
-        class="w-1/2 mr-2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-      >
-        <div>View in explorer</div>
-      </button>
-      <button
-        use:setTooltip={{
-          key: "profile_select_local_folder",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={selectDirectory}
-        class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-      >
-        <div>Select Folder</div>
-      </button>
-    </div>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Default folder:</b>
-      {DEFAULT_PATH}
-    </div>
-    <button
-      use:setTooltip={{
-        key: "profile_select_local_folder",
-        placement: "top",
-        class: "w-60 p-4",
-      }}
-      on:click={resetDirectory}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      <div>Reset to Default</div>
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Default Profile & Preset libraries:</b>
-      {download_status}
-    </div>
-    <button
-      on:click={() => {
-        libraryDownload();
-      }}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      Download Library
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm"><b>Photoshop Plugin</b></div>
-    <button
-      on:click={() => {
-        uxpPhotoshopDownload();
-      }}
-      class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-    >
-      Download UXP Plugin
-    </button>
-
-    <div class="text-gray-400 py-1 mt-1 text-sm">
-      <b>Migrate to Profile Cloud</b>
-    </div>
-    {#if !migrationComplete}
-      <div>
-        Before migration, it's safest to archive (.zip) your grid-userdata.
-        Through support we can help restore your work if you have the archive
-        before migration!
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{generalSettings.welcomeScreen.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.welcomeScreen.description}
       </div>
-      <button
-        on:click={() => migrateProfiles()}
-        class="w-1/2 px-2 py-1 rounded bg-amber-700 text-white hover:bg-amber-800 focus:outline-none relative"
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 group flex text-white items-center cursor-pointer p-2"
       >
-        Migrate Profiles v1.2.35
-      </button>
-    {:else}
-      <button
-        on:click={() => window.electron.restartApp()}
-        class="w-1/2 px-2 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 focus:outline-none relative"
-      >
-        Reload app
-      </button>
-    {/if}
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="pb-2">Profile Cloud URL</div>
-    <div class="flex flex-wrap gap-1">
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://localhost:5200";
-        }}
-        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >localhost:5200</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-        }}
-        class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >profile-cloud.web.app</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl = "http://google.com";
-        }}
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >google.com</button
-      >
-      <button
-        on:click={() => {
-          $appSettings.profileCloudUrl =
-            "https://links.intech.studio/profile-cloud";
-        }}
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        >links/profile-cloud</button
-      >
-    </div>
-    <input
-      class="flex bg-primary text-white mt-2 mb-1 px-1 focus:outline-none"
-      bind:value={$appSettings.profileCloudUrl}
-    />
-    <!-- Spacer -->
-    <div class="border-b border-white h-0 w-full my-2" />
-    <div class="pb-2 pt-">Analytics Settings</div>
-    <div class="flex flex-row gap-2 items-center justify-between">
-      <label class="mx-1 items-center">
+        <VCheckbox checkedState={$appSettings.persistant.welcomeOnStartup} />
         <input
-          class="mr-1"
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.welcomeOnStartup}
+        />
+        <div
+          class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
+            .persistant.welcomeOnStartup
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {generalSettings.welcomeScreen.label}
+        </div>
+      </label>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{generalSettings.runAppInBackground.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.runAppInBackground.description}
+      </div>
+      <div class="text-white grid grid-flow-row gap-4 py-2">
+        {#each generalSettings.runAppInBackground.options as option}
+          <label
+            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+          >
+            <VRadioButton
+              selectedState={$appSettings.persistant.alwaysRunInTheBackground ==
+                option.value}
+            />
+            <input
+              class="hidden"
+              type="radio"
+              name="scoops"
+              value={option.value}
+              bind:group={$appSettings.persistant.alwaysRunInTheBackground}
+            />
+            <span
+              class="pl-2 text-white {$appSettings.persistant
+                .alwaysRunInTheBackground == option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'} group-hover:text-opacity-100"
+              >{option.title}</span
+            >
+          </label>
+        {/each}
+      </div>
+    </div>
+  {/if}
+
+  {#if activePreferenceMenu == PreferenceMenu.PRIVACY}
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{privacySettings.requiredInformation.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {privacySettings.requiredInformation.description}
+      </div>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{privacySettings.improveApp.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {privacySettings.improveApp.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      >
+        <VCheckbox checkedState={$appSettings.persistant.analyticsEnabled} />
+        <input
+          class="hidden"
           type="checkbox"
           bind:checked={$appSettings.persistant.analyticsEnabled}
         />
-        Analytics gathering enabled
-      </label>
-      <button
-        class=" px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-10 focus:outline-none relative"
-        on:click={handleOpenPolicyClicked}
-      >
-        Open Policy
-      </button>
-    </div>
-  </div>
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center">
-      <div class="mx-2">Plugins</div>
-      <div class="mx-2">
-        <button
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={refreshPluginList}
+        <div
+          class="pl-2 text-white {$appSettings.persistant.analyticsEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
         >
-          Refresh
+          {privacySettings.improveApp.label}
+        </div>
+      </label>
+    </div>
+  {/if}
+
+  {#if activePreferenceMenu == PreferenceMenu.USER_LIBRARY}
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{userLibrarySettings.libraryLocation.title}</div>
+      <div class="py-2 text-white text-opacity-60">
+        {userLibrarySettings.libraryLocation.description}
+      </div>
+      <div class="text-white text-opacity-40 pt-2">Current selection</div>
+      <div class="flex flex-row gap-4 py-2">
+        <input
+          disabled={true}
+          class="flex px-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20"
+          type="text"
+          bind:value={$appSettings.persistant.profileFolder}
+        />
+        <button
+          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
+          on:click={() => {
+            selectDirectory();
+          }}
+          >Select Folder
         </button>
       </div>
-    </div>
-    {#each $appSettings.pluginList as plugin}
-      <div class="flex py-2 text-white items-center">
-        <input
-          class="bg-primary my-1"
-          type="checkbox"
-          checked={plugin.status === "Enabled"}
-          style="visibility:{plugin.status === 'Downloaded' ||
-          plugin.status === 'Enabled'
-            ? 'visible'
-            : 'hidden'}"
-          on:change={async (e) =>
-            changePluginStatus(plugin.id, e.target.checked)}
-        />
-        <div class="mx-1">{plugin.name}</div>
-        <div class="mx-1">
-          {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
-            <button
-              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-              on:click={downloadPlugin(plugin.id)}
-              disabled={plugin.status == "Downloading"}
-            >
-              Download
-            </button>
-          {:else}
-            <button
-              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-              on:click={uninstallPlugin(plugin.id)}
-            >
-              Uninstall
-            </button>
-          {/if}
-        </div>
+      <div class="text-white text-opacity-40 py-2">
+        Open grid-userdata folder to view the contents
       </div>
-    {/each}
-  </div>
+      <button
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
+        on:click={() => {
+          viewDirectory();
+        }}
+        >Open grid-userdata
+      </button>
+      <div class="text-white text-opacity-40 py-2">
+        Reset folder selection to default
+      </div>
+      <button
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
+        on:click={() => {
+          resetDirectory();
+        }}
+        >Reset to default
+      </button>
+    </div>
+  {/if}
 
-  <div
-    bind:this={pluginListDiv}
-    class="p-4 bg-secondary rounded-lg flex flex-col mb-4"
-  />
-
-  <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.welcomeOnStartup}
-      />
-      <div class="ml-1">Show welcome on startup</div>
+  {#if activePreferenceMenu == PreferenceMenu.ADVANCED}
+    <div class="border border-transparent py-4">
+      <div class="text-white">{generalSettings.migrateProfiles.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.migrateProfiles.description}
+      </div>
+      {#if !migrationComplete}
+        <button
+          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
+          on:click={() => migrateProfiles()}
+          >{generalSettings.migrateProfiles.label}
+        </button>
+      {:else}
+        <button
+          on:click={() => window.electron.restartApp()}
+          class="px-8 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 border border-emerald-500 focus:outline-none relative"
+        >
+          Reload app
+        </button>
+      {/if}
     </div>
 
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.websocketMonitorEnabled}
-      />
-      <div class="mx-1">Enable/Disable websocket monitor</div>
+    <div class="border border-yellow-500 p-4">
+      <div class="text-white">{generalSettings.resetSettings.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {generalSettings.resetSettings.description}
+      </div>
+      <button
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
+        on:click={() => {
+          resetAppSettings();
+        }}
+        >{generalSettings.resetSettings.label}
+      </button>
     </div>
+  {/if}
 
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.portstateOverlayEnabled}
-      />
-      <div class="mx-1">Enable/Disable port state overlay</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.profileCloudDevFeaturesEnabled}
-      />
-      <div class="mx-1">Enable/Disable Profile Cloud Dev Features</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.debugMode}
-      />
-      <div class="ml-1">Glitch Debug Mode</div>
-    </div>
-
-    <div class="flex py-2 text-white items-center">
-      <input
-        class="mr-1"
-        type="checkbox"
-        bind:checked={$appSettings.persistant.desktopAutomationPlugin}
-      />
-      <div class="ml-1">EXPERIMENTAL Desktop Automation Plugin</div>
-    </div>
-
-    <div class="flex flex-col items-start">
+  {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{developerSettings.nvmDefrag.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.nvmDefrag.description}
+      </div>
       <button
         on:click={() => {
           instructions.sendNVMDefragToGrid();
         }}
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
-          ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
+          ? ''
+          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
-        NVM Defrag
+        {developerSettings.nvmDefrag.label}
       </button>
-
+    </div>
+    <div class="py-4 border border-transparent">
+      <div class="text-white">{developerSettings.nvmErase.title}</div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.nvmErase.description}
+      </div>
       <button
         on:click={() => {
           instructions.sendNVMEraseToGrid();
         }}
         disabled={$engine != "ENABLED"}
         class="{$engine == 'ENABLED'
-          ? 'hover:bg-red-500 hover:border-red-500'
-          : 'opacity-75'} flex items-center focus:outline-none justify-center rounded my-2 border-select border-2 text-white px-2 py-0.5"
+          ? ''
+          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
-        NVM Erase
+        {developerSettings.nvmErase.label}
       </button>
     </div>
 
-    <button
-      on:click={() => {
-        engine.set("ENABLED");
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      Enable Engine and User Inputs
-    </button>
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.websocketMonitorEnabled.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.websocketMonitorEnabled.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      >
+        <VCheckbox
+          checkedState={$appSettings.persistant.websocketMonitorEnabled}
+        />
+        <input
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.websocketMonitorEnabled}
+        />
+        <div
+          class="pl-2 text-white {$appSettings.persistant
+            .websocketMonitorEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {developerSettings.websocketMonitorEnabled.label}
+        </div>
+      </label>
+    </div>
 
-    <button
-      on:click={resetAppSettings}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      Reset App Settings
-    </button>
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.portstateOverlayEnabled.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.portstateOverlayEnabled.description}
+      </div>
+      <label
+        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      >
+        <VCheckbox
+          checkedState={$appSettings.persistant.portstateOverlayEnabled}
+        />
+        <input
+          class="hidden"
+          type="checkbox"
+          bind:checked={$appSettings.persistant.portstateOverlayEnabled}
+        />
+        <div
+          class="pl-2 text-white {$appSettings.persistant
+            .portstateOverlayEnabled
+            ? 'text-opacity-100'
+            : 'text-opacity-80'}"
+        >
+          {developerSettings.portstateOverlayEnabled.label}
+        </div>
+      </label>
+    </div>
 
-    <!-- <button
-      on:click={() => {
-        hello["ds"] = 0;
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      <div>Trigger error: hello</div>
-    </button>
-    <button
-      on:click={() => {
-        other["ds"] = 0;
-      }}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      <div>Trigger error: other</div>
-    </button> -->
-  </div>
-</preferences>
-
-<style>
-  button.selected {
-    font-weight: bold;
-    box-shadow: inset 0 0 100px #ffffff60;
-  }
-</style>
+    <div class="py-4 border border-transparent">
+      <div class="text-white">
+        {developerSettings.profileCloudUrl.title}
+      </div>
+      <div class="text-white text-opacity-60 py-2">
+        {developerSettings.profileCloudUrl.description}
+      </div>
+      <div class="flex w-full py-2">
+        <input
+          class="flex px-2 py-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20 focus:border-green-500 focus:outline-none"
+          type="text"
+          bind:value={$appSettings.profileCloudUrl}
+        />
+      </div>
+      <div class="text-white grid grid-flow-row gap-4 py-2">
+        {#each developerSettings.profileCloudUrl.options as option}
+          <label
+            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+          >
+            <VRadioButton
+              selectedState={$appSettings.profileCloudUrl == option.value}
+            />
+            <input
+              class="hidden"
+              type="radio"
+              name="profile-cloud-url"
+              value={option.value}
+              bind:group={$appSettings.profileCloudUrl}
+            />
+            <span
+              class="pl-2 text-white {$appSettings.profileCloudUrl ==
+              option.value
+                ? 'text-opacity-100'
+                : 'text-opacity-80'} group-hover:text-opacity-100"
+              >{option.title}</span
+            >
+          </label>
+        {/each}
+      </div>
+    </div>
+  {/if}
+</div>
