@@ -18,6 +18,10 @@
   let shiftX = 0;
   let shiftY = 0;
 
+  let rotation = $appSettings.persistant.moduleRotation;
+  let rotationBuffer = $appSettings.persistant.moduleRotation;
+  let trueRotation = $appSettings.persistant.moduleRotation;
+
   $: {
     const rt = $runtime;
     //Initial center shift
@@ -25,7 +29,18 @@
     shiftY = -deviceWidth / 2;
 
     //Compensate for rotation
-    const rotation = $appSettings.persistant.moduleRotation;
+    rotationBuffer = rotation;
+    rotation = $appSettings.persistant.moduleRotation;
+
+    let deltaRotation = rotation - rotationBuffer;
+    if (deltaRotation > 180) {
+      deltaRotation -= 360;
+    }
+    if (deltaRotation < -180) {
+      deltaRotation += 360;
+    }
+    trueRotation += deltaRotation;
+
     if (rotation == 90 || rotation == 180) {
       shiftX += deviceWidth;
     }
@@ -109,9 +124,9 @@
       --shift-x: {shiftX}px; 
       --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
-      --rotation-degree: {$appSettings.persistant.moduleRotation}deg;
+      --rotation-degree: {trueRotation}deg;
     "
-    class="absolute centered duration-75 transition-all"
+    class="absolute centered"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
@@ -124,7 +139,7 @@
         out:fade={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute"
+        class="absolute transition-all"
         class:bg-error={device.fwMismatch}
         class:rounded-lg={device.fwMismatch}
       >
