@@ -72,8 +72,8 @@
           break;
         }
         case 270: {
-          shiftX -= (deviceWidth / 2) * (min_x + max_x);
-          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          shiftY -= (deviceWidth / 2) * (min_x + max_x) * -1;
+          shiftX -= (deviceWidth / 2) * (min_y + max_y) * -1;
           break;
         }
       }
@@ -148,7 +148,7 @@
           id={device.id}
           arch={device.architecture}
           portstate={device.portstate}
-          rotation={0}
+          rotation={device.rot}
         />
       </div>
     {/each}
