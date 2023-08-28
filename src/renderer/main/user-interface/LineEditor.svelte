@@ -16,10 +16,14 @@
   let editor;
   let value_buffer = "";
 
-  $: update_codeblock_height(sidebarWidth);
+  $: {
+    if (sidebarWidth) {
+      update_codeblock_size();
+    }
+  }
 
-  function update_codeblock_height() {
-    if (editor === undefined) {
+  function update_codeblock_size() {
+    if (typeof editor === "undefined") {
       return;
     }
 
@@ -27,10 +31,8 @@
     //editor.viewModel.getViewLineCount()
 
     const contentHeight = editor._getViewModel().getLineCount() * 16;
-    //const contentHeight = editor.getModel().getLineCount()* 19
 
     monaco_block.style.height = contentHeight + "px";
-    //monaco_container.style.height = containerHeight +"px";
     editor.layout();
   }
 
@@ -70,6 +72,7 @@
         showIcons: false,
         showWords: true,
       },
+      automaticLayout: true,
     });
 
     editor.onKeyDown((e) => {
@@ -79,12 +82,12 @@
       }
     });
 
-    update_codeblock_height();
+    update_codeblock_size();
 
     editor.getModel().onDidChangeContent((event) => {
       dispatch("output", { script: editor.getValue() });
 
-      update_codeblock_height();
+      update_codeblock_size();
     });
 
     //Handler for loosing focus
@@ -103,8 +106,13 @@
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
   bind:this={monaco_block}
-  class="line-editor w-full justify-between"
+  class="line-editor {$$props.class} magic-full-width"
 />
 
 <style>
+  .magic-full-width {
+    display: grid;
+    grid-template-columns: 0px minmax(0px, auto);
+    height: 100%;
+  }
 </style>

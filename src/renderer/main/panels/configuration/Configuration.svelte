@@ -144,6 +144,10 @@
     localDefinitions.update(list);
   }
 
+  $: if ($user_input) {
+    handleUserInputchange();
+  }
+
   function handleUserInputchange() {
     let target = ConfigTarget.getCurrent();
     let list = undefined;
@@ -176,8 +180,13 @@
     deselectAll();
   }
 
-  $: if ($user_input) {
-    handleUserInputchange();
+  $: handleConfigListchange($configs);
+
+  function handleConfigListchange(configs) {
+    const map = ConfigList.getIndentationMap(configs);
+    for (const i in map) {
+      configs[i].indentation = map[i];
+    }
   }
 
   let animation = false;
@@ -705,6 +714,7 @@
                     {config}
                     configs={$configs}
                     {access_tree}
+                    indentation={config.indentation}
                     on:update={handleConfigUpdate}
                     on:toggle={handleToggleChange}
                   />

@@ -2,11 +2,12 @@
   import { getAllComponents } from "../../../../lib/_configs";
 
   import { createEventDispatcher } from "svelte";
-  import { ConfigObject } from "../Configuration.store";
+  import { ConfigList, ConfigObject } from "../Configuration.store";
 
   export let access_tree;
   export let index = undefined;
   export let config;
+  export let indentation = 0;
 
   $: syntaxError = !config.checkSyntax();
 
@@ -65,8 +66,12 @@
 <wrapper
   class="flex flex-grow border-none outline-none transition-opacity duration-300"
 >
+  {#each Array(indentation) as n}
+    <div style="width: 15px" class="flex items-center mx-1">
+      <div class="w-3 h-3 rounded-full bg-secondary" />
+    </div>
+  {/each}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-
   <carousel
     class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
@@ -79,37 +84,12 @@
     <div
       class="w-full flex flex-row pointer-events-none transition-all duration-300"
     >
-      <!-- Six dots to the left -->
-      <div
-        class="flex p-2 items-center bg-secondary border-y border-l {syntaxError
-          ? 'border-error'
-          : 'border-transparent'}"
-        class:group-hover:bg-select-saturate-10={!toggled}
-        class:invisible={!config.information.selectable}
-      >
-        <svg
-          class="opacity-40 group-hover:opacity-100"
-          width="8"
-          height="13"
-          viewBox="0 0 8 13"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-        </svg>
-      </div>
-
       <!-- Icon -->
       <!-- //TODO: Refactor out the special cases -->
       {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
         <div
           style="background-color:{config.information.color}"
-          class="flex items-center p-2 w-min text-center border-y {syntaxError
+          class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
             ? 'border-error'
             : 'border-transparent'}"
         >
@@ -135,20 +115,17 @@
       >
         <!-- //TODO: Refactor out the special case of IF -->
         {#if toggled || config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
-          <container
-            class="flex items-center h-full w-full pointer-events-auto"
-          >
-            <fader-transition class="w-full">
-              <svelte:component
-                this={config.component}
-                {index}
-                {config}
-                {access_tree}
-                on:replace={replace_me}
-                on:validator={handleValidator}
-                on:output={handleOutput}
-              />
-            </fader-transition>
+          <container class="flex flex-grow items-center pointer-events-auto">
+            <svelte:component
+              this={config.component}
+              class="w-full"
+              {index}
+              {config}
+              {access_tree}
+              on:replace={replace_me}
+              on:validator={handleValidator}
+              on:output={handleOutput}
+            />
           </container>
         {:else}
           <div

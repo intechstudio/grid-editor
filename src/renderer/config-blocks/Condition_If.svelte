@@ -68,7 +68,7 @@
   }
 </script>
 
-<if-block class="w-full h-fit flex text-white py-1">
+<if-block class="h-fit flex text-white py-1 {$$props.class}">
   <div class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full">
     <LineEditor
       on:change={(e) => {
