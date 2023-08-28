@@ -152,7 +152,7 @@
       on:click={debugWriteBuffer}
       class=" relative flex items-center focus:outline-none justify-center
       rounded bg-select text-white py-1
-       w-48"
+       w-48 pointer-events-auto"
     >
       <span class="pr-2 text-gray-200 tracking-wider">
         {$engine}
