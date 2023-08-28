@@ -6,6 +6,7 @@
   import PBF4 from "./devices/PBF4.svelte";
   import EN16 from "./devices/EN16.svelte";
   import EF44 from "./devices/EF44.svelte";
+  import TEK2 from "./devices/TEK2.svelte";
 
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
@@ -24,6 +25,7 @@
     { type: "PBF4", component: PBF4 },
     { type: "EN16", component: EN16 },
     { type: "EF44", component: EF44 },
+    { type: "TEK2", component: TEK2 },
   ];
 
   export let type;

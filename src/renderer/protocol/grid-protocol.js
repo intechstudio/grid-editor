@@ -512,6 +512,24 @@ let moduleElements = {
     "fader",
     "fader",
   ],
+  TEK2: [
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+  ],
 };
 
 // add utility (system events) control element or map mode at 255
@@ -520,6 +538,7 @@ moduleElements["EN16"][255] = "system";
 moduleElements["PBF4"][255] = "system";
 moduleElements["PO16"][255] = "system";
 moduleElements["EF44"][255] = "system";
+moduleElements["TEK2"][255] = "system";
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
@@ -850,11 +869,11 @@ const grid = {
       parseInt(
         "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 1]),
       ) *
-        1 +
+      1 +
       parseInt(
         "0x" + String.fromCharCode(asciicode_array[asciicode_array.length - 2]),
       ) *
-        16;
+      16;
 
     // use the whole packet except the last two characters to determine the calculated checksum
     let calculated_checksum = 0;
@@ -868,9 +887,9 @@ const grid = {
     if (received_checksum !== calculated_checksum) {
       console.log(
         "Checksum mismatch, packet dropped! Received: " +
-          received_checksum +
-          " Calculated: " +
-          calculated_checksum,
+        received_checksum +
+        " Calculated: " +
+        calculated_checksum,
       );
       return undefined;
     }
@@ -915,10 +934,8 @@ const grid = {
     // check if BRC_LEN parameter actually matches the length of the asciicode_array - LENGTHOFCHECKSUM
     if (asciicode_array.length - 2 !== brc.LEN) {
       console.log(
-        `Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${
-          asciicode_array.length
-        }, brc.LEN: ${brc.LEN}, brc_len should be: ${
-          asciicode_array.length - 2
+        `Frame error: Invalid BRC_LEN parameter! asciicode_array.length: ${asciicode_array.length
+        }, brc.LEN: ${brc.LEN}, brc_len should be: ${asciicode_array.length - 2
         }`,
       );
       return undefined;
@@ -948,7 +965,7 @@ const grid = {
       if (
         class_blocks[i][0] === parseInt(grid_protocol.GRID_CONST_STX) &&
         class_blocks[i][class_blocks[i].length - 1] ===
-          parseInt(grid_protocol.GRID_CONST_ETX)
+        parseInt(grid_protocol.GRID_CONST_ETX)
       ) {
         let current = {};
         current.raw = class_blocks[i].slice(1, -1);
