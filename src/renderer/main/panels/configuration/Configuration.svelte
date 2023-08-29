@@ -66,6 +66,16 @@
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
+    if ($engine !== "ENABLED") {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
     $appSettings.configType = arg;
 
     if (arg == "systemEvents") {
@@ -144,8 +154,19 @@
     localDefinitions.update(list);
   }
 
-  $: if ($user_input) {
-    handleUserInputchange();
+  $: {
+    //Handle User Input
+    if ($user_input) {
+      handleUserInputchange();
+    }
+
+    //Handle Engine
+    if ($engine !== "ENABLED") {
+      displayDefault();
+    } else {
+      //Display User Input
+      handleUserInputchange();
+    }
   }
 
   function handleUserInputchange() {
@@ -587,10 +608,7 @@
   }
 </script>
 
-<configuration
-  class="w-full h-full flex flex-col"
-  class:pointer-events-none={$engine != "ENABLED"}
->
+<configuration class="w-full h-full flex flex-col">
   <div class="bg-primary py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button

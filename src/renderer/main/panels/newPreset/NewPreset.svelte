@@ -327,6 +327,15 @@
   let sessionPresetNumbers = [];
 
   async function saveToSessionPreset() {
+    if ($engine !== "ENABLED") {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, saving session preset failed!`,
+      });
+      return;
+    }
     let user = "sessionPreset";
 
     let elementnumber = $user_input.event.elementnumber;
@@ -644,12 +653,7 @@
   });
 </script>
 
-<presets
-  class="flex flex-col h-full justify-between p-4 bg-primary {$engine ==
-  'ENABLED'
-    ? ''
-    : 'pointer-events-none'}"
->
+<presets class="flex flex-col h-full justify-between p-4 bg-primary">
   <div class="flex w-full h-full flex-col overflow-hidden">
     <div
       class="flex justify-between items-center p-4 text-white font-medium

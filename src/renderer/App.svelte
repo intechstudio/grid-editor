@@ -45,7 +45,8 @@
   import Tracker from "./main/user-interface/Tracker.svelte";
   import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
-  import { runtime } from "./runtime/runtime.store";
+  import EngineRefreshDialog from "./main/user-interface/EngineRefreshDialog.svelte";
+  import { runtime, engine } from "./runtime/runtime.store";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
   let modalComponents = {};
@@ -256,6 +257,14 @@
                   class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
                 >
                   <ModulConnectionDialog />
+                </div>
+              {:else if $engine !== "ENABLED"}
+                <div
+                  in:fade={{ duration: 1000 }}
+                  out:blur={{ duration: 150 }}
+                  class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
+                >
+                  <EngineRefreshDialog />
                 </div>
               {/if}
 

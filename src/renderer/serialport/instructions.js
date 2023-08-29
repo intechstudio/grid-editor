@@ -94,7 +94,7 @@ const instructions = {
           element,
           event,
           actionstring,
-          "GRID_REPORT",
+          "GRID_REPORT"
         );
 
         if (callback) {
@@ -122,7 +122,7 @@ const instructions = {
     }
 
     const objIndex = get(unsaved_changes).findIndex(
-      (e) => e.x == dx && e.y == dy,
+      (e) => e.x == dx && e.y == dy
     );
     if (objIndex !== -1) {
       unsaved_changes.update((s) => {
@@ -280,6 +280,16 @@ const instructions = {
   },
 
   sendNVMEraseToGrid: () => {
+    if (get(engine) !== "ENABLED") {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, erasing NVM memory failed!`,
+      });
+      return;
+    }
+
     engine.set("DISABLED");
     logger.set({
       type: "progress",
@@ -334,6 +344,15 @@ const instructions = {
   },
 
   sendNVMDefragToGrid: () => {
+    if (get(engine) !== "ENABLED") {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, NVM Defragmentation failed!`,
+      });
+      return;
+    }
     let buffer_element = {
       descr: {
         brc_parameters: {

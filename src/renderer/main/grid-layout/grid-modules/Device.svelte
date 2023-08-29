@@ -7,12 +7,18 @@
   import EN16 from "./devices/EN16.svelte";
   import EF44 from "./devices/EF44.svelte";
 
+  import { selectElement } from "./event-handlers/select.js";
+
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import {
+    user_input,
+    engine,
+    logger,
+  } from "../../../runtime/runtime.store.js";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
   import { selectedPresetStore } from "../../../runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
@@ -50,10 +56,6 @@
   }
 
   $: {
-    console.log($appSettings.portstateOverlayEnabled);
-  }
-
-  $: {
     if (!isActionButtonClicked) {
       if (
         Object.keys($selectedProfileStore).length !== 0 ||
@@ -74,6 +76,19 @@
     {id}
     {rotation}
     {selectedElement}
+    on:click={(e) => {
+      const { elementNumber, type, id } = e.detail;
+      if ($engine === "ENABLED") {
+        selectElement(elementNumber, type, id);
+      } else {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "engine-disabled",
+          message: `Engine is disabled, selecting element has failed!`,
+        });
+      }
+    }}
   >
     {#if $appSettings.overlays.controlElementName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
@@ -115,8 +130,10 @@
       {/if}
     {/if}
 
-    <ProfileLoadOverlay {id} />
-    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {#if $engine === "ENABLED"}
+      <ProfileLoadOverlay {id} />
+      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {/if}
   </svelte:component>
 {/if}
 
