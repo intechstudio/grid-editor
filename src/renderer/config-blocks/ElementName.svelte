@@ -7,6 +7,7 @@
     toggleable: false,
     category: "code",
     desc: "Element Name",
+    blockTitle: "Element Name",
     defaultLua: "self.sn=''",
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">N</span>

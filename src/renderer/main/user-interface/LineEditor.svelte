@@ -60,14 +60,14 @@
       overviewRulerLanes: 0,
       overviewRulerBorder: false,
       renderLineHighlight: "none",
+      wordWrap: "off", // Disable word wrapping
       scrollbar: {
-        vertical: "hidden",
-        horizontal: "hidden",
+        horizontal: "hidden", // Enable horizontal scrollbar as needed
+        vertical: "hidden", // Hide vertical scrollbar
       },
       contextmenu: false,
       scrollPredominantAxis: false,
       scrollBeyondLastLine: 0,
-      wordWrap: "on",
       suggest: {
         showIcons: false,
         showWords: true,
@@ -106,13 +106,5 @@
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
   bind:this={monaco_block}
-  class="line-editor {$$props.class} magic-full-width"
+  class="line-editor {$$props.class} grid grid-cols-1 w-full"
 />
-
-<style>
-  .magic-full-width {
-    display: grid;
-    grid-template-columns: 0px minmax(0px, auto);
-    height: 100%;
-  }
-</style>

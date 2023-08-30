@@ -131,7 +131,7 @@
           <div
             class="px-4 flex flex-row justify-between w-full items-center h-full"
           >
-            <span class="text-white">{config.information.desc}</span>
+            <span class="text-white">{config.information.blockTitle}</span>
             <span class="text-error text-xs" class:hidden={!syntaxError}>
               SYNTAX ERROR
             </span>

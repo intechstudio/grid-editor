@@ -5,6 +5,7 @@
     rendering: "standard",
     category: "variables",
     desc: "Global",
+    blockTitle: "Global",
     defaultLua: "test = self:ind()",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">G</span>`,
