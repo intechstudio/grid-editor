@@ -521,14 +521,8 @@ let moduleElements = {
     "button",
     "button",
     "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
+    "encoder",
+    "encoder",
   ],
 };
 

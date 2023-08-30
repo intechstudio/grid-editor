@@ -1066,8 +1066,6 @@ function create_runtime() {
   function create_module(header_param, heartbeat_class_param) {
     let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
 
-    console.log("Module Type", moduleType);
-
     // generic check, code below if works only if all parameters are provided
     if (
       header_param === undefined ||
