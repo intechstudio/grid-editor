@@ -40,6 +40,12 @@ export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
+  if (descr.class_parameters.EVENTTYPE == 3) {
+    // button change must not be registered
+
+    return;
+  }
+
   let eps = get(elementPositionStore);
 
   if (eps[descr.brc_parameters.SX] === undefined) {
@@ -50,7 +56,7 @@ export function update_elementPositionStore(descr) {
   }
   if (
     eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
-    descr.class_parameters.ELEMENTNUMBER
+      descr.class_parameters.ELEMENTNUMBER
     ] === undefined
   ) {
     eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
@@ -61,6 +67,8 @@ export function update_elementPositionStore(descr) {
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
   ] = descr.class_parameters.EVENTPARAM;
+
+  //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
   elementPositionStore.set(eps);
 }
@@ -76,7 +84,7 @@ export function update_elementNameStore(descr) {
   }
   if (
     ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
-    descr.class_parameters.NUM
+      descr.class_parameters.NUM
     ] === undefined
   ) {
     ens[descr.brc_parameters.SX][descr.brc_parameters.SY][
@@ -104,13 +112,13 @@ export function update_elementPositionStore_fromPreview(descr) {
   for (let i = 1; i < descr.class_parameters.LENGTH / 4; i++) {
     const num = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-      String.fromCharCode(descr.raw[4 + i * 4 + 1]),
+        String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
+        String.fromCharCode(descr.raw[4 + i * 4 + 1]),
     );
     const val = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-      String.fromCharCode(descr.raw[4 + i * 4 + 3]),
+        String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
+        String.fromCharCode(descr.raw[4 + i * 4 + 3]),
     );
     //console.log(num, val)
 
@@ -130,23 +138,23 @@ export function update_ledColorStore(descr) {
   for (let i = 0; i < descr.class_parameters.LENGTH / 8; i++) {
     const num = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
-      String.fromCharCode(descr.raw[8 + i * 8 + 1]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
+        String.fromCharCode(descr.raw[8 + i * 8 + 1]),
     );
     const red = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
-      String.fromCharCode(descr.raw[8 + i * 8 + 3]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
+        String.fromCharCode(descr.raw[8 + i * 8 + 3]),
     );
     const gre = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
-      String.fromCharCode(descr.raw[8 + i * 8 + 5]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
+        String.fromCharCode(descr.raw[8 + i * 8 + 5]),
     );
     const blu = parseInt(
       "0x" +
-      String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
-      String.fromCharCode(descr.raw[8 + i * 8 + 7]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
+        String.fromCharCode(descr.raw[8 + i * 8 + 7]),
     );
 
     //console.log(num, red, gre, blu)
@@ -312,7 +320,7 @@ function create_user_input() {
 
         let elementtype =
           grid.moduleElements[device.id.split("_")[0]][
-          store.event.elementnumber
+            store.event.elementnumber
           ];
 
         store.event.elementtype = elementtype;
@@ -1153,7 +1161,7 @@ function create_runtime() {
           setDefaultSelectedElement(rt[0]);
         }
       }
-    } catch (error) { }
+    } catch (error) {}
 
     Analytics.track({
       event: "Disconnect Module",

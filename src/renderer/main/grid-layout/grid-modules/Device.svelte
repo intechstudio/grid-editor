@@ -52,10 +52,6 @@
   }
 
   $: {
-    console.log($appSettings.portstateOverlayEnabled);
-  }
-
-  $: {
     if (!isActionButtonClicked) {
       if (
         Object.keys($selectedProfileStore).length !== 0 ||

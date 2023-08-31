@@ -104,7 +104,7 @@
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led row-span-2 col-span-2 relative"
           style="border-radius: 50%; padding: 6px"
-          on:click={() => selectElement(elementNumber, "button", id)}
+          on:click={() => selectElement(elementNumber, "encoder", id)}
         >
           <div
             class="absolute"

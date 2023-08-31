@@ -16,7 +16,7 @@
   let rotation = 0;
   let initRotation = 0;
 
-  const midiToDeg = 280 / 127;
+  const midiToDeg = 360 / 180;
 
   function handleGrabStart(event) {
     startValue = event.detail.y;
