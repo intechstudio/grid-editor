@@ -41,6 +41,7 @@
     "electron-deeplink": "^1.0.10",
     "electron-dl": "^3.4.1",
     "electron-log": "^4.4.8",
+    "electron-reload": "^2.0.0-alpha.1",
     "electron-store": "^8.1.0",
     "electron-updater": "^5.3.0",
     "eslint": "^7.23.0",

@@ -8,6 +8,7 @@ import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
 import chokidar from "chokidar";
+import electronReload from "electron-reload";
 
 let watcher: any = null;
 
@@ -75,6 +76,13 @@ function startWatcher(path: string): void {
         type: "plugin-change",
         message: { path: path },
       });
+
+      /*
+      electronReload(__dirname, {
+        electron: path.join(__dirname, "node_modules", ".bin", "electron"),
+        hardResetMethod: "exit",
+      });
+      */
     })
     .on("unlink", function (path) {
       //console.log("File", path, "has been removed");

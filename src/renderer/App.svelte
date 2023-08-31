@@ -147,7 +147,7 @@
             console.log("yay", data);
             const env = process.env.NODE_ENV;
             console.log(env);
-            window.electron.restartApp();
+            //window.electron.restartApp();
             break;
           }
           default: {

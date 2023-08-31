@@ -49,9 +49,10 @@
     isActionButtonClicked = $isActionButtonClickedStore;
   }
 
+  /*
   $: {
     console.log($appSettings.portstateOverlayEnabled);
-  }
+  }*/
 
   $: {
     if (!isActionButtonClicked) {
