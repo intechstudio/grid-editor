@@ -202,23 +202,23 @@
 
   let trackerVisible = true;
 
-  function handleContentChange(e) {
-    const { DOMElementCount } = e.detail;
-    trackerVisible = DOMElementCount === 0;
-  }
+  // function handleContentChange(e) {
+  //   const { DOMElementCount } = e.detail;
+  //   trackerVisible = DOMElementCount === 0;
+  // }
 
-  import { createCollapsible } from "@melt-ui/svelte";
-  const { open, root, content, trigger } = createCollapsible();
+  // import { createCollapsible } from "@melt-ui/svelte";
+  // const { open, root, content, trigger } = createCollapsible();
 </script>
 
-<div class="bg-white h-96">
+<!-- <div class="bg-white h-96">
   Test Container for Melt UI
 
   <div {...$root}>
     <button {...$trigger}>{$open ? "Close" : "Open"}</button>
     <div {...$content}>Obi-Wan says: Hello there!</div>
   </div>
-</div>
+</div> -->
 
 <Titlebar />
 
