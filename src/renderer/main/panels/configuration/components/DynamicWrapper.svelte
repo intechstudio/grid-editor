@@ -114,7 +114,7 @@
         class:bg-opacity-30={toggled}
       >
         <!-- //TODO: Refactor out the special case of IF -->
-        {#if toggled || config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
+        {#if toggled || config.information.short === "if" || config.information.short === "ei"}
           <container class="flex flex-grow items-center pointer-events-auto">
             <svelte:component
               this={config.component}
