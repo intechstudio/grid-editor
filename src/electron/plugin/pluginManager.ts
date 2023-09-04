@@ -7,10 +7,6 @@ import os from "os";
 import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
-import chokidar from "chokidar";
-import electronReload from "electron-reload";
-
-let watcher: any = null;
 
 enum PluginStatus {
   Uninstalled = "Uninstalled",
@@ -24,16 +20,29 @@ let pluginFolder: string = "";
 let editorVersion: string = "";
 
 process.parentPort.on("message", (e) => {
-  editorVersion = e.data.version;
+  switch (e.data.type) {
+    case "init": {
+      console.log(`Initialize Plugin Manager...`);
+      editorVersion = e.data.version;
 
-  pluginFolder = e.data.pluginFolder;
-  if (!fs.existsSync(pluginFolder)) {
-    fs.mkdirSync(pluginFolder, { recursive: true });
+      pluginFolder = e.data.pluginFolder;
+      if (!fs.existsSync(pluginFolder)) {
+        fs.mkdirSync(pluginFolder, { recursive: true });
+      }
+
+      const port = e.ports[0];
+      setPluginManagerMessagePort(port);
+
+      break;
+    }
+    case "refresh-plugins": {
+      notifyListener();
+      break;
+    }
+    default: {
+      console.log(`Plugin Manager: Unknown message tpye of ${e.data.type}`);
+    }
   }
-
-  const port = e.ports[0];
-  setPluginManagerMessagePort(port);
-  startWatcher(pluginFolder);
 });
 
 const availablePlugins = {
@@ -51,54 +60,6 @@ const markedForDeletionPlugins = new Set<string>();
 const downloadingPlugins = new Set<string>();
 
 let messagePort: MessagePortMain;
-
-function startWatcher(path: string): void {
-  watcher = chokidar.watch(path, {
-    ignored: /[\/\\]\./,
-    persistent: true,
-  });
-
-  function onWatcherReady() {
-    console.info("Watcher is ready...");
-  }
-
-  watcher
-    .on("add", function (path) {
-      //console.log("File", path, "has been added");
-    })
-    .on("addDir", function (path) {
-      //console.log("Directory", path, "has been added");
-      notifyListener();
-    })
-    .on("change", function (path) {
-      //console.log("File", path, "has been changed");
-      messagePort.postMessage({
-        type: "plugin-change",
-        message: { path: path },
-      });
-
-      /*
-      electronReload(__dirname, {
-        electron: path.join(__dirname, "node_modules", ".bin", "electron"),
-        hardResetMethod: "exit",
-      });
-      */
-    })
-    .on("unlink", function (path) {
-      //console.log("File", path, "has been removed");
-    })
-    .on("unlinkDir", function (path) {
-      //console.log("Directory", path, "has been removed");
-    })
-    .on("error", function (error) {
-      //console.log("Error happened", error);
-    })
-    .on("ready", onWatcherReady)
-    .on("raw", function (event, path, details) {
-      // This event should be triggered everytime something happens.
-      //console.log("Raw event info:", event, path, details);
-    });
-}
 
 function setPluginManagerMessagePort(port: MessagePortMain) {
   messagePort = port;

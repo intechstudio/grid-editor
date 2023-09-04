@@ -14,6 +14,7 @@ import {
 import path from "path";
 import log from "electron-log";
 import fs from "fs";
+import chokidar from "chokidar";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
@@ -294,22 +295,89 @@ function createWindow() {
   });
 
   // Handle plugin configuration, action
+  let pluginManagerProcess: Electron.UtilityProcess;
   mainWindow.webContents.on("did-finish-load", () => {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
-    const process = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./pluginManager.js"))
-    );
-    process.postMessage(
-      {
-        pluginFolder: path.resolve(
-          path.join(app.getPath("documents"), "grid-userdata", "plugins")
-        ),
-        version: configuration.EDITOR_VERSION,
-      },
-      [port2]
-    );
+
+    if (typeof pluginManagerProcess === "undefined") {
+      pluginManagerProcess = utilityProcess.fork(
+        path.resolve(path.join(__dirname, "./pluginManager.js"))
+      );
+
+      const pluginFolder = path.resolve(
+        path.join(app.getPath("documents"), "grid-userdata", "plugins")
+      );
+      pluginManagerProcess.postMessage(
+        {
+          type: "init",
+          pluginFolder: pluginFolder,
+          version: configuration.EDITOR_VERSION,
+        },
+        [port2]
+      );
+      startPluginDirectoryWatcher(pluginFolder, pluginManagerProcess);
+    }
   });
+}
+let watcher: any = null;
+let directoryWatcher: any = null;
+
+function startPluginDirectoryWatcher(
+  path: string,
+  process: Electron.UtilityProcess
+): void {
+  directoryWatcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+
+  watcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+  });
+
+  directoryWatcher
+    .on("addDir", function (path: string) {
+      //Directory has been added
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    })
+    .on("unlinkDir", function (path: string) {
+      //Directory has been removed
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    });
+
+  watcher
+    .on("add", function (path: string) {
+      //File has been added
+    })
+    .on("addDir", function (path: string) {
+      //Directory has been added
+    })
+    .on("change", function (path: string) {
+      //File has been changed
+      mainWindow.reload();
+    })
+    .on("unlink", function (path: string) {
+      //File has been removed
+    })
+    .on("unlinkDir", function (path: string) {
+      //Directory has been removed
+    })
+    .on("error", function (error: string) {
+      //Error happened
+    })
+    .on("raw", function (event, path, details) {
+      //This event should be triggered everytime something happens.
+    });
 }
 
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
@@ -486,7 +554,6 @@ ipcMain.handle("fetchUrlJSON", (event, arg) => {
 
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
-  console.error("asd");
   return await getLatestVideo();
 });
 

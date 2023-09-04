@@ -143,11 +143,8 @@
             });
             break;
           }
-          case "plugin-change": {
-            console.log("yay", data);
+          case "refresh-plugins": {
             const env = process.env.NODE_ENV;
-            console.log(env);
-            //window.electron.restartApp();
             break;
           }
           default: {
