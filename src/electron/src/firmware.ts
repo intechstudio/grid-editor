@@ -47,9 +47,10 @@ export async function findBootloaderPath() {
       a.blocks === 15867 ||
       a.blocks === 15868 ||
       a.blocks === 8123904 ||
-      // add esp32 bootloader block size here LINUX & M1 Mac & WINDOWS
+      // add esp32 bootloader block size here LINUX & M1 Mac, M1 Mac & WINDOWS
       a.blocks === 32640 ||
       a.blocks === 65281 ||
+      a.blocks === 65280 ||
       a.blocks === 33423360,
   );
 
