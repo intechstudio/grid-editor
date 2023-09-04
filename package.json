@@ -36,6 +36,7 @@
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
+    "@melt-ui/svelte": "^0.42.0",
     "adm-zip": "^0.5.10",
     "discord.js": "^13.6.0",
     "electron-deeplink": "^1.0.10",
