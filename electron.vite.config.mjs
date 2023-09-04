@@ -1,5 +1,5 @@
 import { defineConfig, externalizeDepsPlugin } from "electron-vite";
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preprocess from "svelte-preprocess";
 import path, { resolve } from "path";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
@@ -42,14 +42,14 @@ export default defineConfig({
   },
   renderer: {
     plugins: [
-       svelte({
+      svelte({
         preprocess: [
           preprocess({
             postcss: true,
           }),
         ],
       }),
-      monacoEditorPlugin
+      monacoEditorPlugin,
     ],
     publicDir: "assets", // needed, to copy assets to dist during build
     build: {
