@@ -40,6 +40,12 @@ export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
+  if (descr.class_parameters.EVENTTYPE == 3) {
+    // button change must not be registered
+
+    return;
+  }
+
   let eps = get(elementPositionStore);
 
   if (eps[descr.brc_parameters.SX] === undefined) {
@@ -61,6 +67,8 @@ export function update_elementPositionStore(descr) {
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
   ] = descr.class_parameters.EVENTPARAM;
+
+  //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
   elementPositionStore.set(eps);
 }

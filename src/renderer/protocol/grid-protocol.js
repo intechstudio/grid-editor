@@ -512,6 +512,18 @@ let moduleElements = {
     "fader",
     "fader",
   ],
+  TEK2: [
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "encoder",
+    "encoder",
+  ],
 };
 
 // add utility (system events) control element or map mode at 255
@@ -520,6 +532,7 @@ moduleElements["EN16"][255] = "system";
 moduleElements["PBF4"][255] = "system";
 moduleElements["PO16"][255] = "system";
 moduleElements["EF44"][255] = "system";
+moduleElements["TEK2"][255] = "system";
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
