@@ -3,6 +3,7 @@
   import { get } from "svelte/store";
   import { Analytics } from "../../runtime/analytics.js";
   import Spinner from "./Spinner.svelte";
+  import Thinker from "./Thinker.svelte";
   import { slide } from "svelte/transition";
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { writeBuffer } from "../../runtime/engine.store.js";
@@ -40,7 +41,7 @@
 <div
   class="bg-primary rounded-md shadow-xl shadow-black w-72 p-4 {$$props.class}"
 >
-  {#if showRefresh}
+  {#if showRefresh || true}
     <div transition:slide={{ duration: 300 }} class="flex flex-col">
       <span class="text-xl text-white"
         >It seems like your module crashed or hanging...</span
@@ -111,6 +112,8 @@
           />
         </svg>
       </button>
+
+      <Thinker />
     </div>
   {:else}
     <div class="flex flex-col items-center">

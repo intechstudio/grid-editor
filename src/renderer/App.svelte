@@ -258,11 +258,16 @@
                 >
                   <ModulConnectionDialog />
                 </div>
-              {:else if $engine !== "ENABLED"}
+              {:else if $engine !== "ENABLED" || true}
                 <div
                   in:fade={{ duration: 1000 }}
                   out:blur={{ duration: 150 }}
-                  class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
+                  class="absolute w-full h-full left-0 top-0 bg-primary bg-opacity-70"
+                />
+                <div
+                  in:fade={{ duration: 1000 }}
+                  out:blur={{ duration: 150 }}
+                  class="absolute bottom-0 left-0"
                 >
                   <EngineRefreshDialog />
                 </div>
