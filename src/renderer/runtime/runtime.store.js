@@ -216,7 +216,7 @@ function create_user_input() {
 
   function process_incoming_event_from_grid(descr) {
     // engine is disabled
-    if (get(engine) === "DISABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 
@@ -744,7 +744,6 @@ function create_runtime() {
   }
 
   function whole_page_overwrite(array) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -790,7 +789,6 @@ function create_runtime() {
         ) {
           // this is last element so we need to add the callback
           callback = function () {
-            engine.set("ENABLED");
             logger.set({
               type: "success",
               mode: 0,
@@ -907,7 +905,6 @@ function create_runtime() {
   }
 
   function fetch_page_configuration_from_grid(callback) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -932,8 +929,6 @@ function create_runtime() {
         classname: "profilesave",
         message: `No module selected`,
       });
-
-      engine.set("ENABLED");
 
       return;
     }
@@ -1012,7 +1007,6 @@ function create_runtime() {
     });
 
     unsaved_changes.set([]);
-
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
       //do nothing just trigger change detection
@@ -1174,7 +1168,7 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    if (get(engine) !== "ENABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 

@@ -7,12 +7,7 @@
 
   import { get } from "svelte/store";
 
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store";
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
@@ -294,8 +289,6 @@
           message: `Profile saved!`,
         });
 
-        engine.set("ENABLED");
-
         channel.postMessage({ ok: true, data: {} });
 
         return;
@@ -355,8 +348,6 @@
           type: "success",
           message: `Profile saved!`,
         });
-
-        engine.set("ENABLED");
 
         channel.postMessage({ ok: true, data: {} });
       };
@@ -485,8 +476,8 @@
     if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
       console.log("profile cloud is mounted received");
       profileCloudIsMounted = true;
-      if (selectedModule !== undefined){
-        sendSelectedModuleInfo(selectedModule)
+      if (selectedModule !== undefined) {
+        sendSelectedModuleInfo(selectedModule);
       }
       return;
     }
@@ -509,7 +500,7 @@
       ) {
         channelMessageWrapper(
           event,
-          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules
+          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules //OMG
         );
       }
       if (event.data == "deleteLocalProfile") {
@@ -523,6 +514,7 @@
         const channel = event.ports[0];
         channel.onmessage = (event) =>
           handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
+            //OMG2
             event,
             channel
           );
@@ -579,7 +571,7 @@
     window.electron.stopOfflineProfileCloud();
   });
 
-  async function loadOfflineProfileCloud(){
+  async function loadOfflineProfileCloud() {
     const serverAddress = await window.electron.startOfflineProfileCloud();
     const url = `http://${serverAddress.address}:${serverAddress.port}`;
     $appSettings.profileCloudUrl = url;
@@ -592,12 +584,14 @@
       <div class="p-4">
         <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
         <div class="text-white text-opacity-80">
-          You need internet access to load it. You can load the offline version as well.
+          You need internet access to load it. You can load the offline version
+          as well.
         </div>
-        <button 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={loadOfflineProfileCloud}>
-        Load Offline
+        <button
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={loadOfflineProfileCloud}
+        >
+          Load Offline
         </button>
       </div>
     </div>

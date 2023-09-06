@@ -8,11 +8,11 @@
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import {
-    engine,
     logger,
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.js";
   import {
     appSettings,
     presetListRefresh,
@@ -316,8 +316,6 @@
           saveToDirectory(PRESET_PATH, preset.name, preset, user);
         }
       }
-
-      engine.set("ENABLED");
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
@@ -327,7 +325,7 @@
   let sessionPresetNumbers = [];
 
   async function saveToSessionPreset() {
-    if ($engine !== "ENABLED") {
+    if ($writeBuffer.length > 0) {
       logger.set({
         type: "fail",
         mode: 0,
@@ -421,8 +419,6 @@
       });
 
       saveToDirectory(PRESET_PATH, preset.name, preset, user);
-
-      engine.set("ENABLED");
     };
 
     runtime.fetch_page_configuration_from_grid(callback);

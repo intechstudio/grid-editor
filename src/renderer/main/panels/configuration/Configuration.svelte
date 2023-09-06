@@ -16,11 +16,12 @@
     runtime,
     logger,
     user_input,
-    engine,
     appActionClipboard,
     luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
+
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   import {
     ConfigList,
@@ -66,7 +67,7 @@
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
-    if ($engine !== "ENABLED") {
+    if ($writeBuffer.length > 0) {
       logger.set({
         type: "fail",
         mode: 0,
@@ -159,9 +160,10 @@
     if ($user_input) {
       handleUserInputchange();
     }
+  }
 
-    //Handle Engine
-    if ($engine !== "ENABLED") {
+  $: {
+    if ($writeBuffer.length > 0) {
       displayDefault();
     } else {
       //Display User Input

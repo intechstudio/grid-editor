@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { engine, logger } from "../../../runtime/runtime.store.js";
+  import { logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
   import {

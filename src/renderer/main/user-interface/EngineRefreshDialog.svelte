@@ -7,7 +7,6 @@
   import { slide } from "svelte/transition";
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { writeBuffer } from "../../runtime/engine.store.js";
-  import { engine } from "../../runtime/runtime.store.js";
 
   let showRefresh = false;
 
@@ -34,7 +33,6 @@
     });
 
     writeBuffer.clear();
-    $engine = "ENABLED";
   }
 </script>
 

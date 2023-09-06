@@ -14,15 +14,12 @@
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  import {
-    user_input,
-    engine,
-    logger,
-  } from "../../../runtime/runtime.store.js";
+  import { user_input, logger } from "../../../runtime/runtime.store.js";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
   import { selectedPresetStore } from "../../../runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { get } from "svelte/store";
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   const components = [
     { type: "BU16", component: BU16 },
@@ -78,16 +75,17 @@
     {selectedElement}
     on:click={(e) => {
       const { elementNumber, type, id } = e.detail;
-      if ($engine === "ENABLED") {
-        selectElement(elementNumber, type, id);
-      } else {
+      if ($writeBuffer.length > 0) {
         logger.set({
           type: "fail",
           mode: 0,
           classname: "engine-disabled",
           message: `Engine is disabled, selecting element has failed!`,
         });
+        return;
       }
+
+      selectElement(elementNumber, type, id);
     }}
   >
     {#if $appSettings.overlays.controlElementName}
@@ -130,10 +128,8 @@
       {/if}
     {/if}
 
-    {#if $engine === "ENABLED"}
-      <ProfileLoadOverlay {id} />
-      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
-    {/if}
+    <ProfileLoadOverlay {id} />
+    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
   </svelte:component>
 {/if}
 

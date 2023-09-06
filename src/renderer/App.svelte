@@ -45,8 +45,9 @@
   import Tracker from "./main/user-interface/Tracker.svelte";
   import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
-  import EngineRefreshDialog from "./main/user-interface/EngineRefreshDialog.svelte";
-  import { runtime, engine } from "./runtime/runtime.store";
+  import Thinker from "./main/user-interface/EngineRefreshDialog.svelte";
+  import { runtime } from "./runtime/runtime.store";
+  import { writeBuffer } from "./runtime/engine.store.js";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
 
   let modalComponents = {};
@@ -258,7 +259,7 @@
                 >
                   <ModulConnectionDialog />
                 </div>
-              {:else if $engine !== "ENABLED" || true}
+              {:else if $writeBuffer.length > 0 || true}
                 <div
                   in:fade={{ duration: 1000 }}
                   out:blur={{ duration: 150 }}
@@ -269,7 +270,7 @@
                   out:blur={{ duration: 150 }}
                   class="absolute bottom-0 left-0"
                 >
-                  <EngineRefreshDialog />
+                  <Thinker />
                 </div>
               {/if}
 

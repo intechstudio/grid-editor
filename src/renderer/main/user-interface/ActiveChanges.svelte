@@ -1,10 +1,7 @@
 <script>
   import { setTooltip } from "./tooltip/Tooltip.js";
-  import {
-    engine,
-    runtime,
-    unsaved_changes,
-  } from "../../runtime/runtime.store";
+  import { runtime, unsaved_changes } from "../../runtime/runtime.store";
+  import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
   import { derived } from "svelte/store";
   import instructions from "../../serialport/instructions";
@@ -23,7 +20,7 @@
     );
   }
 
-  $: isStoreEnabled = $engine == "ENABLED" && $totalChanges > 0;
+  $: isStoreEnabled = $writeBuffer.length == 0 && $totalChanges > 0;
 
   function handleStore() {
     if (isStoreEnabled) {
@@ -116,8 +113,8 @@
         ],
         triggerEvents: ["show-buttons", "hover"],
       }}
-      disabled={$engine != "ENABLED"}
-      class="{$engine == 'ENABLED' ? 'hover:bg-red-500' : 'opacity-75'}
+      disabled={$writeBuffer.length > 0}
+      class="{$writeBuffer.length > 0 ? 'hover:bg-red-500' : 'opacity-75'}
       relative flex items-center focus:outline-none justify-center rounded
         bg-select text-white py-1 w-24"
     >

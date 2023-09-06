@@ -4,12 +4,7 @@ import { appSettings } from "../runtime/app-helper.store";
 import grid from "../protocol/grid-protocol.js";
 
 import { writeBuffer } from "../runtime/engine.store.js";
-import {
-  engine,
-  logger,
-  unsaved_changes,
-  runtime,
-} from "../runtime/runtime.store.js";
+import { logger, unsaved_changes, runtime } from "../runtime/runtime.store.js";
 
 const instructions = {
   sendEditorHeartbeat_immediate: (type) => {
@@ -226,7 +221,6 @@ const instructions = {
   },
 
   sendPageStoreToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -262,7 +256,6 @@ const instructions = {
         //console.log('page store execute - fail')
       },
       successCb: function () {
-        engine.set("ENABLED");
         unsaved_changes.set([]);
         logger.set({
           type: "success",
@@ -273,8 +266,6 @@ const instructions = {
         //console.log('page store execute - success')
       },
     };
-
-    //engine.strict.store('store', serial, id);
 
     writeBuffer.add_last(buffer_element);
   },
@@ -290,7 +281,6 @@ const instructions = {
       return;
     }
 
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -329,7 +319,6 @@ const instructions = {
       successCb: function () {
         unsaved_changes.set([]);
         runtime.erase();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -384,7 +373,6 @@ const instructions = {
   },
 
   sendPageDiscardToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -425,7 +413,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -440,7 +427,6 @@ const instructions = {
   },
 
   sendPageClearToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -477,7 +463,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,

@@ -1,7 +1,7 @@
 <script>
   import { getAllComponents } from "../../../../lib/_configs";
 
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
 
   export let access_tree;
