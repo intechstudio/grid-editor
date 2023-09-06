@@ -17,6 +17,8 @@
   import VRadioButton from "./VRadioButton.svelte";
   import VCheckbox from "./VCheckbox.svelte";
 
+  import MeltRadio from "./MeltRadio.svelte";
+
   const configuration = window.ctxProcess.configuration();
 
   let helperPreviewElement;
@@ -28,8 +30,6 @@
     hpos: "50%",
   });
 
-  let selected;
-
   onMount(async () => {
     helperAttachment.set({
       element: helperPreviewElement,
@@ -37,29 +37,7 @@
       vpos: "50%",
       hpos: "50%",
     });
-
-    switch ($appSettings.profileBrowserMode) {
-      case "newLibrary":
-        selected = "newLibrary";
-      case "legacyLibrary":
-        selected = "legacyLibrary";
-      case "profileCloud":
-        selected = "profileCloud";
-      default:
-        selected = "profileCloud";
-    }
   });
-
-  // profile browser radio handler
-  $: {
-    if (selected === "newLibrary") {
-      $appSettings.profileBrowserMode = "newLibrary";
-    } else if (selected === "legacyLibrary") {
-      $appSettings.profileBrowserMode = "legacyLibrary";
-    } else if (selected == "profileCloud") {
-      $appSettings.profileBrowserMode = "profileCloud";
-    }
-  }
 
   let DEFAULT_PATH = "";
 
@@ -121,34 +99,6 @@
       });
   }
 
-  async function libraryDownload() {
-    if (!(await isOnline())) {
-      download_status = "no internet connection!";
-      return;
-    }
-
-    clearTimeout(download_status_interval);
-
-    download_status = "Starting the download...";
-
-    const targetFolder = get(appSettings).persistant.profileFolder;
-
-    await window.electron.library.download(targetFolder, "library");
-
-    profileListRefresh.update((s) => {
-      return s + 1;
-    });
-    presetListRefresh.update((s) => {
-      return s + 1;
-    });
-
-    download_status = "Library updated!";
-
-    download_status_interval = setTimeout(() => {
-      download_status = "";
-    }, 2500);
-  }
-
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
       get(appSettings).persistant.profileFolder
@@ -166,20 +116,6 @@
   function resetAppSettings() {
     window.electron.resetAppSettings();
   }
-
-  function setModuleRotation(rot) {
-    $appSettings.persistant.moduleRotation = rot;
-  }
-
-  function setHelperShape(shape) {
-    $appSettings.persistant.helperShape = shape;
-  }
-
-  function setHelperColor(color) {
-    $appSettings.persistant.helperColor = color;
-  }
-
-  function setHelperName() {}
 
   function handleOpenPolicyClicked(e) {
     window.electron.openInBrowser(
@@ -308,25 +244,6 @@
       description:
         "Enable/Disable the websocket monitor. This will show the websocket messages in the console and add the websocket panel.",
       label: "Activate websocket monitor",
-    },
-    profileCloudUrl: {
-      title: "Profile cloud URL",
-      description: "Change the url used in the Profile Cloud Iframe.",
-      type: "radio",
-      options: [
-        {
-          title: "Development (localhost)",
-          value: "http://localhost:5200",
-        },
-        {
-          title: "Nightly (profile-cloud-dev)",
-          value: "https://profile-cloud-dev.web.app",
-        },
-        {
-          title: "Production (profile-cloud)",
-          value: "https://profile-cloud.web.app",
-        },
-      ],
     },
   };
 </script>
@@ -495,6 +412,12 @@
           {privacySettings.improveApp.label}
         </div>
       </label>
+    </div>
+
+    <div class="py-4 border border-transparent">
+      <button on:click={handleOpenPolicyClicked} class="text-white text-opacity-60 underline">
+        Open Privacy Policy
+      </button>
     </div>
   {/if}
 
@@ -675,44 +598,37 @@
     </div>
 
     <div class="py-4 border border-transparent">
-      <div class="text-white">
-        {developerSettings.profileCloudUrl.title}
-      </div>
+      <!-- Radio Select for profileCloudUrl -->
+
+      <div class="text-white">Profile cloud URL</div>
       <div class="text-white text-opacity-60 py-2">
-        {developerSettings.profileCloudUrl.description}
+        Change the url used in the Profile Cloud Iframe.
       </div>
+
       <div class="flex w-full py-2">
         <input
           class="flex px-2 py-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20 focus:border-green-500 focus:outline-none"
-          type="text"
           bind:value={$appSettings.profileCloudUrl}
         />
       </div>
-      <div class="text-white grid grid-flow-row gap-4 py-2">
-        {#each developerSettings.profileCloudUrl.options as option}
-          <label
-            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
-          >
-            <VRadioButton
-              selectedState={$appSettings.profileCloudUrl == option.value}
-            />
-            <input
-              class="hidden"
-              type="radio"
-              name="profile-cloud-url"
-              value={option.value}
-              bind:group={$appSettings.profileCloudUrl}
-            />
-            <span
-              class="pl-2 text-white {$appSettings.profileCloudUrl ==
-              option.value
-                ? 'text-opacity-100'
-                : 'text-opacity-80'} group-hover:text-opacity-100"
-              >{option.title}</span
-            >
-          </label>
-        {/each}
-      </div>
+
+      <MeltRadio
+        bind:target={$appSettings.profileCloudUrl}
+        options={[
+          {
+            title: "Development (localhost)",
+            value: configuration.PROFILE_CLOUD_URL_LOCAL,
+          },
+          {
+            title: "Nightly (profile-cloud-dev)",
+            value: configuration.PROFILE_CLOUD_URL_DEV,
+          },
+          {
+            title: "Production (profile-cloud)",
+            value: configuration.PROFILE_CLOUD_URL_PROD,
+          },
+        ]}
+      />
     </div>
   {/if}
 </div>
