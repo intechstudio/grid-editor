@@ -202,10 +202,10 @@
 
   let trackerVisible = true;
 
-  // function handleContentChange(e) {
-  //   const { DOMElementCount } = e.detail;
-  //   trackerVisible = DOMElementCount === 0;
-  // }
+  function handleContentChange(e) {
+    const { DOMElementCount } = e.detail;
+    trackerVisible = DOMElementCount === 0;
+  }
 
   // import { createCollapsible } from "@melt-ui/svelte";
   // const { open, root, content, trigger } = createCollapsible();
