@@ -4,7 +4,8 @@
   import { createEventDispatcher } from "svelte";
   import PaneButton from "./user-interface/PaneButton.svelte";
 
-  const dispatch = createEventDispatcher();
+  const dispatch = 
+createEventDispatcher();
 
   const browserWindow = window.electron.window;
 
