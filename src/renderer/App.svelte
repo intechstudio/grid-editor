@@ -235,11 +235,12 @@
   let moduleHanging = false;
   let hangingTimeout = undefined;
   $: {
-    if ($writeBuffer.length > 0) {
+    if ($writeBuffer.length > 0 || navigator.showThinker) {
       hangingTimeout = setTimeout(() => {
         moduleHanging = true;
       }, 10000);
     } else {
+      navigator.showThinker = false;
       clearTimeout(hangingTimeout);
       moduleHanging = false;
     }
@@ -308,7 +309,7 @@
                   </div>
                 {/if}
 
-                {#if ($writeBuffer.length > 0 && $runtime.length > 0) || true}
+                {#if ($writeBuffer.length > 0 && $runtime.length > 0) || navigator.showThinker}
                   <div
                     in:fade={{ duration: 1000 }}
                     out:blur={{ duration: 150 }}
