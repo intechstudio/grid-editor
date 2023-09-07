@@ -7,7 +7,7 @@
 
 <style>
   .lds-ellipsis {
-    transform-origin: 0 0;
+    transform-origin: center center;
     display: inline-block;
     position: relative;
     width: 62px;
@@ -29,11 +29,11 @@
     animation: lds-ellipsis2 0.6s infinite;
   }
   .lds-ellipsis div:nth-child(3) {
-    left: 24px;
+    left: 18px;
     animation: lds-ellipsis2 0.6s infinite;
   }
   .lds-ellipsis div:nth-child(4) {
-    left: 48px;
+    left: 36px;
     animation: lds-ellipsis3 0.6s infinite;
   }
   @keyframes lds-ellipsis1 {
@@ -57,7 +57,7 @@
       transform: translate(0, 0);
     }
     100% {
-      transform: translate(24px, 0);
+      transform: translate(18px, 0);
     }
   }
 </style>

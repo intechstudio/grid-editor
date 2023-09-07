@@ -167,7 +167,7 @@
       displayDefault();
     } else {
       //Display User Input
-      handleUserInputchange();
+      //handleUserInputchange();
     }
   }
 

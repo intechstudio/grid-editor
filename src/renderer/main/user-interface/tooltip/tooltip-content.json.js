@@ -148,7 +148,7 @@ export const tooltip_content = {
   sidebar_packages_icon: "Package Manager",
 
   engine_clear:
-    "Clear the writebuffer after a module crash, and re-enable the Editor engine!",
+    "This will not restore crashed modules, you should reconnect them physically. Proceed? ",
 
   newProfile_delete: "Delete this Session Profile permanently.",
   newProfile_save: "Move this Session Profile to the Profile Cloud folder.",

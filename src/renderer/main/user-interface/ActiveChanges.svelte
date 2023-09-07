@@ -114,7 +114,7 @@
         triggerEvents: ["show-buttons", "hover"],
       }}
       disabled={$writeBuffer.length > 0}
-      class="{$writeBuffer.length > 0 ? 'hover:bg-red-500' : 'opacity-75'}
+      class="{$writeBuffer.length == 0 ? 'hover:bg-red-500' : 'opacity-75'}
       relative flex items-center focus:outline-none justify-center rounded
         bg-select text-white py-1 w-24"
     >

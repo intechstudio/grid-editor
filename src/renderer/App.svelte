@@ -45,10 +45,12 @@
   import Tracker from "./main/user-interface/Tracker.svelte";
   import ActiveChanges from "./main/user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
-  import Thinker from "./main/user-interface/EngineRefreshDialog.svelte";
   import { runtime } from "./runtime/runtime.store";
   import { writeBuffer } from "./runtime/engine.store.js";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
+  import Spinner from "./main/user-interface/Spinner.svelte";
+  import { setTooltip } from "./main/user-interface/tooltip/Tooltip";
+  import { Analytics } from "./runtime/analytics.js";
 
   let modalComponents = {};
 
@@ -200,13 +202,47 @@
     });
   }
 
-  onMount(() => {});
-
+  let logLength = 0;
   let trackerVisible = true;
+
+  $: {
+    trackerVisible = logLength === 0 && !moduleHanging;
+  }
 
   function handleContentChange(e) {
     const { DOMElementCount } = e.detail;
-    trackerVisible = DOMElementCount === 0;
+    logLength = DOMElementCount;
+  }
+
+  function handleBufferClear(e) {
+    window.electron.discord.sendMessage({
+      title: "Writebuffer",
+      text: JSON.stringify($writeBuffer).substring(0, 1000),
+    });
+
+    Analytics.track({
+      event: "Writebuffer",
+      payload: {
+        click: "Clear",
+        writeBufferLength: $writeBuffer,
+      },
+      mandatory: false,
+    });
+
+    writeBuffer.clear();
+  }
+
+  let moduleHanging = false;
+  let hangingTimeout = undefined;
+  $: {
+    if ($writeBuffer.length > 0) {
+      hangingTimeout = setTimeout(() => {
+        moduleHanging = true;
+      }, 10000);
+    } else {
+      clearTimeout(hangingTimeout);
+      moduleHanging = false;
+    }
   }
 </script>
 
@@ -259,31 +295,54 @@
                 >
                   <ModulConnectionDialog />
                 </div>
-              {:else if $writeBuffer.length > 0 || true}
-                <div
-                  in:fade={{ duration: 1000 }}
-                  out:blur={{ duration: 150 }}
-                  class="absolute w-full h-full left-0 top-0 bg-primary bg-opacity-70"
-                />
-                <div
-                  in:fade={{ duration: 1000 }}
-                  out:blur={{ duration: 150 }}
-                  class="absolute bottom-0 left-0"
-                >
-                  <Thinker />
-                </div>
               {/if}
 
-              <div class="flex h-ful z-10l">
-                <div
-                  in:fly={{ x: -10 }}
-                  out:fly={{ x: 10 }}
-                  class="w-fit {trackerVisible
-                    ? ''
-                    : 'hidden'} absolute right-0 bottom-0 mb-12 mr-10"
-                >
-                  <Tracker />
-                </div>
+              <div class="flex">
+                {#if trackerVisible}
+                  <div
+                    in:fly={{ x: -10 }}
+                    out:fly={{ x: 10 }}
+                    class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
+                  >
+                    <Tracker />
+                  </div>
+                {/if}
+
+                {#if $writeBuffer.length > 0 && $runtime.length > 0}
+                  <div
+                    in:fade={{ delay: 300, duration: 1000 }}
+                    out:blur={{ delay: 300, duration: 150 }}
+                    class="absolute bottom-0 left-0 bg-primary ml-6 mb-4 py-2 px-4 rounded-lg shadow"
+                  >
+                    <div class="flex flex-row items-center gap-2">
+                      <Spinner class="scale-50 -mx-5" />
+                      {#if moduleHanging}
+                        <span class="text-white w-52"
+                          >One of the modules seems to be hanging or crashed. Do
+                          reset communications?</span
+                        >
+                        <button
+                          use:setTooltip={{
+                            key: "engine_clear",
+                            placement: "bottom",
+                            class: "w-60 p-4",
+                            buttons: [
+                              { label: "Yes", handler: handleBufferClear },
+                              { label: "No", handler: undefined },
+                            ],
+                            triggerEvents: ["show-buttons", "hover"],
+                          }}
+                          class="relative items-center justify-center focus:outline-none bg-select
+      rounded text-white py-1 w-24 hover:bg-yellow-600"
+                        >
+                          <div>Reset</div>
+                        </button>
+                      {:else}
+                        <span class="text-white">Doing awesome stuff...</span>
+                      {/if}
+                    </div>
+                  </div>
+                {/if}
                 <CursorLog
                   class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
                   on:content-change={handleContentChange}
