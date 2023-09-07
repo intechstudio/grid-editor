@@ -28,7 +28,7 @@
   {#if $appSettings.leftPanel == "MIDI Monitor"}
     <MidiMonitor />
   {/if}
-  
+
   {#if $appSettings.leftPanel == "NewPreset"}
     <NewPreset />
   {/if}
