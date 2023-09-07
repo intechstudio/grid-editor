@@ -308,10 +308,10 @@
                   </div>
                 {/if}
 
-                {#if $writeBuffer.length > 0 && $runtime.length > 0}
+                {#if ($writeBuffer.length > 0 && $runtime.length > 0) || true}
                   <div
-                    in:fade={{ delay: 300, duration: 1000 }}
-                    out:blur={{ delay: 300, duration: 150 }}
+                    in:fade={{ duration: 1000 }}
+                    out:blur={{ duration: 150 }}
                     class="absolute bottom-0 left-0 bg-primary ml-6 mb-4 py-2 px-4 rounded-lg shadow"
                   >
                     <div class="flex flex-row items-center gap-2">
@@ -338,7 +338,9 @@
                           <div>Reset</div>
                         </button>
                       {:else}
-                        <span class="text-white">Doing awesome stuff...</span>
+                        <span class="text-white w-36"
+                          >Waiting for {$writeBuffer.length} more awesome stuff...</span
+                        >
                       {/if}
                     </div>
                   </div>
