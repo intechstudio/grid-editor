@@ -1,6 +1,5 @@
 <script lang="ts">
   import { createRadioGroup, melt } from "@melt-ui/svelte";
-  import { writable } from "svelte/store";
 
   export let options = [];
   export let target;

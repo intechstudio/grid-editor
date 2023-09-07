@@ -415,7 +415,10 @@
     </div>
 
     <div class="py-4 border border-transparent">
-      <button on:click={handleOpenPolicyClicked} class="text-white text-opacity-60 underline">
+      <button
+        on:click={handleOpenPolicyClicked}
+        class="text-white text-opacity-60 underline"
+      >
         Open Privacy Policy
       </button>
     </div>
