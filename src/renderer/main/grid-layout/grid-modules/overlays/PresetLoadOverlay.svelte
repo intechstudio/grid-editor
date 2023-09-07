@@ -1,5 +1,5 @@
 <script>
-  import { selectedPresetStore } from "../../../../runtime/preset-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import {
     elementNameStore,
     runtime,
@@ -7,7 +7,6 @@
   } from "../../../../runtime/runtime.store";
 
   import { get } from "svelte/store";
-  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   import { Analytics } from "../../../../runtime/analytics.js";
 
@@ -21,9 +20,6 @@
 
   let overlayDesign;
   let controlElementSettings;
-  let selectedIndex;
-
-  $: selectedIndex = $selectedControllerIndexStore;
 
   $: {
     const device = $runtime.find((controller) => controller.id == id);
@@ -35,6 +31,11 @@
   let isModuleCompatibleWithPreset = false;
 
   function showLoadPresetOverlay() {
+    if (!selectedPreset){
+      showOverlay = false;
+      return;
+    }
+
     isModuleCompatibleWithPreset = false;
 
     let device;
@@ -58,7 +59,12 @@
   }
 
   $: {
-    selectedPreset = $selectedPresetStore;
+    let selectedConfig = $selectedConfigStore;
+    if (selectedConfig.configType === "preset"){
+      selectedPreset = selectedConfig;
+    } else {
+      selectedPreset = undefined;
+    }
     showLoadPresetOverlay();
   }
 

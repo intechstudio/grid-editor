@@ -189,7 +189,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
             await fs.promises.readFile(filepath, "utf-8").then(async (data) => {
               if (isJson(data)) {
                 let obj = JSON.parse(data);
-                if (obj.isGridProfile || obj.isGridPreset) {
+                if (obj.isGridProfile || obj.isGridPreset || obj.configType) {
                   obj.folder = dir;
                   obj.showMore = false;
                   obj.color = stringToColor(dir);
@@ -198,7 +198,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
                   obj.fsModifiedAt = dateObject.modifiedAt;
                   configs.push(obj);
                 } else {
-                  log.info("JSON is not a grid profile!");
+                  log.info("JSON is not a grid config!");
                 }
               } else {
                 log.info("Not a file!");

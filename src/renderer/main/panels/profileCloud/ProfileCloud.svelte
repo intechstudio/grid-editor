@@ -17,7 +17,7 @@
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { profileLinkStore } from "$lib/profilelink.store";
-  import { selectedProfileStore } from "../../../runtime/profile-helper.store";
+  import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
   const buildVariables = window.ctxProcess.buildVariables();
 
@@ -27,9 +27,10 @@
 
   $: sendProfileLinkToIframe($profileLinkStore);
 
-  $: sendSelectedModuleInfo(selectedModule);
+  $: sendSelectedComponentInfos(selectedModule, selectedControlElementType);
 
   let selectedModule = undefined;
+  let selectedControlElementType = undefined;
 
   $: {
     const ui = $user_input;
@@ -40,6 +41,7 @@
     if (typeof device !== "undefined") {
       selectedModule = device.id.substr(0, 4);
     }
+    selectedControlElementType = ui.event.elementtype;
   }
 
   function sendProfileLinkToIframe(storeValue) {
@@ -54,13 +56,13 @@
     );
   }
 
-  function sendSelectedModuleInfo(selectedModuleType) {
+  function sendSelectedComponentInfos(selectedModuleType, selectedControlElementType) {
     if (iframe_element == undefined) return;
 
     iframe_element.contentWindow.postMessage(
       {
-        messageType: "selectedModuleType",
-        selectedModuleType: selectedModuleType,
+        messageType: "selectedComponentTypes",
+        selectedComponentTypes: [selectedModuleType, selectedControlElementType],
       },
       "*"
     );
@@ -102,8 +104,8 @@
     }
   }
 
-  async function handleCreateCloudProfileLink(event) {
-    if (event.data.channelMessageType == "CREATE_CLOUD_PROFILE_LINK") {
+  async function handleCreateCloudConfigLink(event) {
+    if (event.data.channelMessageType == "CREATE_CLOUD_CONFIG_LINK") {
       return await window.electron.clipboard.writeText(
         event.data.profileLinkUrl
       );
@@ -146,87 +148,142 @@
     }
   }
 
-  async function handleImportProfile(event) {
-    if (event.data.channelMessageType == "IMPORT_PROFILE") {
+  async function handleImportConfig(event) {
+    if (event.data.channelMessageType == "IMPORT_CONFIG") {
       const path = $appSettings.persistant.profileFolder;
       // owner is not used, but user instead
-      const profile = event.data;
-      const importName = profile.name;
+      const config = event.data;
+      const importName = config.name;
+
+      if (!config.id){
+        console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
+        config.id = uuidv4()
+      }
 
       return await window.electron.configs
-        .saveConfig(path, profile.id, profile, "profiles", "local")
+        .saveConfig(path, config.id, config, "configs", "local")
         .then((res) => {
           logger.set({
             type: "success",
-            message: `Profile ${importName} imported successfully`,
+            message: `Config ${importName} imported successfully`,
           });
           return;
         })
         .catch((err) => {
           logger.set({
             type: "fail",
-            message: `Profile ${importName} import failed`,
+            message: `Config ${importName} import failed`,
           });
           throw err;
         });
     }
   }
 
-  async function handleGetListOfLocalProfiles(event) {
-    if (event.data.channelMessageType == "GET_LIST_OF_LOCAL_PROFILES") {
+  async function handleGetListOfLocalConfigs(event) {
+    if (event.data.channelMessageType == "GET_LIST_OF_LOCAL_CONFIGS") {
       const path = $appSettings.persistant.profileFolder;
+      const presetPath = $appSettings.persistant.presetFolder;
+
+      //profiles folder is the legacy profile folder, add configType parameter
       const profiles = await window.electron.configs.loadConfigsFromDirectory(
         path,
         "profiles"
       );
-      return profiles;
+      for (const profile of profiles){
+        profile.configType = "profile";
+      }
+
+      //presets folder is the legacy preset folder, add configType parameter
+      const presets = await window.electron.configs.loadConfigsFromDirectory(
+        presetPath,
+        "presets"
+      );
+      for (const preset of presets){
+        preset.configType = "preset";
+      }
+
+      const configs = await window.electron.configs.loadConfigsFromDirectory(
+        path,
+        "configs"
+      );
+      const configIds = new Set(configs.map((config) => config.id));
+      return [
+        ...configs, 
+        ...(profiles.filter((profile) => !configIds.has(profile.id))), 
+        ...(presets.filter((preset) => !configIds.has(preset.id)))
+      ]; 
     }
   }
 
-  async function handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules(
+  async function handleProvideSelectedConfigForOptionalUploadingToOneOreMoreModules(
     event
   ) {
     if (
       event.data.channelMessageType ==
-      "PROVIDE_SELECTED_PROFILE_FOR_OPTIONAL_UPLOADING_TO_ONE_OR_MORE_MODULES"
+      "PROVIDE_SELECTED_CONFIG_FOR_OPTIONAL_UPLOADING_TO_ONE_OR_MORE_MODULES"
     ) {
-      selectedProfileStore.set(event.data.profile);
+      selectedConfigStore.set(event.data.config);
       return;
     }
   }
 
-  async function handleDeleteLocalProfile(event) {
-    if (event.data.channelMessageType == "DELETE_LOCAL_PROFILE") {
+  async function handleDeleteLegacyConfig(config){
+    const { folder, id } = config;
+    let legacyPath = "";
+    if (config.configType == "profile" || config.isGridProfile){
+      legacyPath = "profiles";
+    } else if (config.configType == "preset" || config.isGridPreset){
+      legacyPath = "presets";
+    }
+    console.log({legacyPath, folder, id})
+    await window.electron.configs
+      .deleteConfig(path, id, legacyPath, folder)
+      .then((res) => {
+        logger.set({
+          type: "success",
+          message: `Config ${id} deleted successfully`,
+        });
+        return res;
+      })
+      .catch((err) => {
+        logger.set({
+          type: "fail",
+          message: `Config ${id} deletion failed`,
+        });
+        throw err;
+      });
+  }
+
+  async function handleDeleteLocalConfig(event) {
+    if (event.data.channelMessageType == "DELETE_LOCAL_CONFIG") {
       const path = $appSettings.persistant.profileFolder;
-      const { folder, id } = event.data?.profile;
+      const config = event.data?.config;
+      const { folder, id } = config;
 
       await window.electron.configs
-        .deleteConfig(path, id, "profiles", folder)
+        .deleteConfig(path, id, "configs", folder)
         .then((res) => {
           logger.set({
             type: "success",
-            message: `Profile ${id} deleted successfully`,
+            message: `Config ${id} deleted successfully`,
           });
           return res;
         })
-        .catch((err) => {
-          logger.set({
-            type: "fail",
-            message: `Profile ${id} deletion failed`,
-          });
-          throw err;
+        .catch(async (err) => {
+          await handleDeleteLegacyConfig(config);
         });
     }
   }
 
-  async function handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
+  async function handleCreateNewLocalConfigWithTheSelectedModulesConfigurationFromEditor(
     event,
     channel
   ) {
     if (
       event.data.channelMessageType ==
-      "CREATE_NEW_LOCAL_PROFILE_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
+      "CREATE_NEW_LOCAL_CONFIG_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
     ) {
+      const configType = event.data.configType;
       const path = $appSettings.persistant.profileFolder;
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
@@ -235,24 +292,22 @@
         logger.set({
           type: "progress",
           mode: 0,
-          classname: "profilesave",
-          message: `Ready to save profile!`,
+          classname: "configsave",
+          message: `Ready to save config!`,
         });
 
         const li = get(user_input);
 
         const configs = get(runtime);
 
-        let name = "New local profile";
+        let name = "New local config";
         let description = "Click here to add description";
-        let type = selectedModule;
         let id = uuidv4();
 
-        let profile = {
+        let config = {
           name: name,
           description: description,
-          type: type,
-          isGridProfile: true, // differentiator from different JSON files!
+          configType: configType, // differentiator from different JSON files!
           version: {
             major: $appSettings.version.major,
             minor: $appSettings.version.minor,
@@ -266,32 +321,51 @@
             const page = d.pages.find(
               (x) => x.pageNumber == li.event.pagenumber
             );
-
-            profile.configs = page.control_elements.map((cfg) => {
-              return {
-                controlElementNumber: cfg.controlElementNumber,
-                events: cfg.events.map((ev) => {
+            
+            if (configType === "profile"){
+              config.type = selectedModule;
+              config.configs = page.control_elements.map((cfg) => {
+                return {
+                  controlElementNumber: cfg.controlElementNumber,
+                  events: cfg.events.map((ev) => {
+                    return {
+                      event: ev.event.value,
+                      config: ev.config,
+                    };
+                  }),
+                };
+              });
+            } else if (configType === "preset"){
+              const element = page.control_elements.find(
+                (x) => x.controlElementNumber === li.event.elementnumber
+              );
+              config.type = li.event.elementtype;
+              config.configs = {
+                events: element.events.map((ev) => {
                   return {
                     event: ev.event.value,
                     config: ev.config,
                   };
                 }),
               };
-            });
+            }
           }
         });
-
+        if (!config.id){
+          console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
+          config.id = uuidv4()
+        }
         await window.electron.configs.saveConfig(
           path,
           id,
-          profile,
-          "profiles",
+          config,
+          "configs",
           "local"
         );
 
         logger.set({
           type: "success",
-          message: `Profile saved!`,
+          message: `Config saved!`,
         });
 
         engine.set("ENABLED");
@@ -305,9 +379,9 @@
     }
   }
 
-  async function handleOverwriteLocalProfile(event, channel) {
-    if (event.data.channelMessageType == "OVERWRITE_LOCAL_PROFILE") {
-      const { profileToOverwrite } = event.data;
+  async function handleOverwriteLocalConfig(event, channel) {
+    if (event.data.channelMessageType == "OVERWRITE_LOCAL_CONFIG") {
+      const { configToOverwrite } = event.data;
 
       const path = $appSettings.persistant.profileFolder;
 
@@ -315,45 +389,62 @@
         logger.set({
           type: "progress",
           mode: 0,
-          classname: "profilesave",
-          message: `Overwriting profile!`,
+          classname: "configsave",
+          message: `Overwriting config!`,
         });
 
         const li = get(user_input);
         const configs = get(runtime);
-
         configs.forEach((d) => {
           if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
             const page = d.pages.find(
               (x) => x.pageNumber == li.event.pagenumber
             );
-
-            profileToOverwrite.configs = page.control_elements.map((cfg) => {
-              return {
-                controlElementNumber: cfg.controlElementNumber,
-                events: cfg.events.map((ev) => {
+            
+            if (configToOverwrite.configType === "profile"){
+              configToOverwrite.configs = page.control_elements.map((cfg) => {
+                return {
+                  controlElementNumber: cfg.controlElementNumber,
+                  events: cfg.events.map((ev) => {
+                    return {
+                      event: ev.event.value,
+                      config: ev.config,
+                    };
+                  }),
+                };
+              });
+            } else if (configToOverwrite.configType === "preset"){
+              const element = page.control_elements.find(
+                (x) => x.controlElementNumber === li.event.elementnumber
+              );
+              config.configs = {
+                events: element.events.map((ev) => {
                   return {
                     event: ev.event.value,
                     config: ev.config,
                   };
                 }),
               };
-            });
+            }
           }
         });
 
         // tofi: here we could use updateLocal as well?
+        if (!configToOverwrite.id){
+          console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
+          configToOverwrite.id = uuidv4()
+        }
         await window.electron.configs.saveConfig(
           path,
-          profileToOverwrite.id,
-          profileToOverwrite,
-          "profiles",
+          configToOverwrite.id,
+          configToOverwrite,
+          "configs",
           "local"
         );
 
         logger.set({
           type: "success",
-          message: `Profile saved!`,
+          message: `Config saved!`,
         });
 
         engine.set("ENABLED");
@@ -365,16 +456,16 @@
     }
   }
 
-  async function handleTextEditLocalProfile(event) {
-    if (event.data.channelMessageType == "TEXT_EDIT_LOCAL_PROFILE") {
-      const { name, description, profile } = event.data;
-      if (name) profile.name = name;
-      if (description) profile.description = description;
+  async function handleTextEditLocalConfig(event) {
+    if (event.data.channelMessageType == "TEXT_EDIT_LOCAL_CONFIG") {
+      const { name, description, config } = event.data;
+      if (name) config.name = name;
+      if (description) config.description = description;
       return await window.electron.configs.updateLocal(
         $appSettings.persistant.profileFolder,
-        profile.id,
-        profile,
-        "profiles",
+        config.id,
+        config,
+        "configs",
         "local"
       );
     }
@@ -382,15 +473,16 @@
 
   let sessionPresetNumbers = [];
   let numberForSessionPreset = 0;
-  async function handleSplitLocalProfile(event) {
-    if (event.data.channelMessageType == "SPLIT_LOCAL_PROFILE") {
-      const { profileToSplit } = event.data;
+  async function handleSplitLocalConfig(event) {
+    if (event.data.channelMessageType == "SPLIT_LOCAL_CONFIG") {
+      const { configToSplit } = event.data;
       const path = $appSettings.persistant.profileFolder;
-      const profile = profileToSplit;
+      const config = configToSplit;
 
       let isSessionPresetNameUnique = undefined;
 
-      const conversionPromises = profile.configs.map((profileElement) => {
+      //TODO: differentiate between presets and profiles
+      const conversionPromises = config.configs.map((configElement) => {
         let user = "sessionPreset";
 
         let name;
@@ -402,7 +494,7 @@
         let sessionPresetName;
         sessionPresetNumbers = [];
 
-        name = `${profile.name} - Element ${profileElement.controlElementNumber}`;
+        name = `${profile.name} - Element ${configElement.controlElementNumber}`;
         description = "";
 
         if (profile.type == "BU16") {
@@ -418,27 +510,27 @@
         }
 
         if (profile.type == "EF44") {
-          if ([0, 1, 2, 3].includes(profileElement.controlElementNumber)) {
+          if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
             type = "encoder";
           }
-          if ([4, 5, 6, 7].includes(profileElement.controlElementNumber)) {
+          if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
             type = "fader";
           }
         }
 
         if (profile.type == "PBF4") {
-          if ([0, 1, 2, 3].includes(profileElement.controlElementNumber)) {
+          if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
             type = "potentiometer";
           }
-          if ([4, 5, 6, 7].includes(profileElement.controlElementNumber)) {
+          if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
             type = "fader";
           }
-          if ([8, 9, 10, 11].includes(profileElement.controlElementNumber)) {
+          if ([8, 9, 10, 11].includes(configElement.controlElementNumber)) {
             type = "button";
           }
         }
 
-        if (profileElement.controlElementNumber === 255) {
+        if (configElement.controlElementNumber === 255) {
           type = "system";
         }
 
@@ -446,7 +538,7 @@
           name: name,
           description: description,
           type: type,
-          isGridPreset: true, // differentiator from different JSON files!
+          configType: "preset", // differentiator from different JSON files!
           version: {
             major: $appSettings.version.major,
             minor: $appSettings.version.minor,
@@ -464,7 +556,7 @@
           PRESET_PATH,
           preset.name,
           preset,
-          "presets",
+          "configs",
           user
         );
       });
@@ -485,8 +577,8 @@
     if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
       console.log("profile cloud is mounted received");
       profileCloudIsMounted = true;
-      if (selectedModule !== undefined){
-        sendSelectedModuleInfo(selectedModule)
+      if (selectedModule !== undefined || selectedControlElementType !== undefined){
+        sendSelectedComponentInfos(selectedModule, selectedControlElementType)
       }
       return;
     }
@@ -497,44 +589,44 @@
       if (event.data == "profileCloudMounted") {
         channelMessageWrapper(event, handleProfileCloudMounted);
       }
-      if (event.data == "profileImportCommunication") {
-        channelMessageWrapper(event, handleImportProfile);
+      if (event.data == "configImportCommunication") {
+        channelMessageWrapper(event, handleImportConfig);
       }
-      if (event.data == "getListOfLocalProfiles") {
-        channelMessageWrapper(event, handleGetListOfLocalProfiles);
+      if (event.data == "getListOfLocalConfigs") {
+        channelMessageWrapper(event, handleGetListOfLocalConfigs);
       }
       if (
         event.data ==
-        "provideSelectedProfileForOptionalUploadingToOneOreMoreModules"
+        "provideSelectedConfigForOptionalUploadingToOneOreMoreModules"
       ) {
         channelMessageWrapper(
           event,
-          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules
+          handleProvideSelectedConfigForOptionalUploadingToOneOreMoreModules
         );
       }
-      if (event.data == "deleteLocalProfile") {
-        channelMessageWrapper(event, handleDeleteLocalProfile);
+      if (event.data == "deleteLocalConfig") {
+        channelMessageWrapper(event, handleDeleteLocalConfig);
       }
       // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
       if (
         event.data ==
-        "createNewLocalProfileWithTheSelectedModulesConfigurationFromEditor"
+        "createNewLocalConfigWithTheSelectedModulesConfigurationFromEditor"
       ) {
         const channel = event.ports[0];
         channel.onmessage = (event) =>
-          handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
+          handleCreateNewLocalConfigWithTheSelectedModulesConfigurationFromEditor(
             event,
             channel
           );
       }
       // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
-      if (event.data == "overwriteLocalProfile") {
+      if (event.data == "overwriteLocalConfig") {
         const channel = event.ports[0];
         channel.onmessage = (event) =>
-          handleOverwriteLocalProfile(event, channel);
+          handleOverwriteLocalConfig(event, channel);
       }
-      if (event.data == "textEditLocalProfile") {
-        channelMessageWrapper(event, handleTextEditLocalProfile);
+      if (event.data == "textEditLocalConfig") {
+        channelMessageWrapper(event, handleTextEditLocalConfig);
       }
       if (event.data == "loginToProfileCloud") {
         channelMessageWrapper(event, handleLoginToProfileCloud);
@@ -542,13 +634,13 @@
       if (event.data == "logoutFromProfileCloud") {
         channelMessageWrapper(event, handleLogoutFromProfileCloud);
       }
-      if (event.data == "splitLocalProfile") {
+      if (event.data == "splitLocalConfig") {
         channel.onmessage = (event) => {
           throw Error("Not implemented yet");
         };
       }
-      if (event.data == "createCloudProfileLink") {
-        channelMessageWrapper(event, handleCreateCloudProfileLink);
+      if (event.data == "createCloudConfigLink") {
+        channelMessageWrapper(event, handleCreateCloudConfigLink);
       }
       if (event.data == "submitAnalytics") {
         channelMessageWrapper(event, handleSubmitAnalytics);

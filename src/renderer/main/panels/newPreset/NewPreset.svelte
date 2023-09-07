@@ -2,7 +2,7 @@
   import { get } from "svelte/store";
   import { fade, blur, fly, slide, scale } from "svelte/transition";
   import { selectedPresetStore } from "/runtime/preset-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { presetChangeCallbackStore } from "./preset-change.store";
   import { onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";

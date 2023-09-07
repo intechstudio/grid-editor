@@ -13,9 +13,8 @@
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
   import { user_input } from "../../../runtime/runtime.store.js";
-  import { selectedProfileStore } from "../../../runtime/profile-helper.store";
-  import { selectedPresetStore } from "../../../runtime/preset-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { selectedConfigStore } from "/runtime/config-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { get } from "svelte/store";
 
   const components = [
@@ -56,8 +55,7 @@
   $: {
     if (!isActionButtonClicked) {
       if (
-        Object.keys($selectedProfileStore).length !== 0 ||
-        Object.keys($selectedPresetStore).length !== 0
+        Object.keys($selectedConfigStore).length !== 0
       ) {
         selectedElement = { id: "", brc: {}, event: {} };
       } else {

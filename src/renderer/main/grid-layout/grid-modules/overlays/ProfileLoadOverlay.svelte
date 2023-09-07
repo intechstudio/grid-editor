@@ -1,28 +1,32 @@
 <script>
-  import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
   export let id;
 
   let showOverlay = false;
-  let selectedProfile = undefined;
+  let selectedConfig = undefined;
   let isActionButtonClicked = false;
 
+  //TODO: isActionButtonClicked didn't seem right, check if rewrite is correct
+
   $: {
-    selectedProfile = $selectedProfileStore;
-    showLoadProfileOverlay(id, $selectedProfileStore.type);
+    selectedConfig = $selectedConfigStore;
+    showLoadProfileOverlay();
   }
 
   $: {
     isActionButtonClicked = $isActionButtonClickedStore;
-    showLoadProfileOverlay(id, $isActionButtonClickedStore.type);
+    showLoadProfileOverlay();
   }
 
-  function showLoadProfileOverlay(moduleId, profileType) {
+  function showLoadProfileOverlay() {
+    let moduleId = id;
+    let profileType = selectedConfig.type;
     let moduleType = moduleId.substr(0, 4);
-    if (moduleType == profileType && isActionButtonClicked == false) {
+    if (selectedConfig.configType === "profile" && moduleType === profileType && isActionButtonClicked === false) {
       showOverlay = true;
     } else {
       showOverlay = false;
@@ -50,7 +54,7 @@
     });
 
     // to do.. if undefined configs
-    runtime.whole_page_overwrite(selectedProfile.configs);
+    runtime.whole_page_overwrite(selectedConfig.configs);
 
     Analytics.track({
       event: "Profile Load Success",
@@ -60,7 +64,7 @@
   }
 
   function cancelProfileOverlay() {
-    selectedProfileStore.set({});
+    selectedConfigStore.set({});
   }
 </script>
 

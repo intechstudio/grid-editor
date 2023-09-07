@@ -20,9 +20,7 @@
   import Welcome from "./main/modals/Welcome.svelte";
   import Monaco from "./main/modals/Monaco.svelte";
   import Feedback from "./main/modals/Feedback.svelte";
-  import ProfileInfo from "./main/modals/ProfileInfo.svelte";
   import ProfileAttachment from "./main/modals/ProfileAttachment.svelte";
-  import ProfileEdit from "./main/modals/ProfileEdit.svelte";
   import PresetInfo from "./main/modals/PresetInfo.svelte";
   import PresetEdit from "./main/modals/PresetEdit.svelte";
 
@@ -55,9 +53,7 @@
   modalComponents["welcome"] = Welcome;
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
-  modalComponents["profileInfo"] = ProfileInfo;
   modalComponents["profileAttachment"] = ProfileAttachment;
-  modalComponents["profileEdit"] = ProfileEdit;
   modalComponents["presetInfo"] = PresetInfo;
   modalComponents["presetEdit"] = PresetEdit;
   modalComponents["userLogin"] = UserLogin;
