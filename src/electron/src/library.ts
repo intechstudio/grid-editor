@@ -50,7 +50,7 @@ export async function libraryDownload(targetFolder) {
 
   let downloadResult = await downloadInMainProcess(
     configuration.LIBRARY_GITHUB_URL,
-    "temp"
+    "temp",
   );
 
   log.info("Download completed!");
@@ -58,7 +58,7 @@ export async function libraryDownload(targetFolder) {
   let libraryFilePaths = await extractArchiveToTemp(
     downloadResult,
     ".json",
-    targetFolder
+    targetFolder,
   );
 
   log.info("Archive extracted!");
@@ -116,7 +116,7 @@ export async function uxpPhotoshopDownload(targetFolder) {
 
   let downloadResult = await downloadInMainProcess(
     configuration.LIBRARY_GITHUB_URL,
-    "temp"
+    "temp",
   );
 
   log.info("Download completed!");

@@ -40,7 +40,7 @@ function init() {
     "BULD_ENV: ",
     buildVariables.BUILD_ENV,
     " CHANNEL: ",
-    autoUpdater.channel
+    autoUpdater.channel,
   );
 
   if (

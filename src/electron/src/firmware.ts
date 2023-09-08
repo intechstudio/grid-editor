@@ -51,7 +51,7 @@ export async function findBootloaderPath() {
       a.blocks === 32640 ||
       a.blocks === 65281 ||
       a.blocks === 65280 ||
-      a.blocks === 33423360
+      a.blocks === 33423360,
   );
 
   //console.log("DiskInfo", diskInfo)
@@ -138,7 +138,7 @@ export async function firmwareDownload(targetFolder) {
   const filePathArray = await extractArchiveToTemp(
     downloadResult,
     ".uf2",
-    targetFolder
+    targetFolder,
   );
 
   await delay(1000);
@@ -192,7 +192,7 @@ export async function firmwareDownload(targetFolder) {
     try {
       fs.copySync(
         targetFolder + "/temp/" + firmwareFileName,
-        path + "/" + firmwareFileName
+        path + "/" + firmwareFileName,
       );
     } catch (error) {
       console.log("COPY ERROR UNBOUNT", error);

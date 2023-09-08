@@ -15,7 +15,7 @@ export function menuBoundaries(node) {
     // 20 as a "padding on bottom"
     if (topOffset < 20) {
       node.dispatchEvent(
-        new CustomEvent("offset-top", { detail: topOffset - 20 })
+        new CustomEvent("offset-top", { detail: topOffset - 20 }),
       );
     }
   }
@@ -29,7 +29,7 @@ export function menuBoundaries(node) {
   return {
     update() {
       node.dispatchEvent(
-        new CustomEvent("offset-top", { detail: topOffset - 20 })
+        new CustomEvent("offset-top", { detail: topOffset - 20 }),
       );
     },
 
@@ -48,7 +48,7 @@ export function configListScrollSize(node, configs) {
     node.dispatchEvent(
       new CustomEvent("height", {
         detail: `${rect.height - (rect.bottom - window.innerHeight) - 40}px`,
-      })
+      }),
     );
   }
 

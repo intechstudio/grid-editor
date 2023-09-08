@@ -36,7 +36,7 @@ interface NewProfile {
 
 export async function migrateToProfileCloud(
   oldPath: string,
-  newPath: string
+  newPath: string,
 ): Promise<void> {
   const entries = await readdir(oldPath, { withFileTypes: true });
 
@@ -69,7 +69,7 @@ export async function migrateToProfileCloud(
       fs.mkdirSync(fullNewPath, { recursive: true });
       await writeFile(
         path.join(fullNewPath, `${newProfile.id}.json`),
-        JSON.stringify(newProfile, null, 2)
+        JSON.stringify(newProfile, null, 2),
       );
     }
   }
@@ -107,11 +107,11 @@ export async function moveOldConfigs(configPath, rootDirectory) {
 
                     if (
                       !fs.existsSync(
-                        `${path}/${rootDirectory}/${author}/${basename}`
+                        `${path}/${rootDirectory}/${author}/${basename}`,
                       )
                     ) {
                       fs.mkdirSync(
-                        `${path}/${rootDirectory}/${author}/${basename}`
+                        `${path}/${rootDirectory}/${author}/${basename}`,
                       );
                     }
 
@@ -163,7 +163,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
 
     for (const dir of dirs) {
       const directories = await fs.promises.readdir(
-        `${path}/${rootDirectory}/${dir}`
+        `${path}/${rootDirectory}/${dir}`,
       );
       for (const directory of directories) {
         let directorypath =
@@ -171,7 +171,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
         const [stats] = await checkIfWritableDirectory(directorypath);
         if (stats.isDirectory) {
           const files = await fs.promises.readdir(
-            `${path}/${rootDirectory}/${dir}/${directory}`
+            `${path}/${rootDirectory}/${dir}/${directory}`,
           );
           for (const file of files) {
             let filepath =
@@ -222,7 +222,7 @@ export async function saveConfig(
   name,
   config,
   rootDirectory,
-  user
+  user,
 ) {
   const path = configPath;
 
@@ -241,7 +241,7 @@ export async function saveConfig(
   await fs.promises
     .writeFile(
       `${path}/${rootDirectory}/${user}/${name}/${name}.json`,
-      JSON.stringify(config, null, 4)
+      JSON.stringify(config, null, 4),
     )
     .then((data) => {
       console.log("Saved!");
@@ -256,7 +256,7 @@ export async function deleteConfig(
   configPath,
   name,
   rootDirectory,
-  profileFolder
+  profileFolder,
 ) {
   const path = configPath;
   log.info("deleteConfig");
@@ -275,7 +275,7 @@ export async function updateLocal(
   id,
   config,
   rootDirectory,
-  profileFolder
+  profileFolder,
 ) {
   await saveConfig(configPath, id, config, rootDirectory, profileFolder);
 }
@@ -286,7 +286,7 @@ export async function updateConfig(
   config,
   rootDirectory,
   oldName,
-  profileFolder
+  profileFolder,
 ) {
   if (oldName === name) {
     // just save and overwrite existing profile
