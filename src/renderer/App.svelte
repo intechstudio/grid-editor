@@ -287,7 +287,7 @@
               <Pages class="w-full z-10" />
               {#if ($writeBuffer.length > 0 && $runtime.length > 0) || navigator.showThinker}
                 <div
-                  in:fade={{ duration: 300 }}
+                  in:fade={{ delay: 300, duration: 300 }}
                   out:blur={{ duration: 150 }}
                   class="absolute z-0 top-0 left-0 w-full h-full backdrop-blur-sm bg-primary bg-opacity-20"
                 />
@@ -297,7 +297,7 @@
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
                 <div
-                  in:fade={{ delay: 2000, duration: 1000 }}
+                  in:fade={{ delay: 1000, duration: 1000 }}
                   out:blur={{ duration: 150 }}
                   class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
                 >
@@ -318,7 +318,7 @@
 
                 {#if ($writeBuffer.length > 0 && $runtime.length > 0) || navigator.showThinker}
                   <div
-                    in:fade={{ duration: 1000 }}
+                    in:fade={{ delay: 300, duration: 1000 }}
                     out:blur={{ duration: 150 }}
                     class="absolute bottom-0 left-0 bg-primary ml-6 mb-4 py-2 px-4 rounded-lg shadow"
                   >
