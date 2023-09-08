@@ -13,7 +13,7 @@
     "@sveltejs/vite-plugin-svelte": "^1.0.9",
     "autoprefixer": "^10.4.12",
     "chai": "^4.3.4",
-    "chokidar": "^3.5.3",
+    "chokidar": "^3.4.3",
     "cross-env": "^7.0.2",
     "dotenv": "^14.2.0",
     "electron": "^22.0.0",
