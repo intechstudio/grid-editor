@@ -189,7 +189,11 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'ProfileCloud' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
+<<<<<<< HEAD
         : 'bg-opacity-40 '} bg-secondary focus:outline-none"
+=======
+        : 'bg-opacity-40 '} bg-secondary"
+>>>>>>> stable
     >
       <svg
         class="w-full h-full p-1.5 text-white fill-current"
@@ -223,7 +227,11 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
         {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
+<<<<<<< HEAD
         : 'bg-opacity-40'} bg-secondary focus:outline-none"
+=======
+        : 'bg-opacity-40'} bg-secondary"
+>>>>>>> stable
     >
       <svg
         class="p-2 w-full h-full text-white fill-current"

@@ -34,6 +34,7 @@
 
   let ledSize = 6;
 </script>
+
 <svg
   width={size * ledSize + "px"}
   height={size * ledSize + "px"}

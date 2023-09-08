@@ -10,7 +10,7 @@ const configuration = window.ctxProcess.configuration();
 
 // INITIALIZE THE INTERVAL
 console.log(
-  "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true",
+  "Initialize Discovery Interval! ENABLE debugging through navigator.debugSerial = true"
 );
 window.electron.serial.restartSerialCheckInterval();
 
@@ -140,7 +140,7 @@ function fetchStream() {
         messageStopIndex = i;
         let currentMessage = rxBuffer.slice(
           messageStartIndex,
-          messageStopIndex,
+          messageStopIndex
         );
         messageStartIndex = i + 1;
 
