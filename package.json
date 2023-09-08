@@ -1,7 +1,7 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.41",
+  "version": "1.2.42",
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
@@ -152,6 +152,7 @@
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
-    "electron-dev": "run-s gen:buildVars:dev electron:dev"
+    "electron-dev": "run-s gen:buildVars:dev electron:dev",
+    "format": "prettier --write ."
   }
 }
