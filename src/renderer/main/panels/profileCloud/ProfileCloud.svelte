@@ -184,34 +184,10 @@
       const path = $appSettings.persistant.profileFolder;
       const presetPath = $appSettings.persistant.presetFolder;
 
-      //profiles folder is the legacy profile folder, add configType parameter
-      const profiles = await window.electron.configs.loadConfigsFromDirectory(
-        path,
-        "profiles"
-      );
-      for (const profile of profiles){
-        profile.configType = "profile";
-      }
-
-      //presets folder is the legacy preset folder, add configType parameter
-      const presets = await window.electron.configs.loadConfigsFromDirectory(
-        presetPath,
-        "presets"
-      );
-      for (const preset of presets){
-        preset.configType = "preset";
-      }
-
-      const configs = await window.electron.configs.loadConfigsFromDirectory(
+      return await window.electron.configs.loadConfigsFromDirectory(
         path,
         "configs"
       );
-      const configIds = new Set(configs.map((config) => config.id));
-      return [
-        ...configs, 
-        ...(profiles.filter((profile) => !configIds.has(profile.id))), 
-        ...(presets.filter((preset) => !configIds.has(preset.id)))
-      ]; 
     }
   }
 
