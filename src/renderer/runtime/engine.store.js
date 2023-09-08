@@ -20,8 +20,8 @@ function createWriteBuffer() {
     _write_buffer.update((s) =>
       s.filter(
         (g) =>
-          g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy,
-      ),
+          g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy
+      )
     );
 
     // clear the active element if it matches the destroyed module's dx dy
