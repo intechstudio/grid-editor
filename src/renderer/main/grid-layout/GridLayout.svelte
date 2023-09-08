@@ -114,7 +114,7 @@
   );
 </script>
 
-<layout-container class="{$$props.class} relative flex overflow-hidden">
+<layout-container class="{$$props.class} overflow-hidden">
   <div
     style="
       --device-width: {deviceWidth}px; 

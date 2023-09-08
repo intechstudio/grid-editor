@@ -80,10 +80,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
-    dy == selectedElement.brc.dy
-      ? 'border-2 border-gray-500'
-      : 'border-transparent'}"
+    class="module-dimensions"
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}

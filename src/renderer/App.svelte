@@ -285,6 +285,13 @@
           >
             <GridLayout class="relative w-full h-full flex flex-col z-1">
               <Pages class="w-full z-10" />
+              {#if ($writeBuffer.length > 0 && $runtime.length > 0) || navigator.showThinker}
+                <div
+                  in:fade={{ duration: 300 }}
+                  out:blur={{ duration: 150 }}
+                  class="absolute z-0 top-0 left-0 w-full h-full backdrop-blur-sm bg-primary bg-opacity-20"
+                />
+              {/if}
 
               <ActiveChanges class="w-fit self-center mt-10 z-10" />
 
@@ -299,7 +306,7 @@
               {/if}
 
               <div class="flex">
-                {#if trackerVisible}
+                {#if trackerVisible && !$writeBuffer.length > 0}
                   <div
                     in:fly={{ x: -10 }}
                     out:fly={{ x: 10 }}
@@ -319,8 +326,8 @@
                       <Spinner class="scale-50 -mx-5" />
                       {#if moduleHanging}
                         <span class="text-white w-52"
-                          >One of the modules seems to be hanging or crashed. Do
-                          reset communications?</span
+                          >One of the modules seems to be hanging or crashed.
+                          Reset communications?</span
                         >
                         <button
                           use:setTooltip={{

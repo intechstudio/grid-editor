@@ -162,12 +162,17 @@
     }
   }
 
+  let bufferValueChanged = false;
   $: {
     if ($writeBuffer.length > 0) {
+      bufferValueChanged = true;
       displayDefault();
     } else {
-      //Display User Input
-      //handleUserInputchange();
+      if (bufferValueChanged) {
+        //Display User Input
+        handleUserInputchange();
+        bufferValueChanged = false;
+      }
     }
   }
 
