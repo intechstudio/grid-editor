@@ -85,7 +85,7 @@ jobs:
 
           # Apple ID
           APPLE_ID: ${{secrets.APPLE_ID}}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
+          APPLE_ID_PASSWORD: ${{secrets.APPLE_ID_PASSWORD}}
 
           # macOS Code signing
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
