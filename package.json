@@ -8,7 +8,7 @@
     "url": "https://github.com/intechstudio/grid-editor.git"
   },
   "devDependencies": {
-    "@electron/notarize": "^1.2.3",
+    "@electron/notarize": "^2.1.0",
     "@playwright/test": "^1.36.1",
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "autoprefixer": "^10.4.12",
