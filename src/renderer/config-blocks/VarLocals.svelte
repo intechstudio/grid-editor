@@ -299,7 +299,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Locals" />
+  <SendFeedback feedback_context="Locals" class="mt-2 text-sm text-gray-500" />
 </config-local-definitions>
 
 <style>

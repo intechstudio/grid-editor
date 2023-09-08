@@ -562,7 +562,10 @@ A -> B : AB-First step
     <div class="pl-2">Beautify is {beautify ? "on" : "off"}.</div>
   </div>
 
-  <SendFeedback feedback_context="LedColor" />
+  <SendFeedback
+    feedback_context="LedColor"
+    class="mt-2 text-sm text-gray-500"
+  />
 </config-led-color>
 
 <style>

@@ -15,7 +15,7 @@
   }
 </script>
 
-<button on:click={openFeedbackFrom} class="feedback text-sm text-gray-500 mt-2">
+<button on:click={openFeedbackFrom} class="{$$props.class} feedback">
   Send Feedback
 </button>
 

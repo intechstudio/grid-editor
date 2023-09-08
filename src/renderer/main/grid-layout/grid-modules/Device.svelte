@@ -130,8 +130,10 @@
       {/if}
     {/if}
 
-    <ProfileLoadOverlay {id} />
-    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {#if $writeBuffer.length == 0}
+      <ProfileLoadOverlay {id} />
+      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {/if}
   </svelte:component>
 {/if}
 
