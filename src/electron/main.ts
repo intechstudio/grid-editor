@@ -26,7 +26,7 @@ log.info(
   "NAME: ",
   configuration.EDITOR_NAME,
   " VERSION: ",
-  configuration.EDITOR_VERSION,
+  configuration.EDITOR_VERSION
 );
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
@@ -142,7 +142,7 @@ if (!gotTheLock) {
           mainWindow.focus();
         }
       }
-    },
+    }
   );
 
   app.whenReady().then(() => {
@@ -198,7 +198,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    },
+    }
   );
 
   serial.mainWindow = mainWindow;
@@ -220,10 +220,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
   }
 
@@ -258,7 +258,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -279,7 +279,7 @@ function createWindow() {
       ) {
         return true;
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -298,16 +298,16 @@ function createWindow() {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
     const process = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./pluginManager.js")),
+      path.resolve(path.join(__dirname, "./pluginManager.js"))
     );
     process.postMessage(
       {
         pluginFolder: path.resolve(
-          path.join(app.getPath("documents"), "grid-userdata", "plugins"),
+          path.join(app.getPath("documents"), "grid-userdata", "plugins")
         ),
         version: configuration.EDITOR_VERSION,
       },
-      [port2],
+      [port2]
     );
   });
 }
@@ -430,7 +430,7 @@ ipcMain.handle("saveConfig", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.user,
+    arg.user
   );
 });
 
@@ -441,7 +441,7 @@ ipcMain.handle("updateConfig", async (event, arg) => {
     arg.config,
     arg.rootDirectory,
     arg.oldName,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 
@@ -451,7 +451,7 @@ ipcMain.handle("updateLocal", async (event, arg) => {
     arg.name,
     arg.config,
     arg.rootDirectory,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 
@@ -460,7 +460,7 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
     arg.configPath,
     arg.name,
     arg.rootDirectory,
-    arg.profileFolder,
+    arg.profileFolder
   );
 });
 

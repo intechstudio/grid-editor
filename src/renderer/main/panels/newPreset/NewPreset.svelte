@@ -1143,8 +1143,16 @@
                 <div class="overflow-auto flex flex-col gap-4 mb-2">
                   {#each filteredPresetCloud as preset (preset.id)}
                     <button
-                      in:flyAnimation|global={{ fn: fly, x: -50, duration: 200 }}
-                      out:fadeAnimation|global={{ fn: fade, y: 50, duration: 150 }}
+                      in:flyAnimation|global={{
+                        fn: fly,
+                        x: -50,
+                        duration: 200,
+                      }}
+                      out:fadeAnimation|global={{
+                        fn: fade,
+                        y: 50,
+                        duration: 150,
+                      }}
                       on:click={() => {
                         selectedPresetStore.set(preset);
                       }}

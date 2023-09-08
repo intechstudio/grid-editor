@@ -141,7 +141,10 @@
       </div>
 
       {#if showbuttons}
-        <div transition:slide|global={{ duration: 100 }} class="flex flex-row gap-2">
+        <div
+          transition:slide|global={{ duration: 100 }}
+          class="flex flex-row gap-2"
+        >
           {#each buttons as button}
             <button
               class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
