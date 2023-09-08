@@ -32,6 +32,7 @@ module.exports = async function (params) {
 
   try {
     await notarize({
+      tool: 'notarytool',
       appBundleId: appId,
       appPath: appPath,
       appleId: process.env.APPLE_ID,
