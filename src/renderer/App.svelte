@@ -21,8 +21,6 @@
   import Monaco from "./main/modals/Monaco.svelte";
   import Feedback from "./main/modals/Feedback.svelte";
   import ProfileAttachment from "./main/modals/ProfileAttachment.svelte";
-  import PresetInfo from "./main/modals/PresetInfo.svelte";
-  import PresetEdit from "./main/modals/PresetEdit.svelte";
 
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
@@ -54,8 +52,6 @@
   modalComponents["code"] = Monaco;
   modalComponents["feedback"] = Feedback;
   modalComponents["profileAttachment"] = ProfileAttachment;
-  modalComponents["presetInfo"] = PresetInfo;
-  modalComponents["presetEdit"] = PresetEdit;
   modalComponents["userLogin"] = UserLogin;
 
   let shapeSelected;
