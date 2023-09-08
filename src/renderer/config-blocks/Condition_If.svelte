@@ -7,7 +7,7 @@
     rounding: "top",
     hiddenIcon: true,
     category: "condition",
-    desc: "IF",
+    desc: "If",
     blockTitle: "If",
     defaultLua: "if  then --[[@en]] end",
     icon: `
