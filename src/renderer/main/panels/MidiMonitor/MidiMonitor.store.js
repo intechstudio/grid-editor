@@ -221,7 +221,7 @@ function createMidiMonitor(max_length) {
             cp.COMMAND,
             cp.PARAM1,
             cp.PARAM2,
-            descr.class_instr
+            descr.class_instr,
           ),
           device: new DeviceInfo(getDeviceName(bc.SX, bc.SY), bc.SX, bc.SY),
         };

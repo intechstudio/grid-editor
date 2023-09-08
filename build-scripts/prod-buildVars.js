@@ -14,5 +14,5 @@ fs.writeFile(
   (err) => {
     if (err) throw err;
     console.log("buildVariables.json has been saved in the root folder!");
-  }
+  },
 );

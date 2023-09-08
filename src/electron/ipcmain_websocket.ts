@@ -15,7 +15,7 @@ function startWebsocketServer(port) {
   wss = new WebSocket.Server({ port: port });
 
   wss.on("error", (error) =>
-    console.log("The server encountered an error!", error)
+    console.log("The server encountered an error!", error),
   );
 
   wss.on("connection", function (ws) {

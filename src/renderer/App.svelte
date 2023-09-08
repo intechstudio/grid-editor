@@ -206,11 +206,7 @@
     const { DOMElementCount } = e.detail;
     trackerVisible = DOMElementCount === 0;
   }
-
-
 </script>
-
-
 
 <Titlebar />
 

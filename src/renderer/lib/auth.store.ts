@@ -31,7 +31,7 @@ const createAuth = () => {
       async (userCredential) => {
         const userIdToken = await centralAuth.currentUser!.getIdToken();
         set({ event: "login", providerId: "oidc", idToken: userIdToken });
-      }
+      },
     );
   }
 
