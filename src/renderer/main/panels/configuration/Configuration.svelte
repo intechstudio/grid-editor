@@ -630,7 +630,7 @@
   {#key $appSettings.configType == "uiEvents"}
     <container
       class="flex flex-col h-full"
-      in:fly={{
+      in:fly|global={{
         x: $appSettings.configType == "uiEvents" ? -5 : 5,
         opacity: 0.5,
         duration: 200,
@@ -704,7 +704,7 @@
             {#each $configs as config, index (config)}
               <anim-block
                 animate:flip={{ duration: 300 }}
-                in:fade={{ delay: 0 }}
+                in:fade|global={{ delay: 0 }}
               >
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper

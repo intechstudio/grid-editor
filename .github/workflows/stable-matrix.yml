@@ -58,7 +58,7 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "16.13.2"
+          node-version: "18.16.1"
 
       - name: Download profile cloud artifact
         uses: actions/download-artifact@v3
@@ -81,7 +81,7 @@ jobs:
 
           # Apple ID
           APPLE_ID: ${{secrets.APPLE_ID}}
-          APPLE_ID_PASSWORD: ${{secrets.APPLE_ID_PASSWORD}}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
 
           # macOS Code signing
           CSC_LINK: ${{ secrets.MAC_CSC_LINK }}

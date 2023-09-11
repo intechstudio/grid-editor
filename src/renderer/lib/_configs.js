@@ -16,7 +16,7 @@ export async function init_config_block_library() {
       files.map(async (file) => {
         const configBlockName = file.substring(17, file.length - 7);
         return await import(`../config-blocks/${configBlockName}.svelte`);
-      }),
+      })
     ).then((value) => {
       config_components = value;
       console.info("Config blocks imported!");
@@ -46,6 +46,6 @@ export function getAllComponents() {
   }
 
   return config_components.map(
-    (c) => (c = { component: c.default, information: c.information }),
+    (c) => (c = { component: c.default, information: c.information })
   );
 }

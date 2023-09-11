@@ -1,5 +1,6 @@
 .DS_Store
 node_modules
+package-lock.json
 public/build/*
 profile-cloud/
 dist-svelte
@@ -11,3 +12,4 @@ build
 /playwright/.cache/
 buildVariables.json
 .vscode/launch.json
+

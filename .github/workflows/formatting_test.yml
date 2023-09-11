@@ -16,13 +16,12 @@ jobs:
       - name: Setup NodeJs
         uses: actions/setup-node@v3
         with:
-          node-version: "18.4.0"
+          node-version: "18.16.1"
 
       - name: Install dependencies
         run: |
-          npm i prettier --global
-          npm i prettier-plugin-svelte --global
-          prettier --write .
+          npm i
+          npm run format
           git status
           touch format_error.txt
           echo 'Changed Files:'

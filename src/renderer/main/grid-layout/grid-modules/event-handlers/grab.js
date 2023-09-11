@@ -9,7 +9,7 @@ export function grab(node) {
     node.dispatchEvent(
       new CustomEvent("grabstart", {
         detail: { x, y },
-      }),
+      })
     );
 
     window.addEventListener("mousemove", handleMousemove);
@@ -25,7 +25,7 @@ export function grab(node) {
     node.dispatchEvent(
       new CustomEvent("grabmove", {
         detail: { x, y, dx, dy },
-      }),
+      })
     );
   }
 
@@ -36,7 +36,7 @@ export function grab(node) {
     node.dispatchEvent(
       new CustomEvent("grabend", {
         detail: { x, y },
-      }),
+      })
     );
 
     window.removeEventListener("mousemove", handleMousemove);

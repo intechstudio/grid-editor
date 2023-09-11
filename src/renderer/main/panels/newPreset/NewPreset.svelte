@@ -666,8 +666,8 @@
       <Pane size={31}>
         <div class=" flex flex-col bg-primary overflow-hidden h-full w-full">
           <div
-            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+            out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
             class=" flex flex-col p-3 overflow-hidden h-full"
           >
             <button
@@ -692,8 +692,8 @@
 
               {#each sessionPreset as sessionPresetElement (sessionPresetElement.id)}
                 <button
-                  in:flyAnimation|local={{ fn: fly, x: -50, duration: 200 }}
-                  out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+                  in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
+                  out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
                   on:click={() => selectPreset(sessionPresetElement)}
                   class="cursor-pointer flex justify-between gap-2 items-center
         text-left p-2 bg-secondary hover:bg-primary-600
@@ -948,13 +948,13 @@
           <div
             class="flex flex-col overflow-hidden"
             id="browse-presets"
-            in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-            out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+            in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+            out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
           >
             {#if isSearchSortingShows == true}
               <div
-                in:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
-                out:fadeAnimation|local={{ fn: fade, y: 50, duration: 150 }}
+                in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+                out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
               >
                 <div class="flex flex-col gap-1 p-3">
                   <div class="relative">
@@ -1125,26 +1125,34 @@
 
             <div class="w-full">
               {#if PRESETS.length === 0}
-                <div in:fade={{ delay: 500 }} class="text-yellow-500">
+                <div in:fade|global={{ delay: 500 }} class="text-yellow-500">
                   <b>Presets not found!</b>
                 </div>
-                <div in:fade={{ delay: 1000 }} class="text-yellow-500">
+                <div in:fade|global={{ delay: 1000 }} class="text-yellow-500">
                   Setup preset folder and download the default preset library in
                   the Preferences menu...
                 </div>
               {/if}
             </div>
             <div
-              in:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
-              out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+              in:fadeAnimation|global={{ fn: fade, y: 50, duration: 150 }}
+              out:fadeAnimation|global={{ fn: fade, y: 50, duration: 150 }}
               class="p-3 gap-6 flex flex-col h-full overflow-auto"
             >
               <div class="flex flex-col overflow-auto">
                 <div class="overflow-auto flex flex-col gap-4 mb-2">
                   {#each filteredPresetCloud as preset (preset.id)}
                     <button
-                      in:flyAnimation={{ fn: fly, x: -50, duration: 200 }}
-                      out:fadeAnimation={{ fn: fade, y: 50, duration: 150 }}
+                      in:flyAnimation|global={{
+                        fn: fly,
+                        x: -50,
+                        duration: 200,
+                      }}
+                      out:fadeAnimation|global={{
+                        fn: fade,
+                        y: 50,
+                        duration: 150,
+                      }}
                       on:click={() => {
                         selectedPresetStore.set(preset);
                       }}

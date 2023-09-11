@@ -140,7 +140,7 @@
   <div class="flex justify-between items-center mt-2">
     {#key commitState}
       <div
-        in:fly={{ x: -5, duration: 200 }}
+        in:fly|global={{ x: -5, duration: 200 }}
         class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm"
       >
         {commitState ? "Unsaved changes!" : "Synced with Grid!"}
