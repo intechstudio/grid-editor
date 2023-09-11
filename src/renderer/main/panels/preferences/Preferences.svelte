@@ -1,11 +1,6 @@
 <script lang="ts">
   import { engine, logger } from "../../../runtime/runtime.store.js";
-  import isOnline from "is-online";
   import { writable, get } from "svelte/store";
-  import {
-    profileListRefresh,
-    presetListRefresh,
-  } from "../../../runtime/app-helper.store.js";
 
   import instructions from "../../../serialport/instructions";
 
@@ -17,27 +12,16 @@
   import VRadioButton from "./VRadioButton.svelte";
   import VCheckbox from "./VCheckbox.svelte";
 
+  import MeltCheckbox from "./MeltCheckbox.svelte";
   import MeltRadio from "./MeltRadio.svelte";
+  import MeltSlider from "./MeltSlider.svelte";
+  import BlockTitle from "./BlockTitle.svelte";
+  import BlockBody from "./BlockBody.svelte";
+  import Block from "./Block.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
-  let helperPreviewElement;
-
-  let helperAttachment = writable({
-    element: helperPreviewElement,
-    scale: 0.7,
-    vpos: "50%",
-    hpos: "50%",
-  });
-
-  onMount(async () => {
-    helperAttachment.set({
-      element: helperPreviewElement,
-      scale: 0.7,
-      vpos: "50%",
-      hpos: "50%",
-    });
-  });
+  onMount(async () => {});
 
   let DEFAULT_PATH = "";
 
@@ -144,82 +128,6 @@
     activePreferenceMenu = item;
   }
 
-  const generalSettings = {
-    moduleRotation: {
-      title: "Control surface rotation",
-      description:
-        "Changes how the controllers are rotated in Grid Editor. Useful when the plugged-in module is rotated.",
-      type: "radio",
-      options: [
-        { title: "0°", value: 0 },
-        { title: "90°", value: 90 },
-        { title: "180°", value: 180 },
-        { title: "270°", value: 270 },
-      ],
-    },
-    controllerScaling: {
-      title: "Controller scaling",
-      description: "Size of the controllers in the application.",
-    },
-    welcomeScreen: {
-      title: "Welcome screen",
-      description:
-        "News and quick links are shown every time you launch Grid Editor.",
-      type: "checkbox",
-      label: "Show welcome screen",
-    },
-    runAppInBackground: {
-      title: "Run application in background",
-      description:
-        "Change what happens when you close the application window. Some features, plugins might only work when the application always runs.",
-      type: "radio",
-      options: [
-        {
-          title: "Keep the application running on the tray or dock",
-          value: true,
-        },
-        { title: "On close, quit the application", value: false },
-      ],
-    },
-    resetSettings: {
-      level: "danger",
-      title: "Reset settings",
-      description:
-        "Reset all preferences settings to their default values. This will not affect your profiles or other data.",
-      label: "Reset application settings",
-    },
-    migrateProfiles: {
-      title: "Convert profiles to new format",
-      description:
-        "Before migration, it's safest to archive (.zip) your grid-userdata! After v1.2.35, we introduced Profile Cloud. Moving forward, we will develop this feature. To move your profiles to the new format, click the button below.",
-      label: "Migrate profiles",
-    },
-  };
-
-  const privacySettings = {
-    requiredInformation: {
-      title: "Use data to make Editor work",
-      description:
-        "We process anonymized logs and errors the application produces to promptly respond to failing services. This analytics data is automatically captured when Editor has access to the internet.",
-    },
-    improveApp: {
-      title: "Use data to improve Editor",
-      description:
-        "Using your interactions with the Editor software we can get insight how the software is being used and we can continue improving it.",
-      type: "checkbox",
-      value: 1,
-      label: "Track interaction with the Editor application",
-    },
-  };
-
-  const userLibrarySettings = {
-    libraryLocation: {
-      title: "Grid Editor user data folder",
-      description:
-        "Local folder on your hard drive where local profiles, temporary downloads and other Editor related files are saved.",
-    },
-  };
-
   const developerSettings = {
     nvmDefrag: {
       title: "NVM Defrag",
@@ -266,52 +174,33 @@
   </div>
 
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{generalSettings.moduleRotation.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.moduleRotation.description}
-      </div>
-      <div
-        class="bg-black bg-opacity-10 border border-black border-opacity-20 text-white grid gap-4 grid-flow-col p-2"
-      >
-        {#each generalSettings.moduleRotation.options as option}
-          <label class=" group flex w-full items-center cursor-pointer">
-            <VRadioButton
-              selectedState={$appSettings.persistant.moduleRotation ==
-                option.value}
-            />
-            <input
-              type="radio"
-              class="hidden"
-              name="scoops"
-              value={option.value}
-              bind:group={$appSettings.persistant.moduleRotation}
-            />
-            <span
-              class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
-                .persistant.moduleRotation == option.value
-                ? 'text-opacity-100'
-                : 'text-opacity-80'}"
-              >{option.title}
-            </span>
-          </label>
-        {/each}
-      </div>
-    </div>
+    <Block>
+      <BlockTitle>Control surface rotation</BlockTitle>
+      <BlockBody>
+        Changes how the controllers are rotated in Grid Editor. Useful when the
+        plugged-in module is rotated.
+      </BlockBody>
+      <MeltRadio
+        bind:target={$appSettings.persistant.moduleRotation}
+        orientation={"horizontal"}
+        options={[
+          { title: "0°", value: 0 },
+          { title: "90°", value: 90 },
+          { title: "180°", value: 180 },
+          { title: "270°", value: 270 },
+        ]}
+      />
+    </Block>
 
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{generalSettings.controllerScaling.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.controllerScaling.description}
-      </div>
+    <Block>
+      <BlockTitle>Controller scaling</BlockTitle>
+      <BlockBody>Size of the controllers in the application.</BlockBody>
       <div class="flex flex-row w-full gap-y-1 gap-x-8 py-2">
-        <input
-          class="flex flex-grow accent-neutral-500"
-          type="range"
-          min="0.5"
-          max="2.6"
-          step="0.1"
-          bind:value={$appSettings.persistant.size}
+        <MeltSlider
+          bind:target={$appSettings.persistant.size}
+          min={0.5}
+          max={2.6}
+          step={0.1}
         />
         <button
           class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
@@ -321,115 +210,78 @@
           >Reset
         </button>
       </div>
-    </div>
-
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{generalSettings.welcomeScreen.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.welcomeScreen.description}
-      </div>
-      <label
-        class="bg-black bg-opacity-10 border border-black border-opacity-20 group flex text-white items-center cursor-pointer p-2"
+    </Block>
+    <Block>
+      <BlockTitle>Welcome screen</BlockTitle>
+      <BlockBody
+        >News and quick links are shown every time you launch Grid Editor.</BlockBody
       >
-        <VCheckbox checkedState={$appSettings.persistant.welcomeOnStartup} />
-        <input
-          class="hidden"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.welcomeOnStartup}
-        />
-        <div
-          class="pl-2 text-white group-hover:text-opacity-100 {$appSettings
-            .persistant.welcomeOnStartup
-            ? 'text-opacity-100'
-            : 'text-opacity-80'}"
-        >
-          {generalSettings.welcomeScreen.label}
-        </div>
-      </label>
-    </div>
+      <MeltCheckbox
+        bind:target={$appSettings.persistant.welcomeOnStartup}
+        title={"Show welcome screen"}
+      />
+    </Block>
 
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{generalSettings.runAppInBackground.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.runAppInBackground.description}
-      </div>
-      <div class="text-white grid grid-flow-row gap-4 py-2">
-        {#each generalSettings.runAppInBackground.options as option}
-          <label
-            class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
-          >
-            <VRadioButton
-              selectedState={$appSettings.persistant.alwaysRunInTheBackground ==
-                option.value}
-            />
-            <input
-              class="hidden"
-              type="radio"
-              name="scoops"
-              value={option.value}
-              bind:group={$appSettings.persistant.alwaysRunInTheBackground}
-            />
-            <span
-              class="pl-2 text-white {$appSettings.persistant
-                .alwaysRunInTheBackground == option.value
-                ? 'text-opacity-100'
-                : 'text-opacity-80'} group-hover:text-opacity-100"
-              >{option.title}</span
-            >
-          </label>
-        {/each}
-      </div>
-    </div>
+    <Block>
+      <BlockTitle>Run application in background</BlockTitle>
+      <BlockBody>
+        Change what happens when you close the application window. Some
+        features, plugins might only work when the application always runs.
+      </BlockBody>
+      <MeltRadio
+        bind:target={$appSettings.persistant.alwaysRunInTheBackground}
+        options={[
+          {
+            title: "Keep the application running on the tray or dock",
+            value: true,
+          },
+          {
+            title: "On close, quit the application",
+            value: false,
+          },
+        ]}
+      />
+    </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.PRIVACY}
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{privacySettings.requiredInformation.title}</div>
-      <div class="py-2 text-white text-opacity-60">
-        {privacySettings.requiredInformation.description}
-      </div>
-    </div>
+    <Block>
+      <BlockTitle>Use data to make Editor work</BlockTitle>
+      <BlockBody>
+        We process anonymized logs and errors the application produces to
+        promptly respond to failing services. This analytics data is
+        automatically captured when Editor has access to the internet.
+      </BlockBody>
+    </Block>
+    <Block>
+      <BlockTitle>Use data to improve Editor</BlockTitle>
+      <BlockBody>
+        Using your interactions with the Editor software we can get insight how
+        the software is being used and we can continue improving it.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistant.analyticsEnabled}
+        title={"Track interaction with the Editor application"}
+      />
+    </Block>
 
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{privacySettings.improveApp.title}</div>
-      <div class="py-2 text-white text-opacity-60">
-        {privacySettings.improveApp.description}
-      </div>
-      <label
-        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
-      >
-        <VCheckbox checkedState={$appSettings.persistant.analyticsEnabled} />
-        <input
-          class="hidden"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.analyticsEnabled}
-        />
-        <div
-          class="pl-2 text-white {$appSettings.persistant.analyticsEnabled
-            ? 'text-opacity-100'
-            : 'text-opacity-80'}"
-        >
-          {privacySettings.improveApp.label}
-        </div>
-      </label>
-    </div>
-
-    <div class="py-4 border border-transparent">
+    <Block>
       <button
         on:click={handleOpenPolicyClicked}
         class="text-white text-opacity-60 underline"
       >
         Open Privacy Policy
       </button>
-    </div>
+    </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.USER_LIBRARY}
-    <div class="py-4 border border-transparent">
-      <div class="text-white">{userLibrarySettings.libraryLocation.title}</div>
-      <div class="py-2 text-white text-opacity-60">
-        {userLibrarySettings.libraryLocation.description}
-      </div>
+    <Block>
+      <BlockTitle>Grid Editor user data folder</BlockTitle>
+      <BlockBody>
+        Local folder on your hard drive where local profiles, temporary
+        downloads and other Editor related files are saved.
+      </BlockBody>
       <div class="text-white text-opacity-40 pt-2">Current selection</div>
       <div class="flex flex-row gap-4 py-2">
         <input
@@ -466,20 +318,23 @@
         }}
         >Reset to default
       </button>
-    </div>
+    </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.ADVANCED}
-    <div class="border border-transparent py-4">
-      <div class="text-white">{generalSettings.migrateProfiles.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.migrateProfiles.description}
-      </div>
+    <Block>
+      <BlockTitle>Convert profiles to new format</BlockTitle>
+      <BlockBody>
+        Before migration, it's safest to archive (.zip) your grid-userdata!
+        After v1.2.35, we introduced Profile Cloud. Moving forward, we will
+        develop this feature. To move your profiles to the new format, click the
+        button below.
+      </BlockBody>
       {#if !migrationComplete}
         <button
           class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
           on:click={() => migrateProfiles()}
-          >{generalSettings.migrateProfiles.label}
+          >Migrate profiles
         </button>
       {:else}
         <button
@@ -489,25 +344,26 @@
           Reload app
         </button>
       {/if}
-    </div>
+    </Block>
 
-    <div class="border border-yellow-500 p-4">
-      <div class="text-white">{generalSettings.resetSettings.title}</div>
-      <div class="text-white text-opacity-60 py-2">
-        {generalSettings.resetSettings.description}
-      </div>
+    <Block border={"yellow-500"}>
+      <BlockTitle>Reset settings</BlockTitle>
+      <BlockBody>
+        Reset all preferences settings to their default values. This will not
+        affect your profiles or other data.
+      </BlockBody>
       <button
         class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
         on:click={() => {
           resetAppSettings();
         }}
-        >{generalSettings.resetSettings.label}
+        >Reset application settings
       </button>
-    </div>
+    </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
-    <div class="py-4 border border-transparent">
+    <Block>
       <div class="text-white">{developerSettings.nvmDefrag.title}</div>
       <div class="text-white text-opacity-60 py-2">
         {developerSettings.nvmDefrag.description}
@@ -523,8 +379,8 @@
       >
         {developerSettings.nvmDefrag.label}
       </button>
-    </div>
-    <div class="py-4 border border-transparent">
+    </Block>
+    <Block>
       <div class="text-white">{developerSettings.nvmErase.title}</div>
       <div class="text-white text-opacity-60 py-2">
         {developerSettings.nvmErase.description}
@@ -540,9 +396,9 @@
       >
         {developerSettings.nvmErase.label}
       </button>
-    </div>
+    </Block>
 
-    <div class="py-4 border border-transparent">
+    <Block>
       <div class="text-white">
         {developerSettings.websocketMonitorEnabled.title}
       </div>
@@ -569,9 +425,9 @@
           {developerSettings.websocketMonitorEnabled.label}
         </div>
       </label>
-    </div>
+    </Block>
 
-    <div class="py-4 border border-transparent">
+    <Block>
       <div class="text-white">
         {developerSettings.portstateOverlayEnabled.title}
       </div>
@@ -598,17 +454,15 @@
           {developerSettings.portstateOverlayEnabled.label}
         </div>
       </label>
-    </div>
+    </Block>
 
-    <div class="py-4 border border-transparent">
+    <Block>
       <!-- Radio Select for profileCloudUrl -->
 
-      <div class="text-white">Profile cloud URL</div>
-      <div class="text-white text-opacity-60 py-2">
-        Change the url used in the Profile Cloud Iframe.
-      </div>
+      <BlockTitle>Profile cloud URL</BlockTitle>
+      <BlockBody>Change the url used in the Profile Cloud Iframe.</BlockBody>
 
-      <div class="flex w-full py-2">
+      <div class="flex w-full">
         <input
           class="flex px-2 py-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20 focus:border-green-500 focus:outline-none"
           bind:value={$appSettings.profileCloudUrl}
@@ -632,6 +486,6 @@
           },
         ]}
       />
-    </div>
+    </Block>
   {/if}
 </div>

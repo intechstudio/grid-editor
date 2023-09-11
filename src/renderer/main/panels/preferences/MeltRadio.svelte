@@ -1,49 +1,84 @@
 <script lang="ts">
   import { createRadioGroup, melt } from "@melt-ui/svelte";
+  import { writable } from "svelte/store";
 
-  export let options = [];
+  interface option_t {
+    title: string;
+    value: string | boolean | number; // melt uses string values internally
+  }
+
+  export let options: option_t[];
   export let target;
+  export let orientation: "vertical" | "horizontal" = "vertical";
+
   const {
     elements: { root, item },
     helpers: { isChecked },
     states: { value },
   } = createRadioGroup({
     defaultValue: target,
+    orientation: orientation,
   });
 
   let oldTarget;
 
   $: {
-    //console.log("Target", target);
-    if (target !== oldTarget) {
-      $value = target;
-      oldTarget = target;
+    if (target.toString() !== oldTarget) {
+      $value = target.toString();
+      oldTarget = target.toString();
     }
 
-    if (target !== $value) {
-      oldTarget = target = $value;
+    if (target.toString() !== $value) {
+      oldTarget = $value;
+
+      if ($value === "true") {
+        // Convert back to boolean automatically
+        target = true;
+      } else if ($value === "false") {
+        // Convert back to boolean automatically
+        target = false;
+      } else if ($value !== "" && !isNaN(Number($value))) {
+        // Convert back to number automatically
+        target = Number($value);
+      } else {
+        target = $value;
+      }
     }
   }
 </script>
 
-<div {...$root} use:root class="text-white grid grid-flow-row gap-4 py-2">
+<div
+  {...$root}
+  use:root
+  class="text-white overflow-auto
+    {orientation === 'vertical'
+    ? 'grid grid-flow-row my-2 gap-4'
+    : 'grid grid-flow-col border border-black border-opacity-20 bg-black bg-opacity-10'} py-2"
+>
   {#each options as option}
+    <!-- Convert value to string in case it was originally boolean -->
+    {@const value = option.value.toString()}
+    {@const title = option.title}
     <label
-      class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
+      class="
+    {orientation === 'vertical'
+        ? 'border border-black border-opacity-20 bg-black bg-opacity-10 py-2'
+        : ''} 
+      group cursor-pointer flex items-center px-2"
     >
-      <button {...$item(option.value)} use:item id={option.title}>
+      <button {...$item(value)} use:item id={title}>
         <div
           class="relative flex items-center justify-center rounded-full border w-6 h-6 mr-3"
         >
           <div
-            class="{$isChecked(option.value)
+            class="{$isChecked(value)
               ? 'block'
               : 'hidden'} absolute rounded-full bg-white h-3 w-3"
           />
         </div>
       </button>
 
-      <span id="{option.title}-label">{option.title}</span>
+      <span id="{title}-label">{title}</span>
     </label>
   {/each}
 </div>
