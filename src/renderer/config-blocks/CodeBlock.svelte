@@ -153,7 +153,10 @@
   <div class="flex flex-row mt-4">
     <div class="w-full flex flex-col">
       <div class="text-gray-500 font-bold -mb-2">Powered by Lua</div>
-      <SendFeedback feedback_context="CodeBlock" />
+      <SendFeedback
+        feedback_context="CodeBlock"
+        class="mt-2 text-sm text-gray-500"
+      />
     </div>
 
     <div class="h-12 w-12">

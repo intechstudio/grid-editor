@@ -95,7 +95,7 @@
       class="relative cursor-pointer mx-1 mb-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedRightTab ==
         'Configuration' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary"
+        : 'bg-opacity-40'} bg-secondary focus:outline-none"
     >
       <svg
         class="stroke-current text-white"
@@ -131,7 +131,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg
       {selectedRightTab == 'Preferences' && $appSettings.rightPanelVisible
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary"
+        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -189,7 +189,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'ProfileCloud' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary"
+        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
     >
       <svg
         class="w-full h-full p-1.5 text-white fill-current"
@@ -223,7 +223,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
         {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary"
+        : 'bg-opacity-40'} bg-secondary focus:outline-none"
     >
       <svg
         class="p-2 w-full h-full text-white fill-current"
@@ -271,7 +271,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
         'Debug' && $splitpanes.left.size != 0
         ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary"
+        : 'bg-opacity-40'} bg-secondary focus:outline-none"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -331,7 +331,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'MIDI Monitor' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary"
+        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -381,7 +381,7 @@
       class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group transition hover:bg-opacity-100 rounded-lg {selectedLeftTab ==
         'Packages' && $splitpanes.left.size != 0
         ? 'bg-opacity-100 '
-        : 'bg-opacity-40 '} bg-secondary"
+        : 'bg-opacity-40 '} bg-secondary focus:outline-none"
     >
       <svg
         class="w-full h-full p-2 text-white fill-current"
@@ -426,7 +426,7 @@
         class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100 {selectedLeftTab ==
           'Websocket' && $splitpanes.left.size != 0
           ? 'bg-opacity-100'
-          : 'bg-opacity-40'} bg-secondary"
+          : 'bg-opacity-40'} bg-secondary focus:outline-none"
       >
         <svg
           class="fill-current text-white p-0.5"

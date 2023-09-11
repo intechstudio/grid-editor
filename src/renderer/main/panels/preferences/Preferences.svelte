@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { engine, logger } from "../../../runtime/runtime.store.js";
+  import { logger } from "../../../runtime/runtime.store.js";
   import isOnline from "is-online";
   import { writable, get } from "svelte/store";
   import {
@@ -516,10 +516,7 @@
         on:click={() => {
           instructions.sendNVMDefragToGrid();
         }}
-        disabled={$engine != "ENABLED"}
-        class="{$engine == 'ENABLED'
-          ? ''
-          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
         {developerSettings.nvmDefrag.label}
       </button>
@@ -533,10 +530,7 @@
         on:click={() => {
           instructions.sendNVMEraseToGrid();
         }}
-        disabled={$engine != "ENABLED"}
-        class="{$engine == 'ENABLED'
-          ? ''
-          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
+        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
         {developerSettings.nvmErase.label}
       </button>

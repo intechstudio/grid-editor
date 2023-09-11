@@ -757,7 +757,7 @@
     />
   {/if}
 
-  <SendFeedback feedback_context="Midi" />
+  <SendFeedback feedback_context="Midi" class="mt-2 text-sm text-gray-500" />
 </action-midi>
 
 <style>

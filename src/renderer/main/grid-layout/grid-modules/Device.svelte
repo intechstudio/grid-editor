@@ -8,16 +8,19 @@
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
 
+  import { selectElement } from "./event-handlers/select.js";
+
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import { user_input, logger } from "../../../runtime/runtime.store.js";
   import { selectedProfileStore } from "../../../runtime/profile-helper.store";
   import { selectedPresetStore } from "../../../runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { get } from "svelte/store";
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   const components = [
     { type: "BU16", component: BU16 },
@@ -72,6 +75,20 @@
     {id}
     {rotation}
     {selectedElement}
+    on:click={(e) => {
+      const { elementNumber, type, id } = e.detail;
+      if ($writeBuffer.length > 0) {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "engine-disabled",
+          message: `Engine is disabled, selecting element has failed!`,
+        });
+        return;
+      }
+
+      selectElement(elementNumber, type, id);
+    }}
   >
     {#if $appSettings.overlays.controlElementName}
       <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
@@ -113,8 +130,10 @@
       {/if}
     {/if}
 
-    <ProfileLoadOverlay {id} />
-    <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {#if $writeBuffer.length == 0}
+      <ProfileLoadOverlay {id} />
+      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+    {/if}
   </svelte:component>
 {/if}
 

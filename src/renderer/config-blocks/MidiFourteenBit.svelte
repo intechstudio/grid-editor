@@ -757,7 +757,10 @@
     />
   {/if}
 
-  <SendFeedback feedback_context="MidiFourteenBit" />
+  <SendFeedback
+    feedback_context="MidiFourteenBit"
+    class="mt-2 text-sm text-gray-500"
+  />
 </action-midi>
 
 <style global>

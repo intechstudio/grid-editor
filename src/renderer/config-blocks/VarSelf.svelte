@@ -300,7 +300,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Selfs" />
+  <SendFeedback feedback_context="Selfs" class="mt-2 text-sm text-gray-500" />
 </config-self-definitions>
 
 <style>

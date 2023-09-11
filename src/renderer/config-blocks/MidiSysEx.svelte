@@ -155,5 +155,8 @@
     >
   </div>
 
-  <SendFeedback feedback_context="MidiSysEx" />
+  <SendFeedback
+    feedback_context="MidiSysEx"
+    class="mt-2 text-sm text-gray-500"
+  />
 </action-midi>
