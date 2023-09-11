@@ -118,33 +118,47 @@
       port.onmessage = (event) => {
         const data = event.data;
         // action towards runtime
-        if (data.type == "plugin-action") {
-          if (data.id == "change-page") {
-            runtime.change_page(data.num);
-          } else if (data.id == "persist-data") {
+        switch (data.type) {
+          case "plugin-action": {
+            if (data.id == "change-page") {
+              runtime.change_page(data.num);
+            } else if (data.id == "persist-data") {
+              appSettings.update((s) => {
+                const newStorage = structuredClone(
+                  s.persistant.pluginsDataStorage
+                );
+                newStorage[data.pluginId] = data.data;
+                s.persistant.pluginsDataStorage = newStorage;
+                return s;
+              });
+            }
+            break;
+          }
+          case "plugins": {
+            // refresh pluginlist
+            const markedForDeletionPlugins = data.plugins
+              .filter((e) => e.status == "MarkedForDeletion")
+              .map((e) => e.id);
+            const enabledPlugins = data.plugins
+              .filter((e) => e.status == "Enabled")
+              .map((e) => e.id);
             appSettings.update((s) => {
-              const newStorage = structuredClone(
-                s.persistant.pluginsDataStorage
-              );
-              newStorage[data.pluginId] = data.data;
-              s.persistant.pluginsDataStorage = newStorage;
+              s.pluginList = data.plugins;
+              s.persistant.markedForDeletionPlugins = markedForDeletionPlugins;
+              s.persistant.enabledPlugins = enabledPlugins;
               return s;
             });
+            break;
           }
-        } else if (data.type == "plugins") {
-          // refresh pluginlist
-          const markedForDeletionPlugins = data.plugins
-            .filter((e) => e.status == "MarkedForDeletion")
-            .map((e) => e.id);
-          const enabledPlugins = data.plugins
-            .filter((e) => e.status == "Enabled")
-            .map((e) => e.id);
-          appSettings.update((s) => {
-            s.pluginList = data.plugins;
-            s.persistant.markedForDeletionPlugins = markedForDeletionPlugins;
-            s.persistant.enabledPlugins = enabledPlugins;
-            return s;
-          });
+          case "refresh-plugins": {
+            const env = process.env.NODE_ENV;
+            break;
+          }
+          default: {
+            console.info(
+              `Unhandled message type of ${data.type} received on port ${port}`
+            );
+          }
         }
       };
       for (const plugin of $appSettings.persistant.markedForDeletionPlugins ??
