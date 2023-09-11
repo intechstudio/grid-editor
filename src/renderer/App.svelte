@@ -406,8 +406,8 @@
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
                 <div
-                  in:fade={{ delay: 1000, duration: 1000 }}
-                  out:blur={{ duration: 150 }}
+                  in:fade|global={{ delay: 2000, duration: 1000 }}
+                  out:blur|global={{ duration: 150 }}
                   class="absolute bottom-1/2 left-1/2 -translate-x-1/2 translate-y-1/2"
                 >
                   <ModulConnectionDialog />
@@ -417,8 +417,8 @@
               <div class="flex">
                 {#if trackerVisible}
                   <div
-                    in:fly={{ x: -10 }}
-                    out:fly={{ x: 10 }}
+                    in:fly|global={{ x: -10 }}
+                    out:fly|global={{ x: 10 }}
                     class="w-fit absolute right-0 bottom-0 mb-12 mr-10"
                   >
                     <Tracker />

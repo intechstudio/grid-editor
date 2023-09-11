@@ -24,8 +24,8 @@
 <div class="relative flex justify-center">
   {#if show}
     <app-popup
-      in:fade={{ duration: 50 }}
-      out:fade
+      in:fade|global={{ duration: 50 }}
+      out:fade|global
       class="absolute {popStyle} rounded px-4 py-1 text-sm text-white -mt-12 z-10"
     >
       <slot name="popup" />
