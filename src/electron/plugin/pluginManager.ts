@@ -1,7 +1,6 @@
 import path from "path";
 import fs from "fs";
 import { MessagePortMain } from "electron/main";
-import { compile } from "svelte/compiler";
 import AdmZip from "adm-zip";
 import os from "os";
 import util from "util";
@@ -272,9 +271,6 @@ async function getInstalledPlugins(): Promise<
               );
               const readFile = util.promisify(fs.readFile);
               pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
-              const result = compile(pluginPreferenceHtml, {
-                // options
-              });
               //pluginPreferenceHtml = result.js.code;
               //console.log("YAY:", result.js);
             }

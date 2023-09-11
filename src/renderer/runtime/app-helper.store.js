@@ -112,6 +112,7 @@ function createAppSettingsStore(persistant) {
       title: undefined,
       owner: { neme: undefined },
     },
+    profileCloudUrl: undefined,
     pluginList: [],
     persistant: structuredClone(persistant),
   });

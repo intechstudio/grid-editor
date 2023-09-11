@@ -34,7 +34,7 @@
     xmlns="http://www.w3.org/2000/svg"
   >
     {#key isCollapsed}
-      <path transition:draw={{ duration: 300 }} d={pathContent} />
+      <path transition:draw|global={{ duration: 300 }} d={pathContent} />
     {/key}
   </svg>
 </div>

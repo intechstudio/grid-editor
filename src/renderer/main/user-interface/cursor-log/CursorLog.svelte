@@ -40,8 +40,8 @@
   <div class="flex flex-col w-[30rem]">
     {#each $logStreamStore as log, i (log)}
       <div
-        in:fly={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
-        out:fly={{ x: 10, delay: 400 * i, duration: 500 }}
+        in:fly|global={{ x: -10, delay: 100 + 400 * i, duration: 500 }}
+        out:fly|global={{ x: 10, delay: 400 * i, duration: 500 }}
         class="log-message"
       >
         <LogMessage
