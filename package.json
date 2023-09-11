@@ -68,9 +68,6 @@
     "uuid": "^9.0.0",
     "ws": "^7.5.8"
   },
-  "optionalDependencies": {
-    "fsevents": "latest"
-  },
   "build": {
     "asar": true,
     "appId": "intechstudio.grid-editor.app",
