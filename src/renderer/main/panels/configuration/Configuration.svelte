@@ -733,10 +733,8 @@
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     let:toggle
-                    drag_start={isDragged}
                     {index}
                     {config}
-                    configs={$configs}
                     {access_tree}
                     indentation={config.indentation}
                     on:update={handleConfigUpdate}
@@ -755,7 +753,6 @@
                   <AddAction
                     on:paste={handlePaste}
                     {animation}
-                    {config}
                     configs={$configs}
                     {index}
                     on:new-config={handleConfigInsertion}
