@@ -1,21 +1,8 @@
 <script>
   import { Analytics } from "../../runtime/analytics.js";
+  import SendFeedback from "./SendFeedback.svelte";
 
   const configuration = window.ctxProcess.configuration();
-
-  function handleRefresh() {
-    Analytics.track({
-      event: "No Module Connected",
-      payload: {
-        click: "Refresh",
-      },
-      mandatory: false,
-    });
-
-    setTimeout(() => {
-      window.electron.restartApp();
-    }, 500);
-  }
 
   async function handleTroubleshoot() {
     const url = configuration.DOCUMENTATION_TROUBLESHOOTING_URL;
@@ -85,9 +72,21 @@
         >
       </div>
     </div>
-    <span class="text-white text-sm text-center">
+    <span class="text-white text-sm">
       Try reconnecting your Grid module by unplugging it, then plugging it in.
     </span>
+    <SendFeedback
+      feedback_context="Module not responding"
+      class="self-start text-gray-500 text-sm"
+    />
+    <button
+      on:click={handleTroubleshoot}
+      class="relative border block hover:bg-commit-saturate-20
+            text-white py-1 px-2 rounded border-commit-saturate-10
+            hover:border-commit-desaturate-10 focus:outline-none mt-2"
+    >
+      <div>Troubleshooting</div>
+    </button>
   </div>
 </div>
 

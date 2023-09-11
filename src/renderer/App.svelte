@@ -372,7 +372,7 @@
                           >One of your modules is still not responding. Abort or
                           try troubleshooting.
                           <SendFeedback
-                            feedback_context="module not responding"
+                            feedback_context="Module not responding"
                             class="self-start text-gray-500"
                           />
                         </span>
@@ -392,10 +392,10 @@
                         </button>
                       {/if}
                     {:else}
-                      <span class="text-white w-48"
+                      <span class="text-white w-56"
                         >Loading <span class="text-orange-300 font-bold"
                           >{$writeBuffer.length}</span
-                        > more awesome stuff to your module...</span
+                        > more configuration to your module...</span
                       >
                     {/if}
                   </div>
