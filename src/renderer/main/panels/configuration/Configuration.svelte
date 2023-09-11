@@ -49,6 +49,7 @@
   let lastOpenedElementsType = undefined;
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
+  let configList = undefined;
 
   function displayDefault() {
     configs.set([]);
@@ -191,8 +192,6 @@
 
   let animation = false;
   let isDragged = false;
-
-  let scrollHeight = "100%";
 
   function handleError(e) {
     switch (e.type) {
@@ -362,6 +361,37 @@
   let dropIndex = undefined;
   function handleDropTargetChange(e) {
     dropIndex = e.detail.drop_target;
+  }
+
+  let test;
+
+  function handleDrag(e){
+    if(draggedIndexes.length > 0){
+      const index = draggedIndexes[0];
+      const id = `cfg-${index}`
+      const draggedDOMElement = document.getElementById(id);
+
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold = configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(test)
+      if(lowerThreshold ){
+        test = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+        
+      }
+      else if(upperThreshold){
+        
+        test = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+        
+      }
+    }
   }
 
   let enableConvert = false;
@@ -629,7 +659,7 @@
 
   {#key $appSettings.configType == "uiEvents"}
     <container
-      class="flex flex-col h-full"
+      class="flex flex-col"
       in:fly|global={{
         x: $appSettings.configType == "uiEvents" ? -5 : 5,
         opacity: 0.5,
@@ -638,7 +668,6 @@
       }}
     >
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
-        <div>
           <ConfigParameters {events} />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
@@ -657,9 +686,9 @@
               on:select-all={handleSelectAll}
             />
           </div>
-        </div>
 
         <div
+        
           use:changeOrder={(this, { configs: $configs })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
@@ -672,16 +701,17 @@
           on:anim-end={() => {
             animation = false;
           }}
-          class="flex flex-col h-full relative justify-between"
+          class=" grid grid-cols-1 flex-grow overflow-y-auto  bg-lime-300"
         >
           <config-list
+          on:mousemove={handleDrag}
+          on:mouseleave={() => {
+            clearInterval(test)
+          }}
+          bind:this={configList}
             id="cfg-list"
-            style="height:{scrollHeight}"
             use:configListScrollSize={$configs}
-            on:height={(e) => {
-              scrollHeight = e.detail;
-            }}
-            class="flex flex-col w-full h-auto overflow-y-auto px-4"
+            class="flex flex-col w-full px-4 bg-red-300 overflow-y-auto"
           >
             {#if !isDragged}
               <AddAction
@@ -749,7 +779,7 @@
             {/each}
           </config-list>
         </div>
-        <container class="flex flex-col w-full">
+        <container class="flex flex-col w-full self-end">
           <div class="w-full flex justify-between mb-3">
             <AddAction
               userHelper={true}
