@@ -42,10 +42,7 @@ import {
 } from "./src/library";
 import {
   loadConfigsFromDirectory,
-  moveOldConfigs,
   saveConfig,
-  updateConfig,
-  updateLocal,
   deleteConfig,
   migrateToProfileCloud,
 } from "./src/profiles";
@@ -412,55 +409,27 @@ ipcMain.handle("defaultDirectory", (event, arg) => {
   return defaultPath;
 });
 
-ipcMain.handle("moveOldConfigs", async (event, arg) => {
-  return await moveOldConfigs(arg.configPath, arg.rootDirectory);
-});
-
 ipcMain.handle("loadConfigsFromDirectory", async (event, arg) => {
   return await loadConfigsFromDirectory(arg.configPath, arg.rootDirectory);
 });
 
 ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
-  return await migrateToProfileCloud(arg.oldPath, arg.newPath);
+  return await migrateToProfileCloud(arg.oldRootPath, arg.newRootPath, arg.configDirectory);
 });
 
 ipcMain.handle("saveConfig", async (event, arg) => {
   return await saveConfig(
     arg.configPath,
-    arg.name,
-    arg.config,
     arg.rootDirectory,
-    arg.user,
-  );
-});
-
-ipcMain.handle("updateConfig", async (event, arg) => {
-  return await updateConfig(
-    arg.configPath,
-    arg.name,
     arg.config,
-    arg.rootDirectory,
-    arg.oldName,
-    arg.profileFolder,
-  );
-});
-
-ipcMain.handle("updateLocal", async (event, arg) => {
-  return await updateLocal(
-    arg.configPath,
-    arg.name,
-    arg.config,
-    arg.rootDirectory,
-    arg.profileFolder,
   );
 });
 
 ipcMain.handle("deleteConfig", async (event, arg) => {
   return await deleteConfig(
     arg.configPath,
-    arg.name,
     arg.rootDirectory,
-    arg.profileFolder,
+    arg.config
   );
 });
 

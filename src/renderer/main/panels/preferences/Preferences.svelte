@@ -103,7 +103,7 @@
     const dir = $appSettings.persistant.profileFolder;
 
     window.electron.configs
-      .migrateToProfileCloud(dir + "/profiles", dir + "/profiles/local")
+      .migrateToProfileCloud(dir, dir + "/configs")
       .then((res) => {
         migrationComplete = true;
         $appSettings.persistant.useProfileCloud = true;

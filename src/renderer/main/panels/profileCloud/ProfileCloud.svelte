@@ -155,13 +155,13 @@
       const config = event.data;
       const importName = config.name;
 
-      if (!config.id){
-        console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
-        config.id = uuidv4()
+      if (!config.localId){
+        console.log(`Missing localId, generating for config: ${config}`)
+        config.localId = uuidv4()
       }
 
       return await window.electron.configs
-        .saveConfig(path, config.id, config, "configs", "local")
+        .saveConfig(path, "configs", config)
         .then((res) => {
           logger.set({
             type: "success",
@@ -203,41 +203,13 @@
     }
   }
 
-  async function handleDeleteLegacyConfig(config){
-    const { folder, id } = config;
-    let legacyPath = "";
-    if (config.configType == "profile" || config.isGridProfile){
-      legacyPath = "profiles";
-    } else if (config.configType == "preset" || config.isGridPreset){
-      legacyPath = "presets";
-    }
-    console.log({legacyPath, folder, id})
-    await window.electron.configs
-      .deleteConfig(path, id, legacyPath, folder)
-      .then((res) => {
-        logger.set({
-          type: "success",
-          message: `Config ${id} deleted successfully`,
-        });
-        return res;
-      })
-      .catch((err) => {
-        logger.set({
-          type: "fail",
-          message: `Config ${id} deletion failed`,
-        });
-        throw err;
-      });
-  }
-
   async function handleDeleteLocalConfig(event) {
     if (event.data.channelMessageType == "DELETE_LOCAL_CONFIG") {
       const path = $appSettings.persistant.profileFolder;
       const config = event.data?.config;
-      const { folder, id } = config;
 
       await window.electron.configs
-        .deleteConfig(path, id, "configs", folder)
+        .deleteConfig(path, "configs", config)
         .then((res) => {
           logger.set({
             type: "success",
@@ -327,17 +299,13 @@
             }
           }
         });
-        if (!config.id){
-          console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
-          config.id = uuidv4()
+        if (!config.localId){
+          console.log(`Missing localId, generating for config: ${config}`)
+          config.localId = uuidv4()
         }
-        await window.electron.configs.saveConfig(
-          path,
-          id,
-          config,
-          "configs",
-          "local"
-        );
+
+        await window.electron.configs
+          .saveConfig(path, "configs", config);
 
         logger.set({
           type: "success",
@@ -406,17 +374,13 @@
         });
 
         // tofi: here we could use updateLocal as well?
-        if (!configToOverwrite.id){
-          console.log(`MISSING ID, GENERATING FOR CONFIG: ${config}`)
-          configToOverwrite.id = uuidv4()
+        if (!config.localId){
+          console.log(`Missing localId, generating for config: ${config}`)
+          config.localId = uuidv4()
         }
-        await window.electron.configs.saveConfig(
-          path,
-          configToOverwrite.id,
-          configToOverwrite,
-          "configs",
-          "local"
-        );
+
+        await window.electron.configs
+          .saveConfig(path, "configs", config);
 
         logger.set({
           type: "success",
@@ -437,12 +401,10 @@
       const { name, description, config } = event.data;
       if (name) config.name = name;
       if (description) config.description = description;
-      return await window.electron.configs.updateLocal(
+      return await window.electron.configs.saveConfig(
         $appSettings.persistant.profileFolder,
-        config.id,
-        config,
         "configs",
-        "local"
+        config
       );
     }
   }
@@ -528,13 +490,13 @@
 
         const PRESET_PATH = get(appSettings).persistant.presetFolder;
 
-        return window.electron.configs.saveConfig(
-          PRESET_PATH,
-          preset.name,
-          preset,
-          "configs",
-          user
-        );
+        if (!config.localId){
+          console.log(`Missing localId, generating for config: ${config}`)
+          config.localId = uuidv4()
+        }
+
+        return window.electron.configs
+          .saveConfig(path, "configs", config);
       });
 
       await Promise.all(conversionPromises).then((res) => {

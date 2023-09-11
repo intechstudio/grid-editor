@@ -17,122 +17,57 @@ const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const readdir = util.promisify(fs.readdir);
 
-interface OldProfile {
-  version: {
-    major: number;
-    minor: number;
-    patch: number;
-  };
-}
+async function migrateProfileFileToCloud(
+  filePath: string,
+  configType: string,
+  configPath: string,
+  configDirectory: string,
+) {
+  const id = uuidv4();
+  const oldProfileBuffer = await readFile(filePath);
+  const oldProfile = JSON.parse(oldProfileBuffer.toString());
+  delete oldProfile.id;
 
-interface NewProfile {
-  id: string;
-  version: {
-    major: string;
-    minor: string;
-    patch: string;
+  const newConfig = {
+    ...oldProfile,
+    localId: id,
+    configType: configType,
+    version: {
+      major: oldProfile.version.major.toString(),
+      minor: oldProfile.version.minor.toString(),
+      patch: oldProfile.version.patch.toString(),
+    },
   };
+  await saveConfig(configPath, configDirectory, newConfig);
 }
 
 export async function migrateToProfileCloud(
-  oldPath: string,
-  newPath: string,
+  oldRootPath: string,
+  newRootPath: string,
+  configDirectory: string,
 ): Promise<void> {
-  const entries = await readdir(oldPath, { withFileTypes: true });
+  const oldConfigTypes = ['profile', 'preset'];
+  for (const configType of oldConfigTypes){
+    const relativeFolder = `${oldConfigTypes}s`;
+    const fullOldPath = path.join(oldRootPath, relativeFolder);
+    const entries = await readdir(oldRootPath, { withFileTypes: true });
 
-  for (const entry of entries) {
-    const fullOldPath = path.join(oldPath, entry.name);
-
-    if (entry.isDirectory()) {
-      if (entry.name == "intech" || entry.name == "intechstudio") {
-        // do nothing
-      } else {
-        // If the entry is a directory, recurse into it
-        await migrateToProfileCloud(fullOldPath, newPath);
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (entry.name == "intech" || entry.name == "intechstudio") {
+          // do nothing
+        } else {
+          // If the entry is a directory, go into it
+          const subentries = await readdir(oldRootPath, { withFileTypes: true });
+          for (const fileEntry of subentries.filter((entry) => entry.isFile)){
+            await migrateProfileFileToCloud(path.join(fullOldPath, entry.name, fileEntry.name), configType, newRootPath, configDirectory);
+          }
+        }
+      } else if (entry.isFile() && path.extname(entry.name) === ".json") {
+        await migrateProfileFileToCloud(path.join(fullOldPath, entry.name), configType, newRootPath, configDirectory);
       }
-    } else if (entry.isFile() && path.extname(entry.name) === ".json") {
-      const id = uuidv4();
-      const fullNewPath = path.join(newPath, id);
-      // If the entry is a file and ends in '.json', process it
-      const oldProfileBuffer = await readFile(fullOldPath);
-      const oldProfile: OldProfile = JSON.parse(oldProfileBuffer.toString());
-
-      const newProfile: NewProfile = {
-        ...oldProfile,
-        id: id,
-        version: {
-          major: oldProfile.version.major.toString(),
-          minor: oldProfile.version.minor.toString(),
-          patch: oldProfile.version.patch.toString(),
-        },
-      };
-      fs.mkdirSync(fullNewPath, { recursive: true });
-      await writeFile(
-        path.join(fullNewPath, `${newProfile.id}.json`),
-        JSON.stringify(newProfile, null, 2),
-      );
     }
   }
-}
-
-export async function moveOldConfigs(configPath, rootDirectory) {
-  if (configPath === undefined) return;
-  if (configPath === "") return;
-
-  let path = configPath;
-
-  if (!fs.existsSync(path)) fs.mkdirSync(path);
-  if (!fs.existsSync(`${path}/${rootDirectory}`))
-    fs.mkdirSync(`${path}/${rootDirectory}`);
-
-  log.info(rootDirectory + " move start...");
-  await fs.promises
-    .readdir(`${path}/${rootDirectory}`)
-    .then((authors) => {
-      authors.forEach(async (author) => {
-        await fs.promises
-          .readdir(`${path}/${rootDirectory}/${author}`)
-          .then((files) => {
-            files.forEach(async (file) => {
-              let filepath = `${path}/${rootDirectory}/${author}/${file}`;
-
-              const [stats] = await checkIfWritableDirectory(filepath);
-
-              if (stats.isFile) {
-                let filenameparts = file.split(".");
-                let extension = filenameparts[filenameparts.length - 1];
-                if (extension === "json") {
-                  if (file.lastIndexOf(".") != -1) {
-                    let basename = file.substring(0, file.lastIndexOf("."));
-
-                    if (
-                      !fs.existsSync(
-                        `${path}/${rootDirectory}/${author}/${basename}`,
-                      )
-                    ) {
-                      fs.mkdirSync(
-                        `${path}/${rootDirectory}/${author}/${basename}`,
-                      );
-                    }
-
-                    const from = `${path}/${rootDirectory}/${author}/${file}`;
-                    const to = `${path}/${rootDirectory}/${author}/${basename}/${file}`;
-                    fs.renameSync(from, to);
-                    log.info("moving: ", file);
-                  }
-                }
-              } else {
-                log.info("Not a file!");
-              }
-            });
-          });
-      });
-    })
-    .catch((err) => {
-      log.error(err);
-    });
-
-  log.info(rootDirectory + " move end.");
 }
 
 export async function loadConfigsFromDirectory(configPath, rootDirectory) {
@@ -146,7 +81,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`);
 
-  let configs = [];
+  let configs : any[] = [];
 
   const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`);
 
@@ -168,7 +103,8 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
           let obj = JSON.parse(data);
           if (obj.configType) {
             const dateObject = await getDateOfModify(filepath);
-            obj.fsModifiedAt = dateObject.modifiedAt;
+            obj.fileName = file;
+            obj.fsModifiedAt = dateObject?.modifiedAt;
             configs.push(obj);
           } else {
             log.info("JSON is not a grid config!");
@@ -187,32 +123,33 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
 
 export async function saveConfig(
   configPath,
-  name,
-  config,
   rootDirectory,
-  user,
+  config,
 ) {
   const path = configPath;
 
-  log.info("SaveConfig", name, config);
+  log.info("SaveConfig", config);
 
-  if (!fs.existsSync(path)) fs.mkdirSync(path);
   if (!fs.existsSync(`${path}/${rootDirectory}`))
-    fs.mkdirSync(`${path}/${rootDirectory}`);
-  if (!fs.existsSync(`${path}/${rootDirectory}/${user}`))
-    fs.mkdirSync(`${path}/${rootDirectory}/${user}`);
+    await fs.promises.mkdir(`${path}/${rootDirectory}`, {recursive: true});
 
-  if (!fs.existsSync(`${path}/${rootDirectory}/${user}/${name}`))
-    fs.mkdirSync(`${path}/${rootDirectory}/${user}/${name}`);
-
-  // Creating and Writing to the sample.txt file
+  const fileNameBase = `${config.name ?? "config"}_${config.localId ?? ''}`;
+  let fileName = fileNameBase;
+  let fileNameCounter = 0;
+  while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)){
+    fileName = `${fileNameBase}_${fileNameCounter}`;
+  }
+  
   await fs.promises
     .writeFile(
-      `${path}/${rootDirectory}/${user}/${name}/${name}.json`,
+      `${path}/${rootDirectory}/${fileName}.json`,
       JSON.stringify(config, null, 4),
     )
     .then((data) => {
       console.log("Saved!");
+      if (config.fileName){
+        deleteConfig(configPath, rootDirectory, config);
+      }
     })
     .catch((err) => {
       console.log("Error:", err);
@@ -222,49 +159,18 @@ export async function saveConfig(
 
 export async function deleteConfig(
   configPath,
-  name,
-  rootDirectory,
-  profileFolder,
+  configFolder,
+  config,
 ) {
+
   const path = configPath;
   log.info("deleteConfig");
 
   await fs.promises
-    .rmdir(`${path}/${rootDirectory}/${profileFolder}/${name}`, {
-      recursive: true,
-    })
+    .rm(`${path}/${configFolder}/${config.fileName}`)
     .catch((err) => {
       throw err;
     });
-}
-
-export async function updateLocal(
-  configPath,
-  id,
-  config,
-  rootDirectory,
-  profileFolder,
-) {
-  await saveConfig(configPath, id, config, rootDirectory, profileFolder);
-}
-
-export async function updateConfig(
-  configPath,
-  name,
-  config,
-  rootDirectory,
-  oldName,
-  profileFolder,
-) {
-  if (oldName === name) {
-    // just save and overwrite existing profile
-    await saveConfig(configPath, name, config, rootDirectory, profileFolder);
-    log.info("Profile overwritten!");
-  } else {
-    log.info("Update name");
-    await saveConfig(configPath, name, config, rootDirectory, profileFolder);
-    await deleteConfig(configPath, oldName, rootDirectory, profileFolder);
-  }
 }
 
 function isJson(str) {
