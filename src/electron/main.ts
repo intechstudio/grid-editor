@@ -320,6 +320,23 @@ function createWindow() {
     }
   });
 }
+
+
+// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
+// isDev needs to know if app is packaged
+const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
+const deeplink = new Deeplink({
+  app,
+  mainWindow,
+  protocol: "grid-editor",
+  isDev,
+  debugLogging: true,
+});
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+
 let watcher: any = null;
 let directoryWatcher: any = null;
 
@@ -379,21 +396,6 @@ function startPluginDirectoryWatcher(
       //This event should be triggered everytime something happens.
     });
 }
-
-// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
-// isDev needs to know if app is packaged
-const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
-const deeplink = new Deeplink({
-  app,
-  mainWindow,
-  protocol: "grid-editor",
-  isDev,
-  debugLogging: true,
-});
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 
 ipcMain.handle("startPlugin", async (event, arg) => {
   console.log("pluginstart!", arg.name);
