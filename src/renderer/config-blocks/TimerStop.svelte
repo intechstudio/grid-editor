@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "timer",
     desc: "Stop",
+    blockTitle: "Stop",
     color: "#95638D",
     defaultLua: "gtp()",
     icon: `

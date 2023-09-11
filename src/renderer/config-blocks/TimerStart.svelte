@@ -6,6 +6,7 @@
     category: "timer",
     rendering: "standard",
     desc: "Start",
+    blockTitle: "Start",
     color: "#95638D",
     defaultLua: "gtt(,)",
     icon: `

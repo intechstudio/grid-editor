@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "led",
     desc: "Stop Animation",
+    blockTitle: "Stop Animation",
     color: "#726E60",
     defaultLua: "glpfs(num,1,0,0,0)",
     icon: `

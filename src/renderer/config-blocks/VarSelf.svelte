@@ -5,6 +5,7 @@
     rendering: "standard",
     category: "variables",
     desc: "Self",
+    blockTitle: "Self",
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,

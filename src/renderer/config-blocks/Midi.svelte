@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "midi",
     desc: "MIDI",
+    blockTitle: "MIDI",
     color: "#DA4167",
     defaultLua: "gms(0,176,num,val)",
     icon: `

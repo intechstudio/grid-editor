@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "code",
     desc: "Code Block",
+    blockTitle: "Code Block",
     color: "#887880",
     defaultLua: 'print("hello")',
     icon: `

@@ -7,6 +7,7 @@
     rendering: "standard",
     color: "#726E60",
     desc: "Color",
+    blockTitle: "Color",
     defaultLua: "glc(,,,,)",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 404 404" fill="none" xmlns="http://www.w3.org/2000/svg">

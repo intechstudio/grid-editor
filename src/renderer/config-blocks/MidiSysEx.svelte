@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "midi",
     desc: "MIDI SysEX",
+    blockTitle: "MIDI SysEX",
     color: "#DA4167",
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
     icon: `
