@@ -128,7 +128,7 @@
     on:mouseleave={handleMouseLeave}
     on:click={handleClick}
     class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md"
-    transition:fade={{
+    transition:fade|global={{
       duration: duration, //Make it instant when explicitly clicked
     }}
   >
@@ -141,7 +141,10 @@
       </div>
 
       {#if showbuttons}
-        <div transition:slide={{ duration: 100 }} class="flex flex-row gap-2">
+        <div
+          transition:slide|global={{ duration: 100 }}
+          class="flex flex-row gap-2"
+        >
           {#each buttons as button}
             <button
               class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
@@ -161,7 +164,7 @@
     </div>
   </div>
   <div
-    transition:fade={{
+    transition:fade|global={{
       duration: duration,
     }}
     class="absolute"

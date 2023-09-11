@@ -49,7 +49,7 @@ export default defineConfig({
           }),
         ],
       }),
-      monacoEditorPlugin([]),
+      monacoEditorPlugin,
     ],
     publicDir: "assets", // needed, to copy assets to dist during build
     build: {
@@ -58,7 +58,7 @@ export default defineConfig({
           index: resolve(__dirname, "src/renderer/index.html"),
         },
       },
-      outDir: "../../dist/renderer", // this path is fixed in future electron-vite versions! keep it as is for now at electron-vite v1.0.17!
+      outDir: "dist/renderer", // this path is fixed in future electron-vite versions! keep it as is for now at electron-vite v1.0.17!
     },
     resolve: {
       alias: {

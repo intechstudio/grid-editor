@@ -131,12 +131,12 @@
   >
     {#each $devices as device (device)}
       <div
-        in:fly={{
+        in:fly|global={{
           x: device.fly_x_direction * 100,
           y: device.fly_y_direction * 100,
           duration: 300,
         }}
-        out:fade={{ duration: 150 }}
+        out:fade|global={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
         class="absolute transition-all"

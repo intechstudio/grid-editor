@@ -234,7 +234,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       </div>
       <div class="mx-2">Connect the module in bootloader mode!</div>
     </div>
-    <div in:fade={{ delay: 8000 }}>
+    <div in:fade|global={{ delay: 8000 }}>
       <button
         on:click={firmwareTroubleshooting}
         class="bg-blue-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded"

@@ -168,13 +168,13 @@
   <div
     bind:this={logelement}
     class="w-full bg-gray-900 text-white justify-center flex flex-col items-center"
-    transition:fade
+    transition:fade|global
   >
     {#each logtext as log, index}
       {#if index > logtext.length - 5}
         {#key index === logtext.length}
           <div
-            in:fly={{ x: -50, delay: 0, duration: 500 }}
+            in:fly|global={{ x: -50, delay: 0, duration: 500 }}
             class="w-full {(logtext.length - index + bgHelper) % 2
               ? 'bg-gray-800'
               : 'bg-gray-900'} justify-center flex flex-row items-center h-16"
@@ -219,7 +219,7 @@
 {#each notifications as notification, index}
   {#key index === notifications.length}
     <div
-      in:fly={{ x: -50, delay: 0, duration: 500 }}
+      in:fly|global={{ x: -50, delay: 0, duration: 500 }}
       class="w-full {notification.class
         ? notification.class
         : 'bg-green-500'} justify-center flex flex-row items-center h-16"
