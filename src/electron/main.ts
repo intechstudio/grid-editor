@@ -321,7 +321,6 @@ function createWindow() {
   });
 }
 
-
 // isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
 // isDev needs to know if app is packaged
 const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
