@@ -502,7 +502,6 @@
       .then((e) => {
         configs.set(list);
         deselectAll();
-        clearClipboard();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
