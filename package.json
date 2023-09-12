@@ -109,9 +109,6 @@
       ],
       "icon": "build-assets/icon.png"
     },
-    "snap": {
-      "publish": false
-    },
     "linux": {
       "artifactName": "${name}-setup-${version}.${ext}"
     },
@@ -138,7 +135,7 @@
     "afterSign": "build-assets/notarize.js"
   },
   "scripts": {
-    "e:builder": "cross-env NOTARIZE=true electron-builder --publish onTagOrDraft",
+    "e:builder": "cross-env NOTARIZE=true electron-builder --publish onTagOrDraft -c.snap.publish=github",
     "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder electron-builder --publish never",
     "e:builder:local": "cross-env DEBUG=electron-builder electron-builder --publish never",
     "export": "run-s gen:buildVars:prod s:build e:builder",
