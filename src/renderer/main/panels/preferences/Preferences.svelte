@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { engine, logger } from "../../../runtime/runtime.store.js";
   import { writable, get } from "svelte/store";
 
   import instructions from "../../../serialport/instructions";
@@ -9,8 +8,6 @@
   import { appSettings } from "../../../runtime/app-helper.store";
 
   import { Analytics } from "../../../runtime/analytics.js";
-  import VRadioButton from "./VRadioButton.svelte";
-  import VCheckbox from "./VCheckbox.svelte";
 
   import MeltCheckbox from "./MeltCheckbox.svelte";
   import MeltRadio from "./MeltRadio.svelte";
@@ -53,37 +50,6 @@
       s.intervalPause = false;
       return s;
     });
-  }
-
-  let migrationComplete = false;
-
-  async function migrateProfiles() {
-    Analytics.track({
-      event: "Migrate Profiles",
-      payload: {},
-      mandatory: false,
-    });
-
-    const dir = $appSettings.persistant.profileFolder;
-
-    window.electron.configs
-      .migrateToProfileCloud(dir + "/profiles", dir + "/profiles/local")
-      .then((res) => {
-        migrationComplete = true;
-        $appSettings.persistant.useProfileCloud = true;
-        logger.set({
-          type: "success",
-          message: `Profile to local migration complete.`,
-        });
-        return;
-      })
-      .catch((err) => {
-        logger.set({
-          type: "fail",
-          message: `Profile migration failed, contact support!`,
-        });
-        throw err;
-      });
   }
 
   async function viewDirectory() {
