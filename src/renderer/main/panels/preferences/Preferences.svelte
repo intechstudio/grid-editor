@@ -15,6 +15,9 @@
   import MeltCheckbox from "./MeltCheckbox.svelte";
   import MeltRadio from "./MeltRadio.svelte";
   import MeltSlider from "./MeltSlider.svelte";
+  import MoltenButton from "./MoltenButton.svelte";
+  import MoltenInput from "./MoltenInput.svelte";
+  import BlockRow from "./BlockRow.svelte";
   import BlockTitle from "./BlockTitle.svelte";
   import BlockBody from "./BlockBody.svelte";
   import Block from "./Block.svelte";
@@ -111,7 +114,6 @@
     GENERAL = "general",
     USER_LIBRARY = "user_library",
     PRIVACY = "privacy",
-    ADVANCED = "advanced",
     DEVELOPER = "developer",
   }
 
@@ -119,7 +121,6 @@
     { title: "General settings", route: PreferenceMenu.GENERAL },
     { title: "Privacy settings", route: PreferenceMenu.PRIVACY },
     { title: "User Library", route: PreferenceMenu.USER_LIBRARY },
-    { title: "Advanced", route: PreferenceMenu.ADVANCED },
     { title: "Developer settings", route: PreferenceMenu.DEVELOPER },
   ];
 
@@ -168,21 +169,20 @@
     <Block>
       <BlockTitle>Controller scaling</BlockTitle>
       <BlockBody>Size of the controllers in the application.</BlockBody>
-      <div class="flex flex-row w-full gap-y-1 gap-x-8 py-2">
+      <BlockRow>
         <MeltSlider
           bind:target={$appSettings.persistant.size}
           min={0.5}
           max={2.6}
           step={0.1}
         />
-        <button
-          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
-          on:click={() => {
+        <MoltenButton
+          title={"Reset"}
+          click={() => {
             $appSettings.persistant.size = 1.0;
           }}
-          >Reset
-        </button>
-      </div>
+        />
+      </BlockRow>
     </Block>
     <Block>
       <BlockTitle>Welcome screen</BlockTitle>
@@ -215,6 +215,19 @@
         ]}
       />
     </Block>
+
+    <Block border={"yellow-500"}>
+      <BlockTitle>Reset settings</BlockTitle>
+      <BlockBody>
+        Reset all preferences settings to their default values. This will not
+        affect your profiles or other data.
+      </BlockBody>
+      <MoltenButton
+        title={"Reset application settings"}
+        border={"yellow-500"}
+        click={resetAppSettings}
+      />
+    </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.PRIVACY}
@@ -236,15 +249,10 @@
         bind:target={$appSettings.persistant.analyticsEnabled}
         title={"Track interaction with the Editor application"}
       />
-    </Block>
-
-    <Block>
-      <button
-        on:click={handleOpenPolicyClicked}
-        class="text-white text-opacity-60 underline"
-      >
-        Open Privacy Policy
-      </button>
+      <MoltenButton
+        title={"Open Privacy Policy"}
+        click={handleOpenPolicyClicked}
+      />
     </Block>
   {/if}
 
@@ -255,176 +263,71 @@
         Local folder on your hard drive where local profiles, temporary
         downloads and other Editor related files are saved.
       </BlockBody>
-      <div class="text-white text-opacity-40 pt-2">Current selection</div>
-      <div class="flex flex-row gap-4 py-2">
-        <input
+      <BlockBody>Current selection</BlockBody>
+      <BlockRow>
+        <MoltenInput
           disabled={true}
-          class="flex px-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20"
-          type="text"
-          bind:value={$appSettings.persistant.profileFolder}
+          bind:target={$appSettings.persistant.profileFolder}
         />
-        <button
-          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
-          on:click={() => {
-            selectDirectory();
-          }}
-          >Select Folder
-        </button>
-      </div>
-      <div class="text-white text-opacity-40 py-2">
-        Open grid-userdata folder to view the contents
-      </div>
-      <button
-        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
-        on:click={() => {
-          viewDirectory();
-        }}
-        >Open grid-userdata
-      </button>
-      <div class="text-white text-opacity-40 py-2">
-        Reset folder selection to default
-      </div>
-      <button
-        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60 active:border-green-500"
-        on:click={() => {
-          resetDirectory();
-        }}
-        >Reset to default
-      </button>
-    </Block>
-  {/if}
+        <MoltenButton title={"Select Folder"} click={selectDirectory} />
+      </BlockRow>
+      <BlockBody>Open user folder to view the contents</BlockBody>
+      <MoltenButton title={"Open grid-userdata"} click={viewDirectory} />
 
-  {#if activePreferenceMenu == PreferenceMenu.ADVANCED}
-    <Block>
-      <BlockTitle>Convert profiles to new format</BlockTitle>
-      <BlockBody>
-        Before migration, it's safest to archive (.zip) your grid-userdata!
-        After v1.2.35, we introduced Profile Cloud. Moving forward, we will
-        develop this feature. To move your profiles to the new format, click the
-        button below.
-      </BlockBody>
-      {#if !migrationComplete}
-        <button
-          class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
-          on:click={() => migrateProfiles()}
-          >Migrate profiles
-        </button>
-      {:else}
-        <button
-          on:click={() => window.electron.restartApp()}
-          class="px-8 py-1 rounded bg-emerald-700 text-white hover:bg-emerald-800 border border-emerald-500 focus:outline-none relative"
-        >
-          Reload app
-        </button>
-      {/if}
-    </Block>
-
-    <Block border={"yellow-500"}>
-      <BlockTitle>Reset settings</BlockTitle>
-      <BlockBody>
-        Reset all preferences settings to their default values. This will not
-        affect your profiles or other data.
-      </BlockBody>
-      <button
-        class="px-8 py-1 rounded bg-black bg-opacity-20 border border-yellow-500 border-opacity-40 hover:bg-opacity-60"
-        on:click={() => {
-          resetAppSettings();
-        }}
-        >Reset application settings
-      </button>
+      <BlockBody>Reset folder selection to default</BlockBody>
+      <MoltenButton title={"Reset to default"} click={resetDirectory} />
     </Block>
   {/if}
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <div class="text-white">NVM Defrag</div>
-      <div class="text-white text-opacity-60 py-2">
+      <BlockTitle>NVM Defrag</BlockTitle>
+      <BlockBody>
         Defragment the NVM memory of the module. This will take some time.
-      </div>
-      <button
-        on:click={() => {
+      </BlockBody>
+      <MoltenButton
+        title={"Defrag"}
+        click={() => {
           instructions.sendNVMDefragToGrid();
         }}
-        disabled={$engine != "ENABLED"}
-        class="{$engine == 'ENABLED'
-          ? ''
-          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
-      >
-        Defrag
-      </button>
+      />
     </Block>
     <Block>
-      <div class="text-white">NVM Erase</div>
-      <div class="text-white text-opacity-60 py-2">
+      <BlockTitle>NVM Erase</BlockTitle>
+      <BlockBody>
         Erase the NVM memory of the module. This will take some time.
-      </div>
-      <button
-        on:click={() => {
+      </BlockBody>
+      <MoltenButton
+        title={"Erase"}
+        click={() => {
           instructions.sendNVMEraseToGrid();
         }}
-        disabled={$engine != "ENABLED"}
-        class="{$engine == 'ENABLED'
-          ? ''
-          : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
-      >
-        Erase
-      </button>
+      />
     </Block>
 
     <Block>
-      <div class="text-white">Websocket monitor</div>
-      <div class="text-white text-opacity-60 py-2">
+      <BlockTitle>Websocket monitor</BlockTitle>
+      <BlockBody>
         Enable/Disable the websocket monitor. This will show the websocket
         messages in the console and add the websocket panel.
-      </div>
-      <label
-        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
-      >
-        <VCheckbox
-          checkedState={$appSettings.persistant.websocketMonitorEnabled}
-        />
-        <input
-          class="hidden"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.websocketMonitorEnabled}
-        />
-        <div
-          class="pl-2 text-white {$appSettings.persistant
-            .websocketMonitorEnabled
-            ? 'text-opacity-100'
-            : 'text-opacity-80'}"
-        >
-          Activate websocket monitor
-        </div>
-      </label>
+      </BlockBody>
+
+      <MeltCheckbox
+        bind:target={$appSettings.persistant.websocketMonitorEnabled}
+        title={"Activate websocket monitor"}
+      />
     </Block>
 
     <Block>
-      <div class="text-white">Port state overlay</div>
-      <div class="text-white text-opacity-60 py-2">
+      <BlockTitle>Port state overlay</BlockTitle>
+      <BlockBody>
         Enable/Disable the port state overlay. This will show the port state on
         the module.
-      </div>
-      <label
-        class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
-      >
-        <VCheckbox
-          checkedState={$appSettings.persistant.portstateOverlayEnabled}
-        />
-        <input
-          class="hidden"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.portstateOverlayEnabled}
-        />
-        <div
-          class="pl-2 text-white {$appSettings.persistant
-            .portstateOverlayEnabled
-            ? 'text-opacity-100'
-            : 'text-opacity-80'}"
-        >
-          Activate port sate overlay
-        </div>
-      </label>
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistant.portstateOverlayEnabled}
+        title={"Activate port sate overlay"}
+      />
     </Block>
 
     <Block>
@@ -432,14 +335,7 @@
 
       <BlockTitle>Profile cloud URL</BlockTitle>
       <BlockBody>Change the url used in the Profile Cloud Iframe.</BlockBody>
-
-      <div class="flex w-full">
-        <input
-          class="flex px-2 py-2 text-white text-opacity-80 flex-grow bg-black bg-opacity-10 border border-black border-opacity-20 focus:border-green-500 focus:outline-none"
-          bind:value={$appSettings.profileCloudUrl}
-        />
-      </div>
-
+      <MoltenInput bind:target={$appSettings.profileCloudUrl} />
       <MeltRadio
         bind:target={$appSettings.profileCloudUrl}
         options={[
