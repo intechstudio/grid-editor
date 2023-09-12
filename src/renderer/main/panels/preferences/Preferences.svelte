@@ -127,33 +127,6 @@
   function setActiveNavItem(item: PreferenceMenu) {
     activePreferenceMenu = item;
   }
-
-  const developerSettings = {
-    nvmDefrag: {
-      title: "NVM Defrag",
-      description:
-        "Defragment the NVM memory of the module. This will take some time.",
-      label: "Defrag",
-    },
-    nvmErase: {
-      title: "NVM Erase",
-      description:
-        "Erase the NVM memory of the module. This will take some time.",
-      label: "Erase",
-    },
-    portstateOverlayEnabled: {
-      title: "Port state overlay",
-      description:
-        "Enable/Disable the port state overlay. This will show the port state on the module.",
-      label: "Activate port sate overlay",
-    },
-    websocketMonitorEnabled: {
-      title: "Websocket monitor",
-      description:
-        "Enable/Disable the websocket monitor. This will show the websocket messages in the console and add the websocket panel.",
-      label: "Activate websocket monitor",
-    },
-  };
 </script>
 
 <div
@@ -364,9 +337,9 @@
 
   {#if activePreferenceMenu == PreferenceMenu.DEVELOPER}
     <Block>
-      <div class="text-white">{developerSettings.nvmDefrag.title}</div>
+      <div class="text-white">NVM Defrag</div>
       <div class="text-white text-opacity-60 py-2">
-        {developerSettings.nvmDefrag.description}
+        Defragment the NVM memory of the module. This will take some time.
       </div>
       <button
         on:click={() => {
@@ -377,13 +350,13 @@
           ? ''
           : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
-        {developerSettings.nvmDefrag.label}
+        Defrag
       </button>
     </Block>
     <Block>
-      <div class="text-white">{developerSettings.nvmErase.title}</div>
+      <div class="text-white">NVM Erase</div>
       <div class="text-white text-opacity-60 py-2">
-        {developerSettings.nvmErase.description}
+        Erase the NVM memory of the module. This will take some time.
       </div>
       <button
         on:click={() => {
@@ -394,16 +367,15 @@
           ? ''
           : 'opacity-75'} px-8 py-1 rounded bg-black bg-opacity-20 border border-black border-opacity-20 hover:bg-opacity-60"
       >
-        {developerSettings.nvmErase.label}
+        Erase
       </button>
     </Block>
 
     <Block>
-      <div class="text-white">
-        {developerSettings.websocketMonitorEnabled.title}
-      </div>
+      <div class="text-white">Websocket monitor</div>
       <div class="text-white text-opacity-60 py-2">
-        {developerSettings.websocketMonitorEnabled.description}
+        Enable/Disable the websocket monitor. This will show the websocket
+        messages in the console and add the websocket panel.
       </div>
       <label
         class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
@@ -422,17 +394,16 @@
             ? 'text-opacity-100'
             : 'text-opacity-80'}"
         >
-          {developerSettings.websocketMonitorEnabled.label}
+          Activate websocket monitor
         </div>
       </label>
     </Block>
 
     <Block>
-      <div class="text-white">
-        {developerSettings.portstateOverlayEnabled.title}
-      </div>
+      <div class="text-white">Port state overlay</div>
       <div class="text-white text-opacity-60 py-2">
-        {developerSettings.portstateOverlayEnabled.description}
+        Enable/Disable the port state overlay. This will show the port state on
+        the module.
       </div>
       <label
         class="bg-black bg-opacity-10 border border-black border-opacity-20 p-2 group cursor-pointer flex items-center"
@@ -451,7 +422,7 @@
             ? 'text-opacity-100'
             : 'text-opacity-80'}"
         >
-          {developerSettings.portstateOverlayEnabled.label}
+          Activate port sate overlay
         </div>
       </label>
     </Block>
