@@ -1,17 +1,14 @@
 <script lang="ts">
   import { writable, get } from "svelte/store";
-
   import instructions from "../../../serialport/instructions";
-
   import { onMount, onDestroy } from "svelte";
-
   import { appSettings } from "../../../runtime/app-helper.store";
-
   import { Analytics } from "../../../runtime/analytics.js";
 
   import MeltCheckbox from "./MeltCheckbox.svelte";
   import MeltRadio from "./MeltRadio.svelte";
   import MeltSlider from "./MeltSlider.svelte";
+  import MeltSelect from "./MeltSelect.svelte";
   import MoltenButton from "./MoltenButton.svelte";
   import MoltenInput from "./MoltenInput.svelte";
   import BlockRow from "./BlockRow.svelte";
@@ -22,15 +19,6 @@
   const configuration = window.ctxProcess.configuration();
 
   onMount(async () => {});
-
-  let DEFAULT_PATH = "";
-
-  window.electron.library.defaultDirectory().then((res) => {
-    DEFAULT_PATH = res;
-  });
-
-  let download_status = "";
-  let download_status_interval;
 
   async function selectDirectory() {
     appSettings.update((s) => {
@@ -59,9 +47,9 @@
   }
 
   async function resetDirectory() {
-    DEFAULT_PATH = await window.electron.library.resetDirectory();
+    let path = await window.electron.library.resetDirectory();
     appSettings.update((s) => {
-      s.persistant.profileFolder = DEFAULT_PATH;
+      s.persistant.profileFolder = path;
       return s;
     });
   }
@@ -83,35 +71,20 @@
     DEVELOPER = "developer",
   }
 
-  const preferencesNavigation = [
-    { title: "General settings", route: PreferenceMenu.GENERAL },
-    { title: "Privacy settings", route: PreferenceMenu.PRIVACY },
-    { title: "User Library", route: PreferenceMenu.USER_LIBRARY },
-    { title: "Developer settings", route: PreferenceMenu.DEVELOPER },
+  const menuItems = [
+    { title: "General settings", value: PreferenceMenu.GENERAL },
+    { title: "Privacy settings", value: PreferenceMenu.PRIVACY },
+    { title: "User Library", value: PreferenceMenu.USER_LIBRARY },
+    { title: "Developer settings", value: PreferenceMenu.DEVELOPER },
   ];
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
-  function setActiveNavItem(item: PreferenceMenu) {
-    activePreferenceMenu = item;
-  }
 </script>
 
 <div
   class="bg-primary flex flex-col h-full w-full text-white px-4 py-4 overflow-y-auto"
 >
-  <div class="mb-4">
-    <div class="pb-2 text-white text-opacity-60">Preferences menu</div>
-    <select
-      on:change={(event) => setActiveNavItem(event.target.value)}
-      class="px-2 py-2 rounded order border border-black border-opacity-20 bg-black hover:bg-opacity-40 bg-opacity-10 focus:outline-none"
-    >
-      {#each preferencesNavigation as navItem}
-        <option class="bg-black text-white" value={navItem.route}
-          >{navItem.title}</option
-        >
-      {/each}
-    </select>
-  </div>
+  <MeltSelect bind:target={activePreferenceMenu} options={menuItems} />
 
   {#if activePreferenceMenu == PreferenceMenu.GENERAL}
     <Block>
