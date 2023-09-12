@@ -109,6 +109,9 @@
       ],
       "icon": "build-assets/icon.png"
     },
+    "snap": {
+      "publish": false
+    },
     "linux": {
       "artifactName": "${name}-setup-${version}.${ext}"
     },
