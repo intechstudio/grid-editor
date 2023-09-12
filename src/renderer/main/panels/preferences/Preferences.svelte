@@ -1,5 +1,4 @@
 <script lang="ts">
-
   import { writable, get } from "svelte/store";
 
   import instructions from "../../../serialport/instructions";
@@ -257,7 +256,6 @@
         click={() => {
           instructions.sendNVMDefragToGrid();
         }}
-
       />
     </Block>
     <Block>
@@ -297,7 +295,7 @@
         title={"Activate port sate overlay"}
       />
     </Block>
-      
+
     <Block>
       <!-- Radio Select for profileCloudUrl -->
 
