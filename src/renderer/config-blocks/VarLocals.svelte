@@ -5,6 +5,7 @@
     rendering: "standard",
     category: "variables",
     desc: "Locals",
+    blockTitle: "Locals",
     defaultLua: "local num = self:ind()",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
@@ -299,7 +300,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Locals" />
+  <SendFeedback feedback_context="Locals" class="mt-2 text-sm text-gray-500" />
 </config-local-definitions>
 
 <style>

@@ -7,12 +7,7 @@
 
   import { get } from "svelte/store";
 
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store";
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
@@ -294,8 +289,6 @@
           message: `Profile saved!`,
         });
 
-        engine.set("ENABLED");
-
         channel.postMessage({ ok: true, data: {} });
 
         return;
@@ -355,8 +348,6 @@
           type: "success",
           message: `Profile saved!`,
         });
-
-        engine.set("ENABLED");
 
         channel.postMessage({ ok: true, data: {} });
       };
@@ -509,7 +500,7 @@
       ) {
         channelMessageWrapper(
           event,
-          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules
+          handleProvideSelectedProfileForOptionalUploadingToOneOreMoreModules //OMG
         );
       }
       if (event.data == "deleteLocalProfile") {
@@ -523,6 +514,7 @@
         const channel = event.ports[0];
         channel.onmessage = (event) =>
           handleCreateNewLocalProfileWithTheSelectedModulesConfigurationFromEditor(
+            //OMG2
             event,
             channel
           );

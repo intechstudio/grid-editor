@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "midi",
     desc: "MIDI SysEX",
+    blockTitle: "MIDI SysEX",
     color: "#DA4167",
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
     icon: `
@@ -155,5 +156,8 @@
     >
   </div>
 
-  <SendFeedback feedback_context="MidiSysEx" />
+  <SendFeedback
+    feedback_context="MidiSysEx"
+    class="mt-2 text-sm text-gray-500"
+  />
 </action-midi>

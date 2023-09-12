@@ -1,7 +1,7 @@
 <script>
   import { writable, derived } from "svelte/store";
 
-  import { engine, runtime } from "../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../runtime/runtime.store.js";
 
   import Device from "./grid-modules/Device.svelte";
 
@@ -114,10 +114,7 @@
   );
 </script>
 
-<layout-container
-  class="{$$props.class} relative flex overflow-hidden"
-  class:pointer-events-none={$engine != "ENABLED"}
->
+<layout-container class="{$$props.class} overflow-hidden">
   <div
     style="
       --device-width: {deviceWidth}px; 
@@ -130,6 +127,7 @@
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
         in:fly|global={{
           x: device.fly_x_direction * 100,
@@ -139,9 +137,13 @@
         out:fade|global={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute transition-all"
-        class:bg-error={device.fwMismatch}
-        class:rounded-lg={device.fwMismatch}
+        class="absolute transition-all box-border border-2 rounded-lg"
+        class:border-transparent={device.dx != $user_input.brc.dx ||
+          (device.dy != $user_input.brc.dy && !device.fwMismatch)}
+        class:border-gray-500={device.dx == $user_input.brc.dx &&
+          device.dy == $user_input.brc.dy &&
+          !device.fwMismatch}
+        class:animate-border-error={device.fwMismatch}
       >
         <Device
           type={device.type}
@@ -163,5 +165,21 @@
     transform-origin: center;
     transform: scale(var(--scaling-percent))
       translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
+  }
+  .animate-border-error {
+    animation-name: error-animation;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate-reverse;
+    animation-timing-function: ease;
+  }
+
+  @keyframes error-animation {
+    from {
+      border-color: transparent;
+    }
+    to {
+      border-color: #dc2626;
+    }
   }
 </style>

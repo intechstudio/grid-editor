@@ -8,12 +8,7 @@
   import { v4 as uuidv4 } from "uuid";
 
   import { onMount } from "svelte";
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "/runtime/runtime.store.js";
+  import { logger, runtime, user_input } from "/runtime/runtime.store.js";
 
   let editor;
   let modalWidth;

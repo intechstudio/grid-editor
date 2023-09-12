@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "midi",
     desc: "MIDI 14",
+    blockTitle: "MIDI 14",
     color: "#DA4167",
     defaultLua: "gms(0,176,0,val//128) gms(0,176,32,val%128)",
     icon: `
@@ -757,7 +758,10 @@
     />
   {/if}
 
-  <SendFeedback feedback_context="MidiFourteenBit" />
+  <SendFeedback
+    feedback_context="MidiFourteenBit"
+    class="mt-2 text-sm text-gray-500"
+  />
 </action-midi>
 
 <style global>

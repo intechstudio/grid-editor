@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "led",
     desc: "Start Animation",
+    blockTitle: "Start Animation",
     color: "#726E60",
     defaultLua: "glpfs(num,1,val,1,1)",
     icon: `

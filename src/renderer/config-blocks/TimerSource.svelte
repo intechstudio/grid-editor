@@ -6,6 +6,7 @@
     category: "timer",
     rendering: "standard",
     desc: "Clock Source",
+    blockTitle: "Clock Source",
     color: "#95638D",
     defaultLua: "gts(,)",
     icon: `

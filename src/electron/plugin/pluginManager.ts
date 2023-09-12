@@ -19,15 +19,29 @@ let pluginFolder: string = "";
 let editorVersion: string = "";
 
 process.parentPort.on("message", (e) => {
-  editorVersion = e.data.version;
+  switch (e.data.type) {
+    case "init": {
+      console.log(`Initialize Plugin Manager...`);
+      editorVersion = e.data.version;
 
-  pluginFolder = e.data.pluginFolder;
-  if (!fs.existsSync(pluginFolder)) {
-    fs.mkdirSync(pluginFolder, { recursive: true });
+      pluginFolder = e.data.pluginFolder;
+      if (!fs.existsSync(pluginFolder)) {
+        fs.mkdirSync(pluginFolder, { recursive: true });
+      }
+
+      const port = e.ports[0];
+      setPluginManagerMessagePort(port);
+
+      break;
+    }
+    case "refresh-plugins": {
+      notifyListener();
+      break;
+    }
+    default: {
+      console.log(`Plugin Manager: Unknown message tpye of ${e.data.type}`);
+    }
   }
-
-  const port = e.ports[0];
-  setPluginManagerMessagePort(port);
 });
 
 const availablePlugins = {

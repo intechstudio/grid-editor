@@ -16,11 +16,12 @@
     runtime,
     logger,
     user_input,
-    engine,
     appActionClipboard,
     luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
+
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   import {
     ConfigList,
@@ -66,6 +67,16 @@
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
     $appSettings.configType = arg;
 
     if (arg == "systemEvents") {
@@ -144,8 +155,25 @@
     localDefinitions.update(list);
   }
 
-  $: if ($user_input) {
-    handleUserInputchange();
+  $: {
+    //Handle User Input
+    if ($user_input) {
+      handleUserInputchange();
+    }
+  }
+
+  let bufferValueChanged = false;
+  $: {
+    if ($writeBuffer.length > 0) {
+      bufferValueChanged = true;
+      displayDefault();
+    } else {
+      if (bufferValueChanged) {
+        //Display User Input
+        handleUserInputchange();
+        bufferValueChanged = false;
+      }
+    }
   }
 
   function handleUserInputchange() {
@@ -502,7 +530,6 @@
       .then((e) => {
         configs.set(list);
         deselectAll();
-        clearClipboard();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
@@ -587,10 +614,7 @@
   }
 </script>
 
-<configuration
-  class="w-full h-full flex flex-col"
-  class:pointer-events-none={$engine != "ENABLED"}
->
+<configuration class="w-full h-full flex flex-col">
   <div class="bg-primary py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button
@@ -709,10 +733,8 @@
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     let:toggle
-                    drag_start={isDragged}
                     {index}
                     {config}
-                    configs={$configs}
                     {access_tree}
                     indentation={config.indentation}
                     on:update={handleConfigUpdate}
@@ -731,7 +753,6 @@
                   <AddAction
                     on:paste={handlePaste}
                     {animation}
-                    {config}
                     configs={$configs}
                     {index}
                     on:new-config={handleConfigInsertion}
