@@ -365,31 +365,28 @@
 
   let test;
 
-  function handleDrag(e){
-    if(draggedIndexes.length > 0){
+  function handleDrag(e) {
+    if (draggedIndexes.length > 0) {
       const index = draggedIndexes[0];
-      const id = `cfg-${index}`
+      const id = `cfg-${index}`;
       const draggedDOMElement = document.getElementById(id);
 
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
       const treshold = 60;
-      
+
       const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold = configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(test)
-      if(lowerThreshold ){
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(test);
+      if (lowerThreshold) {
         test = setInterval(() => {
           configList.scrollTop += 5;
         }, 10);
-        
-      }
-      else if(upperThreshold){
-        
+      } else if (upperThreshold) {
         test = setInterval(() => {
           configList.scrollTop -= 5;
         }, 10);
-        
       }
     }
   }
@@ -618,48 +615,46 @@
 </script>
 
 <configuration
-  class="w-full h-full flex flex-col"
+  class="w-full h-full flex flex-col bg-primary pt-5 overflow-hidden px-4"
   class:pointer-events-none={$engine != "ENABLED"}
 >
-  <div class="bg-primary py-5 flex flex-col justify-center">
-    <div class="flex flex-row items-start bg-primary py-2 px-10">
-      <button
-        use:setTooltip={{
-          key: "configuration_ui_events",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={() => {
-          changeSelectedConfig("uiEvents");
-        }}
-        class="{$appSettings.configType == 'uiEvents'
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
-      >
-        <span> UI Events </span>
-      </button>
+  <div class="flex flex-row items-start bg-primary py-2 px-10">
+    <button
+      use:setTooltip={{
+        key: "configuration_ui_events",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
+      on:click={() => {
+        changeSelectedConfig("uiEvents");
+      }}
+      class="{$appSettings.configType == 'uiEvents'
+        ? 'shadow-md bg-pick text-white'
+        : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+    >
+      UI Events
+    </button>
 
-      <button
-        use:setTooltip={{
-          key: "configuration_system_events",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={() => {
-          changeSelectedConfig("systemEvents");
-        }}
-        class="{$appSettings.configType == 'systemEvents'
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
-      >
-        <span> System Events </span>
-      </button>
-    </div>
+    <button
+      use:setTooltip={{
+        key: "configuration_system_events",
+        placement: "top",
+        class: "w-60 p-4",
+      }}
+      on:click={() => {
+        changeSelectedConfig("systemEvents");
+      }}
+      class="{$appSettings.configType == 'systemEvents'
+        ? 'shadow-md bg-pick text-white'
+        : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+    >
+      System Events
+    </button>
   </div>
 
-  {#key $appSettings.configType == "uiEvents"}
+  {#key $appSettings.configType}
     <container
-      class="flex flex-col"
+      class="flex flex-grow flex-col bg-red-500"
       in:fly|global={{
         x: $appSettings.configType == "uiEvents" ? -5 : 5,
         opacity: 0.5,
@@ -667,132 +662,125 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
-          <ConfigParameters {events} />
-          <div class="px-4 flex w-full items-center justify-between">
-            <div class="text-gray-500 text-sm">Actions</div>
-            <MultiSelect
-              {enableConvert}
-              {enableCut}
-              {enableCopy}
-              {enablePaste}
-              {enableRemove}
-              bind:selectAll={selectAllChecked}
-              on:convert-to-code-block={handleConvertToCodeBlock}
-              on:copy={handleCopy}
-              on:cut={handleCut}
-              on:paste={handlePaste}
-              on:remove={handleRemove}
-              on:select-all={handleSelectAll}
-            />
-          </div>
+      <ConfigParameters {events} />
+      <div class="px-4 flex w-full items-center justify-between">
+        <div class="text-gray-500 text-sm">Actions</div>
+        <MultiSelect
+          {enableConvert}
+          {enableCut}
+          {enableCopy}
+          {enablePaste}
+          {enableRemove}
+          bind:selectAll={selectAllChecked}
+          on:convert-to-code-block={handleConvertToCodeBlock}
+          on:copy={handleCopy}
+          on:cut={handleCut}
+          on:paste={handlePaste}
+          on:remove={handleRemove}
+          on:select-all={handleSelectAll}
+        />
+      </div>
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <config-list
+        use:changeOrder={(this, { configs: $configs })}
+        on:drag-start={handleDragStart}
+        on:drag-target={handleDragTargetChange}
+        on:drop-target={handleDropTargetChange}
+        on:drop={handleDrop}
+        on:drag-end={handleDragEnd}
+        on:anim-start={() => {
+          animation = true;
+        }}
+        on:anim-end={() => {
+          animation = false;
+        }}
+        on:mousemove={handleDrag}
+        on:mouseleave={() => {
+          clearInterval(test);
+        }}
+        bind:this={configList}
+        id="cfg-list"
+        use:configListScrollSize={$configs}
+        class="flex flex-col h-full overflow-scroll text-white p-4 bg-red-300"
+      >
+        {#if !isDragged}
+          <AddAction
+            index={-1}
+            on:paste={handlePaste}
+            {animation}
+            configs={$configs}
+            on:new-config={handleConfigInsertion}
+          />
+        {:else}
+          <DropZone
+            index={-1}
+            drop_target={dropIndex}
+            drag_target={draggedIndexes}
+            {animation}
+            drag_start={isDragged}
+          />
+        {/if}
 
-        <div
-        
-          use:changeOrder={(this, { configs: $configs })}
-          on:drag-start={handleDragStart}
-          on:drag-target={handleDragTargetChange}
-          on:drop-target={handleDropTargetChange}
-          on:drop={handleDrop}
-          on:drag-end={handleDragEnd}
-          on:anim-start={() => {
-            animation = true;
-          }}
-          on:anim-end={() => {
-            animation = false;
-          }}
-          class=" grid grid-cols-1 flex-grow overflow-y-auto  bg-lime-300"
-        >
-          <config-list
-          on:mousemove={handleDrag}
-          on:mouseleave={() => {
-            clearInterval(test)
-          }}
-          bind:this={configList}
-            id="cfg-list"
-            use:configListScrollSize={$configs}
-            class="flex flex-col w-full px-4 bg-red-300 overflow-y-auto"
-          >
-            {#if !isDragged}
-              <AddAction
-                index={-1}
-                on:paste={handlePaste}
-                {animation}
-                configs={$configs}
-                on:new-config={handleConfigInsertion}
-              />
-            {:else}
-              <DropZone
-                index={-1}
-                drop_target={dropIndex}
-                drag_target={draggedIndexes}
-                {animation}
-                drag_start={isDragged}
-              />
-            {/if}
+        <div class="bg-lime-300">
+          {#each $configs as config, index (config)}
+            <anim-block
+              animate:flip={{ duration: 300 }}
+              in:fade|global={{ delay: 0 }}
+            >
+              <div class="flex flex-row justify-between">
+                <DynamicWrapper
+                  let:toggle
+                  drag_start={isDragged}
+                  {index}
+                  {config}
+                  configs={$configs}
+                  {access_tree}
+                  indentation={config.indentation}
+                  on:update={handleConfigUpdate}
+                  on:toggle={handleToggleChange}
+                />
 
-            {#each $configs as config, index (config)}
-              <anim-block
-                animate:flip={{ duration: 300 }}
-                in:fade|global={{ delay: 0 }}
-              >
-                <div class="flex flex-row justify-between">
-                  <DynamicWrapper
-                    let:toggle
-                    drag_start={isDragged}
-                    {index}
-                    {config}
-                    configs={$configs}
-                    {access_tree}
-                    indentation={config.indentation}
-                    on:update={handleConfigUpdate}
-                    on:toggle={handleToggleChange}
-                  />
+                <Options
+                  {index}
+                  bind:selected={config.selected}
+                  disabled={!config.information.selectable}
+                  on:selection-change={handleSelectionChange}
+                />
+              </div>
 
-                  <Options
-                    {index}
-                    bind:selected={config.selected}
-                    disabled={!config.information.selectable}
-                    on:selection-change={handleSelectionChange}
-                  />
-                </div>
-
-                {#if !isDragged}
-                  <AddAction
-                    on:paste={handlePaste}
-                    {animation}
-                    {config}
-                    configs={$configs}
-                    {index}
-                    on:new-config={handleConfigInsertion}
-                  />
-                {:else}
-                  <DropZone
-                    {index}
-                    drag_target={draggedIndexes}
-                    drop_target={dropIndex}
-                    {animation}
-                    drag_start={isDragged}
-                  />
-                {/if}
-              </anim-block>
-            {/each}
-          </config-list>
+              {#if !isDragged}
+                <AddAction
+                  on:paste={handlePaste}
+                  {animation}
+                  {config}
+                  configs={$configs}
+                  {index}
+                  on:new-config={handleConfigInsertion}
+                />
+              {:else}
+                <DropZone
+                  {index}
+                  drag_target={draggedIndexes}
+                  drop_target={dropIndex}
+                  {animation}
+                  drag_start={isDragged}
+                />
+              {/if}
+            </anim-block>
+          {/each}
         </div>
-        <container class="flex flex-col w-full self-end">
-          <div class="w-full flex justify-between mb-3">
-            <AddAction
-              userHelper={true}
-              {animation}
-              configs={$configs}
-              index={undefined}
-              on:paste={handlePaste}
-              on:new-config={handleConfigInsertion}
-            />
-            <ExportConfigs />
-          </div>
-        </container>
-      </configs>
+      </config-list>
+      <div class="w-full flex justify-between mb-3">
+        <AddAction
+          userHelper={true}
+          {animation}
+          configs={$configs}
+          index={undefined}
+          on:paste={handlePaste}
+          on:new-config={handleConfigInsertion}
+        />
+        <ExportConfigs />
+      </div>
     </container>
   {/key}
 </configuration>
