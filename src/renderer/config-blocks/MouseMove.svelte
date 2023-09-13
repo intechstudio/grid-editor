@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "mouse",
     desc: "Move",
+    blockTitle: "Move",
     defaultLua: "gmms(,)",
     color: "#9C92A4",
     icon: `

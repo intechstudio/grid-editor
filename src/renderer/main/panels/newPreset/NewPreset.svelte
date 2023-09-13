@@ -8,11 +8,11 @@
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import {
-    engine,
     logger,
     runtime,
     user_input,
   } from "../../../runtime/runtime.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.js";
   import {
     appSettings,
     presetListRefresh,
@@ -316,8 +316,6 @@
           saveToDirectory(PRESET_PATH, preset.name, preset, user);
         }
       }
-
-      engine.set("ENABLED");
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
@@ -327,6 +325,15 @@
   let sessionPresetNumbers = [];
 
   async function saveToSessionPreset() {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, saving session preset failed!`,
+      });
+      return;
+    }
     let user = "sessionPreset";
 
     let elementnumber = $user_input.event.elementnumber;
@@ -412,8 +419,6 @@
       });
 
       saveToDirectory(PRESET_PATH, preset.name, preset, user);
-
-      engine.set("ENABLED");
     };
 
     runtime.fetch_page_configuration_from_grid(callback);
@@ -644,12 +649,7 @@
   });
 </script>
 
-<presets
-  class="flex flex-col h-full justify-between p-4 bg-primary {$engine ==
-  'ENABLED'
-    ? ''
-    : 'pointer-events-none'}"
->
+<presets class="flex flex-col h-full justify-between p-4 bg-primary">
   <div class="flex w-full h-full flex-col overflow-hidden">
     <div
       class="flex justify-between items-center p-4 text-white font-medium

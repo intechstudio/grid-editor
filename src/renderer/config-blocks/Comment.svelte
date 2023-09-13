@@ -7,6 +7,7 @@
     toggleable: false,
     category: "code",
     desc: "Comment Block",
+    blockTitle: "Comment Block",
     defaultLua: "--[[This Is A Comment]]",
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">--</span>

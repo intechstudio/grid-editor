@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "mouse",
     desc: "Button",
+    blockTitle: "Button",
     defaultLua: "gmbs(,)",
     color: "#9C92A4",
     icon: `

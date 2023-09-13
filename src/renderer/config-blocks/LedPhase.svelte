@@ -6,6 +6,7 @@
     rendering: "standard",
     category: "led",
     desc: "Intensity",
+    blockTitle: "Intensity",
     color: "#726E60",
     defaultLua: "glp(,,)",
     icon: `

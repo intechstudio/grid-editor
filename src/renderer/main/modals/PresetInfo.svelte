@@ -6,12 +6,7 @@
   import { presetChangeCallbackStore } from "../panels/newPreset/preset-change.store";
   import { selectedPresetStore } from "../../runtime/preset-helper.store";
   import { onMount } from "svelte";
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "/runtime/runtime.store.js";
+  import { logger, runtime, user_input } from "/runtime/runtime.store.js";
 
   let editor;
   let modalWidth;

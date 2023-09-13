@@ -5,6 +5,7 @@
     rendering: "standard",
     category: "variables",
     desc: "Self",
+    blockTitle: "Self",
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
@@ -300,7 +301,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Selfs" />
+  <SendFeedback feedback_context="Selfs" class="mt-2 text-sm text-gray-500" />
 </config-self-definitions>
 
 <style>

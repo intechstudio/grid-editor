@@ -1,9 +1,7 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-
-  import { selectElement } from "../event-handlers/select.js";
 
   import Encoder from "../elements/Encoder.svelte";
   import Led from "../elements/Led.svelte";
@@ -15,6 +13,8 @@
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "EN16";
   export let rotation = 0;
+
+  const dispatch = createEventDispatcher();
 
   let dx, dy;
 
@@ -81,10 +81,7 @@
 
   <div
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
-    dy == selectedElement.brc.dy
-      ? ' border-gray-500'
-      : 'border-transparent'} "
+    class="module-dimensions"
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
@@ -100,7 +97,13 @@
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
           class="knob-and-led"
-          on:click={() => selectElement(elementNumber, "encoder", id)}
+          on:click={() => {
+            dispatch("click", {
+              elementNumber: elementNumber,
+              type: "encoder",
+              id: id,
+            });
+          }}
         >
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Encoder

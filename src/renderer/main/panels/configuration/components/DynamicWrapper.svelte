@@ -1,7 +1,7 @@
 <script>
   import { getAllComponents } from "../../../../lib/_configs";
 
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
 
   export let access_tree;
@@ -114,7 +114,7 @@
         class:bg-opacity-30={toggled}
       >
         <!-- //TODO: Refactor out the special case of IF -->
-        {#if toggled || config.information.name === "Condition_If" || config.information.name === "Condition_ElseIf"}
+        {#if toggled || config.information.short === "if" || config.information.short === "ei"}
           <container class="flex flex-grow items-center pointer-events-auto">
             <svelte:component
               this={config.component}
@@ -131,7 +131,7 @@
           <div
             class="px-4 flex flex-row justify-between w-full items-center h-full"
           >
-            <span class="text-white">{config.information.desc}</span>
+            <span class="text-white">{config.information.blockTitle}</span>
             <span class="text-error text-xs" class:hidden={!syntaxError}>
               SYNTAX ERROR
             </span>
