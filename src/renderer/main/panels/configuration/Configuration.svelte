@@ -16,11 +16,12 @@
     runtime,
     logger,
     user_input,
-    engine,
     appActionClipboard,
     luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
+
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   import {
     ConfigList,
@@ -49,7 +50,6 @@
   let lastOpenedElementsType = undefined;
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
-  let configList = undefined;
 
   function displayDefault() {
     configs.set([]);
@@ -67,6 +67,16 @@
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
     $appSettings.configType = arg;
 
     if (arg == "systemEvents") {
@@ -145,8 +155,25 @@
     localDefinitions.update(list);
   }
 
-  $: if ($user_input) {
-    handleUserInputchange();
+  $: {
+    //Handle User Input
+    if ($user_input) {
+      handleUserInputchange();
+    }
+  }
+
+  let bufferValueChanged = false;
+  $: {
+    if ($writeBuffer.length > 0) {
+      bufferValueChanged = true;
+      displayDefault();
+    } else {
+      if (bufferValueChanged) {
+        //Display User Input
+        handleUserInputchange();
+        bufferValueChanged = false;
+      }
+    }
   }
 
   function handleUserInputchange() {
@@ -192,6 +219,8 @@
 
   let animation = false;
   let isDragged = false;
+
+  let scrollHeight = "100%";
 
   function handleError(e) {
     switch (e.type) {
@@ -363,34 +392,6 @@
     dropIndex = e.detail.drop_target;
   }
 
-  let test;
-
-  function handleDrag(e) {
-    if (draggedIndexes.length > 0) {
-      const index = draggedIndexes[0];
-      const id = `cfg-${index}`;
-      const draggedDOMElement = document.getElementById(id);
-
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(test);
-      if (lowerThreshold) {
-        test = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        test = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
-    }
-  }
-
   let enableConvert = false;
   let enableCut = false;
   let enableCopy = false;
@@ -529,7 +530,6 @@
       .then((e) => {
         configs.set(list);
         deselectAll();
-        clearClipboard();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
@@ -613,7 +613,31 @@
     }
   }
 
-  let scrollHeight = "100%";
+  let autoScroll;
+  function handleDrag(e) {
+    if (draggedIndexes.length > 0) {
+      const index = draggedIndexes[0];
+      const id = `cfg-${index}`;
+      const configList = document.getElementById("cfg-list");
+      const draggedDOMElement = document.getElementById(id);
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(autoScroll);
+      if (lowerThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+      } else if (upperThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+      }
+    }
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col">
@@ -685,6 +709,7 @@
           </div>
         </div>
 
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           use:changeOrder={(this, { configs: $configs })}
           on:drag-start={handleDragStart}
@@ -706,6 +731,10 @@
             use:configListScrollSize={$configs}
             on:height={(e) => {
               scrollHeight = e.detail;
+            }}
+            on:mousemove={handleDrag}
+            on:mouseleave={() => {
+              clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
