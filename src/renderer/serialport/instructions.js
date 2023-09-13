@@ -4,12 +4,7 @@ import { appSettings } from "../runtime/app-helper.store";
 import grid from "../protocol/grid-protocol.js";
 
 import { writeBuffer } from "../runtime/engine.store.js";
-import {
-  engine,
-  logger,
-  unsaved_changes,
-  runtime,
-} from "../runtime/runtime.store.js";
+import { logger, unsaved_changes, runtime } from "../runtime/runtime.store.js";
 
 const instructions = {
   sendEditorHeartbeat_immediate: (type) => {
@@ -94,7 +89,7 @@ const instructions = {
           element,
           event,
           actionstring,
-          "GRID_REPORT",
+          "GRID_REPORT"
         );
 
         if (callback) {
@@ -122,7 +117,7 @@ const instructions = {
     }
 
     const objIndex = get(unsaved_changes).findIndex(
-      (e) => e.x == dx && e.y == dy,
+      (e) => e.x == dx && e.y == dy
     );
     if (objIndex !== -1) {
       unsaved_changes.update((s) => {
@@ -226,7 +221,6 @@ const instructions = {
   },
 
   sendPageStoreToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -262,7 +256,6 @@ const instructions = {
         //console.log('page store execute - fail')
       },
       successCb: function () {
-        engine.set("ENABLED");
         unsaved_changes.set([]);
         logger.set({
           type: "success",
@@ -274,13 +267,20 @@ const instructions = {
       },
     };
 
-    //engine.strict.store('store', serial, id);
-
     writeBuffer.add_last(buffer_element);
   },
 
   sendNVMEraseToGrid: () => {
-    engine.set("DISABLED");
+    if (get(writeBuffer) > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, erasing NVM memory failed!`,
+      });
+      return;
+    }
+
     logger.set({
       type: "progress",
       mode: 0,
@@ -319,7 +319,6 @@ const instructions = {
       successCb: function () {
         unsaved_changes.set([]);
         runtime.erase();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -334,6 +333,15 @@ const instructions = {
   },
 
   sendNVMDefragToGrid: () => {
+    if (get(writeBuffer) > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, NVM Defragmentation failed!`,
+      });
+      return;
+    }
     let buffer_element = {
       descr: {
         brc_parameters: {
@@ -365,7 +373,6 @@ const instructions = {
   },
 
   sendPageDiscardToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -406,7 +413,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -421,7 +427,6 @@ const instructions = {
   },
 
   sendPageClearToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -458,7 +463,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,

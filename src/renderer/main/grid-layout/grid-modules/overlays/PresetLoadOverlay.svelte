@@ -31,7 +31,7 @@
   let isModuleCompatibleWithPreset = false;
 
   function showLoadPresetOverlay() {
-    if (!selectedPreset){
+    if (!selectedPreset) {
       showOverlay = false;
       return;
     }
@@ -60,7 +60,7 @@
 
   $: {
     let selectedConfig = $selectedConfigStore;
-    if (selectedConfig.configType === "preset"){
+    if (selectedConfig.configType === "preset") {
       selectedPreset = selectedConfig;
     } else {
       selectedPreset = undefined;

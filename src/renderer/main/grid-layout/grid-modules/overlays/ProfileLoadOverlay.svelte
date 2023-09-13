@@ -26,7 +26,11 @@
     let moduleId = id;
     let profileType = selectedConfig.type;
     let moduleType = moduleId.substr(0, 4);
-    if (selectedConfig.configType === "profile" && moduleType === profileType && isActionButtonClicked === false) {
+    if (
+      selectedConfig.configType === "profile" &&
+      moduleType === profileType &&
+      isActionButtonClicked === false
+    ) {
       showOverlay = true;
     } else {
       showOverlay = false;

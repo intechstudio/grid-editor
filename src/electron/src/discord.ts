@@ -20,7 +20,7 @@ export async function sendToDiscord(message) {
     .send(
       `###### ${message.title} ######\n${process.platform} | ${
         buildVariables.BUILD_ENV
-      } | ${app.getVersion()}\n${message.text} `,
+      } | ${app.getVersion()}\n${message.text} `
     )
     .catch((err) => console.log("discord error", err));
 }

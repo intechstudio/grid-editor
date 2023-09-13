@@ -5,6 +5,7 @@
     rendering: "standard",
     category: "variables",
     desc: "Self",
+    blockTitle: "Self",
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
@@ -209,7 +210,7 @@
     {/if}
     {#key commitState}
       <div
-        in:fly={{ x: -5, duration: 200 }}
+        in:fly|global={{ x: -5, duration: 200 }}
         class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm"
       >
         {commitState ? "Unsaved changes!" : "Synced with Grid!"}
@@ -300,7 +301,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Selfs" />
+  <SendFeedback feedback_context="Selfs" class="mt-2 text-sm text-gray-500" />
 </config-self-definitions>
 
 <style>

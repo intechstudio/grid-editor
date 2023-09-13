@@ -48,12 +48,12 @@
 
 <div id="modal-copy-placeholder" />
 
-<!-- transition:fade={{ duration: 150 }} -->
+<!-- transition:fade|global={{ duration: 150 }} -->
 <modal
   class="z-40 flex absolute flex-col items-center justify-center w-full h-screen
   bg-primary bg-opacity-50"
 >
-  <!-- transition:slide={{ delay: 250, duration: 300, axis: "x" }} -->
+  <!-- transition:slide|global={{ delay: 250, duration: 300, axis: "x" }} -->
   <div
     class="z-50 w-1/2 h-1/2 flex flex-col shadow-xl bg-primary
 bg-opacity-100 overflow-auto rounded-lg"
@@ -112,11 +112,11 @@ bg-opacity-100 overflow-auto rounded-lg"
           />
           {#if feedbackSubmitted}
             <div
-              in:fade={{ duration: 100 }}
+              in:fade|global={{ duration: 100 }}
               class="bg-primary bg-opacity-50 absolute flex w-full h-full justify-center items-center backdrop-blur-sm"
             >
               <span
-                in:scale={{
+                in:scale|global={{
                   start: 0.5,
                   easing: backOut,
                   duration: 300,

@@ -1,7 +1,7 @@
 <script>
   import { writable, derived } from "svelte/store";
 
-  import { engine, runtime } from "../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../runtime/runtime.store.js";
 
   import Device from "./grid-modules/Device.svelte";
 
@@ -18,21 +18,65 @@
   let shiftX = 0;
   let shiftY = 0;
 
+  let rotation = $appSettings.persistant.moduleRotation;
+  let rotationBuffer = $appSettings.persistant.moduleRotation;
+  let trueRotation = $appSettings.persistant.moduleRotation;
+
   $: {
     const rt = $runtime;
     //Initial center shift
     shiftX = -deviceWidth / 2;
     shiftY = -deviceWidth / 2;
 
+    //Compensate for rotation
+    rotationBuffer = rotation;
+    rotation = $appSettings.persistant.moduleRotation;
+
+    let deltaRotation = rotation - rotationBuffer;
+    if (deltaRotation > 180) {
+      deltaRotation -= 360;
+    }
+    if (deltaRotation < -180) {
+      deltaRotation += 360;
+    }
+    trueRotation += deltaRotation;
+
+    if (rotation == 90 || rotation == 180) {
+      shiftX += deviceWidth;
+    }
+    if (rotation == 180 || rotation == 270) {
+      shiftY += deviceWidth;
+    }
+
+    //And the other transformations
     if (rt.length > 0) {
-      //And the other
       const min_x = Math.min(...rt.map((e) => e.dx));
       const max_x = Math.max(...rt.map((e) => e.dx));
       const min_y = Math.min(...rt.map((e) => e.dy));
       const max_y = Math.max(...rt.map((e) => e.dy));
 
-      shiftX -= (deviceWidth / 2) * (min_x + max_x);
-      shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+      switch (rotation) {
+        case 0: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x);
+          shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
+          break;
+        }
+        case 90: {
+          shiftY -= (deviceWidth / 2) * (min_x + max_x);
+          shiftX -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 180: {
+          shiftX -= (deviceWidth / 2) * (min_x + max_x) * -1;
+          shiftY -= (deviceWidth / 2) * (min_y + max_y);
+          break;
+        }
+        case 270: {
+          shiftY -= (deviceWidth / 2) * (min_x + max_x) * -1;
+          shiftX -= (deviceWidth / 2) * (min_y + max_y) * -1;
+          break;
+        }
+      }
     }
 
     rt.forEach((device, i) => {
@@ -70,40 +114,43 @@
   );
 </script>
 
-<layout-container
-  class="{$$props.class} relative flex overflow-hidden"
-  class:pointer-events-none={$engine != "ENABLED"}
->
+<layout-container class="{$$props.class} overflow-hidden">
   <div
     style="
       --device-width: {deviceWidth}px; 
       --shift-x: {shiftX}px; 
       --shift-y: {shiftY}px; 
       --scaling-percent: {$scalingPercent};
+      --rotation-degree: {trueRotation}deg;
     "
-    class="absolute centered duration-75 transition-all"
+    class="absolute centered"
     use:clickOutside={{ useCapture: true }}
   >
     {#each $devices as device (device)}
+      <!-- svelte-ignore a11y-click-events-have-key-events -->
       <div
-        in:fly={{
+        in:fly|global={{
           x: device.fly_x_direction * 100,
           y: device.fly_y_direction * 100,
           duration: 300,
         }}
-        out:fade={{ duration: 150 }}
+        out:fade|global={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute"
-        class:bg-error={device.fwMismatch}
-        class:rounded-lg={device.fwMismatch}
+        class="absolute transition-all box-border border-2 rounded-lg"
+        class:border-transparent={device.dx != $user_input.brc.dx ||
+          (device.dy != $user_input.brc.dy && !device.fwMismatch)}
+        class:border-gray-500={device.dx == $user_input.brc.dx &&
+          device.dy == $user_input.brc.dy &&
+          !device.fwMismatch}
+        class:animate-border-error={device.fwMismatch}
       >
         <Device
           type={device.type}
           id={device.id}
           arch={device.architecture}
           portstate={device.portstate}
-          rotation={device.rot + $appSettings.persistant.moduleRotation / 90}
+          rotation={device.rot}
         />
       </div>
     {/each}
@@ -115,8 +162,24 @@
   .centered {
     top: 50%;
     left: 50%;
-    transform-origin: top left;
+    transform-origin: center;
     transform: scale(var(--scaling-percent))
-      translate(var(--shift-x), var(--shift-y));
+      translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
+  }
+  .animate-border-error {
+    animation-name: error-animation;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate-reverse;
+    animation-timing-function: ease;
+  }
+
+  @keyframes error-animation {
+    from {
+      border-color: transparent;
+    }
+    to {
+      border-color: #dc2626;
+    }
   }
 </style>

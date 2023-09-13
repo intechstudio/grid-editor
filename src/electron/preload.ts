@@ -42,7 +42,11 @@ contextBridge.exposeInMainWorld("electron", {
   },
   configs: {
     migrateToProfileCloud: (oldRootPath, newRootPath, configDirectory) =>
-      ipcRenderer.invoke("migrateToProfileCloud", { oldRootPath, newRootPath, configDirectory }),
+      ipcRenderer.invoke("migrateToProfileCloud", {
+        oldRootPath,
+        newRootPath,
+        configDirectory,
+      }),
     loadConfigsFromDirectory: (configPath, rootDirectory) =>
       ipcRenderer.invoke("loadConfigsFromDirectory", {
         configPath,
@@ -58,7 +62,7 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.invoke("deleteConfig", {
         configPath,
         rootDirectory,
-        config
+        config,
       }),
     onExternalResponse: (callback) =>
       ipcRenderer.on("onExternalProfileLinkResponse", callback),

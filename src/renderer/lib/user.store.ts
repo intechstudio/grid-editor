@@ -6,7 +6,7 @@ function createUserStore() {
   // this is code for awaiting the currentUser by CaptainCodeman
 
   const { subscribe } = readable<User | null>(undefined, (set) =>
-    onAuthStateChanged(centralAuth, set),
+    onAuthStateChanged(centralAuth, set)
   );
 
   // onAuthStateChange can be null if getAuth.currentUser is not ready

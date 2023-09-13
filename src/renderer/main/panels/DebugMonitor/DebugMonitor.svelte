@@ -140,7 +140,7 @@
 </script>
 
 <config-debug
-  transition:fade={{ duration: 150 }}
+  transition:fade|global={{ duration: 150 }}
   class="w-full h-full flex flex-col p-4 z-10 bg-primary"
 >
   <div class="text-white">

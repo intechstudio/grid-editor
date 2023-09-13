@@ -21,7 +21,7 @@ async function migrateProfileFileToCloud(
   filePath: string,
   configType: string,
   configPath: string,
-  configDirectory: string,
+  configDirectory: string
 ) {
   const id = uuidv4();
   const oldProfileBuffer = await readFile(filePath);
@@ -44,10 +44,10 @@ async function migrateProfileFileToCloud(
 export async function migrateToProfileCloud(
   oldRootPath: string,
   newRootPath: string,
-  configDirectory: string,
+  configDirectory: string
 ): Promise<void> {
-  const oldConfigTypes = ['profile', 'preset'];
-  for (const configType of oldConfigTypes){
+  const oldConfigTypes = ["profile", "preset"];
+  for (const configType of oldConfigTypes) {
     const relativeFolder = `${oldConfigTypes}s`;
     const fullOldPath = path.join(oldRootPath, relativeFolder);
     const entries = await readdir(oldRootPath, { withFileTypes: true });
@@ -58,13 +58,25 @@ export async function migrateToProfileCloud(
           // do nothing
         } else {
           // If the entry is a directory, go into it
-          const subentries = await readdir(oldRootPath, { withFileTypes: true });
-          for (const fileEntry of subentries.filter((entry) => entry.isFile)){
-            await migrateProfileFileToCloud(path.join(fullOldPath, entry.name, fileEntry.name), configType, newRootPath, configDirectory);
+          const subentries = await readdir(oldRootPath, {
+            withFileTypes: true,
+          });
+          for (const fileEntry of subentries.filter((entry) => entry.isFile)) {
+            await migrateProfileFileToCloud(
+              path.join(fullOldPath, entry.name, fileEntry.name),
+              configType,
+              newRootPath,
+              configDirectory
+            );
           }
         }
       } else if (entry.isFile() && path.extname(entry.name) === ".json") {
-        await migrateProfileFileToCloud(path.join(fullOldPath, entry.name), configType, newRootPath, configDirectory);
+        await migrateProfileFileToCloud(
+          path.join(fullOldPath, entry.name),
+          configType,
+          newRootPath,
+          configDirectory
+        );
       }
     }
   }
@@ -81,22 +93,15 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`);
 
-  let configs : any[] = [];
+  let configs: any[] = [];
 
   const [stats] = await checkIfWritableDirectory(`${path}/${rootDirectory}`);
 
   if (stats.isDirectory) {
-    const files = await fs.promises.readdir(
-      `${path}/${rootDirectory}`,
-    );
+    const files = await fs.promises.readdir(`${path}/${rootDirectory}`);
 
     for (const file of files) {
-      let filepath =
-        path +
-        "/" +
-        rootDirectory +
-        "/" +
-        file;
+      let filepath = path + "/" + rootDirectory + "/" + file;
 
       await fs.promises.readFile(filepath, "utf-8").then(async (data) => {
         if (isJson(data)) {
@@ -121,33 +126,29 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   return configs;
 }
 
-export async function saveConfig(
-  configPath,
-  rootDirectory,
-  config,
-) {
+export async function saveConfig(configPath, rootDirectory, config) {
   const path = configPath;
 
   log.info("SaveConfig", config);
 
   if (!fs.existsSync(`${path}/${rootDirectory}`))
-    await fs.promises.mkdir(`${path}/${rootDirectory}`, {recursive: true});
+    await fs.promises.mkdir(`${path}/${rootDirectory}`, { recursive: true });
 
-  const fileNameBase = `${config.name ?? "config"}_${config.localId ?? ''}`;
+  const fileNameBase = `${config.name ?? "config"}_${config.localId ?? ""}`;
   let fileName = fileNameBase;
   let fileNameCounter = 0;
-  while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)){
+  while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)) {
     fileName = `${fileNameBase}_${fileNameCounter}`;
   }
-  
+
   await fs.promises
     .writeFile(
       `${path}/${rootDirectory}/${fileName}.json`,
-      JSON.stringify(config, null, 4),
+      JSON.stringify(config, null, 4)
     )
     .then((data) => {
       console.log("Saved!");
-      if (config.fileName){
+      if (config.fileName) {
         deleteConfig(configPath, rootDirectory, config);
       }
     })
@@ -157,12 +158,7 @@ export async function saveConfig(
     });
 }
 
-export async function deleteConfig(
-  configPath,
-  configFolder,
-  config,
-) {
-
+export async function deleteConfig(configPath, configFolder, config) {
   const path = configPath;
   log.info("deleteConfig");
 

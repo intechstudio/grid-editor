@@ -5,7 +5,6 @@
   import {
     runtime,
     elementNameStore,
-    engine,
     logger,
     user_input,
     controlElementClipboard,
@@ -79,11 +78,9 @@
         classname: "elementcopy",
         message: `Events are copied!`,
       });
-      engine.set("ENABLED");
       controlElementClipboard.set({ controlElementType, events });
     };
 
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,

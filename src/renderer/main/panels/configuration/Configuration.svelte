@@ -16,11 +16,12 @@
     runtime,
     logger,
     user_input,
-    engine,
     appActionClipboard,
     luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
+
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
   import {
     ConfigList,
@@ -66,6 +67,16 @@
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
     $appSettings.configType = arg;
 
     if (arg == "systemEvents") {
@@ -144,6 +155,27 @@
     localDefinitions.update(list);
   }
 
+  $: {
+    //Handle User Input
+    if ($user_input) {
+      handleUserInputchange();
+    }
+  }
+
+  let bufferValueChanged = false;
+  $: {
+    if ($writeBuffer.length > 0) {
+      bufferValueChanged = true;
+      displayDefault();
+    } else {
+      if (bufferValueChanged) {
+        //Display User Input
+        handleUserInputchange();
+        bufferValueChanged = false;
+      }
+    }
+  }
+
   function handleUserInputchange() {
     let target = ConfigTarget.getCurrent();
     let list = undefined;
@@ -176,8 +208,13 @@
     deselectAll();
   }
 
-  $: if ($user_input) {
-    handleUserInputchange();
+  $: handleConfigListchange($configs);
+
+  function handleConfigListchange(configs) {
+    const map = ConfigList.getIndentationMap(configs);
+    for (const i in map) {
+      configs[i].indentation = map[i];
+    }
   }
 
   let animation = false;
@@ -493,7 +530,6 @@
       .then((e) => {
         configs.set(list);
         deselectAll();
-        clearClipboard();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
       })
@@ -578,10 +614,7 @@
   }
 </script>
 
-<configuration
-  class="w-full h-full flex flex-col"
-  class:pointer-events-none={$engine != "ENABLED"}
->
+<configuration class="w-full h-full flex flex-col">
   <div class="bg-primary py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start bg-primary py-2 px-10">
       <button
@@ -621,7 +654,7 @@
   {#key $appSettings.configType == "uiEvents"}
     <container
       class="flex flex-col h-full"
-      in:fly={{
+      in:fly|global={{
         x: $appSettings.configType == "uiEvents" ? -5 : 5,
         opacity: 0.5,
         duration: 200,
@@ -695,16 +728,15 @@
             {#each $configs as config, index (config)}
               <anim-block
                 animate:flip={{ duration: 300 }}
-                in:fade={{ delay: 0 }}
+                in:fade|global={{ delay: 0 }}
               >
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     let:toggle
-                    drag_start={isDragged}
                     {index}
                     {config}
-                    configs={$configs}
                     {access_tree}
+                    indentation={config.indentation}
                     on:update={handleConfigUpdate}
                     on:toggle={handleToggleChange}
                   />
@@ -721,7 +753,6 @@
                   <AddAction
                     on:paste={handlePaste}
                     {animation}
-                    {config}
                     configs={$configs}
                     {index}
                     on:new-config={handleConfigInsertion}

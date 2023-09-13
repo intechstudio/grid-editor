@@ -1,21 +1,21 @@
 <script>
-  import { onMount, createEventDispatcher } from "svelte";
+  import { onMount } from "svelte";
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
 
-  import Encoder from "../elements/Encoder.svelte";
-  import Fader from "../elements/Fader.svelte";
+  import { selectElement } from "../event-handlers/select.js";
+
+  import Button from "../elements/Button.svelte";
+  import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import { elementPositionStore } from "../../../../runtime/runtime.store.js";
+  import { ledColorStore } from "../../../../runtime/runtime.store.js";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
-  export let id = "EF44";
+  export let id = "TEK2";
   export let rotation = 0;
-
-  const dispatch = createEventDispatcher();
 
   let dx, dy;
 
@@ -71,6 +71,8 @@
       dy = +id.split(";")[1].split(":").pop();
     }
   }
+
+  const ledPosRadius = -95;
 </script>
 
 <div
@@ -82,7 +84,10 @@
 
   <div
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions"
+    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
+    dy == selectedElement.brc.dy
+      ? ' border-gray-500'
+      : 'border-transparent'} "
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
@@ -91,23 +96,63 @@
     <div
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
-      {#each [0, 1, 2, 3] as elementNumber}
+      {#each [8, 9] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-1"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "encoder",
-              id: id,
-            });
-          }}
+          class="knob-and-led row-span-2 col-span-2 relative"
+          style="border-radius: 50%; padding: 6px"
+          on:click={() => selectElement(elementNumber, "encoder", id)}
         >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Encoder
+          <div
+            class="absolute"
+            style="
+              margin-left: {ledPosRadius * Math.cos((25 / 180) * Math.PI)}px; 
+              margin-top: {ledPosRadius * Math.sin((25 / 180) * Math.PI)}px; 
+            "
+          >
+            <Led color={ledcolor_array[elementNumber]} size={1.4} />
+          </div>
+          <div
+            class="absolute"
+            style="
+              margin-left: {ledPosRadius * Math.cos((35 / 180) * Math.PI)}px; 
+              margin-top: {ledPosRadius * Math.sin((35 / 180) * Math.PI)}px; 
+            "
+          >
+            <Led color={ledcolor_array[elementNumber]} size={1.6} />
+          </div>
+          <div
+            class="absolute"
+            style="
+              margin-left: {ledPosRadius * Math.cos((45 / 180) * Math.PI)}px; 
+              margin-top: {ledPosRadius * Math.sin((45 / 180) * Math.PI)}px; 
+            "
+          >
+            <Led color={ledcolor_array[elementNumber]} size={1.7} />
+          </div>
+          <div
+            class="absolute"
+            style="
+              margin-left: {ledPosRadius * Math.cos((55 / 180) * Math.PI)}px; 
+              margin-top: {ledPosRadius * Math.sin((55 / 180) * Math.PI)}px; 
+            "
+          >
+            <Led color={ledcolor_array[elementNumber]} size={1.6} />
+          </div>
+          <div
+            class="absolute"
+            style="
+              margin-left: {ledPosRadius * Math.cos((65 / 180) * Math.PI)}px; 
+              margin-top: {ledPosRadius * Math.sin((65 / 180) * Math.PI)}px; 
+            "
+          >
+            <Led color={ledcolor_array[elementNumber]} size={1.4} />
+          </div>
+
+          <EndlessPot
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber]}
@@ -116,29 +161,21 @@
         </div>
       {/each}
 
-      {#each [4, 5, 6, 7] as elementNumber}
+      {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-3"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "fader",
-              id: id,
-            });
-          }}
+          class="knob-and-led"
+          on:click={() => selectElement(elementNumber, "button", id)}
         >
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Fader
+          <Button
             {elementNumber}
             {id}
             position={elementposition_array[elementNumber]}
             size={2.1}
-            rotation={rotation * -90}
-            faderHeight={68}
           />
         </div>
       {/each}

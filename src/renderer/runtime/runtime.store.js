@@ -39,6 +39,12 @@ export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
+  if (descr.class_parameters.EVENTTYPE == 3) {
+    // button change must not be registered
+
+    return;
+  }
+
   let eps = get(elementPositionStore);
 
   if (eps[descr.brc_parameters.SX] === undefined) {
@@ -60,6 +66,8 @@ export function update_elementPositionStore(descr) {
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
   ] = descr.class_parameters.EVENTPARAM;
+
+  //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
   elementPositionStore.set(eps);
 }
@@ -104,12 +112,12 @@ export function update_elementPositionStore_fromPreview(descr) {
     const num = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[4 + i * 4 + 0]) +
-        String.fromCharCode(descr.raw[4 + i * 4 + 1]),
+        String.fromCharCode(descr.raw[4 + i * 4 + 1])
     );
     const val = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[4 + i * 4 + 2]) +
-        String.fromCharCode(descr.raw[4 + i * 4 + 3]),
+        String.fromCharCode(descr.raw[4 + i * 4 + 3])
     );
     //console.log(num, val)
 
@@ -130,22 +138,22 @@ export function update_ledColorStore(descr) {
     const num = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[8 + i * 8 + 0]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 1]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 1])
     );
     const red = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[8 + i * 8 + 2]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 3]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 3])
     );
     const gre = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[8 + i * 8 + 4]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 5]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 5])
     );
     const blu = parseInt(
       "0x" +
         String.fromCharCode(descr.raw[8 + i * 8 + 6]) +
-        String.fromCharCode(descr.raw[8 + i * 8 + 7]),
+        String.fromCharCode(descr.raw[8 + i * 8 + 7])
     );
 
     //console.log(num, red, gre, blu)
@@ -216,7 +224,7 @@ function create_user_input() {
 
   function process_incoming_event_from_grid(descr) {
     // engine is disabled
-    if (get(engine) === "DISABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 
@@ -278,7 +286,7 @@ function create_user_input() {
         let device = rt.find(
           (device) =>
             device.dx == descr.brc_parameters.SX &&
-            device.dy == descr.brc_parameters.SY,
+            device.dy == descr.brc_parameters.SY
         );
 
         if (device === undefined) {
@@ -289,13 +297,13 @@ function create_user_input() {
           const incomingEventTypes = getElementEventTypes(
             descr.brc_parameters.SX,
             descr.brc_parameters.SY,
-            descr.class_parameters.ELEMENTNUMBER,
+            descr.class_parameters.ELEMENTNUMBER
           );
 
           if (!incomingEventTypes.includes(store.event.eventtype)) {
             //Select closest event type if incoming device does not have the corrently selected event type
             const closestEvent = Math.min(
-              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0),
+              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
             );
             store.event.eventtype = String(closestEvent);
           }
@@ -384,12 +392,12 @@ function create_runtime() {
         if (device.dx == dx && device.dy == dy) {
           try {
             const pageIndex = device.pages.findIndex(
-              (x) => x.pageNumber == page,
+              (x) => x.pageNumber == page
             );
             const elementIndex = device.pages[
               pageIndex
             ].control_elements.findIndex(
-              (x) => x.controlElementNumber == element,
+              (x) => x.controlElementNumber == element
             );
             _event = device.pages[pageIndex].control_elements[
               elementIndex
@@ -409,13 +417,13 @@ function create_runtime() {
     const rt = get(runtime);
 
     const device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy,
+      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
     );
     const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == ui.event.pagenumber,
+      (x) => x.pageNumber == ui.event.pagenumber
     );
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == ui.event.elementnumber,
+      (x) => x.controlElementNumber == ui.event.elementnumber
     );
 
     if (device.pages[pageIndex].control_elements[elementIndex] === undefined)
@@ -494,7 +502,7 @@ function create_runtime() {
       const controller = this.create_module(
         descr.brc_parameters,
         descr.class_parameters,
-        false,
+        false
       );
 
       let firstConnection = false;
@@ -532,14 +540,14 @@ function create_runtime() {
             : as.firmware_d51_required;
         controller.fwMismatch = isFirmwareMismatch(
           controller.fwVersion,
-          firmware_required,
+          firmware_required
         );
 
         console.log(
           "Mismatch: ",
           controller.fwMismatch,
           "Firmware Version: ",
-          controller.fwVersion,
+          controller.fwVersion
         );
 
         _runtime.update((devices) => {
@@ -645,7 +653,7 @@ function create_runtime() {
             dy,
             page,
             element,
-            event,
+            event
           );
           if (dest) {
             console.log("FOUND");
@@ -659,7 +667,7 @@ function create_runtime() {
               element,
               event,
               dest.config,
-              callback,
+              callback
             );
             // trigger change detection
           }
@@ -712,7 +720,7 @@ function create_runtime() {
             dy,
             page,
             element,
-            event,
+            event
           );
           if (dest) {
             dest.config = ev.config;
@@ -725,7 +733,7 @@ function create_runtime() {
               element,
               event,
               dest.config,
-              callback,
+              callback
             );
             // trigger change detection
           }
@@ -743,7 +751,6 @@ function create_runtime() {
   }
 
   function whole_page_overwrite(array) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -772,7 +779,7 @@ function create_runtime() {
             dy,
             page,
             element,
-            event,
+            event
           );
           if (dest) {
             dest.config = ev.config.trim();
@@ -789,7 +796,6 @@ function create_runtime() {
         ) {
           // this is last element so we need to add the callback
           callback = function () {
-            engine.set("ENABLED");
             logger.set({
               type: "success",
               mode: 0,
@@ -808,7 +814,7 @@ function create_runtime() {
           element,
           event,
           ev.config,
-          callback,
+          callback
         );
       });
     });
@@ -821,7 +827,7 @@ function create_runtime() {
     element,
     event,
     actionString,
-    status,
+    status
   ) {
     // config
     _runtime.update((_runtime) => {
@@ -840,7 +846,7 @@ function create_runtime() {
     page,
     element,
     event,
-    callback,
+    callback
   ) {
     let rt = get(_runtime);
 
@@ -853,7 +859,7 @@ function create_runtime() {
         element,
         event,
         dest.config,
-        callback,
+        callback
       );
     } else {
       console.error("DEST not found!");
@@ -866,13 +872,13 @@ function create_runtime() {
     const rt = get(runtime);
 
     const device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy,
+      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
     );
     const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber,
+      (x) => x.pageNumber == li.event.pagenumber
     );
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == li.event.elementnumber,
+      (x) => x.controlElementNumber == li.event.elementnumber
     );
 
     const events =
@@ -906,7 +912,6 @@ function create_runtime() {
   }
 
   function fetch_page_configuration_from_grid(callback) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -921,7 +926,7 @@ function create_runtime() {
     let li = Object.assign({}, get(user_input));
 
     let device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy,
+      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
     );
 
     if (typeof device === "undefined") {
@@ -932,13 +937,11 @@ function create_runtime() {
         message: `No module selected`,
       });
 
-      engine.set("ENABLED");
-
       return;
     }
 
     const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber,
+      (x) => x.pageNumber == li.event.pagenumber
     );
     const controlElements = device.pages[pageIndex].control_elements;
 
@@ -997,21 +1000,20 @@ function create_runtime() {
             control_element.events.forEach((event) => {
               if (
                 ["GRID_REPORT", "EDITOR_EXECUTE", "EDITOR_BACKGROUND"].includes(
-                  event.cfgStatus,
+                  event.cfgStatus
                 )
               ) {
                 event.config = "";
                 event.cfgStatus = "NULL";
               }
             });
-          },
+          }
         );
       });
       return _runtime;
     });
 
     unsaved_changes.set([]);
-
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
       //do nothing just trigger change detection
@@ -1078,7 +1080,7 @@ function create_runtime() {
     return {
       // implement the module id rep / req
       architecture: grid.module_architecture_from_hwcfg(
-        heartbeat_class_param.HWCFG,
+        heartbeat_class_param.HWCFG
       ),
       portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
@@ -1173,7 +1175,7 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    if (get(engine) !== "ENABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 
@@ -1231,7 +1233,7 @@ export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
   const element = currentModule.pages[0].control_elements.find(
-    (e) => e.controlElementNumber == elementNumber,
+    (e) => e.controlElementNumber == elementNumber
   );
 
   return element.events.map((e) => e.event.value);

@@ -14,6 +14,7 @@ import {
 import path from "path";
 import log from "electron-log";
 import fs from "fs";
+import chokidar from "chokidar";
 
 // might be environment variables as well.
 import configuration from "../../configuration.json";
@@ -26,7 +27,7 @@ log.info(
   "NAME: ",
   configuration.EDITOR_NAME,
   " VERSION: ",
-  configuration.EDITOR_VERSION,
+  configuration.EDITOR_VERSION
 );
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
@@ -139,7 +140,7 @@ if (!gotTheLock) {
           mainWindow.focus();
         }
       }
-    },
+    }
   );
 
   app.whenReady().then(() => {
@@ -195,7 +196,7 @@ function createWindow() {
       }
 
       c({ cancel: false, responseHeaders: d.responseHeaders });
-    },
+    }
   );
 
   serial.mainWindow = mainWindow;
@@ -217,10 +218,10 @@ function createWindow() {
     // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
     mainWindow.loadURL(
-      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`,
+      `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
     );
   }
 
@@ -255,7 +256,7 @@ function createWindow() {
       } else {
         callback(""); //Could not find any matching devices
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.on("serial-port-added", (event, port) => {
@@ -276,7 +277,7 @@ function createWindow() {
       ) {
         return true;
       }
-    },
+    }
   );
 
   mainWindow.webContents.session.setDevicePermissionHandler((details) => {
@@ -291,21 +292,29 @@ function createWindow() {
   });
 
   // Handle plugin configuration, action
+  let pluginManagerProcess: Electron.UtilityProcess;
   mainWindow.webContents.on("did-finish-load", () => {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
-    const process = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./pluginManager.js")),
-    );
-    process.postMessage(
-      {
-        pluginFolder: path.resolve(
-          path.join(app.getPath("documents"), "grid-userdata", "plugins"),
-        ),
-        version: configuration.EDITOR_VERSION,
-      },
-      [port2],
-    );
+
+    if (typeof pluginManagerProcess === "undefined") {
+      pluginManagerProcess = utilityProcess.fork(
+        path.resolve(path.join(__dirname, "./pluginManager.js"))
+      );
+
+      const pluginFolder = path.resolve(
+        path.join(app.getPath("documents"), "grid-userdata", "plugins")
+      );
+      pluginManagerProcess.postMessage(
+        {
+          type: "init",
+          pluginFolder: pluginFolder,
+          version: configuration.EDITOR_VERSION,
+        },
+        [port2]
+      );
+      startPluginDirectoryWatcher(pluginFolder, pluginManagerProcess);
+    }
   });
 }
 
@@ -323,6 +332,66 @@ const deeplink = new Deeplink({
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+
+let watcher: any = null;
+let directoryWatcher: any = null;
+
+function startPluginDirectoryWatcher(
+  path: string,
+  process: Electron.UtilityProcess
+): void {
+  directoryWatcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+
+  watcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+  });
+
+  directoryWatcher
+    .on("addDir", function (path: string) {
+      //Directory has been added
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    })
+    .on("unlinkDir", function (path: string) {
+      //Directory has been removed
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    });
+
+  watcher
+    .on("add", function (path: string) {
+      //File has been added
+    })
+    .on("addDir", function (path: string) {
+      //Directory has been added
+    })
+    .on("change", function (path: string) {
+      //File has been changed
+      mainWindow.reload();
+    })
+    .on("unlink", function (path: string) {
+      //File has been removed
+    })
+    .on("unlinkDir", function (path: string) {
+      //Directory has been removed
+    })
+    .on("error", function (error: string) {
+      //Error happened
+    })
+    .on("raw", function (event, path, details) {
+      //This event should be triggered everytime something happens.
+    });
+}
 
 ipcMain.handle("startPlugin", async (event, arg) => {
   console.log("pluginstart!", arg.name);
@@ -385,7 +454,6 @@ ipcMain.handle("download", async (event, arg) => {
   }
   return result;
 });
-
 ipcMain.handle("selectDirectory", async (event, arg) => {
   return await selectDirectory();
 });
@@ -414,23 +482,19 @@ ipcMain.handle("loadConfigsFromDirectory", async (event, arg) => {
 });
 
 ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
-  return await migrateToProfileCloud(arg.oldRootPath, arg.newRootPath, arg.configDirectory);
+  return await migrateToProfileCloud(
+    arg.oldRootPath,
+    arg.newRootPath,
+    arg.configDirectory
+  );
 });
 
 ipcMain.handle("saveConfig", async (event, arg) => {
-  return await saveConfig(
-    arg.configPath,
-    arg.rootDirectory,
-    arg.config,
-  );
+  return await saveConfig(arg.configPath, arg.rootDirectory, arg.config);
 });
 
 ipcMain.handle("deleteConfig", async (event, arg) => {
-  return await deleteConfig(
-    arg.configPath,
-    arg.rootDirectory,
-    arg.config
-  );
+  return await deleteConfig(arg.configPath, arg.rootDirectory, arg.config);
 });
 
 // this is needed for the functions to have the mainWindow for communication

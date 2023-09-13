@@ -185,7 +185,7 @@ export function changeOrder(node, { configs }) {
       node.dispatchEvent(
         new CustomEvent("drag-target", {
           detail: { id: _configIds },
-        }),
+        })
       );
     }
 
@@ -227,7 +227,7 @@ export function changeOrder(node, { configs }) {
           node.dispatchEvent(
             new CustomEvent("drop-target", {
               detail: { drop_target },
-            }),
+            })
           );
         }
       }

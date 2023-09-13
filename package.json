@@ -1,41 +1,42 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.41",
+  "version": "1.2.42",
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/intechstudio/grid-editor.git"
   },
   "devDependencies": {
-    "@electron/notarize": "^1.2.3",
+    "@electron/notarize": "^2.1.0",
     "@playwright/test": "^1.36.1",
-    "@sveltejs/vite-plugin-svelte": "^1.0.9",
+    "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "autoprefixer": "^10.4.12",
     "chai": "^4.3.4",
-    "chokidar": "^3.4.3",
     "cross-env": "^7.0.2",
     "dotenv": "^14.2.0",
-    "electron": "^22.0.0",
-    "electron-builder": "^24.0.0-alpha.2",
-    "electron-vite": "^1.0.17",
+    "electron": "^26.2.0",
+    "electron-builder": "^24.6.4",
+    "electron-vite": "^1.0.27",
     "mocha": "^9.2.0",
     "npm-run-all": "^4.1.5",
     "patch-package": "^6.5.1",
     "postcss": "^8.4.18",
     "postcss-load-config": "^4.0.1",
     "prettier": "2.8.8",
-    "prettier-plugin-svelte": "2.10.0",
+    "prettier-plugin-svelte": "^2.10.1",
     "rollup-plugin-copy": "^3.4.0",
-    "svelte": "^3.29.4",
+    "svelte": "^4.2.0",
     "svelte-grid": "^1.11.2",
-    "svelte-preprocess": "^4.7.0",
+    "svelte-preprocess": "^5.0.3",
     "tailwindcss": "^3.1.8",
-    "vite": "^3.1.8",
+    "vite": "^4.4.9",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
+    "chokidar": "^3.5.3",
+    "@melt-ui/svelte": "^0.42.0",
     "adm-zip": "^0.5.10",
     "discord.js": "^13.6.0",
     "electron-deeplink": "^1.0.10",
@@ -61,9 +62,9 @@
     "simple-discord-webhooks": "^2.1.0",
     "sirv": "^2.0.3",
     "svelte-easy-popover": "^1.0.0",
-    "svelte-splitpanes": "^0.7.12",
+    "svelte-splitpanes": "^0.8.0",
     "svelte-watch-resize": "^1.0.3",
-    "typescript": "^4.8.4",
+    "typescript": "^5.0.0",
     "uuid": "^9.0.0",
     "ws": "^7.5.8"
   },
@@ -134,7 +135,7 @@
     "afterSign": "build-assets/notarize.js"
   },
   "scripts": {
-    "e:builder": "cross-env NOTARIZE=true electron-builder --publish onTagOrDraft",
+    "e:builder": "cross-env NOTARIZE=true electron-builder --publish onTagOrDraft -c.snap.publish=github",
     "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder electron-builder --publish never",
     "e:builder:local": "cross-env DEBUG=electron-builder electron-builder --publish never",
     "export": "run-s gen:buildVars:prod s:build e:builder",
@@ -152,6 +153,7 @@
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
-    "electron-dev": "run-s gen:buildVars:dev electron:dev"
+    "electron-dev": "run-s gen:buildVars:dev electron:dev",
+    "format": "prettier --write ."
   }
 }

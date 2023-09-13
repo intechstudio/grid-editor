@@ -7,12 +7,7 @@
 
   import { get } from "svelte/store";
 
-  import {
-    engine,
-    logger,
-    runtime,
-    user_input,
-  } from "../../../runtime/runtime.store";
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
@@ -56,13 +51,19 @@
     );
   }
 
-  function sendSelectedComponentInfos(selectedModuleType, selectedControlElementType) {
+  function sendSelectedComponentInfos(
+    selectedModuleType,
+    selectedControlElementType
+  ) {
     if (iframe_element == undefined) return;
 
     iframe_element.contentWindow.postMessage(
       {
         messageType: "selectedComponentTypes",
-        selectedComponentTypes: [selectedModuleType, selectedControlElementType],
+        selectedComponentTypes: [
+          selectedModuleType,
+          selectedControlElementType,
+        ],
       },
       "*"
     );
@@ -155,9 +156,9 @@
       const config = event.data;
       const importName = config.name;
 
-      if (!config.localId){
-        console.log(`Missing localId, generating for config: ${config}`)
-        config.localId = uuidv4()
+      if (!config.localId) {
+        console.log(`Missing localId, generating for config: ${config}`);
+        config.localId = uuidv4();
       }
 
       return await window.electron.configs
@@ -269,8 +270,8 @@
             const page = d.pages.find(
               (x) => x.pageNumber == li.event.pagenumber
             );
-            
-            if (configType === "profile"){
+
+            if (configType === "profile") {
               config.type = selectedModule;
               config.configs = page.control_elements.map((cfg) => {
                 return {
@@ -283,7 +284,7 @@
                   }),
                 };
               });
-            } else if (configType === "preset"){
+            } else if (configType === "preset") {
               const element = page.control_elements.find(
                 (x) => x.controlElementNumber === li.event.elementnumber
               );
@@ -299,20 +300,17 @@
             }
           }
         });
-        if (!config.localId){
-          console.log(`Missing localId, generating for config: ${config}`)
-          config.localId = uuidv4()
+        if (!config.localId) {
+          console.log(`Missing localId, generating for config: ${config}`);
+          config.localId = uuidv4();
         }
 
-        await window.electron.configs
-          .saveConfig(path, "configs", config);
+        await window.electron.configs.saveConfig(path, "configs", config);
 
         logger.set({
           type: "success",
           message: `Config saved!`,
         });
-
-        engine.set("ENABLED");
 
         channel.postMessage({ ok: true, data: {} });
 
@@ -344,8 +342,8 @@
             const page = d.pages.find(
               (x) => x.pageNumber == li.event.pagenumber
             );
-            
-            if (configToOverwrite.configType === "profile"){
+
+            if (configToOverwrite.configType === "profile") {
               configToOverwrite.configs = page.control_elements.map((cfg) => {
                 return {
                   controlElementNumber: cfg.controlElementNumber,
@@ -357,7 +355,7 @@
                   }),
                 };
               });
-            } else if (configToOverwrite.configType === "preset"){
+            } else if (configToOverwrite.configType === "preset") {
               const element = page.control_elements.find(
                 (x) => x.controlElementNumber === li.event.elementnumber
               );
@@ -374,20 +372,17 @@
         });
 
         // tofi: here we could use updateLocal as well?
-        if (!config.localId){
-          console.log(`Missing localId, generating for config: ${config}`)
-          config.localId = uuidv4()
+        if (!config.localId) {
+          console.log(`Missing localId, generating for config: ${config}`);
+          config.localId = uuidv4();
         }
 
-        await window.electron.configs
-          .saveConfig(path, "configs", config);
+        await window.electron.configs.saveConfig(path, "configs", config);
 
         logger.set({
           type: "success",
           message: `Config saved!`,
         });
-
-        engine.set("ENABLED");
 
         channel.postMessage({ ok: true, data: {} });
       };
@@ -490,13 +485,12 @@
 
         const PRESET_PATH = get(appSettings).persistant.presetFolder;
 
-        if (!config.localId){
-          console.log(`Missing localId, generating for config: ${config}`)
-          config.localId = uuidv4()
+        if (!config.localId) {
+          console.log(`Missing localId, generating for config: ${config}`);
+          config.localId = uuidv4();
         }
 
-        return window.electron.configs
-          .saveConfig(path, "configs", config);
+        return window.electron.configs.saveConfig(path, "configs", config);
       });
 
       await Promise.all(conversionPromises).then((res) => {
@@ -515,8 +509,11 @@
     if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
       console.log("profile cloud is mounted received");
       profileCloudIsMounted = true;
-      if (selectedModule !== undefined || selectedControlElementType !== undefined){
-        sendSelectedComponentInfos(selectedModule, selectedControlElementType)
+      if (
+        selectedModule !== undefined ||
+        selectedControlElementType !== undefined
+      ) {
+        sendSelectedComponentInfos(selectedModule, selectedControlElementType);
       }
       return;
     }
@@ -539,7 +536,7 @@
       ) {
         channelMessageWrapper(
           event,
-          handleProvideSelectedConfigForOptionalUploadingToOneOreMoreModules
+          handleProvideSelectedConfigForOptionalUploadingToOneOreMoreModules //OMG
         );
       }
       if (event.data == "deleteLocalConfig") {
@@ -553,6 +550,7 @@
         const channel = event.ports[0];
         channel.onmessage = (event) =>
           handleCreateNewLocalConfigWithTheSelectedModulesConfigurationFromEditor(
+            //OMG2
             event,
             channel
           );
@@ -609,7 +607,7 @@
     window.electron.stopOfflineProfileCloud();
   });
 
-  async function loadOfflineProfileCloud(){
+  async function loadOfflineProfileCloud() {
     const serverAddress = await window.electron.startOfflineProfileCloud();
     const url = `http://${serverAddress.address}:${serverAddress.port}`;
     $appSettings.profileCloudUrl = url;
@@ -622,12 +620,14 @@
       <div class="p-4">
         <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
         <div class="text-white text-opacity-80">
-          You need internet access to load it. You can load the offline version as well.
+          You need internet access to load it. You can load the offline version
+          as well.
         </div>
-        <button 
-        class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-        on:click={loadOfflineProfileCloud}>
-        Load Offline
+        <button
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={loadOfflineProfileCloud}
+        >
+          Load Offline
         </button>
       </div>
     </div>
