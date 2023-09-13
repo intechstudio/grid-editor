@@ -8,10 +8,6 @@ export function selectElement(controlNumber, controlElementType, moduleId) {
     const dx = moduleId.split(";")[0].split(":").pop();
     const dy = moduleId.split(";")[1].split(":").pop();
 
-    //reset of profile selecting
-    selectedProfileStore.set({});
-    selectedPresetStore.set({});
-
     // this should be checked to not reupdate UI when clicking on a control element.
     // should be probably put into user_input store's functions
     const ui = get(user_input);

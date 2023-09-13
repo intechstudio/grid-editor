@@ -569,6 +569,7 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
+    selectedProfileStore.set({});
   });
 
   async function loadOfflineProfileCloud() {

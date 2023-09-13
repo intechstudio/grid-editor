@@ -21,6 +21,7 @@
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { get } from "svelte/store";
   import { writeBuffer } from "../../../runtime/engine.store.js";
+  import { runtime } from "../../../runtime/runtime.store.js";
 
   const components = [
     { type: "BU16", component: BU16 },
@@ -70,6 +71,25 @@
       } else {
         selectedElement = $user_input;
       }
+    }
+  }
+
+  let showProfileLoadOverlay = false;
+  $: {
+    showProfileLoadOverlay = type === $selectedProfileStore.type;
+    console.log($selectedProfileStore, showProfileLoadOverlay);
+  }
+
+  let showPresetLoadOverlay = false;
+  $: {
+    let device = get(runtime).find((controller) => controller.id == id);
+
+    if (typeof device !== "undefined") {
+      const compatible = device.pages[0].control_elements
+        .map((e) => e.controlElementType)
+        .includes($selectedPresetStore.type);
+
+      showPresetLoadOverlay = compatible;
     }
   }
 </script>
@@ -137,8 +157,12 @@
     {/if}
 
     {#if $writeBuffer.length == 0}
-      <ProfileLoadOverlay {id} />
-      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+      {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+        <ProfileLoadOverlay {id} {rotation} />
+      {/if}
+      {#if showPresetLoadOverlay && $appSettings.leftPanel === "NewPreset"}
+        <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+      {/if}
     {/if}
   </svelte:component>
 {/if}
