@@ -22,17 +22,17 @@
 
   function handleClick(e) {
     handleReferenceElementClick(e);
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   function handleMouseEnter(e) {
     handleReferenceElementMouseEnter(e);
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   function handleMouseLeave(e) {
     handleReferenceElementMouseLeave(e);
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   function handleReferenceElementClick(e) {
@@ -46,7 +46,7 @@
     if (triggerEvents.includes("hover") && !showbuttons) {
       isOpen = false;
     }
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   function handleReferenceElementMouseEnter(e) {
@@ -60,7 +60,7 @@
         }, delay);
       }
     }
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   function handleReferenceElementMouseLeave(e) {
@@ -70,7 +70,7 @@
         isOpen = false;
       }, 100);
     }
-    e.stopPropagation();
+    //e.stopPropagation();
   }
 
   $: handleEventListeners(referenceElement);

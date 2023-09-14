@@ -3,6 +3,7 @@
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
+  import { setTooltip } from "../../../user-interface/tooltip/Tooltip";
 
   const dispatch = createEventDispatcher();
 
@@ -49,17 +50,28 @@
       }`}
       popStyle={"bg-gray-500 "}
       enabled={enableConvert}
-      tooltipKey={"configuration_merge_as_code"}
     >
       <span slot="popup">Actions merged!</span>
-      <span slot="button">
-        <SvgIcon
-          class={!enableConvert
-            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-            : ""}
-          iconPath={"merge_as_code"}
-        />
-      </span>
+      <div
+        slot="button"
+        use:setTooltip={{
+          key: "configuration_merge_as_code",
+          placement: "top",
+          nowrap: true,
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+        }}
+      >
+        <div class="p-1">
+          <SvgIcon
+            class={!enableConvert
+              ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+              : ""}
+            iconPath={"merge_as_code"}
+          />
+        </div>
+      </div>
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -69,17 +81,28 @@
       }`}
       popStyle={"bg-secondary"}
       enabled={enableCut}
-      tooltipKey={"configuration_cut_one"}
     >
       <span slot="popup">Cutted!</span>
-      <span slot="button">
-        <SvgIcon
-          class={!enableCut
-            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-            : ""}
-          iconPath={"cut"}
-        />
-      </span>
+      <div
+        slot="button"
+        use:setTooltip={{
+          key: "configuration_cut_one",
+          placement: "top",
+          nowrap: true,
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+        }}
+      >
+        <div class="p-1">
+          <SvgIcon
+            class={!enableCut
+              ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+              : ""}
+            iconPath={"cut"}
+          />
+        </div>
+      </div>
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -89,17 +112,28 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableCopy}
-      tooltipKey={"configuration_copy_one"}
     >
       <span slot="popup">Copied!</span>
-      <span slot="button">
-        <SvgIcon
-          class={!enableCopy
-            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-            : ""}
-          iconPath={"copy"}
-        />
-      </span>
+      <div
+        slot="button"
+        use:setTooltip={{
+          key: "configuration_copy_one",
+          placement: "top",
+          nowrap: true,
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+        }}
+      >
+        <div class="p-1">
+          <SvgIcon
+            class={!enableCopy
+              ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+              : ""}
+            iconPath={"copy"}
+          />
+        </div>
+      </div>
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -109,17 +143,28 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enablePaste}
-      tooltipKey={"configuration_paste_one"}
     >
       <span slot="popup">Pasted!</span>
-      <span slot="button">
-        <SvgIcon
-          class={!enablePaste
-            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-            : ""}
-          iconPath={"paste"}
-        />
-      </span>
+      <div
+        slot="button"
+        use:setTooltip={{
+          key: "configuration_paste_one",
+          placement: "top",
+          nowrap: true,
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+        }}
+      >
+        <div class="p-1">
+          <SvgIcon
+            class={!enablePaste
+              ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+              : ""}
+            iconPath={"paste"}
+          />
+        </div>
+      </div>
     </BtnAndPopUp>
 
     <BtnAndPopUp
@@ -129,17 +174,28 @@
       }`}
       popStyle={"bg-sencodary"}
       enabled={enableRemove}
-      tooltipKey={"configuration_remove_one"}
     >
       <span slot="popup">Removed!</span>
-      <span slot="button">
-        <SvgIcon
-          class={!enableRemove
-            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-            : ""}
-          iconPath={"remove"}
-        />
-      </span>
+      <div
+        slot="button"
+        use:setTooltip={{
+          key: "configuration_remove_one",
+          placement: "top",
+          nowrap: true,
+          duration: 75,
+          instant: true,
+          class: "px-2 py-1",
+        }}
+      >
+        <div class="p-1">
+          <SvgIcon
+            class={!enableRemove
+              ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+              : ""}
+            iconPath={"remove"}
+          />
+        </div>
+      </div>
     </BtnAndPopUp>
 
     <Options

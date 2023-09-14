@@ -48,16 +48,13 @@ export const tooltip_content = {
   configuration_copy_all: "Copy the contents of this Control Element.",
   configuration_overwrite:
     "Overwrite the Action Chains under the currently active Control Element.",
-  configuration_cut_one: "Cut the marked Action(s) to clipboard.",
-  configuration_copy_one: "Copy the marked Action(s) to clipboard.",
-  configuration_paste_one:
-    "Paste the marked Action(s) from the clipboard to the cursor OR to the bottom of the Action Chain on the currently active Event.",
-  configuration_remove_one:
-    "Remove the marked Action(s) from the Action Chain permanently.",
+  configuration_cut_one: "Cut",
+  configuration_copy_one: "Copy",
+  configuration_paste_one: "Paste",
+  configuration_remove_one: "Remove",
   configuration_export:
     "Export the configuration of the currently active Control Element in lua language.",
-  configuration_merge_as_code:
-    "Merge selected actions into a single code block.",
+  configuration_merge_as_code: "Merge as Code",
   event_init:
     "Each time a Page gets loaded (both when powering up and on page change) an Init Event will take place. Actions set to trigger on the Init Event will only trigger once on startup and on each page change. ",
   event_button:

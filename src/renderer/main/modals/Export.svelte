@@ -76,7 +76,12 @@
       popStyle={"bg-commit-saturate-10"}
     >
       <span slot="popup">Copied to clipboard!</span>
-      <span slot="button">Copy</span>
+
+      <div slot="button">
+        <div class="p-1">
+          <span>Copy</span>
+        </div>
+      </div>
     </BtnAndPopUp>
   </div>
 </modal>
