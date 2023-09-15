@@ -628,7 +628,7 @@
         }}
         class="{$appSettings.configType == 'uiEvents'
           ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> UI Events </span>
       </button>
@@ -644,7 +644,7 @@
         }}
         class="{$appSettings.configType == 'systemEvents'
           ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary '} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> System Events </span>
       </button>
