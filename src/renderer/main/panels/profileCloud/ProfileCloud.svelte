@@ -11,7 +11,7 @@
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
-  import { profileLinkStore } from "$lib/profilelink.store";
+  import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
   const buildVariables = window.ctxProcess.buildVariables();
@@ -20,7 +20,7 @@
 
   $: sendAuthEventToIframe($authStore);
 
-  $: sendProfileLinkToIframe($profileLinkStore);
+  $: sendConfigLinkToIframe($configLinkStore);
 
   $: sendSelectedComponentInfos(selectedModule, selectedControlElementType);
 
@@ -39,13 +39,13 @@
     selectedControlElementType = ui.event.elementtype;
   }
 
-  function sendProfileLinkToIframe(storeValue) {
+  function sendConfigLinkToIframe(storeValue) {
     if (iframe_element == undefined) return;
 
     iframe_element.contentWindow.postMessage(
       {
-        messageType: "profileLink",
-        profileLinkId: storeValue.id,
+        messageType: "configLink",
+        configLinkId: storeValue.id,
       },
       "*"
     );
@@ -86,18 +86,6 @@
     );
   }
 
-  function sendHandshakeToIframe() {
-    if (iframe_element == undefined) return;
-
-    iframe_element.contentWindow.postMessage(
-      {
-        messageType: "handshake",
-        handshake: "ping",
-      },
-      "*"
-    );
-  }
-
   async function handleLoginToProfileCloud(event) {
     if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
       $appSettings.modal = "userLogin";
@@ -108,7 +96,7 @@
   async function handleCreateCloudConfigLink(event) {
     if (event.data.channelMessageType == "CREATE_CLOUD_CONFIG_LINK") {
       return await window.electron.clipboard.writeText(
-        event.data.profileLinkUrl
+        event.data.configLinkUrl
       );
     }
   }
@@ -152,14 +140,12 @@
   async function handleImportConfig(event) {
     if (event.data.channelMessageType == "IMPORT_CONFIG") {
       const path = $appSettings.persistant.profileFolder;
-      // owner is not used, but user instead
       const config = event.data;
       const importName = config.name;
 
-      if (!config.localId) {
-        console.log(`Missing localId, generating for config: ${config}`);
-        config.localId = uuidv4();
-      }
+      config.cloudId = config.id;
+      delete config.id;
+      config.localId = uuidv4();
 
       return await window.electron.configs
         .saveConfig(path, "configs", config)
@@ -209,7 +195,7 @@
       const path = $appSettings.persistant.profileFolder;
       const config = event.data?.config;
 
-      await window.electron.configs
+      return await window.electron.configs
         .deleteConfig(path, "configs", config)
         .then((res) => {
           logger.set({
@@ -262,7 +248,7 @@
             minor: $appSettings.version.minor,
             patch: $appSettings.version.patch,
           },
-          id: id,
+          localId: id,
         };
 
         configs.forEach((d) => {
@@ -300,10 +286,6 @@
             }
           }
         });
-        if (!config.localId) {
-          console.log(`Missing localId, generating for config: ${config}`);
-          config.localId = uuidv4();
-        }
 
         await window.electron.configs.saveConfig(path, "configs", config);
 
@@ -370,12 +352,6 @@
             }
           }
         });
-
-        // tofi: here we could use updateLocal as well?
-        if (!config.localId) {
-          console.log(`Missing localId, generating for config: ${config}`);
-          config.localId = uuidv4();
-        }
 
         await window.electron.configs.saveConfig(path, "configs", config);
 

@@ -48,37 +48,29 @@ export async function migrateToProfileCloud(
 ): Promise<void> {
   const oldConfigTypes = ["profile", "preset"];
   for (const configType of oldConfigTypes) {
-    const relativeFolder = `${oldConfigTypes}s`;
-    const fullOldPath = path.join(oldRootPath, relativeFolder);
-    const entries = await readdir(oldRootPath, { withFileTypes: true });
-
-    for (const entry of entries) {
-      if (entry.isDirectory()) {
-        if (entry.name == "intech" || entry.name == "intechstudio") {
-          // do nothing
-        } else {
-          // If the entry is a directory, go into it
-          const subentries = await readdir(oldRootPath, {
-            withFileTypes: true,
-          });
-          for (const fileEntry of subentries.filter((entry) => entry.isFile)) {
-            await migrateProfileFileToCloud(
-              path.join(fullOldPath, entry.name, fileEntry.name),
-              configType,
-              newRootPath,
-              configDirectory
-            );
+    async function recurseIntoFolder(currentPath) {
+      const entries = await readdir(currentPath, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          if (entry.name == "intech" || entry.name == "intechstudio") {
+            // do nothing
+          } else {
+            recurseIntoFolder(path.join(currentPath, entry.name));
           }
+        } else if (entry.isFile() && path.extname(entry.name) === ".json") {
+          await migrateProfileFileToCloud(
+            path.join(currentPath, entry.name),
+            configType,
+            newRootPath,
+            configDirectory
+          );
         }
-      } else if (entry.isFile() && path.extname(entry.name) === ".json") {
-        await migrateProfileFileToCloud(
-          path.join(fullOldPath, entry.name),
-          configType,
-          newRootPath,
-          configDirectory
-        );
       }
     }
+
+    const relativeFolder = `${configType}s`;
+    const fullOldPath = path.join(oldRootPath, relativeFolder);
+    await recurseIntoFolder(fullOldPath);
   }
 }
 
@@ -129,12 +121,10 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
 export async function saveConfig(configPath, rootDirectory, config) {
   const path = configPath;
 
-  log.info("SaveConfig", config);
-
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     await fs.promises.mkdir(`${path}/${rootDirectory}`, { recursive: true });
 
-  const fileNameBase = `${config.name ?? "config"}_${config.localId ?? ""}`;
+  const fileNameBase = `${config.name ?? "config"}`;
   let fileName = fileNameBase;
   let fileNameCounter = 0;
   while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)) {
@@ -167,6 +157,8 @@ export async function deleteConfig(configPath, configFolder, config) {
     .catch((err) => {
       throw err;
     });
+
+  return { ok: true };
 }
 
 function isJson(str) {

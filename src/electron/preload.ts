@@ -65,7 +65,7 @@ contextBridge.exposeInMainWorld("electron", {
         config,
       }),
     onExternalResponse: (callback) =>
-      ipcRenderer.on("onExternalProfileLinkResponse", callback),
+      ipcRenderer.on("onExternalConfigLinkResponse", callback),
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),

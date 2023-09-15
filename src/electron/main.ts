@@ -432,9 +432,9 @@ deeplink.on("received", (data) => {
       const credential = url.searchParams.get("credential");
       mainWindow.webContents.send("onExternalAuthResponse", credential);
     }
-    if (url.searchParams.get("profile-link") !== null) {
-      const profileLink = url.searchParams.get("profile-link");
-      mainWindow.webContents.send("onExternalProfileLinkResponse", profileLink);
+    if (url.searchParams.get("config-link") !== null) {
+      const configLink = url.searchParams.get("config-link");
+      mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
     }
   }
 });

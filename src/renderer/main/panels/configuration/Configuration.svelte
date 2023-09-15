@@ -44,8 +44,6 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
-
   const configs = writable([]);
   let lastOpenedElementsType = undefined;
   let events = { options: ["", "", ""], selected: "" };
@@ -58,12 +56,6 @@
   }
 
   let access_tree = {};
-
-  let controllerIndex;
-
-  $: controllerIndex = $selectedControllerIndexStore;
-
-  $: selectedControllerIndexStore.set(elements);
 
   //TODO: Refactor this out!
   function changeSelectedConfig(arg) {

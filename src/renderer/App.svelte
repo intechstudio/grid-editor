@@ -31,7 +31,7 @@
   import { windowSize } from "./runtime/window-size";
 
   import { authStore } from "$lib/auth.store";
-  import { profileLinkStore } from "$lib/profilelink.store";
+  import { configLinkStore } from "$lib/configlink.store";
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
