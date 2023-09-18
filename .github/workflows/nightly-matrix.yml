@@ -45,9 +45,10 @@ jobs:
     continue-on-error: true
     needs: profile-cloud-build
     steps:
-	   - if: matrix.os == 'windows-latest'
-		 run: exit 1
-	   - run: echo "Success"
+      - if: matrix.os == 'windows-latest'
+        run: exit 1
+      
+      - run: echo "Success"
 #      - uses: actions/checkout@v3
 #        with:
 #          ref: ""
