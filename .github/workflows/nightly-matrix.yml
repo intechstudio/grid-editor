@@ -40,62 +40,65 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     needs: profile-cloud-build
     steps:
-      - uses: actions/checkout@v3
-        with:
-          ref: ""
-          submodules: true
-
-      - name: Setup NodeJs
-        uses: actions/setup-node@v3
-        with:
-          node-version: "18.16.1"
-
-      - name: Download profile cloud artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: profile-cloud
-          path: profile-cloud/
-
-      - name: Set Env
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-
-      - name: Update package.json
-        run: node ./build-scripts/nightly-packageModifier.js
-
-      - name: Install dependencies
-        run: npm i
-
-      - name: Build
-        run: npm run export:nightly
-        if: ${{ always() }}
-        env:
-          # gh repo token
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-          # windows Code signing
-          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-
-          # Apple ID
-          APPLE_ID: ${{secrets.APPLE_ID}}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
-
-          # macOS Code signing
-          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.os }}-nightly
-          path: build/*.*
+	   - if: matrix.os == 'windows-latest'
+		 run: exit 1
+	   - run: echo "Success"
+#      - uses: actions/checkout@v3
+#        with:
+#          ref: ""
+#          submodules: true
+#
+#      - name: Setup NodeJs
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: "18.16.1"
+#
+#      - name: Download profile cloud artifact
+#        uses: actions/download-artifact@v3
+#        with:
+#          name: profile-cloud
+#          path: profile-cloud/
+#
+#      - name: Set Env
+#        shell: bash
+#        run: |
+#          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+#
+#      - name: Update package.json
+#        run: node ./build-scripts/nightly-packageModifier.js
+#
+#      - name: Install dependencies
+#        run: npm i
+#
+#      - name: Build
+#        run: npm run export:nightly
+#        if: ${{ always() }}
+#        env:
+#          # gh repo token
+#          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#
+#          # windows Code signing
+#          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+#          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+#
+#          # Apple ID
+#          APPLE_ID: ${{secrets.APPLE_ID}}
+#          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
+#
+#          # macOS Code signing
+#          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+#          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+#
+#      - name: Upload artifacts
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: ${{ matrix.os }}-nightly
+#          path: build/*.*
 
   linux-unit-test:
     name: Linux Unit Test
