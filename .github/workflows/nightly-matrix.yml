@@ -40,13 +40,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     needs: profile-cloud-build
     steps:
-      - if: matrix.os == 'windows-latest'
-        run: exit 1
-
       - uses: actions/checkout@v3
         with:
           ref: ""
