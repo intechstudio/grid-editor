@@ -34,8 +34,6 @@
 
   $: selectedEvent = events.selected;
 
-  $: console.log("SELECTED", selectedEvent);
-
   let loaded;
 
   onMount(() => {});
