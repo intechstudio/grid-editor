@@ -14,6 +14,7 @@
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
+  const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
 
   let iframe_element;
@@ -491,7 +492,7 @@
       ) {
         sendSelectedComponentInfos(selectedModule, selectedControlElementType);
       }
-      return;
+      return configuration.EDITOR_VERSION;
     }
   }
 
