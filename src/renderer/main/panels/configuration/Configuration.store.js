@@ -16,9 +16,7 @@ import {
   init_config_block_library,
 } from "../../../lib/_configs";
 
-
 export let lastOpenedActionblocks = writable([]);
-
 
 export function lastOpenedActionblocksInsert(short) {
   // Get the current value of lastOpenedActionblocks
@@ -38,8 +36,6 @@ export function lastOpenedActionblocksRemove(short) {
   // Update the store with the new value
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
-
-
 
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
