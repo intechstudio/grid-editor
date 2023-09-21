@@ -277,10 +277,6 @@ function create_user_input() {
         return;
       }
 
-      //reset of profile selecting
-      selectedProfileStore.set({});
-      selectedPresetStore.set({});
-
       _event.update((store) => {
         const rt = get(runtime);
 

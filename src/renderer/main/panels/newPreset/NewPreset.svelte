@@ -4,7 +4,7 @@
   import { selectedPresetStore } from "/runtime/preset-helper.store";
   import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
   import { presetChangeCallbackStore } from "./preset-change.store";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import {
@@ -646,6 +646,10 @@
     animateFade = true;
     animateFly = false;
     moveOld();
+  });
+
+  onDestroy(() => {
+    selectedPresetStore.set({});
   });
 </script>
 
