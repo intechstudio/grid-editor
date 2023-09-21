@@ -14,10 +14,6 @@
   function handleClicked() {
     if (!enabled) return;
     dispatch("clicked");
-    show = true;
-    setTimeout(() => {
-      show = false;
-    }, 1000);
   }
 </script>
 
