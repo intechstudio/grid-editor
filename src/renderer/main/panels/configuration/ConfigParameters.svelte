@@ -34,6 +34,8 @@
 
   $: selectedEvent = events.selected;
 
+  $: console.log("SELECTED", selectedEvent);
+
   let loaded;
 
   onMount(() => {});
@@ -214,10 +216,9 @@
               on:click={() => {
                 handleSelectEvent(event);
               }}
-              class:dummy={event.desc == undefined}
               class="{selectedEvent === event && event.desc !== undefined
-                ? 'shadow-md bg-pick text-white'
-                : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+                ? 'shadow-md text-white bg-pick'
+                : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
             >
               {@html event.desc
                 ? event.desc
