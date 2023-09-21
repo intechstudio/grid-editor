@@ -612,6 +612,32 @@
       lastOpenedElementsType = $configs[index].short;
     }
   }
+
+  let autoScroll;
+  function handleDrag(e) {
+    if (draggedIndexes.length > 0) {
+      const index = draggedIndexes[0];
+      const id = `cfg-${index}`;
+      const configList = document.getElementById("cfg-list");
+      const draggedDOMElement = document.getElementById(id);
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(autoScroll);
+      if (lowerThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+      } else if (upperThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+      }
+    }
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col">
@@ -683,6 +709,7 @@
           </div>
         </div>
 
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           use:changeOrder={(this, { configs: $configs })}
           on:drag-start={handleDragStart}
@@ -704,6 +731,10 @@
             use:configListScrollSize={$configs}
             on:height={(e) => {
               scrollHeight = e.detail;
+            }}
+            on:mousemove={handleDrag}
+            on:mouseleave={() => {
+              clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
