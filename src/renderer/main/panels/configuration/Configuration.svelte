@@ -457,6 +457,15 @@
     let script = "";
     for (let config of $configs) {
       if (config.selected) {
+        if (config.checkSyntax() === false) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "luanotok",
+            message: `Cannot merge actionblocks with syntax error!`,
+          });
+          return;
+        }
         script += config.script + " ";
       }
     }

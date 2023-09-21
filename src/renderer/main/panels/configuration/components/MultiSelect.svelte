@@ -51,7 +51,6 @@
       enabled={enableConvert}
       tooltipKey={"configuration_merge_as_code"}
     >
-      <span slot="popup">Actions merged!</span>
       <span slot="button">
         <SvgIcon
           class={!enableConvert

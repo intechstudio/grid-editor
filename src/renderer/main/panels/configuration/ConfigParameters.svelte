@@ -171,8 +171,10 @@
         <button
           use:setTooltip={{
             key: "configuration_copy_all",
+            nowrap: true,
+            instant: true,
             placement: "top",
-            class: "w-60 p-4",
+            class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
@@ -185,8 +187,10 @@
         <button
           use:setTooltip={{
             key: "configuration_overwrite",
+            nowrap: true,
+            instant: true,
             placement: "top",
-            class: "w-60 p-4",
+            class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
