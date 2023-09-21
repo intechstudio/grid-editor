@@ -380,6 +380,7 @@
     isDragged = false;
     dropIndex = undefined;
     draggedIndexes = [];
+    clearInterval(autoScroll);
   }
 
   let draggedIndexes = [];
@@ -714,7 +715,7 @@
             }}
             on:mousemove={handleDrag}
             on:mouseleave={() => {
-              clearInterval(autoScroll);
+              //clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
