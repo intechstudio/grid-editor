@@ -27,6 +27,8 @@ const persistant = {
   authIdToken: "",
   authRefreshToken: "",
   alwaysRunInTheBackground: true,
+  analyticsEnabled: false,
+  firstLaunch: true,
 };
 
 function checkOS() {
