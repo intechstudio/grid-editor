@@ -47,7 +47,7 @@
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   const configs = writable([]);
-  let lastOpenedElementsType = undefined;
+  let lastOpenedElementsType = [];
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -547,7 +547,7 @@
     }
 
     for (const config of $configs) {
-      if (config.short === lastOpenedElementsType) {
+      if (lastOpenedElementsType.includes(config.short)) {
         config.toggled = true;
       }
     }
@@ -609,7 +609,11 @@
     const { value, index } = e.detail;
 
     if (value) {
-      lastOpenedElementsType = $configs[index].short;
+      lastOpenedElementsType.push($configs[index].short);
+    } else {
+      lastOpenedElementsType = lastOpenedElementsType.filter(
+        (e) => e !== $configs[index].short
+      );
     }
   }
 
