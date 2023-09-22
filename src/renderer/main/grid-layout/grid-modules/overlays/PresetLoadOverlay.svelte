@@ -9,7 +9,7 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let id;
-  
+
   export let rotation;
 
   let selectedPreset;
@@ -25,7 +25,7 @@
   }
 
   $: {
-    if ($selectedConfigStore.configType === "preset"){
+    if ($selectedConfigStore.configType === "preset") {
       selectedPreset = $selectedConfigStore;
     } else {
       selectedPreset = undefined;

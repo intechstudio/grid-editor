@@ -49,8 +49,8 @@ export async function migrateToProfileCloud(
 ): Promise<void> {
   const oldConfigTypes = ["profile", "preset"];
   const zip = new AdmZip();
-  for (const configType of oldConfigTypes){
-    if (fs.existsSync(`${oldRootPath}/${configType}s`)){
+  for (const configType of oldConfigTypes) {
+    if (fs.existsSync(`${oldRootPath}/${configType}s`)) {
       zip.addLocalFolder(`${oldRootPath}/${configType}s`, `${configType}s`);
     }
   }
@@ -79,7 +79,7 @@ export async function migrateToProfileCloud(
     const relativeFolder = `${configType}s`;
     const fullOldPath = path.join(oldRootPath, relativeFolder);
     await recurseIntoFolder(fullOldPath);
-    fs.rmdirSync(fullOldPath, {recursive: true});
+    fs.rmdirSync(fullOldPath, { recursive: true });
   }
 }
 
@@ -96,7 +96,7 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
     fs.mkdirSync(`${path}/${rootDirectory}`);
 
   //Check for legacy folders
-  if (fs.existsSync(`${path}/profiles`) || fs.existsSync(`${path}/presets`)){
+  if (fs.existsSync(`${path}/profiles`) || fs.existsSync(`${path}/presets`)) {
     await migrateToProfileCloud(path, path, rootDirectory);
   }
 
@@ -148,8 +148,8 @@ export async function saveConfig(configPath, rootDirectory, config) {
     fileName = `${fileNameBase} ${fileNameCounter}`;
   }
 
-  if (!config.name){
-    config.name = `New local ${config.configType} ${fileNameCounter}`
+  if (!config.name) {
+    config.name = `New local ${config.configType} ${fileNameCounter}`;
   }
 
   await fs.promises

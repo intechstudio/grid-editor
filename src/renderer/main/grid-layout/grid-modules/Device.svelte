@@ -72,14 +72,19 @@
 
   let showProfileLoadOverlay = false;
   $: {
-    showProfileLoadOverlay = type === $selectedConfigStore.type && $selectedConfigStore.configType === "profile";
+    showProfileLoadOverlay =
+      type === $selectedConfigStore.type &&
+      $selectedConfigStore.configType === "profile";
   }
 
   let showPresetLoadOverlay = false;
   $: {
     let device = get(runtime).find((controller) => controller.id == id);
 
-    if (typeof device !== "undefined" && $selectedConfigStore.configType === "preset") {
+    if (
+      typeof device !== "undefined" &&
+      $selectedConfigStore.configType === "preset"
+    ) {
       const compatible = device.pages[0].control_elements
         .map((e) => e.controlElementType)
         .includes($selectedConfigStore.type);
