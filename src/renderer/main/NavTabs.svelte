@@ -208,53 +208,6 @@
           : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
       />
     </button>
-    <button
-      use:setTooltip={{
-        nowrap: true,
-        placement: "right",
-        duration: 75,
-        instant: true,
-        class: "px-2 py-1",
-        key: "sidebar_new_presets_icon",
-      }}
-      on:click={() => {
-        changeLeftTab("NewPreset");
-      }}
-      class="relative cursor-pointer m-1 my-2 p-1 w-14 h-14 flex justify-center items-center group rounded-lg transition hover:bg-opacity-100
-        {selectedLeftTab == 'NewPreset' && $splitpanes.left.size != 0
-        ? 'bg-opacity-100'
-        : 'bg-opacity-40'} bg-secondary"
-    >
-      <svg
-        class="p-2 w-full h-full text-white fill-current"
-        version="1.1"
-        id="Réteg_2"
-        xmlns="http://www.w3.org/2000/svg"
-        xmlns:xlink="http://www.w3.org/1999/xlink"
-        x="0px"
-        y="0px"
-        viewBox="0 0 23.5 24.4"
-        style="enable-background:new 0 0 23.5 24.4;"
-        xml:space="preserve"
-      >
-        <path
-          d="M16.9,9.7c-0.1,0-0.1,0-0.2,0V2.1c0-1.2-0.9-2.1-2.1-2.1H2.1C0.9,0,0,0.9,0,2.1v1.1v15v0.6c0,0.7,0.3,1.3,0.9,1.7L6,24
-      c0.4,0.2,0.8,0.4,1.2,0.4c0.3,0,0.7-0.1,1-0.2c0.7-0.4,1.1-1.1,1.1-1.9v-1.9h2.4c1.2,1.6,3.1,2.6,5.3,2.6c3.6,0,6.6-3,6.6-6.6
-      C23.5,12.7,20.5,9.7,16.9,9.7z M7.5,22.2c0,0.2-0.1,0.2-0.2,0.3s-0.2,0.1-0.3,0l-5-3.5c-0.1-0.1-0.1-0.2-0.1-0.3v-0.6v-15
-      C1.8,3,1.9,3,2,2.9c0,0,0.1,0,0.1,0c0.1,0,0.1,0,0.2,0.1l5,3.5c0.1,0.1,0.1,0.2,0.1,0.3V22.2z M9.3,18.5V6.7c0-0.7-0.3-1.3-0.9-1.7
-      L3.8,1.8h10.8c0.2,0,0.3,0.1,0.3,0.3V10c-2.7,0.8-4.6,3.4-4.6,6.3c0,0.8,0.1,1.5,0.4,2.2H9.3z M16.9,21.1c-2.7,0-4.8-2.2-4.8-4.8
-      c0-1,0.3-1.9,0.8-2.7l3.3,3.3c0.2,0.2,0.4,0.3,0.6,0.3s0.5-0.1,0.6-0.3c0.4-0.4,0.4-0.9,0-1.3l-3.3-3.3c0.8-0.5,1.7-0.8,2.7-0.8
-      c2.7,0,4.8,2.2,4.8,4.8S19.5,21.1,16.9,21.1z"
-        />
-      </svg>
-
-      <div
-        class="left-0 -ml-3 absolute transition-all {selectedLeftTab ==
-          'NewPreset' && $splitpanes.left.size != 0
-          ? 'h-8'
-          : 'h-2 group-hover:h-4'} w-2 rounded-full bg-white"
-      />
-    </button>
 
     <button
       use:setTooltip={{
