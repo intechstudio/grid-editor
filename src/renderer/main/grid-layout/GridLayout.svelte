@@ -18,9 +18,9 @@
   let shiftX = 0;
   let shiftY = 0;
 
-  let rotation = $appSettings.persistant.moduleRotation;
-  let rotationBuffer = $appSettings.persistant.moduleRotation;
-  let trueRotation = $appSettings.persistant.moduleRotation;
+  let rotation = $appSettings.persistent.moduleRotation;
+  let rotationBuffer = $appSettings.persistent.moduleRotation;
+  let trueRotation = $appSettings.persistent.moduleRotation;
 
   $: {
     const rt = $runtime;
@@ -30,7 +30,7 @@
 
     //Compensate for rotation
     rotationBuffer = rotation;
-    rotation = $appSettings.persistant.moduleRotation;
+    rotation = $appSettings.persistent.moduleRotation;
 
     let deltaRotation = rotation - rotationBuffer;
     if (deltaRotation > 180) {
@@ -110,7 +110,7 @@
 
   let scalingPercent = derived(
     appSettings,
-    ($appSettings) => 1 * $appSettings.persistant.size
+    ($appSettings) => 1 * $appSettings.persistent.size
   );
 </script>
 

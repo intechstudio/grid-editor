@@ -130,7 +130,7 @@
       {/if}
     </div>
 
-    {#if $appSettings.persistant.portstateOverlayEnabled}
+    {#if $appSettings.persistent.portstateOverlayEnabled}
       {#if (portstate & 1) !== 0}
         <div
           class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"

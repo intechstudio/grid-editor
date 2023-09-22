@@ -7,13 +7,13 @@
     refreshPluginList();
   });
 
-  $: $appSettings.persistant.enabledPlugins, refreshPluginPreferences();
+  $: $appSettings.persistent.enabledPlugins, refreshPluginPreferences();
 
   let pluginListDiv;
   let pluginPreferenceElements = {};
 
   function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistant.enabledPlugins;
+    const loadedPlugins = $appSettings.persistent.enabledPlugins;
     if (!pluginListDiv) {
       return;
     }
@@ -62,7 +62,7 @@
       window.pluginManagerPort.postMessage({
         type: "load-plugin",
         id: pluginId,
-        payload: $appSettings.persistant.pluginsDataStorage[pluginId],
+        payload: $appSettings.persistent.pluginsDataStorage[pluginId],
       });
     } else {
       window.pluginManagerPort.postMessage({
@@ -89,7 +89,7 @@
       id: pluginId,
     });
     appSettings.update((s) => {
-      delete s.persistant.pluginsDataStorage[pluginId];
+      delete s.persistent.pluginsDataStorage[pluginId];
       return s;
     });
   }

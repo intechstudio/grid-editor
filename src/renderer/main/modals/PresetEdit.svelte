@@ -33,7 +33,7 @@
 
   let allModulesTypes = ["BU16", "EF44", "PBF4", "EN16", "PO16"];
 
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
+  let PRESET_PATH = get(appSettings).persistent.presetFolder;
   let PRESETS = [];
   let presetCloud = [];
 
@@ -212,7 +212,7 @@
               {/if} -->
             </div>
 
-            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
               <div>Upload Cover Photo</div>
               <div>Upload Attachments</div>
             {/if}

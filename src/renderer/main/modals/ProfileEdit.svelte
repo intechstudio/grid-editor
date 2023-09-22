@@ -30,7 +30,7 @@
 
   let allModulesTypes = ["BU16", "EF44", "PBF4", "EN16", "PO16"];
 
-  let PROFILE_PATH = get(appSettings).persistant.profileFolder;
+  let PROFILE_PATH = get(appSettings).persistent.profileFolder;
   let PROFILES = [];
   let profileCloud = [];
 
@@ -204,7 +204,7 @@
               {/if}
             </div>
 
-            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
               <div>Upload Cover Photo</div>
               <div>Upload Attachments</div>
             {/if}

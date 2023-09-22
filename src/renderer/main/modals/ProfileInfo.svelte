@@ -17,8 +17,8 @@
   let PROFILE_PATH = [];
   let PRESET_PATH = [];
 
-  PROFILE_PATH = get(appSettings).persistant.profileFolder;
-  PRESET_PATH = get(appSettings).persistant.presetFolder;
+  PROFILE_PATH = get(appSettings).persistent.profileFolder;
+  PRESET_PATH = get(appSettings).persistent.presetFolder;
 
   let sessionPreset = GetSessionPreset();
 
@@ -287,7 +287,7 @@
         <div class="flex flex-col gap-4 w-full lg:w-3/6">
           <div>
             <div class="flex justify-end items-center">
-              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                 <div class="text-green-400 font-semibold mb-2">Tags</div>
               {/if}
 
@@ -411,7 +411,7 @@
                 <div>
                   <div class="font-medium mb-1">@{selectedProfile.folder}</div>
 
-                  {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                  {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                     <div class="text-zinc-300">
                       Modified at {selectedProfile.fsModifiedAt
                         .toJSON()
@@ -420,7 +420,7 @@
                     </div>
                   {/if}
                 </div>
-                {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                   <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
                     <button
                       class="flex flex-row items-center justify-between"
@@ -520,7 +520,7 @@
                 <div class="text-zinc-300">Made for:</div>
                 <div>{selectedProfile.type}</div>
               </div>
-              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                 <div class="flex justify-between items-center">
                   <div class="text-zinc-300">Compatible with:</div>
                   <div class="flex items-center gap-1">

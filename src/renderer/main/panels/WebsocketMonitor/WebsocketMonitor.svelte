@@ -118,7 +118,7 @@
   }
 
   function portChange() {
-    window.electron.websocket.changePort($appSettings.persistant.wssPort);
+    window.electron.websocket.changePort($appSettings.persistent.wssPort);
   }
 </script>
 
@@ -130,7 +130,7 @@
 
   <input
     type="number"
-    bind:value={$appSettings.persistant.wssPort}
+    bind:value={$appSettings.persistent.wssPort}
     on:change={portChange}
   />
 

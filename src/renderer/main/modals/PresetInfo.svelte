@@ -26,7 +26,7 @@
     liked = !liked;
   }
 
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
+  let PRESET_PATH = get(appSettings).persistent.presetFolder;
 
   let selectedPreset = get(selectedPresetStore);
 
@@ -108,7 +108,7 @@
       <div class="flex flex-col gap-4 w-full lg:w-3/6">
         <div>
           <div class="flex justify-end items-center">
-            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
               <div class="text-green-400 font-semibold mb-2">Tags</div>
             {/if}
 
@@ -232,7 +232,7 @@
               <div>
                 <div class="font-medium mb-1">@{selectedPreset.folder}</div>
 
-                {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                   <div class="text-zinc-300">
                     Modified at {selectedPreset.fsModifiedAt
                       .toJSON()
@@ -241,7 +241,7 @@
                   </div>
                 {/if}
               </div>
-              {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+              {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                 <div class="h-min px-2 py-1 bg-primary-700 rounded-xl">
                   <button
                     class="flex flex-row items-center justify-between"
@@ -341,7 +341,7 @@
               <div class="text-zinc-300">Made for:</div>
               <div>{selectedPreset.type}</div>
             </div>
-            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+            {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
               <div class="flex justify-between items-center">
                 <div class="text-zinc-300">Compatible with:</div>
                 <div class="flex items-center gap-1">

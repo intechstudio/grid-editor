@@ -30,7 +30,7 @@
     // if the selected directory fails or cancels, it returns with ''
     if (selectDirectoryResult !== "") {
       appSettings.update((s) => {
-        s.persistant.profileFolder = selectDirectoryResult;
+        s.persistent.profileFolder = selectDirectoryResult;
         return s;
       });
     }
@@ -42,14 +42,14 @@
 
   async function viewDirectory() {
     await window.electron.library.viewDirectory(
-      get(appSettings).persistant.profileFolder
+      get(appSettings).persistent.profileFolder
     );
   }
 
   async function resetDirectory() {
     let path = await window.electron.library.resetDirectory();
     appSettings.update((s) => {
-      s.persistant.profileFolder = path;
+      s.persistent.profileFolder = path;
       return s;
     });
   }
@@ -94,7 +94,7 @@
         plugged-in module is rotated.
       </BlockBody>
       <MeltRadio
-        bind:target={$appSettings.persistant.moduleRotation}
+        bind:target={$appSettings.persistent.moduleRotation}
         orientation={"horizontal"}
         options={[
           { title: "0°", value: 0 },
@@ -110,7 +110,7 @@
       <BlockBody>Size of the controllers in the application.</BlockBody>
       <BlockRow>
         <MeltSlider
-          bind:target={$appSettings.persistant.size}
+          bind:target={$appSettings.persistent.size}
           min={0.5}
           max={2.6}
           step={0.1}
@@ -118,7 +118,7 @@
         <MoltenButton
           title={"Reset"}
           click={() => {
-            $appSettings.persistant.size = 1.0;
+            $appSettings.persistent.size = 1.0;
           }}
         />
       </BlockRow>
@@ -129,7 +129,7 @@
         >News and quick links are shown every time you launch Grid Editor.</BlockBody
       >
       <MeltCheckbox
-        bind:target={$appSettings.persistant.welcomeOnStartup}
+        bind:target={$appSettings.persistent.welcomeOnStartup}
         title={"Show welcome screen"}
       />
     </Block>
@@ -141,7 +141,7 @@
         features, plugins might only work when the application always runs.
       </BlockBody>
       <MeltRadio
-        bind:target={$appSettings.persistant.alwaysRunInTheBackground}
+        bind:target={$appSettings.persistent.alwaysRunInTheBackground}
         options={[
           {
             title: "Keep the application running on the tray or dock",
@@ -185,7 +185,7 @@
         the software is being used and we can continue improving it.
       </BlockBody>
       <MeltCheckbox
-        bind:target={$appSettings.persistant.analyticsEnabled}
+        bind:target={$appSettings.persistent.analyticsEnabled}
         title={"Track interaction with the Editor application"}
       />
       <MoltenButton
@@ -206,7 +206,7 @@
       <BlockRow>
         <MoltenInput
           disabled={true}
-          bind:target={$appSettings.persistant.profileFolder}
+          bind:target={$appSettings.persistent.profileFolder}
         />
         <MoltenButton title={"Select Folder"} click={selectDirectory} />
       </BlockRow>
@@ -252,7 +252,7 @@
       </BlockBody>
 
       <MeltCheckbox
-        bind:target={$appSettings.persistant.websocketMonitorEnabled}
+        bind:target={$appSettings.persistent.websocketMonitorEnabled}
         title={"Activate websocket monitor"}
       />
     </Block>
@@ -264,7 +264,7 @@
         the module.
       </BlockBody>
       <MeltCheckbox
-        bind:target={$appSettings.persistant.portstateOverlayEnabled}
+        bind:target={$appSettings.persistent.portstateOverlayEnabled}
         title={"Activate port sate overlay"}
       />
     </Block>

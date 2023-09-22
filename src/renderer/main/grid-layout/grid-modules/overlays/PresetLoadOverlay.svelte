@@ -99,7 +99,7 @@
 block h-full w-full text-white bg-opacity-25 rounded focus:outline-none"
       ><div
         style="transform: rotate({rotation * 90 -
-          $appSettings.persistant.moduleRotation +
+          $appSettings.persistent.moduleRotation +
           'deg'})"
         class="hidden group-hover:block"
       >
@@ -129,7 +129,7 @@ block h-full w-full text-white bg-opacity-25 rounded focus:outline-none"
      focus:outline-none"
             ><div
               style="transform: rotate({rotation * 90 -
-                $appSettings.persistant.moduleRotation +
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
               class="hidden group-hover:block"
             >
