@@ -72,20 +72,21 @@
 
   let showProfileLoadOverlay = false;
   $: {
-    showProfileLoadOverlay = type === $selectedProfileStore.type;
-    console.log($selectedProfileStore, showProfileLoadOverlay);
+    showProfileLoadOverlay = type === $selectedConfigStore.type && $selectedConfigStore.configType === "profile";
   }
 
   let showPresetLoadOverlay = false;
   $: {
     let device = get(runtime).find((controller) => controller.id == id);
 
-    if (typeof device !== "undefined") {
+    if (typeof device !== "undefined" && $selectedConfigStore.configType === "preset") {
       const compatible = device.pages[0].control_elements
         .map((e) => e.controlElementType)
-        .includes($selectedPresetStore.type);
+        .includes($selectedConfigStore.type);
 
       showPresetLoadOverlay = compatible;
+    } else {
+      showPresetLoadOverlay = false;
     }
   }
 </script>
@@ -156,7 +157,7 @@
       {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
         <ProfileLoadOverlay {id} {rotation} />
       {/if}
-      {#if showPresetLoadOverlay && $appSettings.leftPanel === "NewPreset"}
+      {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
         <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
       {/if}
     {/if}

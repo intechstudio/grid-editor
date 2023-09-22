@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import util from "util";
+import AdmZip from "adm-zip";
 import log from "electron-log";
 
 async function checkIfWritableDirectory(path) {
@@ -47,6 +48,13 @@ export async function migrateToProfileCloud(
   configDirectory: string
 ): Promise<void> {
   const oldConfigTypes = ["profile", "preset"];
+  const zip = new AdmZip();
+  for (const configType of oldConfigTypes){
+    if (fs.existsSync(`${oldRootPath}/${configType}s`)){
+      zip.addLocalFolder(`${oldRootPath}/${configType}s`, `${configType}s`);
+    }
+  }
+  zip.writeZip(`${newRootPath}/profile_backup.zip`);
   for (const configType of oldConfigTypes) {
     async function recurseIntoFolder(currentPath) {
       const entries = await readdir(currentPath, { withFileTypes: true });
@@ -55,7 +63,7 @@ export async function migrateToProfileCloud(
           if (entry.name == "intech" || entry.name == "intechstudio") {
             // do nothing
           } else {
-            recurseIntoFolder(path.join(currentPath, entry.name));
+            await recurseIntoFolder(path.join(currentPath, entry.name));
           }
         } else if (entry.isFile() && path.extname(entry.name) === ".json") {
           await migrateProfileFileToCloud(
@@ -71,6 +79,7 @@ export async function migrateToProfileCloud(
     const relativeFolder = `${configType}s`;
     const fullOldPath = path.join(oldRootPath, relativeFolder);
     await recurseIntoFolder(fullOldPath);
+    fs.rmdirSync(fullOldPath, {recursive: true});
   }
 }
 
@@ -80,10 +89,16 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
   }
 
   let path = configPath;
+
   // Create the folder if it does not exist
   if (!fs.existsSync(path)) fs.mkdirSync(path);
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     fs.mkdirSync(`${path}/${rootDirectory}`);
+
+  //Check for legacy folders
+  if (fs.existsSync(`${path}/profiles`) || fs.existsSync(`${path}/presets`)){
+    await migrateToProfileCloud(path, path, rootDirectory);
+  }
 
   let configs: any[] = [];
 
@@ -124,11 +139,17 @@ export async function saveConfig(configPath, rootDirectory, config) {
   if (!fs.existsSync(`${path}/${rootDirectory}`))
     await fs.promises.mkdir(`${path}/${rootDirectory}`, { recursive: true });
 
-  const fileNameBase = `${config.name ?? "config"}`;
+  const fileNameBase = `${config.name ?? `New local ${config.configType}`}`;
   let fileName = fileNameBase;
-  let fileNameCounter = 0;
+  let fileNameCounter = 1;
+  fileName = `${fileNameBase} ${fileNameCounter}`;
   while (fs.existsSync(`${path}/${rootDirectory}/${fileName}.json`)) {
-    fileName = `${fileNameBase}_${fileNameCounter}`;
+    fileNameCounter++;
+    fileName = `${fileNameBase} ${fileNameCounter}`;
+  }
+
+  if (!config.name){
+    config.name = `New local ${config.configType} ${fileNameCounter}`
   }
 
   await fs.promises

@@ -235,7 +235,7 @@
 
         const configs = get(runtime);
 
-        let name = "New local config";
+        let name = undefined;
         let description = "Click here to add description";
         let id = uuidv4();
 
@@ -581,7 +581,7 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
-    selectedProfileStore.set({});
+    selectedConfigStore.set({});
   });
 
   async function loadOfflineProfileCloud() {

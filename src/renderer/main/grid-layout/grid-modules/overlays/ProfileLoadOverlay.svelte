@@ -7,10 +7,10 @@
   export let id;
   export let rotation;
 
-  let selectedProfile = undefined;
+  let selectedConfig = undefined;
 
   $: {
-    selectedProfile = $selectedProfileStore;
+    selectedConfig = $selectedConfigStore;
   }
 
   function selectModuleWhereProfileIsLoaded() {
