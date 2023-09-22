@@ -50,7 +50,6 @@
       const obj = $elementNameStore[dx][dy];
 
       Object.keys(obj).forEach((key) => {
-        console.log("key", key);
         elementSettings[key].controlElementName = obj[key];
       });
     } catch (error) {}

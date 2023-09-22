@@ -158,7 +158,6 @@
   $: {
     //Handle User Input
     if ($user_input) {
-      console.log("REACTIVE HANDLE");
       handleUserInputchange();
     }
   }
