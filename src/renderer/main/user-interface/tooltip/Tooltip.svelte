@@ -66,9 +66,12 @@
   function handleReferenceElementMouseLeave(e) {
     if (triggerEvents.includes("hover") && !showbuttons) {
       clearTimeout(openTimeout);
-      closeTimeout = setTimeout(() => {
-        isOpen = false;
-      }, 100);
+      closeTimeout = setTimeout(
+        () => {
+          isOpen = false;
+        },
+        instant ? 0 : 100
+      );
     }
     e.stopPropagation();
   }
@@ -123,13 +126,13 @@
   spaceAway={10}
 >
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div
+  <button
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
     on:click={handleClick}
     class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md"
     transition:fade|global={{
-      duration: duration, //Make it instant when explicitly clicked
+      duration: instant ? 0 : duration, //Make it instant when explicitly clicked
     }}
   >
     <div class="flex flex-col" class:gap-2={buttons.length > 0}>
@@ -142,7 +145,7 @@
 
       {#if showbuttons}
         <div
-          transition:slide|global={{ duration: 100 }}
+          transition:slide|global={{ duration: instant ? 0 : 100 }}
           class="flex flex-row gap-2"
         >
           {#each buttons as button}
@@ -162,10 +165,10 @@
         </div>
       {/if}
     </div>
-  </div>
+  </button>
   <div
     transition:fade|global={{
-      duration: duration,
+      duration: instant ? 0 : duration,
     }}
     class="absolute"
     id="arrow"
@@ -177,7 +180,7 @@
 
 <style global>
   :root {
-    --tooltip-bg-color: rgba(14, 20, 24, 0.7);
+    --tooltip-bg-color: rgba(14, 20, 24, 0.8);
   }
 
   .tooltip-bg {

@@ -140,7 +140,7 @@
 
   async function handleImportConfig(event) {
     if (event.data.channelMessageType == "IMPORT_CONFIG") {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const config = event.data;
       const importName = config.name;
 
@@ -169,8 +169,7 @@
 
   async function handleGetListOfLocalConfigs(event) {
     if (event.data.channelMessageType == "GET_LIST_OF_LOCAL_CONFIGS") {
-      const path = $appSettings.persistant.profileFolder;
-      const presetPath = $appSettings.persistant.presetFolder;
+      const path = $appSettings.persistent.profileFolder;
 
       return await window.electron.configs.loadConfigsFromDirectory(
         path,
@@ -193,7 +192,7 @@
 
   async function handleDeleteLocalConfig(event) {
     if (event.data.channelMessageType == "DELETE_LOCAL_CONFIG") {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const config = event.data?.config;
 
       return await window.electron.configs
@@ -220,7 +219,7 @@
       "CREATE_NEW_LOCAL_CONFIG_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
     ) {
       const configType = event.data.configType;
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
 
@@ -308,7 +307,7 @@
     if (event.data.channelMessageType == "OVERWRITE_LOCAL_CONFIG") {
       const { configToOverwrite } = event.data;
 
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
 
       let callback = await async function () {
         logger.set({
@@ -374,7 +373,7 @@
       if (name) config.name = name;
       if (description) config.description = description;
       return await window.electron.configs.saveConfig(
-        $appSettings.persistant.profileFolder,
+        $appSettings.persistent.profileFolder,
         "configs",
         config
       );
@@ -386,7 +385,7 @@
   async function handleSplitLocalConfig(event) {
     if (event.data.channelMessageType == "SPLIT_LOCAL_CONFIG") {
       const { configToSplit } = event.data;
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const config = configToSplit;
 
       let isSessionPresetNameUnique = undefined;
@@ -460,7 +459,7 @@
           id: uuidv4(),
         };
 
-        const PRESET_PATH = get(appSettings).persistant.presetFolder;
+        const PRESET_PATH = get(appSettings).persistent.presetFolder;
 
         if (!config.localId) {
           console.log(`Missing localId, generating for config: ${config}`);
@@ -582,6 +581,7 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
+    selectedProfileStore.set({});
   });
 
   async function loadOfflineProfileCloud() {

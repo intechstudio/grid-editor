@@ -5,36 +5,12 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
   export let id;
+  export let rotation;
 
-  let showOverlay = false;
-  let selectedConfig = undefined;
-  let isActionButtonClicked = false;
-
-  //TODO: isActionButtonClicked didn't seem right, check if rewrite is correct
+  let selectedProfile = undefined;
 
   $: {
-    selectedConfig = $selectedConfigStore;
-    showLoadProfileOverlay();
-  }
-
-  $: {
-    isActionButtonClicked = $isActionButtonClickedStore;
-    showLoadProfileOverlay();
-  }
-
-  function showLoadProfileOverlay() {
-    let moduleId = id;
-    let profileType = selectedConfig.type;
-    let moduleType = moduleId.substr(0, 4);
-    if (
-      selectedConfig.configType === "profile" &&
-      moduleType === profileType &&
-      isActionButtonClicked === false
-    ) {
-      showOverlay = true;
-    } else {
-      showOverlay = false;
-    }
+    selectedProfile = $selectedProfileStore;
   }
 
   function selectModuleWhereProfileIsLoaded() {
@@ -72,34 +48,34 @@
   }
 </script>
 
-{#if showOverlay}
-  <div
-    class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
+<div
+  class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute"
-    style="transform: rotate({$appSettings.persistant.moduleRotation + 'deg'})"
-  >
-    <div class="w-fit relative">
-      <button
-        on:click={() => {
-          loadProfileToThisModule();
-        }}
-        class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
+  style="transform: rotate({rotation * 90 -
+    $appSettings.persistent.moduleRotation +
+    'deg'})"
+>
+  <div class="w-fit relative">
+    <button
+      on:click={() => {
+        loadProfileToThisModule();
+      }}
+      class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
         opacity-80 block"
-      >
-        Load Profile
-      </button>
-    </div>
-
-    <div class="w-fit">
-      <button
-        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
-        left-[37%] absolute bottom-[22%] opacity-60"
-        on:click={() => {
-          cancelProfileOverlay();
-        }}
-      >
-        Cancel
-      </button>
-    </div>
+    >
+      Load Profile
+    </button>
   </div>
-{/if}
+
+  <div class="w-fit">
+    <button
+      class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
+        left-[37%] absolute bottom-[22%] opacity-60"
+      on:click={() => {
+        cancelProfileOverlay();
+      }}
+    >
+      Cancel
+    </button>
+  </div>
+</div>

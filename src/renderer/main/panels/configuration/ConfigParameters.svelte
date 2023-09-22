@@ -171,8 +171,10 @@
         <button
           use:setTooltip={{
             key: "configuration_copy_all",
+            nowrap: true,
+            instant: true,
             placement: "top",
-            class: "w-60 p-4",
+            class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
@@ -185,8 +187,10 @@
         <button
           use:setTooltip={{
             key: "configuration_overwrite",
+            nowrap: true,
+            instant: true,
             placement: "top",
-            class: "w-60 p-4",
+            class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
           on:click={() => {
@@ -214,10 +218,9 @@
               on:click={() => {
                 handleSelectEvent(event);
               }}
-              class:dummy={event.desc == undefined}
               class="{selectedEvent === event && event.desc !== undefined
-                ? 'shadow-md bg-pick text-white'
-                : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary"
+                ? 'shadow-md text-white bg-pick'
+                : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
             >
               {@html event.desc
                 ? event.desc

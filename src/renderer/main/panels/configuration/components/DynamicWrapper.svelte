@@ -4,6 +4,26 @@
   import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
 
+  import {
+    lastOpenedActionblocks,
+    lastOpenedActionblocksInsert,
+    lastOpenedActionblocksRemove,
+  } from "../Configuration.store";
+
+  let toggled = false;
+
+  onMount(() => {
+    if (config.information.toggleable !== false) {
+      toggled =
+        -1 !==
+        $lastOpenedActionblocks.findIndex((e) => {
+          return e == config.short;
+        });
+    } else {
+      toggled = true;
+    }
+  });
+
   export let access_tree;
   export let index = undefined;
   export let config;
@@ -29,7 +49,7 @@
       index: index,
       newConfig: obj,
     });
-    config.toggled = true;
+    toggled = true;
   }
 
   function handleOutput(e) {
@@ -46,11 +66,6 @@
     validationError = data.isError;
   }
 
-  let toggled;
-  $: {
-    toggled = config.toggled;
-  }
-
   //TODO: Refactor this out by refactoring the handling of
   //modifier rendering style blocks
   function handleToggle(e) {
@@ -58,8 +73,17 @@
       return;
     }
 
-    config.toggled = !config.toggled;
-    dispatch("toggle", { value: config.toggled, index: index });
+    if (config.information.toggleable === false) {
+      return;
+    }
+
+    toggled = !toggled;
+
+    if (toggled) {
+      lastOpenedActionblocksInsert(config.short);
+    } else {
+      lastOpenedActionblocksRemove(config.short);
+    }
   }
 </script>
 

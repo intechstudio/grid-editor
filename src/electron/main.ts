@@ -459,7 +459,8 @@ ipcMain.handle("selectDirectory", async (event, arg) => {
 });
 
 ipcMain.handle("viewDirectory", async (event, arg) => {
-  shell.openPath(arg.targetFolder);
+  const normalizedPath = path.normalize(arg.targetFolder); // handle mixed '/' and '\' characters on windows
+  shell.openPath(normalizedPath);
   return;
 });
 

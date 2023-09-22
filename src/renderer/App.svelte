@@ -66,15 +66,15 @@
   let name;
 
   $: {
-    if ($appSettings.persistant.helperShape !== undefined) {
-      shapeSelected = $appSettings.persistant.helperShape;
+    if ($appSettings.persistent.helperShape !== undefined) {
+      shapeSelected = $appSettings.persistent.helperShape;
     }
 
-    if ($appSettings.persistant.helperColor !== undefined) {
-      colorSelected = $appSettings.persistant.helperColor;
+    if ($appSettings.persistent.helperColor !== undefined) {
+      colorSelected = $appSettings.persistent.helperColor;
     }
 
-    name = $appSettings.persistant.helperName;
+    name = $appSettings.persistent.helperName;
   }
 
   function resize() {
@@ -117,10 +117,10 @@
             } else if (data.id == "persist-data") {
               appSettings.update((s) => {
                 const newStorage = structuredClone(
-                  s.persistant.pluginsDataStorage
+                  s.persistent.pluginsDataStorage
                 );
                 newStorage[data.pluginId] = data.data;
-                s.persistant.pluginsDataStorage = newStorage;
+                s.persistent.pluginsDataStorage = newStorage;
                 return s;
               });
             }
@@ -136,8 +136,8 @@
               .map((e) => e.id);
             appSettings.update((s) => {
               s.pluginList = data.plugins;
-              s.persistant.markedForDeletionPlugins = markedForDeletionPlugins;
-              s.persistant.enabledPlugins = enabledPlugins;
+              s.persistent.markedForDeletionPlugins = markedForDeletionPlugins;
+              s.persistent.enabledPlugins = enabledPlugins;
               return s;
             });
             break;
@@ -153,15 +153,15 @@
           }
         }
       };
-      for (const plugin of $appSettings.persistant.markedForDeletionPlugins ??
+      for (const plugin of $appSettings.persistent.markedForDeletionPlugins ??
         []) {
         port.postMessage({ type: "uninstall-plugin", id: plugin });
       }
-      for (const plugin of $appSettings.persistant.enabledPlugins ?? []) {
+      for (const plugin of $appSettings.persistent.enabledPlugins ?? []) {
         port.postMessage({
           type: "load-plugin",
           id: plugin,
-          payload: $appSettings.persistant.pluginsDataStorage[plugin],
+          payload: $appSettings.persistent.pluginsDataStorage[plugin],
         });
       }
       // register global createPluginMessagePort for direct plugin communication

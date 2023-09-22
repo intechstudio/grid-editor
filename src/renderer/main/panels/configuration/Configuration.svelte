@@ -45,7 +45,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
 
   const configs = writable([]);
-  let lastOpenedElementsType = undefined;
+
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -193,7 +193,6 @@
       }
     }
     configs.set(list);
-    toggleLastConfigs();
     setSelectedEvent();
     updateLuaDebugStore(list);
     updateLocalSuggestions(list);
@@ -372,6 +371,7 @@
     isDragged = false;
     dropIndex = undefined;
     draggedIndexes = [];
+    clearInterval(autoScroll);
   }
 
   let draggedIndexes = [];
@@ -448,6 +448,15 @@
     let script = "";
     for (let config of $configs) {
       if (config.selected) {
+        if (config.checkSyntax() === false) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "luanotok",
+            message: `Cannot merge actionblocks with syntax error!`,
+          });
+          return;
+        }
         script += config.script + " ";
       }
     }
@@ -533,18 +542,6 @@
     });
   }
 
-  function toggleLastConfigs() {
-    if (typeof $configs === "undefined") {
-      return;
-    }
-
-    for (const config of $configs) {
-      if (config.short === lastOpenedElementsType) {
-        config.toggled = true;
-      }
-    }
-  }
-
   function handleRemove(e) {
     let list = $configs.makeCopy();
 
@@ -597,11 +594,29 @@
     });
   }
 
-  function handleToggleChange(e) {
-    const { value, index } = e.detail;
-
-    if (value) {
-      lastOpenedElementsType = $configs[index].short;
+  let autoScroll;
+  function handleDrag(e) {
+    if (draggedIndexes.length > 0) {
+      const index = draggedIndexes[0];
+      const id = `cfg-${index}`;
+      const configList = document.getElementById("cfg-list");
+      const draggedDOMElement = document.getElementById(id);
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(autoScroll);
+      if (lowerThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+      } else if (upperThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+      }
     }
   }
 </script>
@@ -620,7 +635,7 @@
         }}
         class="{$appSettings.configType == 'uiEvents'
           ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> UI Events </span>
       </button>
@@ -636,7 +651,7 @@
         }}
         class="{$appSettings.configType == 'systemEvents'
           ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary '} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> System Events </span>
       </button>
@@ -675,6 +690,7 @@
           </div>
         </div>
 
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           use:changeOrder={(this, { configs: $configs })}
           on:drag-start={handleDragStart}
@@ -696,6 +712,10 @@
             use:configListScrollSize={$configs}
             on:height={(e) => {
               scrollHeight = e.detail;
+            }}
+            on:mousemove={handleDrag}
+            on:mouseleave={() => {
+              //clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
@@ -724,13 +744,11 @@
               >
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
-                    let:toggle
                     {index}
                     {config}
                     {access_tree}
                     indentation={config.indentation}
                     on:update={handleConfigUpdate}
-                    on:toggle={handleToggleChange}
                   />
 
                   <Options

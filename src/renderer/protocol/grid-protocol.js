@@ -1,4 +1,4 @@
-import * as grid_protocol from "../../external/grid-protocol/grid_protocol_bot.json";
+import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
 
 import lodash from "lodash";
 

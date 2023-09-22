@@ -20,6 +20,7 @@
   import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { get } from "svelte/store";
   import { writeBuffer } from "../../../runtime/engine.store.js";
+  import { runtime } from "../../../runtime/runtime.store.js";
 
   const components = [
     { type: "BU16", component: BU16 },
@@ -68,6 +69,25 @@
       }
     }
   }
+
+  let showProfileLoadOverlay = false;
+  $: {
+    showProfileLoadOverlay = type === $selectedProfileStore.type;
+    console.log($selectedProfileStore, showProfileLoadOverlay);
+  }
+
+  let showPresetLoadOverlay = false;
+  $: {
+    let device = get(runtime).find((controller) => controller.id == id);
+
+    if (typeof device !== "undefined") {
+      const compatible = device.pages[0].control_elements
+        .map((e) => e.controlElementType)
+        .includes($selectedPresetStore.type);
+
+      showPresetLoadOverlay = compatible;
+    }
+  }
 </script>
 
 {#if selected}
@@ -106,7 +126,7 @@
       {/if}
     </div>
 
-    {#if $appSettings.persistant.portstateOverlayEnabled}
+    {#if $appSettings.persistent.portstateOverlayEnabled}
       {#if (portstate & 1) !== 0}
         <div
           class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
@@ -133,8 +153,12 @@
     {/if}
 
     {#if $writeBuffer.length == 0}
-      <ProfileLoadOverlay {id} />
-      <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+      {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+        <ProfileLoadOverlay {id} {rotation} />
+      {/if}
+      {#if showPresetLoadOverlay && $appSettings.leftPanel === "NewPreset"}
+        <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
+      {/if}
     {/if}
   </svelte:component>
 {/if}

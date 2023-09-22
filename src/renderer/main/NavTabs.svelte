@@ -410,7 +410,7 @@
       />
     </button>
 
-    {#if $appSettings.persistant.websocketMonitorEnabled === true}
+    {#if $appSettings.persistent.websocketMonitorEnabled === true}
       <button
         use:setTooltip={{
           nowrap: true,

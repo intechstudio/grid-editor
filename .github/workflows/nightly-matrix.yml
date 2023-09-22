@@ -42,7 +42,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
-    continue-on-error: true
     needs: profile-cloud-build
     steps:
       - uses: actions/checkout@v3

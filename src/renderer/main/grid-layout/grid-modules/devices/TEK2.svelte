@@ -84,10 +84,7 @@
 
   <div
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
-    dy == selectedElement.brc.dy
-      ? ' border-gray-500'
-      : 'border-transparent'} "
+    class="module-dimensions"
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
@@ -98,7 +95,8 @@
     >
       {#each [8, 9] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
+        <button
+          ariarole="button"
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
@@ -106,51 +104,24 @@
           style="border-radius: 50%; padding: 6px"
           on:click={() => selectElement(elementNumber, "encoder", id)}
         >
-          <div
-            class="absolute"
-            style="
-              margin-left: {ledPosRadius * Math.cos((25 / 180) * Math.PI)}px; 
-              margin-top: {ledPosRadius * Math.sin((25 / 180) * Math.PI)}px; 
-            "
-          >
-            <Led color={ledcolor_array[elementNumber]} size={1.4} />
-          </div>
-          <div
-            class="absolute"
-            style="
-              margin-left: {ledPosRadius * Math.cos((35 / 180) * Math.PI)}px; 
-              margin-top: {ledPosRadius * Math.sin((35 / 180) * Math.PI)}px; 
-            "
-          >
-            <Led color={ledcolor_array[elementNumber]} size={1.6} />
-          </div>
-          <div
-            class="absolute"
-            style="
-              margin-left: {ledPosRadius * Math.cos((45 / 180) * Math.PI)}px; 
-              margin-top: {ledPosRadius * Math.sin((45 / 180) * Math.PI)}px; 
-            "
-          >
-            <Led color={ledcolor_array[elementNumber]} size={1.7} />
-          </div>
-          <div
-            class="absolute"
-            style="
-              margin-left: {ledPosRadius * Math.cos((55 / 180) * Math.PI)}px; 
-              margin-top: {ledPosRadius * Math.sin((55 / 180) * Math.PI)}px; 
-            "
-          >
-            <Led color={ledcolor_array[elementNumber]} size={1.6} />
-          </div>
-          <div
-            class="absolute"
-            style="
-              margin-left: {ledPosRadius * Math.cos((65 / 180) * Math.PI)}px; 
-              margin-top: {ledPosRadius * Math.sin((65 / 180) * Math.PI)}px; 
-            "
-          >
-            <Led color={ledcolor_array[elementNumber]} size={1.4} />
-          </div>
+          {#each [0, 1, 2, 3, 4] as ledNumber}
+            <div
+              class="absolute"
+              style="
+                margin-left: {ledPosRadius *
+                Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                margin-top: {ledPosRadius *
+                Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+              "
+            >
+              <Led
+                color={ledcolor_array[
+                  (elementNumber == 8 ? 8 : 9) + ledNumber * 2
+                ]}
+                size={1.4}
+              />
+            </div>
+          {/each}
 
           <EndlessPot
             {elementNumber}
@@ -158,12 +129,12 @@
             position={elementposition_array[elementNumber]}
             size={2.1}
           />
-        </div>
+        </button>
       {/each}
 
       {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
+        <button
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
@@ -177,7 +148,7 @@
             position={elementposition_array[elementNumber]}
             size={2.1}
           />
-        </div>
+        </button>
       {/each}
     </div>
   </div>
