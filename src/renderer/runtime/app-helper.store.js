@@ -3,7 +3,7 @@ import { getAllComponents } from "$lib/_configs";
 
 const configuration = window.ctxProcess.configuration();
 
-const persistant = {
+const persistent = {
   userId: "",
   size: 1.0,
   wssPort: 1337,
@@ -75,7 +75,7 @@ function createSplitPanes() {
 
 export const splitpanes = createSplitPanes();
 
-function createAppSettingsStore(persistant) {
+function createAppSettingsStore(persistent) {
   const store = writable({
     version: {
       major: configuration.EDITOR_VERSION.split(".")[0],
@@ -116,7 +116,7 @@ function createAppSettingsStore(persistant) {
     },
     profileCloudUrl: undefined,
     pluginList: [],
-    persistant: structuredClone(persistant),
+    persistent: structuredClone(persistent),
   });
 
   return {
@@ -124,7 +124,7 @@ function createAppSettingsStore(persistant) {
   };
 }
 
-export const appSettings = createAppSettingsStore(persistant);
+export const appSettings = createAppSettingsStore(persistent);
 
 export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
@@ -132,13 +132,13 @@ export const presetListRefresh = writable(0);
 init_appsettings();
 
 appSettings.subscribe((store) => {
-  let instore = store.persistant;
+  let instore = store.persistent;
 
-  Object.entries(persistant).forEach((entry) => {
+  Object.entries(persistent).forEach((entry) => {
     const [key, value] = entry;
 
-    if (persistant[key] !== instore[key]) {
-      persistant[key] = instore[key];
+    if (persistent[key] !== instore[key]) {
+      persistent[key] = instore[key];
       let settings = {};
       settings[key] = instore[key];
       window.electron.persistentStorage.set(settings);
@@ -161,7 +161,7 @@ ipcRenderer.on('trayState', (event, args) => {
 
 async function init_appsettings() {
   let request = [];
-  Object.entries(persistant).forEach((entry) => {
+  Object.entries(persistent).forEach((entry) => {
     const [key, value] = entry;
     request.push(key);
   });
@@ -184,7 +184,7 @@ async function init_appsettings() {
           }
 
           if (key === "moduleRotation" && value === undefined) {
-            value = persistant[key];
+            value = persistent[key];
           }
 
           if (key === "pageActivatorInterval" && value === undefined) {
@@ -192,7 +192,7 @@ async function init_appsettings() {
           }
 
           if (value !== undefined) {
-            s.persistant[key] = value;
+            s.persistent[key] = value;
           }
         });
 
@@ -201,22 +201,22 @@ async function init_appsettings() {
 
       // show welcome modal if it is not disabled, but always show after version update
       if (
-        get(appSettings).persistant.welcomeOnStartup === undefined ||
-        get(appSettings).persistant.welcomeOnStartup === true ||
-        get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion !=
+        get(appSettings).persistent.welcomeOnStartup === undefined ||
+        get(appSettings).persistent.welcomeOnStartup === true ||
+        get(appSettings).persistent.lastVersion === undefined ||
+        get(appSettings).persistent.lastVersion !=
           configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
-          s.persistant.lastVersion = configuration["EDITOR_VERSION"];
-          s.persistant.welcomeOnStartup = true;
+          s.persistent.lastVersion = configuration["EDITOR_VERSION"];
+          s.persistent.welcomeOnStartup = true;
           s.modal = "welcome";
           return s;
         });
       }
 
       //TODO
-      /*if (get(appSettings).persistant.desktopAutomationPlugin === true) {
+      /*if (get(appSettings).persistent.desktopAutomationPlugin === true) {
         console.log("start plugin");
 
         window.electron.plugin.start("desktopAutomation");

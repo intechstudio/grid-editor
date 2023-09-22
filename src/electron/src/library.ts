@@ -135,14 +135,14 @@ export function selectDirectory() {
     })
     .then((dir) => {
       if (!dir.canceled) {
-        const persistantProfileFolder = dir.filePaths.toString();
+        const persistentProfileFolder = dir.filePaths.toString();
 
         // Create the folder if it does not exist
-        if (!fs.existsSync(persistantProfileFolder)) {
-          fs.mkdirSync(persistantProfileFolder);
+        if (!fs.existsSync(persistentProfileFolder)) {
+          fs.mkdirSync(persistentProfileFolder);
         }
 
-        return persistantProfileFolder;
+        return persistentProfileFolder;
       }
 
       // just return empty folder path;

@@ -47,7 +47,7 @@
   import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   const configs = writable([]);
-  let lastOpenedElementsType = [];
+
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
@@ -201,7 +201,6 @@
       }
     }
     configs.set(list);
-    toggleLastConfigs();
     setSelectedEvent();
     updateLuaDebugStore(list);
     updateLocalSuggestions(list);
@@ -380,6 +379,7 @@
     isDragged = false;
     dropIndex = undefined;
     draggedIndexes = [];
+    clearInterval(autoScroll);
   }
 
   let draggedIndexes = [];
@@ -456,6 +456,15 @@
     let script = "";
     for (let config of $configs) {
       if (config.selected) {
+        if (config.checkSyntax() === false) {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "luanotok",
+            message: `Cannot merge actionblocks with syntax error!`,
+          });
+          return;
+        }
         script += config.script + " ";
       }
     }
@@ -541,18 +550,6 @@
     });
   }
 
-  function toggleLastConfigs() {
-    if (typeof $configs === "undefined") {
-      return;
-    }
-
-    for (const config of $configs) {
-      if (lastOpenedElementsType.includes(config.short)) {
-        config.toggled = true;
-      }
-    }
-  }
-
   function handleRemove(e) {
     let list = $configs.makeCopy();
 
@@ -603,18 +600,6 @@
       });
       return s;
     });
-  }
-
-  function handleToggleChange(e) {
-    const { value, index } = e.detail;
-
-    if (value) {
-      lastOpenedElementsType.push($configs[index].short);
-    } else {
-      lastOpenedElementsType = lastOpenedElementsType.filter(
-        (e) => e !== $configs[index].short
-      );
-    }
   }
 
   let autoScroll;
@@ -738,7 +723,7 @@
             }}
             on:mousemove={handleDrag}
             on:mouseleave={() => {
-              clearInterval(autoScroll);
+              //clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
@@ -767,13 +752,11 @@
               >
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
-                    let:toggle
                     {index}
                     {config}
                     {access_tree}
                     indentation={config.indentation}
                     on:update={handleConfigUpdate}
-                    on:toggle={handleToggleChange}
                   />
 
                   <Options

@@ -177,7 +177,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   }
 
   async function firmwareDownload() {
-    const folder = $appSettings.persistant.profileFolder;
+    const folder = $appSettings.persistent.profileFolder;
     Analytics.track({
       event: "FirmwareCheck",
       payload: {

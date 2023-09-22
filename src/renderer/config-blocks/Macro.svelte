@@ -78,7 +78,7 @@
   }
 
   onMount(() => {
-    selectedLayout = $appSettings.persistant.keyboardLayout;
+    selectedLayout = $appSettings.persistent.keyboardLayout;
     change_layout();
     keys_buffer = keys;
   });
@@ -100,8 +100,8 @@
     } else {
     }
 
-    if ($appSettings.persistant.keyboardLayout !== selectedLayout) {
-      $appSettings.persistant.keyboardLayout = selectedLayout;
+    if ($appSettings.persistent.keyboardLayout !== selectedLayout) {
+      $appSettings.persistent.keyboardLayout = selectedLayout;
     }
 
     macrosToConfig({ script: config.script });

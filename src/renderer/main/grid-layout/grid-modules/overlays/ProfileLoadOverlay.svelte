@@ -51,7 +51,7 @@
   class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute"
   style="transform: rotate({rotation * 90 -
-    $appSettings.persistant.moduleRotation +
+    $appSettings.persistent.moduleRotation +
     'deg'})"
 >
   <div class="w-fit relative">

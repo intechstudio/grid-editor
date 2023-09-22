@@ -143,7 +143,7 @@
 
   async function handleImportProfile(event) {
     if (event.data.channelMessageType == "IMPORT_PROFILE") {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       // owner is not used, but user instead
       const profile = event.data;
       const importName = profile.name;
@@ -169,7 +169,7 @@
 
   async function handleGetListOfLocalProfiles(event) {
     if (event.data.channelMessageType == "GET_LIST_OF_LOCAL_PROFILES") {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const profiles = await window.electron.configs.loadConfigsFromDirectory(
         path,
         "profiles"
@@ -192,7 +192,7 @@
 
   async function handleDeleteLocalProfile(event) {
     if (event.data.channelMessageType == "DELETE_LOCAL_PROFILE") {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const { folder, id } = event.data?.profile;
 
       await window.electron.configs
@@ -222,7 +222,7 @@
       event.data.channelMessageType ==
       "CREATE_NEW_LOCAL_PROFILE_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
     ) {
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
       // const { owner, name, editorData, _id } = event.data;
 
@@ -302,7 +302,7 @@
     if (event.data.channelMessageType == "OVERWRITE_LOCAL_PROFILE") {
       const { profileToOverwrite } = event.data;
 
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
 
       let callback = await async function () {
         logger.set({
@@ -362,7 +362,7 @@
       if (name) profile.name = name;
       if (description) profile.description = description;
       return await window.electron.configs.updateLocal(
-        $appSettings.persistant.profileFolder,
+        $appSettings.persistent.profileFolder,
         profile.id,
         profile,
         "profiles",
@@ -376,7 +376,7 @@
   async function handleSplitLocalProfile(event) {
     if (event.data.channelMessageType == "SPLIT_LOCAL_PROFILE") {
       const { profileToSplit } = event.data;
-      const path = $appSettings.persistant.profileFolder;
+      const path = $appSettings.persistent.profileFolder;
       const profile = profileToSplit;
 
       let isSessionPresetNameUnique = undefined;
@@ -449,7 +449,7 @@
           id: uuidv4(),
         };
 
-        const PRESET_PATH = get(appSettings).persistant.presetFolder;
+        const PRESET_PATH = get(appSettings).persistent.presetFolder;
 
         return window.electron.configs.saveConfig(
           PRESET_PATH,

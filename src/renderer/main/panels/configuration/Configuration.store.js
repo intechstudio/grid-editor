@@ -1,4 +1,4 @@
-import { get } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 import {
   runtime,
@@ -15,6 +15,27 @@ import {
   config_components,
   init_config_block_library,
 } from "../../../lib/_configs";
+
+export let lastOpenedActionblocks = writable([]);
+
+export function lastOpenedActionblocksInsert(short) {
+  // Get the current value of lastOpenedActionblocks
+  const currentList = get(lastOpenedActionblocks);
+
+  // Update the store with the new value
+  lastOpenedActionblocks.set([
+    ...currentList.filter((e) => e !== short),
+    short,
+  ]);
+}
+
+export function lastOpenedActionblocksRemove(short) {
+  // Get the current value of lastOpenedActionblocks
+  const currentList = get(lastOpenedActionblocks);
+
+  // Update the store with the new value
+  lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
+}
 
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";

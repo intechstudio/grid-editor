@@ -1070,6 +1070,13 @@ function create_runtime() {
       moduleType === undefined ||
       heartbeat_class_param === undefined
     ) {
+      console.log(
+        heartbeat_class_param.HWCFG,
+        "ERROR",
+        header_param,
+        moduleType,
+        heartbeat_class_param
+      );
       throw "Error creating new module.";
     }
     moduleType = moduleType.substr(0, 4);

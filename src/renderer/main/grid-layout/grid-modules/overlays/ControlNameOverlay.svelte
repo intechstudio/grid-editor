@@ -50,7 +50,6 @@
       const obj = $elementNameStore[dx][dy];
 
       Object.keys(obj).forEach((key) => {
-        console.log("key", key);
         elementSettings[key].controlElementName = obj[key];
       });
     } catch (error) {}
@@ -67,7 +66,7 @@
               class="col"
               style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
                 'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistant.moduleRotation +
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
             >
               <ControlNameComponent
@@ -92,7 +91,7 @@
               class="col"
               style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
                 'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistant.moduleRotation +
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
             >
               <ControlNameComponent
@@ -136,7 +135,7 @@
               class="col"
               style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
                 'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistant.moduleRotation +
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
             >
               <ControlNameComponent

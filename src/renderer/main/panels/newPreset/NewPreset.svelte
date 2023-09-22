@@ -31,7 +31,7 @@
   let selectedModule;
   let selectedController;
 
-  let PRESET_PATH = get(appSettings).persistant.presetFolder;
+  let PRESET_PATH = get(appSettings).persistent.presetFolder;
   let PRESETS = [];
   let disableButton = false;
   let isSaveToCloudButtonClicked = false;
@@ -82,7 +82,7 @@
   }
 
   $: {
-    let new_folder = $appSettings.persistant.presetFolder;
+    let new_folder = $appSettings.persistent.presetFolder;
     if (new_folder !== PRESET_PATH) {
       PRESET_PATH = new_folder;
     }
@@ -1189,7 +1189,7 @@
                           class="flex flex-row gap-1 items-center justify-end"
                         >
                           <div class="flex flex-row gap-1">
-                            {#if $appSettings.persistant.profileCloudDevFeaturesEnabled === true}
+                            {#if $appSettings.persistent.profileCloudDevFeaturesEnabled === true}
                               <button
                                 class="p-1 hover:bg-primary-500 rounded"
                                 on:click|preventDefault={() => {

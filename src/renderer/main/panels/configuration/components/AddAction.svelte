@@ -20,6 +20,12 @@
   import { getAllComponents } from "../../../../lib/_configs";
   import { ConfigObject } from "../Configuration.store";
 
+  import {
+    lastOpenedActionblocks,
+    lastOpenedActionblocksInsert,
+    lastOpenedActionblocksRemove,
+  } from "../Configuration.store";
+
   export let animation = false;
   export let userHelper = false;
   export let index;
@@ -59,6 +65,8 @@
       },
       mandatory: false,
     });
+
+    lastOpenedActionblocksInsert(cfg.short);
 
     dispatch("new-config", {
       config: new ConfigObject({

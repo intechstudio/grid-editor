@@ -17,8 +17,8 @@
   let analyticsEnabled;
 
   onMount(async () => {
-    const firstLaunch = $appSettings.persistant.firstLaunch;
-    analyticsEnabled = firstLaunch || $appSettings.persistant.analyticsEnabled;
+    const firstLaunch = $appSettings.persistent.firstLaunch;
+    analyticsEnabled = firstLaunch || $appSettings.persistent.analyticsEnabled;
 
     video_link = configuration["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
 
@@ -31,8 +31,8 @@
   });
 
   onDestroy(() => {
-    $appSettings.persistant.firstLaunch = false;
-    $appSettings.persistant.analyticsEnabled = analyticsEnabled;
+    $appSettings.persistent.firstLaunch = false;
+    $appSettings.persistent.analyticsEnabled = analyticsEnabled;
   });
 
   function handleOpenPolicyClicked(e) {
@@ -238,7 +238,7 @@
             <input
               class="mr-1 opacity-70"
               type="checkbox"
-              bind:checked={$appSettings.persistant.welcomeOnStartup}
+              bind:checked={$appSettings.persistent.welcomeOnStartup}
             />
             <div class="mx-1 mr-4 opacity-70">Always show on startup</div>
           </div>
