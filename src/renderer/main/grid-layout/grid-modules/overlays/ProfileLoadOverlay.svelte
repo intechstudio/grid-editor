@@ -1,15 +1,16 @@
 <script>
-  import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
+  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
   export let id;
   export let rotation;
 
-  let selectedProfile = undefined;
+  let selectedConfig = undefined;
 
   $: {
-    selectedProfile = $selectedProfileStore;
+    selectedConfig = $selectedConfigStore;
   }
 
   function selectModuleWhereProfileIsLoaded() {
@@ -33,7 +34,7 @@
     });
 
     // to do.. if undefined configs
-    runtime.whole_page_overwrite(selectedProfile.configs);
+    runtime.whole_page_overwrite(selectedConfig.configs);
 
     Analytics.track({
       event: "Profile Load Success",
@@ -43,7 +44,7 @@
   }
 
   function cancelProfileOverlay() {
-    selectedProfileStore.set({});
+    selectedConfigStore.set({});
   }
 </script>
 

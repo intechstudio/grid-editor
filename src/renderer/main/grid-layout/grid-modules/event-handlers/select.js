@@ -1,12 +1,14 @@
 import { get } from "svelte/store";
 import { user_input } from "../../../../runtime/runtime.store.js";
-import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
-import { selectedPresetStore } from "../../../../runtime/preset-helper.store";
+import { selectedConfigStore } from "../../../../runtime/config-helper.store";
 
 export function selectElement(controlNumber, controlElementType, moduleId) {
   if (controlNumber !== undefined && controlElementType !== undefined) {
     const dx = moduleId.split(";")[0].split(":").pop();
     const dy = moduleId.split(";")[1].split(":").pop();
+
+    //reset of config selecting
+    selectedConfigStore.set({});
 
     // this should be checked to not reupdate UI when clicking on a control element.
     // should be probably put into user_input store's functions

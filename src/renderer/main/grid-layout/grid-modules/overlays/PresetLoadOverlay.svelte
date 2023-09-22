@@ -1,29 +1,34 @@
 <script>
-  import { selectedPresetStore } from "../../../../runtime/preset-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
 
   import { get } from "svelte/store";
-  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
 
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let id;
-  export let moduleWidth;
 
   export let rotation;
 
+  let selectedPreset;
+
   let overlayDesign;
   let controlElementSettings;
-  let selectedIndex;
-
-  $: selectedIndex = $selectedControllerIndexStore;
 
   $: {
     const device = $runtime.find((controller) => controller.id == id);
     if (typeof device !== "undefined") {
       controlElementSettings = device.pages[0].control_elements;
+    }
+  }
+
+  $: {
+    if ($selectedConfigStore.configType === "preset") {
+      selectedPreset = $selectedConfigStore;
+    } else {
+      selectedPreset = undefined;
     }
   }
 
@@ -59,8 +64,8 @@
       mandatory: false,
     });
 
-    if ($selectedPresetStore !== undefined) {
-      const preset = $selectedPresetStore;
+    if (selectedPreset !== undefined) {
+      const preset = selectedPreset;
 
       const rt = get(runtime);
       const ui = get(user_input);
@@ -87,7 +92,7 @@
   }
 </script>
 
-{#if "system" == $selectedPresetStore.type}
+{#if "system" == selectedPreset?.type}
   <div
     class=" overlay text-white w-full h-full justify-items-center items-end gap-1"
   >
@@ -118,7 +123,7 @@ block h-full w-full text-white bg-opacity-25 rounded focus:outline-none"
   >
     {#each controlElementSettings.slice(0, -1) as element}
       <div class="h-full w-full">
-        {#if element.controlElementType == $selectedPresetStore.type}
+        {#if element.controlElementType == selectedPreset?.type}
           <button
             on:click={() => {
               loadPreset(element);

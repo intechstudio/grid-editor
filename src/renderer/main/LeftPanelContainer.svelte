@@ -10,8 +10,6 @@
 
   import { watchResize } from "svelte-watch-resize";
 
-  import NewPreset from "./panels/newPreset/NewPreset.svelte";
-
   export let classes;
 
   function resize() {
@@ -27,10 +25,6 @@
 
   {#if $appSettings.leftPanel == "MIDI Monitor"}
     <MidiMonitor />
-  {/if}
-
-  {#if $appSettings.leftPanel == "NewPreset"}
-    <NewPreset />
   {/if}
 
   {#if $appSettings.leftPanel == "Websocket"}

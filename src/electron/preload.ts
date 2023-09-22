@@ -41,56 +41,31 @@ contextBridge.exposeInMainWorld("electron", {
     writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
   },
   configs: {
-    migrateToProfileCloud: (oldPath, newPath) =>
-      ipcRenderer.invoke("migrateToProfileCloud", { oldPath, newPath }),
-    moveOldConfigs: (configPath, rootDirectory) =>
-      ipcRenderer.invoke("moveOldConfigs", { configPath, rootDirectory }),
+    migrateToProfileCloud: (oldRootPath, newRootPath, configDirectory) =>
+      ipcRenderer.invoke("migrateToProfileCloud", {
+        oldRootPath,
+        newRootPath,
+        configDirectory,
+      }),
     loadConfigsFromDirectory: (configPath, rootDirectory) =>
       ipcRenderer.invoke("loadConfigsFromDirectory", {
         configPath,
         rootDirectory,
       }),
-    saveConfig: (configPath, name, config, rootDirectory, user) =>
+    saveConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("saveConfig", {
         configPath,
-        name,
-        config,
         rootDirectory,
-        user,
-      }),
-    updateConfig: (
-      configPath,
-      name,
-      config,
-      rootDirectory,
-      oldName,
-      profileFolder
-    ) =>
-      ipcRenderer.invoke("updateConfig", {
-        configPath,
-        name,
         config,
-        rootDirectory,
-        oldName,
-        profileFolder,
       }),
-    updateLocal: (configPath, name, config, rootDirectory, profileFolder) =>
-      ipcRenderer.invoke("updateLocal", {
-        configPath,
-        name,
-        config,
-        rootDirectory,
-        profileFolder,
-      }),
-    deleteConfig: (configPath, name, rootDirectory, profileFolder) =>
+    deleteConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("deleteConfig", {
         configPath,
-        name,
         rootDirectory,
-        profileFolder,
+        config,
       }),
     onExternalResponse: (callback) =>
-      ipcRenderer.on("onExternalProfileLinkResponse", callback),
+      ipcRenderer.on("onExternalConfigLinkResponse", callback),
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),

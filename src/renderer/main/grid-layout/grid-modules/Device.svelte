@@ -16,9 +16,8 @@
 
   import { appSettings } from "../../../runtime/app-helper.store.js";
   import { user_input, logger } from "../../../runtime/runtime.store.js";
-  import { selectedProfileStore } from "../../../runtime/profile-helper.store";
-  import { selectedPresetStore } from "../../../runtime/preset-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/profile-helper.store";
+  import { selectedConfigStore } from "/runtime/config-helper.store";
+  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { get } from "svelte/store";
   import { writeBuffer } from "../../../runtime/engine.store.js";
   import { runtime } from "../../../runtime/runtime.store.js";
@@ -63,10 +62,7 @@
 
   $: {
     if (!isActionButtonClicked) {
-      if (
-        Object.keys($selectedProfileStore).length !== 0 ||
-        Object.keys($selectedPresetStore).length !== 0
-      ) {
+      if (Object.keys($selectedConfigStore).length !== 0) {
         selectedElement = { id: "", brc: {}, event: {} };
       } else {
         selectedElement = $user_input;
@@ -76,20 +72,26 @@
 
   let showProfileLoadOverlay = false;
   $: {
-    showProfileLoadOverlay = type === $selectedProfileStore.type;
-    console.log($selectedProfileStore, showProfileLoadOverlay);
+    showProfileLoadOverlay =
+      type === $selectedConfigStore.type &&
+      $selectedConfigStore.configType === "profile";
   }
 
   let showPresetLoadOverlay = false;
   $: {
     let device = get(runtime).find((controller) => controller.id == id);
 
-    if (typeof device !== "undefined") {
+    if (
+      typeof device !== "undefined" &&
+      $selectedConfigStore.configType === "preset"
+    ) {
       const compatible = device.pages[0].control_elements
         .map((e) => e.controlElementType)
-        .includes($selectedPresetStore.type);
+        .includes($selectedConfigStore.type);
 
       showPresetLoadOverlay = compatible;
+    } else {
+      showPresetLoadOverlay = false;
     }
   }
 </script>
@@ -160,7 +162,7 @@
       {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
         <ProfileLoadOverlay {id} {rotation} />
       {/if}
-      {#if showPresetLoadOverlay && $appSettings.leftPanel === "NewPreset"}
+      {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
         <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
       {/if}
     {/if}

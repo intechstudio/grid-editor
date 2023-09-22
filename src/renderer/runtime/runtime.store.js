@@ -3,8 +3,7 @@ import { writable, get, derived } from "svelte/store";
 import grid from "../protocol/grid-protocol";
 import instructions from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { selectedProfileStore } from "./profile-helper.store";
-import { selectedPresetStore } from "./preset-helper.store";
+import { selectedConfigStore } from "./config-helper.store";
 
 import { Analytics } from "./analytics.js";
 
@@ -217,6 +216,7 @@ function create_user_input() {
       pagenumber: 0,
       elementnumber: -1, // should be checked out if grid sends back array or not
       eventtype: 2,
+      elementtype: "",
     },
   };
 
@@ -276,6 +276,9 @@ function create_user_input() {
       } else {
         return;
       }
+
+      //reset of config selecting
+      selectedConfigStore.set({});
 
       _event.update((store) => {
         const rt = get(runtime);

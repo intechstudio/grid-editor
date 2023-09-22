@@ -1,6 +1,6 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-  import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store.js";
   import ControlNameComponent from "./ControlNameComponent.svelte";
   import {
     runtime,
@@ -18,16 +18,16 @@
 
   let elementSettings;
 
-  let selectedProfile = {};
+  let selectedConfig = {};
 
   $: {
-    selectedProfile = $selectedProfileStore;
-    showControlNameOverlay(selectedProfile);
+    selectedConfig = $selectedConfigStore;
+    showControlNameOverlay(selectedConfig);
     showOverlay;
   }
 
-  function showControlNameOverlay(selectedProfile) {
-    if (Object.keys(selectedProfile).length == 0) {
+  function showControlNameOverlay(selectedConfig) {
+    if (Object.keys(selectedConfig).length == 0) {
       showOverlay = true;
     } else {
       showOverlay = false;
