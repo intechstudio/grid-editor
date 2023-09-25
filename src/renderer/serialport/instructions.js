@@ -435,6 +435,7 @@ const instructions = {
     });
 
     let buffer_element = {
+      responseTimeout: 2000,
       descr: {
         brc_parameters: {
           DX: -127,
