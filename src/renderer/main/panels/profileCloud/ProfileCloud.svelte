@@ -353,7 +353,11 @@
           }
         });
 
-        await window.electron.configs.saveConfig(path, "configs", configToOverwrite);
+        await window.electron.configs.saveConfig(
+          path,
+          "configs",
+          configToOverwrite
+        );
 
         logger.set({
           type: "success",
