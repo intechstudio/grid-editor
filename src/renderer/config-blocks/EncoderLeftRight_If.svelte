@@ -42,6 +42,8 @@
     </svg> `,
     color: "#4A4AA7 ",
     selectable: true,
+    movable: true,
+    type: "composite_open",
   };
 </script>
 

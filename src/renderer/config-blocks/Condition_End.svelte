@@ -4,9 +4,7 @@
     short: "en",
     name: "Condition_End",
     rendering: "modifier",
-    grabbing: false,
     rounding: "bottom",
-    hiddenIcon: true,
     category: null,
     desc: "End",
     blockTitle: "End",
@@ -19,6 +17,8 @@
     blockIcon: `<span class="text-white">End</span>`,
     color: "#F84AA7",
     selectable: false,
+    movable: false,
+    type: "composite_close",
   };
 </script>
 

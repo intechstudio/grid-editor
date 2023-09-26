@@ -4,8 +4,6 @@
     short: "ei",
     name: "Condition_ElseIf",
     rendering: "modifier",
-    grabbing: false,
-    hiddenIcon: true,
     category: "condition",
     desc: "Elif",
     blockTitle: "Elif",
@@ -18,6 +16,8 @@
     blockIcon: `<span class="text-white">Elif<span>`,
     color: "#F84AA7",
     selectable: true,
+    movable: false,
+    type: "composite_part",
   };
 </script>
 

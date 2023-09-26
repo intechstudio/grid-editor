@@ -4,7 +4,6 @@
     short: "eprel",
     name: "EncoderPushRot_Else",
     rendering: "modifier",
-    grabbing: false,
     category: null,
     desc: "Just Rotate",
     blockTitle: "Just Rotate",
@@ -21,6 +20,8 @@
     </svg>`,
     color: "#4A4AA7",
     selectable: false,
+    movable: false,
+    type: "composite_part",
   };
 </script>
 

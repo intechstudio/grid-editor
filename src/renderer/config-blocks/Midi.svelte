@@ -32,6 +32,8 @@
       </svg>
     `,
     selectable: true,
+    movable: true,
+    type: "single",
   };
 </script>
 

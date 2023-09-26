@@ -17,6 +17,8 @@
     `,
     color: "#887880",
     selectable: true,
+    movable: true,
+    type: "single",
   };
 </script>
 

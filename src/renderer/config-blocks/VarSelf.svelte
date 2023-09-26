@@ -11,6 +11,8 @@
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
     blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
     selectable: true,
+    movable: true,
+    type: "single",
   };
 </script>
 

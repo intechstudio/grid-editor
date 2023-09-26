@@ -199,7 +199,7 @@
     deselectAll();
   }
 
-  $: handleConfigListchange($configs);
+  //$: handleConfigListchange($configs);
 
   function handleConfigListchange(configs) {
     const map = ConfigList.getIndentationMap(configs);

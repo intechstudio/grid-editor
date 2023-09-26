@@ -4,12 +4,10 @@
     short: "bpre",
     name: "ButtonPressRelease_End",
     rendering: "modifier",
-    grabbing: false,
     category: null,
     desc: "End",
     blockTitle: "End",
     rounding: "bottom",
-    hiddenIcon: true,
     defaultLua: "end",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,6 +21,8 @@
     `,
     color: "#4A4AA7",
     selectable: false,
+    movable: false,
+    type: "composite_close",
   };
 </script>
 

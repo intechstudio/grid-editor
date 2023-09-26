@@ -4,7 +4,6 @@
     short: "eprlrei",
     name: "Condition_ElseIf",
     rendering: "modifier",
-    grabbing: false,
     category: null,
     desc: "PRLR Else IF",
     blockTitle: "PRLR Else IF",
@@ -21,6 +20,8 @@
     `,
     color: "#4A4AA7",
     selectable: true,
+    movable: false,
+    type: "composite_part",
   };
 </script>
 

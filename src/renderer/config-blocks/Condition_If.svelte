@@ -5,7 +5,6 @@
     name: "Condition_If",
     rendering: "modifier",
     rounding: "top",
-    hiddenIcon: true,
     category: "condition",
     desc: "If",
     blockTitle: "If",
@@ -18,6 +17,8 @@
     blockIcon: `<span class="text-white">If</span>`,
     color: "#F84AA7 ",
     selectable: true,
+    movable: true,
+    type: "composite_open",
   };
 </script>
 

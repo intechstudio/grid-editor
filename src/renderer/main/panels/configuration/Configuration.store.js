@@ -136,7 +136,7 @@ export class ConfigObject {
       if (code.startsWith("elseif")) {
         code = code.replace("elseif", "if");
       }
-      if (code.startsWith("if")) {
+      if (code.startsWith("if") || code.startsWith("for")) {
         code += " end";
       }
     }

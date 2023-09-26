@@ -39,6 +39,7 @@
     const name = e.detail;
     const components = getAllComponents();
     const new_config = components.find((e) => e.information.name === name);
+    console.log(new_config);
     const obj = new ConfigObject({
       parent: config.parent,
       short: new_config.information.short,
@@ -96,12 +97,14 @@
     </div>
   {/each}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
     class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
     id="cfg-{index}"
-    config-component={config.information.name}
+    config-name={config.information.name}
+    config-type={config.information.type}
     config-id={index}
-    movable={true}
+    movable={config.information.movable}
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->

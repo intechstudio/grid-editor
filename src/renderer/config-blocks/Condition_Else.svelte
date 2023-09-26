@@ -4,8 +4,6 @@
     short: "el",
     name: "Condition_Else",
     rendering: "modifier",
-    grabbing: false,
-    hiddenIcon: true,
     category: "condition",
     desc: "Else",
     blockTitle: "Else",
@@ -18,6 +16,8 @@
     color: "#F84AA7",
     blockIcon: `<span class="text-white">Else</span>`,
     selectable: false,
+    movable: false,
+    type: "composite_part",
   };
 </script>
 

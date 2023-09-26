@@ -25,40 +25,6 @@ export function changeOrder(node, { configs }) {
     reset();
   });
 
-  function if_end_pairs(_c, i) {
-    const _cfgs = _c.slice(i);
-    const _cfgs_length = _cfgs.length;
-
-    let arr = [];
-    let stack = [];
-    let current;
-
-    let skipSelection = false;
-
-    for (let i = 0; i < _cfgs_length; i++) {
-      if (!skipSelection) {
-        current = _cfgs[i].information.name; //easier than writing it over and over
-        if (current.endsWith("_If")) {
-          stack.push(current);
-        } else if (current.endsWith("_End")) {
-          const lastBracket = stack.pop();
-          if (lastBracket !== current.split("_")[0] + "_If") {
-            //if the stack is empty, .pop() returns undefined, so this expression is still correct
-            return false; //terminate immediately - no need to continue scanning the string
-          }
-        }
-
-        arr.push(_cfgs[i]);
-
-        if (stack.length == 0 && current.endsWith("_End")) {
-          skipSelection = true;
-        }
-      }
-    }
-
-    return arr.length;
-  }
-
   function createMultiDragCursor(targets, width) {
     cursor = document.createElement("div");
     let copyGroup = document.createElement("div");
@@ -151,20 +117,22 @@ export function changeOrder(node, { configs }) {
     if (drag == 2 && !moveDisabled) {
       dragged = e.target;
       let _configIds = [];
-      const component = dragged.getAttribute("config-component");
+      const type = dragged.getAttribute("config-type");
 
-      if (component.endsWith("_If")) {
+      if (type === "composite_open") {
         const index = Number(id.substr(4));
         const drag_indexes = [index];
         let depth = 1;
         for (let i = index + 1; i < _configs.length && depth > 0; ++i) {
-          if (_configs[i].information.name.endsWith("_If")) {
+          if (_configs[i].information.type === "composite_open") {
             ++depth;
-          } else if (_configs[i].information.name.endsWith("_End")) {
+          } else if (_configs[i].information.type === "composite_close") {
             --depth;
           }
           drag_indexes.push(i);
         }
+
+        console.log("yay", drag_indexes);
 
         for (const i of drag_indexes) {
           const drag_item = document.getElementById("cfg-" + i);
@@ -199,11 +167,11 @@ export function changeOrder(node, { configs }) {
         let drop_target = "";
         // if its a modifier, the below helper shouldn't be used!
 
-        if (e.target.getAttribute("config-component") !== null) {
+        if (e.target.getAttribute("config-name") !== null) {
           if (
             id.startsWith("cfg-") &&
-            !e.target.getAttribute("config-component").endsWith("_If") &&
-            e.target.getAttribute("config-component") !== "Then"
+            !e.target.getAttribute("config-name").endsWith("_If") &&
+            e.target.getAttribute("config-name") !== "Then"
           ) {
             if (clientHeight / 2 < e.offsetY) {
               drop_target = Number(id.substr(4));
@@ -217,8 +185,8 @@ export function changeOrder(node, { configs }) {
           drop_target = "bin";
         }
 
-        if (e.target.getAttribute("config-component") !== null) {
-          if (e.target.getAttribute("config-component").endsWith("_If")) {
+        if (e.target.getAttribute("config-name") !== null) {
+          if (e.target.getAttribute("config-name").endsWith("_If")) {
             drop_target = Number(id.substr(4)) - 1;
           }
         }
