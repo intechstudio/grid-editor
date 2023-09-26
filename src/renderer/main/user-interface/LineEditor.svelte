@@ -72,7 +72,7 @@
         showIcons: false,
         showWords: true,
       },
-      automaticLayout: true,
+      automaticLayout: false,
     });
 
     editor.onKeyDown((e) => {
