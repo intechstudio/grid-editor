@@ -113,7 +113,7 @@
     >
       <!-- Icon -->
       <!-- //TODO: Refactor out the special cases -->
-      {#if !config.information.name.endsWith("_End") && config.information.desc !== "Else"}
+      {#if config.information.hideIcon !== true}
         <div
           style="background-color:{config.information.color}"
           class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
@@ -133,37 +133,27 @@
           : ''}"
         class="w-full bg-secondary border-y border-r {syntaxError
           ? 'border-error'
-          : 'border-transparent'}"
+          : 'border-transparent'} flex flex-grow items-center pointer-events-auto"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
         class:group-hover:bg-select-saturate-10={!toggled}
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
-        <!-- //TODO: Refactor out the special case of IF -->
-        {#if toggled || config.information.short === "if" || config.information.short === "ei"}
-          <container class="flex flex-grow items-center pointer-events-auto">
-            <svelte:component
-              this={config.component}
-              class="w-full"
-              {index}
-              {config}
-              {access_tree}
-              on:replace={replace_me}
-              on:validator={handleValidator}
-              on:output={handleOutput}
-            />
-          </container>
-        {:else}
-          <div
-            class="px-4 flex flex-row justify-between w-full items-center h-full"
-          >
-            <span class="text-white">{config.information.blockTitle}</span>
-            <span class="text-error text-xs" class:hidden={!syntaxError}>
-              SYNTAX ERROR
-            </span>
-          </div>
-        {/if}
+        <!-- Content of block -->
+
+        <svelte:component
+          this={config.component}
+          class="w-full py-2 px-3"
+          {index}
+          {config}
+          {access_tree}
+          {toggled}
+          {syntaxError}
+          on:replace={replace_me}
+          on:validator={handleValidator}
+          on:output={handleOutput}
+        />
       </div>
     </div>
   </carousel>

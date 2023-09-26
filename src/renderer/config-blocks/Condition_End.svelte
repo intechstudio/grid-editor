@@ -18,14 +18,17 @@
     color: "#F84AA7",
     selectable: false,
     movable: false,
+    hideIcon: true,
     type: "composite_close",
   };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
   export let access_tree;
+  export let toggled = false;
+
   const dispatch = createEventDispatcher();
 
   function sendData() {
@@ -33,10 +36,6 @@
   }
 </script>
 
-<endif-block
-  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
-  'top'
-    ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
-  style="min-height: 2.5rem; background: {information.color};"
-/>
+<endif-block class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</endif-block>

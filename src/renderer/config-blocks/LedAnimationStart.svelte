@@ -37,6 +37,7 @@
     `,
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "single",
   };
 </script>
@@ -56,6 +57,7 @@
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
+  export let toggled = false;
 
   let loaded = false;
 
@@ -172,7 +174,10 @@
   }
 </script>
 
-<config-led-phase class="flex flex-col w-full p-2">
+<config-led-phase
+  class="{$$props.class} flex flex-col w-full p-2"
+  class:hidden={!toggled}
+>
   <div class="w-full flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1 font-bold">
       Start a periodic animation on the LED
@@ -253,6 +258,10 @@
     />
   {/if}
 </config-led-phase>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>
 
 <style>
   .atomicInput {

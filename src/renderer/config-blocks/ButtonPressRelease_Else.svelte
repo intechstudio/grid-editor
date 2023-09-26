@@ -89,12 +89,15 @@
     color: "#4A4AA7",
     selectable: false,
     movable: false,
+    hideIcon: false,
     type: "composite_part",
   };
 </script>
 
 <script>
   import { onMount, createEventDispatcher } from "svelte";
+
+  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -107,6 +110,10 @@
 </script>
 
 <else-block
-  class="w-full h-fit flex flex-col text-white py-1"
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1"
+  class:hidden={!toggled}
   style="min-height: 2.5rem; background: {information.color};"
 />
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>

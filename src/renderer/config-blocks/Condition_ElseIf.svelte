@@ -5,8 +5,8 @@
     name: "Condition_ElseIf",
     rendering: "modifier",
     category: "condition",
-    desc: "Elif",
-    blockTitle: "Elif",
+    desc: "Else if",
+    blockTitle: "Else if",
     defaultLua: "else if  then",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -17,6 +17,7 @@
     color: "#F84AA7",
     selectable: true,
     movable: false,
+    hideIcon: true,
     type: "composite_part",
   };
 </script>
@@ -30,6 +31,7 @@
 
   export let config = "";
   export let index;
+  export let toggled = false;
 
   export let access_tree;
 
@@ -66,15 +68,21 @@
   }
 </script>
 
-<if-block class="w-full h-fit flex text-white py-1">
-  <div class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full">
-    <LineEditor
-      on:change={(e) => {
-        sendData(e.detail.script);
-      }}
-      {access_tree}
-      {sidebarWidth}
-      value={scriptSegment}
-    />
+<else-if-block class="{$$props.class} w-full h-fit flex text-white py-1">
+  <div class="flex flex-row items-center w-full gap-3">
+    <span class="text-white">Else if</span>
+
+    <div
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
+    >
+      <LineEditor
+        on:change={(e) => {
+          sendData(e.detail.script);
+        }}
+        {access_tree}
+        {sidebarWidth}
+        value={scriptSegment}
+      />
+    </div>
   </div>
-</if-block>
+</else-if-block>

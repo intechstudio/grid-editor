@@ -18,6 +18,7 @@
     color: "#F84AA7 ",
     selectable: true,
     movable: true,
+    hideIcon: true,
     type: "composite_open",
   };
 </script>
@@ -29,6 +30,7 @@
 
   export let config = "";
   export let index;
+  export let toggled = false;
 
   export let access_tree;
 
@@ -69,15 +71,21 @@
   }
 </script>
 
-<if-block class="h-fit flex text-white py-1 {$$props.class}">
-  <div class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full">
-    <LineEditor
-      on:change={(e) => {
-        sendData(e.detail.script);
-      }}
-      {access_tree}
-      {sidebarWidth}
-      value={scriptSegment}
-    />
+<if-block class="{$$props.class} h-fit flex text-white py-1 {$$props.class}">
+  <div class="flex flex-row items-center w-full gap-3">
+    <span>If</span>
+
+    <div
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
+    >
+      <LineEditor
+        on:change={(e) => {
+          sendData(e.detail.script);
+        }}
+        {access_tree}
+        {sidebarWidth}
+        value={scriptSegment}
+      />
+    </div>
   </div>
 </if-block>

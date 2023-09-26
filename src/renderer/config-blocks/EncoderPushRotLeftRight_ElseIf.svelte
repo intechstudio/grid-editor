@@ -21,6 +21,7 @@
     color: "#4A4AA7",
     selectable: true,
     movable: false,
+    hideIcon: false,
     type: "composite_part",
   };
 </script>
@@ -28,6 +29,13 @@
 <script>
   export let config = "";
   export let index;
+  export let toggled = false;
 
   export let access_tree;
 </script>
+
+<div class={$$props.class} class:hidden={!toggled} />
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>

@@ -21,6 +21,7 @@
     `,
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "single",
   };
 </script>
@@ -33,6 +34,7 @@
   import { Validator } from "./_validators";
 
   export let config;
+  export let toggled = false;
 
   let loaded;
 
@@ -98,7 +100,10 @@
   }
 </script>
 
-<timer-stop class="flex flex-col w-full p-2">
+<timer-stop
+  class="{$$props.class} flex flex-col w-full p-2"
+  class:hidden={!toggled}
+>
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Element Number</div>
     <AtomicInput
@@ -132,3 +137,7 @@
     />
   {/if}
 </timer-stop>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>

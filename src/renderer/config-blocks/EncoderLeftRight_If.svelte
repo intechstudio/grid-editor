@@ -43,6 +43,7 @@
     color: "#4A4AA7 ",
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "composite_open",
   };
 </script>
@@ -54,6 +55,7 @@
 
   export let config = "";
   export let index;
+  export let toggled = false;
 
   export let access_tree;
 
@@ -90,10 +92,11 @@
 <svelte:window bind:innerWidth={sidebarWidth} />
 
 <if-block
-  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
   'top'
     ? 'rounded-tr-xl '
     : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
+  class:hidden={!toggled}
   style="min-height: 2.5rem; background: {information.color};"
 >
   <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">
@@ -107,3 +110,7 @@
     />
   </div>
 </if-block>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>

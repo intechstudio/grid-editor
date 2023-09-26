@@ -33,6 +33,7 @@
     `,
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "single",
   };
 </script>
@@ -56,6 +57,7 @@
 
   export let config = "";
   export let index;
+  export let toggled = false;
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
@@ -107,7 +109,10 @@
   }
 </script>
 
-<action-midi class="flex flex-col w-full pb-2 px-2">
+<action-midi
+  class="{$$props.class} flex flex-col w-full pb-2 px-2"
+  class:hidden={!toggled}
+>
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />
@@ -163,3 +168,7 @@
     class="mt-2 text-sm text-gray-500"
   />
 </action-midi>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>

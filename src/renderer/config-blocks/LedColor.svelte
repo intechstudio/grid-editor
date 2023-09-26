@@ -19,6 +19,7 @@
     </svg>`,
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "single",
   };
 </script>
@@ -57,6 +58,7 @@ A -> B : AB-First step
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
+  export let toggled = false;
 
   let loaded = false;
 
@@ -458,7 +460,10 @@ A -> B : AB-First step
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-led-color class="flex flex-col w-full p-2">
+<config-led-color
+  class="{$$props.class} flex flex-col w-full p-2"
+  class:hidden={!toggled}
+>
   <div class="w-full flex">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <div class={"w-1/2 atomicInput "}>
@@ -497,6 +502,7 @@ A -> B : AB-First step
   {/if}
 
   <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       bind:this={picker}
       on:mousedown={onMouseDown}
@@ -511,6 +517,7 @@ A -> B : AB-First step
       style="min-height: 30px; height: 30px;"
       id="myCanvas"
     />
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       bind:this={preview}
       on:mouseup={generateColor}
@@ -570,6 +577,10 @@ A -> B : AB-First step
     class="mt-2 text-sm text-gray-500"
   />
 </config-led-color>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>
 
 <style>
   @keyframes changeLetter {

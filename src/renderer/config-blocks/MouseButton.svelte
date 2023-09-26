@@ -21,6 +21,7 @@
     `,
     selectable: true,
     movable: true,
+    hideIcon: false,
     type: "single",
   };
 </script>
@@ -35,6 +36,7 @@
 
   export let config = "";
   export let index;
+  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -109,7 +111,10 @@
   });
 </script>
 
-<mouse-button class="flex flex-col w-full p-2">
+<mouse-button
+  class="{$$props.class} flex flex-col w-full p-2"
+  class:hidden={!toggled}
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
@@ -146,6 +151,10 @@
     />
   {/if}
 </mouse-button>
+
+<span class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</span>
 
 <style>
   .atomicInput {

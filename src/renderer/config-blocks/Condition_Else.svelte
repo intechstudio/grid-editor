@@ -17,12 +17,15 @@
     blockIcon: `<span class="text-white">Else</span>`,
     selectable: false,
     movable: false,
+    hideIcon: true,
     type: "composite_part",
   };
 </script>
 
 <script>
   import { onMount, createEventDispatcher } from "svelte";
+
+  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -31,7 +34,6 @@
   }
 </script>
 
-<else-block
-  class="w-full h-fit flex flex-col text-white"
-  style="min-height: 2.5rem; background: {information.color};"
-/>
+<else-block class="{$$props.class} text-white" class:hidden={toggled}>
+  {information.blockTitle}
+</else-block>
