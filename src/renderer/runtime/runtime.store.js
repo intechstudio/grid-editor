@@ -758,15 +758,20 @@ function create_runtime() {
       message: `Profile load started...`,
     });
 
-    const lastElement = array.pop();
-    // Add the last element as the first element
-    array.unshift(lastElement);
+    const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+
+    // Check if the object with id === 255 was found
+    if (index !== -1) {
+      // Remove the object at the found index
+      const objectToMove = array.splice(index, 1)[0];
+
+      // Add the object to the front of the array
+      array.unshift(objectToMove);
+    }
 
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {
         let li = get(user_input);
-
-        console.log(`Send: ${elem.controlElementNumber} ${ev.event}`);
 
         li.event.pagenumber = li.event.pagenumber;
         li.event.elementnumber = elem.controlElementNumber;
