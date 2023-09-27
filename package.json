@@ -1,7 +1,10 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.44",
+  "version": "1.2.45",
+  "engines": {
+    "node": ">=18.16.1"
+  },
   "main": "dist/main/index.js",
   "repository": {
     "type": "git",
@@ -151,6 +154,7 @@
     "gen:buildVars:nightly": "node ./build-scripts/nightly-buildVars.js",
     "gen:buildVars:alpha": "node ./build-scripts/alpha-buildVars.js",
     "gen:buildVars:prod": "node ./build-scripts/prod-buildVars.js",
+    "preinstall": "node ./build-scripts/check-node-version.js",
     "postinstall": "electron-builder install-app-deps && patch-package",
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
