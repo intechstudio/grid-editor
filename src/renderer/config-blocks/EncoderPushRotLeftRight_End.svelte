@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "eprlre",
@@ -27,30 +31,10 @@
   };
 </script>
 
-<script>
-  import { onMount, createEventDispatcher } from "svelte";
-
-  export let toggled = false;
-
-  const dispatch = createEventDispatcher();
-
-  function sendData() {
-    dispatch("output", {
-      short: information.short,
-      script: information.defaultLua,
-    });
-  }
-</script>
-
 <else-block
   class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
   'top'
     ? 'rounded-tr-xl '
     : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
-  class:hidden={!toggled}
   style="min-height: 2.5rem; background: {information.color};"
 />
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

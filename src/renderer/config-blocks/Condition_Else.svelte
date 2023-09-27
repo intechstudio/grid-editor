@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "el",
@@ -25,8 +29,6 @@
 <script>
   import { onMount, createEventDispatcher } from "svelte";
 
-  export let toggled = false;
-
   const dispatch = createEventDispatcher();
 
   function sendData() {
@@ -34,6 +36,6 @@
   }
 </script>
 
-<else-block class="{$$props.class} text-white" class:hidden={toggled}>
+<else-block class="{$$props.class} text-white">
   {information.blockTitle}
 </else-block>

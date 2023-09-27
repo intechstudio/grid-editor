@@ -35,7 +35,14 @@ export function getComponentInformation({ short }) {
   }
 
   return config_components
-    .map((c) => (c = { component: c.default, information: c.information }))
+    .map(
+      (c) =>
+        (c = {
+          component: c.default,
+          information: c.information,
+          header: c.header,
+        })
+    )
     .find((c) => c.information.short == short);
 }
 
@@ -46,6 +53,11 @@ export function getAllComponents() {
   }
 
   return config_components.map(
-    (c) => (c = { component: c.default, information: c.information })
+    (c) =>
+      (c = {
+        component: c.default,
+        information: c.information,
+        header: c.header,
+      })
   );
 }

@@ -30,7 +30,6 @@
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   export let access_tree;
 
@@ -71,7 +70,7 @@
   }
 </script>
 
-<if-block class="{$$props.class} h-fit flex text-white py-1 {$$props.class}">
+<if-block class="{$$props.class} h-fit flex text-white py-1">
   <div class="flex flex-row items-center w-full gap-3">
     <span>If</span>
 

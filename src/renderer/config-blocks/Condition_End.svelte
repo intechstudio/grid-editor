@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "en",
@@ -27,7 +31,6 @@
   import { createEventDispatcher } from "svelte";
 
   export let access_tree;
-  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -36,6 +39,6 @@
   }
 </script>
 
-<endif-block class="{$$props.class} text-white" class:hidden={toggled}>
+<endif-block class="{$$props.class} text-white">
   {information.blockTitle}
 </endif-block>

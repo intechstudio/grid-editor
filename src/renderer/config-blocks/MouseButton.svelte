@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gmbs",
@@ -30,13 +34,11 @@
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { localDefinitions } from "../runtime/runtime.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators";
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -111,10 +113,7 @@
   });
 </script>
 
-<mouse-button
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<mouse-button class="{$$props.class} flex flex-col w-full p-2">
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>
@@ -151,10 +150,6 @@
     />
   {/if}
 </mouse-button>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style>
   .atomicInput {

@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "ei",
@@ -31,13 +35,10 @@
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   export let access_tree;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
-
-  import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from "../runtime/window-size";
 
@@ -70,7 +71,7 @@
 
 <else-if-block class="{$$props.class} w-full h-fit flex text-white py-1">
   <div class="flex flex-row items-center w-full gap-3">
-    <span class="text-white">Else if</span>
+    <span class="text-white min-w-fit">Else if</span>
 
     <div
       class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"

@@ -132,8 +132,6 @@ export function changeOrder(node, { configs }) {
           drag_indexes.push(i);
         }
 
-        console.log("yay", drag_indexes);
-
         for (const i of drag_indexes) {
           const drag_item = document.getElementById("cfg-" + i);
           // before starting cursor, set the "left behind" configs to half opacity

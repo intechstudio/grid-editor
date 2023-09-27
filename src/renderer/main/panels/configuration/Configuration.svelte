@@ -171,6 +171,7 @@
   function handleUserInputchange() {
     let target = ConfigTarget.getCurrent();
     let list = undefined;
+
     try {
       list = ConfigList.createFrom(target);
     } catch (e) {

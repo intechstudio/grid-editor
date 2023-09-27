@@ -70,14 +70,6 @@
   //TODO: Refactor this out by refactoring the handling of
   //modifier rendering style blocks
   function handleToggle(e) {
-    if (config.information.rendering === "modifier") {
-      return;
-    }
-
-    if (config.information.toggleable === false) {
-      return;
-    }
-
     toggled = !toggled;
 
     if (toggled) {
@@ -131,9 +123,9 @@
         style="background-color:{config.information.rendering !== 'standard'
           ? config.information.color
           : ''}"
-        class="w-full bg-secondary border-y border-r {syntaxError
+        class="w-full border-y border-r {syntaxError
           ? 'border-error'
-          : 'border-transparent'} flex flex-grow items-center pointer-events-auto"
+          : 'border-transparent'} flex flex-grow items-center pointer-events-auto bg-secondary"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
         class:group-hover:bg-select-saturate-10={!toggled}
@@ -142,18 +134,28 @@
       >
         <!-- Content of block -->
 
-        <svelte:component
-          this={config.component}
-          class="w-full py-2 px-3"
-          {index}
-          {config}
-          {access_tree}
-          {toggled}
-          {syntaxError}
-          on:replace={replace_me}
-          on:validator={handleValidator}
-          on:output={handleOutput}
-        />
+        {#if toggled}
+          <svelte:component
+            this={config.component}
+            class="h-full w-full px-2 -my-[1px]"
+            {index}
+            {config}
+            {access_tree}
+            {syntaxError}
+            on:replace={replace_me}
+            on:validator={handleValidator}
+            on:output={handleOutput}
+            on:toggle={handleToggle}
+          />
+        {:else}
+          <svelte:component
+            this={config.header}
+            {config}
+            {access_tree}
+            class="px-2 w-full h-full"
+            on:toggle={handleToggle}
+          />
+        {/if}
       </div>
     </div>
   </carousel>

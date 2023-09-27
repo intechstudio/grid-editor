@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "elre",
@@ -28,9 +32,7 @@
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from "svelte";
-
-  export let toggled = false;
+  import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -47,10 +49,5 @@
   'top'
     ? 'rounded-tr-xl '
     : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
-  class:hidden={!toggled}
   style="min-height: 2.5rem; background: {information.color};"
 />
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

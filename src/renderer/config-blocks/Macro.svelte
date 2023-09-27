@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gks",
@@ -67,7 +71,6 @@
   export let index;
   export let eventInfo;
   export let elementInfo;
-  export let toggled = false;
 
   let loaded = false;
   let macroInputField;
@@ -477,7 +480,6 @@
     caretPos = -1;
   }}
   class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2"
-  class:hidden={!toggled}
 >
   <div class="flex flex-col">
     <div class="flex flex-row justify-between mb-2">
@@ -633,10 +635,6 @@
     Clear All
   </button>
 </div>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style>
   .editableDiv div:last-child {

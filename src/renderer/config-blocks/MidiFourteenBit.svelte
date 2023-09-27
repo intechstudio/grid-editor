@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gmsh",
@@ -42,14 +46,12 @@
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { Script } from "./_script_parsers.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
@@ -709,10 +711,7 @@
   }
 </script>
 
-<action-midi
-  class="{$$props.class} flex flex-col w-full pb-2 px-2"
-  class:hidden={!toggled}
->
+<action-midi class="{$$props.class} flex flex-col w-full pb-2 px-2">
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />
@@ -770,10 +769,6 @@
     class="mt-2 text-sm text-gray-500"
   />
 </action-midi>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style global>
   .atomicInput {

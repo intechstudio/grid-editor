@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "epr",
@@ -37,7 +41,6 @@
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   export let access_tree;
 
@@ -78,7 +81,6 @@
   'top'
     ? 'rounded-tr-xl '
     : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
-  class:hidden={!toggled}
   style="min-height: 2.5rem; background: {information.color};"
 >
   <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">
@@ -92,7 +94,3 @@
     />
   </div>
 </if-block>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

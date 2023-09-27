@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "sbc",
@@ -26,7 +30,6 @@
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -84,10 +87,7 @@
   ];
 </script>
 
-<encoder-settings
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<encoder-settings class="{$$props.class} flex flex-col w-full p-2">
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Button Mode</div>
     <AtomicInput
@@ -121,7 +121,3 @@
     />
   {/if}
 </encoder-settings>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

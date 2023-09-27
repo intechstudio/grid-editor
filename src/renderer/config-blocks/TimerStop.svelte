@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gtp",
@@ -34,7 +38,6 @@
   import { Validator } from "./_validators";
 
   export let config;
-  export let toggled = false;
 
   let loaded;
 
@@ -100,10 +103,7 @@
   }
 </script>
 
-<timer-stop
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<timer-stop class="{$$props.class} flex flex-col w-full p-2">
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Element Number</div>
     <AtomicInput
@@ -137,7 +137,3 @@
     />
   {/if}
 </timer-stop>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

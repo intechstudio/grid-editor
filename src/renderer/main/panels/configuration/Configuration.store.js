@@ -70,6 +70,7 @@ export class ConfigObject {
     }
 
     this.information = structuredClone(res.information);
+    this.header = res.header;
 
     //Information override for Encoder type events
     if (this.short === "eprlrei") {

@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "cb",
@@ -50,7 +54,6 @@
   export let config;
   export let access_tree;
   export let index;
-  export let toggled = false;
 
   let codePreview;
 
@@ -145,10 +148,7 @@
   }
 </script>
 
-<code-block
-  class="{$$props.class} w-full flex flex-col p-4 pb-2"
-  class:hidden={!toggled}
->
+<code-block class="{$$props.class} w-full flex flex-col p-4 pb-2">
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 
@@ -182,7 +182,3 @@
     </div>
   </div>
 </code-block>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

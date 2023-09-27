@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   export const information = {
     short: "s",
     name: "VarSelf",
@@ -34,7 +38,6 @@
   export let config = "";
   export let index;
   export let access_tree;
-  export let toggled = false;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
 
@@ -204,10 +207,7 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-self-definitions
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<config-self-definitions class="{$$props.class} flex flex-col w-full p-2">
   <div class="flex justify-between items-center my-2 px-2">
     {#if variableNameError}
       <div class="text-sm text-red-500">Variable name error!</div>
@@ -310,10 +310,6 @@
 
   <SendFeedback feedback_context="Selfs" class="mt-2 text-sm text-gray-500" />
 </config-self-definitions>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style>
   .self-defs:first-child {

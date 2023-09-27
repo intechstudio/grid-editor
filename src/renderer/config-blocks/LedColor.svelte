@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "glc",
@@ -58,7 +62,6 @@ A -> B : AB-First step
   export let inputSet;
   export let blockAddedOnClick;
   export let index;
-  export let toggled = false;
 
   let loaded = false;
 
@@ -460,10 +463,7 @@ A -> B : AB-First step
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-led-color
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<config-led-color class="{$$props.class} flex flex-col w-full p-2">
   <div class="w-full flex">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <div class={"w-1/2 atomicInput "}>
@@ -577,10 +577,6 @@ A -> B : AB-First step
     class="mt-2 text-sm text-gray-500"
   />
 </config-led-color>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style>
   @keyframes changeLetter {

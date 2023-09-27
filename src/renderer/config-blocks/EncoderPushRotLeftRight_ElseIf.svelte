@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "eprlrei",
@@ -25,17 +29,3 @@
     type: "composite_part",
   };
 </script>
-
-<script>
-  export let config = "";
-  export let index;
-  export let toggled = false;
-
-  export let access_tree;
-</script>
-
-<div class={$$props.class} class:hidden={!toggled} />
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>

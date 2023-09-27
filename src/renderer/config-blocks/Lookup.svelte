@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   export const information = {
     short: "glut",
     name: "Lookup",
@@ -40,7 +44,6 @@
 
   export let config = "";
   export let index;
-  export let toggled = false;
 
   const dispatch = createEventDispatcher();
 
@@ -127,10 +130,7 @@
   }
 </script>
 
-<config-lookup
-  class="{$$props.class} flex flex-col w-full p-2"
-  class:hidden={!toggled}
->
+<config-lookup class="{$$props.class} flex flex-col w-full p-2">
   <div class="flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1">Source</div>
     <AtomicInput
@@ -266,10 +266,6 @@
     </div>
   </div>
 </config-lookup>
-
-<span class="{$$props.class} text-white" class:hidden={toggled}>
-  {information.blockTitle}
-</span>
 
 <style>
   .local-defs:first-child {
