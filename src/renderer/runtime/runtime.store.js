@@ -758,9 +758,15 @@ function create_runtime() {
       message: `Profile load started...`,
     });
 
+    const lastElement = array.pop();
+    // Add the last element as the first element
+    array.unshift(lastElement);
+
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {
         let li = get(user_input);
+
+        console.log(`Send: ${elem.controlElementNumber} ${ev.event}`);
 
         li.event.pagenumber = li.event.pagenumber;
         li.event.elementnumber = elem.controlElementNumber;
