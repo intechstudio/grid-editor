@@ -91,7 +91,7 @@ function createWriteBuffer() {
     });
 
     if (active_elem.responseRequired === true) {
-      const responseTimeout = active_elem.responseTimeout ?? 300;
+      const responseTimeout = active_elem.responseTimeout ?? 1000;
 
       startFetchTimeout(responseTimeout);
     } else {
