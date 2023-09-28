@@ -363,38 +363,53 @@
 
 {#if !userHelper}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <action-placeholder
-    on:click={openActionPicker}
-    on:mouseenter={() => {
-      visible = true;
-    }}
-    on:mouseleave={() => {
-      visible = false;
-    }}
-    class="{(visible || configSelection) && !animation
-      ? 'opacity-100'
-      : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
-  >
-    <div class="h-2 w-full rounded-full bg-pick -mr-1" />
 
-    <div
-      class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10"
-    >
-      <svg
-        class="w-5 h-5 p-1"
-        viewBox="0 0 7 7"
-        fill="white"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          fill-rule="evenodd"
-          clip-rule="evenodd"
-          d="M3.5 0.5C3.77614 0.5 4 0.723858 4 1V3H6C6.27614 3 6.5 3.22386 6.5 3.5C6.5 3.77614 6.27614 4 6 4H4V6C4 6.27614 3.77614 6.5 3.5 6.5C3.22386 6.5 3 6.27614 3 6V4H1C0.723858 4 0.5 3.77614 0.5 3.5C0.5 3.22386 0.723858 3 1 3H3V1C3 0.723858 3.22386 0.5 3.5 0.5Z"
-          fill="white"
-        />
-      </svg>
+  {#if configs.length === 0 && index === -1}
+    <div class="text-white/50 my-5 bg-secondary flex">
+      <div class="w-10 h-full bg-red-300/30 flex" />
+      <div class="flex flex-col m-4">
+        There are no actions configured on this event!
+        <button
+          class="mt-4 bg-black/20 hover:bg-black/30 mr-1 text-white/50 hover:text-white py-2 w-28 rounded focus:outline-none"
+          on:click={openActionPicker}
+          >Add Action
+        </button>
+      </div>
     </div>
-  </action-placeholder>
+  {:else}
+    <action-placeholder
+      on:click={openActionPicker}
+      on:mouseenter={() => {
+        visible = true;
+      }}
+      on:mouseleave={() => {
+        visible = false;
+      }}
+      class="{(visible || configSelection) && !animation && index !== -1
+        ? 'opacity-100'
+        : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
+    >
+      <div class="h-2 w-full rounded-full bg-pick -mr-1" />
+
+      <div
+        class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10"
+      >
+        <svg
+          class="w-5 h-5 p-1"
+          viewBox="0 0 7 7"
+          fill="white"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M3.5 0.5C3.77614 0.5 4 0.723858 4 1V3H6C6.27614 3 6.5 3.22386 6.5 3.5C6.5 3.77614 6.27614 4 6 4H4V6C4 6.27614 3.77614 6.5 3.5 6.5C3.22386 6.5 3 6.27614 3 6V4H1C0.723858 4 0.5 3.77614 0.5 3.5C0.5 3.22386 0.723858 3 1 3H3V1C3 0.723858 3.22386 0.5 3.5 0.5Z"
+            fill="white"
+          />
+        </svg>
+      </div>
+    </action-placeholder>
+  {/if}
 {:else}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <action-placeholder
