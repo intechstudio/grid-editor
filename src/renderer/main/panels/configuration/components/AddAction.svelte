@@ -7,6 +7,8 @@
   import { Analytics } from "../../../../runtime/analytics.js";
 
   import { presetManagement } from "../../../../runtime/app-helper.store";
+  import { writeBuffer } from "../../../../runtime/engine.store.js";
+  import { fly, fade, slide } from "svelte/transition";
 
   import { get } from "svelte/store";
 
@@ -364,8 +366,8 @@
 {#if !userHelper}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
 
-  {#if configs.length === 0 && index === -1}
-    <div class="text-white/50 my-5 bg-secondary flex">
+  {#if configs.length === 0 && index === -1 && $writeBuffer.length == 0}
+    <div class="text-white/50 my-5 bg-secondary flex" in:fade={{ delay: 200 }}>
       <div class="w-10 h-full bg-red-300/30 flex" />
       <div class="flex flex-col m-4">
         There are no actions configured on this event!
