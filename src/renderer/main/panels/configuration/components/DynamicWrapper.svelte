@@ -134,7 +134,8 @@
       >
         <!-- Content of block -->
 
-        {#if toggled}
+        {#if toggled || typeof config.header === "undefined"}
+          <!-- Body of the Action block when toggled -->
           <svelte:component
             this={config.component}
             class="h-full w-full px-2 -my-[1px]"
@@ -148,11 +149,12 @@
             on:toggle={handleToggle}
           />
         {:else}
+          <!-- Header of the Action block when untoggled -->
           <svelte:component
             this={config.header}
             {config}
             {access_tree}
-            class="px-2 w-full h-full"
+            class="px-2 w-full h-full -mt-[1px]"
             on:toggle={handleToggle}
           />
         {/if}

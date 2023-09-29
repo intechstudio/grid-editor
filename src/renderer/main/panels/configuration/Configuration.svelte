@@ -44,6 +44,9 @@
 
   import { appSettings } from "../../../runtime/app-helper.store";
 
+  import { init_config_block_library } from "../../../lib/_configs";
+  import { onMount } from "svelte";
+
   const configs = writable([]);
 
   let events = { options: ["", "", ""], selected: "" };
@@ -208,6 +211,10 @@
       configs[i].indentation = map[i];
     }
   }
+
+  onMount(() => {
+    init_config_block_library();
+  });
 
   let animation = false;
   let isDragged = false;
@@ -401,7 +408,7 @@
     }
 
     //Find the closing tag of the multiselect component
-    const multiSelect = selectedConfig.information.name.endsWith("_If");
+    const multiSelect = selectedConfig.information.type === "composite_open";
     if (multiSelect) {
       let indentationDepth = 1;
       for (
@@ -411,12 +418,12 @@
       ) {
         //Another component is found inside the component, increase
         //indentation depth.
-        if ($configs[i].information.name.endsWith("_If")) {
+        if ($configs[i].information.type === "composite_open") {
           ++indentationDepth;
         }
         //Closing tag found inside the component, decrease
         //indentation depth.
-        else if ($configs[i].information.name.endsWith("_End")) {
+        else if ($configs[i].information.type === "composite_close") {
           --indentationDepth;
         }
         $configs[i].selected = value;

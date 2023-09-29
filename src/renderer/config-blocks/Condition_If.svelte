@@ -1,4 +1,7 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  export const header = undefined;
+
   // config descriptor parameters
   export const information = {
     short: "if",
