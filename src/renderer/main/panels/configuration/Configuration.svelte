@@ -27,6 +27,7 @@
     ConfigList,
     ConfigObject,
     ConfigTarget,
+    configManager,
     UnknownEventException,
   } from "./Configuration.store.js";
 
@@ -47,13 +48,11 @@
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
 
-  const configs = writable([]);
-
   let events = { options: ["", "", ""], selected: "" };
   let elements = { options: [], selected: "" };
 
   function displayDefault() {
-    configs.set([]);
+    configManager.set([]);
     events = { options: ["", "", ""], selected: "" };
     elements = { options: [], selected: "" };
   }
@@ -116,7 +115,7 @@
   }
 
   function setSelectedEvent() {
-    const target = $configs.target;
+    const target = $configManager.target;
     if (typeof target === "undefined") {
       throw "Unknown Error";
     }
@@ -150,12 +149,7 @@
     localDefinitions.update(list);
   }
 
-  $: {
-    //Handle User Input
-    if ($user_input) {
-      handleUserInputchange();
-    }
-  }
+  $: handleUserInputchange($user_input);
 
   let bufferValueChanged = false;
   $: {
@@ -171,12 +165,21 @@
     }
   }
 
-  function handleUserInputchange() {
-    let target = ConfigTarget.getCurrent();
-    let list = undefined;
+  function handleUserInputchange(ui) {
+    if (typeof ui === "undefined") {
+      return;
+    }
+
+    let target = new ConfigTarget({
+      device: { dx: ui.brc.dx, dy: ui.brc.dy },
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+      eventType: ui.event.eventtype,
+    });
 
     try {
-      list = ConfigList.createFrom(target);
+      const list = ConfigList.createFrom(target);
+      configManager.set(list);
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);
@@ -187,8 +190,7 @@
           s.event.eventtype = String(closestEvent);
           return s;
         });
-        target.eventType = String(closestEvent);
-        list = ConfigList.createFrom(target);
+        this(ui);
       } else {
         //Unknown Error
         console.error(`Configuration: ${e}`);
@@ -196,20 +198,23 @@
         return;
       }
     }
-    configs.set(list);
-    setSelectedEvent();
-    updateLuaDebugStore(list);
-    updateLocalSuggestions(list);
-    deselectAll();
   }
 
-  $: handleConfigListchange($configs);
+  $: handleConfigListchange($configManager);
 
   function handleConfigListchange(configs) {
+    if (typeof configs === "undefined") {
+      return;
+    }
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
       configs[i].indentation = map[i];
     }
+
+    setSelectedEvent();
+    updateLuaDebugStore(configs);
+    updateLocalSuggestions(configs);
+    deselectAll();
   }
 
   onMount(() => {
@@ -265,7 +270,7 @@
       throw "Unknown Error";
     }
 
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
 
     //Think through the indexing
     if (typeof index !== "undefined") {
@@ -284,7 +289,7 @@
         if (typeof list === "undefined") {
           throw "Error loading current config.";
         }
-        configs.set(list);
+        configManager.set(list);
         deselectAll();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -293,7 +298,7 @@
   }
 
   function handleDrop(e) {
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
     const targetIndex = ++dropIndex;
 
     //Check for incorrect dropzones
@@ -337,7 +342,7 @@
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
-        configs.set(list);
+        configManager.set(list);
         deselectAll();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -348,7 +353,7 @@
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
 
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
 
     console.log(newConfig);
 
@@ -362,9 +367,9 @@
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
         //TODO: Refactor this out
-        if ($configs[index].short != newConfig.short) {
-          $configs[index] = newConfig;
-        } else $configs[index].script = newConfig.script;
+        if ($configManager[index].short != newConfig.short) {
+          $configManager[index] = newConfig;
+        } else $configManager[index].script = newConfig.script;
 
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -404,7 +409,7 @@
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
 
-    const selectedConfig = $configs[index];
+    const selectedConfig = $configManager[index];
     if (typeof selectedConfig === "undefined") {
       throw `Can't find selected config by index (${index})`;
     }
@@ -415,20 +420,20 @@
       let indentationDepth = 1;
       for (
         let i = index + 1;
-        i < $configs.length && indentationDepth > 0;
+        i < $configManager.length && indentationDepth > 0;
         ++i
       ) {
         //Another component is found inside the component, increase
         //indentation depth.
-        if ($configs[i].information.type === "composite_open") {
+        if ($configManager[i].information.type === "composite_open") {
           ++indentationDepth;
         }
         //Closing tag found inside the component, decrease
         //indentation depth.
-        else if ($configs[i].information.type === "composite_close") {
+        else if ($configManager[i].information.type === "composite_close") {
           --indentationDepth;
         }
-        $configs[i].selected = value;
+        $configManager[i].selected = value;
       }
 
       if (indentationDepth !== 0) {
@@ -437,7 +442,7 @@
     }
 
     //Set MultiOptions values
-    const selectionCount = $configs.reduce((acc, curr) => {
+    const selectionCount = $configManager.reduce((acc, curr) => {
       if (curr.selected) {
         acc += 1;
       }
@@ -453,10 +458,10 @@
   }
 
   function handleConvertToCodeBlock(e) {
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
 
     let script = "";
-    for (let config of $configs) {
+    for (let config of $configManager) {
       if (config.selected) {
         if (config.checkSyntax() === false) {
           logger.set({
@@ -483,7 +488,7 @@
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
-        configs.set(list);
+        configManager.set(list);
         deselectAll();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -507,7 +512,7 @@
 
   function handleCopy(e) {
     let clipboard = [];
-    for (let config of $configs) {
+    for (let config of $configManager) {
       if (config.selected) {
         clipboard.push(config);
       }
@@ -524,7 +529,7 @@
 
   function handlePaste(e) {
     const { index } = e.detail;
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
 
     //TODO: Refactor this out
     //DropZone indexing is shifted with -1
@@ -539,7 +544,7 @@
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
-        configs.set(list);
+        configManager.set(list);
         deselectAll();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -553,14 +558,14 @@
   }
 
   function handleRemove(e) {
-    let list = $configs.makeCopy();
+    let list = $configManager.makeCopy();
 
     list = list.filter((e) => !e.selected);
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
       .then((e) => {
-        configs.set(list);
+        configManager.set(list);
         deselectAll();
         updateLuaDebugStore(list);
         updateLocalSuggestions(list);
@@ -580,7 +585,7 @@
     enableRemove = false;
     selectAllChecked = false;
 
-    configs.update((s) => {
+    configManager.update((s) => {
       s.forEach((e) => {
         e.selected = false;
       });
@@ -596,7 +601,7 @@
     enableCut = value;
     enableRemove = value;
 
-    configs.update((s) => {
+    configManager.update((s) => {
       s.forEach((e) => {
         e.selected = value;
       });
@@ -702,7 +707,7 @@
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $configs })}
+          use:changeOrder={(this, { configs: $configManager })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
           on:drop-target={handleDropTargetChange}
@@ -719,7 +724,7 @@
           <config-list
             id="cfg-list"
             style="height:{scrollHeight}"
-            use:configListScrollSize={$configs}
+            use:configListScrollSize={$configManager}
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
@@ -734,7 +739,7 @@
                 index={-1}
                 on:paste={handlePaste}
                 {animation}
-                configs={$configs}
+                configs={$configManager}
                 on:new-config={handleConfigInsertion}
               />
             {:else}
@@ -747,7 +752,7 @@
               />
             {/if}
 
-            {#each $configs as config, index (config)}
+            {#each $configManager as config, index (config)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}
@@ -773,7 +778,7 @@
                   <AddAction
                     on:paste={handlePaste}
                     {animation}
-                    configs={$configs}
+                    configs={$configManager}
                     {index}
                     on:new-config={handleConfigInsertion}
                   />
@@ -795,7 +800,7 @@
             <AddAction
               userHelper={true}
               {animation}
-              configs={$configs}
+              configs={$configManager}
               index={undefined}
               on:paste={handlePaste}
               on:new-config={handleConfigInsertion}

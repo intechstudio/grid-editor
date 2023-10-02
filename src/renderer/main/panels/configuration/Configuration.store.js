@@ -18,6 +18,8 @@ import {
 
 export let lastOpenedActionblocks = writable([]);
 
+export const configManager = create_configuration_manager();
+
 export function lastOpenedActionblocksInsert(short) {
   // Get the current value of lastOpenedActionblocks
   const currentList = get(lastOpenedActionblocks);
@@ -47,6 +49,12 @@ const luaminOptions = {
   RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
   SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
 };
+
+function create_configuration_manager() {
+  let list = writable([]);
+
+  return list;
+}
 
 export class ConfigObject {
   constructor({ parent, short, script }) {
