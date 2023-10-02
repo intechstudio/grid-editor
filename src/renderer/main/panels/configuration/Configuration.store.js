@@ -208,27 +208,20 @@ export class ConfigList extends Array {
   }
 
   static getIndentationMap(list) {
-    if (list.length === 0) {
-      return [];
-    }
-
     let indentationMap = [];
     let indentation = 0;
-    for (let i = 0; i < list.length; ++i) {
-      //If
-      if (list[i].information.name.endsWith("_If")) {
-        ++indentation;
-      }
 
-      if (list[i].information.rendering === "modifier") {
+    for (let i = 0; i < list.length; i++) {
+      let config = list[i];
+
+      if (config.information.type === "composite_open") {
+        indentationMap.push(indentation++);
+      } else if (config.information.type === "composite_close") {
+        indentationMap.push(--indentation);
+      } else if (config.information.type === "composite_part") {
         indentationMap.push(indentation - 1);
       } else {
         indentationMap.push(indentation);
-      }
-
-      //End
-      if (list[i].information.name.endsWith("_End")) {
-        --indentation;
       }
     }
     return indentationMap;

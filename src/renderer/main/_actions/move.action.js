@@ -108,6 +108,7 @@ export function changeOrder(node, { configs }) {
         node.dispatchEvent(new CustomEvent("drag-end"));
         console.log("This cannot be moved!");
       } else {
+        console.log("Move");
         node.dispatchEvent(new CustomEvent("drag-start"));
         moveDisabled = false;
       }

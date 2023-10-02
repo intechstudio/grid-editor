@@ -27,5 +27,6 @@
     movable: false,
     hideIcon: false,
     type: "composite_part",
+    toggleable: false,
   };
 </script>

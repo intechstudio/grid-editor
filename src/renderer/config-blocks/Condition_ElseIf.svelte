@@ -1,7 +1,6 @@
 <script context="module">
   // Component for the untoggled "header" of the component
-  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
-  export const header = RegularActionBlockFace;
+  export const header = undefined;
 
   // config descriptor parameters
   export const information = {
@@ -23,6 +22,7 @@
     movable: false,
     hideIcon: true,
     type: "composite_part",
+    toggleable: false,
   };
 </script>
 

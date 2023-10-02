@@ -18,6 +18,7 @@
     movable: true,
     hideIcon: false,
     type: "single",
+    toggleable: true,
   };
 </script>
 

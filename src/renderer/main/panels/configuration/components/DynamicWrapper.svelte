@@ -67,9 +67,11 @@
     validationError = data.isError;
   }
 
-  //TODO: Refactor this out by refactoring the handling of
-  //modifier rendering style blocks
   function handleToggle(e) {
+    if (config.information.toggleable == false) {
+      return;
+    }
+
     toggled = !toggled;
 
     if (toggled) {
@@ -91,7 +93,7 @@
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group flex flex-grow {toggled ? 'h-auto' : 'h-10'}"
+    class="group flex flex-grow h-auto min-h-[32px]"
     id="cfg-{index}"
     config-name={config.information.name}
     config-type={config.information.type}
@@ -100,11 +102,8 @@
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
-    <div
-      class="w-full flex flex-row pointer-events-none transition-all duration-300"
-    >
+    <div class="w-full flex flex-row pointer-events-none duration-300">
       <!-- Icon -->
-      <!-- //TODO: Refactor out the special cases -->
       {#if config.information.hideIcon !== true}
         <div
           style="background-color:{config.information.color}"
@@ -125,7 +124,7 @@
           : ''}"
         class="w-full border-y border-r {syntaxError
           ? 'border-error'
-          : 'border-transparent'} flex flex-grow items-center pointer-events-auto bg-secondary"
+          : 'border-transparent'} flex flex-grow items-center bg-secondary"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
         class:group-hover:bg-select-saturate-10={!toggled}
@@ -133,12 +132,11 @@
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
-
-        {#if toggled || typeof config.header === "undefined"}
+        {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
           <!-- Body of the Action block when toggled -->
           <svelte:component
             this={config.component}
-            class="h-full w-full px-2 -my-[1px]"
+            class="h-full w-full px-2 -my-[1px] pointer-events-auto"
             {index}
             {config}
             {access_tree}
@@ -156,6 +154,7 @@
             {access_tree}
             class="px-2 w-full h-full -mt-[1px]"
             on:toggle={handleToggle}
+            on:output={handleOutput}
           />
         {/if}
       </div>

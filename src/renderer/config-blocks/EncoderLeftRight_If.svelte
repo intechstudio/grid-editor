@@ -49,6 +49,7 @@
     movable: true,
     hideIcon: false,
     type: "composite_open",
+    toggleable: false,
   };
 </script>
 

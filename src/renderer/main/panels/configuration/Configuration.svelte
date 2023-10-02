@@ -203,7 +203,7 @@
     deselectAll();
   }
 
-  //$: handleConfigListchange($configs);
+  $: handleConfigListchange($configs);
 
   function handleConfigListchange(configs) {
     const map = ConfigList.getIndentationMap(configs);
@@ -349,6 +349,8 @@
     const { index, newConfig } = e.detail;
 
     let list = $configs.makeCopy();
+
+    console.log(newConfig);
 
     try {
       list[index] = newConfig;

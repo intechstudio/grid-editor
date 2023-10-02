@@ -28,6 +28,7 @@
     movable: false,
     hideIcon: true,
     type: "composite_close",
+    toggleable: false,
   };
 </script>
 

@@ -106,5 +106,5 @@
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
   bind:this={monaco_block}
-  class="line-editor {$$props.class} grid grid-cols-1 w-full"
+  class="line-editor {$$props.class} grid grid-cols-1 w-full pointer-events-auto"
 />

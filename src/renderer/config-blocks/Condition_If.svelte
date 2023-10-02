@@ -23,6 +23,7 @@
     movable: true,
     hideIcon: true,
     type: "composite_open",
+    toggleable: false,
   };
 </script>
 

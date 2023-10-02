@@ -19,10 +19,11 @@
     `,
     color: "#F84AA7",
     blockIcon: `<span class="text-white">Else</span>`,
-    selectable: false,
+    selectable: true,
     movable: false,
     hideIcon: true,
     type: "composite_part",
+    toggleable: false,
   };
 </script>
 
