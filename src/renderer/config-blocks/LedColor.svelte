@@ -464,7 +464,9 @@ A -> B : AB-First step
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-led-color class="{$$props.class} flex flex-col w-full p-2">
+<config-led-color
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each [scriptSegments[0], scriptSegments[1]] as script, i}
       <div class={"w-1/2 atomicInput "}>

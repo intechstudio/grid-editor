@@ -186,16 +186,11 @@ export class UnknownEventException extends Error {
 }
 
 export class ConfigList extends Array {
-  //Internal private list
-  target = undefined;
-
   makeCopy() {
     const copy = new ConfigList();
     for (const config of this) {
       copy.push(config.makeCopy());
     }
-
-    copy.target = this.target;
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -228,28 +223,13 @@ export class ConfigList extends Array {
   }
 
   static createFrom(target) {
-    if (!(target instanceof ConfigTarget)) {
-      throw "Invalid target object. Expected an instance of ConfigTarget.";
-    }
-
-    this.target = target;
-
     const config = new ConfigList();
-    config.target = target;
-    config.#Init();
+    config.#InitFrom(target);
     return config;
   }
 
   sendTo({ target }) {
-    return new Promise((resolve, reject) => {
-      if (!(target instanceof ConfigTarget)) {
-        reject(
-          new Error(
-            `Invalid target object (${target}). Expected an instance of ConfigTarget.`
-          )
-        );
-      }
-
+    return new Promise((resolve) => {
       if (!this.checkLength()) {
         throw {
           type: "lengthError",
@@ -260,19 +240,6 @@ export class ConfigList extends Array {
           event: { no: target.eventType, type: eventType[target.eventType] },
         };
       }
-
-      /*
-      if (!this.checkSyntax()) {
-        throw {
-          type: "syntaxError",
-          device: getDeviceName(target.device.dx, target.device.dy),
-          x: target.device.dx,
-          y: target.device.dy,
-          element: { no: target.element },
-          event: { no: target.eventType, type: eventType[target.eventType] },
-        };
-      }
-      */
 
       const actionString = this.toConfigScript();
 
@@ -301,29 +268,27 @@ export class ConfigList extends Array {
     });
   }
 
-  #Init() {
+  #InitFrom(target) {
     const rt = get(runtime);
     const device = rt.find(
-      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy
+      (e) => e.dx == target.device.dx && e.dy == target.device.dy
     );
 
     if (typeof device === "undefined") {
       throw "Unknown device!";
     }
 
-    const page = device.pages[this.target.page];
+    const page = device.pages[target.page];
 
     const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.target.element
+      (e) => e.controlElementNumber == target.element
     );
 
-    let event = element.events.find(
-      (e) => e.event.value == this.target.eventType
-    );
+    let event = element.events.find((e) => e.event.value == target.eventType);
 
     if (typeof event === "undefined") {
       throw new UnknownEventException(
-        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+        `Event type ${target.eventType} does not exist under control element ${target.element}`
       );
     }
 
@@ -418,7 +383,6 @@ export class ConfigList extends Array {
     for (const obj of copy) {
       obj.parent = copy;
     }
-    copy.target = this.target;
     return copy;
   }
 
@@ -428,7 +392,6 @@ export class ConfigList extends Array {
     for (const obj of copy) {
       obj.parent = copy;
     }
-    copy.target = this.target;
     return copy;
   }
 
@@ -438,7 +401,6 @@ export class ConfigList extends Array {
     for (const obj of copy) {
       obj.parent = copy;
     }
-    copy.target = this.target;
     return copy;
   }
 }
@@ -461,6 +423,20 @@ export class ConfigTarget {
         .control_elements.find((e) => e.controlElementNumber == element).events;
     } catch (e) {
       console.error(`ConfigTarget: ${e}`);
+      throw e;
+    }
+  }
+
+  static createFrom({ userInput }) {
+    try {
+      return new ConfigTarget({
+        device: { dx: userInput.brc.dx, dy: userInput.brc.dy },
+        page: userInput.event.pagenumber,
+        element: userInput.event.elementnumber,
+        eventType: userInput.event.eventtype,
+      });
+    } catch (e) {
+      return undefined;
     }
   }
 
@@ -488,14 +464,7 @@ function create_configuration_manager() {
   let configManager = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
-    const target = new ConfigTarget({
-      device: { dx: ui.brc.dx, dy: ui.brc.dy },
-      page: ui.event.pagenumber,
-      element: ui.event.elementnumber,
-      eventType: ui.event.eventtype,
-    });
-
-    console.log(target);
+    const target = ConfigTarget.createFrom({ userInput: ui });
 
     let list = new ConfigList();
     try {

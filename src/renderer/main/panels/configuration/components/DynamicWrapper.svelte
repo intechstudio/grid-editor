@@ -79,8 +79,6 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
-
-  $: console.log(config.indentation);
 </script>
 
 <wrapper
@@ -137,7 +135,7 @@
           <!-- Body of the Action block when toggled -->
           <svelte:component
             this={config.component}
-            class="h-full w-full px-2 -my-[1px] pointer-events-auto"
+            class="h-full w-full px-2 -my-[1px]"
             {index}
             {config}
             {access_tree}

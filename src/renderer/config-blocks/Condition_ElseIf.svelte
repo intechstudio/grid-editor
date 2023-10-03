@@ -69,7 +69,9 @@
   }
 </script>
 
-<else-if-block class="{$$props.class} w-full h-fit flex text-white py-1">
+<else-if-block
+  class="{$$props.class} w-full h-fit flex text-white py-1 pointer-events-auto"
+>
   <div class="flex flex-row items-center w-full gap-3">
     <span class="text-white min-w-fit">Else if</span>
 

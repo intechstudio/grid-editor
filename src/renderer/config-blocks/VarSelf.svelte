@@ -208,7 +208,9 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-self-definitions class="{$$props.class} flex flex-col w-full p-2">
+<config-self-definitions
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="flex justify-between items-center my-2 px-2">
     {#if variableNameError}
       <div class="text-sm text-red-500">Variable name error!</div>

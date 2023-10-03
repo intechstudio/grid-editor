@@ -114,7 +114,9 @@
   });
 </script>
 
-<mouse-button class="{$$props.class} flex flex-col w-full p-2">
+<mouse-button
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>

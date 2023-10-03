@@ -74,9 +74,11 @@
   }
 </script>
 
-<if-block class="{$$props.class} h-fit flex text-white py-1">
+<if-block
+  class="{$$props.class} h-fit flex text-white py-1 pointer-events-none"
+>
   <div class="flex flex-row items-center w-full gap-3">
-    <span>If</span>
+    <span class="w-10">If</span>
 
     <div
       class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"

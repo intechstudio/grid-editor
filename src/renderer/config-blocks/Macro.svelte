@@ -480,7 +480,7 @@
     visibleCaretPos = -1;
     caretPos = -1;
   }}
-  class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2"
+  class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto"
 >
   <div class="flex flex-col">
     <div class="flex flex-row justify-between mb-2">

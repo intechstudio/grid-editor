@@ -1,5 +1,5 @@
 <script>
-  import { get, writable } from "svelte/store";
+  import { get } from "svelte/store";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -28,7 +28,6 @@
     ConfigObject,
     ConfigTarget,
     configManager,
-    UnknownEventException,
   } from "./Configuration.store.js";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
@@ -48,6 +47,10 @@
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
 
+  //////////////////////////////////////////////////////////////////////////////
+  /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
+  //////////////////////////////////////////////////////////////////////////////
+
   class EventList {
     constructor({ options = ["", "", ""], selected = "" } = {}) {
       this.options = options;
@@ -56,11 +59,108 @@
   }
 
   let events = new EventList();
-
   let access_tree = {};
+  let bufferValueChanged = false;
+  let animation = false;
+  let isDragged = false;
+  let scrollHeight = "100%";
+  let draggedIndexes = [];
+  let enableConvert = false;
+  let enableCut = false;
+  let enableCopy = false;
+  let enablePaste = false;
+  let enableRemove = false;
+  let selectAllChecked = false;
+  let autoScroll;
+
+  onMount(() => {
+    init_config_block_library();
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  $: {
+    const les = $lua_error_store;
+    const error = les.slice(-1).pop();
+    if (typeof error !== "undefined") {
+      handleError(error);
+    }
+  }
+
+  $: {
+    if ($writeBuffer.length > 0) {
+      bufferValueChanged = true;
+      //Display default
+      configManager.set(new ConfigList());
+      events = new EventList();
+    } else {
+      if (bufferValueChanged) {
+        //Display User Input
+        //handleUserInputchange(); TODO: refactor
+        bufferValueChanged = false;
+      }
+    }
+  }
+
+  $: handleConfigListChange($configManager);
+
+  $: handleUserInputChange($user_input);
+
+  $: enablePaste = $appActionClipboard.length > 0;
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       FUNCTION DEFINITIONS        //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  function getEventList(target) {
+    const events = new EventList();
+    if (typeof target === "undefined") {
+      return events;
+    }
+
+    //Get available events
+    events.options = target.events.map((e) => e.event);
+
+    //Get selected event
+    events.selected = target.events.find(
+      (e) => target.eventType == e.event.value
+    ).event;
+
+    return events;
+  }
+
+  function updateLuaDebugStore(list) {
+    $luadebug_store.configScript = list.toConfigScript();
+    $luadebug_store.syntaxError = list.checkSyntax();
+  }
+
+  function updateLocalSuggestions(list) {
+    localDefinitions.update(list);
+  }
+
+  function deselectAll() {
+    enableCopy = false;
+    enableConvert = false;
+    enableCut = false;
+    enableRemove = false;
+    selectAllChecked = false;
+
+    configManager.update((s) => {
+      s.forEach((e) => {
+        e.selected = false;
+      });
+      return s;
+    });
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////           EVENT HANDLERS          //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
   //TODO: Refactor this out!
-  function changeSelectedConfig(arg) {
+  function handleChangeEventTab(arg) {
     if ($writeBuffer.length > 0) {
       logger.set({
         type: "fail",
@@ -106,96 +206,38 @@
     }
   }
 
-  $: {
-    const les = $lua_error_store;
-    const error = les.slice(-1).pop();
-    if (typeof error !== "undefined") {
-      handleError(error);
-    }
-  }
-
-  //TODO: refactor
-  function getEventList(target) {
-    const events = new EventList();
+  function handleUserInputChange(ui) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
     if (typeof target === "undefined") {
-      return events;
+      return;
     }
 
-    //Get available events
-    events.options = target.events.map((e) => e.event);
+    //Set event list
+    if (typeof target !== "undefined") {
+      events = getEventList(target);
+    }
 
-    //Get selected event
-    events.selected = target.events.find(
-      (e) => target.eventType == e.event.value
-    ).event;
-
-    return events;
-  }
-
-  function updateLuaDebugStore(list) {
-    $luadebug_store.configScript = list.toConfigScript();
-    $luadebug_store.syntaxError = list.checkSyntax();
-  }
-
-  function updateLocalSuggestions(list) {
-    localDefinitions.update(list);
-  }
-
-  let bufferValueChanged = false;
-  $: {
-    if ($writeBuffer.length > 0) {
-      bufferValueChanged = true;
-      //Display default
-      configManager.set(new ConfigList());
-      events = new EventList();
+    //Set selected tab tab
+    if (target.element == 255) {
+      $appSettings.configType = "systemEvents";
     } else {
-      if (bufferValueChanged) {
-        //Display User Input
-        //handleUserInputchange(); TODO: refactor
-        bufferValueChanged = false;
-      }
+      $appSettings.configType = "uiEvents";
     }
   }
-
-  $: handleConfigListChange($configManager);
 
   function handleConfigListChange(configs) {
-    console.log("change", configs.target);
-    if (
-      typeof configs === "undefined" ||
-      typeof configs.target === "undefined"
-    ) {
+    if (typeof configs === "undefined") {
       return;
     }
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
       configs[i].indentation = map[i];
     }
-    //console.log(map);
-
-    events = getEventList(configs.target);
 
     updateLuaDebugStore(configs);
     updateLocalSuggestions(configs);
     deselectAll();
-
-    //Set selected tab tab
-    if (configs.target.element == 255) {
-      $appSettings.configType = "systemEvents";
-    } else {
-      $appSettings.configType = "uiEvents";
-    }
-    console.log("change", configs.target);
   }
-
-  onMount(() => {
-    init_config_block_library();
-  });
-
-  let animation = false;
-  let isDragged = false;
-
-  let scrollHeight = "100%";
 
   function handleError(e) {
     switch (e.type) {
@@ -238,18 +280,18 @@
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
 
-    let list = $configManager.makeCopy();
-
     //Think through the indexing
     if (typeof index !== "undefined") {
-      list.insert(config, index + 1);
+      $configManager.insert(config, index + 1);
     } else {
-      list.push(config);
+      $configManager.push(config);
     }
 
-    list
+    $configManager
       .sendTo({ target: ConfigTarget.getCurrent() })
       .catch((e) => handleError(e));
+
+    $configManager = $configManager;
   }
 
   function handleDrop(e) {
@@ -293,11 +335,9 @@
 
     $configManager = $configManager.filter((e) => typeof e !== "undefined");
 
-    console.log($configManager.target);
     $configManager
-      .sendTo({ target: $configManager.target })
+      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
       .catch((e) => handleError(e));
-    console.log($configManager.target);
   }
 
   function handleConfigUpdate(e) {
@@ -327,7 +367,6 @@
     clearInterval(autoScroll);
   }
 
-  let draggedIndexes = [];
   function handleDragTargetChange(e) {
     draggedIndexes = e.detail.id;
   }
@@ -336,13 +375,6 @@
   function handleDropTargetChange(e) {
     dropIndex = e.detail.drop_target;
   }
-
-  let enableConvert = false;
-  let enableCut = false;
-  let enableCopy = false;
-  let enablePaste = false;
-  let enableRemove = false;
-  let selectAllChecked = false;
 
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
@@ -431,10 +463,6 @@
     });
   }
 
-  function clearClipboard() {
-    appActionClipboard.set([]);
-  }
-
   function handleCopy(e) {
     let clipboard = [];
     for (let config of $configManager) {
@@ -449,8 +477,6 @@
       mandatory: false,
     });
   }
-
-  $: enablePaste = $appActionClipboard.length > 0;
 
   function handlePaste(e) {
     const { index } = e.detail;
@@ -491,21 +517,6 @@
     });
   }
 
-  function deselectAll() {
-    enableCopy = false;
-    enableConvert = false;
-    enableCut = false;
-    enableRemove = false;
-    selectAllChecked = false;
-
-    configManager.update((s) => {
-      s.forEach((e) => {
-        e.selected = false;
-      });
-      return s;
-    });
-  }
-
   function handleSelectAll(e) {
     const { value } = e.detail;
 
@@ -522,7 +533,6 @@
     });
   }
 
-  let autoScroll;
   function handleDrag(e) {
     if (draggedIndexes.length > 0) {
       const index = draggedIndexes[0];
@@ -559,7 +569,7 @@
           class: "w-60 p-4",
         }}
         on:click={() => {
-          changeSelectedConfig("uiEvents");
+          handleChangeEventTab("uiEvents");
         }}
         class="{$appSettings.configType == 'uiEvents'
           ? 'shadow-md bg-pick text-white'
@@ -575,7 +585,7 @@
           class: "w-60 p-4",
         }}
         on:click={() => {
-          changeSelectedConfig("systemEvents");
+          handleChangeEventTab("systemEvents");
         }}
         class="{$appSettings.configType == 'systemEvents'
           ? 'shadow-md bg-pick text-white'
