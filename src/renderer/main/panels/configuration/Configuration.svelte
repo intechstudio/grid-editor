@@ -48,14 +48,14 @@
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
 
-  let events = { options: ["", "", ""], selected: "" };
-  let elements = { options: [], selected: "" };
-
-  function displayDefault() {
-    configManager.set([]);
-    events = { options: ["", "", ""], selected: "" };
-    elements = { options: [], selected: "" };
+  class EventList {
+    constructor({ options = ["", "", ""], selected = "" } = {}) {
+      this.options = options;
+      this.selected = selected;
+    }
   }
+
+  let events = new EventList();
 
   let access_tree = {};
 
@@ -114,107 +114,78 @@
     }
   }
 
-  function setSelectedEvent() {
-    const target = $configManager.target;
+  //TODO: refactor
+  function getEventList(target) {
+    const events = new EventList();
     if (typeof target === "undefined") {
-      throw "Unknown Error";
-    }
-    events.options = [];
-    for (const event of target.events) {
-      events.options.push(event.event);
-      if (target.eventType == event.event.value) {
-        events.selected = event.event;
-      }
+      return events;
     }
 
-    if (target.element == 255) {
-      $appSettings.configType = "systemEvents";
-    } else {
-      $appSettings.configType = "uiEvents";
-    }
+    //Get available events
+    events.options = target.events.map((e) => e.event);
+
+    //Get selected event
+    events.selected = target.events.find(
+      (e) => target.eventType == e.event.value
+    ).event;
+
+    return events;
   }
 
   function updateLuaDebugStore(list) {
-    if (!(list instanceof ConfigList)) {
-      throw "Invalid list object. Expected an instance of ConfigList.";
-    }
     $luadebug_store.configScript = list.toConfigScript();
     $luadebug_store.syntaxError = list.checkSyntax();
   }
 
   function updateLocalSuggestions(list) {
-    if (!(list instanceof ConfigList)) {
-      throw "Invalid list object. Expected an instance of ConfigList.";
-    }
     localDefinitions.update(list);
   }
-
-  $: handleUserInputchange($user_input);
 
   let bufferValueChanged = false;
   $: {
     if ($writeBuffer.length > 0) {
       bufferValueChanged = true;
-      displayDefault();
+      //Display default
+      configManager.set(new ConfigList());
+      events = new EventList();
     } else {
       if (bufferValueChanged) {
         //Display User Input
-        handleUserInputchange();
+        //handleUserInputchange(); TODO: refactor
         bufferValueChanged = false;
       }
     }
   }
 
-  function handleUserInputchange(ui) {
-    if (typeof ui === "undefined") {
-      return;
-    }
+  $: handleConfigListChange($configManager);
 
-    let target = new ConfigTarget({
-      device: { dx: ui.brc.dx, dy: ui.brc.dy },
-      page: ui.event.pagenumber,
-      element: ui.event.elementnumber,
-      eventType: ui.event.eventtype,
-    });
-
-    try {
-      const list = ConfigList.createFrom(target);
-      configManager.set(list);
-    } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
-        });
-        this(ui);
-      } else {
-        //Unknown Error
-        console.error(`Configuration: ${e}`);
-        displayDefault();
-        return;
-      }
-    }
-  }
-
-  $: handleConfigListchange($configManager);
-
-  function handleConfigListchange(configs) {
-    if (typeof configs === "undefined") {
+  function handleConfigListChange(configs) {
+    console.log("change", configs.target);
+    if (
+      typeof configs === "undefined" ||
+      typeof configs.target === "undefined"
+    ) {
       return;
     }
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
       configs[i].indentation = map[i];
     }
+    //console.log(map);
 
-    setSelectedEvent();
+    events = getEventList(configs.target);
+
     updateLuaDebugStore(configs);
     updateLocalSuggestions(configs);
     deselectAll();
+
+    //Set selected tab tab
+    if (configs.target.element == 255) {
+      $appSettings.configType = "systemEvents";
+    } else {
+      $appSettings.configType = "uiEvents";
+    }
+    console.log("change", configs.target);
   }
 
   onMount(() => {
@@ -266,9 +237,6 @@
 
   function handleConfigInsertion(e) {
     const { config, index } = e.detail;
-    if (typeof config === "undefined") {
-      throw "Unknown Error";
-    }
 
     let list = $configManager.makeCopy();
 
@@ -281,24 +249,10 @@
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        //TODO: refactor this out, it is needed because of inserting an IF
-        //TODO: rethink composit block creation
-        const target = ConfigTarget.getCurrent();
-        const list = ConfigList.createFrom(target);
-        if (typeof list === "undefined") {
-          throw "Error loading current config.";
-        }
-        configManager.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
       .catch((e) => handleError(e));
   }
 
   function handleDrop(e) {
-    let list = $configManager.makeCopy();
     const targetIndex = ++dropIndex;
 
     //Check for incorrect dropzones
@@ -325,37 +279,31 @@
     let temp = [];
     for (let i = 0; i < draggedIndexes.length; ++i) {
       const sourceIndex = draggedIndexes[i];
-      temp.push(list[sourceIndex]);
-      list[sourceIndex] = undefined;
+      temp.push($configManager[sourceIndex]);
+      $configManager[sourceIndex] = undefined;
     }
 
     for (let i = 0; i < temp.length; ++i) {
-      if (targetIndex + i < list.length) {
-        list.splice(targetIndex + i, 0, temp[i]);
+      if (targetIndex + i < $configManager.length) {
+        $configManager.splice(targetIndex + i, 0, temp[i]);
       } else {
-        list.push(temp[i]);
+        $configManager.push(temp[i]);
       }
     }
 
-    list = list.filter((e) => typeof e !== "undefined");
+    $configManager = $configManager.filter((e) => typeof e !== "undefined");
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configManager.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
+    console.log($configManager.target);
+    $configManager
+      .sendTo({ target: $configManager.target })
       .catch((e) => handleError(e));
+    console.log($configManager.target);
   }
 
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
 
     let list = $configManager.makeCopy();
-
-    console.log(newConfig);
 
     try {
       list[index] = newConfig;
@@ -365,16 +313,6 @@
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        //TODO: Refactor this out
-        if ($configManager[index].short != newConfig.short) {
-          $configManager[index] = newConfig;
-        } else $configManager[index].script = newConfig.script;
-
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-        //deselectAll();
-      })
       .catch((e) => handleError(e));
   }
 
@@ -410,9 +348,6 @@
     const { value, index } = e.detail;
 
     const selectedConfig = $configManager[index];
-    if (typeof selectedConfig === "undefined") {
-      throw `Can't find selected config by index (${index})`;
-    }
 
     //Find the closing tag of the multiselect component
     const multiSelect = selectedConfig.information.type === "composite_open";
@@ -434,10 +369,6 @@
           --indentationDepth;
         }
         $configManager[i].selected = value;
-      }
-
-      if (indentationDepth !== 0) {
-        throw `No closing tag found for ${selectedConfig.information.name}`;
       }
     }
 
@@ -487,12 +418,6 @@
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configManager.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
       .catch((e) => handleError(e));
   }
 
@@ -543,12 +468,6 @@
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configManager.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
       .catch((e) => handleError(e));
     Analytics.track({
       event: "Config Action",
@@ -564,12 +483,6 @@
 
     list
       .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configManager.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
       .catch((e) => handleError(e));
     Analytics.track({
       event: "Config Action",
@@ -762,7 +675,6 @@
                     {index}
                     {config}
                     {access_tree}
-                    indentation={config.indentation}
                     on:update={handleConfigUpdate}
                   />
 

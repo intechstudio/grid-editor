@@ -27,7 +27,6 @@
   export let access_tree;
   export let index = undefined;
   export let config;
-  export let indentation = 0;
 
   $: syntaxError = !config.checkSyntax();
 
@@ -80,12 +79,14 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
+
+  $: console.log(config.indentation);
 </script>
 
 <wrapper
   class="flex flex-grow border-none outline-none transition-opacity duration-300"
 >
-  {#each Array(indentation) as n}
+  {#each Array(config.indentation) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>

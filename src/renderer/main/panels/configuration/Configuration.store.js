@@ -1,4 +1,4 @@
-import { get, writable } from "svelte/store";
+import { get, writable, derived } from "svelte/store";
 
 import {
   runtime,
@@ -17,8 +17,6 @@ import {
 } from "../../../lib/_configs";
 
 export let lastOpenedActionblocks = writable([]);
-
-export const configManager = create_configuration_manager();
 
 export function lastOpenedActionblocksInsert(short) {
   // Get the current value of lastOpenedActionblocks
@@ -49,12 +47,6 @@ const luaminOptions = {
   RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
   SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
 };
-
-function create_configuration_manager() {
-  let list = writable([]);
-
-  return list;
-}
 
 export class ConfigObject {
   constructor({ parent, short, script }) {
@@ -488,4 +480,48 @@ export class ConfigTarget {
       return undefined;
     }
   }
+}
+
+export const configManager = create_configuration_manager();
+
+function create_configuration_manager() {
+  let configManager = writable(new ConfigList());
+
+  function createConfigListFrom(ui) {
+    const target = new ConfigTarget({
+      device: { dx: ui.brc.dx, dy: ui.brc.dy },
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+      eventType: ui.event.eventtype,
+    });
+
+    console.log(target);
+
+    let list = new ConfigList();
+    try {
+      list = ConfigList.createFrom(target);
+    } catch (e) {
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+      } else {
+        //Unknown error, display default
+        console.error(`Configuration: ${e}`);
+      }
+    }
+    return list;
+  }
+
+  user_input.subscribe((store) => {
+    const list = createConfigListFrom(store);
+    configManager.set(list);
+  });
+
+  return configManager;
 }
