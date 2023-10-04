@@ -438,23 +438,17 @@
   }
 
   function handlePaste(e) {
-    const { index } = e.detail;
-
-    console.log($appActionClipboard);
+    let { index } = e.detail;
 
     if (typeof index === "undefined") {
-      configManager.update((s) => {
-        s.push(...$appActionClipboard);
-        return s;
-      });
-    } else {
-      configManager.update((s) => {
-        s.splice(index + 1, 0, ...$appActionClipboard);
-        return s;
-      });
+      index = $configManager.length;
     }
 
-    $configManager.forEach((e) => (e.selected = false));
+    configManager.update((s) => {
+      s.splice(index + 1, 0, ...$appActionClipboard);
+      s.forEach((e) => (e.selected = false));
+      return s;
+    });
 
     sendConfigurationToGrid();
     Analytics.track({
