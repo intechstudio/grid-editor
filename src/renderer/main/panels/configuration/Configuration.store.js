@@ -461,7 +461,8 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  let configManager = writable(new ConfigList());
+  let store = writable(new ConfigList());
+  let lastUpdateMethod = null;
 
   function createConfigListFrom(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
@@ -487,10 +488,10 @@ function create_configuration_manager() {
     return list;
   }
 
-  user_input.subscribe((store) => {
-    const list = createConfigListFrom(store);
-    configManager.set(list);
+  user_input.subscribe((ui) => {
+    const list = createConfigListFrom(ui);
+    store.set(list);
   });
 
-  return configManager;
+  return store;
 }

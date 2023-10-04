@@ -1,5 +1,5 @@
 <script>
-  import { get } from "svelte/store";
+  import { get, writable } from "svelte/store";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -65,12 +65,6 @@
   let isDragged = false;
   let scrollHeight = "100%";
   let draggedIndexes = [];
-  let enableConvert = false;
-  let enableCut = false;
-  let enableCopy = false;
-  let enablePaste = false;
-  let enableRemove = false;
-  let selectAllChecked = false;
   let autoScroll;
 
   onMount(() => {
@@ -104,11 +98,13 @@
     }
   }
 
-  $: handleConfigListChange($configManager);
+  $: {
+    if ($configManager) {
+      handleConfigManagerUpdate();
+    }
+  }
 
   $: handleUserInputChange($user_input);
-
-  $: enablePaste = $appActionClipboard.length > 0;
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
@@ -138,21 +134,6 @@
 
   function updateLocalSuggestions(list) {
     localDefinitions.update(list);
-  }
-
-  function deselectAll() {
-    enableCopy = false;
-    enableConvert = false;
-    enableCut = false;
-    enableRemove = false;
-    selectAllChecked = false;
-
-    configManager.update((s) => {
-      s.forEach((e) => {
-        e.selected = false;
-      });
-      return s;
-    });
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -225,18 +206,19 @@
     }
   }
 
-  function handleConfigListChange(configs) {
+  function handleConfigManagerUpdate() {
+    const configs = get(configManager);
     if (typeof configs === "undefined") {
       return;
     }
+
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
       configs[i].indentation = map[i];
     }
-
     updateLuaDebugStore(configs);
     updateLocalSuggestions(configs);
-    deselectAll();
+    return;
   }
 
   function handleError(e) {
@@ -379,45 +361,19 @@
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
 
-    const selectedConfig = $configManager[index];
+    const stack = [];
 
-    //Find the closing tag of the multiselect component
-    const multiSelect = selectedConfig.information.type === "composite_open";
-    if (multiSelect) {
-      let indentationDepth = 1;
-      for (
-        let i = index + 1;
-        i < $configManager.length && indentationDepth > 0;
-        ++i
-      ) {
-        //Another component is found inside the component, increase
-        //indentation depth.
-        if ($configManager[i].information.type === "composite_open") {
-          ++indentationDepth;
-        }
-        //Closing tag found inside the component, decrease
-        //indentation depth.
-        else if ($configManager[i].information.type === "composite_close") {
-          --indentationDepth;
-        }
-        $configManager[i].selected = value;
+    let n = index;
+    do {
+      const config = $configManager[n];
+      if (config.information.type === "composite_open") {
+        stack.push(config);
+      } else if (config.information.type === "composite_close") {
+        stack.pop();
       }
-    }
-
-    //Set MultiOptions values
-    const selectionCount = $configManager.reduce((acc, curr) => {
-      if (curr.selected) {
-        acc += 1;
-      }
-      return acc;
-    }, 0);
-
-    const isSelection = selectionCount > 0;
-
-    enableCopy = isSelection;
-    enableConvert = isSelection;
-    enableCut = isSelection;
-    enableRemove = isSelection;
+      config.selected = value;
+      ++n;
+    } while (stack.length > 0);
   }
 
   function handleConvertToCodeBlock(e) {
@@ -517,22 +473,6 @@
     });
   }
 
-  function handleSelectAll(e) {
-    const { value } = e.detail;
-
-    enableCopy = value;
-    enableConvert = value;
-    enableCut = value;
-    enableRemove = value;
-
-    configManager.update((s) => {
-      s.forEach((e) => {
-        e.selected = value;
-      });
-      return s;
-    });
-  }
-
   function handleDrag(e) {
     if (draggedIndexes.length > 0) {
       const index = draggedIndexes[0];
@@ -612,18 +552,11 @@
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
             <MultiSelect
-              {enableConvert}
-              {enableCut}
-              {enableCopy}
-              {enablePaste}
-              {enableRemove}
-              bind:selectAll={selectAllChecked}
               on:convert-to-code-block={handleConvertToCodeBlock}
               on:copy={handleCopy}
               on:cut={handleCut}
               on:paste={handlePaste}
               on:remove={handleRemove}
-              on:select-all={handleSelectAll}
             />
           </div>
         </div>
