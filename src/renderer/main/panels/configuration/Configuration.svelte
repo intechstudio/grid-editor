@@ -46,6 +46,7 @@
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
+  import { v4 as uuidv4 } from "uuid";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -98,11 +99,7 @@
     }
   }
 
-  $: {
-    if ($configManager) {
-      handleConfigManagerUpdate();
-    }
-  }
+  $: handleConfigManagerUpdate($configManager);
 
   $: handleUserInputChange($user_input);
 
@@ -134,6 +131,12 @@
 
   function updateLocalSuggestions(list) {
     localDefinitions.update(list);
+  }
+
+  function sendConfigurationToGrid() {
+    $configManager
+      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
+      .catch((e) => handleError(e));
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -206,11 +209,12 @@
     }
   }
 
-  function handleConfigManagerUpdate() {
-    const configs = get(configManager);
+  function handleConfigManagerUpdate(configs) {
     if (typeof configs === "undefined") {
       return;
     }
+
+    console.log("yay");
 
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
@@ -317,9 +321,7 @@
 
     $configManager = $configManager.filter((e) => typeof e !== "undefined");
 
-    $configManager
-      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
-      .catch((e) => handleError(e));
+    sendConfigurationToGrid();
   }
 
   function handleConfigUpdate(e) {
@@ -377,36 +379,41 @@
   }
 
   function handleConvertToCodeBlock(e) {
-    let list = $configManager.makeCopy();
+    //Get index of first selected action block
+    const index = $configManager.findIndex((e) => e.selected);
 
-    let script = "";
-    for (let config of $configManager) {
-      if (config.selected) {
-        if (config.checkSyntax() === false) {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "luanotok",
-            message: `Cannot merge actionblocks with syntax error!`,
-          });
-          return;
-        }
-        script += config.script + " ";
-      }
+    //Create new CodeBlock with merged code
+    const codeBlock = new ConfigObject({
+      parent: undefined,
+      short: "cb",
+      script: $configManager.reduce(
+        (script, config) =>
+          config.selected ? `${script} ${config.script}` : script,
+        ""
+      ),
+    });
+
+    //Check syntax
+    if (codeBlock.checkSyntax() === false) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "luanotok",
+        message: `Cannot merge actionblocks with syntax error!`,
+      });
+      return;
     }
 
-    const codeBlock = new ConfigObject({
-      parent: list,
-      short: "cb",
-      script: script,
-    });
-    const index = list.findIndex((e) => e.selected); //First
-    list.splice(index, 0, codeBlock);
-    list = list.filter((e) => !e.selected);
+    // Remove selected action blocks
+    configManager.update((s) => s.filter((config) => !config.selected));
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .catch((e) => handleError(e));
+    // Insert CodeBlock into position
+    configManager.update((s) => {
+      s.splice(index, 0, codeBlock);
+      return s;
+    });
+
+    sendConfigurationToGrid();
   }
 
   function handleCut(e) {
@@ -420,12 +427,8 @@
   }
 
   function handleCopy(e) {
-    let clipboard = [];
-    for (let config of $configManager) {
-      if (config.selected) {
-        clipboard.push(config);
-      }
-    }
+    const clipboard = $configManager.filter((e) => e.selected).makeCopy();
+    clipboard.forEach((e) => (e.id = uuidv4()));
     appActionClipboard.set(clipboard);
     Analytics.track({
       event: "Config Action",
@@ -436,21 +439,24 @@
 
   function handlePaste(e) {
     const { index } = e.detail;
-    let list = $configManager.makeCopy();
 
-    //TODO: Refactor this out
-    //DropZone indexing is shifted with -1
-    if (typeof index !== "undefined" && index + 1 < list.length) {
-      list.splice(index + 1, 0, ...$appActionClipboard);
+    console.log($appActionClipboard);
+
+    if (typeof index === "undefined") {
+      configManager.update((s) => {
+        s.push(...$appActionClipboard);
+        return s;
+      });
     } else {
-      for (const config of $appActionClipboard) {
-        list.push(config);
-      }
+      configManager.update((s) => {
+        s.splice(index + 1, 0, ...$appActionClipboard);
+        return s;
+      });
     }
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .catch((e) => handleError(e));
+    $configManager.forEach((e) => (e.selected = false));
+
+    sendConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Paste" },
@@ -459,13 +465,8 @@
   }
 
   function handleRemove(e) {
-    let list = $configManager.makeCopy();
-
-    list = list.filter((e) => !e.selected);
-
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .catch((e) => handleError(e));
+    configManager.update((s) => s.filter((config) => !config.selected));
+    sendConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Remove" },
@@ -608,7 +609,7 @@
               />
             {/if}
 
-            {#each $configManager as config, index (config)}
+            {#each $configManager as config, index (config.id)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}

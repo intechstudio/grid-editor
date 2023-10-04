@@ -41,6 +41,7 @@ import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import grid from "../../../protocol/grid-protocol.js";
+import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -57,12 +58,14 @@ export class ConfigObject {
     this.parent = parent;
     this.short = short;
     this.script = script;
+    this.id = uuidv4();
 
-    (async () => {
+    const init = async () => {
       if (config_components == []) {
         await init_config_block_library();
       }
-    })();
+    };
+    init();
 
     const res = getComponentInformation({ short: short });
     if (typeof res === "undefined") {
@@ -461,8 +464,7 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  let store = writable(new ConfigList());
-  let lastUpdateMethod = null;
+  const { subscribe, set, update } = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
@@ -490,8 +492,32 @@ function create_configuration_manager() {
 
   user_input.subscribe((ui) => {
     const list = createConfigListFrom(ui);
-    store.set(list);
+    set(list);
   });
 
-  return store;
+  return { subscribe, set, update };
+  return {
+    subscribe,
+    set: (s) => {
+      const k = s.map((e) => {
+        if (typeof e.id === "undefined") {
+          e.id = uuidv4();
+        }
+        return e;
+      });
+      console.log(s, k);
+      set(k);
+    },
+    update: (updateFunction) => {
+      update((s) => {
+        const k = s.map((e) => {
+          if (typeof e.id === "undefined") {
+            e.id = uuidv4();
+          }
+          return e;
+        });
+        return updateFunction(k);
+      });
+    },
+  };
 }

@@ -248,7 +248,6 @@
       const condition_sorting = ["if", "ei", "el", "en"];
 
       const allcomponents = getAllComponents();
-      console.log(allcomponents);
 
       if (allcomponents === undefined) {
         return undefined;
