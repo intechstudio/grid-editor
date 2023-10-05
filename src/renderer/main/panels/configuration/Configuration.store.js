@@ -410,24 +410,21 @@ export class ConfigList extends Array {
 
 export class ConfigTarget {
   constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
-    try {
-      const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
-      if (typeof device === "undefined") {
-        throw "Unknown device!";
-      }
-
-      this.device = { dx: dx, dy: dy };
-      this.page = page;
-      this.element = element;
-      this.eventType = eventType;
-
-      this.events = device.pages
-        .at(page)
-        .control_elements.find((e) => e.controlElementNumber == element).events;
-    } catch (e) {
-      console.error(`ConfigTarget: ${e}`);
-      throw e;
+    const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
     }
+
+    this.device = { dx: dx, dy: dy };
+    this.page = page;
+    this.element = element;
+    this.eventType = eventType;
+
+    const controlElement = device.pages
+      .at(page)
+      .control_elements.find((e) => e.controlElementNumber == element);
+    this.events = controlElement.events;
+    this.elementType = controlElement.controlElementType;
   }
 
   static createFrom({ userInput }) {
@@ -468,8 +465,12 @@ function create_configuration_manager() {
 
   function createConfigListFrom(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
-
     let list = new ConfigList();
+
+    if (typeof target === "undefined") {
+      return list;
+    }
+
     try {
       list = ConfigList.createFrom(target);
     } catch (e) {
@@ -496,28 +497,4 @@ function create_configuration_manager() {
   });
 
   return { subscribe, set, update };
-  return {
-    subscribe,
-    set: (s) => {
-      const k = s.map((e) => {
-        if (typeof e.id === "undefined") {
-          e.id = uuidv4();
-        }
-        return e;
-      });
-      console.log(s, k);
-      set(k);
-    },
-    update: (updateFunction) => {
-      update((s) => {
-        const k = s.map((e) => {
-          if (typeof e.id === "undefined") {
-            e.id = uuidv4();
-          }
-          return e;
-        });
-        return updateFunction(k);
-      });
-    },
-  };
 }

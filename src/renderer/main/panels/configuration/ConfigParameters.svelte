@@ -1,23 +1,19 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store.js";
 
-  import { get } from "svelte/store";
   import {
-    runtime,
     elementNameStore,
-    logger,
     user_input,
-    controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
-  import { onDestroy, onMount } from "svelte";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
-
-  import { Analytics } from "../../../runtime/analytics.js";
+  import { createEventDispatcher } from "svelte";
 
   export let events;
+
+  const dispatch = createEventDispatcher();
 
   let stringname;
 
@@ -32,90 +28,26 @@
 
   let selectedEvent;
 
-  $: selectedEvent = events.selected;
-
-  let loaded;
-
-  onMount(() => {});
-
-  onDestroy(() => {
-    loaded = false;
-  });
+  $: {
+    selectedEvent = events.selected;
+  }
 
   function handleSelectEvent(event) {
     selectedEvent = event;
     user_input.update_eventtype(event.value);
   }
 
-  function handleSelectElement(element) {
-    user_input.update_elementnumber(element);
-  }
-
-  function copyAllEventConfigsFromSelf() {
-    let callback = function () {
-      const li = get(user_input);
-      const rt = get(runtime);
-
-      const device = rt.find(
-        (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-      );
-      const pageIndex = device.pages.findIndex(
-        (x) => x.pageNumber == li.event.pagenumber
-      );
-      const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-        (x) => x.controlElementNumber == li.event.elementnumber
-      );
-
-      const events =
-        device.pages[pageIndex].control_elements[elementIndex].events;
-      const controlElementType =
-        device.pages[pageIndex].control_elements[elementIndex]
-          .controlElementType;
-
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementcopy",
-        message: `Events are copied!`,
-      });
-      controlElementClipboard.set({ controlElementType, events });
-    };
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementcopy",
-      message: `Copy events from element...`,
-    });
-
-    runtime.fetch_element_configuration_from_grid(callback);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
-  }
-
-  function overwriteAllEventConfigs() {
-    let clipboard = get(controlElementClipboard);
-    runtime.whole_element_overwrite(clipboard);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
-  }
-
-  function updateStringName(e) {
-    const name = e.target.value;
-    console.error("SORRY");
-  }
-
   function showControlElementNameOverlay() {
     $appSettings.overlays.controlElementName =
       !$appSettings.overlays.controlElementName;
+  }
+
+  function handleCopyAll(e) {
+    dispatch("copy-all");
+  }
+
+  function handleOverwriteAll(e) {
+    dispatch("overwrite-all");
   }
 </script>
 
@@ -177,9 +109,7 @@
             class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={() => {
-            copyAllEventConfigsFromSelf();
-          }}
+          on:click={handleCopyAll}
         >
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
         </button>
@@ -193,9 +123,7 @@
             class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={() => {
-            overwriteAllEventConfigs();
-          }}
+          on:click={handleOverwriteAll}
         >
           <SvgIcon displayMode="button" iconPath={"paste_all"} />
         </button>

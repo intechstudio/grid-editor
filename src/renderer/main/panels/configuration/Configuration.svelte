@@ -1,5 +1,5 @@
 <script>
-  import { get, writable } from "svelte/store";
+  import { get } from "svelte/store";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -17,6 +17,7 @@
     logger,
     user_input,
     appActionClipboard,
+    controlElementClipboard,
     luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
@@ -85,6 +86,7 @@
   }
 
   $: {
+    /*
     if ($writeBuffer.length > 0) {
       bufferValueChanged = true;
       //Display default
@@ -93,10 +95,13 @@
     } else {
       if (bufferValueChanged) {
         //Display User Input
-        //handleUserInputchange(); TODO: refactor
+        const current = ConfigTarget.createFrom({ userInput: $user_input });
+        const list = ConfigList.createFrom(current);
+        configManager.set(list);
         bufferValueChanged = false;
       }
     }
+    */
   }
 
   $: handleConfigManagerUpdate($configManager);
@@ -191,6 +196,7 @@
   }
 
   function handleUserInputChange(ui) {
+    console.log("ui");
     const target = ConfigTarget.createFrom({ userInput: ui });
     if (typeof target === "undefined") {
       return;
@@ -210,11 +216,10 @@
   }
 
   function handleConfigManagerUpdate(configs) {
+    console.log("config");
     if (typeof configs === "undefined") {
       return;
     }
-
-    console.log("yay");
 
     const map = ConfigList.getIndentationMap(configs);
     for (const i in map) {
@@ -272,12 +277,7 @@
     } else {
       $configManager.push(config);
     }
-
-    $configManager
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .catch((e) => handleError(e));
-
-    $configManager = $configManager;
+    sendConfigurationToGrid();
   }
 
   function handleDrop(e) {
@@ -326,18 +326,12 @@
 
   function handleConfigUpdate(e) {
     const { index, newConfig } = e.detail;
-
-    let list = $configManager.makeCopy();
-
     try {
-      list[index] = newConfig;
+      $configManager[index] = newConfig;
     } catch (e) {
       console.error(e);
     }
-
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .catch((e) => handleError(e));
+    sendConfigurationToGrid();
   }
 
   function handleDragStart(e) {
@@ -492,6 +486,94 @@
       }
     }
   }
+
+  function handleCopyAll() {
+    let callback = function () {
+      const current = ConfigTarget.createFrom({ userInput: $user_input });
+      const configsLists = [];
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = ConfigList.createFrom(target);
+        configsLists.push({ eventType: eventType, configs: list });
+      });
+
+      controlElementClipboard.set({
+        elementType: current.elementType,
+        data: configsLists,
+      });
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "elementcopy",
+        message: `Events are copied!`,
+      });
+    };
+
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementcopy",
+      message: `Copy events from element...`,
+    });
+
+    runtime.fetch_element_configuration_from_grid(callback);
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
+  }
+
+  function handleOverwriteAll() {
+    let clipboard = get(controlElementClipboard);
+    const current = ConfigTarget.createFrom({ userInput: $user_input });
+
+    if (current.elementType === clipboard.elementType) {
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = clipboard.data.find(
+          (e) => e.eventType === eventType
+        ).configs;
+        list.sendTo({ target: target }).catch((e) => handleError(e));
+      });
+
+      const list = clipboard.data.find(
+        (e) => events.selected.value === e.eventType
+      ).configs;
+      configManager.set(list);
+    } else {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "rejectoverwrite",
+        message: `Overwrite element failed! Current ${current.elementType} control 
+          element is not compatible with clipboards ${clipboard.elementType} type.`,
+      });
+    }
+
+    return;
+
+    //runtime.whole_element_overwrite(clipboard);
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col">
@@ -543,7 +625,11 @@
     >
       <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
         <div>
-          <ConfigParameters {events} />
+          <ConfigParameters
+            {events}
+            on:copy-all={handleCopyAll}
+            on:overwrite-all={handleOverwriteAll}
+          />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
             <MultiSelect

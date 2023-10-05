@@ -5,18 +5,21 @@
   import { createEventDispatcher } from "svelte";
   import { configManager } from "../Configuration.store";
   import { appActionClipboard } from "../../../../runtime/runtime.store";
+  import { user_input } from "../../../../runtime/runtime.store";
 
   const dispatch = createEventDispatcher();
 
   let isSelection = false;
   let clipboardEmpty = true;
+  let selectAllChecked = false;
 
   $: clipboardEmpty = $appActionClipboard.length == 0;
 
-  export let selectAll = undefined;
-
   $: {
     isSelection = typeof $configManager.find((e) => e.selected) !== "undefined";
+  }
+
+  $: {
   }
 
   function handleConvertToCodeBlockClicked(e) {
@@ -40,10 +43,19 @@
   }
 
   function handleSelectAllClicked(e) {
-    const { value } = e.detail;
+    const allSelected =
+      typeof $configManager.find((e) => e.selected == false) === "undefined";
     configManager.update((s) => {
       s.forEach((e) => {
-        e.selected = value;
+        if (isSelection) {
+          if (allSelected) {
+            e.selected = false;
+          } else {
+            e.selected = true;
+          }
+        } else {
+          e.selected = true;
+        }
       });
       return s;
     });
@@ -152,7 +164,10 @@
       </span>
     </BtnAndPopUp>
 
-    <Options on:selection-change={handleSelectAllClicked} />
+    <Options
+      bind:selected={selectAllChecked}
+      on:selection-change={handleSelectAllClicked}
+    />
   </div>
 </app-action-multi-select>
 
