@@ -143,7 +143,7 @@ export function changeOrder(node, { configs }) {
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
         // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
-        _configIds = [dragged.getAttribute("config-id")]; // this is used as an array, as multidrag is supported
+        _configIds = [Number(dragged.getAttribute("config-id"))]; // this is used as an array, as multidrag is supported
         dragged.style.opacity = "0.2";
         createCursor(dragged, dragged.clientWidth);
       }

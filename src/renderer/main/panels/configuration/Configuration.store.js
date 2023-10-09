@@ -118,6 +118,7 @@ export class ConfigObject {
     copy.component = this.component;
     copy.selected = this.selected;
     copy.toggled = this.toggled;
+    copy.id = uuidv4();
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -341,24 +342,8 @@ export class ConfigList extends Array {
     return lua;
   }
 
-  insert(config, atPosition) {
-    if (!(config instanceof ConfigObject)) {
-      throw "Invalid config object. Expected an instance of ConfigObject.";
-    }
-    //Make a deep copy
-    const copy = config.makeCopy();
-    copy.parent = this;
-    super.splice(atPosition, 0, copy);
-  }
-
-  push(config) {
-    if (!(config instanceof ConfigObject)) {
-      throw "Invalid config object. Expected an instance of ConfigObject.";
-    }
-    //Make a deep copy
-    const copy = config.makeCopy();
-    copy.parent = this;
-    super.push(copy);
+  insert(atPosition, ...configs) {
+    super.splice(atPosition, 0, ...configs);
   }
 
   remove(atPosition) {
@@ -378,33 +363,6 @@ export class ConfigList extends Array {
   //Returns true if config limit is NOT reached
   checkLength() {
     return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
-  }
-
-  // Override the slice() method to ensure custom properties are copied
-  slice(...args) {
-    const copy = super.slice(...args);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    return copy;
-  }
-
-  // Override the concat() method to ensure custom properties are copied
-  concat(...args) {
-    const copy = super.concat(...args);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    return copy;
-  }
-
-  // Override the splice() method to ensure custom properties are copied
-  splice(start, deleteCount, ...items) {
-    const copy = super.splice(start, deleteCount, ...items);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    return copy;
   }
 }
 
@@ -461,7 +419,7 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  const { subscribe, set, update } = writable(new ConfigList());
+  let store = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
@@ -492,9 +450,8 @@ function create_configuration_manager() {
   }
 
   user_input.subscribe((ui) => {
-    const list = createConfigListFrom(ui);
-    set(list);
+    store.set(createConfigListFrom(ui));
   });
 
-  return { subscribe, set, update };
+  return store;
 }

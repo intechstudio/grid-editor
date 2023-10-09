@@ -53,11 +53,10 @@
   }
 
   function handleOutput(e) {
-    config.short = e.detail.short;
-    config.script = e.detail.script;
     dispatch("update", {
       index: index,
-      newConfig: config,
+      short: e.detail.short,
+      script: e.detail.script,
     });
   }
 
