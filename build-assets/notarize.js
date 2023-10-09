@@ -2,7 +2,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { notarize } = require("@electron/notarize");
-const package = require("../package.json");
+const builder = require("../electron-builder.json");
 
 module.exports = async function (params) {
   // Only notarize the app if building for macOS and the NOTARIZE environment
@@ -15,7 +15,7 @@ module.exports = async function (params) {
 
   // This should match the appId from electron-builder. It reads from
   // package.json so you won't have to maintain two separate configurations.
-  let appId = package.build.appId;
+  let appId = builder.appId;
   if (!appId) {
     console.error("appId is missing from build configuration 'package.json'");
   }
