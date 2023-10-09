@@ -26,7 +26,6 @@
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
 
-  export let animation = false;
   export let userHelper = false;
   export let index;
   export let configs = [];
@@ -263,7 +262,6 @@
 
       // Add all blocks to objects :/
       blocks.forEach((elem) => {
-        /*     console.log(elem, "elem"); */
         if (elem.category === null) {
           return;
         }
@@ -338,6 +336,7 @@
     }
 
     configSelection = !configSelection;
+    console.log(configSelection);
 
     /* console.log("Open Picker"); */
     actionPickerTimestamp = Date.now();
@@ -358,7 +357,7 @@
     initConfig();
   }
 
-  /*   $: console.log(config, "config"); */
+  $: console.log(configSelection);
 </script>
 
 {#if !userHelper}
@@ -372,7 +371,7 @@
     on:mouseleave={() => {
       visible = false;
     }}
-    class="{(visible || configSelection) && !animation
+    class="{visible || configSelection
       ? 'opacity-100'
       : 'opacity-0'} transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
   >
@@ -410,7 +409,7 @@
     class="cursor-pointer flex w-full items-center"
   >
     <div
-      class="{(visible || configSelection) && !animation
+      class="{visible || configSelection
         ? 'border-pick bg-select-saturate-10'
         : 'border-secondary'} transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2"
     >
@@ -427,8 +426,6 @@
       on:offset-top={(e) => {
         topOffset = e.detail;
       }}
-      style="right: calc(100% + 2rem);top:{-250 +
-        topOffset}px;width:300px;height:500px;z-index:9999"
       class="absolute shadow-md rounded-md bg-primary border border-gray-700 p-4"
     >
       <wrapper
@@ -465,7 +462,7 @@
           </svg>
         </div>
 
-        {#if $appActionClipboard.length}
+        {#if $appActionClipboard.length > 0}
           <button
             on:click={handlePaste}
             class="flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-sm mr-8 mb-2 px-4 py-1 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500"

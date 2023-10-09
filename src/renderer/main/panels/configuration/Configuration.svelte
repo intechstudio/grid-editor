@@ -52,8 +52,6 @@
   //////////////////////////////////////////////////////////////////////////////
 
   let access_tree = {};
-  let bufferValueChanged = false;
-  let animation = false;
   let isDragged = false;
   let scrollHeight = "100%";
   let draggedIndexes = [];
@@ -557,12 +555,6 @@
           on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
-          on:anim-start={() => {
-            animation = true;
-          }}
-          on:anim-end={() => {
-            animation = false;
-          }}
           class="flex flex-col h-full relative justify-between"
         >
           <config-list
@@ -586,7 +578,6 @@
                 {#if !isDragged}
                   <AddAction
                     on:paste={handlePaste}
-                    {animation}
                     configs={$configManager}
                     {index}
                     on:new-config={handleConfigInsertion}
@@ -619,7 +610,6 @@
               <AddAction
                 index={$configManager.length}
                 on:paste={handlePaste}
-                {animation}
                 configs={$configManager}
                 on:new-config={handleConfigInsertion}
               />
@@ -636,7 +626,6 @@
           <div class="w-full flex justify-between mb-3">
             <AddAction
               userHelper={true}
-              {animation}
               configs={$configManager}
               index={undefined}
               on:paste={handlePaste}
