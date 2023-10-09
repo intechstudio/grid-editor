@@ -84,6 +84,7 @@ export function changeOrder(node, { configs }) {
     selectionLength = document.getSelection().toString().length;
   }
 
+  //TODO: Remove this stufff....
   function handleMouseMove(e) {
     // variables
     const { id, clientHeight } = e.target;

@@ -70,7 +70,6 @@
 
     dispatch("new-config", {
       config: new ConfigObject({
-        parent: undefined,
         short: cfg.short,
         script: cfg.script,
       }),
@@ -364,6 +363,7 @@
 
 {#if !userHelper}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -398,6 +398,7 @@
   </action-placeholder>
 {:else}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <action-placeholder
     on:click={openActionPicker}
     on:mouseenter={() => {
@@ -406,7 +407,7 @@
     on:mouseleave={() => {
       visible = false;
     }}
-    class=" cursor-pointer flex w-full items-center"
+    class="cursor-pointer flex w-full items-center"
   >
     <div
       class="{(visible || configSelection) && !animation
@@ -439,6 +440,7 @@
         class="flex flex-col flex-grow h-full"
       >
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           on:click={() => {
             configSelection = false;
@@ -480,6 +482,7 @@
               <div class="w-full flex justify-start py-1 h-full flex-wrap">
                 {#each option.collection as action}
                   <!-- svelte-ignore a11y-click-events-have-key-events -->
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <div
                     style="--action-color: {action.color};"
                     use:addOnDoubleClick

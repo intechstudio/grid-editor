@@ -3,7 +3,6 @@ import { get, writable, derived } from "svelte/store";
 import {
   runtime,
   user_input,
-  luadebug_store,
   getDeviceName,
   eventType,
 } from "../../../runtime/runtime.store";
@@ -50,12 +49,7 @@ const luaminOptions = {
 };
 
 export class ConfigObject {
-  constructor({ parent, short, script }) {
-    if (!(parent instanceof ConfigList) && typeof parent !== "undefined") {
-      throw "Invalid parent object. Expected an instance of ConfigList.";
-    }
-
-    this.parent = parent;
+  constructor({ short, script }) {
     this.short = short;
     this.script = script;
     this.id = uuidv4();
@@ -110,7 +104,6 @@ export class ConfigObject {
 
   makeCopy() {
     const copy = new ConfigObject({
-      parent: this.parent,
       short: this.short,
       script: this.script,
     });
@@ -265,9 +258,6 @@ export class ConfigList extends Array {
         target.eventType
       );
 
-      //TODO: Refactor this out
-      luadebug_store.update_config(actionString);
-
       resolve("Event sent to grid.");
     });
   }
@@ -326,7 +316,6 @@ export class ConfigList extends Array {
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({
-        parent: this,
         //Extract short, e.g.: '--[[@gms]]' => 'gms'
         short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
         script: configList[i + 1].trim(),

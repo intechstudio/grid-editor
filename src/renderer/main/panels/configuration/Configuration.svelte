@@ -6,7 +6,7 @@
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
 
-  import ConfigParameters from "./ConfigParameters.svelte";
+  import EventPanel from "./EventPanel.svelte";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
@@ -18,7 +18,6 @@
     user_input,
     appActionClipboard,
     controlElementClipboard,
-    luadebug_store,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
 
@@ -52,15 +51,6 @@
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
-  //TODO: Refactor this out
-  class EventList {
-    constructor({ options = ["", "", ""], selected = "" } = {}) {
-      this.options = options;
-      this.selected = selected;
-    }
-  }
-
-  let events = new EventList();
   let access_tree = {};
   let bufferValueChanged = false;
   let animation = false;
@@ -69,6 +59,7 @@
   let draggedIndexes = [];
   let autoScroll;
   let dropIndex = undefined;
+  let isSystemEventSelected = false;
 
   onMount(() => {
     init_config_block_library();
@@ -86,55 +77,13 @@
     }
   }
 
-  $: {
-    /*
-    if ($writeBuffer.length > 0) {
-      bufferValueChanged = true;
-      //Display default
-      configManager.set(new ConfigList());
-      events = new EventList();
-    } else {
-      if (bufferValueChanged) {
-        //Display User Input
-        const current = ConfigTarget.createFrom({ userInput: $user_input });
-        const list = ConfigList.createFrom(current);
-        configManager.set(list);
-        bufferValueChanged = false;
-      }
-    }
-    */
-  }
-
   $: handleConfigManagerUpdate($configManager);
 
-  $: handleUserInputChange($user_input);
+  $: isSystemEventSelected = $user_input.event.elementnumber == 255;
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
-
-  function getEventList(target) {
-    if (typeof target === "undefined") {
-      return undefined;
-    }
-
-    //Get available events
-    const events = new EventList();
-    events.options = target.events.map((e) => e.event);
-
-    //Get selected event
-    events.selected = target.events.find(
-      (e) => target.eventType == e.event.value
-    ).event;
-
-    return events;
-  }
-
-  //TODO: Refactor this out
-  function updateLuaDebugStore(list) {
-    $luadebug_store.configScript = list.toConfigScript();
-    $luadebug_store.syntaxError = list.checkSyntax();
-  }
 
   function updateLocalSuggestions(list) {
     localDefinitions.update(list);
@@ -150,7 +99,7 @@
   /////////////////           EVENT HANDLERS          //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-  //TODO: Refactor this out!
+  //TODO: Is there a better way?
   function handleChangeEventTab(arg) {
     if ($writeBuffer.length > 0) {
       logger.set({
@@ -162,10 +111,7 @@
       return;
     }
 
-    $appSettings.configType = arg;
-
     if (arg == "systemEvents") {
-      // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {
         ui.event.elementnumber = 255;
         ui.event.eventtype = 4;
@@ -197,39 +143,18 @@
     }
   }
 
-  function handleUserInputChange(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-
-    //TODO: Refactor this out
-    if (typeof target === "undefined") {
-      events = new EventList();
-      return;
-    }
-
-    //Set the available events
-    if (typeof target !== "undefined") {
-      events = getEventList(target);
-    }
-
-    //Set selected tab tab
-    //TODO: Refactor this out
-    if (target.element == 255) {
-      $appSettings.configType = "systemEvents";
-    } else {
-      $appSettings.configType = "uiEvents";
-    }
-  }
-
   function handleConfigManagerUpdate(list) {
     if (typeof list === "undefined") {
       return;
     }
 
+    console.log(list);
+
     const map = ConfigList.getIndentationMap(list);
     for (const i in map) {
       list[i].indentation = map[i];
     }
-    updateLuaDebugStore(list);
+
     updateLocalSuggestions(list);
   }
 
@@ -286,9 +211,13 @@
     sendCurrentConfigurationToGrid();
   }
 
-  //TODO: Rethink indexing of dropzones
   function handleDrop(e) {
-    const targetIndex = dropIndex + 1;
+    if (typeof dropIndex === "undefined") {
+      return;
+    }
+
+    const targetIndex = dropIndex;
+    dropIndex = undefined;
 
     //Check for incorrect dropzones
     const firstIndex = draggedIndexes.at(0);
@@ -343,7 +272,8 @@
   }
 
   function handleDropTargetChange(e) {
-    dropIndex = e.detail.drop_target;
+    const { index } = e.detail;
+    dropIndex = index;
   }
 
   function handleSelectionChange(e) {
@@ -367,19 +297,12 @@
   }
 
   function handleConvertToCodeBlock(e) {
-    //Get index of first selected action block
-    //TODO: make it a parameter
-    const index = $configManager.findIndex((e) => e.selected);
+    const { configs, index } = e.detail;
 
     //Create new CodeBlock with merged code
     const codeBlock = new ConfigObject({
-      parent: undefined,
       short: "cb",
-      script: $configManager.reduce(
-        (script, config) =>
-          config.selected ? `${script} ${config.script}` : script,
-        ""
-      ),
+      script: configs.map((e) => e.script).join(" "),
     });
 
     //Check syntax
@@ -562,9 +485,9 @@
   }
 </script>
 
-<configuration class="w-full h-full flex flex-col">
-  <div class="bg-primary py-5 flex flex-col justify-center">
-    <div class="flex flex-row items-start bg-primary py-2 px-10">
+<configuration class="w-full h-full flex flex-col overflow-clip bg-primary">
+  <div class="py-5 flex flex-col justify-center">
+    <div class="flex flex-row items-start py-2 px-10">
       <button
         use:setTooltip={{
           key: "configuration_ui_events",
@@ -574,7 +497,7 @@
         on:click={() => {
           handleChangeEventTab("uiEvents");
         }}
-        class="{$appSettings.configType == 'uiEvents'
+        class="{!isSystemEventSelected
           ? 'shadow-md bg-pick text-white'
           : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
@@ -590,7 +513,7 @@
         on:click={() => {
           handleChangeEventTab("systemEvents");
         }}
-        class="{$appSettings.configType == 'systemEvents'
+        class="{isSystemEventSelected
           ? 'shadow-md bg-pick text-white'
           : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary '} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
@@ -599,20 +522,19 @@
     </div>
   </div>
 
-  {#key $appSettings.configType == "uiEvents"}
+  {#key !isSystemEventSelected}
     <container
       class="flex flex-col h-full"
       in:fly|global={{
-        x: $appSettings.configType == "uiEvents" ? -5 : 5,
+        x: !isSystemEventSelected ? -5 : 5,
         opacity: 0.5,
         duration: 200,
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
+      <configs class="w-full h-full flex flex-col px-4 pb-2">
         <div>
-          <ConfigParameters
-            {events}
+          <EventPanel
             on:copy-all={handleCopyAll}
             on:overwrite-all={handleOverwriteAll}
           />
@@ -633,7 +555,6 @@
           use:changeOrder={(this, { configs: $configManager })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
-          on:drop-target={handleDropTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
           on:anim-start={() => {
@@ -657,29 +578,26 @@
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
-            {#if !isDragged}
-              <AddAction
-                index={-1}
-                on:paste={handlePaste}
-                {animation}
-                configs={$configManager}
-                on:new-config={handleConfigInsertion}
-              />
-            {:else}
-              <DropZone
-                index={-1}
-                drop_target={dropIndex}
-                drag_target={draggedIndexes}
-                {animation}
-                drag_start={isDragged}
-              />
-            {/if}
-
             {#each $configManager as config, index (config.id)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}
               >
+                {#if !isDragged}
+                  <AddAction
+                    on:paste={handlePaste}
+                    {animation}
+                    configs={$configManager}
+                    {index}
+                    on:new-config={handleConfigInsertion}
+                  />
+                {:else}
+                  <DropZone
+                    {index}
+                    drag_target={draggedIndexes}
+                    on:drop-target-change={handleDropTargetChange}
+                  />
+                {/if}
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     {index}
@@ -695,26 +613,23 @@
                     on:selection-change={handleSelectionChange}
                   />
                 </div>
-
-                {#if !isDragged}
-                  <AddAction
-                    on:paste={handlePaste}
-                    {animation}
-                    configs={$configManager}
-                    {index}
-                    on:new-config={handleConfigInsertion}
-                  />
-                {:else}
-                  <DropZone
-                    {index}
-                    drag_target={draggedIndexes}
-                    drop_target={dropIndex}
-                    {animation}
-                    drag_start={isDragged}
-                  />
-                {/if}
               </anim-block>
             {/each}
+            {#if !isDragged}
+              <AddAction
+                index={$configManager.length}
+                on:paste={handlePaste}
+                {animation}
+                configs={$configManager}
+                on:new-config={handleConfigInsertion}
+              />
+            {:else}
+              <DropZone
+                index={$configManager.length}
+                drag_target={draggedIndexes}
+                on:drop-target-change={handleDropTargetChange}
+              />
+            {/if}
           </config-list>
         </div>
         <container class="flex flex-col w-full">

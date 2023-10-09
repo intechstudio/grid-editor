@@ -5,7 +5,6 @@
   import { createEventDispatcher } from "svelte";
   import { configManager } from "../Configuration.store";
   import { appActionClipboard } from "../../../../runtime/runtime.store";
-  import { user_input } from "../../../../runtime/runtime.store";
 
   const dispatch = createEventDispatcher();
 
@@ -19,11 +18,11 @@
     isSelection = typeof $configManager.find((e) => e.selected) !== "undefined";
   }
 
-  $: {
-  }
-
   function handleConvertToCodeBlockClicked(e) {
-    dispatch("convert-to-code-block");
+    dispatch("convert-to-code-block", {
+      configs: $configManager.filter((e) => e.selected),
+      index: $configManager.find((e) => e.selected), //First selected
+    });
   }
 
   function handleCutClicked(e) {
