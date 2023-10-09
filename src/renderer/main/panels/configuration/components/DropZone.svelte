@@ -1,11 +1,12 @@
 <script>
+  import { createEventDispatcher } from "svelte";
   export let index;
-  export let drag_start;
-  export let drop_target;
   export let drag_target;
-  export let animation;
+
+  const dispatch = createEventDispatcher();
 
   let dropZoneEnabled = true;
+  let hovered = false;
 
   $: if (drag_target.length === 1) {
     const dragIndex = Number(drag_target.at(0));
@@ -17,21 +18,33 @@
   }
 
   function handleDrag(dragIndex) {
-    dropZoneEnabled = index != dragIndex - 1 && index != dragIndex;
+    dropZoneEnabled = index != dragIndex && index != dragIndex + 1;
   }
 
   function handleMultiDrag(firstDragIndex, lastDragIndex) {
-    dropZoneEnabled = index < firstDragIndex - 1 || index > lastDragIndex;
+    dropZoneEnabled = index < firstDragIndex || index > lastDragIndex;
+  }
+
+  function handleMouseOver() {
+    hovered = true;
+    dispatch("drop-target-change", { index: index });
+  }
+
+  function handleMouseOut() {
+    hovered = false;
+    dispatch("drop-target-change", { index: undefined });
   }
 </script>
 
-<!-- enabled drop zone ui, id="dz-" -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <drop-zone
-  id="dz-{index}"
   class="block select-none focus:outline-none border-none outline-none"
+  on:mouseover={handleMouseOver}
+  on:mouseout={handleMouseOut}
 >
   <div
-    class="{drop_target == index && drag_start && !animation
+    class="{hovered
       ? 'opacity-100 '
       : 'opacity-0 '} h-5 w-full pointer-events-none transition-opacity duration-300 flex items-center"
   >

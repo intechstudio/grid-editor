@@ -87,7 +87,6 @@ function createAppSettingsStore(persistent) {
     selectedDisplay: "",
     changeOnEvent: "event",
     layoutMode: false,
-    configType: "uiEvents",
     stringNameOverlay: false,
     preferences: false,
     rightPanel: "Configuration",

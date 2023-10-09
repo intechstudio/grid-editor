@@ -149,7 +149,9 @@
   }
 </script>
 
-<code-block class="{$$props.class} w-full flex flex-col p-4 pb-2">
+<code-block
+  class="{$$props.class} w-full flex flex-col p-4 pb-2 pointer-events-auto"
+>
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 

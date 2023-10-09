@@ -101,7 +101,9 @@
   }
 </script>
 
-<action-midi class="{$$props.class} flex flex-col w-full pb-2 px-2">
+<action-midi
+  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
+>
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />

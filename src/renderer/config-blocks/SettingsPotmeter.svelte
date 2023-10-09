@@ -98,7 +98,9 @@
   ];
 </script>
 
-<potmeter-settings class="{$$props.class} flex flex-col w-full p-2">
+<potmeter-settings
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     <div class="w-1/2 flex flex-col">
       <div class="w-full px-2">

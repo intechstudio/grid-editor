@@ -183,28 +183,6 @@ export function update_ledColorStore(descr) {
 //Template logger object: { type: "", message: "", classname: "" }
 export const logger = writable();
 
-//debug monitor lua section
-function create_luadebug_store() {
-  const store = writable({
-    configScript: "",
-    syntaxError: false,
-    enabled: true,
-    data: [],
-  });
-
-  return {
-    ...store,
-    update_config: (value) => {
-      store.update((s) => {
-        s.config = value;
-        return s;
-      });
-    },
-  };
-}
-
-export const luadebug_store = create_luadebug_store();
-
 function create_user_input() {
   const defaultValues = {
     brc: {

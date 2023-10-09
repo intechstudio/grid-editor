@@ -37,6 +37,6 @@
   }
 </script>
 
-<else-block class="{$$props.class} text-white">
+<else-block class="{$$props.class} text-white pointer-events-auto">
   {information.blockTitle}
 </else-block>

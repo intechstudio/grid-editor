@@ -84,6 +84,7 @@ export function changeOrder(node, { configs }) {
     selectionLength = document.getSelection().toString().length;
   }
 
+  //TODO: Remove this stufff....
   function handleMouseMove(e) {
     // variables
     const { id, clientHeight } = e.target;
@@ -108,7 +109,6 @@ export function changeOrder(node, { configs }) {
         node.dispatchEvent(new CustomEvent("drag-end"));
         console.log("This cannot be moved!");
       } else {
-        console.log("Move");
         node.dispatchEvent(new CustomEvent("drag-start"));
         moveDisabled = false;
       }
@@ -144,7 +144,7 @@ export function changeOrder(node, { configs }) {
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
         // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
-        _configIds = [dragged.getAttribute("config-id")]; // this is used as an array, as multidrag is supported
+        _configIds = [Number(dragged.getAttribute("config-id"))]; // this is used as an array, as multidrag is supported
         dragged.style.opacity = "0.2";
         createCursor(dragged, dragged.clientWidth);
       }

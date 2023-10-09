@@ -104,7 +104,9 @@
   }
 </script>
 
-<timer-stop class="{$$props.class} flex flex-col w-full p-2">
+<timer-stop
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Element Number</div>
     <AtomicInput

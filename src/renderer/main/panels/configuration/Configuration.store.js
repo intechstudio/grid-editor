@@ -1,9 +1,8 @@
-import { get, writable } from "svelte/store";
+import { get, writable, derived } from "svelte/store";
 
 import {
   runtime,
   user_input,
-  luadebug_store,
   getDeviceName,
   eventType,
 } from "../../../runtime/runtime.store";
@@ -41,6 +40,7 @@ import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import grid from "../../../protocol/grid-protocol.js";
+import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -49,20 +49,17 @@ const luaminOptions = {
 };
 
 export class ConfigObject {
-  constructor({ parent, short, script }) {
-    if (!(parent instanceof ConfigList) && typeof parent !== "undefined") {
-      throw "Invalid parent object. Expected an instance of ConfigList.";
-    }
-
-    this.parent = parent;
+  constructor({ short, script }) {
     this.short = short;
     this.script = script;
+    this.id = uuidv4();
 
-    (async () => {
+    const init = async () => {
       if (config_components == []) {
         await init_config_block_library();
       }
-    })();
+    };
+    init();
 
     const res = getComponentInformation({ short: short });
     if (typeof res === "undefined") {
@@ -107,7 +104,6 @@ export class ConfigObject {
 
   makeCopy() {
     const copy = new ConfigObject({
-      parent: this.parent,
       short: this.short,
       script: this.script,
     });
@@ -115,6 +111,7 @@ export class ConfigObject {
     copy.component = this.component;
     copy.selected = this.selected;
     copy.toggled = this.toggled;
+    copy.id = uuidv4();
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -186,16 +183,11 @@ export class UnknownEventException extends Error {
 }
 
 export class ConfigList extends Array {
-  //Internal private list
-  target = undefined;
-
   makeCopy() {
     const copy = new ConfigList();
     for (const config of this) {
       copy.push(config.makeCopy());
     }
-
-    copy.target = this.target;
 
     // Copy any additional properties that were added later
     for (const prop in this) {
@@ -228,28 +220,13 @@ export class ConfigList extends Array {
   }
 
   static createFrom(target) {
-    if (!(target instanceof ConfigTarget)) {
-      throw "Invalid target object. Expected an instance of ConfigTarget.";
-    }
-
-    this.target = target;
-
     const config = new ConfigList();
-    config.target = target;
-    config.#Init();
+    config.#InitFrom(target);
     return config;
   }
 
   sendTo({ target }) {
-    return new Promise((resolve, reject) => {
-      if (!(target instanceof ConfigTarget)) {
-        reject(
-          new Error(
-            `Invalid target object (${target}). Expected an instance of ConfigTarget.`
-          )
-        );
-      }
-
+    return new Promise((resolve) => {
       if (!this.checkLength()) {
         throw {
           type: "lengthError",
@@ -260,19 +237,6 @@ export class ConfigList extends Array {
           event: { no: target.eventType, type: eventType[target.eventType] },
         };
       }
-
-      /*
-      if (!this.checkSyntax()) {
-        throw {
-          type: "syntaxError",
-          device: getDeviceName(target.device.dx, target.device.dy),
-          x: target.device.dx,
-          y: target.device.dy,
-          element: { no: target.element },
-          event: { no: target.eventType, type: eventType[target.eventType] },
-        };
-      }
-      */
 
       const actionString = this.toConfigScript();
 
@@ -294,36 +258,31 @@ export class ConfigList extends Array {
         target.eventType
       );
 
-      //TODO: Refactor this out
-      luadebug_store.update_config(actionString);
-
       resolve("Event sent to grid.");
     });
   }
 
-  #Init() {
+  #InitFrom(target) {
     const rt = get(runtime);
     const device = rt.find(
-      (e) => e.dx == this.target.device.dx && e.dy == this.target.device.dy
+      (e) => e.dx == target.device.dx && e.dy == target.device.dy
     );
 
     if (typeof device === "undefined") {
       throw "Unknown device!";
     }
 
-    const page = device.pages[this.target.page];
+    const page = device.pages[target.page];
 
     const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.target.element
+      (e) => e.controlElementNumber == target.element
     );
 
-    let event = element.events.find(
-      (e) => e.event.value == this.target.eventType
-    );
+    let event = element.events.find((e) => e.event.value == target.eventType);
 
     if (typeof event === "undefined") {
       throw new UnknownEventException(
-        `Event type ${this.target.eventType} does not exist under control element ${this.target.element}`
+        `Event type ${target.eventType} does not exist under control element ${target.element}`
       );
     }
 
@@ -357,7 +316,6 @@ export class ConfigList extends Array {
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({
-        parent: this,
         //Extract short, e.g.: '--[[@gms]]' => 'gms'
         short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
         script: configList[i + 1].trim(),
@@ -373,24 +331,8 @@ export class ConfigList extends Array {
     return lua;
   }
 
-  insert(config, atPosition) {
-    if (!(config instanceof ConfigObject)) {
-      throw "Invalid config object. Expected an instance of ConfigObject.";
-    }
-    //Make a deep copy
-    const copy = config.makeCopy();
-    copy.parent = this;
-    super.splice(atPosition, 0, copy);
-  }
-
-  push(config) {
-    if (!(config instanceof ConfigObject)) {
-      throw "Invalid config object. Expected an instance of ConfigObject.";
-    }
-    //Make a deep copy
-    const copy = config.makeCopy();
-    copy.parent = this;
-    super.push(copy);
+  insert(atPosition, ...configs) {
+    super.splice(atPosition, 0, ...configs);
   }
 
   remove(atPosition) {
@@ -411,56 +353,37 @@ export class ConfigList extends Array {
   checkLength() {
     return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
   }
-
-  // Override the slice() method to ensure custom properties are copied
-  slice(...args) {
-    const copy = super.slice(...args);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    copy.target = this.target;
-    return copy;
-  }
-
-  // Override the concat() method to ensure custom properties are copied
-  concat(...args) {
-    const copy = super.concat(...args);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    copy.target = this.target;
-    return copy;
-  }
-
-  // Override the splice() method to ensure custom properties are copied
-  splice(start, deleteCount, ...items) {
-    const copy = super.splice(start, deleteCount, ...items);
-    for (const obj of copy) {
-      obj.parent = copy;
-    }
-    copy.target = this.target;
-    return copy;
-  }
 }
 
 export class ConfigTarget {
   constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
+    const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
+    }
+
+    this.device = { dx: dx, dy: dy };
+    this.page = page;
+    this.element = element;
+    this.eventType = eventType;
+
+    const controlElement = device.pages
+      .at(page)
+      .control_elements.find((e) => e.controlElementNumber == element);
+    this.events = controlElement.events;
+    this.elementType = controlElement.controlElementType;
+  }
+
+  static createFrom({ userInput }) {
     try {
-      const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
-      if (typeof device === "undefined") {
-        throw "Unknown device!";
-      }
-
-      this.device = { dx: dx, dy: dy };
-      this.page = page;
-      this.element = element;
-      this.eventType = eventType;
-
-      this.events = device.pages
-        .at(page)
-        .control_elements.find((e) => e.controlElementNumber == element).events;
+      return new ConfigTarget({
+        device: { dx: userInput.brc.dx, dy: userInput.brc.dy },
+        page: userInput.event.pagenumber,
+        element: userInput.event.elementnumber,
+        eventType: userInput.event.eventtype,
+      });
     } catch (e) {
-      console.error(`ConfigTarget: ${e}`);
+      return undefined;
     }
   }
 
@@ -480,4 +403,44 @@ export class ConfigTarget {
       return undefined;
     }
   }
+}
+
+export const configManager = create_configuration_manager();
+
+function create_configuration_manager() {
+  let store = writable(new ConfigList());
+
+  function createConfigListFrom(ui) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
+    let list = new ConfigList();
+
+    if (typeof target === "undefined") {
+      return list;
+    }
+
+    try {
+      list = ConfigList.createFrom(target);
+    } catch (e) {
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+      } else {
+        //Unknown error, display default
+        console.error(`Configuration: ${e}`);
+      }
+    }
+    return list;
+  }
+
+  user_input.subscribe((ui) => {
+    store.set(createConfigListFrom(ui));
+  });
+
+  return store;
 }

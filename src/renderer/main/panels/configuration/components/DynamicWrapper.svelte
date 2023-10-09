@@ -27,7 +27,6 @@
   export let access_tree;
   export let index = undefined;
   export let config;
-  export let indentation = 0;
 
   $: syntaxError = !config.checkSyntax();
 
@@ -41,7 +40,6 @@
     const new_config = components.find((e) => e.information.name === name);
     console.log(new_config);
     const obj = new ConfigObject({
-      parent: config.parent,
       short: new_config.information.short,
       script: new_config.information.defaultLua,
     });
@@ -54,11 +52,10 @@
   }
 
   function handleOutput(e) {
-    config.short = e.detail.short;
-    config.script = e.detail.script;
     dispatch("update", {
       index: index,
-      newConfig: config,
+      short: e.detail.short,
+      script: e.detail.script,
     });
   }
 
@@ -85,7 +82,7 @@
 <wrapper
   class="flex flex-grow border-none outline-none transition-opacity duration-300"
 >
-  {#each Array(indentation) as n}
+  {#each Array(config.indentation) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>
@@ -136,7 +133,7 @@
           <!-- Body of the Action block when toggled -->
           <svelte:component
             this={config.component}
-            class="h-full w-full px-2 -my-[1px] pointer-events-auto"
+            class="h-full w-full px-2 -my-[1px]"
             {index}
             {config}
             {access_tree}

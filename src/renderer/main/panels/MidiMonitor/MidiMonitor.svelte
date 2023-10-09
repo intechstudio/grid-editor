@@ -9,9 +9,9 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import { luadebug_store } from "../../../runtime/runtime.store";
   import grid from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
+  import { configManager } from "../../panels/configuration/Configuration.store";
 
   // ok but slow nice
 
@@ -19,10 +19,9 @@
   const syntaxError = writable(false);
 
   $: {
-    configScriptLength.set($luadebug_store.configScript.length);
-    syntaxError.set($luadebug_store.syntaxError);
+    configScriptLength.set($configManager.toConfigScript().length);
+    syntaxError.set($configManager.checkSyntax());
   }
-
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;
     const { subscribe, set } = writable(initialValue);

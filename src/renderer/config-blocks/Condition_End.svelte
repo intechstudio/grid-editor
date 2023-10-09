@@ -40,6 +40,6 @@
   }
 </script>
 
-<endif-block class="{$$props.class} text-white">
+<endif-block class="{$$props.class} text-white pointer-events-auto">
   {information.blockTitle}
 </endif-block>

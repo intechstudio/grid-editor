@@ -1,12 +1,12 @@
 <script>
-  import { get, writable } from "svelte/store";
+  import { get } from "svelte/store";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
 
-  import ConfigParameters from "./ConfigParameters.svelte";
+  import EventPanel from "./EventPanel.svelte";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
@@ -17,7 +17,7 @@
     logger,
     user_input,
     appActionClipboard,
-    luadebug_store,
+    controlElementClipboard,
     localDefinitions,
   } from "../../../runtime/runtime.store.js";
 
@@ -27,7 +27,7 @@
     ConfigList,
     ConfigObject,
     ConfigTarget,
-    UnknownEventException,
+    configManager,
   } from "./Configuration.store.js";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
@@ -47,21 +47,60 @@
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
 
-  const configs = writable([]);
-
-  let events = { options: ["", "", ""], selected: "" };
-  let elements = { options: [], selected: "" };
-
-  function displayDefault() {
-    configs.set([]);
-    events = { options: ["", "", ""], selected: "" };
-    elements = { options: [], selected: "" };
-  }
+  //////////////////////////////////////////////////////////////////////////////
+  /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let access_tree = {};
+  let bufferValueChanged = false;
+  let animation = false;
+  let isDragged = false;
+  let scrollHeight = "100%";
+  let draggedIndexes = [];
+  let autoScroll;
+  let dropIndex = undefined;
+  let isSystemEventSelected = false;
 
-  //TODO: Refactor this out!
-  function changeSelectedConfig(arg) {
+  onMount(() => {
+    init_config_block_library();
+  });
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  $: {
+    const les = $lua_error_store;
+    const error = les.slice(-1).pop();
+    if (typeof error !== "undefined") {
+      handleError(error);
+    }
+  }
+
+  $: handleConfigManagerUpdate($configManager);
+
+  $: isSystemEventSelected = $user_input.event.elementnumber == 255;
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       FUNCTION DEFINITIONS        //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  function updateLocalSuggestions(list) {
+    localDefinitions.update(list);
+  }
+
+  function sendCurrentConfigurationToGrid() {
+    $configManager
+      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
+      .catch((e) => handleError(e));
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////           EVENT HANDLERS          //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  //TODO: Is there a better way?
+  function handleChangeEventTab(arg) {
     if ($writeBuffer.length > 0) {
       logger.set({
         type: "fail",
@@ -72,10 +111,7 @@
       return;
     }
 
-    $appSettings.configType = arg;
-
     if (arg == "systemEvents") {
-      // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {
         ui.event.elementnumber = 255;
         ui.event.eventtype = 4;
@@ -107,119 +143,20 @@
     }
   }
 
-  $: {
-    const les = $lua_error_store;
-    const error = les.slice(-1).pop();
-    if (typeof error !== "undefined") {
-      handleError(error);
-    }
-  }
-
-  function setSelectedEvent() {
-    const target = $configs.target;
-    if (typeof target === "undefined") {
-      throw "Unknown Error";
-    }
-    events.options = [];
-    for (const event of target.events) {
-      events.options.push(event.event);
-      if (target.eventType == event.event.value) {
-        events.selected = event.event;
-      }
+  function handleConfigManagerUpdate(list) {
+    if (typeof list === "undefined") {
+      return;
     }
 
-    if (target.element == 255) {
-      $appSettings.configType = "systemEvents";
-    } else {
-      $appSettings.configType = "uiEvents";
-    }
-  }
+    console.log(list);
 
-  function updateLuaDebugStore(list) {
-    if (!(list instanceof ConfigList)) {
-      throw "Invalid list object. Expected an instance of ConfigList.";
-    }
-    $luadebug_store.configScript = list.toConfigScript();
-    $luadebug_store.syntaxError = list.checkSyntax();
-  }
-
-  function updateLocalSuggestions(list) {
-    if (!(list instanceof ConfigList)) {
-      throw "Invalid list object. Expected an instance of ConfigList.";
-    }
-    localDefinitions.update(list);
-  }
-
-  $: {
-    //Handle User Input
-    if ($user_input) {
-      handleUserInputchange();
-    }
-  }
-
-  let bufferValueChanged = false;
-  $: {
-    if ($writeBuffer.length > 0) {
-      bufferValueChanged = true;
-      displayDefault();
-    } else {
-      if (bufferValueChanged) {
-        //Display User Input
-        handleUserInputchange();
-        bufferValueChanged = false;
-      }
-    }
-  }
-
-  function handleUserInputchange() {
-    let target = ConfigTarget.getCurrent();
-    let list = undefined;
-
-    try {
-      list = ConfigList.createFrom(target);
-    } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
-        });
-        target.eventType = String(closestEvent);
-        list = ConfigList.createFrom(target);
-      } else {
-        //Unknown Error
-        console.error(`Configuration: ${e}`);
-        displayDefault();
-        return;
-      }
-    }
-    configs.set(list);
-    setSelectedEvent();
-    updateLuaDebugStore(list);
-    updateLocalSuggestions(list);
-    deselectAll();
-  }
-
-  $: handleConfigListchange($configs);
-
-  function handleConfigListchange(configs) {
-    const map = ConfigList.getIndentationMap(configs);
+    const map = ConfigList.getIndentationMap(list);
     for (const i in map) {
-      configs[i].indentation = map[i];
+      list[i].indentation = map[i];
     }
+
+    updateLocalSuggestions(list);
   }
-
-  onMount(() => {
-    init_config_block_library();
-  });
-
-  let animation = false;
-  let isDragged = false;
-
-  let scrollHeight = "100%";
 
   function handleError(e) {
     switch (e.type) {
@@ -260,117 +197,63 @@
   }
 
   function handleConfigInsertion(e) {
-    const { config, index } = e.detail;
-    if (typeof config === "undefined") {
-      throw "Unknown Error";
+    let { config, index } = e.detail;
+
+    if (typeof index === "undefined") {
+      index = $configManager.length;
     }
 
-    let list = $configs.makeCopy();
+    configManager.update((s) => {
+      s.insert(index + 1, config);
+      return s;
+    });
 
-    //Think through the indexing
-    if (typeof index !== "undefined") {
-      list.insert(config, index + 1);
-    } else {
-      list.push(config);
-    }
-
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        //TODO: refactor this out, it is needed because of inserting an IF
-        //TODO: rethink composit block creation
-        const target = ConfigTarget.getCurrent();
-        const list = ConfigList.createFrom(target);
-        if (typeof list === "undefined") {
-          throw "Error loading current config.";
-        }
-        configs.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
-      .catch((e) => handleError(e));
+    sendCurrentConfigurationToGrid();
   }
 
   function handleDrop(e) {
-    let list = $configs.makeCopy();
-    const targetIndex = ++dropIndex;
+    if (typeof dropIndex === "undefined") {
+      return;
+    }
+
+    const targetIndex = dropIndex;
+    dropIndex = undefined;
 
     //Check for incorrect dropzones
-    const multiDrag = draggedIndexes.length > 1;
-    if (multiDrag) {
-      const firstIndex = draggedIndexes.at(0);
-      const lastIndex = draggedIndexes.at(-1);
-      const dist1 = targetIndex - firstIndex;
-      const dist2 = targetIndex - lastIndex;
-      if ([0, 1].includes(dist1) || [0, 1].includes(dist2)) {
-        //Drop target is next to, or inside target,
-        //no swap is needed, or is forbidden
-        return;
-      }
-    } else {
-      const sourceIndex = draggedIndexes.at(0);
-      const dist = targetIndex - sourceIndex;
-      if ([0, 1].includes(dist)) {
-        //Drop target is next to target, no swap is needed
-        return;
-      }
+    const firstIndex = draggedIndexes.at(0);
+    const lastIndex = draggedIndexes.at(-1);
+    if (targetIndex >= firstIndex && targetIndex <= lastIndex + 1) {
+      return;
     }
 
-    let temp = [];
-    for (let i = 0; i < draggedIndexes.length; ++i) {
-      const sourceIndex = draggedIndexes[i];
-      temp.push(list[sourceIndex]);
-      list[sourceIndex] = undefined;
-    }
+    configManager.update((s) => {
+      //Collect dragged configs and mark them for deletion
+      const temp = [];
+      draggedIndexes.forEach((i) => {
+        temp.push(s[i]);
+        s[i] = undefined;
+      });
 
-    for (let i = 0; i < temp.length; ++i) {
-      if (targetIndex + i < list.length) {
-        list.splice(targetIndex + i, 0, temp[i]);
-      } else {
-        list.push(temp[i]);
-      }
-    }
+      //Insert dragged configs at position
+      s.insert(targetIndex, ...temp);
 
-    list = list.filter((e) => typeof e !== "undefined");
+      //Remove marked configs
+      s = s.filter((e) => typeof e !== "undefined");
+      return s;
+    });
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configs.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
-      .catch((e) => handleError(e));
+    sendCurrentConfigurationToGrid();
   }
 
   function handleConfigUpdate(e) {
-    const { index, newConfig } = e.detail;
-
-    let list = $configs.makeCopy();
-
-    console.log(newConfig);
-
-    try {
-      list[index] = newConfig;
-    } catch (e) {
-      console.error(e);
-    }
-
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        //TODO: Refactor this out
-        if ($configs[index].short != newConfig.short) {
-          $configs[index] = newConfig;
-        } else $configs[index].script = newConfig.script;
-
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-        //deselectAll();
-      })
-      .catch((e) => handleError(e));
+    const { index, short, script } = e.detail;
+    configManager.update((s) => {
+      const config = s[index];
+      config.short = short;
+      config.script = script;
+      return s;
+    });
+    sendCurrentConfigurationToGrid();
   }
 
   function handleDragStart(e) {
@@ -384,111 +267,64 @@
     clearInterval(autoScroll);
   }
 
-  let draggedIndexes = [];
   function handleDragTargetChange(e) {
     draggedIndexes = e.detail.id;
   }
 
-  let dropIndex = undefined;
   function handleDropTargetChange(e) {
-    dropIndex = e.detail.drop_target;
+    const { index } = e.detail;
+    dropIndex = index;
   }
-
-  let enableConvert = false;
-  let enableCut = false;
-  let enableCopy = false;
-  let enablePaste = false;
-  let enableRemove = false;
-  let selectAllChecked = false;
 
   function handleSelectionChange(e) {
     const { value, index } = e.detail;
 
-    const selectedConfig = $configs[index];
-    if (typeof selectedConfig === "undefined") {
-      throw `Can't find selected config by index (${index})`;
-    }
-
-    //Find the closing tag of the multiselect component
-    const multiSelect = selectedConfig.information.type === "composite_open";
-    if (multiSelect) {
-      let indentationDepth = 1;
-      for (
-        let i = index + 1;
-        i < $configs.length && indentationDepth > 0;
-        ++i
-      ) {
-        //Another component is found inside the component, increase
-        //indentation depth.
-        if ($configs[i].information.type === "composite_open") {
-          ++indentationDepth;
+    configManager.update((s) => {
+      const stack = [];
+      let n = index;
+      do {
+        const config = s[n];
+        if (config.information.type === "composite_open") {
+          stack.push(config);
+        } else if (config.information.type === "composite_close") {
+          stack.pop();
         }
-        //Closing tag found inside the component, decrease
-        //indentation depth.
-        else if ($configs[i].information.type === "composite_close") {
-          --indentationDepth;
-        }
-        $configs[i].selected = value;
-      }
-
-      if (indentationDepth !== 0) {
-        throw `No closing tag found for ${selectedConfig.information.name}`;
-      }
-    }
-
-    //Set MultiOptions values
-    const selectionCount = $configs.reduce((acc, curr) => {
-      if (curr.selected) {
-        acc += 1;
-      }
-      return acc;
-    }, 0);
-
-    const isSelection = selectionCount > 0;
-
-    enableCopy = isSelection;
-    enableConvert = isSelection;
-    enableCut = isSelection;
-    enableRemove = isSelection;
+        config.selected = value;
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
   }
 
   function handleConvertToCodeBlock(e) {
-    let list = $configs.makeCopy();
+    const { configs, index } = e.detail;
 
-    let script = "";
-    for (let config of $configs) {
-      if (config.selected) {
-        if (config.checkSyntax() === false) {
-          logger.set({
-            type: "fail",
-            mode: 0,
-            classname: "luanotok",
-            message: `Cannot merge actionblocks with syntax error!`,
-          });
-          return;
-        }
-        script += config.script + " ";
-      }
+    //Create new CodeBlock with merged code
+    const codeBlock = new ConfigObject({
+      short: "cb",
+      script: configs.map((e) => e.script).join(" "),
+    });
+
+    //Check syntax
+    if (codeBlock.checkSyntax() === false) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "luanotok",
+        message: `Cannot merge actionblocks with syntax error!`,
+      });
+      return;
     }
 
-    const codeBlock = new ConfigObject({
-      parent: list,
-      short: "cb",
-      script: script,
+    configManager.update((s) => {
+      // Remove selected action blocks
+      s = s.filter((config) => !config.selected);
+      //Insert CodeBlock into position
+      s.insert(index, codeBlock);
+      return s;
     });
-    const index = list.findIndex((e) => e.selected); //First
-    list.splice(index, 0, codeBlock);
-    list = list.filter((e) => !e.selected);
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configs.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
-      .catch((e) => handleError(e));
+    sendCurrentConfigurationToGrid();
   }
 
   function handleCut(e) {
@@ -501,17 +337,8 @@
     });
   }
 
-  function clearClipboard() {
-    appActionClipboard.set([]);
-  }
-
   function handleCopy(e) {
-    let clipboard = [];
-    for (let config of $configs) {
-      if (config.selected) {
-        clipboard.push(config);
-      }
-    }
+    const clipboard = $configManager.filter((e) => e.selected).makeCopy();
     appActionClipboard.set(clipboard);
     Analytics.track({
       event: "Config Action",
@@ -520,31 +347,20 @@
     });
   }
 
-  $: enablePaste = $appActionClipboard.length > 0;
-
   function handlePaste(e) {
-    const { index } = e.detail;
-    let list = $configs.makeCopy();
+    let { index } = e.detail;
 
-    //TODO: Refactor this out
-    //DropZone indexing is shifted with -1
-    if (typeof index !== "undefined" && index + 1 < list.length) {
-      list.splice(index + 1, 0, ...$appActionClipboard);
-    } else {
-      for (const config of $appActionClipboard) {
-        list.push(config);
-      }
+    if (typeof index === "undefined") {
+      index = $configManager.length;
     }
 
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configs.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
-      .catch((e) => handleError(e));
+    configManager.update((s) => {
+      s.forEach((e) => (e.selected = false));
+      s.insert(index + 1, ...$appActionClipboard);
+      return s;
+    });
+
+    sendCurrentConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Paste" },
@@ -553,19 +369,8 @@
   }
 
   function handleRemove(e) {
-    let list = $configs.makeCopy();
-
-    list = list.filter((e) => !e.selected);
-
-    list
-      .sendTo({ target: ConfigTarget.getCurrent() })
-      .then((e) => {
-        configs.set(list);
-        deselectAll();
-        updateLuaDebugStore(list);
-        updateLocalSuggestions(list);
-      })
-      .catch((e) => handleError(e));
+    configManager.update((s) => s.filter((config) => !config.selected));
+    sendCurrentConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Remove" },
@@ -573,67 +378,116 @@
     });
   }
 
-  function deselectAll() {
-    enableCopy = false;
-    enableConvert = false;
-    enableCut = false;
-    enableRemove = false;
-    selectAllChecked = false;
-
-    configs.update((s) => {
-      s.forEach((e) => {
-        e.selected = false;
-      });
-      return s;
-    });
-  }
-
-  function handleSelectAll(e) {
-    const { value } = e.detail;
-
-    enableCopy = value;
-    enableConvert = value;
-    enableCut = value;
-    enableRemove = value;
-
-    configs.update((s) => {
-      s.forEach((e) => {
-        e.selected = value;
-      });
-      return s;
-    });
-  }
-
-  let autoScroll;
   function handleDrag(e) {
-    if (draggedIndexes.length > 0) {
-      const index = draggedIndexes[0];
-      const id = `cfg-${index}`;
-      const configList = document.getElementById("cfg-list");
-      const draggedDOMElement = document.getElementById(id);
-      const mouseY = e.clientY - configList.getBoundingClientRect().top;
-      const configListHeight = configList.offsetHeight;
-      const treshold = 60;
-      const lowerThreshold = configListHeight - mouseY <= treshold;
-      const upperThreshold =
-        configListHeight - mouseY > configListHeight - treshold;
-      clearInterval(autoScroll);
-      if (lowerThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop += 5;
-        }, 10);
-      } else if (upperThreshold) {
-        autoScroll = setInterval(() => {
-          configList.scrollTop -= 5;
-        }, 10);
-      }
+    const configList = document.getElementById("cfg-list");
+    const mouseY = e.clientY - configList.getBoundingClientRect().top;
+    const configListHeight = configList.offsetHeight;
+    const treshold = 60;
+    const lowerThreshold = configListHeight - mouseY <= treshold;
+    const upperThreshold =
+      configListHeight - mouseY > configListHeight - treshold;
+    clearInterval(autoScroll);
+    if (lowerThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop += 5;
+      }, 10);
+    } else if (upperThreshold) {
+      autoScroll = setInterval(() => {
+        configList.scrollTop -= 5;
+      }, 10);
     }
+  }
+
+  function handleCopyAll() {
+    //Callback function
+    let callback = function () {
+      const current = ConfigTarget.createFrom({ userInput: $user_input });
+      const configsLists = [];
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = ConfigList.createFrom(target);
+        configsLists.push({ eventType: eventType, configs: list });
+      });
+
+      controlElementClipboard.set({
+        elementType: current.elementType,
+        data: configsLists,
+      });
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "elementcopy",
+        message: `Events are copied!`,
+      });
+    };
+
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementcopy",
+      message: `Copy events from element...`,
+    });
+
+    //Fetching all unloaded elements configuration
+    runtime.fetch_element_configuration_from_grid(callback);
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
+  }
+
+  function handleOverwriteAll() {
+    let clipboard = get(controlElementClipboard);
+    const current = ConfigTarget.createFrom({ userInput: $user_input });
+
+    if (current.elementType === clipboard.elementType) {
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = clipboard.data.find(
+          (e) => e.eventType === eventType
+        ).configs;
+        list.sendTo({ target: target }).catch((e) => handleError(e));
+      });
+
+      const list = clipboard.data.find(
+        (e) => events.selected.value === e.eventType
+      ).configs;
+      configManager.set(list);
+    } else {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "rejectoverwrite",
+        message: `Overwrite element failed! Current ${current.elementType} control 
+          element is not compatible with clipboards ${clipboard.elementType} type.`,
+      });
+    }
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
   }
 </script>
 
-<configuration class="w-full h-full flex flex-col">
-  <div class="bg-primary py-5 flex flex-col justify-center">
-    <div class="flex flex-row items-start bg-primary py-2 px-10">
+<configuration class="w-full h-full flex flex-col overflow-clip bg-primary">
+  <div class="py-5 flex flex-col justify-center">
+    <div class="flex flex-row items-start py-2 px-10">
       <button
         use:setTooltip={{
           key: "configuration_ui_events",
@@ -641,9 +495,9 @@
           class: "w-60 p-4",
         }}
         on:click={() => {
-          changeSelectedConfig("uiEvents");
+          handleChangeEventTab("uiEvents");
         }}
-        class="{$appSettings.configType == 'uiEvents'
+        class="{!isSystemEventSelected
           ? 'shadow-md bg-pick text-white'
           : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
@@ -657,9 +511,9 @@
           class: "w-60 p-4",
         }}
         on:click={() => {
-          changeSelectedConfig("systemEvents");
+          handleChangeEventTab("systemEvents");
         }}
-        class="{$appSettings.configType == 'systemEvents'
+        class="{isSystemEventSelected
           ? 'shadow-md bg-pick text-white'
           : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary '} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
@@ -668,44 +522,39 @@
     </div>
   </div>
 
-  {#key $appSettings.configType == "uiEvents"}
+  {#key !isSystemEventSelected}
     <container
       class="flex flex-col h-full"
       in:fly|global={{
-        x: $appSettings.configType == "uiEvents" ? -5 : 5,
+        x: !isSystemEventSelected ? -5 : 5,
         opacity: 0.5,
         duration: 200,
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
+      <configs class="w-full h-full flex flex-col px-4 pb-2">
         <div>
-          <ConfigParameters {events} />
+          <EventPanel
+            on:copy-all={handleCopyAll}
+            on:overwrite-all={handleOverwriteAll}
+          />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
             <MultiSelect
-              {enableConvert}
-              {enableCut}
-              {enableCopy}
-              {enablePaste}
-              {enableRemove}
-              bind:selectAll={selectAllChecked}
               on:convert-to-code-block={handleConvertToCodeBlock}
               on:copy={handleCopy}
               on:cut={handleCut}
               on:paste={handlePaste}
               on:remove={handleRemove}
-              on:select-all={handleSelectAll}
             />
           </div>
         </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={(this, { configs: $configs })}
+          use:changeOrder={(this, { configs: $configManager })}
           on:drag-start={handleDragStart}
           on:drag-target={handleDragTargetChange}
-          on:drop-target={handleDropTargetChange}
           on:drop={handleDrop}
           on:drag-end={handleDragEnd}
           on:anim-start={() => {
@@ -719,7 +568,7 @@
           <config-list
             id="cfg-list"
             style="height:{scrollHeight}"
-            use:configListScrollSize={$configs}
+            use:configListScrollSize={$configManager}
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
@@ -729,35 +578,31 @@
             }}
             class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
-            {#if !isDragged}
-              <AddAction
-                index={-1}
-                on:paste={handlePaste}
-                {animation}
-                configs={$configs}
-                on:new-config={handleConfigInsertion}
-              />
-            {:else}
-              <DropZone
-                index={-1}
-                drop_target={dropIndex}
-                drag_target={draggedIndexes}
-                {animation}
-                drag_start={isDragged}
-              />
-            {/if}
-
-            {#each $configs as config, index (config)}
+            {#each $configManager as config, index (config.id)}
               <anim-block
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}
               >
+                {#if !isDragged}
+                  <AddAction
+                    on:paste={handlePaste}
+                    {animation}
+                    configs={$configManager}
+                    {index}
+                    on:new-config={handleConfigInsertion}
+                  />
+                {:else}
+                  <DropZone
+                    {index}
+                    drag_target={draggedIndexes}
+                    on:drop-target-change={handleDropTargetChange}
+                  />
+                {/if}
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     {index}
                     {config}
                     {access_tree}
-                    indentation={config.indentation}
                     on:update={handleConfigUpdate}
                   />
 
@@ -768,26 +613,23 @@
                     on:selection-change={handleSelectionChange}
                   />
                 </div>
-
-                {#if !isDragged}
-                  <AddAction
-                    on:paste={handlePaste}
-                    {animation}
-                    configs={$configs}
-                    {index}
-                    on:new-config={handleConfigInsertion}
-                  />
-                {:else}
-                  <DropZone
-                    {index}
-                    drag_target={draggedIndexes}
-                    drop_target={dropIndex}
-                    {animation}
-                    drag_start={isDragged}
-                  />
-                {/if}
               </anim-block>
             {/each}
+            {#if !isDragged}
+              <AddAction
+                index={$configManager.length}
+                on:paste={handlePaste}
+                {animation}
+                configs={$configManager}
+                on:new-config={handleConfigInsertion}
+              />
+            {:else}
+              <DropZone
+                index={$configManager.length}
+                drag_target={draggedIndexes}
+                on:drop-target-change={handleDropTargetChange}
+              />
+            {/if}
           </config-list>
         </div>
         <container class="flex flex-col w-full">
@@ -795,7 +637,7 @@
             <AddAction
               userHelper={true}
               {animation}
-              configs={$configs}
+              configs={$configManager}
               index={undefined}
               on:paste={handlePaste}
               on:new-config={handleConfigInsertion}
