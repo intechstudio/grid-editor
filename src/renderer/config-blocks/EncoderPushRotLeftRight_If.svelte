@@ -13,8 +13,19 @@
     eventtype: [2], // 2: encoder
     desc: "Push & Rotate L R",
     blockTitle: "Push & Rotate Left",
-    defaultLua:
-      "if (self:bst()>0 and self:est()<64) then--[[@eprlrei]] elseif (self:bst()>0 and self:est()>63) then--[[@eprlrei]] elseif (self:bst()==0 and self:est()<64) then--[[@eprlrel]] else--[[@eprlre]] end",
+    defaultLua: "if (self:bst()>0 and self:est()<64) then",
+    compositeLua: [
+      {
+        short: "eprlrei",
+        script: "elseif (self:bst()>0 and self:est()>63) then",
+      },
+      {
+        short: "eprlrei",
+        script: "elseif (self:bst()==0 and self:est()<64) then",
+      },
+      { short: "eprlrel", script: "else" },
+      { short: "eprlre", script: "end" },
+    ],
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path fill-rule="evenodd" clip-rule="evenodd" d="M362.457 89.7861C324.915 49.166 274.186 25.0519 219.158 26.4864C156.42 28.1219 100.935 62.664 65.3279 116.013L100.43 130.565L24.3677 188.441L12.0518 93.9257L49.7542 109.556C87.8058 50.9139 148.732 11.809 218.724 9.98442C279.12 8.40996 334.291 34.9309 374.659 78.6089C399.33 105.302 418.517 138.436 430.113 175.622L432.572 183.505L416.735 188.4L414.277 180.517C403.385 145.588 385.408 114.619 362.457 89.7861Z" fill="black"/>

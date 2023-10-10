@@ -38,7 +38,6 @@
     const name = e.detail;
     const components = getAllComponents();
     const new_config = components.find((e) => e.information.name === name);
-    console.log(new_config);
     const obj = new ConfigObject({
       short: new_config.information.short,
       script: new_config.information.defaultLua,

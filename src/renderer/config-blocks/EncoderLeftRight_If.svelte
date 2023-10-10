@@ -13,7 +13,11 @@
     eventtype: [2], // 2: encoder
     desc: "Left/Right Rotate",
     blockTitle: "Rotate Left",
-    defaultLua: "if self:est()<64 then--[[@elrel]] else--[[@elre]] end",
+    defaultLua: "if self:est()<64 then",
+    compositeLua: [
+      { short: "elrel", script: "else" },
+      { short: "elre", script: "end" },
+    ],
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path

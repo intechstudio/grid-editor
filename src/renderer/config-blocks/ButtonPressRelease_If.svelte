@@ -13,7 +13,11 @@
     eventtype: [3], // 2: encoder
     desc: "Press/Release",
     blockTitle: "Press",
-    defaultLua: "if self:bst()>0 then--[[@bprel]] else--[[@bpre]] end",
+    defaultLua: "if self:bst()>0 then",
+    compositeLua: [
+      { short: "bprel", script: "else" },
+      { short: "bpre", script: "end" },
+    ],
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 327" fill="none" xmlns="http://www.w3.org/2000/svg">
    

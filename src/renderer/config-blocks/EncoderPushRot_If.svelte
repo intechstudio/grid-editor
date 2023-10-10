@@ -13,7 +13,11 @@
     eventtype: [2], // 2: encoder
     desc: "Push & Rotate",
     blockTitle: "Push & Rotate",
-    defaultLua: "if self:bst()>0 then--[[@eprel]] else--[[@epre]] end",
+    defaultLua: "if self:bst()>0 then",
+    compositeLua: [
+      { short: "eprel", script: "else" },
+      { short: "epre", script: "end" },
+    ],
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 327" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M400.392 94.523C361.836 39.0794 302.088 2.04338 233.396 0.250575L223.795 0H221.205L211.604 0.250575C142.912 2.04338 83.1639 39.0794 44.6076 94.523L0 76.0083L16.2197 200.627L116.392 124.318L78.0685 108.411C111.073 64.4558 159.105 36.8759 212.525 35.4817L222.131 35.231H222.869L232.475 35.4817C285.895 36.8759 333.927 64.4558 366.932 108.411L328.608 124.318L428.78 200.627L445 76.0083L400.392 94.523Z" fill="black"/>

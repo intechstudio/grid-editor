@@ -42,7 +42,7 @@
   import { changeOrder } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
-  import { appSettings } from "../../../runtime/app-helper.store";
+  import { setActionPicker } from "./components/ActionPicker.js";
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
@@ -146,8 +146,6 @@
       return;
     }
 
-    console.log(list);
-
     const map = ConfigList.getIndentationMap(list);
     for (const i in map) {
       list[i].indentation = map[i];
@@ -195,14 +193,14 @@
   }
 
   function handleConfigInsertion(e) {
-    let { config, index } = e.detail;
+    let { configs, index } = e.detail;
 
     if (typeof index === "undefined") {
       index = $configManager.length;
     }
 
     configManager.update((s) => {
-      s.insert(index + 1, config);
+      s.insert(index + 1, ...configs);
       return s;
     });
 
@@ -377,22 +375,24 @@
   }
 
   function handleDrag(e) {
-    const configList = document.getElementById("cfg-list");
-    const mouseY = e.clientY - configList.getBoundingClientRect().top;
-    const configListHeight = configList.offsetHeight;
-    const treshold = 60;
-    const lowerThreshold = configListHeight - mouseY <= treshold;
-    const upperThreshold =
-      configListHeight - mouseY > configListHeight - treshold;
-    clearInterval(autoScroll);
-    if (lowerThreshold) {
-      autoScroll = setInterval(() => {
-        configList.scrollTop += 5;
-      }, 10);
-    } else if (upperThreshold) {
-      autoScroll = setInterval(() => {
-        configList.scrollTop -= 5;
-      }, 10);
+    if (isDragged) {
+      const configList = document.getElementById("cfg-list");
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(autoScroll);
+      if (lowerThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+      } else if (upperThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+      }
     }
   }
 
@@ -483,7 +483,7 @@
   }
 </script>
 
-<configuration class="w-full h-full flex flex-col overflow-clip bg-primary">
+<configuration class="w-full h-full flex flex-col bg-primary">
   <div class="py-5 flex flex-col justify-center">
     <div class="flex flex-row items-start py-2 px-10">
       <button
@@ -622,18 +622,22 @@
             {/if}
           </config-list>
         </div>
-        <container class="flex flex-col w-full">
-          <div class="w-full flex justify-between mb-3">
-            <AddAction
-              userHelper={true}
-              configs={$configManager}
-              index={undefined}
-              on:paste={handlePaste}
-              on:new-config={handleConfigInsertion}
-            />
-            <ExportConfigs />
-          </div>
-        </container>
+        <div class="w-full flex justify-between mb-3">
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <action-placeholder
+            use:setActionPicker={{ index: undefined }}
+            class="cursor-pointer flex w-full items-center"
+          >
+            <div
+              class="hover:border-pick hover:bg-select-saturate-10 border-secondary
+              transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2"
+            >
+              Add action block...
+            </div>
+          </action-placeholder>
+          <ExportConfigs />
+        </div>
       </configs>
     </container>
   {/key}
