@@ -1,20 +1,31 @@
 <script>
-  import { setActionPicker } from "./ActionPicker";
+  import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
   export let index = undefined;
+  let showActionPicker = false;
+  let referenceElement = undefined;
 
   const dispatch = createEventDispatcher();
 
   function handleNewConfig(e) {
     dispatch("new-config", e.detail);
   }
+
+  function handleShowActionPicker() {
+    showActionPicker = true;
+  }
+
+  function handleCloseActionPicker() {
+    showActionPicker = false;
+  }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <action-placeholder
-  use:setActionPicker={{ index: index }}
+  bind:this={referenceElement}
+  on:click={handleShowActionPicker}
   on:new-config={handleNewConfig}
   class="hover:opacity-100 opacity-0 transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
 >
@@ -38,3 +49,7 @@
     </svg>
   </div>
 </action-placeholder>
+
+{#if showActionPicker}
+  <ActionPicker {index} {referenceElement} on:close={handleCloseActionPicker} />
+{/if}

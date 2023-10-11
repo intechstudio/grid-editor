@@ -230,48 +230,10 @@ export const preferenceStore = writable();
 
 export const action_collection = readable(Promise.all([getAllComponents()]));
 
-function createPresetManagement() {
-  const _selected_preset = writable({ sub: "", name: "", configs: "" });
-
-  const _selected_action = writable({ name: "", configs: "" });
-
-  const _quick_access = writable([]);
-
-  return {
-    subscribe: _selected_preset.subscribe,
-    selected_preset: {
-      subscribe: _selected_preset.subscribe,
-      update: ({ sub, name, configs }) => {
-        _selected_preset.set({ sub: sub, name: name, configs: configs });
-      },
-    },
-    selected_action: {
-      subscribe: _selected_action.subscribe,
-      update: ({ name, configs }) => {
-        _selected_action.set({ name: name, configs: configs });
-      },
-    },
-    quick_access: {
-      subscribe: _quick_access.subscribe,
-      update: () => {
-        _quick_access.update((s) => {
-          if (s.length >= 4) {
-            s.shift();
-          }
-          s = [...s, get(_selected_preset)];
-          return s;
-        });
-      },
-    },
-  };
-}
-
 export const activeDropDown = writable({
   config_index: undefined,
   input_index: undefined,
 });
-
-export const presetManagement = createPresetManagement();
 
 export const layout = writable([]);
 

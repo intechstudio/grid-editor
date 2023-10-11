@@ -42,8 +42,6 @@
   import { changeOrder } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
-  import { setActionPicker } from "./components/ActionPicker.js";
-
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
 
@@ -195,12 +193,14 @@
   function handleConfigInsertion(e) {
     let { configs, index } = e.detail;
 
+    console.log(configs, index);
+
     if (typeof index === "undefined") {
       index = $configManager.length;
     }
 
     configManager.update((s) => {
-      s.insert(index + 1, ...configs);
+      s.insert(index, ...configs);
       return s;
     });
 
@@ -575,20 +575,22 @@
                 animate:flip={{ duration: 300 }}
                 in:fade|global={{ delay: 0 }}
               >
-                {#if !isDragged}
-                  <AddAction
-                    on:paste={handlePaste}
-                    configs={$configManager}
-                    {index}
-                    on:new-config={handleConfigInsertion}
-                  />
-                {:else}
-                  <DropZone
-                    {index}
-                    drag_target={draggedIndexes}
-                    on:drop-target-change={handleDropTargetChange}
-                  />
-                {/if}
+                {#key index}
+                  {#if !isDragged}
+                    <AddAction
+                      on:paste={handlePaste}
+                      configs={$configManager}
+                      {index}
+                      on:new-config={handleConfigInsertion}
+                    />
+                  {:else}
+                    <DropZone
+                      {index}
+                      drag_target={draggedIndexes}
+                      on:drop-target-change={handleDropTargetChange}
+                    />
+                  {/if}
+                {/key}
                 <div class="flex flex-row justify-between">
                   <DynamicWrapper
                     {index}
@@ -606,26 +608,28 @@
                 </div>
               </anim-block>
             {/each}
-            {#if !isDragged}
-              <AddAction
-                index={$configManager.length}
-                on:paste={handlePaste}
-                configs={$configManager}
-                on:new-config={handleConfigInsertion}
-              />
-            {:else}
-              <DropZone
-                index={$configManager.length}
-                drag_target={draggedIndexes}
-                on:drop-target-change={handleDropTargetChange}
-              />
-            {/if}
+            {#key $configManager.length}
+              {#if !isDragged}
+                <AddAction
+                  index={$configManager.length}
+                  on:paste={handlePaste}
+                  configs={$configManager}
+                  on:new-config={handleConfigInsertion}
+                />
+              {:else}
+                <DropZone
+                  index={$configManager.length}
+                  drag_target={draggedIndexes}
+                  on:drop-target-change={handleDropTargetChange}
+                />
+              {/if}
+            {/key}
           </config-list>
         </div>
         <div class="w-full flex justify-between mb-3">
           <!-- svelte-ignore a11y-click-events-have-key-events -->
           <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <action-placeholder
+          <!-- <action-placeholder
             use:setActionPicker={{ index: undefined }}
             class="cursor-pointer flex w-full items-center"
           >
@@ -635,7 +639,7 @@
             >
               Add action block...
             </div>
-          </action-placeholder>
+          </action-placeholder> -->
           <ExportConfigs />
         </div>
       </configs>
