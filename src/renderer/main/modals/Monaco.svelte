@@ -18,6 +18,7 @@
   import {
     ConfigTarget,
     ConfigList,
+    configManager,
   } from "../panels/configuration/Configuration.store";
 
   let monaco_block;
@@ -44,14 +45,14 @@
 
   onMount(() => {
     //Make local copies
-    editedList = $monaco_store.config.parent.makeCopy();
+    editedList = $configManager.makeCopy();
     editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor
     const code_preview = expandCode(editedConfig.script);
 
     //Set initial code length
-    scriptLength = editedConfig.parent.toConfigScript().length;
+    scriptLength = editedList.toConfigScript().length;
 
     //Creating and configuring the editor
     editor = monaco_editor.create(monaco_block, {
@@ -82,7 +83,7 @@
         editedConfig.script = minifyCode(editor_code);
 
         //Calculate length (this already includes the new value of referenceConfig)
-        scriptLength = editedConfig.parent.toConfigScript().length;
+        scriptLength = editedList.toConfigScript().length;
 
         //Check the minified config length
         if (scriptLength >= grid.properties.CONFIG_LENGTH) {
