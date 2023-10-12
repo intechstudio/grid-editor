@@ -44,6 +44,7 @@
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
+  import AddActionButton from "./components/AddActionButton.svelte";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -578,9 +579,8 @@
                 {#key index}
                   {#if !isDragged}
                     <AddAction
-                      on:paste={handlePaste}
-                      configs={$configManager}
                       {index}
+                      on:paste={handlePaste}
                       on:new-config={handleConfigInsertion}
                     />
                   {:else}
@@ -613,7 +613,6 @@
                 <AddAction
                   index={$configManager.length}
                   on:paste={handlePaste}
-                  configs={$configManager}
                   on:new-config={handleConfigInsertion}
                 />
               {:else}
@@ -627,19 +626,11 @@
           </config-list>
         </div>
         <div class="w-full flex justify-between mb-3">
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <!-- <action-placeholder
-            use:setActionPicker={{ index: undefined }}
-            class="cursor-pointer flex w-full items-center"
-          >
-            <div
-              class="hover:border-pick hover:bg-select-saturate-10 border-secondary
-              transition-colors duration-300 w-full border-l-4 text-white pl-4 p-2"
-            >
-              Add action block...
-            </div>
-          </action-placeholder> -->
+          <AddActionButton
+            index={$configManager.length}
+            on:paste={handlePaste}
+            on:new-config={handleConfigInsertion}
+          />
           <ExportConfigs />
         </div>
       </configs>
