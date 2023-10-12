@@ -2,68 +2,175 @@
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
+  import Toggle from "../../main/user-interface/Toggle.svelte";
+  import stringManipulation from "../../main/user-interface/_string-operations";
+  import { Validator } from "../_validators";
+  import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
+  import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
+  import { localDefinitions } from "../../runtime/runtime.store";
 
+  export let index;
   export let access_tree;
   export let config = undefined;
+
+  let focusedInput = undefined;
+  let focusGroup = [];
+
+  let data = [
+    {
+      value: "i",
+      label: "Variable",
+      validator: (e) => {
+        return new Validator(e).NotEmpty().Result();
+      },
+      suggestions: [],
+    },
+    {
+      value: "1",
+      label: "Initial value",
+      validator: (e) => {
+        return new Validator(e).NotEmpty().Result();
+      },
+      suggestions: [],
+    },
+    {
+      value: "10",
+      label: "End value",
+      validator: (e) => {
+        return new Validator(e).NotEmpty().Result();
+      },
+      suggestions: [],
+    },
+    {
+      value: "1",
+      label: "Increment",
+      validator: (e) => {
+        return new Validator(e).NotEmpty().Result();
+      },
+      suggestions: [],
+    },
+  ];
+
+  function onActiveFocus(event, index) {
+    focusGroup[index] = event.detail.focus;
+    focusedInput = index;
+  }
+
+  function onLooseFocus(event, index) {
+    focusGroup[index] = event.detail.focus;
+  }
 
   const dispatch = createEventDispatcher();
 
   let displayValue = "?";
+  let toggleValue = false;
 
-  $: handleScriptChange(config.script);
+  $: handleConfigChange(config);
 
-  function handleScriptChange(script) {
+  function handleConfigChange(config) {
+    const script = config.script;
     let segments = Script.toSegments({ script });
-    const [start, end, inc] = segments.slice(1);
-    displayValue = String(
-      Math.floor((Math.abs(start - end) + 1) / Math.abs(inc))
+
+    if (segments.length !== 4) {
+      throw "For loop has missing parameter";
+    }
+    for (let i = 0; i < 4; ++i) {
+      data[i].value = String(segments[i]);
+    }
+
+    const [start, end, inc] = segments.slice(1).map((e) => Number(e));
+    const iterationCount = Math.floor(
+      (Math.abs(start - end) + 1) / Math.abs(inc)
     );
+
+    displayValue = Number.isInteger(iterationCount)
+      ? String(iterationCount)
+      : "?";
   }
 
-  function handleClick(e) {
-    dispatch("toggle");
-  }
-
-  function sendData({ value }) {
+  function handleDisplayValueChange(e) {
+    const { script } = e.detail;
     dispatch("output", {
-      short: config.information.short,
-      script: `for i=1,${value},1 do`,
+      short: config.short,
+      script: `for i=1,${script},1 do`,
+    });
+  }
+
+  function handleInputFieldChange(event, index) {
+    const shortData = data.map((e) => stringManipulation.shortify(e.value));
+    const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
+    dispatch("output", {
+      short: config.short,
+      script: `for ${segments.join(",")} do`,
     });
   }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<for-loop-header class="{$$props.class} text-white" on:click={handleClick}>
-  <div class="flex flex-row w-full h-full items-center gap-2">
-    <span>Repeat for</span>
+<container
+  class="{$$props.class} h-full justify-center flex flex-col"
+  class:p-2={toggleValue}
+>
+  <div class="flex flex-row flex-grow items-center gap-2 text-white">
+    <span class="">Repeat for</span>
     <div
       class="bg-secondary p-1 my-auto rounded flex items-center w-10"
       on:click|stopPropagation
     >
-      <LineEditor
-        on:change={(e) => {
-          sendData({ value: e.detail.script });
-        }}
-        {access_tree}
-        bind:value={displayValue}
-      />
+      {#key displayValue}
+        <LineEditor
+          on:change={handleDisplayValueChange}
+          {access_tree}
+          bind:value={displayValue}
+        />
+      {/key}
     </div>
     <span>times</span>
-    <div class="ml-auto min-w-[10px] opacity-50 mr-1 cursor-pointer">
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 4 18 10"
-        class="fill-black"
-        ><g stroke-width="0" /><g
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        /><g id="SVGRepo_iconCarrier">
-          <path
-            d="M17.707 5.707l-8 8a1 1 0 0 1-1.414 0l-8-8A1 1 0 0 1 1 4h16a1 1 0 0 1 .924.617A.97.97 0 0 1 18 5a1 1 0 0 1-.293.707z"
-          />
-        </g></svg
-      >
+    <div class="ml-auto flex items-center">
+      <Toggle bind:toggleValue class="mr-1" />
     </div>
   </div>
-</for-loop-header>
+
+  {#if toggleValue}
+    <for-loop-block class="pointer-events-auto mt-2">
+      <div class="flex flex-row items-center">
+        <div class="flex flex-col">
+          <div class="flex flex-row items-center gap-2">
+            <div class="grid grid-cols-4 gap-x-2 gap-y-1">
+              {#each data as obj}
+                <div class="text-white text-sm h-full truncate">
+                  {obj.label}
+                </div>
+              {/each}
+              {#each data as obj, i}
+                <AtomicInput
+                  class="flex h-7"
+                  bind:inputValue={obj.value}
+                  suggestions={obj.suggestions}
+                  validator={obj.validator}
+                  on:validator={(e) => {
+                    const data = e.detail;
+                    dispatch("validator", data);
+                  }}
+                  on:active-focus={(e) => {
+                    onActiveFocus(e, i);
+                  }}
+                  on:loose-focus={(e) => {
+                    onLooseFocus(e, i);
+                  }}
+                  on:change={(e) => handleInputFieldChange(e, i)}
+                />
+              {/each}
+            </div>
+          </div>
+
+          <SendFeedback
+            feedback_context="Midi"
+            class="mt-2 text-sm text-gray-700"
+          />
+        </div>
+      </div>
+    </for-loop-block>
+  {/if}
+</container>

@@ -432,7 +432,7 @@
                 {/if}
 
                 <CursorLog
-                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
+                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[1]"
                   on:content-change={handleContentChange}
                 />
               </div>

@@ -57,7 +57,11 @@
   //////////////////////////////////////////////////////////////////////////////
 
   $: {
-    options = getAvailableOptions($configManager);
+    try {
+      options = getAvailableOptions($configManager);
+    } catch (e) {
+      handleClose();
+    }
   }
 
   $: pasteEnabled = $appActionClipboard.length > 0;
@@ -69,7 +73,7 @@
   function getAvailableOptions(configs) {
     const target = ConfigTarget.getCurrent();
     if (typeof configs === "undefined" || typeof target === "undefined") {
-      return;
+      throw "Unexpected Error";
     }
 
     let comp = getAllComponents();
