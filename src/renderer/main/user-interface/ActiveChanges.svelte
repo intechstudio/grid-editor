@@ -5,6 +5,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import { derived } from "svelte/store";
   import instructions from "../../serialport/instructions";
+  import { fade, blur } from "svelte/transition";
 
   let isStoreEnabled = false;
 
@@ -63,7 +64,11 @@
   }
 </script>
 
-<container class={$$props.class}>
+<container
+  in:fade={{ delay: 300, duration: 1000 }}
+  out:blur={{ duration: 150 }}
+  class={$$props.class}
+>
   <div
     class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2 relative"
   >
