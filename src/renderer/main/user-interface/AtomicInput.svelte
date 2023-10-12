@@ -39,16 +39,16 @@
     dispatch("validator", { isError: isError });
   }
 
-  function handleFocus(mode, bool) {
-    focus = bool;
-    dispatch(`${mode}-focus`, {
-      focus: bool,
-    });
-
-    if (input && !focus) {
+  function handleLooseFocus(e) {
+    dispatch("loose-focus", { focus: false });
+    if (input) {
       input = false;
       dispatch("change", inputValue);
     }
+  }
+
+  function handleActiveFocus(e) {
+    dispatch("active-focus", { focus: true });
   }
 
   let input = false;
@@ -58,19 +58,12 @@
   }
 </script>
 
-<div
-  class="w-full relative"
-  use:clickOutside={{ useCapture: false }}
-  on:click-outside={() => {
-    handleFocus("loose", false);
-  }}
->
+<div class="w-full relative">
   <input
     {disabled}
     bind:value={inputValue}
-    on:click={(e) => {
-      handleFocus("active", true);
-    }}
+    on:focus={handleActiveFocus}
+    on:blur={handleLooseFocus}
     on:input={handleInput}
     type="text"
     {placeholder}
