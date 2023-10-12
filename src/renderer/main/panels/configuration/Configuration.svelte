@@ -45,6 +45,7 @@
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
+  import { v4 as uuidv4 } from "uuid";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -353,7 +354,10 @@
 
     configManager.update((s) => {
       s.forEach((e) => (e.selected = false));
-      s.insert(index + 1, ...$appActionClipboard);
+      for (const config of $appActionClipboard) {
+        s.insert(index, config.makeCopy());
+      }
+
       return s;
     });
 

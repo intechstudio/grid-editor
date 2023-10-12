@@ -12,12 +12,16 @@
     dispatch("new-config", e.detail);
   }
 
-  function handleShowActionPicker() {
+  function handleShowActionPicker(e) {
     showActionPicker = true;
   }
 
-  function handleCloseActionPicker() {
+  function handleCloseActionPicker(e) {
     showActionPicker = false;
+  }
+
+  function handlePaste(e) {
+    dispatch("paste", e.detail);
   }
 </script>
 
@@ -27,6 +31,7 @@
   bind:this={referenceElement}
   on:click={handleShowActionPicker}
   on:new-config={handleNewConfig}
+  on:paste={handlePaste}
   class="cursor-pointer flex w-full items-center"
 >
   <div

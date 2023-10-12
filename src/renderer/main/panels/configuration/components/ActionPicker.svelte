@@ -29,9 +29,10 @@
 
   let offset = 0;
   const dispatch = createEventDispatcher();
-  let promptValue = "";
+  //let promptValue = "";
   let actionPickerTimestamp = 0;
   let options = [];
+  let pasteEnabled = false;
 
   onMount(() => {
     referenceElement.addEventListener("click", handleReferenceElementClick);
@@ -58,6 +59,8 @@
   $: {
     options = getAvailableOptions($configManager);
   }
+
+  $: pasteEnabled = $appActionClipboard.length > 0;
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
@@ -206,9 +209,12 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function handlePaste() {
-    dispatch("paste", {
-      index: index,
+    const event = new CustomEvent("paste", {
+      detail: {
+        index: index,
+      },
     });
+    referenceElement.dispatchEvent(event);
 
     Analytics.track({
       event: "Config Action",
@@ -259,6 +265,7 @@
         index: index,
       },
     });
+    referenceElement.dispatchEvent(event);
 
     Analytics.track({
       event: "Config Action",
@@ -268,8 +275,6 @@
       },
       mandatory: false,
     });
-
-    referenceElement.dispatchEvent(event);
     handleClose();
   }
 </script>
@@ -284,7 +289,7 @@
   <pick-action
     use:clickOutside={{ useCapture: true }}
     on:click-outside={handleClickOutside}
-    class="flex z-50 w-96"
+    class="flex w-96"
   >
     <menu
       id="action-menu"
@@ -314,15 +319,6 @@
           </svg>
         </div>
 
-        {#if $appActionClipboard.length > 0}
-          <button
-            on:click={handlePaste}
-            class="flex items-center justify-center bg-purple-500 hover:bg-purple-600 text-sm mr-8 mb-2 px-4 py-1 text-white rounded-full focus:ring-1 focus:outline-none border border-select-saturate-10 shadow hover:border-purple-500"
-          >
-            Paste
-          </button>
-        {/if}
-
         <div class="flex flex-col w-full overflow-y-auto">
           {#each options as option}
             <div class="text-gray-500 text-sm">{option.category}</div>
@@ -350,7 +346,7 @@
           {/each}
         </div>
 
-        <div class="w-full mt-2 flex items-end">
+        <!-- <div class="w-full mt-2 flex items-end">
           <button
             disabled={promptValue.length == 0}
             class:disabled={promptValue.length == 0}
@@ -367,7 +363,17 @@
               bind:value={promptValue}
             />
           </div>
-        </div>
+        </div> -->
+        <button
+          on:click={handlePaste}
+          disabled={!pasteEnabled}
+          class="shadow-md bg-pick text-white flex w-full
+          mt-4 p-1 rounded focus:outline-none items-center justify-center"
+          class:hover:bg-pick-desaturate-10={pasteEnabled}
+          class:opacity-50={!pasteEnabled}
+        >
+          <span> Paste </span>
+        </button>
       </wrapper>
     </menu>
   </pick-action>

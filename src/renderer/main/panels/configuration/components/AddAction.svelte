@@ -12,12 +12,16 @@
     dispatch("new-config", e.detail);
   }
 
-  function handleShowActionPicker() {
+  function handleShowActionPicker(e) {
     showActionPicker = true;
   }
 
-  function handleCloseActionPicker() {
+  function handleCloseActionPicker(e) {
     showActionPicker = false;
+  }
+
+  function handlePaste(e) {
+    dispatch("paste", e.detail);
   }
 </script>
 
@@ -27,12 +31,13 @@
   bind:this={referenceElement}
   on:click={handleShowActionPicker}
   on:new-config={handleNewConfig}
+  on:paste={handlePaste}
   class="hover:opacity-100 opacity-0 transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
 >
   <div class="h-2 w-full rounded-full bg-pick -mr-1" />
 
   <div
-    class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick z-10"
+    class="h-5 w-5 rounded-full text-center flex items-center justify-center bg-pick"
   >
     <svg
       class="w-5 h-5 p-1"

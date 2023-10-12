@@ -335,8 +335,8 @@
           <div
             class="relative flex w-full h-full overflow-clip items-center justify-center"
           >
-            <GridLayout class="relative w-full h-full flex flex-col z-1">
-              <Pages class="w-full z-10" />
+            <GridLayout class="relative w-full h-full flex flex-col">
+              <Pages class="w-full z-[1]" />
               {#if $writeBuffer.length > 0 && $runtime.length > 0}
                 <div
                   in:fade={{ delay: 300, duration: 300 }}
@@ -349,7 +349,7 @@
                 <div
                   in:fade={{ delay: 300, duration: 1000 }}
                   out:blur={{ duration: 150 }}
-                  class="w-fit self-center mt-10 z-10 bg-primary py-2 px-4 rounded-lg shadow"
+                  class="w-fit self-center mt-10 z-[1] bg-primary py-2 px-4 rounded-lg shadow"
                 >
                   <div class="flex flex-row items-center gap-2">
                     <Spinner class="scale-50 -mx-5" />
@@ -407,7 +407,7 @@
                   </div>
                 </div>
               {:else}
-                <ActiveChanges class="w-fit self-center mt-10 z-10" />
+                <ActiveChanges class="w-fit self-center mt-10 " />
               {/if}
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
