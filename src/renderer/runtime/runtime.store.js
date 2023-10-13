@@ -183,28 +183,6 @@ export function update_ledColorStore(descr) {
 //Template logger object: { type: "", message: "", classname: "" }
 export const logger = writable();
 
-//debug monitor lua section
-function create_luadebug_store() {
-  const store = writable({
-    configScript: "",
-    syntaxError: false,
-    enabled: true,
-    data: [],
-  });
-
-  return {
-    ...store,
-    update_config: (value) => {
-      store.update((s) => {
-        s.config = value;
-        return s;
-      });
-    },
-  };
-}
-
-export const luadebug_store = create_luadebug_store();
-
 function create_user_input() {
   const defaultValues = {
     brc: {
@@ -757,6 +735,18 @@ function create_runtime() {
       classname: "profileload",
       message: `Profile load started...`,
     });
+
+    // Reorder array to send system element first
+    const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+
+    // Check if the object with id === 255 was found
+    if (index !== -1) {
+      // Remove the object at the found index
+      const objectToMove = array.splice(index, 1)[0];
+
+      // Add the object to the front of the array
+      array.unshift(objectToMove);
+    }
 
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {

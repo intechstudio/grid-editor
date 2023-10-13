@@ -1,10 +1,13 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "eprlrei",
     name: "Condition_ElseIf",
     rendering: "modifier",
-    grabbing: false,
     category: null,
     desc: "PRLR Else IF",
     blockTitle: "PRLR Else IF",
@@ -21,12 +24,9 @@
     `,
     color: "#4A4AA7",
     selectable: true,
+    movable: false,
+    hideIcon: false,
+    type: "composite_part",
+    toggleable: false,
   };
-</script>
-
-<script>
-  export let config = "";
-  export let index;
-
-  export let access_tree;
 </script>

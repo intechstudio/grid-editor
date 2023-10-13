@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gmsh",
@@ -32,6 +36,10 @@
       </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -39,7 +47,6 @@
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { Script } from "./_script_parsers.js";
   import { localDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
@@ -705,7 +712,9 @@
   }
 </script>
 
-<action-midi class="flex flex-col w-full pb-2 px-2">
+<action-midi
+  class="{$$props.class} flex flex-col w-full pb-2 px-2 pointer-events-auto"
+>
   {#if tabs !== undefined}
     <div class="ml-auto flex flex-row mb-2">
       <div />

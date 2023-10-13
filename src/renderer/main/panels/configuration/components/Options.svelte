@@ -20,7 +20,9 @@
   }
 </script>
 
-<select-box class="flex pl-2 justify-center items-center bg-transparent">
+<select-box
+  class="flex pl-2 justify-center items-center bg-transparent pointer-events-auto"
+>
   <button
     on:click={handleClick}
     class="border-white justify-center border transition-opacity rounded-md cur"

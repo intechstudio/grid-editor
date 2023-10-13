@@ -272,7 +272,6 @@ async function getInstalledPlugins(): Promise<
               const readFile = util.promisify(fs.readFile);
               pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
               //pluginPreferenceHtml = result.js.code;
-              //console.log("YAY:", result.js);
             }
           }
         }

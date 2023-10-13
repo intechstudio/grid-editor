@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "sec",
@@ -12,11 +16,15 @@
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
 <script>
-  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
   import { Validator } from "./_validators";
@@ -99,7 +107,9 @@
   ];
 </script>
 
-<encoder-settings class="flex flex-col w-full p-2">
+<encoder-settings
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     <div class="w-1/2 flex flex-col">
       <div class="w-full px-2">

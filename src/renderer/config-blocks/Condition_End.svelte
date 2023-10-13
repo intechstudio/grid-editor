@@ -1,12 +1,14 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "en",
     name: "Condition_End",
     rendering: "modifier",
-    grabbing: false,
     rounding: "bottom",
-    hiddenIcon: true,
     category: null,
     desc: "End",
     blockTitle: "End",
@@ -19,13 +21,18 @@
     blockIcon: `<span class="text-white">End</span>`,
     color: "#F84AA7",
     selectable: false,
+    movable: false,
+    hideIcon: true,
+    type: "composite_close",
+    toggleable: false,
   };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher } from "svelte";
+  import { createEventDispatcher } from "svelte";
 
   export let access_tree;
+
   const dispatch = createEventDispatcher();
 
   function sendData() {
@@ -33,10 +40,6 @@
   }
 </script>
 
-<endif-block
-  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
-  'top'
-    ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
-  style="min-height: 2.5rem; background: {information.color};"
-/>
+<endif-block class="{$$props.class} text-white pointer-events-auto">
+  {information.blockTitle}
+</endif-block>

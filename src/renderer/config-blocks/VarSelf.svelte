@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   export const information = {
     short: "s",
     name: "VarSelf",
@@ -11,6 +15,10 @@
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
     blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -200,7 +208,9 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-self-definitions class="flex flex-col w-full p-2">
+<config-self-definitions
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="flex justify-between items-center my-2 px-2">
     {#if variableNameError}
       <div class="text-sm text-red-500">Variable name error!</div>
