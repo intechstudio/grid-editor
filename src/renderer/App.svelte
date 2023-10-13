@@ -408,7 +408,7 @@
                   </div>
                 </div>
               {:else}
-              <ActiveChanges class="w-fit self-center mt-10 z-11" />
+                <ActiveChanges class="w-fit self-center mt-10 z-11" />
                 {#if $selectedConfigStore?.configType === "preset"}
                   <button
                     class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
