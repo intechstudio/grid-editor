@@ -1,6 +1,4 @@
 <script>
-  import { clickOutside } from "../_actions/click-outside.action.js";
-
   import { createEventDispatcher } from "svelte";
   import { onMount } from "svelte";
   import stringManipulation from "../../main/user-interface/_string-operations.js";
@@ -48,18 +46,18 @@
     dispatch("validator", { isError: isError });
   }
 
-  function handleFocus(mode, bool) {
-    focus = bool;
-    dispatch(`${mode}-focus`, {
-      focus: bool,
-    });
-
-    if (input && !focus) {
+  function handleLooseFocus(e) {
+    dispatch("loose-focus", { focus: false });
+    if (input) {
       input = false;
       const short = stringManipulation.shortify(inputValue);
       console.log(short);
       dispatch("change", short);
     }
+  }
+
+  function handleActiveFocus(e) {
+    dispatch("active-focus", { focus: true });
   }
 
   let input = false;
@@ -69,19 +67,12 @@
   }
 </script>
 
-<div
-  class="{$$props.class} w-full relative"
-  use:clickOutside={{ useCapture: false }}
-  on:click-outside={() => {
-    handleFocus("loose", false);
-  }}
->
+<div class="{$$props.class} w-full relative">
   <input
     {disabled}
-    bind:value={text}
-    on:click={(e) => {
-      handleFocus("active", true);
-    }}
+    bind:value={inputValue}
+    on:focus={handleActiveFocus}
+    on:blur={handleLooseFocus}
     on:input={handleInput}
     type="text"
     {placeholder}
