@@ -15,6 +15,12 @@
   $: clipboardEmpty = $appActionClipboard.length == 0;
 
   $: {
+    selectAllChecked =
+      typeof $configManager.find((e) => !e.selected) === "undefined" &&
+      $configManager.length > 0;
+  }
+
+  $: {
     isSelection = typeof $configManager.find((e) => e.selected) !== "undefined";
   }
 
