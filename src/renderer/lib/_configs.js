@@ -34,16 +34,23 @@ export function getComponentInformation({ short }) {
     return undefined;
   }
 
-  return config_components
-    .map(
-      (c) =>
-        (c = {
-          component: c.default,
-          information: c.information,
-          header: c.header,
-        })
-    )
-    .find((c) => c.information.short == short);
+  const comps = config_components.map(
+    (c) =>
+      (c = {
+        component: c.default,
+        information: c.information,
+        header: c.header,
+      })
+  );
+
+  let res = comps.find((c) => c.information.short == short);
+
+  //Backward compatibility
+  if (typeof res === "undefined") {
+    return comps.find((c) => c.information.short == "cb");
+  }
+
+  return res;
 }
 
 export function getAllComponents() {
