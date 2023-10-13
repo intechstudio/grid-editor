@@ -67,6 +67,7 @@ export class ConfigObject {
     }
 
     this.information = structuredClone(res.information);
+    this.indentation = 0;
     this.header = res.header;
 
     //Information override for Encoder type events

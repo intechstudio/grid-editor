@@ -30,6 +30,8 @@
 
   $: syntaxError = !config.checkSyntax();
 
+  $: console.log(config);
+
   let syntaxError = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
@@ -81,7 +83,7 @@
 <wrapper
   class="flex flex-grow border-none outline-none transition-opacity duration-300"
 >
-  {#each Array(config.indentation) as n}
+  {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
     </div>

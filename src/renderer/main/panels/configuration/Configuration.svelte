@@ -315,10 +315,10 @@
     }
 
     configManager.update((s) => {
-      // Remove selected action blocks
-      s = s.filter((config) => !config.selected);
       //Insert CodeBlock into position
       s.insert(index, codeBlock);
+      // Remove selected action blocks
+      s = s.filter((config) => !config.selected);
       return s;
     });
 
@@ -354,9 +354,7 @@
 
     configManager.update((s) => {
       s.forEach((e) => (e.selected = false));
-      for (const config of $appActionClipboard) {
-        s.insert(index, config.makeCopy());
-      }
+      s.insert(index, ...$appActionClipboard.map((e) => e.makeCopy()));
 
       return s;
     });

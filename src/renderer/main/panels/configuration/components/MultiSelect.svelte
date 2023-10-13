@@ -21,7 +21,7 @@
   function handleConvertToCodeBlockClicked(e) {
     dispatch("convert-to-code-block", {
       configs: $configManager.filter((e) => e.selected),
-      index: $configManager.find((e) => e.selected), //First selected
+      index: $configManager.findIndex((e) => e.selected), //First selected
     });
   }
 
