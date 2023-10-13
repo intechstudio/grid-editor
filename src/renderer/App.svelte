@@ -48,6 +48,7 @@
   import { setTooltip } from "./main/user-interface/tooltip/Tooltip";
   import { Analytics } from "./runtime/analytics.js";
   import SendFeedback from "./main/user-interface/SendFeedback.svelte";
+  import { selectedConfigStore } from "./runtime/config-helper.store";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -98,7 +99,7 @@
 
   window.electron.configs.onExternalResponse((_event, value) => {
     // listening to this store on ProfileCloud.svelte
-    profileLinkStore.set({ id: value });
+    configLinkStore.set({ id: value });
   });
 
   window.onmessage = (event) => {
@@ -407,7 +408,18 @@
                   </div>
                 </div>
               {:else}
-                <ActiveChanges class="w-fit self-center mt-10 " />
+                <ActiveChanges class="w-fit self-center mt-10 z-11" />
+                {#if $selectedConfigStore?.configType === "preset"}
+                  <button
+                    class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
+                      rounded text-white py-1 w-24 hover:bg-yellow-600"
+                    on:click={() => {
+                      selectedConfigStore.set({});
+                    }}
+                  >
+                    <div>Cancel</div>
+                  </button>
+                {/if}
               {/if}
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}

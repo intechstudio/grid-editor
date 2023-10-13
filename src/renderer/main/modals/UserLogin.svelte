@@ -15,6 +15,10 @@
     authStore.login(email, password);
   }
 
+  async function anonymousLogin() {
+    authStore.anonymousLogin();
+  }
+
   async function logout() {
     authStore.logout();
   }

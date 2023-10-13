@@ -393,6 +393,36 @@ function startPluginDirectoryWatcher(
     });
 }
 
+let configWatcher: chokidar.FSWatcher | undefined;
+function startConfigWatcher(configPath, rootDirectory) {
+  configWatcher?.close();
+
+  async function sendLocalConfigs() {
+    var result = await loadConfigsFromDirectory(configPath, rootDirectory);
+    mainWindow.webContents.send("sendConfigsToRenderer", result);
+  }
+
+  configWatcher = chokidar.watch(path.join(configPath, "configs"), {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+  configWatcher.on("add", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("change", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("unlink", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("ready", function () {
+    sendLocalConfigs();
+  });
+  sendLocalConfigs();
+}
+
 ipcMain.handle("startPlugin", async (event, arg) => {
   console.log("pluginstart!", arg.name);
   switch (arg.name) {
@@ -492,6 +522,15 @@ ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
 
 ipcMain.handle("saveConfig", async (event, arg) => {
   return await saveConfig(arg.configPath, arg.rootDirectory, arg.config);
+});
+
+ipcMain.handle("startConfigsWatch", async (event, arg) => {
+  return await startConfigWatcher(arg.configPath, arg.rootDirectory);
+});
+
+ipcMain.handle("stopConfigsWatch", async (event) => {
+  configWatcher?.close();
+  configWatcher = undefined;
 });
 
 ipcMain.handle("deleteConfig", async (event, arg) => {
