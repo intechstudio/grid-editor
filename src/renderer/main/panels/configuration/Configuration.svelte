@@ -466,9 +466,7 @@
         list.sendTo({ target: target }).catch((e) => handleError(e));
       });
 
-      const list = clipboard.data.find(
-        (e) => events.selected.value === e.eventType
-      ).configs;
+      const list = ConfigList.createFrom(current);
       configManager.set(list);
     } else {
       logger.set({
