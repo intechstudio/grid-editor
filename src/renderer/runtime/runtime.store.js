@@ -758,6 +758,18 @@ function create_runtime() {
       message: `Profile load started...`,
     });
 
+    // Reorder array to send system element first
+    const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+
+    // Check if the object with id === 255 was found
+    if (index !== -1) {
+      // Remove the object at the found index
+      const objectToMove = array.splice(index, 1)[0];
+
+      // Add the object to the front of the array
+      array.unshift(objectToMove);
+    }
+
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {
         let li = get(user_input);
