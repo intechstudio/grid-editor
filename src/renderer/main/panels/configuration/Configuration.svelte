@@ -28,6 +28,7 @@
     ConfigObject,
     ConfigTarget,
     configManager,
+    lastOpenedActionblocksInsert,
   } from "./Configuration.store.js";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
@@ -245,6 +246,7 @@
 
   function handleConfigUpdate(e) {
     const { index, short, script } = e.detail;
+
     configManager.update((s) => {
       const config = s[index];
       config.short = short;
@@ -482,6 +484,15 @@
       mandatory: false,
     });
   }
+
+  function handleReplace(e) {
+    const { index, config } = e.detail;
+    configManager.update((s) => {
+      s[index] = config;
+      lastOpenedActionblocksInsert(config.short);
+      return s;
+    });
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col bg-primary">
@@ -597,6 +608,7 @@
                     {config}
                     {access_tree}
                     on:update={handleConfigUpdate}
+                    on:replace={handleReplace}
                   />
 
                   <Options

@@ -30,8 +30,6 @@
 
   $: syntaxError = !config.checkSyntax();
 
-  $: console.log(config);
-
   let syntaxError = false;
   let validationError = false;
   const dispatch = createEventDispatcher();
@@ -40,14 +38,15 @@
     const name = e.detail;
     const components = getAllComponents();
     const new_config = components.find((e) => e.information.name === name);
+
     const obj = new ConfigObject({
       short: new_config.information.short,
       script: new_config.information.defaultLua,
     });
-    config = obj;
-    dispatch("update", {
+
+    dispatch("replace", {
       index: index,
-      newConfig: obj,
+      config: obj,
     });
     toggled = true;
   }
