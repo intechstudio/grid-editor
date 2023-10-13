@@ -48,7 +48,7 @@
   import { setTooltip } from "./main/user-interface/tooltip/Tooltip";
   import { Analytics } from "./runtime/analytics.js";
   import SendFeedback from "./main/user-interface/SendFeedback.svelte";
-    import { selectedConfigStore } from "./runtime/config-helper.store";
+  import { selectedConfigStore } from "./runtime/config-helper.store";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -410,13 +410,13 @@
               {:else}
                 <ActiveChanges class="w-fit self-center mt-10 z-11" />
                 {#if $selectedConfigStore?.configType === "preset"}
-                    <button
-                      class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
+                  <button
+                    class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
                       rounded text-white py-1 w-24 hover:bg-yellow-600"
-                      on:click={() => {
-                        selectedConfigStore.set({});
-                      }}
-                        >
+                    on:click={() => {
+                      selectedConfigStore.set({});
+                    }}
+                  >
                     <div>Cancel</div>
                   </button>
                 {/if}
