@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "glp",
@@ -36,6 +40,10 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -147,7 +155,9 @@
   }
 </script>
 
-<config-led-phase class="flex flex-col w-full p-2">
+<config-led-phase
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>

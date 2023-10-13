@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gmms",
@@ -20,6 +24,10 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -112,7 +120,9 @@
   }
 </script>
 
-<mouse-move class="flex flex-col w-full p-2">
+<mouse-move
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>

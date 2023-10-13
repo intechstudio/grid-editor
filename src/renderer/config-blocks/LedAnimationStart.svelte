@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "glat",
@@ -36,6 +40,10 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -170,7 +178,9 @@
   }
 </script>
 
-<config-led-phase class="flex flex-col w-full p-2">
+<config-led-phase
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1 font-bold">
       Start a periodic animation on the LED

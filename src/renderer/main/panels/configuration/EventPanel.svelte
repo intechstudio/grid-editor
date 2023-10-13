@@ -1,133 +1,83 @@
 <script>
   import { appSettings } from "../../../runtime/app-helper.store.js";
 
-  import { get } from "svelte/store";
   import {
-    runtime,
     elementNameStore,
-    logger,
     user_input,
-    controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
-  import { onDestroy, onMount } from "svelte";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
+  import { createEventDispatcher } from "svelte";
+  import { ConfigTarget } from "./Configuration.store.js";
 
-  import { Analytics } from "../../../runtime/analytics.js";
+  const dispatch = createEventDispatcher();
 
-  export let events;
+  class Event {
+    constructor({ label = "", value = null, selected = false }) {
+      this.label = label;
+      this.value = value;
+      this.selected = selected;
+    }
+  }
 
-  let stringname;
+  let events = [];
+  let selectedElement = undefined;
+  let stringname = undefined;
 
-  $: {
+  $: handleElementNameUpdate($elementNameStore);
+
+  $: handleUserInputChange($user_input);
+
+  function handleElementNameUpdate(store) {
     try {
       stringname =
-        $elementNameStore[$user_input.brc.dx][$user_input.brc.dy][
+        store[$user_input.brc.dx][$user_input.brc.dy][
           $user_input.event.elementnumber
         ];
     } catch (error) {}
   }
 
-  let selectedEvent;
+  function handleUserInputChange(ui) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
 
-  $: selectedEvent = events.selected;
+    if (typeof target === "undefined") {
+      return;
+    }
 
-  let loaded;
+    //Get events
+    events = target.events.map((e) => {
+      return new Event({
+        label: String(e.event.desc),
+        value: Number(e.event.value),
+        selected: target.eventType == e.event.value,
+      });
+    });
 
-  onMount(() => {});
-
-  onDestroy(() => {
-    loaded = false;
-  });
+    selectedElement = target.element;
+  }
 
   function handleSelectEvent(event) {
-    selectedEvent = event;
     user_input.update_eventtype(event.value);
-  }
-
-  function handleSelectElement(element) {
-    user_input.update_elementnumber(element);
-  }
-
-  function copyAllEventConfigsFromSelf() {
-    let callback = function () {
-      const li = get(user_input);
-      const rt = get(runtime);
-
-      const device = rt.find(
-        (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-      );
-      const pageIndex = device.pages.findIndex(
-        (x) => x.pageNumber == li.event.pagenumber
-      );
-      const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-        (x) => x.controlElementNumber == li.event.elementnumber
-      );
-
-      const events =
-        device.pages[pageIndex].control_elements[elementIndex].events;
-      const controlElementType =
-        device.pages[pageIndex].control_elements[elementIndex]
-          .controlElementType;
-
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementcopy",
-        message: `Events are copied!`,
-      });
-      controlElementClipboard.set({ controlElementType, events });
-    };
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementcopy",
-      message: `Copy events from element...`,
-    });
-
-    runtime.fetch_element_configuration_from_grid(callback);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
-  }
-
-  function overwriteAllEventConfigs() {
-    let clipboard = get(controlElementClipboard);
-    runtime.whole_element_overwrite(clipboard);
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
-  }
-
-  function updateStringName(e) {
-    const name = e.target.value;
-    console.error("SORRY");
   }
 
   function showControlElementNameOverlay() {
     $appSettings.overlays.controlElementName =
       !$appSettings.overlays.controlElementName;
   }
+
+  function handleCopyAll(e) {
+    dispatch("copy-all");
+  }
+
+  function handleOverwriteAll(e) {
+    dispatch("overwrite-all");
+  }
 </script>
 
-<div
-  class="{selectedEvent ||
-    'pointer-events-none'} flex flex-col bg-primary w-full p-4"
->
-  <div
-    class="pb-2 {$appSettings.configType == 'uiEvents'
-      ? 'block'
-      : 'hidden'} flex"
-  >
+<div class="flex flex-col w-full p-4">
+  <div class="pb-2 flex" class:hidden={selectedElement == 255}>
     <div class="w-3/4 p-1">
       <div class="flex items-center py-1">
         <div class="text-gray-500 text-sm">Element Name</div>
@@ -153,8 +103,7 @@
       <div class="text-white flex">
         {#if stringname}
           <div>{stringname}</div>
-        {/if}
-        {#if !stringname}
+        {:else}
           <div>Name your element</div>
         {/if}
 
@@ -177,9 +126,7 @@
             class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary mx-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={() => {
-            copyAllEventConfigsFromSelf();
-          }}
+          on:click={handleCopyAll}
         >
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
         </button>
@@ -193,9 +140,7 @@
             class: "p-4",
           }}
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={() => {
-            overwriteAllEventConfigs();
-          }}
+          on:click={handleOverwriteAll}
         >
           <SvgIcon displayMode="button" iconPath={"paste_all"} />
         </button>
@@ -204,30 +149,36 @@
 
     <div class="flex flex-col justify-center items-center">
       <div class="flex w-full">
-        {#each events.options as event}
-          {#key event.desc}
+        {#if events.length > 0}
+          {#each events as event}
             <button
               use:setTooltip={{
-                key:
-                  typeof event.desc !== "undefined"
-                    ? `event_${event.desc}`
-                    : "",
+                key: `event_${event.label}`,
                 placement: "top",
                 class: "w-80 p-4",
               }}
               on:click={() => {
                 handleSelectEvent(event);
               }}
-              class="{selectedEvent === event && event.desc !== undefined
+              class="{event.selected
                 ? 'shadow-md text-white bg-pick'
                 : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
             >
-              {@html event.desc
-                ? event.desc
-                : `<span class="invisible">null</span>`}
+              <span
+                >{event.label.charAt(0).toUpperCase() +
+                  event.label.slice(1)}</span
+              >
             </button>
-          {/key}
-        {/each}
+          {/each}
+        {:else}
+          {#each Array(3) as n}
+            <div
+              class=" bg-secondary relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
+            >
+              <span class="invisible">null</span>
+            </div>
+          {/each}
+        {/if}
       </div>
     </div>
   </div>

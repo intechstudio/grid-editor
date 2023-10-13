@@ -1,14 +1,15 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  export const header = undefined;
+
   // config descriptor parameters
   export const information = {
     short: "ei",
     name: "Condition_ElseIf",
     rendering: "modifier",
-    grabbing: false,
-    hiddenIcon: true,
     category: "condition",
-    desc: "Elif",
-    blockTitle: "Elif",
+    desc: "Else if",
+    blockTitle: "Else if",
     defaultLua: "else if  then",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -18,6 +19,10 @@
     blockIcon: `<span class="text-white">Elif<span>`,
     color: "#F84AA7",
     selectable: true,
+    movable: false,
+    hideIcon: true,
+    type: "composite_part",
+    toggleable: false,
   };
 </script>
 
@@ -34,8 +39,6 @@
   export let access_tree;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
-
-  import { appSettings } from "../runtime/app-helper.store";
 
   import { windowSize } from "../runtime/window-size";
 
@@ -66,15 +69,23 @@
   }
 </script>
 
-<if-block class="w-full h-fit flex text-white py-1">
-  <div class="bg-secondary p-1 my-auto mr-1 rounded flex items-center w-full">
-    <LineEditor
-      on:change={(e) => {
-        sendData(e.detail.script);
-      }}
-      {access_tree}
-      {sidebarWidth}
-      value={scriptSegment}
-    />
+<else-if-block
+  class="{$$props.class} w-full h-fit flex text-white py-1 pointer-events-auto"
+>
+  <div class="flex flex-row items-center w-full gap-3">
+    <span class="text-white min-w-fit">Else if</span>
+
+    <div
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
+    >
+      <LineEditor
+        on:change={(e) => {
+          sendData(e.detail.script);
+        }}
+        {access_tree}
+        {sidebarWidth}
+        value={scriptSegment}
+      />
+    </div>
   </div>
-</if-block>
+</else-if-block>

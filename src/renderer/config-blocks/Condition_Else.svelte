@@ -1,11 +1,13 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "el",
     name: "Condition_Else",
     rendering: "modifier",
-    grabbing: false,
-    hiddenIcon: true,
     category: "condition",
     desc: "Else",
     blockTitle: "Else",
@@ -17,7 +19,11 @@
     `,
     color: "#F84AA7",
     blockIcon: `<span class="text-white">Else</span>`,
-    selectable: false,
+    selectable: true,
+    movable: false,
+    hideIcon: true,
+    type: "composite_part",
+    toggleable: false,
   };
 </script>
 
@@ -31,7 +37,6 @@
   }
 </script>
 
-<else-block
-  class="w-full h-fit flex flex-col text-white"
-  style="min-height: 2.5rem; background: {information.color};"
-/>
+<else-block class="{$$props.class} text-white pointer-events-auto">
+  {information.blockTitle}
+</else-block>

@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gtt",
@@ -20,11 +24,15 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
 
   import { Script } from "./_script_parsers.js";
@@ -104,7 +112,9 @@
   });
 </script>
 
-<timer-start class="flex flex-col w-full p-2">
+<timer-start
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>

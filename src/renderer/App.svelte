@@ -43,7 +43,7 @@
   import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
   import { runtime, logger } from "./runtime/runtime.store";
   import { writeBuffer } from "./runtime/engine.store.js";
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
+  import { fade, blur, fly } from "svelte/transition";
   import Spinner from "./main/user-interface/Spinner.svelte";
   import { setTooltip } from "./main/user-interface/tooltip/Tooltip";
   import { Analytics } from "./runtime/analytics.js";
@@ -335,8 +335,8 @@
           <div
             class="relative flex w-full h-full overflow-clip items-center justify-center"
           >
-            <GridLayout class="relative w-full h-full flex flex-col z-1">
-              <Pages class="w-full z-10" />
+            <GridLayout class="relative w-full h-full flex flex-col">
+              <Pages class="w-full z-[1]" />
               {#if $writeBuffer.length > 0 && $runtime.length > 0}
                 <div
                   in:fade={{ delay: 300, duration: 300 }}
@@ -349,7 +349,7 @@
                 <div
                   in:fade={{ delay: 300, duration: 1000 }}
                   out:blur={{ duration: 150 }}
-                  class="w-fit self-center mt-10 z-10 bg-primary py-2 px-4 rounded-lg shadow"
+                  class="w-fit self-center mt-10 z-[1] bg-primary py-2 px-4 rounded-lg shadow"
                 >
                   <div class="flex flex-row items-center gap-2">
                     <Spinner class="scale-50 -mx-5" />
@@ -407,7 +407,7 @@
                   </div>
                 </div>
               {:else}
-                <ActiveChanges class="w-fit self-center mt-10 z-10" />
+                <ActiveChanges class="w-fit self-center mt-10 " />
               {/if}
 
               {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
@@ -432,7 +432,7 @@
                 {/if}
 
                 <CursorLog
-                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4"
+                  class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[1]"
                   on:content-change={handleContentChange}
                 />
               </div>

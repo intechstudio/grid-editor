@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "cb",
@@ -24,6 +28,10 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -141,7 +149,9 @@
   }
 </script>
 
-<code-block class="w-full flex flex-col p-4 pb-2">
+<code-block
+  class="{$$props.class} w-full flex flex-col p-4 pb-2 pointer-events-auto"
+>
   <div class="w-full flex flex-col">
     <div class="text-gray-500 text-sm font-bold">Code preview:</div>
 
