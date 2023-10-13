@@ -121,9 +121,7 @@
   }
 
   async function handleCreateCloudConfigLink(event) {
-    return await window.electron.clipboard.writeText(
-      event.data.configLinkUrl
-    );
+    return await window.electron.clipboard.writeText(event.data.configLinkUrl);
   }
 
   async function handleLogoutFromProfileCloud(event) {
@@ -182,83 +180,83 @@
     const path = $appSettings.persistent.profileFolder;
     const config = event.data?.config;
 
-    return await window.electron.configs
-      .deleteConfig(path, "configs", config)
+    return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
-  const handleGetCurrentConfigurationFromEditor = (event) => new Promise(async (resolve) => {
-    const configType = event.data.configType;
-    
-    let callback = await async function () {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "configsave",
-        message: `Ready to save config!`,
-      });
+  const handleGetCurrentConfigurationFromEditor = (event) =>
+    new Promise(async (resolve) => {
+      const configType = event.data.configType;
 
-      const li = get(user_input);
+      let callback = await async function () {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "configsave",
+          message: `Ready to save config!`,
+        });
 
-      const configs = get(runtime);
+        const li = get(user_input);
 
-      let name = undefined;
-      let description = "Click here to add description";
-      let id = uuidv4();
+        const configs = get(runtime);
 
-      let config = {
-        name: name,
-        id: id,
-        description: description,
-        configType: configType, // differentiator from different JSON files!
-        version: {
-          major: $appSettings.version.major,
-          minor: $appSettings.version.minor,
-          patch: $appSettings.version.patch,
-        },
-        localId: id,
-      };
+        let name = undefined;
+        let description = "Click here to add description";
+        let id = uuidv4();
 
-      configs.forEach((d) => {
-        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find(
-            (x) => x.pageNumber == li.event.pagenumber
-          );
+        let config = {
+          name: name,
+          id: id,
+          description: description,
+          configType: configType, // differentiator from different JSON files!
+          version: {
+            major: $appSettings.version.major,
+            minor: $appSettings.version.minor,
+            patch: $appSettings.version.patch,
+          },
+          localId: id,
+        };
 
-          if (configType === "profile") {
-            config.type = selectedModule;
-            config.configs = page.control_elements.map((cfg) => {
-              return {
-                controlElementNumber: cfg.controlElementNumber,
-                events: cfg.events.map((ev) => {
+        configs.forEach((d) => {
+          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+            const page = d.pages.find(
+              (x) => x.pageNumber == li.event.pagenumber
+            );
+
+            if (configType === "profile") {
+              config.type = selectedModule;
+              config.configs = page.control_elements.map((cfg) => {
+                return {
+                  controlElementNumber: cfg.controlElementNumber,
+                  events: cfg.events.map((ev) => {
+                    return {
+                      event: ev.event.value,
+                      config: ev.config,
+                    };
+                  }),
+                };
+              });
+            } else if (configType === "preset") {
+              const element = page.control_elements.find(
+                (x) => x.controlElementNumber === li.event.elementnumber
+              );
+              config.type = li.event.elementtype;
+              config.configs = {
+                events: element.events.map((ev) => {
                   return {
                     event: ev.event.value,
                     config: ev.config,
                   };
                 }),
               };
-            });
-          } else if (configType === "preset") {
-            const element = page.control_elements.find(
-              (x) => x.controlElementNumber === li.event.elementnumber
-            );
-            config.type = li.event.elementtype;
-            config.configs = {
-              events: element.events.map((ev) => {
-                return {
-                  event: ev.event.value,
-                  config: ev.config,
-                };
-              }),
-            };
+            }
           }
-        }
-      });
-      config.name = `New ${config.type} config`;
-      resolve(config)
-    }
-  
-    runtime.fetch_page_configuration_from_grid(callback);
-  });
+        });
+        config.name = `New ${config.type} config`;
+        resolve(config);
+      };
+
+      runtime.fetch_page_configuration_from_grid(callback);
+    });
 
   async function handleCreateNewLocalConfigWithTheSelectedModulesConfigurationFromEditor(
     event
@@ -266,19 +264,17 @@
     // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
     // const { owner, name, editorData, _id } = event.data;
 
-    
+    await window.electron.configs.saveConfig(path, "configs", config);
 
-      await window.electron.configs.saveConfig(path, "configs", config);
+    logger.set({
+      type: "success",
+      message: `Config saved!`,
+    });
 
-      logger.set({
-        type: "success",
-        message: `Config saved!`,
-      });
+    channel.postMessage({ ok: true, data: {} });
 
-      channel.postMessage({ ok: true, data: {} });
-
-      return;
-    };
+    return;
+  }
 
   async function handleOverwriteLocalConfig(event, channel) {
     const { configToOverwrite } = event.data;
@@ -297,9 +293,7 @@
       const configs = get(runtime);
       configs.forEach((d) => {
         if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-          const page = d.pages.find(
-            (x) => x.pageNumber == li.event.pagenumber
-          );
+          const page = d.pages.find((x) => x.pageNumber == li.event.pagenumber);
 
           if (configToOverwrite.configType === "profile") {
             configToOverwrite.configs = page.control_elements.map((cfg) => {
@@ -456,7 +450,7 @@
   }
 
   let profileCloudIsMounted = false;
-  async function handleProfileCloudMounted(event) {    
+  async function handleProfileCloudMounted(event) {
     console.log("profile cloud is mounted received");
     profileCloudIsMounted = true;
     if (
@@ -509,8 +503,8 @@
             channel
           );
       }
-      if (event.data === "getCurrenConfigurationFromEditor"){
-        channelMessageWrapper(event, handleGetCurrentConfigurationFromEditor)
+      if (event.data === "getCurrenConfigurationFromEditor") {
+        channelMessageWrapper(event, handleGetCurrentConfigurationFromEditor);
       }
       // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
       if (event.data == "overwriteLocalConfig") {

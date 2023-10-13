@@ -52,8 +52,10 @@ contextBridge.exposeInMainWorld("electron", {
         configPath,
         rootDirectory,
       }),
-    onSendConfigsToRenderer: (callback) => ipcRenderer.on('sendConfigsToRenderer', callback), 
-    startConfigsWatch: (configPath, rootDirectory) => ipcRenderer.invoke("startConfigsWatch", {configPath, rootDirectory}),
+    onSendConfigsToRenderer: (callback) =>
+      ipcRenderer.on("sendConfigsToRenderer", callback),
+    startConfigsWatch: (configPath, rootDirectory) =>
+      ipcRenderer.invoke("startConfigsWatch", { configPath, rootDirectory }),
     stopConfigsWatch: () => ipcRenderer.invoke("stopConfigsWatch"),
     saveConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("saveConfig", {

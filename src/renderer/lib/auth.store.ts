@@ -37,12 +37,10 @@ const createAuth = () => {
   }
 
   async function anonymousLogin() {
-    await signInAnonymously(centralAuth).then(
-      async () => {
-        const userIdToken = await centralAuth.currentUser!.getIdToken();
-        set({ event: "login", providerId: "oidc", idToken: userIdToken });
-      }
-    )
+    await signInAnonymously(centralAuth).then(async () => {
+      const userIdToken = await centralAuth.currentUser!.getIdToken();
+      set({ event: "login", providerId: "oidc", idToken: userIdToken });
+    });
   }
 
   async function socialLogin(provider, idToken) {

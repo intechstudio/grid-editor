@@ -393,33 +393,33 @@ function startPluginDirectoryWatcher(
     });
 }
 
-let configWatcher : chokidar.FSWatcher | undefined;
-function startConfigWatcher(configPath, rootDirectory){
-  configWatcher?.close()
-  
-  async function sendLocalConfigs(){
+let configWatcher: chokidar.FSWatcher | undefined;
+function startConfigWatcher(configPath, rootDirectory) {
+  configWatcher?.close();
+
+  async function sendLocalConfigs() {
     var result = await loadConfigsFromDirectory(configPath, rootDirectory);
-    mainWindow.webContents.send('sendConfigsToRenderer', result);
+    mainWindow.webContents.send("sendConfigsToRenderer", result);
   }
-  
-  configWatcher = chokidar.watch(path.join(configPath, 'configs'), {
+
+  configWatcher = chokidar.watch(path.join(configPath, "configs"), {
     ignored: /[\/\\]\./,
     persistent: true,
     ignoreInitial: true, // Ignore initial events on startup
     depth: 0, // Only watch the top-level directory
-  })
-  configWatcher.on('add', function(path){
+  });
+  configWatcher.on("add", function (path) {
     sendLocalConfigs();
-  })
-  configWatcher.on('change', function(path){
+  });
+  configWatcher.on("change", function (path) {
     sendLocalConfigs();
-  })
-  configWatcher.on('unlink', function(path){
+  });
+  configWatcher.on("unlink", function (path) {
     sendLocalConfigs();
-  })
-  configWatcher.on('ready', function(){
+  });
+  configWatcher.on("ready", function () {
     sendLocalConfigs();
-  })
+  });
   sendLocalConfigs();
 }
 

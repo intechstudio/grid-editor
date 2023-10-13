@@ -115,9 +115,9 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
           let obj = JSON.parse(data);
           if (obj.configType) {
             obj.fileName = file;
-            
+
             //TODO: remove around 2024 summer, temporary map from localId to id
-            if (!obj.id && obj.localId){
+            if (!obj.id && obj.localId) {
               obj.id = obj.localId;
               delete obj.localId;
             }

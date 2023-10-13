@@ -13,8 +13,8 @@
 
   async function submitLogin() {
     authStore.login(email, password);
-  }  
-  
+  }
+
   async function anonymousLogin() {
     authStore.anonymousLogin();
   }
@@ -133,13 +133,12 @@
 
           <div class="px-8">Sign in with Google</div>
         </button>
-      <button
-        class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
-        on:click={() =>
-          anonymousLogin()}
+        <button
+          class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
+          on:click={() => anonymousLogin()}
         >
-        <div class="px-8">Anonymous sign-in</div>
-      </button>
+          <div class="px-8">Anonymous sign-in</div>
+        </button>
       {:else}
         <div class="text-white px-2">
           Signed in as: {$userStore.email}
