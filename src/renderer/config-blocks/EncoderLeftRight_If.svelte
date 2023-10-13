@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "elr",
@@ -9,7 +13,11 @@
     eventtype: [2], // 2: encoder
     desc: "Left/Right Rotate",
     blockTitle: "Rotate Left",
-    defaultLua: "if self:est()<64 then--[[@elrel]] else--[[@elre]] end",
+    defaultLua: "if self:est()<64 then",
+    compositeLua: [
+      { short: "elrel", script: "else" },
+      { short: "elre", script: "end" },
+    ],
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
       <path
@@ -42,6 +50,10 @@
     </svg> `,
     color: "#4A4AA7 ",
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "composite_open",
+    toggleable: false,
   };
 </script>
 
@@ -88,10 +100,12 @@
 <svelte:window bind:innerWidth={sidebarWidth} />
 
 <if-block
-  class="w-full h-fit flex flex-col text-white py-1 {information.rounding ==
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
   'top'
     ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom' ? 'rounded-br-xl ' : ''} "
+    : ''} {information.rounding == 'bottom'
+    ? 'rounded-br-xl '
+    : ''} pointer-events-auto"
   style="min-height: 2.5rem; background: {information.color};"
 >
   <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">

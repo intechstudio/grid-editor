@@ -1,10 +1,13 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "elrel",
     name: "EncoderLeftRight_Else",
     rendering: "modifier",
-    grabbing: false,
     category: null,
     desc: "Rotate Right",
     blockTitle: "Rotate Right",
@@ -37,6 +40,10 @@
     </svg>`,
     color: "#4A4AA7",
     selectable: false,
+    movable: false,
+    hideIcon: false,
+    type: "composite_part",
+    toggleable: false,
   };
 </script>
 
@@ -54,6 +61,6 @@
 </script>
 
 <else-block
-  class="w-full h-fit flex flex-col text-white py-1"
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
   style="min-height: 2.5rem; background: {information.color};"
 />

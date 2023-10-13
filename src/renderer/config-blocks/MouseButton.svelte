@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gmbs",
@@ -20,6 +24,10 @@
     </svg>
     `,
     selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -27,7 +35,6 @@
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { localDefinitions } from "../runtime/runtime.store";
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators";
 
@@ -107,7 +114,9 @@
   });
 </script>
 
-<mouse-button class="flex flex-col w-full p-2">
+<mouse-button
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     {#each scriptSegments as script, i}
       <div class={"w-1/" + scriptSegments.length + " atomicInput"}>

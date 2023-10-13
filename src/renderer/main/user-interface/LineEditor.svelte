@@ -102,9 +102,10 @@
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
   bind:this={monaco_block}
-  class="line-editor {$$props.class} grid grid-cols-1 w-full"
+  class="line-editor {$$props.class} grid grid-cols-1 w-full pointer-events-auto"
 />

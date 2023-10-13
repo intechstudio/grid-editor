@@ -8,13 +8,13 @@
     outbound_data_rate_history,
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { luadebug_store } from "../../../runtime/runtime.store";
   import { fade } from "svelte/transition";
   import grid from "../../../protocol/grid-protocol";
   import { writable, readable } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
+  import { configManager } from "../../panels/configuration/Configuration.store";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);
@@ -29,8 +29,8 @@
   }
 
   $: {
-    configScriptLength.set($luadebug_store.configScript.length);
-    syntaxError.set($luadebug_store.syntaxError);
+    configScriptLength.set($configManager.toConfigScript().length);
+    syntaxError.set($configManager.checkSyntax());
   }
 
   let frozen = false;

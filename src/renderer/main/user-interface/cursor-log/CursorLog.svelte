@@ -32,7 +32,6 @@
 
 <container
   id="cursor-log"
-  style="z-index:9999;"
   class={$$props.class}
   on:mouseenter={handleMouseEnter}
   on:mouseleave={handleMouseLeave}

@@ -59,7 +59,7 @@
 </script>
 
 <div
-  class="w-full relative"
+  class="{$$props.class} w-full relative"
   use:clickOutside={{ useCapture: false }}
   on:click-outside={() => {
     handleFocus("loose", false);
