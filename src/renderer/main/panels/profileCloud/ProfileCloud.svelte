@@ -409,6 +409,15 @@
         }
       }
 
+      if (profile.type == "TEK2") {
+        if ([0, 1, 2, 3, 4, 5, 6, 7].includes(config.controlElementNumber)) {
+          type = "button";
+        }
+        if ([8, 9].includes(config.controlElementNumber)) {
+          type = "potentiometer"
+        }
+      }
+
       if (configElement.controlElementNumber === 255) {
         type = "system";
       }
