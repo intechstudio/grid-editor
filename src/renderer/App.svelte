@@ -43,7 +43,7 @@
   import ModulConnectionDialog from "./main/user-interface/ModulConnectionDialog.svelte";
   import { runtime, logger } from "./runtime/runtime.store";
   import { writeBuffer } from "./runtime/engine.store.js";
-  import { fade, blur, fly, slide, scale } from "svelte/transition";
+  import { fade, blur, fly } from "svelte/transition";
   import Spinner from "./main/user-interface/Spinner.svelte";
   import { setTooltip } from "./main/user-interface/tooltip/Tooltip";
   import { Analytics } from "./runtime/analytics.js";
