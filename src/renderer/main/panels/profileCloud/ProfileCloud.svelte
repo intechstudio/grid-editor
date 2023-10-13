@@ -40,9 +40,26 @@
     selectedControlElementType = ui.event.elementtype;
   }
 
+  function channelMessageWrapper(event, func) {
+    const channel = event.ports[0];
+    if (channel) {
+      channel.onmessage = (event) =>
+        func(event)
+          .then((res) => {
+            console.log(func.name);
+            channel.postMessage({ ok: true, data: res });
+          })
+          .catch((err) => {
+            channel.postMessage({ ok: false, data: err });
+          })
+          .finally(() => {
+            channel.close();
+          });
+    }
+  }
+
   function sendConfigLinkToIframe(storeValue) {
     if (iframe_element == undefined) return;
-
     iframe_element.contentWindow.postMessage(
       {
         messageType: "configLink",
@@ -87,416 +104,373 @@
     );
   }
 
+  function sendLocalConfigs(configs) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "localConfigs",
+        configs,
+      },
+      "*"
+    );
+  }
+
   async function handleLoginToProfileCloud(event) {
-    if (event.data.channelMessageType == "LOGIN_TO_PROFILE_CLOUD") {
-      $appSettings.modal = "userLogin";
-      return;
-    }
+    $appSettings.modal = "userLogin";
   }
 
   async function handleCreateCloudConfigLink(event) {
-    if (event.data.channelMessageType == "CREATE_CLOUD_CONFIG_LINK") {
-      return await window.electron.clipboard.writeText(
-        event.data.configLinkUrl
-      );
-    }
+    return await window.electron.clipboard.writeText(
+      event.data.configLinkUrl
+    );
   }
 
   async function handleLogoutFromProfileCloud(event) {
-    if (event.data.channelMessageType == "LOGOUT_FROM_PROFILE_CLOUD") {
-      return await authStore.logout();
-    }
-  }
-
-  function channelMessageWrapper(event, func) {
-    const channel = event.ports[0];
-    if (channel) {
-      channel.onmessage = (event) =>
-        func(event)
-          .then((res) => {
-            console.log(func.name);
-            channel.postMessage({ ok: true, data: res });
-          })
-          .catch((err) => {
-            channel.postMessage({ ok: false, data: err });
-          })
-          .finally(() => {
-            channel.close();
-          });
-    }
+    return await authStore.logout();
   }
 
   async function handleSubmitAnalytics(event) {
-    if (event.data.channelMessageType == "SUBMIT_ANALYTICS") {
-      const { payload, eventName } = event.data;
-      Analytics.track({
-        event: eventName,
-        payload: payload,
-        mandatory: false,
-      });
-      return;
-    }
+    const { payload, eventName } = event.data;
+    Analytics.track({
+      event: eventName,
+      payload: payload,
+      mandatory: false,
+    });
+    return;
   }
 
   async function handleImportConfig(event) {
-    if (event.data.channelMessageType == "IMPORT_CONFIG") {
-      const path = $appSettings.persistent.profileFolder;
-      const config = event.data;
-      const importName = config.name;
+    const path = $appSettings.persistent.profileFolder;
+    const config = event.data;
+    const importName = config.name;
 
-      config.cloudId = config.id;
-      delete config.id;
-      config.localId = uuidv4();
-
-      return await window.electron.configs
-        .saveConfig(path, "configs", config)
-        .then((res) => {
-          logger.set({
-            type: "success",
-            message: `Config ${importName} imported successfully`,
-          });
-          return;
-        })
-        .catch((err) => {
-          logger.set({
-            type: "fail",
-            message: `Config ${importName} import failed`,
-          });
-          throw err;
+    return await window.electron.configs
+      .saveConfig(path, "configs", config)
+      .then((res) => {
+        logger.set({
+          type: "success",
+          message: `Config ${importName} imported successfully`,
         });
-    }
+        return;
+      })
+      .catch((err) => {
+        logger.set({
+          type: "fail",
+          message: `Config ${importName} import failed`,
+        });
+        throw err;
+      });
   }
 
   async function handleGetListOfLocalConfigs(event) {
-    if (event.data.channelMessageType == "GET_LIST_OF_LOCAL_CONFIGS") {
-      const path = $appSettings.persistent.profileFolder;
+    const path = $appSettings.persistent.profileFolder;
 
-      return await window.electron.configs.loadConfigsFromDirectory(
-        path,
-        "configs"
-      );
-    }
+    return await window.electron.configs.loadConfigsFromDirectory(
+      path,
+      "configs"
+    );
   }
 
   async function handleProvideSelectedConfigForOptionalUploadingToOneOreMoreModules(
     event
   ) {
-    if (
-      event.data.channelMessageType ==
-      "PROVIDE_SELECTED_CONFIG_FOR_OPTIONAL_UPLOADING_TO_ONE_OR_MORE_MODULES"
-    ) {
-      selectedConfigStore.set(event.data.config);
-      return;
-    }
+    selectedConfigStore.set(event.data.config);
   }
 
   async function handleDeleteLocalConfig(event) {
-    if (event.data.channelMessageType == "DELETE_LOCAL_CONFIG") {
-      const path = $appSettings.persistent.profileFolder;
-      const config = event.data?.config;
+    const path = $appSettings.persistent.profileFolder;
+    const config = event.data?.config;
 
-      return await window.electron.configs
-        .deleteConfig(path, "configs", config)
-        .then((res) => {
-          logger.set({
-            type: "success",
-            message: `Config ${id} deleted successfully`,
-          });
-          return res;
-        })
-        .catch(async (err) => {
-          await handleDeleteLegacyConfig(config);
-        });
-    }
+    return await window.electron.configs
+      .deleteConfig(path, "configs", config)
   }
+
+  const handleGetCurrentConfigurationFromEditor = (event) => new Promise(async (resolve) => {
+    const configType = event.data.configType;
+    
+    let callback = await async function () {
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "configsave",
+        message: `Ready to save config!`,
+      });
+
+      const li = get(user_input);
+
+      const configs = get(runtime);
+
+      let name = undefined;
+      let description = "Click here to add description";
+      let id = uuidv4();
+
+      let config = {
+        name: name,
+        id: id,
+        description: description,
+        configType: configType, // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        localId: id,
+      };
+
+      configs.forEach((d) => {
+        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+          const page = d.pages.find(
+            (x) => x.pageNumber == li.event.pagenumber
+          );
+
+          if (configType === "profile") {
+            config.type = selectedModule;
+            config.configs = page.control_elements.map((cfg) => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map((ev) => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config,
+                  };
+                }),
+              };
+            });
+          } else if (configType === "preset") {
+            const element = page.control_elements.find(
+              (x) => x.controlElementNumber === li.event.elementnumber
+            );
+            config.type = li.event.elementtype;
+            config.configs = {
+              events: element.events.map((ev) => {
+                return {
+                  event: ev.event.value,
+                  config: ev.config,
+                };
+              }),
+            };
+          }
+        }
+      });
+      config.name = `New ${config.type} config`;
+      resolve(config)
+    }
+  
+    runtime.fetch_page_configuration_from_grid(callback);
+  });
 
   async function handleCreateNewLocalConfigWithTheSelectedModulesConfigurationFromEditor(
-    event,
-    channel
+    event
   ) {
-    if (
-      event.data.channelMessageType ==
-      "CREATE_NEW_LOCAL_CONFIG_WITH_THE_SELECTED_MODULES_CONFIGURATION_FROM_EDITOR"
-    ) {
-      const configType = event.data.configType;
-      const path = $appSettings.persistent.profileFolder;
-      // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
-      // const { owner, name, editorData, _id } = event.data;
+    // this would be the needed data, if the profile would come from the profile cloud (profile.editorData...)
+    // const { owner, name, editorData, _id } = event.data;
 
-      let callback = await async function () {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "configsave",
-          message: `Ready to save config!`,
-        });
+    
 
-        const li = get(user_input);
+      await window.electron.configs.saveConfig(path, "configs", config);
 
-        const configs = get(runtime);
+      logger.set({
+        type: "success",
+        message: `Config saved!`,
+      });
 
-        let name = undefined;
-        let description = "Click here to add description";
-        let id = uuidv4();
+      channel.postMessage({ ok: true, data: {} });
 
-        let config = {
-          name: name,
-          description: description,
-          configType: configType, // differentiator from different JSON files!
-          version: {
-            major: $appSettings.version.major,
-            minor: $appSettings.version.minor,
-            patch: $appSettings.version.patch,
-          },
-          localId: id,
-        };
-
-        configs.forEach((d) => {
-          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-            const page = d.pages.find(
-              (x) => x.pageNumber == li.event.pagenumber
-            );
-
-            if (configType === "profile") {
-              config.type = selectedModule;
-              config.configs = page.control_elements.map((cfg) => {
-                return {
-                  controlElementNumber: cfg.controlElementNumber,
-                  events: cfg.events.map((ev) => {
-                    return {
-                      event: ev.event.value,
-                      config: ev.config,
-                    };
-                  }),
-                };
-              });
-            } else if (configType === "preset") {
-              const element = page.control_elements.find(
-                (x) => x.controlElementNumber === li.event.elementnumber
-              );
-              config.type = li.event.elementtype;
-              config.configs = {
-                events: element.events.map((ev) => {
-                  return {
-                    event: ev.event.value,
-                    config: ev.config,
-                  };
-                }),
-              };
-            }
-          }
-        });
-
-        await window.electron.configs.saveConfig(path, "configs", config);
-
-        logger.set({
-          type: "success",
-          message: `Config saved!`,
-        });
-
-        channel.postMessage({ ok: true, data: {} });
-
-        return;
-      };
-
-      return runtime.fetch_page_configuration_from_grid(callback);
-    }
-  }
+      return;
+    };
 
   async function handleOverwriteLocalConfig(event, channel) {
-    if (event.data.channelMessageType == "OVERWRITE_LOCAL_CONFIG") {
-      const { configToOverwrite } = event.data;
+    const { configToOverwrite } = event.data;
 
-      const path = $appSettings.persistent.profileFolder;
+    const path = $appSettings.persistent.profileFolder;
 
-      let callback = await async function () {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "configsave",
-          message: `Overwriting config!`,
-        });
+    let callback = await async function () {
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "configsave",
+        message: `Overwriting config!`,
+      });
 
-        const li = get(user_input);
-        const configs = get(runtime);
-        configs.forEach((d) => {
-          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-            const page = d.pages.find(
-              (x) => x.pageNumber == li.event.pagenumber
-            );
+      const li = get(user_input);
+      const configs = get(runtime);
+      configs.forEach((d) => {
+        if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+          const page = d.pages.find(
+            (x) => x.pageNumber == li.event.pagenumber
+          );
 
-            if (configToOverwrite.configType === "profile") {
-              configToOverwrite.configs = page.control_elements.map((cfg) => {
-                return {
-                  controlElementNumber: cfg.controlElementNumber,
-                  events: cfg.events.map((ev) => {
-                    return {
-                      event: ev.event.value,
-                      config: ev.config,
-                    };
-                  }),
-                };
-              });
-            } else if (configToOverwrite.configType === "preset") {
-              const element = page.control_elements.find(
-                (x) => x.controlElementNumber === li.event.elementnumber
-              );
-              config.configs = {
-                events: element.events.map((ev) => {
+          if (configToOverwrite.configType === "profile") {
+            configToOverwrite.configs = page.control_elements.map((cfg) => {
+              return {
+                controlElementNumber: cfg.controlElementNumber,
+                events: cfg.events.map((ev) => {
                   return {
                     event: ev.event.value,
                     config: ev.config,
                   };
                 }),
               };
-            }
+            });
+          } else if (configToOverwrite.configType === "preset") {
+            const element = page.control_elements.find(
+              (x) => x.controlElementNumber === li.event.elementnumber
+            );
+            configToOverwrite.configs = {
+              events: element.events.map((ev) => {
+                return {
+                  event: ev.event.value,
+                  config: ev.config,
+                };
+              }),
+            };
           }
-        });
+        }
+      });
 
-        await window.electron.configs.saveConfig(
-          path,
-          "configs",
-          configToOverwrite
-        );
+      await window.electron.configs.saveConfig(
+        path,
+        "configs",
+        configToOverwrite
+      );
 
-        logger.set({
-          type: "success",
-          message: `Config saved!`,
-        });
+      logger.set({
+        type: "success",
+        message: `Config saved!`,
+      });
 
-        channel.postMessage({ ok: true, data: {} });
-      };
+      channel.postMessage({ ok: true, data: {} });
+    };
 
-      runtime.fetch_page_configuration_from_grid(callback);
-    }
+    runtime.fetch_page_configuration_from_grid(callback);
   }
 
   async function handleTextEditLocalConfig(event) {
-    if (event.data.channelMessageType == "TEXT_EDIT_LOCAL_CONFIG") {
-      const { name, description, config } = event.data;
-      if (name) config.name = name;
-      if (description) config.description = description;
-      return await window.electron.configs.saveConfig(
-        $appSettings.persistent.profileFolder,
-        "configs",
-        config
-      );
-    }
+    const { name, description, config } = event.data;
+    if (name) config.name = name;
+    if (description) config.description = description;
+    return await window.electron.configs.saveConfig(
+      $appSettings.persistent.profileFolder,
+      "configs",
+      config
+    );
   }
 
   let sessionPresetNumbers = [];
   let numberForSessionPreset = 0;
   async function handleSplitLocalConfig(event) {
-    if (event.data.channelMessageType == "SPLIT_LOCAL_CONFIG") {
-      const { configToSplit } = event.data;
-      const path = $appSettings.persistent.profileFolder;
-      const config = configToSplit;
+    const { configToSplit } = event.data;
+    const path = $appSettings.persistent.profileFolder;
+    const config = configToSplit;
 
-      let isSessionPresetNameUnique = undefined;
+    let isSessionPresetNameUnique = undefined;
 
-      //TODO: differentiate between presets and profiles
-      const conversionPromises = config.configs.map((configElement) => {
-        let user = "sessionPreset";
+    //TODO: differentiate between presets and profiles
+    const conversionPromises = config.configs.map((configElement) => {
+      let user = "sessionPreset";
 
-        let name;
-        let description;
-        let type;
+      let name;
+      let description;
+      let type;
 
-        numberForSessionPreset++;
+      numberForSessionPreset++;
 
-        let sessionPresetName;
-        sessionPresetNumbers = [];
+      let sessionPresetName;
+      sessionPresetNumbers = [];
 
-        name = `${profile.name} - Element ${configElement.controlElementNumber}`;
-        description = "";
+      name = `${profile.name} - Element ${configElement.controlElementNumber}`;
+      description = "";
 
-        if (profile.type == "BU16") {
-          type = "button";
-        }
+      if (profile.type == "BU16") {
+        type = "button";
+      }
 
-        if (profile.type == "PO16") {
-          type = "potentiometer";
-        }
+      if (profile.type == "PO16") {
+        type = "potentiometer";
+      }
 
-        if (profile.type == "EN16") {
+      if (profile.type == "EN16") {
+        type = "encoder";
+      }
+
+      if (profile.type == "EF44") {
+        if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
           type = "encoder";
         }
-
-        if (profile.type == "EF44") {
-          if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
-            type = "encoder";
-          }
-          if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
-            type = "fader";
-          }
+        if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
+          type = "fader";
         }
+      }
 
-        if (profile.type == "PBF4") {
-          if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
-            type = "potentiometer";
-          }
-          if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
-            type = "fader";
-          }
-          if ([8, 9, 10, 11].includes(configElement.controlElementNumber)) {
-            type = "button";
-          }
+      if (profile.type == "PBF4") {
+        if ([0, 1, 2, 3].includes(configElement.controlElementNumber)) {
+          type = "potentiometer";
         }
-
-        if (configElement.controlElementNumber === 255) {
-          type = "system";
+        if ([4, 5, 6, 7].includes(configElement.controlElementNumber)) {
+          type = "fader";
         }
-
-        let preset = {
-          name: name,
-          description: description,
-          type: type,
-          configType: "preset", // differentiator from different JSON files!
-          version: {
-            major: $appSettings.version.major,
-            minor: $appSettings.version.minor,
-            patch: $appSettings.version.patch,
-          },
-          configs: {
-            ...profileElement,
-          },
-          id: uuidv4(),
-        };
-
-        const PRESET_PATH = get(appSettings).persistent.presetFolder;
-
-        if (!config.localId) {
-          console.log(`Missing localId, generating for config: ${config}`);
-          config.localId = uuidv4();
+        if ([8, 9, 10, 11].includes(configElement.controlElementNumber)) {
+          type = "button";
         }
+      }
 
-        return window.electron.configs.saveConfig(path, "configs", config);
+      if (configElement.controlElementNumber === 255) {
+        type = "system";
+      }
+
+      let preset = {
+        name: name,
+        description: description,
+        type: type,
+        configType: "preset", // differentiator from different JSON files!
+        version: {
+          major: $appSettings.version.major,
+          minor: $appSettings.version.minor,
+          patch: $appSettings.version.patch,
+        },
+        configs: {
+          ...profileElement,
+        },
+        id: uuidv4(),
+      };
+
+      const PRESET_PATH = get(appSettings).persistent.presetFolder;
+
+      if (!config.localId) {
+        console.log(`Missing localId, generating for config: ${config}`);
+        config.localId = uuidv4();
+      }
+
+      return window.electron.configs.saveConfig(path, "configs", config);
+    });
+
+    await Promise.all(conversionPromises).then((res) => {
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "presetsave",
+        message: `Profile to element presets conversion finished!`,
       });
-
-      await Promise.all(conversionPromises).then((res) => {
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "presetsave",
-          message: `Profile to element presets conversion finished!`,
-        });
-      });
-    }
+    });
   }
 
   let profileCloudIsMounted = false;
-  async function handleProfileCloudMounted(event) {
-    if (event.data.channelMessageType == "PROFILE_CLOUD_MOUNTED") {
-      console.log("profile cloud is mounted received");
-      profileCloudIsMounted = true;
-      if (
-        selectedModule !== undefined ||
-        selectedControlElementType !== undefined
-      ) {
-        sendSelectedComponentInfos(selectedModule, selectedControlElementType);
-      }
-      return configuration.EDITOR_VERSION;
+  async function handleProfileCloudMounted(event) {    
+    console.log("profile cloud is mounted received");
+    profileCloudIsMounted = true;
+    if (
+      selectedModule !== undefined ||
+      selectedControlElementType !== undefined
+    ) {
+      sendSelectedComponentInfos(selectedModule, selectedControlElementType);
     }
+    const path = $appSettings.persistent.profileFolder;
+    window.electron.configs.onSendConfigsToRenderer((_event, configs) => {
+      sendLocalConfigs(configs);
+    });
+    window.electron.configs.startConfigsWatch(path, "configs");
+    return configuration.EDITOR_VERSION;
   }
 
   function initChannelCommunication(event) {
@@ -534,6 +508,9 @@
             event,
             channel
           );
+      }
+      if (event.data === "getCurrenConfigurationFromEditor"){
+        channelMessageWrapper(event, handleGetCurrentConfigurationFromEditor)
       }
       // as there is a callback hell working with writebuffer, we need to pass the channel for the callback
       if (event.data == "overwriteLocalConfig") {
@@ -586,6 +563,7 @@
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
     selectedConfigStore.set({});
+    window.electron.configs.stopConfigsWatch();
   });
 
   async function loadOfflineProfileCloud() {

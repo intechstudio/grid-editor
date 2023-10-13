@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   getAuth,
+  signInAnonymously,
   signInWithCredential,
   signOut,
 } from "firebase/auth";
@@ -33,6 +34,15 @@ const createAuth = () => {
         set({ event: "login", providerId: "oidc", idToken: userIdToken });
       }
     );
+  }
+
+  async function anonymousLogin() {
+    await signInAnonymously(centralAuth).then(
+      async () => {
+        const userIdToken = await centralAuth.currentUser!.getIdToken();
+        set({ event: "login", providerId: "oidc", idToken: userIdToken });
+      }
+    )
   }
 
   async function socialLogin(provider, idToken) {
@@ -65,6 +75,7 @@ const createAuth = () => {
     login,
     socialLogin,
     logout,
+    anonymousLogin,
   };
 };
 

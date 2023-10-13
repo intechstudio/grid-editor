@@ -114,9 +114,13 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
         if (isJson(data)) {
           let obj = JSON.parse(data);
           if (obj.configType) {
-            const dateObject = await getDateOfModify(filepath);
             obj.fileName = file;
-            obj.fsModifiedAt = dateObject?.modifiedAt;
+            
+            //TODO: remove around 2024 summer, temporary map from localId to id
+            if (!obj.id && obj.localId){
+              obj.id = obj.localId;
+              delete obj.localId;
+            }
             configs.push(obj);
           } else {
             log.info("JSON is not a grid config!");
@@ -150,6 +154,10 @@ export async function saveConfig(configPath, rootDirectory, config) {
 
   if (!config.name) {
     config.name = `New local ${config.configType} ${fileNameCounter}`;
+  }
+
+  if (!config.id) {
+    config.id = uuidv4();
   }
 
   await fs.promises

@@ -98,7 +98,7 @@
 
   window.electron.configs.onExternalResponse((_event, value) => {
     // listening to this store on ProfileCloud.svelte
-    profileLinkStore.set({ id: value });
+    configLinkStore.set({ id: value });
   });
 
   window.onmessage = (event) => {
