@@ -3,6 +3,7 @@
 
   import { createEventDispatcher } from "svelte";
   import { onMount } from "svelte";
+  import stringManipulation from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
 
@@ -19,23 +20,31 @@
 
   let disabled = false;
   let infoValue = "";
+  let text;
 
-  $: if (inputValue) {
-    handleValidation();
+  $: handleTextChange(text);
+
+  let focus;
+
+  function handleTextChange(value) {
+    handleValidation(value);
     infoValue = suggestions.find(
-      (s) => String(s.value).trim() == String(inputValue).trim()
+      (s) => String(s.value).trim() == String(value).trim()
     );
     infoValue ? (infoValue = infoValue.info) : "";
   }
 
-  let focus;
+  function handleInputvaluechange(value) {
+    text = stringManipulation.humanize(value);
+    handleValidation(text);
+  }
 
   onMount(() => {
-    handleValidation();
+    handleInputvaluechange(inputValue);
   });
 
   function handleValidation() {
-    isError = !validator(inputValue);
+    isError = !validator(text);
     dispatch("validator", { isError: isError });
   }
 
@@ -47,14 +56,16 @@
 
     if (input && !focus) {
       input = false;
-      dispatch("change", inputValue);
+      const short = stringManipulation.shortify(inputValue);
+      console.log(short);
+      dispatch("change", short);
     }
   }
 
   let input = false;
-  function handleInput() {
+  function handleInput(e) {
     input = true;
-    handleValidation();
+    handleValidation(text);
   }
 </script>
 
@@ -67,7 +78,7 @@
 >
   <input
     {disabled}
-    bind:value={inputValue}
+    bind:value={text}
     on:click={(e) => {
       handleFocus("active", true);
     }}
