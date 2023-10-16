@@ -38,10 +38,6 @@ function checkOS() {
   return "browser";
 }
 
-export const statusReport = writable({
-  serialport: {},
-});
-
 function createSplitPanes() {
   const obj = {
     left: { size: 25 },
@@ -124,9 +120,6 @@ function createAppSettingsStore(persistent) {
 }
 
 export const appSettings = createAppSettingsStore(persistent);
-
-export const profileListRefresh = writable(0);
-export const presetListRefresh = writable(0);
 
 init_appsettings();
 
@@ -225,18 +218,3 @@ async function init_appsettings() {
       }*/
     });
 }
-
-export const preferenceStore = writable();
-
-export const action_collection = readable(Promise.all([getAllComponents()]));
-
-export const activeDropDown = writable({
-  config_index: undefined,
-  input_index: undefined,
-});
-
-export const layout = writable([]);
-
-export const numberOfModulesStore = writable();
-
-export const focusedCodeEditor = writable();

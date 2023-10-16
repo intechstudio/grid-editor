@@ -183,11 +183,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  /* TODO: What..? */
-  .dummy {
-    @apply bg-select;
-    @apply bg-opacity-50;
-  }
-</style>
