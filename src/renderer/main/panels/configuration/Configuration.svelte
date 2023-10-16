@@ -597,6 +597,8 @@
                   {:else}
                     <DropZone
                       {index}
+                      activationThreshold={30}
+                      class=""
                       drag_target={draggedIndexes}
                       on:drop-target-change={handleDropTargetChange}
                     />
@@ -621,7 +623,7 @@
               </anim-block>
             {/each}
             {#key $configManager.length}
-              {#if !isDragged}
+              {#if !isDragged && false}
                 <AddAction
                   index={$configManager.length}
                   on:paste={handlePaste}
@@ -631,6 +633,8 @@
                 <DropZone
                   index={$configManager.length}
                   drag_target={draggedIndexes}
+                  activationThreshold={30}
+                  class="h-full"
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
