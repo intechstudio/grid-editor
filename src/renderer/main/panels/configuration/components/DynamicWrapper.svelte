@@ -9,6 +9,8 @@
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
+  import { config_drag, DragEvent } from "../../../_actions/move.action";
+  import DropZone from "./DropZone.svelte";
 
   let toggled = false;
 
@@ -124,7 +126,8 @@
           : 'border-transparent'} flex flex-grow items-center bg-secondary"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggled}
+        class:group-hover:bg-select-saturate-10={!toggled &&
+          typeof $config_drag === "undefined"}
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >

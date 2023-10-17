@@ -1,4 +1,15 @@
+import { writable } from "svelte/store";
 import { user_input } from "../../runtime/runtime.store";
+
+export const config_drag = createConfigureDragStore();
+
+export class DragEvent {
+  constructor() {}
+}
+
+function createConfigureDragStore() {
+  const store = writable(undefined);
+}
 
 export function changeOrder(node, { configs }) {
   let _configs = configs;

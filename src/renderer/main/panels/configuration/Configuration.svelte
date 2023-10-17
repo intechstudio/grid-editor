@@ -40,20 +40,19 @@
 
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
-  import { changeOrder } from "../../_actions/move.action.js";
+  import { changeOrder, configure_drag } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { v4 as uuidv4 } from "uuid";
+  import { config_drag, DragEvent } from "../../_actions/move.action.js";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
   let access_tree = {};
-  let isDragged = false;
   let scrollHeight = "100%";
   let draggedIndexes = [];
   let autoScroll;
@@ -257,11 +256,11 @@
   }
 
   function handleDragStart(e) {
-    isDragged = true;
+    config_drag.set(new DragEvent());
   }
 
   function handleDragEnd(e) {
-    isDragged = false;
+    config_drag.set(undefined);
     dropIndex = undefined;
     draggedIndexes = [];
     clearInterval(autoScroll);
@@ -380,7 +379,7 @@
   }
 
   function handleDrag(e) {
-    if (isDragged) {
+    if (typeof $config_drag !== typeof "undefined") {
       const configList = document.getElementById("cfg-list");
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
@@ -588,7 +587,7 @@
                 in:fade|global={{ delay: 0 }}
               >
                 {#key index}
-                  {#if !isDragged}
+                  {#if typeof $config_drag === "undefined"}
                     <AddAction
                       {index}
                       on:paste={handlePaste}
@@ -624,7 +623,7 @@
               </anim-block>
             {/each}
             {#key $configManager.length}
-              {#if !isDragged}
+              {#if typeof $config_drag === "undefined"}
                 <AddAction
                   index={$configManager.length}
                   on:paste={handlePaste}

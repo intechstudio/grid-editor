@@ -5,7 +5,7 @@
 
   // config descriptor parameters
   export const information = {
-    short: "eprei",
+    short: "eprei1",
     name: "Condition_ElseIf",
     rendering: "modifier",
     category: null,
