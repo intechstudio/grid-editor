@@ -2,8 +2,8 @@
   import { createEventDispatcher } from "svelte";
   export let index;
   export let drag_target;
-  export let thresholdTop = 10;
-  export let thresholdBottom = 10;
+  export let thresholdTop = 0;
+  export let thresholdBottom = 0;
 
   const dispatch = createEventDispatcher();
 
@@ -41,7 +41,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <drop-zone
-  class="block select-none focus:outline-none border-none outline-none relative"
+  class="{$$props.class} block select-none focus:outline-none border-none outline-none relative"
 >
   <div
     class="{hovered
@@ -58,16 +58,19 @@
     on:mouseover={handleMouseOver}
     on:mouseout={handleMouseOut}
     style="--thresholdTop:{thresholdTop}px; --thresholdBottom:{thresholdBottom}px;"
-    class="{$$props.class} bg-lime-300 dropzone"
+    class="{$$props.class} dropzone"
   />
 </drop-zone>
 
 <style>
   .dropzone {
     position: absolute;
-    top: 50%;
+    top: calc(50%);
     left: 50%;
-    transform: translate(calc(-50% + 30px), calc(-50% - var(--thresholdTop)));
+    transform: translate(
+      calc(-50%),
+      calc(-50% + (var(--thresholdBottom) / 2) - (var(--thresholdTop) / 2))
+    );
     height: calc(100% + var(--thresholdTop) + var(--thresholdBottom));
     width: 100%;
   }
