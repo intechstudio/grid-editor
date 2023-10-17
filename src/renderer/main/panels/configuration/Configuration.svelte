@@ -40,13 +40,16 @@
 
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
-  import { changeOrder, configure_drag } from "../../_actions/move.action.js";
+  import {
+    changeOrder,
+    config_drag,
+    DragEvent,
+  } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { config_drag, DragEvent } from "../../_actions/move.action.js";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////

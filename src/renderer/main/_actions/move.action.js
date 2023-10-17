@@ -9,6 +9,7 @@ export class DragEvent {
 
 function createConfigureDragStore() {
   const store = writable(undefined);
+  return store;
 }
 
 export function changeOrder(node, { configs }) {
