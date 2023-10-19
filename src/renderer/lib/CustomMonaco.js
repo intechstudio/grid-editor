@@ -228,6 +228,24 @@ function initialize_theme() {
     },
   });
 
+  monaco_editor.defineTheme("my-theme-disabled", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      {
+        token: "customClass",
+        foreground: "A8A8A8",
+        fontStyle: "italic underline",
+      },
+      { token: "function", foreground: "A8A8A8" },
+      { token: "variable", foreground: "A8A8A8" },
+      { token: "forbidden", foreground: "A8A8A8" },
+    ],
+    colors: {
+      "editor.background": "#2a343900",
+    },
+  });
+
   let monaco_block = document.createElement("div");
 
   let editor = monaco_editor.create(monaco_block, {

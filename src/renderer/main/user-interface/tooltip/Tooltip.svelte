@@ -13,6 +13,7 @@
   export let buttons = [];
   export let triggerEvents = ["hover"];
   export let referenceElement = undefined;
+  export let component = undefined;
 
   let showbuttons = false;
   let isOpen;
@@ -36,6 +37,10 @@
   }
 
   function handleReferenceElementClick(e) {
+    if (triggerEvents.includes("click")) {
+      isOpen = true;
+      showbuttons = true;
+    }
     if (triggerEvents.includes("show-buttons")) {
       if (!showbuttons) {
         clearTimeout(openTimeout);
@@ -115,6 +120,15 @@
       );
     }
   });
+
+  function forwardEvent(e) {
+    const { type, data } = e.detail;
+    referenceElement.dispatchEvent(
+      new CustomEvent(type, {
+        detail: data,
+      })
+    );
+  }
 </script>
 
 <Popover
@@ -135,22 +149,31 @@
       duration: instant ? 0 : duration, //Make it instant when explicitly clicked
     }}
   >
-    <div class="flex flex-col" class:gap-2={buttons.length > 0}>
-      <div
-        class="text-white text-left font-normal"
-        class:whitespace-nowrap={nowrap}
-      >
-        {text}
-      </div>
+    <div class="flex flex-col w-full h-full" class:gap-2={buttons.length > 0}>
+      {#if typeof component === "undefined"}
+        <div
+          class="text-white text-left font-normal"
+          class:whitespace-nowrap={nowrap}
+        >
+          {text}
+        </div>
+      {:else}
+        <svelte:component
+          this={component.object}
+          {...component.props}
+          class="z-10"
+          on:event={forwardEvent}
+        />
+      {/if}
 
       {#if showbuttons}
         <div
           transition:slide|global={{ duration: instant ? 0 : 100 }}
-          class="flex flex-row gap-2"
+          class="gap-2 grid grid-rows-1 w-full"
         >
           {#each buttons as button}
             <button
-              class="w-1/2 px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+              class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
               on:click|stopPropagation={() => {
                 if (typeof button.handler !== "undefined") {
                   button.handler();

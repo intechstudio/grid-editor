@@ -47,7 +47,7 @@ export function getComponentInformation({ short }) {
 
   //Backward compatibility
   if (typeof res === "undefined") {
-    return comps.find((c) => c.information.short == "cb");
+    return comps.find((c) => c.information.short == "raw");
   }
 
   return res;

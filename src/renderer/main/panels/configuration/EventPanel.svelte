@@ -107,7 +107,7 @@
           <div>Name your element</div>
         {/if}
 
-        <TooltipQuestion key={"configuration_element_name"} />
+        <TooltipQuestion key={"configuration_element_name"} class="ml-2" />
       </div>
     </div>
   </div>
