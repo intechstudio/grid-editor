@@ -120,6 +120,10 @@ export async function loadConfigsFromDirectory(configPath, rootDirectory) {
             if (!obj.id && obj.localId) {
               obj.id = obj.localId;
               delete obj.localId;
+            }  
+            if (!obj.modifiedAt){
+              const dateObject = await getDateOfModify(filepath);
+              obj.modifiedAt = dateObject?.modifiedAt;
             }
             configs.push(obj);
           } else {
