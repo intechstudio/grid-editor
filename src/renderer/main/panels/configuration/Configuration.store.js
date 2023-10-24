@@ -274,6 +274,7 @@ export class ConfigList extends Array {
     }
 
     let configScript = event.config;
+    console.log(event.config);
 
     //Parse configScript
     //TODO: do rawLuas format checking during parsing
@@ -288,7 +289,8 @@ export class ConfigList extends Array {
       configScript = configScript.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
+    let configList = configScript.split(/(--\[\[@+\w+\]\])/);
+    console.log(configList);
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({

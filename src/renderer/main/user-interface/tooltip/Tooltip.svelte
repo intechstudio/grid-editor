@@ -22,7 +22,7 @@
   let openTimeout;
 
   function handleClick(e) {
-    handleReferenceElementClick(e);
+    //handleReferenceElementClick(e);
     e.stopPropagation();
   }
 
@@ -121,6 +121,20 @@
     }
   });
 
+  function interceptEvent(e) {
+    const { type, data } = e.detail;
+    //console.log("yay", type);
+    switch (type) {
+      case "close": {
+        close();
+        break;
+      }
+      default:
+        forwardEvent(e);
+    }
+    e.stopPropagation();
+  }
+
   function forwardEvent(e) {
     const { type, data } = e.detail;
     referenceElement.dispatchEvent(
@@ -128,6 +142,13 @@
         detail: data,
       })
     );
+  }
+
+  function close() {
+    clearTimeout(openTimeout);
+    clearTimeout(closeTimeout);
+    isOpen = false;
+    showbuttons = false;
   }
 </script>
 
@@ -162,26 +183,23 @@
           this={component.object}
           {...component.props}
           class="z-10"
-          on:event={forwardEvent}
+          on:event={interceptEvent}
         />
       {/if}
 
       {#if showbuttons}
         <div
           transition:slide|global={{ duration: instant ? 0 : 100 }}
-          class="gap-2 grid grid-rows-1 w-full"
+          class="gap-2 flex flex-row w-full"
         >
           {#each buttons as button}
             <button
-              class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20"
+              class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 flex flex-grow justify-center"
               on:click|stopPropagation={() => {
                 if (typeof button.handler !== "undefined") {
                   button.handler();
                 }
-                clearTimeout(openTimeout);
-                clearTimeout(closeTimeout);
-                isOpen = false;
-                showbuttons = false;
+                close();
               }}>{button.label}</button
             >
           {/each}

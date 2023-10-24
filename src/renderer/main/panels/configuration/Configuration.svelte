@@ -91,6 +91,7 @@
   }
 
   function sendCurrentConfigurationToGrid() {
+    console.log($configManager, "yay");
     $configManager
       .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
       .catch((e) => handleError(e));
@@ -489,11 +490,13 @@
 
   function handleReplace(e) {
     const { index, config } = e.detail;
+    console.log(config);
     configManager.update((s) => {
       s[index] = config;
       lastOpenedActionblocksInsert(config.short);
       return s;
     });
+    sendCurrentConfigurationToGrid();
   }
 </script>
 

@@ -37,13 +37,18 @@
   const dispatch = createEventDispatcher();
 
   function replace_me(e) {
-    const name = e.detail;
+    const { short, script } = e.detail;
+
     const components = getAllComponents();
-    const new_config = components.find((e) => e.information.name === name);
+    console.log(short);
+    const new_config = components.find((e) => e.information.short === short);
 
     const obj = new ConfigObject({
       short: new_config.information.short,
-      script: new_config.information.defaultLua,
+      script:
+        typeof script === "undefined"
+          ? new_config.information.defaultLua
+          : script,
     });
 
     dispatch("replace", {
@@ -126,8 +131,6 @@
           : 'border-transparent'} flex flex-grow items-center bg-secondary"
         class:rounded-tr-xl={config.information.rounding == "top"}
         class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggled &&
-          typeof $config_drag === "undefined"}
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
