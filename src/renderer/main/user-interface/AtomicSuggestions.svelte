@@ -1,8 +1,10 @@
 <script>
   import { createEventDispatcher } from "svelte";
+  import { clickOutside } from "../_actions/click-outside.action";
 
-  export let suggestions;
-  export let focusedInput = 0;
+  export let component = undefined;
+
+  let suggestions = [];
 
   const dispatch = createEventDispatcher();
 
@@ -12,17 +14,35 @@
       index: index,
     });
   }
+
+  function handleDisplay(e) {
+    const { data } = e.detail;
+    suggestions = data;
+  }
+
+  function handleClickOutside(e) {
+    suggestions = [];
+  }
 </script>
 
-<suggestions class="flex w-full p-2">
+<suggestions
+  class="flex w-full p-2"
+  class:hidden={suggestions.length === 0}
+  bind:this={component}
+  on:display={handleDisplay}
+  use:clickOutside={{ useCapture: true }}
+  on:click-outside={handleClickOutside}
+>
   <div class="w-full p-1 neumorph rounded-lg border border-select bg-secondary">
     <ul
       class="scrollbar max-h-40 overflow-y-scroll pr-1 text-white cursor-pointer"
     >
-      {#each suggestions[focusedInput] as suggestion, index}
+      {#each suggestions as suggestion}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         <li
           on:click={(e) => {
-            sendData(suggestion.value, focusedInput);
+            sendData(suggestion.value);
           }}
           class="hover:bg-black p-1 pl-2"
         >

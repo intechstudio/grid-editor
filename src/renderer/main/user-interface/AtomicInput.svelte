@@ -9,13 +9,12 @@
   export let suggestions = [];
   export let customClasses = "";
   export let placeholder = "";
+  export let suggestionTarget = undefined;
   export let validator = () => {
     return true;
   };
 
   let isError = false;
-  let edited = false;
-
   let disabled = false;
   let infoValue = "";
   let text;
@@ -57,7 +56,17 @@
   }
 
   function handleActiveFocus(e) {
-    dispatch("active-focus", { focus: true });
+    if (typeof suggestionTarget === "undefined") {
+      return;
+    }
+
+    const event = new CustomEvent("display", {
+      detail: {
+        data: suggestions,
+      },
+    });
+
+    suggestionTarget.dispatchEvent(event);
   }
 
   let input = false;
