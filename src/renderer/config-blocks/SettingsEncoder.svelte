@@ -177,5 +177,9 @@
         }
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 </encoder-settings>

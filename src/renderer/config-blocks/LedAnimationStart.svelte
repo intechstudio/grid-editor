@@ -222,6 +222,10 @@
         sendData(e.detail.value, e.detail.index);
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 
   <div class="w-full flex">
@@ -258,6 +262,10 @@
         scriptSegments[e.detail.index] = e.detail.value;
         sendData(e.detail.value, e.detail.index);
       }}
+    />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
     />
   {/if}
 </config-led-phase>

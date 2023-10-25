@@ -151,6 +151,10 @@
         sendData(e);
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 </mouse-button>
 

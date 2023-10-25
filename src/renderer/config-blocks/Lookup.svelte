@@ -166,6 +166,10 @@
         lookupTable.source = e.detail.value;
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 
   <div class="w-full p-2 flex flex-col">
@@ -253,6 +257,10 @@
       on:select={(e) => {
         lookupTable.destination = e.detail.value;
       }}
+    />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
     />
   {/if}
 

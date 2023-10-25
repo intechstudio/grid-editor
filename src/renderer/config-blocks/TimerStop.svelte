@@ -138,5 +138,9 @@
         scriptValue = e.detail.value;
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 </timer-stop>

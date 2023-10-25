@@ -168,5 +168,9 @@
         }
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 </potmeter-settings>

@@ -45,8 +45,13 @@
     dispatch("validator", { isError: isError });
   }
 
-  function handleLooseFocus(e) {
-    dispatch("loose-focus", { focus: false });
+  function handleBlur(e) {
+    if (typeof suggestionTarget !== "undefined") {
+      const event = new CustomEvent("target-blur");
+      suggestionTarget.dispatchEvent(event);
+    }
+
+    dispatch("blur");
     if (input) {
       input = false;
       const short = stringManipulation.shortify(inputValue);
@@ -55,11 +60,9 @@
     }
   }
 
-  function handleActiveFocus(e) {
-    if (typeof suggestionTarget === "undefined") {
-      return;
-    }
-
+  function handleFocus(e) {
+    suggestionTarget.dispatchEvent(new CustomEvent("focus"));
+    dispatch("focus");
     const event = new CustomEvent("display", {
       detail: {
         data: suggestions,
@@ -80,8 +83,8 @@
   <input
     {disabled}
     bind:value={inputValue}
-    on:focus={handleActiveFocus}
-    on:blur={handleLooseFocus}
+    on:focus={handleFocus}
+    on:blur={handleBlur}
     on:input={handleInput}
     type="text"
     {placeholder}

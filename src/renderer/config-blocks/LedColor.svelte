@@ -502,6 +502,10 @@ A -> B : AB-First step
         sendData(e.detail.value, e.detail.index);
       }}
     />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
+    />
   {/if}
 
   <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
@@ -567,6 +571,10 @@ A -> B : AB-First step
         sendData(e.detail.value, e.detail.index);
         updatePicker(e);
       }}
+    />
+    <AtomicSuggestions
+      bind:component={suggestionElement}
+      on:select={handleSuggestionSelected}
     />
   {/if}
 

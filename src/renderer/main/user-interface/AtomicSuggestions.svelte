@@ -5,31 +5,43 @@
   export let component = undefined;
 
   let suggestions = [];
+  let targetFocus = false;
+  let visible = false;
 
   const dispatch = createEventDispatcher();
-
-  function sendData(value, index) {
-    dispatch("select", {
-      value: value,
-      index: index,
-    });
-  }
 
   function handleDisplay(e) {
     const { data } = e.detail;
     suggestions = data;
+    targetFocus = true;
+    visible = true;
   }
 
   function handleClickOutside(e) {
-    suggestions = [];
+    if (!targetFocus) {
+      suggestions = [];
+      visible = false;
+    }
+  }
+
+  function handleTargetBlur(e) {
+    targetFocus = false;
+  }
+
+  function handleSuggestionSelected(value) {
+    dispatch("select", {
+      value: value,
+    });
+    visible = false;
   }
 </script>
 
 <suggestions
   class="flex w-full p-2"
-  class:hidden={suggestions.length === 0}
+  class:hidden={!visible}
   bind:this={component}
   on:display={handleDisplay}
+  on:target-blur={handleTargetBlur}
   use:clickOutside={{ useCapture: true }}
   on:click-outside={handleClickOutside}
 >
@@ -41,9 +53,7 @@
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         <li
-          on:click={(e) => {
-            sendData(suggestion.value);
-          }}
+          on:click={() => handleSuggestionSelected(suggestion.value)}
           class="hover:bg-black p-1 pl-2"
         >
           {suggestion.info}
