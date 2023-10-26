@@ -97,10 +97,13 @@
     if (typeof codePreview === "undefined") return;
 
     let code = "";
+
     try {
       //Step 1
       let human = stringManipulation.humanize(String(script));
-      code = human;
+      if (human.trim() !== "") {
+        code = human;
+      }
 
       //Step2
       let beautified = luamin.Beautify(human, {
@@ -112,11 +115,13 @@
       if (beautified.charAt(0) === "\n") {
         beautified = beautified.slice(1);
       }
-      code = beautified;
+      if (beautified.trim() !== "") {
+        code = beautified;
+      }
     } catch (e) {
-      //Fallback, if step 1 or 2 fails
+      //Fallback
+      code = script;
     }
-
     codePreview.innerHTML = stringManipulation.noCommentToLineComment(code);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",

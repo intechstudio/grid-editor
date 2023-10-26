@@ -158,6 +158,10 @@
         SolveMath: false,
       });
 
+      if (beautified.trim() === "") {
+        return code;
+      }
+
       if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
       return stringManipulation.noCommentToLineComment(beautified);
     } catch (e) {
