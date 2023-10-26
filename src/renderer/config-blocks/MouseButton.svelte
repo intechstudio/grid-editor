@@ -70,8 +70,8 @@
     loaded = false;
   });
 
-  function sendData(e) {
-    scriptSegments[e.detail.index] = e.detail.value;
+  function sendData(value, index) {
+    scriptSegments[index] = value;
 
     const script = Script.toScript({
       human: config.human,
@@ -79,20 +79,6 @@
       array: scriptSegments,
     });
     dispatch("output", { short: config.short, script: script });
-  }
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
   }
 
   let suggestions = [];
@@ -155,9 +141,6 @@
   <AtomicSuggestions
     bind:component={suggestionElement}
     on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      sendData(e);
-    }}
   />
 </mouse-button>
 

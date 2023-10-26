@@ -18,6 +18,8 @@
       index: index,
     });
   }
+
+  $: console.log(disabled);
 </script>
 
 <select-box

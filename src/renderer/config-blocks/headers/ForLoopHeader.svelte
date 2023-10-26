@@ -7,14 +7,10 @@
   import { Validator } from "../_validators";
   import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
-  import { localDefinitions } from "../../runtime/runtime.store";
 
   export let index;
   export let access_tree;
   export let config = undefined;
-
-  let focusedInput = undefined;
-  let focusGroup = [];
 
   let data = [
     {
@@ -50,15 +46,6 @@
       suggestions: [],
     },
   ];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-  }
 
   const dispatch = createEventDispatcher();
 
@@ -96,7 +83,7 @@
     });
   }
 
-  function handleInputFieldChange(event, index) {
+  function handleInputFieldChange(e, i) {
     const shortData = data.map((e) => stringManipulation.shortify(e.value));
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
     dispatch("output", {
@@ -152,12 +139,6 @@
                   on:validator={(e) => {
                     const data = e.detail;
                     dispatch("validator", data);
-                  }}
-                  on:active-focus={(e) => {
-                    onActiveFocus(e, i);
-                  }}
-                  on:loose-focus={(e) => {
-                    onLooseFocus(e, i);
                   }}
                   on:change={(e) => handleInputFieldChange(e, i)}
                 />

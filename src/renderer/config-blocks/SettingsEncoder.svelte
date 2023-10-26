@@ -78,20 +78,6 @@
     });
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   const suggestions = [
     [
       { value: "0", info: "Absolute" },
@@ -115,8 +101,12 @@
 
   function handleSuggestionSelected(e) {
     const { value } = e.detail;
-    scriptSegments[focusedInputIndex] = value;
-    sendData(value, focusedInputIndex);
+    if (focusedInputIndex == 1) {
+      ev0 = value;
+    }
+    if (focusedInputIndex == 0) {
+      emo = value;
+    }
   }
 </script>
 
@@ -133,7 +123,8 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          on:focus={() => handleInputFocus()}
+          suggestionTarget={suggestionElement}
+          on:focus={() => handleInputFocus(0)}
           on:change={(e) => {
             emo = e.detail;
           }}
@@ -155,7 +146,7 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus()}
+          on:focus={() => handleInputFocus(1)}
           on:change={(e) => {
             ev0 = e.detail;
           }}
@@ -171,13 +162,5 @@
   <AtomicSuggestions
     bind:component={suggestionElement}
     on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      if (focusedInput == 1) {
-        ev0 = e.detail.value;
-      }
-      if (focusedInput == 0) {
-        emo = e.detail.value;
-      }
-    }}
   />
 </encoder-settings>

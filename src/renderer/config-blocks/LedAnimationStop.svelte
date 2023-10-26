@@ -157,26 +157,6 @@
     suggestions = _suggestions;
   });
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    if (index < 2) {
-      suggestionPlaceMove = true;
-    } else {
-      suggestionPlaceMove = false;
-    }
-
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   let suggestionElement = undefined;
 
   let focusedInputIndex = null;

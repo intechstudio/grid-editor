@@ -681,25 +681,9 @@
     renderSuggestions();
   }
 
-  let ready = false;
   onMount(() => {
     renderSuggestions();
-    ready = true;
   });
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
 
   const tabs = [
     { name: "MIDI", component: "Midi" },
@@ -751,6 +735,7 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement}
           on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
@@ -766,12 +751,7 @@
 
   <AtomicSuggestions
     bind:component={suggestionElement}
-    suggestionTarget={suggestionElement}
     on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      scriptSegments[e.detail.index] = e.detail.value;
-      sendData(e.detail.value, e.detail.index);
-    }}
   />
 
   <SendFeedback

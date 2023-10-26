@@ -67,20 +67,6 @@
     });
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   const suggestions = [
     [
       { value: "7", info: "7 bit (default)" },
@@ -106,8 +92,12 @@
 
   function handleSuggestionSelected(e) {
     const { value } = e.detail;
-    scriptSegments[focusedInputIndex] = value;
-    sendData(value, focusedInputIndex);
+    if (focusedInputIndex == 1) {
+      pma = value;
+    }
+    if (focusedInputIndex == 0) {
+      pmo = value;
+    }
   }
 </script>
 
@@ -124,7 +114,8 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          on:focus={() => handleInputFocus()}
+          suggestionTarget={suggestionElement}
+          on:focus={() => handleInputFocus(0)}
           on:change={(e) => {
             pmo = e.detail;
           }}
@@ -146,7 +137,7 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus()}
+          on:focus={() => handleInputFocus(1)}
           on:change={(e) => {
             pma = e.detail;
           }}
@@ -162,13 +153,5 @@
   <AtomicSuggestions
     bind:component={suggestionElement}
     on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      if (focusedInput == 1) {
-        pma = e.detail.value;
-      }
-      if (focusedInput == 0) {
-        pmo = e.detail.value;
-      }
-    }}
   />
 </potmeter-settings>

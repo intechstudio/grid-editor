@@ -60,22 +60,8 @@
     sendData(scriptValue);
   }
 
-  function sendData(e) {
-    dispatch("output", { short: `sbc`, script: `self:bmo(${e})` });
-  }
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
+  function sendData(value) {
+    dispatch("output", { short: `sbc`, script: `self:bmo(${value})` });
   }
 
   const suggestions = [
@@ -89,15 +75,9 @@
 
   let suggestionElement = undefined;
 
-  let focusedInputIndex = null;
-  function handleInputFocus(index) {
-    focusedInputIndex = index;
-  }
-
   function handleSuggestionSelected(e) {
     const { value } = e.detail;
-    scriptSegments[focusedInputIndex] = value;
-    sendData(value, focusedInputIndex);
+    scriptValue = value;
   }
 </script>
 
@@ -110,7 +90,6 @@
       inputValue={scriptValue}
       suggestions={suggestions[0]}
       suggestionTarget={suggestionElement}
-      on:focus={() => handleInputFocus()}
       on:change={(e) => {
         scriptValue = e.detail;
       }}
@@ -127,8 +106,5 @@
   <AtomicSuggestions
     bind:component={suggestionElement}
     on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      scriptValue = e.detail.value;
-    }}
   />
 </encoder-settings>

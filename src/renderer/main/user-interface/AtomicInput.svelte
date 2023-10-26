@@ -31,14 +31,12 @@
     infoValue ? (infoValue = infoValue.info) : "";
   }
 
-  function handleInputvaluechange(value) {
-    text = stringManipulation.humanize(value);
+  function handleInputValueChange(value) {
+    text = stringManipulation.humanize(String(value));
     handleValidation(text);
   }
 
-  onMount(() => {
-    handleInputvaluechange(inputValue);
-  });
+  $: handleInputValueChange(inputValue);
 
   function handleValidation() {
     isError = !validator(text);
@@ -55,21 +53,23 @@
     if (input) {
       input = false;
       const short = stringManipulation.shortify(inputValue);
-      console.log(short);
       dispatch("change", short);
     }
   }
 
   function handleFocus(e) {
-    suggestionTarget.dispatchEvent(new CustomEvent("focus"));
     dispatch("focus", this);
-    const event = new CustomEvent("display", {
-      detail: {
-        data: suggestions,
-      },
-    });
+    if (typeof suggestionTarget !== "undefined") {
+      suggestionTarget.dispatchEvent(new CustomEvent("focus"));
 
-    suggestionTarget.dispatchEvent(event);
+      const event = new CustomEvent("display", {
+        detail: {
+          data: suggestions,
+        },
+      });
+
+      suggestionTarget.dispatchEvent(event);
+    }
   }
 
   let input = false;
