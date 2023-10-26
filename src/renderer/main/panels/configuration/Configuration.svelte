@@ -606,8 +606,8 @@
                   {:else}
                     <DropZone
                       {index}
-                      thresholdTop={15}
-                      thresholdBottom={15}
+                      thresholdTop={10}
+                      thresholdBottom={10}
                       class=""
                       drag_target={draggedIndexes}
                       on:drop-target-change={handleDropTargetChange}
@@ -643,7 +643,7 @@
                 <DropZone
                   index={$configManager.length}
                   drag_target={draggedIndexes}
-                  thresholdTop={15}
+                  thresholdTop={10}
                   thresholdBottom={0}
                   class="h-full"
                   on:drop-target-change={handleDropTargetChange}
