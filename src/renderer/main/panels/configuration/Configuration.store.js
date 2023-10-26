@@ -203,17 +203,7 @@ export class ConfigList extends Array {
 
   sendTo({ target }) {
     return new Promise((resolve) => {
-      if (!this.checkLength()) {
-        throw {
-          type: "lengthError",
-          device: getDeviceName(target.device.dx, target.device.dy),
-          x: target.device.dx,
-          y: target.device.dy,
-          element: { no: target.element },
-          event: { no: target.eventType, type: eventType[target.eventType] },
-        };
-      }
-
+      this.checkLength();
       const actionString = this.toConfigScript();
 
       runtime.update_event_configuration(
@@ -274,7 +264,6 @@ export class ConfigList extends Array {
     }
 
     let configScript = event.config;
-    console.log(event.config);
 
     //Parse configScript
     //TODO: do rawLuas format checking during parsing
@@ -290,7 +279,7 @@ export class ConfigList extends Array {
     }
     // split by meta comments
     let configList = configScript.split(/(--\[\[@+\w+\]\])/);
-    console.log(configList);
+
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({
@@ -327,9 +316,21 @@ export class ConfigList extends Array {
     return true;
   }
 
-  //Returns true if config limit is NOT reached
+  //Throws error if limit is reached
   checkLength() {
-    return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
+    const length = this.toConfigScript().length;
+    if (length > grid.properties.CONFIG_LENGTH) {
+      const target = ConfigTarget.getCurrent();
+      throw {
+        type: "lengthError",
+        device: getDeviceName(target.device.dx, target.device.dy),
+        x: target.device.dx,
+        y: target.device.dy,
+        element: { no: target.element },
+        event: { no: target.eventType, type: eventType[target.eventType] },
+        length: length,
+      };
+    }
   }
 }
 

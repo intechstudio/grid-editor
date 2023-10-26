@@ -107,55 +107,58 @@
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <div class="w-full flex flex-row pointer-events-none duration-300">
-      <!-- Icon -->
-      {#if config.information.hideIcon !== true}
-        <div
-          style="background-color:{config.information.color}"
-          class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
-            ? 'border-error'
-            : 'border-transparent'}"
-        >
-          <div class="w-6 h-6 whitespace-nowrap">
-            {@html config.information.blockIcon}
-          </div>
-        </div>
-      {/if}
-
       <!-- Body of the config block -->
       <div
-        style="background-color:{config.information.rendering !== 'standard'
-          ? config.information.color
-          : ''}"
-        class="w-full border-y border-r {syntaxError
-          ? 'border-error'
-          : 'border-transparent'} flex flex-grow items-center bg-secondary"
-        class:rounded-tr-xl={config.information.rounding == "top"}
-        class:rounded-br-xl={config.information.rounding == "bottom"}
+        class="w-full flex flex-grow items-center"
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
+        <!-- Icon -->
+        {#if config.information.hideIcon !== true}
+          <div
+            style="background-color:{config.information.color}"
+            class="h-full flex items-center p-2 w-min text-center border-y border-l {syntaxError
+              ? 'border-error'
+              : 'border-transparent'}"
+          >
+            <div class="w-6 h-6 whitespace-nowrap">
+              {@html config.information.blockIcon}
+            </div>
+          </div>
+        {/if}
         <!-- Content of block -->
         {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <svelte:component
-            this={config.component}
-            class="h-full w-full px-2 -my-[1px]"
-            {index}
-            {config}
-            {access_tree}
-            {syntaxError}
-            on:replace={replace_me}
-            on:validator={handleValidator}
-            on:output={handleOutput}
-            on:toggle={handleToggle}
-          />
+          <div class="bg-secondary bg-opacity-30 h-full w-full">
+            <svelte:component
+              this={config.component}
+              class="h-full w-full px-2 -my-[1px] border-y border-r {syntaxError
+                ? 'border-error'
+                : 'border-transparent'} {config.information.hideIcon
+                ? 'border-l'
+                : ''}"
+              {index}
+              {config}
+              {access_tree}
+              {syntaxError}
+              on:replace={replace_me}
+              on:validator={handleValidator}
+              on:output={handleOutput}
+              on:toggle={handleToggle}
+            />
+          </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
+
           <svelte:component
             this={config.header}
             {config}
             {access_tree}
-            class="px-2 w-full h-full -mt-[1px]"
+            class="px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
+              ? 'border-error'
+              : 'border-transparent'} {config.information.hideIcon
+              ? 'border-l'
+              : ''}"
             on:toggle={handleToggle}
             on:output={handleOutput}
           />

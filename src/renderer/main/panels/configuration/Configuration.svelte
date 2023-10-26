@@ -91,7 +91,6 @@
   }
 
   function sendCurrentConfigurationToGrid() {
-    console.log($configManager, "yay");
     $configManager
       .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
       .catch((e) => handleError(e));
@@ -159,6 +158,7 @@
   }
 
   function handleError(e) {
+    console.log(e);
     switch (e.type) {
       case "lengthError":
         logger.set({
@@ -199,18 +199,22 @@
   function handleConfigInsertion(e) {
     let { configs, index } = e.detail;
 
-    console.log(configs, index);
-
     if (typeof index === "undefined") {
       index = $configManager.length;
     }
 
-    configManager.update((s) => {
-      s.insert(index, ...configs);
-      return s;
-    });
-
-    sendCurrentConfigurationToGrid();
+    try {
+      configManager.update((s) => {
+        const list = s.makeCopy();
+        list.insert(index, ...configs);
+        list.checkLength();
+        return list;
+      });
+      sendCurrentConfigurationToGrid();
+    } catch (e) {
+      console.log(e);
+      handleError(e);
+    }
   }
 
   function handleDrop(e) {

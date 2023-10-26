@@ -14,7 +14,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="{$$props.class} text-white flex items-center"
+  class="{$$props.class} text-white flex items-center bg-secondary"
   class:group-hover:bg-select-saturate-10={typeof $config_drag === "undefined"}
   on:click={handleClick}
 >
