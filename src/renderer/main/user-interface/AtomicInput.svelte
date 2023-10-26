@@ -62,7 +62,7 @@
 
   function handleFocus(e) {
     suggestionTarget.dispatchEvent(new CustomEvent("focus"));
-    dispatch("focus");
+    dispatch("focus", this);
     const event = new CustomEvent("display", {
       detail: {
         data: suggestions,

@@ -694,6 +694,7 @@
 
   let focusedInputIndex = null;
   function handleInputFocus(index) {
+    console.log(index.props);
     focusedInputIndex = index;
   }
 
@@ -731,7 +732,7 @@
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(i)}
+          on:focus={(e) => handleInputFocus(e)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -744,10 +745,6 @@
     {/each}
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-  />
   <AtomicSuggestions
     bind:component={suggestionElement}
     on:select={handleSuggestionSelected}

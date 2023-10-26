@@ -105,6 +105,19 @@
       { value: "100", info: "Maximum (100%)" },
     ],
   ];
+
+  let suggestionElement = undefined;
+
+  let focusedInputIndex = null;
+  function handleInputFocus(index) {
+    focusedInputIndex = index;
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    scriptSegments[focusedInputIndex] = value;
+    sendData(value, focusedInputIndex);
+  }
 </script>
 
 <encoder-settings
@@ -120,18 +133,13 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
+          on:focus={() => handleInputFocus()}
           on:change={(e) => {
             emo = e.detail;
           }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 0);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 0);
           }}
         />
       </div>
@@ -146,6 +154,8 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
+          suggestionTarget={suggestionElement}
+          on:focus={() => handleInputFocus()}
           on:change={(e) => {
             ev0 = e.detail;
           }}
@@ -153,33 +163,21 @@
             const data = e.detail;
             dispatch("validator", data);
           }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 1);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 1);
-          }}
         />
       </div>
     </div>
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        if (focusedInput == 1) {
-          ev0 = e.detail.value;
-        }
-        if (focusedInput == 0) {
-          emo = e.detail.value;
-        }
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      if (focusedInput == 1) {
+        ev0 = e.detail.value;
+      }
+      if (focusedInput == 0) {
+        emo = e.detail.value;
+      }
+    }}
+  />
 </encoder-settings>

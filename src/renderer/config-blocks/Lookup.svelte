@@ -120,14 +120,27 @@
   let focusedInput = undefined;
   let focusGroup = [];
 
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
+  let suggestionElement1 = undefined;
+  let suggestionElement2 = undefined;
+
+  let focusedInputProperty = null;
+  function handleInputFocus(property) {
+    focusedInputProperty = property;
   }
 
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    switch (focusedInputProperty) {
+      case "source": {
+        lookupTable.source = value;
+        break;
+      }
+      case "destination": {
+        lookupTable.destination = value;
+        break;
+      }
+    }
+    sendData();
   }
 </script>
 
@@ -140,9 +153,11 @@
       suggestions={$localDefinitions}
       placeholder={"Incoming value to match"}
       inputValue={lookupTable.source}
+      suggestionTarget={suggestionElement1}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
+      on:focus={() => handleInputFocus("source")}
       on:change={(e) => {
         lookupTable.source = e.detail;
       }}
@@ -150,27 +165,16 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.source = e.detail.value;
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement1}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      lookupTable.source = e.detail.value;
+    }}
+  />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -232,6 +236,8 @@
       placeholder={"Variable name to load the lookup result"}
       suggestions={$localDefinitions}
       inputValue={lookupTable.destination}
+      suggestionTarget={suggestionElement2}
+      on:focus={() => handleInputFocus("destination")}
       on:change={(e) => {
         lookupTable.destination = e.detail;
       }}
@@ -242,27 +248,16 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 1);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 1);
-      }}
     />
   </div>
 
-  {#if focusGroup[1]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.destination = e.detail.value;
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement2}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      lookupTable.destination = e.detail.value;
+    }}
+  />
 
   <div class="w-full flex group p-2">
     <!-- svelte-ignore a11y-click-events-have-key-events -->

@@ -176,6 +176,20 @@
     focusGroup[index] = event.detail.focus;
     showSuggestions = focusGroup.includes(true);
   }
+
+  let suggestionElement1 = undefined;
+  let suggestionElement2 = undefined;
+
+  let focusedInputIndex = null;
+  function handleInputFocus(index) {
+    focusedInputIndex = index;
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    scriptSegments[focusedInputIndex] = value;
+    sendData(value, focusedInputIndex);
+  }
 </script>
 
 <config-led-phase
@@ -195,15 +209,11 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement1}
+          on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -213,20 +223,14 @@
     {/each}
   </div>
 
-  {#if showSuggestions && suggestionPlaceMove == true}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement1}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      scriptSegments[e.detail.index] = e.detail.value;
+      sendData(e.detail.value, e.detail.index);
+    }}
+  />
 
   <div class="w-full flex">
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
@@ -236,15 +240,11 @@
           inputValue={script}
           suggestions={suggestions[i + 2]}
           validator={validators[i + 2]}
+          suggestionTarget={suggestionElement2}
+          on:focus={() => handleInputFocus(i + 2)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i + 2);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i + 2);
           }}
           on:change={(e) => {
             sendData(e.detail, i + 2);
@@ -254,20 +254,14 @@
     {/each}
   </div>
 
-  {#if showSuggestions && suggestionPlaceMove == false}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement2}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      scriptSegments[e.detail.index] = e.detail.value;
+      sendData(e.detail.value, e.detail.index);
+    }}
+  />
 </config-led-phase>
 
 <style>

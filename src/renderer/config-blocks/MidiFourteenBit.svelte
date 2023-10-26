@@ -710,6 +710,19 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", element.component);
   }
+
+  let suggestionElement = undefined;
+
+  let focusedInputIndex = null;
+  function handleInputFocus(index) {
+    focusedInputIndex = index;
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    scriptSegments[focusedInputIndex] = value;
+    sendData(value, focusedInputIndex);
+  }
 </script>
 
 <action-midi
@@ -738,15 +751,10 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -756,20 +764,15 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement}
+    suggestionTarget={suggestionElement}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      scriptSegments[e.detail.index] = e.detail.value;
+      sendData(e.detail.value, e.detail.index);
+    }}
+  />
 
   <SendFeedback
     feedback_context="MidiFourteenBit"

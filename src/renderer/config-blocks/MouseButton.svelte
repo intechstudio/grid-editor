@@ -112,6 +112,19 @@
   onMount(() => {
     suggestions = _suggestions;
   });
+
+  let suggestionElement = undefined;
+
+  let focusedInputIndex = null;
+  function handleInputFocus(index) {
+    focusedInputIndex = index;
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    scriptSegments[focusedInputIndex] = value;
+    sendData(value, focusedInputIndex);
+  }
 </script>
 
 <mouse-button
@@ -125,15 +138,11 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement}
+          on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -143,19 +152,13 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        sendData(e);
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      sendData(e);
+    }}
+  />
 </mouse-button>
 
 <style>

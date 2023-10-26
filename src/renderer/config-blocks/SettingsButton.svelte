@@ -86,6 +86,19 @@
       { value: "3", info: "3-step" },
     ],
   ];
+
+  let suggestionElement = undefined;
+
+  let focusedInputIndex = null;
+  function handleInputFocus(index) {
+    focusedInputIndex = index;
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    scriptSegments[focusedInputIndex] = value;
+    sendData(value, focusedInputIndex);
+  }
 </script>
 
 <encoder-settings
@@ -96,6 +109,8 @@
     <AtomicInput
       inputValue={scriptValue}
       suggestions={suggestions[0]}
+      suggestionTarget={suggestionElement}
+      on:focus={() => handleInputFocus()}
       on:change={(e) => {
         scriptValue = e.detail;
       }}
@@ -106,25 +121,14 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      {suggestions}
-      on:select={(e) => {
-        scriptValue = e.detail.value;
-      }}
-    />
-    <AtomicSuggestions
-      bind:component={suggestionElement}
-      on:select={handleSuggestionSelected}
-    />
-  {/if}
+  <AtomicSuggestions
+    bind:component={suggestionElement}
+    on:select={handleSuggestionSelected}
+    on:select={(e) => {
+      scriptValue = e.detail.value;
+    }}
+  />
 </encoder-settings>
