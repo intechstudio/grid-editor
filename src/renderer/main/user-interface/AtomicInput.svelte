@@ -19,21 +19,18 @@
   let infoValue = "";
   let text;
 
-  $: handleTextChange(text);
-
   let focus;
 
-  function handleTextChange(value) {
+  function handleInputValueChange(value) {
+    text = stringManipulation.humanize(String(value));
     handleValidation(value);
     infoValue = suggestions.find(
       (s) => String(s.value).trim() == String(value).trim()
     );
-    infoValue ? (infoValue = infoValue.info) : "";
-  }
 
-  function handleInputValueChange(value) {
-    text = stringManipulation.humanize(String(value));
-    handleValidation(text);
+    if (typeof infoValue !== "undefined") {
+      infoValue = infoValue.info;
+    }
   }
 
   $: handleInputValueChange(inputValue);
