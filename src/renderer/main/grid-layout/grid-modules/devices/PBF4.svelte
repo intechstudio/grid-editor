@@ -90,10 +90,12 @@
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3] as elementNumber}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-1"
           on:click={() => {
             dispatch("click", {
@@ -114,10 +116,12 @@
       {/each}
 
       {#each [4, 5, 6, 7] as elementNumber}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-2"
           on:click={() => {
             dispatch("click", {
@@ -141,10 +145,12 @@
       {/each}
 
       {#each [8, 9, 10, 11] as elementNumber}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-1"
           on:click={() => {
             dispatch("click", {

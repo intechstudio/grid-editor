@@ -229,6 +229,11 @@
     border-radius: 0.5rem;
   }
 
+  .unsaved-changes {
+    border: 1px dotted #0ba484 !important;
+    border-radius: 0.5rem;
+  }
+
   .active-systemelement {
     background-color: #212a2b;
     box-shadow: inset 0 0 10px #dddddd60;

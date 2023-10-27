@@ -93,10 +93,12 @@
     >
       {#each [0, 1, 2, 3] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-1"
           on:click={() => {
             dispatch("click", {
@@ -118,10 +120,12 @@
 
       {#each [4, 5, 6, 7] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-3"
           on:click={() => {
             dispatch("click", {

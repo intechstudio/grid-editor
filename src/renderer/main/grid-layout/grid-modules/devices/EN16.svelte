@@ -6,8 +6,15 @@
   import Encoder from "../elements/Encoder.svelte";
   import Led from "../elements/Led.svelte";
 
-  import { elementPositionStore } from "../../../../runtime/runtime.store";
+  import {
+    elementPositionStore,
+    eventType,
+  } from "../../../../runtime/runtime.store";
   import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    user_input,
+  } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -17,6 +24,8 @@
   const dispatch = createEventDispatcher();
 
   let dx, dy;
+
+  $: console.log($user_input);
 
   let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   let ledcolor_array = [
@@ -92,10 +101,14 @@
     >
       {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
           class="knob-and-led"
           on:click={() => {
             dispatch("click", {

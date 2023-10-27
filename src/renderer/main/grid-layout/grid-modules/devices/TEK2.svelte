@@ -100,6 +100,7 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led row-span-2 col-span-2 relative"
           style="border-radius: 50%; padding: 6px"
           on:click={() => selectElement(elementNumber, "encoder", id)}
@@ -138,6 +139,7 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
+          class:unsaved-changes={true}
           class="knob-and-led"
           on:click={() => selectElement(elementNumber, "button", id)}
         >
