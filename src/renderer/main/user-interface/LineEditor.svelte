@@ -10,6 +10,7 @@
   export let value;
   export let access_tree;
   export let sidebarWidth;
+  export let disabled = false;
 
   let monaco_block;
 
@@ -36,6 +37,16 @@
     editor.layout();
   }
 
+  function handleDisabledChange(value) {
+    editor.updateOptions({ readOnly: value });
+  }
+
+  $: {
+    if (typeof editor !== "undefined") {
+      handleDisabledChange(disabled);
+    }
+  }
+
   onDestroy(() => {
     editor.dispose();
   });
@@ -51,6 +62,7 @@
       minimap: {
         enabled: false,
       },
+      readOnly: disabled,
       fontSize: 12,
       lineNumbers: "off",
       lineNumbersMinChars: 0,
@@ -109,3 +121,10 @@
   bind:this={monaco_block}
   class="line-editor {$$props.class} grid grid-cols-1 w-full pointer-events-auto"
 />
+
+<style global>
+  /* Disable readonly overlay message */
+  .monaco-editor-overlaymessage {
+    display: none !important;
+  }
+</style>

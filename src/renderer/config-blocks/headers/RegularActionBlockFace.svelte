@@ -13,7 +13,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="{$$props.class} text-white flex items-center"
+  class="{$$props.class} text-white flex items-center px-2"
   on:click={handleClick}
 >
   <span>{config.information.blockTitle}</span>

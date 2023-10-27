@@ -149,7 +149,7 @@
             this={config.header}
             {config}
             {access_tree}
-            class="px-2 w-full h-full -mt-[1px]"
+            class="w-full h-full"
             on:toggle={handleToggle}
             on:output={handleOutput}
           />
