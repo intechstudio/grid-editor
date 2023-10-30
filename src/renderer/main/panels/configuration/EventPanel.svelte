@@ -190,8 +190,8 @@
                 handleSelectEvent(event);
               }}
               class="{event.selected
-                ? 'shadow-md text-white bg-pick'
-                : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0
+                ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0
                 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
             >
               <span
@@ -200,7 +200,7 @@
               >
               {#if isChange}
                 <unsaved-changes-marker
-                  class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/2 -translate-y-1/2"
+                  class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
                 />
               {/if}
             </button>
