@@ -230,7 +230,7 @@
   }
 
   .unsaved-changes {
-    border: 1px dotted #0ba484 !important;
+    background-color: theme("colors.unsavedchange.DEFAULT") !important;
     border-radius: 0.5rem;
   }
 
