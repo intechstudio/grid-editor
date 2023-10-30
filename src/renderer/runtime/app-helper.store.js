@@ -3,7 +3,7 @@ import { getAllComponents } from "$lib/_configs";
 
 const configuration = window.ctxProcess.configuration();
 
-const persistent = {
+const persistentDefaultValues = {
   userId: "",
   size: 1.0,
   wssPort: 1337,
@@ -29,6 +29,7 @@ const persistent = {
   alwaysRunInTheBackground: true,
   analyticsEnabled: false,
   firstLaunch: true,
+  fontSize: 12,
 };
 
 function checkOS() {
@@ -123,7 +124,7 @@ function createAppSettingsStore(persistent) {
   };
 }
 
-export const appSettings = createAppSettingsStore(persistent);
+export const appSettings = createAppSettingsStore(persistentDefaultValues);
 
 export const profileListRefresh = writable(0);
 export const presetListRefresh = writable(0);
@@ -133,11 +134,11 @@ init_appsettings();
 appSettings.subscribe((store) => {
   let instore = store.persistent;
 
-  Object.entries(persistent).forEach((entry) => {
+  Object.entries(persistentDefaultValues).forEach((entry) => {
     const [key, value] = entry;
 
-    if (persistent[key] !== instore[key]) {
-      persistent[key] = instore[key];
+    if (persistentDefaultValues[key] !== instore[key]) {
+      persistentDefaultValues[key] = instore[key];
       let settings = {};
       settings[key] = instore[key];
       window.electron.persistentStorage.set(settings);
@@ -160,7 +161,7 @@ ipcRenderer.on('trayState', (event, args) => {
 
 async function init_appsettings() {
   let request = [];
-  Object.entries(persistent).forEach((entry) => {
+  Object.entries(persistentDefaultValues).forEach((entry) => {
     const [key, value] = entry;
     request.push(key);
   });
@@ -183,7 +184,7 @@ async function init_appsettings() {
           }
 
           if (key === "moduleRotation" && value === undefined) {
-            value = persistent[key];
+            value = persistentDefaultValues[key];
           }
 
           if (key === "pageActivatorInterval" && value === undefined) {
