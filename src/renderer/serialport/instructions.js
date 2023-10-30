@@ -116,28 +116,33 @@ const instructions = {
       return;
     }
 
-    const objIndex = get(unsaved_changes).findIndex(
-      (e) =>
-        e.x == dx &&
-        e.y == dy &&
-        e.page == page &&
-        e.element == element &&
-        e.event == event
-    );
-    if (objIndex !== -1) {
-      unsaved_changes.update((s) => {
-        const updatedChanges = [...s];
-        updatedChanges[objIndex].changes += 1;
-        return updatedChanges;
-      });
-    } else {
-      unsaved_changes.update((s) => [
-        ...s,
-        { x: dx, y: dy, page, element: element, event: event, changes: 1 },
-      ]);
-    }
+    //Was no previous change under this event
 
-    console.log(get(unsaved_changes));
+    unsaved_changes.update((s) => {
+      let obj = get(unsaved_changes).find(
+        (e) =>
+          e.x == dx &&
+          e.y == dy &&
+          e.page == page &&
+          e.element == element &&
+          e.event == event
+      );
+
+      if (typeof obj === "undefined") {
+        obj = {
+          x: dx,
+          y: dy,
+          page,
+          element: element,
+          event: event,
+          changes: 0,
+        };
+        s.push(obj);
+      }
+
+      obj.changes += 1;
+      return s;
+    });
 
     let buffer_element = {
       descr: {

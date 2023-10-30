@@ -25,8 +25,6 @@
 
   let dx, dy;
 
-  $: console.log($user_input);
-
   let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   let ledcolor_array = [
     [0, 0, 0],
