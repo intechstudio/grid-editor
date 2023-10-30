@@ -74,11 +74,6 @@
   ];
 
   let suggestionElement = undefined;
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    scriptValue = value;
-  }
 </script>
 
 <encoder-settings
@@ -103,8 +98,5 @@
     />
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-  />
+  <AtomicSuggestions bind:component={suggestionElement} />
 </encoder-settings>

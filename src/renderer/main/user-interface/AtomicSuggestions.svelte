@@ -1,48 +1,39 @@
 <script>
-  import { createEventDispatcher } from "svelte";
   import { clickOutside } from "../_actions/click-outside.action";
 
   export let component = undefined;
 
   let suggestions = [];
-  let targetFocus = false;
-  let visible = false;
 
-  const dispatch = createEventDispatcher();
+  let target = undefined;
 
   function handleDisplay(e) {
-    const { data } = e.detail;
+    const { data, sender } = e.detail;
+    target = sender;
     suggestions = data;
-    targetFocus = true;
-    visible = true;
   }
 
   function handleClickOutside(e) {
-    if (!targetFocus) {
-      suggestions = [];
-      visible = false;
-    }
-  }
-
-  function handleTargetBlur(e) {
-    targetFocus = false;
+    suggestions = [];
   }
 
   function handleSuggestionSelected(value) {
-    dispatch("select", {
-      value: value,
+    const event = new CustomEvent("suggestion-select", {
+      detail: {
+        value: value,
+      },
     });
-    visible = false;
+    target.dispatchEvent(event);
+    suggestions = [];
   }
 </script>
 
 <suggestions
   class="flex w-full p-2"
-  class:hidden={!visible}
+  class:hidden={suggestions.length === 0}
   bind:this={component}
   on:display={handleDisplay}
-  on:target-blur={handleTargetBlur}
-  use:clickOutside={{ useCapture: true }}
+  use:clickOutside={{ useCapture: false }}
   on:click-outside={handleClickOutside}
 >
   <div class="w-full p-1 neumorph rounded-lg border border-select bg-secondary">

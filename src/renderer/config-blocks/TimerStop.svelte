@@ -78,11 +78,6 @@
   }
 
   let suggestionElement = undefined;
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    scriptValue = value;
-  }
 </script>
 
 <timer-stop
@@ -107,8 +102,5 @@
     />
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-  />
+  <AtomicSuggestions bind:component={suggestionElement} />
 </timer-stop>

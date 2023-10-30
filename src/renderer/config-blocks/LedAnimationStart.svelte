@@ -159,17 +159,6 @@
 
   let suggestionElement1 = undefined;
   let suggestionElement2 = undefined;
-
-  let focusedInputIndex = null;
-  function handleInputFocus(index) {
-    focusedInputIndex = index;
-  }
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    scriptSegments[focusedInputIndex] = value;
-    sendData(value, focusedInputIndex);
-  }
 </script>
 
 <config-led-phase
@@ -190,7 +179,6 @@
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement1}
-          on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -203,14 +191,7 @@
     {/each}
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement1}
-    on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      scriptSegments[e.detail.index] = e.detail.value;
-      sendData(e.detail.value, e.detail.index);
-    }}
-  />
+  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="w-full flex">
     {#each [scriptSegments[2], scriptSegments[3], scriptSegments[4]] as script, i}
@@ -221,7 +202,6 @@
           suggestions={suggestions[i + 2]}
           validator={validators[i + 2]}
           suggestionTarget={suggestionElement2}
-          on:focus={() => handleInputFocus(i + 2)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -234,14 +214,7 @@
     {/each}
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement2}
-    on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      scriptSegments[e.detail.index] = e.detail.value;
-      sendData(e.detail.value, e.detail.index);
-    }}
-  />
+  <AtomicSuggestions bind:component={suggestionElement2} />
 </config-led-phase>
 
 <style>

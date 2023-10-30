@@ -84,21 +84,6 @@
   ];
 
   let suggestionElement = undefined;
-
-  let focusedInputIndex = null;
-  function handleInputFocus(index) {
-    focusedInputIndex = index;
-  }
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    if (focusedInputIndex == 1) {
-      pma = value;
-    }
-    if (focusedInputIndex == 0) {
-      pmo = value;
-    }
-  }
 </script>
 
 <potmeter-settings
@@ -115,7 +100,6 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(0)}
           on:change={(e) => {
             pmo = e.detail;
           }}
@@ -137,7 +121,6 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(1)}
           on:change={(e) => {
             pma = e.detail;
           }}
@@ -150,8 +133,5 @@
     </div>
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-  />
+  <AtomicSuggestions bind:component={suggestionElement} />
 </potmeter-settings>
