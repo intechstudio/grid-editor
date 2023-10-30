@@ -3,6 +3,7 @@
 
   import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
+  import { unsaved_changes } from "../../../../runtime/runtime.store";
 
   import {
     lastOpenedActionblocks,
@@ -32,7 +33,17 @@
 
   let syntaxError = false;
   let validationError = false;
+  let isChange = false;
+
   const dispatch = createEventDispatcher();
+
+  $: handleUnsavedChangesChange($unsaved_changes);
+
+  function handleUnsavedChangesChange(changes) {
+    if (changes.length === 0) {
+      isChange = false;
+    }
+  }
 
   function replace_me(e) {
     const name = e.detail;
@@ -57,6 +68,7 @@
       short: e.detail.short,
       script: e.detail.script,
     });
+    isChange = true;
   }
 
   function handleValidator(e) {
@@ -99,7 +111,11 @@
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
-    <div class="w-full flex flex-row pointer-events-none duration-300">
+    <!-- TODO: Make marking when the block has unsaved changes  -->
+    <div
+      class="w-full flex flex-row pointer-events-none duration-300 border-unsavedchange"
+      class:border-r-4={isChange}
+    >
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
         <div
