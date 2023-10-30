@@ -7,7 +7,10 @@
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -97,7 +100,9 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class:unsaved-changes={true}
+          class:unsaved-changes={typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
           class="knob-and-led"
           on:click={() => {
             dispatch("click", {

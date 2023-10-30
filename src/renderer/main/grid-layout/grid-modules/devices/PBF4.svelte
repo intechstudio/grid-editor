@@ -9,7 +9,10 @@
   import Button from "../elements/Button.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store";
 
   export let id = "PBF4";
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -95,7 +98,9 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class:unsaved-changes={true}
+          class:unsaved-changes={typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
           class="knob-and-led row-span-1"
           on:click={() => {
             dispatch("click", {
@@ -121,7 +126,9 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class:unsaved-changes={true}
+          class:unsaved-changes={typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
           class="knob-and-led row-span-2"
           on:click={() => {
             dispatch("click", {
@@ -150,7 +157,9 @@
           class:active-element={dx == selectedElement.brc.dx &&
             dy == selectedElement.brc.dy &&
             selectedElement.event.elementnumber == elementNumber}
-          class:unsaved-changes={true}
+          class:unsaved-changes={typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
           class="knob-and-led row-span-1"
           on:click={() => {
             dispatch("click", {
