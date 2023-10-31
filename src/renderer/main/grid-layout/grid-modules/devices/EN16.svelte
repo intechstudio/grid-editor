@@ -102,7 +102,7 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <cell class="w-full h-full flex items-center justify-center relative">
           <unsaved-changes-underlay
-            class="bg-white absolute rounded-lg bg-opacity-10"
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
             class:hidden={typeof $unsaved_changes.find(
               (e) => e.x == dx && e.y == dy && e.element == elementNumber
             ) === "undefined"}

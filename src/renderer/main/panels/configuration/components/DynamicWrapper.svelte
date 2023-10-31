@@ -37,14 +37,6 @@
 
   const dispatch = createEventDispatcher();
 
-  $: handleUnsavedChangesChange($unsaved_changes);
-
-  function handleUnsavedChangesChange(changes) {
-    if (changes.length === 0) {
-      isChange = false;
-    }
-  }
-
   function replace_me(e) {
     const name = e.detail;
     const components = getAllComponents();
@@ -113,8 +105,9 @@
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div
-      class="w-full flex flex-row pointer-events-none duration-300 border-unsavedchange"
-      class:border-r-4={isChange}
+      class="w-full flex flex-row pointer-events-none duration-300"
+      class:border-r-4={false}
+      class:border-unsavedchange={false}
     >
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
