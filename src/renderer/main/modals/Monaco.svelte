@@ -13,13 +13,14 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import * as luamin from "lua-format";
+  import { luamin } from "../../../external/luamin";
   import stringManipulation from "../../main/user-interface/_string-operations";
   import {
     ConfigTarget,
     ConfigList,
     configManager,
   } from "../panels/configuration/Configuration.store";
+  import CodeBlock from "../../config-blocks/CodeBlock.svelte";
 
   let monaco_block;
 
@@ -150,8 +151,8 @@
   let modalElement;
 
   function expandCode(code) {
+    let human = stringManipulation.humanize(code);
     try {
-      let human = stringManipulation.humanize(code);
       let beautified = luamin.Beautify(human, {
         RenameVariables: false,
         RenameGlobals: false,
@@ -165,7 +166,8 @@
       if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
       return stringManipulation.noCommentToLineComment(beautified);
     } catch (e) {
-      throw e;
+      console.error(e);
+      return human;
     }
   }
 
@@ -182,8 +184,10 @@
       RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
       SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
     };
+
     try {
-      return luamin.Minify(safe_code, luaminOptions);
+      const result = luamin.Minify(safe_code, luaminOptions);
+      return result;
     } catch (e) {
       throw `Syntax Error: ${e}`;
     }

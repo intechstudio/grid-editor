@@ -256,8 +256,10 @@
 
     configManager.update((s) => {
       const config = s[index];
-      config.short = short;
-      config.script = script;
+      if (typeof config !== "undefined") {
+        config.short = short;
+        config.script = script;
+      }
       return s;
     });
     sendCurrentConfigurationToGrid();
