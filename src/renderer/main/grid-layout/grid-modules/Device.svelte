@@ -38,6 +38,7 @@
   export let selected;
 
   export let arch;
+  export let fwVersion;
   export let portstate;
 
   console.log("arch", arch);
@@ -117,12 +118,14 @@
     {/if}
 
     <div
-      class="absolute bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
+      class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
     >
       {#if arch === "esp32"}
-        E-32
+        E-32<br />
+        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
       {:else}
-        D-51
+        D-51<br />
+        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
       {/if}
     </div>
 

@@ -517,8 +517,8 @@
           handleChangeEventTab("uiEvents");
         }}
         class="{!isSystemEventSelected
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
+          ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> UI Events </span>
       </button>
@@ -533,8 +533,8 @@
           handleChangeEventTab("systemEvents");
         }}
         class="{isSystemEventSelected
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary '} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
+          ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> System Events </span>
       </button>

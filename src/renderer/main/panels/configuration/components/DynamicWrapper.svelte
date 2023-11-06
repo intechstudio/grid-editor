@@ -3,6 +3,7 @@
 
   import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
+  import { unsaved_changes } from "../../../../runtime/runtime.store";
 
   import {
     lastOpenedActionblocks,
@@ -34,6 +35,7 @@
 
   let syntaxError = false;
   let validationError = false;
+
   const dispatch = createEventDispatcher();
 
   function replace_me(e) {
@@ -63,6 +65,7 @@
       short: e.detail.short,
       script: e.detail.script,
     });
+    isChange = true;
   }
 
   function handleValidator(e) {
@@ -105,26 +108,28 @@
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
+    <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none duration-300">
+      <!-- Icon -->
+      {#if config.information.hideIcon !== true}
+        <div
+          style="background-color:{config.information.color}"
+          class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
+            ? 'border-error'
+            : 'border-transparent'}"
+        >
+          <div class="w-6 h-6 whitespace-nowrap">
+            {@html config.information.blockIcon}
+          </div>
+        </div>
+      {/if}
+
       <!-- Body of the config block -->
       <div
         class="w-full flex flex-grow items-center"
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
-        <!-- Icon -->
-        {#if config.information.hideIcon !== true}
-          <div
-            style="background-color:{config.information.color}"
-            class="h-full flex items-center p-2 w-min text-center border-y border-l {syntaxError
-              ? 'border-error'
-              : 'border-transparent'}"
-          >
-            <div class="w-6 h-6 whitespace-nowrap">
-              {@html config.information.blockIcon}
-            </div>
-          </div>
-        {/if}
         <!-- Content of block -->
         {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
           <!-- Body of the Action block when toggled -->
