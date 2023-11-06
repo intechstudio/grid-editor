@@ -13,7 +13,7 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import { luamin } from "../../../external/luamin";
+  import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
   import {
     ConfigTarget,
