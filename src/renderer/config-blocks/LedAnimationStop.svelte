@@ -158,17 +158,6 @@
   });
 
   let suggestionElement = undefined;
-
-  let focusedInputIndex = null;
-  function handleInputFocus(index) {
-    focusedInputIndex = index;
-  }
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    scriptSegments[focusedInputIndex] = value;
-    sendData(value, focusedInputIndex);
-  }
 </script>
 
 <config-led-phase
@@ -189,7 +178,6 @@
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(i)}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -202,14 +190,7 @@
     {/each}
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      scriptSegments[e.detail.index] = e.detail.value;
-      sendData(e.detail.value, e.detail.index);
-    }}
-  />
+  <AtomicSuggestions bind:component={suggestionElement} />
 </config-led-phase>
 
 <style>

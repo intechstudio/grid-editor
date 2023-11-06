@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { onMount } from "svelte";
   import stringManipulation from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
@@ -18,6 +17,7 @@
   let disabled = false;
   let infoValue = "";
   let text;
+  let valuChanged = false;
 
   let focus;
 
@@ -41,27 +41,23 @@
   }
 
   function handleBlur(e) {
-    if (typeof suggestionTarget !== "undefined") {
-      const event = new CustomEvent("target-blur");
-      suggestionTarget.dispatchEvent(event);
-    }
-
-    dispatch("blur");
-    if (input) {
-      input = false;
-      const short = stringManipulation.shortify(inputValue);
-      dispatch("change", short);
+    if (valuChanged) {
+      sendData(inputValue);
     }
   }
 
-  function handleFocus(e) {
-    dispatch("focus", this);
-    if (typeof suggestionTarget !== "undefined") {
-      suggestionTarget.dispatchEvent(new CustomEvent("focus"));
+  function sendData(value) {
+    const short = stringManipulation.shortify(value);
+    valuChanged = false;
+    dispatch("change", short);
+  }
 
+  function handleFocus(e) {
+    if (typeof suggestionTarget !== "undefined") {
       const event = new CustomEvent("display", {
         detail: {
           data: suggestions,
+          sender: this,
         },
       });
 
@@ -69,10 +65,15 @@
     }
   }
 
-  let input = false;
   function handleInput(e) {
-    input = true;
+    valuChanged = true;
     handleValidation(text);
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    inputValue = value;
+    sendData(inputValue);
   }
 </script>
 
@@ -83,6 +84,7 @@
     on:focus={handleFocus}
     on:blur={handleBlur}
     on:input={handleInput}
+    on:suggestion-select={handleSuggestionSelected}
     type="text"
     {placeholder}
     class="{customClasses} w-full border

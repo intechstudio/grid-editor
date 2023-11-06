@@ -116,32 +116,8 @@
     lookupTable.pairs = [...lookupTable.pairs];
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
   let suggestionElement1 = undefined;
   let suggestionElement2 = undefined;
-
-  let focusedInputProperty = null;
-  function handleInputFocus(property) {
-    focusedInputProperty = property;
-  }
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    switch (focusedInputProperty) {
-      case "source": {
-        lookupTable.source = value;
-        break;
-      }
-      case "destination": {
-        lookupTable.destination = value;
-        break;
-      }
-    }
-    sendData();
-  }
 </script>
 
 <config-lookup
@@ -157,7 +133,6 @@
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      on:focus={() => handleInputFocus("source")}
       on:change={(e) => {
         lookupTable.source = e.detail;
       }}
@@ -168,13 +143,7 @@
     />
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement1}
-    on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      lookupTable.source = e.detail.value;
-    }}
-  />
+  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -237,7 +206,6 @@
       suggestions={$localDefinitions}
       inputValue={lookupTable.destination}
       suggestionTarget={suggestionElement2}
-      on:focus={() => handleInputFocus("destination")}
       on:change={(e) => {
         lookupTable.destination = e.detail;
       }}
@@ -251,13 +219,7 @@
     />
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement2}
-    on:select={handleSuggestionSelected}
-    on:select={(e) => {
-      lookupTable.destination = e.detail.value;
-    }}
-  />
+  <AtomicSuggestions bind:component={suggestionElement2} />
 
   <div class="w-full flex group p-2">
     <!-- svelte-ignore a11y-click-events-have-key-events -->

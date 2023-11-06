@@ -93,21 +93,6 @@
   ];
 
   let suggestionElement = undefined;
-
-  let focusedInputIndex = null;
-  function handleInputFocus(index) {
-    focusedInputIndex = index;
-  }
-
-  function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    if (focusedInputIndex == 1) {
-      ev0 = value;
-    }
-    if (focusedInputIndex == 0) {
-      emo = value;
-    }
-  }
 </script>
 
 <encoder-settings
@@ -124,7 +109,6 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(0)}
           on:change={(e) => {
             emo = e.detail;
           }}
@@ -146,7 +130,6 @@
             return new Validator(e).NotEmpty().Result();
           }}
           suggestionTarget={suggestionElement}
-          on:focus={() => handleInputFocus(1)}
           on:change={(e) => {
             ev0 = e.detail;
           }}
@@ -159,8 +142,5 @@
     </div>
   </div>
 
-  <AtomicSuggestions
-    bind:component={suggestionElement}
-    on:select={handleSuggestionSelected}
-  />
+  <AtomicSuggestions bind:component={suggestionElement} />
 </encoder-settings>
