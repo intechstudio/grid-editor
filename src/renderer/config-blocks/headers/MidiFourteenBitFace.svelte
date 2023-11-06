@@ -7,16 +7,49 @@
   export let access_tree;
   export let config = undefined;
 
-  let scriptSegments = ["", "", "", ""];
-  let labels = ["CH:", "CMD:", "P1:", "P2:"];
+  let scriptSegments = ["", "", ""];
+  let labels = ["CH:", "CC:", "VAL:"];
+
+  const whatsInParenthesis = /\(([^)]+)\)/;
+  let midiLSB = ""; // local script part
+  let midiMSB = "";
 
   $: handleConfigChange(config);
 
   function handleConfigChange(config) {
-    scriptSegments = Script.toSegments({
-      short: config.short,
-      script: config.script,
-    });
+    const arr = config.script.split(" gms");
+
+    let lsb = whatsInParenthesis.exec(arr[0]);
+
+    if (lsb !== null) {
+      if (lsb.length > 0) {
+        midiLSB = lsb[1];
+      }
+    }
+
+    let msb = whatsInParenthesis.exec(arr[1]);
+
+    if (msb !== null) {
+      if (msb.length > 0) {
+        midiMSB = msb[1];
+      }
+    }
+
+    let param_array = midiLSB.split(",").map((c) => c.trim());
+
+    let value = param_array[3].split("//").slice(0, -1).join("//");
+
+    let param_object = {
+      channel: param_array[0],
+      base: param_array[2],
+      value: value,
+    };
+
+    scriptSegments = [
+      param_object.channel,
+      param_object.base,
+      param_object.value,
+    ];
   }
 
   function handleClick(e) {
