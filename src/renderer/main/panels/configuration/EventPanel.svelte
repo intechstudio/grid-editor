@@ -72,9 +72,6 @@
       });
     });
 
-    console.log(events);
-    console.log($unsaved_changes);
-
     selectedElement = target.element;
   }
 

@@ -33,7 +33,6 @@
 
   let syntaxError = false;
   let validationError = false;
-  let isChange = false;
 
   const dispatch = createEventDispatcher();
 
@@ -106,8 +105,6 @@
     <!-- TODO: Make marking when the block has unsaved changes  -->
     <div
       class="w-full flex flex-row pointer-events-none duration-300"
-      class:border-r-4={false}
-      class:border-unsavedchange={false}
     >
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
