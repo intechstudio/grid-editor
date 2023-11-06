@@ -113,10 +113,14 @@ export class ConfigObject {
       if (code.startsWith("if") || code.startsWith("for")) {
         code += " end";
       }
-      if (code.startsWith("else") || code.startsWith("elseif") || code.startsWith("end")){
+      if (
+        code.startsWith("else") ||
+        code.startsWith("elseif") ||
+        code.startsWith("end")
+      ) {
         return true;
       }
-      if(this.short === "raw"){
+      if (this.short === "raw") {
         return true;
       }
     }
