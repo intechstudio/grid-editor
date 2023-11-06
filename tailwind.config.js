@@ -82,7 +82,7 @@ const config = {
           900: "#0b0e0f",
         },
         warning: {
-          DEFAULT: "#F0AD4E",
+          DEFAULT: "#EAB308",
           "desaturate-20": "#FFD2B1",
           "desaturate-10": "#FAB17C",
           "saturate-10": "#EF9E4D",

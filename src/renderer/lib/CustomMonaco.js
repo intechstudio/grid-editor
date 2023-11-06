@@ -415,7 +415,6 @@ function initialize_highlight() {
       }
 
       if (key.endsWith("_short")) {
-        //console.log("SHORT: "+grid_protocol[key])
         language.forbiddens.push(grid_protocol[key]);
       }
     }

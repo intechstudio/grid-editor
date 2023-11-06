@@ -30,7 +30,6 @@
         $appSettings.rightPanelVisible == true ? store.right.default : 0;
       return store;
     });
-    console.log($appSettings.rightPanelVisible);
   }
 
   function changeLeftTab(tab) {

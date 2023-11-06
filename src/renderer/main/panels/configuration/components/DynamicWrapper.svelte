@@ -40,7 +40,6 @@
     const { short, script } = e.detail;
 
     const components = getAllComponents();
-    console.log(short);
     const new_config = components.find((e) => e.information.short === short);
 
     const obj = new ConfigObject({

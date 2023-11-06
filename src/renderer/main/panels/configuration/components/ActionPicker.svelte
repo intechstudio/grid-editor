@@ -117,7 +117,6 @@
         const short = configs[n].short;
 
         if (indentation == 1) {
-          console.log(short);
           if (["en", "ei", "el"].includes(short)) {
             parts.push({ short: short, index: n });
           }
@@ -254,7 +253,6 @@
     const compositeLua = configs[0].information.compositeLua;
     if (typeof compositeLua !== "undefined") {
       for (const obj of compositeLua) {
-        console.log(obj.short);
         configs.push(
           new ConfigObject({
             short: obj.short,

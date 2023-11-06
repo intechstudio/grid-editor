@@ -158,7 +158,6 @@
   }
 
   function handleError(e) {
-    console.log(e);
     switch (e.type) {
       case "lengthError":
         logger.set({
@@ -212,7 +211,7 @@
       });
       sendCurrentConfigurationToGrid();
     } catch (e) {
-      console.log(e);
+      console.error(e);
       handleError(e);
     }
   }
@@ -496,7 +495,6 @@
 
   function handleReplace(e) {
     const { index, config } = e.detail;
-    console.log(config);
     configManager.update((s) => {
       s[index] = config;
       lastOpenedActionblocksInsert(config.short);

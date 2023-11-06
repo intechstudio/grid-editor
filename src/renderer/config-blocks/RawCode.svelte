@@ -1,6 +1,5 @@
 <script context="module">
   // Component for the untoggled "header" of the component
-  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = undefined;
 
   // config descriptor parameters
@@ -26,28 +25,20 @@
     `,
     selectable: false,
     movable: false,
-    hideIcon: false,
+    hideIcon: true,
     type: "single",
     toggleable: false,
   };
 </script>
 
 <script>
-  import * as luamin from "lua-format";
-  import stringManipulation from "../main/user-interface/_string-operations";
-
-  import { createEventDispatcher, onMount, onDestroy } from "svelte";
+  import { createEventDispatcher, onMount } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  import { setPopover } from "../../renderer/main/user-interface/tooltip/Tooltip";
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
-  import SelectList from "./components/RawCode_SelectList.svelte";
-  import {
-    getComponentInformation,
-    config_components,
-    init_config_block_library,
-  } from "../../renderer/lib/_configs";
+  import MoltenButton from "../main/panels/preferences/MoltenButton.svelte";
+  import { getComponentInformation } from "../../renderer/lib/_configs";
 
   const dispatch = createEventDispatcher();
 
@@ -55,32 +46,13 @@
   export let access_tree;
   export let index;
 
-  let codePreview;
-  let listOptions = [];
-
-  onDestroy(() => {
-    codePreview.removeEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
-    });
-  });
-
-  function displayConfigScript(script) {
-    if (typeof codePreview === "undefined") return;
-    codePreview.innerHTML = stringManipulation.noCommentToLineComment(script);
-  }
-
+  let compBlock = undefined;
   onMount(() => {
-    codePreview.addEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
-    });
-    displayConfigScript(config.script);
-    listOptions = getCompatibleBlocks(config.script);
+    compBlock = getCompatiblityBlock(config.script);
   });
 
-  function getCompatibleBlocks(script) {
-    const blocks = [];
+  function getCompatiblityBlock(script) {
+    let block = undefined;
 
     const compatibility_map = new Map([
       ["elseif (self:bst()>0 and self:est()>63) then", "eprlrei1"],
@@ -88,7 +60,7 @@
     ]);
 
     for (const [key, value] of compatibility_map.entries()) {
-      if (key !== config.script) {
+      if (key !== script) {
         continue;
       }
 
@@ -98,67 +70,53 @@
         typeof obj !== "undefined" &&
         obj.information.short !== information.short
       ) {
-        blocks.push(obj);
+        block = obj;
+        break;
       }
     }
 
     //Fallback logic, everything can be converted to codeblock
-    const cb = getComponentInformation({ short: "cb" });
-    blocks.push(cb);
-    return blocks.map((e) => {
-      return { title: e.information.blockTitle, value: e.information.short };
-    });
+    if (block.length === 0) {
+      block = getComponentInformation({ short: "cb" });
+    }
+
+    return block;
   }
 
   function handleReplace(e) {
-    const { short } = e.detail;
-    dispatch("replace", { short: short, script: config.script });
+    console.log(compBlock);
+    dispatch("replace", {
+      short: compBlock.information.short,
+      script: config.script,
+    });
   }
 </script>
 
 <code-block
-  class="{$$props.class} w-full flex flex-col pointer-events-auto p-2"
+  class="border-warning border w-full flex flex-col pointer-events-auto p-2"
 >
-  <div class="w-full flex flex-col">
+  <div class="w-full flex flex-col items-center">
     <div class="flex items-center pb-2 w-full">
-      <div class="text-gray-500 text-sm font-bold">RAW Code:</div>
+      <div class="text-gray-500 text-sm font-bold">Missing Action Block!</div>
       <div class="flex flex-row gap-1 ml-auto items-center">
         <span class="text-sm text-gray-500">What happened</span>
         <TooltipQuestion
-          key={"configuration_element_name"}
+          key={"raw_block_what_happened_text"}
           class="text-white"
         />
       </div>
     </div>
 
-    <div class="grid gap-1">
-      <div
-        bind:this={codePreview}
-        class="bg-secondary opacity-80 px-2 py-1 text-gray-500 font-mono border border-gray-500 whitespace-nowrap overflow-x-auto"
+    <div class="text-white">
+      <MoltenButton
+        title={"Update"}
+        border={"yellow-500"}
+        click={handleReplace}
       />
-      {#key listOptions}
-        <button
-          on:replace={handleReplace}
-          use:setPopover={{
-            placement: "left",
-            triggerEvents: ["click"],
-            class: "w-full p-4",
-            component: {
-              object: SelectList,
-              props: {
-                options: listOptions,
-              },
-            },
-          }}
-          class="bg-commit hover:bg-commit-saturate-20 text-white rounded text-sm focus:outline-none px-2 py-0.5"
-          >Restore</button
-        >
-      {/key}
     </div>
+    <SendFeedback
+      feedback_context="CodeBlock"
+      class="mt-2 text-sm text-gray-500"
+    />
   </div>
-
-  <SendFeedback
-    feedback_context="CodeBlock"
-    class="mt-2 text-sm text-gray-500"
-  />
 </code-block>

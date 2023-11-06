@@ -30,7 +30,6 @@ init_config_block_library();
 
 export function getComponentInformation({ short }) {
   if (config_components === undefined) {
-    //console.log("config_components status is undefined")
     return undefined;
   }
 
@@ -55,7 +54,6 @@ export function getComponentInformation({ short }) {
 
 export function getAllComponents() {
   if (config_components === undefined) {
-    //console.log("config_components status is undefined")
     return undefined;
   }
 

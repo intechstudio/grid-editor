@@ -43,7 +43,6 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
-    console.log(config.script);
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
     loaded = true;
   }

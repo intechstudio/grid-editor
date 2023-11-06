@@ -113,7 +113,6 @@
       base: param_array[2],
       value: value,
     };
-    console.log(param_object);
 
     scriptSegments = [
       param_object.channel,
