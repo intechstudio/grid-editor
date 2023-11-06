@@ -57,6 +57,7 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
+  import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
 
   let loaded = false;
 
@@ -637,6 +638,12 @@
           info: "127 - [Channel Mode Message] Poly Mode On (+ mono off, +all notes off)",
         },
       ],
+      note_on_event: [...Array(128).keys()].map((e) => {
+        return { value: String(e), info: MusicalNotes.FromInt(e) };
+      }),
+      note_off_event: [...Array(128).keys()].map((e) => {
+        return { value: String(e), info: MusicalNotes.FromInt(e) };
+      }),
     },
     // param 2
     [
@@ -671,7 +678,7 @@
     }
   }
 
-  $: if (scriptSegments[1] || $localDefinitions) {
+  $: if (scriptSegments || $localDefinitions) {
     renderSuggestions();
     suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
   }
