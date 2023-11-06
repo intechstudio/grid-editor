@@ -1,0 +1,116 @@
+diff --git a/node_modules/lua-format/src/luamin.js b/node_modules/lua-format/src/luamin.js
+index 3387f00..fa1e1a7 100644
+--- a/node_modules/lua-format/src/luamin.js
++++ b/node_modules/lua-format/src/luamin.js
+@@ -279,7 +279,7 @@ function CreateLuaTokenStream(text) {
+         let i_;
+         for (i_ = 0; i_ < tokenBuffer.length; i_++) {
+             let token = tokenBuffer[i_]
+-            print(`${token.Type}<${token.Source}>`)
++            //print(`${token.Type}<${token.Source}>`)
+         }
+         throw `file<${line}:${char}>: ${str}`
+     }
+@@ -633,7 +633,7 @@ function CreateLuaParser(text) {
+         } else {
+             let i
+             for (i=-3; i<=3; i++) {
+-                print(`Tokens[${i}] = \`${peek(i).Source}\``)
++                //print(`Tokens[${i}] = \`${peek(i).Source}\``)
+             }
+             if (source) {
+                 let a = `${getTokenStartPosition(tk)}: \`${source}\` expected.`
+@@ -713,7 +713,7 @@ function CreateLuaParser(text) {
+ 
+             return node
+         } else {
+-            print(debugMark())
++            //print(debugMark())
+             let a = (`${getTokenStartPosition(tk)}: Unexpected symbol. ${tk.Type} ${tk.Source}`)
+             throw a
+         }
+@@ -823,7 +823,7 @@ function CreateLuaParser(text) {
+             get()
+             return [body, after]
+         } else {
+-            print(after.Type, after.Source)
++            //print(after.Type, after.Source)
+             throw `${getTokenStartPosition(after)}: ${terminator} expected.`
+         }
+     }
+@@ -884,11 +884,14 @@ function CreateLuaParser(text) {
+             let oparenTk = get()
+             let argList = []
+             let argCommaList = []
+-            while (peek().Source != ")") {
+-                argList.push(expr(locals, upvals))
++            let argNeeded = false;
++            while (peek().Source != ")" || argNeeded) {
++                argList.push(expr(locals, upvals));
+                 if (peek().Source == ",") {
++                    argNeeded = true;
+                     argCommaList.push(get())
+                 } else {
++                    argNeeded = false;
+                     break
+                 }
+             }
+@@ -1456,6 +1459,7 @@ function CreateLuaParser(text) {
+ 
+ 
+     let blocks = 1
++    let indentation = -1
+     block = function(a, b) {
+         let myblocknum = blocks++
+         let statements = []
+@@ -1479,9 +1483,13 @@ function CreateLuaParser(text) {
+ 
+         let thing
+         let i = 0
+-        while (!isLast && !isBlockFollow()) {
++        ++indentation;
++        while (peek().Type != "Eof") {
++            if (isBlockFollow() && indentation > 0) {
++                break;
++            }
+             if (thing && thing == peek()) {
+-                print(`INFINITE LOOP POSSIBLE ON STATEMENT ${thing.Source} :`,thing)
++                //print(`INFINITE LOOP POSSIBLE ON STATEMENT ${thing.Source} :`,thing)
+             }
+             thing = peek()
+             let [isLast, stat] = statement(locals, upvals)
+@@ -1581,6 +1589,7 @@ function CreateLuaParser(text) {
+                 }
+             },
+         }
++        --indentation;
+         return node
+     }
+ 
+@@ -2626,7 +2635,7 @@ function FormatAst(ast) {
+         } else if(expr.Type == 'CompoundStat') {
+             formatStat(expr)
+         } else {
+-            print(expr)
++            //print(expr)
+             throw(`unreachable, type: ${expr.Type}:`+ expr)
+         }
+     }
+@@ -4218,7 +4227,7 @@ luaminp.Minify = function(scr, options) {
+     StripAst(ast)
+ 
+     let result = PrintAst(ast)
+-    result = `${watermark}\n\n${result}`
++    //result = `${watermark}\n\n${result}`
+ 
+     return result
+ }
+@@ -4237,7 +4246,7 @@ luaminp.Beautify = function(scr, options) {
+     FormatAst(ast)
+ 
+     let result = PrintAst(ast)
+-    result = `${watermark}\n\n${result}`
++    //result = `${watermark}\n\n${result}`
+ 
+     return result
+ }

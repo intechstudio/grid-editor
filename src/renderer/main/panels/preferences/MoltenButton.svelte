@@ -6,6 +6,9 @@
 
 <button
   on:click={() => {
+    if (typeof click === "undefined") {
+      return;
+    }
     click();
   }}
   class="px-8 py-1 rounded bg-black bg-opacity-20 border border {'border-' +

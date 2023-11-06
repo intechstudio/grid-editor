@@ -40,20 +40,22 @@
 
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
-  import { changeOrder } from "../../_actions/move.action.js";
+  import {
+    changeOrder,
+    config_drag,
+    DragEvent,
+  } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
   import { init_config_block_library } from "../../../lib/_configs";
   import { onMount } from "svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
-  import { v4 as uuidv4 } from "uuid";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
   //////////////////////////////////////////////////////////////////////////////
 
   let access_tree = {};
-  let isDragged = false;
   let scrollHeight = "100%";
   let draggedIndexes = [];
   let autoScroll;
@@ -196,18 +198,22 @@
   function handleConfigInsertion(e) {
     let { configs, index } = e.detail;
 
-    console.log(configs, index);
-
     if (typeof index === "undefined") {
       index = $configManager.length;
     }
 
-    configManager.update((s) => {
-      s.insert(index, ...configs);
-      return s;
-    });
-
-    sendCurrentConfigurationToGrid();
+    try {
+      configManager.update((s) => {
+        const list = s.makeCopy();
+        list.insert(index, ...configs);
+        list.checkLength();
+        return list;
+      });
+      sendCurrentConfigurationToGrid();
+    } catch (e) {
+      console.error(e);
+      handleError(e);
+    }
   }
 
   function handleDrop(e) {
@@ -249,19 +255,21 @@
 
     configManager.update((s) => {
       const config = s[index];
-      config.short = short;
-      config.script = script;
+      if (typeof config !== "undefined") {
+        config.short = short;
+        config.script = script;
+      }
       return s;
     });
     sendCurrentConfigurationToGrid();
   }
 
   function handleDragStart(e) {
-    isDragged = true;
+    config_drag.set(new DragEvent());
   }
 
   function handleDragEnd(e) {
-    isDragged = false;
+    config_drag.set(undefined);
     dropIndex = undefined;
     draggedIndexes = [];
     clearInterval(autoScroll);
@@ -380,7 +388,7 @@
   }
 
   function handleDrag(e) {
-    if (isDragged) {
+    if (typeof $config_drag !== typeof "undefined") {
       const configList = document.getElementById("cfg-list");
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
@@ -492,6 +500,7 @@
       lastOpenedActionblocksInsert(config.short);
       return s;
     });
+    sendCurrentConfigurationToGrid();
   }
 </script>
 
@@ -588,7 +597,7 @@
                 in:fade|global={{ delay: 0 }}
               >
                 {#key index}
-                  {#if !isDragged}
+                  {#if typeof $config_drag === "undefined"}
                     <AddAction
                       {index}
                       on:paste={handlePaste}
@@ -597,6 +606,9 @@
                   {:else}
                     <DropZone
                       {index}
+                      thresholdTop={10}
+                      thresholdBottom={10}
+                      class=""
                       drag_target={draggedIndexes}
                       on:drop-target-change={handleDropTargetChange}
                     />
@@ -621,7 +633,7 @@
               </anim-block>
             {/each}
             {#key $configManager.length}
-              {#if !isDragged}
+              {#if typeof $config_drag === "undefined"}
                 <AddAction
                   index={$configManager.length}
                   on:paste={handlePaste}
@@ -631,6 +643,9 @@
                 <DropZone
                   index={$configManager.length}
                   drag_target={draggedIndexes}
+                  thresholdTop={10}
+                  thresholdBottom={0}
+                  class="h-full"
                   on:drop-target-change={handleDropTargetChange}
                 />
               {/if}

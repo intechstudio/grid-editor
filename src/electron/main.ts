@@ -347,11 +347,6 @@ function startPluginDirectoryWatcher(
     depth: 0, // Only watch the top-level directory
   });
 
-  watcher = chokidar.watch(path, {
-    ignored: /[\/\\]\./,
-    persistent: true,
-  });
-
   directoryWatcher
     .on("addDir", function (path: string) {
       //Directory has been added
@@ -366,30 +361,6 @@ function startPluginDirectoryWatcher(
         type: "refresh-plugins",
         path: path,
       });
-    });
-
-  watcher
-    .on("add", function (path: string) {
-      //File has been added
-    })
-    .on("addDir", function (path: string) {
-      //Directory has been added
-    })
-    .on("change", function (path: string) {
-      //File has been changed
-      mainWindow.reload();
-    })
-    .on("unlink", function (path: string) {
-      //File has been removed
-    })
-    .on("unlinkDir", function (path: string) {
-      //Directory has been removed
-    })
-    .on("error", function (error: string) {
-      //Error happened
-    })
-    .on("raw", function (event, path, details) {
-      //This event should be triggered everytime something happens.
     });
 }
 

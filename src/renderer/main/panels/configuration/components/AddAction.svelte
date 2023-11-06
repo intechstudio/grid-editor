@@ -32,6 +32,7 @@
 </script>
 
 <container
+  class="{$$props.class} relative"
   bind:this={referenceElement}
   on:new-config={handleNewConfig}
   on:paste={handlePaste}

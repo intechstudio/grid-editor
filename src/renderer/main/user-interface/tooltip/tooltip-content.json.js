@@ -169,4 +169,6 @@ export const tooltip_content = {
     "Only change the selected element when interacting with the grid module(s). This is useful when configuring the same events of your module(s)",
   tracker_event:
     "Always change to the element and event of your grid module(s) on interaction. This is useful when you want to configure the functions (e.g.: slider potmeter event) of your grid module(s)",
+  raw_block_what_happened_text:
+    "New version of this block is available, click on Update to restore your configuration.",
 };

@@ -69,31 +69,6 @@ export class ConfigObject {
     this.information = structuredClone(res.information);
     this.indentation = 0;
     this.header = res.header;
-
-    //Information override for Encoder type events
-    if (this.short === "eprlrei") {
-      if (this.script.includes("64")) {
-        this.information.blockTitle = "Just Rotate Left";
-        this.information.blockIcon = `
-      <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M362.457 89.786C324.915 49.1659 274.185 25.0518 219.158 26.4863C156.42 28.1218 100.934 62.6639 65.3276 116.012L100.43 130.565L24.3675 188.44L12.0516 93.9256L49.754 109.556C87.8056 50.9138 148.732 11.8089 218.724 9.98434C279.12 8.40988 334.291 34.9308 374.659 78.6088C399.329 105.302 418.516 138.435 430.113 175.622L432.571 183.505L416.735 188.399L414.277 180.517C403.384 145.587 385.408 114.619 362.457 89.786Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0516 93.9256L49.754 109.556C87.8056 50.9138 148.732 11.8089 218.724 9.98434C279.12 8.40988 334.291 34.9308 374.659 78.6088C398.978 104.922 417.97 137.494 429.614 174.038C429.782 174.566 429.948 175.094 430.113 175.622L432.57 183.499L432.571 183.505L416.735 188.399L416.734 188.395L414.277 180.517C403.384 145.587 385.408 114.619 362.457 89.786C324.915 49.1659 274.185 25.0518 219.158 26.4863C159.744 28.0351 106.836 59.0953 71.1543 107.692C69.1576 110.411 67.2146 113.185 65.3276 116.012L100.43 130.565L24.3675 188.44L12.0516 93.9256ZM80.5998 111.607L120.166 128.011L16.7456 206.703L0 78.1928L46.054 97.2856C85.8604 40.111 147.546 1.91866 218.465 0.0698728C282.057 -1.58788 339.88 26.3655 381.943 71.8773C407.644 99.686 427.56 134.122 439.582 172.67L445 190.045L410.212 200.796L404.809 183.47C394.341 149.902 377.093 120.235 355.173 96.5177C319.328 57.7331 271.251 35.0497 219.416 36.4009C164.264 37.8387 114.674 66.2797 80.5998 111.607Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M222.312 307.456C271.609 307.456 311.573 267.492 311.573 218.194C311.573 168.897 271.609 128.933 222.312 128.933C173.014 128.933 133.05 168.897 133.05 218.194C133.05 267.492 173.014 307.456 222.312 307.456ZM222.312 337.209C288.042 337.209 341.327 283.924 341.327 218.194C341.327 152.464 288.042 99.1792 222.312 99.1792C156.581 99.1792 103.296 152.464 103.296 218.194C103.296 283.924 156.581 337.209 222.312 337.209Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M12.0516 93.9256L49.754 109.556C87.8056 50.9138 148.732 11.8089 218.724 9.98434C279.12 8.40988 334.291 34.9308 374.659 78.6088C398.978 104.922 417.97 137.494 429.614 174.038C429.782 174.566 429.948 175.094 430.113 175.622L432.57 183.499L432.571 183.505L416.735 188.399L416.734 188.395L414.277 180.517C403.384 145.587 385.408 114.619 362.457 89.786C324.915 49.1659 274.185 25.0518 219.158 26.4863C159.744 28.0351 106.836 59.0953 71.1543 107.692C69.1576 110.411 67.2146 113.185 65.3276 116.012L100.43 130.565L24.3675 188.44L12.0516 93.9256ZM80.5998 111.607L120.166 128.011L16.7456 206.703L0 78.1928L46.054 97.2856C85.8604 40.111 147.546 1.91866 218.465 0.0698728C282.057 -1.58788 339.88 26.3655 381.943 71.8773C407.644 99.686 427.56 134.122 439.582 172.67L445 190.045L410.212 200.796L404.809 183.47C394.341 149.902 377.093 120.235 355.173 96.5177C319.328 57.7331 271.251 35.0497 219.416 36.4009C164.264 37.8387 114.674 66.2797 80.5998 111.607Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M222.312 307.456C271.609 307.456 311.573 267.492 311.573 218.194C311.573 168.897 271.609 128.933 222.312 128.933C173.014 128.933 133.05 168.897 133.05 218.194C133.05 267.492 173.014 307.456 222.312 307.456ZM222.312 337.209C288.042 337.209 341.327 283.924 341.327 218.194C341.327 152.464 288.042 99.1792 222.312 99.1792C156.581 99.1792 103.296 152.464 103.296 218.194C103.296 283.924 156.581 337.209 222.312 337.209Z" fill="black"/>
-      </svg>
-      `;
-      } else {
-        this.information.blockTitle = "Push & Rotate Right";
-        this.information.blockIcon = `
-      <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M82.5432 89.786C120.085 49.1659 170.815 25.0519 225.842 26.4864C288.58 28.1219 344.065 62.6639 379.672 116.012L344.57 130.565L420.632 188.44L432.948 93.9256L395.246 109.556C357.194 50.9138 296.268 11.809 226.276 9.98439C165.88 8.40993 110.709 34.9308 70.3406 78.6089C45.6706 105.302 26.4834 138.435 14.8866 175.622L12.4284 183.505L28.2647 188.4L30.7229 180.517C41.6156 145.588 59.5922 114.619 82.5432 89.786Z" fill="black"/>
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M432.948 93.9256L395.246 109.556C357.194 50.9139 296.268 11.809 226.276 9.98442C165.88 8.40996 110.709 34.9309 70.3406 78.6089C46.0213 104.922 27.0302 137.494 15.3859 174.038C15.2179 174.566 15.0515 175.094 14.8866 175.622L12.4303 183.499L12.4284 183.505L28.2646 188.4L28.266 188.395L30.7228 180.517C41.6155 145.588 59.5921 114.619 82.5431 89.7861C120.085 49.166 170.814 25.0519 225.842 26.4864C285.255 28.0352 338.164 59.0953 373.846 107.692C375.842 110.411 377.785 113.185 379.672 116.013L344.57 130.565L420.632 188.441L432.948 93.9256ZM364.4 111.607L324.834 128.011L428.254 206.703L445 78.1928L398.946 97.2856C359.14 40.111 297.454 1.91866 226.535 0.0698728C162.943 -1.58788 105.12 26.3655 63.057 71.8773C37.3556 99.686 17.4397 134.122 5.41835 172.67L9.5058e-07 190.045L34.7876 200.796L40.191 183.47C50.6592 149.902 67.907 120.235 89.8267 96.5177C125.672 57.7331 173.749 35.0497 225.584 36.4009C280.736 37.8387 330.326 66.2797 364.4 111.607Z" fill="black"/>
-        <path d="M341.703 218.194C341.703 283.924 288.419 337.209 222.688 337.209C156.958 337.209 103.673 283.924 103.673 218.194C103.673 152.464 156.958 99.1792 222.688 99.1792C288.419 99.1792 341.703 152.464 341.703 218.194Z" fill="black"/>
-      </svg>
-      `;
-      }
-    }
     this.component = res.component;
     this.selected = false;
     this.toggled = false;
@@ -137,6 +112,16 @@ export class ConfigObject {
       }
       if (code.startsWith("if") || code.startsWith("for")) {
         code += " end";
+      }
+      if (
+        code.startsWith("else") ||
+        code.startsWith("elseif") ||
+        code.startsWith("end")
+      ) {
+        return true;
+      }
+      if (this.short === "raw") {
+        return true;
       }
     }
 
@@ -228,17 +213,7 @@ export class ConfigList extends Array {
 
   sendTo({ target }) {
     return new Promise((resolve) => {
-      if (!this.checkLength()) {
-        throw {
-          type: "lengthError",
-          device: getDeviceName(target.device.dx, target.device.dy),
-          x: target.device.dx,
-          y: target.device.dy,
-          element: { no: target.element },
-          event: { no: target.eventType, type: eventType[target.eventType] },
-        };
-      }
-
+      this.checkLength();
       const actionString = this.toConfigScript();
 
       runtime.update_event_configuration(
@@ -313,7 +288,8 @@ export class ConfigList extends Array {
       configScript = configScript.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = configScript.split(/(--\[\[@+[a-z]+\]\])/);
+    let configList = configScript.split(/(--\[\[@+\w+\]\])/);
+
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
       const obj = new ConfigObject({
@@ -350,9 +326,21 @@ export class ConfigList extends Array {
     return true;
   }
 
-  //Returns true if config limit is NOT reached
+  //Throws error if limit is reached
   checkLength() {
-    return this.toConfigScript().length <= grid.properties.CONFIG_LENGTH;
+    const length = this.toConfigScript().length;
+    if (length > grid.properties.CONFIG_LENGTH) {
+      const target = ConfigTarget.getCurrent();
+      throw {
+        type: "lengthError",
+        device: getDeviceName(target.device.dx, target.device.dy),
+        x: target.device.dx,
+        y: target.device.dy,
+        element: { no: target.element },
+        event: { no: target.eventType, type: eventType[target.eventType] },
+        length: length,
+      };
+    }
   }
 }
 

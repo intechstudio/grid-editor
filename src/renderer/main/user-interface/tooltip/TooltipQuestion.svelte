@@ -11,7 +11,7 @@
     class: "p-4 w-60",
     instant: true,
   }}
-  class="w-6 h-6 mx-2 border border-solid border-primary cursor-pointer relative rounded-full bg-secondary text-center flex items-center justify-center p-1 group"
+  class="{$$props.class} w-6 h-6 p-1 border border-solid border-primary cursor-pointer relative rounded-full bg-secondary text-center flex items-center justify-center"
 >
-  <span class="group-hover:text-important text-xs">?</span>
+  <span class="text-xs">?</span>
 </div>

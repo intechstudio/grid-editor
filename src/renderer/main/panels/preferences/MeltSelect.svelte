@@ -85,7 +85,7 @@
     <div
       {...$menu}
       use:menu
-      class="bg-gray-900 text-white/80 border border-white/50 rounded"
+      class="bg-gray-900 text-white/80 border border-white/50 rounded z-10"
     >
       {#each options as item}
         <div

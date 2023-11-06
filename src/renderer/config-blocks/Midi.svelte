@@ -697,13 +697,13 @@
   }
 
   const tabs = [
-    { name: "MIDI", component: "Midi" },
-    { name: "14 bit MIDI", component: "MidiFourteenBit" },
-    { name: "MIDI SysEX", component: "MidiSysEx" },
+    { name: "MIDI", short: "gms" },
+    { name: "14 bit MIDI", short: "gmsh" },
+    { name: "MIDI SysEX", short: "gmss" },
   ];
 
   function handleTabButtonClicked(element) {
-    dispatch("replace", element.component);
+    dispatch("replace", { short: element.short });
   }
 </script>
 
@@ -715,7 +715,7 @@
       <div />
       {#each tabs as element}
         <TabButton
-          selected={config.information.name == element.component}
+          selected={config.information.short == element.short}
           text={element.name}
           on:click={() => handleTabButtonClicked(element)}
         />
