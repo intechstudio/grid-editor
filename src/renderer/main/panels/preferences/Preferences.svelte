@@ -270,6 +270,28 @@
     </Block>
 
     <Block>
+      <BlockTitle>Scale UI</BlockTitle>
+      <BlockBody
+        >Scales the font size and control elements dimensions by keeping their
+        ratio compared to each other.</BlockBody
+      >
+      <BlockRow>
+        <MeltSlider
+          bind:target={$appSettings.persistent.fontSize}
+          min={8}
+          max={30}
+          step={0.1}
+        />
+        <MoltenButton
+          title={"Reset"}
+          click={() => {
+            $appSettings.persistent.fontSize = 12;
+          }}
+        />
+      </BlockRow>
+    </Block>
+
+    <Block>
       <!-- Radio Select for profileCloudUrl -->
 
       <BlockTitle>Profile cloud URL</BlockTitle>
