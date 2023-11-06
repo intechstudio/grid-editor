@@ -299,17 +299,29 @@
     }
   }
 
+  let listenerRegistered = false;
+  let profileCloudUrl = "";
+
+  $: if (
+    listenerRegistered === true &&
+    profileCloudUrl !== $appSettings.persistent.profileCloudUrl
+  ) {
+    // listenerRegistered variable makes sure that the iframe loading is after registering the listener.
+    // otherwise handleProfileCloudMounted is missed and offline fallback is displayed
+    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+
+    console.log("Profile Cloud url", profileCloudUrl);
+    profileCloudIsMounted = false;
+  }
+
   onMount(async () => {
     // get to know the user
     await userStore.known;
-
-    $appSettings.profileCloudUrl = buildVariables.PROFILE_CLOUD_URL;
-
-    $appSettings.profileCloudUrlEnabled = true;
-
     console.log("profile cloud is mounted status", profileCloudIsMounted);
-
+    console.log("Profile Cloud url", $appSettings.persistent.profileCloudUrl);
     window.addEventListener("message", initChannelCommunication);
+    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+    listenerRegistered = true;
   });
 
   onDestroy(() => {
@@ -323,13 +335,13 @@
   async function loadOfflineProfileCloud() {
     const serverAddress = await window.electron.startOfflineProfileCloud();
     const url = `http://${serverAddress.address}:${serverAddress.port}`;
-    $appSettings.profileCloudUrl = url;
+    profileCloudUrl = url;
   }
 </script>
 
-<div class="flex flex-col bg-primary w-full h-full">
-  {#if profileCloudIsMounted == false}
-    <div class="flex items-center justify-center h-full">
+<div class="flex flex-col bg-primary w-full h-full relative">
+  <div class="flex items-center justify-center h-full absolute">
+    {#if !profileCloudIsMounted}
       <div class="p-4">
         <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
         <div class="text-white text-opacity-80">
@@ -343,13 +355,14 @@
           Load Offline
         </button>
       </div>
-    </div>
-  {/if}
+    {/if}
+  </div>
+
   <iframe
     bind:this={iframe_element}
-    class="w-full h-full {profileCloudIsMounted == false ? 'hidden' : ''}"
+    class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
     title="Test"
     allow="clipboard-read; clipboard-write;}"
-    src={$appSettings.profileCloudUrl}
+    src={profileCloudUrl}
   />
 </div>

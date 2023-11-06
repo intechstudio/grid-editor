@@ -296,9 +296,9 @@
 
       <BlockTitle>Profile cloud URL</BlockTitle>
       <BlockBody>Change the url used in the Profile Cloud Iframe.</BlockBody>
-      <MoltenInput bind:target={$appSettings.profileCloudUrl} />
+      <MoltenInput bind:target={$appSettings.persistent.profileCloudUrl} />
       <MeltRadio
-        bind:target={$appSettings.profileCloudUrl}
+        bind:target={$appSettings.persistent.profileCloudUrl}
         options={[
           {
             title: "Development (localhost)",

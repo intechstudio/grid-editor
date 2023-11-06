@@ -30,6 +30,7 @@ const persistentDefaultValues = {
   analyticsEnabled: false,
   firstLaunch: true,
   fontSize: 12,
+  profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
 };
 
 function checkOS() {
@@ -114,7 +115,6 @@ function createAppSettingsStore(persistent) {
       title: undefined,
       owner: { neme: undefined },
     },
-    profileCloudUrl: undefined,
     pluginList: [],
     persistent: structuredClone(persistent),
   });
@@ -205,7 +205,7 @@ async function init_appsettings() {
         get(appSettings).persistent.welcomeOnStartup === true ||
         get(appSettings).persistent.lastVersion === undefined ||
         get(appSettings).persistent.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
