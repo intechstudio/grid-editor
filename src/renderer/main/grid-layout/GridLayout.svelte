@@ -150,6 +150,7 @@
           id={device.id}
           arch={device.architecture}
           portstate={device.portstate}
+          fwVersion={device.fwVersion}
           rotation={device.rot}
         />
       </div>
