@@ -17,7 +17,7 @@
   let disabled = false;
   let infoValue = "";
   let text;
-  let valuChanged = false;
+  let valueChanged = false;
 
   let focus;
 
@@ -41,14 +41,14 @@
   }
 
   function handleBlur(e) {
-    if (valuChanged) {
+    if (valueChanged) {
       sendData(inputValue);
     }
   }
 
   function sendData(value) {
     const short = stringManipulation.shortify(value);
-    valuChanged = false;
+    valueChanged = false;
     dispatch("change", short);
   }
 
@@ -66,7 +66,7 @@
   }
 
   function handleInput(e) {
-    valuChanged = true;
+    valueChanged = true;
     handleValidation(text);
   }
 
