@@ -1,7 +1,7 @@
 <script context="module">
   // Component for the untoggled "header" of the component
-  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
-  export const header = RegularActionBlockFace;
+  import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
+  export const header = MidiFourteenBitFace;
 
   // config descriptor parameters
   export const information = {
