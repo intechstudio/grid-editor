@@ -229,11 +229,6 @@
     border-radius: 0.5rem;
   }
 
-  .unsaved-changes {
-    background-color: theme("colors.unsavedchange.DEFAULT") !important;
-    border-radius: 0.5rem;
-  }
-
   .active-systemelement {
     background-color: #212a2b;
     box-shadow: inset 0 0 10px #dddddd60;
