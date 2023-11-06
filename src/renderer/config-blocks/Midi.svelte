@@ -638,10 +638,10 @@
           info: "127 - [Channel Mode Message] Poly Mode On (+ mono off, +all notes off)",
         },
       ],
-      note_on_event: [...Array(256).keys()].map((e) => {
+      note_on_event: [...Array(128).keys()].map((e) => {
         return { value: String(e), info: MusicalNotes.FromInt(e) };
       }),
-      note_off_event: [...Array(256).keys()].map((e) => {
+      note_off_event: [...Array(128).keys()].map((e) => {
         return { value: String(e), info: MusicalNotes.FromInt(e) };
       }),
     },
