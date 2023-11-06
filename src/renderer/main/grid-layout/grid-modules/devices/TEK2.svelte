@@ -10,7 +10,10 @@
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store.js";
-  import { ledColorStore } from "../../../../runtime/runtime.store.js";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store.js";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -95,60 +98,80 @@
     >
       {#each [8, 9] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <button
-          ariarole="button"
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-2 col-span-2 relative"
-          style="border-radius: 50%; padding: 6px"
-          on:click={() => selectElement(elementNumber, "encoder", id)}
+        <cell
+          class="w-full h-full flex items-center justify-center relative col-span-2 row-span-2"
         >
-          {#each [0, 1, 2, 3, 4] as ledNumber}
-            <div
-              class="absolute"
-              style="
-                margin-left: {ledPosRadius *
-                Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
-                margin-top: {ledPosRadius *
-                Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
-              "
-            >
-              <Led
-                color={ledcolor_array[
-                  (elementNumber == 8 ? 8 : 9) + ledNumber * 2
-                ]}
-                size={1.4}
-              />
-            </div>
-          {/each}
-
-          <EndlessPot
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </button>
+          <button
+            ariarole="button"
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led relative z-[2]"
+            style="border-radius: 50%; padding: 6px"
+            on:click={() => selectElement(elementNumber, "encoder", id)}
+          >
+            {#each [0, 1, 2, 3, 4] as ledNumber}
+              <div
+                class="absolute"
+                style="
+                margin-left: {ledPosRadius *
+                  Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                margin-top: {ledPosRadius *
+                  Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+              "
+              >
+                <Led
+                  color={ledcolor_array[
+                    (elementNumber == 8 ? 8 : 9) + ledNumber * 2
+                  ]}
+                  size={1.4}
+                />
+              </div>
+            {/each}
+
+            <EndlessPot
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </button>
+        </cell>
       {/each}
 
       {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <button
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led"
-          on:click={() => selectElement(elementNumber, "button", id)}
-        >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Button
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </button>
+          <button
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led z-[2]"
+            on:click={() => selectElement(elementNumber, "button", id)}
+          >
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Button
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </button>
+        </cell>
       {/each}
     </div>
   </div>

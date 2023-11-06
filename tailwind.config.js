@@ -117,6 +117,9 @@ const config = {
           "desaturate-10": "#1BA487",
           "desaturate-20": "#5DDCB9",
         },
+        unsavedchange: {
+          DEFAULT: "#1D4ED8",
+        },
         secondary: {
           DEFAULT: "#2a3439",
           "brightness-90": "#eaebeb",
