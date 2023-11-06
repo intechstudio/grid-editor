@@ -1,6 +1,7 @@
 <script context="module">
   // Component for the untoggled "header" of the component
-  export const header = undefined;
+  import ConditionIfFace from "./headers/ConditionIfFace.svelte";
+  export const header = ConditionIfFace;
 
   // config descriptor parameters
   export const information = {
@@ -27,72 +28,3 @@
     toggleable: false,
   };
 </script>
-
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
-  import stringManipulation from "../main/user-interface/_string-operations";
-  import { parenthesis } from "./_validators";
-
-  export let config = "";
-  export let index;
-
-  export let access_tree;
-
-  import LineEditor from "../main/user-interface/LineEditor.svelte";
-
-  import { windowSize } from "../runtime/window-size";
-
-  let sidebarWidth;
-
-  $: if (windowSize.rightSidebarWidth) {
-    sidebarWidth = windowSize.rightSidebarWidth;
-  }
-
-  const dispatch = createEventDispatcher();
-
-  let scriptSegment = ""; // local script part
-
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
-    scriptSegment = stringManipulation.humanize(config.script.slice(3, -5));
-    loaded = true;
-  }
-
-  onDestroy(() => {
-    loaded = false;
-  });
-
-  function sendData(e) {
-    if (parenthesis(e)) {
-      const script = stringManipulation.shortify(e);
-
-      dispatch("output", {
-        short: `if`,
-        script: `if ${script} then`,
-      });
-    }
-  }
-</script>
-
-<if-block
-  class="{$$props.class} h-fit flex text-white py-1 pointer-events-none"
->
-  <div class="flex flex-row items-center w-full">
-    <span class="mr-4">If</span>
-
-    <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
-    >
-      <LineEditor
-        on:change={(e) => {
-          sendData(e.detail.script);
-        }}
-        {access_tree}
-        {sidebarWidth}
-        value={scriptSegment}
-      />
-    </div>
-    <span class="mx-3">Then</span>
-  </div>
-</if-block>

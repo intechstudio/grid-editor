@@ -7,7 +7,10 @@
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -92,28 +95,38 @@
     >
       {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "button",
-              id: id,
-            });
-            elementNumber;
-          }}
-        >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Button
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </div>
+          <div
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led z-[2]"
+            on:click={() => {
+              dispatch("click", {
+                elementNumber: elementNumber,
+                type: "button",
+                id: id,
+              });
+              elementNumber;
+            }}
+          >
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Button
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </div>
+        </cell>
       {/each}
     </div>
   </div>

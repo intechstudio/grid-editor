@@ -96,8 +96,6 @@
   }
 
   function change_layout() {
-    console.log("chg layout");
-
     layout = layouts.find((e) => {
       return e.name === selectedLayout;
     });
@@ -272,13 +270,9 @@
   }
 
   function addKey() {
-    console.log(selectedKey);
-
     let added_key = keyMap.default.find((e) => {
       return e.info === selectedKey.info;
     });
-
-    console.log(added_key);
 
     if (caretPos == -1) {
       keyBuffer.splice(keyBuffer.length, 0, {
@@ -322,7 +316,6 @@
     // identify if the following element is a pair key, set type and cut point accordingly
     let cuts = [];
     args.forEach((arg, i) => {
-      //console.log(arg);
       if (args[i + 1]) {
         if (
           arg.info == args[i + 1].info &&
@@ -404,7 +397,6 @@
 
   function setCaret(e) {
     if (e.target.getAttribute("data-caret") !== null) {
-      //console.log('set caret', +e.target.getAttribute('data-caret'))
       keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
       caretKeyBuffer = [];
       // this is the caret pos used to add new keys in the array

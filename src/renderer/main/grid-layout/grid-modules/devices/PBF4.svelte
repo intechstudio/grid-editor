@@ -9,7 +9,10 @@
   import Button from "../elements/Button.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store";
 
   export let id = "PBF4";
   export let selectedElement = { id: "", brc: {}, event: {} };
@@ -90,79 +93,113 @@
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3] as elementNumber}
-        <div
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-1"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "potentiometer",
-              id: id,
-            });
-          }}
-        >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Potentiometer
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1] row-span-1"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </div>
+          <div
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led z-[2]"
+            on:click={() => {
+              dispatch("click", {
+                elementNumber: elementNumber,
+                type: "potentiometer",
+                id: id,
+              });
+            }}
+          >
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Potentiometer
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </div>
+        </cell>
       {/each}
 
       {#each [4, 5, 6, 7] as elementNumber}
-        <div
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-2"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "fader",
-              id: id,
-            });
-          }}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <cell
+          class="w-full h-full flex items-center justify-center relative row-span-2"
         >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-
-          <Fader
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
-            rotation={rotation * -90}
-            faderHeight={37}
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </div>
+          <div
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led z-[2]"
+            on:click={() => {
+              dispatch("click", {
+                elementNumber: elementNumber,
+                type: "fader",
+                id: id,
+              });
+            }}
+          >
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+
+            <Fader
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+              rotation={rotation * -90}
+              faderHeight={37}
+            />
+          </div>
+        </cell>
       {/each}
 
       {#each [8, 9, 10, 11] as elementNumber}
-        <div
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led row-span-1"
-          on:click={() => {
-            dispatch("click", {
-              elementNumber: elementNumber,
-              type: "button",
-              id: id,
-            });
-          }}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <cell
+          class="w-full h-full flex items-center justify-center relative row-span-1"
         >
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-
-          <Button
-            {id}
-            position={elementposition_array[elementNumber]}
-            {elementNumber}
-            size={2.1}
+          <unsaved-changes-underlay
+            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
+            class:hidden={typeof $unsaved_changes.find(
+              (e) => e.x == dx && e.y == dy && e.element == elementNumber
+            ) === "undefined"}
+            style="width: calc(100% - 5px); height: calc(100% - 5px)"
           />
-        </div>
+          <div
+            class:active-element={dx == selectedElement.brc.dx &&
+              dy == selectedElement.brc.dy &&
+              selectedElement.event.elementnumber == elementNumber}
+            class="knob-and-led z-[2]"
+            on:click={() => {
+              dispatch("click", {
+                elementNumber: elementNumber,
+                type: "button",
+                id: id,
+              });
+            }}
+          >
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+
+            <Button
+              {id}
+              position={elementposition_array[elementNumber]}
+              {elementNumber}
+              size={2.1}
+            />
+          </div>
+        </cell>
       {/each}
     </div>
   </div>

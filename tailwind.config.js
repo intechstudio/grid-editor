@@ -82,7 +82,7 @@ const config = {
           900: "#0b0e0f",
         },
         warning: {
-          DEFAULT: "#F0AD4E",
+          DEFAULT: "#EAB308",
           "desaturate-20": "#FFD2B1",
           "desaturate-10": "#FAB17C",
           "saturate-10": "#EF9E4D",
@@ -116,6 +116,9 @@ const config = {
           "saturate-20": "#006F53",
           "desaturate-10": "#1BA487",
           "desaturate-20": "#5DDCB9",
+        },
+        unsavedchange: {
+          DEFAULT: "#1D4ED8",
         },
         secondary: {
           DEFAULT: "#2a3439",

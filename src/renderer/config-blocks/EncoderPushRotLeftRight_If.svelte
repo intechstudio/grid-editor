@@ -1,7 +1,7 @@
 <script context="module">
   // Component for the untoggled "header" of the component
-  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
-  export const header = RegularActionBlockFace;
+  import CompositeFace from "./headers/CompositeFace.svelte";
+  export const header = CompositeFace;
 
   // config descriptor parameters
   export const information = {
@@ -16,11 +16,11 @@
     defaultLua: "if (self:bst()>0 and self:est()<64) then",
     compositeLua: [
       {
-        short: "eprlrei",
+        short: "eprlrei1",
         script: "elseif (self:bst()>0 and self:est()>63) then",
       },
       {
-        short: "eprlrei",
+        short: "eprlrei2",
         script: "elseif (self:bst()==0 and self:est()<64) then",
       },
       { short: "eprlrel", script: "else" },
@@ -46,66 +46,3 @@
     toggleable: false,
   };
 </script>
-
-<script>
-  import { createEventDispatcher, onDestroy } from "svelte";
-  import stringManipulation from "../main/user-interface/_string-operations";
-  import { parenthesis } from "./_validators";
-
-  export let config = "";
-  export let index;
-
-  export let access_tree;
-
-  import LineEditor from "../main/user-interface/LineEditor.svelte";
-
-  let sidebarWidth;
-
-  const dispatch = createEventDispatcher();
-
-  let scriptSegment = ""; // local script part
-
-  let loaded = false;
-
-  $: if (config.script && !loaded) {
-    scriptSegment = stringManipulation.humanize(config.script.slice(3, -5));
-    loaded = true;
-  }
-
-  onDestroy(() => {
-    loaded = false;
-  });
-
-  function sendData(e) {
-    if (parenthesis(e)) {
-      const script = stringManipulation.shortify(e);
-      dispatch("output", {
-        short: information.short,
-        script: information.defaultLua,
-      });
-    }
-  }
-</script>
-
-<svelte:window bind:innerWidth={sidebarWidth} />
-
-<if-block
-  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
-  'top'
-    ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom'
-    ? 'rounded-br-xl '
-    : ''} pointer-events-auto"
-  style="min-height: 2.5rem; background: {information.color};"
->
-  <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">
-    <LineEditor
-      on:output={(e) => {
-        sendData(e.detail.script);
-      }}
-      {access_tree}
-      {sidebarWidth}
-      value={scriptSegment}
-    />
-  </div>
-</if-block>

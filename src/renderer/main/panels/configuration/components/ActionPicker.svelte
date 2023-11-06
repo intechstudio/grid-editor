@@ -117,7 +117,6 @@
         const short = configs[n].short;
 
         if (indentation == 1) {
-          console.log(short);
           if (["en", "ei", "el"].includes(short)) {
             parts.push({ short: short, index: n });
           }

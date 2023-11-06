@@ -3,12 +3,15 @@
 
   import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
+  import { unsaved_changes } from "../../../../runtime/runtime.store";
 
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
+  import { config_drag, DragEvent } from "../../../_actions/move.action";
+  import DropZone from "./DropZone.svelte";
 
   let toggled = false;
 
@@ -32,16 +35,21 @@
 
   let syntaxError = false;
   let validationError = false;
+
   const dispatch = createEventDispatcher();
 
   function replace_me(e) {
-    const name = e.detail;
+    const { short, script } = e.detail;
+
     const components = getAllComponents();
-    const new_config = components.find((e) => e.information.name === name);
+    const new_config = components.find((e) => e.information.short === short);
 
     const obj = new ConfigObject({
       short: new_config.information.short,
-      script: new_config.information.defaultLua,
+      script:
+        typeof script === "undefined"
+          ? new_config.information.defaultLua
+          : script,
     });
 
     dispatch("replace", {
@@ -57,6 +65,7 @@
       short: e.detail.short,
       script: e.detail.script,
     });
+    isChange = true;
   }
 
   function handleValidator(e) {
@@ -99,6 +108,7 @@
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
+    <!-- TODO: Make marking when the block has unsaved changes  -->
     <div class="w-full flex flex-row pointer-events-none duration-300">
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
@@ -116,40 +126,43 @@
 
       <!-- Body of the config block -->
       <div
-        style="background-color:{config.information.rendering !== 'standard'
-          ? config.information.color
-          : ''}"
-        class="w-full border-y border-r {syntaxError
-          ? 'border-error'
-          : 'border-transparent'} flex flex-grow items-center bg-secondary"
-        class:rounded-tr-xl={config.information.rounding == "top"}
-        class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggled}
+        class="w-full flex flex-grow items-center"
         class:cursor-auto={toggled}
         class:bg-opacity-30={toggled}
       >
         <!-- Content of block -->
         {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
           <!-- Body of the Action block when toggled -->
-          <svelte:component
-            this={config.component}
-            class="h-full w-full px-2 -my-[1px]"
-            {index}
-            {config}
-            {access_tree}
-            {syntaxError}
-            on:replace={replace_me}
-            on:validator={handleValidator}
-            on:output={handleOutput}
-            on:toggle={handleToggle}
-          />
+          <div class="bg-secondary bg-opacity-30 h-full w-full">
+            <svelte:component
+              this={config.component}
+              class="h-full w-full px-2 -my-[1px] border-y border-r {syntaxError
+                ? 'border-error'
+                : 'border-transparent'} {config.information.hideIcon
+                ? 'border-l'
+                : ''}"
+              {index}
+              {config}
+              {access_tree}
+              {syntaxError}
+              on:replace={replace_me}
+              on:validator={handleValidator}
+              on:output={handleOutput}
+              on:toggle={handleToggle}
+            />
+          </div>
         {:else}
           <!-- Header of the Action block when untoggled -->
+
           <svelte:component
             this={config.header}
             {config}
             {access_tree}
-            class="w-full h-full"
+            class="px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
+              ? 'border-error'
+              : 'border-transparent'} {config.information.hideIcon
+              ? 'border-l'
+              : ''}"
             on:toggle={handleToggle}
             on:output={handleOutput}
           />

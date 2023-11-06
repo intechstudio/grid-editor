@@ -4,6 +4,7 @@
   import {
     elementNameStore,
     user_input,
+    unsaved_changes,
   } from "../../../runtime/runtime.store.js";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
@@ -15,10 +16,22 @@
   const dispatch = createEventDispatcher();
 
   class Event {
-    constructor({ label = "", value = null, selected = false }) {
+    constructor({
+      label = "",
+      value = null,
+      selected = false,
+      dx,
+      dy,
+      element,
+      page,
+    }) {
       this.label = label;
       this.value = value;
       this.selected = selected;
+      this.dx = dx;
+      this.dy = dy;
+      this.element = element;
+      this.page = page;
     }
   }
 
@@ -52,6 +65,10 @@
         label: String(e.event.desc),
         value: Number(e.event.value),
         selected: target.eventType == e.event.value,
+        dx: target.device.dx,
+        dy: target.device.dy,
+        element: target.element,
+        page: target.page,
       });
     });
 
@@ -107,7 +124,7 @@
           <div>Name your element</div>
         {/if}
 
-        <TooltipQuestion key={"configuration_element_name"} />
+        <TooltipQuestion key={"configuration_element_name"} class="ml-2" />
       </div>
     </div>
   </div>
@@ -151,6 +168,15 @@
       <div class="flex w-full">
         {#if events.length > 0}
           {#each events as event}
+            {@const isChange =
+              typeof $unsaved_changes.find(
+                (e) =>
+                  e.x == event.dx &&
+                  e.y == event.dy &&
+                  e.element == event.element &&
+                  e.event == event.value
+              ) !== "undefined"}
+
             <button
               use:setTooltip={{
                 key: `event_${event.label}`,
@@ -161,13 +187,19 @@
                 handleSelectEvent(event);
               }}
               class="{event.selected
-                ? 'shadow-md text-white bg-pick'
-                : 'hover:bg-pick-desaturate-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
+                ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 first:ml-0
+                last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
             >
               <span
                 >{event.label.charAt(0).toUpperCase() +
                   event.label.slice(1)}</span
               >
+              {#if isChange}
+                <unsaved-changes-marker
+                  class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+                />
+              {/if}
             </button>
           {/each}
         {:else}
@@ -183,11 +215,3 @@
     </div>
   </div>
 </div>
-
-<style>
-  /* TODO: What..? */
-  .dummy {
-    @apply bg-select;
-    @apply bg-opacity-50;
-  }
-</style>

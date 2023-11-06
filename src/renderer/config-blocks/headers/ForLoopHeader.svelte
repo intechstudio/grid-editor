@@ -109,8 +109,9 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
-  class="{$$props.class} h-full justify-center flex flex-col px-2"
+  class="{$$props.class} h-full justify-center flex flex-col rounded-tr-xl"
   class:p-2={toggleValue}
+  style="background-color:{config.information.color}"
 >
   <div class="flex flex-row flex-grow items-center gap-2 text-white">
     <span class="">Repeat for</span>
