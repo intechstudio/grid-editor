@@ -37,7 +37,8 @@
 
   let events = [];
   let selectedElement = undefined;
-  let stringname = undefined;
+  let stringname = " ";
+  let defaultName = "";
 
   $: handleElementNameUpdate($elementNameStore);
 
@@ -58,6 +59,12 @@
     if (typeof target === "undefined") {
       return;
     }
+
+    defaultName = `Element ${target.element} (${
+      target.elementType[0].toUpperCase() +
+      target.elementType.slice(1).toLowerCase()
+    })
+      `;
 
     //Get events
     events = target.events.map((e) => {
@@ -94,8 +101,8 @@
 </script>
 
 <div class="flex flex-col w-full p-4">
-  <div class="pb-2 flex" class:hidden={selectedElement == 255}>
-    <div class="w-3/4 p-1">
+  <div class="flex" class:hidden={selectedElement == 255}>
+    <div class="w-3/4 py-1">
       <div class="flex items-center py-1">
         <div class="text-gray-500 text-sm">Element Name</div>
         <button
@@ -117,14 +124,19 @@
           </svg>
         </button>
       </div>
-      <div class="text-white flex">
-        {#if stringname}
-          <div>{stringname}</div>
-        {:else}
-          <div>Name your element</div>
-        {/if}
+      <div class="flex items-center">
+        <div class="text-2xl text-white font-bold text-opacity-80">
+          {#if stringname}
+            <div>{stringname}</div>
+          {:else}
+            <div>{defaultName}</div>
+          {/if}
+        </div>
 
-        <TooltipQuestion key={"configuration_element_name"} class="ml-2" />
+        <TooltipQuestion
+          key={"configuration_element_name"}
+          class="ml-2 text-white "
+        />
       </div>
     </div>
   </div>
