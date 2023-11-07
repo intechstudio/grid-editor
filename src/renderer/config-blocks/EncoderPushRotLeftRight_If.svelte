@@ -16,7 +16,7 @@
     defaultLua: "if (self:bst()>0 and self:est()<64) then",
     compositeLua: [
       {
-        short: "eprlrei1",
+        short: "eprlrei",
         script: "elseif (self:bst()>0 and self:est()>63) then",
       },
       {
