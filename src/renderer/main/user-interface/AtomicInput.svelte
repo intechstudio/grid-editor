@@ -23,7 +23,10 @@
 
   function handleValueChange(value) {
     handleValidation(value);
-    displayText = stringManipulation.humanize(String(value));
+    const newValue = stringManipulation.humanize(String(value));
+    if (newValue !== displayText) {
+      displayText = newValue;
+    }
     infoValue = suggestions.find(
       (s) => String(s.value).trim() == String(value).trim()
     );
@@ -42,7 +45,7 @@
 
   function handleBlur(e) {
     if (valueChanged) {
-      sendData(inputValue);
+      sendData(stringManipulation.shortify(displayText));
     }
   }
 
@@ -70,15 +73,16 @@
   }
 
   function handleSuggestionSelected(e) {
-    inputValue = e.detail;
-    sendData(inputValue);
+    const { value } = e.detail;
+    displayText = value;
+    sendData(displayText);
   }
 </script>
 
 <div class="{$$props.class} w-full relative">
   <input
     {disabled}
-    value={displayText}
+    bind:value={displayText}
     on:focus={handleFocus}
     on:blur={handleBlur}
     on:input={handleInput}
