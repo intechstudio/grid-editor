@@ -4,7 +4,7 @@ import {
 } from "monaco-editor";
 
 import { writable, get } from "svelte/store";
-import * as grid_protocol from "../../external/grid-protocol/grid_protocol_bot.json";
+import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
 
 let hoverTips = {};
 export const monaco_elementtype = writable();
@@ -228,6 +228,24 @@ function initialize_theme() {
     },
   });
 
+  monaco_editor.defineTheme("my-theme-disabled", {
+    base: "vs-dark",
+    inherit: true,
+    rules: [
+      {
+        token: "customClass",
+        foreground: "A8A8A8",
+        fontStyle: "italic underline",
+      },
+      { token: "function", foreground: "A8A8A8" },
+      { token: "variable", foreground: "A8A8A8" },
+      { token: "forbidden", foreground: "A8A8A8" },
+    ],
+    colors: {
+      "editor.background": "#2a343900",
+    },
+  });
+
   let monaco_block = document.createElement("div");
 
   let editor = monaco_editor.create(monaco_block, {
@@ -397,7 +415,6 @@ function initialize_highlight() {
       }
 
       if (key.endsWith("_short")) {
-        //console.log("SHORT: "+grid_protocol[key])
         language.forbiddens.push(grid_protocol[key]);
       }
     }

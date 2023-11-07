@@ -1,6 +1,7 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-  import { selectedProfileStore } from "../../../../runtime/profile-helper.store";
+  import { selectedConfigStore } from "../../../../runtime/config-helper.store.js";
+  import ControlNameComponent from "./ControlNameComponent.svelte";
   import {
     runtime,
     elementNameStore,
@@ -10,30 +11,23 @@
   export let id;
   export let moduleWidth;
   export let rotation;
-  export let bankActive;
-
-  let elementNames = [];
-
-  let dx, dy;
-
-  let overlayDesign;
 
   let showOverlay = true;
 
   $: breakpoint = moduleWidth > 200 ? "large" : "small";
 
-  let controlElementSettings;
+  let elementSettings;
 
-  let selectedProfile = {};
+  let selectedConfig = {};
 
   $: {
-    selectedProfile = $selectedProfileStore;
-    showControlNameOverlay(selectedProfile);
+    selectedConfig = $selectedConfigStore;
+    showControlNameOverlay(selectedConfig);
     showOverlay;
   }
 
-  function showControlNameOverlay(selectedProfile) {
-    if (Object.keys(selectedProfile).length == 0) {
+  function showControlNameOverlay(selectedConfig) {
+    if (Object.keys(selectedConfig).length == 0) {
       showOverlay = true;
     } else {
       showOverlay = false;
@@ -41,155 +35,114 @@
     }
   }
 
-  const control_block = (number) => {
-    let array = [];
-    for (let i = 0; i < number; i++) {
-      array.push(i);
-    }
-    return array;
-  };
-
   $: {
     const device = $runtime.find((controller) => controller.id == id);
     if (device !== undefined) {
-      controlElementSettings = device.pages[0].control_elements;
-    }
-  }
-
-  $: if (id) {
-    if (id.startsWith("PBF4")) {
-      overlayDesign = "3x4";
-    } else if (id.startsWith("EF44")) {
-      overlayDesign = "2x4";
-    } else {
-      overlayDesign = "4x4";
-    }
-
-    if (id !== undefined && id.length > 4) {
-      dx = +id.split(";")[0].split(":").pop();
-      dy = +id.split(";")[1].split(":").pop();
+      elementSettings = device.pages[0].control_elements;
     }
   }
 
   $: {
     try {
+      let dx = +id.split(";")[0].split(":").pop();
+      let dy = +id.split(";")[1].split(":").pop();
+
       const obj = $elementNameStore[dx][dy];
 
       Object.keys(obj).forEach((key) => {
-        controlElementSettings[key].controlElementName = obj[key];
+        elementSettings[key].controlElementName = obj[key];
       });
     } catch (error) {}
   }
 </script>
 
 {#if showOverlay == true}
-  {#if overlayDesign == "4x4"}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
-        <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
-        >
-          {#each control_block(4) as element}
+  {#if id.startsWith("PO16") || id.startsWith("BU16") || id.startsWith("EN16")}
+    <div class="overlay">
+      {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]] as block, i}
+        <div class="row" style="height: {moduleWidth / 4 + 'px'}">
+          {#each block as element}
             <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
+              class="col"
+              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
+                'px'}; transform: rotate({1 * rotation * 90 -
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
             >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
+              <ControlNameComponent
+                elementName={elementSettings[element].controlElementName}
+                elementNumber={element}
+                {breakpoint}
+              />
             </div>
           {/each}
         </div>
       {/each}
     </div>
-  {:else if overlayDesign == "3x4"}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
+  {:else if id.startsWith("PBF4")}
+    <div class="overlay">
+      {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]] as block, i}
         <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
+          class="row"
+          style="height: {(moduleWidth / 4) * (i == 1 ? 2 : 1) + 'px'}"
         >
-          {#each control_block(3) as element}
+          {#each block as element}
             <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {moduleWidth / 4 + 'px'}; transform: rotate({1 *
-                rotation *
-                90 +
+              class="col"
+              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
+                'px'}; transform: rotate({1 * rotation * 90 -
+                $appSettings.persistent.moduleRotation +
                 'deg'})"
             >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
+              <ControlNameComponent
+                elementName={elementSettings[element].controlElementName}
+                elementNumber={element}
+                {breakpoint}
+              />
             </div>
           {/each}
         </div>
       {/each}
     </div>
-  {:else if overlayDesign == "2x4"}
-    <div class="overlay text-white w-full">
-      {#each control_block(4) as block}
+  {:else if id.startsWith("TEK2")}
+    <div class="overlay">
+      {#each [[8, 9], [0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
         <div
-          class="text-xs flex flex-col justify-around items-center"
-          style="width: {moduleWidth / 4 + 'px'}"
+          class="row"
+          style="height: {(moduleWidth / 4) * (i == 0 ? 2 : 1) + 'px'}"
         >
-          {#each control_block(2) as element}
+          {#each block as element}
+            <div>
+              <ControlNameComponent
+                elementName={elementSettings[element].controlElementName}
+                elementNumber={element}
+                {breakpoint}
+              />
+            </div>
+          {/each}
+        </div>
+      {/each}
+    </div>
+  {:else if id.startsWith("EF44")}
+    <div class="overlay">
+      {#each [[0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
+        <div
+          class="row"
+          style="height: {(moduleWidth / 4) * (i == 1 ? 3 : 1) + 'px'}"
+        >
+          {#each block as element}
             <div
-              class="text-xs flex flex-col items-center justify-center"
-              style="height: {((element * 2 + 1) * moduleWidth) / 4 + 'px'};
-            transform: rotate({1 * rotation * 90 + 'deg'})"
+              class="col"
+              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
+                'px'}; transform: rotate({1 * rotation * 90 -
+                $appSettings.persistent.moduleRotation +
+                'deg'})"
             >
-              {#if breakpoint == "small" || controlElementSettings[element * 4 + block].controlElementName.length <= 4}
-                <div class="block font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-              {:else if breakpoint == "large" && controlElementSettings[element * 4 + block].controlElementName.length > 4}
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(0, 4)}
-                </div>
-                <div class="block p-0 m-0 font-mono">
-                  {controlElementSettings[
-                    element * 4 + block
-                  ].controlElementName.substr(4, 4)}
-                </div>
-              {/if}
+              <ControlNameComponent
+                elementName={elementSettings[element].controlElementName}
+                elementNumber={element}
+                {breakpoint}
+              />
             </div>
           {/each}
         </div>
@@ -204,11 +157,27 @@
     width: 100%;
     height: 100%;
     display: flex;
-    flex-direction: row;
     background-color: rgba(30, 30, 30, 0.8);
     border-radius: 0.5rem;
     justify-content: space-around;
     backdrop-filter: blur(1px);
     z-index: 50;
+    color: white;
+    display: flexbox;
+    flex-direction: column;
+  }
+  .row {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+
+    /* text-xs flex justify-around items-center w-full */
+  }
+  .col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    /* flex flex-col items-center justify-center*/
   }
 </style>

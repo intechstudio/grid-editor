@@ -1,15 +1,58 @@
 import { autoUpdater } from "electron-updater";
+import { app } from "electron";
+import semver from "semver";
 import log from "electron-log";
 
-export const updater = {
-  mainWindow: undefined,
+import buildVariables from "../../../buildVariables.json";
+import { store } from "../main-store";
+
+interface Updater {
+  mainWindow: any;
+}
+
+export const updater: Updater = {
+  mainWindow: null,
 };
 
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
+function init() {
+  autoUpdater.logger = log;
+  log.transports.file.level = "info";
 
-log.info("check for update and notify...");
-autoUpdater.checkForUpdatesAndNotify();
+  if (buildVariables.BUILD_ENV === "production") {
+    autoUpdater.channel = "latest";
+  }
+
+  if (buildVariables.BUILD_ENV === "nightly") {
+    autoUpdater.channel = "latest";
+  }
+
+  if (buildVariables.BUILD_ENV === "alpha") {
+    autoUpdater.channel = "alpha";
+    autoUpdater.allowPrerelease = true;
+  }
+
+  const temporaryVersionCheck = semver.lte(app.getVersion(), "1.2.39");
+
+  log.info(
+    "checkForUpdatesAndNotify ---> ",
+    "TEMP_CHECK: ",
+    temporaryVersionCheck,
+    "BULD_ENV: ",
+    buildVariables.BUILD_ENV,
+    " CHANNEL: ",
+    autoUpdater.channel
+  );
+
+  if (
+    temporaryVersionCheck ||
+    buildVariables.BUILD_ENV === "alpha" ||
+    buildVariables.BUILD_ENV === "production"
+  ) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
+}
+
+init();
 
 autoUpdater.on("error", (error) => {
   log.info("Error..", error);
@@ -19,8 +62,8 @@ autoUpdater.on("error", (error) => {
   });
 });
 
-autoUpdater.on("update-available", () => {
-  log.info("update-available...");
+autoUpdater.on("update-available", (info) => {
+  log.info("update-available...", info);
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-available",
   });
@@ -34,7 +77,7 @@ autoUpdater.on("download-progress", (progressObj) => {
   });
 });
 
-autoUpdater.on("update-downloaded", () => {
+autoUpdater.on("update-downloaded", (info) => {
   log.info("update downloaded...!");
   updater.mainWindow.webContents.send("onAppUpdate", {
     code: "update-downloaded",
@@ -43,5 +86,7 @@ autoUpdater.on("update-downloaded", () => {
 
 export function restartAfterUpdate() {
   updater.mainWindow.setClosable(true);
+  // temporary solution, so we can quit the app for reinstall
+  store.set("alwaysRunInTheBackground", false);
   autoUpdater.quitAndInstall();
 }

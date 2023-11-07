@@ -1,20 +1,23 @@
 <script>
-  import { onMount } from "svelte";
+  import { onMount, createEventDispatcher } from "svelte";
 
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-
-  import { selectElement } from "../event-handlers/select.js";
 
   import Button from "../elements/Button.svelte";
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import { ledColorStore } from "../../../../runtime/runtime.store";
+  import {
+    unsaved_changes,
+    ledColorStore,
+  } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "BU16";
   export let rotation = 0;
+
+  const dispatch = createEventDispatcher();
 
   let dx, dy;
 
@@ -81,10 +84,7 @@
 
   <div
     class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions border-2 {dx == selectedElement.brc.dx &&
-    dy == selectedElement.brc.dy
-      ? ' border-gray-500'
-      : 'border-transparent'} "
+    class="module-dimensions"
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
@@ -94,52 +94,53 @@
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
+        {@const isSelected =
+          dx == selectedElement.brc.dx &&
+          dy == selectedElement.brc.dy &&
+          selectedElement.event.elementnumber == elementNumber}
+        {@const isChanged =
+          typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <div
-          class:active-element={dx == selectedElement.brc.dx &&
-            dy == selectedElement.brc.dy &&
-            selectedElement.event.elementnumber == elementNumber}
-          class="knob-and-led"
-          on:click={() => selectElement(elementNumber, "button", id)}
-        >
-          <Led color={ledcolor_array[elementNumber]} size={$appSettings.size} />
-          <Button
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={$appSettings.size}
-          />
-        </div>
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <underlay
+            class="absolute rounded-lg"
+            class:bg-unsavedchange={isChanged && !isSelected}
+            class:bg-opacity-10={isSelected}
+            class:bg-opacity-20={isChanged && !isSelected}
+            class:border={isChanged}
+            class:border-unsavedchange={isChanged}
+            class:bg-white={isSelected}
+            class:hover:bg-white={!isSelected}
+            class:hover:bg-opacity-5={!isSelected && !isChanged}
+            class:hover:bg-opacity-10={!isSelected && isChanged}
+            style="width: calc(100% - 8px); height: calc(100% - 8px)"
+          >
+            <div
+              class="knob-and-led absolute"
+              style="width: calc(100%); height: calc(100%)"
+              on:click={() => {
+                dispatch("click", {
+                  elementNumber: elementNumber,
+                  type: "button",
+                  id: id,
+                });
+                elementNumber;
+              }}
+            >
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+              <Button
+                {elementNumber}
+                {id}
+                position={elementposition_array[elementNumber]}
+                size={2.1}
+              />
+            </div>
+          </underlay>
+        </cell>
       {/each}
     </div>
-
-    <!--  {#each [0, 1, 2, 3] as row}
-      <div
-        class="control-row"
-        style="--control-row-mt: {$appSettings.size * 3.235 +
-          'px'}; --control-row-mx: {$appSettings.size * 6.835 +
-          'px'}; --control-row-mb: {$appSettings.size * 6.835 + 'px'}"
-      >
-        {#each [0 + 4 * row, 1 + 4 * row, 2 + 4 * row, 3 + 4 * row] as elementNumber}
-          <div
-            class:active-element={dx == selectedElement.brc.dx &&
-              dy == selectedElement.brc.dy &&
-              selectedElement.event.elementnumber == elementNumber}
-            class="knob-and-led"
-          >
-            <Led
-              color={ledcolor_array[elementNumber]}
-              size={$appSettings.size}
-            />
-            <Button
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber]}
-              size={$appSettings.size}
-            />
-          </div>
-        {/each}
-      </div>
-    {/each} -->
   </div>
 </div>

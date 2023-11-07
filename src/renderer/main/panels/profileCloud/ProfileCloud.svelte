@@ -1,20 +1,91 @@
 <script>
   import { onDestroy, onMount } from "svelte";
+  import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
 
-  import { get } from "svelte/store";
-  const { env } = window.ctxProcess;
+  import { Analytics } from "../../../runtime/analytics.js";
 
-  import configuration from "../../../../../configuration.json";
-  import { logger } from "../../../runtime/runtime.store";
+  import { get } from "svelte/store";
+
+  import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
   import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
+  import { configLinkStore } from "$lib/configlink.store";
+  import { selectedConfigStore } from "../../../runtime/config-helper.store";
+
+  const configuration = window.ctxProcess.configuration();
+  const buildVariables = window.ctxProcess.buildVariables();
 
   let iframe_element;
-  let iframe_response_element;
 
   $: sendAuthEventToIframe($authStore);
+
+  $: sendConfigLinkToIframe($configLinkStore);
+
+  $: sendSelectedComponentInfos(selectedModule, selectedControlElementType);
+
+  let selectedModule = undefined;
+  let selectedControlElementType = undefined;
+
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
+      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+    );
+
+    if (typeof device !== "undefined") {
+      selectedModule = device.id.substr(0, 4);
+    }
+    selectedControlElementType = ui.event.elementtype;
+  }
+
+  function channelMessageWrapper(event, func) {
+    const channel = event.ports[0];
+    if (channel) {
+      channel.onmessage = (event) =>
+        func(event)
+          .then((res) => {
+            console.log(func.name);
+            channel.postMessage({ ok: true, data: res });
+          })
+          .catch((err) => {
+            channel.postMessage({ ok: false, data: err });
+          })
+          .finally(() => {
+            channel.close();
+          });
+    }
+  }
+
+  function sendConfigLinkToIframe(storeValue) {
+    if (iframe_element == undefined) return;
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "configLink",
+        configLinkId: storeValue.id,
+      },
+      "*"
+    );
+  }
+
+  function sendSelectedComponentInfos(
+    selectedModuleType,
+    selectedControlElementType
+  ) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "selectedComponentTypes",
+        selectedComponentTypes: [
+          selectedModuleType,
+          selectedControlElementType,
+        ],
+      },
+      "*"
+    );
+  }
 
   function sendAuthEventToIframe(authEvent) {
     if (iframe_element == undefined) return;
@@ -22,7 +93,7 @@
     // the authStore should contain an event!
     if (!authEvent.event) return;
 
-    console.log("Parent sending", authEvent);
+    console.log("authevent!", authEvent);
 
     iframe_element.contentWindow.postMessage(
       {
@@ -33,135 +104,265 @@
     );
   }
 
-  async function handleMessageReceive(event) {
-    if (event.data.channelMessageType == "IMPORT_PROFILE") {
-      const path = $appSettings.persistant.profileFolder;
-      const { owner, name, editorData, _id } = event.data;
-      const profile = JSON.parse(editorData);
-      profile.id = _id; // this should be _id instead of id!
-      await window.electron.configs
-        .saveConfig(path, name, profile, "profiles", owner)
-        .then((res) => {
-          logger.set({
-            type: "success",
-            message: `Profile ${name} imported successfully`,
-          });
-          channel.postMessage({ ok: true, data: {} });
-        })
-        .catch((err) => {
-          logger.set({
-            type: "fail",
-            message: `Profile ${name} import failed`,
-          });
-          channel.postMessage({ ok: false, data: {} });
-        });
-    }
+  function sendLocalConfigs(configs) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "localConfigs",
+        configs,
+      },
+      "*"
+    );
   }
 
-  let channel; // communication channel received from iframe, used for profile import responses
+  async function handleLoginToProfileCloud(event) {
+    $appSettings.modal = "userLogin";
+  }
+
+  async function handleCreateCloudConfigLink(event) {
+    return await window.electron.clipboard.writeText(event.data.configLinkUrl);
+  }
+
+  async function handleLogoutFromProfileCloud(event) {
+    return await authStore.logout();
+  }
+
+  async function handleSubmitAnalytics(event) {
+    const { payload, eventName } = event.data;
+    Analytics.track({
+      event: eventName,
+      payload: payload,
+      mandatory: false,
+    });
+    return;
+  }
+
+  async function handleProvideSelectedConfigForEditor(event) {
+    selectedConfigStore.set(event.data.config);
+  }
+
+  async function handleDeleteLocalConfig(event) {
+    const path = $appSettings.persistent.profileFolder;
+    const config = event.data?.config;
+
+    return await window.electron.configs.deleteConfig(path, "configs", config);
+  }
+
+  const handleGetCurrentConfigurationFromEditor = (event) =>
+    new Promise(async (resolve) => {
+      const configType = event.data.configType;
+
+      let callback = await async function () {
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "configsave",
+          message: `Ready to save config!`,
+        });
+
+        const li = get(user_input);
+
+        const configs = get(runtime);
+
+        let name = undefined;
+        let description = "Click here to add description";
+        let id = uuidv4();
+
+        let config = {
+          name: name,
+          id: id,
+          description: description,
+          configType: configType, // differentiator from different JSON files!
+          version: {
+            major: $appSettings.version.major,
+            minor: $appSettings.version.minor,
+            patch: $appSettings.version.patch,
+          },
+          localId: id,
+        };
+
+        configs.forEach((d) => {
+          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
+            const page = d.pages.find(
+              (x) => x.pageNumber == li.event.pagenumber
+            );
+
+            if (configType === "profile") {
+              config.type = selectedModule;
+              config.configs = page.control_elements.map((cfg) => {
+                return {
+                  controlElementNumber: cfg.controlElementNumber,
+                  events: cfg.events.map((ev) => {
+                    return {
+                      event: ev.event.value,
+                      config: ev.config,
+                    };
+                  }),
+                };
+              });
+            } else if (configType === "preset") {
+              const element = page.control_elements.find(
+                (x) => x.controlElementNumber === li.event.elementnumber
+              );
+              config.type = li.event.elementtype;
+              config.configs = {
+                events: element.events.map((ev) => {
+                  return {
+                    event: ev.event.value,
+                    config: ev.config,
+                  };
+                }),
+              };
+            }
+          }
+        });
+        config.name = `New ${config.type} config`;
+        resolve(config);
+      };
+
+      runtime.fetch_page_configuration_from_grid(callback);
+    });
+
+  let profileCloudIsMounted = false;
+  async function handleProfileCloudMounted(event) {
+    console.log("profile cloud is mounted received");
+    profileCloudIsMounted = true;
+    if (
+      selectedModule !== undefined ||
+      selectedControlElementType !== undefined
+    ) {
+      sendSelectedComponentInfos(selectedModule, selectedControlElementType);
+    }
+    const path = $appSettings.persistent.profileFolder;
+    window.electron.configs.onSendConfigsToRenderer((_event, configs) => {
+      sendLocalConfigs(configs);
+    });
+    window.electron.configs.startConfigsWatch(path, "configs");
+    return configuration.EDITOR_VERSION;
+  }
+
+  async function handleImportConfig(event) {
+    const path = $appSettings.persistent.profileFolder;
+    const config = event.data;
+    const importName = config.name;
+
+    return await window.electron.configs
+      .saveConfig(path, "configs", config)
+      .then((res) => {
+        logger.set({
+          type: "success",
+          message: `Config ${importName} imported successfully`,
+        });
+        return;
+      })
+      .catch((err) => {
+        logger.set({
+          type: "fail",
+          message: `Config ${importName} import failed`,
+        });
+        throw err;
+      });
+  }
+
   function initChannelCommunication(event) {
-    if (event.data == "profileImportCommunication") {
-      if (event.ports && event.ports.length) {
-        channel = event.ports[0];
-        channel.onmessage = handleMessageReceive;
+    if (event.ports && event.ports.length) {
+      switch (event.data) {
+        case "profileCloudMounted":
+          channelMessageWrapper(event, handleProfileCloudMounted);
+          break;
+        case "configImportCommunication":
+          channelMessageWrapper(event, handleImportConfig);
+          break;
+        case "deleteLocalConfig":
+          channelMessageWrapper(event, handleDeleteLocalConfig);
+          break;
+        case "getCurrenConfigurationFromEditor":
+          channelMessageWrapper(event, handleGetCurrentConfigurationFromEditor);
+          break;
+        case "loginToProfileCloud":
+          channelMessageWrapper(event, handleLoginToProfileCloud);
+          break;
+        case "logoutFromProfileCloud":
+          channelMessageWrapper(event, handleLogoutFromProfileCloud);
+          break;
+        case "createCloudConfigLink":
+          channelMessageWrapper(event, handleCreateCloudConfigLink);
+          break;
+        case "submitAnalytics":
+          channelMessageWrapper(event, handleSubmitAnalytics);
+          break;
+        case "provideSelectedConfigForEditor":
+          channelMessageWrapper(event, handleProvideSelectedConfigForEditor);
+          break;
       }
     }
   }
 
+  let listenerRegistered = false;
+  let profileCloudUrl = "";
+
+  $: if (
+    listenerRegistered === true &&
+    profileCloudUrl !== $appSettings.persistent.profileCloudUrl
+  ) {
+    // listenerRegistered variable makes sure that the iframe loading is after registering the listener.
+    // otherwise handleProfileCloudMounted is missed and offline fallback is displayed
+    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+
+    console.log("Profile Cloud url", profileCloudUrl);
+    profileCloudIsMounted = false;
+  }
+
   onMount(async () => {
+    // get to know the user
     await userStore.known;
-    console.log($userStore);
-
-    if (env().NODE_ENV === "development") {
-      $appSettings.profileCloudUrl = "http://localhost:5200";
-    } else {
-      $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-    }
-
-    $appSettings.profileCloudUrlEnabled = true;
-
+    console.log("profile cloud is mounted status", profileCloudIsMounted);
+    console.log("Profile Cloud url", $appSettings.persistent.profileCloudUrl);
     window.addEventListener("message", initChannelCommunication);
-
-    console.log("iframe", iframe_element);
-
-    if (iframe_element) {
-      let doc = iframe_element.contentDocument;
-      doc.body.innerHTML =
-        doc.body.innerHTML +
-        `
-        <style>
-          ::-webkit-scrollbar {
-            height: 6px;
-            width: 6px;
-            background: #1e2628;
-          }
-
-          ::-webkit-scrollbar-thumb {
-            background: #286787;
-            box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.75);
-          }
-
-          ::-webkit-scrollbar-corner {
-            background: #1e2628;
-          }
-        </style>
-        `;
-    }
+    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+    listenerRegistered = true;
   });
 
   onDestroy(() => {
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
+    window.electron.stopOfflineProfileCloud();
+    selectedConfigStore.set({});
+    window.electron.configs.stopConfigsWatch();
   });
+
+  async function loadOfflineProfileCloud() {
+    const serverAddress = await window.electron.startOfflineProfileCloud();
+    const url = `http://${serverAddress.address}:${serverAddress.port}`;
+    profileCloudUrl = url;
+  }
 </script>
 
-<div class="flex flex-col bg-primary w-full h-full">
-  {#if env().NODE_ENV === "development"}
-    <div class="flex flex-row items-center bg-primary w-full">
-      <input
-        type="checkbox"
-        class="flex m-2"
-        bind:checked={$appSettings.profileCloudUrlEnabled}
-      />
-      <span class="text-white">Custom URL</span>
-    </div>
-
-    {#if $appSettings.profileCloudUrlEnabled}
-      <div class="flex-row">
+<div class="flex flex-col bg-primary w-full h-full relative">
+  <div class="flex items-center justify-center h-full absolute">
+    {#if !profileCloudIsMounted}
+      <div class="p-4">
+        <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
+        <div class="text-white text-opacity-80">
+          You need internet access to load it. You can load the offline version
+          as well.
+        </div>
         <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://localhost:5200";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2"
-          >localhost:5200</button
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={loadOfflineProfileCloud}
         >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "https://profile-cloud.web.app";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2"
-          >profile-cloud.web.app</button
-        >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://example.com";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2">example.com</button
-        >
-        <button
-          on:click={() => {
-            $appSettings.profileCloudUrl = "http://google.com";
-          }}
-          class="bg-secondary text-white w-36 rounded m-2">google.com</button
-        >
+          Load Offline
+        </button>
       </div>
-      <input class="flex m-2" bind:value={$appSettings.profileCloudUrl} />
     {/if}
-  {/if}
+  </div>
+
   <iframe
     bind:this={iframe_element}
-    class="w-full h-full"
+    class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
     title="Test"
-    src={$appSettings.profileCloudUrl}
+    allow="clipboard-read; clipboard-write;}"
+    src={profileCloudUrl}
   />
 </div>

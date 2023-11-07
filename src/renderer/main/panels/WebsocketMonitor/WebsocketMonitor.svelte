@@ -7,32 +7,8 @@
     inbound_data_rate_history,
     outbound_data_rate_history,
   } from "./WebsocketMonitor.store";
-  import _utils, { luaParser } from "../../../runtime/_utils";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import {
-    luadebug_store,
-    wss_send_message,
-  } from "../../../runtime/runtime.store";
-
-  let runtimeScript = "";
-  let runtimeParser = "";
-
-  let configs = [];
-
-  $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
-  }
-
-  function charCount(text) {
-    return text.length;
-  }
+  import { wss_send_message } from "../../../runtime/runtime.store";
 
   let frozen = false;
 
@@ -142,7 +118,7 @@
   }
 
   function portChange() {
-    window.electron.websocket.changePort($appSettings.persistant.wssPort);
+    window.electron.websocket.changePort($appSettings.persistent.wssPort);
   }
 </script>
 
@@ -154,7 +130,7 @@
 
   <input
     type="number"
-    bind:value={$appSettings.persistant.wssPort}
+    bind:value={$appSettings.persistent.wssPort}
     on:change={portChange}
   />
 

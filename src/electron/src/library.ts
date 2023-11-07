@@ -5,7 +5,8 @@ import log from "electron-log";
 import fs from "fs-extra";
 
 import { store } from "../main-store";
-import { googleAnalytics, influxAnalytics } from "./analytics";
+
+import configuration from "../../../configuration.json";
 
 /**
  *
@@ -45,18 +46,10 @@ export async function extractArchiveToTemp(data, endOfEntryName, folder) {
 }
 
 export async function libraryDownload(targetFolder) {
-  googleAnalytics("library-download", { value: "download start" });
-  influxAnalytics(
-    "application",
-    "preferences",
-    "profile downloader status",
-    "download started"
-  );
-
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(
-    process.env.LIBRARY_GITHUB_URL,
+    configuration.LIBRARY_GITHUB_URL,
     "temp"
   );
 
@@ -97,25 +90,9 @@ export async function libraryDownload(targetFolder) {
 
     log.info("Profiles copied!");
 
-    googleAnalytics("library-download", { value: "download success" });
-    influxAnalytics(
-      "application",
-      "preferences",
-      "profile downloader status",
-      "download success"
-    );
-
     return "success";
   } else {
     log.error("Fail after archive extraction!");
-
-    googleAnalytics("library-download", { value: "download failed" });
-    influxAnalytics(
-      "application",
-      "preferences",
-      "profile downloader status",
-      "download fail"
-    );
 
     return "failed";
   }
@@ -124,21 +101,21 @@ export async function libraryDownload(targetFolder) {
 export async function uxpPhotoshopDownload(targetFolder) {
   const version =
     "v" +
-    process.env.UXP_PHOTOSHOP_REQUIRED_MAJOR +
+    configuration.UXP_PHOTOSHOP_REQUIRED_MAJOR +
     "." +
-    process.env.UXP_PHOTOSHOP_REQUIRED_MINOR +
+    configuration.UXP_PHOTOSHOP_REQUIRED_MINOR +
     "." +
-    process.env.UXP_PHOTOSHOP_REQUIRED_PATCH;
+    configuration.UXP_PHOTOSHOP_REQUIRED_PATCH;
 
   let link =
-    process.env.UXP_PHOTOSHOP_URL_BEGINING +
+    configuration.UXP_PHOTOSHOP_URL_BEGINING +
     version +
-    process.env.UXP_PHOTOSHOP_URL_END;
+    configuration.UXP_PHOTOSHOP_URL_END;
 
   log.info("Starting the download...");
 
   let downloadResult = await downloadInMainProcess(
-    process.env.LIBRARY_GITHUB_URL,
+    configuration.LIBRARY_GITHUB_URL,
     "temp"
   );
 
@@ -158,14 +135,14 @@ export function selectDirectory() {
     })
     .then((dir) => {
       if (!dir.canceled) {
-        const persistantProfileFolder = dir.filePaths.toString();
+        const persistentProfileFolder = dir.filePaths.toString();
 
         // Create the folder if it does not exist
-        if (!fs.existsSync(persistantProfileFolder)) {
-          fs.mkdirSync(persistantProfileFolder);
+        if (!fs.existsSync(persistentProfileFolder)) {
+          fs.mkdirSync(persistentProfileFolder);
         }
 
-        return persistantProfileFolder;
+        return persistentProfileFolder;
       }
 
       // just return empty folder path;

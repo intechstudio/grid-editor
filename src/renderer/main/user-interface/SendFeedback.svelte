@@ -12,19 +12,12 @@
 
     $appSettings.modal = "feedback";
     $appSettings.feedback_context = feedback_context;
-
-    window.electron.analytics.influx(
-      "application",
-      "feedback",
-      "feedback context",
-      feedback_context
-    );
   }
 </script>
 
-<div on:click={openFeedbackFrom} class="feedback text-sm text-gray-500 mt-2">
+<button on:click={openFeedbackFrom} class="{$$props.class} feedback">
   Send Feedback
-</div>
+</button>
 
 <style>
   .feedback:hover {

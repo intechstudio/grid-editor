@@ -1,27 +1,22 @@
 <script>
-  import { auth } from "$lib/firebase";
-  import { GoogleAuthProvider, signInWithPopup } from "firebase/auth";
   import { clickOutside } from "../_actions/click-outside.action";
   import { appSettings } from "../../runtime/app-helper.store";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
 
-  const env = window.ctxProcess.env();
-
-  if (auth?.currentUser !== null) {
-    console.log("user found:", auth.currentUser);
-  }
+  const buildVariables = window.ctxProcess.buildVariables();
 
   let email = "";
   let password = "";
 
-  const socialLoginUrl =
-    env["NODE_ENV"] === "development"
-      ? "http://localhost:5200"
-      : "https://profile-cloud.web.app";
+  const socialLoginUrl = buildVariables.PROFILE_CLOUD_URL;
 
   async function submitLogin() {
     authStore.login(email, password);
+  }
+
+  async function anonymousLogin() {
+    authStore.anonymousLogin();
   }
 
   async function logout() {

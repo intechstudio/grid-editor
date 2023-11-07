@@ -3,32 +3,25 @@
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { get, writable } from "svelte/store";
   import { debug_monitor_store } from "../DebugMonitor/DebugMonitor.store";
-  import { luadebug_store } from "../../../runtime/runtime.store";
-  import _utils, { luaParser } from "../../../runtime/_utils";
   import {
     midi_monitor_store,
     sysex_monitor_store,
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import { validate } from "uuid";
+  import grid from "../../../protocol/grid-protocol";
+  import SvgIcon from "../../user-interface/SvgIcon.svelte";
+  import { configManager } from "../../panels/configuration/Configuration.store";
 
   // ok but slow nice
 
-  let runtimeScript = "";
-  let runtimeParser = "";
+  const configScriptLength = writable("");
+  const syntaxError = writable(false);
 
   $: {
-    let res = _utils.gridLuaToEditorLua($luadebug_store.config);
-    const configs = res;
-    let code = "";
-    configs.forEach((e, i) => {
-      code += `--[[@${e.short}]] ` + e.script + "\n";
-    });
-    runtimeScript = "<?lua " + "\n" + code + "?>";
-    runtimeParser = luaParser(code, { comments: true });
+    configScriptLength.set($configManager.toConfigScript().length);
+    syntaxError.set($configManager.checkSyntax());
   }
-
   const createDebouncedStore = (initialValue, debounceTime) => {
     let timeoutId;
     const { subscribe, set } = writable(initialValue);
@@ -293,7 +286,13 @@
                     </div>
                   {/if}
                   <div class="flex items-center">
-                    {message.data.direction == "REPORT" ? "RX🡐" : "TX🡒"}
+                    {#if message.data.direction == "REPORT"}
+                      <span>RX</span>
+                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                    {:else}
+                      <span>TX</span>
+                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                    {/if}
                   </div>
                 </div>
               {/each}
@@ -312,11 +311,14 @@
                   on:mouseover={() => onEnterMidiMessage(midi)}
                   on:mouseleave={() => onLeaveMidiMessage()}
                 >
-                  <span class="text-white"
-                    >{midi.device.name}{midi.data.direction == "REPORT"
-                      ? " 🡐"
-                      : " 🡒"}</span
-                  >
+                  <div class="flex flex-row text-white">
+                    <span>{midi.device.name}</span>
+                    {#if midi.data.direction == "REPORT"}
+                      <SvgIcon class="scale-75" iconPath="arrow_left" />
+                    {:else}
+                      <SvgIcon class="scale-75" iconPath="arrow_right" />
+                    {/if}
+                  </div>
                   <span>Ch: {midi.data.channel}</span>
                   <span>{midi.data.command.short}</span>
                   <span>{midi.data.params.p1.short}:</span>
@@ -343,13 +345,14 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={runtimeScript.length >= 400
+                  class={$configScriptLength >= grid.properties.CONFIG_LENGTH
                     ? "text-error"
-                    : runtimeScript.length >= 120
+                    : $configScriptLength >=
+                      (grid.properties.CONFIG_LENGTH / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >
-                  {runtimeScript.length}
+                  {$configScriptLength}
                 </div>
               </div>
             </div>
@@ -374,17 +377,21 @@
                     ? 'text-blue-400'
                     : 'text-green-400'} font-mono"
                 >
-                  <div class="block">
-                    <span class="text-white"
-                      >{sysex.device.name}{sysex.data.direction == "REPORT"
-                        ? " 🡐"
-                        : " 🡒"}</span
-                    >
-                    <span
-                      >{String.fromCharCode
+                  <div class="flex flex-row gap-2">
+                    <div class="flex flex-row text-white">
+                      <span>{sysex.device.name}</span>
+                      {#if sysex.data.direction == "REPORT"}
+                        <SvgIcon class="scale-75" iconPath="arrow_left" />
+                      {:else}
+                        <SvgIcon class="scale-75" iconPath="arrow_right" />
+                      {/if}
+                    </div>
+
+                    <span>
+                      {String.fromCharCode
                         .apply(String, sysex.data.raw)
-                        .substr(8)}</span
-                    >
+                        .substr(8)}
+                    </span>
                   </div>
                 </div>
               {/each}

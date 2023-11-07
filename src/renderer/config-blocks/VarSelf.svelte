@@ -1,13 +1,24 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   export const information = {
     short: "s",
     name: "VarSelf",
     rendering: "standard",
     category: "variables",
     desc: "Self",
+    blockTitle: "Self",
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
+    blockIcon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -197,7 +208,9 @@
 
 <svelte:window bind:innerWidth={sidebarWidth} />
 
-<config-self-definitions class="flex flex-col w-full p-2">
+<config-self-definitions
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="flex justify-between items-center my-2 px-2">
     {#if variableNameError}
       <div class="text-sm text-red-500">Variable name error!</div>
@@ -207,7 +220,7 @@
     {/if}
     {#key commitState}
       <div
-        in:fly={{ x: -5, duration: 200 }}
+        in:fly|global={{ x: -5, duration: 200 }}
         class="{commitState ? 'text-yellow-600' : 'text-green-500'} text-sm"
       >
         {commitState ? "Unsaved changes!" : "Synced with Grid!"}
@@ -298,7 +311,7 @@
     </button>
   </div>
 
-  <SendFeedback feedback_context="Selfs" />
+  <SendFeedback feedback_context="Selfs" class="mt-2 text-sm text-gray-500" />
 </config-self-definitions>
 
 <style>

@@ -1,8 +1,6 @@
 <script>
-  import { clickOutside } from "../_actions/click-outside.action.js";
-
   import { createEventDispatcher } from "svelte";
-  import { onMount } from "svelte";
+  import stringManipulation from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
 
@@ -10,67 +8,85 @@
   export let suggestions = [];
   export let customClasses = "";
   export let placeholder = "";
+  export let suggestionTarget = undefined;
   export let validator = () => {
     return true;
   };
 
   let isError = false;
-  let edited = false;
-
   let disabled = false;
   let infoValue = "";
-
-  $: if (inputValue) {
-    handleValidation();
-    infoValue = suggestions.find(
-      (s) => String(s.value).trim() == String(inputValue).trim()
-    );
-    infoValue ? (infoValue = infoValue.info) : "";
-  }
+  let displayText;
+  let valueChanged = false;
 
   let focus;
 
-  onMount(() => {
-    handleValidation();
-  });
+  function handleValueChange(value) {
+    handleValidation(value);
+    const newValue = stringManipulation.humanize(String(value));
+    if (newValue !== displayText) {
+      displayText = newValue;
+    }
+    infoValue = suggestions.find(
+      (s) => String(s.value).trim() == String(value).trim()
+    );
+
+    if (typeof infoValue !== "undefined") {
+      infoValue = infoValue.info;
+    }
+  }
+
+  $: handleValueChange(inputValue);
 
   function handleValidation() {
-    isError = !validator(inputValue);
+    isError = !validator(displayText);
     dispatch("validator", { isError: isError });
   }
 
-  function handleChange() {
-    handleValidation();
-    dispatch("change", inputValue);
+  function handleBlur(e) {
+    if (valueChanged) {
+      sendData(stringManipulation.shortify(displayText));
+    }
   }
 
-  function handleFocus(mode, bool) {
-    focus = bool;
-    dispatch(`${mode}-focus`, {
-      focus: bool,
-    });
+  function sendData(value) {
+    valueChanged = false;
+    dispatch("change", stringManipulation.shortify(value));
+  }
+
+  function handleFocus(e) {
+    if (typeof suggestionTarget !== "undefined") {
+      const event = new CustomEvent("display", {
+        detail: {
+          data: suggestions,
+          sender: this,
+        },
+      });
+
+      suggestionTarget.dispatchEvent(event);
+    }
+  }
+
+  function handleInput(e) {
+    valueChanged = true;
+    handleValidation(displayText);
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    displayText = value;
+    sendData(displayText);
   }
 </script>
 
-<div
-  class="w-full relative"
-  use:clickOutside={{ useCapture: false }}
-  on:click-outside={() => {
-    focus = false;
-    handleFocus("loose", false);
-  }}
->
+<div class="{$$props.class} w-full relative">
   <input
     {disabled}
-    bind:value={inputValue}
-    on:click={() => {
-      handleFocus("active", true);
-    }}
-    on:change={handleChange}
-    on:input={(e) => {
-      handleChange();
-      handleFocus("loose", false);
-    }}
+    bind:value={displayText}
+    on:focus={handleFocus}
+    on:blur={handleBlur}
+    on:input={handleInput}
+    on:suggestion-select={handleSuggestionSelected}
     type="text"
     {placeholder}
     class="{customClasses} w-full border
@@ -80,11 +96,13 @@
       : 'focus:border-select border-secondary'} bg-secondary text-white py-0.5 pl-2 rounded-none"
   />
 
-  {#if !focus && infoValue !== undefined}
-    <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm py-1">
-      {infoValue}
-    </div>
-  {/if}
+  <div class=" py-1">
+    {#if !focus && infoValue !== undefined}
+      <div class="{infoValue ? 'text-gray-500' : 'text-gray-600'} text-sm">
+        {infoValue}
+      </div>
+    {/if}
+  </div>
 </div>
 
 <style>

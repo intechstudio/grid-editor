@@ -1,6 +1,6 @@
 export let config_components = [];
 
-async function init_config_block_library() {
+export async function init_config_block_library() {
   console.info("Init config block library!");
 
   let _files = import.meta.glob("../config-blocks/*.svelte");
@@ -30,22 +30,34 @@ init_config_block_library();
 
 export function getComponentInformation({ short }) {
   if (config_components === undefined) {
-    //console.log("config_components status is undefined")
     return undefined;
   }
 
-  return config_components
-    .map((c) => (c = { component: c.default, information: c.information }))
-    .find((c) => c.information.short == short);
+  const comps = config_components.map(
+    (c) =>
+      (c = {
+        component: c.default,
+        information: c.information,
+        header: c.header,
+      })
+  );
+
+  let res = comps.find((c) => c.information.short == short);
+
+  return res;
 }
 
 export function getAllComponents() {
   if (config_components === undefined) {
-    //console.log("config_components status is undefined")
     return undefined;
   }
 
   return config_components.map(
-    (c) => (c = { component: c.default, information: c.information })
+    (c) =>
+      (c = {
+        component: c.default,
+        information: c.information,
+        header: c.header,
+      })
   );
 }

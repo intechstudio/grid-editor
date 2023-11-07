@@ -5,21 +5,30 @@ import {
   Tray,
   Menu,
   nativeImage,
+  clipboard,
   shell,
+  MessageChannelMain,
+  utilityProcess,
+  autoUpdater,
 } from "electron";
 import path from "path";
 import log from "electron-log";
-import fs from "fs-extra";
-import dotenv from "dotenv";
-dotenv.config();
-
-import { autoUpdater } from "electron-updater";
+import fs from "fs";
+import chokidar from "chokidar";
 
 // might be environment variables as well.
-import grid_env from "../../configuration.json";
-for (const key in grid_env) {
-  process.env[key] = grid_env[key];
-}
+import configuration from "../../configuration.json";
+import buildVariables from "../../buildVariables.json";
+
+configuration.EDITOR_VERSION = app.getVersion();
+configuration.EDITOR_NAME = app.getName();
+
+log.info(
+  "NAME: ",
+  configuration.EDITOR_NAME,
+  " VERSION: ",
+  configuration.EDITOR_VERSION
+);
 
 import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
@@ -34,26 +43,21 @@ import {
 } from "./src/library";
 import {
   loadConfigsFromDirectory,
-  moveOldConfigs,
   saveConfig,
-  updateConfig,
   deleteConfig,
+  migrateToProfileCloud,
 } from "./src/profiles";
-import { influxAnalytics, googleAnalytics } from "./src/analytics";
 import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
-import { getActiveWindow } from "./src/active-window";
 import {
   desktopAutomationPluginStart,
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
 import { Deeplink } from "electron-deeplink";
+import polka from "polka";
+import sirv from "sirv";
 
-process.env["EDITOR_VERSION"] = app.getVersion();
-
-autoUpdater.logger = log;
-autoUpdater.logger.transports.file.level = "info";
 log.info("App starting...");
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -61,9 +65,11 @@ log.info("App starting...");
 let mainWindow;
 
 // To avoid context aware flag.
-app.allowRendererProcessReuse = false;
+//app.allowRendererProcessReuse = false;
 
 let tray = null;
+
+let offlineProfileCloudServer: any = undefined;
 
 function create_tray() {
   /* ===============================================================================
@@ -90,8 +96,6 @@ function create_tray() {
         mainWindow.show();
 
         mainWindow.webContents.send("trayState", false);
-
-        googleAnalytics("tray", { value: "show window" });
       },
     },
     {
@@ -101,8 +105,6 @@ function create_tray() {
         mainWindow.setSkipTaskbar(true);
 
         mainWindow.webContents.send("trayState", true);
-
-        googleAnalytics("tray", { value: "hide window" });
       },
     },
     {
@@ -155,7 +157,7 @@ if (!gotTheLock) {
 // })
 
 function createWindow() {
-  const windowTitle = "Grid Editor - " + process.env.EDITOR_VERSION;
+  const windowTitle = "Grid Editor - " + configuration.EDITOR_VERSION;
 
   // First we'll get our height and width. This will be the defaults if there wasn't anything saved
   let { width, height } = store.get("windowBounds");
@@ -199,21 +201,21 @@ function createWindow() {
 
   serial.mainWindow = mainWindow;
   websocket.mainWindow = mainWindow;
-
   firmware.mainWindow = mainWindow;
-
   updater.mainWindow = mainWindow;
 
   ipcMain.on("restartAfterUpdate", () => {
+    log.info('Calling "restartAfterUpdate" from main.ts');
     restartAfterUpdate();
   });
 
-  if (process.env.NODE_ENV == "development") {
+  console.log("here what is buildVariables.BUILD_ENV");
+  if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");
     mainWindow.loadURL("http://localhost:5173/");
     mainWindow.webContents.openDevTools();
   } else {
-    // this is lazy, we should launch electron explicitly with node_env production, but this works as well
+    // this is applicable for any non development environment, like production or test
     log.info(
       "Production Mode!",
       `file://${path.join(__dirname, "../../dist/renderer/index.html")}`
@@ -228,15 +230,19 @@ function createWindow() {
     if (app.quitting) {
       mainWindow = null;
     } else {
-      // only hide, keep in the background
       evt.preventDefault();
-      mainWindow.hide();
+      // only hide, keep in the background
+      const keepRunning = store.get("alwaysRunInTheBackground");
+      if (keepRunning === true) {
+        mainWindow.hide();
+      } else {
+        app.quit();
+      }
     }
   });
 
   mainWindow.on("resize", () => {
     let { width, height } = mainWindow.getBounds();
-
     store.set("windowBounds", { width, height });
     mainWindow.webContents.send("window_size", { width, height });
   });
@@ -284,17 +290,109 @@ function createWindow() {
       return true;
     }
   });
+
+  // Handle plugin configuration, action
+  let pluginManagerProcess: Electron.UtilityProcess;
+  mainWindow.webContents.on("did-finish-load", () => {
+    const { port1, port2 } = new MessageChannelMain();
+    mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+
+    if (typeof pluginManagerProcess === "undefined") {
+      pluginManagerProcess = utilityProcess.fork(
+        path.resolve(path.join(__dirname, "./pluginManager.js"))
+      );
+
+      const pluginFolder = path.resolve(
+        path.join(app.getPath("documents"), "grid-userdata", "plugins")
+      );
+      pluginManagerProcess.postMessage(
+        {
+          type: "init",
+          pluginFolder: pluginFolder,
+          version: configuration.EDITOR_VERSION,
+        },
+        [port2]
+      );
+      startPluginDirectoryWatcher(pluginFolder, pluginManagerProcess);
+    }
+  });
 }
 
-const isDev = process.env.NODE_ENV == "development" ? true : false;
-const protocol = isDev ? "grid-editor-dev" : "grid-editor";
-const deeplink = new Deeplink({ app, mainWindow, protocol, isDev });
+// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
+// isDev needs to know if app is packaged
+const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
+const deeplink = new Deeplink({
+  app,
+  mainWindow,
+  protocol: "grid-editor",
+  isDev,
+  debugLogging: true,
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 
-autoUpdater.checkForUpdatesAndNotify();
+let watcher: any = null;
+let directoryWatcher: any = null;
+
+function startPluginDirectoryWatcher(
+  path: string,
+  process: Electron.UtilityProcess
+): void {
+  directoryWatcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+
+  directoryWatcher
+    .on("addDir", function (path: string) {
+      //Directory has been added
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    })
+    .on("unlinkDir", function (path: string) {
+      //Directory has been removed
+      process.postMessage({
+        type: "refresh-plugins",
+        path: path,
+      });
+    });
+}
+
+let configWatcher: chokidar.FSWatcher | undefined;
+function startConfigWatcher(configPath, rootDirectory) {
+  configWatcher?.close();
+
+  async function sendLocalConfigs() {
+    var result = await loadConfigsFromDirectory(configPath, rootDirectory);
+    mainWindow.webContents.send("sendConfigsToRenderer", result);
+  }
+
+  configWatcher = chokidar.watch(path.join(configPath, "configs"), {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+  configWatcher.on("add", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("change", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("unlink", function (path) {
+    sendLocalConfigs();
+  });
+  configWatcher.on("ready", function () {
+    sendLocalConfigs();
+  });
+  sendLocalConfigs();
+}
 
 ipcMain.handle("startPlugin", async (event, arg) => {
   console.log("pluginstart!", arg.name);
@@ -329,32 +427,41 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
 });
 
 deeplink.on("received", (data) => {
-  // we could check if this is grid-editor-dev or other env specific call, but this will do for now
   if (data.startsWith("grid-editor")) {
-    const splitArray = data.split("://");
-    const credential = splitArray[1].replace("credential=", "");
-    mainWindow.webContents.send("onExternalAuthResponse", credential);
+    const url = new URL(data);
+    if (url.searchParams.get("credential") !== null) {
+      const credential = url.searchParams.get("credential");
+      mainWindow.webContents.send("onExternalAuthResponse", credential);
+    }
+    if (url.searchParams.get("config-link") !== null) {
+      const configLink = url.searchParams.get("config-link");
+      mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
+    }
   }
+});
+
+ipcMain.handle("clipboardWriteText", async (event, arg) => {
+  console.log(arg.text);
+  clipboard.writeText(arg.text);
 });
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;
   if (arg.packageToDownload == "library") {
     result = await libraryDownload(arg.targetFolder);
-    console.log("library", result);
   }
   if (arg.packageToDownload == "uxpPhotoshop") {
     result = await uxpPhotoshopDownload(arg.targetFolder);
   }
   return result;
 });
-
 ipcMain.handle("selectDirectory", async (event, arg) => {
   return await selectDirectory();
 });
 
 ipcMain.handle("viewDirectory", async (event, arg) => {
-  shell.openPath(arg.targetFolder);
+  const normalizedPath = path.normalize(arg.targetFolder); // handle mixed '/' and '\' characters on windows
+  shell.openPath(normalizedPath);
   return;
 });
 
@@ -372,42 +479,33 @@ ipcMain.handle("defaultDirectory", (event, arg) => {
   return defaultPath;
 });
 
-ipcMain.handle("moveOldConfigs", async (event, arg) => {
-  return await moveOldConfigs(arg.configPath, arg.rootDirectory);
-});
-
 ipcMain.handle("loadConfigsFromDirectory", async (event, arg) => {
   return await loadConfigsFromDirectory(arg.configPath, arg.rootDirectory);
 });
 
-ipcMain.handle("saveConfig", async (event, arg) => {
-  return await saveConfig(
-    arg.configPath,
-    arg.name,
-    arg.config,
-    arg.rootDirectory,
-    arg.user
+ipcMain.handle("migrateToProfileCloud", async (event, arg) => {
+  return await migrateToProfileCloud(
+    arg.oldRootPath,
+    arg.newRootPath,
+    arg.configDirectory
   );
 });
 
-ipcMain.handle("updateConfig", async (event, arg) => {
-  return await updateConfig(
-    arg.configPath,
-    arg.name,
-    arg.config,
-    arg.rootDirectory,
-    arg.oldName,
-    arg.profileFolder
-  );
+ipcMain.handle("saveConfig", async (event, arg) => {
+  return await saveConfig(arg.configPath, arg.rootDirectory, arg.config);
+});
+
+ipcMain.handle("startConfigsWatch", async (event, arg) => {
+  return await startConfigWatcher(arg.configPath, arg.rootDirectory);
+});
+
+ipcMain.handle("stopConfigsWatch", async (event) => {
+  configWatcher?.close();
+  configWatcher = undefined;
 });
 
 ipcMain.handle("deleteConfig", async (event, arg) => {
-  return await deleteConfig(
-    arg.configPath,
-    arg.name,
-    arg.rootDirectory,
-    arg.profileFolder
-  );
+  return await deleteConfig(arg.configPath, arg.rootDirectory, arg.config);
 });
 
 // this is needed for the functions to have the mainWindow for communication
@@ -431,13 +529,6 @@ ipcMain.handle("fetchUrlJSON", (event, arg) => {
   return fetchUrlJSON(arg);
 });
 
-ipcMain.handle("googleAnalytics", async (event, arg) => {
-  return await googleAnalytics(arg.name, arg.params); // uses the measurement protocol!
-});
-ipcMain.handle("influxAnalytics", async (event, arg) => {
-  return await influxAnalytics(arg.category, arg.action, arg.label, arg.value);
-});
-
 // load the latest video from the grid editor playlist
 ipcMain.handle("getLatestVideo", async (event, arg) => {
   return await getLatestVideo();
@@ -448,9 +539,23 @@ ipcMain.handle("openInBrowser", async (event, arg) => {
   return await shell.openExternal(arg.url);
 });
 
-// get the active window, user must give permissons for this
-ipcMain.handle("activeWindow", async (event, arg) => {
-  return await getActiveWindow();
+ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
+  return await new Promise((resolve, reject) => {
+    const assets = sirv(path.join(__dirname, "../../profile-cloud"));
+    const app = polka().use(assets);
+    app.listen(0, "localhost", (err) => {
+      if (err) return reject(err);
+      offlineProfileCloudServer = app;
+      return resolve(app.server.address());
+    });
+  });
+});
+
+ipcMain.handle("stopOfflineProfileCloud", async (event, arg) => {
+  if (offlineProfileCloudServer) {
+    offlineProfileCloudServer.server.close();
+    offlineProfileCloudServer = undefined;
+  }
 });
 
 // persistent storage for the app
@@ -476,6 +581,7 @@ ipcMain.handle("setPersistentStore", (event, arg) => {
   });
   return "saved";
 });
+
 // app window management
 ipcMain.handle("closeWindow", async (event, args) => {
   mainWindow.close();
@@ -484,30 +590,28 @@ ipcMain.handle("closeWindow", async (event, args) => {
 
 ipcMain.handle("minimizeWindow", async (event, args) => {
   mainWindow.minimize();
-  googleAnalytics("tray", { value: "minimize window" });
 });
 
 ipcMain.handle("maximizeWindow", async (event, args) => {
   mainWindow.maximize();
-  googleAnalytics("tray", { value: "maximize window" });
 });
 
 ipcMain.handle("restoreWindow", async (event, args) => {
   mainWindow.restore();
-  googleAnalytics("tray", { value: "restore window" });
 });
 
 ipcMain.handle("isMaximized", async (event, args) => {
   return mainWindow.isMaximized();
 });
 
-// environment variables for renderer
-ipcMain.on("get-env", (event) => {
-  let variables = {};
-  for (const key in process.env) {
-    variables[key] = process.env[key];
-  }
-  event.returnValue = variables;
+// configuration variables
+ipcMain.on("getConfiguration", (event) => {
+  event.returnValue = configuration;
+});
+
+// build variables
+ipcMain.on("getBuildVariables", (event) => {
+  event.returnValue = buildVariables;
 });
 
 ipcMain.on("get-app-path", (event) => {
@@ -532,9 +636,7 @@ ipcMain.on("resetAppSettings", (event, arg) => {
     options.execPath = process.execPath;
     options.execPath = process.env.APPIMAGE;
     options.args.unshift("--appimage-extract-and-run");
-
     log.info("ARGS: ", options);
-
     app.relaunch(options);
     app.exit(0);
   } else {
@@ -554,9 +656,7 @@ ipcMain.on("restartApp", (event, arg) => {
     options.execPath = process.execPath;
     options.execPath = process.env.APPIMAGE;
     options.args.unshift("--appimage-extract-and-run");
-
     log.info("ARGS: ", options);
-
     app.relaunch(options);
     app.exit(0);
   } else {
@@ -567,9 +667,15 @@ ipcMain.on("restartApp", (event, arg) => {
 
 // Quit when all windows are closed.
 app.on("window-all-closed", (evt) => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== "darwin") {
+  const keepRunning = store.get("alwaysRunInTheBackground");
+
+  if (keepRunning === true) {
+    // On macOS it is common for applications and their menu bar
+    // to stay active until the user quits explicitly with Cmd + Q
+    if (process.platform !== "darwin") {
+      app.quit();
+    }
+  } else {
     app.quit();
   }
 });
@@ -581,4 +687,7 @@ app.on("activate", () => {
 });
 
 // termination of application, closing the windows, used for macOS hide flag
-app.on("before-quit", () => (app.quitting = true));
+app.on("before-quit", (evt) => {
+  log.info("before-quit evt", evt);
+  app.quitting = true;
+});

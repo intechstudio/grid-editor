@@ -1,9 +1,37 @@
 import { writable, get, readable } from "svelte/store";
 import { getAllComponents } from "$lib/_configs";
 
-const { env } = window.ctxProcess;
+const configuration = window.ctxProcess.configuration();
 
-let envs = env();
+const persistentDefaultValues = {
+  userId: "",
+  size: 1.0,
+  wssPort: 1337,
+  moduleRotation: 0,
+  welcomeOnStartup: true,
+  lastVersion: "",
+  profileFolder: "",
+  presetFolder: "",
+  pluginsDataStorage: {},
+  enabledPlugins: [],
+  markedForDeletionPlugins: [],
+  keyboardLayout: "",
+  websocketMonitorEnabled: false,
+  portstateOverlayEnabled: false,
+  profileCloudDevFeaturesEnabled: false,
+  useProfileCloud: true,
+  helperShape: 0,
+  helperColor: 0,
+  desktopAutomationPlugin: false,
+  authUser: {},
+  authIdToken: "",
+  authRefreshToken: "",
+  alwaysRunInTheBackground: true,
+  analyticsEnabled: false,
+  firstLaunch: true,
+  fontSize: 12,
+  profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
+};
 
 function checkOS() {
   if (typeof window.ctxProcess === "object") {
@@ -11,12 +39,6 @@ function checkOS() {
   }
   return "browser";
 }
-
-export const current_tooltip_store = writable({ key: "", bool: false });
-
-export const statusReport = writable({
-  serialport: {},
-});
 
 function createSplitPanes() {
   const obj = {
@@ -51,25 +73,23 @@ function createSplitPanes() {
 
 export const splitpanes = createSplitPanes();
 
-function createAppSettingsStore() {
+function createAppSettingsStore(persistent) {
   const store = writable({
-    size: 2.1,
     version: {
-      major: envs.EDITOR_VERSION.split(".")[0],
-      minor: envs.EDITOR_VERSION.split(".")[1],
-      patch: envs.EDITOR_VERSION.split(".")[2],
+      major: configuration.EDITOR_VERSION.split(".")[0],
+      minor: configuration.EDITOR_VERSION.split(".")[1],
+      patch: configuration.EDITOR_VERSION.split(".")[2],
     },
     overlays: { controlElementName: false },
     debugMode: false,
     selectedDisplay: "",
-    changeOnContact: true,
+    changeOnEvent: "event",
     layoutMode: false,
-    configType: "uiEvents",
     stringNameOverlay: false,
     preferences: false,
     rightPanel: "Configuration",
     rightPanelVisible: true,
-    leftPanel: "Profiles",
+    leftPanel: "ProfileCloud",
     leftPanelVisible: true,
     modal: "",
     trayState: false,
@@ -77,46 +97,22 @@ function createAppSettingsStore() {
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
-      major: parseInt(envs.FIRMWARE_D51_REQUIRED_MAJOR),
-      minor: parseInt(envs.FIRMWARE_D51_REQUIRED_MINOR),
-      patch: parseInt(envs.FIRMWARE_D51_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_D51_REQUIRED_PATCH),
     },
     firmware_esp32_required: {
-      major: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MAJOR),
-      minor: parseInt(envs.FIRMWARE_ESP32_REQUIRED_MINOR),
-      patch: parseInt(envs.FIRMWARE_ESP32_REQUIRED_PATCH),
+      major: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MAJOR),
+      minor: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_MINOR),
+      patch: parseInt(configuration.FIRMWARE_GRID_ESP32_REQUIRED_PATCH),
     },
     sizeChange: 0,
     activeWindowResult: {
       title: undefined,
       owner: { neme: undefined },
     },
-    persistant: {
-      wssPort: 1337,
-      moduleRotation: 0,
-      welcomeOnStartup: true,
-      lastVersion: "",
-      profileFolder: "",
-      presetFolder: "",
-      pageActivatorEnabled: false,
-      pageActivatorCriteria_0: "",
-      pageActivatorCriteria_1: "",
-      pageActivatorCriteria_2: "",
-      pageActivatorCriteria_3: "",
-      keyboardLayout: "",
-      pageActivatorInterval: 1000,
-      websocketMonitorEnabled: false,
-      newProfileBrowserEnabled: true,
-      legacyProfileBrowserEnabled: false,
-      profileCloudDevFeaturesEnabled: false,
-      helperShape: 0,
-      helperColor: 0,
-      helperName: "Monster",
-      desktopAutomationPlugin: false,
-      authUser: {},
-      authIdToken: "",
-      authRefreshToken: "",
-    },
+    pluginList: [],
+    persistent: structuredClone(persistent),
   });
 
   return {
@@ -124,50 +120,18 @@ function createAppSettingsStore() {
   };
 }
 
-export const appSettings = createAppSettingsStore();
-
-export const profileListRefresh = writable(0);
-export const presetListRefresh = writable(0);
-
-let persistant = {
-  wssPort: 1337,
-  moduleRotation: 0,
-  welcomeOnStartup: true,
-  lastVersion: "",
-  profileFolder: "",
-  presetFolder: "",
-  pageActivatorEnabled: false,
-  pageActivatorCriteria_0: "",
-  pageActivatorCriteria_1: "",
-  pageActivatorCriteria_2: "",
-  pageActivatorCriteria_3: "",
-  keyboardLayout: "",
-  pageActivatorInterval: 1000,
-  websocketMonitorEnabled: false,
-  newProfileBrowserEnabled: true,
-  legacyProfileBrowserEnabled: false,
-  profileCloudDevFeaturesEnabled: false,
-  showLoginRegister: false,
-  helperShape: 0,
-  helperColor: 0,
-  helperName: "Monster",
-  desktopAutomationPlugin: false,
-  authUser: {},
-  authIdToken: "",
-  authRefreshToken: "",
-};
+export const appSettings = createAppSettingsStore(persistentDefaultValues);
 
 init_appsettings();
 
 appSettings.subscribe((store) => {
-  let instore = store.persistant;
+  let instore = store.persistent;
 
-  Object.entries(persistant).forEach((entry) => {
+  Object.entries(persistentDefaultValues).forEach((entry) => {
     const [key, value] = entry;
 
-    if (persistant[key] !== instore[key]) {
-      persistant[key] = instore[key];
-
+    if (persistentDefaultValues[key] !== instore[key]) {
+      persistentDefaultValues[key] = instore[key];
       let settings = {};
       settings[key] = instore[key];
       window.electron.persistentStorage.set(settings);
@@ -190,7 +154,7 @@ ipcRenderer.on('trayState', (event, args) => {
 
 async function init_appsettings() {
   let request = [];
-  Object.entries(persistant).forEach((entry) => {
+  Object.entries(persistentDefaultValues).forEach((entry) => {
     const [key, value] = entry;
     request.push(key);
   });
@@ -213,7 +177,7 @@ async function init_appsettings() {
           }
 
           if (key === "moduleRotation" && value === undefined) {
-            value = persistant[key];
+            value = persistentDefaultValues[key];
           }
 
           if (key === "pageActivatorInterval" && value === undefined) {
@@ -221,7 +185,7 @@ async function init_appsettings() {
           }
 
           if (value !== undefined) {
-            s.persistant[key] = value;
+            s.persistent[key] = value;
           }
         });
 
@@ -230,83 +194,28 @@ async function init_appsettings() {
 
       // show welcome modal if it is not disabled, but always show after version update
       if (
-        get(appSettings).persistant.welcomeOnStartup === undefined ||
-        get(appSettings).persistant.welcomeOnStartup === true ||
-        get(appSettings).persistant.lastVersion === undefined ||
-        get(appSettings).persistant.lastVersion != envs["EDITOR_VERSION"]
+        get(appSettings).persistent.welcomeOnStartup === undefined ||
+        get(appSettings).persistent.welcomeOnStartup === true ||
+        get(appSettings).persistent.lastVersion === undefined ||
+        get(appSettings).persistent.lastVersion !=
+          configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
-          s.persistant.lastVersion = envs["EDITOR_VERSION"];
-          s.persistant.welcomeOnStartup = true;
+          s.persistent.lastVersion = configuration["EDITOR_VERSION"];
+          s.persistent.welcomeOnStartup = true;
           s.modal = "welcome";
           return s;
         });
       }
 
-      if (get(appSettings).persistant.desktopAutomationPlugin === true) {
+      //TODO
+      /*if (get(appSettings).persistent.desktopAutomationPlugin === true) {
         console.log("start plugin");
 
         window.electron.plugin.start("desktopAutomation");
       } else {
         console.log("stop plugin");
         window.electron.plugin.stop("desktopAutomation");
-      }
+      }*/
     });
 }
-
-export const preferenceStore = writable();
-
-export const openedActionBlocks = writable([]);
-
-export const action_collection = readable(Promise.all([getAllComponents()]));
-
-function createPresetManagement() {
-  const _selected_preset = writable({ sub: "", name: "", configs: "" });
-
-  const _selected_action = writable({ name: "", configs: "" });
-
-  const _quick_access = writable([]);
-
-  return {
-    subscribe: _selected_preset.subscribe,
-    selected_preset: {
-      subscribe: _selected_preset.subscribe,
-      update: ({ sub, name, configs }) => {
-        _selected_preset.set({ sub: sub, name: name, configs: configs });
-      },
-    },
-    selected_action: {
-      subscribe: _selected_action.subscribe,
-      update: ({ name, configs }) => {
-        _selected_action.set({ name: name, configs: configs });
-      },
-    },
-    quick_access: {
-      subscribe: _quick_access.subscribe,
-      update: () => {
-        _quick_access.update((s) => {
-          if (s.length >= 4) {
-            s.shift();
-          }
-          s = [...s, get(_selected_preset)];
-          return s;
-        });
-      },
-    },
-  };
-}
-
-export const activeDropDown = writable({
-  config_index: undefined,
-  input_index: undefined,
-});
-
-export const presetManagement = createPresetManagement();
-
-export const layout = writable([]);
-
-export const numberOfModulesStore = writable();
-
-export const focusedCodeEditor = writable();
-
-export const configNodeBinding = writable([]);

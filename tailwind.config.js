@@ -1,7 +1,7 @@
 const colors = require("tailwindcss/colors");
 const config = {
   content: ["./src/**/*.{html,js,svelte,ts}"],
-
+  darkMode: "class",
   theme: {
     fontFamily: {
       body: ["roboto"],
@@ -32,6 +32,8 @@ const config = {
         300: "300px",
       },
       height: {
+        "16px": "16px",
+        "18px": "18px",
         32: "8rem",
         14: "3.5rem",
         64: "16rem",
@@ -42,6 +44,8 @@ const config = {
         calc: "calc(100vh - 62px)",
       },
       width: {
+        "16px": "16px",
+        "18px": "18px",
         26: "26px",
       },
       inset: {
@@ -77,8 +81,19 @@ const config = {
           800: "#212a2c",
           900: "#0b0e0f",
         },
+        warning: {
+          DEFAULT: "#EAB308",
+          "desaturate-20": "#FFD2B1",
+          "desaturate-10": "#FAB17C",
+          "saturate-10": "#EF9E4D",
+          "saturate-20": "#EF914D",
+        },
         error: {
           DEFAULT: "#DC2626",
+          "desaturate-10": "#DC4B4B",
+          "desaturate-20": "#DC7474",
+          "saturate-10": "#DC0F0F",
+          "saturate-20": "#FF0000",
         },
         pick: {
           DEFAULT: "#6B7AFF",
@@ -102,8 +117,25 @@ const config = {
           "desaturate-10": "#1BA487",
           "desaturate-20": "#5DDCB9",
         },
+        unsavedchange: {
+          DEFAULT: "#1D4ED8",
+        },
         secondary: {
           DEFAULT: "#2a3439",
+          "brightness-90": "#eaebeb",
+          "brightness-80": "#d4d6d7",
+          "brightness-70": "#bfc2c4",
+          "brightness-60": "#aaaeb0",
+          "brightness-50": "#959a9c",
+          "brightness-40": "#7f8588",
+          "brightness-30": "#6a7174",
+          "brightness-20": "#555d61",
+          "brightness-10": "#3f484d",
+          "darkness-10": "#262f33",
+          "darkness-20": "#222a2e",
+          "darkness-30": "#1d2428",
+          "darkness-40": "#191f22",
+          "darkness-50": "#151a1d",
         },
         normal: "#cfdbd5",
         thirdery: {

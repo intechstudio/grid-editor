@@ -2,9 +2,10 @@
   import { onMount } from "svelte";
   import { fly, fade, slide } from "svelte/transition";
 
-  import configuration from "../../../configuration.json";
+  import { Analytics } from "../runtime/analytics.js";
 
   const ctxProcess = window.ctxProcess;
+  const configuration = ctxProcess.configuration();
 
   let logelement;
   let text = "";
@@ -63,19 +64,13 @@
 
     logtext = [...logtext, { reason: displaytext, solution: solution }];
 
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "error event"
-    );
-
-    try {
-      window.electron.discord.sendMessage({
-        title: "Error",
-        text: displaytext,
-      });
-    } catch (error) {}
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        message: displaytext,
+      },
+      mandatory: true,
+    });
   }
 
   onMount(async () => {
@@ -123,34 +118,37 @@
   });
 
   function refresh() {
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "app restart"
-    );
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Refresh",
+      },
+      mandatory: true,
+    });
     window.electron.restartApp();
   }
 
   function solution(link) {
     window.electron.openInBrowser(link);
 
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "app restart"
-    );
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Solution",
+      },
+      mandatory: true,
+    });
   }
 
   function dismiss() {
     logtext = [];
-    window.electron.analytics.influx(
-      "application",
-      "error console",
-      "error notification",
-      "dismiss"
-    );
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        click: "Dismiss",
+      },
+      mandatory: true,
+    });
   }
 
   function close_notification(index) {
@@ -170,13 +168,13 @@
   <div
     bind:this={logelement}
     class="w-full bg-gray-900 text-white justify-center flex flex-col items-center"
-    transition:fade
+    transition:fade|global
   >
     {#each logtext as log, index}
       {#if index > logtext.length - 5}
         {#key index === logtext.length}
           <div
-            in:fly={{ x: -50, delay: 0, duration: 500 }}
+            in:fly|global={{ x: -50, delay: 0, duration: 500 }}
             class="w-full {(logtext.length - index + bgHelper) % 2
               ? 'bg-gray-800'
               : 'bg-gray-900'} justify-center flex flex-row items-center h-16"
@@ -221,7 +219,7 @@
 {#each notifications as notification, index}
   {#key index === notifications.length}
     <div
-      in:fly={{ x: -50, delay: 0, duration: 500 }}
+      in:fly|global={{ x: -50, delay: 0, duration: 500 }}
       class="w-full {notification.class
         ? notification.class
         : 'bg-green-500'} justify-center flex flex-row items-center h-16"

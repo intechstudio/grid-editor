@@ -14,7 +14,7 @@
   type="checkbox"
   bind:checked={toggleValue}
   on:change={handleChange}
-  class="toggle"
+  class="{$$props.class} toggle pointer-events-auto"
 />
 
 <style>

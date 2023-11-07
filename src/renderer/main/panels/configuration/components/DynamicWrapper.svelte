@@ -1,307 +1,174 @@
 <script>
-  import { quadIn } from "svelte/easing";
-
-  import { fade, slide } from "svelte/transition";
-  import { get } from "svelte/store";
-
-  import Options from "./Options.svelte";
-
-  import {
-    runtime,
-    user_input,
-    logger,
-    localDefinitions,
-    luadebug_store,
-    appMultiSelect,
-  } from "../../../../runtime/runtime.store.js";
-
-  import _utils from "../../../../runtime/_utils";
-
-  import {
-    configNodeBinding,
-    openedActionBlocks,
-  } from "../../../../runtime/app-helper.store.js";
-
   import { getAllComponents } from "../../../../lib/_configs";
 
-  import { checkSyntax } from "../../../../runtime/monaco-helper";
+  import { createEventDispatcher, onMount } from "svelte";
+  import { ConfigList, ConfigObject } from "../Configuration.store";
+  import { unsaved_changes } from "../../../../runtime/runtime.store";
 
-  import { onMount } from "svelte";
-  import { append_hydration_dev } from "svelte/internal";
+  import {
+    lastOpenedActionblocks,
+    lastOpenedActionblocksInsert,
+    lastOpenedActionblocksRemove,
+  } from "../Configuration.store";
+  import { config_drag, DragEvent } from "../../../_actions/move.action";
+  import DropZone from "./DropZone.svelte";
 
-  export let config = ""; //{desc: 'unnamed', rendering: 'standard', id: ''};
-  export let configs;
+  let toggled = false;
+
+  onMount(() => {
+    if (config.information.toggleable !== false) {
+      toggled =
+        -1 !==
+        $lastOpenedActionblocks.findIndex((e) => {
+          return e == config.short;
+        });
+    } else {
+      toggled = true;
+    }
+  });
 
   export let access_tree;
   export let index = undefined;
-  export let disable_pointer_events = false;
+  export let config;
 
-  export let toggle = false;
+  $: syntaxError = !config.checkSyntax();
 
   let syntaxError = false;
   let validationError = false;
-  let animationDuration = 0;
 
-  onMount(() => {
-    let openedBlocks = $openedActionBlocks;
-
-    if (openedBlocks.find((s) => s == config.short)) {
-      toggle = true;
-
-      animationDuration = 0;
-    } else {
-      animationDuration =
-        config.information.rendering != "standard" ||
-        config.information.toggleable === false
-          ? 0
-          : 400;
-    }
-    isSyntaxError();
-  });
-
-  let informationOverride = {};
+  const dispatch = createEventDispatcher();
 
   function replace_me(e) {
-    appMultiSelect.reset();
+    const { short, script } = e.detail;
 
-    let components = getAllComponents();
+    const components = getAllComponents();
+    const new_config = components.find((e) => e.information.short === short);
 
-    let new_config = components.find((c) => c.information.name == e.detail);
+    const obj = new ConfigObject({
+      short: new_config.information.short,
+      script:
+        typeof script === "undefined"
+          ? new_config.information.defaultLua
+          : script,
+    });
 
-    config.script = new_config.information.defaultLua;
-    config.short = new_config.information.short;
-
-    config.component = new_config.component;
-    config.information = new_config.information;
-
-    handleConfigChange({ configName: config.information.name });
+    dispatch("replace", {
+      index: index,
+      config: obj,
+    });
+    toggled = true;
   }
 
-  function isSyntaxError() {
-    try {
-      let toValidate =
-        typeof config.toValidate !== "undefined"
-          ? config.toValidate
-          : config.script;
-      checkSyntax(toValidate);
-      syntaxError = false;
-    } catch (e) {
-      syntaxError = true;
-      logger.set({
-        type: "alert",
-        mode: 0,
-        classname: "syntaxerror",
-        message: `Syntax Error`,
-      });
-    }
-    return syntaxError;
-  }
-
-  function information_override(e) {
-    Object.keys(e.detail).forEach((k) => {
-      //console.log("k-v", k, e.detail[k]);
-      informationOverride[k] = e.detail[k];
+  function handleOutput(e) {
+    dispatch("update", {
+      index: index,
+      short: e.detail.short,
+      script: e.detail.script,
     });
   }
 
-  function handleConfigChange({ configName }) {
-    // when rendering the Else and End config-blocks, they automatically send out their respective values
-    // this results in config change trigger, which should not be sent out to grid, consider it as AUTO change
-
-    const li = get(user_input);
-
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({ config: configs });
-
-    // EncoderPushRotElse, EncoderPushRotEnd ects
-    if (configName.endsWith("_End") || configName.endsWith("_Else")) {
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-    } else {
-      runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
-        "EDITOR_EXECUTE"
-      );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-    }
-
-    localDefinitions.update(configs);
-    luadebug_store.update_config(_utils.configMerge({ config: configs }));
+  function handleValidator(e) {
+    const data = e.detail;
+    validationError = data.isError;
   }
 
-  function handleToggle(short) {
-    if (toggle === true) {
-      toggle = false;
-      animationDuration =
-        config.information.rendering != "standard" ||
-        config.information.toggleable === false
-          ? 0
-          : 400;
+  function handleToggle(e) {
+    if (config.information.toggleable == false) {
+      return;
+    }
 
-      openedActionBlocks.update((s) => {
-        s = s.filter((v) => v !== short);
-        return s;
-      });
+    toggled = !toggled;
+
+    if (toggled) {
+      lastOpenedActionblocksInsert(config.short);
     } else {
-      toggle = true;
-
-      openedActionBlocks.update((s) => {
-        s = s.filter((v) => v !== short);
-        s.push(short);
-        return s;
-      });
+      lastOpenedActionblocksRemove(config.short);
     }
   }
-
-  //$: console.log(configs, "configs");
 </script>
 
 <wrapper
-  bind:this={$configNodeBinding[config.id]}
-  class="flex border-none outline-none transition-opacity duration-300"
+  class="flex flex-grow border-none outline-none transition-opacity duration-300"
 >
+  {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
+    <div style="width: 15px" class="flex items-center mx-1">
+      <div class="w-3 h-3 rounded-full bg-secondary" />
+    </div>
+  {/each}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <carousel
-    class="group flex flex-grow"
-    class:cursor-pointer={!disable_pointer_events}
+    class="group flex flex-grow h-auto min-h-[32px]"
     id="cfg-{index}"
-    config-component={config.information.name}
-    movable={config.information.rendering == "standard" ||
-      config.information.name.endsWith("_If")}
-    config-id={config.id}
-    on:click={() => {
-      if (config.information.rendering !== "standard") return;
-      handleToggle(config.short);
-    }}
+    config-name={config.information.name}
+    config-type={config.information.type}
+    config-id={index}
+    movable={config.information.movable}
+    on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
-    <div class="w-full flex flex-row pointer-events-none">
-      <!-- Six dots to the left -->
-      <div
-        class="flex p-2 items-center bg-secondary"
-        class:group-hover:bg-select-saturate-10={!toggle}
-        class:invisible={config.information.rendering !== "standard" &&
-          !config.information.name.endsWith("_If")}
-      >
-        <svg
-          class="opacity-40 group-hover:opacity-100"
-          width="8"
-          height="13"
-          viewBox="0 0 8 13"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
+    <!-- TODO: Make marking when the block has unsaved changes  -->
+    <div class="w-full flex flex-row pointer-events-none duration-300">
+      <!-- Icon -->
+      {#if config.information.hideIcon !== true}
+        <div
+          style="background-color:{config.information.color}"
+          class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
+            ? 'border-error'
+            : 'border-transparent'}"
         >
-          <circle cx="1.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="1.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="1.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="6.5" r="1.5" fill="#D9D9D9" />
-          <circle cx="6.5" cy="11.5" r="1.5" fill="#D9D9D9" />
-        </svg>
-      </div>
-
-      <div
-        style="background-color:{config.information.color}"
-        class="flex items-center p-2 w-min text-center"
-      >
-        <div class="w-6 h-6 whitespace-nowrap">
-          {#if config.information.icon !== undefined}
-            {@html config.information.icon}
-          {:else}
-            <span class="text-white">
-              {config.information.blockTitle}
-            </span>
-          {/if}
+          <div class="w-6 h-6 whitespace-nowrap">
+            {@html config.information.blockIcon}
+          </div>
         </div>
-      </div>
+      {/if}
 
       <!-- Body of the config block -->
       <div
-        style="background-color:{config.information.rendering !== 'standard'
-          ? config.information.color
-          : ''}"
-        class="w-full bg-secondary"
-        class:rounded-tr-xl={config.information.rounding == "top"}
-        class:rounded-br-xl={config.information.rounding == "bottom"}
-        class:group-hover:bg-select-saturate-10={!toggle}
+        class="w-full flex flex-grow items-center"
+        class:cursor-auto={toggled}
+        class:bg-opacity-30={toggled}
       >
-        {#if toggle || config.information.rendering !== "standard"}
-          <container
-            in:slide={{ duration: animationDuration }}
-            class="flex items-center h-full w-full bg-opacity-60 pointer-events-auto"
-            class:bg-primary={toggle}
-            class:pr-2={config.information.rendering !== "standard"}
-          >
-            <fader-transition
-              class="w-full"
-              in:fade={{
-                easing: quadIn,
-                delay: animationDuration / 3,
-                duration: animationDuration,
-              }}
-            >
-              <svelte:component
-                this={config.component}
-                {index}
-                {config}
-                {access_tree}
-                on:replace={(e) => {
-                  replace_me(e);
-                }}
-                on:informationOverride={(e) => {
-                  information_override(e);
-                }}
-                on:validator={(e) => {
-                  const data = e.detail;
-                  validationError = data.isError;
-                }}
-                on:output={(e) => {
-                  config.script = e.detail.script;
-                  config.toValidate = e.detail.toValidate;
-                  isSyntaxError();
-                  handleConfigChange({ configName: config.information.name });
-                  configs = configs;
-                }}
-              />
-            </fader-transition>
-          </container>
-        {:else}
-          <div
-            class="ml-4 flex flex-row justify-between w-full items-center h-full"
-          >
-            <span class="text-white">{config.information.desc}</span>
-            {#if syntaxError}
-              <span class="text-error text-xs">SYNTAX ERROR</span>
-            {/if}
+        <!-- Content of block -->
+        {#if (toggled && config.information.toggleable) || typeof config.header === "undefined"}
+          <!-- Body of the Action block when toggled -->
+          <div class="bg-secondary bg-opacity-30 h-full w-full">
+            <svelte:component
+              this={config.component}
+              class="h-full w-full px-2 -my-[1px] border-y border-r {syntaxError
+                ? 'border-error'
+                : 'border-transparent'} {config.information.hideIcon
+                ? 'border-l'
+                : ''}"
+              {index}
+              {config}
+              {access_tree}
+              {syntaxError}
+              on:replace={replace_me}
+              on:validator={handleValidator}
+              on:output={handleOutput}
+              on:toggle={handleToggle}
+            />
           </div>
+        {:else}
+          <!-- Header of the Action block when untoggled -->
+
+          <svelte:component
+            this={config.header}
+            {config}
+            {access_tree}
+            class="bg-secondary px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
+              ? 'border-error'
+              : 'border-transparent'} {config.information.hideIcon
+              ? 'border-l'
+              : ''}"
+            on:toggle={handleToggle}
+            on:output={handleOutput}
+          />
         {/if}
       </div>
     </div>
   </carousel>
-
-  <Options
-    {toggle}
-    {index}
-    {configs}
-    rendering={config.information.rendering}
-    componentName={config.information.name}
-  />
 </wrapper>
 
 <style global>

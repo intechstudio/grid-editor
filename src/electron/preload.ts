@@ -6,7 +6,8 @@ contextBridge.exposeInMainWorld("ctxProcess", {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   platform: () => process.platform,
-  env: () => ipcRenderer.sendSync("get-env"),
+  configuration: () => ipcRenderer.sendSync("getConfiguration"),
+  buildVariables: () => ipcRenderer.sendSync("getBuildVariables"),
   // we can also expose variables, not just functions
 });
 
@@ -29,56 +30,54 @@ contextBridge.exposeInMainWorld("electron", {
     onFirmwareUpdate: (callback) =>
       ipcRenderer.on("onFirmwareUpdate", callback),
     findBootloaderPath: () => ipcRenderer.invoke("findBootloaderPath"),
-    firmwareDownload: (targetFolder, arch) =>
+    firmwareDownload: (targetFolder, arch, product) =>
       ipcRenderer.invoke("firmwareDownload", { targetFolder }),
   },
   serial: {
     restartSerialCheckInterval: () =>
       ipcRenderer.invoke("restartSerialCheckInterval"),
   },
+  clipboard: {
+    writeText: (text) => ipcRenderer.invoke("clipboardWriteText", { text }),
+  },
   configs: {
-    moveOldConfigs: (configPath, rootDirectory) =>
-      ipcRenderer.invoke("moveOldConfigs", { configPath, rootDirectory }),
+    migrateToProfileCloud: (oldRootPath, newRootPath, configDirectory) =>
+      ipcRenderer.invoke("migrateToProfileCloud", {
+        oldRootPath,
+        newRootPath,
+        configDirectory,
+      }),
     loadConfigsFromDirectory: (configPath, rootDirectory) =>
       ipcRenderer.invoke("loadConfigsFromDirectory", {
         configPath,
         rootDirectory,
       }),
-    saveConfig: (configPath, name, config, rootDirectory, user) =>
+    onSendConfigsToRenderer: (callback) =>
+      ipcRenderer.on("sendConfigsToRenderer", callback),
+    startConfigsWatch: (configPath, rootDirectory) =>
+      ipcRenderer.invoke("startConfigsWatch", { configPath, rootDirectory }),
+    stopConfigsWatch: () => ipcRenderer.invoke("stopConfigsWatch"),
+    saveConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("saveConfig", {
         configPath,
-        name,
-        config,
         rootDirectory,
-        user,
-      }),
-    updateConfig: (
-      configPath,
-      name,
-      config,
-      rootDirectory,
-      oldName,
-      profileFolder
-    ) =>
-      ipcRenderer.invoke("updateConfig", {
-        configPath,
-        name,
         config,
-        rootDirectory,
-        oldName,
-        profileFolder,
       }),
-    deleteConfig: (configPath, name, rootDirectory, profileFolder) =>
+    deleteConfig: (configPath, rootDirectory, config) =>
       ipcRenderer.invoke("deleteConfig", {
         configPath,
-        name,
         rootDirectory,
-        profileFolder,
+        config,
       }),
+    onExternalResponse: (callback) =>
+      ipcRenderer.on("onExternalConfigLinkResponse", callback),
   },
   resetAppSettings: () => ipcRenderer.sendSync("resetAppSettings"),
   getLatestVideo: () => ipcRenderer.invoke("getLatestVideo"),
   openInBrowser: (url) => ipcRenderer.invoke("openInBrowser", { url }),
+  startOfflineProfileCloud: () =>
+    ipcRenderer.invoke("startOfflineProfileCloud"),
+  stopOfflineProfileCloud: () => ipcRenderer.invoke("stopOfflineProfileCloud"),
   fetchUrlJSON: (url) => ipcRenderer.invoke("fetchUrlJSON", url),
   restartApp: () => ipcRenderer.sendSync("restartApp"),
   updater: {
@@ -87,12 +86,6 @@ contextBridge.exposeInMainWorld("electron", {
   },
   discord: {
     sendMessage: (message) => ipcRenderer.invoke("sendToDiscord", { message }),
-  },
-  analytics: {
-    google: (name, params) =>
-      ipcRenderer.invoke("googleAnalytics", { name, params }),
-    influx: (category, action, label, value) =>
-      ipcRenderer.invoke("influxAnalytics", { category, action, label, value }),
   },
   persistentStorage: {
     get: (request) => ipcRenderer.invoke("getPersistentStore", request),
@@ -112,8 +105,13 @@ contextBridge.exposeInMainWorld("electron", {
     transmit: (message) => ipcRenderer.invoke("websocketTransmit", { message }),
     changePort: (port) => ipcRenderer.invoke("websocketChangePort", { port }),
   },
-  plugin: {
-    start: (name) => ipcRenderer.invoke("startPlugin", { name }),
-    stop: (name) => ipcRenderer.invoke("stopPlugin", { name }),
-  },
+});
+
+const windowLoaded = new Promise((resolve) => {
+  window.onload = resolve;
+});
+
+ipcRenderer.on("plugin-manager-port", async (event) => {
+  await windowLoaded;
+  window.postMessage("plugin-manager-port", "*", event.ports);
 });

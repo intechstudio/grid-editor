@@ -3,70 +3,23 @@ import { writable, get, derived } from "svelte/store";
 import grid from "../protocol/grid-protocol";
 import instructions from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { selectedProfileStore } from "./profile-helper.store";
-import { selectedPresetStore } from "./preset-helper.store";
+import { selectedConfigStore } from "./config-helper.store";
 
-import _utils from "./_utils";
+import { Analytics } from "./analytics.js";
 
 import { appSettings } from "./app-helper.store";
 
-const { env } = window.ctxProcess;
-
 let lastPageActivator = "";
 
-async function detectActiveWindow() {
-  if (get(appSettings).persistant.pageActivatorEnabled !== true) {
-    return;
-  }
-
-  try {
-    if (get(appSettings).intervalPause) return;
-
-    let result = await window.electron.activeWindow();
-
-    if (result === undefined) {
-      result = { owner: { name: "Unknown!" }, title: "Invalid title!" };
-    }
-
-    if (get(appSettings).intervalPause) return;
-    if (get(unsaved_changes) !== 0) return;
-
-    appSettings.update((s) => {
-      s.activeWindowResult = result;
-      return s;
-    });
-
-    if (get(appSettings).persistant.pageActivatorEnabled !== true) {
-      return;
-    }
-
-    if (lastPageActivator === result.owner.name) {
-      return;
-    }
-
-    let criteria = [
-      get(appSettings).persistant.pageActivatorCriteria_0,
-      get(appSettings).persistant.pageActivatorCriteria_1,
-      get(appSettings).persistant.pageActivatorCriteria_2,
-      get(appSettings).persistant.pageActivatorCriteria_3,
-    ];
-
-    for (let i = 0; i < 4; i++) {
-      if (criteria[i] === result.owner.name) {
-        lastPageActivator = result.owner.name;
-
-        runtime.change_page(i);
-        return;
-      }
-    }
-
-    // default to page 0 if not found
-    lastPageActivator = result.owner.name;
-    runtime.change_page(0);
-  } catch (e) {
-    console.error("detectActiveWindow failed", e);
-  }
-}
+export const eventType = {
+  0: "Init",
+  1: "Potmeter",
+  2: "Encoder",
+  3: "Button",
+  4: "Utility",
+  5: "MIDI RX",
+  6: "Timer",
+};
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -74,28 +27,24 @@ const setIntervalAsync = (fn, ms) => {
   });
 };
 
-const setIntervalAsyncActiveWindow = (fn) => {
-  fn().then(() => {
-    let interval = get(appSettings).persistant.pageActivatorInterval;
-    setTimeout(() => setIntervalAsyncActiveWindow(fn), interval);
-  });
-};
-
-setIntervalAsyncActiveWindow(detectActiveWindow);
-
 // The controller which is added to runtime first, load a default config!
 
 let selection_changed_timestamp = 0;
 
 export const controlElementClipboard = writable([]);
 export const appActionClipboard = writable([]);
-export const conditionalConfigPlacement = writable();
 
 export const elementPositionStore = writable({});
 export const elementNameStore = writable({});
 export const ledColorStore = writable({});
 
 export function update_elementPositionStore(descr) {
+  if (descr.class_parameters.EVENTTYPE == 3) {
+    // button change must not be registered
+
+    return;
+  }
+
   let eps = get(elementPositionStore);
 
   if (eps[descr.brc_parameters.SX] === undefined) {
@@ -117,6 +66,8 @@ export function update_elementPositionStore(descr) {
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
   ] = descr.class_parameters.EVENTPARAM;
+
+  //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
   elementPositionStore.set(eps);
 }
@@ -232,47 +183,6 @@ export function update_ledColorStore(descr) {
 //Template logger object: { type: "", message: "", classname: "" }
 export const logger = writable();
 
-//debug monitor lua section
-function create_luadebug_store() {
-  const store = writable({ config: "", enabled: true, data: [] });
-
-  return {
-    ...store,
-    update_config: (value) => {
-      store.update((s) => {
-        s.config = value;
-        return s;
-      });
-    },
-  };
-}
-
-export const luadebug_store = create_luadebug_store();
-
-function createMultiSelect() {
-  const default_values = {
-    multiselect: false,
-    selection: [],
-    all_selected: false,
-  };
-
-  const store = writable(default_values);
-
-  return {
-    ...store,
-    reset: () => {
-      store.update((s) => {
-        s.multiselect = false;
-        s.all_selected = false;
-        s.selection = [];
-        return s;
-      });
-    },
-  };
-}
-
-export const appMultiSelect = createMultiSelect();
-
 function create_user_input() {
   const defaultValues = {
     brc: {
@@ -284,6 +194,7 @@ function create_user_input() {
       pagenumber: 0,
       elementnumber: -1, // should be checked out if grid sends back array or not
       eventtype: 2,
+      elementtype: "",
     },
   };
 
@@ -291,12 +202,12 @@ function create_user_input() {
 
   function process_incoming_event_from_grid(descr) {
     // engine is disabled
-    if (get(engine) === "DISABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 
-    // track physical interaction
-    if (!get(appSettings).changeOnContact) {
+    // Don't track physical interaction
+    if (get(appSettings).changeOnEvent === "none") {
       return;
     }
 
@@ -319,6 +230,7 @@ function create_user_input() {
     if (descr.class_parameters.ELEMENTNUMBER == 255) {
       return;
     }
+
     const store = get(_event);
 
     // filter same control element had multiple interactions
@@ -329,7 +241,12 @@ function create_user_input() {
     let sxDifferent = store.brc.dx != descr.brc_parameters.SX;
     let syDifferent = store.brc.dy != descr.brc_parameters.SY;
 
-    if (eventDifferent || elementDifferent || sxDifferent || syDifferent) {
+    if (
+      (eventDifferent && get(appSettings).changeOnEvent === "event") ||
+      elementDifferent ||
+      sxDifferent ||
+      syDifferent
+    ) {
       let current_timestamp = Date.now();
 
       if (current_timestamp - 100 > selection_changed_timestamp) {
@@ -338,9 +255,8 @@ function create_user_input() {
         return;
       }
 
-      //reset of profile selecting
-      selectedProfileStore.set({});
-      selectedPresetStore.set({});
+      //reset of config selecting
+      selectedConfigStore.set({});
 
       _event.update((store) => {
         const rt = get(runtime);
@@ -355,18 +271,35 @@ function create_user_input() {
           return store;
         }
 
+        if (get(appSettings).changeOnEvent === "element") {
+          const incomingEventTypes = getElementEventTypes(
+            descr.brc_parameters.SX,
+            descr.brc_parameters.SY,
+            descr.class_parameters.ELEMENTNUMBER
+          );
+
+          if (!incomingEventTypes.includes(store.event.eventtype)) {
+            //Select closest event type if incoming device does not have the corrently selected event type
+            const closestEvent = Math.min(
+              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
+            );
+            store.event.eventtype = String(closestEvent);
+          }
+        } else if (get(appSettings).changeOnEvent === "event") {
+          store.event.eventtype = descr.class_parameters.EVENTTYPE;
+        }
+
         // lets find out what type of module this is....
         store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
         store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
         store.brc.rot = descr.brc_parameters.ROT;
-
-        store.event.eventtype = descr.class_parameters.EVENTTYPE;
         store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
 
         let elementtype =
           grid.moduleElements[device.id.split("_")[0]][
             store.event.elementnumber
           ];
+
         store.event.elementtype = elementtype;
 
         return store;
@@ -424,7 +357,7 @@ function create_user_input() {
 
 export const user_input = create_user_input();
 
-export const unsaved_changes = writable(0);
+export const unsaved_changes = writable([]);
 
 function create_runtime() {
   const _runtime = writable([]);
@@ -554,7 +487,19 @@ function create_runtime() {
       const device = get(_runtime).find((device) => device.id == controller.id);
       if (device) {
         if (device.rot != controller.rot) {
-          device.rot = controller.rot; // UPDATE ROTATION, AS NEIGHTBOUR MODULE REMEMBERS INVALID ROT!
+          _runtime.update((rt) => {
+            const index = rt.findIndex((device) => device.id == controller.id);
+            rt[index].rot = controller.rot;
+            return rt;
+          });
+        }
+
+        if (device.portstate != controller.portstate) {
+          _runtime.update((rt) => {
+            const index = rt.findIndex((device) => device.id == controller.id);
+            rt[index].portstate = controller.portstate;
+            return rt;
+          });
         }
 
         get(heartbeat).find((device) => device.id == controller.id).alive =
@@ -592,33 +537,38 @@ function create_runtime() {
 
         firstConnection = get(_runtime).length === 1;
 
-        window.electron.analytics.influx(
-          "application",
-          "runtime",
-          "module count",
-          _runtime.length
-        );
+        Analytics.track({
+          event: "Connect Module",
+          payload: {
+            action: "Connect",
+            controller: controller,
+            moduleCount: get(runtime).length,
+          },
+          mandatory: false,
+        });
       }
 
       if (firstConnection) {
-        setTimeout(() => {
-          user_input.update((ui) => {
-            ui.brc.dx = controller.dx;
-            ui.brc.dy = controller.dy;
-            ui.event.elementnumber = 0;
-
-            ui.event.elementtype =
-              controller.pages[
-                ui.event.pagenumber
-              ].control_elements[0].controlElementType;
-            ui.event.eventtype = 0;
-            return ui;
-          });
-        }, 500);
+        setDefaultSelectedElement(controller);
       }
     } catch (error) {
       console.error(error);
     }
+  }
+
+  function setDefaultSelectedElement(controller) {
+    user_input.update((ui) => {
+      ui.brc.dx = controller.dx;
+      ui.brc.dy = controller.dy;
+      ui.event.elementnumber = 0;
+
+      ui.event.elementtype =
+        controller.pages[
+          ui.event.pagenumber
+        ].control_elements[0].controlElementType;
+      ui.event.eventtype = 0;
+      return ui;
+    });
   }
 
   function erase_all() {
@@ -779,13 +729,24 @@ function create_runtime() {
   }
 
   function whole_page_overwrite(array) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
       classname: "profileload",
       message: `Profile load started...`,
     });
+
+    // Reorder array to send system element first
+    const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+
+    // Check if the object with id === 255 was found
+    if (index !== -1) {
+      // Remove the object at the found index
+      const objectToMove = array.splice(index, 1)[0];
+
+      // Add the object to the front of the array
+      array.unshift(objectToMove);
+    }
 
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {
@@ -825,7 +786,6 @@ function create_runtime() {
         ) {
           // this is last element so we need to add the callback
           callback = function () {
-            engine.set("ENABLED");
             logger.set({
               type: "success",
               mode: 0,
@@ -856,19 +816,20 @@ function create_runtime() {
     page,
     element,
     event,
-    actionstring,
+    actionString,
     status
   ) {
     // config
     _runtime.update((_runtime) => {
       let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
       if (dest) {
-        dest.config = actionstring;
+        dest.config = actionString;
         dest.cfgStatus = status;
       }
       return _runtime;
     });
   }
+
   function send_event_configuration_to_grid(
     dx,
     dy,
@@ -941,7 +902,6 @@ function create_runtime() {
   }
 
   function fetch_page_configuration_from_grid(callback) {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -966,8 +926,6 @@ function create_runtime() {
         classname: "profilesave",
         message: `No module selected`,
       });
-
-      engine.set("ENABLED");
 
       return;
     }
@@ -1019,7 +977,6 @@ function create_runtime() {
         }
       });
     }
-
     return;
   }
 
@@ -1046,8 +1003,7 @@ function create_runtime() {
       return _runtime;
     });
 
-    unsaved_changes.set(0);
-
+    unsaved_changes.set([]);
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
       //do nothing just trigger change detection
@@ -1107,6 +1063,13 @@ function create_runtime() {
       moduleType === undefined ||
       heartbeat_class_param === undefined
     ) {
+      console.log(
+        heartbeat_class_param.HWCFG,
+        "ERROR",
+        header_param,
+        moduleType,
+        heartbeat_class_param
+      );
       throw "Error creating new module.";
     }
     moduleType = moduleType.substr(0, 4);
@@ -1116,6 +1079,7 @@ function create_runtime() {
       architecture: grid.module_architecture_from_hwcfg(
         heartbeat_class_param.HWCFG
       ),
+      portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
       dy: header_param.SY,
@@ -1144,8 +1108,13 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
+
+    const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
+
     _runtime.update((rt) => {
-      return rt.filter((g) => g.dx != dx || g.dy != dy);
+      const index = rt.indexOf(removed);
+      rt.splice(index, 1);
+      return rt;
     });
 
     user_input.module_destroy_handler(dx, dy);
@@ -1168,26 +1137,42 @@ function create_runtime() {
         lcs[dx][dy] = undefined;
         return lcs;
       });
+
+      const rt = get(_runtime);
+      if (rt.length > 0) {
+        const selectedElementsModule = {
+          dx: get(user_input).brc.dx,
+          dy: get(user_input).brc.dy,
+        };
+        if (
+          selectedElementsModule.dx == removed.dx &&
+          selectedElementsModule.dy == removed.dy
+        ) {
+          setDefaultSelectedElement(rt[0]);
+        }
+      }
     } catch (error) {}
 
-    window.electron.analytics.influx(
-      "application",
-      "runtime",
-      "module count",
-      get(runtime).length
-    );
+    Analytics.track({
+      event: "Disconnect Module",
+      payload: {
+        action: "Disconnect",
+        moduleCount: get(runtime).length,
+      },
+      mandatory: false,
+    });
   }
 
   function reset() {
     _runtime.set([]);
 
     user_input.reset();
-    unsaved_changes.set(0);
+    unsaved_changes.set([]);
     writeBuffer.clear();
   }
 
   function change_page(new_page_number) {
-    if (get(engine) !== "ENABLED") {
+    if (get(writeBuffer).length > 0) {
       return;
     }
 
@@ -1241,6 +1226,16 @@ export function getDeviceName(x, y) {
   return currentModule?.id.slice(0, 4);
 }
 
+export function getElementEventTypes(x, y, elementNumber) {
+  const rt = get(runtime);
+  const currentModule = rt.find((device) => device.dx == x && device.dy == y);
+  const element = currentModule.pages[0].control_elements.find(
+    (e) => e.controlElementNumber == elementNumber
+  );
+
+  return element.events.map((e) => e.event.value);
+}
+
 function createEngine() {
   const _engine = writable("ENABLED");
 
@@ -1273,23 +1268,9 @@ const grid_heartbeat_interval_handler = async function () {
 
 setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 
-setInterval(function () {
-  if (!get(appSettings).trayState) {
-    window.electron.analytics.influx("application", "runtime", "tray state", 1);
-  } else {
-    window.electron.analytics.influx("application", "runtime", "tray state", 0);
-  }
-
-  window.electron.analytics.influx(
-    "application",
-    "runtime",
-    "module count",
-    get(runtime).length
-  );
-}, 10000);
-
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
+
   if (get(unsaved_changes) != 0 || get(appSettings).modal !== "") {
     type = 254;
   }
@@ -1304,7 +1285,7 @@ const editor_heartbeat_interval_handler = async function () {
 setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
 function createLocalDefinitions() {
-  const store = writable();
+  const store = writable([]);
 
   return {
     ...store,

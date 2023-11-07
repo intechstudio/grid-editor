@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "gks",
@@ -7,6 +11,7 @@
     category: "keyboard",
     color: "#9D95AD",
     desc: "Keyboard",
+    blockTitle: "Keyboard",
     defaultLua: "gks()",
     icon: `
       <svg width="100%" height="100%" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,6 +20,18 @@
         <path d="M4.66667 10.318V8.49984H3L5.5 5.31802L8 8.49984H6.33333V10.318H4.66667Z" fill="black"/>
       </svg>
     `,
+    blockIcon: `
+      <svg width="100%" height="100%" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M1 0H16C16.5523 0 17 0.447715 17 1V16C17 16.5523 16.5523 17 16 17H1C0.447715 17 0 16.5523 0 16V1C0 0.447715 0.447715 0 1 0ZM14 1H3C2.44772 1 2 1.44772 2 2V13C2 13.5523 2.44772 14 3 14H14C14.5523 14 15 13.5523 15 13V2C15 1.44772 14.5523 1 14 1Z" fill="black"/>
+        <path d="M4.5 12C4.22386 12 4 12.2239 4 12.5C4 12.7761 4.22386 13 4.5 13H12.5C12.7761 13 13 12.7761 13 12.5C13 12.2239 12.7761 12 12.5 12H4.5Z" fill="black"/>
+        <path d="M4.66667 10.318V8.49984H3L5.5 5.31802L8 8.49984H6.33333V10.318H4.66667Z" fill="black"/>
+      </svg>
+    `,
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -59,9 +76,19 @@
   let loaded = false;
   let macroInputField;
 
+  let isStored = true;
+  let storedScript = undefined;
+
+  $: isStored = config.script === storedScript;
+
+  $: if ($unsaved_changes.length === 0) {
+    storedScript = config.script;
+  }
+
   onMount(() => {
-    selectedLayout = $appSettings.persistant.keyboardLayout;
+    selectedLayout = $appSettings.persistent.keyboardLayout;
     change_layout();
+    keys_buffer = keys;
   });
 
   $: if (config.script && !loaded) {
@@ -69,8 +96,6 @@
   }
 
   function change_layout() {
-    console.log("chg layout");
-
     layout = layouts.find((e) => {
       return e.name === selectedLayout;
     });
@@ -81,8 +106,8 @@
     } else {
     }
 
-    if ($appSettings.persistant.keyboardLayout !== selectedLayout) {
-      $appSettings.persistant.keyboardLayout = selectedLayout;
+    if ($appSettings.persistent.keyboardLayout !== selectedLayout) {
+      $appSettings.persistent.keyboardLayout = selectedLayout;
     }
 
     macrosToConfig({ script: config.script });
@@ -148,6 +173,7 @@
   }
 
   let keys = "";
+  let keys_buffer = "";
   let parameters = [];
   let caretKeyBuffer = [];
   let keyBuffer = [];
@@ -195,8 +221,6 @@
       keyBuffer = tempKeyBuffer;
 
       keys = colorize(tempKeyBuffer);
-
-      manageMacro();
     }
 
     // filter same keypress type
@@ -239,8 +263,6 @@
       }
 
       keys = colorize(tempKeyBuffer);
-
-      manageMacro();
     }
 
     // update last key...
@@ -248,13 +270,9 @@
   }
 
   function addKey() {
-    console.log(selectedKey);
-
     let added_key = keyMap.default.find((e) => {
       return e.info === selectedKey.info;
     });
-
-    console.log(added_key);
 
     if (caretPos == -1) {
       keyBuffer.splice(keyBuffer.length, 0, {
@@ -298,7 +316,6 @@
     // identify if the following element is a pair key, set type and cut point accordingly
     let cuts = [];
     args.forEach((arg, i) => {
-      //console.log(arg);
       if (args[i + 1]) {
         if (
           arg.info == args[i + 1].info &&
@@ -380,7 +397,6 @@
 
   function setCaret(e) {
     if (e.target.getAttribute("data-caret") !== null) {
-      //console.log('set caret', +e.target.getAttribute('data-caret'))
       keyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
       caretKeyBuffer = [];
       // this is the caret pos used to add new keys in the array
@@ -440,6 +456,13 @@
 
     sendData(parameters);
   }
+
+  function onBlur(e) {
+    if (keys_buffer !== keys) {
+      manageMacro();
+    }
+    keys_buffer = keys;
+  }
 </script>
 
 <div
@@ -449,39 +472,39 @@
     visibleCaretPos = -1;
     caretPos = -1;
   }}
-  class="flex w-full flex-col items-start p-2"
+  class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto"
 >
-  <div class="flex flex-row w-full">
-    <div class="mr-auto text-gray-500 text-sm py-1 pl-2">Macro Input Field</div>
-    <div class="text-gray-500 text-sm py-1 pl-2 mr-2">Layout:</div>
-    <select
-      class="rounded bg-secondary text-white focus:outline-none border-select mr-2"
-      bind:value={selectedLayout}
-      on:change={change_layout}
-    >
-      {#each layouts as layout}
-        <option value={layout.name} class="text-white bg-secondary py-1"
-          >{layout.name}</option
-        >
-      {/each}
-    </select>
-  </div>
-  {#if $unsaved_changes}
-    <div class="pl-2 text-sm text-red-500">
-      Macros will take effect after storing
-    </div>
-  {/if}
+  <div class="flex flex-col">
+    <div class="flex flex-row justify-between mb-2">
+      <div class="text-gray-500 text-sm truncate">Macro Input Field</div>
 
-  <div class="flex w-full p-2">
+      <!-- Layout Selector -->
+      <div class="flex flex-row gap-2">
+        <div class="text-gray-500 text-sm">Layout:</div>
+        <select
+          class="rounded bg-secondary text-white focus:outline-none border-select"
+          bind:value={selectedLayout}
+          on:change={change_layout}
+        >
+          {#each layouts as layout}
+            <option value={layout.name} class="text-white bg-secondary py-1"
+              >{layout.name}</option
+            >
+          {/each}
+        </select>
+      </div>
+    </div>
+    <!-- Keyboard Input Field -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       use:clickOutside={{ useCapture: true }}
-      id="idk"
       bind:this={macroInputField}
-      class="{$unsaved_changes
-        ? 'focus:border-red-400 border-red-500'
-        : 'focus:border-select-desaturate-20 border-select'} editableDiv w-full rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
+      class="{!isStored
+        ? 'focus:border-warning-desaturate-20 border-warning'
+        : 'focus:border-select-desaturate-20 border-select'} editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
+      on:blur={onBlur}
       contenteditable="true"
       on:click={(e) => {
         caretFocus = true;
@@ -500,84 +523,92 @@
         </div>
       {/each}
     </div>
-  </div>
-  <div class="flex flex-col w-full items-start p-2">
-    <div class="text-gray-500 text-sm pb-1">Add Key</div>
 
-    <div class="flex w-full items-start justify-between">
-      <div class="flex flex-col">
-        <select
-          bind:value={selectedKey}
-          class="bg-secondary flex flex-grow text-white p-1 focus:outline-none border-select"
-        >
-          {#each layout.lookup as key}
-            <option value={key} class="text-white bg-secondary py-1"
-              >{key.display}</option
-            >
-          {/each}
-        </select>
-        <div class="flex mt-1">
-          <div
-            on:click={() => {
-              addonKeyType = "keyup";
-            }}
-            class="{addonKeyType == 'keyup'
-              ? 'border-yellow-500 text-yellow-500'
-              : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md"
-          >
-            keyup
-          </div>
-          <div
-            on:click={() => {
-              addonKeyType = "keydown";
-            }}
-            class="{addonKeyType == 'keydown'
-              ? 'border-red-500 text-red-500'
-              : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md"
-          >
-            keydown
-          </div>
-          <div
-            on:click={() => {
-              addonKeyType = "keydownup";
-            }}
-            class="{addonKeyType == 'keydownup'
-              ? 'border-green-500 text-green-500'
-              : 'text-select-desaturate-20 border-select-desaturate-20'} px-2 m-0.5 text-sm bg-primary flex items-center border cursor-default rounded-md"
-          >
-            keydownup
-          </div>
-        </div>
-      </div>
-
-      <button
-        on:click={addKey}
-        class="flex items-center justify-center rounded border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2"
-        >Add Key</button
-      >
+    <div class="text-sm text-warning truncate" class:hidden={isStored}>
+      Macros will take effect after storing
     </div>
   </div>
 
-  <div class="flex flex-col w-full items-start p-2">
-    <div class="text-gray-500 text-sm pb-1">Delay Key</div>
-    <div class="flex items-start justify-between w-full">
+  <div class="grid grid-cols-4 grid-rows-[auto_auto_auto] gap-x-2 gap-y-1">
+    <span class="text-gray-500 text-sm col-span-4">Add Key</span>
+    <select
+      bind:value={selectedKey}
+      class="text-white focus:outline-none border-select bg-primary flex col-span-3"
+    >
+      {#each layout.lookup as key}
+        <option value={key} class="text-white bg-secondary py-1"
+          >{key.display}</option
+        >
+      {/each}
+    </select>
+
+    <button
+      on:click={addKey}
+      class="text-center rounded bg-commit hover:bg-commit-saturate-20 text-white px-2 py-1 truncate"
+      >Add Key</button
+    >
+
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+      on:click={() => {
+        addonKeyType = "keyup";
+      }}
+      class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keyup'
+        ? 'border-yellow-500 text-yellow-500'
+        : 'text-select-desaturate-20 border-select-desaturate-20'} "
+    >
+      keyup
+    </div>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+      on:click={() => {
+        addonKeyType = "keydown";
+      }}
+      class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keydown'
+        ? 'border-red-500 text-red-500'
+        : 'text-select-desaturate-20 border-select-desaturate-20'}"
+    >
+      keydown
+    </div>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div
+      on:click={() => {
+        addonKeyType = "keydownup";
+      }}
+      class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keydownup'
+        ? 'border-green-500 text-green-500'
+        : 'text-select-desaturate-20 border-select-desaturate-20'}"
+    >
+      keydownup
+    </div>
+  </div>
+  <div class="flex flex-col">
+    <div class="text-gray-500 text-sm">Delay Key</div>
+    <div class="flex flex-row gap-2">
       <input
         bind:value={delayKey}
         type="number"
         min="5"
         max="4000"
-        class="bg-secondary flex flex-grow text-white py-1 px-2 focus:outline-none border-select"
+        class="bg-secondary flex flex-grow text-white focus:outline-none border-select px-2 py-1"
       />
       <button
         on:click={addDelay}
-        class="flex items-center justify-center rounded ml-2 border-2 border-commit bg-commit hover:bg-commit-saturate-20 text-white px-2"
-        >Add Delay</button
+        class="text-center rounded bg-commit hover:bg-commit-saturate-20 text-white px-2 py-1 truncate"
       >
+        Add Delay
+      </button>
     </div>
   </div>
+  <div class="flex flex-col">
+    <div class="text-gray-500 text-sm">Default Delay</div>
 
-  <div class="flex w-full flex-col p-2">
-    <div class="text-gray-500 text-sm pb-1">Default Delay</div>
     <input
       bind:value={defaultDelay}
       on:input={(e) => {
@@ -586,15 +617,16 @@
       type="number"
       min="5"
       max="4000"
-      class="bg-secondary w-full flex flex-grow text-white px-2 py-1 focus:outline-none border-select"
+      class="bg-secondary flex text-white focus:outline-none border-select px-2 py-1"
     />
   </div>
 
   <button
     on:click={clearMacro}
-    class="flex items-center justify-center rounded m-2 border-select bg-select border-2 hover:bg-red-500 text-white px-2 py-0.5"
-    >Clear All</button
+    class="text-center rounded bg-select hover:bg-red-500 text-white px-2 py-1 my-2"
   >
+    Clear All
+  </button>
 </div>
 
 <style>

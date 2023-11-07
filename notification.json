@@ -4,8 +4,16 @@
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
-    "link": "https://intech.studio/grid-editor",
-    "message": "Please download the new editor version from the Intech Studio website!"
+    "link": "https://github.com/intechstudio/grid-editor/releases/tag/v1.2.39",
+    "message": "Editor is now available with apple silicon builds. Auto updates may not work without downloading manually first!"
+  },
+  {
+    "type": "notificationBAK",
+    "delay": 5000,
+    "class": "bg-blue-500 text-white",
+    "dismissable": true,
+    "link": "https://intech.studio/shop/modules/ef44",
+    "message": "Couple EF44 version 1.0 units are still on stock, can be grabbed with 50% discount! Use discount code on /cart page: EF44-50-OUT"
   },
   {
     "type": "error",

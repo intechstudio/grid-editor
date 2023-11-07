@@ -6,11 +6,11 @@ export function clickOutside(node, { useCapture = false }) {
     }
   };
 
-  document.addEventListener("click", handleClick, useCapture);
+  document.addEventListener("mousedown", handleClick, useCapture);
 
   return {
     destroy() {
-      document.removeEventListener("click", handleClick, useCapture);
+      document.removeEventListener("mousedown", handleClick, useCapture);
     },
   };
 }

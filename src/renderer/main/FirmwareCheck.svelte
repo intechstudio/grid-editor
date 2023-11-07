@@ -17,7 +17,9 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   import { fade } from "svelte/transition";
   import { escape } from "svelte/internal";
 
-  const { env } = window.ctxProcess;
+  import { Analytics } from "../runtime/analytics.js";
+
+  const configuration = window.ctxProcess.configuration();
 
   let fwMismatch = false;
 
@@ -79,15 +81,13 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
 
       // only if mismatch is not already detected
       if (fwMismatch === false) {
-        window.electron.analytics.google("firmware-download", {
-          value: "mismatch detected",
+        Analytics.track({
+          event: "FirmwareCheck",
+          payload: {
+            message: "Mismatch Detected",
+          },
+          mandatory: false,
         });
-        window.electron.analytics.influx(
-          "application",
-          "firmwarecheck",
-          "firmware update status",
-          "mismatch detected"
-        );
         fwMismatch = true;
       }
     } else {
@@ -177,22 +177,35 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
   }
 
   async function firmwareDownload() {
-    const folder = $appSettings.persistant.profileFolder;
+    const folder = $appSettings.persistent.profileFolder;
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        message: "Firmware Download Start",
+      },
+      mandatory: false,
+    });
+
     await window.electron.firmware.firmwareDownload(folder);
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        message: "Firmware Download Finished",
+      },
+      mandatory: false,
+    });
   }
 
   async function firmwareTroubleshooting() {
-    window.electron.analytics.google("firmware-download", {
-      value: "troubleshooting",
+    Analytics.track({
+      event: "FirmwareCheck",
+      payload: {
+        click: "Troubleshooting",
+      },
+      mandatory: false,
     });
-    window.electron.analytics.influx(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "open troubleshooting"
-    );
 
-    const url = env()["DOCUMENTATION_FIRMWAREUPDATE_URL"];
+    const url = configuration.DOCUMENTATION_FIRMWAREUPDATE_URL;
     window.electron.openInBrowser(url);
   }
 </script>
@@ -221,7 +234,7 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       </div>
       <div class="mx-2">Connect the module in bootloader mode!</div>
     </div>
-    <div in:fade={{ delay: 8000 }}>
+    <div in:fade|global={{ delay: 8000 }}>
       <button
         on:click={firmwareTroubleshooting}
         class="bg-blue-700 hover:bg-red-800 ml-2 py-1 px-2 border-none font-medium text-white focus:outline-none rounded"

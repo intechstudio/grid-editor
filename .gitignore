@@ -1,6 +1,15 @@
 .DS_Store
 node_modules
+package-lock.json
 public/build/*
+profile-cloud/
 dist-svelte
 dist
 build
+.env*
+/test-results/
+/playwright-report/
+/playwright/.cache/
+buildVariables.json
+.vscode/launch.json
+

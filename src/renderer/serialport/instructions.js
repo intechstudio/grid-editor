@@ -4,12 +4,7 @@ import { appSettings } from "../runtime/app-helper.store";
 import grid from "../protocol/grid-protocol.js";
 
 import { writeBuffer } from "../runtime/engine.store.js";
-import {
-  engine,
-  logger,
-  unsaved_changes,
-  runtime,
-} from "../runtime/runtime.store.js";
+import { logger, unsaved_changes, runtime } from "../runtime/runtime.store.js";
 
 const instructions = {
   sendEditorHeartbeat_immediate: (type) => {
@@ -87,8 +82,6 @@ const instructions = {
         const event = descr.class_parameters.EVENTTYPE;
         const actionstring = descr.class_parameters.ACTIONSTRING;
 
-        // console.log("SUCCESS: ", descr.class_parameters.PAGENUMBER, descr.class_parameters.ELEMENTNUMBER, descr.class_parameters.EVENTTYPE );
-
         runtime.update_event_configuration(
           dx,
           dy,
@@ -113,7 +106,43 @@ const instructions = {
   },
 
   sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
-    unsaved_changes.update((n) => n + 1);
+    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
+      logger.set({
+        type: "alert",
+        mode: 0,
+        classname: "configlength",
+        message: `Config is too long! ${actionstring.length} characters`,
+      });
+      return;
+    }
+
+    //Was no previous change under this event
+
+    unsaved_changes.update((s) => {
+      let obj = get(unsaved_changes).find(
+        (e) =>
+          e.x == dx &&
+          e.y == dy &&
+          e.page == page &&
+          e.element == element &&
+          e.event == event
+      );
+
+      if (typeof obj === "undefined") {
+        obj = {
+          x: dx,
+          y: dy,
+          page,
+          element: element,
+          event: event,
+          changes: 0,
+        };
+        s.push(obj);
+      }
+
+      obj.changes += 1;
+      return s;
+    });
 
     let buffer_element = {
       descr: {
@@ -148,16 +177,6 @@ const instructions = {
       },
       successCb: callback,
     };
-
-    if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
-      logger.set({
-        type: "alert",
-        mode: 0,
-        classname: "configlength",
-        message: `Config is too long! ${actionstring.length} characters`,
-      });
-      return;
-    }
 
     writeBuffer.add_last(buffer_element);
 
@@ -217,7 +236,6 @@ const instructions = {
   },
 
   sendPageStoreToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -253,8 +271,7 @@ const instructions = {
         //console.log('page store execute - fail')
       },
       successCb: function () {
-        engine.set("ENABLED");
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         logger.set({
           type: "success",
           mode: 0,
@@ -265,13 +282,20 @@ const instructions = {
       },
     };
 
-    //engine.strict.store('store', serial, id);
-
     writeBuffer.add_last(buffer_element);
   },
 
   sendNVMEraseToGrid: () => {
-    engine.set("DISABLED");
+    if (get(writeBuffer) > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, erasing NVM memory failed!`,
+      });
+      return;
+    }
+
     logger.set({
       type: "progress",
       mode: 0,
@@ -308,9 +332,8 @@ const instructions = {
         //console.log('NVM erase execute - fail')
       },
       successCb: function () {
-        unsaved_changes.set(0);
+        unsaved_changes.set([]);
         runtime.erase();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -325,6 +348,15 @@ const instructions = {
   },
 
   sendNVMDefragToGrid: () => {
+    if (get(writeBuffer) > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, NVM Defragmentation failed!`,
+      });
+      return;
+    }
     let buffer_element = {
       descr: {
         brc_parameters: {
@@ -356,7 +388,6 @@ const instructions = {
   },
 
   sendPageDiscardToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -397,7 +428,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,
@@ -412,7 +442,6 @@ const instructions = {
   },
 
   sendPageClearToGrid: () => {
-    engine.set("DISABLED");
     logger.set({
       type: "progress",
       mode: 0,
@@ -421,6 +450,7 @@ const instructions = {
     });
 
     let buffer_element = {
+      responseTimeout: 2000,
       descr: {
         brc_parameters: {
           DX: -127,
@@ -449,7 +479,6 @@ const instructions = {
       },
       successCb: function () {
         runtime.clear_page_configuration();
-        engine.set("ENABLED");
         logger.set({
           type: "success",
           mode: 0,

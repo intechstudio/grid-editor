@@ -10,6 +10,9 @@
 
   const { platform } = window.ctxProcess;
 
+  const configuration = window.ctxProcess.configuration();
+  const buildVariables = window.ctxProcess.buildVariables();
+
   function init() {
     document
       .getElementById("minimize-btn")
@@ -98,8 +101,13 @@
         <!-- Title Text + version -->
 
         <div class="flex items-center text-gray-500 text-sm pt-1">
-          Grid Editor v{$appSettings.version.major}.{$appSettings.version
-            .minor}.{$appSettings.version.patch}
+          Grid Editor {configuration?.EDITOR_VERSION}
+          {#if buildVariables.BUILD_ENV == "nightly"}
+            {buildVariables?.BRANCH_NAME}
+          {/if}
+          {#if buildVariables.BUILD_ENV === "development"}
+            {buildVariables.BUILD_ENV}
+          {/if}
         </div>
 
         <!-- Min Max Close -->
@@ -192,8 +200,13 @@
   {:else}
     <div class="draggable flex items-center justify-center h-7">
       <div class="flex text-gray-500 text-sm pt-1">
-        Grid Editor v{$appSettings.version.major}.{$appSettings.version
-          .minor}.{$appSettings.version.patch}
+        Grid Editor {configuration.EDITOR_VERSION}
+        {#if buildVariables.BUILD_ENV == "nightly"}
+          {buildVariables?.BRANCH_NAME}
+        {/if}
+        {#if buildVariables.BUILD_ENV == "development"}
+          {buildVariables?.BUILD_ENV}
+        {/if}
       </div>
     </div>
   {/if}

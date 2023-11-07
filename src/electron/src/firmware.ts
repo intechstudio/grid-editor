@@ -1,9 +1,12 @@
 import nodeDiskInfo from "node-disk-info";
+import Drive from "node-disk-info/dist/classes/drive";
+
 import log from "electron-log";
 import fs from "fs-extra";
 
 import { extractArchiveToTemp, downloadInMainProcess } from "./library";
-import { googleAnalytics, influxAnalytics } from "./analytics";
+
+import configuration from "../../../configuration.json";
 
 export const firmware = {
   mainWindow: undefined,
@@ -11,12 +14,12 @@ export const firmware = {
 
 function delay(time) {
   return new Promise((resolve) => {
-    setTimeout(() => resolve(), time);
+    setTimeout(() => resolve({}), time);
   });
 }
 
 export async function findBootloaderPath() {
-  let diskInfo = undefined;
+  let diskInfo: Drive[] = [];
 
   try {
     diskInfo = nodeDiskInfo.getDiskInfoSync();
@@ -44,9 +47,10 @@ export async function findBootloaderPath() {
       a.blocks === 15867 ||
       a.blocks === 15868 ||
       a.blocks === 8123904 ||
-      // add esp32 bootloader block size here LINUX & M1 Mac & WINDOWS
+      // add esp32 bootloader block size here LINUX & M1 Mac, M1 Mac & WINDOWS
       a.blocks === 32640 ||
       a.blocks === 65281 ||
+      a.blocks === 65280 ||
       a.blocks === 33423360
   );
 
@@ -65,7 +69,7 @@ export async function findBootloaderPath() {
     }
   }
 
-  if (data !== undefined) {
+  if (data !== undefined && gridDrive !== undefined) {
     // is it grid
     if (data.indexOf("SAMD51N20A-GRID") !== -1) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
@@ -73,14 +77,29 @@ export async function findBootloaderPath() {
         code: 3,
         path: gridDrive.mounted,
       });
-      return { path: gridDrive.mounted, architecture: "d51" };
-    } else if (data.indexOf("ESP32S3") !== -1) {
+      return { path: gridDrive.mounted, architecture: "d51", product: "grid" };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Grid") !== -1) {
       firmware.mainWindow.webContents.send("onFirmwareUpdate", {
         message: "Grid ESP32 bootloader is detected!",
         code: 3,
         path: gridDrive.mounted,
       });
-      return { path: gridDrive.mounted, architecture: "esp32" };
+      return {
+        path: gridDrive.mounted,
+        architecture: "esp32",
+        product: "grid",
+      };
+    } else if (data.indexOf("ESP32S3") !== -1 && data.indexOf("Knot") !== -1) {
+      firmware.mainWindow.webContents.send("onFirmwareUpdate", {
+        message: "Knot ESP32 bootloader is detected!",
+        code: 3,
+        path: gridDrive.mounted,
+      });
+      return {
+        path: gridDrive.mounted,
+        architecture: "esp32",
+        product: "knot",
+      };
     }
   }
 }
@@ -99,15 +118,15 @@ export async function firmwareDownload(targetFolder) {
 
   let path = result.path;
 
-  googleAnalytics("firmware-download", { value: "update start" });
-  influxAnalytics(
-    "application",
-    "firmwarecheck",
-    "firmware update status",
-    "update started"
-  );
+  let link =
+    configuration.FIRMWARE_GRID_URL_BEGINING +
+    configuration.FIRMWARE_GRID_URL_END;
 
-  const link = process.env.FIRMWARE_URL_BEGINING + process.env.FIRMWARE_URL_END;
+  if (result.product === "knot") {
+    link =
+      configuration.FIRMWARE_KNOT_URL_BEGINING +
+      configuration.FIRMWARE_KNOT_URL_END;
+  }
 
   firmware.mainWindow.webContents.send("onFirmwareUpdate", {
     message: "Downloading firmware image...",
@@ -128,26 +147,29 @@ export async function firmwareDownload(targetFolder) {
 
   let firmwareFileName = undefined;
 
-  filePathArray.forEach((element) => {
-    if (element.indexOf(result.architecture) !== -1) {
-      firmwareFileName = element;
-      console.log("Correct firmware is: ", firmwareFileName);
-    }
-  });
+  if (result.product === "grid") {
+    filePathArray.forEach((element) => {
+      if (element.indexOf(result.architecture) !== -1) {
+        firmwareFileName = element;
+        console.log("Correct firmware is: ", firmwareFileName);
+      }
+    });
+  } else if (result.product === "knot") {
+    filePathArray.forEach((element) => {
+      if (element.indexOf("knot") !== -1) {
+        firmwareFileName = element;
+        console.log("Correct firmware is: ", firmwareFileName);
+      }
+    });
+  } else {
+    //unknown product
+  }
 
   if (firmwareFileName === undefined) {
     firmware.mainWindow.webContents.send("onFirmwareUpdate", {
       message: "Error: Download failed.",
       code: 3,
     });
-
-    googleAnalytics("firmware-download", { value: "download fail" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "download fail"
-    );
 
     return;
   }
@@ -180,23 +202,7 @@ export async function firmwareDownload(targetFolder) {
       message: "Update completed successfully!",
       code: 5,
     });
-
-    googleAnalytics("firmware-download", { value: "update success" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "update success"
-    );
   } else {
     log.warn("GRID_NOT_FOUND");
-
-    googleAnalytics("firmware-download", { value: "update fail" });
-    influxAnalytics(
-      "application",
-      "firmwarecheck",
-      "firmware update status",
-      "update fail"
-    );
   }
 }

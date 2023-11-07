@@ -1,86 +1,118 @@
 <script>
-  import { writable, get, derived } from "svelte/store";
+  import { get } from "svelte/store";
+
+  import { Analytics } from "../../../runtime/analytics.js";
 
   import { fly, fade } from "svelte/transition";
   import { flip } from "svelte/animate";
 
-  import ConfigParameters from "./ConfigParameters.svelte";
+  import EventPanel from "./EventPanel.svelte";
 
-  let actionIsDragged = false;
-
-  import TooltipSetter from "../../user-interface/tooltip/TooltipSetter.svelte";
-  import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
   import {
     runtime,
     logger,
-    elementNameStore,
-    appMultiSelect,
-    luadebug_store,
-    localDefinitions,
-    conditionalConfigPlacement,
     user_input,
-    engine,
+    appActionClipboard,
+    controlElementClipboard,
+    localDefinitions,
   } from "../../../runtime/runtime.store.js";
 
-  import { dropStore } from "./Configuration.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.js";
 
-  import _utils from "../../../runtime/_utils.js";
-
-  import { onMount } from "svelte";
+  import {
+    ConfigList,
+    ConfigObject,
+    ConfigTarget,
+    configManager,
+    lastOpenedActionblocksInsert,
+  } from "./Configuration.store.js";
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
   import MultiSelect from "./components/MultiSelect.svelte";
-  import Bin from "./components/Bin.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
+  import Options from "./components/Options.svelte";
 
   import ExportConfigs from "./components/ExportConfigs.svelte";
 
-  import { changeOrder } from "../../_actions/move.action.js";
-
-  import { configManagement } from "./Configuration.store.js";
+  import {
+    changeOrder,
+    config_drag,
+    DragEvent,
+  } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
 
-  import grid from "../../../protocol/grid-protocol";
-  import { appSettings } from "../../../runtime/app-helper.store";
+  import { init_config_block_library } from "../../../lib/_configs";
+  import { onMount } from "svelte";
+  import AddActionButton from "./components/AddActionButton.svelte";
 
-  import { selectedControllerIndexStore } from "/runtime/preset-helper.store";
-
-  let configs = [];
-  let events = { options: ["", "", ""], selected: "" };
-  let elements = { options: [], selected: "" };
+  //////////////////////////////////////////////////////////////////////////////
+  /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
+  //////////////////////////////////////////////////////////////////////////////
 
   let access_tree = {};
-
-  function configuration_panel_reset() {
-    configs = [];
-    events = { options: ["", "", ""], selected: "" };
-    elements = { options: [], selected: "" };
-  }
+  let scrollHeight = "100%";
+  let draggedIndexes = [];
+  let autoScroll;
+  let dropIndex = undefined;
+  let isSystemEventSelected = false;
 
   onMount(() => {
-    console.log("configuration mount.y");
+    init_config_block_library();
   });
 
-  let controllerIndex;
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       REACTIVE STATEMENTS        ///////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
-  $: controllerIndex = $selectedControllerIndexStore;
+  $: {
+    const les = $lua_error_store;
+    const error = les.slice(-1).pop();
+    if (typeof error !== "undefined") {
+      handleError(error);
+    }
+  }
 
-  $: selectedControllerIndexStore.set(elements);
+  $: handleConfigManagerUpdate($configManager);
 
-  const ui = get(user_input);
+  $: isSystemEventSelected = $user_input.event.elementnumber == 255;
 
-  $: console.log(ui.event.elementtype, "ui.event.elementtype");
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////       FUNCTION DEFINITIONS        //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
 
-  function changeSelectedConfig(arg) {
-    $appSettings.configType = arg;
+  function updateLocalSuggestions(list) {
+    localDefinitions.update(list);
+  }
+
+  function sendCurrentConfigurationToGrid() {
+    $configManager
+      .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
+      .catch((e) => handleError(e));
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  /////////////////           EVENT HANDLERS          //////////////////////////
+  //////////////////////////////////////////////////////////////////////////////
+
+  //TODO: Is there a better way?
+  function handleChangeEventTab(arg) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
 
     if (arg == "systemEvents") {
-      // maybe ui.event.elementnumber = 255 ?
       user_input.update((ui) => {
         ui.event.elementnumber = 255;
         ui.event.eventtype = 4;
@@ -112,451 +144,522 @@
     }
   }
 
-  $: {
-    let les = $lua_error_store;
-    let e = les.slice(-1).pop();
-
-    if (e) {
-      switch (e.type) {
-        case "luanotok":
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "luanotok",
-            message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
-          });
-          break;
-        case "kbisdisabled":
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "kbisdisabled",
-            message: `${e.device}: Keyboard events are disabled until storing.`,
-          });
-          break;
-      }
-    }
-  }
-
-  $: {
-    try {
-      const ui = $user_input;
-      appMultiSelect.reset();
-
-      let config = [];
-      let selectedEvent = "";
-
-      const rt = get(runtime);
-      const device = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      if (typeof device === "undefined") {
-        if (rt.length === 0) {
-          configuration_panel_reset();
-          throw "ACTIVE_CONFIG: disconnect";
-        }
-
-        throw "device is undefined";
-      }
-
-      let module_type = device.id.split("_")[0];
-
-      let element_type =
-        grid.moduleElements[module_type][ui.event.elementnumber];
-
-      let pageIndex = device.pages.findIndex(
-        (x) => x.pageNumber == ui.event.pagenumber
-      );
-      let elementIndex = device.pages[pageIndex].control_elements.findIndex(
-        (x) => x.controlElementNumber == ui.event.elementnumber
-      );
-
-      if (elementIndex === -1) {
-        //console.log("MAXOS PARA")
-        elementIndex = 0;
-      }
-
-      const eventIndex = device.pages[pageIndex].control_elements[
-        elementIndex
-      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
-
-      if (eventIndex === -1) {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[0];
-        ui.event.eventtype = 0;
-      } else {
-        selectedEvent =
-          device.pages[pageIndex].control_elements[elementIndex].events[
-            eventIndex
-          ];
-      }
-
-      if (typeof selectedEvent === "undefined") {
-        //console.log("SORRY", pageIndex, elementIndex, eventIndex);
-        throw "selectedEvent is undefined";
-      }
-
-      if (selectedEvent.config.length) {
-        config = selectedEvent.config.trim();
-      }
-
-      const cfgstatus = selectedEvent.cfgStatus;
-
-      if (
-        cfgstatus == "GRID_REPORT" ||
-        cfgstatus == "EDITOR_EXECUTE" ||
-        cfgstatus == "EDITOR_BACKGROUND"
-      ) {
-        // its loaded
-      } else {
-        // fetch
-        const callback = function () {
-          // trigger change detection
-          user_input.update((n) => n);
-        };
-
-        runtime.fetchOrLoadConfig(ui, callback);
-      }
-
-      let active = {
-        elementtype: element_type,
-        config: config,
-        events: {
-          selected: selectedEvent.event,
-          options: device.pages[pageIndex].control_elements[
-            elementIndex
-          ].events.map((e) => e.event),
-        },
-        elements: {
-          selected: ui.event.elementnumber,
-          options: device.pages[pageIndex].control_elements.map(
-            (n) => n.controlElementNumber
-          ),
-        },
-        pages: {
-          selected: ui.event.pagenumber,
-          options: device.pages.map((n) => n.pageNumber),
-        },
-      };
-
-      if (typeof active === "undefined") {
-        throw "active is undefined";
-      }
-
-      let res = _utils.gridLuaToEditorLua(active.config);
-      if (typeof res === "undefined") {
-        throw "Grid Lua to Editor Lua failed.";
-      }
-
-      let res_is_valid = true;
-
-      res.forEach((element) => {
-        if (element.information === undefined) {
-          res_is_valid = false;
-        }
-      });
-
-      if (res !== undefined && res_is_valid) {
-        configs = res;
-        dropStore.update(res);
-        conditionalConfigPlacement.set(configs);
-        localDefinitions.update(configs);
-
-        access_tree.elementtype = active.elementtype;
-      }
-
-      // let use of default dummy parameters
-      if (active.elements.selected !== "") {
-        events = active.events;
-        elements = active.elements;
-      }
-
-      // set UI to uiEvents, if its not system events
-      if (elements.selected !== 255) {
-        $appSettings.configType = "uiEvents";
-      }
-    } catch (error) {
-      console.log("Error:", error);
-    }
-  }
-
-  // ========================= FROM OLD CONFIGLIST IMPLEMENTATION ======================= //
-
-  let disable_pointer_events = false;
-  let animation = false;
-  let drag_start = false;
-  let drag_target = "";
-  let drop_target = "";
-
-  let scrollHeight = "100%";
-
-  async function addConfigAtPosition(arg, index) {
-    // console.log("addConfigAtPosition")
-
-    const { config } = arg.detail;
-
-    if (config === undefined || config === "") {
+  function handleConfigManagerUpdate(list) {
+    if (typeof list === "undefined") {
       return;
     }
 
-    configs = await configManagement().drag_and_drop.add({
-      configs: configs,
-      index: index,
-      newConfig: config,
-    });
+    const map = ConfigList.getIndentationMap(list);
+    for (const i in map) {
+      list[i].indentation = map[i];
+    }
 
-    send_to_grid();
+    updateLocalSuggestions(list);
   }
 
-  function send_to_grid() {
-    const li = get(user_input);
+  function handleError(e) {
+    switch (e.type) {
+      case "lengthError":
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Modifications can not be synced with grid, 
+          maximum character limit reached. Shorten your code or delete action blocks.`,
+        });
+        break;
+      case "syntaxError":
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Syntax error on ${e.element.no} ${e.event.type} event.`,
+        });
+        break;
+      case "luanotok":
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "luanotok",
+          message: `${e.device}: Error on Element ${e.element.no} ${e.event.type} event.`,
+        });
+        break;
+      case "kbisdisabled":
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "kbisdisabled",
+          message: `${e.device}: Keyboard events are disabled until storing.`,
+        });
+        break;
+    }
+  }
 
-    const dx = li.brc.dx;
-    const dy = li.brc.dy;
-    const page = li.event.pagenumber;
-    const element = li.event.elementnumber;
-    const event = li.event.eventtype;
-    const actionstring = _utils.configMerge({ config: configs });
+  function handleConfigInsertion(e) {
+    let { configs, index } = e.detail;
 
-    runtime.update_event_configuration(
-      dx,
-      dy,
-      page,
-      element,
-      event,
-      actionstring,
-      "EDITOR_EXECUTE"
-    );
-    runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    if (typeof index === "undefined") {
+      index = $configManager.length;
+    }
+
+    try {
+      configManager.update((s) => {
+        const list = s.makeCopy();
+        list.insert(index, ...configs);
+        list.checkLength();
+        return list;
+      });
+      sendCurrentConfigurationToGrid();
+    } catch (e) {
+      console.error(e);
+      handleError(e);
+    }
   }
 
   function handleDrop(e) {
-    //console.log("handleDrop")
+    if (typeof dropIndex === "undefined") {
+      return;
+    }
 
-    if (drop_target !== "bin") {
-      // if only cfg-list is selected, don't let dnd happen nor delete.
-      if (!Number.isNaN(drop_target)) {
-        configs = configManagement().drag_and_drop.reorder({
-          configs: configs,
-          drag_target: drag_target,
-          drop_target: drop_target,
-          isMultiDrag: e.detail.multi,
-        });
+    const targetIndex = dropIndex;
+    dropIndex = undefined;
+
+    //Check for incorrect dropzones
+    const firstIndex = draggedIndexes.at(0);
+    const lastIndex = draggedIndexes.at(-1);
+    if (targetIndex >= firstIndex && targetIndex <= lastIndex + 1) {
+      return;
+    }
+
+    configManager.update((s) => {
+      //Collect dragged configs and mark them for deletion
+      const temp = [];
+      draggedIndexes.forEach((i) => {
+        temp.push(s[i]);
+        s[i] = undefined;
+      });
+
+      //Insert dragged configs at position
+      s.insert(targetIndex, ...temp);
+
+      //Remove marked configs
+      s = s.filter((e) => typeof e !== "undefined");
+      return s;
+    });
+
+    sendCurrentConfigurationToGrid();
+  }
+
+  function handleConfigUpdate(e) {
+    const { index, short, script } = e.detail;
+
+    configManager.update((s) => {
+      const config = s[index];
+      if (typeof config !== "undefined") {
+        config.short = short;
+        config.script = script;
       }
+      return s;
+    });
+    sendCurrentConfigurationToGrid();
+  }
+
+  function handleDragStart(e) {
+    config_drag.set(new DragEvent());
+  }
+
+  function handleDragEnd(e) {
+    config_drag.set(undefined);
+    dropIndex = undefined;
+    draggedIndexes = [];
+    clearInterval(autoScroll);
+  }
+
+  function handleDragTargetChange(e) {
+    draggedIndexes = e.detail.id;
+  }
+
+  function handleDropTargetChange(e) {
+    const { index } = e.detail;
+    dropIndex = index;
+  }
+
+  function handleSelectionChange(e) {
+    const { value, index } = e.detail;
+
+    configManager.update((s) => {
+      const stack = [];
+      let n = index;
+      do {
+        const config = s[n];
+        if (config.information.type === "composite_open") {
+          stack.push(config);
+        } else if (config.information.type === "composite_close") {
+          stack.pop();
+        }
+        config.selected = value;
+        ++n;
+      } while (stack.length > 0);
+      return s;
+    });
+  }
+
+  function handleConvertToCodeBlock(e) {
+    const { configs, index } = e.detail;
+
+    //Create new CodeBlock with merged code
+    const codeBlock = new ConfigObject({
+      short: "cb",
+      script: configs.map((e) => e.script).join(" "),
+    });
+
+    //Check syntax
+    if (codeBlock.checkSyntax() === false) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "luanotok",
+        message: `Cannot merge actionblocks with syntax error!`,
+      });
+      return;
+    }
+
+    configManager.update((s) => {
+      //Insert CodeBlock into position
+      s.insert(index, codeBlock);
+      // Remove selected action blocks
+      s = s.filter((config) => !config.selected);
+      return s;
+    });
+
+    sendCurrentConfigurationToGrid();
+  }
+
+  function handleCut(e) {
+    handleCopy(e);
+    handleRemove(e);
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Cut" },
+      mandatory: false,
+    });
+  }
+
+  function handleCopy(e) {
+    const clipboard = $configManager.filter((e) => e.selected).makeCopy();
+    appActionClipboard.set(clipboard);
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Copy" },
+      mandatory: false,
+    });
+  }
+
+  function handlePaste(e) {
+    let { index } = e.detail;
+
+    if (typeof index === "undefined") {
+      index = $configManager.length;
+    }
+
+    configManager.update((s) => {
+      s.forEach((e) => (e.selected = false));
+      s.insert(index, ...$appActionClipboard.map((e) => e.makeCopy()));
+
+      return s;
+    });
+
+    sendCurrentConfigurationToGrid();
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Paste" },
+      mandatory: false,
+    });
+  }
+
+  function handleRemove(e) {
+    configManager.update((s) => s.filter((config) => !config.selected));
+    sendCurrentConfigurationToGrid();
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Remove" },
+      mandatory: false,
+    });
+  }
+
+  function handleDrag(e) {
+    if (typeof $config_drag !== typeof "undefined") {
+      const configList = document.getElementById("cfg-list");
+      const mouseY = e.clientY - configList.getBoundingClientRect().top;
+      const configListHeight = configList.offsetHeight;
+      const treshold = 60;
+      const lowerThreshold = configListHeight - mouseY <= treshold;
+      const upperThreshold =
+        configListHeight - mouseY > configListHeight - treshold;
+      clearInterval(autoScroll);
+      if (lowerThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop += 5;
+        }, 10);
+      } else if (upperThreshold) {
+        autoScroll = setInterval(() => {
+          configList.scrollTop -= 5;
+        }, 10);
+      }
+    }
+  }
+
+  function handleCopyAll() {
+    //Callback function
+    let callback = function () {
+      const current = ConfigTarget.createFrom({ userInput: $user_input });
+      const configsLists = [];
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = ConfigList.createFrom(target);
+        configsLists.push({ eventType: eventType, configs: list });
+      });
+
+      controlElementClipboard.set({
+        elementType: current.elementType,
+        data: configsLists,
+      });
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "elementcopy",
+        message: `Events are copied!`,
+      });
+    };
+
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementcopy",
+      message: `Copy events from element...`,
+    });
+
+    //Fetching all unloaded elements configuration
+    runtime.fetch_element_configuration_from_grid(callback);
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
+  }
+
+  function handleOverwriteAll() {
+    let clipboard = get(controlElementClipboard);
+    const current = ConfigTarget.createFrom({ userInput: $user_input });
+
+    if (current.elementType === clipboard.elementType) {
+      current.events.forEach((e) => {
+        const eventType = e.event.value;
+        const target = new ConfigTarget({
+          device: current.device,
+          element: current.element,
+          eventType: eventType,
+          page: current.page,
+        });
+        const list = clipboard.data.find(
+          (e) => e.eventType === eventType
+        ).configs;
+        list.sendTo({ target: target }).catch((e) => handleError(e));
+      });
+
+      const list = ConfigList.createFrom(current);
+      configManager.set(list);
     } else {
-      configs = configManagement().drag_and_drop.remove({
-        configs: configs,
-        array: drag_target,
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "rejectoverwrite",
+        message: `Overwrite element failed! Current ${current.elementType} control 
+          element is not compatible with clipboards ${clipboard.elementType} type.`,
       });
     }
 
-    send_to_grid();
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
   }
 
-  $: luadebug_store.update_config(_utils.configMerge({ config: configs }));
+  function handleReplace(e) {
+    const { index, config } = e.detail;
+    configManager.update((s) => {
+      s[index] = config;
+      lastOpenedActionblocksInsert(config.short);
+      return s;
+    });
+    sendCurrentConfigurationToGrid();
+  }
 </script>
 
-<configuration
-  class="w-full h-full flex flex-col {$engine == 'ENABLED'
-    ? ''
-    : 'pointer-events-none'}"
->
-  <div class="bg-primary py-5 flex flex-col justify-center">
-    <div class="flex flex-row items-start bg-primary py-2 px-10">
+<configuration class="w-full h-full flex flex-col bg-primary">
+  <div class="py-5 flex flex-col justify-center">
+    <div class="flex flex-row items-start py-2 px-10">
       <button
-        on:click={() => {
-          changeSelectedConfig("uiEvents");
+        use:setTooltip={{
+          key: "configuration_ui_events",
+          placement: "top",
+          class: "w-60 p-4",
         }}
-        class="{$appSettings.configType == 'uiEvents'
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+        on:click={() => {
+          handleChangeEventTab("uiEvents");
+        }}
+        class="{!isSystemEventSelected
+          ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> UI Events </span>
-        <TooltipSetter key={"configuration_ui_events"} />
       </button>
 
       <button
-        on:click={() => {
-          changeSelectedConfig("systemEvents");
+        use:setTooltip={{
+          key: "configuration_system_events",
+          placement: "top",
+          class: "w-60 p-4",
         }}
-        class="{$appSettings.configType == 'systemEvents'
-          ? 'shadow-md bg-pick text-white'
-          : 'hover:bg-pick-desaturate-10 text-gray-50'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none bg-secondary w-48"
+        on:click={() => {
+          handleChangeEventTab("systemEvents");
+        }}
+        class="{isSystemEventSelected
+          ? 'shadow-md text-white bg-secondary-brightness-20'
+                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
       >
         <span> System Events </span>
-        <TooltipSetter key={"configuration_system_events"} />
       </button>
-      <!--       <button
-        on:click={() => {
-          changeSelectedConfig("uiEvents");
-        }}
-        class="{$appSettings.configType == 'uiEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white "
-      >
-        <span> UI Events </span>
-        <TooltipSetter key={"configuration_ui_events"} />
-      </button>
-
-      <button
-        on:click={() => {
-          changeSelectedConfig("systemEvents");
-        }}
-        class="{$appSettings.configType == 'systemEvents'
-          ? 'bg-secondary'
-          : 'bg-primary'} relative px-4 py-2 cursor-pointer text-white"
-      >
-        <span> System Events </span>
-        <TooltipSetter key={"configuration_system_events"} />
-      </button> -->
     </div>
   </div>
 
-  {#key $appSettings.configType == "uiEvents"}
+  {#key !isSystemEventSelected}
     <container
       class="flex flex-col h-full"
-      in:fly={{
-        x: $appSettings.configType == "uiEvents" ? -5 : 5,
+      in:fly|global={{
+        x: !isSystemEventSelected ? -5 : 5,
         opacity: 0.5,
         duration: 200,
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-4 bg-primary pb-2">
+      <configs class="w-full h-full flex flex-col px-4 pb-2">
         <div>
-          <ConfigParameters {configs} {events} {elements} />
+          <EventPanel
+            on:copy-all={handleCopyAll}
+            on:overwrite-all={handleOverwriteAll}
+          />
           <div class="px-4 flex w-full items-center justify-between">
             <div class="text-gray-500 text-sm">Actions</div>
-            <MultiSelect />
+            <MultiSelect
+              on:convert-to-code-block={handleConvertToCodeBlock}
+              on:copy={handleCopy}
+              on:cut={handleCut}
+              on:paste={handlePaste}
+              on:remove={handleRemove}
+            />
           </div>
         </div>
 
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
-          use:changeOrder={{ configs }}
-          on:disable-pointer-events={(e) => {
-            disable_pointer_events = true;
-          }}
-          on:drag-start={(e) => {
-            drag_start = true;
-            actionIsDragged = true;
-            appMultiSelect.reset();
-          }}
-          on:drag-target={(e) => {
-            drag_target = e.detail.id;
-          }}
-          on:drop-target={(e) => {
-            drop_target = e.detail.drop_target;
-          }}
+          use:changeOrder={(this, { configs: $configManager })}
+          on:drag-start={handleDragStart}
+          on:drag-target={handleDragTargetChange}
           on:drop={handleDrop}
-          on:drag-end={(e) => {
-            drag_start = false;
-            actionIsDragged = true;
-            drop_target = undefined;
-            drag_target = [];
-          }}
-          on:enable-pointer-events={(e) => {
-            disable_pointer_events = false;
-          }}
-          on:anim-start={() => {
-            animation = true;
-          }}
-          on:anim-end={() => {
-            animation = false;
-          }}
+          on:drag-end={handleDragEnd}
           class="flex flex-col h-full relative justify-between"
         >
           <config-list
             id="cfg-list"
             style="height:{scrollHeight}"
-            use:configListScrollSize={configs}
+            use:configListScrollSize={$configManager}
             on:height={(e) => {
               scrollHeight = e.detail;
             }}
-            class="flex flex-col w-full h-auto overflow-y-auto px-4 {disable_pointer_events
-              ? 'cursor-grabbing'
-              : ''}"
+            on:mousemove={handleDrag}
+            on:mouseleave={() => {
+              //clearInterval(autoScroll);
+            }}
+            class="flex flex-col w-full h-auto overflow-y-auto px-4"
           >
-            {#if configs.length !== 0}
-              {#if !drag_start}
+            {#each $configManager as config, index (config.id)}
+              <anim-block
+                animate:flip={{ duration: 300 }}
+                in:fade|global={{ delay: 0 }}
+              >
+                {#key index}
+                  {#if typeof $config_drag === "undefined"}
+                    <AddAction
+                      {index}
+                      on:paste={handlePaste}
+                      on:new-config={handleConfigInsertion}
+                    />
+                  {:else}
+                    <DropZone
+                      {index}
+                      thresholdTop={10}
+                      thresholdBottom={10}
+                      class=""
+                      drag_target={draggedIndexes}
+                      on:drop-target-change={handleDropTargetChange}
+                    />
+                  {/if}
+                {/key}
+                <div class="flex flex-row justify-between">
+                  <DynamicWrapper
+                    {index}
+                    {config}
+                    {access_tree}
+                    on:update={handleConfigUpdate}
+                    on:replace={handleReplace}
+                  />
+
+                  <Options
+                    {index}
+                    bind:selected={config.selected}
+                    disabled={!config.information.selectable}
+                    on:selection-change={handleSelectionChange}
+                  />
+                </div>
+              </anim-block>
+            {/each}
+            {#key $configManager.length}
+              {#if typeof $config_drag === "undefined"}
                 <AddAction
-                  {animation}
-                  on:new-config={(e) => {
-                    addConfigAtPosition(e, 0);
-                  }}
+                  index={$configManager.length}
+                  on:paste={handlePaste}
+                  on:new-config={handleConfigInsertion}
                 />
               {:else}
                 <DropZone
-                  index={-1}
-                  {configs}
-                  {drop_target}
-                  {drag_target}
-                  {animation}
-                  {drag_start}
+                  index={$configManager.length}
+                  drag_target={draggedIndexes}
+                  thresholdTop={10}
+                  thresholdBottom={0}
+                  class="h-full"
+                  on:drop-target-change={handleDropTargetChange}
                 />
               {/if}
-
-              {#if configs !== undefined}
-                {#each configs as config, index (config.id)}
-                  <anim-block
-                    animate:flip={{ duration: 300 }}
-                    in:fade={{ delay: 0 }}
-                    class="select-none {config.information.rendering == 'hidden'
-                      ? 'hidden'
-                      : 'block'}"
-                  >
-                    <DynamicWrapper
-                      let:toggle
-                      {drag_start}
-                      {disable_pointer_events}
-                      {index}
-                      {config}
-                      {configs}
-                      {access_tree}
-                    />
-
-                    {#if !drag_start}
-                      <AddAction
-                        {animation}
-                        {config}
-                        {index}
-                        {configs}
-                        on:new-config={(e) => {
-                          addConfigAtPosition(e, index + 1);
-                        }}
-                      />
-                    {:else}
-                      <DropZone
-                        {configs}
-                        {index}
-                        {drag_target}
-                        {drop_target}
-                        {animation}
-                        {drag_start}
-                      />
-                    {/if}
-                  </anim-block>
-                {/each}
-              {/if}
-            {/if}
+            {/key}
           </config-list>
         </div>
-        <container class="flex flex-col w-full">
-          {#if !drag_start}
-            <div class="w-full flex justify-between mb-3">
-              <AddAction
-                userHelper={true}
-                {animation}
-                on:new-config={(e) => {
-                  addConfigAtPosition(e, configs.length + 1);
-                }}
-              />
-              <ExportConfigs />
-            </div>
-          {:else}
-            <Bin />
-          {/if}
-        </container>
+        <div class="w-full flex justify-between mb-3">
+          <AddActionButton
+            index={$configManager.length}
+            on:paste={handlePaste}
+            on:new-config={handleConfigInsertion}
+          />
+          <ExportConfigs />
+        </div>
       </configs>
     </container>
   {/key}

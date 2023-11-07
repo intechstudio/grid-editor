@@ -1,10 +1,15 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   export const information = {
     short: "glut",
     name: "Lookup",
     rendering: "standard",
     category: "variables",
     desc: "Lookup",
+    blockTitle: "Lookup",
     color: "#78BC61",
     defaultLua: "glut(param1,36,0,37,1)",
     icon: `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -14,6 +19,18 @@
         <path d="M35 105.5C35 115.165 27.165 123 17.5 123C7.83502 123 0 115.165 0 105.5C0 95.835 7.83502 88 17.5 88C27.165 88 35 95.835 35 105.5Z" fill="black"/>
       </svg>
     `,
+    blockIcon: `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 15.526L123.027 0.207275L108.651 56.1951L93.2051 41.1528L43.769 90.5889L33.8695 80.6894L83.3056 31.2533L67.294 15.526Z" fill="black"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M67.294 196.307L123.027 211.626L108.651 155.638L93.2051 170.68L43.769 121.244L33.8695 131.144L83.3056 180.58L67.294 196.307Z" fill="black"/>
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M112.712 76.9999L162.954 105.577L113.199 135.001L112.913 113.443L43 113.443L43 99.4427L112.913 99.4427L112.712 76.9999Z" fill="black"/>
+        <path d="M35 105.5C35 115.165 27.165 123 17.5 123C7.83502 123 0 115.165 0 105.5C0 95.835 7.83502 88 17.5 88C27.165 88 35 95.835 35 105.5Z" fill="black"/>
+      </svg>
+    `,
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -24,7 +41,7 @@
   import { localDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
-  import _utils from "../runtime/_utils";
+  import { Script } from "./_script_parsers.js";
 
   export let config = "";
   export let index;
@@ -57,7 +74,7 @@
 
     array = [lookupTable.source, ...array];
 
-    const script = _utils.segmentsToScript({
+    const script = Script.toScript({
       human: config.human,
       short: config.short,
       array: array,
@@ -99,52 +116,34 @@
     lookupTable.pairs = [...lookupTable.pairs];
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
+  let suggestionElement1 = undefined;
+  let suggestionElement2 = undefined;
 </script>
 
-<config-lookup class="flex flex-col w-full p-2">
+<config-lookup
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1">Source</div>
     <AtomicInput
       suggestions={$localDefinitions}
       placeholder={"Incoming value to match"}
+      inputValue={lookupTable.source}
+      suggestionTarget={suggestionElement1}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
-      bind:inputValue={lookupTable.source}
+      on:change={(e) => {
+        lookupTable.source = e.detail;
+      }}
       on:validator={(e) => {
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.source = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -169,6 +168,8 @@
           />
         </div>
         {#if i !== 0}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div
             on:click={() => {
               removeLine(i);
@@ -203,7 +204,11 @@
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
       suggestions={$localDefinitions}
-      bind:inputValue={lookupTable.destination}
+      inputValue={lookupTable.destination}
+      suggestionTarget={suggestionElement2}
+      on:change={(e) => {
+        lookupTable.destination = e.detail;
+      }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
@@ -211,25 +216,14 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 1);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 1);
-      }}
     />
   </div>
 
-  {#if focusGroup[1]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.destination = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement2} />
 
   <div class="w-full flex group p-2">
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       on:click={() => {
         addNewLine();

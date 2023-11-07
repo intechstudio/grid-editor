@@ -1,27 +1,19 @@
 <script>
-  import { onDestroy, onMount } from "svelte";
-  import { luadebug_store } from "../../runtime/runtime.store";
   import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
   import { appSettings } from "../../runtime/app-helper.store";
 
   import { clickOutside } from "../_actions/click-outside.action";
+  import { configManager } from "../panels/configuration/Configuration.store";
 
-  let config = "";
-
-  function copyToClipboard(value) {
+  function handleCopy() {
     const _tempSpan = document.createElement("input");
-    _tempSpan.value = `${value}`;
+    _tempSpan.value = $configManager.toConfigScript();
     _tempSpan.id = "temp-clip";
     document.getElementById("modal-copy-placeholder").append(_tempSpan);
     const _temp = document.querySelector("#temp-clip");
     _temp.select();
     document.execCommand("copy");
     document.getElementById("temp-clip").remove();
-  }
-
-  $: {
-    const data = $luadebug_store;
-    config = data.config !== undefined ? `${data.config}` : "<?lua ?>";
   }
 </script>
 
@@ -30,6 +22,7 @@
 <modal
   class="flex z-40 absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50"
 >
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
@@ -41,6 +34,7 @@
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
         on:click={() => {
           $appSettings.modal = "";
@@ -65,14 +59,12 @@
     </div>
 
     <textarea
-      bind:value={config}
+      value={$configManager.toConfigScript()}
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
     <BtnAndPopUp
-      on:clicked={() => {
-        copyToClipboard(config);
-      }}
+      on:clicked={handleCopy}
       btnStyle={"bg-commit mt-2 hover:bg-commit-saturate-10 rounded"}
       popStyle={"bg-commit-saturate-10"}
     >

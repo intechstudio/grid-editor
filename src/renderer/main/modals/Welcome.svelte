@@ -4,25 +4,23 @@
 
   import { clickOutside } from "../_actions/click-outside.action";
 
-  import { attachment } from "../user-interface/Monster.store";
-
   import { get } from "svelte/store";
 
-  const { env } = window.ctxProcess;
-
-  import configuration from "../../../../configuration.json";
-
-  console.log("config", configuration.DOCUMENTATION_REFERENCEMANUAL_URL);
+  const configuration = window.ctxProcess.configuration();
 
   let video_link = "";
 
   let modalElement;
-  let attachmentElement;
 
   let video_id;
 
+  let analyticsEnabled;
+
   onMount(async () => {
-    video_link = env()["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
+    const firstLaunch = $appSettings.persistent.firstLaunch;
+    analyticsEnabled = firstLaunch || $appSettings.persistent.analyticsEnabled;
+
+    video_link = configuration["YOUTUBE_RELEASENOTES_FALLBACK_URL"];
 
     const { videoLink, videoId } = await window.electron.getLatestVideo();
 
@@ -30,21 +28,20 @@
       video_link = videoLink;
       video_id = videoId;
     }
-
-    $attachment = { element: attachmentElement, hpos: "100%", vpos: "50%" };
   });
 
   onDestroy(() => {
-    if ($attachment !== undefined) {
-      if ($attachment.element === attachmentElement) {
-        $attachment = undefined;
-      }
-    }
+    $appSettings.persistent.firstLaunch = false;
+    $appSettings.persistent.analyticsEnabled = analyticsEnabled;
   });
 
-  let version = `${get(appSettings).version.major}.${
-    get(appSettings).version.minor
-  }.${get(appSettings).version.patch}`;
+  function handleOpenPolicyClicked(e) {
+    window.electron.openInBrowser(
+      configuration.DOCUMENTATION_ANALYTICS_POLICY_URL
+    );
+  }
+
+  let version = `${configuration.EDITOR_VERSION}`;
 </script>
 
 <div id="modal-copy-placeholder" />
@@ -93,11 +90,7 @@
       </button>
     </div>
 
-    <div
-      bind:this={attachmentElement}
-      class="flex flex-row bg-primary w-full"
-      style=""
-    >
+    <div class="flex flex-row bg-primary w-full" style="">
       <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
         <div class="p-4 flex-col w-7/12 flex justify-between">
           <div class="flex w-full text-xl opacity-70">Latest Release Video</div>
@@ -173,16 +166,19 @@
 
           <div class="flex w-full text-xl opacity-70">Suggest Features</div>
 
-          <div class="flex w-full">
-            <button
-              on:click={(e) =>
-                window.electron.openInBrowser(configuration.PUBLIC_ROADMAP_URL)}
-              class="rounded py-2 px-4 my-2 bg-secondary text-white
-              cursor-pointer"
-            >
-              Public Roadmap
-            </button>
-          </div>
+          <button
+            on:click={(e) =>
+              window.electron.openInBrowser(configuration.PUBLIC_ROADMAP_URL)}
+            class="flex w-full text-blue-500 cursor-pointer"
+          >
+            Public Roadmap
+          </button>
+          <button
+            on:click={handleOpenPolicyClicked}
+            class="flex w-full text-blue-500 cursor-pointer"
+          >
+            Analytics Gathering Policy
+          </button>
         </div>
       </div>
     </div>
@@ -229,12 +225,24 @@
       </div>
 
       <div class="flex flex-row items-center h-full p-6">
-        <input
-          class="mr-1 opacity-70"
-          type="checkbox"
-          bind:checked={$appSettings.persistant.welcomeOnStartup}
-        />
-        <div class="mx-1 mr-4 opacity-70">Always show on startup</div>
+        <div class="flex flex-col">
+          <div class="flex items-center">
+            <input
+              class="mr-1 opacity-70"
+              type="checkbox"
+              bind:checked={analyticsEnabled}
+            />
+            <div class="mx-1 mr-4 opacity-70">Analytics gathering enabled</div>
+          </div>
+          <div class="flex items-center">
+            <input
+              class="mr-1 opacity-70"
+              type="checkbox"
+              bind:checked={$appSettings.persistent.welcomeOnStartup}
+            />
+            <div class="mx-1 mr-4 opacity-70">Always show on startup</div>
+          </div>
+        </div>
 
         <button
           on:click={() => {

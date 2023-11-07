@@ -45,18 +45,15 @@ export const tooltip_content = {
     "The Action Chain represents the set Actions pertaining to each trigger of the currently selected Control Element.",
   configuration_events:
     "An event describes a real-life interaction that triggers a reaction from a Grid module (e.g. plugging in the module triggers the init event).",
-  configuration_copy_all: "Copy the contents of this Control Element.",
-  configuration_overwrite:
-    "Overwrite the Action Chains under the currently active Control Element.",
-  configuration_cut_one: "Cut the marked Action(s) to clipboard.",
-  configuration_copy_one: "Copy the marked Action(s) to clipboard.",
-  configuration_paste_one:
-    "Paste the marked Action(s) from the clipboard to the cursor OR to the bottom of the Action Chain on the currently active Event.",
-  configuration_remove_one:
-    "Remove the marked Action(s) from the Action Chain permanently.",
+  configuration_copy_all: "Copy element",
+  configuration_overwrite: "Overwrite element",
+  configuration_cut_one: "Cut",
+  configuration_copy_one: "Copy",
+  configuration_paste_one: "Paste",
+  configuration_remove_one: "Delete",
   configuration_export:
     "Export the configuration of the currently active Control Element in lua language.",
-
+  configuration_merge_as_code: "Merge as code",
   event_init:
     "Each time a Page gets loaded (both when powering up and on page change) an Init Event will take place. Actions set to trigger on the Init Event will only trigger once on startup and on each page change. ",
   event_button:
@@ -134,19 +131,20 @@ export const tooltip_content = {
     "Send a mouse move or scroll wheel message to the host device.",
   action_mouse_button: "Send mouse button change messages to the host device.",
 
-  sidebar_configuration_icon: "Configure your Grid modules.",
-  sidebar_preferences_icon: "Change your Grid Editor settings.",
+  sidebar_configuration_icon: "Configuration",
+  sidebar_preferences_icon: "Preferences",
   sidebar_new_profiles_icon: "Profile Manager",
   sidebar_new_presets_icon: "Preset Manager",
+  sidebar_profile_cloud_icon: "Profile Cloud",
   sidebar_profiles_icon: "Manage locally stored module configurations.",
   sidebar_presets_icon: "Manage locally stored element configurations.",
-  sidebar_debugger_icon:
-    "Access the debugger window for troubleshooting purposes.",
-  sidebar_midi_monitor_icon:
-    "Access the MIDI monitor for MIDI-specific troubleshooting.",
+  sidebar_debugger_icon: "Debug Monitor",
+  sidebar_websocket_monitor_icon: "Websocket Monitor",
+  sidebar_midi_monitor_icon: "MIDI Monitor",
+  sidebar_packages_icon: "Package Manager",
 
   engine_clear:
-    "Clear the writebuffer after a module crash, and re-enable the Editor engine!",
+    "This will not restore crashed modules, you should reconnect them physically. Proceed? ",
 
   newProfile_delete: "Delete this Session Profile permanently.",
   newProfile_save: "Move this Session Profile to the Profile Cloud folder.",
@@ -165,17 +163,12 @@ export const tooltip_content = {
   newProfile_load_profile:
     "Previously saved profiles stored in your Local Folder are shown here.",
 
-  newPreset_delete: "Delete this Session Preset permanently.",
-  newPreset_save: "Move this Session Preset to the Preset Cloud folder",
-  newPreset_rewrite:
-    "Overwrite this Session Preset with the selected element's configuration.",
-  newPreset_info: "Open the Preset description window.",
-  newPreset_add_to_session:
-    "Save the currently active element configuration locally as a Session Preset.",
-  newPreset_exit_overlay: "Hide the Overlay.",
-  newPreset_desc_delete:
-    "Delete this Preset from the Preset Cloud permanently.",
-  newPreset_desc_edit: "Edit the description of this Preset.",
-  newPreset_load_preset:
-    "Previously saved presets stored in your Local Folder are shown here.",
+  tracker_none:
+    "Never change the selected element and event when interacting with the grid module(s)",
+  tracker_element:
+    "Only change the selected element when interacting with the grid module(s). This is useful when configuring the same events of your module(s)",
+  tracker_event:
+    "Always change to the element and event of your grid module(s) on interaction. This is useful when you want to configure the functions (e.g.: slider potmeter event) of your grid module(s)",
+  raw_block_what_happened_text:
+    "New version of this block is available, click on Update to restore your configuration.",
 };

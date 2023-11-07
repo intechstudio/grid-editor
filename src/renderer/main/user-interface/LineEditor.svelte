@@ -10,15 +10,21 @@
   export let value;
   export let access_tree;
   export let sidebarWidth;
+  export let disabled = false;
 
   let monaco_block;
 
   let editor;
+  let value_buffer = "";
 
-  $: update_codeblock_height(sidebarWidth);
+  $: {
+    if (sidebarWidth) {
+      update_codeblock_size();
+    }
+  }
 
-  function update_codeblock_height() {
-    if (editor === undefined) {
+  function update_codeblock_size() {
+    if (typeof editor === "undefined") {
       return;
     }
 
@@ -26,11 +32,19 @@
     //editor.viewModel.getViewLineCount()
 
     const contentHeight = editor._getViewModel().getLineCount() * 16;
-    //const contentHeight = editor.getModel().getLineCount()* 19
 
     monaco_block.style.height = contentHeight + "px";
-    //monaco_container.style.height = containerHeight +"px";
     editor.layout();
+  }
+
+  function handleDisabledChange(value) {
+    editor.updateOptions({ readOnly: value });
+  }
+
+  $: {
+    if (typeof editor !== "undefined") {
+      handleDisabledChange(disabled);
+    }
   }
 
   onDestroy(() => {
@@ -39,6 +53,7 @@
 
   onMount(() => {
     $monaco_elementtype = access_tree.elementtype;
+    value_buffer = value;
 
     editor = monaco_editor.create(monaco_block, {
       value: value,
@@ -47,6 +62,7 @@
       minimap: {
         enabled: false,
       },
+      readOnly: disabled,
       fontSize: 12,
       lineNumbers: "off",
       lineNumbersMinChars: 0,
@@ -56,44 +72,59 @@
       overviewRulerLanes: 0,
       overviewRulerBorder: false,
       renderLineHighlight: "none",
+      wordWrap: "off", // Disable word wrapping
       scrollbar: {
-        vertical: "hidden",
-        horizontal: "hidden",
+        horizontal: "hidden", // Enable horizontal scrollbar as needed
+        vertical: "hidden", // Hide vertical scrollbar
       },
       contextmenu: false,
       scrollPredominantAxis: false,
       scrollBeyondLastLine: 0,
-      wordWrap: "on",
       suggest: {
         showIcons: false,
         showWords: true,
       },
+      automaticLayout: false,
     });
-    update_codeblock_height();
+
+    editor.onKeyDown((e) => {
+      if (e.code === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+
+    update_codeblock_size();
 
     editor.getModel().onDidChangeContent((event) => {
       dispatch("output", { script: editor.getValue() });
 
-      update_codeblock_height();
+      update_codeblock_size();
+    });
 
-      /*
-            if (editor.getValue() !== $appSettings.monaco_code_committed){
-                commitState = 1;
-            }
-            else{
-                commitState = 0;
-            }
-            */
+    //Handler for loosing focus
+    editor.onDidBlurEditorWidget(() => {
+      const new_value = editor.getValue();
+      if (value_buffer !== new_value) {
+        dispatch("change", { script: editor.getValue() });
+      }
+      value_buffer = new_value;
     });
   });
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   on:click|preventDefault={() => {}}
   on:mousedown|preventDefault={() => {}}
   bind:this={monaco_block}
-  class="line-editor w-full justify-between"
+  class="line-editor {$$props.class} grid grid-cols-1 w-full pointer-events-auto"
 />
 
-<style>
+<style global>
+  /* Disable readonly overlay message */
+  .monaco-editor-overlaymessage {
+    display: none !important;
+  }
 </style>

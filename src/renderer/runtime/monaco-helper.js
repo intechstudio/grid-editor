@@ -38,36 +38,3 @@ export function checkForbiddenIdentifiers(code) {
     throw "Reserved identifiers [" + readable + "] cannot be used!";
   }
 }
-
-//TODO: separate it into two functional parts
-export function checkSyntaxAndMinify(code) {
-  checkForbiddenIdentifiers(code);
-
-  const short_code = stringManipulation.shortify(code);
-  const line_commented_code =
-    stringManipulation.blockCommentToLineComment(short_code);
-  const safe_code =
-    stringManipulation.lineCommentToNoComment(line_commented_code);
-
-  try {
-    return luamin.Minify(safe_code, luaminOptions);
-  } catch (e) {
-    throw "Syntax Error: " + e;
-  }
-}
-
-export function checkSyntax(code) {
-  if (!code) return;
-  try {
-    const short_code = stringManipulation.shortify(code);
-    const line_commented_code =
-      stringManipulation.blockCommentToLineComment(short_code);
-
-    var safe_code = String(
-      stringManipulation.lineCommentToNoComment(line_commented_code)
-    );
-    const res = luamin.Minify(safe_code, luaminOptions);
-  } catch (e) {
-    throw "Syntax Error: " + e;
-  }
-}

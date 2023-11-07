@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "spc",
@@ -7,8 +11,15 @@
     category: "element settings",
     color: "#5F416D",
     desc: "Potmeter Mode",
+    blockTitle: "Potmeter Mode",
     defaultLua: "self:pmo(7) self:pma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -56,20 +67,6 @@
     });
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   const suggestions = [
     [
       { value: "7", info: "7 bit (default)" },
@@ -85,28 +82,30 @@
       { value: "16383", info: "14 bit MIDI (high res)" },
     ],
   ];
+
+  let suggestionElement = undefined;
 </script>
 
-<potmeter-settings class="flex flex-col w-full p-2">
+<potmeter-settings
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full flex">
     <div class="w-1/2 flex flex-col">
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1">Bit depth</div>
         <AtomicInput
+          inputValue={pmo}
           suggestions={suggestions[0]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={pmo}
+          suggestionTarget={suggestionElement}
+          on:change={(e) => {
+            pmo = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 0);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 0);
           }}
         />
       </div>
@@ -116,38 +115,23 @@
       <div class="w-full px-2">
         <div class="text-gray-500 text-sm pb-1">Max Value</div>
         <AtomicInput
+          inputValue={pma}
           suggestions={suggestions[1]}
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
-          bind:inputValue={pma}
+          suggestionTarget={suggestionElement}
+          on:change={(e) => {
+            pma = e.detail;
+          }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 1);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 1);
           }}
         />
       </div>
     </div>
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        if (focusedInput == 1) {
-          pma = e.detail.value;
-        }
-        if (focusedInput == 0) {
-          pmo = e.detail.value;
-        }
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </potmeter-settings>

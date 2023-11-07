@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "c",
@@ -7,18 +11,27 @@
     toggleable: false,
     category: "code",
     desc: "Comment Block",
+    blockTitle: "Comment Block",
     defaultLua: "--[[This Is A Comment]]",
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
     `,
+    blockIcon: `
+    <span class="block w-full text-black text-center italic font-gt-pressura">--</span>
+    `,
     color: "#887880",
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
 <script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
-  import { parenthesis } from "./_validators";
+  import { Validator } from "./_validators";
 
   export let config = "";
   export let index;
@@ -30,7 +43,6 @@
   let scriptValue = ""; // local script part
 
   $: if (config.script && !loaded) {
-    console.log(config.script);
     scriptValue = config.script.split("--[[")[1].split("]]")[0];
     loaded = true;
   }
@@ -46,15 +58,29 @@
   function sendData(e) {
     dispatch("output", { short: "c", script: `--[[${e}]]` });
   }
+
+  const validator = (e) => {
+    return new Validator(e).Result();
+  };
 </script>
 
-<element-name class="flex flex-col w-full p-2">
+<element-name
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Comment</div>
-    <input
-      type="text"
-      bind:value={scriptValue}
-      class="w-full border bg-secondary border-secondary text-white py-0.5 pl-2 rounded-none"
+
+    <AtomicInput
+      inputValue={scriptValue}
+      {validator}
+      on:validator={(e) => {
+        const data = e.detail;
+        dispatch("validator", data);
+      }}
+      on:change={(e) => {
+        let newValue = e.detail;
+        sendData(newValue);
+      }}
     />
   </div>
 </element-name>

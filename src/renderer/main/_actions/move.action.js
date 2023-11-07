@@ -1,4 +1,16 @@
+import { writable } from "svelte/store";
 import { user_input } from "../../runtime/runtime.store";
+
+export const config_drag = createConfigureDragStore();
+
+export class DragEvent {
+  constructor() {}
+}
+
+function createConfigureDragStore() {
+  const store = writable(undefined);
+  return store;
+}
 
 export function changeOrder(node, { configs }) {
   let _configs = configs;
@@ -12,7 +24,6 @@ export function changeOrder(node, { configs }) {
 
   let cursor = undefined;
   let dragged = undefined;
-  let multiDragFlag = undefined;
   let moveDisabled = false;
   let drag_block = [];
 
@@ -23,43 +34,8 @@ export function changeOrder(node, { configs }) {
     if (document.getElementById("drag-n-drop-cursor"))
       document.getElementById("drag-n-drop-cursor").remove();
     node.dispatchEvent(new CustomEvent("drag-end", {}));
-    node.dispatchEvent(new CustomEvent("enable-pointer-events"));
     reset();
   });
-
-  function if_end_pairs(_c, i) {
-    const _cfgs = _c.slice(i);
-    const _cfgs_length = _cfgs.length;
-
-    let arr = [];
-    let stack = [];
-    let current;
-
-    let skipSelection = false;
-
-    for (let i = 0; i < _cfgs_length; i++) {
-      if (!skipSelection) {
-        current = _cfgs[i].information.name; //easier than writing it over and over
-        if (current.endsWith("_If")) {
-          stack.push(current);
-        } else if (current.endsWith("_End")) {
-          const lastBracket = stack.pop();
-          if (lastBracket !== current.split("_")[0] + "_If") {
-            //if the stack is empty, .pop() returns undefined, so this expression is still correct
-            return false; //terminate immediately - no need to continue scanning the string
-          }
-        }
-
-        arr.push(_cfgs[i]);
-
-        if (stack.length == 0 && current.endsWith("_End")) {
-          skipSelection = true;
-        }
-      }
-    }
-
-    return arr.length;
-  }
 
   function createMultiDragCursor(targets, width) {
     cursor = document.createElement("div");
@@ -120,6 +96,7 @@ export function changeOrder(node, { configs }) {
     selectionLength = document.getSelection().toString().length;
   }
 
+  //TODO: Remove this stufff....
   function handleMouseMove(e) {
     // variables
     const { id, clientHeight } = e.target;
@@ -132,11 +109,6 @@ export function changeOrder(node, { configs }) {
       drag += 1;
     }
 
-    //  used to disabled pointer events
-    if (drag == 1) {
-      node.dispatchEvent(new CustomEvent("disable-pointer-events"));
-    }
-
     // see if the target has movable attribute, so it can be moved...
     // emit dragstart only once
     if (drag == 2) {
@@ -147,7 +119,6 @@ export function changeOrder(node, { configs }) {
         moveDisabled = true;
 
         node.dispatchEvent(new CustomEvent("drag-end"));
-        node.dispatchEvent(new CustomEvent("enable-pointer-events"));
         console.log("This cannot be moved!");
       } else {
         node.dispatchEvent(new CustomEvent("drag-start"));
@@ -159,33 +130,33 @@ export function changeOrder(node, { configs }) {
     if (drag == 2 && !moveDisabled) {
       dragged = e.target;
       let _configIds = [];
-      // multidrag, added component type on dynamic wrapper
-      // if component is enabled for multidrag, create multidragcursor and set multiDragFlag to true
-      const component = dragged.getAttribute("config-component");
+      const type = dragged.getAttribute("config-type");
 
-      if (component.endsWith("_If")) {
-        const _id = id.substr(4);
-        const nodes = _configs.slice(_id);
-        const end_of_if = if_end_pairs(_configs, _id);
-        const drag_configs = nodes.slice(0, end_of_if);
-        multiDragFlag = true;
-        for (const item of drag_configs) {
-          // using configs array, so dom elements need to be discovered by custom id
-          const drag_item = document.querySelectorAll(
-            `[config-id="${item.id}"]`
-          )[0];
+      if (type === "composite_open") {
+        const index = Number(id.substr(4));
+        const drag_indexes = [index];
+        let depth = 1;
+        for (let i = index + 1; i < _configs.length && depth > 0; ++i) {
+          if (_configs[i].information.type === "composite_open") {
+            ++depth;
+          } else if (_configs[i].information.type === "composite_close") {
+            --depth;
+          }
+          drag_indexes.push(i);
+        }
+
+        for (const i of drag_indexes) {
+          const drag_item = document.getElementById("cfg-" + i);
           // before starting cursor, set the "left behind" configs to half opacity
           drag_item.style.opacity = "0.2";
           // drag_block is a collection of config-ids, original gen unique key ids.
           drag_block.push(drag_item);
-          // attribute "config-id" refers to initial keyed id of config
-          _configIds.push(item.id);
+          _configIds.push(i);
         }
         createMultiDragCursor(drag_block, dragged.clientWidth);
       } else {
         // the id "cfg" refers to dynamic index position and attribute "config-id" refers to initial keyed id of config
-        _configIds = [dragged.getAttribute("config-id")]; // this is used as an array, as multidrag is supported
-        multiDragFlag = false;
+        _configIds = [Number(dragged.getAttribute("config-id"))]; // this is used as an array, as multidrag is supported
         dragged.style.opacity = "0.2";
         createCursor(dragged, dragged.clientWidth);
       }
@@ -207,11 +178,11 @@ export function changeOrder(node, { configs }) {
         let drop_target = "";
         // if its a modifier, the below helper shouldn't be used!
 
-        if (e.target.getAttribute("config-component") !== null) {
+        if (e.target.getAttribute("config-name") !== null) {
           if (
             id.startsWith("cfg-") &&
-            !e.target.getAttribute("config-component").endsWith("_If") &&
-            e.target.getAttribute("config-component") !== "Then"
+            !e.target.getAttribute("config-name").endsWith("_If") &&
+            e.target.getAttribute("config-name") !== "Then"
           ) {
             if (clientHeight / 2 < e.offsetY) {
               drop_target = Number(id.substr(4));
@@ -225,8 +196,8 @@ export function changeOrder(node, { configs }) {
           drop_target = "bin";
         }
 
-        if (e.target.getAttribute("config-component") !== null) {
-          if (e.target.getAttribute("config-component").endsWith("_If")) {
+        if (e.target.getAttribute("config-name") !== null) {
+          if (e.target.getAttribute("config-name").endsWith("_If")) {
             drop_target = Number(id.substr(4)) - 1;
           }
         }
@@ -247,9 +218,7 @@ export function changeOrder(node, { configs }) {
 
     if (!moveDisabled && dragged !== undefined) {
       if (drag) {
-        node.dispatchEvent(
-          new CustomEvent("drop", { detail: { multi: multiDragFlag } })
-        );
+        node.dispatchEvent(new CustomEvent("drop"));
         node.dispatchEvent(new CustomEvent("anim-start"));
       }
 
@@ -257,7 +226,6 @@ export function changeOrder(node, { configs }) {
         document.getElementById("drag-n-drop-cursor").remove();
 
       node.dispatchEvent(new CustomEvent("drag-end", {}));
-      node.dispatchEvent(new CustomEvent("enable-pointer-events"));
 
       // for fade in animation end sequencing
       setTimeout(() => {
@@ -273,7 +241,6 @@ export function changeOrder(node, { configs }) {
       }, 300);
     } else {
       node.dispatchEvent(new CustomEvent("drag-end"));
-      node.dispatchEvent(new CustomEvent("enable-pointer-events"));
     }
 
     node.removeEventListener("mousemove", handleMouseMove);

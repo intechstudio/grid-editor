@@ -1,11 +1,13 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import CompositeFace from "./headers/CompositeFace.svelte";
+  export const header = CompositeFace;
+
   // config descriptor parameters
   export const information = {
     short: "el",
     name: "Condition_Else",
     rendering: "modifier",
-    grabbing: false,
-    hiddenIcon: true,
     category: "condition",
     desc: "Else",
     blockTitle: "Else",
@@ -16,6 +18,12 @@
     </svg>
     `,
     color: "#F84AA7",
+    blockIcon: `<span class="text-white">Else</span>`,
+    selectable: true,
+    movable: false,
+    hideIcon: true,
+    type: "composite_part",
+    toggleable: false,
   };
 </script>
 
@@ -27,13 +35,8 @@
   function sendData() {
     dispatch("output", { short: "el", script: "else" });
   }
-
-  onMount(() => {
-    sendData();
-  });
 </script>
 
-<else-block
-  class="w-full h-fit flex flex-col text-white"
-  style="min-height: 2.5rem; background: {information.color};"
-/>
+<else-block class="{$$props.class} text-white pointer-events-auto">
+  {information.blockTitle}
+</else-block>

@@ -1,0 +1,102 @@
+name: 🚀 Release build
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v[12].[0-9]+.[0-9]+"
+
+jobs:
+  profile-cloud-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Profile Cloud repository
+        uses: actions/checkout@v3
+        with:
+          ssh-key: ${{ secrets.PROFILE_CLOUD_KEY }}
+          repository: intechstudio/profile-cloud
+          fetch-depth: 0
+
+      - name: Checkout latest tag
+        run: git checkout $(git describe --tags $(git rev-list --tags --max-count=1))
+
+      - name: Create public env file
+        run: |
+          touch .env
+          echo PUBLIC_APP_ENV=development >> .env
+          echo PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.PUBLIC_GOOGLE_CLIENT_ID_PROD }} >> .env
+          echo PUBLIC_VERSION_STRING=$(git log --format="%h %cd" --date=short --abbrev-commit -1) >> .env
+
+      - name: Build profile cloud project
+        run: npm ci && npm run build
+
+      - name: Upload profile cloud folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: profile-cloud
+          path: public/
+          retention-days: 1
+  matrix-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    needs: profile-cloud-build
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ""
+          submodules: true
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "${{ env.RELEASE_VERSION }}"
+
+      - name: Setup NodeJs
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.16.1"
+
+      - name: Download profile cloud artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: profile-cloud
+          path: profile-cloud/
+
+      - name: Install dependencies
+        run: npm i
+
+      - name: Build
+        run: npm run export
+        env:
+          # gh repo token
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          # windows Code signing
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+
+          # Apple ID
+          APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
+
+          # macOS Code signing
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+
+      - name: See directory
+        run: ls build/*.*
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.RELEASE_VERSION }}
+          name: Release ${{ env.RELEASE_VERSION }}
+          files: build/*.*
+          draft: true
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

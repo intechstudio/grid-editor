@@ -1,17 +1,46 @@
-import { writable, get } from "svelte/store";
+import { get, writable, derived } from "svelte/store";
 
 import {
   runtime,
-  logger,
-  luadebug_store,
-  appMultiSelect,
-  appActionClipboard,
   user_input,
+  getDeviceName,
+  eventType,
 } from "../../../runtime/runtime.store";
 
+//import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
+
+import {
+  getComponentInformation,
+  config_components,
+  init_config_block_library,
+} from "../../../lib/_configs";
+
+export let lastOpenedActionblocks = writable([]);
+
+export function lastOpenedActionblocksInsert(short) {
+  // Get the current value of lastOpenedActionblocks
+  const currentList = get(lastOpenedActionblocks);
+
+  // Update the store with the new value
+  lastOpenedActionblocks.set([
+    ...currentList.filter((e) => e !== short),
+    short,
+  ]);
+}
+
+export function lastOpenedActionblocksRemove(short) {
+  // Get the current value of lastOpenedActionblocks
+  const currentList = get(lastOpenedActionblocks);
+
+  // Update the store with the new value
+  lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
+}
+
+import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
-import _utils from "../../../runtime/_utils.js";
+import grid from "../../../protocol/grid-protocol.js";
+import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
   RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
@@ -19,318 +48,390 @@ const luaminOptions = {
   SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
 };
 
-function get_configs() {
-  let configs = "";
-  const unsubscribe = luadebug_store.subscribe((data) => {
-    let arr = [];
-    configs = _utils.rawLuaToConfigList(data.config);
-    for (let i = 0; i < configs.length; i += 2) {
-      arr.push(`${configs[i]}${configs[i + 1]}`.trim());
+export class ConfigObject {
+  constructor({ short, script }) {
+    this.short = short;
+    this.script = script;
+    this.id = uuidv4();
+
+    const init = async () => {
+      if (config_components == []) {
+        await init_config_block_library();
+      }
+    };
+    init();
+
+    let res = getComponentInformation({ short: short });
+
+    //Backward compatibility
+    if (typeof res === "undefined") {
+      res = getComponentInformation({ short: "raw" });
     }
-    configs = arr;
-  });
-  unsubscribe();
-  return configs;
+
+    this.information = structuredClone(res.information);
+    this.indentation = 0;
+    this.header = res.header;
+    this.component = res.component;
+    this.selected = false;
+    this.toggled = false;
+  }
+
+  toRawLua() {
+    return `--[[@${this.short}]] ${this.script}`;
+  }
+
+  makeCopy() {
+    const copy = new ConfigObject({
+      short: this.short,
+      script: this.script,
+    });
+    copy.information = this.information;
+    copy.component = this.component;
+    copy.selected = this.selected;
+    copy.toggled = this.toggled;
+    copy.id = uuidv4();
+
+    // Copy any additional properties that were added later
+    for (const prop in this) {
+      if (this.hasOwnProperty(prop) && !copy.hasOwnProperty(prop)) {
+        copy[prop] = this[prop];
+      }
+    }
+
+    return copy;
+  }
+
+  //Returns true if syntax is OK
+  checkSyntax() {
+    //If not a CodeBlock, and script contains if, add end to if.
+    //If not done, it will always fail.
+    //TODO: Rework composite blocks in a way, so this exception
+    //does not occure.
+    let code = this.script;
+    if (this.short !== "cb") {
+      if (code.startsWith("elseif")) {
+        code = code.replace("elseif", "if");
+      }
+      if (code.startsWith("if") || code.startsWith("for")) {
+        code += " end";
+      }
+      if (
+        code.startsWith("else") ||
+        code.startsWith("elseif") ||
+        code.startsWith("end")
+      ) {
+        return true;
+      }
+      if (this.short === "raw") {
+        return true;
+      }
+    }
+
+    try {
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  getSyntaxError() {
+    try {
+      //Is this necessary?
+      //checkForbiddenIdentifiers(code);
+      const short_code = stringManipulation.shortify(code);
+      const line_commented_code =
+        stringManipulation.blockCommentToLineComment(short_code);
+
+      var safe_code = String(
+        stringManipulation.lineCommentToNoComment(line_commented_code)
+      );
+      luamin.Minify(safe_code, luaminOptions);
+      return "OK";
+    } catch (e) {
+      return e;
+    }
+  }
 }
 
-export function configManagement() {
-  const drag_and_drop = function () {
-    this.add = ({ configs, index, newConfig }) => {
-      let res = _utils.gridLuaToEditorLua(newConfig);
+export class UnknownEventException extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "UnknownEventException";
+  }
+}
 
-      if (res === undefined) {
-        console.log("NO CONFIG PASSED");
-        return undefined;
+export class ConfigList extends Array {
+  makeCopy() {
+    const copy = new ConfigList();
+    for (const config of this) {
+      copy.push(config.makeCopy());
+    }
+
+    // Copy any additional properties that were added later
+    for (const prop in this) {
+      if (this.hasOwnProperty(prop) && !copy.hasOwnProperty(prop)) {
+        copy[prop] = this[prop];
       }
+    }
 
-      configs.splice(index, 0, ...res);
-      return configs;
-    };
+    return copy;
+  }
 
-    this.remove = ({ configs, array }) => {
-      array.forEach((elem) => {
-        configs = configs.filter((a) => a.id !== elem);
-      });
-      return configs;
-    };
+  static getIndentationMap(list) {
+    let indentationMap = [];
+    let indentation = 0;
 
-    this.reorder = ({ configs, drag_target, drop_target, isMultiDrag }) => {
-      function isDropZoneAvailable(drop_target, isMultiDrag) {
-        return 1;
+    for (let i = 0; i < list.length; i++) {
+      let config = list[i];
+
+      if (config.information.type === "composite_open") {
+        indentationMap.push(indentation++);
+      } else if (config.information.type === "composite_close") {
+        indentationMap.push(--indentation);
+      } else if (config.information.type === "composite_part") {
+        indentationMap.push(indentation - 1);
+      } else {
+        indentationMap.push(indentation);
       }
+    }
+    return indentationMap;
+  }
 
-      if (isDropZoneAvailable(drop_target, isMultiDrag)) {
-        let grabbed = [];
-        drag_target.forEach((id) => {
-          grabbed.push(configs.find((act) => id === act.id));
-        });
-        const firstElem = configs.indexOf(grabbed[0]);
-        const lastElem = configs.indexOf(grabbed[grabbed.length - 1]);
+  static createFrom(target) {
+    const config = new ConfigList();
+    config.#InitFrom(target);
+    return config;
+  }
 
-        let to = Number(drop_target) + 1;
-        // correction for multidrag
-        if (to > firstElem) {
-          to = to - drag_target.length;
-        }
-
-        configs = [
-          ...configs.slice(0, firstElem),
-          ...configs.slice(lastElem + 1),
-        ];
-        configs = [...configs.slice(0, to), ...grabbed, ...configs.slice(to)];
-      }
-
-      return configs;
-    };
-  };
-
-  const on_click = function () {
-    this.select_all = function () {
-      const configs = get_configs();
-      appMultiSelect.update((s) => {
-        s.all_selected = !s.all_selected;
-        s.selection = configs.map((v) => s.all_selected);
-        return s;
-      });
-    };
-
-    this.copy = function (isCut = false) {
-      const selection = get(appMultiSelect).selection;
-
-      const configs = get_configs();
-
-      let clipboard = [];
-
-      selection.forEach((elem, index) => {
-        if (elem) {
-          clipboard.push(configs[index]);
-        }
-      });
-
-      appActionClipboard.set(clipboard);
-
-      if (isCut === false) {
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "copy"
-        );
-      }
-    };
-
-    this.paste = function () {
-      if (get(appActionClipboard).length) {
-        const configs = [...get_configs(), ...get(appActionClipboard)];
-
-        const li = get(user_input);
-
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-        const actionstring = "<?lua " + configs.join("") + " ?>";
-
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
-
-        // trigger change detection
-        user_input.update((n) => n);
-
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "paste"
-        );
-      }
-    };
-
-    this.converttocodeblock = function () {
-      const selection = get(appMultiSelect).selection;
-      const configs = get_configs();
-
-      // EDIT
-
-      let edited = [];
-
-      let i = 0;
-      let j = 0;
-      for (; i < configs.length; ) {
-        if (selection[i] !== true) {
-          edited.push(configs[i]);
-          j++;
-        } else {
-          // edit these
-          if (i > 0 && selection[i - 1] == true) {
-            const [first, ...rest] = configs[i].split("]]");
-            edited[j - 1] += rest.join("]]");
-          } else {
-            const [first, ...rest] = configs[i].split("]]");
-            edited.push("--[[@cb]]" + rest.join("]]"));
-            j++;
-          }
-        }
-
-        i++;
-      }
-
-      // check if resulting codesections are valid
-
-      let error_count = 0;
-
-      for (let v = 0; v < edited.length; v++) {
-        if (selection[v] == true) {
-          try {
-            const minified_code = luamin.Minify(edited[v], luaminOptions);
-          } catch (error) {
-            error_count++;
-          }
-        }
-      }
-
-      if (error_count) {
-        console.log("Merge Rejected");
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "configuration",
-          message: `Code Merge Rejected`,
-        });
-        return;
-      }
-
-      const li = get(user_input);
-
-      const dx = li.brc.dx;
-      const dy = li.brc.dy;
-      const page = li.event.pagenumber;
-      const element = li.event.elementnumber;
-      const event = li.event.eventtype;
-      const actionstring = "<?lua " + edited.join("") + " ?>";
+  sendTo({ target }) {
+    return new Promise((resolve) => {
+      this.checkLength();
+      const actionString = this.toConfigScript();
 
       runtime.update_event_configuration(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        actionstring,
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType,
+        actionString,
         "EDITOR_EXECUTE"
       );
-      runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
 
-      // trigger change detection
-      user_input.update((n) => n);
-    };
-
-    this.cut = function () {
-      window.electron.analytics.influx(
-        "application",
-        "configuration",
-        "multiselect",
-        "cut"
+      runtime.send_event_configuration_to_grid(
+        target.device.dx,
+        target.device.dy,
+        target.page,
+        target.element,
+        target.eventType
       );
-      this.copy(true);
-      this.remove();
-    };
 
-    this.remove = function () {
-      const selection = get(appMultiSelect).selection;
+      resolve("Event sent to grid.");
+    });
+  }
 
-      if (selection.length) {
-        const configs = [...get_configs()];
+  #InitFrom(target) {
+    const rt = get(runtime);
+    const device = rt.find(
+      (e) => e.dx == target.device.dx && e.dy == target.device.dy
+    );
 
-        let filtered = [];
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
+    }
 
-        for (let i = 0; i < configs.length; i++) {
-          if (selection[i] !== true) {
-            filtered.push(configs[i]);
-          } else {
-            // dont return
-          }
-        }
+    const page = device.pages[target.page];
 
-        const li = get(user_input);
+    const element = page.control_elements.find(
+      (e) => e.controlElementNumber == target.element
+    );
 
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
-        const actionstring = "<?lua " + filtered.join("") + " ?>";
+    let event = element.events.find((e) => e.event.value == target.eventType);
 
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring,
-          "EDITOR_EXECUTE"
-        );
-        runtime.send_event_configuration_to_grid(dx, dy, page, element, event);
+    if (typeof event === "undefined") {
+      throw new UnknownEventException(
+        `Event type ${target.eventType} does not exist under control element ${target.element}`
+      );
+    }
 
-        // trigger change detection
-        user_input.update((n) => n);
+    const cfgstatus = event.cfgStatus;
+    if (
+      cfgstatus != "GRID_REPORT" &&
+      cfgstatus != "EDITOR_EXECUTE" &&
+      cfgstatus != "EDITOR_BACKGROUND"
+    ) {
+      const ui = get(user_input);
+      const callback = () => user_input.update((n) => n);
+      runtime.fetchOrLoadConfig(ui, callback);
+    }
 
-        window.electron.analytics.influx(
-          "application",
-          "configuration",
-          "multiselect",
-          "remove"
-        );
+    let configScript = event.config;
+
+    //Parse configScript
+    //TODO: do rawLuas format checking during parsing
+
+    // get rid of new line, enter
+    configScript = configScript.replace(/[\n\r]+/g, "");
+    // get rid of more than 2 spaces
+    configScript = configScript.replace(/\s{2,10}/g, " ");
+    // remove lua opening and closing characters
+    // this function is used for both parsing full config (long complete lua) and individiual actions lua
+    if (configScript.startsWith("<?lua")) {
+      configScript = configScript.split("<?lua")[1].split("?>")[0];
+    }
+    // split by meta comments
+    let configList = configScript.split(/(--\[\[@+\w+\]\])/);
+
+    configList = configList.slice(1);
+    for (var i = 0; i < configList.length; i += 2) {
+      const obj = new ConfigObject({
+        //Extract short, e.g.: '--[[@gms]]' => 'gms'
+        short: configList[i].match(/--\[\[@(.+?)\]\]/)?.[1],
+        script: configList[i + 1].trim(),
+      });
+      super.push(obj);
+    }
+  }
+
+  toConfigScript() {
+    let lua = "";
+    super.forEach((e) => (lua += e.toRawLua()));
+    lua = "<?lua " + lua.replace(/(\r\n|\n|\r)/gm, "") + " ?>";
+    return lua;
+  }
+
+  insert(atPosition, ...configs) {
+    super.splice(atPosition, 0, ...configs);
+  }
+
+  remove(atPosition) {
+    super.splice(atPosition, 1);
+  }
+
+  //Returns true if config syntax is OK
+  checkSyntax() {
+    for (const e of this) {
+      if (!e.checkSyntax()) {
+        return false;
       }
-    };
-  };
+    }
+    return true;
+  }
 
-  return {
-    drag_and_drop: new drag_and_drop(),
-    on_click: new on_click(),
-  };
+  //Throws error if limit is reached
+  checkLength() {
+    const length = this.toConfigScript().length;
+    if (length > grid.properties.CONFIG_LENGTH) {
+      const target = ConfigTarget.getCurrent();
+      throw {
+        type: "lengthError",
+        device: getDeviceName(target.device.dx, target.device.dy),
+        x: target.device.dx,
+        y: target.device.dy,
+        element: { no: target.element },
+        event: { no: target.eventType, type: eventType[target.eventType] },
+        length: length,
+      };
+    }
+  }
 }
 
-function createDropStore() {
-  const store = writable([]);
+export class ConfigTarget {
+  constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
+    const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+    if (typeof device === "undefined") {
+      throw "Unknown device!";
+    }
 
-  return {
-    ...store,
-    update: (configs) => {
-      let disabled_blocks = [];
-      let if_block = false;
-      configs.forEach((a, index) => {
-        try {
-          // check if it's and if block
-          if (a.information.name.endsWith("_If")) {
-            if_block = true;
-          }
+    this.device = { dx: dx, dy: dy };
+    this.page = page;
+    this.element = element;
+    this.eventType = eventType;
 
-          // don't add +1 id in the array (end)
-          if (if_block && !a.information.name.endsWith("_End")) {
-            disabled_blocks.push(index);
-          }
+    const controlElement = device.pages
+      .at(page)
+      .control_elements.find((e) => e.controlElementNumber == element);
+    this.events = controlElement.events;
+    this.elementType = controlElement.controlElementType;
+  }
 
-          // this is the last, as END has to be disabled too!
-          if (a.information.name.endsWith("_End")) {
-            if_block = false;
-          }
-        } catch (e) {
-          console.log(e);
-        }
+  static createFrom({ userInput }) {
+    try {
+      return new ConfigTarget({
+        device: { dx: userInput.brc.dx, dy: userInput.brc.dy },
+        page: userInput.event.pagenumber,
+        element: userInput.event.elementnumber,
+        eventType: userInput.event.eventtype,
+      });
+    } catch (e) {
+      return undefined;
+    }
+  }
+
+  static getCurrent() {
+    const ui = get(user_input);
+    try {
+      const currentTarget = new ConfigTarget({
+        device: { dx: ui.brc.dx, dy: ui.brc.dy },
+        page: ui.event.pagenumber,
+        element: ui.event.elementnumber,
+        eventType: ui.event.eventtype,
       });
 
-      store.set(disabled_blocks);
-    },
-  };
+      return currentTarget;
+    } catch (e) {
+      console.error("ConfigTarget:", e);
+      return undefined;
+    }
+  }
 }
 
-export const dropStore = createDropStore();
+export const configManager = create_configuration_manager();
+
+function create_configuration_manager() {
+  let store = writable(new ConfigList());
+
+  function createConfigListFrom(ui) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
+    let list = new ConfigList();
+
+    if (typeof target === "undefined") {
+      return list;
+    }
+
+    try {
+      list = ConfigList.createFrom(target);
+    } catch (e) {
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+      } else {
+        //Unknown error, display default
+        console.error(`Configuration: ${e}`);
+      }
+    }
+    return list;
+  }
+
+  user_input.subscribe((ui) => {
+    store.set(createConfigListFrom(ui));
+  });
+
+  return store;
+}

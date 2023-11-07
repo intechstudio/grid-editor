@@ -1,4 +1,8 @@
 <script context="module">
+  // Component for the untoggled "header" of the component
+  import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
+  export const header = RegularActionBlockFace;
+
   // config descriptor parameters
   export const information = {
     short: "sbc",
@@ -6,9 +10,16 @@
     rendering: "standard",
     category: "element settings",
     desc: "Button Mode",
+    blockTitle: "Button Mode",
     color: "#5F416D",
     defaultLua: "self:bmo(0)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
+    blockIcon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
+    selectable: true,
+    movable: true,
+    hideIcon: false,
+    type: "single",
+    toggleable: true,
   };
 </script>
 
@@ -49,22 +60,8 @@
     sendData(scriptValue);
   }
 
-  function sendData(e) {
-    dispatch("output", { short: `sbc`, script: `self:bmo(${e})` });
-  }
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
+  function sendData(value) {
+    dispatch("output", { short: `sbc`, script: `self:bmo(${value})` });
   }
 
   const suggestions = [
@@ -75,14 +72,22 @@
       { value: "3", info: "3-step" },
     ],
   ];
+
+  let suggestionElement = undefined;
 </script>
 
-<encoder-settings class="flex flex-col w-full p-2">
+<encoder-settings
+  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
+>
   <div class="w-full px-2">
     <div class="text-gray-500 text-sm pb-1">Button Mode</div>
     <AtomicInput
+      inputValue={scriptValue}
       suggestions={suggestions[0]}
-      bind:inputValue={scriptValue}
+      suggestionTarget={suggestionElement}
+      on:change={(e) => {
+        scriptValue = e.detail;
+      }}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
@@ -90,21 +95,8 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      {suggestions}
-      on:select={(e) => {
-        scriptValue = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </encoder-settings>
