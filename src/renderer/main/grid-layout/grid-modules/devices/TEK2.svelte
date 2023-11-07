@@ -97,80 +97,105 @@
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [8, 9] as elementNumber}
+        {@const isSelected =
+          dx == selectedElement.brc.dx &&
+          dy == selectedElement.brc.dy &&
+          selectedElement.event.elementnumber == elementNumber}
+        {@const isChanged =
+          typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <cell
           class="w-full h-full flex items-center justify-center relative col-span-2 row-span-2"
         >
-          <unsaved-changes-underlay
-            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
-            class:hidden={typeof $unsaved_changes.find(
-              (e) => e.x == dx && e.y == dy && e.element == elementNumber
-            ) === "undefined"}
-            style="width: calc(100% - 5px); height: calc(100% - 5px)"
-          />
-          <button
-            ariarole="button"
-            class:active-element={dx == selectedElement.brc.dx &&
-              dy == selectedElement.brc.dy &&
-              selectedElement.event.elementnumber == elementNumber}
-            class="knob-and-led relative z-[2]"
-            style="border-radius: 50%; padding: 6px"
-            on:click={() => selectElement(elementNumber, "encoder", id)}
+          <underlay
+            class="absolute rounded-full"
+            class:bg-unsavedchange={isChanged && !isSelected}
+            class:bg-opacity-10={isSelected}
+            class:bg-opacity-20={isChanged && !isSelected}
+            class:border={isChanged}
+            class:border-unsavedchange={isChanged}
+            class:bg-white={isSelected}
+            class:hover:bg-white={!isSelected}
+            class:hover:bg-opacity-5={!isSelected && !isChanged}
+            class:hover:bg-opacity-10={!isSelected && isChanged}
+            style="width: calc(100% - 32px); height: calc(100% - 32px)"
           >
-            {#each [0, 1, 2, 3, 4] as ledNumber}
-              <div
-                class="absolute"
-                style="
+            <button
+              ariarole="button"
+              class="knob-and-led absolute"
+              style="border-radius: 50%; padding: 6px; width: calc(100%); height: calc(100%)"
+              on:click={() => selectElement(elementNumber, "encoder", id)}
+            >
+              {#each [0, 1, 2, 3, 4] as ledNumber}
+                <div
+                  class="absolute"
+                  style="
                 margin-left: {ledPosRadius *
-                  Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                    Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
                 margin-top: {ledPosRadius *
-                  Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                    Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
               "
-              >
-                <Led
-                  color={ledcolor_array[
-                    (elementNumber == 8 ? 8 : 9) + ledNumber * 2
-                  ]}
-                  size={1.4}
-                />
-              </div>
-            {/each}
+                >
+                  <Led
+                    color={ledcolor_array[
+                      (elementNumber == 8 ? 8 : 9) + ledNumber * 2
+                    ]}
+                    size={1.4}
+                  />
+                </div>
+              {/each}
 
-            <EndlessPot
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber]}
-              size={2.1}
-            />
-          </button>
+              <EndlessPot
+                {elementNumber}
+                {id}
+                position={elementposition_array[elementNumber]}
+                size={2.1}
+              />
+            </button>
+          </underlay>
         </cell>
       {/each}
 
       {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
+        {@const isSelected =
+          dx == selectedElement.brc.dx &&
+          dy == selectedElement.brc.dy &&
+          selectedElement.event.elementnumber == elementNumber}
+        {@const isChanged =
+          typeof $unsaved_changes.find(
+            (e) => e.x == dx && e.y == dy && e.element == elementNumber
+          ) !== "undefined"}
         <!-- svelte-ignore a11y-click-events-have-key-events -->
         <cell class="w-full h-full flex items-center justify-center relative">
-          <unsaved-changes-underlay
-            class="bg-white absolute rounded-lg bg-opacity-10 z-[1]"
-            class:hidden={typeof $unsaved_changes.find(
-              (e) => e.x == dx && e.y == dy && e.element == elementNumber
-            ) === "undefined"}
-            style="width: calc(100% - 5px); height: calc(100% - 5px)"
-          />
-          <button
-            class:active-element={dx == selectedElement.brc.dx &&
-              dy == selectedElement.brc.dy &&
-              selectedElement.event.elementnumber == elementNumber}
-            class="knob-and-led z-[2]"
-            on:click={() => selectElement(elementNumber, "button", id)}
+          <underlay
+            class="absolute rounded-lg"
+            class:bg-unsavedchange={isChanged && !isSelected}
+            class:bg-opacity-10={isSelected}
+            class:bg-opacity-20={isChanged && !isSelected}
+            class:border={isChanged}
+            class:border-unsavedchange={isChanged}
+            class:bg-white={isSelected}
+            class:hover:bg-white={!isSelected}
+            class:hover:bg-opacity-5={!isSelected && !isChanged}
+            class:hover:bg-opacity-10={!isSelected && isChanged}
+            style="width: calc(100% - 8px); height: calc(100% - 8px)"
           >
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber]}
-              size={2.1}
-            />
-          </button>
+            <button
+              class="knob-and-led absolute"
+              style="width: calc(100%); height: calc(100%)"
+              on:click={() => selectElement(elementNumber, "button", id)}
+            >
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+              <Button
+                {elementNumber}
+                {id}
+                position={elementposition_array[elementNumber]}
+                size={2.1}
+              />
+            </button>
+          </underlay>
         </cell>
       {/each}
     </div>

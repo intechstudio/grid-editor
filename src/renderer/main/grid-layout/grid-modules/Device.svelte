@@ -185,7 +185,7 @@
     justify-content: center;
     align-items: center;
     transition: filter 0.2s;
-    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
   }
 
   .control-row {
@@ -205,13 +205,6 @@
 
   .disable-pointer-events {
     pointer-events: none;
-  }
-
-  .active-element {
-    background-color: rgba(136, 136, 136, 0.35);
-    box-shadow: inset 0 0 0px #ffffff33;
-    padding: 0.2rem;
-    border-radius: 0.5rem;
   }
 
   .active-systemelement {
