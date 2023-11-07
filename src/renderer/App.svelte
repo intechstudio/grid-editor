@@ -104,12 +104,14 @@
 
   window.onmessage = (event) => {
     // extract this part on refactor
+    console.log(`NEW TOP LEVEL EVENT! ${JSON.stringify(event)}, ${event.data}`);
     if (event.source === window && event.data === "plugin-manager-port") {
       const [port] = event.ports;
       window.pluginManagerPort = port;
       // register message handler
       port.onmessage = (event) => {
         const data = event.data;
+        console.log(`NEW INNER MESSAGE! ${data}`);
         // action towards runtime
         switch (data.type) {
           case "plugin-action": {

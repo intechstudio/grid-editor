@@ -6,6 +6,7 @@ import os from "os";
 import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
+import chokidar from "chokidar";
 
 enum PluginStatus {
   Uninstalled = "Uninstalled",
@@ -28,10 +29,15 @@ process.parentPort.on("message", (e) => {
       if (!fs.existsSync(pluginFolder)) {
         fs.mkdirSync(pluginFolder, { recursive: true });
       }
+      startPluginDirectoryWatcher(pluginFolder);
 
       const port = e.ports[0];
       setPluginManagerMessagePort(port);
-
+      break;
+    }
+    case "set-new-message-port": {
+      const port = e.ports[0];
+      setPluginManagerMessagePort(port);
       break;
     }
     case "refresh-plugins": {
@@ -333,4 +339,38 @@ async function getAvailablePlugins() {
     });
   });
   return pluginList;
+}
+
+
+let directoryWatcher: any = null;
+
+function startPluginDirectoryWatcher(
+  path: string
+): void {
+  directoryWatcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+
+  directoryWatcher
+    .on("add", function (path: string) {
+      notifyListener();
+    })
+    .on("change", function (path: string) {
+      notifyListener();
+    })
+    .on("unlink", function (path: string) {
+      notifyListener();
+    })
+    .on("addDir", function (path: string) {
+      notifyListener();
+    })
+    .on("unlinkDir", function (path: string) {
+      notifyListener();
+    })
+    .on("ready", function (path: string) {
+      notifyListener();
+    });
 }

@@ -297,13 +297,12 @@ function createWindow() {
     const { port1, port2 } = new MessageChannelMain();
     mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
 
-    if (typeof pluginManagerProcess === "undefined") {
+    const pluginFolder = path.resolve(
+      path.join(app.getPath("documents"), "grid-userdata", "plugins")
+    );
+    if (!pluginManagerProcess) {
       pluginManagerProcess = utilityProcess.fork(
         path.resolve(path.join(__dirname, "./pluginManager.js"))
-      );
-
-      const pluginFolder = path.resolve(
-        path.join(app.getPath("documents"), "grid-userdata", "plugins")
       );
       pluginManagerProcess.postMessage(
         {
@@ -313,7 +312,13 @@ function createWindow() {
         },
         [port2]
       );
-      startPluginDirectoryWatcher(pluginFolder, pluginManagerProcess);
+    } else {
+      pluginManagerProcess.postMessage(
+        {
+          type: "set-new-message-port",
+        },
+        [port2]
+      );
     }
   });
 }
@@ -332,37 +337,6 @@ const deeplink = new Deeplink({
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-
-let watcher: any = null;
-let directoryWatcher: any = null;
-
-function startPluginDirectoryWatcher(
-  path: string,
-  process: Electron.UtilityProcess
-): void {
-  directoryWatcher = chokidar.watch(path, {
-    ignored: /[\/\\]\./,
-    persistent: true,
-    ignoreInitial: true, // Ignore initial events on startup
-    depth: 0, // Only watch the top-level directory
-  });
-
-  directoryWatcher
-    .on("addDir", function (path: string) {
-      //Directory has been added
-      process.postMessage({
-        type: "refresh-plugins",
-        path: path,
-      });
-    })
-    .on("unlinkDir", function (path: string) {
-      //Directory has been removed
-      process.postMessage({
-        type: "refresh-plugins",
-        path: path,
-      });
-    });
-}
 
 let configWatcher: chokidar.FSWatcher | undefined;
 function startConfigWatcher(configPath, rootDirectory) {
