@@ -65,7 +65,6 @@
       short: e.detail.short,
       script: e.detail.script,
     });
-    isChange = true;
   }
 
   function handleValidator(e) {
