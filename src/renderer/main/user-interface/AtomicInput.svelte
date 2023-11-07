@@ -16,14 +16,14 @@
   let isError = false;
   let disabled = false;
   let infoValue = "";
-  let text;
+  let displayText;
   let valueChanged = false;
 
   let focus;
 
-  function handleInputValueChange(value) {
-    text = stringManipulation.humanize(String(value));
+  function handleValueChange(value) {
     handleValidation(value);
+    displayText = stringManipulation.humanize(String(value));
     infoValue = suggestions.find(
       (s) => String(s.value).trim() == String(value).trim()
     );
@@ -33,10 +33,10 @@
     }
   }
 
-  $: handleInputValueChange(inputValue);
+  $: handleValueChange(inputValue);
 
   function handleValidation() {
-    isError = !validator(text);
+    isError = !validator(displayText);
     dispatch("validator", { isError: isError });
   }
 
@@ -47,9 +47,8 @@
   }
 
   function sendData(value) {
-    const short = stringManipulation.shortify(value);
     valueChanged = false;
-    dispatch("change", short);
+    dispatch("change", stringManipulation.shortify(value));
   }
 
   function handleFocus(e) {
@@ -67,12 +66,11 @@
 
   function handleInput(e) {
     valueChanged = true;
-    handleValidation(text);
+    handleValidation(displayText);
   }
 
   function handleSuggestionSelected(e) {
-    const { value } = e.detail;
-    inputValue = value;
+    inputValue = e.detail;
     sendData(inputValue);
   }
 </script>
@@ -80,7 +78,7 @@
 <div class="{$$props.class} w-full relative">
   <input
     {disabled}
-    bind:value={inputValue}
+    value={displayText}
     on:focus={handleFocus}
     on:blur={handleBlur}
     on:input={handleInput}
