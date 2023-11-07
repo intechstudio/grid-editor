@@ -30,6 +30,7 @@ const persistentDefaultValues = {
   analyticsEnabled: false,
   firstLaunch: true,
   fontSize: 12,
+  profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
 };
 
 function checkOS() {
@@ -110,7 +111,6 @@ function createAppSettingsStore(persistent) {
       title: undefined,
       owner: { neme: undefined },
     },
-    profileCloudUrl: undefined,
     pluginList: [],
     persistent: structuredClone(persistent),
   });
