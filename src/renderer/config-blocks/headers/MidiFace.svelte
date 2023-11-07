@@ -37,13 +37,19 @@
       class="bg-primary p-1 my-auto rounded items-center flex flex-grow"
       on:click|stopPropagation
     >
-      {#each Array(scriptSegments.length).keys() as i}
-        <span class="text-center truncate mx-1">{labels[i]}</span>
+      <span class=" text-white text-opacity-60">(</span>
 
-        <span class="mr-2">
+      {#each Array(scriptSegments.length).keys() as i}
+        <!-- <span class="text-center truncate mx-1">{labels[i]}</span> -->
+
+        <span class=" text-white text-opacity-60">
           {scriptSegments[i]}
+          {#if i < scriptSegments.length - 1}
+            <span class=" text-white text-opacity-60">,&nbsp;</span>
+          {/if}
         </span>
       {/each}
+      <span class=" text-white text-opacity-60">)</span>
     </div>
   </div>
 </div>

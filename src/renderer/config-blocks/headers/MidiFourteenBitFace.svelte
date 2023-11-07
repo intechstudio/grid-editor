@@ -71,7 +71,7 @@
       on:click|stopPropagation
     >
       {#each Array(scriptSegments.length).keys() as i}
-        <span class="text-center truncate mx-1">{labels[i]}</span>
+        <!-- <span class="text-center truncate mx-1">{labels[i]}</span> -->
 
         <span class="mr-2">
           {scriptSegments[i]}

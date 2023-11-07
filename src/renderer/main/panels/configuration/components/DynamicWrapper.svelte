@@ -157,7 +157,7 @@
             this={config.header}
             {config}
             {access_tree}
-            class="px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
+            class="bg-secondary px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
               ? 'border-error'
               : 'border-transparent'} {config.information.hideIcon
               ? 'border-l'
