@@ -159,7 +159,7 @@ export class MusicalNotes {
   ];
   static FromInt(int_value) {
     return (
-      this.#musNotes[Math.floor(int_value % 12)] + Math.floor(int_value / 12)
+      this.#musNotes[Math.floor(int_value % 12)] + (Math.floor(int_value / 12) - 1)
     );
   }
 }

@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { onMount } from "svelte";
   import stringManipulation from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
@@ -9,71 +8,85 @@
   export let suggestions = [];
   export let customClasses = "";
   export let placeholder = "";
+  export let suggestionTarget = undefined;
   export let validator = () => {
     return true;
   };
 
   let isError = false;
-  let edited = false;
-
   let disabled = false;
   let infoValue = "";
-  let text;
-
-  $: handleTextChange(text);
+  let displayText;
+  let valueChanged = false;
 
   let focus;
 
-  function handleTextChange(value) {
+  function handleValueChange(value) {
     handleValidation(value);
+    const newValue = stringManipulation.humanize(String(value));
+    if (newValue !== displayText) {
+      displayText = newValue;
+    }
     infoValue = suggestions.find(
       (s) => String(s.value).trim() == String(value).trim()
     );
-    infoValue ? (infoValue = infoValue.info) : "";
-  }
 
-  function handleInputvaluechange(value) {
-    text = stringManipulation.humanize(value);
-    handleValidation(text);
-  }
-
-  onMount(() => {
-    handleInputvaluechange(inputValue);
-  });
-
-  function handleValidation() {
-    isError = !validator(text);
-    dispatch("validator", { isError: isError });
-  }
-
-  function handleLooseFocus(e) {
-    dispatch("loose-focus", { focus: false });
-    if (input) {
-      input = false;
-      const short = stringManipulation.shortify(inputValue);
-      console.log(short);
-      dispatch("change", short);
+    if (typeof infoValue !== "undefined") {
+      infoValue = infoValue.info;
     }
   }
 
-  function handleActiveFocus(e) {
-    dispatch("active-focus", { focus: true });
+  $: handleValueChange(inputValue);
+
+  function handleValidation() {
+    isError = !validator(displayText);
+    dispatch("validator", { isError: isError });
   }
 
-  let input = false;
+  function handleBlur(e) {
+    if (valueChanged) {
+      sendData(stringManipulation.shortify(displayText));
+    }
+  }
+
+  function sendData(value) {
+    valueChanged = false;
+    dispatch("change", stringManipulation.shortify(value));
+  }
+
+  function handleFocus(e) {
+    if (typeof suggestionTarget !== "undefined") {
+      const event = new CustomEvent("display", {
+        detail: {
+          data: suggestions,
+          sender: this,
+        },
+      });
+
+      suggestionTarget.dispatchEvent(event);
+    }
+  }
+
   function handleInput(e) {
-    input = true;
-    handleValidation(text);
+    valueChanged = true;
+    handleValidation(displayText);
+  }
+
+  function handleSuggestionSelected(e) {
+    const { value } = e.detail;
+    displayText = value;
+    sendData(displayText);
   }
 </script>
 
 <div class="{$$props.class} w-full relative">
   <input
     {disabled}
-    bind:value={inputValue}
-    on:focus={handleActiveFocus}
-    on:blur={handleLooseFocus}
+    bind:value={displayText}
+    on:focus={handleFocus}
+    on:blur={handleBlur}
     on:input={handleInput}
+    on:suggestion-select={handleSuggestionSelected}
     type="text"
     {placeholder}
     class="{customClasses} w-full border

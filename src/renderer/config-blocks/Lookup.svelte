@@ -116,19 +116,8 @@
     lookupTable.pairs = [...lookupTable.pairs];
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
+  let suggestionElement1 = undefined;
+  let suggestionElement2 = undefined;
 </script>
 
 <config-lookup
@@ -140,6 +129,7 @@
       suggestions={$localDefinitions}
       placeholder={"Incoming value to match"}
       inputValue={lookupTable.source}
+      suggestionTarget={suggestionElement1}
       validator={(e) => {
         return new Validator(e).NotEmpty().Result();
       }}
@@ -150,23 +140,10 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.source = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="w-full p-2 flex flex-col">
     <div class="flex text-gray-500 text-sm">
@@ -228,6 +205,7 @@
       placeholder={"Variable name to load the lookup result"}
       suggestions={$localDefinitions}
       inputValue={lookupTable.destination}
+      suggestionTarget={suggestionElement2}
       on:change={(e) => {
         lookupTable.destination = e.detail;
       }}
@@ -238,23 +216,10 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 1);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 1);
-      }}
     />
   </div>
 
-  {#if focusGroup[1]}
-    <AtomicSuggestions
-      suggestions={[$localDefinitions]}
-      on:select={(e) => {
-        lookupTable.destination = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement2} />
 
   <div class="w-full flex group p-2">
     <!-- svelte-ignore a11y-click-events-have-key-events -->

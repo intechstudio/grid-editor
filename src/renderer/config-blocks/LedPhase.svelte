@@ -140,19 +140,7 @@
     suggestions = _suggestions;
   });
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
+  let suggestionElement = undefined;
 </script>
 
 <config-led-phase
@@ -168,12 +156,7 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
-          }}
+          suggestionTarget={suggestionElement}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
@@ -187,16 +170,7 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </config-led-phase>
 
 <style>
