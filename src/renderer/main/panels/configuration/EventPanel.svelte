@@ -5,6 +5,7 @@
     elementNameStore,
     user_input,
     unsaved_changes,
+    runtime,
   } from "../../../runtime/runtime.store.js";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
@@ -44,18 +45,22 @@
   $: updateElementName($user_input, $elementNameStore);
 
   function updateElementName(ui, es) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
+    try {
+      const { dx, dy } = ui.brc;
+      const obj = es[dx][dy];
 
-    if (typeof target === "undefined") {
-      return;
-    }
+      if (obj[ui.event.elementnumber] === "") {
+        throw "";
+      }
 
-    const elementName =
-      $elementNameStore[ui.brc.dx][ui.brc.dy][ui.event.elementnumber];
-    if (elementName.length > 0) {
-      stringname =
-        $elementNameStore[ui.brc.dx][ui.brc.dy][ui.event.elementnumber];
-    } else {
+      stringname = obj[ui.event.elementnumber];
+    } catch (e) {
+      const target = ConfigTarget.createFrom({ userInput: ui });
+
+      if (typeof target === "undefined") {
+        return;
+      }
+
       stringname = `Element ${target.element} (${
         target.elementType[0].toUpperCase() +
         target.elementType.slice(1).toLowerCase()
@@ -129,7 +134,11 @@
           </svg>
         </button>
       </div>
-      <div class="flex items-center">
+      <div
+        class="flex items-center"
+        class:hidden={typeof stringname === "undefined" ||
+          $runtime.length === 0}
+      >
         <div class="text-2xl text-white font-bold text-opacity-80">
           <span>{stringname}</span>
         </div>
