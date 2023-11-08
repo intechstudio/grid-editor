@@ -11,7 +11,7 @@
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
-  import { ConfigTarget } from "./Configuration.store.js";
+  import { ConfigTarget, configManager } from "./Configuration.store.js";
 
   const dispatch = createEventDispatcher();
 
@@ -37,20 +37,31 @@
 
   let events = [];
   let selectedElement = undefined;
-  let stringname = " ";
-  let defaultName = "";
-
-  $: handleElementNameUpdate($elementNameStore);
+  let stringname = undefined;
 
   $: handleUserInputChange($user_input);
 
-  function handleElementNameUpdate(store) {
-    try {
+  $: updateElementName($user_input, $elementNameStore);
+
+  function updateElementName(ui, es) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
+
+    if (typeof target === "undefined") {
+      return;
+    }
+
+    const elementName =
+      $elementNameStore[ui.brc.dx][ui.brc.dy][ui.event.elementnumber];
+    if (elementName.length > 0) {
       stringname =
-        store[$user_input.brc.dx][$user_input.brc.dy][
-          $user_input.event.elementnumber
-        ];
-    } catch (error) {}
+        $elementNameStore[ui.brc.dx][ui.brc.dy][ui.event.elementnumber];
+    } else {
+      stringname = `Element ${target.element} (${
+        target.elementType[0].toUpperCase() +
+        target.elementType.slice(1).toLowerCase()
+      })
+      `;
+    }
   }
 
   function handleUserInputChange(ui) {
@@ -59,12 +70,6 @@
     if (typeof target === "undefined") {
       return;
     }
-
-    defaultName = `Element ${target.element} (${
-      target.elementType[0].toUpperCase() +
-      target.elementType.slice(1).toLowerCase()
-    })
-      `;
 
     //Get events
     events = target.events.map((e) => {
@@ -126,11 +131,7 @@
       </div>
       <div class="flex items-center">
         <div class="text-2xl text-white font-bold text-opacity-80">
-          {#if stringname}
-            <div>{stringname}</div>
-          {:else}
-            <div>{defaultName}</div>
-          {/if}
+          <span>{stringname}</span>
         </div>
 
         <TooltipQuestion
