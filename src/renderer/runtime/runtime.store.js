@@ -74,7 +74,6 @@ export function update_elementPositionStore(descr) {
 
 export function update_elementNameStore(descr) {
   let ens = get(elementNameStore);
-  console.log(ens);
 
   if (ens[descr.brc_parameters.SX] === undefined) {
     ens[descr.brc_parameters.SX] = {};

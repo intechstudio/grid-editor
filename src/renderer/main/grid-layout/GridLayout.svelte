@@ -10,75 +10,21 @@
   import { appSettings } from "../../runtime/app-helper.store";
 
   import { clickOutside } from "/main/_actions/click-outside.action";
+  import * as eases from "svelte/easing";
 
   const devices = writable([]);
-  const deviceGap = 5;
-  const deviceWidth = 225 + deviceGap;
+  let columns = 0;
 
-  let shiftX = 0;
-  let shiftY = 0;
+  $: handleRuntimeChange($runtime);
 
-  let rotation = $appSettings.persistent.moduleRotation;
-  let rotationBuffer = $appSettings.persistent.moduleRotation;
-  let trueRotation = $appSettings.persistent.moduleRotation;
-
-  $: {
+  function calculateColumns() {
     const rt = $runtime;
-    //Initial center shift
-    shiftX = -deviceWidth / 2;
-    shiftY = -deviceWidth / 2;
+    const min_x = Math.min(...rt.map((e) => e.dx));
+    const max_x = Math.max(...rt.map((e) => e.dx));
+    columns = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
+  }
 
-    //Compensate for rotation
-    rotationBuffer = rotation;
-    rotation = $appSettings.persistent.moduleRotation;
-
-    let deltaRotation = rotation - rotationBuffer;
-    if (deltaRotation > 180) {
-      deltaRotation -= 360;
-    }
-    if (deltaRotation < -180) {
-      deltaRotation += 360;
-    }
-    trueRotation += deltaRotation;
-
-    if (rotation == 90 || rotation == 180) {
-      shiftX += deviceWidth;
-    }
-    if (rotation == 180 || rotation == 270) {
-      shiftY += deviceWidth;
-    }
-
-    //And the other transformations
-    if (rt.length > 0) {
-      const min_x = Math.min(...rt.map((e) => e.dx));
-      const max_x = Math.max(...rt.map((e) => e.dx));
-      const min_y = Math.min(...rt.map((e) => e.dy));
-      const max_y = Math.max(...rt.map((e) => e.dy));
-
-      switch (rotation) {
-        case 0: {
-          shiftX -= (deviceWidth / 2) * (min_x + max_x);
-          shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
-          break;
-        }
-        case 90: {
-          shiftY -= (deviceWidth / 2) * (min_x + max_x);
-          shiftX -= (deviceWidth / 2) * (min_y + max_y);
-          break;
-        }
-        case 180: {
-          shiftX -= (deviceWidth / 2) * (min_x + max_x) * -1;
-          shiftY -= (deviceWidth / 2) * (min_y + max_y);
-          break;
-        }
-        case 270: {
-          shiftY -= (deviceWidth / 2) * (min_x + max_x) * -1;
-          shiftX -= (deviceWidth / 2) * (min_y + max_y) * -1;
-          break;
-        }
-      }
-    }
-
+  function handleRuntimeChange(rt) {
     rt.forEach((device, i) => {
       let connection_top = 0;
       let connection_bottom = 0;
@@ -101,72 +47,73 @@
       rt[i].fly_y_direction = connection_top - connection_bottom;
 
       rt[i].type = rt[i].id.substr(0, 4);
-      rt[i].shift_x = deviceWidth * rt[i].dx;
-      rt[i].shift_y = -deviceWidth * rt[i].dy;
     });
 
-    devices.set(rt);
-  }
+    devices.update((s) => {
+      const rt = $runtime;
+      const min_x = Math.min(...rt.map((e) => e.dx));
+      const max_x = Math.max(...rt.map((e) => e.dx));
+      const min_y = Math.min(...rt.map((e) => e.dy));
+      const max_y = Math.max(...rt.map((e) => e.dy));
+      const N = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
+      const M = rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0;
 
-  let scalingPercent = derived(
-    appSettings,
-    ($appSettings) => 1 * $appSettings.persistent.size
-  );
+      s = Array.from(Array(M), () => Array(N).fill(undefined));
+      rt.forEach((e) => {
+        s[e.dy + Math.abs(min_y)][e.dx + Math.abs(min_x)] = e;
+      });
+      s = s.reverse();
+      calculateColumns();
+      return s;
+    });
+  }
 </script>
 
-<layout-container class="{$$props.class} overflow-hidden">
+<layout-container class={$$props.class} style={$$props.style}>
   <div
-    style="
-      --device-width: {deviceWidth}px; 
-      --shift-x: {shiftX}px; 
-      --shift-y: {shiftY}px; 
-      --scaling-percent: {$scalingPercent};
-      --rotation-degree: {trueRotation}deg;
-    "
-    class="absolute centered"
-    use:clickOutside={{ useCapture: true }}
+    class=" grid grid-cols-[{Array(columns)
+      .fill('auto')
+      .join('_')}] items-center justify-items-center"
   >
-    {#each $devices as device (device)}
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <div
-        in:fly|global={{
-          x: device.fly_x_direction * 100,
-          y: device.fly_y_direction * 100,
-          duration: 300,
-        }}
-        out:fade|global={{ duration: 150 }}
-        id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-        style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute transition-all box-border border-2 rounded-lg"
-        class:border-transparent={device.dx != $user_input.brc.dx ||
-          (device.dy != $user_input.brc.dy && !device.fwMismatch)}
-        class:border-gray-500={device.dx == $user_input.brc.dx &&
-          device.dy == $user_input.brc.dy &&
-          !device.fwMismatch}
-        class:animate-border-error={device.fwMismatch}
-      >
-        <Device
-          type={device.type}
-          id={device.id}
-          arch={device.architecture}
-          portstate={device.portstate}
-          fwVersion={device.fwVersion}
-          rotation={device.rot}
-        />
-      </div>
+    {#each $devices as rows}
+      {#each rows as device (device)}
+        {#if typeof device !== "undefined"}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          {@const isSelected =
+            device.dx == $user_input.brc.dx && device.dy == $user_input.brc.dy}
+          {@const firmwareMismatch = device.fwMismatch}
+          <div
+            in:fly|global={{
+              x: device.fly_x_direction * 100,
+              y: device.fly_y_direction * 100,
+              duration: 300,
+              easing: eases.quadOut,
+            }}
+            out:fade|global={{ duration: 150 }}
+            id={device.id}
+            class="rounded-lg border-2"
+            class:border-transparent={!isSelected && !firmwareMismatch}
+            class:border-gray-500={isSelected}
+            class:animate-border-error={firmwareMismatch}
+          >
+            <Device
+              type={device.type}
+              id={device.id}
+              arch={device.architecture}
+              portstate={device.portstate}
+              fwVersion={device.fwVersion}
+              rotation={device.rot}
+            />
+          </div>
+        {:else}
+          <div class="h-5 w-5 bg-black border" />
+        {/if}
+      {/each}
     {/each}
   </div>
-  <slot />
 </layout-container>
 
 <style>
-  .centered {
-    top: 50%;
-    left: 50%;
-    transform-origin: center;
-    transform: scale(var(--scaling-percent))
-      translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
-  }
   .animate-border-error {
     animation-name: error-animation;
     animation-duration: 1s;

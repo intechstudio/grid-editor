@@ -32,23 +32,17 @@
   }
 </script>
 
-<page-controller class="{$$props.class} flex flex-row bg-primary">
-  {#each [0, 1, 2, 3] as page}
+<div class="{$$props.class} flex flex-row gap-2 mt-3 items-center">
+  {#each Array(4).keys() as i}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <button
       on:click={() => {
-        handleSelectPage(page);
+        handleSelectPage(i);
       }}
-      class="{selectedPage == page
-        ? 'bg-secondary rounded-t'
-        : 'hover:bg-secondary hover:bg-opacity-50 transition-colors duration-75'} py-1 px-8 group"
-    >
-      <span
-        class="{selectedPage == page
-          ? 'text-white'
-          : 'text-gray-300 group-hover:text-white transition-colors duration-100'} "
-        >Page {page + 1}</span
-      >
-    </button>
+      class="{selectedPage == i
+        ? 'w-4 h-4'
+        : 'w-2 h-2'} bg-white bg-opacity-50 rounded-full"
+    />
   {/each}
-  <div class="hidden">Dummy for layout reasons (hidden)</div>
-</page-controller>
+</div>
