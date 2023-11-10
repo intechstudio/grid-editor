@@ -12,6 +12,7 @@
   import { writeBuffer } from "../runtime/engine.store.js";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
+  import { derived } from "svelte/store";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -99,12 +100,17 @@
       mandatory: false,
     });
   }
+
+  let scalingPercent = derived(
+    appSettings,
+    ($appSettings) => 1 * $appSettings.persistent.size
+  );
 </script>
 
 <div
   class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
 >
-  <GridLayout />
+  <GridLayout scale={$scalingPercent} />
   <Pages />
   {#if $writeBuffer.length > 0 && $runtime.length > 0}
     <div

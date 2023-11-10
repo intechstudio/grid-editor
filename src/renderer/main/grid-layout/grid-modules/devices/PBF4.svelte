@@ -18,6 +18,7 @@
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let rotation = 0;
   export let moduleWidth;
+  export let scale = 1;
 
   const dispatch = createEventDispatcher();
 
@@ -87,7 +88,7 @@
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
-    style="--module-size: {moduleWidth + 'px'}"
+    style="--module-size: {moduleWidth * scale + 'px'}"
   >
     <div
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
@@ -104,7 +105,7 @@
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <cell class="w-full h-full flex items-center justify-center relative">
           <underlay
-            class="absolute rounded-lg"
+            class="absolute rounded-lg items-center flex justify-center"
             class:bg-unsavedchange={isChanged && !isSelected}
             class:bg-opacity-10={isSelected}
             class:bg-opacity-20={isChanged && !isSelected}
@@ -118,7 +119,6 @@
           >
             <div
               class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
               on:click={() => {
                 dispatch("click", {
                   elementNumber: elementNumber,
@@ -127,12 +127,12 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
               <Potentiometer
                 {elementNumber}
                 {id}
                 position={elementposition_array[elementNumber]}
-                size={2.1}
+                size={2.1 * scale}
               />
             </div>
           </underlay>
@@ -153,7 +153,7 @@
           class="w-full h-full flex items-center justify-center relative row-span-2"
         >
           <underlay
-            class="absolute rounded-lg"
+            class="absolute rounded-lg items-center flex justify-center"
             class:bg-unsavedchange={isChanged && !isSelected}
             class:bg-opacity-10={isSelected}
             class:bg-opacity-20={isChanged && !isSelected}
@@ -167,7 +167,6 @@
           >
             <div
               class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
               on:click={() => {
                 dispatch("click", {
                   elementNumber: elementNumber,
@@ -176,13 +175,13 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
 
               <Fader
                 {elementNumber}
                 {id}
                 position={elementposition_array[elementNumber]}
-                size={2.1}
+                size={2.1 * scale}
                 rotation={rotation * -90}
                 faderHeight={37}
               />
@@ -205,7 +204,7 @@
           class="w-full h-full flex items-center justify-center relative row-span-1"
         >
           <underlay
-            class="absolute rounded-lg"
+            class="absolute rounded-lg items-center flex justify-center"
             class:bg-unsavedchange={isChanged && !isSelected}
             class:bg-opacity-10={isSelected}
             class:bg-opacity-20={isChanged && !isSelected}
@@ -219,7 +218,6 @@
           >
             <div
               class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
               on:click={() => {
                 dispatch("click", {
                   elementNumber: elementNumber,
@@ -228,13 +226,13 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
 
               <Button
                 {id}
                 position={elementposition_array[elementNumber]}
                 {elementNumber}
-                size={2.1}
+                size={2.1 * scale}
               />
             </div>
           </underlay>

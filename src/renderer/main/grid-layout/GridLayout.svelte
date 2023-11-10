@@ -1,5 +1,5 @@
 <script>
-  import { writable, derived } from "svelte/store";
+  import { writable } from "svelte/store";
 
   import { runtime, user_input } from "../../runtime/runtime.store.js";
 
@@ -7,10 +7,10 @@
 
   import { fade, fly } from "svelte/transition";
 
-  import { appSettings } from "../../runtime/app-helper.store";
-
   import { clickOutside } from "/main/_actions/click-outside.action";
   import * as eases from "svelte/easing";
+
+  export let scale = 1;
 
   const devices = writable([]);
   let columns = 0;
@@ -69,7 +69,7 @@
   }
 </script>
 
-<layout-container class={$$props.class} style={$$props.style}>
+<layout-container class={$$props.class}>
   <div
     class=" grid grid-cols-[{Array(columns)
       .fill('auto')
@@ -99,6 +99,7 @@
             <Device
               type={device.type}
               id={device.id}
+              {scale}
               arch={device.architecture}
               portstate={device.portstate}
               fwVersion={device.fwVersion}

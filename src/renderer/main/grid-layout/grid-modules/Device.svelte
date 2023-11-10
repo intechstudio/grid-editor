@@ -34,6 +34,7 @@
   export let type;
   export let id;
   export let rotation;
+  export let scale = 1;
 
   export let selected;
 
@@ -98,6 +99,7 @@
     {id}
     {rotation}
     {selectedElement}
+    {scale}
     on:click={(e) => {
       const { elementNumber, type, id } = e.detail;
       if ($writeBuffer.length > 0) {
