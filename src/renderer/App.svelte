@@ -3,6 +3,8 @@
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
 
+  import { onMount } from "svelte";
+
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
   import "./runtime/analytics.js";
@@ -12,7 +14,6 @@
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
-  import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
 
   import Export from "./main/modals/Export.svelte";
   import Welcome from "./main/modals/Welcome.svelte";
@@ -34,9 +35,10 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
   import UserLogin from "./main/modals/UserLogin.svelte";
-  import { runtime, logger } from "./runtime/runtime.store";
-  import { writeBuffer } from "./runtime/engine.store.js";
-  import { Analytics } from "./runtime/analytics.js";
+
+  import { runtime } from "./runtime/runtime.store";
+
+  import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
