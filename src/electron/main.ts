@@ -10,6 +10,7 @@ import {
   MessageChannelMain,
   utilityProcess,
   autoUpdater,
+  dialog,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -54,7 +55,6 @@ import {
   desktopAutomationPluginStart,
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
-import { Deeplink } from "electron-deeplink";
 import polka from "polka";
 import sirv from "sirv";
 
@@ -70,6 +70,16 @@ let mainWindow;
 let tray = null;
 
 let offlineProfileCloudServer: any = undefined;
+
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient("grid-editor", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
+  }
+} else {
+  app.setAsDefaultProtocolClient("grid-editor");
+}
 
 function create_tray() {
   /* ===============================================================================
@@ -123,6 +133,18 @@ function create_tray() {
 
 const gotTheLock = app.requestSingleInstanceLock();
 
+function handleDeeplinkReturnData(returnData: string) {
+  const url = new URL(returnData);
+  if (url.searchParams.get("credential") !== null) {
+    const credential = url.searchParams.get("credential");
+    mainWindow.webContents.send("onExternalAuthResponse", credential);
+  }
+  if (url.searchParams.get("config-link") !== null) {
+    const configLink = url.searchParams.get("config-link");
+    mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
+  }
+}
+
 if (!gotTheLock) {
   app.quit();
 } else {
@@ -139,6 +161,7 @@ if (!gotTheLock) {
           mainWindow.restore();
           mainWindow.focus();
         }
+        handleDeeplinkReturnData(commandLine.toString());
       }
     }
   );
@@ -150,6 +173,11 @@ if (!gotTheLock) {
     createWindow();
   });
 }
+
+// Handle the protocol deeplink url under MacOS.
+app.on("open-url", (event, url) => {
+  handleDeeplinkReturnData(url);
+});
 
 // We should be able to set the dock icon and menu name of the app, but it doesnt work
 // app.on('ready', () => {
@@ -318,17 +346,6 @@ function createWindow() {
   });
 }
 
-// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
-// isDev needs to know if app is packaged
-const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
-const deeplink = new Deeplink({
-  app,
-  mainWindow,
-  protocol: "grid-editor",
-  isDev,
-  debugLogging: true,
-});
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -424,20 +441,6 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
   }
 
   return "ok";
-});
-
-deeplink.on("received", (data) => {
-  if (data.startsWith("grid-editor")) {
-    const url = new URL(data);
-    if (url.searchParams.get("credential") !== null) {
-      const credential = url.searchParams.get("credential");
-      mainWindow.webContents.send("onExternalAuthResponse", credential);
-    }
-    if (url.searchParams.get("config-link") !== null) {
-      const configLink = url.searchParams.get("config-link");
-      mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
-    }
-  }
 });
 
 ipcMain.handle("clipboardWriteText", async (event, arg) => {
