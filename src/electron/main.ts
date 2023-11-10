@@ -55,7 +55,6 @@ import {
   desktopAutomationPluginStart,
   desktopAutomationPluginStop,
 } from "./addon/desktopAutomation";
-//import { Deeplink } from "electron-deeplink";
 import polka from "polka";
 import sirv from "sirv";
 
@@ -162,7 +161,7 @@ if (!gotTheLock) {
           mainWindow.restore();
           mainWindow.focus();
         }
-        handleDeeplinkReturnData(commandLine);
+        handleDeeplinkReturnData(commandLine.toString());
       }
     }
   );
@@ -347,17 +346,6 @@ function createWindow() {
   });
 }
 
-// isDev is only true when we are in development mode. nightly builds are not development as they are packaged and path resolution is different
-// isDev needs to know if app is packaged
-// const isDev = buildVariables.BUILD_ENV == "development" ? true : false;
-// const deeplink = new Deeplink({
-//   app,
-//   mainWindow,
-//   protocol: "grid-editor",
-//   isDev,
-//   debugLogging: true,
-// });
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -454,20 +442,6 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
 
   return "ok";
 });
-
-// deeplink.on("received", (data) => {
-//   if (data.startsWith("grid-editor")) {
-//     const url = new URL(data);
-//     if (url.searchParams.get("credential") !== null) {
-//       const credential = url.searchParams.get("credential");
-//       mainWindow.webContents.send("onExternalAuthResponse", credential);
-//     }
-//     if (url.searchParams.get("config-link") !== null) {
-//       const configLink = url.searchParams.get("config-link");
-//       mainWindow.webContents.send("onExternalConfigLinkResponse", configLink);
-//     }
-//   }
-// });
 
 ipcMain.handle("clipboardWriteText", async (event, arg) => {
   console.log(arg.text);
