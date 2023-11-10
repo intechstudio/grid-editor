@@ -74,10 +74,12 @@ let offlineProfileCloudServer: any = undefined;
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
-    app.setAsDefaultProtocolClient('grid-editor', process.execPath, [path.resolve(process.argv[1])])
+    app.setAsDefaultProtocolClient("grid-editor", process.execPath, [
+      path.resolve(process.argv[1]),
+    ]);
   }
 } else {
-  app.setAsDefaultProtocolClient('grid-editor')
+  app.setAsDefaultProtocolClient("grid-editor");
 }
 
 function create_tray() {
@@ -174,9 +176,9 @@ if (!gotTheLock) {
 }
 
 // Handle the protocol deeplink url under MacOS.
-app.on('open-url', (event, url) => {
+app.on("open-url", (event, url) => {
   handleDeeplinkReturnData(url);
-})
+});
 
 // We should be able to set the dock icon and menu name of the app, but it doesnt work
 // app.on('ready', () => {
@@ -452,8 +454,6 @@ ipcMain.handle("stopPlugin", async (event, arg) => {
 
   return "ok";
 });
-
-
 
 // deeplink.on("received", (data) => {
 //   if (data.startsWith("grid-editor")) {
