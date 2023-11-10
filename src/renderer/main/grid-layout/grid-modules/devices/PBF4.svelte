@@ -18,7 +18,6 @@
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let rotation = 0;
   export let moduleWidth;
-  export let scale = 1;
 
   const dispatch = createEventDispatcher();
 
@@ -88,7 +87,7 @@
     class:active-systemelement={dx == selectedElement.brc.dx &&
       dy == selectedElement.brc.dy &&
       selectedElement.event.elementnumber == 255}
-    style="--module-size: {moduleWidth * scale + 'px'}"
+    style="--module-size: {moduleWidth + 'px'}"
   >
     <div
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
@@ -127,12 +126,12 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
               <Potentiometer
                 {elementNumber}
                 {id}
                 position={elementposition_array[elementNumber]}
-                size={2.1 * scale}
+                size={2.1}
               />
             </div>
           </underlay>
@@ -175,13 +174,13 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
               <Fader
                 {elementNumber}
                 {id}
                 position={elementposition_array[elementNumber]}
-                size={2.1 * scale}
+                size={2.1}
                 rotation={rotation * -90}
                 faderHeight={37}
               />
@@ -226,13 +225,13 @@
                 });
               }}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1 * scale} />
+              <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
               <Button
                 {id}
                 position={elementposition_array[elementNumber]}
                 {elementNumber}
-                size={2.1 * scale}
+                size={2.1}
               />
             </div>
           </underlay>

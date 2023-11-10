@@ -2,6 +2,7 @@
   import { writable } from "svelte/store";
 
   import { runtime, user_input } from "../../runtime/runtime.store.js";
+  import { appSettings } from "../../runtime/app-helper.store.js";
 
   import Device from "./grid-modules/Device.svelte";
 
@@ -9,108 +10,166 @@
 
   import { clickOutside } from "/main/_actions/click-outside.action";
   import * as eases from "svelte/easing";
+  import { derived } from "svelte/store";
 
-  export let scale = 1;
+  let moduleWidth = 225;
+  let moduleBorderWidth = 2;
 
   const devices = writable([]);
   let columns = 0;
+  let rows = 0;
 
-  $: handleRuntimeChange($runtime);
+  let layoutWidth = 0;
+  let layoutHeight = 0;
+  let shiftX = 0;
+  let shiftY = 0;
 
-  function calculateColumns() {
-    const rt = $runtime;
-    const min_x = Math.min(...rt.map((e) => e.dx));
-    const max_x = Math.max(...rt.map((e) => e.dx));
-    columns = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
+  let rotation = 0;
+  let rotationBuffer = 0;
+  let trueRotation = 0;
+
+  $: calculateRotation($appSettings.persistent.moduleRotation);
+
+  $: {
+    if (typeof $runtime !== "undefined") {
+      calculateDevices($runtime);
+    }
   }
 
-  function handleRuntimeChange(rt) {
-    rt.forEach((device, i) => {
-      let connection_top = 0;
-      let connection_bottom = 0;
-      let connection_left = 0;
-      let connection_right = 0;
+  $: handleScalingChange($scalingPercent);
 
-      rt.forEach((neighbor) => {
-        if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
-          const dxDiff = device.dx - neighbor.dx;
-          const dyDiff = device.dy - neighbor.dy;
+  function handleScalingChange(value) {
+    calculateLayoutDimensions(rotation, columns, rows, value);
+  }
 
-          connection_right = dxDiff > 0 ? 1 : 0;
-          connection_left = dxDiff < 0 ? 1 : 0;
-          connection_bottom = dyDiff > 0 ? 1 : 0;
-          connection_top = dyDiff < 0 ? 1 : 0;
-        }
-      });
+  function calculateLayoutDimensions(rotation, columns, rows, scale) {
+    const width = (columns * moduleWidth + 2 * moduleBorderWidth) * scale;
+    const height = (rows * moduleWidth + 2 * moduleBorderWidth) * scale;
+    layoutWidth = rotation == 0 || rotation == 180 ? width : height;
+    layoutHeight = rotation == 90 || rotation == 270 ? width : height;
+    shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
+    shiftY = rotation == 270 || rotation == 180 ? layoutHeight : 0;
+  }
 
-      rt[i].fly_x_direction = connection_right - connection_left;
-      rt[i].fly_y_direction = connection_top - connection_bottom;
+  function calculateRotation(value) {
+    rotationBuffer = rotation;
+    rotation = value;
 
-      rt[i].type = rt[i].id.substr(0, 4);
-    });
+    let deltaRotation = rotation - rotationBuffer;
+    if (deltaRotation > 180) {
+      deltaRotation -= 360;
+    }
+    if (deltaRotation < -180) {
+      deltaRotation += 360;
+    }
+    trueRotation += deltaRotation;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
 
+  function calculateDevices(rt) {
     devices.update((s) => {
-      const rt = $runtime;
       const min_x = Math.min(...rt.map((e) => e.dx));
-      const max_x = Math.max(...rt.map((e) => e.dx));
       const min_y = Math.min(...rt.map((e) => e.dy));
+      const max_x = Math.max(...rt.map((e) => e.dx));
       const max_y = Math.max(...rt.map((e) => e.dy));
-      const N = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
-      const M = rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0;
+      rows = rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0;
+      columns = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
+      s = Array.from(Array(rows), () => Array(columns).fill(undefined));
 
-      s = Array.from(Array(M), () => Array(N).fill(undefined));
-      rt.forEach((e) => {
-        s[e.dy + Math.abs(min_y)][e.dx + Math.abs(min_x)] = e;
+      rt.forEach((device, i) => {
+        let connection_top = 0;
+        let connection_bottom = 0;
+        let connection_left = 0;
+        let connection_right = 0;
+
+        rt.forEach((neighbor) => {
+          if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
+            const dxDiff = device.dx - neighbor.dx;
+            const dyDiff = device.dy - neighbor.dy;
+
+            connection_right = dxDiff > 0 ? 1 : 0;
+            connection_left = dxDiff < 0 ? 1 : 0;
+            connection_bottom = dyDiff > 0 ? 1 : 0;
+            connection_top = dyDiff < 0 ? 1 : 0;
+          }
+        });
+
+        const [x, y] = [
+          device.dy + Math.abs(min_y),
+          device.dx + Math.abs(min_x),
+        ];
+
+        const obj = structuredClone(device);
+        obj.fly_x_direction = connection_right - connection_left;
+        obj.fly_y_direction = connection_top - connection_bottom;
+        obj.type = rt[i].id.substr(0, 4);
+        s[x][y] = obj;
       });
+
       s = s.reverse();
-      calculateColumns();
+      console.log("yay", s);
       return s;
     });
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
   }
+
+  let scalingPercent = derived(
+    appSettings,
+    ($appSettings) => 1 * $appSettings.persistent.size
+  );
+
+  $: console.log(columns);
 </script>
 
-<layout-container class={$$props.class}>
+<layout-container>
   <div
-    class=" grid grid-cols-[{Array(columns)
-      .fill('auto')
-      .join('_')}] items-center justify-items-center"
+    style="width: {layoutWidth}px;  height: {layoutHeight}px;"
+    class="relative"
   >
-    {#each $devices as rows}
-      {#each rows as device (device)}
-        {#if typeof device !== "undefined"}
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          {@const isSelected =
-            device.dx == $user_input.brc.dx && device.dy == $user_input.brc.dy}
-          {@const firmwareMismatch = device.fwMismatch}
-          <div
-            in:fly|global={{
-              x: device.fly_x_direction * 100,
-              y: device.fly_y_direction * 100,
-              duration: 300,
-              easing: eases.quadOut,
-            }}
-            out:fade|global={{ duration: 150 }}
-            id={device.id}
-            class="rounded-lg border-2"
-            class:border-transparent={!isSelected && !firmwareMismatch}
-            class:border-gray-500={isSelected}
-            class:animate-border-error={firmwareMismatch}
-          >
-            <Device
-              type={device.type}
+    <div
+      class="absolute grid grid-cols-[{Array(columns).fill('auto').join('_')}]"
+      style="transform-origin: left top; transform: translate({shiftX}px, {shiftY}px) scale({$scalingPercent}) rotate({trueRotation}deg);"
+    >
+      {#each $devices as rows}
+        {#each rows as device (device.id)}
+          {#if typeof device !== "undefined"}
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            {@const isSelected =
+              device.dx == $user_input.brc.dx &&
+              device.dy == $user_input.brc.dy}
+            {@const firmwareMismatch = device.fwMismatch}
+            <div
+              in:fly|global={{
+                x: device.fly_x_direction * 100,
+                y: device.fly_y_direction * 100,
+                duration: 300,
+                easing: eases.quadOut,
+              }}
+              out:fade|global={{ duration: 150 }}
               id={device.id}
-              {scale}
-              arch={device.architecture}
-              portstate={device.portstate}
-              fwVersion={device.fwVersion}
-              rotation={device.rot}
-            />
-          </div>
-        {:else}
-          <div class="h-5 w-5 bg-black border" />
-        {/if}
+              class="rounded-lg w-fit h-fit"
+              style="border-style: solid;
+              border-width: {moduleBorderWidth}px;"
+              class:border-transparent={!isSelected && !firmwareMismatch}
+              class:border-gray-500={isSelected}
+              class:animate-border-error={firmwareMismatch}
+            >
+              <Device
+                type={device.type}
+                id={device.id}
+                arch={device.architecture}
+                portstate={device.portstate}
+                fwVersion={device.fwVersion}
+                rotation={device.rot}
+                {moduleWidth}
+              />
+            </div>
+          {:else}
+            <div class="h-5 w-5 bg-black border" />
+          {/if}
+        {/each}
       {/each}
-    {/each}
+    </div>
   </div>
 </layout-container>
 

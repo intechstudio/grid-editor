@@ -34,7 +34,6 @@
   export let type;
   export let id;
   export let rotation;
-  export let scale = 1;
 
   export let selected;
 
@@ -48,7 +47,7 @@
 
   let isActionButtonClicked;
 
-  let moduleWidth = 2.1 * 106.6 + 2;
+  export let moduleWidth;
 
   $: selected = components.find((component) => component.type === type);
 
@@ -99,7 +98,6 @@
     {id}
     {rotation}
     {selectedElement}
-    {scale}
     on:click={(e) => {
       const { elementNumber, type, id } = e.detail;
       if ($writeBuffer.length > 0) {
