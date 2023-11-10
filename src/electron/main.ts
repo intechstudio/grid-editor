@@ -160,7 +160,7 @@ if (!gotTheLock) {
           mainWindow.restore();
           mainWindow.focus();
         }
-        dialog.showErrorBox('Welcome Back', `You arrived from: ${commandLine?.pop()?.slice(0, -1)}`)
+        handleDeeplinkReturnData(commandLine);
       }
     }
   );
