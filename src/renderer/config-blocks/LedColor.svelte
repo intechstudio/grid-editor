@@ -180,28 +180,6 @@ A -> B : AB-First step
     updatePicker();
   });
 
-  let suggestionPlaceMove = false;
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    if (index < 2) {
-      suggestionPlaceMove = true;
-    } else {
-      suggestionPlaceMove = false;
-    }
-
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   /* accepts parameters
    * h  Object = {h:x, s:y, v:z}
    * OR
@@ -460,6 +438,9 @@ A -> B : AB-First step
 
     sendData();
   }
+
+  let suggestionElement1 = undefined;
+  let suggestionElement2 = undefined;
 </script>
 
 <svelte:window bind:innerWidth={sidebarWidth} />
@@ -475,15 +456,10 @@ A -> B : AB-First step
           inputValue={script}
           validator={validators[i]}
           suggestions={suggestions[i]}
+          suggestionTarget={suggestionElement1}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -493,16 +469,7 @@ A -> B : AB-First step
     {/each}
   </div>
 
-  {#if showSuggestions && suggestionPlaceMove == true}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement1} />
 
   <div class="inline-flex relative flex-row p-1 m-1 overflow-hidden">
     <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -539,15 +506,10 @@ A -> B : AB-First step
           inputValue={script}
           validator={validators[i + 2]}
           suggestions={suggestions[i + 2]}
+          suggestionTarget={suggestionElement2}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i + 2);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i + 2);
           }}
           on:change={(e) => {
             sendData(e.detail, i + 2);
@@ -558,17 +520,7 @@ A -> B : AB-First step
     {/each}
   </div>
 
-  {#if showSuggestions && suggestionPlaceMove == false}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-        updatePicker(e);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement2} />
 
   <div class="p-2 flex items-center text-sm text-gray-500">
     <Toggle bind:toggleValue={beautify} on:change={changeBeautify} />

@@ -21,14 +21,7 @@ init_config_block_library();
 export function getComponentInformation({ short }) {
   const comps = getAllComponents();
 
-  let res = comps?.find((c) => c.information.short == short);
-
-  //Backward compatibility
-  if (typeof res === "undefined") {
-    return comps?.find((c) => c.information.short == "raw");
-  }
-
-  return res;
+  return comps?.find((c) => c.information.short == short);
 }
 
 export function getAllComponents() {

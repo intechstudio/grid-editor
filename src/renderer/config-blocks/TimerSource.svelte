@@ -78,20 +78,6 @@
     dispatch("output", { short: config.short, script: script });
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   let _suggestions = [
     [],
     [
@@ -113,6 +99,8 @@
   onDestroy(() => {
     loaded = false;
   });
+
+  let suggestionElement = undefined;
 </script>
 
 <timer-start
@@ -128,15 +116,10 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -146,16 +129,7 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </timer-start>
 
 <style>

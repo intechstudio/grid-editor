@@ -40,16 +40,14 @@
 
   export let config;
 
-  let loaded;
-
   const dispatch = createEventDispatcher();
 
   const whatsInParenthesis = /\(([^)]+)\)/;
   let scriptValue = "";
 
-  $: if (config.script && !loaded) {
-    scriptValue = "";
+  $: handleConfigChange(config.script);
 
+  function handleConfigChange(config) {
     let param1 = whatsInParenthesis.exec(config.script);
 
     if (param1 !== null) {
@@ -57,8 +55,6 @@
         scriptValue = param1[1];
       }
     }
-
-    loaded = true;
   }
 
   $: if (scriptValue) {
@@ -67,28 +63,6 @@
 
   function sendData(e) {
     dispatch("output", { short: "gtp", script: `gtp(${e})` });
-  }
-
-  onMount(() => {
-    loaded = true;
-  });
-
-  onDestroy(() => {
-    loaded = false;
-  });
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
   }
 
   let suggestions = [];
@@ -102,6 +76,8 @@
     });
     suggestions = suggestions;
   }
+
+  let suggestionElement = undefined;
 </script>
 
 <timer-stop
@@ -112,6 +88,7 @@
     <AtomicInput
       inputValue={scriptValue}
       suggestions={suggestions[0]}
+      suggestionTarget={suggestionElement}
       on:change={(e) => {
         scriptValue = e.detail;
       }}
@@ -122,21 +99,8 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      {suggestions}
-      on:select={(e) => {
-        scriptValue = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </timer-stop>

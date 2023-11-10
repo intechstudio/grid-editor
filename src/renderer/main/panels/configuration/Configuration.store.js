@@ -61,9 +61,11 @@ export class ConfigObject {
     };
     init();
 
-    const res = getComponentInformation({ short: short });
+    let res = getComponentInformation({ short: short });
+
+    //Backward compatibility
     if (typeof res === "undefined") {
-      throw `Config component information not found (${short}).`;
+      res = getComponentInformation({ short: "raw" });
     }
 
     this.information = structuredClone(res.information);

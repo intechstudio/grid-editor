@@ -70,8 +70,8 @@
     loaded = false;
   });
 
-  function sendData(e) {
-    scriptSegments[e.detail.index] = e.detail.value;
+  function sendData(value, index) {
+    scriptSegments[index] = value;
 
     const script = Script.toScript({
       human: config.human,
@@ -79,20 +79,6 @@
       array: scriptSegments,
     });
     dispatch("output", { short: config.short, script: script });
-  }
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
   }
 
   let suggestions = [];
@@ -112,6 +98,8 @@
   onMount(() => {
     suggestions = _suggestions;
   });
+
+  let suggestionElement = undefined;
 </script>
 
 <mouse-button
@@ -125,15 +113,10 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -143,15 +126,7 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        sendData(e);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </mouse-button>
 
 <style>

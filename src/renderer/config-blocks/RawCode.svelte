@@ -84,7 +84,6 @@
   }
 
   function handleReplace(e) {
-    console.log(compBlock);
     dispatch("replace", {
       short: compBlock.information.short,
       script: config.script,
@@ -93,7 +92,7 @@
 </script>
 
 <code-block
-  class="border-warning border w-full flex flex-col pointer-events-auto p-2"
+  class="border-warning border w-full flex flex-col pointer-events-auto py-2 px-4"
 >
   <div class="w-full flex flex-col items-center">
     <div class="flex items-center pb-2 w-full">
@@ -115,7 +114,7 @@
       />
     </div>
     <SendFeedback
-      feedback_context="CodeBlock"
+      feedback_context={`RAW action block: ${config.script}`}
       class="mt-2 text-sm text-gray-500"
     />
   </div>

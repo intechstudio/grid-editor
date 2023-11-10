@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
-  import { setTooltip } from "./tooltip/Tooltip.js";
+  import PushButton from "./PushButton.svelte";
 
   const options = [
     {
@@ -32,22 +32,20 @@
 </script>
 
 <container class={$$props.class}>
-  <div class="flex flex-row gap-4 items-center bg-primary py-2 px-3 rounded-lg">
-    <span class="text-white">Interaction Tracking:</span>
-    <div class="flex flex-row gap-2 items-center">
+  <div class="flex items-center bg-primary py-2 px-3 rounded-lg">
+    <span class="text-white mr-4">Interaction Tracking:</span>
+    <div class="grid grid-cols-[1fr_0px_1fr_0px_1fr_0px] gap-1">
       {#each options as { value, label, tooltip_key }}
-        <button
-          use:setTooltip={{
+        <PushButton
+          tooltip={{
             key: tooltip_key,
             placement: "top",
             class: "w-60 p-4",
           }}
-          class:selected={value === $appSettings.changeOnEvent}
+          selected={value === $appSettings.changeOnEvent}
           on:click={() => handleClick(value)}
-          class="relative w-24 rounded bg-select text-white hover:bg-select-saturate-10 py-1"
-        >
-          <span>{label}</span>
-        </button>
+          text={label}
+        />
       {/each}
     </div>
   </div>

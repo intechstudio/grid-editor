@@ -57,6 +57,7 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
+  import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
 
   let loaded = false;
 
@@ -637,6 +638,12 @@
           info: "127 - [Channel Mode Message] Poly Mode On (+ mono off, +all notes off)",
         },
       ],
+      note_on_event: [...Array(128).keys()].map((e) => {
+        return { value: String(e), info: MusicalNotes.FromInt(e) };
+      }),
+      note_off_event: [...Array(128).keys()].map((e) => {
+        return { value: String(e), info: MusicalNotes.FromInt(e) };
+      }),
     },
     // param 2
     [
@@ -671,30 +678,14 @@
     }
   }
 
-  $: if (scriptSegments[1] || $localDefinitions) {
+  $: if (scriptSegments || $localDefinitions) {
     renderSuggestions();
     suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
   }
 
-  let ready = false;
   onMount(() => {
     renderSuggestions();
-    ready = true;
   });
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
 
   const tabs = [
     { name: "MIDI", short: "gms" },
@@ -705,6 +696,8 @@
   function handleTabButtonClicked(element) {
     dispatch("replace", { short: element.short });
   }
+
+  let suggestionElement = undefined;
 </script>
 
 <action-midi
@@ -733,15 +726,10 @@
           inputValue={script}
           suggestions={suggestions[i]}
           validator={validators[i]}
+          suggestionTarget={suggestionElement}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, i);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, i);
           }}
           on:change={(e) => {
             sendData(e.detail, i);
@@ -751,16 +739,7 @@
     {/each}
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        scriptSegments[e.detail.index] = e.detail.value;
-        sendData(e.detail.value, e.detail.index);
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 
   <SendFeedback feedback_context="Midi" class="mt-2 text-sm text-gray-500" />
 </action-midi>

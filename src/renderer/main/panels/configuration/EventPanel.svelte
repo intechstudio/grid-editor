@@ -5,13 +5,14 @@
     elementNameStore,
     user_input,
     unsaved_changes,
+    runtime,
   } from "../../../runtime/runtime.store.js";
 
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
-  import { ConfigTarget } from "./Configuration.store.js";
+  import { ConfigTarget, configManager } from "./Configuration.store.js";
 
   const dispatch = createEventDispatcher();
 
@@ -39,17 +40,33 @@
   let selectedElement = undefined;
   let stringname = undefined;
 
-  $: handleElementNameUpdate($elementNameStore);
-
   $: handleUserInputChange($user_input);
 
-  function handleElementNameUpdate(store) {
+  $: updateElementName($user_input, $elementNameStore);
+
+  function updateElementName(ui, es) {
     try {
-      stringname =
-        store[$user_input.brc.dx][$user_input.brc.dy][
-          $user_input.event.elementnumber
-        ];
-    } catch (error) {}
+      const { dx, dy } = ui.brc;
+      const obj = es[dx][dy];
+
+      if (obj[ui.event.elementnumber] === "") {
+        throw "";
+      }
+
+      stringname = obj[ui.event.elementnumber];
+    } catch (e) {
+      const target = ConfigTarget.createFrom({ userInput: ui });
+
+      if (typeof target === "undefined") {
+        return;
+      }
+
+      stringname = `Element ${target.element} (${
+        target.elementType[0].toUpperCase() +
+        target.elementType.slice(1).toLowerCase()
+      })
+      `;
+    }
   }
 
   function handleUserInputChange(ui) {
@@ -94,8 +111,8 @@
 </script>
 
 <div class="flex flex-col w-full p-4">
-  <div class="pb-2 flex" class:hidden={selectedElement == 255}>
-    <div class="w-3/4 p-1">
+  <div class="flex" class:hidden={selectedElement == 255}>
+    <div class="w-3/4 py-1">
       <div class="flex items-center py-1">
         <div class="text-gray-500 text-sm">Element Name</div>
         <button
@@ -117,14 +134,19 @@
           </svg>
         </button>
       </div>
-      <div class="text-white flex">
-        {#if stringname}
-          <div>{stringname}</div>
-        {:else}
-          <div>Name your element</div>
-        {/if}
+      <div
+        class="flex items-center"
+        class:hidden={typeof stringname === "undefined" ||
+          $runtime.length === 0}
+      >
+        <div class="text-2xl text-white font-bold text-opacity-80">
+          <span>{stringname}</span>
+        </div>
 
-        <TooltipQuestion key={"configuration_element_name"} class="ml-2" />
+        <TooltipQuestion
+          key={"configuration_element_name"}
+          class="ml-2 text-white "
+        />
       </div>
     </div>
   </div>

@@ -67,20 +67,6 @@
     });
   }
 
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
-  }
-
   const suggestions = [
     [
       { value: "7", info: "7 bit (default)" },
@@ -96,6 +82,8 @@
       { value: "16383", info: "14 bit MIDI (high res)" },
     ],
   ];
+
+  let suggestionElement = undefined;
 </script>
 
 <potmeter-settings
@@ -111,18 +99,13 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
+          suggestionTarget={suggestionElement}
           on:change={(e) => {
             pmo = e.detail;
           }}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
-          }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 0);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 0);
           }}
         />
       </div>
@@ -137,6 +120,7 @@
           validator={(e) => {
             return new Validator(e).NotEmpty().Result();
           }}
+          suggestionTarget={suggestionElement}
           on:change={(e) => {
             pma = e.detail;
           }}
@@ -144,29 +128,10 @@
             const data = e.detail;
             dispatch("validator", data);
           }}
-          on:active-focus={(e) => {
-            onActiveFocus(e, 1);
-          }}
-          on:loose-focus={(e) => {
-            onLooseFocus(e, 1);
-          }}
         />
       </div>
     </div>
   </div>
 
-  {#if showSuggestions}
-    <AtomicSuggestions
-      {suggestions}
-      {focusedInput}
-      on:select={(e) => {
-        if (focusedInput == 1) {
-          pma = e.detail.value;
-        }
-        if (focusedInput == 0) {
-          pmo = e.detail.value;
-        }
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </potmeter-settings>

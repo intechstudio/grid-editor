@@ -60,22 +60,8 @@
     sendData(scriptValue);
   }
 
-  function sendData(e) {
-    dispatch("output", { short: `sbc`, script: `self:bmo(${e})` });
-  }
-
-  let showSuggestions = false;
-  let focusedInput = undefined;
-  let focusGroup = [];
-
-  function onActiveFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    focusedInput = index;
-  }
-
-  function onLooseFocus(event, index) {
-    focusGroup[index] = event.detail.focus;
-    showSuggestions = focusGroup.includes(true);
+  function sendData(value) {
+    dispatch("output", { short: `sbc`, script: `self:bmo(${value})` });
   }
 
   const suggestions = [
@@ -86,6 +72,8 @@
       { value: "3", info: "3-step" },
     ],
   ];
+
+  let suggestionElement = undefined;
 </script>
 
 <encoder-settings
@@ -96,6 +84,7 @@
     <AtomicInput
       inputValue={scriptValue}
       suggestions={suggestions[0]}
+      suggestionTarget={suggestionElement}
       on:change={(e) => {
         scriptValue = e.detail;
       }}
@@ -106,21 +95,8 @@
         const data = e.detail;
         dispatch("validator", data);
       }}
-      on:active-focus={(e) => {
-        onActiveFocus(e, 0);
-      }}
-      on:loose-focus={(e) => {
-        onLooseFocus(e, 0);
-      }}
     />
   </div>
 
-  {#if focusGroup[0]}
-    <AtomicSuggestions
-      {suggestions}
-      on:select={(e) => {
-        scriptValue = e.detail.value;
-      }}
-    />
-  {/if}
+  <AtomicSuggestions bind:component={suggestionElement} />
 </encoder-settings>
