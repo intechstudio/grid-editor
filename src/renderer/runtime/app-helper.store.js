@@ -1,5 +1,4 @@
 import { writable, get, readable } from "svelte/store";
-import { getAllComponents } from "$lib/_configs";
 
 const configuration = window.ctxProcess.configuration();
 
