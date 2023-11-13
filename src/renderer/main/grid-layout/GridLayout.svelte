@@ -145,14 +145,7 @@
           !device.fwMismatch}
         class:animate-border-error={device.fwMismatch}
       >
-        <Device
-          type={device.type}
-          id={device.id}
-          arch={device.architecture}
-          portstate={device.portstate}
-          fwVersion={device.fwVersion}
-          rotation={device.rot}
-        />
+        <Device id={device.id} />
       </div>
     {/each}
   </div>

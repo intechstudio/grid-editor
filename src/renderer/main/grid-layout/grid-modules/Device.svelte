@@ -1,6 +1,4 @@
 <script>
-  import { onMount } from "svelte";
-
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -21,27 +19,9 @@
   import { get } from "svelte/store";
   import { writeBuffer } from "../../../runtime/engine.store.js";
   import { runtime } from "../../../runtime/runtime.store.js";
+  import { onMount } from "svelte";
 
-  const components = [
-    { type: "BU16", component: BU16 },
-    { type: "PO16", component: PO16 },
-    { type: "PBF4", component: PBF4 },
-    { type: "EN16", component: EN16 },
-    { type: "EF44", component: EF44 },
-    { type: "TEK2", component: TEK2 },
-  ];
-
-  export let type;
   export let id;
-  export let rotation;
-
-  export let selected;
-
-  export let arch;
-  export let fwVersion;
-  export let portstate;
-
-  console.log("arch", arch);
 
   let selectedElement;
 
@@ -49,7 +29,23 @@
 
   let moduleWidth = 2.1 * 106.6 + 2;
 
-  $: selected = components.find((component) => component.type === type);
+  let component = undefined;
+  let device = undefined;
+
+  onMount(() => {
+    const components = [
+      { type: "BU16", component: BU16 },
+      { type: "PO16", component: PO16 },
+      { type: "PBF4", component: PBF4 },
+      { type: "EN16", component: EN16 },
+      { type: "EF44", component: EF44 },
+      { type: "TEK2", component: TEK2 },
+    ];
+    device = $runtime.find((e) => e.id === id);
+    const index = components.findIndex((e) => e.type === device.type);
+    device.type = components[index].type;
+    component = components[index].component;
+  });
 
   $: {
     isActionButtonClicked = $isActionButtonClickedStore;
@@ -68,7 +64,7 @@
   let showProfileLoadOverlay = false;
   $: {
     showProfileLoadOverlay =
-      type === $selectedConfigStore.type &&
+      device?.type === $selectedConfigStore.type &&
       $selectedConfigStore.configType === "profile";
   }
 
@@ -89,82 +85,97 @@
       showPresetLoadOverlay = false;
     }
   }
+
+  function handleModuleClicked(e) {
+    const { elementNumber, type, id } = e.detail;
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, selecting element has failed!`,
+      });
+      return;
+    }
+
+    selectElement(elementNumber, type, id);
+  }
 </script>
 
-{#if selected}
-  <svelte:component
-    this={selected.component}
-    {moduleWidth}
-    {id}
-    {rotation}
-    {selectedElement}
-    on:click={(e) => {
-      const { elementNumber, type, id } = e.detail;
-      if ($writeBuffer.length > 0) {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "engine-disabled",
-          message: `Engine is disabled, selecting element has failed!`,
-        });
-        return;
-      }
+<div>
+  {#if $appSettings.overlays.controlElementName}
+    <ControlNameOverlay
+      {id}
+      {moduleWidth}
+      bankActive={0}
+      rotation={device?.rotation}
+    />
+  {/if}
 
-      selectElement(elementNumber, type, id);
-    }}
+  <div
+    class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
   >
-    {#if $appSettings.overlays.controlElementName}
-      <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
+    {#if device?.arch === "esp32"}
+      E-32<br />
+      {"v" +
+        device?.fwVersion.major +
+        "." +
+        device?.fwVersion.minor +
+        "." +
+        device?.fwVersion.patch}
+    {:else}
+      D-51<br />
+      {"v" +
+        device?.fwVersion.major +
+        "." +
+        device?.fwVersion.minor +
+        "." +
+        device?.fwVersion.patch}
+    {/if}
+  </div>
+
+  {#if $appSettings.persistent.portstateOverlayEnabled}
+    {#if (device.portstate & 1) !== 0}
+      <div
+        class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+      />
     {/if}
 
-    <div
-      class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
-    >
-      {#if arch === "esp32"}
-        E-32<br />
-        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
-      {:else}
-        D-51<br />
-        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
-      {/if}
-    </div>
-
-    {#if $appSettings.persistent.portstateOverlayEnabled}
-      {#if (portstate & 1) !== 0}
-        <div
-          class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-        />
-      {/if}
-
-      {#if (portstate & 2) !== 0}
-        <div
-          class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-        />
-      {/if}
-
-      {#if (portstate & 4) !== 0}
-        <div
-          class="absolute bottom-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-        />
-      {/if}
-
-      {#if (portstate & 8) !== 0}
-        <div
-          class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-        />
-      {/if}
+    {#if (device.portstate & 2) !== 0}
+      <div
+        class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+      />
     {/if}
 
-    {#if $writeBuffer.length == 0}
-      {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-        <ProfileLoadOverlay {id} {rotation} />
-      {/if}
-      {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-        <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
-      {/if}
+    {#if (device.portstate & 4) !== 0}
+      <div
+        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+      />
     {/if}
-  </svelte:component>
-{/if}
+
+    {#if (device.portstate & 8) !== 0}
+      <div
+        class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+      />
+    {/if}
+  {/if}
+
+  <svelte:component this={component} {moduleWidth} />
+
+  {#if $writeBuffer.length == 0}
+    {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+      <ProfileLoadOverlay {id} rotation={device.rotation} />
+    {/if}
+    {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+      <PresetLoadOverlay
+        {id}
+        rotation={device.rotation}
+        bankActive={0}
+        {moduleWidth}
+      />
+    {/if}
+  {/if}
+</div>
 
 <style global>
   .module-dimensions {
