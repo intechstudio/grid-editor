@@ -4,13 +4,23 @@
   import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
+  import { writeBuffer } from "../../../../runtime/engine.store.js";
+
   export let id;
   export let rotation;
+  export let device = undefined;
 
   let selectedConfig = undefined;
 
   $: {
     selectedConfig = $selectedConfigStore;
+  }
+
+  let showProfileLoadOverlay = false;
+  $: {
+    showProfileLoadOverlay =
+      device?.type === $selectedConfigStore.type &&
+      $selectedConfigStore.configType === "profile";
   }
 
   function selectModuleWhereProfileIsLoaded() {
@@ -48,34 +58,36 @@
   }
 </script>
 
-<div
-  class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
+{#if $writeBuffer.length == 0 && showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+  <div
+    class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute"
-  style="transform: rotate({rotation * 90 -
-    $appSettings.persistent.moduleRotation +
-    'deg'})"
->
-  <div class="w-fit relative">
-    <button
-      on:click={() => {
-        loadProfileToThisModule();
-      }}
-      class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
+    style="transform: rotate({rotation * 90 -
+      $appSettings.persistent.moduleRotation +
+      'deg'})"
+  >
+    <div class="w-fit relative">
+      <button
+        on:click={() => {
+          loadProfileToThisModule();
+        }}
+        class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
         opacity-80 block"
-    >
-      Load Profile
-    </button>
-  </div>
+      >
+        Load Profile
+      </button>
+    </div>
 
-  <div class="w-fit">
-    <button
-      class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
+    <div class="w-fit">
+      <button
+        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
         left-[37%] absolute bottom-[22%] opacity-60"
-      on:click={() => {
-        cancelProfileOverlay();
-      }}
-    >
-      Cancel
-    </button>
+        on:click={() => {
+          cancelProfileOverlay();
+        }}
+      >
+        Cancel
+      </button>
+    </div>
   </div>
-</div>
+{/if}

@@ -56,98 +56,103 @@
   }
 </script>
 
-{#if showOverlay == true}
-  {#if id.startsWith("PO16") || id.startsWith("BU16") || id.startsWith("EN16")}
-    <div class="overlay">
-      {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]] as block, i}
-        <div class="row" style="height: {moduleWidth / 4 + 'px'}">
-          {#each block as element}
-            <div
-              class="col"
-              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
-                'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistent.moduleRotation +
-                'deg'})"
-            >
-              <ControlNameComponent
-                elementName={elementSettings[element].controlElementName}
-                elementNumber={element}
-                {breakpoint}
-              />
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else if id.startsWith("PBF4")}
-    <div class="overlay">
-      {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]] as block, i}
-        <div
-          class="row"
-          style="height: {(moduleWidth / 4) * (i == 1 ? 2 : 1) + 'px'}"
-        >
-          {#each block as element}
-            <div
-              class="col"
-              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
-                'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistent.moduleRotation +
-                'deg'})"
-            >
-              <ControlNameComponent
-                elementName={elementSettings[element].controlElementName}
-                elementNumber={element}
-                {breakpoint}
-              />
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else if id.startsWith("TEK2")}
-    <div class="overlay">
-      {#each [[8, 9], [0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
-        <div
-          class="row"
-          style="height: {(moduleWidth / 4) * (i == 0 ? 2 : 1) + 'px'}"
-        >
-          {#each block as element}
-            <div>
-              <ControlNameComponent
-                elementName={elementSettings[element].controlElementName}
-                elementNumber={element}
-                {breakpoint}
-              />
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
-  {:else if id.startsWith("EF44")}
-    <div class="overlay">
-      {#each [[0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
-        <div
-          class="row"
-          style="height: {(moduleWidth / 4) * (i == 1 ? 3 : 1) + 'px'}"
-        >
-          {#each block as element}
-            <div
-              class="col"
-              style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth / 4 +
-                'px'}; transform: rotate({1 * rotation * 90 -
-                $appSettings.persistent.moduleRotation +
-                'deg'})"
-            >
-              <ControlNameComponent
-                elementName={elementSettings[element].controlElementName}
-                elementNumber={element}
-                {breakpoint}
-              />
-            </div>
-          {/each}
-        </div>
-      {/each}
-    </div>
+{#if $appSettings.overlays.controlElementName}
+  {#if showOverlay == true}
+    {#if id.startsWith("PO16") || id.startsWith("BU16") || id.startsWith("EN16")}
+      <div class="overlay">
+        {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15]] as block, i}
+          <div class="row" style="height: {moduleWidth / 4 + 'px'}">
+            {#each block as element}
+              <div
+                class="col"
+                style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth /
+                  4 +
+                  'px'}; transform: rotate({1 * rotation * 90 -
+                  $appSettings.persistent.moduleRotation +
+                  'deg'})"
+              >
+                <ControlNameComponent
+                  elementName={elementSettings[element].controlElementName}
+                  elementNumber={element}
+                  {breakpoint}
+                />
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    {:else if id.startsWith("PBF4")}
+      <div class="overlay">
+        {#each [[0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11]] as block, i}
+          <div
+            class="row"
+            style="height: {(moduleWidth / 4) * (i == 1 ? 2 : 1) + 'px'}"
+          >
+            {#each block as element}
+              <div
+                class="col"
+                style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth /
+                  4 +
+                  'px'}; transform: rotate({1 * rotation * 90 -
+                  $appSettings.persistent.moduleRotation +
+                  'deg'})"
+              >
+                <ControlNameComponent
+                  elementName={elementSettings[element].controlElementName}
+                  elementNumber={element}
+                  {breakpoint}
+                />
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    {:else if id.startsWith("TEK2")}
+      <div class="overlay">
+        {#each [[8, 9], [0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
+          <div
+            class="row"
+            style="height: {(moduleWidth / 4) * (i == 0 ? 2 : 1) + 'px'}"
+          >
+            {#each block as element}
+              <div>
+                <ControlNameComponent
+                  elementName={elementSettings[element].controlElementName}
+                  elementNumber={element}
+                  {breakpoint}
+                />
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    {:else if id.startsWith("EF44")}
+      <div class="overlay">
+        {#each [[0, 1, 2, 3], [4, 5, 6, 7]] as block, i}
+          <div
+            class="row"
+            style="height: {(moduleWidth / 4) * (i == 1 ? 3 : 1) + 'px'}"
+          >
+            {#each block as element}
+              <div
+                class="col"
+                style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth /
+                  4 +
+                  'px'}; transform: rotate({1 * rotation * 90 -
+                  $appSettings.persistent.moduleRotation +
+                  'deg'})"
+              >
+                <ControlNameComponent
+                  elementName={elementSettings[element].controlElementName}
+                  elementNumber={element}
+                  {breakpoint}
+                />
+              </div>
+            {/each}
+          </div>
+        {/each}
+      </div>
+    {/if}
   {/if}
 {/if}
 

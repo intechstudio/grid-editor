@@ -8,24 +8,24 @@
 
   import { selectElement } from "./event-handlers/select.js";
 
+  //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
-  import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { user_input, logger } from "../../../runtime/runtime.store.js";
-  import { selectedConfigStore } from "/runtime/config-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
-  import { get } from "svelte/store";
+  //Underlays
+  import PortState from "./underlays/PortState.svelte";
+  import ModuleInfo from "./underlays/ModuleInfo.svelte";
+  import ActiveChanges from "./underlays/ActiveChanges.svelte";
+  import ElementSelection from "./underlays/ElementSelection.svelte";
+
+  import { logger } from "../../../runtime/runtime.store.js";
+
   import { writeBuffer } from "../../../runtime/engine.store.js";
   import { runtime } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
 
   export let id;
-
-  let selectedElement;
-
-  let isActionButtonClicked;
 
   let moduleWidth = 2.1 * 106.6 + 2;
 
@@ -47,47 +47,8 @@
     component = components[index].component;
   });
 
-  $: {
-    isActionButtonClicked = $isActionButtonClickedStore;
-  }
-
-  $: {
-    if (!isActionButtonClicked) {
-      if (Object.keys($selectedConfigStore).length !== 0) {
-        selectedElement = { id: "", brc: {}, event: {} };
-      } else {
-        selectedElement = $user_input;
-      }
-    }
-  }
-
-  let showProfileLoadOverlay = false;
-  $: {
-    showProfileLoadOverlay =
-      device?.type === $selectedConfigStore.type &&
-      $selectedConfigStore.configType === "profile";
-  }
-
-  let showPresetLoadOverlay = false;
-  $: {
-    let device = get(runtime).find((controller) => controller.id == id);
-
-    if (
-      typeof device !== "undefined" &&
-      $selectedConfigStore.configType === "preset"
-    ) {
-      const compatible = device.pages[0].control_elements
-        .map((e) => e.controlElementType)
-        .includes($selectedConfigStore.type);
-
-      showPresetLoadOverlay = compatible;
-    } else {
-      showPresetLoadOverlay = false;
-    }
-  }
-
   function handleModuleClicked(e) {
-    const { elementNumber, type, id } = e.detail;
+    const { elementNumber } = e.detail;
     if ($writeBuffer.length > 0) {
       logger.set({
         type: "fail",
@@ -98,83 +59,49 @@
       return;
     }
 
-    selectElement(elementNumber, type, id);
+    selectElement(elementNumber, device.type, device.id);
   }
 </script>
 
 <div>
-  {#if $appSettings.overlays.controlElementName}
-    <ControlNameOverlay
-      {id}
-      {moduleWidth}
-      bankActive={0}
-      rotation={device?.rotation}
-    />
-  {/if}
-
-  <div
-    class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
+  <svelte:component
+    this={component}
+    {device}
+    {moduleWidth}
+    let:elementNumber
+    let:device
   >
-    {#if device?.arch === "esp32"}
-      E-32<br />
-      {"v" +
-        device?.fwVersion.major +
-        "." +
-        device?.fwVersion.minor +
-        "." +
-        device?.fwVersion.patch}
-    {:else}
-      D-51<br />
-      {"v" +
-        device?.fwVersion.major +
-        "." +
-        device?.fwVersion.minor +
-        "." +
-        device?.fwVersion.patch}
-    {/if}
-  </div>
+    <!-- Module Underlays -->
+    <svelte:fragment slot="module-underlay" let:device>
+      <PortState {device} />
+      <ModuleInfo {device} />
+    </svelte:fragment>
 
-  {#if $appSettings.persistent.portstateOverlayEnabled}
-    {#if (device.portstate & 1) !== 0}
-      <div
-        class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+    <!-- Cell Underlays -->
+    <svelte:fragment slot="cell-underlay" let:elementNumber>
+      <ActiveChanges {elementNumber} {device} />
+      <ElementSelection
+        {elementNumber}
+        {device}
+        on:click={handleModuleClicked}
       />
-    {/if}
+    </svelte:fragment>
 
-    {#if (device.portstate & 2) !== 0}
-      <div
-        class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-      />
-    {/if}
+    <!-- Cell Overlays -->
+    <svelte:fragment slot="cell-overlay" let:elementNumber />
 
-    {#if (device.portstate & 4) !== 0}
-      <div
-        class="absolute bottom-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-      />
-    {/if}
-
-    {#if (device.portstate & 8) !== 0}
-      <div
-        class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
-      />
-    {/if}
-  {/if}
-
-  <svelte:component this={component} {moduleWidth} />
-
-  {#if $writeBuffer.length == 0}
-    {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-      <ProfileLoadOverlay {id} rotation={device.rotation} />
-    {/if}
-    {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-      <PresetLoadOverlay
+    <!-- Module Overlays -->
+    <svelte:fragment slot="module-overlay" let:device>
+      <ControlNameOverlay
         {id}
-        rotation={device.rotation}
-        bankActive={0}
         {moduleWidth}
+        bankActive={0}
+        rotation={device?.rotation}
       />
-    {/if}
-  {/if}
+      <ProfileLoadOverlay {id} {device} />
+      <PresetLoadOverlay {id} bankActive={0} {moduleWidth} {device} />
+    </svelte:fragment>
+  </svelte:component>
 </div>
 
 <style global>

@@ -1,6 +1,4 @@
 <script>
-  import { onMount, createEventDispatcher } from "svelte";
-
   import { appSettings } from "../../../../runtime/app-helper.store.js";
 
   import Encoder from "../elements/Encoder.svelte";
@@ -8,19 +6,15 @@
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store";
-  import {
-    unsaved_changes,
-    ledColorStore,
-  } from "../../../../runtime/runtime.store";
+  import { ledColorStore } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "EF44";
   export let rotation = 0;
+  export let device = undefined;
 
-  const dispatch = createEventDispatcher();
-
-  let dx, dy;
+  let [dx, dy] = [device?.dx, device?.dy];
 
   let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   let ledcolor_array = [
@@ -91,110 +85,64 @@
       selectedElement.event.elementnumber == 255}
     style="--module-size: {moduleWidth + 'px'}"
   >
+    <div class="absolute z-[0] w-full h-full">
+      <slot name="module-underlay" {device} />
+    </div>
     <div
       class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
     >
       {#each [0, 1, 2, 3] as elementNumber}
-        {@const isSelected =
-          dx == selectedElement.brc.dx &&
-          dy == selectedElement.brc.dy &&
-          selectedElement.event.elementnumber == elementNumber}
-        {@const isChanged =
-          typeof $unsaved_changes.find(
-            (e) => e.x == dx && e.y == dy && e.element == elementNumber
-          ) !== "undefined"}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <cell
           class="w-full h-full flex items-center justify-center relative row-span-1"
         >
-          <underlay
-            class="absolute rounded-lg"
-            class:bg-unsavedchange={isChanged && !isSelected}
-            class:bg-opacity-10={isSelected}
-            class:bg-opacity-20={isChanged && !isSelected}
-            class:border={isChanged}
-            class:border-unsavedchange={isChanged}
-            class:bg-white={isSelected}
-            class:hover:bg-white={!isSelected}
-            class:hover:bg-opacity-5={!isSelected && !isChanged}
-            class:hover:bg-opacity-10={!isSelected && isChanged}
-            style="width: calc(100% - 8px); height: calc(100% - 8px)"
+          <div class="absolute z-[0] w-full h-full">
+            <slot name="cell-underlay" {elementNumber} />
+          </div>
+          <div
+            class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
           >
-            <div
-              class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
-              on:click={() => {
-                dispatch("click", {
-                  elementNumber: elementNumber,
-                  type: "encoder",
-                  id: id,
-                });
-              }}
-            >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
-              <Encoder
-                {elementNumber}
-                {id}
-                position={elementposition_array[elementNumber]}
-                size={2.1}
-              />
-            </div>
-          </underlay>
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Encoder
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </div>
+          <div class="absolute z-[2] w-full h-full pointer-events-none">
+            <slot name="cell-overlay" {elementNumber} />
+          </div>
         </cell>
       {/each}
 
       {#each [4, 5, 6, 7] as elementNumber}
-        {@const isSelected =
-          dx == selectedElement.brc.dx &&
-          dy == selectedElement.brc.dy &&
-          selectedElement.event.elementnumber == elementNumber}
-        {@const isChanged =
-          typeof $unsaved_changes.find(
-            (e) => e.x == dx && e.y == dy && e.element == elementNumber
-          ) !== "undefined"}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
         <cell
           class="w-full h-full flex items-center justify-center relative row-span-3"
         >
-          <underlay
-            class="absolute rounded-lg"
-            class:bg-unsavedchange={isChanged && !isSelected}
-            class:bg-opacity-10={isSelected}
-            class:bg-opacity-20={isChanged && !isSelected}
-            class:border={isChanged}
-            class:border-unsavedchange={isChanged}
-            class:bg-white={isSelected}
-            class:hover:bg-white={!isSelected}
-            class:hover:bg-opacity-5={!isSelected && !isChanged}
-            class:hover:bg-opacity-10={!isSelected && isChanged}
-            style="width: calc(100% - 8px); height: calc(100% - 8px)"
+          <div class="absolute z-[0] w-full h-full">
+            <slot name="cell-underlay" {elementNumber} />
+          </div>
+          <div
+            class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
           >
-            <div
-              class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
-              on:click={() => {
-                dispatch("click", {
-                  elementNumber: elementNumber,
-                  type: "fader",
-                  id: id,
-                });
-              }}
-            >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
-              <Fader
-                {elementNumber}
-                {id}
-                position={elementposition_array[elementNumber]}
-                size={2.1}
-                rotation={rotation * -90}
-                faderHeight={68}
-              />
-            </div>
-          </underlay>
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Fader
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+              rotation={rotation * -90}
+              faderHeight={68}
+            />
+          </div>
+          <div class="absolute z-[2] w-full h-full pointer-events-none">
+            <slot name="cell-overlay" {elementNumber} />
+          </div>
         </cell>
       {/each}
+    </div>
+    <div class="absolute z-[2] w-full h-full pointer-events-none">
+      <slot name="module-overlay" {device} />
     </div>
   </div>
 </div>
