@@ -92,12 +92,7 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
-      <ControlNameOverlay
-        {id}
-        {moduleWidth}
-        bankActive={0}
-        rotation={device?.rotation}
-      />
+      <ControlNameOverlay {id} {moduleWidth} bankActive={0} />
       <ProfileLoadOverlay {id} {device} />
       <PresetLoadOverlay {id} bankActive={0} {moduleWidth} {device} />
     </svelte:fragment>

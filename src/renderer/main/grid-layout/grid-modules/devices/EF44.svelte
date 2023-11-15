@@ -11,9 +11,9 @@
   export let moduleWidth;
   export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "EF44";
-  export let rotation = 0;
   export let device = undefined;
 
+  let rotation = $appSettings.rotation;
   let [dx, dy] = [device?.dx, device?.dy];
 
   let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];

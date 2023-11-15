@@ -7,7 +7,7 @@
   import { writeBuffer } from "../../../../runtime/engine.store.js";
 
   export let id;
-  export let rotation;
+  export let rotation = $appSettings.persistent.moduleRotation;
   export let device = undefined;
 
   let selectedConfig = undefined;
@@ -61,10 +61,8 @@
 {#if $writeBuffer.length == 0 && showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
   <div
     class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
-    items-center justify-center rounded h-full absolute"
-    style="transform: rotate({rotation * 90 -
-      $appSettings.persistent.moduleRotation +
-      'deg'})"
+    items-center justify-center rounded h-full absolute pointer-events-auto"
+    style="transform: rotate({-rotation}deg)"
   >
     <div class="w-fit relative">
       <button
