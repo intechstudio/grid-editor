@@ -15,7 +15,7 @@ import {
   init_config_block_library,
 } from "../../../lib/_configs";
 
-import instructions from "../../../serialport/instructions.js"
+import instructions from "../../../serialport/instructions.js";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -175,7 +175,7 @@ export class UnknownEventException extends Error {
 
 export class ConfigList extends Array {
   makeCopy() {
-    console.log("yay2")
+    console.log("yay2");
     const copy = new ConfigList();
     for (const config of this) {
       copy.push(config.makeCopy());
@@ -440,36 +440,37 @@ function create_configuration_manager() {
       y: ui.brc.dy,
       event: ui.event.eventtype,
       element: ui.event.elementnumber,
-      page: ui.event.pagenumber
-    }).map(key => String(key)).join("_");
+      page: ui.event.pagenumber,
+    })
+      .map((key) => String(key))
+      .join("_");
     if (!loaded.has(id)) {
       loaded.set(id, createConfigListFrom(ui));
-    }
-    else {
+    } else {
       const newList = createConfigListFrom(ui);
       const buffered = loaded.get(id);
       if (newList.length !== buffered.length) {
-        loaded.set(id, newList)
+        loaded.set(id, newList);
       }
     }
     const list = loaded.get(id);
-    store.set(list)
+    store.set(list);
   }
 
   function sendPageToGrid() {
     for (const list of loaded.values()) {
-      list.forEach(e => e.changes = 0);
+      list.forEach((e) => (e.changes = 0));
     }
-    handleUserInputChange(get(user_input))
+    handleUserInputChange(get(user_input));
     instructions.sendPageStoreToGrid();
   }
 
   user_input.subscribe((ui) => {
-    handleUserInputChange(ui)
+    handleUserInputChange(ui);
   });
 
   return {
     ...store,
-    sendPageToGrid: sendPageToGrid
+    sendPageToGrid: sendPageToGrid,
   };
 }
