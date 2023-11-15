@@ -149,6 +149,8 @@
       return;
     }
 
+    //console.log(list);
+
     const map = ConfigList.getIndentationMap(list);
     for (const i in map) {
       list[i].indentation = map[i];
@@ -204,10 +206,10 @@
 
     try {
       configManager.update((s) => {
-        const list = s.makeCopy();
-        list.insert(index, ...configs);
-        list.checkLength();
-        return list;
+        configs.forEach((e) => (e.changes += 1));
+        s.insert(index, ...configs);
+        s.checkLength();
+        return s;
       });
       sendCurrentConfigurationToGrid();
     } catch (e) {
@@ -235,6 +237,7 @@
       //Collect dragged configs and mark them for deletion
       const temp = [];
       draggedIndexes.forEach((i) => {
+        s[i].changes += 1;
         temp.push(s[i]);
         s[i] = undefined;
       });
@@ -255,6 +258,7 @@
 
     configManager.update((s) => {
       const config = s[index];
+      config.changes += 1;
       if (typeof config !== "undefined") {
         config.short = short;
         config.script = script;
@@ -326,6 +330,7 @@
 
     configManager.update((s) => {
       //Insert CodeBlock into position
+      codeBlock.changes += 1;
       s.insert(index, codeBlock);
       // Remove selected action blocks
       s = s.filter((config) => !config.selected);
@@ -364,7 +369,9 @@
 
     configManager.update((s) => {
       s.forEach((e) => (e.selected = false));
-      s.insert(index, ...$appActionClipboard.map((e) => e.makeCopy()));
+      const pasted = $appActionClipboard.map((e) => e.makeCopy());
+      pasted.forEach((e) => (e.changes += 1));
+      s.insert(index, ...pasted);
 
       return s;
     });
@@ -496,6 +503,7 @@
   function handleReplace(e) {
     const { index, config } = e.detail;
     configManager.update((s) => {
+      config.changes += 1;
       s[index] = config;
       lastOpenedActionblocksInsert(config.short);
       return s;

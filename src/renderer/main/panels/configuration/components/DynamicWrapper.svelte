@@ -107,8 +107,11 @@
     on:click|self={handleToggle}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
-    <!-- TODO: Make marking when the block has unsaved changes  -->
-    <div class="w-full flex flex-row pointer-events-none duration-300">
+    <div
+      class="w-full flex flex-row pointer-events-none duration-300"
+      class:border-r-4={config.changes > 0}
+      class:border-unsavedchange={config.changes > 0}
+    >
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
         <div

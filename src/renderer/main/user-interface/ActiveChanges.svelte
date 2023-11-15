@@ -6,6 +6,7 @@
   import { derived } from "svelte/store";
   import instructions from "../../serialport/instructions";
   import { fade, blur } from "svelte/transition";
+  import { configManager } from "../panels/configuration/Configuration.store.js";
 
   let isStoreEnabled = false;
 
@@ -33,7 +34,7 @@
         mandatory: false,
       });
 
-      instructions.sendPageStoreToGrid();
+      configManager.sendPageToGrid();
     }
   }
 
