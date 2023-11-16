@@ -4,6 +4,9 @@
 
   export let elementNumber;
   export let device;
+  export let style =
+    "bg-unsavedchange border border-unsavedchange bg-opacity-10";
+  export let margin = 4;
 
   const dispatch = createEventDispatcher();
 
@@ -21,10 +24,9 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <underlay
-  class="absolute rounded-lg m-[4px] {isChanged
-    ? 'bg-unsavedchange border border-unsavedchange'
-    : 'bg-transparent'} bg-opacity-10"
-  style="width: calc(100% - 8px); height: calc(100% - 8px)"
+  class=" absolute rounded-lg {isChanged ? style : 'bg-transparent'}"
+  style="width: calc(100% - {margin * 2}px); height: calc(100% - {margin *
+    2}px); margin: {margin}px"
   on:click={() => {
     dispatch("click", {
       elementNumber: elementNumber,

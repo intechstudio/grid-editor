@@ -8,7 +8,6 @@
   import { ledColorStore } from "../../../../runtime/runtime.store";
 
   export let moduleWidth;
-  export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "BU16";
   export let rotation = 0;
   export let device = undefined;
@@ -70,50 +69,40 @@
 </script>
 
 <div
-  {id}
-  draggable={$appSettings.layoutMode}
-  style="transform: rotate({rotation * -90 + 'deg'})"
+  class="module-dimensions relative"
+  style="--module-size: {moduleWidth + 'px'}; transform: rotate({rotation *
+    -90 +
+    'deg'})"
 >
-  <slot />
-
+  <div class="absolute z-[0] w-full h-full">
+    <slot name="module-underlay" {device} />
+  </div>
   <div
-    class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions"
-    class:active-systemelement={dx == selectedElement.brc.dx &&
-      dy == selectedElement.brc.dy &&
-      selectedElement.event.elementnumber == 255}
-    style="--module-size: {moduleWidth + 'px'}"
+    class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
-    <div class="absolute z-[0] w-full h-full">
-      <slot name="module-underlay" {device} />
-    </div>
-    <div
-      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
-    >
-      {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
-        <cell class="w-full h-full flex items-center justify-center relative">
-          <div class="absolute z-[0] w-full h-full">
-            <slot name="cell-underlay" {elementNumber} />
-          </div>
-          <div
-            class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-          >
-            <Led color={ledcolor_array[elementNumber]} size={2.1} />
-            <Button
-              {elementNumber}
-              {id}
-              position={elementposition_array[elementNumber]}
-              size={2.1}
-            />
-          </div>
-          <div class="absolute z-[2] w-full h-full pointer-events-none">
-            <slot name="cell-overlay" {elementNumber} />
-          </div>
-        </cell>
-      {/each}
-    </div>
-    <div class="absolute z-[2] w-full h-full pointer-events-none">
-      <slot name="module-overlay" {device} />
-    </div>
+    {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
+      <cell class="w-full h-full flex items-center justify-center relative">
+        <div class="absolute z-[0] w-full h-full">
+          <slot name="cell-underlay" {elementNumber} />
+        </div>
+        <div
+          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
+        >
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
+          <Button
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={2.1}
+          />
+        </div>
+        <div class="absolute z-[2] w-full h-full pointer-events-none">
+          <slot name="cell-overlay" {elementNumber} />
+        </div>
+      </cell>
+    {/each}
+  </div>
+  <div class="absolute z-[2] w-full h-full pointer-events-none">
+    <slot name="module-overlay" {device} />
   </div>
 </div>

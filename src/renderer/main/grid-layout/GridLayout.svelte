@@ -1,7 +1,7 @@
 <script>
   import { writable, derived } from "svelte/store";
 
-  import { runtime, user_input } from "../../runtime/runtime.store.js";
+  import { runtime } from "../../runtime/runtime.store.js";
 
   import Device from "./grid-modules/Device.svelte";
 
@@ -12,8 +12,8 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
 
   const devices = writable([]);
-  const deviceGap = 5;
-  const deviceWidth = 225 + deviceGap;
+  const deviceGap = 14;
+  const deviceWidth = 225 + deviceGap + 1;
 
   let shiftX = 0;
   let shiftY = 0;
@@ -137,15 +137,9 @@
         out:fade|global={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute transition-all box-border border-2 rounded-lg"
-        class:border-transparent={device.dx != $user_input.brc.dx ||
-          (device.dy != $user_input.brc.dy && !device.fwMismatch)}
-        class:border-gray-500={device.dx == $user_input.brc.dx &&
-          device.dy == $user_input.brc.dy &&
-          !device.fwMismatch}
-        class:animate-border-error={device.fwMismatch}
+        class="absolute hover:z-50"
       >
-        <Device id={device.id} />
+        <Device id={device.id} margin={deviceGap / 2} />
       </div>
     {/each}
   </div>
@@ -159,21 +153,5 @@
     transform-origin: center;
     transform: scale(var(--scaling-percent))
       translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
-  }
-  .animate-border-error {
-    animation-name: error-animation;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate-reverse;
-    animation-timing-function: ease;
-  }
-
-  @keyframes error-animation {
-    from {
-      border-color: transparent;
-    }
-    to {
-      border-color: #dc2626;
-    }
   }
 </style>
