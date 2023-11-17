@@ -22,16 +22,13 @@
   import { logger } from "../../../runtime/runtime.store.js";
 
   import { writeBuffer } from "../../../runtime/engine.store.js";
-  import {
-    runtime,
-    user_input,
-    unsaved_changes,
-  } from "../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleSelection.svelte";
 
   export let id;
   export let margin = 0;
+  export let rounding = 6;
 
   let moduleWidth = 2.1 * 106.6 + 2;
 
@@ -82,37 +79,17 @@
     }
 
     user_input.update((ui) => {
+      ui.brc.dx = device?.dx;
+      ui.brc.dy = device?.dy;
       ui.event.elementnumber = 255;
       ui.event.eventtype = 4;
       ui.event.elementtype = "system";
       return ui;
     });
   }
-
-  let isChanged = false;
-  $: {
-    isChanged =
-      typeof $unsaved_changes.find(
-        (e) => e.x == device?.dx && e.y == device?.dy && e.element == 255
-      ) !== "undefined";
-  }
-
-  let isSelected = false;
-  $: {
-    isSelected =
-      device?.dx == $user_input.brc.dx && device?.dy == $user_input.brc.dy;
-  }
 </script>
 
-<div
-  class="pointer-events-none border-2 border-transparent relative border-opacity-10 bg-primary"
-  class:border-unsavedchange={isChanged && !moduleHovered}
-  class:border-opacity-10={isChanged && !isSelected}
-  class:border-white={moduleHovered}
-  class:border-opacity-50={moduleHovered}
-  class:animate-border-error={device?.fwMismatch}
-  style="border-radius: 6px;"
->
+<div class="pointer-events-none relative">
   <svelte:component
     this={component}
     {device}
@@ -122,16 +99,24 @@
   >
     <!-- Module Underlays -->
     <svelte:fragment slot="module-underlay" let:device>
-      <ModuleSelection
-        bind:moduleHovered
-        {margin}
-        on:click={handleModuleClicked}
+      <!-- Default Backdrop -->
+      <div
+        class="bg-primary w-full h-full"
+        style="border-radius: {rounding}px;"
       />
       <ActiveChanges
         elementNumber={255}
         {device}
-        style="bg-unsavedchange bg-opacity-10"
+        class="bg-unsavedchange bg-opacity-10 border-2 border-unsavedchange"
+        style="border-radius: {rounding}px;"
         margin={0}
+      />
+      <ModuleSelection
+        bind:moduleHovered
+        {margin}
+        {rounding}
+        {device}
+        on:click={handleModuleClicked}
       />
       <PortState {device} />
       <ModuleInfo {device} />
@@ -139,7 +124,12 @@
 
     <!-- Cell Underlays -->
     <svelte:fragment slot="cell-underlay" let:elementNumber>
-      <ActiveChanges {elementNumber} {device} />
+      <ActiveChanges
+        {elementNumber}
+        {device}
+        class="bg-unsavedchange border bg-opacity-10 rounded-lg border-unsavedchange"
+        style="border-radius: {rounding}px;"
+      />
       <ElementSelection
         {elementNumber}
         {device}
@@ -178,22 +168,5 @@
     align-items: center;
     transition: filter 0.2s;
     filter: drop-shadow(2px 4px 7px rgba(20, 20, 20, 0.4));
-  }
-
-  .animate-border-error {
-    animation-name: error-animation;
-    animation-duration: 1s;
-    animation-iteration-count: infinite;
-    animation-direction: alternate-reverse;
-    animation-timing-function: ease;
-  }
-
-  @keyframes error-animation {
-    from {
-      border-color: transparent;
-    }
-    to {
-      border-color: #dc2626;
-    }
   }
 </style>
