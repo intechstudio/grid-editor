@@ -5,7 +5,7 @@
 <div
   class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
 >
-  {#if device?.arch === "esp32"}
+  {#if device?.architecture === "esp32"}
     E-32<br />
     {"v" +
       device?.fwVersion.major +
