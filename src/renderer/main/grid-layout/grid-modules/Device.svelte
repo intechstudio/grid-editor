@@ -20,6 +20,8 @@
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
   import { logger } from "../../../runtime/runtime.store.js";
+  import { appSettings } from "../../../runtime/app-helper.store";
+  import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
   import { writeBuffer } from "../../../runtime/engine.store.js";
   import { runtime } from "../../../runtime/runtime.store.js";
@@ -61,6 +63,37 @@
 
     selectElement(elementNumber, device.type, device.id);
   }
+
+  $: {
+    handleSelectedConfigChange($selectedConfigStore);
+  }
+
+  function handleSelectedConfigChange(store) {
+    if (store.configType === "profile") {
+      if (
+        device?.type === $selectedConfigStore.type &&
+        $appSettings.leftPanel === "ProfileCloud"
+      ) {
+        $appSettings.displayedOverlay = "profile-load-overlay";
+      } else if ($appSettings.displayedOverlay === "profile-load-overlay") {
+        $appSettings.displayedOverlay = undefined;
+      }
+    } else if (store.configType === "preset") {
+      const compatible = device?.pages[0].control_elements
+        .map((e) => e.controlElementType)
+        .includes($selectedConfigStore.type);
+
+      if (
+        compatible &&
+        $writeBuffer.length == 0 &&
+        $appSettings.leftPanel === "ProfileCloud"
+      ) {
+        $appSettings.displayedOverlay = "preset-load-overlay";
+      } else if ($appSettings.displayedOverlay === "preset-load-overlay") {
+        $appSettings.displayedOverlay = undefined;
+      }
+    }
+  }
 </script>
 
 <div>
@@ -92,9 +125,24 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
-      <ControlNameOverlay {id} {moduleWidth} bankActive={0} />
-      <ProfileLoadOverlay {id} {device} />
-      <PresetLoadOverlay {id} bankActive={0} {moduleWidth} {device} />
+      <ControlNameOverlay
+        {id}
+        {moduleWidth}
+        bankActive={0}
+        visible={$appSettings.displayedOverlay === "control-name-overlay"}
+      />
+      <ProfileLoadOverlay
+        {id}
+        {device}
+        visible={$appSettings.displayedOverlay === "profile-load-overlay"}
+      />
+      <PresetLoadOverlay
+        {id}
+        bankActive={0}
+        {moduleWidth}
+        {device}
+        visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+      />
     </svelte:fragment>
   </svelte:component>
 </div>

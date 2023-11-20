@@ -4,24 +4,10 @@
   import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
-  import { writeBuffer } from "../../../../runtime/engine.store.js";
 
   export let id;
-  export let rotation = $appSettings.persistent.moduleRotation;
   export let device = undefined;
-
-  let selectedConfig = undefined;
-
-  $: {
-    selectedConfig = $selectedConfigStore;
-  }
-
-  let showProfileLoadOverlay = false;
-  $: {
-    showProfileLoadOverlay =
-      device?.type === $selectedConfigStore.type &&
-      $selectedConfigStore.configType === "profile";
-  }
+  export let visible = false;
 
   function selectModuleWhereProfileIsLoaded() {
     const dx = id.split(";")[0].split(":").pop();
@@ -44,7 +30,7 @@
     });
 
     // to do.. if undefined configs
-    runtime.whole_page_overwrite(selectedConfig.configs);
+    runtime.whole_page_overwrite($selectedConfigStore.configs);
 
     Analytics.track({
       event: "Profile Load Success",
@@ -55,14 +41,15 @@
 
   function cancelProfileOverlay() {
     selectedConfigStore.set({});
+    $appSettings.displayedOverlay = undefined;
   }
 </script>
 
-{#if $writeBuffer.length == 0 && showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+{#if visible}
   <div
     class="text-white bg-black bg-opacity-30 z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto"
-    style="transform: rotate({-rotation}deg)"
+    style="transform: rotate({-$appSettings.persistent.moduleRotation}deg)"
   >
     <div class="w-fit relative">
       <button

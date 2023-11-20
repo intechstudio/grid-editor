@@ -1,7 +1,6 @@
 <script>
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
-  import { writeBuffer } from "../../../../runtime/engine.store.js";
 
   import { get } from "svelte/store";
 
@@ -10,8 +9,8 @@
   import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let id;
-  export let rotation = $appSettings.persistent.moduleRotation;
   export let device = undefined;
+  export let visible = false;
 
   let selectedPreset;
 
@@ -40,24 +39,6 @@
       overlayDesign = "2x4";
     } else {
       overlayDesign = "4x4";
-    }
-  }
-
-  let showPresetLoadOverlay = false;
-  $: {
-    let device = get(runtime).find((controller) => controller.id == id);
-
-    if (
-      typeof device !== "undefined" &&
-      $selectedConfigStore.configType === "preset"
-    ) {
-      const compatible = device.pages[0].control_elements
-        .map((e) => e.controlElementType)
-        .includes($selectedConfigStore.type);
-
-      showPresetLoadOverlay = compatible;
-    } else {
-      showPresetLoadOverlay = false;
     }
   }
 
@@ -111,7 +92,7 @@
   }
 </script>
 
-{#if $writeBuffer.length == 0 && showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
+{#if visible}
   <container class="pointer-events-auto">
     {#if "system" == selectedPreset?.type}
       <div
@@ -126,7 +107,8 @@
           class="group bg-gray-300 hover:bg-commit hover:bg-opacity-100
 block h-full w-full text-white bg-opacity-25 rounded focus:outline-none"
           ><div
-            style="transform: rotate({-rotation}deg)"
+            style="transform: rotate({-$appSettings.persistent
+              .moduleRotation}deg)"
             class="hidden group-hover:block"
           >
             Load
@@ -154,9 +136,8 @@ block h-full w-full text-white bg-opacity-25 rounded focus:outline-none"
     w-full text-white bg-opacity-25 rounded
      focus:outline-none"
                 ><div
-                  style="transform: rotate({rotation * 90 -
-                    $appSettings.persistent.moduleRotation +
-                    'deg'})"
+                  style="transform: rotate({-$appSettings.persistent
+                    .moduleRotation}deg)"
                   class="hidden group-hover:block"
                 >
                   Load
