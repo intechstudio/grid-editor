@@ -121,7 +121,13 @@
     </svelte:fragment>
 
     <!-- Cell Overlays -->
-    <svelte:fragment slot="cell-overlay" let:elementNumber />
+    <svelte:fragment slot="cell-overlay" let:elementNumber>
+      <PresetLoadOverlay
+        {device}
+        {elementNumber}
+        visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+      />
+    </svelte:fragment>
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
@@ -135,13 +141,6 @@
         {id}
         {device}
         visible={$appSettings.displayedOverlay === "profile-load-overlay"}
-      />
-      <PresetLoadOverlay
-        {id}
-        bankActive={0}
-        {moduleWidth}
-        {device}
-        visible={$appSettings.displayedOverlay === "preset-load-overlay"}
       />
     </svelte:fragment>
   </svelte:component>
@@ -167,25 +166,6 @@
     align-items: center;
     transition: filter 0.2s;
     filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
-  }
-
-  .control-row {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    margin-top: var(--control-row-mt);
-    margin-left: var(--control-row-mx);
-    margin-right: var(--control-row-mx);
-  }
-
-  .control-row:last-child {
-    margin-bottom: var(--control-row-mb);
-  }
-
-  .disable-pointer-events {
-    pointer-events: none;
   }
 
   .active-systemelement {
