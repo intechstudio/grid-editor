@@ -97,8 +97,14 @@
   }
 
   function showControlElementNameOverlay() {
-    $appSettings.overlays.controlElementName =
-      !$appSettings.overlays.controlElementName;
+    if ($appSettings.displayedOverlay === "control-name-overlay") {
+      $appSettings.displayedOverlay =
+        typeof $appSettings.displayedOverlay === "undefined"
+          ? "control-name-overlay"
+          : undefined;
+    } else {
+      $appSettings.displayedOverlay = "control-name-overlay";
+    }
   }
 
   function handleCopyAll(e) {

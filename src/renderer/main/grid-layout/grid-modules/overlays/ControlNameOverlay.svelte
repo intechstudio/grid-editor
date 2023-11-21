@@ -9,30 +9,13 @@
 
   export let id;
   export let moduleWidth;
-  export let rotation = $appSettings.persistent.moduleRotation;
+  export let visible = false;
 
   let showOverlay = true;
 
   $: breakpoint = moduleWidth > 200 ? "large" : "small";
 
   let elementSettings;
-
-  let selectedConfig = {};
-
-  $: {
-    selectedConfig = $selectedConfigStore;
-    showControlNameOverlay(selectedConfig);
-    showOverlay;
-  }
-
-  function showControlNameOverlay(selectedConfig) {
-    if (Object.keys(selectedConfig).length == 0) {
-      showOverlay = true;
-    } else {
-      showOverlay = false;
-      $appSettings.overlays.controlElementName = false;
-    }
-  }
 
   $: {
     const device = $runtime.find((controller) => controller.id == id);
@@ -55,7 +38,7 @@
   }
 </script>
 
-{#if $appSettings.overlays.controlElementName}
+{#if visible}
   <container class="pointer-events-auto">
     {#if showOverlay == true}
       {#if id.startsWith("PO16") || id.startsWith("BU16") || id.startsWith("EN16")}
@@ -67,9 +50,8 @@
                   class="col"
                   style="height: {moduleWidth / 4 + 'px'}; width: {moduleWidth /
                     4 +
-                    'px'}; transform: rotate({1 * rotation * 90 -
-                    $appSettings.persistent.moduleRotation +
-                    'deg'})"
+                    'px'}; transform: rotate({-$appSettings.persistent
+                    .moduleRotation + 'deg'})"
                 >
                   <ControlNameComponent
                     elementName={elementSettings[element].controlElementName}
