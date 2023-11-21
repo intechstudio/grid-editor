@@ -4,6 +4,7 @@
 
   export let elementNumber;
   export let device;
+  export let margin = 4;
 
   const dispatch = createEventDispatcher();
 
@@ -15,16 +16,17 @@
       typeof $unsaved_changes.find(
         (e) => e.x == dx && e.y == dy && e.element == elementNumber
       ) !== "undefined";
+
+    console.log(isChanged);
   }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <underlay
-  class="absolute rounded-lg m-[4px] {isChanged
-    ? 'bg-unsavedchange border border-unsavedchange'
-    : 'bg-transparent'} bg-opacity-10"
-  style="width: calc(100% - 8px); height: calc(100% - 8px)"
+  class="absolute {isChanged ? $$props.class : 'bg-transparent'} left-0 top-0"
+  style="width: calc(100% - {margin * 2}px); height: calc(100% - {margin *
+    2}px); margin: {margin}px; {$$props.style}"
   on:click={() => {
     dispatch("click", {
       elementNumber: elementNumber,
