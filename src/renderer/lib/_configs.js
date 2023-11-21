@@ -1,7 +1,7 @@
-import Package from '../config-blocks/package/Package.svelte';
-
 export let config_components = [];
 export let package_infos = [];
+
+let packageComponent;
 
 export async function init_config_block_library() {
   console.info("Init config block library!");
@@ -10,6 +10,7 @@ export async function init_config_block_library() {
 
   try {
     config_components =  await Promise.all(Object.values(importModules).map((importModule) => importModule()));
+    packageComponent = await import("../config-blocks/package/Package.svelte");
     console.info("Config blocks imported!");
   } catch (err) {
     console.error("Failed to import!", err);
@@ -34,10 +35,19 @@ export function getAllComponents() {
       })
   );
   for (let info of package_infos){
-    normal_configs.push({
-      component: Package.default,
-      header: Package.header,
+    configs?.push({
+      component: packageComponent.default,
+      header: packageComponent.header,
       information: info,
     })
   }
+  return configs;
+}
+
+export function addPackageAction(info) {
+  package_infos.push(info);
+}
+
+export function removePackageAction(packageId, actionId) {
+  package_infos = package_infos.filter((e) => e.packageId !== packageId || e.actionId !== actionId);
 }

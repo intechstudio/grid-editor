@@ -88,11 +88,6 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
           await notifyListener();
           break;
         case "create-plugin-message-port":
-          messagePort.postMessage({
-            type: "debug-error",
-            keys: Object.keys(currentlyLoadedPlugins),
-            id: data.id,
-          });
           await currentlyLoadedPlugins[data.id].addMessagePort(
             event.ports?.[0]
           );

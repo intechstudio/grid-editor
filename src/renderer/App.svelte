@@ -49,6 +49,7 @@
   import { Analytics } from "./runtime/analytics.js";
   import SendFeedback from "./main/user-interface/SendFeedback.svelte";
   import { selectedConfigStore } from "./runtime/config-helper.store";
+    import { addPackageAction, removePackageAction } from "./lib/_configs";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -111,7 +112,7 @@
       // register message handler
       port.onmessage = (event) => {
         const data = event.data;
-        console.log(`NEW INNER MESSAGE! ${data}`);
+        console.log(`NEW INNER MESSAGE! ${JSON.stringify({...data})}`);
         // action towards runtime
         switch (data.type) {
           case "plugin-action": {
@@ -126,6 +127,20 @@
                 s.persistent.pluginsDataStorage = newStorage;
                 return s;
               });
+            }
+            if (data.id == "add-action"){
+              addPackageAction(
+                {
+                  ...data.info,
+                  packageId: data.pluginId,
+                }
+              )
+            }
+            if (data.id == "remove-action"){
+              removePackageAction(
+                data.pluginId,
+                data.actionId,
+              )
             }
             break;
           }
