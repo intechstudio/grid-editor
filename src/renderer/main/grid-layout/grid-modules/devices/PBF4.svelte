@@ -98,9 +98,6 @@
         <div class="absolute z-[2] w-full h-full pointer-events-none">
           <slot name="cell-overlay" {elementNumber} />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
-          <slot name="cell-overlay" {elementNumber} />
-        </div>
       </cell>
     {/each}
 

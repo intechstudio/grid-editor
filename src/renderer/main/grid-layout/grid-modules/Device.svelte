@@ -27,13 +27,13 @@
   import { runtime, user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleSelection.svelte";
+  import { Analytics } from "../../../runtime/analytics";
 
   export let id;
   export let margin = 0;
   export let rounding = 6;
 
   let moduleWidth = 2.1 * 106.6 + 2;
-
   let component = undefined;
   let device = undefined;
 
@@ -96,29 +96,27 @@
 
   function handleSelectedConfigChange(store) {
     if (store.configType === "profile") {
-      if (
-        device?.type === $selectedConfigStore.type &&
-        $appSettings.leftPanel === "ProfileCloud"
-      ) {
-        $appSettings.displayedOverlay = "profile-load-overlay";
-      } else if ($appSettings.displayedOverlay === "profile-load-overlay") {
-        $appSettings.displayedOverlay = undefined;
-      }
+      $appSettings.displayedOverlay = "profile-load-overlay";
     } else if (store.configType === "preset") {
-      const compatible = device?.pages[0].control_elements
-        .map((e) => e.controlElementType)
-        .includes($selectedConfigStore.type);
-
-      if (
-        compatible &&
-        $writeBuffer.length == 0 &&
-        $appSettings.leftPanel === "ProfileCloud"
-      ) {
-        $appSettings.displayedOverlay = "preset-load-overlay";
-      } else if ($appSettings.displayedOverlay === "preset-load-overlay") {
-        $appSettings.displayedOverlay = undefined;
-      }
+      $appSettings.displayedOverlay = "preset-load-overlay";
     }
+  }
+
+  function handlePresetLoad(e) {
+    const { elementNumber } = e.detail;
+    if (typeof $selectedConfigStore === "undefined") {
+      return;
+    }
+
+    Analytics.track({
+      event: "Preset Load Start",
+      payload: {},
+      mandatory: false,
+    });
+
+    selectElement(elementNumber, device.type, device.id);
+    const preset = $selectedConfigStore;
+    runtime.element_preset_load(preset);
   }
 </script>
 
@@ -140,6 +138,7 @@
       <ActiveChanges
         elementNumber={255}
         {device}
+        visible={$appSettings.displayedOverlay === undefined}
         class="bg-unsavedchange bg-opacity-10 border-2 border-unsavedchange"
         style="border-radius: {rounding}px;"
         margin={0}
@@ -149,10 +148,15 @@
         {margin}
         {rounding}
         {device}
+        visible={$appSettings.displayedOverlay === undefined}
         on:click={handleModuleClicked}
       />
-      <PortState {device} />
-      <ModuleInfo {device} />
+      <PortState
+        {device}
+        visible={$appSettings.displayedOverlay === undefined &&
+          $appSettings.persistent.portstateOverlayEnabled}
+      />
+      <ModuleInfo {device} visible={true} />
     </svelte:fragment>
 
     <!-- Cell Underlays -->
@@ -160,12 +164,14 @@
       <ActiveChanges
         {elementNumber}
         {device}
+        visible={$appSettings.displayedOverlay === undefined}
         class="bg-unsavedchange border bg-opacity-10 rounded-lg border-unsavedchange"
         style="border-radius: {rounding}px;"
       />
       <ElementSelection
         {elementNumber}
         {device}
+        visible={$appSettings.displayedOverlay === undefined}
         on:click={handleElementClicked}
       />
     </svelte:fragment>
@@ -175,18 +181,19 @@
       <PresetLoadOverlay
         {device}
         {elementNumber}
+        margin={2}
         visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+        on:click={handlePresetLoad}
+      />
+      <ControlNameOverlay
+        {device}
+        {elementNumber}
+        visible={$appSettings.displayedOverlay === "control-name-overlay"}
       />
     </svelte:fragment>
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
-      <ControlNameOverlay
-        {id}
-        {moduleWidth}
-        bankActive={0}
-        visible={$appSettings.displayedOverlay === "control-name-overlay"}
-      />
       <ProfileLoadOverlay
         {id}
         {device}
@@ -219,5 +226,10 @@
 
   .active-systemelement {
     box-shadow: inset 0 0 10px #dddddd60;
+  }
+
+  .bg-overlay {
+    background-color: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(1px);
   }
 </style>

@@ -9,6 +9,7 @@
   export let margin = 0;
   export let rounding = 0;
   export let device = undefined;
+  export let visible = false;
 
   const dispatch = createEventDispatcher();
 
@@ -28,7 +29,6 @@
 
   let isSystemEventsSelected = false;
   $: {
-    console.log($user_input);
     isSystemEventsSelected =
       $user_input.brc.dx == device?.dx &&
       $user_input.brc.dy == device?.dy &&
@@ -45,25 +45,27 @@
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
-<div
-  class="flex pointer-events-auto absolute top-0 left-0"
-  style="width: calc(100% + {margin * 2}px);height: calc(100% + {margin *
-    2}px); margin: -{margin}px;"
-  on:mouseover|self={() => (moduleHovered = true)}
-  on:mouseleave|self={() => (moduleHovered = false)}
-  on:click={handleClick}
->
+{#if visible}
   <div
-    class="border-2 absolute border-transparent"
-    class:active-systemelement={isSystemEventsSelected}
-    class:border-white={isSelected || moduleHovered}
-    class:border-opacity-75={moduleHovered}
-    class:border-opacity-30={isSelected}
-    class:animate-border-error={device?.fwMismatch}
-    style="width: calc(100% - {margin * 2}px);height: calc(100% - {margin *
-      2}px); margin: {margin}px; border-radius: {rounding}px;"
-  />
-</div>
+    class="flex pointer-events-auto absolute top-0 left-0"
+    style="width: calc(100% + {margin * 2}px);height: calc(100% + {margin *
+      2}px); margin: -{margin}px;"
+    on:mouseover|self={() => (moduleHovered = true)}
+    on:mouseleave|self={() => (moduleHovered = false)}
+    on:click={handleClick}
+  >
+    <div
+      class="border-2 absolute border-transparent"
+      class:active-systemelement={isSystemEventsSelected}
+      class:border-white={isSelected || moduleHovered}
+      class:border-opacity-75={moduleHovered}
+      class:border-opacity-30={isSelected}
+      class:animate-border-error={device?.fwMismatch}
+      style="width: calc(100% - {margin * 2}px);height: calc(100% - {margin *
+        2}px); margin: {margin}px; border-radius: {rounding}px;"
+    />
+  </div>
+{/if}
 
 <style>
   .animate-border-error {

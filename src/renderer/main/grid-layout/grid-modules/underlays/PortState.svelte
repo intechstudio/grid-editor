@@ -1,9 +1,10 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store.js";
   export let device = undefined;
+  export let visible = false;
 </script>
 
-{#if $appSettings.persistent.portstateOverlayEnabled}
+{#if visible}
   {#if (device?.portstate & 1) !== 0}
     <div
       class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
