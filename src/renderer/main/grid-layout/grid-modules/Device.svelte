@@ -24,10 +24,13 @@
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
   import { writeBuffer } from "../../../runtime/engine.store.js";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
+  import ModuleSelection from "./underlays/ModuleSelection.svelte";
 
   export let id;
+  export let margin = 0;
+  export let rounding = 6;
 
   let moduleWidth = 2.1 * 106.6 + 2;
 
@@ -49,7 +52,7 @@
     component = components[index].component;
   });
 
-  function handleModuleClicked(e) {
+  function handleElementClicked(e) {
     const { elementNumber } = e.detail;
     if ($writeBuffer.length > 0) {
       logger.set({
@@ -62,6 +65,29 @@
     }
 
     selectElement(elementNumber, device.type, device.id);
+  }
+
+  let moduleHovered = false;
+
+  function handleModuleClicked(e) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
+    user_input.update((ui) => {
+      ui.brc.dx = device?.dx;
+      ui.brc.dy = device?.dy;
+      ui.event.elementnumber = 255;
+      ui.event.eventtype = 4;
+      ui.event.elementtype = "system";
+      return ui;
+    });
   }
 
   $: {
@@ -96,7 +122,7 @@
   }
 </script>
 
-<div>
+<div class="pointer-events-none relative">
   <svelte:component
     this={component}
     {device}
@@ -106,17 +132,41 @@
   >
     <!-- Module Underlays -->
     <svelte:fragment slot="module-underlay" let:device>
+      <!-- Default Backdrop -->
+      <div
+        class="bg-primary w-full h-full"
+        style="border-radius: {rounding}px;"
+      />
+      <ActiveChanges
+        elementNumber={255}
+        {device}
+        class="bg-unsavedchange bg-opacity-10 border-2 border-unsavedchange"
+        style="border-radius: {rounding}px;"
+        margin={0}
+      />
+      <ModuleSelection
+        bind:moduleHovered
+        {margin}
+        {rounding}
+        {device}
+        on:click={handleModuleClicked}
+      />
       <PortState {device} />
       <ModuleInfo {device} />
     </svelte:fragment>
 
     <!-- Cell Underlays -->
     <svelte:fragment slot="cell-underlay" let:elementNumber>
-      <ActiveChanges {elementNumber} {device} />
+      <ActiveChanges
+        {elementNumber}
+        {device}
+        class="bg-unsavedchange border bg-opacity-10 rounded-lg border-unsavedchange"
+        style="border-radius: {rounding}px;"
+      />
       <ElementSelection
         {elementNumber}
         {device}
-        on:click={handleModuleClicked}
+        on:click={handleElementClicked}
       />
     </svelte:fragment>
 
@@ -154,8 +204,7 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    background-color: #1e2628;
-    border-radius: 0.5rem;
+    border-radius: 6px;
   }
 
   .knob-and-led {
@@ -169,7 +218,6 @@
   }
 
   .active-systemelement {
-    background-color: #212a2b;
     box-shadow: inset 0 0 10px #dddddd60;
   }
 </style>
