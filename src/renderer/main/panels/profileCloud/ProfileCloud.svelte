@@ -333,27 +333,42 @@
   });
 
   async function loadOfflineProfileCloud() {
-    const serverAddress = await window.electron.startOfflineProfileCloud();
-    const url = `http://${serverAddress.address}:${serverAddress.port}`;
-    profileCloudUrl = url;
+    try {
+      const serverAddress = await window.electron.startOfflineProfileCloud();
+      const url = `http://${serverAddress.address}:${serverAddress.port}`;
+      profileCloudUrl = url;
+    } catch (e) {
+      error = {
+        type: "no-offline",
+        title: "Offline Profile Cloud is not available",
+        text: "Offline version of Profile Cloud could not be located. Internet connection is needed to load the Online version.",
+      };
+    }
   }
+
+  let error = {
+    type: "default",
+    title: "Sorry, can't load Profile Cloud",
+    text: "You need internet access to load it. You can load the offline version as well.",
+  };
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full relative">
   <div class="flex items-center justify-center h-full absolute">
     {#if !profileCloudIsMounted}
       <div class="p-4">
-        <h1 class="text-white text-xl">Sorry, can't load Profile Cloud</h1>
+        <h1 class="text-white text-xl">{error.title}</h1>
         <div class="text-white text-opacity-80">
-          You need internet access to load it. You can load the offline version
-          as well.
+          {error.text}
         </div>
-        <button
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={loadOfflineProfileCloud}
-        >
-          Load Offline
-        </button>
+        {#if error.type === "default"}
+          <button
+            class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+            on:click={loadOfflineProfileCloud}
+          >
+            Load Offline
+          </button>
+        {/if}
       </div>
     {/if}
   </div>
