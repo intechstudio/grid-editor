@@ -28,13 +28,15 @@
 
 {#if visible}
   <container class="pointer-events-auto">
-    <div class="bg-overlay w-full h-full">
-      <div
-        class="block p-0 m-0 font-mono text-white"
-        style="transform: rotate({-$appSettings.persistent.moduleRotation}deg);"
+    <div
+      class="flex w-full h-full items-center p-1"
+      style="transform: rotate({-$appSettings.persistent.moduleRotation}deg);"
+    >
+      <p
+        class="max-w-md mx-auto md:break-words md:whitespace-normal truncate text-white"
       >
         {elementSettings[elementNumber]?.controlElementName}
-      </div>
+      </p>
     </div>
   </container>
 {/if}

@@ -22,7 +22,7 @@
 
 {#if visible}
   <container class="pointer-events-auto">
-    <div class="bg-overlay w-full h-full">
+    <div class="w-full h-full">
       {#if $selectedConfigStore.type === type}
         <button
           on:click={handleClick}

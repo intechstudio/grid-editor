@@ -142,9 +142,10 @@
     <svelte:fragment slot="module-underlay" let:device>
       <!-- Default Backdrop -->
       <div
-        class="bg-primary w-full h-full"
+        class="absolute bg-primary w-full h-full"
         style="border-radius: {rounding}px;"
       />
+
       <ActiveChanges
         elementNumber={255}
         {device}
@@ -204,6 +205,11 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
+      <div
+        class="absolute w-full h-full pointer-events-none"
+        class:bg-overlay={$appSettings.displayedOverlay !== undefined}
+        style="border-radius: {rounding}px;"
+      />
       <ProfileLoadOverlay
         {id}
         {device}
