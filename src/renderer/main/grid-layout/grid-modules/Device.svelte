@@ -115,8 +115,7 @@
     });
 
     selectElement(elementNumber, device.type, device.id);
-    const preset = $selectedConfigStore;
-    runtime.element_preset_load(preset);
+    runtime.element_preset_load($selectedConfigStore);
   }
 </script>
 
