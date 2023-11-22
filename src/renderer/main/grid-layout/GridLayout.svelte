@@ -42,10 +42,10 @@
     trueRotation += deltaRotation;
 
     if (rotation == 90 || rotation == 180) {
-      shiftX += deviceWidth;
+      shiftX += deviceWidth - deviceGap;
     }
     if (rotation == 180 || rotation == 270) {
-      shiftY += deviceWidth;
+      shiftY += deviceWidth - deviceGap;
     }
 
     //And the other transformations
