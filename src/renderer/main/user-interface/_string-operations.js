@@ -125,7 +125,7 @@ const stringManipulation = {
     // if its new line or space
     pattern.push(`${"(?<space>([\\s\\n]))"}`);
     // if its special
-    pattern.push(`${"(?<special>(\\blocal\\b|[=._@:;'\"`]))"}`);
+    pattern.push(`${"(?<special>(\\blocal\\b|[=._@:;'\"`~|^<>&]))"}`);
     // if its backslash
     pattern.push(`${"(?<backslash>(\\\\))"}`);
     // if unknown

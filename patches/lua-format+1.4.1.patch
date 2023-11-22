@@ -1,5 +1,5 @@
 diff --git a/node_modules/lua-format/src/luamin.js b/node_modules/lua-format/src/luamin.js
-index 3387f00..fa1e1a7 100644
+index 3387f00..4f255a9 100644
 --- a/node_modules/lua-format/src/luamin.js
 +++ b/node_modules/lua-format/src/luamin.js
 @@ -279,7 +279,7 @@ function CreateLuaTokenStream(text) {
@@ -87,7 +87,23 @@ index 3387f00..fa1e1a7 100644
          return node
      }
  
-@@ -2626,7 +2635,7 @@ function FormatAst(ast) {
+@@ -2603,7 +2612,7 @@ function FormatAst(ast) {
+                         if (expr.EntryList.length > die) {
+                             StripAst(entry.Value)
+                         } else {
+-                            applyIndent(entry.Value.GetFirstToken())
++                            //applyIndent(entry.Value.GetFirstToken())
+                         }
+                     } else {
+                         assert(false, "unreachable")
+@@ -2620,13 +2629,13 @@ function FormatAst(ast) {
+                 if (expr.EntryList.length > die) {
+                     expr.Token_CloseBrace.LeadingWhite = ''
+                 } else {
+-                    applyIndent(expr.Token_CloseBrace)
++                    //applyIndent(expr.Token_CloseBrace)
+                 }
+             }
          } else if(expr.Type == 'CompoundStat') {
              formatStat(expr)
          } else {

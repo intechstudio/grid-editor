@@ -104,8 +104,9 @@
 <div
   class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
 >
-  <GridLayout />
-  <Pages />
+  <GridLayout class="absolute items-center flex flex-col">
+    <Pages />
+  </GridLayout>
   {#if $writeBuffer.length > 0 && $runtime.length > 0}
     <div
       in:fade={{ delay: 300, duration: 300 }}

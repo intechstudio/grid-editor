@@ -8,16 +8,16 @@
 
   import { fade, fly } from "svelte/transition";
 
-  import { clickOutside } from "/main/_actions/click-outside.action";
   import * as eases from "svelte/easing";
   import { derived } from "svelte/store";
 
-  let moduleWidth = 225;
   let moduleBorderWidth = 2;
 
   const devices = writable([]);
   let columns = 0;
   let rows = 0;
+  const deviceGap = 14;
+  const deviceWidth = 225 + deviceGap + 1;
 
   let layoutWidth = 0;
   let layoutHeight = 0;
@@ -43,8 +43,8 @@
   }
 
   function calculateLayoutDimensions(rotation, columns, rows, scale) {
-    const width = (columns * moduleWidth + 2 * moduleBorderWidth) * scale;
-    const height = (rows * moduleWidth + 2 * moduleBorderWidth) * scale;
+    const width = columns * deviceWidth * scale;
+    const height = rows * deviceWidth * scale;
     layoutWidth = rotation == 0 || rotation == 180 ? width : height;
     layoutHeight = rotation == 90 || rotation == 270 ? width : height;
     shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
@@ -107,7 +107,6 @@
       });
 
       s = s.reverse();
-      console.log("yay", s);
       return s;
     });
     calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
@@ -121,23 +120,19 @@
   $: console.log(columns);
 </script>
 
-<layout-container>
+<layout-container class={$$props.class}>
   <div
     style="width: {layoutWidth}px;  height: {layoutHeight}px;"
     class="relative"
   >
     <div
-      class="absolute grid grid-cols-[{Array(columns).fill('auto').join('_')}]"
+      class="absolute grid grid-cols-{columns}"
       style="transform-origin: left top; transform: translate({shiftX}px, {shiftY}px) scale({$scalingPercent}) rotate({trueRotation}deg);"
     >
       {#each $devices as rows}
-        {#each rows as device (device.id)}
+        {#each rows as device}
           {#if typeof device !== "undefined"}
             <!-- svelte-ignore a11y-click-events-have-key-events -->
-            {@const isSelected =
-              device.dx == $user_input.brc.dx &&
-              device.dy == $user_input.brc.dy}
-            {@const firmwareMismatch = device.fwMismatch}
             <div
               in:fly|global={{
                 x: device.fly_x_direction * 100,
@@ -147,30 +142,17 @@
               }}
               out:fade|global={{ duration: 150 }}
               id={device.id}
-              class="rounded-lg w-fit h-fit"
-              style="border-style: solid;
-              border-width: {moduleBorderWidth}px;"
-              class:border-transparent={!isSelected && !firmwareMismatch}
-              class:border-gray-500={isSelected}
-              class:animate-border-error={firmwareMismatch}
             >
-              <Device
-                type={device.type}
-                id={device.id}
-                arch={device.architecture}
-                portstate={device.portstate}
-                fwVersion={device.fwVersion}
-                rotation={device.rot}
-                {moduleWidth}
-              />
+              <Device {device} width={deviceWidth} />
             </div>
           {:else}
-            <div class="h-5 w-5 bg-black border" />
+            <div class="h-32 w-32 bg-black border invisible" />
           {/if}
         {/each}
       {/each}
     </div>
   </div>
+  <slot />
 </layout-container>
 
 <style>
