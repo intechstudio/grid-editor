@@ -125,7 +125,7 @@ const stringManipulation = {
     // if its new line or space
     pattern.push(`${"(?<space>([\\s\\n]))"}`);
     // if its special
-    pattern.push(`${"(?<special>(\\blocal\\b|[=._@:;'\"`]))"}`);
+    pattern.push(`${"(?<special>(\\blocal\\b|[=._@:;'\"`~|^<>&]))"}`);
     // if its backslash
     pattern.push(`${"(?<backslash>(\\\\))"}`);
     // if unknown
@@ -273,8 +273,10 @@ const stringManipulation = {
     // We should heaviliy consider handling spaces and returns better!
 
     const splitArray = this.splitShortScript(script, "human");
+    console.log("1", splitArray);
 
     const shorted = this.splitArrayToString(splitArray, "short");
+    console.log("2", shorted);
 
     return shorted;
   },
