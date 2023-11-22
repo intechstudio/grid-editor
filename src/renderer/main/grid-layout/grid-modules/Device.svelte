@@ -6,8 +6,6 @@
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
 
-  import { selectElement } from "./event-handlers/select.js";
-
   //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
@@ -64,10 +62,22 @@
       return;
     }
 
-    selectElement(elementNumber, device.type, device.id);
+    selectElement(elementNumber);
   }
 
   let moduleHovered = false;
+
+  function selectElement(controlNumber) {
+    const elementType =
+      device?.pages[0].control_elements[controlNumber].controlElementType;
+    user_input.update((ui) => {
+      ui.brc.dx = +device?.dx;
+      ui.brc.dy = +device?.dy;
+      ui.event.elementnumber = +controlNumber;
+      ui.event.elementtype = elementType;
+      return ui;
+    });
+  }
 
   function handleModuleClicked(e) {
     if ($writeBuffer.length > 0) {
@@ -114,7 +124,7 @@
       mandatory: false,
     });
 
-    selectElement(elementNumber, device.type, device.id);
+    selectElement(elementNumber);
     runtime.element_preset_load($selectedConfigStore);
   }
 </script>
@@ -124,6 +134,7 @@
     this={component}
     {device}
     {moduleWidth}
+    rotation={device?.rot}
     let:elementNumber
     let:device
   >
