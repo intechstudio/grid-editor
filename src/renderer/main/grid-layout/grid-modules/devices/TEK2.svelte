@@ -1,26 +1,19 @@
 <script>
-  import { onMount } from "svelte";
-
   import { appSettings } from "../../../../runtime/app-helper.store.js";
-
-  import { selectElement } from "../event-handlers/select.js";
 
   import Button from "../elements/Button.svelte";
   import EndlessPot from "../elements/EndlessPot.svelte";
   import Led from "../elements/Led.svelte";
 
   import { elementPositionStore } from "../../../../runtime/runtime.store.js";
-  import {
-    unsaved_changes,
-    ledColorStore,
-  } from "../../../../runtime/runtime.store.js";
+  import { ledColorStore } from "../../../../runtime/runtime.store.js";
 
   export let moduleWidth;
-  export let selectedElement = { id: "", brc: {}, event: {} };
   export let id = "TEK2";
   export let rotation = 0;
+  export let device = undefined;
 
-  let dx, dy;
+  let [dx, dy] = [device?.dx, device?.dy];
 
   let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
   let ledcolor_array = [
@@ -79,125 +72,82 @@
 </script>
 
 <div
-  {id}
-  draggable={$appSettings.layoutMode}
-  style="transform: rotate({rotation * -90 + 'deg'})"
+  class="module-dimensions relative"
+  style="--module-size: {moduleWidth + 'px'}; transform: rotate({rotation *
+    -90 +
+    'deg'})"
 >
-  <slot />
-
+  <div class="absolute w-full h-full">
+    <slot name="module-underlay" {device} />
+  </div>
   <div
-    class:disable-pointer-events={$appSettings.layoutMode}
-    class="module-dimensions"
-    class:active-systemelement={dx == selectedElement.brc.dx &&
-      dy == selectedElement.brc.dy &&
-      selectedElement.event.elementnumber == 255}
-    style="--module-size: {moduleWidth + 'px'}"
+    class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
-    <div
-      class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
-    >
-      {#each [8, 9] as elementNumber}
-        {@const isSelected =
-          dx == selectedElement.brc.dx &&
-          dy == selectedElement.brc.dy &&
-          selectedElement.event.elementnumber == elementNumber}
-        {@const isChanged =
-          typeof $unsaved_changes.find(
-            (e) => e.x == dx && e.y == dy && e.element == elementNumber
-          ) !== "undefined"}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <cell
-          class="w-full h-full flex items-center justify-center relative col-span-2 row-span-2"
+    {#each [8, 9] as elementNumber}
+      <cell
+        class="w-full h-full flex items-center justify-center relative col-span-2 row-span-2"
+      >
+        <div class="absolute w-full h-full">
+          <slot name="cell-underlay" {elementNumber} />
+        </div>
+        <button
+          ariarole="button"
+          class="knob-and-led absolute pointer-events-none"
+          style="border-radius: 50%; padding: 6px; width: calc(100%); height: calc(100%)"
         >
-          <underlay
-            class="absolute rounded-full"
-            class:bg-unsavedchange={isChanged && !isSelected}
-            class:bg-opacity-10={isSelected}
-            class:bg-opacity-20={isChanged && !isSelected}
-            class:border={isChanged}
-            class:border-unsavedchange={isChanged}
-            class:bg-white={isSelected}
-            class:hover:bg-white={!isSelected}
-            class:hover:bg-opacity-5={!isSelected && !isChanged}
-            class:hover:bg-opacity-10={!isSelected && isChanged}
-            style="width: calc(100% - 32px); height: calc(100% - 32px)"
-          >
-            <button
-              ariarole="button"
-              class="knob-and-led absolute"
-              style="border-radius: 50%; padding: 6px; width: calc(100%); height: calc(100%)"
-              on:click={() => selectElement(elementNumber, "encoder", id)}
-            >
-              {#each [0, 1, 2, 3, 4] as ledNumber}
-                <div
-                  class="absolute"
-                  style="
+          {#each [0, 1, 2, 3, 4] as ledNumber}
+            <div
+              class="absolute"
+              style="
                 margin-left: {ledPosRadius *
-                    Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                Math.cos(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
                 margin-top: {ledPosRadius *
-                    Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
+                Math.sin(((25 + ledNumber * 10) / 180) * Math.PI)}px; 
               "
-                >
-                  <Led
-                    color={ledcolor_array[
-                      (elementNumber == 8 ? 8 : 9) + ledNumber * 2
-                    ]}
-                    size={1.4}
-                  />
-                </div>
-              {/each}
-
-              <EndlessPot
-                {elementNumber}
-                {id}
-                position={elementposition_array[elementNumber]}
-                size={2.1}
-              />
-            </button>
-          </underlay>
-        </cell>
-      {/each}
-
-      {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
-        {@const isSelected =
-          dx == selectedElement.brc.dx &&
-          dy == selectedElement.brc.dy &&
-          selectedElement.event.elementnumber == elementNumber}
-        {@const isChanged =
-          typeof $unsaved_changes.find(
-            (e) => e.x == dx && e.y == dy && e.element == elementNumber
-          ) !== "undefined"}
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <cell class="w-full h-full flex items-center justify-center relative">
-          <underlay
-            class="absolute rounded-lg"
-            class:bg-unsavedchange={isChanged && !isSelected}
-            class:bg-opacity-10={isSelected}
-            class:bg-opacity-20={isChanged && !isSelected}
-            class:border={isChanged}
-            class:border-unsavedchange={isChanged}
-            class:bg-white={isSelected}
-            class:hover:bg-white={!isSelected}
-            class:hover:bg-opacity-5={!isSelected && !isChanged}
-            class:hover:bg-opacity-10={!isSelected && isChanged}
-            style="width: calc(100% - 8px); height: calc(100% - 8px)"
-          >
-            <button
-              class="knob-and-led absolute"
-              style="width: calc(100%); height: calc(100%)"
-              on:click={() => selectElement(elementNumber, "button", id)}
             >
-              <Led color={ledcolor_array[elementNumber]} size={2.1} />
-              <Button
-                {elementNumber}
-                {id}
-                position={elementposition_array[elementNumber]}
-                size={2.1}
+              <Led
+                color={ledcolor_array[
+                  (elementNumber == 8 ? 8 : 9) + ledNumber * 2
+                ]}
+                size={1.4}
               />
-            </button>
-          </underlay>
-        </cell>
-      {/each}
-    </div>
+            </div>
+          {/each}
+
+          <EndlessPot
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={2.1}
+          />
+        </button>
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
+          <slot name="cell-overlay" {elementNumber} />
+        </div>
+      </cell>
+    {/each}
+
+    {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
+      <cell class="w-full h-full flex items-center justify-center relative">
+        <div class="absolute w-full h-full">
+          <slot name="cell-underlay" {elementNumber} />
+        </div>
+        <button class="knob-and-led absolute w-full h-full pointer-events-none">
+          <Led color={ledcolor_array[elementNumber]} size={2.1} />
+          <Button
+            {elementNumber}
+            {id}
+            position={elementposition_array[elementNumber]}
+            size={2.1}
+          />
+        </button>
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
+          <slot name="cell-overlay" {elementNumber} />
+        </div>
+      </cell>
+    {/each}
+  </div>
+  <div class="absolute w-full h-full pointer-events-none">
+    <slot name="module-overlay" {device} />
   </div>
 </div>

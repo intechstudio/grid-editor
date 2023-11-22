@@ -74,7 +74,6 @@ export function update_elementPositionStore(descr) {
 
 export function update_elementNameStore(descr) {
   let ens = get(elementNameStore);
-  console.log(ens);
 
   if (ens[descr.brc_parameters.SX] === undefined) {
     ens[descr.brc_parameters.SX] = {};
@@ -589,10 +588,9 @@ function create_runtime() {
   }
 
   function element_preset_load(preset) {
-    console.log(preset);
-
     const li = get(user_input);
-
+    console.log("preset", preset);
+    console.log("ui", li);
     if (li.event.elementtype == preset.type) {
       console.log("GOOD TYPE");
 
