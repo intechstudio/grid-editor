@@ -63,7 +63,6 @@
   }
 
   function selectElement(controlNumber) {
-    console.log(device?.pages[0].control_elements);
     const elementType = device?.pages[0].control_elements.find(
       (e) => e.controlElementNumber == controlNumber
     ).controlElementType;

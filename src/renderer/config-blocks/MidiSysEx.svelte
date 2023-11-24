@@ -83,8 +83,6 @@
   function sendData(e, index) {
     commitState = 0;
 
-    console.log(textarea.innerText);
-
     config.script = "gmss(" + textarea.innerText.toString() + ")";
 
     dispatch("output", { short: config.short, script: config.script });
