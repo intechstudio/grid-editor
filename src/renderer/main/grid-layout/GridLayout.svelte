@@ -12,7 +12,7 @@
   import { clickOutside } from "/main/_actions/click-outside.action";
 
   const devices = writable([]);
-  const deviceGap = 14;
+  const deviceGap = 5;
   const deviceWidth = 225 + deviceGap + 1;
 
   let shiftX = 0;
@@ -139,7 +139,7 @@
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
         class="absolute hover:z-50"
       >
-        <Device id={device.id} margin={deviceGap / 2} />
+        <Device {device} />
       </div>
     {/each}
   </div>
