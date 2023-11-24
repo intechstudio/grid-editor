@@ -416,6 +416,7 @@
                       rounded text-white py-1 w-24 hover:bg-yellow-600"
                     on:click={() => {
                       selectedConfigStore.set({});
+                      $appSettings.displayedOverlay = undefined;
                     }}
                   >
                     <div>Cancel</div>
