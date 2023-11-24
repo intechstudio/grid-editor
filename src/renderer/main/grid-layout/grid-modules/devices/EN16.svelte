@@ -80,24 +80,38 @@
   <div
     class="grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
-    {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
-      <cell class="w-full h-full flex items-center justify-center relative">
-        <div class="absolute w-full h-full">
+    {#each [255, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] as elementNumber}
+      {#if elementNumber < 16}
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <div class="absolute w-full h-full">
+            <slot
+              name="cell-underlay"
+              {elementNumber}
+              isLeftCut={elementNumber == 14}
+              isRightCut={elementNumber == 13}
+            />
+          </div>
+          <div class="knob-and-led absolute w-full h-full">
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Encoder
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </div>
+
+          <slot name="cell-overlay" {elementNumber} />
+        </cell>
+      {:else}
+        <div
+          class="absolute bottom-0 left-1/2 -translate-x-1/2 w-20 h-10 px-0.5 rounded-t-full"
+        >
           <slot name="cell-underlay" {elementNumber} />
-        </div>
-        <div class="knob-and-led absolute w-full h-full">
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Encoder
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
-          />
-        </div>
-        <div class="absolute w-full h-full z-[1]">
+
           <slot name="cell-overlay" {elementNumber} />
         </div>
-      </cell>
+      {/if}
     {/each}
   </div>
   <div class="absolute w-full h-full">

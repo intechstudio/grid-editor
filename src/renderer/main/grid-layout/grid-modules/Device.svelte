@@ -26,7 +26,6 @@
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { Analytics } from "../../../runtime/analytics";
-  import SystemElement from "./overlays/SystemElement.svelte";
 
   export let device = undefined;
 
@@ -157,7 +156,12 @@
     </svelte:fragment>
 
     <!-- Cell Underlays -->
-    <svelte:fragment slot="cell-underlay" let:elementNumber>
+    <svelte:fragment
+      slot="cell-underlay"
+      let:elementNumber
+      let:isLeftCut
+      let:isRightCut
+    >
       <div
         class="w-full h-full absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
@@ -166,17 +170,17 @@
       >
         <ActiveChanges
           {elementNumber}
+          {isLeftCut}
+          {isRightCut}
           {device}
           visible={$appSettings.displayedOverlay === undefined}
-          class="bg-unsavedchange bg-opacity-20 w-full h-full"
-          style="border-radius: var(--grid-rounding);"
         />
         <ElementSelection
           {elementNumber}
+          {isLeftCut}
+          {isRightCut}
           {device}
           visible={$appSettings.displayedOverlay === undefined}
-          class="pointer-events-auto w-full h-full"
-          style="border-radius: var(--grid-rounding);"
           on:click={handleElementClicked}
         />
       </div>
@@ -208,22 +212,6 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
-      <SystemElement>
-        <ActiveChanges
-          elementNumber={255}
-          {device}
-          visible={$appSettings.displayedOverlay === undefined}
-          class="bg-unsavedchange bg-opacity-20 w-full h-full rounded-t-full"
-        />
-        <ElementSelection
-          elementNumber={255}
-          {device}
-          visible={$appSettings.displayedOverlay === undefined}
-          class="pointer-events-auto w-full h-full rounded-t-full"
-          on:click={handleElementClicked}
-        />
-      </SystemElement>
-
       <!-- Overlay Backdrop -->
       <div
         class="absolute w-full h-full pointer-events-none"
