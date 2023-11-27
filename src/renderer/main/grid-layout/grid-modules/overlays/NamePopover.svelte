@@ -1,6 +1,5 @@
 <script>
   import Popover from "svelte-easy-popover";
-  import { appSettings } from "../../../../runtime/app-helper.store.js";
   import { elementNameStore } from "../../../../runtime/runtime.store.js";
 
   export let visible = false;
@@ -32,52 +31,29 @@
   }
 
   let referenceElement = undefined;
-  let isOpen = false;
-
-  let x = 0;
-  let y = 0;
-
-  function handleMove(e) {
-    const rect = referenceElement.getBoundingClientRect();
-    x = e.offsetX - rect.width / 2;
-    y = e.offsetY - rect.height / 2;
-    referenceElement.style.left = x + "px";
-    referenceElement.style.top = y + "px";
-  }
 </script>
 
 {#if visible && elementName.length > 0}
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-  <div
-    class="w-full h-full relative {$$props.classs}"
-    on:mousemove={handleMove}
-    on:mouseover={() => {
-      isOpen = true;
-    }}
-    on:mouseout={() => {
-      isOpen = false;
-    }}
-  >
+  <div class="w-full h-full relative {$$props.classs}">
     <div
       bind:this={referenceElement}
-      class="bg-lime-300 absolute pointer-events-none"
+      class=" w-full h-full absolute pointer-events-auto"
+    />
+    <Popover
+      id="tooltip"
+      triggerEvents={["hover"]}
+      placement="top"
+      spaceAway={5}
+      remainOpenOnPopoverHover={false}
+      {referenceElement}
     >
-      <Popover
-        bind:isOpen
-        id="tooltip"
-        triggerEvents={["manual"]}
-        placement="right"
-        spaceAway={10}
-        spaceAlong={10}
-        {referenceElement}
-      >
-        <div class="flex bg-black bg-opacity-50 rounded-lg z-50">
-          <span class="text-white font-mono px-3 py-0.5">
-            {elementName}
-          </span>
-        </div>
-      </Popover>
-    </div>
+      <div class="flex bg-black bg-opacity-50 rounded-lg z-50 w-fit">
+        <span class="text-white font-mono px-3 py-0.5">
+          {elementName}
+        </span>
+      </div>
+    </Popover>
   </div>
 {/if}
