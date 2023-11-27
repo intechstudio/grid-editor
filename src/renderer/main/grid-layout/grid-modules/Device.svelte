@@ -267,4 +267,31 @@
     background-color: rgba(30, 30, 30, 0.5);
     backdrop-filter: blur(1px);
   }
+
+  .normal-cell-underlay-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+  }
+  .normal-cell-ui-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+  }
+  .normal-cell-overlay-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 4;
+  }
+  .system-cell-underlay-container {
+    position: absolute;
+    z-index: 1;
+  }
+  .system-cell-overlay-container {
+    position: absolute;
+    z-index: 4;
+  }
 </style>

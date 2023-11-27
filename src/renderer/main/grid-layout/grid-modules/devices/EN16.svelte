@@ -83,7 +83,7 @@
     {#each [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 255] as elementNumber}
       {#if elementNumber < 16}
         <cell class="w-full h-full flex items-center justify-center relative">
-          <div class="absolute w-full h-full z-[1]">
+          <div class="normal-cell-underlay-container">
             <slot
               name="cell-underlay"
               {elementNumber}
@@ -91,7 +91,7 @@
               isRightCut={elementNumber == 13}
             />
           </div>
-          <div class="knob-and-led absolute w-full h-full z-[3]">
+          <div class="knob-and-led normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             <Encoder
               {elementNumber}
@@ -100,7 +100,7 @@
               size={2.1}
             />
           </div>
-          <div class="absolute w-full h-full z-[4]">
+          <div class="normal-cell-overlay-container">
             <slot
               name="cell-overlay"
               {elementNumber}
@@ -111,12 +111,12 @@
         </cell>
       {:else}
         <div
-          class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full z-[1]"
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
         >
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <div
-          class="absolute bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full z-[4]"
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-overlay-container"
         >
           <slot name="cell-overlay" {elementNumber} />
         </div>
