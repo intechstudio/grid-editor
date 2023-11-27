@@ -49,7 +49,7 @@
   import { Analytics } from "./runtime/analytics.js";
   import SendFeedback from "./main/user-interface/SendFeedback.svelte";
   import { selectedConfigStore } from "./runtime/config-helper.store";
-    import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import { addPackageAction, removePackageAction } from "./lib/_configs";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -105,14 +105,12 @@
 
   window.onmessage = (event) => {
     // extract this part on refactor
-    console.log(`NEW TOP LEVEL EVENT! ${JSON.stringify(event)}, ${event.data}`);
     if (event.source === window && event.data === "plugin-manager-port") {
       const [port] = event.ports;
       window.pluginManagerPort = port;
       // register message handler
       port.onmessage = (event) => {
         const data = event.data;
-        console.log(`NEW INNER MESSAGE! ${JSON.stringify({...data})}`);
         // action towards runtime
         switch (data.type) {
           case "plugin-action": {
@@ -128,19 +126,14 @@
                 return s;
               });
             }
-            if (data.id == "add-action"){
-              addPackageAction(
-                {
-                  ...data.info,
-                  packageId: data.pluginId,
-                }
-              )
+            if (data.id == "add-action") {
+              addPackageAction({
+                ...data.info,
+                packageId: data.pluginId,
+              });
             }
-            if (data.id == "remove-action"){
-              removePackageAction(
-                data.pluginId,
-                data.actionId,
-              )
+            if (data.id == "remove-action") {
+              removePackageAction(data.pluginId, data.actionId);
             }
             break;
           }

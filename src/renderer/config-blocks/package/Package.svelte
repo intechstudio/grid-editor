@@ -3,7 +3,7 @@
   import RegularActionBlockFace from "../headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 </script>
-  
+
 <script>
   import { onMount, createEventDispatcher } from "svelte";
 
@@ -17,62 +17,58 @@
   let originalActionHtml;
   let updateActionWithConfig;
 
-  $ : config?.information?.actionHtml, actionDiv, updateActionWithConfig, refreshDivContent()
+  $: config?.information?.actionHtml,
+    actionDiv,
+    updateActionWithConfig,
+    refreshDivContent();
 
-  function refreshDivContent(){
-    console.log({config})
+  function refreshDivContent() {
     if (actionDiv && originalActionHtml != config.information.actionHtml) {
       //Only change the contents if the default html changes
       // otherwise action state can be lost, script tag runs multiple times
-      actionDiv.innerHTML = config.information.actionHtml
-      originalActionHtml = config.information.actionHtml
-      executeScriptElements(actionDiv)
+      actionDiv.innerHTML = config.information.actionHtml;
+      originalActionHtml = config.information.actionHtml;
+      executeScriptElements(actionDiv);
     }
-    if (updateActionWithConfig){
+    if (updateActionWithConfig) {
       updateActionWithConfig(config);
     }
   }
 
   function executeScriptElements(containerElement) {
-      const scriptElements = containerElement.querySelectorAll("script");
+    const scriptElements = containerElement.querySelectorAll("script");
 
-      Array.from(scriptElements).forEach((scriptElement) => {
-        const clonedElement = document.createElement("script");
+    Array.from(scriptElements).forEach((scriptElement) => {
+      const clonedElement = document.createElement("script");
 
-        Array.from(scriptElement.attributes).forEach((attribute) => {
-          clonedElement.setAttribute(attribute.name, attribute.value);
-        });
-
-        clonedElement.text = scriptElement.text;
-
-        scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
+      Array.from(scriptElement.attributes).forEach((attribute) => {
+        clonedElement.setAttribute(attribute.name, attribute.value);
       });
-    }
+
+      clonedElement.text = scriptElement.text;
+
+      scriptElement.parentNode.replaceChild(clonedElement, scriptElement);
+    });
+  }
 
   onMount(() => {
-    console.log("Registering updateCode!")
     actionDiv.addEventListener(
       "updateCode",
       (e) => {
-        console.log("Received updateCode!")
-        dispatch("output", { short: config.short, script: e.detail.script })
+        dispatch("output", { short: config.short, script: e.detail.script });
       },
       false
-    )
+    );
     actionDiv.addEventListener(
       "updateConfigHandler",
       (e) => {
-        console.log("Handler update")
-        updateActionWithConfig = e.detail.handler
+        updateActionWithConfig = e.detail.handler;
       },
       false
-    )
+    );
   });
 </script>
-  
-<package
-  class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto"
->
+
+<package class="{$$props.class} flex flex-col w-full p-2 pointer-events-auto">
   <div class="w-full flex" bind:this={actionDiv} />
 </package>
-  

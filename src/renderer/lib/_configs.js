@@ -9,7 +9,9 @@ export async function init_config_block_library() {
   let importModules = import.meta.glob("../config-blocks/*.svelte");
 
   try {
-    config_components =  await Promise.all(Object.values(importModules).map((importModule) => importModule()));
+    config_components = await Promise.all(
+      Object.values(importModules).map((importModule) => importModule())
+    );
     packageComponent = await import("../config-blocks/package/Package.svelte");
     console.info("Config blocks imported!");
   } catch (err) {
@@ -26,20 +28,17 @@ export function getComponentInformation({ short }) {
 }
 
 export function getAllComponents() {
-  var configs = config_components?.map(
-    (c) =>
-      ({
-        component: c.default,
-        information: c.information,
-        header: c.header,
-      })
-  );
-  for (let info of package_infos){
+  var configs = config_components?.map((c) => ({
+    component: c.default,
+    information: c.information,
+    header: c.header,
+  }));
+  for (let info of package_infos) {
     configs?.push({
       component: packageComponent.default,
       header: packageComponent.header,
       information: info,
-    })
+    });
   }
   return configs;
 }
@@ -49,5 +48,7 @@ export function addPackageAction(info) {
 }
 
 export function removePackageAction(packageId, actionId) {
-  package_infos = package_infos.filter((e) => e.packageId !== packageId || e.actionId !== actionId);
+  package_infos = package_infos.filter(
+    (e) => e.packageId !== packageId || e.actionId !== actionId
+  );
 }

@@ -336,12 +336,9 @@ async function getAvailablePlugins() {
   return pluginList;
 }
 
-
 let directoryWatcher: any = null;
 
-function startPluginDirectoryWatcher(
-  path: string
-): void {
+function startPluginDirectoryWatcher(path: string): void {
   directoryWatcher = chokidar.watch(path, {
     ignored: /[\/\\]\./,
     persistent: true,
