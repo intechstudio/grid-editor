@@ -1,6 +1,4 @@
 <script>
-  import { onMount } from "svelte";
-
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -8,165 +6,243 @@
   import EF44 from "./devices/EF44.svelte";
   import TEK2 from "./devices/TEK2.svelte";
 
-  import { selectElement } from "./event-handlers/select.js";
-
+  //Overlays
   import ControlNameOverlay from "./overlays/ControlNameOverlay.svelte";
   import ProfileLoadOverlay from "./overlays/ProfileLoadOverlay.svelte";
   import PresetLoadOverlay from "./overlays/PresetLoadOverlay.svelte";
 
-  import { appSettings } from "../../../runtime/app-helper.store.js";
-  import { user_input, logger } from "../../../runtime/runtime.store.js";
-  import { selectedConfigStore } from "/runtime/config-helper.store";
-  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
-  import { get } from "svelte/store";
+  //Underlays
+  import PortState from "./underlays/PortState.svelte";
+  import ModuleInfo from "./underlays/ModuleInfo.svelte";
+  import ActiveChanges from "./underlays/ActiveChanges.svelte";
+  import ElementSelection from "./underlays/ElementSelection.svelte";
+
+  import { logger } from "../../../runtime/runtime.store.js";
+  import { appSettings } from "../../../runtime/app-helper.store";
+  import { selectedConfigStore } from "../../../runtime/config-helper.store";
+
   import { writeBuffer } from "../../../runtime/engine.store.js";
-  import { runtime } from "../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../../runtime/runtime.store.js";
+  import { onMount } from "svelte";
+  import ModuleSelection from "./underlays/ModuleBorder.svelte";
+  import { Analytics } from "../../../runtime/analytics";
+  import SystemElement from "./overlays/SystemElement.svelte";
 
-  const components = [
-    { type: "BU16", component: BU16 },
-    { type: "PO16", component: PO16 },
-    { type: "PBF4", component: PBF4 },
-    { type: "EN16", component: EN16 },
-    { type: "EF44", component: EF44 },
-    { type: "TEK2", component: TEK2 },
-  ];
-
-  export let type;
-  export let id;
-  export let rotation;
-
-  export let selected;
-
-  export let arch;
-  export let fwVersion;
-  export let portstate;
-
-  console.log("arch", arch);
-
-  let selectedElement;
-
-  let isActionButtonClicked;
+  export let device = undefined;
 
   let moduleWidth = 2.1 * 106.6 + 2;
+  let component = undefined;
 
-  $: selected = components.find((component) => component.type === type);
+  onMount(() => {
+    const components = [
+      { type: "BU16", component: BU16 },
+      { type: "PO16", component: PO16 },
+      { type: "PBF4", component: PBF4 },
+      { type: "EN16", component: EN16 },
+      { type: "EF44", component: EF44 },
+      { type: "TEK2", component: TEK2 },
+    ];
+    const index = components.findIndex((e) => e.type === device.type);
+    device.type = components[index].type;
+    component = components[index].component;
+  });
 
-  $: {
-    isActionButtonClicked = $isActionButtonClickedStore;
+  function handleElementClicked(e) {
+    const { elementNumber } = e.detail;
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, selecting element has failed!`,
+      });
+      return;
+    }
+
+    selectElement(elementNumber);
+  }
+
+  function selectElement(controlNumber) {
+    const elementType = device?.pages[0].control_elements.find(
+      (e) => e.controlElementNumber == controlNumber
+    ).controlElementType;
+    user_input.update((ui) => {
+      ui.brc.dx = +device?.dx;
+      ui.brc.dy = +device?.dy;
+      ui.event.elementnumber = +controlNumber;
+      ui.event.elementtype = elementType;
+      return ui;
+    });
+  }
+
+  function handleModuleClicked(e) {
+    if ($writeBuffer.length > 0) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "engine-disabled",
+        message: `Engine is disabled, changing event type failed!`,
+      });
+      return;
+    }
+
+    user_input.update((ui) => {
+      ui.brc.dx = device?.dx;
+      ui.brc.dy = device?.dy;
+      ui.event.elementnumber = 255;
+      ui.event.eventtype = 4;
+      ui.event.elementtype = "system";
+      return ui;
+    });
   }
 
   $: {
-    if (!isActionButtonClicked) {
-      if (Object.keys($selectedConfigStore).length !== 0) {
-        selectedElement = { id: "", brc: {}, event: {} };
-      } else {
-        selectedElement = $user_input;
-      }
+    handleSelectedConfigChange($selectedConfigStore);
+  }
+
+  function handleSelectedConfigChange(store) {
+    if (store.configType === "profile") {
+      $appSettings.displayedOverlay = "profile-load-overlay";
+    } else if (store.configType === "preset") {
+      $appSettings.displayedOverlay = "preset-load-overlay";
     }
   }
 
-  let showProfileLoadOverlay = false;
-  $: {
-    showProfileLoadOverlay =
-      type === $selectedConfigStore.type &&
-      $selectedConfigStore.configType === "profile";
-  }
-
-  let showPresetLoadOverlay = false;
-  $: {
-    let device = get(runtime).find((controller) => controller.id == id);
-
-    if (
-      typeof device !== "undefined" &&
-      $selectedConfigStore.configType === "preset"
-    ) {
-      const compatible = device.pages[0].control_elements
-        .map((e) => e.controlElementType)
-        .includes($selectedConfigStore.type);
-
-      showPresetLoadOverlay = compatible;
-    } else {
-      showPresetLoadOverlay = false;
+  function handlePresetLoad(e) {
+    const { elementNumber } = e.detail;
+    if (typeof $selectedConfigStore === "undefined") {
+      return;
     }
+
+    Analytics.track({
+      event: "Preset Load Start",
+      payload: {},
+      mandatory: false,
+    });
+
+    selectElement(elementNumber);
+    runtime.element_preset_load($selectedConfigStore);
   }
 </script>
 
-{#if selected}
+<div class="pointer-events-none relative">
   <svelte:component
-    this={selected.component}
+    this={component}
+    {device}
     {moduleWidth}
-    {id}
-    {rotation}
-    {selectedElement}
-    on:click={(e) => {
-      const { elementNumber, type, id } = e.detail;
-      if ($writeBuffer.length > 0) {
-        logger.set({
-          type: "fail",
-          mode: 0,
-          classname: "engine-disabled",
-          message: `Engine is disabled, selecting element has failed!`,
-        });
-        return;
-      }
-
-      selectElement(elementNumber, type, id);
-    }}
+    rotation={device?.rot}
+    let:elementNumber
+    let:device
   >
-    {#if $appSettings.overlays.controlElementName}
-      <ControlNameOverlay {id} {moduleWidth} bankActive={0} {rotation} />
-    {/if}
+    <!-- Module Underlays -->
+    <svelte:fragment slot="module-underlay" let:device>
+      <!-- Default Backdrop -->
+      <div
+        class="absolute bg-primary w-full h-full"
+        style="border-radius: var(--grid-rounding);"
+      />
+      <PortState
+        {device}
+        visible={$appSettings.displayedOverlay === undefined &&
+          $appSettings.persistent.portstateOverlayEnabled}
+      />
+      <ModuleInfo {device} visible={true} />
+      <ModuleSelection
+        {device}
+        visible={$appSettings.displayedOverlay === undefined}
+        on:click={handleModuleClicked}
+        class="absolute top-0 left-0 w-full h-full"
+        style="border-radius: var(--grid-rounding);"
+      />
+    </svelte:fragment>
 
-    <div
-      class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
-    >
-      {#if arch === "esp32"}
-        E-32<br />
-        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
-      {:else}
-        D-51<br />
-        {"v" + fwVersion.major + "." + fwVersion.minor + "." + fwVersion.patch}
-      {/if}
-    </div>
-
-    {#if $appSettings.persistent.portstateOverlayEnabled}
-      {#if (portstate & 1) !== 0}
-        <div
-          class="absolute top-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+    <!-- Cell Underlays -->
+    <svelte:fragment slot="cell-underlay" let:elementNumber>
+      <div
+        class="w-full h-full absolute"
+        style="width: calc(100% - var(--element-margin) * 2); 
+          height: calc(100% - var(--element-margin) * 2); 
+          margin: var(--element-margin); "
+      >
+        <ActiveChanges
+          {elementNumber}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="bg-unsavedchange bg-opacity-20 w-full h-full"
+          style="border-radius: var(--grid-rounding);"
         />
-      {/if}
-
-      {#if (portstate & 2) !== 0}
-        <div
-          class="absolute right-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+        <ElementSelection
+          {elementNumber}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="pointer-events-auto w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+          on:click={handleElementClicked}
         />
-      {/if}
+      </div>
+    </svelte:fragment>
 
-      {#if (portstate & 4) !== 0}
-        <div
-          class="absolute bottom-0 left-1/2 transform -translate-x-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+    <!-- Cell Overlays -->
+    <svelte:fragment slot="cell-overlay" let:elementNumber>
+      <div
+        class="w-full h-full absolute"
+        style="width: calc(100% - var(--element-margin) * 2); 
+          height: calc(100% - var(--element-margin) * 2); 
+          margin: var(--element-margin); "
+      >
+        <PresetLoadOverlay
+          {device}
+          {elementNumber}
+          visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+          class="pointer-events-auto w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+          on:click={handlePresetLoad}
         />
-      {/if}
+      </div>
+      <ControlNameOverlay
+        {device}
+        {elementNumber}
+        visible={$appSettings.displayedOverlay === "control-name-overlay"}
+      />
+    </svelte:fragment>
 
-      {#if (portstate & 8) !== 0}
-        <div
-          class="absolute left-0 top-1/2 transform -translate-y-1/2 opacity-50 text-white font-bold text-xl bg-green-500 w-20 h-20"
+    <!-- Module Overlays -->
+    <svelte:fragment slot="module-overlay" let:device>
+      <SystemElement>
+        <ActiveChanges
+          elementNumber={255}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="bg-unsavedchange bg-opacity-20 w-full h-full rounded-t-full"
         />
-      {/if}
-    {/if}
+        <ElementSelection
+          elementNumber={255}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="pointer-events-auto w-full h-full rounded-t-full"
+          on:click={handleElementClicked}
+        />
+      </SystemElement>
 
-    {#if $writeBuffer.length == 0}
-      {#if showProfileLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-        <ProfileLoadOverlay {id} {rotation} />
-      {/if}
-      {#if showPresetLoadOverlay && $appSettings.leftPanel === "ProfileCloud"}
-        <PresetLoadOverlay {id} {rotation} bankActive={0} {moduleWidth} />
-      {/if}
-    {/if}
+      <!-- Overlay Backdrop -->
+      <div
+        class="absolute w-full h-full pointer-events-none"
+        class:bg-overlay={$appSettings.displayedOverlay !== undefined}
+        style="border-radius: var(--grid-rounding);"
+      />
+      <ProfileLoadOverlay
+        {device}
+        visible={$appSettings.displayedOverlay === "profile-load-overlay"}
+      />
+    </svelte:fragment>
   </svelte:component>
-{/if}
+</div>
 
 <style global>
+  :root {
+    --element-margin: 5px;
+    --grid-rounding: 5px;
+  }
   .module-dimensions {
     width: var(--module-size);
     height: var(--module-size);
@@ -174,8 +250,7 @@
     flex-direction: column;
     justify-content: space-around;
     align-items: center;
-    background-color: #1e2628;
-    border-radius: 0.5rem;
+    border-radius: 6px;
   }
 
   .knob-and-led {
@@ -188,27 +263,8 @@
     filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
   }
 
-  .control-row {
-    display: flex;
-    flex-direction: row;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-    margin-top: var(--control-row-mt);
-    margin-left: var(--control-row-mx);
-    margin-right: var(--control-row-mx);
-  }
-
-  .control-row:last-child {
-    margin-bottom: var(--control-row-mb);
-  }
-
-  .disable-pointer-events {
-    pointer-events: none;
-  }
-
-  .active-systemelement {
-    background-color: #212a2b;
-    box-shadow: inset 0 0 10px #dddddd60;
+  .bg-overlay {
+    background-color: rgba(30, 30, 30, 0.5);
+    backdrop-filter: blur(1px);
   }
 </style>

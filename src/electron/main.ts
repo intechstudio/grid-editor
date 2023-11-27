@@ -608,17 +608,17 @@ ipcMain.on("resetAppSettings", (event, arg) => {
   store.clear();
 
   if (process.env.APPIMAGE) {
-    let options;
-    options.args = process.argv.slice(1).concat(["--relaunch"]);
-    options.execPath = process.execPath;
-    options.execPath = process.env.APPIMAGE;
+    let options = {
+      args: process.argv.slice(1).concat(["--relaunch"]),
+      execPath: process.env.APPIMAGE,
+    };
     options.args.unshift("--appimage-extract-and-run");
     log.info("ARGS: ", options);
     app.relaunch(options);
     app.exit(0);
   } else {
-    app.relaunch();
-    app.exit();
+    app.relaunch({ args: process.argv.slice(1).concat(["--relaunch"]) });
+    app.exit(0);
   }
 
   return true;

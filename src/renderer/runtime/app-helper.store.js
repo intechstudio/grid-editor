@@ -79,7 +79,7 @@ function createAppSettingsStore(persistent) {
       minor: configuration.EDITOR_VERSION.split(".")[1],
       patch: configuration.EDITOR_VERSION.split(".")[2],
     },
-    overlays: { controlElementName: false },
+    displayedOverlay: undefined,
     debugMode: false,
     selectedDisplay: "",
     changeOnEvent: "event",

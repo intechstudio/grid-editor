@@ -45,7 +45,7 @@
 
   function handleBlur(e) {
     if (valueChanged) {
-      sendData(stringManipulation.shortify(displayText));
+      sendData(displayText);
     }
   }
 

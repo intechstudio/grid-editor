@@ -59,7 +59,6 @@
 
     move = value;
     position = move * -1;
-    console.log(value);
   }
 
   function handleGrabEnd(event) {

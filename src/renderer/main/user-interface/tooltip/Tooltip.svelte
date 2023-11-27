@@ -123,7 +123,6 @@
 
   function interceptEvent(e) {
     const { type, data } = e.detail;
-    //console.log("yay", type);
     switch (type) {
       case "close": {
         close();
