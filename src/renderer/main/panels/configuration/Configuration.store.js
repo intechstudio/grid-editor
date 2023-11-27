@@ -207,9 +207,14 @@ export class ConfigList extends Array {
     return indentationMap;
   }
 
-  static createFrom(target) {
+  static createFromTarget(target) {
+    let configScript = target.getActionString();
+    return ConfigList.createFromActionString(configScript);
+  }
+
+  static createFromActionString(string) {
     const config = new ConfigList();
-    config.#InitFrom(target);
+    config.#Init(string);
     return config;
   }
 
@@ -240,57 +245,21 @@ export class ConfigList extends Array {
     });
   }
 
-  #InitFrom(target) {
-    const rt = get(runtime);
-    const device = rt.find(
-      (e) => e.dx == target.device.dx && e.dy == target.device.dy
-    );
-
-    if (typeof device === "undefined") {
-      throw "Unknown device!";
-    }
-
-    const page = device.pages[target.page];
-
-    const element = page.control_elements.find(
-      (e) => e.controlElementNumber == target.element
-    );
-
-    let event = element.events.find((e) => e.event.value == target.eventType);
-
-    if (typeof event === "undefined") {
-      throw new UnknownEventException(
-        `Event type ${target.eventType} does not exist under control element ${target.element}`
-      );
-    }
-
-    const cfgstatus = event.cfgStatus;
-    if (
-      cfgstatus != "GRID_REPORT" &&
-      cfgstatus != "EDITOR_EXECUTE" &&
-      cfgstatus != "EDITOR_BACKGROUND"
-    ) {
-      const ui = get(user_input);
-      const callback = () => user_input.update((n) => n);
-      runtime.fetchOrLoadConfig(ui, callback);
-    }
-
-    let configScript = event.config;
-
-    //Parse configScript
+  #Init(actionString) {
+    //Parse actionString
     //TODO: do rawLuas format checking during parsing
 
     // get rid of new line, enter
-    configScript = configScript.replace(/[\n\r]+/g, "");
+    actionString = actionString.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
-    configScript = configScript.replace(/\s{2,10}/g, " ");
+    actionString = actionString.replace(/\s{2,10}/g, " ");
     // remove lua opening and closing characters
     // this function is used for both parsing full config (long complete lua) and individiual actions lua
-    if (configScript.startsWith("<?lua")) {
-      configScript = configScript.split("<?lua")[1].split("?>")[0];
+    if (actionString.startsWith("<?lua")) {
+      actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = configScript.split(/(--\[\[@+\w+\]\])/);
+    let configList = actionString.split(/(--\[\[@+\w+\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
@@ -378,6 +347,43 @@ export class ConfigTarget {
     }
   }
 
+  getEvent() {
+    const rt = get(runtime);
+    const device = rt.find(
+      (e) => e.dx == this.device.dx && e.dy == this.device.dy
+    );
+
+
+    if (typeof device === "undefined") {
+      return undefined;
+    }
+
+    const page = device.pages[this.page];
+
+    const element = page.control_elements.find(
+      (e) => e.controlElementNumber == this.element
+    );
+
+    return element.events.find((e) => e.event.value == this.eventType);
+  }
+
+  getActionString() {
+    const event = this.getEvent();
+
+    const cfgstatus = event.cfgStatus;
+    if (
+      cfgstatus != "GRID_REPORT" &&
+      cfgstatus != "EDITOR_EXECUTE" &&
+      cfgstatus != "EDITOR_BACKGROUND"
+    ) {
+      const ui = get(user_input);
+      const callback = () => user_input.update((n) => n);
+      runtime.fetchOrLoadConfig(ui, callback);
+    }
+
+    return event.config;
+  }
+
   static getCurrent() {
     const ui = get(user_input);
     try {
@@ -402,6 +408,7 @@ function create_configuration_manager() {
   let store = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
+    console.log("asd")
     const target = ConfigTarget.createFrom({ userInput: ui });
     let list = new ConfigList();
 
@@ -410,7 +417,19 @@ function create_configuration_manager() {
     }
 
     try {
-      list = ConfigList.createFrom(target);
+      const event = target.getEvent();
+      list = ConfigList.createFromTarget(target);
+
+      if (typeof event.stored !== "undefined") {
+        const stored = ConfigList.createFromActionString(event.stored);
+
+        let j = 0;
+        for (let i = 0; i < list.length; ++i) {
+          console.log(list[i])
+          //if ()
+        }
+
+      }
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);
@@ -423,7 +442,7 @@ function create_configuration_manager() {
         });
       } else {
         //Unknown error, display default
-        console.error(`Configuration: ${e}`);
+        throw `Configuration: ${e}`;
       }
     }
     return list;

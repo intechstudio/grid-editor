@@ -33,6 +33,16 @@
         mandatory: false,
       });
 
+      $runtime.forEach((e) => {
+        e.pages.forEach((e) => {
+          e.control_elements.forEach((e) => {
+            e.events.forEach((e) => {
+              e.stored = e.config;
+            });
+          });
+        });
+      });
+
       instructions.sendPageStoreToGrid();
     }
   }
