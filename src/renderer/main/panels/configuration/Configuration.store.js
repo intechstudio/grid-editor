@@ -274,7 +274,6 @@ export class ConfigList extends Array {
       const callback = () => user_input.update((n) => n);
       runtime.fetchOrLoadConfig(ui, callback);
     }
-
     let configScript = event.config;
 
     //Parse configScript
@@ -402,6 +401,7 @@ function create_configuration_manager() {
   let store = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
+    console.log({ui})
     const target = ConfigTarget.createFrom({ userInput: ui });
     let list = new ConfigList();
 
@@ -411,6 +411,7 @@ function create_configuration_manager() {
 
     try {
       list = ConfigList.createFrom(target);
+      console.log({list})
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);

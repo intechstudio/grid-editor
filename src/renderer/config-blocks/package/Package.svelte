@@ -14,11 +14,22 @@
   const dispatch = createEventDispatcher();
 
   let actionDiv;
+  let originalActionHtml;
+  let updateActionWithConfig;
 
-  $ : {
-    if (actionDiv && !actionDiv.innerHTML) {
+  $ : config?.information?.actionHtml, actionDiv, updateActionWithConfig, refreshDivContent()
+
+  function refreshDivContent(){
+    console.log({config})
+    if (actionDiv && originalActionHtml != config.information.actionHtml) {
+      //Only change the contents if the default html changes
+      // otherwise action state can be lost, script tag runs multiple times
       actionDiv.innerHTML = config.information.actionHtml
+      originalActionHtml = config.information.actionHtml
       executeScriptElements(actionDiv)
+    }
+    if (updateActionWithConfig){
+      updateActionWithConfig(config);
     }
   }
 
@@ -45,6 +56,14 @@
       (e) => {
         console.log("Received updateCode!")
         dispatch("output", { short: config.short, script: e.detail.script })
+      },
+      false
+    )
+    actionDiv.addEventListener(
+      "updateConfigHandler",
+      (e) => {
+        console.log("Handler update")
+        updateActionWithConfig = e.detail.handler
       },
       false
     )

@@ -52,7 +52,7 @@
   });
 
   function getCompatiblityBlock(script) {
-    let block = undefined;
+    let block = [];
 
     const compatibility_map = new Map([
       ["elseif (self:bst()>0 and self:est()>63) then", "eprlrei1"],
