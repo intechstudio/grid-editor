@@ -41,8 +41,10 @@
         handleSelectPage(i);
       }}
       class="{selectedPage == i
-        ? 'w-4 h-4'
-        : 'w-2 h-2'} bg-white bg-opacity-50 rounded-full"
-    />
+        ? 'p-2'
+        : 'p-1'} bg-white w-fit bg-opacity-50 rounded"
+    >
+      {i + 1}
+    </button>
   {/each}
 </div>
