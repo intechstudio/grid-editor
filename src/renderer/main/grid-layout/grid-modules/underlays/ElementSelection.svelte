@@ -52,5 +52,7 @@
         elementNumber: elementNumber,
       });
     }}
-  />
+  >
+    <slot />
+  </div>
 {/if}

@@ -27,6 +27,7 @@
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { Analytics } from "../../../runtime/analytics";
   import SystemElement from "./overlays/SystemElement.svelte";
+  import NamePopover from "./overlays/NamePopover.svelte";
 
   export let device = undefined;
 
@@ -171,6 +172,7 @@
           class="bg-unsavedchange bg-opacity-20 w-full h-full"
           style="border-radius: var(--grid-rounding);"
         />
+
         <ElementSelection
           {elementNumber}
           {device}
@@ -178,7 +180,9 @@
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
           on:click={handleElementClicked}
-        />
+        >
+          <NamePopover visible={true} {elementNumber} {device} />
+        </ElementSelection>
       </div>
     </svelte:fragment>
 
