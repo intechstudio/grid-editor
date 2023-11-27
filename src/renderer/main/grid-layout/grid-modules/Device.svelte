@@ -122,6 +122,10 @@
     selectElement(elementNumber);
     runtime.element_preset_load($selectedConfigStore);
   }
+
+  $: if ($user_input) {
+    $appSettings.displayedOverlay = undefined;
+  }
 </script>
 
 <div class="pointer-events-none relative">
@@ -161,6 +165,7 @@
       let:elementNumber
       let:isLeftCut
       let:isRightCut
+      let:rotation
     >
       <div
         class="w-full h-full absolute"
@@ -187,7 +192,12 @@
     </svelte:fragment>
 
     <!-- Cell Overlays -->
-    <svelte:fragment slot="cell-overlay" let:elementNumber>
+    <svelte:fragment
+      slot="cell-overlay"
+      let:elementNumber
+      let:isLeftCut
+      let:isRightCut
+    >
       <div
         class="w-full h-full absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
@@ -197,6 +207,8 @@
         <PresetLoadOverlay
           {device}
           {elementNumber}
+          {isLeftCut}
+          {isRightCut}
           visible={$appSettings.displayedOverlay === "preset-load-overlay"}
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
@@ -211,7 +223,7 @@
     </svelte:fragment>
 
     <!-- Module Overlays -->
-    <svelte:fragment slot="module-overlay" let:device>
+    <svelte:fragment slot="module-overlay">
       <!-- Overlay Backdrop -->
       <div
         class="absolute w-full h-full pointer-events-none"

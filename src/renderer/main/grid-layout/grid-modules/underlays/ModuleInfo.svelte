@@ -6,10 +6,7 @@
 </script>
 
 {#if visible}
-  <div
-    class="w-full h-full"
-    style="transform: rotate({-$appSettings.persistent.moduleRotation}deg)"
-  >
+  <div class="w-full h-full">
     <div
       class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 opacity-10 text-white font-bold text-xs"
     >

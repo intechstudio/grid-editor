@@ -137,7 +137,7 @@
         out:fade|global={{ duration: 150 }}
         id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
         style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute hover:z-50"
+        class="absolute"
       >
         <Device {device} />
       </div>

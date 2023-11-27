@@ -5,6 +5,7 @@
   export let visible = false;
   export let elementNumber = undefined;
   export let device = undefined;
+  export let rotation = 0;
 
   let elementSettings;
 
@@ -26,7 +27,7 @@
   }
 </script>
 
-{#if visible}
+{#if visible && elementNumber !== 255}
   <container class="pointer-events-auto">
     <div
       class="flex w-full h-full items-center p-1"
@@ -34,6 +35,7 @@
     >
       <p
         class="max-w-md mx-auto md:break-words md:whitespace-normal truncate text-white"
+        style="transform: rotate({90 * device.rot}deg);"
       >
         {elementSettings[elementNumber]?.controlElementName}
       </p>

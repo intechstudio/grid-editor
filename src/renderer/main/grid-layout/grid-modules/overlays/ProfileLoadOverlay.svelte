@@ -5,13 +5,12 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
 
-  export let id;
   export let device = undefined;
   export let visible = false;
 
   function selectModuleWhereProfileIsLoaded() {
-    const dx = id.split(";")[0].split(":").pop();
-    const dy = id.split(";")[1].split(":").pop();
+    const dx = device.id.split(";")[0].split(":").pop();
+    const dy = device.id.split(";")[1].split(":").pop();
 
     user_input.update((store) => {
       store.brc.dx = +dx;
@@ -49,7 +48,8 @@
   <div
     class="text-white z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto"
-    style="transform: rotate({-$appSettings.persistent.moduleRotation}deg)"
+    style="transform: rotate({-$appSettings.persistent.moduleRotation -
+      90 * device.rot}deg)"
   >
     <div class="w-fit relative">
       <button
