@@ -30,7 +30,7 @@
 {#if visible && elementNumber !== 255}
   <container class="pointer-events-auto">
     <div
-      class="flex w-full h-full items-center p-1"
+      class="flex w-full h-full items-center p-1 bg-overlay"
       style="transform: rotate({-$appSettings.persistent.moduleRotation}deg);"
     >
       <p

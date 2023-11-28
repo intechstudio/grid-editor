@@ -22,10 +22,14 @@
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
   import { writeBuffer } from "../../../runtime/engine.store.js";
-  import { runtime, user_input } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { Analytics } from "../../../runtime/analytics";
+  import {
+    configManager,
+    ConfigTarget,
+  } from "../../panels/configuration/Configuration.store";
 
   export let device = undefined;
 
@@ -57,7 +61,6 @@
       });
       return;
     }
-
     selectElement(elementNumber);
   }
 
@@ -109,22 +112,43 @@
 
   function handlePresetLoad(e) {
     const { elementNumber } = e.detail;
-    if (typeof $selectedConfigStore === "undefined") {
-      return;
-    }
+    console.log(device);
+    configManager.loadPreset({
+      x: device.dx,
+      y: device.dy,
+      element: elementNumber,
+      preset: $selectedConfigStore,
+    });
 
     Analytics.track({
       event: "Preset Load Start",
       payload: {},
       mandatory: false,
     });
-
-    selectElement(elementNumber);
-    runtime.element_preset_load($selectedConfigStore);
   }
 
   $: if ($user_input) {
     $appSettings.displayedOverlay = undefined;
+  }
+
+  function handleProfileLoad() {
+    Analytics.track({
+      event: "Profile Load Start",
+      payload: {},
+      mandatory: false,
+    });
+
+    configManager.loadProfile({
+      x: device.dx,
+      y: device.dy,
+      profile: $selectedConfigStore.configs,
+    });
+
+    Analytics.track({
+      event: "Profile Load Success",
+      payload: {},
+      mandatory: false,
+    });
   }
 </script>
 
@@ -165,7 +189,6 @@
       let:elementNumber
       let:isLeftCut
       let:isRightCut
-      let:rotation
     >
       <div
         class="w-full h-full absolute"
@@ -202,7 +225,7 @@
         class="w-full h-full absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 
-          margin: var(--element-margin); "
+          margin: var(--element-margin);"
       >
         <PresetLoadOverlay
           {device}
@@ -224,15 +247,10 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay">
-      <!-- Overlay Backdrop -->
-      <div
-        class="absolute w-full h-full pointer-events-none"
-        class:bg-overlay={$appSettings.displayedOverlay !== undefined}
-        style="border-radius: var(--grid-rounding);"
-      />
       <ProfileLoadOverlay
         {device}
         visible={$appSettings.displayedOverlay === "profile-load-overlay"}
+        on:load={handleProfileLoad}
       />
     </svelte:fragment>
   </svelte:component>
@@ -253,16 +271,6 @@
     border-radius: 6px;
   }
 
-  .knob-and-led {
-    display: flex;
-    padding: 2px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    transition: filter 0.2s;
-    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
-  }
-
   .bg-overlay {
     background-color: rgba(30, 30, 30, 0.5);
     backdrop-filter: blur(1px);
@@ -275,23 +283,50 @@
     z-index: 1;
   }
   .normal-cell-ui-container {
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    display: flex;
+    padding: 2px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    transition: filter 0.2s;
+    filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
+  }
+  .normal-cell-overlay-container {
+    pointer-events: none;
     position: absolute;
     width: 100%;
     height: 100%;
     z-index: 3;
   }
-  .normal-cell-overlay-container {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    z-index: 4;
-  }
   .system-cell-underlay-container {
+    pointer-events: none;
     position: absolute;
     z-index: 1;
   }
   .system-cell-overlay-container {
+    pointer-events: none;
     position: absolute;
+    z-index: 3;
+  }
+
+  .module-underlay-container {
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+  }
+
+  .module-overlay-container {
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    height: 100%;
     z-index: 4;
   }
 </style>

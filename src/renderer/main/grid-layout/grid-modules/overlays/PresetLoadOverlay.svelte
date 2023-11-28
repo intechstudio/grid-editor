@@ -8,7 +8,6 @@
   export let elementNumber = undefined;
   export let isRightCut = undefined;
   export let isLeftCut = undefined;
-  export let rotation = 0;
 
   const dispatch = createEventDispatcher();
 

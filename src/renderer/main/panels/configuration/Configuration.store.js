@@ -433,5 +433,21 @@ function create_configuration_manager() {
     store.set(createConfigListFrom(ui));
   });
 
-  return store;
+  function loadPreset({ x, y, element, preset }) {
+    runtime.element_preset_load(x, y, element, preset)
+    const ui = get(user_input)
+    store.set(createConfigListFrom(ui));
+  }
+
+  function loadProfile({ x, y, profile }) {
+    runtime.whole_page_overwrite(x, y, profile);
+    const ui = get(user_input)
+    store.set(createConfigListFrom(ui));
+  }
+
+  return {
+    ...store,
+    loadPreset: loadPreset,
+    loadProfile: loadProfile
+  }
 }

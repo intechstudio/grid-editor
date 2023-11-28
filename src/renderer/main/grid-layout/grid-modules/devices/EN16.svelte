@@ -74,7 +74,7 @@
     -90 +
     'deg'})"
 >
-  <div class="absolute w-full h-full">
+  <div class="module-underlay-container">
     <slot name="module-underlay" {device} />
   </div>
   <div
@@ -91,7 +91,7 @@
               isRightCut={elementNumber == 13}
             />
           </div>
-          <div class="knob-and-led normal-cell-ui-container">
+          <div class="normal-cell-ui-container">
             <Led color={ledcolor_array[elementNumber]} size={2.1} />
             <Encoder
               {elementNumber}
@@ -123,7 +123,7 @@
       {/if}
     {/each}
   </div>
-  <div class="absolute w-full h-full z-[3]">
+  <div class="module-overlay-container">
     <slot name="module-overlay" />
   </div>
 </div>

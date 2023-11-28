@@ -77,7 +77,7 @@
     -90 +
     'deg'})"
 >
-  <div class="absolute w-full h-full">
+  <div class="module-underlay-container">
     <slot name="module-underlay" {device} />
   </div>
   <div
@@ -87,13 +87,13 @@
       <cell
         class="w-full h-full flex items-center justify-center relative col-span-2 row-span-2"
       >
-        <div class="absolute w-full h-full">
+        <div class="normal-cell-underlay-container">
           <slot name="cell-underlay" {elementNumber} />
         </div>
         <button
           ariarole="button"
-          class="knob-and-led absolute pointer-events-none"
-          style="border-radius: 50%; padding: 6px; width: calc(100%); height: calc(100%)"
+          class="normal-cell-ui-container"
+          style="border-radius: 50%; padding: 6px;"
         >
           {#each [0, 1, 2, 3, 4] as ledNumber}
             <div
@@ -121,33 +121,46 @@
             size={2.1}
           />
         </button>
-        <div class="absolute w-full h-full pointer-events-none z-[1]">
+        <div class="normal-cell-overlay-container">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
     {/each}
 
-    {#each [0, 1, 2, 3, 4, 5, 6, 7] as elementNumber}
-      <cell class="w-full h-full flex items-center justify-center relative">
-        <div class="absolute w-full h-full">
+    {#each [0, 1, 2, 3, 4, 5, 6, 7, 255] as elementNumber}
+      {#if elementNumber < 8}
+        <cell class="w-full h-full flex items-center justify-center relative">
+          <div class="normal-cell-underlay-container">
+            <slot name="cell-underlay" {elementNumber} />
+          </div>
+          <button class="normal-cell-ui-container">
+            <Led color={ledcolor_array[elementNumber]} size={2.1} />
+            <Button
+              {elementNumber}
+              {id}
+              position={elementposition_array[elementNumber]}
+              size={2.1}
+            />
+          </button>
+          <div class="normal-cell-overlay-container">
+            <slot name="cell-overlay" {elementNumber} />
+          </div>
+        </cell>
+      {:else}
+        <div
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-underlay-container"
+        >
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <button class="knob-and-led absolute w-full h-full pointer-events-none">
-          <Led color={ledcolor_array[elementNumber]} size={2.1} />
-          <Button
-            {elementNumber}
-            {id}
-            position={elementposition_array[elementNumber]}
-            size={2.1}
-          />
-        </button>
-        <div class="absolute w-full h-full pointer-events-none z-[1]">
+        <div
+          class="bottom-0 left-1/2 -translate-x-1/2 w-[50px] h-[27px] rounded-t-full system-cell-overlay-container"
+        >
           <slot name="cell-overlay" {elementNumber} />
         </div>
-      </cell>
+      {/if}
     {/each}
   </div>
-  <div class="absolute w-full h-full pointer-events-none">
+  <div class="module-overlay-container">
     <slot name="module-overlay" {device} />
   </div>
 </div>
