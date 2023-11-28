@@ -41,10 +41,16 @@
         handleSelectPage(i);
       }}
       class="{selectedPage == i
-        ? 'p-2'
-        : 'p-1'} bg-white w-fit bg-opacity-50 rounded"
+        ? 'w-9 h-9 text-xl'
+        : 'w-7 h-7 text-base'} bg-primary rounded font-bold border border-white border-opacity-30"
     >
-      {i + 1}
+      <div
+        class="w-full h-full {selectedPage == i
+          ? 'bg-white bg-opacity-10'
+          : 'hover:bg-white hover:bg-opacity-5'} flex items-center justify-center"
+      >
+        <span class="text-white text-opacity-75">{i + 1}</span>
+      </div>
     </button>
   {/each}
 </div>
