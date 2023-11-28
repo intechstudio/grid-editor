@@ -75,7 +75,7 @@
     -90 +
     'deg'})"
 >
-  <div class="absolute z-[0] w-full h-full">
+  <div class="absolute w-full h-full">
     <slot name="module-underlay" {device} />
   </div>
   <div
@@ -85,12 +85,10 @@
       <cell
         class="w-full h-full flex items-center justify-center relative row-span-1"
       >
-        <div class="absolute z-[0] w-full h-full">
+        <div class="absolute w-full h-full">
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <div
-          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-        >
+        <div class="knob-and-led absolute w-full h-full pointer-events-none">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Encoder
             {elementNumber}
@@ -99,7 +97,7 @@
             size={2.1}
           />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
@@ -109,12 +107,10 @@
       <cell
         class="w-full h-full flex items-center justify-center relative row-span-3"
       >
-        <div class="absolute z-[0] w-full h-full">
+        <div class="absolute w-full h-full">
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <div
-          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-        >
+        <div class="knob-and-led absolute w-full h-full pointer-events-none">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Fader
             {elementNumber}
@@ -125,13 +121,13 @@
             faderHeight={68}
           />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
     {/each}
   </div>
-  <div class="absolute z-[2] w-full h-full pointer-events-none">
+  <div class="absolute w-full h-full pointer-events-none">
     <slot name="module-overlay" {device} />
   </div>
 </div>

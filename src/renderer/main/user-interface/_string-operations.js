@@ -77,15 +77,14 @@ const stringManipulation = {
 
   arithmetics: function (text) {
     // OPERATOR IS NO MORE A CORRECT NAME
-    const pattern = `${
-      "(" +
+    const pattern = `${"(" +
       this.VALIDATOR.regex.operator +
       ")(?:\\s*\\1){1,}|(?:(" +
       this.VALIDATOR.regex.operator +
       ")(?:\\s*))+(?:(" +
       this.VALIDATOR.regex.operator +
       ")(?:\\s*)|$)|([0-9](\\s)(?:d))"
-    }`;
+      }`;
     const regex = new RegExp(pattern, "gm");
     return !regex.test(text);
   },
@@ -271,11 +270,8 @@ const stringManipulation = {
 
   shortify(script) {
     // We should heaviliy consider handling spaces and returns better!
-
     const splitArray = this.splitShortScript(script, "human");
-
     const shorted = this.splitArrayToString(splitArray, "short");
-
     return shorted;
   },
 
@@ -408,7 +404,7 @@ const stringManipulation = {
         }
         validity.push(
           indices.length ===
-            this.VALIDATOR.functions.values[fn[0]].parameters.length - 1
+          this.VALIDATOR.functions.values[fn[0]].parameters.length - 1
         );
       } else {
         validity.push(false);

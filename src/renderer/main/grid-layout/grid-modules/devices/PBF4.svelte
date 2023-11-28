@@ -72,21 +72,19 @@
     -90 +
     'deg'})"
 >
-  <div class="absolute z-[0] w-full h-full">
+  <div class="absolute w-full h-full">
     <slot name="module-underlay" {device} />
   </div>
   <div
-    class="absolute grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center z-[1]"
+    class="absolute grid grid-cols-4 grid-rows-4 h-full w-full justify-items-center items-center"
   >
     {#each [0, 1, 2, 3] as elementNumber}
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <cell class="w-full h-full flex items-center justify-center relative">
-        <div class="absolute z-[0] w-full h-full">
+        <div class="absolute w-full h-full">
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <div
-          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-        >
+        <div class="knob-and-led absolute w-full h-full pointer-events-none">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
           <Potentiometer
             {elementNumber}
@@ -95,7 +93,7 @@
             size={2.1}
           />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
@@ -105,12 +103,10 @@
       <cell
         class="w-full h-full flex items-center justify-center relative row-span-2"
       >
-        <div class="absolute z-[0] w-full h-full">
+        <div class="absolute w-full h-full">
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <div
-          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-        >
+        <div class="knob-and-led absolute w-full h-full pointer-events-none">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
           <Fader
@@ -122,7 +118,7 @@
             faderHeight={37}
           />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
@@ -130,12 +126,10 @@
 
     {#each [8, 9, 10, 11] as elementNumber}
       <cell class="w-full h-full flex items-center justify-center relative">
-        <div class="absolute z-[0] w-full h-full">
+        <div class="absolute w-full h-full">
           <slot name="cell-underlay" {elementNumber} />
         </div>
-        <div
-          class="knob-and-led absolute z-[1] w-full h-full pointer-events-none"
-        >
+        <div class="knob-and-led absolute w-full h-full pointer-events-none">
           <Led color={ledcolor_array[elementNumber]} size={2.1} />
 
           <Button
@@ -145,13 +139,13 @@
             size={2.1}
           />
         </div>
-        <div class="absolute z-[2] w-full h-full pointer-events-none">
+        <div class="absolute w-full h-full pointer-events-none z-[1]">
           <slot name="cell-overlay" {elementNumber} />
         </div>
       </cell>
     {/each}
   </div>
-  <div class="absolute z-[2] w-full h-full pointer-events-none">
+  <div class="absolute w-full h-full pointer-events-none">
     <slot name="module-overlay" {device} />
   </div>
 </div>

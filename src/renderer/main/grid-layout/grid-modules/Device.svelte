@@ -24,13 +24,12 @@
   import { writeBuffer } from "../../../runtime/engine.store.js";
   import { runtime, user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
-  import ModuleSelection from "./underlays/ModuleSelection.svelte";
+  import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { Analytics } from "../../../runtime/analytics";
+  import SystemElement from "./overlays/SystemElement.svelte";
 
   export let device = undefined;
-  export let width = 2.1 * 106.6 + 2;
-  export let margin = 0;
-  export let rounding = 6;
+  export let width = 225;
 
   let component = undefined;
 
@@ -63,11 +62,10 @@
     selectElement(elementNumber);
   }
 
-  let moduleHovered = false;
-
   function selectElement(controlNumber) {
-    const elementType =
-      device?.pages[0].control_elements[controlNumber].controlElementType;
+    const elementType = device?.pages[0].control_elements.find(
+      (e) => e.controlElementNumber == controlNumber
+    ).controlElementType;
     user_input.update((ui) => {
       ui.brc.dx = +device?.dx;
       ui.brc.dy = +device?.dy;
@@ -140,24 +138,8 @@
     <svelte:fragment slot="module-underlay" let:device>
       <!-- Default Backdrop -->
       <div
-        class="bg-primary w-full h-full"
-        style="border-radius: {rounding}px;"
-      />
-      <ActiveChanges
-        elementNumber={255}
-        {device}
-        visible={$appSettings.displayedOverlay === undefined}
-        class="bg-unsavedchange bg-opacity-10 border-2 border-unsavedchange"
-        style="border-radius: {rounding}px;"
-        margin={0}
-      />
-      <ModuleSelection
-        bind:moduleHovered
-        {margin}
-        {rounding}
-        {device}
-        visible={$appSettings.displayedOverlay === undefined}
-        on:click={handleModuleClicked}
+        class="absolute bg-primary w-full h-full"
+        style="border-radius: var(--grid-rounding);"
       />
       <PortState
         {device}
@@ -165,34 +147,58 @@
           $appSettings.persistent.portstateOverlayEnabled}
       />
       <ModuleInfo {device} visible={true} />
+      <ModuleSelection
+        {device}
+        visible={$appSettings.displayedOverlay === undefined}
+        on:click={handleModuleClicked}
+        class="absolute top-0 left-0 w-full h-full"
+        style="border-radius: var(--grid-rounding);"
+      />
     </svelte:fragment>
 
     <!-- Cell Underlays -->
     <svelte:fragment slot="cell-underlay" let:elementNumber>
-      <ActiveChanges
-        {elementNumber}
-        {device}
-        visible={$appSettings.displayedOverlay === undefined}
-        class="bg-unsavedchange border bg-opacity-10 rounded-lg border-unsavedchange"
-        style="border-radius: {rounding}px;"
-      />
-      <ElementSelection
-        {elementNumber}
-        {device}
-        visible={$appSettings.displayedOverlay === undefined}
-        on:click={handleElementClicked}
-      />
+      <div
+        class="w-full h-full absolute"
+        style="width: calc(100% - var(--element-margin) * 2); 
+          height: calc(100% - var(--element-margin) * 2); 
+          margin: var(--element-margin); "
+      >
+        <ActiveChanges
+          {elementNumber}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="bg-unsavedchange bg-opacity-20 w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+        />
+        <ElementSelection
+          {elementNumber}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="pointer-events-auto w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+          on:click={handleElementClicked}
+        />
+      </div>
     </svelte:fragment>
 
     <!-- Cell Overlays -->
     <svelte:fragment slot="cell-overlay" let:elementNumber>
-      <PresetLoadOverlay
-        {device}
-        {elementNumber}
-        margin={2}
-        visible={$appSettings.displayedOverlay === "preset-load-overlay"}
-        on:click={handlePresetLoad}
-      />
+      <div
+        class="w-full h-full absolute"
+        style="width: calc(100% - var(--element-margin) * 2); 
+          height: calc(100% - var(--element-margin) * 2); 
+          margin: var(--element-margin); "
+      >
+        <PresetLoadOverlay
+          {device}
+          {elementNumber}
+          visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+          class="pointer-events-auto w-full h-full"
+          style="border-radius: var(--grid-rounding);"
+          on:click={handlePresetLoad}
+        />
+      </div>
       <ControlNameOverlay
         {device}
         {elementNumber}
@@ -202,6 +208,28 @@
 
     <!-- Module Overlays -->
     <svelte:fragment slot="module-overlay" let:device>
+      <SystemElement>
+        <ActiveChanges
+          elementNumber={255}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="bg-unsavedchange bg-opacity-20 w-full h-full rounded-t-full"
+        />
+        <ElementSelection
+          elementNumber={255}
+          {device}
+          visible={$appSettings.displayedOverlay === undefined}
+          class="pointer-events-auto w-full h-full rounded-t-full"
+          on:click={handleElementClicked}
+        />
+      </SystemElement>
+
+      <!-- Overlay Backdrop -->
+      <div
+        class="absolute w-full h-full pointer-events-none"
+        class:bg-overlay={$appSettings.displayedOverlay !== undefined}
+        style="border-radius: var(--grid-rounding);"
+      />
       <ProfileLoadOverlay
         {device}
         visible={$appSettings.displayedOverlay === "profile-load-overlay"}
@@ -211,6 +239,10 @@
 </div>
 
 <style global>
+  :root {
+    --element-margin: 5px;
+    --grid-rounding: 5px;
+  }
   .module-dimensions {
     width: var(--module-size);
     height: var(--module-size);
@@ -229,10 +261,6 @@
     align-items: center;
     transition: filter 0.2s;
     filter: drop-shadow(2px 4px 3px rgba(0, 0, 0, 0.2));
-  }
-
-  .active-systemelement {
-    box-shadow: inset 0 0 10px #dddddd60;
   }
 
   .bg-overlay {

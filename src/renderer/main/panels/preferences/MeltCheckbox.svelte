@@ -15,7 +15,6 @@
   let oldTarget;
 
   $: {
-    //console.log("Target", target);
     if (target !== oldTarget) {
       $checked = target;
       oldTarget = target;

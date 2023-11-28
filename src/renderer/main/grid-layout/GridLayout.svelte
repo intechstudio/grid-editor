@@ -16,7 +16,7 @@
   const devices = writable([]);
   let columns = 0;
   let rows = 0;
-  const deviceGap = 14;
+  const deviceGap = 5;
   const deviceWidth = 225 + deviceGap + 1;
 
   let layoutWidth = 0;
@@ -132,16 +132,14 @@
       {#each $devices as rows}
         {#each rows as device}
           {#if typeof device !== "undefined"}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
             <div
               in:fly|global={{
                 x: device.fly_x_direction * 100,
                 y: device.fly_y_direction * 100,
                 duration: 300,
-                easing: eases.quadOut,
               }}
               out:fade|global={{ duration: 150 }}
-              id={device.id}
+              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
             >
               <Device {device} width={deviceWidth} />
             </div>

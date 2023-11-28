@@ -5,9 +5,6 @@
     unsaved_changes,
   } from "../../../../runtime/runtime.store.js";
 
-  export let moduleHovered = false;
-  export let margin = 0;
-  export let rounding = 0;
   export let device = undefined;
   export let visible = false;
 
@@ -36,9 +33,7 @@
   }
 
   function handleClick(e) {
-    if (!isSystemEventsSelected) {
-      dispatch("click");
-    }
+    dispatch("click");
   }
 </script>
 
@@ -47,24 +42,13 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if visible}
   <div
-    class="flex pointer-events-auto absolute top-0 left-0"
-    style="width: calc(100% + {margin * 2}px);height: calc(100% + {margin *
-      2}px); margin: -{margin}px;"
-    on:mouseover|self={() => (moduleHovered = true)}
-    on:mouseleave|self={() => (moduleHovered = false)}
+    class="{$$props.class} border-2 border-transparent"
+    class:border-white={isSelected}
+    class:border-opacity-30={isSelected}
+    class:animate-border-error={device?.fwMismatch}
+    style={$$props.style}
     on:click={handleClick}
-  >
-    <div
-      class="border-2 absolute border-transparent"
-      class:active-systemelement={isSystemEventsSelected}
-      class:border-white={isSelected || moduleHovered}
-      class:border-opacity-75={moduleHovered}
-      class:border-opacity-30={isSelected}
-      class:animate-border-error={device?.fwMismatch}
-      style="width: calc(100% - {margin * 2}px);height: calc(100% - {margin *
-        2}px); margin: {margin}px; border-radius: {rounding}px;"
-    />
-  </div>
+  />
 {/if}
 
 <style>

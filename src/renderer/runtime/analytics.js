@@ -6,7 +6,6 @@ const configuration = window.ctxProcess.configuration();
 const buildVariables = window.ctxProcess.buildVariables();
 
 console.log("Analytics Hello", get(appSettings));
-console.log(get(appSettings).persistent.analyticsEnabled);
 
 mixpanel.init(configuration.MIXPANEL_TOKEN, { debug: true });
 

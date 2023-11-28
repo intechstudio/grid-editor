@@ -43,7 +43,7 @@
 
 {#if visible && device?.type === $selectedConfigStore.type}
   <div
-    class="text-white bg-overlay z-[1] w-full flex flex-col
+    class="text-white z-[1] w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto"
     style="transform: rotate({-$appSettings.persistent.moduleRotation}deg)"
   >

@@ -589,8 +589,6 @@ function create_runtime() {
 
   function element_preset_load(preset) {
     const li = get(user_input);
-    console.log("preset", preset);
-    console.log("ui", li);
     if (li.event.elementtype == preset.type) {
       console.log("GOOD TYPE");
 
@@ -620,8 +618,6 @@ function create_runtime() {
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = ev.event;
-
-        console.log(index, dx, dy, page, element, event, ev);
 
         _runtime.update((_runtime) => {
           let dest = findUpdateDestEvent(

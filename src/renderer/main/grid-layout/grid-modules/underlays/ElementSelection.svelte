@@ -42,11 +42,11 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if visible}
-  <underlay
-    class="absolute rounded-lg m-[4px] {isSelected
+  <div
+    class="{isSelected
       ? 'bg-white bg-opacity-10'
-      : 'bg-transparent hover:bg-white hover:bg-opacity-5'} pointer-events-auto"
-    style="width: calc(100% - 8px); height: calc(100% - 8px)"
+      : 'bg-transparent hover:bg-white hover:bg-opacity-5'} {$$props.class}"
+    style={$$props.style}
     on:click={() => {
       dispatch("click", {
         elementNumber: elementNumber,
