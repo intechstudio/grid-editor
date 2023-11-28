@@ -434,20 +434,20 @@ function create_configuration_manager() {
   });
 
   function loadPreset({ x, y, element, preset }) {
-    runtime.element_preset_load(x, y, element, preset)
-    const ui = get(user_input)
+    runtime.element_preset_load(x, y, element, preset);
+    const ui = get(user_input);
     store.set(createConfigListFrom(ui));
   }
 
   function loadProfile({ x, y, profile }) {
     runtime.whole_page_overwrite(x, y, profile);
-    const ui = get(user_input)
+    const ui = get(user_input);
     store.set(createConfigListFrom(ui));
   }
 
   return {
     ...store,
     loadPreset: loadPreset,
-    loadProfile: loadProfile
-  }
+    loadProfile: loadProfile,
+  };
 }
