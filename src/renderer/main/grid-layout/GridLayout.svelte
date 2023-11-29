@@ -119,8 +119,6 @@
     appSettings,
     ($appSettings) => 1 * $appSettings.persistent.size
   );
-
-  $: console.log(columns);
 </script>
 
 <layout-container class={$$props.class}>

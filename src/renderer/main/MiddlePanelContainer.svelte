@@ -1,5 +1,4 @@
 <script>
-  import Pages from "./panels/configuration/components/Pages.svelte";
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
@@ -10,8 +9,9 @@
   import { writeBuffer } from "../runtime/engine.store.js";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
-
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
+  import StickyContainer from "./user-interface/StickyContainer.svelte";
+  import { outOfBounds } from "./_actions/out-of-bounds-action";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -27,10 +27,13 @@
 </script>
 
 <div
+  id="container"
   class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
 >
   <GridLayout class="absolute items-center flex flex-col">
-    <Pages />
+    <div use:outOfBounds={{ reference: document.getElementById("container") }}>
+      <StickyContainer />
+    </div>
   </GridLayout>
   {#if $writeBuffer.length > 0 && $runtime.length > 0}
     <div
