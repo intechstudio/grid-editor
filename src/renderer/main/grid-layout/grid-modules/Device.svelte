@@ -125,7 +125,7 @@
   }
 </script>
 
-<div class="pointer-events-none relative">
+<div class="pointer-events-none {$$props.classs}" style={$$props.style}>
   <svelte:component
     this={component}
     {device}

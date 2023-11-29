@@ -24,6 +24,9 @@
   let shiftX = 0;
   let shiftY = 0;
 
+  let width = 0;
+  let height = 0;
+
   let rotation = 0;
   let rotationBuffer = 0;
   let trueRotation = 0;
@@ -43,8 +46,8 @@
   }
 
   function calculateLayoutDimensions(rotation, columns, rows, scale) {
-    const width = columns * deviceWidth * scale;
-    const height = rows * deviceWidth * scale;
+    width = columns * deviceWidth * scale;
+    height = rows * deviceWidth * scale;
     layoutWidth = rotation == 0 || rotation == 180 ? width : height;
     layoutHeight = rotation == 90 || rotation == 270 ? width : height;
     shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
@@ -126,28 +129,45 @@
     class="relative"
   >
     <div
-      class="absolute grid grid-cols-{columns}"
-      style="transform-origin: left top; transform: translate({shiftX}px, {shiftY}px) scale({$scalingPercent}) rotate({trueRotation}deg);"
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      style="width: {width}px;  height: {height}px;"
     >
-      {#each $devices as rows}
-        {#each rows as device}
-          {#if typeof device !== "undefined"}
-            <div
-              in:fly|global={{
-                x: device.fly_x_direction * 100,
-                y: device.fly_y_direction * 100,
-                duration: 300,
-              }}
-              out:fade|global={{ duration: 150 }}
-              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-            >
-              <Device {device} width={deviceWidth} />
-            </div>
-          {:else}
-            <div class="h-32 w-32 bg-black border invisible" />
-          {/if}
-        {/each}
-      {/each}
+      <div
+        class="absolute w-full h-full transition-all duration-500"
+        style="transform: rotate({trueRotation}deg);"
+      >
+        <div
+          class="grid grid-cols-[{columns}]"
+          style="width: {width}px;  height: {height}px;"
+        >
+          {#each $devices as rows, i}
+            {#each rows as device}
+              {#if typeof device !== "undefined"}
+                <div
+                  in:fly|global={{
+                    x: device.fly_x_direction * 100,
+                    y: device.fly_y_direction * 100,
+                    duration: 300,
+                  }}
+                  style="width: {deviceWidth *
+                    $scalingPercent}px; height: {deviceWidth *
+                    $scalingPercent}px;"
+                  out:fade|global={{ duration: 150 }}
+                  id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+                >
+                  <Device
+                    {device}
+                    width={deviceWidth}
+                    style="transform-origin: top left; transform: scale({$scalingPercent})"
+                  />
+                </div>
+              {:else}
+                <div class="h-32 w-32 bg-black border invisible" />
+              {/if}
+            {/each}
+          {/each}
+        </div>
+      </div>
     </div>
   </div>
   <slot />
