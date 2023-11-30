@@ -11,8 +11,8 @@
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
-  import { outOfBounds } from "./_actions/out-of-bounds-action";
-  import { derived } from "svelte/store";
+  import { inBounds } from "./_actions/out-of-bounds-action";
+  import { onMount } from "svelte";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -26,39 +26,29 @@
     logLength = DOMElementCount;
   }
 
-  let scale = derived(appSettings, ($appSettings) =>
-    Number($appSettings.persistent.size)
-  );
-
-  let rotation = derived(appSettings, ($appSettings) =>
-    Number($appSettings.persistent.moduleRotation)
-  );
-
   let showFixedStickyContainer = false;
-  function handleStickyPositionChange(e) {
-    const { inBounds } = e.detail;
-    showFixedStickyContainer = !inBounds;
-  }
+  let container;
+  let gridLayout;
+  onMount(() => {
+    function callback() {
+      showFixedStickyContainer = !inBounds(container, gridLayout, -15);
+    }
+
+    const observer = new ResizeObserver(callback).observe(gridLayout);
+    window.addEventListener("resize", callback, true);
+  });
 </script>
 
 <div
+  bind:this={container}
   id="container"
   class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
 >
-  <GridLayout class="absolute items-center flex flex-col">
-    <div
-      use:outOfBounds={{
-        reference: document.getElementById("container"),
-        eventListeners: [
-          scale.subscribe,
-          rotation.subscribe,
-          runtime.subscribe,
-        ],
-        threshold: -30,
-      }}
-      on:position-change={handleStickyPositionChange}
-      class:invisible={showFixedStickyContainer}
-    >
+  <GridLayout
+    bind:component={gridLayout}
+    class="absolute items-center flex flex-col"
+  >
+    <div class:invisible={showFixedStickyContainer}>
       <StickyContainer />
     </div>
   </GridLayout>

@@ -10,6 +10,9 @@
 
   import * as eases from "svelte/easing";
   import { derived } from "svelte/store";
+  import { onMount } from "svelte";
+
+  export let component;
 
   let moduleBorderWidth = 2;
 
@@ -121,7 +124,7 @@
   );
 </script>
 
-<layout-container class={$$props.class}>
+<layout-container class="{$$props.class} " bind:this={component}>
   <div
     style="width: {layoutWidth}px;  height: {layoutHeight}px;"
     class="relative"
