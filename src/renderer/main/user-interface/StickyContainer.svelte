@@ -2,6 +2,6 @@
   import Pages from "../panels/configuration/components/Pages.svelte";
 </script>
 
-<container class={$$props.class}>
+<div class={$$props.class}>
   <Pages />
-</container>
+</div>

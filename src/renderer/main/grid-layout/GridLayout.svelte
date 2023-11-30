@@ -135,8 +135,9 @@
         style="transform: rotate({trueRotation}deg);"
       >
         <div
-          class="grid grid-cols-[{columns}]"
-          style="width: {width}px;  height: {height}px;"
+          class="grid"
+          style="grid-template-columns: repeat({columns}, auto); 
+            width: {width}px;  height: {height}px;"
         >
           {#each $devices as rows, i}
             {#each rows as device}
