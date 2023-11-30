@@ -12,6 +12,7 @@
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import { outOfBounds } from "./_actions/out-of-bounds-action";
+  import { derived } from "svelte/store";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -24,6 +25,20 @@
     const { DOMElementCount } = e.detail;
     logLength = DOMElementCount;
   }
+
+  let scale = derived(appSettings, ($appSettings) =>
+    Number($appSettings.persistent.size)
+  );
+
+  let rotation = derived(appSettings, ($appSettings) =>
+    Number($appSettings.persistent.moduleRotation)
+  );
+
+  let showFixedStickyContainer = false;
+  function handleStickyPositionChange(e) {
+    const { inBounds } = e.detail;
+    showFixedStickyContainer = !inBounds;
+  }
 </script>
 
 <div
@@ -31,10 +46,25 @@
   class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
 >
   <GridLayout class="absolute items-center flex flex-col">
-    <div use:outOfBounds={{ reference: document.getElementById("container") }}>
+    <div
+      use:outOfBounds={{
+        reference: document.getElementById("container"),
+        eventListeners: [
+          scale.subscribe,
+          rotation.subscribe,
+          runtime.subscribe,
+        ],
+        threshold: -30,
+      }}
+      on:position-change={handleStickyPositionChange}
+      class:invisible={showFixedStickyContainer}
+    >
       <StickyContainer />
     </div>
   </GridLayout>
+  {#if showFixedStickyContainer}
+    <StickyContainer class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-5" />
+  {/if}
   {#if $writeBuffer.length > 0 && $runtime.length > 0}
     <div
       in:fade={{ delay: 300, duration: 300 }}
