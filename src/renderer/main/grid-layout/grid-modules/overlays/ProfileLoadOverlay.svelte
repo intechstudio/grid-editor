@@ -5,17 +5,13 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
 
-  export let id;
   export let device = undefined;
   export let visible = false;
 
   function selectModuleWhereProfileIsLoaded() {
-    const dx = id.split(";")[0].split(":").pop();
-    const dy = id.split(";")[1].split(":").pop();
-
     user_input.update((store) => {
-      store.brc.dx = +dx;
-      store.brc.dy = +dy;
+      store.brc.dx = +device?.dx;
+      store.brc.dy = +device?.dy;
       return store;
     });
   }

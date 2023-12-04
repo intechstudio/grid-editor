@@ -29,8 +29,8 @@
   import SystemElement from "./overlays/SystemElement.svelte";
 
   export let device = undefined;
+  export let width = 225;
 
-  let moduleWidth = 2.1 * 106.6 + 2;
   let component = undefined;
 
   onMount(() => {
@@ -42,7 +42,7 @@
       { type: "EF44", component: EF44 },
       { type: "TEK2", component: TEK2 },
     ];
-    const index = components.findIndex((e) => e.type === device.type);
+    const index = components.findIndex((e) => e.type === device?.type);
     device.type = components[index].type;
     component = components[index].component;
   });
@@ -125,11 +125,11 @@
   }
 </script>
 
-<div class="pointer-events-none relative">
+<div class="pointer-events-none {$$props.classs}" style={$$props.style}>
   <svelte:component
     this={component}
     {device}
-    {moduleWidth}
+    moduleWidth={width}
     rotation={device?.rot}
     let:elementNumber
     let:device
