@@ -5,7 +5,5 @@ export function inBounds(reference, node, threshold = 0) {
   const rect1 = reference.getBoundingClientRect();
   const rect2 = node.getBoundingClientRect();
 
-  return (
-    rect2.bottom < rect1.bottom + threshold
-  )
-};
+  return rect2.bottom < rect1.bottom + threshold;
+}
