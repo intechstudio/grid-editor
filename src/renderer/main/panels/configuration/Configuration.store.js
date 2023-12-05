@@ -415,10 +415,7 @@ function create_configuration_manager() {
     }
 
     try {
-      const event = target.getEvent();
       list = ConfigList.createFromTarget(target);
-
-      console.log(event.stored, list.toConfigScript(), target, event);
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);

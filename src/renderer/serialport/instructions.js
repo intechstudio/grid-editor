@@ -135,12 +135,19 @@ const instructions = {
           page,
           element: element,
           event: event,
-          changes: 0,
+          changes: [],
         };
         s.push(obj);
       }
 
-      obj.changes += 1;
+      const event = rt
+        .find((e) => e.dx == dx && e.dy == dy)
+        .pages[page].control_elements.find(
+          (e) => e.controlElementNumber == element
+        )
+        .events.find((e) => e.event.value == event);
+
+      obj.changes.push({ config: event.config });
       return s;
     });
 
