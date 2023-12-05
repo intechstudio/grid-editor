@@ -1,20 +1,12 @@
 <script>
   import { writable } from "svelte/store";
-
-  import { runtime, user_input } from "../../runtime/runtime.store.js";
+  import { runtime } from "../../runtime/runtime.store.js";
   import { appSettings } from "../../runtime/app-helper.store.js";
-
   import Device from "./grid-modules/Device.svelte";
-
   import { fade, fly } from "svelte/transition";
-
-  import * as eases from "svelte/easing";
   import { derived } from "svelte/store";
-  import { onMount } from "svelte";
 
   export let component;
-
-  let moduleBorderWidth = 2;
 
   const devices = writable([]);
   let columns = 0;
@@ -72,14 +64,26 @@
     calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
   }
 
+  function getGridDimensions() {
+    const rt = $runtime;
+    const min_x = Math.min(...rt.map((e) => e.dx));
+    const min_y = Math.min(...rt.map((e) => e.dy));
+    const max_x = Math.max(...rt.map((e) => e.dx));
+    const max_y = Math.max(...rt.map((e) => e.dy));
+    return {
+      min_x: min_x,
+      min_y: min_y,
+      max_x: max_x,
+      max_y: max_y,
+      rows: rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
+      columns: rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
+    };
+  }
+
   function calculateDevices(rt) {
     devices.update((s) => {
-      const min_x = Math.min(...rt.map((e) => e.dx));
-      const min_y = Math.min(...rt.map((e) => e.dy));
-      const max_x = Math.max(...rt.map((e) => e.dx));
-      const max_y = Math.max(...rt.map((e) => e.dy));
-      rows = rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0;
-      columns = rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0;
+      const dim = getGridDimensions();
+      const { min_x, min_y, rows, columns } = dim;
       s = Array.from(Array(rows), () => Array(columns).fill(undefined));
 
       rt.forEach((device, i) => {
@@ -115,13 +119,26 @@
       s = s.reverse();
       return s;
     });
-    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
   }
 
   let scalingPercent = derived(
     appSettings,
     ($appSettings) => 1 * $appSettings.persistent.size
   );
+
+  function handleOutroEnd() {
+    const dim = getGridDimensions();
+    rows = dim.rows;
+    columns = dim.columns;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
+
+  function handleIntroStart() {
+    const dim = getGridDimensions();
+    rows = dim.rows;
+    columns = dim.columns;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
 </script>
 
 <layout-container class="{$$props.class} " bind:this={component}>
@@ -134,7 +151,7 @@
       style="width: {width}px;  height: {height}px;"
     >
       <div
-        class="absolute w-full h-full transition-all duration-500"
+        class="absolute w-full h-full duration-500 transition-all"
         style="transform: rotate({trueRotation}deg);"
       >
         <div
@@ -142,8 +159,8 @@
           style="grid-template-columns: repeat({columns}, auto); 
             width: {width}px;  height: {height}px;"
         >
-          {#each $devices as rows, i}
-            {#each rows as device}
+          {#each $devices as rows}
+            {#each rows as device (device.id)}
               {#if typeof device !== "undefined"}
                 <div
                   in:fly|global={{
@@ -154,7 +171,9 @@
                   style="width: {deviceWidth *
                     $scalingPercent}px; height: {deviceWidth *
                     $scalingPercent}px;"
-                  out:fade|global={{ duration: 150 }}
+                  out:fade|global={{ duration: 200 }}
+                  on:outroend={handleOutroEnd}
+                  on:introstart={handleIntroStart}
                   id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
                 >
                   <Device
