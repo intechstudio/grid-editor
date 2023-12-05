@@ -353,7 +353,6 @@ export class ConfigTarget {
       (e) => e.dx == this.device.dx && e.dy == this.device.dy
     );
 
-
     if (typeof device === "undefined") {
       return undefined;
     }
@@ -408,7 +407,6 @@ function create_configuration_manager() {
   let store = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
-    console.log("asd")
     const target = ConfigTarget.createFrom({ userInput: ui });
     let list = new ConfigList();
 
@@ -420,16 +418,7 @@ function create_configuration_manager() {
       const event = target.getEvent();
       list = ConfigList.createFromTarget(target);
 
-      if (typeof event.stored !== "undefined") {
-        const stored = ConfigList.createFromActionString(event.stored);
-
-        let j = 0;
-        for (let i = 0; i < list.length; ++i) {
-          console.log(list[i])
-          //if ()
-        }
-
-      }
+      console.log(event.stored, list.toConfigScript(), target, event);
     } catch (e) {
       if (e instanceof UnknownEventException) {
         const availableEvents = target.events.map((e) => e.event.value);
