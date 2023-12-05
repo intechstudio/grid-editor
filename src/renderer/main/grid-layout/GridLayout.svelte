@@ -83,8 +83,8 @@
   function calculateDevices(rt) {
     devices.update((s) => {
       const dim = getGridDimensions();
-      const { min_x, min_y, rows, columns } = dim;
-      s = Array.from(Array(rows), () => Array(columns).fill(undefined));
+      const { min_x, min_y } = dim;
+      s = [];
 
       rt.forEach((device, i) => {
         let connection_top = 0;
@@ -113,10 +113,10 @@
         obj.fly_x_direction = connection_right - connection_left;
         obj.fly_y_direction = connection_top - connection_bottom;
         obj.type = rt[i].id.substr(0, 4);
-        s[x][y] = obj;
+        obj.gridX = x;
+        obj.gridY = y;
+        s.push(obj);
       });
-
-      s = s.reverse();
       return s;
     });
   }
@@ -157,35 +157,31 @@
         <div
           class="grid"
           style="grid-template-columns: repeat({columns}, auto); 
+          grid-template-rows: repeat({rows}, auto);
             width: {width}px;  height: {height}px;"
         >
-          {#each $devices as rows}
-            {#each rows as device (device.id)}
-              {#if typeof device !== "undefined"}
-                <div
-                  in:fly|global={{
-                    x: device.fly_x_direction * 100,
-                    y: device.fly_y_direction * 100,
-                    duration: 300,
-                  }}
-                  style="width: {deviceWidth *
-                    $scalingPercent}px; height: {deviceWidth *
-                    $scalingPercent}px;"
-                  out:fade|global={{ duration: 200 }}
-                  on:outroend={handleOutroEnd}
-                  on:introstart={handleIntroStart}
-                  id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-                >
-                  <Device
-                    {device}
-                    width={deviceWidth}
-                    style="transform-origin: top left; transform: scale({$scalingPercent})"
-                  />
-                </div>
-              {:else}
-                <div class="h-32 w-32 bg-black border invisible" />
-              {/if}
-            {/each}
+          {#each $devices as device (device.id)}
+            <div
+              in:fly|global={{
+                x: device.fly_x_direction * 100,
+                y: device.fly_y_direction * 100,
+                duration: 300,
+              }}
+              style="width: {deviceWidth * $scalingPercent}px; 
+                height: {deviceWidth * $scalingPercent}px;
+                grid-row: {device.gridY};
+                grid-column: {device.gridX};"
+              out:fade|global={{ duration: 200 }}
+              on:outroend={handleOutroEnd}
+              on:introstart={handleIntroStart}
+              id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+            >
+              <Device
+                {device}
+                width={deviceWidth}
+                style="transform-origin: top left; transform: scale({$scalingPercent})"
+              />
+            </div>
           {/each}
         </div>
       </div>
