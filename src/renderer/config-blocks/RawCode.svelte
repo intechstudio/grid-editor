@@ -49,10 +49,11 @@
   let compBlock = undefined;
   onMount(() => {
     compBlock = getCompatiblityBlock(config.script);
+    console.log({config})
   });
 
   function getCompatiblityBlock(script) {
-    let block = [];
+    let block = undefined;
 
     const compatibility_map = new Map([
       ["elseif (self:bst()>0 and self:est()>63) then", "eprlrei1"],
@@ -76,7 +77,7 @@
     }
 
     //Fallback logic, everything can be converted to codeblock
-    if (block.length === 0) {
+    if (!block) {
       block = getComponentInformation({ short: "cb" });
     }
 
@@ -96,14 +97,21 @@
 >
   <div class="w-full flex flex-col items-center">
     <div class="flex items-center pb-2 w-full">
-      <div class="text-gray-500 text-sm font-bold">Missing Action Block!</div>
-      <div class="flex flex-row gap-1 ml-auto items-center">
-        <span class="text-sm text-gray-500">What happened</span>
-        <TooltipQuestion
-          key={"raw_block_what_happened_text"}
-          class="text-white"
-        />
-      </div>
+      {#if config.short.startsWith('x')}
+        <div class="text-gray-500 text-sm font-bold">Missing Plugin Action!</div>
+        <div class="flex flex-row gap-1 ml-auto items-center">
+          <span class="text-sm text-gray-500">{config.short}</span>
+        </div>
+      {:else}
+        <div class="text-gray-500 text-sm font-bold">Missing Action Block!</div>
+        <div class="flex flex-row gap-1 ml-auto items-center">
+          <span class="text-sm text-gray-500">What happened</span>
+          <TooltipQuestion
+            key={"raw_block_what_happened_text"}
+            class="text-white"
+          />
+        </div>
+      {/if}
     </div>
 
     <div class="text-white">

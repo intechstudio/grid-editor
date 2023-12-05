@@ -264,7 +264,7 @@ async function getInstalledPlugins(): Promise<
           if (fs.existsSync(packageJsonPath)) {
             const packageJson = require(packageJsonPath);
             pluginName = packageJson.description;
-            const preferenceRelativePath = packageJson.grid_editor.preference;
+            const preferenceRelativePath = packageJson.grid_editor?.preference;
             if (preferenceRelativePath) {
               const preferencePath = path.join(
                 pluginPath,
