@@ -1,36 +1,57 @@
 <script>
-  import { writable, derived } from "svelte/store";
-
+  import { writable } from "svelte/store";
   import { runtime } from "../../runtime/runtime.store.js";
-
+  import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
-
   import { fade, fly } from "svelte/transition";
+  import { derived } from "svelte/store";
 
-  import { appSettings } from "../../runtime/app-helper.store";
-
-  import { clickOutside } from "/main/_actions/click-outside.action";
+  export let component;
 
   const devices = writable([]);
+  let columns = 0;
+  let rows = 0;
   const deviceGap = 5;
   const deviceWidth = 225 + deviceGap + 1;
 
+  let layoutWidth = 0;
+  let layoutHeight = 0;
   let shiftX = 0;
   let shiftY = 0;
 
-  let rotation = $appSettings.persistent.moduleRotation;
-  let rotationBuffer = $appSettings.persistent.moduleRotation;
-  let trueRotation = $appSettings.persistent.moduleRotation;
+  let width = 0;
+  let height = 0;
+
+  let rotation = 0;
+  let rotationBuffer = 0;
+  let trueRotation = 0;
+
+  $: calculateRotation($appSettings.persistent.moduleRotation);
 
   $: {
-    const rt = $runtime;
-    //Initial center shift
-    shiftX = -deviceWidth / 2;
-    shiftY = -deviceWidth / 2;
+    if (typeof $runtime !== "undefined") {
+      calculateDevices($runtime);
+    }
+  }
 
-    //Compensate for rotation
+  $: handleScalingChange($scalingPercent);
+
+  function handleScalingChange(value) {
+    calculateLayoutDimensions(rotation, columns, rows, value);
+  }
+
+  function calculateLayoutDimensions(rotation, columns, rows, scale) {
+    width = columns * deviceWidth * scale;
+    height = rows * deviceWidth * scale;
+    layoutWidth = rotation == 0 || rotation == 180 ? width : height;
+    layoutHeight = rotation == 90 || rotation == 270 ? width : height;
+    shiftX = rotation == 90 || rotation == 180 ? layoutWidth : 0;
+    shiftY = rotation == 270 || rotation == 180 ? layoutHeight : 0;
+  }
+
+  function calculateRotation(value) {
     rotationBuffer = rotation;
-    rotation = $appSettings.persistent.moduleRotation;
+    rotation = value;
 
     let deltaRotation = rotation - rotationBuffer;
     if (deltaRotation > 180) {
@@ -40,118 +61,154 @@
       deltaRotation += 360;
     }
     trueRotation += deltaRotation;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
 
-    if (rotation == 90 || rotation == 180) {
-      shiftX += deviceWidth - deviceGap;
-    }
-    if (rotation == 180 || rotation == 270) {
-      shiftY += deviceWidth - deviceGap;
-    }
+  function getGridDimensions() {
+    const rt = $runtime;
+    const min_x = Math.min(...rt.map((e) => e.dx));
+    const min_y = Math.min(...rt.map((e) => e.dy));
+    const max_x = Math.max(...rt.map((e) => e.dx));
+    const max_y = Math.max(...rt.map((e) => e.dy));
+    return {
+      min_x: min_x,
+      min_y: min_y,
+      max_x: max_x,
+      max_y: max_y,
+      rows: rt.length > 0 ? Math.abs(min_y - max_y) + 1 : 0,
+      columns: rt.length > 0 ? Math.abs(min_x - max_x) + 1 : 0,
+    };
+  }
 
-    //And the other transformations
-    if (rt.length > 0) {
-      const min_x = Math.min(...rt.map((e) => e.dx));
-      const max_x = Math.max(...rt.map((e) => e.dx));
-      const min_y = Math.min(...rt.map((e) => e.dy));
-      const max_y = Math.max(...rt.map((e) => e.dy));
+  function calculateDevices(rt) {
+    devices.update((s) => {
+      const dim = getGridDimensions();
+      const { min_x, min_y, rows, columns } = dim;
+      s = Array.from(Array(rows), () => Array(columns).fill(undefined));
 
-      switch (rotation) {
-        case 0: {
-          shiftX -= (deviceWidth / 2) * (min_x + max_x);
-          shiftY -= (deviceWidth / 2) * (min_y + max_y) * -1;
-          break;
-        }
-        case 90: {
-          shiftY -= (deviceWidth / 2) * (min_x + max_x);
-          shiftX -= (deviceWidth / 2) * (min_y + max_y);
-          break;
-        }
-        case 180: {
-          shiftX -= (deviceWidth / 2) * (min_x + max_x) * -1;
-          shiftY -= (deviceWidth / 2) * (min_y + max_y);
-          break;
-        }
-        case 270: {
-          shiftY -= (deviceWidth / 2) * (min_x + max_x) * -1;
-          shiftX -= (deviceWidth / 2) * (min_y + max_y) * -1;
-          break;
-        }
-      }
-    }
+      rt.forEach((device, i) => {
+        let connection_top = 0;
+        let connection_bottom = 0;
+        let connection_left = 0;
+        let connection_right = 0;
 
-    rt.forEach((device, i) => {
-      let connection_top = 0;
-      let connection_bottom = 0;
-      let connection_left = 0;
-      let connection_right = 0;
+        rt.forEach((neighbor) => {
+          if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
+            const dxDiff = device.dx - neighbor.dx;
+            const dyDiff = device.dy - neighbor.dy;
 
-      rt.forEach((neighbor) => {
-        if (!(device.dx == neighbor.dx && device.dy == neighbor.dy)) {
-          const dxDiff = device.dx - neighbor.dx;
-          const dyDiff = device.dy - neighbor.dy;
+            connection_right = dxDiff > 0 ? 1 : 0;
+            connection_left = dxDiff < 0 ? 1 : 0;
+            connection_bottom = dyDiff > 0 ? 1 : 0;
+            connection_top = dyDiff < 0 ? 1 : 0;
+          }
+        });
 
-          connection_right = dxDiff > 0 ? 1 : 0;
-          connection_left = dxDiff < 0 ? 1 : 0;
-          connection_bottom = dyDiff > 0 ? 1 : 0;
-          connection_top = dyDiff < 0 ? 1 : 0;
-        }
+        const [x, y] = [
+          device.dy + Math.abs(min_y),
+          device.dx + Math.abs(min_x),
+        ];
+
+        const obj = structuredClone(device);
+        obj.fly_x_direction = connection_right - connection_left;
+        obj.fly_y_direction = connection_top - connection_bottom;
+        obj.type = rt[i].id.substr(0, 4);
+        s[x][y] = obj;
       });
 
-      rt[i].fly_x_direction = connection_right - connection_left;
-      rt[i].fly_y_direction = connection_top - connection_bottom;
-
-      rt[i].type = rt[i].id.substr(0, 4);
-      rt[i].shift_x = deviceWidth * rt[i].dx;
-      rt[i].shift_y = -deviceWidth * rt[i].dy;
+      s = s.reverse();
+      return s;
     });
-
-    devices.set(rt);
   }
 
   let scalingPercent = derived(
     appSettings,
     ($appSettings) => 1 * $appSettings.persistent.size
   );
+
+  function handleOutroEnd() {
+    const dim = getGridDimensions();
+    rows = dim.rows;
+    columns = dim.columns;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
+
+  function handleIntroStart() {
+    const dim = getGridDimensions();
+    rows = dim.rows;
+    columns = dim.columns;
+    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+  }
 </script>
 
-<layout-container class="{$$props.class} overflow-hidden">
+<layout-container class="{$$props.class} " bind:this={component}>
   <div
-    style="
-      --device-width: {deviceWidth}px; 
-      --shift-x: {shiftX}px; 
-      --shift-y: {shiftY}px; 
-      --scaling-percent: {$scalingPercent};
-      --rotation-degree: {trueRotation}deg;
-    "
-    class="absolute centered"
-    use:clickOutside={{ useCapture: true }}
+    style="width: {layoutWidth}px;  height: {layoutHeight}px;"
+    class="relative"
   >
-    {#each $devices as device (device)}
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <div
+      class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      style="width: {width}px;  height: {height}px;"
+    >
       <div
-        in:fly|global={{
-          x: device.fly_x_direction * 100,
-          y: device.fly_y_direction * 100,
-          duration: 300,
-        }}
-        out:fade|global={{ duration: 150 }}
-        id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
-        style="top: {device.shift_y + 'px'};left:{device.shift_x + 'px'};"
-        class="absolute"
+        class="absolute w-full h-full duration-500 transition-all"
+        style="transform: rotate({trueRotation}deg);"
       >
-        <Device {device} />
+        <div
+          class="grid"
+          style="grid-template-columns: repeat({columns}, auto); 
+            width: {width}px;  height: {height}px;"
+        >
+          {#each $devices as rows}
+            {#each rows as device (device.id)}
+              {#if typeof device !== "undefined"}
+                <div
+                  in:fly|global={{
+                    x: device.fly_x_direction * 100,
+                    y: device.fly_y_direction * 100,
+                    duration: 300,
+                  }}
+                  style="width: {deviceWidth *
+                    $scalingPercent}px; height: {deviceWidth *
+                    $scalingPercent}px;"
+                  out:fade|global={{ duration: 200 }}
+                  on:outroend={handleOutroEnd}
+                  on:introstart={handleIntroStart}
+                  id="grid-device-{'dx:' + device.dx + ';dy:' + device.dy}"
+                >
+                  <Device
+                    {device}
+                    width={deviceWidth}
+                    style="transform-origin: top left; transform: scale({$scalingPercent})"
+                  />
+                </div>
+              {:else}
+                <div class="h-32 w-32 bg-black border invisible" />
+              {/if}
+            {/each}
+          {/each}
+        </div>
       </div>
-    {/each}
+    </div>
   </div>
   <slot />
 </layout-container>
 
 <style>
-  .centered {
-    top: 50%;
-    left: 50%;
-    transform-origin: center;
-    transform: scale(var(--scaling-percent))
-      translate(var(--shift-x), var(--shift-y)) rotate(var(--rotation-degree));
+  .animate-border-error {
+    animation-name: error-animation;
+    animation-duration: 1s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate-reverse;
+    animation-timing-function: ease;
+  }
+
+  @keyframes error-animation {
+    from {
+      border-color: transparent;
+    }
+    to {
+      border-color: #dc2626;
+    }
   }
 </style>

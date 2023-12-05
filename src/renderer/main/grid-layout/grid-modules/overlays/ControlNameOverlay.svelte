@@ -5,7 +5,6 @@
   export let visible = false;
   export let elementNumber = undefined;
   export let device = undefined;
-  export let rotation = 0;
 
   let elementSettings;
 
@@ -29,13 +28,11 @@
 
 {#if visible && elementNumber !== 255}
   <container class="pointer-events-auto">
-    <div
-      class="flex w-full h-full items-center p-1 bg-overlay"
-      style="transform: rotate({-$appSettings.persistent.moduleRotation}deg);"
-    >
+    <div class="flex w-full h-full items-center p-1 bg-overlay">
       <p
         class="max-w-md mx-auto md:break-words md:whitespace-normal truncate text-white"
-        style="transform: rotate({90 * device.rot}deg);"
+        style="transform: rotate({-$appSettings.persistent.moduleRotation +
+          device?.rot * 90}deg);"
       >
         {elementSettings[elementNumber]?.controlElementName}
       </p>

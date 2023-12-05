@@ -68,9 +68,8 @@
 
 <div
   class="module-dimensions relative"
-  style="--module-size: {moduleWidth + 'px'}; transform: rotate({rotation *
-    -90 +
-    'deg'})"
+  style="--module-size: {moduleWidth + 'px'}; transform: rotate({device.rot *
+    -90}deg)"
 >
   <div class="module-underlay-container">
     <slot name="module-underlay" {device} />

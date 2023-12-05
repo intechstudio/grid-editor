@@ -32,8 +32,8 @@
   } from "../../panels/configuration/Configuration.store";
 
   export let device = undefined;
+  export let width = 225;
 
-  let moduleWidth = 2.1 * 106.6 + 2;
   let component = undefined;
 
   onMount(() => {
@@ -45,7 +45,7 @@
       { type: "EF44", component: EF44 },
       { type: "TEK2", component: TEK2 },
     ];
-    const index = components.findIndex((e) => e.type === device.type);
+    const index = components.findIndex((e) => e.type === device?.type);
     device.type = components[index].type;
     component = components[index].component;
   });
@@ -152,12 +152,11 @@
   }
 </script>
 
-<div class="pointer-events-none relative">
+<div class="pointer-events-none {$$props.classs}" style={$$props.style}>
   <svelte:component
     this={component}
     {device}
-    {moduleWidth}
-    rotation={device?.rot}
+    moduleWidth={width}
     let:elementNumber
     let:device
   >
@@ -273,7 +272,6 @@
 
   .bg-overlay {
     background-color: rgba(30, 30, 30, 0.5);
-    backdrop-filter: blur(1px);
   }
 
   .normal-cell-underlay-container {

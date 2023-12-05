@@ -39,8 +39,8 @@
       ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
       : 'border-radius: var(--grid-rounding);'} "
     ><div
-      style="      transform: rotate({90 * device.rot +
-        -$appSettings.persistent.moduleRotation}deg);"
+      style="transform: rotate({-$appSettings.persistent.moduleRotation +
+        device?.rot * 90}deg);"
     >
       Load
     </div>
@@ -62,7 +62,7 @@
     content: "";
     position: absolute;
     z-index: -1;
-    box-shadow: 0px 300px 0px 1000px rgba(11, 164, 132, 1);
+    box-shadow: 0px 300px 0px 1000px rgba(11, 164, 132, 0.9);
   }
 
   .corner-cut-l:before {
