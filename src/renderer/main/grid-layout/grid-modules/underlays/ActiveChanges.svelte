@@ -18,10 +18,17 @@
       .pages[$user_input.event.pagenumber].control_elements.find(
         (e) => e.controlElementNumber == elementNumber
       ).events;
-    isChanged =
-      typeof events.find(
-        (e) => typeof e.stored !== "undefined" && e.stored !== e.config
-      ) !== "undefined";
+
+    //Find the event that has change
+    const changed = events.find(
+      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+    );
+
+    if (typeof changed !== "undefined") {
+      isChanged = true;
+    } else {
+      isChanged = false;
+    }
   }
 </script>
 

@@ -43,7 +43,7 @@
   4. Send changes to grid
   */
 
-  import { unsaved_changes } from "../runtime/runtime.store";
+  import { runtime } from "../runtime/runtime.store";
 
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
@@ -81,7 +81,7 @@
 
   $: isStored = config.script === storedScript;
 
-  $: if ($unsaved_changes.length === 0) {
+  $: if ($runtime && runtime.unsavedChangesCount() === 0) {
     storedScript = config.script;
   }
 

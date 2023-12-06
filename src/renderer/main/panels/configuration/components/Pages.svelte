@@ -3,14 +3,13 @@
 
   import {
     logger,
-    unsaved_changes,
     runtime,
     user_input,
   } from "../../../../runtime/runtime.store.js";
 
   let selectedPage = undefined;
   function handleSelectPage(page) {
-    if (get(unsaved_changes) == 0) {
+    if (runtime.unsavedChangesCount() == 0) {
       selectedPage = page;
       runtime.change_page(selectedPage);
     } else {
