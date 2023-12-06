@@ -1,7 +1,6 @@
 <script>
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { runtime, user_input } from "../../../../runtime/runtime.store";
-  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
   import { Analytics } from "../../../../runtime/analytics.js";
 
@@ -34,11 +33,6 @@
       mandatory: false,
     });
   }
-
-  function cancelProfileOverlay() {
-    selectedConfigStore.set({});
-    $appSettings.displayedOverlay = undefined;
-  }
 </script>
 
 {#if visible && device?.type === $selectedConfigStore.type}
@@ -56,18 +50,6 @@
         opacity-80 block"
       >
         Load Profile
-      </button>
-    </div>
-
-    <div class="w-fit">
-      <button
-        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
-        left-[37%] absolute bottom-[22%] opacity-60"
-        on:click={() => {
-          cancelProfileOverlay();
-        }}
-      >
-        Cancel
       </button>
     </div>
   </div>

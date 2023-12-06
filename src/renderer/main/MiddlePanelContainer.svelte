@@ -4,14 +4,12 @@
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
   import { fade, blur, fly } from "svelte/transition";
-  import { selectedConfigStore } from "../runtime/config-helper.store";
   import { runtime } from "../runtime/runtime.store";
   import { writeBuffer } from "../runtime/engine.store.js";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
-  import { inBounds } from "./_actions/out-of-bounds-action";
   import { onMount } from "svelte";
 
   let logLength = 0;
@@ -27,11 +25,19 @@
   }
 
   let showFixedStickyContainer = false;
-  let container;
   let gridLayout;
   onMount(() => {
     function callback() {
-      showFixedStickyContainer = !inBounds(container, gridLayout, -15);
+      const stickyContainer = document.getElementById("sticky-container");
+      const container = document.getElementById("container");
+      const contRect = container.getBoundingClientRect();
+      const stickyRect = stickyContainer.getBoundingClientRect();
+      const threshold = -15;
+
+      showFixedStickyContainer = !(
+        stickyRect.bottom <
+        contRect.bottom + threshold
+      );
     }
 
     const observer = new ResizeObserver(callback).observe(gridLayout);
@@ -40,20 +46,13 @@
 </script>
 
 <div
-  bind:this={container}
   id="container"
-  class="relative flex flex-col w-full h-full overflow-clip items-center justify-center"
+  class="relative flex flex-col w-full h-full overflow-clip justify-center"
 >
-  <GridLayout
-    bind:component={gridLayout}
-    class="absolute items-center flex flex-col"
-  >
-    <div class:invisible={showFixedStickyContainer}>
-      <StickyContainer />
-    </div>
-  </GridLayout>
   {#if showFixedStickyContainer}
-    <StickyContainer class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-5" />
+    <StickyContainer
+      class="absolute z-[1] bottom-0 left-1/2 -translate-x-1/2 mb-5"
+    />
   {/if}
   {#if $writeBuffer.length > 0 && $runtime.length > 0}
     <div
@@ -64,25 +63,27 @@
   {/if}
 
   <div
-    class="absolute top-0 w-fit self-center mt-10 z-11 bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+    class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
   >
     {#if $writeBuffer.length > 0 && $runtime.length > 0}
       <ModuleHangingDialog />
     {:else}
       <ActiveChanges />
-      {#if $selectedConfigStore?.configType === "preset"}
-        <button
-          class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
-                      rounded text-white py-1 w-24 hover:bg-yellow-600"
-          on:click={() => {
-            selectedConfigStore.set({});
-          }}
-        >
-          <div>Cancel</div>
-        </button>
-      {/if}
     {/if}
   </div>
+
+  <GridLayout
+    bind:component={gridLayout}
+    class="absolute z-[0] items-center flex flex-col self-center"
+  >
+    <div
+      id="sticky-container"
+      class="absolute top-full left-1/2 -translate-x-1/2"
+      class:invisible={showFixedStickyContainer || $runtime.length === 0}
+    >
+      <StickyContainer />
+    </div>
+  </GridLayout>
 
   {#if $runtime.length == 0 && $appSettings.firmwareNotificationState === 0}
     <div
