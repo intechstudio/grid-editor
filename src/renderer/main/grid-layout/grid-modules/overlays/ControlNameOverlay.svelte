@@ -26,14 +26,13 @@
   }
 </script>
 
-{#if visible}
+{#if visible && elementNumber !== 255}
   <container class="pointer-events-auto">
-    <div
-      class="flex w-full h-full items-center p-1"
-      style="transform: rotate({-$appSettings.persistent.moduleRotation}deg);"
-    >
+    <div class="flex w-full h-full items-center p-1 bg-overlay">
       <p
         class="max-w-md mx-auto md:break-words md:whitespace-normal truncate text-white"
+        style="transform: rotate({-$appSettings.persistent.moduleRotation +
+          device?.rot * 90}deg);"
       >
         {elementSettings[elementNumber]?.controlElementName}
       </p>
