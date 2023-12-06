@@ -1,77 +1,32 @@
 <script>
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
-  import { runtime, user_input } from "../../../../runtime/runtime.store";
-  import { isActionButtonClickedStore } from "/runtime/config-helper.store";
   import { appSettings } from "/runtime/app-helper.store";
-  import { Analytics } from "../../../../runtime/analytics.js";
+  import { createEventDispatcher } from "svelte";
 
-  export let id;
   export let device = undefined;
   export let visible = false;
 
-  function selectModuleWhereProfileIsLoaded() {
-    const dx = id.split(";")[0].split(":").pop();
-    const dy = id.split(";")[1].split(":").pop();
+  const dispatch = createEventDispatcher();
 
-    user_input.update((store) => {
-      store.brc.dx = +dx;
-      store.brc.dy = +dy;
-      return store;
-    });
-  }
-
-  function loadProfileToThisModule() {
-    selectModuleWhereProfileIsLoaded();
-
-    Analytics.track({
-      event: "Profile Load Start",
-      payload: {},
-      mandatory: false,
-    });
-
-    // to do.. if undefined configs
-    runtime.whole_page_overwrite($selectedConfigStore.configs);
-
-    Analytics.track({
-      event: "Profile Load Success",
-      payload: {},
-      mandatory: false,
-    });
-  }
-
-  function cancelProfileOverlay() {
-    selectedConfigStore.set({});
-    $appSettings.displayedOverlay = undefined;
+  function handleLoadClicked(e) {
+    dispatch("load");
   }
 </script>
 
 {#if visible && device?.type === $selectedConfigStore.type}
   <div
-    class="text-white z-[1] w-full flex flex-col
-    items-center justify-center rounded h-full absolute pointer-events-auto"
-    style="transform: rotate({-$appSettings.persistent.moduleRotation}deg)"
+    class="text-white w-full flex flex-col
+    items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
+    style="transform: rotate({-$appSettings.persistent.moduleRotation +
+      90 * device?.rot}deg); border-radius: var(--grid-rounding);"
   >
     <div class="w-fit relative">
       <button
-        on:click={() => {
-          loadProfileToThisModule();
-        }}
+        on:click={handleLoadClicked}
         class="px-4 py-2 rounded bg-commit hover:bg-commit-saturate-20
-        opacity-80 block"
+        block"
       >
         Load Profile
-      </button>
-    </div>
-
-    <div class="w-fit">
-      <button
-        class="bg-select px-4 py-1 rounded hover:bg-select-saturate-20
-        left-[37%] absolute bottom-[22%] opacity-60"
-        on:click={() => {
-          cancelProfileOverlay();
-        }}
-      >
-        Cancel
       </button>
     </div>
   </div>

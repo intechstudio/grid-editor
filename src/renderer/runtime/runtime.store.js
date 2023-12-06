@@ -585,74 +585,41 @@ function create_runtime() {
     });
   }
 
-  function element_preset_load(preset) {
+  function element_preset_load(x, y, element, preset) {
     const li = get(user_input);
-    if (li.event.elementtype == preset.type) {
-      console.log("GOOD TYPE");
-
-      let events = preset.configs.events;
-
-      events.forEach((ev, index) => {
-        let callback;
-        if (index === events.length - 1) {
-          // last element
-          callback = function () {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "elementoverwrite",
-              message: `Overwrite done!`,
-            });
-            user_input.update((n) => n);
-          };
-        } else {
-          callback = undefined;
-        }
-
-        let li = get(user_input);
-
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = ev.event;
-
-        _runtime.update((_runtime) => {
-          let dest = findUpdateDestEvent(
-            _runtime,
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-          if (dest) {
-            console.log("FOUND");
-            dest.config = ev.config;
-            dest.cfgStatus = "EDITOR_BACKGROUND";
-
-            instructions.sendConfigToGrid(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              dest.config,
-              callback
-            );
-            // trigger change detection
-          }
-          return _runtime;
-        });
-      });
-    } else {
+    let events = preset.configs.events;
+    const callback = function () {
       logger.set({
-        type: "fail",
+        type: "success",
         mode: 0,
         classname: "elementoverwrite",
-        message: `Target element is different!`,
+        message: `Overwrite done!`,
       });
-    }
+    };
+
+    events.forEach((ev, index) => {
+      const page = li.event.pagenumber;
+      const event = ev.event;
+
+      _runtime.update((_runtime) => {
+        let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
+        if (dest) {
+          dest.config = ev.config;
+          dest.cfgStatus = "EDITOR_BACKGROUND";
+
+          instructions.sendConfigToGrid(
+            x,
+            y,
+            page,
+            element,
+            event,
+            dest.config,
+            index === events.length - 1 ? callback : undefined
+          );
+        }
+        return _runtime;
+      });
+    });
   }
 
   function whole_element_overwrite({ controlElementType, events }) {
@@ -721,7 +688,7 @@ function create_runtime() {
     }
   }
 
-  function whole_page_overwrite(array) {
+  function whole_page_overwrite(x, y, array) {
     logger.set({
       type: "progress",
       mode: 0,
@@ -741,29 +708,19 @@ function create_runtime() {
       array.unshift(objectToMove);
     }
 
+    let li = get(user_input);
     array.forEach((elem, elementIndex) => {
       elem.events.forEach((ev, eventIndex) => {
-        let li = get(user_input);
-
         li.event.pagenumber = li.event.pagenumber;
         li.event.elementnumber = elem.controlElementNumber;
         li.event.eventtype = ev.event;
 
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
         const page = li.event.pagenumber;
         const element = li.event.elementnumber;
         const event = li.event.eventtype;
 
         _runtime.update((_runtime) => {
-          let dest = findUpdateDestEvent(
-            _runtime,
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
+          let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
           if (dest) {
             dest.config = ev.config.trim();
             dest.cfgStatus = "EDITOR_BACKGROUND";
@@ -785,14 +742,12 @@ function create_runtime() {
               classname: "profileload",
               message: `Profile load complete!`,
             });
-            // trigger change detection
-            user_input.update((n) => n);
           };
         }
 
         instructions.sendConfigToGrid(
-          dx,
-          dy,
+          x,
+          y,
           page,
           element,
           event,

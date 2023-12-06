@@ -74,9 +74,7 @@
   out:blur={{ duration: 150 }}
   class={$$props.class}
 >
-  <div
-    class="flex items-center bg-primary gap-2 flex-wrap justify-center rounded-lg px-4 py-2 relative"
-  >
+  <div class="flex flex-row justify-center items-center gap-2">
     <div class="mx-4 text-white font-medium">
       {changes} active changes
     </div>
