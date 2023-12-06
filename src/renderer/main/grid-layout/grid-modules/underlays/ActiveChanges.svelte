@@ -1,5 +1,5 @@
 <script>
-  import { unsaved_changes } from "../../../../runtime/runtime.store.js";
+  import { runtime, user_input } from "../../../../runtime/runtime.store.js";
   import { createEventDispatcher } from "svelte";
 
   export let elementNumber;
@@ -15,10 +15,24 @@
 
   let isChanged = false;
   $: {
-    isChanged =
-      typeof $unsaved_changes.find(
-        (e) => e.x == dx && e.y == dy && e.element == elementNumber
-      ) !== "undefined";
+    try {
+      const events = $runtime
+        .find((e) => e.dx == dx && e.dy == dy)
+        .pages[$user_input.event.pagenumber].control_elements.find(
+          (e) => e.controlElementNumber == elementNumber
+        ).events;
+
+      //Find the event that has change
+      const changed = events.find(
+        (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+      );
+
+      if (typeof changed !== "undefined") {
+        isChanged = true;
+      } else {
+        isChanged = false;
+      }
+    } catch (e) {}
   }
 </script>
 

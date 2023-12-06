@@ -1,27 +1,17 @@
 <script>
   import { setTooltip } from "./tooltip/Tooltip.js";
-  import { runtime, unsaved_changes } from "../../runtime/runtime.store";
+  import { runtime } from "../../runtime/runtime.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
-  import { derived } from "svelte/store";
   import instructions from "../../serialport/instructions";
   import { fade, blur } from "svelte/transition";
 
   let isStoreEnabled = false;
-
-  const totalChanges = derived(unsaved_changes, ($unsaved_changes) => {
-    return $unsaved_changes.reduce((sum, item) => sum + item.changes, 0);
-  });
-
-  $: {
-    unsaved_changes.set(
-      $unsaved_changes.filter((chg) =>
-        $runtime.some((d) => chg.x === d.dx && chg.y === d.dy)
-      )
-    );
+  let changes = 0;
+  $: if ($runtime) {
+    changes = runtime.unsavedChangesCount();
+    isStoreEnabled = $writeBuffer.length == 0 && changes > 0;
   }
-
-  $: isStoreEnabled = $writeBuffer.length == 0 && $totalChanges > 0;
 
   function handleStore() {
     if (isStoreEnabled) {
@@ -71,7 +61,7 @@
 >
   <div class="flex flex-row justify-center items-center gap-2">
     <div class="mx-4 text-white font-medium">
-      {$totalChanges} active changes
+      {changes} active changes
     </div>
     <button
       use:setTooltip={{

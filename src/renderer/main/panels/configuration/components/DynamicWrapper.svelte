@@ -3,7 +3,6 @@
 
   import { createEventDispatcher, onMount } from "svelte";
   import { ConfigList, ConfigObject } from "../Configuration.store";
-  import { unsaved_changes } from "../../../../runtime/runtime.store";
 
   import {
     lastOpenedActionblocks,

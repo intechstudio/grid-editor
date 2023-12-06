@@ -4,7 +4,6 @@
   import {
     elementNameStore,
     user_input,
-    unsaved_changes,
     runtime,
   } from "../../../runtime/runtime.store.js";
 
@@ -196,14 +195,14 @@
       <div class="flex w-full">
         {#if events.length > 0}
           {#each events as event}
-            {@const isChange =
-              typeof $unsaved_changes.find(
-                (e) =>
-                  e.x == event.dx &&
-                  e.y == event.dy &&
-                  e.element == event.element &&
-                  e.event == event.value
-              ) !== "undefined"}
+            {@const eventData = $runtime
+              .find((e) => e.dx == event.dx && e.dy == event.dy)
+              .pages[event.page].control_elements.find(
+                (e) => e.controlElementNumber == event.element
+              )
+              .events.find((e) => e.event.value == event.value)}
+            {@const stored = eventData.stored}
+            {@const config = eventData.config}
 
             <button
               use:setTooltip={{
@@ -223,7 +222,7 @@
                 >{event.label.charAt(0).toUpperCase() +
                   event.label.slice(1)}</span
               >
-              {#if isChange}
+              {#if typeof stored !== "undefined" && stored !== config}
                 <unsaved-changes-marker
                   class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
                 />

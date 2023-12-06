@@ -357,8 +357,6 @@ function create_user_input() {
 
 export const user_input = create_user_input();
 
-export const unsaved_changes = writable([]);
-
 function create_runtime() {
   const _runtime = writable([]);
 
@@ -775,6 +773,9 @@ function create_runtime() {
       if (dest) {
         dest.config = actionString;
         dest.cfgStatus = status;
+        if (typeof dest.stored === "undefined") {
+          dest.stored = actionString;
+        }
       }
       return _runtime;
     });
@@ -953,7 +954,6 @@ function create_runtime() {
       return _runtime;
     });
 
-    unsaved_changes.set([]);
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
       //do nothing just trigger change detection
@@ -985,6 +985,7 @@ function create_runtime() {
               event: grid.elementEvents[grid.moduleElements[moduleType][i]][j],
               config: "",
               cfgStatus: "NULL",
+              stored: undefined,
             });
           }
           control_elements[i] = {
@@ -1117,7 +1118,6 @@ function create_runtime() {
     _runtime.set([]);
 
     user_input.reset();
-    unsaved_changes.set([]);
     writeBuffer.clear();
   }
 
@@ -1135,6 +1135,22 @@ function create_runtime() {
 
       instructions.changeActivePage(new_page_number);
     }
+  }
+
+  function unsavedChangesCount() {
+    let count = 0;
+    get(_runtime).forEach((e) => {
+      e.pages.forEach((e) => {
+        e.control_elements.forEach((e) => {
+          e.events.forEach((e) => {
+            if (typeof e.stored !== "undefined" && e.stored !== e.config) {
+              count += 1;
+            }
+          });
+        });
+      });
+    });
+    return count;
   }
 
   return {
@@ -1164,6 +1180,7 @@ function create_runtime() {
 
     erase: erase_all,
     fetchOrLoadConfig: fetchOrLoadConfig,
+    unsavedChangesCount: unsavedChangesCount,
   };
 }
 
@@ -1221,7 +1238,7 @@ setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
 
-  if (get(unsaved_changes) != 0 || get(appSettings).modal !== "") {
+  if (runtime.unsavedChangesCount() != 0 || get(appSettings).modal !== "") {
     type = 254;
   }
 
