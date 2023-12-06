@@ -13,18 +13,6 @@
     isStoreEnabled = $writeBuffer.length == 0 && changes > 0;
   }
 
-  function setStoredToCurrentConfig() {
-    $runtime.forEach((e) => {
-      e.pages.forEach((e) => {
-        e.control_elements.forEach((e) => {
-          e.events.forEach((e) => {
-            e.stored = e.config;
-          });
-        });
-      });
-    });
-  }
-
   function handleStore() {
     if (isStoreEnabled) {
       Analytics.track({
@@ -36,13 +24,11 @@
       });
 
       instructions.sendPageStoreToGrid();
-      setStoredToCurrentConfig();
     }
   }
 
   function handleClear() {
     instructions.sendPageClearToGrid();
-    setStoredToCurrentConfig();
 
     Analytics.track({
       event: "Page Config",
@@ -56,7 +42,6 @@
   function handleDiscard() {
     if (isStoreEnabled) {
       instructions.sendPageDiscardToGrid();
-      setStoredToCurrentConfig();
 
       Analytics.track({
         event: "Page Config",

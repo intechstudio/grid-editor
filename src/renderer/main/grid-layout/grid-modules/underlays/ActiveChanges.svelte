@@ -15,22 +15,24 @@
 
   let isChanged = false;
   $: {
-    const events = $runtime
-      .find((e) => e.dx == dx && e.dy == dy)
-      .pages[$user_input.event.pagenumber].control_elements.find(
-        (e) => e.controlElementNumber == elementNumber
-      ).events;
+    try {
+      const events = $runtime
+        .find((e) => e.dx == dx && e.dy == dy)
+        .pages[$user_input.event.pagenumber].control_elements.find(
+          (e) => e.controlElementNumber == elementNumber
+        ).events;
 
-    //Find the event that has change
-    const changed = events.find(
-      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
-    );
+      //Find the event that has change
+      const changed = events.find(
+        (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+      );
 
-    if (typeof changed !== "undefined") {
-      isChanged = true;
-    } else {
-      isChanged = false;
-    }
+      if (typeof changed !== "undefined") {
+        isChanged = true;
+      } else {
+        isChanged = false;
+      }
+    } catch (e) {}
   }
 </script>
 
