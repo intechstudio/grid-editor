@@ -1,6 +1,6 @@
 <script>
   import { setTooltip } from "./tooltip/Tooltip.js";
-  import { runtime } from "../../runtime/runtime.store";
+  import { runtime, user_input } from "../../runtime/runtime.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
   import instructions from "../../serialport/instructions";
@@ -23,7 +23,8 @@
         mandatory: false,
       });
 
-      instructions.sendPageStoreToGrid();
+      const index = $user_input.event.pagenumber;
+      runtime.storePage(index);
     }
   }
 

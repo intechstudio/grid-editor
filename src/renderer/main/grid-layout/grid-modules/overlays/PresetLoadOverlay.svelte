@@ -29,22 +29,33 @@
   }
 </script>
 
-{#if visible && $selectedConfigStore.type === type}
-  <button
-    on:click={handleClick}
-    class="element pointer-events-auto
-      {isRightCut ? 'corner-cut-r' : ''}
-      {isLeftCut ? 'corner-cut-l' : ''}"
-    style="   {elementNumber == 255
-      ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
-      : 'border-radius: var(--grid-rounding);'} "
-    ><div
-      style="transform: rotate({-$appSettings.persistent.moduleRotation +
-        device?.rot * 90}deg);"
-    >
-      Load
-    </div>
-  </button>
+{#if visible}
+  {#if $selectedConfigStore.type === type}
+    <button
+      on:click={handleClick}
+      class="element pointer-events-auto"
+      class:corner-cut-r={isRightCut}
+      class:corner-cut-l={isLeftCut}
+      style="{elementNumber == 255
+        ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
+        : 'border-radius: var(--grid-rounding);'} "
+      ><div
+        style="transform: rotate({-$appSettings.persistent.moduleRotation +
+          device?.rot * 90}deg);"
+      >
+        Load
+      </div>
+    </button>
+  {:else}
+    <div
+      class="w-full h-full disabled-element"
+      class:corner-cut-r={isRightCut}
+      class:corner-cut-l={isLeftCut}
+      style="{elementNumber == 255
+        ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
+        : 'border-radius: var(--grid-rounding);'} "
+    />
+  {/if}
 {/if}
 
 <style>
@@ -57,6 +68,18 @@
   .element::before {
     content: "";
     box-shadow: 0px 300px 0px 1000px rgba(11, 164, 132, 0.7);
+  }
+
+  .disabled-element {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .disabled-element::before {
+    content: "";
+    box-shadow: 0px 300px 0px 1000px rgba(0, 0, 0, 0.3);
   }
   .element:hover:before {
     content: "";

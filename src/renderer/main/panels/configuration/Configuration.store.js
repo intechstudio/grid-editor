@@ -368,6 +368,9 @@ export class ConfigTarget {
 
   getActionString() {
     const event = this.getEvent();
+    if (typeof event === "undefined") {
+      return "";
+    }
 
     const cfgstatus = event.cfgStatus;
     if (

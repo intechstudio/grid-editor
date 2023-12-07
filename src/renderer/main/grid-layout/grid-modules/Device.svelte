@@ -169,13 +169,15 @@
       />
       <PortState
         {device}
-        visible={$appSettings.displayedOverlay === undefined &&
+        visible={(typeof $appSettings.displayedOverlay === "undefined" ||
+          $appSettings.displayedOverlay === "profile-load-overlay") &&
           $appSettings.persistent.portstateOverlayEnabled}
       />
       <ModuleInfo {device} visible={true} />
       <ModuleSelection
         {device}
-        visible={$appSettings.displayedOverlay === undefined}
+        visible={typeof $appSettings.displayedOverlay === "undefined" ||
+          $appSettings.displayedOverlay === "profile-load-overlay"}
         on:click={handleModuleClicked}
         class="absolute top-0 left-0 w-full h-full"
         style="border-radius: var(--grid-rounding);"
@@ -200,14 +202,16 @@
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={$appSettings.displayedOverlay === undefined}
+          visible={typeof $appSettings.displayedOverlay === "undefined" ||
+            $appSettings.displayedOverlay === "profile-load-overlay"}
         />
         <ElementSelection
           {elementNumber}
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={$appSettings.displayedOverlay === undefined}
+          visible={typeof $appSettings.displayedOverlay === "undefined" ||
+            $appSettings.displayedOverlay === "profile-load-overlay"}
           on:click={handleElementClicked}
         />
       </div>
@@ -221,7 +225,7 @@
       let:isRightCut
     >
       <div
-        class="w-full h-full absolute"
+        class="absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 
           margin: var(--element-margin);"
