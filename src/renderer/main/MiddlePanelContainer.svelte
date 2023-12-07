@@ -43,6 +43,19 @@
     const observer = new ResizeObserver(callback).observe(gridLayout);
     window.addEventListener("resize", callback, true);
   });
+
+  let showModuleHangingDialog = false;
+  let moduleHangingTimeout = undefined;
+  $: {
+    if ($writeBuffer.length > 0 && $runtime.length > 0) {
+      moduleHangingTimeout = setTimeout(() => {
+        showModuleHangingDialog = true;
+      }, 100);
+    } else {
+      clearTimeout(moduleHangingTimeout);
+      showModuleHangingDialog = false;
+    }
+  }
 </script>
 
 <div
@@ -65,7 +78,7 @@
   <div
     class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
   >
-    {#if $writeBuffer.length > 0 && $runtime.length > 0}
+    {#if showModuleHangingDialog}
       <ModuleHangingDialog />
     {:else}
       <ActiveChanges />

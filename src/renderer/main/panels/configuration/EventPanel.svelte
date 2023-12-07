@@ -201,8 +201,9 @@
                 (e) => e.controlElementNumber == event.element
               )
               ?.events.find((e) => e.event.value == event.value)}
-            {@const stored = eventData.stored}
-            {@const config = eventData.config}
+            {@const stored = eventData?.stored}
+            {@const config = eventData?.config}
+            {@const status = eventData?.cfgStatus}
 
             <button
               use:setTooltip={{
@@ -222,7 +223,7 @@
                 >{event.label.charAt(0).toUpperCase() +
                   event.label.slice(1)}</span
               >
-              {#if typeof stored !== "undefined" && stored !== config}
+              {#if status !== "NULL" && status !== "ERASED" && stored !== config}
                 <unsaved-changes-marker
                   class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
                 />

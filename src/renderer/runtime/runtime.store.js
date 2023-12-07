@@ -1143,7 +1143,11 @@ function create_runtime() {
       e.pages.forEach((e) => {
         e.control_elements.forEach((e) => {
           e.events.forEach((e) => {
-            if (typeof e.stored !== "undefined" && e.stored !== e.config) {
+            if (
+              e.cfgStatus !== "NULL" &&
+              e.cfgStatus !== "ERASED" &&
+              e.stored !== e.config
+            ) {
               count += 1;
             }
           });

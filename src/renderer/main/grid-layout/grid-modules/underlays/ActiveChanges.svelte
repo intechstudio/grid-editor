@@ -24,13 +24,21 @@
 
       //Find the event that has change
       const changed = events.find(
-        (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+        (e) =>
+          e.cfgStatus !== "NULL" &&
+          e.cfgStatus !== "ERASED" &&
+          e.stored !== e.config
       );
 
       if (typeof changed !== "undefined") {
         isChanged = true;
       } else {
         isChanged = false;
+      }
+
+      if (isChanged) {
+        console.log("changed:", elementNumber);
+        console.log(events);
       }
     } catch (e) {}
   }
