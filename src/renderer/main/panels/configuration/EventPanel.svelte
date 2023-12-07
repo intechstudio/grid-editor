@@ -197,10 +197,10 @@
           {#each events as event}
             {@const eventData = $runtime
               .find((e) => e.dx == event.dx && e.dy == event.dy)
-              .pages[event.page].control_elements.find(
+              ?.pages[event.page].control_elements.find(
                 (e) => e.controlElementNumber == event.element
               )
-              .events.find((e) => e.event.value == event.value)}
+              ?.events.find((e) => e.event.value == event.value)}
             {@const stored = eventData.stored}
             {@const config = eventData.config}
 

@@ -83,7 +83,7 @@
   function calculateDevices(rt) {
     devices.update((s) => {
       const dim = getGridDimensions();
-      const { min_x, min_y } = dim;
+      const { min_x, min_y, max_y, max_x } = dim;
       s = [];
 
       rt.forEach((device, i) => {
@@ -105,16 +105,16 @@
         });
 
         const [x, y] = [
-          device.dy + Math.abs(min_y),
-          device.dx + Math.abs(min_x),
+          device.dx + (min_x < 0 ? Math.abs(min_x) : 0),
+          Math.abs(device.dy - (max_y > 0 ? max_y : 0)),
         ];
 
         const obj = structuredClone(device);
         obj.fly_x_direction = connection_right - connection_left;
         obj.fly_y_direction = connection_top - connection_bottom;
         obj.type = rt[i].id.substr(0, 4);
-        obj.gridX = x;
-        obj.gridY = y;
+        obj.gridX = x + 1;
+        obj.gridY = y + 1;
         s.push(obj);
       });
       return s;
@@ -161,6 +161,7 @@
             width: {width}px;  height: {height}px;"
         >
           {#each $devices as device (device.id)}
+            {@const [x, y] = [device.gridX, device.gridY]}
             <div
               in:fly|global={{
                 x: device.fly_x_direction * 100,
@@ -169,8 +170,7 @@
               }}
               style="width: {deviceWidth * $scalingPercent}px; 
                 height: {deviceWidth * $scalingPercent}px;
-                grid-row: {device.gridY};
-                grid-column: {device.gridX};"
+                grid-area: {`${y}/${x}/${y}/${x}`};"
               out:fade|global={{ duration: 200 }}
               on:outroend={handleOutroEnd}
               on:introstart={handleIntroStart}
