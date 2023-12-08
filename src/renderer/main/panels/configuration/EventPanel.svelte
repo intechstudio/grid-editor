@@ -5,8 +5,10 @@
     elementNameStore,
     user_input,
     runtime,
+    controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
 
+  import BtnAndPopUp from "../../user-interface/BtnAndPopUp.svelte";
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
@@ -175,19 +177,28 @@
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
         </button>
 
-        <button
-          use:setTooltip={{
-            key: "configuration_overwrite",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "p-4",
-          }}
+        <BtnAndPopUp
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={handleOverwriteAll}
+          enabled={typeof $controlElementClipboard !== "undefined"}
+          on:clicked={handleOverwriteAll}
+          tooltipKey={"configuration_overwrite"}
+          btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+            typeof $controlElementClipboard === "undefined"
+              ? "hover:border-opacity-5"
+              : "border-opacity-20"
+          }`}
+          popStyle={"bg-sencodary"}
         >
-          <SvgIcon displayMode="button" iconPath={"paste_all"} />
-        </button>
+          <span slot="popup">Pasted!</span>
+          <span slot="button">
+            <SvgIcon
+              class={typeof $controlElementClipboard === "undefined"
+                ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+                : ""}
+              iconPath={"paste_all"}
+            />
+          </span>
+        </BtnAndPopUp>
       </div>
     </div>
 

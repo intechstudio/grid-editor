@@ -31,7 +31,7 @@ const setIntervalAsync = (fn, ms) => {
 
 let selection_changed_timestamp = 0;
 
-export const controlElementClipboard = writable([]);
+export const controlElementClipboard = writable(undefined);
 export const appActionClipboard = writable([]);
 
 export const elementPositionStore = writable({});
