@@ -1,22 +1,11 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import {
-    user_input,
-    unsaved_changes,
-  } from "../../../../runtime/runtime.store.js";
+  import { user_input } from "../../../../runtime/runtime.store.js";
 
   export let device = undefined;
   export let visible = false;
 
   const dispatch = createEventDispatcher();
-
-  let isChanged = false;
-  $: {
-    isChanged =
-      typeof $unsaved_changes.find(
-        (e) => e.x == device?.dx && e.y == device?.dy && e.element == 255
-      ) !== "undefined";
-  }
 
   let isSelected = false;
   $: {

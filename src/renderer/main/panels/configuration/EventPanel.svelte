@@ -4,10 +4,11 @@
   import {
     elementNameStore,
     user_input,
-    unsaved_changes,
     runtime,
+    controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
 
+  import BtnAndPopUp from "../../user-interface/BtnAndPopUp.svelte";
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
@@ -176,19 +177,28 @@
           <SvgIcon displayMode="button" iconPath={"copy_all"} />
         </button>
 
-        <button
-          use:setTooltip={{
-            key: "configuration_overwrite",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "p-4",
-          }}
+        <BtnAndPopUp
           class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary ml-1 border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={handleOverwriteAll}
+          enabled={typeof $controlElementClipboard !== "undefined"}
+          on:clicked={handleOverwriteAll}
+          tooltipKey={"configuration_overwrite"}
+          btnStyle={`relative bg-secondary mr-2 group rounded-md ${
+            typeof $controlElementClipboard === "undefined"
+              ? "hover:border-opacity-5"
+              : "border-opacity-20"
+          }`}
+          popStyle={"bg-sencodary"}
         >
-          <SvgIcon displayMode="button" iconPath={"paste_all"} />
-        </button>
+          <span slot="popup">Pasted!</span>
+          <span slot="button">
+            <SvgIcon
+              class={typeof $controlElementClipboard === "undefined"
+                ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+                : ""}
+              iconPath={"paste_all"}
+            />
+          </span>
+        </BtnAndPopUp>
       </div>
     </div>
 
@@ -196,14 +206,15 @@
       <div class="flex w-full">
         {#if events.length > 0}
           {#each events as event}
-            {@const isChange =
-              typeof $unsaved_changes.find(
-                (e) =>
-                  e.x == event.dx &&
-                  e.y == event.dy &&
-                  e.element == event.element &&
-                  e.event == event.value
-              ) !== "undefined"}
+            {@const eventData = $runtime
+              .find((e) => e.dx == event.dx && e.dy == event.dy)
+              ?.pages[event.page].control_elements.find(
+                (e) => e.controlElementNumber == event.element
+              )
+              ?.events.find((e) => e.event.value == event.value)}
+            {@const stored = eventData?.stored}
+            {@const config = eventData?.config}
+            {@const status = eventData?.cfgStatus}
 
             <button
               use:setTooltip={{
@@ -223,7 +234,7 @@
                 >{event.label.charAt(0).toUpperCase() +
                   event.label.slice(1)}</span
               >
-              {#if isChange}
+              {#if status !== "NULL" && status !== "ERASED" && stored !== config}
                 <unsaved-changes-marker
                   class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
                 />

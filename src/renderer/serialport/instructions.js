@@ -4,7 +4,7 @@ import { appSettings } from "../runtime/app-helper.store";
 import grid from "../protocol/grid-protocol.js";
 
 import { writeBuffer } from "../runtime/engine.store.js";
-import { logger, unsaved_changes, runtime } from "../runtime/runtime.store.js";
+import { logger, runtime } from "../runtime/runtime.store.js";
 
 const instructions = {
   sendEditorHeartbeat_immediate: (type) => {
@@ -115,34 +115,6 @@ const instructions = {
       });
       return;
     }
-
-    //Was no previous change under this event
-
-    unsaved_changes.update((s) => {
-      let obj = get(unsaved_changes).find(
-        (e) =>
-          e.x == dx &&
-          e.y == dy &&
-          e.page == page &&
-          e.element == element &&
-          e.event == event
-      );
-
-      if (typeof obj === "undefined") {
-        obj = {
-          x: dx,
-          y: dy,
-          page,
-          element: element,
-          event: event,
-          changes: 0,
-        };
-        s.push(obj);
-      }
-
-      obj.changes += 1;
-      return s;
-    });
 
     let buffer_element = {
       descr: {
@@ -271,7 +243,6 @@ const instructions = {
         //console.log('page store execute - fail')
       },
       successCb: function () {
-        unsaved_changes.set([]);
         logger.set({
           type: "success",
           mode: 0,
@@ -332,7 +303,6 @@ const instructions = {
         //console.log('NVM erase execute - fail')
       },
       successCb: function () {
-        unsaved_changes.set([]);
         runtime.erase();
         logger.set({
           type: "success",

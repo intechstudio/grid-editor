@@ -422,7 +422,7 @@
           eventType: eventType,
           page: current.page,
         });
-        const list = ConfigList.createFrom(target);
+        const list = ConfigList.createFromTarget(target);
         configsLists.push({ eventType: eventType, configs: list });
       });
 
@@ -474,7 +474,7 @@
         list.sendTo({ target: target }).catch((e) => handleError(e));
       });
 
-      const list = ConfigList.createFrom(current);
+      const list = ConfigList.createFromTarget(current);
       configManager.set(list);
     } else {
       logger.set({
