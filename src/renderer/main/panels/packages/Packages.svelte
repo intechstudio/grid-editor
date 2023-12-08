@@ -95,6 +95,10 @@
   }
 
   function restartPackageManager() {
+    if (pluginListDiv) {
+      pluginListDiv.innerHTML = "";
+    }
+    pluginPreferenceElements = {};
     window.electron.restartPackageManager();
   }
 </script>

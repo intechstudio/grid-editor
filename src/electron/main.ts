@@ -349,6 +349,13 @@ function startPluginManager() {
       },
       [port2]
     );
+    pluginManagerProcess.on("message", (message) => {
+      if (message.type == "shutdown-complete") {
+        pluginManagerProcess?.kill();
+        pluginManagerProcess = undefined;
+        startPluginManager();
+      }
+    });
   } else {
     pluginManagerProcess.postMessage(
       {
@@ -362,11 +369,6 @@ function startPluginManager() {
 async function restartPackageManagerProcess() {
   if (pluginManagerProcess) {
     pluginManagerProcess.postMessage({ type: "stop-plugin-manager" });
-    setTimeout(() => {
-      pluginManagerProcess?.kill();
-      pluginManagerProcess = undefined;
-      startPluginManager();
-    }, 1000);
   } else {
     startPluginManager();
   }

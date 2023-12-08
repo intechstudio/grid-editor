@@ -113,6 +113,7 @@ async function stopPluginManager() {
   if (messagePort) {
     messagePort.close();
   }
+  process.parentPort.postMessage({ type: "shutdown-complete" });
 }
 
 async function loadPlugin(pluginName: string, persistedData: any) {
