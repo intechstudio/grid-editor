@@ -176,7 +176,6 @@
         {device}
         visible={$appSettings.persistent.portstateOverlayEnabled}
       />
-      <ModuleInfo {device} visible={true} />
       <ModuleSelection
         {device}
         visible={typeof $appSettings.displayedOverlay === "undefined" ||
@@ -218,6 +217,7 @@
           on:click={handleElementClicked}
         />
       </div>
+      <ModuleInfo {device} visible={true} {elementNumber} />
     </svelte:fragment>
 
     <!-- Cell Overlays -->
