@@ -127,8 +127,13 @@
     });
   }
 
-  $: if ($user_input) {
-    $appSettings.displayedOverlay = undefined;
+  $: {
+    if ($user_input) {
+      appSettings.update((store) => {
+        store.displayedOverlay = undefined;
+        return store;
+      });
+    }
   }
 
   function handleProfileLoad() {
