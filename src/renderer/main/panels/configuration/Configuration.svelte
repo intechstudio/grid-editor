@@ -87,7 +87,7 @@
   //////////////////////////////////////////////////////////////////////////////
 
   function updateLocalSuggestions(list) {
-    localDefinitions.update(list);
+    //localDefinitions.update(list);
   }
 
   function sendCurrentConfigurationToGrid() {
@@ -148,12 +148,7 @@
     if (typeof list === "undefined") {
       return;
     }
-
-    const map = ConfigList.getIndentationMap(list);
-    for (const i in map) {
-      list[i].indentation = map[i];
-    }
-
+    //ConfigList.setIndentation(list);
     updateLocalSuggestions(list);
   }
 

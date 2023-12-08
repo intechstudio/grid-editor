@@ -92,6 +92,7 @@
       text = "Ctrl + Shift + R";
     }
 
+    /*
     window.electron
       .fetchUrlJSON(configuration.NOTIFICATION_JSON_URL)
       .then((data) => {
@@ -115,6 +116,7 @@
       .catch((error) => {
         console.log("Fetching solutions failed", error);
       });
+      */
   });
 
   function refresh() {

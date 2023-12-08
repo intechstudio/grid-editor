@@ -58,6 +58,7 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
 
   let loaded = false;
 
@@ -698,6 +699,26 @@
   }
 
   let suggestionElement = undefined;
+
+  function handleInputFocus() {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    let [start, end] = [index, index];
+    while (
+      start > 0 &&
+      $configManager[start].indentation === config.indentation
+    ) {
+      --start;
+    }
+    while (
+      end < $configManager.length &&
+      $configManager[end].indentation === config.indentation
+    ) {
+      ++end;
+    }
+    const list = $configManager.slice(start, end + 1);
+    localDefinitions.update(list);
+    console.log($localDefinitions);
+  }
 </script>
 
 <action-midi
@@ -727,6 +748,7 @@
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}
+          on:focus={handleInputFocus}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);

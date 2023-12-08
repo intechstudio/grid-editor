@@ -55,6 +55,7 @@
   }
 
   function handleFocus(e) {
+    dispatch("focus");
     if (typeof suggestionTarget !== "undefined") {
       const event = new CustomEvent("display", {
         detail: {

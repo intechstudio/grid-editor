@@ -1280,6 +1280,7 @@ function createLocalDefinitions() {
     ...store,
     update: (configs) => {
       let arr = [];
+      console.log(configs);
 
       configs.forEach((c) => {
         if (c.short == "l" && c.script !== "") {
