@@ -44,6 +44,10 @@ process.parentPort.on("message", (e) => {
       notifyListener();
       break;
     }
+    case "stop-plugin-manager": {
+      stopPluginManager();
+      break;
+    }
     default: {
       console.log(`Plugin Manager: Unknown message tpye of ${e.data.type}`);
     }
@@ -99,6 +103,16 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
   });
   port.start();
   notifyListener();
+}
+
+async function stopPluginManager() {
+  for (let pluginName of Object.keys(currentlyLoadedPlugins)) {
+    await currentlyLoadedPlugins[pluginName].unloadPlugin();
+    delete currentlyLoadedPlugins[pluginName];
+  }
+  if (messagePort) {
+    messagePort.close();
+  }
 }
 
 async function loadPlugin(pluginName: string, persistedData: any) {

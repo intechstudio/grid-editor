@@ -70,6 +70,7 @@ let mainWindow;
 let tray = null;
 
 let offlineProfileCloudServer: any = undefined;
+let pluginManagerProcess: Electron.UtilityProcess | undefined = undefined;
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -237,6 +238,10 @@ function createWindow() {
     restartAfterUpdate();
   });
 
+  ipcMain.on("restartPackageManager", (event) => {
+    restartPackageManagerProcess();
+  });
+
   console.log("here what is buildVariables.BUILD_ENV");
   if (buildVariables.BUILD_ENV === "development") {
     log.info("Development Mode!");
@@ -320,35 +325,51 @@ function createWindow() {
   });
 
   // Handle plugin configuration, action
-  let pluginManagerProcess: Electron.UtilityProcess;
   mainWindow.webContents.on("did-finish-load", () => {
-    const { port1, port2 } = new MessageChannelMain();
-    mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
-
-    const pluginFolder = path.resolve(
-      path.join(app.getPath("documents"), "grid-userdata", "plugins")
-    );
-    if (!pluginManagerProcess) {
-      pluginManagerProcess = utilityProcess.fork(
-        path.resolve(path.join(__dirname, "./pluginManager.js"))
-      );
-      pluginManagerProcess.postMessage(
-        {
-          type: "init",
-          pluginFolder: pluginFolder,
-          version: configuration.EDITOR_VERSION,
-        },
-        [port2]
-      );
-    } else {
-      pluginManagerProcess.postMessage(
-        {
-          type: "set-new-message-port",
-        },
-        [port2]
-      );
-    }
+    restartPackageManagerProcess();
   });
+}
+
+function startPluginManager() {
+  const { port1, port2 } = new MessageChannelMain();
+  mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+
+  const pluginFolder = path.resolve(
+    path.join(app.getPath("documents"), "grid-userdata", "plugins")
+  );
+  if (!pluginManagerProcess) {
+    pluginManagerProcess = utilityProcess.fork(
+      path.resolve(path.join(__dirname, "./pluginManager.js"))
+    );
+    pluginManagerProcess.postMessage(
+      {
+        type: "init",
+        pluginFolder: pluginFolder,
+        version: configuration.EDITOR_VERSION,
+      },
+      [port2]
+    );
+  } else {
+    pluginManagerProcess.postMessage(
+      {
+        type: "set-new-message-port",
+      },
+      [port2]
+    );
+  }
+}
+
+async function restartPackageManagerProcess() {
+  if (pluginManagerProcess) {
+    pluginManagerProcess.postMessage({ type: "stop-plugin-manager" });
+    setTimeout(() => {
+      pluginManagerProcess?.kill();
+      pluginManagerProcess = undefined;
+      startPluginManager();
+    }, 1000);
+  } else {
+    startPluginManager();
+  }
 }
 
 // This method will be called when Electron has finished

@@ -49,7 +49,6 @@
   let compBlock = undefined;
   onMount(() => {
     compBlock = getCompatiblityBlock(config.script);
-    console.log({config})
   });
 
   function getCompatiblityBlock(script) {
@@ -97,8 +96,10 @@
 >
   <div class="w-full flex flex-col items-center">
     <div class="flex items-center pb-2 w-full">
-      {#if config.short.startsWith('x')}
-        <div class="text-gray-500 text-sm font-bold">Missing Plugin Action!</div>
+      {#if config.short.startsWith("x")}
+        <div class="text-gray-500 text-sm font-bold">
+          Missing Plugin Action!
+        </div>
         <div class="flex flex-row gap-1 ml-auto items-center">
           <span class="text-sm text-gray-500">{config.short}</span>
         </div>

@@ -93,6 +93,10 @@
       return s;
     });
   }
+
+  function restartPackageManager() {
+    window.electron.restartPackageManager();
+  }
 </script>
 
 <preferences
@@ -101,6 +105,14 @@
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center">
       <div class="mx-2">Plugins</div>
+      <div class="mx-2">
+        <button
+          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          on:click={restartPackageManager}
+        >
+          Restart
+        </button>
+      </div>
       <div class="mx-2">
         <button
           class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
