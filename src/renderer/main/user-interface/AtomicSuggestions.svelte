@@ -10,6 +10,7 @@
   function handleDisplay(e) {
     const { data, sender } = e.detail;
     target = sender;
+    console.log("receive", data);
     suggestions = data;
   }
 

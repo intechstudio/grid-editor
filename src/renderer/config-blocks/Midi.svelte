@@ -677,11 +677,29 @@
       console.warn("error while creating midi suggetions");
       suggestions = _suggestions;
     }
+
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    let [start, end] = [index, index];
+    while (
+      start > 0 &&
+      $configManager[start].indentation === config.indentation
+    ) {
+      --start;
+    }
+    while (
+      end < $configManager.length &&
+      $configManager[end].indentation === config.indentation
+    ) {
+      ++end;
+    }
+    const list = $configManager.slice(start, end + 1);
+    localDefinitions.update(list);
+    suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
+    console.log(suggestions);
   }
 
   $: if (scriptSegments || $localDefinitions) {
     renderSuggestions();
-    suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
   }
 
   onMount(() => {
@@ -701,23 +719,7 @@
   let suggestionElement = undefined;
 
   function handleInputFocus() {
-    const index = $configManager.findIndex((e) => e.id === config.id);
-    let [start, end] = [index, index];
-    while (
-      start > 0 &&
-      $configManager[start].indentation === config.indentation
-    ) {
-      --start;
-    }
-    while (
-      end < $configManager.length &&
-      $configManager[end].indentation === config.indentation
-    ) {
-      ++end;
-    }
-    const list = $configManager.slice(start, end + 1);
-    localDefinitions.update(list);
-    console.log($localDefinitions);
+    renderSuggestions();
   }
 </script>
 

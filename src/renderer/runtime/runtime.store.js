@@ -1161,7 +1161,6 @@ function create_runtime() {
     instructions.sendPageStoreToGrid();
     _runtime.update((store) => {
       store.forEach((device) => {
-        console.log(device);
         device.pages
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
