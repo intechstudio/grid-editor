@@ -174,9 +174,7 @@
       />
       <PortState
         {device}
-        visible={(typeof $appSettings.displayedOverlay === "undefined" ||
-          $appSettings.displayedOverlay === "profile-load-overlay") &&
-          $appSettings.persistent.portstateOverlayEnabled}
+        visible={$appSettings.persistent.portstateOverlayEnabled}
       />
       <ModuleInfo {device} visible={true} />
       <ModuleSelection
