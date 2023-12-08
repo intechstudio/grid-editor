@@ -35,11 +35,6 @@
       } else {
         isChanged = false;
       }
-
-      if (isChanged) {
-        console.log("changed:", elementNumber);
-        console.log(events);
-      }
     } catch (e) {}
   }
 </script>
