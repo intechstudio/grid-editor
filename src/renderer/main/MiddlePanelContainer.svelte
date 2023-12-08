@@ -50,7 +50,7 @@
     if ($writeBuffer.length > 0 && $runtime.length > 0) {
       moduleHangingTimeout = setTimeout(() => {
         showModuleHangingDialog = true;
-      }, 100);
+      }, 1000);
     } else {
       clearTimeout(moduleHangingTimeout);
       showModuleHangingDialog = false;
