@@ -16,7 +16,7 @@
   let trackerVisible = true;
 
   $: {
-    trackerVisible = logLength === 0 && $writeBuffer.length == 0;
+    trackerVisible = logLength === 0;
   }
 
   function handleContentChange(e) {
@@ -65,13 +65,6 @@
   {#if showFixedStickyContainer}
     <StickyContainer
       class="absolute z-[1] bottom-0 left-1/2 -translate-x-1/2 mb-5"
-    />
-  {/if}
-  {#if $writeBuffer.length > 0 && $runtime.length > 0}
-    <div
-      in:fade={{ delay: 300, duration: 300 }}
-      out:blur={{ duration: 150 }}
-      class="absolute z-0 top-0 left-0 w-full h-full backdrop-blur-sm bg-primary bg-opacity-20"
     />
   {/if}
 
