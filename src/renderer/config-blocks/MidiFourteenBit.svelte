@@ -47,7 +47,8 @@
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { localDefinitions } from "../runtime/runtime.store";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
 
@@ -671,18 +672,20 @@
   let suggestions = [];
 
   function renderSuggestions() {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
+
     suggestions[0] = _suggestions[0];
     suggestions[1] = _suggestions[1];
-    suggestions[2] = [...$localDefinitions];
+    suggestions[2] = [...localDefinitions];
   }
 
-  $: if ($localDefinitions) {
+  $: if ($configManager) {
     renderSuggestions();
   }
-
-  onMount(() => {
-    renderSuggestions();
-  });
 
   const tabs = [
     { name: "MIDI", short: "gms" },

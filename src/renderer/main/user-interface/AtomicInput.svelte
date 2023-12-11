@@ -59,14 +59,7 @@
     updateSuggestions();
   }
 
-  $: {
-    if (suggestions) {
-      updateSuggestions();
-    }
-  }
-
   function updateSuggestions() {
-    console.log("sending", suggestions);
     if (typeof suggestionTarget !== "undefined") {
       const event = new CustomEvent("display", {
         detail: {

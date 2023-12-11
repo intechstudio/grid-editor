@@ -44,11 +44,12 @@
 </script>
 
 <script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
-  import { localDefinitions } from "../runtime/runtime.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
 
@@ -58,7 +59,6 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
   import TabButton from "../main/user-interface/TabButton.svelte";
   import { MusicalNotes } from "../main/panels/MidiMonitor/MidiMonitor.store";
-  import { configManager } from "../main/panels/configuration/Configuration.store";
 
   let loaded = false;
 
@@ -654,6 +654,10 @@
 
   let suggestions = [];
 
+  $: if ($configManager) {
+    renderSuggestions();
+  }
+
   function renderSuggestions() {
     // removed ?. as terser didn't work
     let selectedCommand = _suggestions[1].find(
@@ -679,32 +683,12 @@
     }
 
     const index = $configManager.findIndex((e) => e.id === config.id);
-    let [start, end] = [index, index];
-    while (
-      start > 0 &&
-      $configManager[start].indentation === config.indentation
-    ) {
-      --start;
-    }
-    while (
-      end < $configManager.length &&
-      $configManager[end].indentation === config.indentation
-    ) {
-      ++end;
-    }
-    const list = $configManager.slice(start, end + 1);
-    localDefinitions.update(list);
-    suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
-    console.log(suggestions);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
+    suggestions = suggestions.map((s) => [...localDefinitions, ...s]);
   }
-
-  $: if (scriptSegments || $localDefinitions) {
-    renderSuggestions();
-  }
-
-  onMount(() => {
-    renderSuggestions();
-  });
 
   const tabs = [
     { name: "MIDI", short: "gms" },
@@ -717,10 +701,6 @@
   }
 
   let suggestionElement = undefined;
-
-  function handleInputFocus() {
-    renderSuggestions();
-  }
 </script>
 
 <action-midi
@@ -750,7 +730,6 @@
           suggestions={suggestions[i]}
           validator={validators[i]}
           suggestionTarget={suggestionElement}
-          on:focus={handleInputFocus}
           on:validator={(e) => {
             const data = e.detail;
             dispatch("validator", data);
