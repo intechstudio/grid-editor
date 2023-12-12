@@ -72,7 +72,7 @@
   // }
 </script>
 
-<div class="flex flex-col gap-1">
+<div class="flex flex-col gap-1 {$$props.class}">
   <button
     {...$trigger}
     use:trigger
