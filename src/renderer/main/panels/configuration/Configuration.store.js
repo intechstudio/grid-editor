@@ -363,7 +363,13 @@ export class ConfigTarget {
       (e) => e.controlElementNumber == this.element
     );
 
-    return element.events.find((e) => e.event.value == this.eventType);
+    const event = element.events.find((e) => e.event.value == this.eventType);
+
+    if (typeof event === "undefined") {
+      throw new UnknownEventException();
+    }
+
+    return event;
   }
 
   getActionString() {

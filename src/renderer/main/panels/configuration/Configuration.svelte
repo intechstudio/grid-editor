@@ -8,8 +8,7 @@
   import { flip } from "svelte/animate";
 
   import EventPanel from "./EventPanel.svelte";
-
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
+  import DeviceInfoPanel from "./DeviceInfoPanel.svelte";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
@@ -100,50 +99,6 @@
   //////////////////////////////////////////////////////////////////////////////
   /////////////////           EVENT HANDLERS          //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
-
-  //TODO: Is there a better way?
-  function handleChangeEventTab(arg) {
-    if ($writeBuffer.length > 0) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "engine-disabled",
-        message: `Engine is disabled, changing event type failed!`,
-      });
-      return;
-    }
-
-    if (arg == "systemEvents") {
-      user_input.update((ui) => {
-        ui.event.elementnumber = 255;
-        ui.event.eventtype = 4;
-        ui.event.elementtype = "system";
-        return ui;
-      });
-    }
-
-    if (arg == "uiEvents") {
-      const rt = get(runtime);
-      const ui = get(user_input);
-      const device = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      if (device === undefined) {
-        return;
-      }
-
-      user_input.update((ui) => {
-        ui.event.elementnumber = 0;
-        ui.event.eventtype = 0;
-        ui.event.elementtype =
-          device.pages[
-            ui.event.pagenumber
-          ].control_elements[0].controlElementType;
-        return ui;
-      });
-    }
-  }
 
   function handleConfigManagerUpdate(list) {
     if (typeof list === "undefined") {
@@ -517,9 +472,7 @@
       }}
     >
       <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
-        <div class="text-2xl text-white font-bold text-opacity-80 mb-2">
-          <span>Configuration</span>
-        </div>
+        <DeviceInfoPanel />
         <ElementSelectionPanel />
         <EventPanel
           class="flex flex-col w-full "
