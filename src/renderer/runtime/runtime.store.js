@@ -864,7 +864,7 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let li = Object.assign({}, get(user_input));
+    let li = JSON.parse(JSON.stringify(get(user_input)));
 
     let device = rt.find(
       (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
@@ -902,6 +902,7 @@ function create_runtime() {
           // put it into the fetchArray
           fetchArray.push({
             event: elem.event.value,
+            elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
         }
@@ -917,6 +918,7 @@ function create_runtime() {
     } else {
       fetchArray.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
+        li.event.elementtype = elem.elementtype;
         li.event.elementnumber = elem.elementnumber;
 
         if (ind === fetchArray.length - 1) {
