@@ -1161,12 +1161,17 @@ function create_runtime() {
     instructions.sendPageStoreToGrid();
     _runtime.update((store) => {
       store.forEach((device) => {
-        console.log(device);
         device.pages
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
             element.events.forEach((event) => {
-              event.stored = event.config;
+              if (
+                event.cfgStatus !== "NULL" &&
+                event.cfgStatus !== "ERASED" &&
+                event.stored !== event.config
+              ) {
+                event.stored = event.config;
+              }
             });
           });
       });

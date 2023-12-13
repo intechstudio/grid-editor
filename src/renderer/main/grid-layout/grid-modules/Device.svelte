@@ -112,7 +112,6 @@
 
   function handlePresetLoad(e) {
     const { elementNumber } = e.detail;
-    console.log(device);
     configManager.loadPreset({
       x: device.dx,
       y: device.dy,
