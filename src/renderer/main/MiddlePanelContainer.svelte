@@ -45,12 +45,13 @@
   });
 
   let showModuleHangingDialog = false;
-  let moduleHangingTimeout = undefined;
+  let moduleHangingTimeout;
+
   $: {
     if ($writeBuffer.length > 0 && $runtime.length > 0) {
       moduleHangingTimeout = setTimeout(() => {
         showModuleHangingDialog = true;
-      }, 1000);
+      }, 3000);
     } else {
       clearTimeout(moduleHangingTimeout);
       showModuleHangingDialog = false;

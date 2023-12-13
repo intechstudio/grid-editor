@@ -221,7 +221,9 @@
         resolve(config);
       };
 
-      runtime.fetch_page_configuration_from_grid(callback);
+      runtime.fetch_page_configuration_from_grid().then(() => {
+        callback();
+      });
     });
 
   let profileCloudIsMounted = false;

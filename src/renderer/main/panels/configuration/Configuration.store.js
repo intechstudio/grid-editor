@@ -208,8 +208,11 @@ export class ConfigList extends Array {
   }
 
   static createFromTarget(target) {
-    let configScript = target.getActionString();
-    return ConfigList.createFromActionString(configScript);
+    return new Promise(async (resolve) => {
+      const event = await target.getEvent();
+      const configScript = event.config;
+      resolve(ConfigList.createFromActionString(configScript));
+    });
   }
 
   static createFromActionString(string) {
@@ -248,7 +251,6 @@ export class ConfigList extends Array {
   #Init(actionString) {
     //Parse actionString
     //TODO: do rawLuas format checking during parsing
-
     // get rid of new line, enter
     actionString = actionString.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
@@ -348,42 +350,29 @@ export class ConfigTarget {
   }
 
   getEvent() {
-    const rt = get(runtime);
-    const device = rt.find(
-      (e) => e.dx == this.device.dx && e.dy == this.device.dy
-    );
+    return new Promise(async (resolve, reject) => {
+      const rt = get(runtime);
+      const device = rt.find(
+        (e) => e.dx == this.device.dx && e.dy == this.device.dy
+      );
+      const page = device.pages[this.page];
+      const element = page.control_elements.find(
+        (e) => e.controlElementNumber == this.element
+      );
+      let event = element.events.find((e) => e.event.value == this.eventType);
 
-    if (typeof device === "undefined") {
-      return undefined;
-    }
-
-    const page = device.pages[this.page];
-
-    const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.element
-    );
-
-    return element.events.find((e) => e.event.value == this.eventType);
-  }
-
-  getActionString() {
-    const event = this.getEvent();
-    if (typeof event === "undefined") {
-      return "";
-    }
-
-    const cfgstatus = event.cfgStatus;
-    if (
-      cfgstatus != "GRID_REPORT" &&
-      cfgstatus != "EDITOR_EXECUTE" &&
-      cfgstatus != "EDITOR_BACKGROUND"
-    ) {
-      const ui = get(user_input);
-      const callback = () => user_input.update((n) => n);
-      runtime.fetchOrLoadConfig(ui, callback);
-    }
-
-    return event.config;
+      const cfgstatus = event.cfgStatus;
+      if (
+        cfgstatus != "GRID_REPORT" &&
+        cfgstatus != "EDITOR_EXECUTE" &&
+        cfgstatus != "EDITOR_BACKGROUND"
+      ) {
+        const ui = get(user_input);
+        runtime.fetchOrLoadConfig(ui).then(() => resolve(event));
+      } else {
+        resolve(event);
+      }
+    });
   }
 
   static getCurrent() {
@@ -410,47 +399,55 @@ function create_configuration_manager() {
   let store = writable(new ConfigList());
 
   function createConfigListFrom(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    let list = new ConfigList();
+    return new Promise((resolve) => {
+      const target = ConfigTarget.createFrom({ userInput: ui });
+      let list = new ConfigList();
 
-    if (typeof target === "undefined") {
-      return list;
-    }
-
-    try {
-      list = ConfigList.createFromTarget(target);
-    } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
-        });
-      } else {
-        //Unknown error, display default
-        throw `Configuration: ${e}`;
+      if (typeof target === "undefined") {
+        resolve(list);
+        return;
       }
-    }
-    return list;
+      console.log(target);
+      ConfigList.createFromTarget(target)
+        .then((list) => resolve(list))
+        .catch((e) => {
+          if (e instanceof UnknownEventException) {
+            const availableEvents = target.events.map((e) => e.event.value);
+            const closestEvent = Math.min(
+              ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+            );
+            user_input.update((s) => {
+              s.event.eventtype = String(closestEvent);
+              return s;
+            });
+          } else {
+            //Unknown error, display default
+            throw `Configuration: ${e}`;
+          }
+        });
+    });
   }
 
   user_input.subscribe((ui) => {
-    store.set(createConfigListFrom(ui));
+    createConfigListFrom(ui).then((list) => {
+      store.set(list);
+    });
   });
 
   function loadPreset({ x, y, element, preset }) {
     runtime.element_preset_load(x, y, element, preset);
     const ui = get(user_input);
-    store.set(createConfigListFrom(ui));
+    createConfigListFrom(ui).then((list) => {
+      store.set(list);
+    });
   }
 
   function loadProfile({ x, y, profile }) {
     runtime.whole_page_overwrite(x, y, profile);
     const ui = get(user_input);
-    store.set(createConfigListFrom(ui));
+    createConfigListFrom(ui).then((list) => {
+      store.set(list);
+    });
   }
 
   return {

@@ -410,11 +410,18 @@
   }
 
   function handleCopyAll() {
-    //Callback function
-    let callback = function () {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementcopy",
+      message: `Copy events from element...`,
+    });
+
+    //Fetching all unloaded elements configuration
+    runtime.fetch_element_configuration_from_grid().then(async () => {
       const current = ConfigTarget.createFrom({ userInput: $user_input });
       const configsLists = [];
-      current.events.forEach((e) => {
+      await current.events.forEach(async (e) => {
         const eventType = e.event.value;
         const target = new ConfigTarget({
           device: current.device,
@@ -422,7 +429,7 @@
           eventType: eventType,
           page: current.page,
         });
-        const list = ConfigList.createFromTarget(target);
+        const list = await ConfigList.createFromTarget(target);
         configsLists.push({ eventType: eventType, configs: list });
       });
 
@@ -436,17 +443,7 @@
         classname: "elementcopy",
         message: `Events are copied!`,
       });
-    };
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementcopy",
-      message: `Copy events from element...`,
     });
-
-    //Fetching all unloaded elements configuration
-    runtime.fetch_element_configuration_from_grid(callback);
 
     Analytics.track({
       event: "Config Action",
@@ -474,8 +471,9 @@
         list.sendTo({ target: target }).catch((e) => handleError(e));
       });
 
-      const list = ConfigList.createFromTarget(current);
-      configManager.set(list);
+      ConfigList.createFromTarget(current).then((list) => {
+        configManager.set(list);
+      });
     } else {
       logger.set({
         type: "fail",

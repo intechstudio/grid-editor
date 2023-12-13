@@ -387,55 +387,57 @@ function create_runtime() {
     return _event;
   };
 
-  function fetchOrLoadConfig(ui, callback) {
-    //console.log("Fetch Or Load")
+  function fetchOrLoadConfig(ui) {
+    return new Promise((resolve, reject) => {
+      //console.log("Fetch Or Load")
+      const rt = get(runtime);
 
-    const rt = get(runtime);
+      const device = rt.find(
+        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+      );
+      const pageIndex = device.pages.findIndex(
+        (x) => x.pageNumber == ui.event.pagenumber
+      );
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(
+        (x) => x.controlElementNumber == ui.event.elementnumber
+      );
 
-    const device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-    );
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == ui.event.pagenumber
-    );
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == ui.event.elementnumber
-    );
+      if (device.pages[pageIndex].control_elements[elementIndex] === undefined)
+        return;
 
-    if (device.pages[pageIndex].control_elements[elementIndex] === undefined)
-      return;
+      const eventIndex = device.pages[pageIndex].control_elements[
+        elementIndex
+      ].events.findIndex((x) => x.event.value == ui.event.eventtype);
 
-    const eventIndex = device.pages[pageIndex].control_elements[
-      elementIndex
-    ].events.findIndex((x) => x.event.value == ui.event.eventtype);
+      //console.log(device, pageIndex, elementIndex, eventIndex)
 
-    //console.log(device, pageIndex, elementIndex, eventIndex)
+      const cfgstatus =
+        device.pages[pageIndex].control_elements[elementIndex].events[
+          eventIndex
+        ].cfgStatus;
 
-    const cfgstatus =
-      device.pages[pageIndex].control_elements[elementIndex].events[eventIndex]
-        .cfgStatus;
+      if (
+        cfgstatus == "GRID_REPORT" ||
+        cfgstatus == "EDITOR_EXECUTE" ||
+        cfgstatus == "EDITOR_BACKGROUND"
+      ) {
+        // its loaded
+        resolve();
+      } else {
+        // fetch
+        const dx = ui.brc.dx;
+        const dy = ui.brc.dy;
+        const page = ui.event.pagenumber;
+        const element = ui.event.elementnumber;
+        const event = ui.event.eventtype;
 
-    if (
-      cfgstatus == "GRID_REPORT" ||
-      cfgstatus == "EDITOR_EXECUTE" ||
-      cfgstatus == "EDITOR_BACKGROUND"
-    ) {
-      // its loaded
-      if (callback !== undefined) {
-        callback();
+        instructions
+          .fetchConfigFromGrid(dx, dy, page, element, event)
+          .then(() => {
+            resolve();
+          });
       }
-    } else {
-      // fetch
-      const dx = ui.brc.dx;
-      const dy = ui.brc.dy;
-      const page = ui.event.pagenumber;
-      const element = ui.event.elementnumber;
-      const event = ui.event.eventtype;
-
-      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
-    }
-
-    return;
+    });
   }
 
   function isFirmwareMismatch(currentFirmware, requiredFirmware) {
@@ -588,15 +590,6 @@ function create_runtime() {
   function element_preset_load(x, y, element, preset) {
     const li = get(user_input);
     let events = preset.configs.events;
-    const callback = function () {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementoverwrite",
-        message: `Overwrite done!`,
-      });
-    };
-
     events.forEach((ev, index) => {
       const page = li.event.pagenumber;
       const event = ev.event;
@@ -607,15 +600,18 @@ function create_runtime() {
           dest.config = ev.config;
           dest.cfgStatus = "EDITOR_BACKGROUND";
 
-          instructions.sendConfigToGrid(
-            x,
-            y,
-            page,
-            element,
-            event,
-            dest.config,
-            index === events.length - 1 ? callback : undefined
-          );
+          instructions
+            .sendConfigToGrid(x, y, page, element, event, dest.config)
+            .then(() => {
+              if (index === events.length - 1) {
+                logger.set({
+                  type: "success",
+                  mode: 0,
+                  classname: "elementoverwrite",
+                  message: `Overwrite done!`,
+                });
+              }
+            });
         }
         return _runtime;
       });
@@ -626,23 +622,7 @@ function create_runtime() {
     const li = get(user_input);
 
     if (li.event.elementtype == controlElementType) {
-      events.forEach((ev, index) => {
-        let callback;
-        if (index === events.length - 1) {
-          // last element
-          callback = function () {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "elementoverwrite",
-              message: `Overwrite done!`,
-            });
-            user_input.update((n) => n);
-          };
-        } else {
-          callback = undefined;
-        }
-
+      events.forEach(async (ev, index) => {
         let li = get(user_input);
 
         const dx = li.brc.dx;
@@ -651,7 +631,7 @@ function create_runtime() {
         const element = li.event.elementnumber;
         const event = ev.event.value;
 
-        _runtime.update((_runtime) => {
+        _runtime.update(async (_runtime) => {
           let dest = findUpdateDestEvent(
             _runtime,
             dx,
@@ -664,20 +644,26 @@ function create_runtime() {
             dest.config = ev.config;
             dest.cfgStatus = "EDITOR_BACKGROUND";
 
-            instructions.sendConfigToGrid(
+            await instructions.sendConfigToGrid(
               dx,
               dy,
               page,
               element,
               event,
-              dest.config,
-              callback
+              dest.config
             );
             // trigger change detection
           }
           return _runtime;
         });
       });
+      logger.set({
+        type: "success",
+        mode: 0,
+        classname: "elementoverwrite",
+        message: `Overwrite done!`,
+      });
+      //user_input.update((n) => n);
     } else {
       logger.set({
         type: "fail",
@@ -709,8 +695,8 @@ function create_runtime() {
     }
 
     let li = get(user_input);
-    array.forEach((elem, elementIndex) => {
-      elem.events.forEach((ev, eventIndex) => {
+    array.forEach((elem) => {
+      elem.events.forEach(async (ev) => {
         li.event.pagenumber = li.event.pagenumber;
         li.event.elementnumber = elem.controlElementNumber;
         li.event.eventtype = ev.event;
@@ -728,33 +714,21 @@ function create_runtime() {
           return _runtime;
         });
 
-        let callback;
-
-        if (
-          elementIndex === array.length - 1 &&
-          eventIndex === elem.events.length - 1
-        ) {
-          // this is last element so we need to add the callback
-          callback = function () {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "profileload",
-              message: `Profile load complete!`,
-            });
-          };
-        }
-
-        instructions.sendConfigToGrid(
+        await instructions.sendConfigToGrid(
           x,
           y,
           page,
           element,
           event,
-          ev.config,
-          callback
+          ev.config
         );
       });
+    });
+    logger.set({
+      type: "success",
+      mode: 0,
+      classname: "profileload",
+      message: `Profile load complete!`,
     });
   }
 
@@ -781,154 +755,138 @@ function create_runtime() {
     });
   }
 
-  function send_event_configuration_to_grid(
-    dx,
-    dy,
-    page,
-    element,
-    event,
-    callback
-  ) {
-    let rt = get(_runtime);
+  function send_event_configuration_to_grid(dx, dy, page, element, event) {
+    return new Promise((resolve, reject) => {
+      let rt = get(_runtime);
 
-    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
-    if (dest) {
-      instructions.sendConfigToGrid(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        dest.config,
-        callback
-      );
-    } else {
-      console.error("DEST not found!");
-    }
-  }
-
-  // whole element copy: fetches all event configs from a control element
-  function fetch_element_configuration_from_grid(callback) {
-    const li = get(user_input);
-    const rt = get(runtime);
-
-    const device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-    );
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber
-    );
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == li.event.elementnumber
-    );
-
-    const events =
-      device.pages[pageIndex].control_elements[elementIndex].events;
-    const controlElementType =
-      device.pages[pageIndex].control_elements[elementIndex].controlElementType;
-
-    const array = [];
-
-    events.forEach((e) => {
-      array.push({
-        event: e.event.value,
-        elementnumber:
-          device.pages[pageIndex].control_elements[elementIndex]
-            .controlElementNumber,
-      });
-    });
-
-    array.forEach((elem, ind) => {
-      li.event.eventtype = elem.event;
-      li.event.elementnumber = elem.elementnumber;
-
-      if (ind == array.length - 1 && callback !== undefined) {
-        // this is last and callback is defined
-
-        fetchOrLoadConfig(li, callback);
+      let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
+      if (dest) {
+        instructions.sendConfigToGrid(
+          dx,
+          dy,
+          page,
+          element,
+          event,
+          dest.config
+        );
+        resolve();
       } else {
-        fetchOrLoadConfig(li);
+        console.error("DEST not found!");
+        reject();
       }
     });
   }
 
-  function fetch_page_configuration_from_grid(callback) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "profilesave",
-      message: `Preparing configs...`,
+  // whole element copy: fetches all event configs from a control element
+  function fetch_element_configuration_from_grid() {
+    return new Promise((resolve, reject) => {
+      const li = get(user_input);
+      const rt = get(runtime);
+
+      const device = rt.find(
+        (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
+      );
+      const pageIndex = device.pages.findIndex(
+        (x) => x.pageNumber == li.event.pagenumber
+      );
+      const elementIndex = device.pages[pageIndex].control_elements.findIndex(
+        (x) => x.controlElementNumber == li.event.elementnumber
+      );
+
+      const events =
+        device.pages[pageIndex].control_elements[elementIndex].events;
+      const controlElementType =
+        device.pages[pageIndex].control_elements[elementIndex]
+          .controlElementType;
+
+      const array = [];
+
+      events.forEach((e) => {
+        array.push({
+          event: e.event.value,
+          elementnumber:
+            device.pages[pageIndex].control_elements[elementIndex]
+              .controlElementNumber,
+        });
+      });
+
+      array.forEach(async (elem) => {
+        li.event.eventtype = elem.event;
+        li.event.elementnumber = elem.elementnumber;
+        await fetchOrLoadConfig(li);
+      });
+      resolve();
     });
+  }
 
-    console.log("FETCH");
-
-    const rt = get(runtime);
-
-    let li = Object.assign({}, get(user_input));
-
-    let device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-    );
-
-    if (typeof device === "undefined") {
+  function fetch_page_configuration_from_grid() {
+    return new Promise((resolve, reject) => {
       logger.set({
-        type: "fail",
+        type: "progress",
         mode: 0,
         classname: "profilesave",
-        message: `No module selected`,
+        message: `Preparing configs...`,
       });
 
-      return;
-    }
+      console.log("FETCH");
 
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber
-    );
-    const controlElements = device.pages[pageIndex].control_elements;
+      const rt = get(runtime);
 
-    const fetchArray = [];
+      let li = Object.assign({}, get(user_input));
 
-    controlElements.forEach((controlElement) => {
-      controlElement.events.forEach((elem) => {
-        const cfgstatus = elem.cfgStatus;
+      let device = rt.find(
+        (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
+      );
 
-        if (
-          cfgstatus == "GRID_REPORT" ||
-          cfgstatus == "EDITOR_EXECUTE" ||
-          cfgstatus == "EDITOR_BACKGROUND"
-        ) {
-          //alreade loaded config
-        } else {
-          // put it into the fetchArray
-          fetchArray.push({
-            event: elem.event.value,
-            elementnumber: controlElement.controlElementNumber,
-          });
-        }
+      if (typeof device === "undefined") {
+        logger.set({
+          type: "fail",
+          mode: 0,
+          classname: "profilesave",
+          message: `No module selected`,
+        });
+
+        return;
+      }
+
+      const pageIndex = device.pages.findIndex(
+        (x) => x.pageNumber == li.event.pagenumber
+      );
+      const controlElements = device.pages[pageIndex].control_elements;
+
+      const fetchArray = [];
+
+      controlElements.forEach((controlElement) => {
+        controlElement.events.forEach((elem) => {
+          const cfgstatus = elem.cfgStatus;
+
+          if (
+            cfgstatus == "GRID_REPORT" ||
+            cfgstatus == "EDITOR_EXECUTE" ||
+            cfgstatus == "EDITOR_BACKGROUND"
+          ) {
+            //alreade loaded config
+          } else {
+            // put it into the fetchArray
+            fetchArray.push({
+              event: elem.event.value,
+              elementnumber: controlElement.controlElementNumber,
+            });
+          }
+        });
       });
-    });
 
-    // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
-    writeBuffer.clear();
+      // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
+      writeBuffer.clear();
 
-    if (fetchArray.length === 0) {
-      //nothing to do, let's do calback
-      callback();
-    } else {
-      fetchArray.forEach((elem, ind) => {
+      fetchArray.forEach(async (elem) => {
         li.event.eventtype = elem.event;
         li.event.elementnumber = elem.elementnumber;
 
-        if (ind === fetchArray.length - 1) {
-          // last element
-
-          fetchOrLoadConfig(li, callback);
-        } else {
-          fetchOrLoadConfig(li);
-        }
+        await fetchOrLoadConfig(li);
       });
-    }
-    return;
+      resolve();
+    });
   }
 
   function clear_page_configuration() {
@@ -957,7 +915,7 @@ function create_runtime() {
     // epicly shitty workaround before implementing acknowledge state management
     setTimeout(() => {
       //do nothing just trigger change detection
-      user_input.update((n) => n);
+      //user_input.update((n) => n);
       return this;
     }, 150);
   }
@@ -1161,7 +1119,6 @@ function create_runtime() {
     instructions.sendPageStoreToGrid();
     _runtime.update((store) => {
       store.forEach((device) => {
-        console.log(device);
         device.pages
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
