@@ -34,9 +34,9 @@
     class:animate-border-error={device?.fwMismatch}
     style={$$props.style}
   >
-    {#if $user_input.event.elementnumber === 255}
+    {#if isSelected && isSystemEventsSelected}
       <div
-        transition:fade={{ duration: 50 }}
+        transition:fade={{ duration: 100 }}
         class="w-full h-full bg-emerald-900 opacity-70"
         style="{$$props.style} box-shadow: inset 0 0 8px 8px rgba(0,0,0,0.3);"
       >

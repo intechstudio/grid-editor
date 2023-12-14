@@ -472,7 +472,7 @@
       }}
     >
       <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
-        <DeviceInfoPanel />
+        <!-- <DeviceInfoPanel /> -->
         <ElementSelectionPanel />
         <EventPanel
           class="flex flex-col w-full "
