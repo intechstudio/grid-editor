@@ -72,32 +72,9 @@ const instructions = {
             EVENTTYPE: event,
           },
         },
-        failCb: function () {
-          //console.log('config fetch - fail')
-          reject();
-        },
-        successCb: function (descr) {
-          //DONE
-          const dx = descr.brc_parameters.SX;
-          const dy = descr.brc_parameters.SY;
-          const page = descr.class_parameters.PAGENUMBER;
-          const element = descr.class_parameters.ELEMENTNUMBER;
-          const event = descr.class_parameters.EVENTTYPE;
-          const actionstring = descr.class_parameters.ACTIONSTRING;
-
-          runtime.update_event_configuration(
-            dx,
-            dy,
-            page,
-            element,
-            event,
-            actionstring,
-            "GRID_REPORT"
-          );
-          resolve(descr);
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
-      // console.log("FETCH: ", buffer_element.descr.class_parameters.PAGENUMBER, buffer_element.descr.class_parameters.ELEMENTNUMBER, buffer_element.descr.class_parameters.EVENTTYPE );
       writeBuffer.add_last(buffer_element);
     });
   },
@@ -142,14 +119,8 @@ const instructions = {
           class_name: "CONFIG",
           class_instr: "ACKNOWLEDGE",
         },
-        failCb: function () {
-          //console.log('config execute - fail')
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_last(buffer_element);
@@ -196,15 +167,8 @@ const instructions = {
           class_name: "PAGECOUNT",
           class_instr: "REPORT",
         },
-        failCb: function () {
-          //console.log('fetch page count - fail')
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          //console.log('fetch page count - success')
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_first(buffer_element);
@@ -238,27 +202,8 @@ const instructions = {
             LASTHEADER: null,
           },
         },
-        failCb: function () {
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "pagestore",
-            message: `Retry page store...`,
-          });
-          //console.log('page store execute - fail')
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pagestore",
-            message: `Store complete!`,
-          });
-          //console.log('page store execute - success')
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_last(buffer_element);
@@ -303,28 +248,8 @@ const instructions = {
             LASTHEADER: null,
           },
         },
-        failCb: function () {
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "nvmerase",
-            message: `Retry erase all modules...`,
-          });
-          //console.log('NVM erase execute - fail')
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          runtime.erase();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "nvmerase",
-            message: `Erase complete!`,
-          });
-          //console.log('NVM erase execute - success')
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_last(buffer_element);
@@ -360,16 +285,8 @@ const instructions = {
             LASTHEADER: null,
           },
         },
-        failCb: function () {
-          console.log("NVM defrag execute - fail");
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          console.log("NVM defrag execute - success");
-          //logger.set({type: 'success', mode: 0, classname: 'nvmdefrag', message: `NVM defrag complete!`});
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_last(buffer_element);
@@ -407,28 +324,8 @@ const instructions = {
             LASTHEADER: null,
           },
         },
-        failCb: function () {
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "pagediscard",
-            message: `Retry configuration discard...`,
-          });
-          //console.log('page discard execute - fail')
-          reject();
-        },
-        successCb: function () {
-          //DONE
-          runtime.clear_page_configuration();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pagediscard",
-            message: `Discard complete!`,
-          });
-          //console.log('page discard execute - success');
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_last(buffer_element);
@@ -463,27 +360,8 @@ const instructions = {
             LASTHEADER: null,
           },
         },
-        failCb: function () {
-          logger.set({
-            type: "alert",
-            mode: 0,
-            classname: "pageclear",
-            message: `Retry clear page...`,
-          });
-          //console.log('page clear execute - fail')
-          reject();
-        },
-        successCb: function () {
-          runtime.clear_page_configuration();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pageclear",
-            message: `Page clear complete!`,
-          });
-          //console.log('page clear execute - success')
-          resolve();
-        },
+        failCb: (descr) => reject(descr),
+        successCb: (descr) => resolve(descr),
       };
 
       writeBuffer.add_first(buffer_element);

@@ -29,7 +29,25 @@
   }
 
   function handleClear() {
-    instructions.sendPageClearToGrid();
+    instructions
+      .sendPageClearToGrid()
+      .then(() => {
+        runtime.clear_page_configuration();
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pageclear",
+          message: `Page clear complete!`,
+        });
+      })
+      .catch(() => {
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pageclear",
+          message: `Retry clear page...`,
+        });
+      });
 
     Analytics.track({
       event: "Page Config",
@@ -42,7 +60,25 @@
 
   function handleDiscard() {
     if (isStoreEnabled) {
-      instructions.sendPageDiscardToGrid();
+      instructions
+        .sendPageDiscardToGrid()
+        .then(() => {
+          runtime.clear_page_configuration();
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Discard complete!`,
+          });
+        })
+        .catch(() => {
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Retry configuration discard...`,
+          });
+        });
 
       Analytics.track({
         event: "Page Config",

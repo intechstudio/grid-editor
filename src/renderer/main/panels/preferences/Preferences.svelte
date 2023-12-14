@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { runtime, logger } from "./../../../runtime/runtime.store.js";
   import { writable, get } from "svelte/store";
   import instructions from "../../../serialport/instructions";
   import { onMount, onDestroy } from "svelte";
@@ -239,7 +240,25 @@
       <MoltenButton
         title={"Erase"}
         click={() => {
-          instructions.sendNVMEraseToGrid();
+          instructions
+            .sendNVMEraseToGrid()
+            .then(() => {
+              runtime.erase();
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Erase complete!`,
+              });
+            })
+            .catch(() => {
+              logger.set({
+                type: "alert",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Retry erase all modules...`,
+              });
+            });
         }}
       />
     </Block>

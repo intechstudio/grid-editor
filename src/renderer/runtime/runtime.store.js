@@ -434,6 +434,22 @@ function create_runtime() {
         instructions
           .fetchConfigFromGrid(dx, dy, page, element, event)
           .then(() => {
+            const dx = descr.brc_parameters.SX;
+            const dy = descr.brc_parameters.SY;
+            const page = descr.class_parameters.PAGENUMBER;
+            const element = descr.class_parameters.ELEMENTNUMBER;
+            const event = descr.class_parameters.EVENTTYPE;
+            const actionstring = descr.class_parameters.ACTIONSTRING;
+
+            update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionstring,
+              "GRID_REPORT"
+            );
             resolve();
           });
       }
@@ -1116,7 +1132,24 @@ function create_runtime() {
   }
 
   function storePage(index) {
-    instructions.sendPageStoreToGrid();
+    instructions
+      .sendPageStoreToGrid()
+      .then(() => {
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pagestore",
+          message: `Store complete!`,
+        });
+      })
+      .catch(() => {
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pagestore",
+          message: `Retry page store...`,
+        });
+      });
     _runtime.update((store) => {
       store.forEach((device) => {
         device.pages
