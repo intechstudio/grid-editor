@@ -11,12 +11,13 @@
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
   import { ConfigTarget } from "./Configuration.store.js";
+  import MeltRadio from "../preferences/MeltRadio.svelte";
 
   const dispatch = createEventDispatcher();
 
   class Event {
     constructor({
-      label = "",
+      name = "",
       value = null,
       selected = false,
       dx,
@@ -24,7 +25,7 @@
       element,
       page,
     }) {
-      this.label = label;
+      this.name = name;
       this.value = value;
       this.selected = selected;
       this.dx = dx;
@@ -34,10 +35,21 @@
     }
   }
 
+  let options = [];
+  let selected = -1;
+
   let events = [];
-  let selectedElement = undefined;
 
   $: handleUserInputChange($user_input);
+
+  $: {
+    if ($runtime.length === 0) {
+      options = Array.from(Array(3).keys()).map((i) =>
+        Object({ title: undefined, value: i })
+      );
+      selected = -1;
+    }
+  }
 
   function handleUserInputChange(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
@@ -49,20 +61,25 @@
     //Get events
     events = target.events.map((e) => {
       return new Event({
-        label: String(e.event.desc),
+        name: String(e.event.desc),
         value: Number(e.event.value),
-        selected: target.eventType == e.event.value,
         dx: target.device.dx,
         dy: target.device.dy,
         element: target.element,
         page: target.page,
       });
     });
-
-    selectedElement = target.element;
+    options = events.map((e, i) => Object({ title: e.name, value: i }));
+    selected = events.findIndex((e) => target.eventType === e.value);
   }
 
-  function handleSelectEvent(event) {
+  $: handleSelectEvent(selected);
+
+  function handleSelectEvent(value) {
+    const event = events[value];
+    if (typeof event === "undefined") {
+      return;
+    }
     user_input.update_eventtype(event.value);
   }
 
@@ -121,55 +138,31 @@
     </div>
 
     <div class="flex flex-col justify-center items-center">
-      <div class="flex flex-row w-full">
-        {#if events.length > 0}
-          {#each events as event, i}
-            {@const eventData = $runtime
-              .find((e) => e.dx == event.dx && e.dy == event.dy)
-              ?.pages[event.page].control_elements.find(
-                (e) => e.controlElementNumber == event.element
-              )
-              ?.events.find((e) => e.event.value == event.value)}
-            {@const stored = eventData?.stored}
-            {@const config = eventData?.config}
-            {@const status = eventData?.cfgStatus}
-
-            <button
-              use:setTooltip={{
-                key: `event_${event.label}`,
-                placement: "top",
-                class: "w-80 p-4",
-              }}
-              on:click={() => {
-                handleSelectEvent(event);
-              }}
-              class="{event.selected
-                ? 'shadow-md text-white bg-secondary-brightness-20'
-                : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative
-                p-1 flex-grow border-0 rounded focus:outline-none"
-              class:mr-2={i < events.length - 1}
-            >
-              <span
-                >{event.label.charAt(0).toUpperCase() +
-                  event.label.slice(1)}</span
-              >
-              {#if status !== "NULL" && status !== "ERASED" && stored !== config}
-                <unsaved-changes-marker
-                  class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-                />
-              {/if}
-            </button>
-          {/each}
-        {:else}
-          {#each Array(3) as n}
-            <div
-              class=" bg-secondary relative m-2 first:ml-0 last:mr-0 p-1 flex-grow border-0 rounded focus:outline-none"
-            >
-              <span class="invisible">null</span>
-            </div>
-          {/each}
-        {/if}
-      </div>
+      <MeltRadio
+        class="w-full"
+        bind:target={selected}
+        style="button"
+        orientation="horizontal"
+        {options}
+      >
+        <svelte:fragment slot="item" let:value>
+          {@const event = events[value]}
+          {@const eventData = $runtime
+            .find((e) => e.dx == event.dx && e.dy == event.dy)
+            ?.pages[event.page].control_elements.find(
+              (e) => e.controlElementNumber == event.element
+            )
+            ?.events.find((e) => e.event.value == event.value)}
+          {@const stored = eventData?.stored}
+          {@const config = eventData?.config}
+          {@const status = eventData?.cfgStatus}
+          {#if status !== "NULL" && status !== "ERASED" && stored !== config}
+            <unsaved-changes-marker
+              class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+            />
+          {/if}
+        </svelte:fragment>
+      </MeltRadio>
     </div>
   </div>
 </div>

@@ -8,7 +8,6 @@
   import { flip } from "svelte/animate";
 
   import EventPanel from "./EventPanel.svelte";
-  import DeviceInfoPanel from "./DeviceInfoPanel.svelte";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
@@ -472,7 +471,6 @@
       }}
     >
       <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
-        <!-- <DeviceInfoPanel /> -->
         <ElementSelectionPanel />
         <EventPanel
           class="flex flex-col w-full "

@@ -66,23 +66,27 @@
       selected = -1;
       return;
     }
-
-    elements = device.pages
-      .find((page) => page.pageNumber === ui.event.pagenumber)
-      ?.control_elements.map((e) => {
-        const stringName = getElementName(e.controlElementNumber);
-        if (typeof stringName !== "undefined") {
-          return { title: stringName, value: e.controlElementNumber };
-        } else {
-          return {
-            title: `Element ${e.controlElementNumber} (${
-              e.controlElementType[0].toUpperCase() +
-              e.controlElementType.slice(1).toLowerCase()
-            })`,
-            value: e.controlElementNumber,
-          };
-        }
-      });
+    const control_elements = device.pages.find(
+      (page) => page.pageNumber === ui.event.pagenumber
+    )?.control_elements;
+    elements = control_elements.map((e) => {
+      const stringName = getElementName(e.controlElementNumber);
+      if (typeof stringName !== "undefined") {
+        return { title: stringName, value: e.controlElementNumber };
+      } else {
+        return {
+          title: `Element ${
+            e.controlElementNumber < 255
+              ? e.controlElementNumber
+              : control_elements.length - 1
+          } (${
+            e.controlElementType[0].toUpperCase() +
+            e.controlElementType.slice(1).toLowerCase()
+          })`,
+          value: e.controlElementNumber,
+        };
+      }
+    });
     selected = ui.event.elementnumber;
   }
 </script>

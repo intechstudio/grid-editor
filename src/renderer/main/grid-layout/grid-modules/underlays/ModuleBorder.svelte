@@ -1,4 +1,5 @@
 <script>
+  import { appSettings } from "./../../../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
   import { user_input } from "../../../../runtime/runtime.store.js";
   import { fade } from "svelte/transition";
@@ -34,7 +35,7 @@
     class:animate-border-error={device?.fwMismatch}
     style={$$props.style}
   >
-    {#if isSelected && isSystemEventsSelected}
+    {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
       <div
         transition:fade={{ duration: 100 }}
         class="w-full h-full bg-emerald-900 opacity-70"
