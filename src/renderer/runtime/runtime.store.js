@@ -1299,7 +1299,6 @@ export class LocalDefinitions {
         });
       }
     });
-    console.log(index, arr);
     return arr;
   }
 }

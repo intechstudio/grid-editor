@@ -453,7 +453,6 @@ function create_configuration_manager() {
   }
 
   function update(func) {
-    console.log("yay");
     store.update(func);
     store.update((store) => {
       ConfigList.setIndentation(store);
