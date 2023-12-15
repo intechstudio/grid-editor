@@ -10,6 +10,7 @@
   export let options: option_t[];
   export let target;
   export let orientation: "vertical" | "horizontal" = "vertical";
+  export let style: "button" | "radio" = "radio";
 
   const {
     elements: { root, item },
@@ -50,7 +51,7 @@
 <div
   {...$root}
   use:root
-  class="text-white overflow-auto
+  class="{$$props.class} text-white overflow-auto
     {orientation === 'vertical'
     ? 'grid grid-flow-row my-2 gap-4'
     : 'grid grid-flow-col border border-black border-opacity-20 bg-black bg-opacity-10'} py-2"
@@ -66,19 +67,38 @@
         : ''} 
       group cursor-pointer flex items-center px-2"
     >
-      <button {...$item(value)} use:item id={title}>
-        <div
-          class="relative flex items-center justify-center rounded-full border w-6 h-6 mr-3"
-        >
+      {#if style === "radio"}
+        <button {...$item(value)} use:item id={title}>
           <div
-            class="{$isChecked(value)
-              ? 'block'
-              : 'hidden'} absolute rounded-full bg-white h-3 w-3"
-          />
-        </div>
-      </button>
+            class="relative flex items-center justify-center rounded-full border w-6 h-6 mr-3"
+          >
+            <div
+              class="{$isChecked(value)
+                ? 'block'
+                : 'hidden'} absolute rounded-full bg-white h-3 w-3"
+            />
+          </div>
+        </button>
 
-      <span id="{title}-label">{title}</span>
+        <span id="{title}-label">{title}</span>
+      {/if}
+      {#if style === "button"}
+        <button
+          {...$item(value)}
+          use:item
+          id={title}
+          class="relative px-2 py-1 w-full rounded bg-black bg-opacity-20 border border-black border-opacity-40"
+          class:bg-opacity-60={$isChecked(value)}
+          class:hover:bg-opacity-40={!$isChecked(value)}
+        >
+          {#if typeof title !== "undefined"}
+            <span id="{title}-label">{title}</span>
+          {:else}
+            <span class="invisible">N/A</span>
+          {/if}
+          <slot name="item" {value} />
+        </button>
+      {/if}
     </label>
   {/each}
 </div>

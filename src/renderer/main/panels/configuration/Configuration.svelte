@@ -1,4 +1,5 @@
 <script>
+  import ElementSelectionPanel from "./ElementSelectionPanel.svelte";
   import { get } from "svelte/store";
 
   import { Analytics } from "../../../runtime/analytics.js";
@@ -7,8 +8,6 @@
   import { flip } from "svelte/animate";
 
   import EventPanel from "./EventPanel.svelte";
-
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
 
   import { lua_error_store } from "../DebugMonitor/DebugMonitor.store";
 
@@ -94,50 +93,6 @@
   //////////////////////////////////////////////////////////////////////////////
   /////////////////           EVENT HANDLERS          //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
-
-  //TODO: Is there a better way?
-  function handleChangeEventTab(arg) {
-    if ($writeBuffer.length > 0) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "engine-disabled",
-        message: `Engine is disabled, changing event type failed!`,
-      });
-      return;
-    }
-
-    if (arg == "systemEvents") {
-      user_input.update((ui) => {
-        ui.event.elementnumber = 255;
-        ui.event.eventtype = 4;
-        ui.event.elementtype = "system";
-        return ui;
-      });
-    }
-
-    if (arg == "uiEvents") {
-      const rt = get(runtime);
-      const ui = get(user_input);
-      const device = rt.find(
-        (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-      );
-
-      if (device === undefined) {
-        return;
-      }
-
-      user_input.update((ui) => {
-        ui.event.elementnumber = 0;
-        ui.event.eventtype = 0;
-        ui.event.elementtype =
-          device.pages[
-            ui.event.pagenumber
-          ].control_elements[0].controlElementType;
-        return ui;
-      });
-    }
-  }
 
   function handleConfigManagerUpdate(list) {
     if (typeof list === "undefined") {
@@ -493,42 +448,6 @@
 </script>
 
 <configuration class="w-full h-full flex flex-col bg-primary">
-  <div class="py-5 flex flex-col justify-center">
-    <div class="flex flex-row items-start py-2 px-10">
-      <button
-        use:setTooltip={{
-          key: "configuration_ui_events",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={() => {
-          handleChangeEventTab("uiEvents");
-        }}
-        class="{!isSystemEventSelected
-          ? 'shadow-md text-white bg-secondary-brightness-20'
-          : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
-      >
-        <span> UI Events </span>
-      </button>
-
-      <button
-        use:setTooltip={{
-          key: "configuration_system_events",
-          placement: "top",
-          class: "w-60 p-4",
-        }}
-        on:click={() => {
-          handleChangeEventTab("systemEvents");
-        }}
-        class="{isSystemEventSelected
-          ? 'shadow-md text-white bg-secondary-brightness-20'
-          : 'hover:bg-secondary-brightness-10 text-gray-50 bg-secondary'} relative m-2 p-1 flex-grow border-0 rounded focus:outline-none w-48"
-      >
-        <span> System Events </span>
-      </button>
-    </div>
-  </div>
-
   {#key !isSystemEventSelected}
     <container
       class="flex flex-col h-full"
@@ -539,22 +458,22 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-4 pb-2">
-        <div>
-          <EventPanel
-            on:copy-all={handleCopyAll}
-            on:overwrite-all={handleOverwriteAll}
+      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
+        <ElementSelectionPanel />
+        <EventPanel
+          class="flex flex-col w-full "
+          on:copy-all={handleCopyAll}
+          on:overwrite-all={handleOverwriteAll}
+        />
+        <div class="flex w-full items-center justify-between">
+          <div class="text-gray-500 text-sm">Actions</div>
+          <MultiSelect
+            on:convert-to-code-block={handleConvertToCodeBlock}
+            on:copy={handleCopy}
+            on:cut={handleCut}
+            on:paste={handlePaste}
+            on:remove={handleRemove}
           />
-          <div class="px-4 flex w-full items-center justify-between">
-            <div class="text-gray-500 text-sm">Actions</div>
-            <MultiSelect
-              on:convert-to-code-block={handleConvertToCodeBlock}
-              on:copy={handleCopy}
-              on:cut={handleCut}
-              on:paste={handlePaste}
-              on:remove={handleRemove}
-            />
-          </div>
         </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -577,7 +496,7 @@
             on:mouseleave={() => {
               //clearInterval(autoScroll);
             }}
-            class="flex flex-col w-full h-auto overflow-y-auto px-4"
+            class="flex flex-col w-full h-auto overflow-y-auto"
           >
             {#each $configManager as config, index (config.id)}
               <anim-block
