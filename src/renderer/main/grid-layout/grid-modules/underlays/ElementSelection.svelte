@@ -1,9 +1,5 @@
 <script>
   import { user_input } from "../../../../runtime/runtime.store.js";
-  import {
-    selectedConfigStore,
-    isActionButtonClickedStore,
-  } from "../../../../runtime/config-helper.store";
   import { createEventDispatcher } from "svelte";
 
   export let elementNumber;
@@ -21,23 +17,12 @@
     dy = device?.dy;
   }
 
-  let selectedElement;
-  $: {
-    if (!$isActionButtonClickedStore) {
-      if (Object.keys($selectedConfigStore).length !== 0) {
-        selectedElement = { id: "", brc: {}, event: {} };
-      } else {
-        selectedElement = $user_input;
-      }
-    }
-  }
-
   let isSelected = false;
   $: {
     isSelected =
-      dx == selectedElement?.brc.dx &&
-      dy == selectedElement?.brc.dy &&
-      selectedElement?.event.elementnumber == elementNumber;
+      dx == $user_input?.brc.dx &&
+      dy == $user_input?.brc.dy &&
+      $user_input?.event.elementnumber == elementNumber;
   }
 </script>
 

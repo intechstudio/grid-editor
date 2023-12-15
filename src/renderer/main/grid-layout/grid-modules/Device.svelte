@@ -127,8 +127,13 @@
     });
   }
 
-  $: if ($user_input) {
-    $appSettings.displayedOverlay = undefined;
+  $: {
+    if ($user_input) {
+      appSettings.update((store) => {
+        store.displayedOverlay = undefined;
+        return store;
+      });
+    }
   }
 
   function handleProfileLoad() {
@@ -169,11 +174,8 @@
       />
       <PortState
         {device}
-        visible={(typeof $appSettings.displayedOverlay === "undefined" ||
-          $appSettings.displayedOverlay === "profile-load-overlay") &&
-          $appSettings.persistent.portstateOverlayEnabled}
+        visible={$appSettings.persistent.portstateOverlayEnabled}
       />
-      <ModuleInfo {device} visible={true} />
       <ModuleSelection
         {device}
         visible={typeof $appSettings.displayedOverlay === "undefined" ||
@@ -215,6 +217,7 @@
           on:click={handleElementClicked}
         />
       </div>
+      <ModuleInfo {device} visible={true} {elementNumber} />
     </svelte:fragment>
 
     <!-- Cell Overlays -->
