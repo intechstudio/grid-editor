@@ -35,7 +35,8 @@
   import { onMount, createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
-  import { localDefinitions } from "../runtime/runtime.store";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
   import { Validator } from "./_validators";
 
   export let config;
@@ -69,12 +70,16 @@
 
   const _suggestions = [[]];
 
-  $: if ($localDefinitions) {
+  $: if ($configManager) {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
     suggestions = _suggestions.map((s, i) => {
       // SKIP LAYER
-      return [...s, ...$localDefinitions];
+      return [...s, ...localDefinitions];
     });
-    suggestions = suggestions;
   }
 
   let suggestionElement = undefined;

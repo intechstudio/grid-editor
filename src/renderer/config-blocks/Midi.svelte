@@ -44,11 +44,12 @@
 </script>
 
 <script>
-  import { onMount, createEventDispatcher, onDestroy } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Script } from "./_script_parsers.js";
-  import { localDefinitions } from "../runtime/runtime.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
 
@@ -653,6 +654,10 @@
 
   let suggestions = [];
 
+  $: if ($configManager) {
+    renderSuggestions();
+  }
+
   function renderSuggestions() {
     // removed ?. as terser didn't work
     let selectedCommand = _suggestions[1].find(
@@ -676,16 +681,14 @@
       console.warn("error while creating midi suggetions");
       suggestions = _suggestions;
     }
-  }
 
-  $: if (scriptSegments || $localDefinitions) {
-    renderSuggestions();
-    suggestions = suggestions.map((s) => [...$localDefinitions, ...s]);
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
+    suggestions = suggestions.map((s) => [...localDefinitions, ...s]);
   }
-
-  onMount(() => {
-    renderSuggestions();
-  });
 
   const tabs = [
     { name: "MIDI", short: "gms" },
