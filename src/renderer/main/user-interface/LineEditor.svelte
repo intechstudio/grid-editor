@@ -16,6 +16,7 @@
 
   let editor;
   let value_buffer = "";
+  let newLinesRemoved = false;
 
   $: {
     if (sidebarWidth) {
@@ -87,18 +88,25 @@
       automaticLayout: true,
     });
 
-    editor.onKeyDown((e) => {
-      if (e.code === "Enter") {
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
-
     update_codeblock_size();
 
     editor.getModel().onDidChangeContent((event) => {
-      dispatch("output", { script: editor.getValue() });
-      update_codeblock_size();
+      //Hackey solutin for filtering out new line characters
+      //Currently there is no better solution for this
+      //When a new line char is detected, it is replaced with empty strings
+      //The setValue triggers this function once again, and that should be filtered out too
+      const value = editor.getValue();
+      const hasNewLine = /\r|\n/.exec(value);
+      if (!newLinesRemoved && hasNewLine) {
+        newLinesRemoved = true;
+        editor.setValue(value.replace(/[\n\r]/g, ""));
+        return;
+      }
+      if (!newLinesRemoved) {
+        dispatch("output", { script: value });
+        update_codeblock_size();
+      }
+      newLinesRemoved = false;
     });
 
     //Handler for loosing focus
@@ -114,10 +122,7 @@
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div
-  id="monaco_container"
-  class="{$$props.class} overflow-clip grid grid-cols-1 w-full"
->
+<div id="monaco_container" class="{$$props.class} grid grid-cols-1 w-full">
   <div
     on:click|preventDefault={() => {}}
     on:mousedown|preventDefault={() => {}}
