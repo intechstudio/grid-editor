@@ -946,6 +946,7 @@ function create_runtime() {
               ) {
                 event.config = "";
                 event.cfgStatus = "NULL";
+                event.stored = undefined;
               }
             });
           }
@@ -1179,6 +1180,14 @@ function create_runtime() {
     });
   }
 
+  function clearPage(index) {
+    instructions.sendPageClearToGrid();
+  }
+
+  function discardPage(index) {
+    instructions.sendPageDiscardToGrid();
+  }
+
   return {
     reset: reset,
     subscribe: _runtime.subscribe,
@@ -1208,6 +1217,8 @@ function create_runtime() {
     fetchOrLoadConfig: fetchOrLoadConfig,
     unsavedChangesCount: unsavedChangesCount,
     storePage: storePage,
+    discardPage: discardPage,
+    clearPage: clearPage,
   };
 }
 

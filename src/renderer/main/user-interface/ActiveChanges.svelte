@@ -29,7 +29,8 @@
   }
 
   function handleClear() {
-    instructions.sendPageClearToGrid();
+    const index = $user_input.event.pagenumber;
+    runtime.clearPage(index);
 
     Analytics.track({
       event: "Page Config",
@@ -42,7 +43,8 @@
 
   function handleDiscard() {
     if (isStoreEnabled) {
-      instructions.sendPageDiscardToGrid();
+      const index = $user_input.event.pagenumber;
+      runtime.discardPage(index);
 
       Analytics.track({
         event: "Page Config",
