@@ -31,6 +31,7 @@ const persistentDefaultValues = {
   firstLaunch: true,
   fontSize: 12,
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
+  showPCB: false,
 };
 
 function checkOS() {

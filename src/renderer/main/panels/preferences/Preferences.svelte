@@ -289,6 +289,18 @@
     </Block>
 
     <Block>
+      <BlockTitle>Show PCB</BlockTitle>
+      <BlockBody>
+        When selecting the system element of a module, it's underlaying PCB
+        shows.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.showPCB}
+        title={"Show PCB"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Scale UI</BlockTitle>
       <BlockBody
         >Scales the font size and control elements dimensions by keeping their

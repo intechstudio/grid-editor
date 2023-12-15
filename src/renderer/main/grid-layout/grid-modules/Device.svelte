@@ -77,27 +77,6 @@
     });
   }
 
-  function handleModuleClicked(e) {
-    if ($writeBuffer.length > 0) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "engine-disabled",
-        message: `Engine is disabled, changing event type failed!`,
-      });
-      return;
-    }
-
-    user_input.update((ui) => {
-      ui.brc.dx = device?.dx;
-      ui.brc.dy = device?.dy;
-      ui.event.elementnumber = 255;
-      ui.event.eventtype = 4;
-      ui.event.elementtype = "system";
-      return ui;
-    });
-  }
-
   $: {
     handleSelectedConfigChange($selectedConfigStore);
   }
@@ -112,7 +91,6 @@
 
   function handlePresetLoad(e) {
     const { elementNumber } = e.detail;
-    console.log(device);
     configManager.loadPreset({
       x: device.dx,
       y: device.dy,
@@ -178,9 +156,7 @@
       />
       <ModuleSelection
         {device}
-        visible={typeof $appSettings.displayedOverlay === "undefined" ||
-          $appSettings.displayedOverlay === "profile-load-overlay"}
-        on:click={handleModuleClicked}
+        visible={true}
         class="absolute top-0 left-0 w-full h-full"
         style="border-radius: var(--grid-rounding);"
       />

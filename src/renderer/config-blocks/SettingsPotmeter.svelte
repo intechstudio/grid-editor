@@ -27,6 +27,7 @@
   import { createEventDispatcher, onDestroy } from "svelte";
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
 
   export let config = "";
