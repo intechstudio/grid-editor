@@ -84,7 +84,7 @@
         showIcons: false,
         showWords: true,
       },
-      automaticLayout: false,
+      automaticLayout: true,
     });
 
     editor.onKeyDown((e) => {
@@ -98,7 +98,6 @@
 
     editor.getModel().onDidChangeContent((event) => {
       dispatch("output", { script: editor.getValue() });
-
       update_codeblock_size();
     });
 
@@ -116,11 +115,16 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  on:click|preventDefault={() => {}}
-  on:mousedown|preventDefault={() => {}}
-  bind:this={monaco_block}
-  class="line-editor {$$props.class} grid grid-cols-1 w-full pointer-events-auto"
-/>
+  id="monaco_container"
+  class="{$$props.class} overflow-clip grid grid-cols-1 w-full"
+>
+  <div
+    on:click|preventDefault={() => {}}
+    on:mousedown|preventDefault={() => {}}
+    bind:this={monaco_block}
+    class="line-editor pointer-events-auto w-full"
+  />
+</div>
 
 <style global>
   /* Disable readonly overlay message */
