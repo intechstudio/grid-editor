@@ -342,6 +342,7 @@ export class ConfigTarget {
         eventType: userInput.event.eventtype,
       });
     } catch (e) {
+      console.error(e);
       return undefined;
     }
   }
@@ -359,6 +360,7 @@ export class ConfigTarget {
       let event = element.events.find((e) => e.event.value == this.eventType);
 
       const cfgstatus = event.cfgStatus;
+      console.log(cfgstatus);
       if (
         cfgstatus != "GRID_REPORT" &&
         cfgstatus != "EDITOR_EXECUTE" &&
@@ -458,9 +460,18 @@ function create_configuration_manager() {
     });
   }
 
+  function set(list) {
+    store.set(list);
+    store.update((store) => {
+      ConfigList.setIndentation(store);
+      return store;
+    });
+  }
+
   return {
     ...store,
     update: update,
+    set: set,
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };

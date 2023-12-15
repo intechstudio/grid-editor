@@ -1,4 +1,10 @@
 <script>
+  import {
+    ConfigList,
+    ConfigTarget,
+    configManager,
+  } from "./../panels/configuration/Configuration.store.js";
+  import { logger } from "./../../runtime/runtime.store.js";
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
@@ -64,11 +70,18 @@
         .sendPageDiscardToGrid()
         .then(() => {
           runtime.clear_page_configuration();
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pagediscard",
-            message: `Discard complete!`,
+
+          const current = ConfigTarget.getCurrent();
+          console.log(current);
+
+          ConfigList.createFromTarget(current).then((list) => {
+            //configManager.set(list);
+            logger.set({
+              type: "success",
+              mode: 0,
+              classname: "pagediscard",
+              message: `Discard complete!`,
+            });
           });
         })
         .catch(() => {
