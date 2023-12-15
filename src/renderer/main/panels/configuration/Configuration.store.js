@@ -187,24 +187,21 @@ export class ConfigList extends Array {
     return copy;
   }
 
-  static getIndentationMap(list) {
-    let indentationMap = [];
+  static setIndentation(list) {
     let indentation = 0;
-
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
 
       if (config.information.type === "composite_open") {
-        indentationMap.push(indentation++);
+        config.indentation = indentation++;
       } else if (config.information.type === "composite_close") {
-        indentationMap.push(--indentation);
+        config.indentation = --indentation;
       } else if (config.information.type === "composite_part") {
-        indentationMap.push(indentation - 1);
+        config.indentation = indentation - 1;
       } else {
-        indentationMap.push(indentation);
+        config.indentation = indentation;
       }
     }
-    return indentationMap;
   }
 
   static createFromTarget(target) {
@@ -438,7 +435,9 @@ function create_configuration_manager() {
   }
 
   user_input.subscribe((ui) => {
-    store.set(createConfigListFrom(ui));
+    store.update((store) => {
+      return createConfigListFrom(ui);
+    });
   });
 
   function loadPreset({ x, y, element, preset }) {
@@ -453,8 +452,17 @@ function create_configuration_manager() {
     store.set(createConfigListFrom(ui));
   }
 
+  function update(func) {
+    store.update(func);
+    store.update((store) => {
+      ConfigList.setIndentation(store);
+      return store;
+    });
+  }
+
   return {
     ...store,
+    update: update,
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };

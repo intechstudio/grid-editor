@@ -18,7 +18,6 @@
     user_input,
     appActionClipboard,
     controlElementClipboard,
-    localDefinitions,
   } from "../../../runtime/runtime.store.js";
 
   import { writeBuffer } from "../../../runtime/engine.store.js";
@@ -86,10 +85,6 @@
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
   //////////////////////////////////////////////////////////////////////////////
 
-  function updateLocalSuggestions(list) {
-    localDefinitions.update(list);
-  }
-
   function sendCurrentConfigurationToGrid() {
     $configManager
       .sendTo({ target: ConfigTarget.createFrom({ userInput: $user_input }) })
@@ -148,13 +143,6 @@
     if (typeof list === "undefined") {
       return;
     }
-
-    const map = ConfigList.getIndentationMap(list);
-    for (const i in map) {
-      list[i].indentation = map[i];
-    }
-
-    updateLocalSuggestions(list);
   }
 
   function handleError(e) {
