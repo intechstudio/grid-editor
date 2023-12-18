@@ -70,7 +70,7 @@
       });
     });
     options = events.map((e, i) => Object({ title: e.name, value: i }));
-    selected = events.findIndex((e) => target.eventType === e.value);
+    selected = events.findIndex((e) => Number(target.eventType) === e.value);
   }
 
   $: handleSelectEvent(selected);
