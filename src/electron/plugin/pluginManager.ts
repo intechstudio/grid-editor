@@ -264,10 +264,14 @@ async function getInstalledPlugins(): Promise<
   }[]
 > {
   const readdir = util.promisify(fs.readdir);
-  const folders = await readdir(pluginFolder, {withFileTypes: true});
+  const folders = await readdir(pluginFolder, { withFileTypes: true });
   return Promise.all(
     folders
-      .filter((folder) => folder.isDirectory() && !folder.name.toLowerCase().includes("ds_store"))
+      .filter(
+        (folder) =>
+          folder.isDirectory() &&
+          !folder.name.toLowerCase().includes("ds_store")
+      )
       .map(async (folder) => {
         const pluginId = folder.name;
         const pluginPath = path.join(pluginFolder, folder.name);
