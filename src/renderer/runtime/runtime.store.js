@@ -864,7 +864,7 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let li = Object.assign({}, get(user_input));
+    let li = JSON.parse(JSON.stringify(get(user_input)));
 
     let device = rt.find(
       (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
@@ -902,6 +902,7 @@ function create_runtime() {
           // put it into the fetchArray
           fetchArray.push({
             event: elem.event.value,
+            elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
         }
@@ -917,6 +918,7 @@ function create_runtime() {
     } else {
       fetchArray.forEach((elem, ind) => {
         li.event.eventtype = elem.event;
+        li.event.elementtype = elem.elementtype;
         li.event.elementnumber = elem.elementnumber;
 
         if (ind === fetchArray.length - 1) {
@@ -1161,7 +1163,6 @@ function create_runtime() {
     instructions.sendPageStoreToGrid();
     _runtime.update((store) => {
       store.forEach((device) => {
-        console.log(device);
         device.pages
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
@@ -1273,31 +1274,36 @@ const editor_heartbeat_interval_handler = async function () {
 
 setIntervalAsync(editor_heartbeat_interval_handler, heartbeat_editor_ms);
 
-function createLocalDefinitions() {
-  const store = writable([]);
-
-  return {
-    ...store,
-    update: (configs) => {
-      let arr = [];
-
-      configs.forEach((c) => {
-        if (c.short == "l" && c.script !== "") {
-          let _variable_array = c.script.split("=")[0];
-          _variable_array = _variable_array.split("local")[1];
-          _variable_array = _variable_array.split(",");
-          _variable_array.forEach((val, i) => {
-            arr.push({ info: `local - ${val.trim()}`, value: val.trim() });
-          });
+export class LocalDefinitions {
+  static getFrom({ configs, index }) {
+    const config = configs[index];
+    let n = index - 1;
+    let list = [];
+    let indentation = config.indentation;
+    while (n >= 0) {
+      if (configs[n].indentation <= indentation) {
+        list.push(configs[n]);
+        if (configs[n].indentation != indentation) {
+          indentation = configs[n].indentation;
         }
-      });
+      }
+      --n;
+    }
 
-      store.set(arr);
-    },
-  };
+    let arr = [];
+    list.forEach((c) => {
+      if (c.short == "l" && c.script !== "") {
+        let _variable_array = c.script.split("=")[0];
+        _variable_array = _variable_array.split("local")[1];
+        _variable_array = _variable_array.split(",");
+        _variable_array.forEach((val, i) => {
+          arr.push({ info: `local - ${val.trim()}`, value: val.trim() });
+        });
+      }
+    });
+    return arr;
+  }
 }
-
-export const localDefinitions = createLocalDefinitions();
 
 export async function wss_send_message(message) {
   window.electron.websocket.transmit({ event: "message", data: message });

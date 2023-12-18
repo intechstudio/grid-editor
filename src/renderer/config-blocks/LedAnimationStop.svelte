@@ -52,10 +52,11 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
 
   import { Script } from "./_script_parsers.js";
-  import { localDefinitions } from "../runtime/runtime.store";
+  import { LocalDefinitions } from "../runtime/runtime.store";
 
   import { Validator } from "./_validators";
   import AtomicSuggestions from "../main/user-interface/AtomicSuggestions.svelte";
+  import { configManager } from "../main/panels/configuration/Configuration.store";
 
   export let config;
   export let humanScript;
@@ -146,11 +147,13 @@
 
   let suggestions = [];
 
-  $: if ($localDefinitions) {
-    suggestions = _suggestions.map((s, i) => {
-      return [...s, ...$localDefinitions];
+  $: if ($configManager) {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
     });
-    suggestions = suggestions;
+    suggestions = _suggestions.map((s) => [...s, ...localDefinitions]);
   }
 
   onMount(() => {

@@ -55,11 +55,16 @@
   }
 
   function handleFocus(e) {
+    dispatch("focus");
+    updateSuggestions();
+  }
+
+  function updateSuggestions() {
     if (typeof suggestionTarget !== "undefined") {
       const event = new CustomEvent("display", {
         detail: {
           data: suggestions,
-          sender: this,
+          sender: inputComponent,
         },
       });
 
@@ -77,10 +82,13 @@
     displayText = value;
     sendData(displayText);
   }
+
+  let inputComponent;
 </script>
 
 <div class="{$$props.class} w-full relative">
   <input
+    bind:this={inputComponent}
     {disabled}
     bind:value={displayText}
     on:focus={handleFocus}
