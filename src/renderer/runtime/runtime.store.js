@@ -948,6 +948,7 @@ function create_runtime() {
               ) {
                 event.config = "";
                 event.cfgStatus = "NULL";
+                event.stored = undefined;
               }
             });
           }
@@ -1148,6 +1149,7 @@ function create_runtime() {
             if (
               e.cfgStatus !== "NULL" &&
               e.cfgStatus !== "ERASED" &&
+              typeof e.stored !== "undefined" &&
               e.stored !== e.config
             ) {
               count += 1;
@@ -1167,12 +1169,26 @@ function create_runtime() {
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
             element.events.forEach((event) => {
-              event.stored = event.config;
+              if (
+                event.cfgStatus !== "NULL" &&
+                event.cfgStatus !== "ERASED" &&
+                event.stored !== event.config
+              ) {
+                event.stored = event.config;
+              }
             });
           });
       });
       return store;
     });
+  }
+
+  function clearPage(index) {
+    instructions.sendPageClearToGrid();
+  }
+
+  function discardPage(index) {
+    instructions.sendPageDiscardToGrid();
   }
 
   return {
@@ -1204,6 +1220,8 @@ function create_runtime() {
     fetchOrLoadConfig: fetchOrLoadConfig,
     unsavedChangesCount: unsavedChangesCount,
     storePage: storePage,
+    discardPage: discardPage,
+    clearPage: clearPage,
   };
 }
 

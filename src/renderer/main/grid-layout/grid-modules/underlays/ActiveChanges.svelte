@@ -27,6 +27,7 @@
         (e) =>
           e.cfgStatus !== "NULL" &&
           e.cfgStatus !== "ERASED" &&
+          typeof e.stored !== "undefined" &&
           e.stored !== e.config
       );
 
