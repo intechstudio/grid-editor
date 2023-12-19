@@ -131,8 +131,8 @@
 
   onMount(() => {
     codePreview.addEventListener("wheel", (evt) => {
-      evt.preventDefault();
-      codePreview.scrollLeft += evt.deltaY;
+      //evt.preventDefault();
+      //codePreview.scrollLeft += evt.deltaY;
     });
     displayConfigScript(config.script);
   });
