@@ -586,38 +586,41 @@ function create_runtime() {
   }
 
   function element_preset_load(x, y, element, preset) {
-    const li = get(user_input);
-    let events = preset.configs.events;
-    const callback = function () {
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementoverwrite",
-        message: `Overwrite done!`,
-      });
-    };
+    return new Promise((resolve, reject) => {
+      const li = get(user_input);
+      let events = preset.configs.events;
+      const callback = function () {
+        resolve();
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "elementoverwrite",
+          message: `Overwrite done!`,
+        });
+      };
 
-    events.forEach((ev, index) => {
-      const page = li.event.pagenumber;
-      const event = ev.event;
+      events.forEach((ev, index) => {
+        const page = li.event.pagenumber;
+        const event = ev.event;
 
-      _runtime.update((_runtime) => {
-        let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-        if (dest) {
-          dest.config = ev.config;
-          dest.cfgStatus = "EDITOR_BACKGROUND";
+        _runtime.update((_runtime) => {
+          let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
+          if (dest) {
+            dest.config = ev.config;
+            dest.cfgStatus = "EDITOR_BACKGROUND";
 
-          instructions.sendConfigToGrid(
-            x,
-            y,
-            page,
-            element,
-            event,
-            dest.config,
-            index === events.length - 1 ? callback : undefined
-          );
-        }
-        return _runtime;
+            instructions.sendConfigToGrid(
+              x,
+              y,
+              page,
+              element,
+              event,
+              dest.config,
+              index === events.length - 1 ? callback : undefined
+            );
+          }
+          return _runtime;
+        });
       });
     });
   }
@@ -696,64 +699,74 @@ function create_runtime() {
       message: `Profile load started...`,
     });
 
-    // Reorder array to send system element first
-    const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+    return new Promise((resolve, reject) => {
+      // Reorder array to send system element first
+      const index = array.findIndex((obj) => obj.controlElementNumber === 255);
 
-    // Check if the object with id === 255 was found
-    if (index !== -1) {
-      // Remove the object at the found index
-      const objectToMove = array.splice(index, 1)[0];
+      // Check if the object with id === 255 was found
+      if (index !== -1) {
+        // Remove the object at the found index
+        const objectToMove = array.splice(index, 1)[0];
 
-      // Add the object to the front of the array
-      array.unshift(objectToMove);
-    }
+        // Add the object to the front of the array
+        array.unshift(objectToMove);
+      }
 
-    let li = get(user_input);
-    array.forEach((elem, elementIndex) => {
-      elem.events.forEach((ev, eventIndex) => {
-        li.event.pagenumber = li.event.pagenumber;
-        li.event.elementnumber = elem.controlElementNumber;
-        li.event.eventtype = ev.event;
+      let li = get(user_input);
+      array.forEach((elem, elementIndex) => {
+        elem.events.forEach((ev, eventIndex) => {
+          li.event.pagenumber = li.event.pagenumber;
+          li.event.elementnumber = elem.controlElementNumber;
+          li.event.eventtype = ev.event;
 
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = li.event.eventtype;
+          const page = li.event.pagenumber;
+          const element = li.event.elementnumber;
+          const event = li.event.eventtype;
 
-        _runtime.update((_runtime) => {
-          let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-          if (dest) {
-            dest.config = ev.config.trim();
-            dest.cfgStatus = "EDITOR_BACKGROUND";
+          _runtime.update((_runtime) => {
+            let dest = findUpdateDestEvent(
+              _runtime,
+              x,
+              y,
+              page,
+              element,
+              event
+            );
+            if (dest) {
+              dest.config = ev.config.trim();
+              dest.cfgStatus = "EDITOR_BACKGROUND";
+            }
+            return _runtime;
+          });
+
+          let callback;
+
+          if (
+            elementIndex === array.length - 1 &&
+            eventIndex === elem.events.length - 1
+          ) {
+            // this is last element so we need to add the callback
+            callback = function () {
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "profileload",
+                message: `Profile load complete!`,
+              });
+              resolve();
+            };
           }
-          return _runtime;
+
+          instructions.sendConfigToGrid(
+            x,
+            y,
+            page,
+            element,
+            event,
+            ev.config,
+            callback
+          );
         });
-
-        let callback;
-
-        if (
-          elementIndex === array.length - 1 &&
-          eventIndex === elem.events.length - 1
-        ) {
-          // this is last element so we need to add the callback
-          callback = function () {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "profileload",
-              message: `Profile load complete!`,
-            });
-          };
-        }
-
-        instructions.sendConfigToGrid(
-          x,
-          y,
-          page,
-          element,
-          event,
-          ev.config,
-          callback
-        );
       });
     });
   }
