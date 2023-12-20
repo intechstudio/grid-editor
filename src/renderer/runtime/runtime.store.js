@@ -765,7 +765,6 @@ function create_runtime() {
         if (typeof dest.stored === "undefined") {
           dest.stored = actionString;
         }
-        console.log(dest);
       }
       return _runtime;
     });
@@ -860,7 +859,7 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let ui = Object.assign({}, get(user_input));
+    let ui = JSON.parse(JSON.stringify(get(user_input)));
     let { dx, dy, page, element, event } = {
       dx: ui.brc.dx,
       dy: ui.brc.dy,
@@ -901,6 +900,7 @@ function create_runtime() {
           // put it into the fetchArray
           fetchArray.push({
             event: elem.event.value,
+            elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
         }
@@ -915,10 +915,8 @@ function create_runtime() {
       callback();
     } else {
       fetchArray.forEach((elem, ind) => {
-        ui.event.eventtype = elem.event; //TODO: check
-        ui.event.elementnumber = elem.elementnumber;
-        event = ui.event.eventtype;
-        element = ui.event.elementnumber;
+        event = elem.event;
+        element = elem.elementnumber;
 
         if (ind === fetchArray.length - 1) {
           // last element

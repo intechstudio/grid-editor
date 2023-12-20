@@ -91,7 +91,7 @@
     {
       let n = index - 1;
       let indentation = 0;
-      while (n > 0) {
+      while (n >= 0) {
         const short = configs[n].short;
         if (short === "if") {
           ++indentation;
@@ -139,6 +139,9 @@
       ];
 
       if (next.short == "ei") {
+        filterOut.push("el");
+      }
+      if (next.short == "el" && prev.short == "ei") {
         filterOut.push("el");
       }
       if (next.short == "en" && prev.short == "el") {
