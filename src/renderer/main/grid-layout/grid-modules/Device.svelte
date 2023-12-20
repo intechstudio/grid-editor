@@ -90,19 +90,36 @@
   }
 
   function handlePresetLoad(e) {
-    const { elementNumber } = e.detail;
-    configManager.loadPreset({
-      x: device.dx,
-      y: device.dy,
-      element: elementNumber,
-      preset: $selectedConfigStore,
-    });
+    const { sender, elementNumber } = e.detail;
 
     Analytics.track({
       event: "Preset Load Start",
       payload: {},
       mandatory: false,
     });
+
+    configManager
+      .loadPreset({
+        x: device.dx,
+        y: device.dy,
+        element: elementNumber,
+        preset: $selectedConfigStore,
+      })
+      .then(() => {
+        sender.dispatchEvent(
+          new CustomEvent("preset-load", {
+            detail: {
+              success: true,
+            },
+          })
+        );
+
+        Analytics.track({
+          event: "Preset Load Success",
+          payload: {},
+          mandatory: false,
+        });
+      });
   }
 
   $: {
@@ -114,24 +131,36 @@
     }
   }
 
-  function handleProfileLoad() {
+  function handleProfileLoad(e) {
+    const { sender, device } = e.detail;
+
     Analytics.track({
       event: "Profile Load Start",
       payload: {},
       mandatory: false,
     });
 
-    configManager.loadProfile({
-      x: device.dx,
-      y: device.dy,
-      profile: $selectedConfigStore.configs,
-    });
+    configManager
+      .loadProfile({
+        x: device.dx,
+        y: device.dy,
+        profile: $selectedConfigStore.configs,
+      })
+      .then(() => {
+        sender.dispatchEvent(
+          new CustomEvent("profile-load", {
+            detail: {
+              success: true,
+            },
+          })
+        );
 
-    Analytics.track({
-      event: "Profile Load Success",
-      payload: {},
-      mandatory: false,
-    });
+        Analytics.track({
+          event: "Profile Load Success",
+          payload: {},
+          mandatory: false,
+        });
+      });
   }
 </script>
 
@@ -232,7 +261,7 @@
       <ProfileLoadOverlay
         {device}
         visible={$appSettings.displayedOverlay === "profile-load-overlay"}
-        on:load={handleProfileLoad}
+        on:click={handleProfileLoad}
       />
     </svelte:fragment>
   </svelte:component>
