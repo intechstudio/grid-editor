@@ -387,19 +387,15 @@ function create_runtime() {
     return _event;
   };
 
-  function fetchOrLoadConfig(ui, callback) {
+  function fetchOrLoadConfig(dx, dy, page, element, event, callback) {
     //console.log("Fetch Or Load")
 
     const rt = get(runtime);
 
-    const device = rt.find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
-    );
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == ui.event.pagenumber
-    );
+    const device = rt.find((device) => device.dx == dx && device.dy == dy);
+    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == ui.event.elementnumber
+      (x) => x.controlElementNumber == element
     );
 
     if (device.pages[pageIndex].control_elements[elementIndex] === undefined)
@@ -407,7 +403,7 @@ function create_runtime() {
 
     const eventIndex = device.pages[pageIndex].control_elements[
       elementIndex
-    ].events.findIndex((x) => x.event.value == ui.event.eventtype);
+    ].events.findIndex((x) => x.event.value == event);
 
     //console.log(device, pageIndex, elementIndex, eventIndex)
 
@@ -425,13 +421,6 @@ function create_runtime() {
         callback();
       }
     } else {
-      // fetch
-      const dx = ui.brc.dx;
-      const dy = ui.brc.dy;
-      const page = ui.event.pagenumber;
-      const element = ui.event.elementnumber;
-      const event = ui.event.eventtype;
-
       instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
     }
 
@@ -776,6 +765,7 @@ function create_runtime() {
         if (typeof dest.stored === "undefined") {
           dest.stored = actionString;
         }
+        console.log(dest);
       }
       return _runtime;
     });
@@ -809,17 +799,21 @@ function create_runtime() {
 
   // whole element copy: fetches all event configs from a control element
   function fetch_element_configuration_from_grid(callback) {
-    const li = get(user_input);
+    const ui = get(user_input);
+    let { dx, dy, page, element, event } = {
+      dx: ui.brc.dx,
+      dy: ui.brc.dy,
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+      event: ui.event.eventtype,
+    };
+
     const rt = get(runtime);
 
-    const device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-    );
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber
-    );
+    const device = rt.find((device) => device.dx == dx && device.dy == dy);
+    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
     const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == li.event.elementnumber
+      (x) => x.controlElementNumber == element
     );
 
     const events =
@@ -839,15 +833,17 @@ function create_runtime() {
     });
 
     array.forEach((elem, ind) => {
-      li.event.eventtype = elem.event;
-      li.event.elementnumber = elem.elementnumber;
+      ui.event.eventtype = elem.event;
+      ui.event.elementnumber = elem.elementnumber;
+      event = ui.event.eventtype;
+      element = ui.event.elementnumber;
 
       if (ind == array.length - 1 && callback !== undefined) {
         // this is last and callback is defined
 
-        fetchOrLoadConfig(li, callback);
+        fetchOrLoadConfig(dx, dy, page, element, event, callback);
       } else {
-        fetchOrLoadConfig(li);
+        fetchOrLoadConfig(dx, dy, page, element, event);
       }
     });
   }
@@ -864,11 +860,16 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let li = Object.assign({}, get(user_input));
+    let ui = Object.assign({}, get(user_input));
+    let { dx, dy, page, element, event } = {
+      dx: ui.brc.dx,
+      dy: ui.brc.dy,
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+      event: ui.event.eventtype,
+    };
 
-    let device = rt.find(
-      (device) => device.dx == li.brc.dx && device.dy == li.brc.dy
-    );
+    let device = rt.find((device) => device.dx == dx && device.dy == dy);
 
     if (typeof device === "undefined") {
       logger.set({
@@ -881,9 +882,7 @@ function create_runtime() {
       return;
     }
 
-    const pageIndex = device.pages.findIndex(
-      (x) => x.pageNumber == li.event.pagenumber
-    );
+    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
     const controlElements = device.pages[pageIndex].control_elements;
 
     const fetchArray = [];
@@ -916,15 +915,16 @@ function create_runtime() {
       callback();
     } else {
       fetchArray.forEach((elem, ind) => {
-        li.event.eventtype = elem.event;
-        li.event.elementnumber = elem.elementnumber;
+        ui.event.eventtype = elem.event; //TODO: check
+        ui.event.elementnumber = elem.elementnumber;
+        event = ui.event.eventtype;
+        element = ui.event.elementnumber;
 
         if (ind === fetchArray.length - 1) {
           // last element
-
-          fetchOrLoadConfig(li, callback);
+          fetchOrLoadConfig(dx, dy, page, element, event, callback);
         } else {
-          fetchOrLoadConfig(li);
+          fetchOrLoadConfig(dx, dy, page, element, event);
         }
       });
     }

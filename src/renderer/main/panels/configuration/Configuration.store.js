@@ -220,25 +220,35 @@ export class ConfigList extends Array {
       this.checkLength();
       const actionString = this.toConfigScript();
 
-      runtime.update_event_configuration(
+      const callback = () => {
+        runtime.update_event_configuration(
+          target.device.dx,
+          target.device.dy,
+          target.page,
+          target.element,
+          target.eventType,
+          actionString,
+          "EDITOR_EXECUTE"
+        );
+
+        runtime.send_event_configuration_to_grid(
+          target.device.dx,
+          target.device.dy,
+          target.page,
+          target.element,
+          target.eventType
+        );
+
+        resolve("Event sent to grid.");
+      };
+      runtime.fetchOrLoadConfig(
         target.device.dx,
         target.device.dy,
         target.page,
         target.element,
         target.eventType,
-        actionString,
-        "EDITOR_EXECUTE"
+        callback
       );
-
-      runtime.send_event_configuration_to_grid(
-        target.device.dx,
-        target.device.dy,
-        target.page,
-        target.element,
-        target.eventType
-      );
-
-      resolve("Event sent to grid.");
     });
   }
 
@@ -382,8 +392,15 @@ export class ConfigTarget {
       cfgstatus != "EDITOR_BACKGROUND"
     ) {
       const ui = get(user_input);
+      const { dx, dy, page, element, event } = {
+        dx: ui.brc.dx,
+        dy: ui.brc.dy,
+        page: ui.event.pagenumber,
+        element: ui.event.elementnumber,
+        event: ui.event.eventtype,
+      };
       const callback = () => user_input.update((n) => n);
-      runtime.fetchOrLoadConfig(ui, callback);
+      runtime.fetchOrLoadConfig(dx, dy, page, element, event, callback);
     }
 
     return event.config;
