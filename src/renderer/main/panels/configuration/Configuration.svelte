@@ -331,7 +331,7 @@
   }
 
   function handleDrag(e) {
-    if (typeof $config_drag !== typeof "undefined") {
+    if (typeof $config_drag !== "undefined") {
       const configList = document.getElementById("cfg-list");
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
@@ -494,7 +494,7 @@
             }}
             on:mousemove={handleDrag}
             on:mouseleave={() => {
-              //clearInterval(autoScroll);
+              clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto"
           >
