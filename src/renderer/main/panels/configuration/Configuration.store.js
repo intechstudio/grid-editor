@@ -465,21 +465,27 @@ function create_configuration_manager() {
 
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
-      runtime.element_preset_load(x, y, element, preset).then(() => {
-        const ui = get(user_input);
-        store.set(createConfigListFrom(ui));
-        resolve();
-      });
+      const callback = () => {
+        runtime.element_preset_load(x, y, element, preset).then(() => {
+          const ui = get(user_input);
+          store.set(createConfigListFrom(ui));
+          resolve();
+        });
+      };
+      runtime.fetch_element_configuration_from_grid(callback);
     });
   }
 
   function loadProfile({ x, y, profile }) {
     return new Promise((resolve) => {
-      runtime.whole_page_overwrite(x, y, profile).then(() => {
-        const ui = get(user_input);
-        store.set(createConfigListFrom(ui));
-        resolve();
-      });
+      const callback = () => {
+        runtime.whole_page_overwrite(x, y, profile).then(() => {
+          const ui = get(user_input);
+          store.set(createConfigListFrom(ui));
+          resolve();
+        });
+      };
+      runtime.fetch_page_configuration_from_grid(callback);
     });
   }
 
