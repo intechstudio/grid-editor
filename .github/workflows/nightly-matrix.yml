@@ -32,7 +32,7 @@ jobs:
         run: npm ci && npm run build
 
       - name: Upload profile cloud folder
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: profile-cloud
           path: public/
@@ -56,7 +56,7 @@ jobs:
           node-version: "18.16.1"
 
       - name: Download profile cloud artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: profile-cloud
           path: profile-cloud/
@@ -93,7 +93,7 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-nightly
           path: build/*.*
@@ -122,7 +122,7 @@ jobs:
           cat unit_test.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-unit-test
           path: unit_test.txt
