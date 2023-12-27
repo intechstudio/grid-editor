@@ -30,7 +30,7 @@ jobs:
         run: npm ci && npm run build
 
       - name: Upload profile cloud folder
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: profile-cloud
           path: public/
