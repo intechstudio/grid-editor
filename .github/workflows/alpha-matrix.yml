@@ -54,7 +54,7 @@ jobs:
           node-version: "18.16.1"
 
       - name: Download profile cloud artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: profile-cloud
           path: profile-cloud/
@@ -83,6 +83,7 @@ jobs:
 
           # Apple ID
           APPLE_ID: ${{secrets.APPLE_ID}}
+          APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}
           APPLE_APP_SPECIFIC_PASSWORD: ${{secrets.APPLE_APP_SPECIFIC_PASSWORD}}
 
           # macOS Code signing
@@ -124,7 +125,7 @@ jobs:
           cat unit_test.txt
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: linux-unit-test
           path: unit_test.txt
