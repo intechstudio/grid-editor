@@ -463,6 +463,7 @@ function create_configuration_manager() {
     });
   });
 
+  // TODO: fails to show overlay after clear
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
       const callback = () => {
