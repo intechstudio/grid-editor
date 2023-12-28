@@ -191,7 +191,6 @@ export class ConfigList extends Array {
     let indentation = 0;
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
-
       if (config.information.type === "composite_open") {
         config.indentation = indentation++;
       } else if (config.information.type === "composite_close") {
@@ -458,7 +457,7 @@ function create_configuration_manager() {
   }
 
   user_input.subscribe((ui) => {
-    store.update((store) => {
+    update((store) => {
       return createConfigListFrom(ui);
     });
   });
@@ -469,11 +468,25 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          store.set(createConfigListFrom(ui));
+          set(createConfigListFrom(ui));
           resolve();
         });
       };
-      runtime.fetch_element_configuration_from_grid(callback);
+
+      const ui = get(user_input);
+      const { dx, dy, page, elementNumber } = {
+        dx: x,
+        dy: y,
+        page: ui.event.pagenumber,
+        elementNumber: element,
+      };
+      runtime.fetch_element_configuration_from_grid(
+        dx,
+        dy,
+        page,
+        elementNumber,
+        callback
+      );
     });
   }
 
@@ -482,7 +495,7 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          store.set(createConfigListFrom(ui));
+          set(createConfigListFrom(ui));
           resolve();
         });
       };
@@ -498,9 +511,18 @@ function create_configuration_manager() {
     });
   }
 
+  function set(obj) {
+    store.update((store) => {
+      store = obj.makeCopy();
+      ConfigList.setIndentation(store);
+      return store;
+    });
+  }
+
   return {
     ...store,
     update: update,
+    set: set,
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };

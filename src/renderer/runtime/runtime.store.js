@@ -388,7 +388,7 @@ function create_runtime() {
   };
 
   function fetchOrLoadConfig(dx, dy, page, element, event, callback) {
-    //console.log("Fetch Or Load")
+    //console.log("Fetch Or Load");
 
     const rt = get(runtime);
 
@@ -810,52 +810,35 @@ function create_runtime() {
   }
 
   // whole element copy: fetches all event configs from a control element
-  function fetch_element_configuration_from_grid(callback) {
-    const ui = get(user_input);
-    let { dx, dy, page, element, event } = {
-      dx: ui.brc.dx,
-      dy: ui.brc.dy,
-      page: ui.event.pagenumber,
-      element: ui.event.elementnumber,
-      event: ui.event.eventtype,
-    };
-
+  function fetch_element_configuration_from_grid(
+    dx,
+    dy,
+    pageNumber,
+    elementNumber,
+    callback
+  ) {
     const rt = get(runtime);
-
     const device = rt.find((device) => device.dx == dx && device.dy == dy);
-    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == element
+    const page = device.pages.find((x) => x.pageNumber == pageNumber);
+    const element = page.control_elements.find(
+      (x) => x.controlElementNumber == elementNumber
     );
+    const events = element.events;
 
-    const events =
-      device.pages[pageIndex].control_elements[elementIndex].events;
-    const controlElementType =
-      device.pages[pageIndex].control_elements[elementIndex].controlElementType;
-
-    const array = [];
-
-    events.forEach((e) => {
-      array.push({
-        event: e.event.value,
-        elementnumber:
-          device.pages[pageIndex].control_elements[elementIndex]
-            .controlElementNumber,
-      });
-    });
-
-    array.forEach((elem, ind) => {
-      ui.event.eventtype = elem.event;
-      ui.event.elementnumber = elem.elementnumber;
-      event = ui.event.eventtype;
-      element = ui.event.elementnumber;
-
-      if (ind == array.length - 1 && callback !== undefined) {
+    events.forEach((e, i) => {
+      const eventNumber = Number(e.event.value);
+      if (i == events.length - 1 && typeof callback !== "undefined") {
         // this is last and callback is defined
-
-        fetchOrLoadConfig(dx, dy, page, element, event, callback);
+        fetchOrLoadConfig(
+          dx,
+          dy,
+          pageNumber,
+          elementNumber,
+          eventNumber,
+          callback
+        );
       } else {
-        fetchOrLoadConfig(dx, dy, page, element, event);
+        fetchOrLoadConfig(dx, dy, pageNumber, elementNumber, eventNumber);
       }
     });
   }
