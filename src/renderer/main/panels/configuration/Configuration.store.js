@@ -468,7 +468,9 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          set(createConfigListFrom(ui));
+          let list = createConfigListFrom(ui);
+          list = afterUpdate(list);
+          store.set(list);
           resolve();
         });
       };
@@ -495,7 +497,9 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          set(createConfigListFrom(ui));
+          let list = createConfigListFrom(ui);
+          list = afterUpdate(list);
+          store.set(list);
           resolve();
         });
       };
@@ -503,10 +507,15 @@ function create_configuration_manager() {
     });
   }
 
+  function afterUpdate(store) {
+    ConfigList.setIndentation(store);
+    return store;
+  }
+
   function update(func) {
-    store.update(func);
     store.update((store) => {
-      ConfigList.setIndentation(store);
+      store = func(store);
+      store = afterUpdate(store);
       return store;
     });
   }
@@ -514,7 +523,7 @@ function create_configuration_manager() {
   function set(obj) {
     store.update((store) => {
       store = obj.makeCopy();
-      ConfigList.setIndentation(store);
+      store = afterUpdate(store);
       return store;
     });
   }
