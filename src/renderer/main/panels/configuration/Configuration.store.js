@@ -468,9 +468,8 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          let list = createConfigListFrom(ui);
-          list = afterUpdate(list);
-          store.set(list);
+          const list = createConfigListFrom(ui);
+          setOverride(list);
           resolve();
         });
       };
@@ -497,9 +496,8 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          let list = createConfigListFrom(ui);
-          list = afterUpdate(list);
-          store.set(list);
+          const list = createConfigListFrom(ui);
+          setOverride(list);
           resolve();
         });
       };
@@ -512,7 +510,7 @@ function create_configuration_manager() {
     return store;
   }
 
-  function update(func) {
+  function updateOverride(func) {
     store.update((store) => {
       store = func(store);
       store = afterUpdate(store);
@@ -520,7 +518,7 @@ function create_configuration_manager() {
     });
   }
 
-  function set(obj) {
+  function setOverride(obj) {
     store.update((store) => {
       store = obj.makeCopy();
       store = afterUpdate(store);
@@ -530,8 +528,8 @@ function create_configuration_manager() {
 
   return {
     ...store,
-    update: update,
-    set: set,
+    update: updateOverride,
+    set: setOverride,
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };
