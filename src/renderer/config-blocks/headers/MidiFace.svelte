@@ -28,8 +28,10 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div
-  class="{$$props.class} text-white flex items-center flex-row w-full px-2"
-  class:group-hover:bg-select-saturate-10={typeof $config_drag === "undefined"}
+  class="{$$props.class} text-white flex items-center flex-row w-full px-2 {typeof $config_drag ===
+  'undefined'
+    ? 'group-hover/bg-color:bg-select-saturate-10'
+    : ''}"
   on:click={handleClick}
 >
   <div class="grid grid-cols-[auto_1fr] items-center h-full w-full">
