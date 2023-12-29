@@ -207,7 +207,7 @@ function create_user_input() {
     }
 
     // Don't track physical interaction
-    if (get(appSettings).changeOnEvent === "none") {
+    if (get(appSettings).persistent.changeOnEvent === "none") {
       return;
     }
 
@@ -242,7 +242,8 @@ function create_user_input() {
     let syDifferent = store.brc.dy != descr.brc_parameters.SY;
 
     if (
-      (eventDifferent && get(appSettings).changeOnEvent === "event") ||
+      (eventDifferent &&
+        get(appSettings).persistent.changeOnEvent === "event") ||
       elementDifferent ||
       sxDifferent ||
       syDifferent
@@ -271,21 +272,25 @@ function create_user_input() {
           return store;
         }
 
-        if (get(appSettings).changeOnEvent === "element") {
+        if (get(appSettings).persistent.changeOnEvent === "element") {
           const incomingEventTypes = getElementEventTypes(
             descr.brc_parameters.SX,
             descr.brc_parameters.SY,
             descr.class_parameters.ELEMENTNUMBER
           );
 
-          if (!incomingEventTypes.includes(store.event.eventtype)) {
+          if (
+            !incomingEventTypes
+              .map((e) => Number(e))
+              .includes(Number(store.event.eventtype))
+          ) {
             //Select closest event type if incoming device does not have the corrently selected event type
             const closestEvent = Math.min(
               ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
             );
             store.event.eventtype = String(closestEvent);
           }
-        } else if (get(appSettings).changeOnEvent === "event") {
+        } else if (get(appSettings).persistent.changeOnEvent === "event") {
           store.event.eventtype = descr.class_parameters.EVENTTYPE;
         }
 
