@@ -426,7 +426,9 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  let store = writable(new ConfigList());
+  let store = derived(user_input, (ui) => {
+    return createConfigListFrom(ui);
+  });
 
   function createConfigListFrom(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
@@ -456,13 +458,6 @@ function create_configuration_manager() {
     return list;
   }
 
-  user_input.subscribe((ui) => {
-    update((store) => {
-      return createConfigListFrom(ui);
-    });
-  });
-
-  // TODO: fails to show overlay after clear
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
       const callback = () => {
