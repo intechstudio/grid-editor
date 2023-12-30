@@ -187,7 +187,7 @@ export class ConfigList extends Array {
     return copy;
   }
 
-  static setIndentation(list) {
+  static updateIndentation(list) {
     let indentation = 0;
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
@@ -426,37 +426,17 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  let store = derived(user_input, (ui) => {
-    return createConfigListFrom(ui);
-  });
-
-  function createConfigListFrom(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    let list = new ConfigList();
-
-    if (typeof target === "undefined") {
-      return list;
-    }
-
+  const internal = writable(new ConfigList());
+  const unsubscribeUserInput = user_input.subscribe((ui) => {
     try {
-      list = ConfigList.createFromTarget(target);
+      const target = ConfigTarget.createFrom({ userInput: ui });
+      const list = ConfigList.createFromTarget(target);
+      setOverride(list);
     } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
-        });
-      } else {
-        //Unknown error, display default
-        throw `Configuration: ${e}`;
-      }
+      console.warn("Error updating Configuration Manager from user input.");
+      console.warn(e);
     }
-    return list;
-  }
+  });
 
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
@@ -500,31 +480,31 @@ function create_configuration_manager() {
     });
   }
 
-  function afterUpdate(store) {
-    ConfigList.setIndentation(store);
-    return store;
+  function handleDataChange() {
+    ConfigList.updateIndentation(internal);
   }
 
   function updateOverride(func) {
-    store.update((store) => {
+    internal.update((store) => {
       store = func(store);
-      store = afterUpdate(store);
+      handleDataChange(store);
       return store;
     });
   }
 
   function setOverride(obj) {
-    store.update((store) => {
-      store = obj.makeCopy();
-      store = afterUpdate(store);
-      return store;
-    });
+    handleDataChange(obj);
+    internal.set(obj);
   }
 
   return {
-    ...store,
+    ...internal,
     update: updateOverride,
     set: setOverride,
+    unsubscribe: () => {
+      unsubscribeUserInput();
+      internal.unsubscribe();
+    },
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };
