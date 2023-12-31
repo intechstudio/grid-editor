@@ -701,7 +701,7 @@ function create_runtime() {
         array.unshift(objectToMove);
       }
 
-      let li = get(user_input);
+      let li = structuredClone(get(user_input));
       array.forEach((elem, elementIndex) => {
         elem.events.forEach((ev, eventIndex) => {
           li.event.pagenumber = li.event.pagenumber;

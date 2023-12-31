@@ -443,7 +443,9 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
+          const target = ConfigTarget.createFrom({ userInput: ui });
+          const list = ConfigList.createFromTarget(target);
+
           setOverride(list);
           resolve();
         });
@@ -471,7 +473,8 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
+          const target = ConfigTarget.createFrom({ userInput: ui });
+          const list = ConfigList.createFromTarget(target);
           setOverride(list);
           resolve();
         });
