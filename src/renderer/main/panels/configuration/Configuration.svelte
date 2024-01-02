@@ -354,8 +354,9 @@
 
   function handleCopyAll() {
     //Callback function
-    let callback = function () {
-      const current = ConfigTarget.createFrom({ userInput: $user_input });
+    const ui = get(user_input);
+    let callback = () => {
+      const current = ConfigTarget.createFrom({ userInput: ui });
       const configsLists = [];
       current.events.forEach((e) => {
         const eventType = e.event.value;
@@ -389,7 +390,20 @@
     });
 
     //Fetching all unloaded elements configuration
-    runtime.fetch_element_configuration_from_grid(callback);
+    const { dx, dy, page, element } = {
+      dx: ui.brc.dx,
+      dy: ui.brc.dy,
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+    };
+
+    runtime.fetch_element_configuration_from_grid(
+      dx,
+      dy,
+      page,
+      element,
+      callback
+    );
 
     Analytics.track({
       event: "Config Action",

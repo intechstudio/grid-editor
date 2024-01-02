@@ -187,11 +187,10 @@ export class ConfigList extends Array {
     return copy;
   }
 
-  static setIndentation(list) {
+  static updateIndentation(list) {
     let indentation = 0;
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
-
       if (config.information.type === "composite_open") {
         config.indentation = indentation++;
       } else if (config.information.type === "composite_close") {
@@ -427,40 +426,16 @@ export class ConfigTarget {
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
-  let store = writable(new ConfigList());
-
-  function createConfigListFrom(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    let list = new ConfigList();
-
-    if (typeof target === "undefined") {
-      return list;
-    }
-
+  const internal = writable(new ConfigList());
+  const unsubscribeUserInput = user_input.subscribe((ui) => {
     try {
-      list = ConfigList.createFromTarget(target);
+      const target = ConfigTarget.createFrom({ userInput: ui });
+      const list = ConfigList.createFromTarget(target);
+      setOverride(list);
     } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
-        });
-      } else {
-        //Unknown error, display default
-        throw `Configuration: ${e}`;
-      }
+      console.warn("Error updating Configuration Manager from user input.");
+      console.warn(e);
     }
-    return list;
-  }
-
-  user_input.subscribe((ui) => {
-    store.update((store) => {
-      return createConfigListFrom(ui);
-    });
   });
 
   function loadPreset({ x, y, element, preset }) {
@@ -468,11 +443,28 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          store.set(createConfigListFrom(ui));
+          const target = ConfigTarget.createFrom({ userInput: ui });
+          const list = ConfigList.createFromTarget(target);
+
+          setOverride(list);
           resolve();
         });
       };
-      runtime.fetch_element_configuration_from_grid(callback);
+
+      const ui = get(user_input);
+      const { dx, dy, page, elementNumber } = {
+        dx: x,
+        dy: y,
+        page: ui.event.pagenumber,
+        elementNumber: element,
+      };
+      runtime.fetch_element_configuration_from_grid(
+        dx,
+        dy,
+        page,
+        elementNumber,
+        callback
+      );
     });
   }
 
@@ -481,7 +473,9 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          store.set(createConfigListFrom(ui));
+          const target = ConfigTarget.createFrom({ userInput: ui });
+          const list = ConfigList.createFromTarget(target);
+          setOverride(list);
           resolve();
         });
       };
@@ -489,17 +483,31 @@ function create_configuration_manager() {
     });
   }
 
-  function update(func) {
-    store.update(func);
-    store.update((store) => {
-      ConfigList.setIndentation(store);
+  function handleDataChange() {
+    ConfigList.updateIndentation(internal);
+  }
+
+  function updateOverride(func) {
+    internal.update((store) => {
+      store = func(store);
+      handleDataChange(store);
       return store;
     });
   }
 
+  function setOverride(obj) {
+    handleDataChange(obj);
+    internal.set(obj);
+  }
+
   return {
-    ...store,
-    update: update,
+    ...internal,
+    update: updateOverride,
+    set: setOverride,
+    unsubscribe: () => {
+      unsubscribeUserInput();
+      internal.unsubscribe();
+    },
     loadPreset: loadPreset,
     loadProfile: loadProfile,
   };
