@@ -6,7 +6,6 @@
   export let isLeftCut;
   export let isRightCut;
   export let device;
-  export let margin = 4;
   export let visible = false;
 
   const dispatch = createEventDispatcher();

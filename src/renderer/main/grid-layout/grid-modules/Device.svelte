@@ -219,8 +219,7 @@
           {isRightCut}
           {device}
           visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "profile-load-overlay" ||
-            $appSettings.displayedOverlay === "preset-load-overlay"}
+            $appSettings.displayedOverlay === "profile-load-overlay"}
           on:click={handleElementClicked}
         />
       </div>
