@@ -429,8 +429,7 @@ function create_configuration_manager() {
   const internal = writable(new ConfigList());
   const unsubscribeUserInput = user_input.subscribe((ui) => {
     try {
-      const target = ConfigTarget.createFrom({ userInput: ui });
-      const list = ConfigList.createFromTarget(target);
+      const list = createConfigListFrom(ui);
       setOverride(list);
     } catch (e) {
       console.warn("Error updating Configuration Manager from user input.");
@@ -438,14 +437,40 @@ function create_configuration_manager() {
     }
   });
 
+  function createConfigListFrom(ui) {
+    const target = ConfigTarget.createFrom({ userInput: ui });
+    let list = new ConfigList();
+
+    if (typeof target === "undefined") {
+      return list;
+    }
+
+    try {
+      list = ConfigList.createFromTarget(target);
+    } catch (e) {
+      if (e instanceof UnknownEventException) {
+        const availableEvents = target.events.map((e) => e.event.value);
+        const closestEvent = Math.min(
+          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
+        );
+        user_input.update((s) => {
+          s.event.eventtype = String(closestEvent);
+          return s;
+        });
+      } else {
+        //Unknown error, display default
+        throw `Configuration: ${e}`;
+      }
+    }
+    return list;
+  }
+
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          const target = ConfigTarget.createFrom({ userInput: ui });
-          const list = ConfigList.createFromTarget(target);
-
+          const list = createConfigListFrom(ui);
           setOverride(list);
           resolve();
         });
@@ -473,8 +498,7 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          const target = ConfigTarget.createFrom({ userInput: ui });
-          const list = ConfigList.createFromTarget(target);
+          const list = createConfigListFrom(ui);
           setOverride(list);
           resolve();
         });
