@@ -26,7 +26,10 @@
   <div class="flex items-center bg-primary py-2 px-3 rounded-lg">
     <span class="text-white mr-4">Interaction Tracking:</span>
     <div class="w-24 h-fit text-white">
-      <MeltSelect bind:target={$appSettings.changeOnEvent} {options} />
+      <MeltSelect
+        bind:target={$appSettings.persistent.changeOnEvent}
+        {options}
+      />
     </div>
   </div>
 </container>
