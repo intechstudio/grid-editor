@@ -1,4 +1,5 @@
 <script>
+  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
   import { createEventDispatcher } from "svelte";
   import { appSettings } from "../../../../runtime/app-helper.store";
@@ -47,6 +48,34 @@
     const { success } = e.detail;
     loaded = success;
   }
+
+  let [dx, dy] = [device?.dx, device?.dy];
+  let isChanged = false;
+  $: {
+    try {
+      const events = $runtime
+        .find((e) => e.dx == dx && e.dy == dy)
+        .pages[$user_input.event.pagenumber].control_elements.find(
+          (e) => e.controlElementNumber == elementNumber
+        ).events;
+
+      //Find the event that has change
+      const changed = events.find(
+        (e) =>
+          e.cfgStatus !== "NULL" &&
+          e.cfgStatus !== "ERASED" &&
+          e.stored !== e.config
+      );
+
+      if (typeof changed !== "undefined") {
+        isChanged = true;
+      } else {
+        isChanged = false;
+      }
+    } catch (e) {}
+  }
+
+  $: console.log(isChanged);
 </script>
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
@@ -54,7 +83,9 @@
     {#if $selectedConfigStore.type === type}
       <button
         on:click={handleClick}
-        class="{loaded ? 'loaded-element' : 'element'} pointer-events-auto"
+        class="pointer-events-auto w-full h-full"
+        class:loaded-element={loaded && !isChanged}
+        class:element={!loaded && !isChanged}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
         disabled={loaded}
@@ -69,19 +100,20 @@
           {#key loaded || $selectedConfigStore}
             <div
               in:scale={{ duration: 1000, start: 0.5, easing: elasticOut }}
-              class="border-black rounded"
-              class:border={loaded && elementNumber != 255}
-              class:scale-75={elementNumber == 255}
+              class="rounded icon bg-opacity-75 p-1"
+              class:icon-corner-cut-r={isRightCut}
+              class:icon-corner-cut-l={isLeftCut}
+              class:scale-50={elementNumber == 255}
             >
               {#if !loaded}
                 <SvgIcon
-                  class="text-black"
+                  class="text-white"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else}
                 <SvgIcon
-                  class="text-black"
+                  class="text-white"
                   iconPath={"tick"}
                   displayMode={"static"}
                 />
@@ -92,7 +124,8 @@
       </button>
     {:else}
       <div
-        class="w-full h-full disabled-element"
+        class="w-full h-full"
+        class:disabled-element={!isChanged}
         class:corner-cut-r={isRightCut}
         class:corner-cut-l={isLeftCut}
         style="{elementNumber == 255
@@ -105,10 +138,8 @@
 
 <style>
   :root {
-    --load-color: rgba(200, 200, 200, 0.4);
-    --load-hover-color: rgba(61, 214, 182, 0.5);
+    --load-color: rgba(0, 0, 0, 0.3);
     --disabled-color: rgba(0, 0, 0, 0.3);
-    --loaded-color: rgba(11, 164, 132, 0.8);
   }
 
   .element {
@@ -122,15 +153,14 @@
     box-shadow: 0px 300px 0px 1000px var(--load-color);
   }
 
-  .loaded-element {
+  .icon {
     position: relative;
-    width: 100%;
-    height: 100%;
     overflow: hidden;
   }
-  .loaded-element::before {
+
+  .icon::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px var(--loaded-color);
+    box-shadow: 0px 300px 0px 1000px rgba(0, 0, 0, 0.8);
   }
 
   .disabled-element {
@@ -145,16 +175,23 @@
     box-shadow: 0px 300px 0px 1000px var(--disabled-color);
   }
 
-  .loaded-element::before {
-    content: "";
-    box-shadow: 0px 300px 0px 1000px var(--loaded-color);
-  }
-
-  .element:hover:before {
-    content: "";
+  .icon-corner-cut-l:before {
     position: absolute;
     z-index: -1;
-    box-shadow: 0px 300px 0px 1000px var(--load-hover-color);
+    bottom: -35px;
+    left: -35px;
+    width: 46px;
+    height: 46px;
+    border-radius: 100%;
+  }
+  .icon-corner-cut-r:before {
+    position: absolute;
+    z-index: -1;
+    bottom: -35px;
+    right: -35px;
+    width: 46px;
+    height: 46px;
+    border-radius: 100%;
   }
 
   .corner-cut-l:before {
