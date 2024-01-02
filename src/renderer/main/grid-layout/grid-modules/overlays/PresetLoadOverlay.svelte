@@ -138,7 +138,7 @@
 
 <style>
   :root {
-    --load-color: rgba(11, 164, 132, 0.7);
+    --load-color: rgba(0, 0, 0, 0.3);
     --disabled-color: rgba(0, 0, 0, 0.3);
   }
 
