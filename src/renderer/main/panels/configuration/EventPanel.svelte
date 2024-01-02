@@ -70,7 +70,7 @@
       });
     });
     options = events.map((e, i) => Object({ title: e.name, value: i }));
-    selected = events.findIndex((e) => target.eventType === e.value);
+    selected = events.findIndex((e) => Number(target.eventType) === e.value);
   }
 
   $: handleSelectEvent(selected);
@@ -156,7 +156,7 @@
           {@const stored = eventData?.stored}
           {@const config = eventData?.config}
           {@const status = eventData?.cfgStatus}
-          {#if status !== "NULL" && status !== "ERASED" && stored !== config}
+          {#if status !== "NULL" && status !== "ERASED" && stored !== config && typeof stored !== "undefined"}
             <unsaved-changes-marker
               class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
             />

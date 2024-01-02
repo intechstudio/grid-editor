@@ -39,6 +39,7 @@
   import { runtime } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
+  import { addPackageAction, removePackageAction } from "./lib/_configs";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -114,6 +115,15 @@
                 s.persistent.pluginsDataStorage = newStorage;
                 return s;
               });
+            }
+            if (data.id == "add-action") {
+              addPackageAction({
+                ...data.info,
+                packageId: data.pluginId,
+              });
+            }
+            if (data.id == "remove-action") {
+              removePackageAction(data.pluginId, data.actionId);
             }
             break;
           }

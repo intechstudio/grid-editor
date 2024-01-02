@@ -49,7 +49,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = ["Position", "Axis"];
+  const parameterNames = ["Axis", "Position"];
   const validators = [
     (e) => {
       return new Validator(e).NotEmpty().Result();
@@ -87,12 +87,12 @@
   let suggestions = [];
 
   const _suggestions = [
-    [],
     [
       { value: "1", info: "X Axis" },
       { value: "2", info: "Y Axis" },
       { value: "3", info: "Mouse Wheel" },
     ],
+    [],
   ];
 
   $: if ($configManager) {

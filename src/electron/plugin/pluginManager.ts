@@ -6,6 +6,7 @@ import os from "os";
 import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
+import chokidar from "chokidar";
 
 enum PluginStatus {
   Uninstalled = "Uninstalled",
@@ -28,14 +29,23 @@ process.parentPort.on("message", (e) => {
       if (!fs.existsSync(pluginFolder)) {
         fs.mkdirSync(pluginFolder, { recursive: true });
       }
+      startPluginDirectoryWatcher(pluginFolder);
 
       const port = e.ports[0];
       setPluginManagerMessagePort(port);
-
+      break;
+    }
+    case "set-new-message-port": {
+      const port = e.ports[0];
+      setPluginManagerMessagePort(port);
       break;
     }
     case "refresh-plugins": {
       notifyListener();
+      break;
+    }
+    case "stop-plugin-manager": {
+      stopPluginManager();
       break;
     }
     default: {
@@ -82,11 +92,6 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
           await notifyListener();
           break;
         case "create-plugin-message-port":
-          messagePort.postMessage({
-            type: "debug-error",
-            keys: Object.keys(currentlyLoadedPlugins),
-            id: data.id,
-          });
           await currentlyLoadedPlugins[data.id].addMessagePort(
             event.ports?.[0]
           );
@@ -98,6 +103,17 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
   });
   port.start();
   notifyListener();
+}
+
+async function stopPluginManager() {
+  for (let pluginName of Object.keys(currentlyLoadedPlugins)) {
+    await currentlyLoadedPlugins[pluginName].unloadPlugin();
+    delete currentlyLoadedPlugins[pluginName];
+  }
+  if (messagePort) {
+    messagePort.close();
+  }
+  process.parentPort.postMessage({ type: "shutdown-complete" });
 }
 
 async function loadPlugin(pluginName: string, persistedData: any) {
@@ -248,13 +264,17 @@ async function getInstalledPlugins(): Promise<
   }[]
 > {
   const readdir = util.promisify(fs.readdir);
-  const folders = await readdir(pluginFolder);
+  const folders = await readdir(pluginFolder, { withFileTypes: true });
   return Promise.all(
     folders
-      .filter((folder) => !folder.toLowerCase().includes("ds_store"))
+      .filter(
+        (folder) =>
+          folder.isDirectory() &&
+          !folder.name.toLowerCase().includes("ds_store")
+      )
       .map(async (folder) => {
-        const pluginId = folder;
-        const pluginPath = path.join(pluginFolder, folder);
+        const pluginId = folder.name;
+        const pluginPath = path.join(pluginFolder, folder.name);
 
         let pluginName: string | undefined = undefined;
         let pluginPreferenceHtml: string | undefined = undefined;
@@ -263,7 +283,7 @@ async function getInstalledPlugins(): Promise<
           if (fs.existsSync(packageJsonPath)) {
             const packageJson = require(packageJsonPath);
             pluginName = packageJson.description;
-            const preferenceRelativePath = packageJson.grid_editor.preference;
+            const preferenceRelativePath = packageJson.grid_editor?.preference;
             if (preferenceRelativePath) {
               const preferencePath = path.join(
                 pluginPath,
@@ -333,4 +353,35 @@ async function getAvailablePlugins() {
     });
   });
   return pluginList;
+}
+
+let directoryWatcher: any = null;
+
+function startPluginDirectoryWatcher(path: string): void {
+  directoryWatcher = chokidar.watch(path, {
+    ignored: /[\/\\]\./,
+    persistent: true,
+    ignoreInitial: true, // Ignore initial events on startup
+    depth: 0, // Only watch the top-level directory
+  });
+
+  directoryWatcher
+    .on("add", function (path: string) {
+      notifyListener();
+    })
+    .on("change", function (path: string) {
+      notifyListener();
+    })
+    .on("unlink", function (path: string) {
+      notifyListener();
+    })
+    .on("addDir", function (path: string) {
+      notifyListener();
+    })
+    .on("unlinkDir", function (path: string) {
+      notifyListener();
+    })
+    .on("ready", function (path: string) {
+      notifyListener();
+    });
 }

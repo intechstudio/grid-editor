@@ -65,6 +65,16 @@
     sendData();
   }
 
+  let suggestions = [];
+  $: if ($configManager) {
+    const index = $configManager.findIndex((e) => e.id === config.id);
+    const localDefinitions = LocalDefinitions.getFrom({
+      configs: $configManager,
+      index: index,
+    });
+    suggestions = localDefinitions;
+  }
+
   function sendData() {
     let array = [];
 
@@ -127,7 +137,7 @@
   <div class="flex flex-col p-2">
     <div class="text-gray-500 text-sm pb-1">Source</div>
     <AtomicInput
-      suggestions={$localDefinitions}
+      {suggestions}
       placeholder={"Incoming value to match"}
       inputValue={lookupTable.source}
       suggestionTarget={suggestionElement1}
@@ -204,7 +214,7 @@
     <div class="text-gray-500 text-sm pb-1">Destination</div>
     <AtomicInput
       placeholder={"Variable name to load the lookup result"}
-      suggestions={$localDefinitions}
+      {suggestions}
       inputValue={lookupTable.destination}
       suggestionTarget={suggestionElement2}
       on:change={(e) => {

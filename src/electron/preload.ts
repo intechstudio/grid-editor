@@ -105,6 +105,7 @@ contextBridge.exposeInMainWorld("electron", {
     transmit: (message) => ipcRenderer.invoke("websocketTransmit", { message }),
     changePort: (port) => ipcRenderer.invoke("websocketChangePort", { port }),
   },
+  restartPackageManager: () => ipcRenderer.send("restartPackageManager"),
 });
 
 const windowLoaded = new Promise((resolve) => {

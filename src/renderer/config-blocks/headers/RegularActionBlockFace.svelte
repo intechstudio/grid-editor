@@ -14,8 +14,10 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-  class="{$$props.class} text-white flex items-center bg-secondary"
-  class:group-hover:bg-select-saturate-10={typeof $config_drag === "undefined"}
+  class="{$$props.class} text-white flex items-center bg-secondary {typeof $config_drag ===
+  'undefined'
+    ? 'group-hover/bg-color:bg-select-saturate-10'
+    : ''}"
   on:click={handleClick}
 >
   <span>{config.information.blockTitle}</span>

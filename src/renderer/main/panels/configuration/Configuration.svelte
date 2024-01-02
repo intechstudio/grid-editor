@@ -331,7 +331,7 @@
   }
 
   function handleDrag(e) {
-    if (typeof $config_drag !== typeof "undefined") {
+    if (typeof $config_drag !== "undefined") {
       const configList = document.getElementById("cfg-list");
       const mouseY = e.clientY - configList.getBoundingClientRect().top;
       const configListHeight = configList.offsetHeight;
@@ -354,8 +354,9 @@
 
   function handleCopyAll() {
     //Callback function
-    let callback = function () {
-      const current = ConfigTarget.createFrom({ userInput: $user_input });
+    const ui = get(user_input);
+    let callback = () => {
+      const current = ConfigTarget.createFrom({ userInput: ui });
       const configsLists = [];
       current.events.forEach((e) => {
         const eventType = e.event.value;
@@ -389,7 +390,20 @@
     });
 
     //Fetching all unloaded elements configuration
-    runtime.fetch_element_configuration_from_grid(callback);
+    const { dx, dy, page, element } = {
+      dx: ui.brc.dx,
+      dy: ui.brc.dy,
+      page: ui.event.pagenumber,
+      element: ui.event.elementnumber,
+    };
+
+    runtime.fetch_element_configuration_from_grid(
+      dx,
+      dy,
+      page,
+      element,
+      callback
+    );
 
     Analytics.track({
       event: "Config Action",
@@ -494,7 +508,7 @@
             }}
             on:mousemove={handleDrag}
             on:mouseleave={() => {
-              //clearInterval(autoScroll);
+              clearInterval(autoScroll);
             }}
             class="flex flex-col w-full h-auto overflow-y-auto"
           >

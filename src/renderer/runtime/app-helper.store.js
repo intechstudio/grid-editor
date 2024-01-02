@@ -1,5 +1,4 @@
 import { writable, get, readable } from "svelte/store";
-import { getAllComponents } from "$lib/_configs";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -32,6 +31,7 @@ const persistentDefaultValues = {
   fontSize: 12,
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
+  changeOnEvent: "event",
 };
 
 function checkOS() {
@@ -84,7 +84,6 @@ function createAppSettingsStore(persistent) {
     displayedOverlay: undefined,
     debugMode: false,
     selectedDisplay: "",
-    changeOnEvent: "event",
     layoutMode: false,
     stringNameOverlay: false,
     preferences: false,
