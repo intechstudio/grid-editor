@@ -44,7 +44,7 @@
 
   const dispatch = createEventDispatcher();
 
-  const parameterNames = ["State", "Button"];
+  const parameterNames = ["Button", "State"];
   const validators = [
     (e) => {
       return new Validator(e).NotEmpty().Result();
@@ -86,13 +86,13 @@
 
   const _suggestions = [
     [
-      { value: "1", info: "Press" },
-      { value: "0", info: "Release" },
-    ],
-    [
       { value: "1", info: "Left Button" },
       { value: "2", info: "Right Button" },
       { value: "4", info: "Middle Button" },
+    ],
+    [
+      { value: "1", info: "Press" },
+      { value: "0", info: "Release" },
     ],
   ];
 
