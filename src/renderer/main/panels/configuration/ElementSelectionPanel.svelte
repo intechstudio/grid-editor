@@ -91,7 +91,7 @@
   }
 </script>
 
-<div class="flex flex-col text-white ">
+<div class="flex flex-col text-white">
   <div class="flex flex-row justify-between items-center py-1">
     <div class="flex flex-row items-center">
       <div class="text-gray-500 text-sm">Element Name</div>

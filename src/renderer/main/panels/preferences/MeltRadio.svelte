@@ -53,12 +53,14 @@
   {...$root}
   use:root
   class="text-white overflow-auto
-    {size=="full"&&orientation=="horizontal"?"w-full":""}
+    {size == 'full' && orientation == 'horizontal' ? 'w-full' : ''}
     {orientation === 'vertical'
     ? 'grid grid-flow-row my-2 gap-4'
     : 'grid grid-flow-col'}
-    {style === "button"?"gap-4":""}
-    {style !== "button" && orientation !== 'vertical'?'border border-black border-opacity-20 bg-black bg-opacity-10':''} py-2"
+    {style === 'button' ? 'gap-4' : ''}
+    {style !== 'button' && orientation !== 'vertical'
+    ? 'border border-black border-opacity-20 bg-black bg-opacity-10'
+    : ''} py-2"
 >
   {#each options as option}
     <!-- Convert value to string in case it was originally boolean -->
@@ -69,7 +71,7 @@
     {orientation === 'vertical'
         ? 'border border-black border-opacity-20 bg-black bg-opacity-10 py-2'
         : ''} 
-      group cursor-pointer flex items-center {style !== "button"?"px-2":""}"
+      group cursor-pointer flex items-center {style !== 'button' ? 'px-2' : ''}"
     >
       {#if style === "radio"}
         <button {...$item(value)} use:item id={title}>

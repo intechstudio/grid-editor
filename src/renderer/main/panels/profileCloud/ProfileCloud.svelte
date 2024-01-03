@@ -139,7 +139,7 @@
   }
 
   async function handleProvideSelectedConfigForEditor(event) {
-    console.log(event.data)
+    console.log(event.data);
     selectedConfigStore.set(event.data.config);
   }
 
