@@ -47,9 +47,9 @@
           <button
             in:scale={{ duration: 800, start: 0.8, easing: elasticOut }}
             on:click={handleLoadClicked}
-            class="flex flex-row px-4 py-2 rounded bg-commit"
-            class:hover:bg-commit-saturate-20={!loaded}
-            disabled={loaded}
+            class="flex flex-row px-4 py-2 rounded {loaded
+              ? 'loaded-element'
+              : 'element'}"
           >
             {#if !loaded}
               <span class="text-black mr-2">Load Profile</span>
@@ -72,3 +72,23 @@
     </div>
   {/if}
 </container>
+
+<style>
+  :root {
+    --load-color: rgba(200, 200, 200, 0.8);
+    --load-hover-color: rgba(61, 214, 182, 0.7);
+    --loaded-color: rgba(11, 164, 132, 0.9);
+  }
+
+  .element {
+    background-color: var(--load-color);
+  }
+
+  .element:hover {
+    background-color: var(--load-hover-color);
+  }
+
+  .loaded-element {
+    background-color: var(--loaded-color);
+  }
+</style>
