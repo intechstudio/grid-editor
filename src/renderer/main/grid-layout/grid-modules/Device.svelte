@@ -77,18 +77,6 @@
     });
   }
 
-  $: {
-    handleSelectedConfigChange($selectedConfigStore);
-  }
-
-  function handleSelectedConfigChange(store) {
-    if (store.configType === "profile") {
-      $appSettings.displayedOverlay = "profile-load-overlay";
-    } else if (store.configType === "preset") {
-      $appSettings.displayedOverlay = "preset-load-overlay";
-    }
-  }
-
   function handlePresetLoad(e) {
     const { sender, elementNumber } = e.detail;
 

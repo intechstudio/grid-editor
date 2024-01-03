@@ -256,8 +256,14 @@ function create_user_input() {
         return;
       }
 
-      //reset of config selecting
-      selectedConfigStore.set({});
+      // //reset of config selecting
+      // if (get(appSettings).displayedOverlay==="profile-load-overlay" || get(appSettings).displayedOverlay==="preset-load-overlay"){
+      //   appSettings.update(s => {
+      //     s.displayedOverlay=undefined;
+      //     return s;
+      //   })
+      // }
+      // selectedConfigStore.set({});
 
       _event.update((store) => {
         const rt = get(runtime);

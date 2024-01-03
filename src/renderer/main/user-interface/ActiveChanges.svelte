@@ -27,6 +27,12 @@
 
       const index = $user_input.event.pagenumber;
       runtime.storePage(index);
+      if (
+        $appSettings.displayedOverlay === "profile-load-overlay" ||
+        $appSettings.displayedOverlay === "preset-load-overlay"
+      ) {
+        $appSettings.displayedOverlay = undefined;
+      }
       selectedConfigStore.set({});
     }
   }
@@ -34,6 +40,12 @@
   function handleClear() {
     const index = $user_input.event.pagenumber;
     runtime.clearPage(index);
+    if (
+      $appSettings.displayedOverlay === "profile-load-overlay" ||
+      $appSettings.displayedOverlay === "preset-load-overlay"
+    ) {
+      $appSettings.displayedOverlay = undefined;
+    }
     selectedConfigStore.set({});
 
     Analytics.track({
@@ -49,6 +61,12 @@
     if (isStoreEnabled) {
       const index = $user_input.event.pagenumber;
       runtime.discardPage(index);
+      if (
+        $appSettings.displayedOverlay === "profile-load-overlay" ||
+        $appSettings.displayedOverlay === "preset-load-overlay"
+      ) {
+        $appSettings.displayedOverlay = undefined;
+      }
       selectedConfigStore.set({});
 
       Analytics.track({
