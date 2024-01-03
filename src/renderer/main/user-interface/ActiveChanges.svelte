@@ -1,6 +1,7 @@
 <script>
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { runtime, user_input } from "../../runtime/runtime.store";
+  import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
   import instructions from "../../serialport/instructions";
@@ -25,12 +26,14 @@
 
       const index = $user_input.event.pagenumber;
       runtime.storePage(index);
+      $appSettings.displayedOverlay = undefined;
     }
   }
 
   function handleClear() {
     const index = $user_input.event.pagenumber;
     runtime.clearPage(index);
+    $appSettings.displayedOverlay = undefined;
 
     Analytics.track({
       event: "Page Config",
@@ -45,6 +48,7 @@
     if (isStoreEnabled) {
       const index = $user_input.event.pagenumber;
       runtime.discardPage(index);
+      $appSettings.displayedOverlay = undefined;
 
       Analytics.track({
         event: "Page Config",

@@ -8,14 +8,14 @@
   <Pages />
   {#if typeof $selectedConfigStore?.configType !== "undefined" && typeof $appSettings.displayedOverlay !== "undefined"}
     <button
-      class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-error
-                      rounded text-white py-1 w-24 hover:bg-error-desaturate-10"
+      class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
+                      rounded text-white py-1 w-32 hover:bg-select-desaturate-10"
       on:click={() => {
         selectedConfigStore.set({});
         $appSettings.displayedOverlay = undefined;
       }}
     >
-      <div>Cancel</div>
+      <div>Close overlay</div>
     </button>
   {/if}
 </div>
