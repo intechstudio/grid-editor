@@ -110,15 +110,6 @@
       });
   }
 
-  $: {
-    if ($user_input) {
-      appSettings.update((store) => {
-        store.displayedOverlay = undefined;
-        return store;
-      });
-    }
-  }
-
   function handleProfileLoad(e) {
     const { sender, device } = e.detail;
 
