@@ -74,8 +74,6 @@
       }
     } catch (e) {}
   }
-
-  $: console.log(isChanged);
 </script>
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
