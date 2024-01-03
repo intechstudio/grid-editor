@@ -52,14 +52,14 @@
                 : 'element'}"
             >
               {#if !loaded}
-                <span class="text-black mr-2">Load Profile</span>
+                <span class="text-white mr-2">Load Profile</span>
                 <SvgIcon
                   class="text-white"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
               {:else}
-                <span class="text-black">Loaded!</span>
+                <span class="text-white">Loaded!</span>
                 <SvgIcon
                   class="text-white"
                   iconPath={"tick"}

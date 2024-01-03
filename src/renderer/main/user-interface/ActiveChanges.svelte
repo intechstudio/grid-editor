@@ -6,6 +6,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import instructions from "../../serialport/instructions";
   import { fade, blur } from "svelte/transition";
+  import { selectedConfigStore } from "../../runtime/config-helper.store";
 
   let isStoreEnabled = false;
   let changes = 0;
@@ -26,14 +27,14 @@
 
       const index = $user_input.event.pagenumber;
       runtime.storePage(index);
-      $appSettings.displayedOverlay = undefined;
+      selectedConfigStore.set({});
     }
   }
 
   function handleClear() {
     const index = $user_input.event.pagenumber;
     runtime.clearPage(index);
-    $appSettings.displayedOverlay = undefined;
+    selectedConfigStore.set({});
 
     Analytics.track({
       event: "Page Config",
@@ -48,7 +49,7 @@
     if (isStoreEnabled) {
       const index = $user_input.event.pagenumber;
       runtime.discardPage(index);
-      $appSettings.displayedOverlay = undefined;
+      selectedConfigStore.set({});
 
       Analytics.track({
         event: "Page Config",

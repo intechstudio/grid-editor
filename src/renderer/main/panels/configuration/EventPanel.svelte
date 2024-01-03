@@ -139,10 +139,10 @@
 
     <div class="flex flex-col justify-center items-center">
       <MeltRadio
-        class="w-full"
         bind:target={selected}
         style="button"
         orientation="horizontal"
+        size="full"
         {options}
       >
         <svelte:fragment slot="item" let:value>

@@ -134,7 +134,7 @@
     --preset-load-color: rgb(28, 138, 114);
     --preset-load-hover-color: rgba(11, 164, 132, 1);
     --preset-load-success-color: rgba(50, 50, 50, 1);
-    --preset-disabled-color: rgba(0, 0, 0, 0.3);
+    --preset-disabled-color: rgba(0, 0, 0, 0.1);
   }
 
   .element {
