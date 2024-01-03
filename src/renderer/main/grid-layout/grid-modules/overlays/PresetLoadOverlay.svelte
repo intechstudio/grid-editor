@@ -107,7 +107,7 @@
               class:scale-50={elementNumber == 255}
             >
               <SvgIcon
-                class="text-black"
+                class="text-white"
                 iconPath={loaded ? "tick" : "download"}
                 displayMode={"static"}
               />
