@@ -24,7 +24,7 @@
 
   $: {
     try {
-      selectedPage = $user_input.event.pagenumber;
+      selectedPage = $user_input.pagenumber;
     } catch (error) {
       console.log("Get page error", error);
     }

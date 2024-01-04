@@ -358,108 +358,78 @@ const instructions = {
   },
 
   sendPageDiscardToGrid: () => {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pagediscard",
-      message: `Discarding configurations...`,
+    return new Promise((resolve, reject) => {
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "pagediscard",
+        message: `Discarding configurations...`,
+      });
+
+      let buffer_element = {
+        responseTimeout: 1000,
+        descr: {
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+          },
+          class_name: "PAGEDISCARD",
+          class_instr: "EXECUTE",
+          class_parameters: {},
+        },
+        responseRequired: true,
+        filter: {
+          PAGEDISCARD_ACKNOWLEDGE: {
+            LASTHEADER: null,
+          },
+          class_name: "PAGEDISCARD",
+          class_instr: "ACKNOWLEDGE",
+          class_parameters: {
+            LASTHEADER: null,
+          },
+        },
+        failCb: reject,
+        successCb: resolve,
+      };
+
+      writeBuffer.add_last(buffer_element);
     });
-
-    let buffer_element = {
-      responseTimeout: 1000,
-      descr: {
-        brc_parameters: {
-          DX: -127,
-          DY: -127,
-        },
-        class_name: "PAGEDISCARD",
-        class_instr: "EXECUTE",
-        class_parameters: {},
-      },
-      responseRequired: true,
-      filter: {
-        PAGEDISCARD_ACKNOWLEDGE: {
-          LASTHEADER: null,
-        },
-        class_name: "PAGEDISCARD",
-        class_instr: "ACKNOWLEDGE",
-        class_parameters: {
-          LASTHEADER: null,
-        },
-      },
-      failCb: function () {
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pagediscard",
-          message: `Retry configuration discard...`,
-        });
-        //console.log('page discard execute - fail')
-      },
-      successCb: function () {
-        runtime.clear_page_configuration();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pagediscard",
-          message: `Discard complete!`,
-        });
-        //console.log('page discard execute - success');
-      },
-    };
-
-    writeBuffer.add_last(buffer_element);
   },
 
   sendPageClearToGrid: () => {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pageclear",
-      message: `Clearing configurations from page...`,
+    return new Promise((resolve, reject) => {
+      logger.set({
+        type: "progress",
+        mode: 0,
+        classname: "pageclear",
+        message: `Clearing configurations from page...`,
+      });
+
+      let buffer_element = {
+        responseTimeout: 2000,
+        descr: {
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+          },
+          class_name: "PAGECLEAR",
+          class_instr: "EXECUTE",
+          class_parameters: {},
+        },
+        responseRequired: true,
+        filter: {
+          class_name: "PAGECLEAR",
+          class_instr: "ACKNOWLEDGE",
+          class_parameters: {
+            LASTHEADER: null,
+          },
+        },
+        failCb: reject,
+        successCb: resolve,
+      };
+
+      writeBuffer.add_first(buffer_element);
     });
-
-    let buffer_element = {
-      responseTimeout: 2000,
-      descr: {
-        brc_parameters: {
-          DX: -127,
-          DY: -127,
-        },
-        class_name: "PAGECLEAR",
-        class_instr: "EXECUTE",
-        class_parameters: {},
-      },
-      responseRequired: true,
-      filter: {
-        class_name: "PAGECLEAR",
-        class_instr: "ACKNOWLEDGE",
-        class_parameters: {
-          LASTHEADER: null,
-        },
-      },
-      failCb: function () {
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pageclear",
-          message: `Retry clear page...`,
-        });
-        //console.log('page clear execute - fail')
-      },
-      successCb: function () {
-        runtime.clear_page_configuration();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pageclear",
-          message: `Page clear complete!`,
-        });
-        //console.log('page clear execute - success')
-      },
-    };
-
-    writeBuffer.add_first(buffer_element);
   },
 };
 

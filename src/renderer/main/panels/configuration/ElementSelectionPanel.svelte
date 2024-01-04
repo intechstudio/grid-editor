@@ -22,7 +22,7 @@
 
   function getElementName(value) {
     try {
-      const { dx, dy } = $user_input.brc;
+      const { dx, dy } = $user_input;
       const obj = $elementNameStore[dx][dy];
       if (obj[value] === "") {
         return undefined;
@@ -40,12 +40,16 @@
   $: handleSelectionChange(selected);
 
   function handleSelectionChange(value) {
-    if (value === -1) {
+    if (value === -1 || typeof value === "undefined") {
       return;
     } else {
-      user_input.update((ui) => {
-        ui.event.elementnumber = value;
-        return ui;
+      const ui = $user_input;
+      user_input.set({
+        dx: ui.dx,
+        dy: ui.dy,
+        pagenumber: ui.pagenumber,
+        elementnumber: value,
+        eventtype: ui.eventtype,
       });
     }
   }
@@ -59,7 +63,7 @@
   function renderElementList() {
     const ui = $user_input;
     const device = $runtime.find(
-      (device) => device.dx === ui.brc.dx && device.dy === ui.brc.dy
+      (device) => device.dx === ui.dx && device.dy === ui.dy
     );
     if (typeof device === "undefined") {
       elements = [{ title: "No Device", value: -1 }];
@@ -67,7 +71,7 @@
       return;
     }
     const control_elements = device.pages.find(
-      (page) => page.pageNumber === ui.event.pagenumber
+      (page) => page.pageNumber === ui.pagenumber
     )?.control_elements;
     elements = control_elements.map((e) => {
       const stringName = getElementName(e.controlElementNumber);
@@ -87,7 +91,7 @@
         };
       }
     });
-    selected = ui.event.elementnumber;
+    selected = ui.elementnumber;
   }
 </script>
 

@@ -382,7 +382,7 @@ const utility_genId = () => {
 };
 
 // control element event assignment table.
-const CEEAT = {
+export const CEEAT = {
   undef: {
     desc: "UNDEFINED",
     value: "-1",
