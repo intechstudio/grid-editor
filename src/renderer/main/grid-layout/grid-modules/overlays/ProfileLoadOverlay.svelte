@@ -35,60 +35,61 @@
 </script>
 
 <container bind:this={container} on:profile-load={handleProfileLoad}>
-  {#if visible && device?.type === $selectedConfigStore.type}
+  {#if visible}
     <div
       class="text-white w-full flex flex-col
     items-center justify-center rounded h-full absolute pointer-events-auto bg-overlay"
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
         90 * device?.rot}deg); border-radius: var(--grid-rounding);"
     >
-      <div class="w-fit relative">
-        {#key loaded || $selectedConfigStore}
-          <button
-            in:scale={{ duration: 800, start: 0.8, easing: elasticOut }}
-            on:click={handleLoadClicked}
-            class="flex flex-row px-4 py-2 rounded {loaded
-              ? 'loaded-element'
-              : 'element'}"
-          >
-            {#if !loaded}
-              <span class="text-black mr-2">Load Profile</span>
-              <SvgIcon
-                class="text-black"
-                iconPath={"download"}
-                displayMode={"static"}
-              />
-            {:else}
-              <span class="text-black">Loaded!</span>
-              <SvgIcon
-                class="text-black"
-                iconPath={"tick"}
-                displayMode={"static"}
-              />
-            {/if}
-          </button>
-        {/key}
-      </div>
+      {#if device?.type === $selectedConfigStore.type}
+        <div class="w-fit relative">
+          {#key loaded || $selectedConfigStore}
+            <button
+              on:click={handleLoadClicked}
+              class="flex flex-row px-4 py-2 rounded {loaded
+                ? 'loaded-element'
+                : 'element'}"
+            >
+              {#if !loaded}
+                <span class="text-white mr-2">Load Profile</span>
+                <SvgIcon
+                  class="text-white"
+                  iconPath={"download"}
+                  displayMode={"static"}
+                />
+              {:else}
+                <span class="text-white">Loaded!</span>
+                <SvgIcon
+                  class="text-white"
+                  iconPath={"tick"}
+                  displayMode={"static"}
+                />
+              {/if}
+            </button>
+          {/key}
+        </div>
+      {/if}
     </div>
   {/if}
 </container>
 
 <style>
   :root {
-    --load-color: rgba(200, 200, 200, 0.8);
-    --load-hover-color: rgba(61, 214, 182, 0.7);
-    --loaded-color: rgba(11, 164, 132, 0.9);
+    --profile-load-color: rgb(28, 138, 114);
+    --profile-load-hover-color: rgba(11, 164, 132, 1);
+    --profile-load-success-color: rgba(100, 100, 100, 1);
   }
 
   .element {
-    background-color: var(--load-color);
+    background-color: var(--profile-load-color);
   }
 
   .element:hover {
-    background-color: var(--load-hover-color);
+    background-color: var(--profile-load-hover-color);
   }
 
   .loaded-element {
-    background-color: var(--loaded-color);
+    background-color: var(--profile-load-success-color);
   }
 </style>

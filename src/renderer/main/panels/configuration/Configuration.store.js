@@ -453,9 +453,10 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
+          createConfigListFrom(ui).then((list) => {
+            setOverride(list);
+            resolve();
+          });
         });
       };
 
@@ -481,9 +482,10 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
+          createConfigListFrom(ui).then((list) => {
+            setOverride(list);
+            resolve();
+          });
         });
       };
       runtime.fetch_page_configuration_from_grid(callback);

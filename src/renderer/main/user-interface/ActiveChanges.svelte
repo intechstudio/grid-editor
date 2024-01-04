@@ -8,9 +8,11 @@
   } from "./../panels/configuration/Configuration.store.js";
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { runtime, user_input } from "../../runtime/runtime.store";
+  import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
+  import { selectedConfigStore } from "../../runtime/config-helper.store";
 
   let isStoreEnabled = false;
   let changes = 0;
@@ -31,6 +33,13 @@
 
       const index = $user_input.pagenumber;
       runtime.storePage(index);
+      if (
+        $appSettings.displayedOverlay === "profile-load-overlay" ||
+        $appSettings.displayedOverlay === "preset-load-overlay"
+      ) {
+        $appSettings.displayedOverlay = undefined;
+      }
+      selectedConfigStore.set({});
     }
   }
 
@@ -39,6 +48,14 @@
     runtime
       .clearPage(ui.pagenumber)
       .then(() => {
+        //Clear overlays
+        if (
+          $appSettings.displayedOverlay === "profile-load-overlay" ||
+          $appSettings.displayedOverlay === "preset-load-overlay"
+        ) {
+          $appSettings.displayedOverlay = undefined;
+        }
+        selectedConfigStore.set({});
         //Update displayed config
         const current = ConfigTarget.getCurrent();
         ConfigList.createFromTarget(current).then((list) => {
@@ -84,6 +101,14 @@
       runtime
         .discardPage(ui.pagenumber)
         .then(() => {
+          //Clear overlays
+          if (
+            $appSettings.displayedOverlay === "profile-load-overlay" ||
+            $appSettings.displayedOverlay === "preset-load-overlay"
+          ) {
+            $appSettings.displayedOverlay = undefined;
+          }
+          selectedConfigStore.set({});
           //Update displayed config
           const current = ConfigTarget.getCurrent();
           ConfigList.createFromTarget(current).then((list) => {

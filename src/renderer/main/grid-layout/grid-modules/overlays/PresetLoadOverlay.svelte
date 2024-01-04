@@ -8,6 +8,7 @@
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import { scale } from "svelte/transition";
   import { elasticOut } from "svelte/easing";
+  import Button from "../elements/Button.svelte";
 
   export let device = undefined;
   export let visible = false;
@@ -80,9 +81,8 @@
 <container bind:this={container} on:preset-load={handlePresetLoad}>
   {#if visible}
     {#if $selectedConfigStore.type === type}
-      <button
-        on:click={handleClick}
-        class="pointer-events-auto w-full h-full"
+      <div
+        class="w-full h-full"
         class:loaded-element={loaded && !isChanged}
         class:element={!loaded && !isChanged}
         class:corner-cut-r={isRightCut}
@@ -91,36 +91,29 @@
         style="{elementNumber == 255
           ? 'border-top-left-radius: 20px; border-top-right-radius: 20px;'
           : 'border-radius: var(--grid-rounding);'} "
-        ><div
+      >
+        <div
           class="flex w-full h-full items-center justify-center"
           style="transform: rotate({-$appSettings.persistent.moduleRotation +
             device?.rot * 90}deg);"
         >
-          {#key loaded || $selectedConfigStore}
-            <div
-              in:scale={{ duration: 1000, start: 0.5, easing: elasticOut }}
-              class="rounded icon bg-opacity-75 p-1"
+          {#if !loaded}
+            <button
+              on:click={handleClick}
+              class="rounded pointer-events-auto icon bg-opacity-75 p-1"
               class:icon-corner-cut-r={isRightCut}
               class:icon-corner-cut-l={isLeftCut}
               class:scale-50={elementNumber == 255}
             >
-              {#if !loaded}
-                <SvgIcon
-                  class="text-white"
-                  iconPath={"download"}
-                  displayMode={"static"}
-                />
-              {:else}
-                <SvgIcon
-                  class="text-white"
-                  iconPath={"tick"}
-                  displayMode={"static"}
-                />
-              {/if}
-            </div>
-          {/key}
+              <SvgIcon
+                class="text-white"
+                iconPath={loaded ? "tick" : "download"}
+                displayMode={"static"}
+              />
+            </button>
+          {/if}
         </div>
-      </button>
+      </div>
     {:else}
       <div
         class="w-full h-full"
@@ -137,8 +130,10 @@
 
 <style>
   :root {
-    --load-color: rgba(0, 0, 0, 0.3);
-    --disabled-color: rgba(0, 0, 0, 0.3);
+    --preset-load-color: rgb(28, 138, 114);
+    --preset-load-hover-color: rgba(11, 164, 132, 1);
+    --preset-load-success-color: rgba(50, 50, 50, 1);
+    --preset-disabled-color: rgba(0, 0, 0, 0.1);
   }
 
   .element {
@@ -149,17 +144,18 @@
   }
   .element::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px var(--load-color);
+    box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
   }
 
   .icon {
     position: relative;
     overflow: hidden;
+    background-color: var(--preset-load-color);
   }
-
-  .icon::before {
-    content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(0, 0, 0, 0.8);
+  .icon:hover {
+    position: relative;
+    overflow: hidden;
+    background-color: var(--preset-load-hover-color);
   }
 
   .disabled-element {
@@ -171,7 +167,7 @@
 
   .disabled-element::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px var(--disabled-color);
+    box-shadow: 0px 300px 0px 1000px var(--preset-disabled-color);
   }
 
   .icon-corner-cut-l:before {

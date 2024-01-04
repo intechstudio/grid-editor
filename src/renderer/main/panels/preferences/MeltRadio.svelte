@@ -11,6 +11,7 @@
   export let target;
   export let orientation: "vertical" | "horizontal" = "vertical";
   export let style: "button" | "radio" = "radio";
+  export let size: "auto" | "full" = "auto";
 
   const {
     elements: { root, item },
@@ -51,10 +52,15 @@
 <div
   {...$root}
   use:root
-  class="{$$props.class} text-white overflow-auto
+  class="text-white overflow-auto
+    {size == 'full' && orientation == 'horizontal' ? 'w-full' : ''}
     {orientation === 'vertical'
     ? 'grid grid-flow-row my-2 gap-4'
-    : 'grid grid-flow-col border border-black border-opacity-20 bg-black bg-opacity-10'} py-2"
+    : 'grid grid-flow-col'}
+    {style === 'button' ? 'gap-4' : ''}
+    {style !== 'button' && orientation !== 'vertical'
+    ? 'border border-black border-opacity-20 bg-black bg-opacity-10'
+    : ''} py-2"
 >
   {#each options as option}
     <!-- Convert value to string in case it was originally boolean -->
@@ -65,7 +71,7 @@
     {orientation === 'vertical'
         ? 'border border-black border-opacity-20 bg-black bg-opacity-10 py-2'
         : ''} 
-      group cursor-pointer flex items-center px-2"
+      group cursor-pointer flex items-center {style !== 'button' ? 'px-2' : ''}"
     >
       {#if style === "radio"}
         <button {...$item(value)} use:item id={title}>
@@ -87,7 +93,7 @@
           {...$item(value)}
           use:item
           id={title}
-          class="relative px-2 py-1 w-full rounded bg-black bg-opacity-20 border border-black border-opacity-40"
+          class="relative px-2 py-1 w-full rounded bg-black bg-opacity-10 border border-black border-opacity-40"
           class:bg-opacity-60={$isChecked(value)}
           class:hover:bg-opacity-40={!$isChecked(value)}
         >

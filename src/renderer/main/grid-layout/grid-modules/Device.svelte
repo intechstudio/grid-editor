@@ -74,18 +74,6 @@
     });
   }
 
-  $: {
-    handleSelectedConfigChange($selectedConfigStore);
-  }
-
-  function handleSelectedConfigChange(store) {
-    if (store.configType === "profile") {
-      $appSettings.displayedOverlay = "profile-load-overlay";
-    } else if (store.configType === "preset") {
-      $appSettings.displayedOverlay = "preset-load-overlay";
-    }
-  }
-
   function handlePresetLoad(e) {
     const { sender, elementNumber } = e.detail;
 
@@ -117,15 +105,6 @@
           mandatory: false,
         });
       });
-  }
-
-  $: {
-    if ($user_input) {
-      appSettings.update((store) => {
-        store.displayedOverlay = undefined;
-        return store;
-      });
-    }
   }
 
   function handleProfileLoad(e) {
@@ -241,7 +220,7 @@
           {elementNumber}
           {isLeftCut}
           {isRightCut}
-          visible={$appSettings.displayedOverlay === "preset-load-overlay"}
+          visible={$selectedConfigStore?.configType === "preset"}
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
           on:click={handlePresetLoad}
@@ -258,7 +237,7 @@
     <svelte:fragment slot="module-overlay">
       <ProfileLoadOverlay
         {device}
-        visible={$appSettings.displayedOverlay === "profile-load-overlay"}
+        visible={$selectedConfigStore?.configType === "profile"}
         on:click={handleProfileLoad}
       />
     </svelte:fragment>

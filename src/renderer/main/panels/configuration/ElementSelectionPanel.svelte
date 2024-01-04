@@ -95,7 +95,7 @@
   }
 </script>
 
-<div class="flex flex-col">
+<div class="flex flex-col text-white">
   <div class="flex flex-row justify-between items-center py-1">
     <div class="flex flex-row items-center">
       <div class="text-gray-500 text-sm">Element Name</div>
@@ -113,6 +113,6 @@
     </div>
   </div>
   {#key elements}
-    <MeltSelect class="text-white" bind:target={selected} options={elements} />
+    <MeltSelect bind:target={selected} options={elements} />
   {/key}
 </div>

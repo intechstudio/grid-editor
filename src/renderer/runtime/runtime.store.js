@@ -281,9 +281,6 @@ function create_user_input() {
         return;
       }
 
-      //Reset of profile/preset load selection
-      selectedConfigStore.set({});
-
       let eventtype;
       switch (get(appSettings).persistent.changeOnEvent) {
         case "element": {
