@@ -185,29 +185,63 @@ export const logger = writable();
 
 function create_user_input() {
   const defaultValues = {
-    brc: {
-      dx: "0",
-      dy: "0",
-      rot: "0",
-    },
-    event: {
-      pagenumber: 0,
-      elementnumber: -1, // should be checked out if grid sends back array or not
-      eventtype: 2,
-      elementtype: "",
-    },
+    dx: 0,
+    dy: 0,
+    pagenumber: 0,
+    elementnumber: -1, // should be checked out if grid sends back array or not
+    eventtype: 2,
   };
 
-  const _event = writable({ ...defaultValues });
+  const internal = writable({ ...defaultValues });
+
+  const external = derived(internal, ($internal) => {
+    return Object.freeze(structuredClone($internal));
+  });
+
+  function set({ dx, dy, pagenumber, elementnumber, eventtype }) {
+    for (const [key, value] of Object.entries({
+      dx,
+      dy,
+      pagenumber,
+      elementnumber,
+      eventtype,
+    })) {
+      if (typeof value !== "number" || isNaN(value)) {
+        console.error(
+          `Warning! ($user_input store): ${key} is not the type of Number. 
+           Value of ${value} will be converted to Number value of ${Number(
+            value
+          )}.`
+        );
+      }
+    }
+
+    const events = getElementEventTypes(dx, dy, elementnumber);
+    const closestEvent = get_closest_event(events, eventtype);
+
+    internal.set({
+      dx: Number(dx),
+      dy: Number(dy),
+      pagenumber: Number(pagenumber),
+      elementnumber: Number(elementnumber),
+      eventtype: Number(closestEvent),
+    });
+  }
+
+  function get_closest_event(events, event) {
+    if (events.map((e) => Number(e)).includes(Number(event))) {
+      return event;
+    }
+    //Select closest event type if incoming device does not have the corrently selected event type
+    const closestEvent = Math.min(
+      ...events.map((e) => Number(e)).filter((e) => e > 0)
+    );
+    return closestEvent;
+  }
 
   function process_incoming_event_from_grid(descr) {
     // engine is disabled
     if (get(writeBuffer).length > 0) {
-      return;
-    }
-
-    // Don't track physical interaction
-    if (get(appSettings).persistent.changeOnEvent === "none") {
       return;
     }
 
@@ -231,132 +265,73 @@ function create_user_input() {
       return;
     }
 
-    const store = get(_event);
+    const ui = get(internal);
 
     // filter same control element had multiple interactions
     let elementDifferent =
-      store.event.elementnumber != descr.class_parameters.ELEMENTNUMBER;
-    let eventDifferent =
-      store.event.eventtype != descr.class_parameters.EVENTTYPE;
-    let sxDifferent = store.brc.dx != descr.brc_parameters.SX;
-    let syDifferent = store.brc.dy != descr.brc_parameters.SY;
+      ui.elementnumber != descr.class_parameters.ELEMENTNUMBER;
+    let eventDifferent = ui.eventtype != descr.class_parameters.EVENTTYPE;
+    let sxDifferent = ui.dx != descr.brc_parameters.SX;
+    let syDifferent = ui.dy != descr.brc_parameters.SY;
 
-    if (
-      (eventDifferent &&
-        get(appSettings).persistent.changeOnEvent === "event") ||
-      elementDifferent ||
-      sxDifferent ||
-      syDifferent
-    ) {
-      let current_timestamp = Date.now();
-
-      if (current_timestamp - 100 > selection_changed_timestamp) {
-        selection_changed_timestamp = current_timestamp;
-      } else {
+    if (eventDifferent || elementDifferent || sxDifferent || syDifferent) {
+      //Filtering out clashing events of control elements
+      //Example: multiple fader movenet at the same time
+      if (Date.now() < selection_changed_timestamp + 100) {
         return;
       }
 
-      //reset of config selecting
+      //Reset of profile/preset load selection
       selectedConfigStore.set({});
 
-      _event.update((store) => {
-        const rt = get(runtime);
-
-        let device = rt.find(
-          (device) =>
-            device.dx == descr.brc_parameters.SX &&
-            device.dy == descr.brc_parameters.SY
-        );
-
-        if (device === undefined) {
-          return store;
-        }
-
-        if (get(appSettings).persistent.changeOnEvent === "element") {
+      let eventtype;
+      switch (get(appSettings).persistent.changeOnEvent) {
+        case "element": {
           const incomingEventTypes = getElementEventTypes(
             descr.brc_parameters.SX,
             descr.brc_parameters.SY,
             descr.class_parameters.ELEMENTNUMBER
           );
-
-          if (
-            !incomingEventTypes
-              .map((e) => Number(e))
-              .includes(Number(store.event.eventtype))
-          ) {
-            //Select closest event type if incoming device does not have the corrently selected event type
-            const closestEvent = Math.min(
-              ...incomingEventTypes.map((e) => Number(e)).filter((e) => e > 0)
-            );
-            store.event.eventtype = String(closestEvent);
+          const current = ui.eventtype;
+          eventtype = get_closest_event(incomingEventTypes, current);
+          if (!elementDifferent) {
+            return;
           }
-        } else if (get(appSettings).persistent.changeOnEvent === "event") {
-          store.event.eventtype = descr.class_parameters.EVENTTYPE;
+          break;
         }
-
-        // lets find out what type of module this is....
-        store.brc.dx = descr.brc_parameters.SX; // coming from source x, will send data back to destination x
-        store.brc.dy = descr.brc_parameters.SY; // coming from source y, will send data back to destination y
-        store.brc.rot = descr.brc_parameters.ROT;
-        store.event.elementnumber = descr.class_parameters.ELEMENTNUMBER;
-
-        let elementtype =
-          grid.moduleElements[device.id.split("_")[0]][
-            store.event.elementnumber
-          ];
-
-        store.event.elementtype = elementtype;
-
-        return store;
-      });
-    } else {
-      let current_timestamp = Date.now();
-      selection_changed_timestamp = current_timestamp;
-    }
-  }
-
-  function update_eventtype(value) {
-    const eventtype = get(user_input).event.eventtype;
-    if (eventtype != value) {
-      _event.update((s) => {
-        s.event.eventtype = value;
-        return s;
+        case "none": {
+          return;
+        }
+        case "event":
+        default: {
+          eventtype = descr.class_parameters.EVENTTYPE;
+        }
+      }
+      internal.set({
+        dx: descr.brc_parameters.SX,
+        dy: descr.brc_parameters.SY,
+        pagenumber: ui.pagenumber,
+        elementnumber: descr.class_parameters.ELEMENTNUMBER,
+        eventtype: eventtype,
       });
     }
-  }
-
-  function update_elementnumber(value) {
-    const elementnumber = get(user_input).event.elementnumber;
-    if (elementnumber != value) {
-      _event.update((s) => {
-        s.event.elementnumber = value;
-        return s;
-      });
-    }
+    selection_changed_timestamp = Date.now();
   }
 
   function module_destroy_handler(dx, dy) {
     // This is used to re-init local settings panel if a module is removed which values have been displayed
-    const li = get(_event);
+    const li = get(internal);
 
-    if (dx == li.brc.dx && dy == li.brc.dy) {
-      _event.set({ ...defaultValues });
+    if (dx == li.dx && dy == li.dy) {
+      internal.set({ ...defaultValues });
     }
   }
 
-  function reset() {
-    _event.set({ ...defaultValues });
-  }
-
   return {
-    ..._event,
-    subscribe: _event.subscribe,
-    update: _event.update,
+    ...external,
+    set: set,
     process_incoming_event_from_grid: process_incoming_event_from_grid,
-    update_eventtype: update_eventtype,
-    update_elementnumber: update_elementnumber,
     module_destroy_handler: module_destroy_handler,
-    reset: reset,
   };
 }
 
@@ -382,7 +357,7 @@ function create_runtime() {
             );
             _event = device.pages[pageIndex].control_elements[
               elementIndex
-            ].events.find((e) => e.event.value == event);
+            ].events.find((e) => e.type == event);
           } catch (error) {
             console.error("Couldn't update in destination: ", li);
           }
@@ -392,44 +367,24 @@ function create_runtime() {
     return _event;
   };
 
-  function fetchOrLoadConfig(dx, dy, page, element, event, callback) {
-    //console.log("Fetch Or Load");
-
-    const rt = get(runtime);
-
-    const device = rt.find((device) => device.dx == dx && device.dy == dy);
-    const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
-    const elementIndex = device.pages[pageIndex].control_elements.findIndex(
-      (x) => x.controlElementNumber == element
+  function fetchOrLoadConfig(
+    { dx, dy, page, element, event },
+    callback = function () {}
+  ) {
+    const _device = get(runtime).find(
+      (device) => device.dx == dx && device.dy == dy
     );
+    const _page = _device.pages.find((e) => e.pageNumber == page);
+    const _element = _page.control_elements.find(
+      (e) => e.controlElementNumber == element
+    );
+    const _event = _element.events.find((e) => e.type == event);
 
-    if (device.pages[pageIndex].control_elements[elementIndex] === undefined)
-      return;
-
-    const eventIndex = device.pages[pageIndex].control_elements[
-      elementIndex
-    ].events.findIndex((x) => x.event.value == event);
-
-    //console.log(device, pageIndex, elementIndex, eventIndex)
-
-    const cfgstatus =
-      device.pages[pageIndex].control_elements[elementIndex].events[eventIndex]
-        .cfgStatus;
-
-    if (
-      cfgstatus == "GRID_REPORT" ||
-      cfgstatus == "EDITOR_EXECUTE" ||
-      cfgstatus == "EDITOR_BACKGROUND"
-    ) {
-      // its loaded
-      if (callback !== undefined) {
-        callback();
-      }
+    if (typeof _event.config !== "undefined") {
+      callback();
     } else {
       instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
     }
-
-    return;
   }
 
   function isFirmwareMismatch(currentFirmware, requiredFirmware) {
@@ -549,17 +504,13 @@ function create_runtime() {
   }
 
   function setDefaultSelectedElement(controller) {
-    user_input.update((ui) => {
-      ui.brc.dx = controller.dx;
-      ui.brc.dy = controller.dy;
-      ui.event.elementnumber = 0;
-
-      ui.event.elementtype =
-        controller.pages[
-          ui.event.pagenumber
-        ].control_elements[0].controlElementType;
-      ui.event.eventtype = 0;
-      return ui;
+    const ui = get(user_input);
+    user_input.set({
+      dx: controller.dx,
+      dy: controller.dy,
+      pagenumber: ui.pagenumber,
+      elementnumber: 0,
+      eventtype: ui.eventtype,
     });
   }
 
@@ -569,8 +520,7 @@ function create_runtime() {
         device.pages.forEach((page) => {
           page.control_elements.forEach((events) => {
             events.events.forEach((event) => {
-              event.config = "";
-              event.cfgStatus = "ERASED";
+              event.config = undefined;
             });
           });
         });
@@ -594,14 +544,13 @@ function create_runtime() {
       };
 
       events.forEach((ev, index) => {
-        const page = li.event.pagenumber;
+        const page = li.pagenumber;
         const event = ev.event;
 
         _runtime.update((_runtime) => {
           let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
           if (dest) {
             dest.config = ev.config;
-            dest.cfgStatus = "EDITOR_BACKGROUND";
 
             instructions.sendConfigToGrid(
               x,
@@ -617,72 +566,6 @@ function create_runtime() {
         });
       });
     });
-  }
-
-  function whole_element_overwrite({ controlElementType, events }) {
-    const li = get(user_input);
-
-    if (li.event.elementtype == controlElementType) {
-      events.forEach((ev, index) => {
-        let callback;
-        if (index === events.length - 1) {
-          // last element
-          callback = function () {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "elementoverwrite",
-              message: `Overwrite done!`,
-            });
-            user_input.update((n) => n);
-          };
-        } else {
-          callback = undefined;
-        }
-
-        let li = get(user_input);
-
-        const dx = li.brc.dx;
-        const dy = li.brc.dy;
-        const page = li.event.pagenumber;
-        const element = li.event.elementnumber;
-        const event = ev.event.value;
-
-        _runtime.update((_runtime) => {
-          let dest = findUpdateDestEvent(
-            _runtime,
-            dx,
-            dy,
-            page,
-            element,
-            event
-          );
-          if (dest) {
-            dest.config = ev.config;
-            dest.cfgStatus = "EDITOR_BACKGROUND";
-
-            instructions.sendConfigToGrid(
-              dx,
-              dy,
-              page,
-              element,
-              event,
-              dest.config,
-              callback
-            );
-            // trigger change detection
-          }
-          return _runtime;
-        });
-      });
-    } else {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "elementoverwrite",
-        message: `Target element is different!`,
-      });
-    }
   }
 
   function whole_page_overwrite(x, y, array) {
@@ -709,13 +592,12 @@ function create_runtime() {
       let li = structuredClone(get(user_input));
       array.forEach((elem, elementIndex) => {
         elem.events.forEach((ev, eventIndex) => {
-          li.event.pagenumber = li.event.pagenumber;
-          li.event.elementnumber = elem.controlElementNumber;
-          li.event.eventtype = ev.event;
+          li.elementnumber = elem.controlElementNumber;
+          li.eventtype = ev.event;
 
-          const page = li.event.pagenumber;
-          const element = li.event.elementnumber;
-          const event = li.event.eventtype;
+          const page = li.pagenumber;
+          const element = li.elementnumber;
+          const event = li.eventtype;
 
           _runtime.update((_runtime) => {
             let dest = findUpdateDestEvent(
@@ -728,7 +610,6 @@ function create_runtime() {
             );
             if (dest) {
               dest.config = ev.config.trim();
-              dest.cfgStatus = "EDITOR_BACKGROUND";
             }
             return _runtime;
           });
@@ -779,7 +660,6 @@ function create_runtime() {
       let dest = findUpdateDestEvent(_runtime, dx, dy, page, element, event);
       if (dest) {
         dest.config = actionString;
-        dest.cfgStatus = status;
         if (typeof dest.stored === "undefined") {
           dest.stored = actionString;
         }
@@ -831,19 +711,26 @@ function create_runtime() {
     const events = element.events;
 
     events.forEach((e, i) => {
-      const eventNumber = Number(e.event.value);
-      if (i == events.length - 1 && typeof callback !== "undefined") {
-        // this is last and callback is defined
+      const eventType = e.type;
+      if (i == events.length - 1 && callback !== undefined) {
         fetchOrLoadConfig(
-          dx,
-          dy,
-          pageNumber,
-          elementNumber,
-          eventNumber,
+          {
+            dx: dx,
+            dy: dy,
+            page: pageNumber,
+            element: elementNumber,
+            event: eventType,
+          },
           callback
         );
       } else {
-        fetchOrLoadConfig(dx, dy, pageNumber, elementNumber, eventNumber);
+        fetchOrLoadConfig({
+          dx: dx,
+          dy: dy,
+          page: pageNumber,
+          element: elementNumber,
+          event: eventType,
+        });
       }
     });
   }
@@ -862,11 +749,11 @@ function create_runtime() {
 
     let ui = JSON.parse(JSON.stringify(get(user_input)));
     let { dx, dy, page, element, event } = {
-      dx: ui.brc.dx,
-      dy: ui.brc.dy,
-      page: ui.event.pagenumber,
-      element: ui.event.elementnumber,
-      event: ui.event.eventtype,
+      dx: ui.dx,
+      dy: ui.dy,
+      page: ui.pagenumber,
+      element: ui.elementnumber,
+      event: ui.eventtype,
     };
 
     let device = rt.find((device) => device.dx == dx && device.dy == dy);
@@ -889,18 +776,10 @@ function create_runtime() {
 
     controlElements.forEach((controlElement) => {
       controlElement.events.forEach((elem) => {
-        const cfgstatus = elem.cfgStatus;
-
-        if (
-          cfgstatus == "GRID_REPORT" ||
-          cfgstatus == "EDITOR_EXECUTE" ||
-          cfgstatus == "EDITOR_BACKGROUND"
-        ) {
-          //alreade loaded config
-        } else {
+        if (typeof elem.config === "undefined") {
           // put it into the fetchArray
           fetchArray.push({
-            event: elem.event.value,
+            event: elem.type,
             elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
@@ -921,45 +800,36 @@ function create_runtime() {
 
         if (ind === fetchArray.length - 1) {
           // last element
-          fetchOrLoadConfig(dx, dy, page, element, event, callback);
+          fetchOrLoadConfig(
+            { dx: dx, dy: dy, page: page, element: element, event: event },
+            callback
+          );
         } else {
-          fetchOrLoadConfig(dx, dy, page, element, event);
+          fetchOrLoadConfig({
+            dx: dx,
+            dy: dy,
+            page: page,
+            element: element,
+            event: event,
+          });
         }
       });
     }
     return;
   }
 
-  function clear_page_configuration() {
-    const li = get(user_input);
-
+  function clear_page_configuration(index) {
     _runtime.update((_runtime) => {
       _runtime.forEach((device) => {
-        device.pages[li.event.pagenumber].control_elements.forEach(
-          (control_element) => {
-            control_element.events.forEach((event) => {
-              if (
-                ["GRID_REPORT", "EDITOR_EXECUTE", "EDITOR_BACKGROUND"].includes(
-                  event.cfgStatus
-                )
-              ) {
-                event.config = "";
-                event.cfgStatus = "NULL";
-                event.stored = undefined;
-              }
-            });
-          }
-        );
+        device.pages[index].control_elements.forEach((control_element) => {
+          control_element.events.forEach((event) => {
+            event.config = undefined;
+            event.stored = undefined;
+          });
+        });
       });
       return _runtime;
     });
-
-    // epicly shitty workaround before implementing acknowledge state management
-    setTimeout(() => {
-      //do nothing just trigger change detection
-      user_input.update((n) => n);
-      return this;
-    }, 150);
   }
 
   function create_page(moduleType, pageNumber) {
@@ -982,9 +852,10 @@ function create_runtime() {
             j++
           ) {
             events.push({
-              event: grid.elementEvents[grid.moduleElements[moduleType][i]][j],
-              config: "",
-              cfgStatus: "NULL",
+              type: Number(
+                grid.elementEvents[grid.moduleElements[moduleType][i]][j].value
+              ),
+              config: undefined,
               stored: undefined,
             });
           }
@@ -1092,8 +963,8 @@ function create_runtime() {
       const rt = get(_runtime);
       if (rt.length > 0) {
         const selectedElementsModule = {
-          dx: get(user_input).brc.dx,
-          dy: get(user_input).brc.dy,
+          dx: get(user_input).dx,
+          dy: get(user_input).dy,
         };
         if (
           selectedElementsModule.dx == removed.dx &&
@@ -1114,13 +985,6 @@ function create_runtime() {
     });
   }
 
-  function reset() {
-    _runtime.set([]);
-
-    user_input.reset();
-    writeBuffer.clear();
-  }
-
   function change_page(new_page_number) {
     if (get(writeBuffer).length > 0) {
       return;
@@ -1129,7 +993,7 @@ function create_runtime() {
     let li = get(user_input);
 
     // only update pagenumber if it differs from the runtime pagenumber
-    if (li.event.pagenumber !== new_page_number) {
+    if (li.pagenumber !== new_page_number) {
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
@@ -1143,12 +1007,7 @@ function create_runtime() {
       e.pages.forEach((e) => {
         e.control_elements.forEach((e) => {
           e.events.forEach((e) => {
-            if (
-              e.cfgStatus !== "NULL" &&
-              e.cfgStatus !== "ERASED" &&
-              typeof e.stored !== "undefined" &&
-              e.stored !== e.config
-            ) {
+            if (typeof e.stored !== "undefined" && e.stored !== e.config) {
               count += 1;
             }
           });
@@ -1166,11 +1025,7 @@ function create_runtime() {
           .find((e) => e.pageNumber == index)
           ?.control_elements.forEach((element) => {
             element.events.forEach((event) => {
-              if (
-                event.cfgStatus !== "NULL" &&
-                event.cfgStatus !== "ERASED" &&
-                event.stored !== event.config
-              ) {
+              if (event.stored !== event.config) {
                 event.stored = event.config;
               }
             });
@@ -1181,19 +1036,39 @@ function create_runtime() {
   }
 
   function clearPage(index) {
-    instructions.sendPageClearToGrid();
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageClearToGrid()
+        .then(() => {
+          clear_page_configuration(index);
+          resolve();
+        })
+        .catch((e) => {
+          console.error(e);
+          reject(e);
+        });
+    });
   }
 
   function discardPage(index) {
-    instructions.sendPageDiscardToGrid();
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageDiscardToGrid(index)
+        .then(() => {
+          clear_page_configuration(index);
+          resolve();
+        })
+        .catch((e) => {
+          console.error(e);
+          reject(e);
+        });
+    });
   }
 
   return {
-    reset: reset,
     subscribe: _runtime.subscribe,
 
     element_preset_load: element_preset_load,
-    whole_element_overwrite: whole_element_overwrite,
     whole_page_overwrite: whole_page_overwrite,
 
     update_event_configuration: update_event_configuration,
@@ -1204,8 +1079,6 @@ function create_runtime() {
     fetch_page_configuration_from_grid: fetch_page_configuration_from_grid,
 
     incoming_heartbeat_handler: incoming_heartbeat_handler,
-
-    clear_page_configuration: clear_page_configuration,
 
     create_page: create_page,
     create_module: create_module,
@@ -1238,7 +1111,7 @@ export function getElementEventTypes(x, y, elementNumber) {
     (e) => e.controlElementNumber == elementNumber
   );
 
-  return element.events.map((e) => e.event.value);
+  return element.events.map((e) => e.type);
 }
 
 function createEngine() {

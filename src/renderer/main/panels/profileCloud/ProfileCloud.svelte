@@ -1,4 +1,5 @@
 <script>
+  import { ConfigTarget } from "./../configuration/Configuration.store.js";
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
@@ -31,13 +32,13 @@
   $: {
     const ui = $user_input;
     let device = get(runtime).find(
-      (device) => device.dx == ui.brc.dx && device.dy == ui.brc.dy
+      (device) => device.dx == ui.dx && device.dy == ui.dy
     );
 
     if (typeof device !== "undefined") {
       selectedModule = device.id.substr(0, 4);
     }
-    selectedControlElementType = ui.event.elementtype;
+    selectedControlElementType = ui.elementtype;
   }
 
   function channelMessageWrapper(event, func) {
@@ -183,10 +184,8 @@
         };
 
         configs.forEach((d) => {
-          if (d.dx == li.brc.dx && d.dy == li.brc.dy) {
-            const page = d.pages.find(
-              (x) => x.pageNumber == li.event.pagenumber
-            );
+          if (d.dx == li.dx && d.dy == li.dy) {
+            const page = d.pages.find((x) => x.pageNumber == li.pagenumber);
 
             if (configType === "profile") {
               config.type = selectedModule;
@@ -195,7 +194,7 @@
                   controlElementNumber: cfg.controlElementNumber,
                   events: cfg.events.map((ev) => {
                     return {
-                      event: ev.event.value,
+                      event: ev.type,
                       config: ev.config,
                     };
                   }),
@@ -203,13 +202,17 @@
               });
             } else if (configType === "preset") {
               const element = page.control_elements.find(
-                (x) => x.controlElementNumber === li.event.elementnumber
+                (x) => x.controlElementNumber === li.elementnumber
               );
-              config.type = li.event.elementtype;
+
+              const current = ConfigTarget.createFrom({ userInput: li });
+              const type = current.getElement().controlElementType;
+
+              config.type = type;
               config.configs = {
                 events: element.events.map((ev) => {
                   return {
-                    event: ev.event.value,
+                    event: ev.type,
                     config: ev.config,
                   };
                 }),
