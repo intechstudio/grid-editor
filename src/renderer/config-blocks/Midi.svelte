@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import MidiFace from "./headers/MidiFace.svelte";
   export const header = MidiFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "gms",
     name: "Midi",
     rendering: "standard",
     category: "midi",
-    desc: "MIDI",
-    blockTitle: "MIDI",
+    displayName: "MIDI",
     color: "#DA4167",
     defaultLua: "gms(0,176,num,val)",
     icon: `
@@ -53,7 +53,7 @@
 
   import { Validator } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";

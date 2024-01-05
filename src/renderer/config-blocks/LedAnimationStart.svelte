@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "glat",
     name: "LedAnimationStart",
     rendering: "standard",
     category: "led",
-    desc: "Start Animation",
-    blockTitle: "Start Animation",
+    displayName: "Start Animation",
     color: "#726E60",
     defaultLua: "glpfs(num,1,val,1,1)",
     icon: `

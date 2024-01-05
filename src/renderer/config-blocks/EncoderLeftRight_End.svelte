@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "elre",
     name: "EncoderLeftRight_End",
     rendering: "modifier",
     category: null,
-    desc: "End",
-    blockTitle: "End",
+    displayName: "End",
     rounding: "bottom",
     defaultLua: "end",
     icon: `

@@ -1,15 +1,15 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   export const header = undefined;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "raw",
     name: "CodeBlock",
     rendering: "standard",
     category: null,
-    desc: "RAW code",
-    blockTitle: "RAW code",
+    displayName: "RAW code",
     color: "#f0f5f7",
     defaultLua: undefined,
     icon: undefined,

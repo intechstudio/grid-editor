@@ -1,17 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "sn",
     name: "ElementName",
-    rendering: "standard", //'hidden'
-    toggleable: false,
+    rendering: "standard",
     category: "code",
-    desc: "Element Name",
-    blockTitle: "Element Name",
+    displayName: "Element Name",
     defaultLua: "self.sn=''",
     icon: `
     <span class="block w-full text-black text-center italic font-gt-pressura">N</span>
@@ -33,7 +32,7 @@
   import AtomicInput from "../main/user-interface/AtomicInput.svelte";
   import { Validator } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   const dispatch = createEventDispatcher();

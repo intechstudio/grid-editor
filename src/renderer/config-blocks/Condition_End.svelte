@@ -1,17 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "en",
     name: "Condition_End",
     rendering: "modifier",
     rounding: "bottom",
     category: null,
-    desc: "End",
-    blockTitle: "End",
+    displayName: "End",
     defaultLua: "end",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -41,5 +41,5 @@
 </script>
 
 <endif-block class="{$$props.class} text-white pointer-events-auto">
-  {information.blockTitle}
+  {information.displayName}
 </endif-block>
