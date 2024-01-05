@@ -1,17 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
+
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "bpr",
     name: "ButtonPressRelease_If",
     rendering: "modifier",
     rounding: "top",
     category: "special",
-    eventtype: [3], // 2: encoder
-    desc: "Press/Release",
-    blockTitle: "Press",
+    displayName: "Press",
     defaultLua: "if self:bst()>0 then",
     compositeLua: [
       { short: "bprel", script: "else" },
@@ -105,7 +105,7 @@
   import stringManipulation from "../main/user-interface/_string-operations";
   import { parenthesis } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   export let access_tree;

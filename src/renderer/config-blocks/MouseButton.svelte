@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "gmbs",
     name: "MouseButton",
     rendering: "standard",
     category: "mouse",
-    desc: "Button",
-    blockTitle: "Button",
+    displayName: "Button",
     defaultLua: "gmbs(,)",
     color: "#9C92A4",
     icon: `
@@ -39,7 +39,7 @@
   import { Script } from "./_script_parsers.js";
   import { Validator } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   const dispatch = createEventDispatcher();

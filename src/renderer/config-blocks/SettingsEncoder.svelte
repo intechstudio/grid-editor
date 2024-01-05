@@ -1,17 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "sec",
     name: "SettingsEncoder",
     rendering: "standard",
     category: "element settings",
     color: "#5F416D",
-    desc: "Encoder Mode",
-    blockTitle: "Encoder Mode",
+    displayName: "Encoder Mode",
     defaultLua: "self:emo(0) self:ev0(50)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">EC</span>`,
@@ -30,7 +30,7 @@
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   const dispatch = createEventDispatcher();

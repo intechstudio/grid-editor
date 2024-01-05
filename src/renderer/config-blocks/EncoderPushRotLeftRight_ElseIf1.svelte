@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "eprlrei1",
     name: "Condition_ElseIf",
     rendering: "modifier",
     category: null,
-    desc: "PRLR Else IF",
-    blockTitle: "Push & Rotate Right",
+    displayName: "Push & Rotate Right",
     defaultLua: "elseif (self:bst()>0 and self:est()>63) then",
     icon: undefined,
     blockIcon: `

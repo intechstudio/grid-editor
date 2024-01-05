@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import MidiSysExFace from "./headers/MidiSysExFace.svelte";
   export const header = MidiSysExFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "gmss",
     name: "MidiSysEx",
     rendering: "standard",
     category: "midi",
-    desc: "MIDI SysEX",
-    blockTitle: "MIDI SysEX",
+    displayName: "MIDI SysEX",
     color: "#DA4167",
     defaultLua: "gmss(0xF0, 0x41, 0x10, val, 0xF7)",
     icon: `
@@ -50,7 +50,7 @@
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  export let config = "";
+  export let config;
   export let index;
 
   let loaded = false;

@@ -277,7 +277,7 @@
       event: "Config Action",
       payload: {
         click: "Add Action",
-        actionBlock: component.information.desc,
+        actionBlock: component.information.name,
       },
       mandatory: false,
     });
@@ -344,7 +344,7 @@
                   <div
                     class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
                   >
-                    {component.information.desc}
+                    {component.information.displayName}
                   </div>
                 </div>
               {/each}

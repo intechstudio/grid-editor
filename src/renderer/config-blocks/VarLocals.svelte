@@ -1,15 +1,15 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "l",
     name: "VarLocals",
     rendering: "standard",
     category: "variables",
-    desc: "Locals",
-    blockTitle: "Locals",
+    displayName: "Locals",
     defaultLua: "local num = self:ind()",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">L</span>`,
@@ -36,7 +36,7 @@
   import { find_forbidden_identifiers } from "../runtime/monaco-helper";
   let error_messsage = "";
 
-  export let config = "";
+  export let config;
   export let index;
   export let access_tree;
 
@@ -232,7 +232,7 @@
       on:click={() => {
         sendData();
       }}
-      disabled={!commitState && parenthesisError && variableNameError}
+      disabled={Boolean(!commitState && parenthesisError && variableNameError)}
       class="{commitState && !parenthesisError && !variableNameError
         ? 'opacity-100'
         : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none"
