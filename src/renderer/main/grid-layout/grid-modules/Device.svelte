@@ -66,8 +66,8 @@
 
   function selectElement(controlNumber) {
     user_input.set({
-      dx: device.dx,
-      dy: device.dy,
+      dx: device?.dx,
+      dy: device?.dy,
       pagenumber: $user_input.pagenumber,
       elementnumber: controlNumber,
       eventtype: $user_input.eventtype,
