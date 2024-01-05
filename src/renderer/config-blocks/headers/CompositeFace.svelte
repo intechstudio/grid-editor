@@ -20,5 +20,5 @@
   class:rounded-br-xl={config.information.rounding == "bottom"}
   on:click={handleClick}
 >
-  <span>{config.information.displayName}</span>
+  <span>{config.information.blockTitle}</span>
 </div>

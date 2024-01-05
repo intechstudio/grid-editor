@@ -1,15 +1,15 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "s",
     name: "VarSelf",
     rendering: "standard",
     category: "variables",
-    displayName: "Self",
+    desc: "Self",
+    blockTitle: "Self",
     defaultLua: "",
     color: "#78BC61",
     icon: `<span class="block w-full text-black text-center italic font-gt-pressura">S</span>`,
@@ -36,7 +36,7 @@
   import { find_forbidden_identifiers } from "../runtime/monaco-helper";
   let error_messsage = "";
 
-  export let config;
+  export let config = "";
   export let index;
   export let access_tree;
 

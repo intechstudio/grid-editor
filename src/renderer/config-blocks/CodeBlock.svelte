@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "cb",
     name: "CodeBlock",
     rendering: "standard",
     category: "code",
-    displayName: "Code Block",
+    desc: "Code Block",
+    blockTitle: "Code Block",
     color: "#887880",
     defaultLua: 'print("hello")',
     icon: `

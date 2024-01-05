@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import MidiFourteenBitFace from "./headers/MidiFourteenBitFace.svelte";
   export const header = MidiFourteenBitFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "gmsh",
     name: "MidiFourteenBit",
     rendering: "standard",
     category: "midi",
-    displayName: "MIDI 14",
+    desc: "MIDI 14",
+    blockTitle: "MIDI 14",
     color: "#DA4167",
     defaultLua: "gms(0,176,0,val//128) gms(0,176,32,val%128)",
     icon: `
@@ -52,7 +52,7 @@
 
   import { Validator } from "./_validators";
 
-  export let config;
+  export let config = "";
   export let index;
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";

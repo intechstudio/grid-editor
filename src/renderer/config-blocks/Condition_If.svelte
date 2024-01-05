@@ -1,17 +1,17 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import ConditionIfFace from "./headers/ConditionIfFace.svelte";
   export const header = ConditionIfFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "if",
     name: "Condition_If",
     rendering: "modifier",
     rounding: "top",
     category: "condition",
-    displayName: "If",
+    desc: "If",
+    blockTitle: "If",
     defaultLua: "if  then",
     compositeLua: [{ short: "en", script: "end" }],
     icon: `

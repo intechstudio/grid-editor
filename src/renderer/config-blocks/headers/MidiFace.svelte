@@ -36,7 +36,7 @@
 >
   <div class="grid grid-cols-[auto_1fr] items-center h-full w-full">
     <span class="mr-2 w-fit whitespace-nowrap"
-      >{config.information.displayName}</span
+      >{config.information.blockTitle}</span
     >
     <div class="bg-primary p-1 my-auto rounded truncate">
       <span class="whitespace-nowrap text-white text-opacity-60">

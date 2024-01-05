@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "gmms",
     name: "MouseMove",
     rendering: "standard",
     category: "mouse",
-    displayName: "Move",
+    desc: "Move",
+    blockTitle: "Move",
     defaultLua: "gmms(,)",
     color: "#9C92A4",
     icon: `

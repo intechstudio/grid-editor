@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import ConditionElseIfFace from "./headers/ConditionElseIfFace.svelte";
   export const header = ConditionElseIfFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "ei",
     name: "Condition_ElseIf",
     rendering: "modifier",
     category: "condition",
-    displayName: "Else if",
+    desc: "Else if",
+    blockTitle: "Else if",
     defaultLua: "elseif  then",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">

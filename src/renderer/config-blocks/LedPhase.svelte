@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "glp",
     name: "LedPhase",
     rendering: "standard",
     category: "led",
-    displayName: "Intensity",
+    desc: "Intensity",
+    blockTitle: "Intensity",
     color: "#726E60",
     defaultLua: "glp(,,)",
     icon: `

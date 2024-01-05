@@ -3,7 +3,7 @@
   import stringManipulation from "../../main/user-interface/_string-operations";
   import { parenthesis } from "../_validators";
 
-  export let config;
+  export let config = "";
   export let index;
 
   export let access_tree;

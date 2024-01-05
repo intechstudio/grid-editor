@@ -1,17 +1,17 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "gks",
     name: "Macro",
     rendering: "standard",
     category: "keyboard",
     color: "#9D95AD",
-    displayName: "Keyboard",
+    desc: "Keyboard",
+    blockTitle: "Keyboard",
     defaultLua: "gks()",
     icon: `
       <svg width="100%" height="100%" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">

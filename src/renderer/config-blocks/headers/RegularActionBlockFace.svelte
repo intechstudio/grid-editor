@@ -20,5 +20,5 @@
     : ''}"
   on:click={handleClick}
 >
-  <span>{config.information.displayName}</span>
+  <span>{config.information.blockTitle}</span>
 </div>

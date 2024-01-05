@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "gts",
     name: "TimerSource",
     category: "timer",
     rendering: "standard",
-    displayName: "Clock Source",
+    desc: "Clock Source",
+    blockTitle: "Clock Source",
     color: "#95638D",
     defaultLua: "gts(,)",
     icon: `

@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "sbc",
     name: "SettingsButton",
     rendering: "standard",
     category: "element settings",
-    displayName: "Button Mode",
+    desc: "Button Mode",
+    blockTitle: "Button Mode",
     color: "#5F416D",
     defaultLua: "self:bmo(0)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">BC</span>`,
@@ -30,7 +30,7 @@
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
 
-  export let config;
+  export let config = "";
   export let index;
 
   const dispatch = createEventDispatcher();

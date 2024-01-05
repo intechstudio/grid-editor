@@ -1,16 +1,16 @@
-<script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+<script context="module">
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information: ActionBlockInformation = {
+  export const information = {
     short: "el",
     name: "Condition_Else",
     rendering: "modifier",
     category: "condition",
-    displayName: "Else",
+    desc: "Else",
+    blockTitle: "Else",
     defaultLua: "else",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 277 277" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -38,5 +38,5 @@
 </script>
 
 <else-block class="{$$props.class} text-white pointer-events-auto">
-  {information.displayName}
+  {information.blockTitle}
 </else-block>
