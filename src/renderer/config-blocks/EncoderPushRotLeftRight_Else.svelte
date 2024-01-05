@@ -1,16 +1,16 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "eprlrel",
     name: "EncoderPushRotLeftRight_Else",
     rendering: "modifier",
     category: null,
-    desc: "Just Rotate Right",
-    blockTitle: "Just Rotate Right",
+    displayName: "Just Rotate Right",
     defaultLua: "else",
     icon: `
     <svg width="100%" height="100%" viewBox="0 0 445 338" fill="none" xmlns="http://www.w3.org/2000/svg">
