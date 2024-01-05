@@ -167,7 +167,7 @@
           message: `Ready to save config!`,
         });
 
-        const li = get(user_input);
+        const ui = get(user_input);
 
         const configs = get(runtime);
 
@@ -189,8 +189,8 @@
         };
 
         configs.forEach((d) => {
-          if (d.dx == li.dx && d.dy == li.dy) {
-            const page = d.pages.find((x) => x.pageNumber == li.pagenumber);
+          if (d.dx == ui.dx && d.dy == ui.dy) {
+            const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
 
             if (configType === "profile") {
               config.type = selectedModule;
@@ -207,10 +207,10 @@
               });
             } else if (configType === "preset") {
               const element = page.control_elements.find(
-                (x) => x.controlElementNumber === li.elementnumber
+                (x) => x.controlElementNumber === ui.elementnumber
               );
 
-              const current = ConfigTarget.createFrom({ userInput: li });
+              const current = ConfigTarget.createFrom({ userInput: ui });
               const type = current.getElement().controlElementType;
 
               config.type = type;

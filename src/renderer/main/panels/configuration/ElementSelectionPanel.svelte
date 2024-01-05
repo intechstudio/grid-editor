@@ -42,16 +42,16 @@
   function handleSelectionChange(value) {
     if (value === -1 || typeof value === "undefined") {
       return;
-    } else {
-      const ui = $user_input;
-      user_input.set({
-        dx: ui.dx,
-        dy: ui.dy,
-        pagenumber: ui.pagenumber,
-        elementnumber: value,
-        eventtype: ui.eventtype,
-      });
     }
+
+    const ui = $user_input;
+    user_input.set({
+      dx: ui.dx,
+      dy: ui.dy,
+      pagenumber: ui.pagenumber,
+      elementnumber: value,
+      eventtype: ui.eventtype,
+    });
   }
 
   $: {

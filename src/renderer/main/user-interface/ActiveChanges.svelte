@@ -64,16 +64,9 @@
           logger.set({
             type: "success",
             mode: 0,
-            classname: "pagediscard",
-            message: `Discard complete!`,
+            classname: "pageclear",
+            message: `Page clear complete!`,
           });
-        });
-
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pageclear",
-          message: `Page clear complete!`,
         });
       })
       .catch((e) => {

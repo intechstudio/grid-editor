@@ -56,25 +56,28 @@
 
   $: handleDeviceChange(device);
 
-  function handleDeviceChange(rt) {
-    const { dx, dy } = device;
+  function handleDeviceChange(obj) {
+    const { dx, dy } = obj;
     const ui = get(user_input);
-    try {
-      const target = new ConfigTarget({
-        device: { dx: dx, dy: dy },
-        page: ui.pagenumber,
-        element: elementNumber,
-        eventType: 0,
-      });
-      const events = target.events;
-      //Find the event that has change
-      const changed = events.find(
-        (e) => typeof e.stored !== "undefined" && e.stored !== e.config
-      );
-      isChanged = typeof changed !== "undefined";
-    } catch (e) {
+
+    const target = new ConfigTarget({
+      device: { dx: dx, dy: dy },
+      page: ui.pagenumber,
+      element: elementNumber,
+      eventType: 0,
+    });
+
+    if (typeof target === "undefined") {
       isChanged = false;
+      return;
     }
+
+    const events = target.events;
+    //Find the event that has change
+    const changed = events.find(
+      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+    );
+    isChanged = typeof changed !== "undefined";
   }
 </script>
 

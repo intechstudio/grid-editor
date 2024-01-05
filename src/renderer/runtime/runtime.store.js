@@ -317,9 +317,9 @@ function create_user_input() {
 
   function module_destroy_handler(dx, dy) {
     // This is used to re-init local settings panel if a module is removed which values have been displayed
-    const li = get(internal);
+    const ui = get(internal);
 
-    if (dx == li.dx && dy == li.dy) {
+    if (dx == ui.dx && dy == ui.dy) {
       internal.set({ ...defaultValues });
     }
   }
@@ -528,7 +528,7 @@ function create_runtime() {
 
   function element_preset_load(x, y, element, preset) {
     return new Promise((resolve, reject) => {
-      const li = get(user_input);
+      const ui = get(user_input);
       let events = preset.configs.events;
       const callback = function () {
         resolve();
@@ -541,7 +541,7 @@ function create_runtime() {
       };
 
       events.forEach((ev, index) => {
-        const page = li.pagenumber;
+        const page = ui.pagenumber;
         const event = ev.event;
 
         _runtime.update((_runtime) => {
@@ -586,15 +586,15 @@ function create_runtime() {
         array.unshift(objectToMove);
       }
 
-      let li = structuredClone(get(user_input));
+      let ui = structuredClone(get(user_input));
       array.forEach((elem, elementIndex) => {
         elem.events.forEach((ev, eventIndex) => {
-          li.elementnumber = elem.controlElementNumber;
-          li.eventtype = ev.event;
+          ui.elementnumber = elem.controlElementNumber;
+          ui.eventtype = ev.event;
 
-          const page = li.pagenumber;
-          const element = li.elementnumber;
-          const event = li.eventtype;
+          const page = ui.pagenumber;
+          const element = ui.elementnumber;
+          const event = ui.eventtype;
 
           _runtime.update((_runtime) => {
             let dest = findUpdateDestEvent(
@@ -987,10 +987,10 @@ function create_runtime() {
       return;
     }
 
-    let li = get(user_input);
+    let ui = get(user_input);
 
     // only update pagenumber if it differs from the runtime pagenumber
-    if (li.pagenumber !== new_page_number) {
+    if (ui.pagenumber !== new_page_number) {
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
