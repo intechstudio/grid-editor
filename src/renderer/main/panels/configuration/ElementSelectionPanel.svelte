@@ -34,13 +34,13 @@
     }
   }
 
-  let selected = -1;
-  let elements = [{ title: "No Device", value: -1 }];
+  let selectedElementNumber = -1;
+  let options = [{ title: "No Device", value: -1 }];
 
-  $: handleSelectionChange(selected);
+  $: handleSelectedChange(selectedElementNumber);
 
-  function handleSelectionChange(value) {
-    if (value === -1 || typeof value === "undefined") {
+  function handleSelectedChange(elementNumber) {
+    if (elementNumber === -1 || typeof elementNumber === "undefined") {
       return;
     }
 
@@ -49,7 +49,7 @@
       dx: ui.dx,
       dy: ui.dy,
       pagenumber: ui.pagenumber,
-      elementnumber: value,
+      elementnumber: elementNumber,
       eventtype: ui.eventtype,
     });
   }
@@ -66,14 +66,14 @@
       (device) => device.dx === ui.dx && device.dy === ui.dy
     );
     if (typeof device === "undefined") {
-      elements = [{ title: "No Device", value: -1 }];
-      selected = -1;
+      options = [{ title: "No Device", value: -1 }];
+      selectedElementNumber = -1;
       return;
     }
     const control_elements = device.pages.find(
       (page) => page.pageNumber === ui.pagenumber
     )?.control_elements;
-    elements = control_elements.map((e) => {
+    options = control_elements.map((e) => {
       const stringName = getElementName(e.controlElementNumber);
       if (typeof stringName !== "undefined") {
         return { title: stringName, value: e.controlElementNumber };
@@ -91,7 +91,7 @@
         };
       }
     });
-    selected = ui.elementnumber;
+    selectedElementNumber = ui.elementnumber;
   }
 </script>
 
@@ -112,7 +112,7 @@
       />
     </div>
   </div>
-  {#key elements}
-    <MeltSelect bind:target={selected} options={elements} />
+  {#key options}
+    <MeltSelect bind:target={selectedElementNumber} {options} />
   {/key}
 </div>
