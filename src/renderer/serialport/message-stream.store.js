@@ -25,6 +25,7 @@ import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 export const incoming_messages = writable([]);
 
 function createMessageStream() {
+  let buffer = undefined;
   const _deliver_inbound = function (class_array) {
     if (class_array === undefined) {
       return;
@@ -35,6 +36,13 @@ function createMessageStream() {
         // check if it is online and if not then create a new module
 
         runtime.incoming_heartbeat_handler(class_descr);
+        const now = Date.now();
+        if (typeof buffer !== "undefined") {
+          console.log("Elapsed beat:", now - buffer);
+          buffer = now;
+        } else {
+          buffer = now;
+        }
       }
 
       if (class_descr.class_name === "PAGECOUNT") {

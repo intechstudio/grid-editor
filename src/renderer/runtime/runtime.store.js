@@ -1260,7 +1260,7 @@ export const engine = createEngine();
 export const heartbeat = writable([]);
 
 const heartbeat_editor_ms = 300;
-const heartbeat_grid_ms = 300;
+const heartbeat_grid_ms = 5000;
 
 const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
