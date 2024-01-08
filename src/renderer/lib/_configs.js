@@ -19,8 +19,6 @@ export async function init_config_block_library() {
   }
 }
 
-init_config_block_library();
-
 export function getComponentInformation({ short }) {
   const comps = getAllComponents();
 

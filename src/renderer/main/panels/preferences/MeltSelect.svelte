@@ -19,6 +19,12 @@
   });
 
   $: {
+    if ($selected) {
+      handleSelectionChange();
+    }
+  }
+
+  function handleSelectionChange() {
     if (typeof $selected === "undefined") {
       if (typeof target !== "undefined") {
         selected.set(() => {
@@ -30,13 +36,13 @@
             s.value = target;
             s.label = item.title;
             oldTarget = target;
+            console.log(s);
             return s;
           }
         });
       }
     } else {
       if (target !== oldTarget) {
-        //console.log("TEST 1", $selected.value);
         selected.update((s) => {
           const item = options.find((e) => {
             return e.value === target;
@@ -51,25 +57,10 @@
       }
 
       if (target !== $selected.value) {
-        //console.log("TEST 2", $selected.value);
         oldTarget = target = $selected.value;
       }
     }
   }
-
-  // $: {
-  //   //console.log("Target", target);
-  //   if (target !== oldTarget) {
-  //     $value[0] = target;
-  //     oldTarget = target;
-  //   }
-
-  //   if (target !== $value[0]) {
-  //     oldTarget = target = $value[0];
-  //   }
-  // }
-
-  // }
 </script>
 
 <div class="flex flex-col gap-1">

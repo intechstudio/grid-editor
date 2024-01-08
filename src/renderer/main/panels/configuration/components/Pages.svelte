@@ -22,12 +22,10 @@
     }
   }
 
-  $: {
-    try {
-      selectedPage = $user_input.event.pagenumber;
-    } catch (error) {
-      console.log("Get page error", error);
-    }
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui) {
+    selectedPage = ui.pagenumber;
   }
 </script>
 

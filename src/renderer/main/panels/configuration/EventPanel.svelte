@@ -10,15 +10,17 @@
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
+  import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store.js";
   import MeltRadio from "../preferences/MeltRadio.svelte";
+  import { CEEAT } from "../../../protocol/grid-protocol.js";
 
   const dispatch = createEventDispatcher();
 
   class Event {
     constructor({
       name = "",
-      value = null,
+      type = -1,
       selected = false,
       dx,
       dy,
@@ -26,7 +28,7 @@
       page,
     }) {
       this.name = name;
-      this.value = value;
+      this.type = type;
       this.selected = selected;
       this.dx = dx;
       this.dy = dy;
@@ -42,27 +44,24 @@
 
   $: handleUserInputChange($user_input);
 
-  $: {
-    if ($runtime.length === 0) {
-      options = Array.from(Array(3).keys()).map((i) =>
-        Object({ title: undefined, value: i })
-      );
-      selected = -1;
-    }
-  }
-
   function handleUserInputChange(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
 
     if (typeof target === "undefined") {
+      options = Array.from(Array(3).keys()).map((i) =>
+        Object({ title: undefined, value: i })
+      );
+      selected = -1;
       return;
     }
 
     //Get events
     events = target.events.map((e) => {
       return new Event({
-        name: String(e.event.desc),
-        value: Number(e.event.value),
+        name: String(
+          Object.keys(CEEAT).find((key) => CEEAT[key].value == e.type)
+        ),
+        type: Number(e.type),
         dx: target.device.dx,
         dy: target.device.dy,
         element: target.element,
@@ -70,7 +69,7 @@
       });
     });
     options = events.map((e, i) => Object({ title: e.name, value: i }));
-    selected = events.findIndex((e) => Number(target.eventType) === e.value);
+    selected = events.findIndex((e) => Number(target.eventType) === e.type);
   }
 
   $: handleSelectEvent(selected);
@@ -80,7 +79,14 @@
     if (typeof event === "undefined") {
       return;
     }
-    user_input.update_eventtype(event.value);
+    const ui = get(user_input);
+    user_input.set({
+      dx: ui.dx,
+      dy: ui.dy,
+      pagenumber: ui.pagenumber,
+      elementnumber: ui.elementnumber,
+      eventtype: event.type,
+    });
   }
 
   function handleCopyAll(e) {
@@ -147,19 +153,20 @@
       >
         <svelte:fragment slot="item" let:value>
           {@const event = events[value]}
-          {@const eventData = $runtime
-            .find((e) => e.dx == event.dx && e.dy == event.dy)
-            ?.pages[event.page].control_elements.find(
-              (e) => e.controlElementNumber == event.element
-            )
-            ?.events.find((e) => e.event.value == event.value)}
-          {@const stored = eventData?.stored}
-          {@const config = eventData?.config}
-          {@const status = eventData?.cfgStatus}
-          {#if status !== "NULL" && status !== "ERASED" && stored !== config && typeof stored !== "undefined"}
-            <unsaved-changes-marker
-              class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
-            />
+          {#if typeof event !== "undefined"}
+            {@const eventData = $runtime
+              .find((e) => e.dx == event.dx && e.dy == event.dy)
+              ?.pages[event.page].control_elements.find(
+                (e) => e.controlElementNumber == event.element
+              )
+              ?.events.find((e) => e.type == event.type)}
+            {@const stored = eventData?.stored}
+            {@const config = eventData?.config}
+            {#if stored !== config && typeof stored !== "undefined"}
+              <unsaved-changes-marker
+                class="absolute right-0 top-0 w-4 h-4 bg-unsavedchange rounded-full translate-x-1/3 -translate-y-1/3"
+              />
+            {/if}
           {/if}
         </svelte:fragment>
       </MeltRadio>

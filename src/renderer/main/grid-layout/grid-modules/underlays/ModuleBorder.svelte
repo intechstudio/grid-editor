@@ -7,20 +7,14 @@
   export let device = undefined;
   export let visible = false;
 
-  const dispatch = createEventDispatcher();
-
   let isSelected = false;
-  $: {
-    isSelected =
-      device?.dx == $user_input.brc.dx && device?.dy == $user_input.brc.dy;
-  }
-
   let isSystemEventsSelected = false;
-  $: {
-    isSystemEventsSelected =
-      $user_input.brc.dx == device?.dx &&
-      $user_input.brc.dy == device?.dy &&
-      $user_input.event.elementnumber == 255;
+
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui) {
+    isSelected = device?.dx == ui.dx && device?.dy == ui.dy;
+    isSystemEventsSelected = isSelected && ui.elementnumber == 255;
   }
 </script>
 

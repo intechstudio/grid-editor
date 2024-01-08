@@ -1,5 +1,6 @@
 <script>
   import { user_input } from "../../../../runtime/runtime.store.js";
+  import { get } from "svelte/store";
   import { createEventDispatcher } from "svelte";
 
   export let elementNumber;
@@ -18,11 +19,11 @@
   }
 
   let isSelected = false;
-  $: {
+  $: handleUserInputChange($user_input);
+
+  function handleUserInputChange(ui) {
     isSelected =
-      dx == $user_input?.brc.dx &&
-      dy == $user_input?.brc.dy &&
-      $user_input?.event.elementnumber == elementNumber;
+      dx == ui?.dx && dy == ui?.dy && ui?.elementnumber == elementNumber;
   }
 </script>
 
