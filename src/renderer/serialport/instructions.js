@@ -88,8 +88,7 @@ const instructions = {
           page,
           element,
           event,
-          actionstring,
-          "GRID_REPORT"
+          actionstring
         );
 
         if (callback) {
