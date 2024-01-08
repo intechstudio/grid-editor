@@ -649,8 +649,7 @@ function create_runtime() {
     page,
     element,
     event,
-    actionString,
-    status
+    actionString
   ) {
     // config
     _runtime.update((_runtime) => {

@@ -238,8 +238,7 @@ export class ConfigList extends Array {
           target.page,
           target.element,
           target.eventType,
-          actionString,
-          "EDITOR_EXECUTE"
+          actionString
         );
 
         runtime.send_event_configuration_to_grid(
