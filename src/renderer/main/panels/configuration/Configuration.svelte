@@ -44,9 +44,6 @@
     DragEvent,
   } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
-
-  import { init_config_block_library } from "../../../lib/_configs";
-  import { onMount } from "svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
 
   //////////////////////////////////////////////////////////////////////////////
@@ -59,10 +56,6 @@
   let autoScroll;
   let dropIndex = undefined;
   let isSystemEventSelected = false;
-
-  onMount(() => {
-    init_config_block_library();
-  });
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       REACTIVE STATEMENTS        ///////////////////////////

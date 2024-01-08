@@ -11,7 +11,6 @@ import {
 
 import {
   getComponentInformation,
-  config_components,
   init_config_block_library,
 } from "../../../lib/_configs";
 
@@ -423,16 +422,21 @@ export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
   const internal = writable(new ConfigList());
-  const unsubscribeUserInput = user_input.subscribe((ui) => {
-    createConfigListFrom(ui)
-      .then((list) => {
-        setOverride(list);
-      })
-      .catch((e) => {
-        console.error(e);
-        setOverride(new ConfigList());
-      });
-  });
+  const loadAndInit = async () => {
+    await init_config_block_library();
+    const unsubscribeUserInput = user_input.subscribe((ui) => {
+      createConfigListFrom(ui)
+        .then((list) => {
+          setOverride(list);
+        })
+        .catch((e) => {
+          console.error(e);
+          setOverride(new ConfigList());
+        });
+    });
+  };
+
+  loadAndInit();
 
   async function createConfigListFrom(ui) {
     return new Promise(async (resolve, reject) => {
