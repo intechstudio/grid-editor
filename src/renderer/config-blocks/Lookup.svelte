@@ -1,15 +1,15 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "glut",
     name: "Lookup",
     rendering: "standard",
     category: "variables",
-    desc: "Lookup",
-    blockTitle: "Lookup",
+    displayName: "Lookup",
     color: "#78BC61",
     defaultLua: "glut(param1,36,0,37,1)",
     icon: `<svg width="100%" height="100%" viewBox="0 0 163 212" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,7 +44,7 @@
   import { Validator } from "./_validators";
   import { Script } from "./_script_parsers.js";
 
-  export let config = "";
+  export let config;
   export let index;
 
   const dispatch = createEventDispatcher();

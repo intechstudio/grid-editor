@@ -1,17 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import RegularActionBlockFace from "./headers/RegularActionBlockFace.svelte";
   export const header = RegularActionBlockFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "spc",
     name: "SettingsPotmeter",
     rendering: "standard",
     category: "element settings",
     color: "#5F416D",
-    desc: "Potmeter Mode",
-    blockTitle: "Potmeter Mode",
+    displayName: "Potmeter Mode",
     defaultLua: "self:pmo(7) self:pma(127)",
     icon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
     blockIcon: `<span class="block w-full text-center italic font-gt-pressura">PC</span>`,
@@ -30,7 +30,7 @@
   import { configManager } from "../main/panels/configuration/Configuration.store";
   import { Validator } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   const dispatch = createEventDispatcher();

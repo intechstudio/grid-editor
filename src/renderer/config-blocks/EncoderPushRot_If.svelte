@@ -1,18 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "epr",
     name: "EncoderPushRot_If",
     rendering: "modifier",
     rounding: "top",
     category: "special",
-    eventtype: [2], // 2: encoder
-    desc: "Push & Rotate",
-    blockTitle: "Push & Rotate",
+    displayName: "Push & Rotate",
     defaultLua: "if self:bst()>0 then",
     compositeLua: [
       { short: "eprel", script: "else" },
@@ -44,7 +43,7 @@
   import stringManipulation from "../main/user-interface/_string-operations";
   import { parenthesis } from "./_validators";
 
-  export let config = "";
+  export let config;
   export let index;
 
   export let access_tree;

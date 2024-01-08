@@ -5,7 +5,7 @@
 
   const dispatch = createEventDispatcher();
 
-  export let config = "";
+  export let config;
   export let index;
 
   export let access_tree;

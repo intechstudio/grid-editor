@@ -1,18 +1,17 @@
-<script context="module">
+<script lang="ts" context="module">
+  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
 
   // config descriptor parameters
-  export const information = {
+  export const information: ActionBlockInformation = {
     short: "eprlr",
     name: "EncoderPushRotLeftRight_If",
     rendering: "modifier",
     rounding: "top",
     category: "special",
-    eventtype: [2], // 2: encoder
-    desc: "Push & Rotate L R",
-    blockTitle: "Push & Rotate Left",
+    displayName: "Push & Rotate Left",
     defaultLua: "if (self:bst()>0 and self:est()<64) then",
     compositeLua: [
       {
