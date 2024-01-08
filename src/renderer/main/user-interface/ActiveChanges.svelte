@@ -1,10 +1,16 @@
 <script>
+  import { get } from "svelte/store";
+  import { logger } from "./../../runtime/runtime.store.js";
+  import {
+    ConfigList,
+    ConfigTarget,
+    configManager,
+  } from "./../panels/configuration/Configuration.store.js";
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.js";
   import { Analytics } from "../../runtime/analytics.js";
-  import instructions from "../../serialport/instructions";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
 
@@ -25,7 +31,7 @@
         mandatory: false,
       });
 
-      const index = $user_input.event.pagenumber;
+      const index = $user_input.pagenumber;
       runtime.storePage(index);
       if (
         $appSettings.displayedOverlay === "profile-load-overlay" ||
@@ -38,15 +44,40 @@
   }
 
   function handleClear() {
-    const index = $user_input.event.pagenumber;
-    runtime.clearPage(index);
-    if (
-      $appSettings.displayedOverlay === "profile-load-overlay" ||
-      $appSettings.displayedOverlay === "preset-load-overlay"
-    ) {
-      $appSettings.displayedOverlay = undefined;
-    }
-    selectedConfigStore.set({});
+    const ui = get(user_input);
+    runtime
+      .clearPage(ui.pagenumber)
+      .then(() => {
+        //Clear overlays
+        if (
+          $appSettings.displayedOverlay === "profile-load-overlay" ||
+          $appSettings.displayedOverlay === "preset-load-overlay"
+        ) {
+          $appSettings.displayedOverlay = undefined;
+        }
+        selectedConfigStore.set({});
+        //Update displayed config
+        const current = ConfigTarget.getCurrent();
+        ConfigList.createFromTarget(current).then((list) => {
+          configManager.set(list);
+
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pageclear",
+            message: `Page clear complete!`,
+          });
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pageclear",
+          message: `Retry clear page...`,
+        });
+      });
 
     Analytics.track({
       event: "Page Config",
@@ -59,15 +90,40 @@
 
   function handleDiscard() {
     if (isStoreEnabled) {
-      const index = $user_input.event.pagenumber;
-      runtime.discardPage(index);
-      if (
-        $appSettings.displayedOverlay === "profile-load-overlay" ||
-        $appSettings.displayedOverlay === "preset-load-overlay"
-      ) {
-        $appSettings.displayedOverlay = undefined;
-      }
-      selectedConfigStore.set({});
+      const ui = get(user_input);
+      runtime
+        .discardPage(ui.pagenumber)
+        .then(() => {
+          //Clear overlays
+          if (
+            $appSettings.displayedOverlay === "profile-load-overlay" ||
+            $appSettings.displayedOverlay === "preset-load-overlay"
+          ) {
+            $appSettings.displayedOverlay = undefined;
+          }
+          selectedConfigStore.set({});
+          //Update displayed config
+          const current = ConfigTarget.getCurrent();
+          ConfigList.createFromTarget(current).then((list) => {
+            configManager.set(list);
+
+            logger.set({
+              type: "success",
+              mode: 0,
+              classname: "pagediscard",
+              message: `Discard complete!`,
+            });
+          });
+        })
+        .catch((e) => {
+          console.error(e);
+          logger.set({
+            type: "alert",
+            mode: 0,
+            classname: "pagediscard",
+            message: `Retry configuration discard...`,
+          });
+        });
 
       Analytics.track({
         event: "Page Config",

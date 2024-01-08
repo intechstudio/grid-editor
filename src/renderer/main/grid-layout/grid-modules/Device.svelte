@@ -65,15 +65,12 @@
   }
 
   function selectElement(controlNumber) {
-    const elementType = device?.pages[0].control_elements.find(
-      (e) => e.controlElementNumber == controlNumber
-    ).controlElementType;
-    user_input.update((ui) => {
-      ui.brc.dx = +device?.dx;
-      ui.brc.dy = +device?.dy;
-      ui.event.elementnumber = +controlNumber;
-      ui.event.elementtype = elementType;
-      return ui;
+    user_input.set({
+      dx: device?.dx,
+      dy: device?.dy,
+      pagenumber: $user_input.pagenumber,
+      elementnumber: controlNumber,
+      eventtype: $user_input.eventtype,
     });
   }
 

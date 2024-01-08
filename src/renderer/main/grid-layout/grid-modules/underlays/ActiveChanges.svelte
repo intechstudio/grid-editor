@@ -1,6 +1,8 @@
 <script>
-  import { runtime, user_input } from "../../../../runtime/runtime.store.js";
+  import { ConfigTarget } from "./../../../panels/configuration/Configuration.store.js";
+  import { user_input } from "../../../../runtime/runtime.store.js";
   import { createEventDispatcher } from "svelte";
+  import { get } from "svelte/store";
 
   export let elementNumber;
   export let isLeftCut;
@@ -10,32 +12,32 @@
 
   const dispatch = createEventDispatcher();
 
-  let [dx, dy] = [device?.dx, device?.dy];
-
   let isChanged = false;
-  $: {
-    try {
-      const events = $runtime
-        .find((e) => e.dx == dx && e.dy == dy)
-        .pages[$user_input.event.pagenumber].control_elements.find(
-          (e) => e.controlElementNumber == elementNumber
-        ).events;
 
-      //Find the event that has change
-      const changed = events.find(
-        (e) =>
-          e.cfgStatus !== "NULL" &&
-          e.cfgStatus !== "ERASED" &&
-          typeof e.stored !== "undefined" &&
-          e.stored !== e.config
-      );
+  $: handleDeviceChange(device);
 
-      if (typeof changed !== "undefined") {
-        isChanged = true;
-      } else {
-        isChanged = false;
-      }
-    } catch (e) {}
+  function handleDeviceChange(obj) {
+    const { dx, dy } = obj;
+    const ui = get(user_input);
+
+    const target = new ConfigTarget({
+      device: { dx: dx, dy: dy },
+      page: ui.pagenumber,
+      element: elementNumber,
+      eventType: 0,
+    });
+
+    if (typeof target === "undefined") {
+      isChanged = false;
+      return;
+    }
+
+    const events = target.events;
+    //Find the event that has change
+    const changed = events.find(
+      (e) => typeof e.stored !== "undefined" && e.stored !== e.config
+    );
+    isChanged = typeof changed !== "undefined";
   }
 </script>
 

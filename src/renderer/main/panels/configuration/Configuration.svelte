@@ -78,7 +78,7 @@
 
   $: handleConfigManagerUpdate($configManager);
 
-  $: isSystemEventSelected = $user_input.event.elementnumber == 255;
+  $: isSystemEventSelected = $user_input.elementnumber == 255;
 
   //////////////////////////////////////////////////////////////////////////////
   /////////////////       FUNCTION DEFINITIONS        //////////////////////////
@@ -355,20 +355,19 @@
   function handleCopyAll() {
     //Callback function
     const ui = get(user_input);
-    let callback = () => {
+    let callback = async () => {
       const current = ConfigTarget.createFrom({ userInput: ui });
       const configsLists = [];
-      current.events.forEach((e) => {
-        const eventType = e.event.value;
+      for (const e of current.events) {
         const target = new ConfigTarget({
           device: current.device,
           element: current.element,
-          eventType: eventType,
+          eventType: e.type,
           page: current.page,
         });
-        const list = ConfigList.createFromTarget(target);
-        configsLists.push({ eventType: eventType, configs: list });
-      });
+        const list = await ConfigList.createFromTarget(target);
+        configsLists.push({ eventType: e.type, configs: list });
+      }
 
       controlElementClipboard.set({
         elementType: current.elementType,
@@ -391,10 +390,10 @@
 
     //Fetching all unloaded elements configuration
     const { dx, dy, page, element } = {
-      dx: ui.brc.dx,
-      dy: ui.brc.dy,
-      page: ui.event.pagenumber,
-      element: ui.event.elementnumber,
+      dx: ui.dx,
+      dy: ui.dy,
+      page: ui.pagenumber,
+      element: ui.elementnumber,
     };
 
     runtime.fetch_element_configuration_from_grid(
@@ -417,22 +416,23 @@
     const current = ConfigTarget.createFrom({ userInput: $user_input });
 
     if (current.elementType === clipboard.elementType) {
-      current.events.forEach((e) => {
-        const eventType = e.event.value;
+      for (const e of current.events) {
+        const eventtype = e.type;
         const target = new ConfigTarget({
           device: current.device,
           element: current.element,
-          eventType: eventType,
+          eventType: eventtype,
           page: current.page,
         });
         const list = clipboard.data.find(
-          (e) => e.eventType === eventType
+          (e) => e.eventType === eventtype
         ).configs;
         list.sendTo({ target: target }).catch((e) => handleError(e));
-      });
+      }
 
-      const list = ConfigList.createFromTarget(current);
-      configManager.set(list);
+      ConfigList.createFromTarget(current).then((list) => {
+        configManager.set(list);
+      });
     } else {
       logger.set({
         type: "fail",

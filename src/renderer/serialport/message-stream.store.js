@@ -157,17 +157,18 @@ function createMessageStream() {
         class_descr.class_name === "PAGEACTIVE" &&
         class_descr.class_instr === "REPORT"
       ) {
+        const ui = get(user_input);
         //After page change set user_input so it does not get cleared from writebuffer
-        if (get(user_input).event === undefined) return;
+        if (ui.event === undefined) return; //TODO: check
 
         //return;
-        if (
-          get(user_input).event.pagenumber !==
-          class_descr.class_parameters.PAGENUMBER
-        ) {
-          user_input.update((s) => {
-            s.event.pagenumber = class_descr.class_parameters.PAGENUMBER;
-            return s;
+        if (ui.pagenumber !== class_descr.class_parameters.PAGENUMBER) {
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: class_descr.class_parameters.PAGENUMBER,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
           });
         }
       }

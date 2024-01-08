@@ -54,13 +54,6 @@ export class ConfigObject {
     this.script = script;
     this.id = uuidv4();
 
-    const init = async () => {
-      if (config_components == []) {
-        await init_config_block_library();
-      }
-    };
-    init();
-
     let res = getComponentInformation({ short: short });
 
     //Backward compatibility
@@ -163,13 +156,6 @@ export class ConfigObject {
   }
 }
 
-export class UnknownEventException extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "UnknownEventException";
-  }
-}
-
 export class ConfigList extends Array {
   makeCopy() {
     const copy = new ConfigList();
@@ -203,9 +189,35 @@ export class ConfigList extends Array {
     }
   }
 
-  static createFromTarget(target) {
-    let configScript = target.getActionString();
-    return ConfigList.createFromActionString(configScript);
+  static async createFromTarget(target) {
+    return new Promise(async (resolve, reject) => {
+      if (typeof target === "undefined") {
+        reject("ConfigTarget is undefined");
+        return;
+      }
+
+      const script = target.getConfig();
+
+      if (typeof script !== "undefined") {
+        resolve(ConfigList.createFromActionString(script));
+      } else {
+        await new Promise(async (resolve, reject) => {
+          runtime.fetchOrLoadConfig(
+            {
+              dx: target.device.dx,
+              dy: target.device.dy,
+              page: target.page,
+              element: target.element,
+              event: target.eventType,
+            },
+            resolve
+          );
+        }).then(() => {
+          const script = target.getConfig();
+          resolve(ConfigList.createFromActionString(script));
+        });
+      }
+    });
   }
 
   static createFromActionString(string) {
@@ -241,11 +253,13 @@ export class ConfigList extends Array {
         resolve("Event sent to grid.");
       };
       runtime.fetchOrLoadConfig(
-        target.device.dx,
-        target.device.dy,
-        target.page,
-        target.element,
-        target.eventType,
+        {
+          dx: target.device.dx,
+          dy: target.device.dy,
+          page: target.page,
+          element: target.element,
+          event: target.eventType,
+        },
         callback
       );
     });
@@ -255,6 +269,7 @@ export class ConfigList extends Array {
     //Parse actionString
     //TODO: do rawLuas format checking during parsing
 
+    let configList = [];
     // get rid of new line, enter
     actionString = actionString.replace(/[\n\r]+/g, "");
     // get rid of more than 2 spaces
@@ -265,7 +280,7 @@ export class ConfigList extends Array {
       actionString = actionString.split("<?lua")[1].split("?>")[0];
     }
     // split by meta comments
-    let configList = actionString.split(/(--\[\[@+\w+\]\])/);
+    configList = actionString.split(/(--\[\[@+\w+\]\])/);
 
     configList = configList.slice(1);
     for (var i = 0; i < configList.length; i += 2) {
@@ -343,10 +358,10 @@ export class ConfigTarget {
   static createFrom({ userInput }) {
     try {
       return new ConfigTarget({
-        device: { dx: userInput.brc.dx, dy: userInput.brc.dy },
-        page: userInput.event.pagenumber,
-        element: userInput.event.elementnumber,
-        eventType: userInput.event.eventtype,
+        device: { dx: userInput.dx, dy: userInput.dy },
+        page: userInput.pagenumber,
+        element: userInput.elementnumber,
+        eventType: userInput.eventtype,
       });
     } catch (e) {
       return undefined;
@@ -354,65 +369,47 @@ export class ConfigTarget {
   }
 
   getEvent() {
+    const element = this.getElement();
+    const event = element.events.find((e) => e.type == this.eventType);
+    return event;
+  }
+
+  getElement() {
+    const page = this.getPage();
+    const element = page.control_elements.find(
+      (e) => e.controlElementNumber == this.element
+    );
+    return element;
+  }
+
+  getPage() {
+    const device = this.getDevice();
+    const page = device.pages[this.page];
+    return page;
+  }
+
+  getDevice() {
     const rt = get(runtime);
     const device = rt.find(
       (e) => e.dx == this.device.dx && e.dy == this.device.dy
     );
-
-    if (typeof device === "undefined") {
-      return undefined;
-    }
-
-    const page = device.pages[this.page];
-
-    const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.element
-    );
-
-    const event = element.events.find((e) => e.event.value == this.eventType);
-
-    if (typeof event === "undefined") {
-      throw new UnknownEventException();
-    }
-
-    return event;
+    return device;
   }
 
-  getActionString() {
+  getConfig() {
     const event = this.getEvent();
-    if (typeof event === "undefined") {
-      return "";
-    }
-
-    const cfgstatus = event.cfgStatus;
-    if (
-      cfgstatus != "GRID_REPORT" &&
-      cfgstatus != "EDITOR_EXECUTE" &&
-      cfgstatus != "EDITOR_BACKGROUND"
-    ) {
-      const ui = get(user_input);
-      const { dx, dy, page, element, event } = {
-        dx: ui.brc.dx,
-        dy: ui.brc.dy,
-        page: ui.event.pagenumber,
-        element: ui.event.elementnumber,
-        event: ui.event.eventtype,
-      };
-      const callback = () => user_input.update((n) => n);
-      runtime.fetchOrLoadConfig(dx, dy, page, element, event, callback);
-    }
-
-    return event.config;
+    const res = event.config;
+    return res;
   }
 
   static getCurrent() {
     const ui = get(user_input);
     try {
       const currentTarget = new ConfigTarget({
-        device: { dx: ui.brc.dx, dy: ui.brc.dy },
-        page: ui.event.pagenumber,
-        element: ui.event.elementnumber,
-        eventType: ui.event.eventtype,
+        device: { dx: ui.dx, dy: ui.dy },
+        page: ui.pagenumber,
+        element: ui.elementnumber,
+        eventType: ui.eventtype,
       });
 
       return currentTarget;
@@ -428,41 +425,27 @@ export const configManager = create_configuration_manager();
 function create_configuration_manager() {
   const internal = writable(new ConfigList());
   const unsubscribeUserInput = user_input.subscribe((ui) => {
-    try {
-      const list = createConfigListFrom(ui);
-      setOverride(list);
-    } catch (e) {
-      console.warn("Error updating Configuration Manager from user input.");
-      console.warn(e);
-    }
+    createConfigListFrom(ui)
+      .then((list) => {
+        setOverride(list);
+      })
+      .catch((e) => {
+        console.error(e);
+        setOverride(new ConfigList());
+      });
   });
 
-  function createConfigListFrom(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    let list = new ConfigList();
-
-    if (typeof target === "undefined") {
-      return list;
-    }
-
-    try {
-      list = ConfigList.createFromTarget(target);
-    } catch (e) {
-      if (e instanceof UnknownEventException) {
-        const availableEvents = target.events.map((e) => e.event.value);
-        const closestEvent = Math.min(
-          ...availableEvents.map((e) => Number(e)).filter((e) => e > 0)
-        );
-        user_input.update((s) => {
-          s.event.eventtype = String(closestEvent);
-          return s;
+  async function createConfigListFrom(ui) {
+    return new Promise(async (resolve, reject) => {
+      const target = ConfigTarget.createFrom({ userInput: ui });
+      await ConfigList.createFromTarget(target)
+        .then((list) => {
+          resolve(list);
+        })
+        .catch((e) => {
+          reject(e);
         });
-      } else {
-        //Unknown error, display default
-        throw `Configuration: ${e}`;
-      }
-    }
-    return list;
+    });
   }
 
   function loadPreset({ x, y, element, preset }) {
@@ -470,9 +453,10 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.element_preset_load(x, y, element, preset).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
+          createConfigListFrom(ui).then((list) => {
+            setOverride(list);
+            resolve();
+          });
         });
       };
 
@@ -480,7 +464,7 @@ function create_configuration_manager() {
       const { dx, dy, page, elementNumber } = {
         dx: x,
         dy: y,
-        page: ui.event.pagenumber,
+        page: ui.pagenumber,
         elementNumber: element,
       };
       runtime.fetch_element_configuration_from_grid(
@@ -498,9 +482,10 @@ function create_configuration_manager() {
       const callback = () => {
         runtime.whole_page_overwrite(x, y, profile).then(() => {
           const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
+          createConfigListFrom(ui).then((list) => {
+            setOverride(list);
+            resolve();
+          });
         });
       };
       runtime.fetch_page_configuration_from_grid(callback);
