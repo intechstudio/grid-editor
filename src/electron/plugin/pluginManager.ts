@@ -218,7 +218,7 @@ async function downloadPlugin(pluginName: string) {
       try {
         fileStream.on("error", (err) => {
           reject(err);
-        })
+        });
         fileStream.on("finish", () => {
           fileStream.close();
           resolve(null);
@@ -270,7 +270,7 @@ async function getInstalledPlugins(): Promise<
     pluginPreferenceHtml?: string;
   }[]
 > {
-  if (!fs.existsSync(pluginFolder)){
+  if (!fs.existsSync(pluginFolder)) {
     return [];
   }
   const readdir = util.promisify(fs.readdir);
