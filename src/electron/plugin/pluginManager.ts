@@ -49,7 +49,7 @@ process.parentPort.on("message", (e) => {
       break;
     }
     default: {
-      console.log(`Plugin Manager: Unknown message tpye of ${e.data.type}`);
+      console.log(`Plugin Manager: Unknown message type of ${e.data.type}`);
     }
   }
 });
@@ -215,15 +215,22 @@ async function downloadPlugin(pluginName: string) {
     const filePath = path.join(pluginFolder, `${pluginName}.zip`);
     const fileStream = fs.createWriteStream(filePath);
     await new Promise((resolve, reject) => {
-      response.body.pipe(fileStream);
-      response.body.on("error", (err) => {
-        fileStream.close();
-        reject(err);
-      });
-      fileStream.on("finish", () => {
-        fileStream.close();
-        resolve(null);
-      });
+      try {
+        fileStream.on("error", (err) => {
+          reject(err);
+        })
+        fileStream.on("finish", () => {
+          fileStream.close();
+          resolve(null);
+        });
+        response.body.on("error", (err) => {
+          fileStream.close();
+          reject(err);
+        });
+        response.body.pipe(fileStream);
+      } catch (e) {
+        reject(e);
+      }
     });
 
     const zip = new AdmZip(filePath);
@@ -263,6 +270,9 @@ async function getInstalledPlugins(): Promise<
     pluginPreferenceHtml?: string;
   }[]
 > {
+  if (!fs.existsSync(pluginFolder)){
+    return [];
+  }
   const readdir = util.promisify(fs.readdir);
   const folders = await readdir(pluginFolder, { withFileTypes: true });
   return Promise.all(
