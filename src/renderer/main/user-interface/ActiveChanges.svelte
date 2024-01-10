@@ -9,7 +9,7 @@
   import { setTooltip } from "./tooltip/Tooltip.js";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { writeBuffer } from "../../runtime/engine.store.js";
+  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";

@@ -188,8 +188,8 @@ export class ConfigList extends Array {
     }
   }
 
-  static async createFromTarget(target) {
-    return new Promise(async (resolve, reject) => {
+  static createFromTarget(target) {
+    return new Promise((resolve, reject) => {
       if (typeof target === "undefined") {
         reject("ConfigTarget is undefined");
         return;
@@ -200,21 +200,19 @@ export class ConfigList extends Array {
       if (typeof script !== "undefined") {
         resolve(ConfigList.createFromActionString(script));
       } else {
-        await new Promise(async (resolve, reject) => {
-          runtime.fetchOrLoadConfig(
-            {
-              dx: target.device.dx,
-              dy: target.device.dy,
-              page: target.page,
-              element: target.element,
-              event: target.eventType,
-            },
-            resolve
-          );
-        }).then(() => {
-          const script = target.getConfig();
-          resolve(ConfigList.createFromActionString(script));
-        });
+        runtime
+          .fetchOrLoadConfig({
+            dx: target.device.dx,
+            dy: target.device.dy,
+            page: target.page,
+            element: target.element,
+            event: target.eventType,
+          })
+          .then((desc) => {
+            const script = target.getConfig();
+            resolve(ConfigList.createFromActionString(script));
+          })
+          .catch((e) => reject(e));
       }
     });
   }
@@ -230,36 +228,35 @@ export class ConfigList extends Array {
       this.checkLength();
       const actionString = this.toConfigScript();
 
-      const callback = () => {
-        runtime.update_event_configuration(
-          target.device.dx,
-          target.device.dy,
-          target.page,
-          target.element,
-          target.eventType,
-          actionString
-        );
-
-        runtime.send_event_configuration_to_grid(
-          target.device.dx,
-          target.device.dy,
-          target.page,
-          target.element,
-          target.eventType
-        );
-
-        resolve("Event sent to grid.");
-      };
-      runtime.fetchOrLoadConfig(
-        {
+      runtime
+        .fetchOrLoadConfig({
           dx: target.device.dx,
           dy: target.device.dy,
           page: target.page,
           element: target.element,
           event: target.eventType,
-        },
-        callback
-      );
+        })
+        .then((desc) => {
+          runtime.update_event_configuration(
+            target.device.dx,
+            target.device.dy,
+            target.page,
+            target.element,
+            target.eventType,
+            actionString
+          );
+
+          runtime.send_event_configuration_to_grid(
+            target.device.dx,
+            target.device.dy,
+            target.page,
+            target.element,
+            target.eventType
+          );
+
+          resolve("Event sent to grid.");
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -453,15 +450,6 @@ function create_configuration_manager() {
 
   function loadPreset({ x, y, element, preset }) {
     return new Promise((resolve, reject) => {
-      const callback = () => {
-        runtime.element_preset_load(x, y, element, preset).then(() => {
-          const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
-        });
-      };
-
       const ui = get(user_input);
       const { dx, dy, page, elementNumber } = {
         dx: x,
@@ -469,27 +457,40 @@ function create_configuration_manager() {
         page: ui.pagenumber,
         elementNumber: element,
       };
-      runtime.fetch_element_configuration_from_grid(
-        dx,
-        dy,
-        page,
-        elementNumber,
-        callback
-      );
+      runtime
+        .fetch_element_configuration_from_grid(dx, dy, page, elementNumber)
+        .then((desc) => {
+          runtime.element_preset_load(x, y, element, preset).then(() => {
+            const ui = get(user_input);
+            createConfigListFrom(ui).then((list) => {
+              setOverride(list);
+              resolve();
+            });
+          });
+        })
+        .catch((e) => {
+          reject(e);
+        });
     });
   }
 
   function loadProfile({ x, y, profile }) {
-    return new Promise((resolve) => {
-      const callback = () => {
-        runtime.whole_page_overwrite(x, y, profile).then(() => {
-          const ui = get(user_input);
-          const list = createConfigListFrom(ui);
-          setOverride(list);
-          resolve();
-        });
-      };
-      runtime.fetch_page_configuration_from_grid(callback);
+    return new Promise((resolve, reject) => {
+      runtime
+        .fetch_page_configuration_from_grid()
+        .then((desc) => {
+          runtime
+            .whole_page_overwrite(x, y, profile)
+            .then(() => {
+              const ui = get(user_input);
+              createConfigListFrom(ui).then((list) => {
+                setOverride(list);
+                resolve();
+              });
+            })
+            .catch((e) => reject(e));
+        })
+        .catch((e) => reject(e));
     });
   }
 

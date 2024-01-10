@@ -2,7 +2,7 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  import { writeBuffer } from "../../../../runtime/engine.store.js";
+  import { writeBuffer } from "../../../../runtime/engine.store.ts";
   import { fade } from "svelte/transition";
 
   import { configManager } from "../Configuration.store";

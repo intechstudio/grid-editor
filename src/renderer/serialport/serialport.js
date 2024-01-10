@@ -2,7 +2,7 @@ import grid from "../protocol/grid-protocol.js";
 
 import { messageStream } from "./message-stream.store.js";
 
-import { writeBuffer } from "../runtime/engine.store.js";
+import { writeBuffer } from "../runtime/engine.store.ts";
 
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
@@ -173,7 +173,7 @@ navigator.intechFetch = fetchStream;
 
 // Send Serial data to the webserial interface
 
-export async function serial_write_islocked() {
+export function serial_write_islocked() {
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return true;
   }
