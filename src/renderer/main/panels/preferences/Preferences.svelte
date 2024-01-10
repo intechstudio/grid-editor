@@ -1,9 +1,11 @@
 <script lang="ts">
+  import { logger } from "./../../../runtime/runtime.store.js";
   import { writable, get } from "svelte/store";
   import instructions from "../../../serialport/instructions";
   import { onMount, onDestroy } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
+  import { runtime } from "../../../runtime/runtime.store.js";
 
   import MeltCheckbox from "./MeltCheckbox.svelte";
   import MeltRadio from "./MeltRadio.svelte";
@@ -227,7 +229,17 @@
       <MoltenButton
         title={"Defrag"}
         click={() => {
-          instructions.sendNVMDefragToGrid();
+          instructions
+            .sendNVMDefragToGrid()
+            .then((res) => {})
+            .catch((e) => {
+              logger.set({
+                type: "fail",
+                mode: 0,
+                classname: "engine-disabled",
+                message: `Engine is disabled, NVM Defragmentation failed!`,
+              });
+            });
         }}
       />
     </Block>
@@ -239,7 +251,35 @@
       <MoltenButton
         title={"Erase"}
         click={() => {
-          instructions.sendNVMEraseToGrid();
+          logger.set({
+            type: "progress",
+            mode: 0,
+            classname: "nvmerase",
+            message: `Erasing all modules...`,
+          });
+          instructions
+            .sendNVMEraseToGrid()
+            .then((res) => {
+              runtime.erase();
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "nvmerase",
+                message: `Erase complete!`,
+              });
+            })
+            .catch((e) => {
+              if (typeof e !== "undefined") {
+                logger.set(e);
+              } else {
+                logger.set({
+                  type: "alert",
+                  mode: 0,
+                  classname: "nvmerase",
+                  message: `Retry erase all modules...`,
+                });
+              }
+            });
         }}
       />
     </Block>

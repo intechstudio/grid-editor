@@ -19,7 +19,7 @@
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
 
-  import { writeBuffer } from "../../../runtime/engine.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.ts";
 
   import {
     ConfigList,
@@ -348,32 +348,6 @@
   function handleCopyAll() {
     //Callback function
     const ui = get(user_input);
-    let callback = async () => {
-      const current = ConfigTarget.createFrom({ userInput: ui });
-      const configsLists = [];
-      for (const e of current.events) {
-        const target = new ConfigTarget({
-          device: current.device,
-          element: current.element,
-          eventType: e.type,
-          page: current.page,
-        });
-        const list = await ConfigList.createFromTarget(target);
-        configsLists.push({ eventType: e.type, configs: list });
-      }
-
-      controlElementClipboard.set({
-        elementType: current.elementType,
-        data: configsLists,
-      });
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementcopy",
-        message: `Events are copied!`,
-      });
-    };
-
     logger.set({
       type: "progress",
       mode: 0,
@@ -389,13 +363,41 @@
       element: ui.elementnumber,
     };
 
-    runtime.fetch_element_configuration_from_grid(
-      dx,
-      dy,
-      page,
-      element,
-      callback
-    );
+    runtime
+      .fetch_element_configuration_from_grid(dx, dy, page, element)
+      .then((desc) => {
+        const current = ConfigTarget.createFrom({ userInput: ui });
+        const promises = current.events.map((e) => {
+          const target = new ConfigTarget({
+            device: current.device,
+            element: current.element,
+            eventType: e.type,
+            page: current.page,
+          });
+          return ConfigList.createFromTarget(target);
+        });
+        Promise.all(promises).then((lists) => {
+          //TODO: check
+          const data = [];
+          for (const list of lists) {
+            data.push({ eventType: e.type, configs: list });
+          }
+          controlElementClipboard.set({
+            elementType: current.elementType,
+            data: data,
+          });
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "elementcopy",
+            message: `Events are copied!`,
+          });
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        //TODO: make feedback for fail
+      });
 
     Analytics.track({
       event: "Config Action",

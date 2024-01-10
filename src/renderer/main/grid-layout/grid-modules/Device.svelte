@@ -21,7 +21,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
 
-  import { writeBuffer } from "../../../runtime/engine.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.ts";
   import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
@@ -104,6 +104,10 @@
           payload: {},
           mandatory: false,
         });
+      })
+      .catch((e) => {
+        console.error(e);
+        //TODO: make feedback for fail
       });
   }
 
@@ -136,6 +140,10 @@
           payload: {},
           mandatory: false,
         });
+      })
+      .catch((e) => {
+        console.error(e);
+        //TODO: make feedback for fail
       });
   }
 </script>
