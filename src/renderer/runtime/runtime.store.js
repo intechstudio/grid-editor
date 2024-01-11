@@ -394,7 +394,6 @@ function create_runtime() {
         instructions
           .fetchConfigFromGrid(dx, dy, page, element, event)
           .then((descr) => {
-            console.log("yay", descr);
             const dx = descr.brc_parameters.SX;
             const dy = descr.brc_parameters.SY;
             const page = descr.class_parameters.PAGENUMBER;
@@ -578,6 +577,7 @@ function create_runtime() {
         const event = e.event;
 
         _runtime.update((_runtime) => {
+          console.log(x, y, page, element, event);
           let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
           dest.config = e.config;
           return _runtime;
@@ -735,7 +735,7 @@ function create_runtime() {
     );
     const events = element.events;
 
-    const promises = events.map(async (e) => {
+    const promises = events.map((e) => {
       const eventType = e.type;
       const dest = {
         dx: dx,
@@ -1056,6 +1056,7 @@ function create_runtime() {
         });
       })
       .catch((e) => {
+        console.log("yay", e);
         logger.set({
           type: "alert",
           mode: 0,

@@ -18,6 +18,7 @@ export function sendHeartbeat(type: number) {
 class BufferElement {
   promise: { resolve: (value?: any) => void; reject: (reason?: any) => void };
   data: any;
+  timestamp?: number | undefined;
 
   constructor({
     promise,
@@ -69,17 +70,21 @@ function createWriteBuffer() {
   }
 
   function sendDataToGrid(descr: any) {
-    let retval: any = grid.encode_packet(descr);
+    return new Promise((resolve, reject) => {
+      let retval: any = grid.encode_packet(descr);
 
-    serial_write(retval.serial);
+      serial_write(retval.serial)
+        .then(() => {
+          // debugger for message ASCII frames
+          let str = "";
+          for (let i = 0; i < retval.serial.length; i++) {
+            str += String.fromCharCode(retval.serial[i]);
+          }
 
-    // debugger for message ASCII frames
-    let str = "";
-    for (let i = 0; i < retval.serial.length; i++) {
-      str += String.fromCharCode(retval.serial[i]);
-    }
-
-    return { id: retval.id };
+          resolve({ id: retval.id });
+        })
+        .catch((e) => reject(e));
+    });
   }
 
   function writeBufferTryNext() {
@@ -102,28 +107,35 @@ function createWriteBuffer() {
 
     const buffer: any = active_elem.data;
     // create and send serial, save the ID for validation
-    const { id } = sendDataToGrid(active_elem.data.descr);
-    if (
-      buffer.responseRequired &&
-      buffer.filter !== undefined &&
-      buffer.filter.class_parameters !== undefined &&
-      buffer.filter.class_parameters["LASTHEADER"] !== undefined
-    ) {
-      buffer.filter.class_parameters["LASTHEADER"] = id;
-    }
+    active_elem.timestamp = Date.now();
+    sendDataToGrid(active_elem.data.descr)
+      .then((res: any) => {
+        const { id } = res;
+        if (
+          buffer.responseRequired &&
+          buffer.filter !== undefined &&
+          buffer.filter.class_parameters !== undefined &&
+          buffer.filter.class_parameters["LASTHEADER"] !== undefined
+        ) {
+          buffer.filter.class_parameters["LASTHEADER"] = id;
+        }
 
-    _write_buffer.update((s) => {
-      s.shift();
-      return s;
-    });
+        _write_buffer.update((s) => {
+          s.shift();
+          return s;
+        });
 
-    if (buffer.responseRequired === true) {
-      const responseTimeout = buffer.responseTimeout ?? 1000;
-      startFetchTimeout(responseTimeout);
-    } else {
-      active_elem = undefined;
-      write_buffer_busy = false;
-    }
+        if (buffer.responseRequired === true) {
+          const responseTimeout = buffer.responseTimeout ?? 1000;
+          startFetchTimeout(responseTimeout);
+        } else {
+          active_elem = undefined;
+          write_buffer_busy = false;
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   }
 
   function validate_incoming(descr: any) {
@@ -176,16 +188,15 @@ function createWriteBuffer() {
 
   let _fetch_timeout: any = undefined;
   function startFetchTimeout(timeout: number) {
-    _fetch_timeout = setTimeout(() => {
-      fetchTimeoutCallback();
-    }, timeout);
+    _fetch_timeout = setTimeout(fetchTimeoutCallback, timeout);
   }
 
-  function fetchTimeoutCallback() {
+  async function fetchTimeoutCallback() {
     if (active_elem !== undefined) {
       active_elem.promise.reject(
         `Timeout elapsed on ${active_elem.data.descr.class_name}`
       );
+
       write_buffer_busy = false;
       executeFirst(active_elem.data);
     }
@@ -213,7 +224,6 @@ function createWriteBuffer() {
 
   return {
     subscribe: _write_buffer.subscribe,
-    writeBufferTryNext: writeBufferTryNext,
     executeFirst: executeFirst,
     executeLast: executeLast,
     clear: clear,
