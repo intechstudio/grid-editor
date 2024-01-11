@@ -204,8 +204,13 @@ function createWriteBuffer() {
 
   function executeFirst(obj: any) {
     return new Promise((resolve, reject) => {
+      const resolvePromise = (res: any) => resolve(res);
+      const rejectPromise = (error: any) => reject(error);
       _write_buffer.update((s) => [
-        new BufferElement({ promise: { resolve, reject }, data: obj }),
+        new BufferElement({
+          promise: { resolve: resolvePromise, reject: rejectPromise },
+          data: obj,
+        }),
         ...s,
       ]);
       writeBufferTryNext();
@@ -214,9 +219,14 @@ function createWriteBuffer() {
 
   function executeLast(obj: any) {
     return new Promise((resolve, reject) => {
+      const resolvePromise = (res: any) => resolve(res);
+      const rejectPromise = (error: any) => reject(error);
       _write_buffer.update((s) => [
         ...s,
-        new BufferElement({ promise: { resolve, reject }, data: obj }),
+        new BufferElement({
+          promise: { resolve: resolvePromise, reject: rejectPromise },
+          data: obj,
+        }),
       ]);
       writeBufferTryNext();
     });
