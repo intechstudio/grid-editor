@@ -195,25 +195,14 @@ export class ConfigList extends Array {
         return;
       }
 
-      const script = target.getConfig();
-
-      if (typeof script !== "undefined") {
-        resolve(ConfigList.createFromActionString(script));
-      } else {
-        runtime
-          .fetchOrLoadConfig({
-            dx: target.device.dx,
-            dy: target.device.dy,
-            page: target.page,
-            element: target.element,
-            event: target.eventType,
-          })
-          .then((desc) => {
-            const script = target.getConfig();
-            resolve(ConfigList.createFromActionString(script));
-          })
-          .catch((e) => reject(e));
-      }
+      target
+        .getConfig()
+        .then((script) => {
+          //LOADED and SYNCED
+          const list = ConfigList.createFromActionString(script);
+          resolve(list);
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -392,9 +381,25 @@ export class ConfigTarget {
   }
 
   getConfig() {
-    const event = this.getEvent();
-    const res = event.config;
-    return res;
+    return new Promise((resolve, reject) => {
+      const event = this.getEvent();
+      if (typeof event.config === "undefined") {
+        runtime
+          .fetchOrLoadConfig({
+            dx: this.device.dx,
+            dy: this.device.dy,
+            page: this.page,
+            element: this.element,
+            event: this.eventType,
+          })
+          .then(() => {
+            resolve(event.config);
+          })
+          .catch((e) => reject(e));
+      } else {
+        resolve(event.config);
+      }
+    });
   }
 
   static getCurrent() {
@@ -419,9 +424,10 @@ export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {
   const internal = writable(new ConfigList());
+  let unsubscribeUserInput;
   const loadAndInit = async () => {
     await init_config_block_library();
-    const unsubscribeUserInput = user_input.subscribe((ui) => {
+    unsubscribeUserInput = user_input.subscribe((ui) => {
       createConfigListFrom(ui)
         .then((list) => {
           setOverride(list);
@@ -435,14 +441,15 @@ function create_configuration_manager() {
 
   loadAndInit();
 
-  async function createConfigListFrom(ui) {
-    return new Promise(async (resolve, reject) => {
+  function createConfigListFrom(ui) {
+    return new Promise((resolve, reject) => {
       const target = ConfigTarget.createFrom({ userInput: ui });
-      await ConfigList.createFromTarget(target)
+      ConfigList.createFromTarget(target)
         .then((list) => {
           resolve(list);
         })
         .catch((e) => {
+          console.log(e);
           reject(e);
         });
     });

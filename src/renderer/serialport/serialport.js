@@ -2,8 +2,6 @@ import grid from "../protocol/grid-protocol.js";
 
 import { messageStream } from "./message-stream.store.js";
 
-import { writeBuffer } from "../runtime/engine.store.ts";
-
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
 const configuration = window.ctxProcess.configuration();
@@ -192,45 +190,49 @@ export function serial_write_islocked() {
   }
 }
 
-export async function serial_write(param) {
+export function serial_write(param) {
   if (param === undefined) {
-    return false;
+    return Promise.reject();
   }
 
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
-    return false;
+    return Promise.reject();
   }
 
   if (
     navigator.intechPort.writable === undefined ||
     navigator.intechPort.writable === null
   ) {
-    return false;
+    return Promise.reject();
   }
 
-  param.push(10);
+  return new Promise((resolve, reject) => {
+    param.push(10);
 
-  debug_lowlevel_store.push_outbound(param);
+    debug_lowlevel_store.push_outbound(param);
 
-  let port = navigator.intechPort;
+    let port = navigator.intechPort;
 
-  if (port.writable.locked === true) {
-    console.log("SORRY it's locked");
-    return false;
-  }
+    if (port.writable.locked === true) {
+      //console.log("SORRY it's locked");
+      reject("SORRY it's locked");
+      return;
+    }
 
-  const writer = port.writable.getWriter();
+    const writer = port.writable.getWriter();
 
-  const data = new Uint8Array(param);
+    const data = new Uint8Array(param);
 
-  writer
-    .write(data)
-    .then((e) => {
-      // Allow the serial port to be closed later.
-      writer.releaseLock();
-      writeBuffer.writeBufferTryNext();
-    })
-    .catch((e) => {
-      console.log(e);
-    });
+    writer
+      .write(data)
+      .then((e) => {
+        // Allow the serial port to be closed later.
+        writer.releaseLock();
+        resolve();
+      })
+      .catch((e) => {
+        console.log(e);
+        reject(e);
+      });
+  });
 }

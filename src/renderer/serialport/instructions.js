@@ -24,7 +24,7 @@ const instructions = {
       responseRequired: false,
     };
 
-    return writeBuffer.executeFirst(buffer_element);
+    return writeBuffer.executeLast(buffer_element); //TODO: changed from first to last, think heartbeat
   },
 
   fetchConfigFromGrid: (dx, dy, page, element, event) => {
@@ -244,7 +244,7 @@ const instructions = {
 
   sendPageDiscardToGrid: () => {
     let buffer_element = {
-      responseTimeout: 1000,
+      responseTimeout: 3000,
       descr: {
         brc_parameters: {
           DX: -127,
@@ -273,7 +273,7 @@ const instructions = {
 
   sendPageClearToGrid: () => {
     let buffer_element = {
-      responseTimeout: 2000,
+      responseTimeout: 3000,
       descr: {
         brc_parameters: {
           DX: -127,

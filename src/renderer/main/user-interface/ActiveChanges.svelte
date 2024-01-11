@@ -14,15 +14,15 @@
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
 
-  let isStoreEnabled = false;
+  let isChanges = false;
   let changes = 0;
   $: if ($runtime) {
     changes = runtime.unsavedChangesCount();
-    isStoreEnabled = $writeBuffer.length == 0 && changes > 0;
+    isChanges = changes > 0;
   }
 
   function handleStore() {
-    if (isStoreEnabled) {
+    if (isChanges) {
       Analytics.track({
         event: "Page Config",
         payload: {
@@ -89,7 +89,7 @@
   }
 
   function handleDiscard() {
-    if (isStoreEnabled) {
+    if (isChanges) {
       const ui = get(user_input);
       runtime
         .discardPage(ui.pagenumber)
@@ -104,16 +104,21 @@
           selectedConfigStore.set({});
           //Update displayed config
           const current = ConfigTarget.getCurrent();
-          ConfigList.createFromTarget(current).then((list) => {
-            configManager.set(list);
+          ConfigList.createFromTarget(current)
+            .then((list) => {
+              configManager.set(list);
 
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "pagediscard",
-              message: `Discard complete!`,
+              logger.set({
+                type: "success",
+                mode: 0,
+                classname: "pagediscard",
+                message: `Discard complete!`,
+              });
+            })
+            .catch((e) => {
+              console.error(e);
+              //TODO: make feedback for fail
             });
-          });
         })
         .catch((e) => {
           console.error(e);
@@ -152,10 +157,11 @@
         class: "w-60 p-4 z-10",
       }}
       on:click={handleDiscard}
+      disabled={!isChanges}
       class="relative items-center justify-center focus:outline-none bg-select
-      rounded text-white py-1 w-24 {isStoreEnabled
+      rounded text-white py-1 w-24 {isChanges
         ? 'hover:bg-yellow-600'
-        : 'opacity-75'}"
+        : 'opacity-50'}"
     >
       <div>Discard</div>
     </button>
@@ -166,10 +172,11 @@
         class: "w-60 p-4",
       }}
       on:click={handleStore}
+      disabled={!isChanges}
       class="relative items-center justify-center rounded
-          focus:outline-none text-white py-1 w-24 bg-commit {isStoreEnabled
+          focus:outline-none text-white py-1 w-24 bg-commit {isChanges
         ? 'hover:bg-commit-saturate-20'
-        : 'opacity-75'}"
+        : 'opacity-50'}"
     >
       <div>Store</div>
     </button>
@@ -188,8 +195,7 @@
         ],
         triggerEvents: ["show-buttons", "hover"],
       }}
-      disabled={$writeBuffer.length > 0}
-      class="{$writeBuffer.length == 0 ? 'hover:bg-red-500' : 'opacity-75'}
+      class="hover:bg-red-500
       relative flex items-center focus:outline-none justify-center rounded
         bg-select text-white py-1 w-24"
     >

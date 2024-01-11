@@ -17,11 +17,8 @@
   import ActiveChanges from "./underlays/ActiveChanges.svelte";
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
-  import { logger } from "../../../runtime/runtime.store.js";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-
-  import { writeBuffer } from "../../../runtime/engine.store.ts";
   import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
@@ -52,15 +49,6 @@
 
   function handleElementClicked(e) {
     const { elementNumber } = e.detail;
-    if ($writeBuffer.length > 0) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "engine-disabled",
-        message: `Engine is disabled, selecting element has failed!`,
-      });
-      return;
-    }
     selectElement(elementNumber);
   }
 

@@ -1,4 +1,5 @@
 <script>
+  import { derived } from "svelte/store";
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
@@ -46,8 +47,17 @@
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
+
+  const pendingActions = derived(writeBuffer, ($writeBuffer) => {
+    return $writeBuffer.filter((e) => e.data.descr.class_name !== "HEARTBEAT");
+  });
+
   $: {
-    if ($writeBuffer.length > 0 && $runtime.length > 0) {
+    if (
+      $pendingActions.length > 0 &&
+      $runtime.length > 0 &&
+      typeof moduleHangingTimeout === "undefined"
+    ) {
       moduleHangingTimeout = setTimeout(() => {
         showModuleHangingDialog = true;
       }, 1000);
