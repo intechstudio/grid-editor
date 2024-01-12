@@ -107,18 +107,8 @@ function createWriteBuffer() {
         if (
           serial_write_islocked() ||
           busy ||
-          (get(writeBuffer).length > 0 && get(writeBuffer)[0] !== incoming)
+          get(writeBuffer)[0] !== incoming
         ) {
-          /*
-          console.log("pending", incoming.descr.class_name);
-          console.log(
-            "Reason:",
-            serial_write_islocked() ? "LOCKED" : "",
-            busy ? "BUSY" : "",
-            get(writeBuffer)[0] !== incoming
-            ? `WAITING for: ${get(writeBuffer)[0].descr.class_name}`
-            : ""
-          );*/
           //WAIT
           await new Promise((resolve) => setTimeout(resolve, 1));
           continue;
@@ -131,23 +121,22 @@ function createWriteBuffer() {
           return s;
         });
 
-        const command: any = incoming;
-        sendDataToGrid(command.descr).then(async (res: any) => {
+        sendDataToGrid(incoming.descr).then(async (res: any) => {
           const { id } = res;
           if (
-            command.responseRequired &&
-            command.filter !== undefined &&
-            command.filter.class_parameters !== undefined &&
-            command.filter.class_parameters["LASTHEADER"] !== undefined
+            incoming.responseRequired &&
+            incoming.filter !== undefined &&
+            incoming.filter.class_parameters !== undefined &&
+            incoming.filter.class_parameters["LASTHEADER"] !== undefined
           ) {
-            command.filter.class_parameters["LASTHEADER"] = id;
+            incoming.filter.class_parameters["LASTHEADER"] = id;
           }
 
-          if (command.responseRequired === true) {
-            const timeout = command.responseTimeout ?? 1000;
+          if (incoming.responseRequired === true) {
+            const timeout = incoming.responseTimeout ?? 1000;
             try {
               //console.log("waiting for", command);
-              const result = await waitResponseFromGrid(command, timeout);
+              const result = await waitResponseFromGrid(incoming, timeout);
               resolve(result);
             } catch (e) {
               //TIMEOUT
@@ -199,24 +188,39 @@ function createWriteBuffer() {
     }
 
     if (incomingValid) {
-      console.log(descr);
       waiter.provideResponse(descr);
     }
   }
 
-  function executeFirst(obj: any) {}
+  function executeFirst(obj: any) {
+    return new Promise((resolve, reject) => {
+      _write_buffer.update((s) => [obj, ...s]);
+      console.log("Execute command:", obj.descr.class_name);
+      process(obj)
+        .then((res) => {
+          console.log("Resolved:", obj.descr.class_name);
+          resolve(res);
+        })
+        .catch((e) => {
+          console.error("Rejected:", obj.descr.class_name);
+          console.error("Reason:", e);
+          reject(e);
+        });
+    });
+  }
 
   function executeLast(obj: any) {
     return new Promise((resolve, reject) => {
       _write_buffer.update((s) => [...s, obj]);
-
+      console.log("Execute command:", obj.descr.class_name);
       process(obj)
         .then((res) => {
-          console.log("YAY!!!", obj.descr.class_name);
+          console.log("Resolved:", obj.descr.class_name);
           resolve(res);
         })
         .catch((e) => {
-          console.error(e, obj.descr.class_name);
+          console.error("Rejected:", obj.descr.class_name);
+          console.error("Reason:", e);
           reject(e);
         });
     });
