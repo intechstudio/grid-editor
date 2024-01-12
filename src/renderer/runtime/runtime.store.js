@@ -381,6 +381,7 @@ function create_runtime() {
         instructions
           .fetchConfigFromGrid(dx, dy, page, element, event)
           .then((descr) => {
+            console.log(descr);
             const dx = descr.brc_parameters.SX;
             const dy = descr.brc_parameters.SY;
             const page = descr.class_parameters.PAGENUMBER;

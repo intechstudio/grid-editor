@@ -164,7 +164,7 @@ const instructions = {
         class_instr: "EXECUTE",
         class_parameters: {},
       },
-      responseTimeout: 8000,
+      //responseTimeout: 8000,
       responseRequired: true,
       filter: {
         class_name: "PAGESTORE",
