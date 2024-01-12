@@ -49,7 +49,7 @@
   let moduleHangingTimeout = undefined;
 
   const pendingActions = derived(writeBuffer, ($writeBuffer) => {
-    return $writeBuffer.filter((e) => e.data.descr.class_name !== "HEARTBEAT");
+    return $writeBuffer.filter((e) => e.descr.class_name !== "HEARTBEAT");
   });
 
   $: {

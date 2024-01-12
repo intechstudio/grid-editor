@@ -4,69 +4,34 @@ import { serial_write, serial_write_islocked } from "../serialport/serialport";
 
 import instructions from "../serialport/instructions";
 
-export function sendHeartbeat(type: number) {
-  // Only add heatbeat into the write buffer if it is not in it already
-  if (
-    get(writeBuffer).length > 0 &&
-    get(writeBuffer)[0].data.descr.class_name === "HEARTBEAT"
-  ) {
-    return;
-  }
-  instructions.sendEditorHeartbeat_immediate(type);
-}
-
-class BufferElement {
-  promise: { resolve: (value?: any) => void; reject: (reason?: any) => void };
-  data: any;
-  timestamp?: number | undefined;
-
-  constructor({
-    promise,
-    data,
-  }: {
-    promise: { resolve: (value?: any) => void; reject: (reason?: any) => void };
-    data: any;
-  }) {
-    this.promise = promise;
-    this.data = data;
-  }
-}
-
 function createWriteBuffer() {
-  let _write_buffer = writable([] as BufferElement[]);
-
-  let write_buffer_busy = false;
-
-  let active_elem: BufferElement | undefined = undefined;
+  let _write_buffer = writable([] as any[]);
+  let busy = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
     _write_buffer.update((s) =>
       s.filter(
         (g) =>
-          g.data.descr.brc_parameters.DX != dx ||
-          g.data.descr.brc_parameters.DY != dy
+          g.descr.brc_parameters.DX != dx || g.descr.brc_parameters.DY != dy
       )
     );
 
     // clear the active element if it matches the destroyed module's dx dy
-    if (active_elem !== undefined) {
-      if (
-        active_elem.data.descr.brc_parameters.DX == dx &&
-        active_elem.data.descr.brc_parameters.DY == dy
-      ) {
-        active_elem = undefined;
-        writeBufferTryNext();
-      }
+    if (
+      waiter?.command.descr.brc_parameters.DX == dx &&
+      waiter?.command.descr.brc_parameters.DY == dy
+    ) {
+      waiter.destroy();
+      waiter = undefined;
     }
   }
 
   function clear() {
     _write_buffer.set([]);
-
-    active_elem = undefined;
-    write_buffer_busy = false;
-    clearInterval(_fetch_timeout);
+    waiter?.destroy();
+    waiter = undefined;
+    busy = false;
   }
 
   function sendDataToGrid(descr: any) {
@@ -87,37 +52,78 @@ function createWriteBuffer() {
     });
   }
 
-  function writeBufferTryNext() {
-    if (write_buffer_busy || get(_write_buffer).length == 0) {
-      return;
+  class ResponseWaiter {
+    private timeoutId: NodeJS.Timeout | null = null;
+    private resolve!: (response: any) => void;
+    private reject!: () => void;
+    public promise: Promise<any>;
+
+    constructor(public command: any, private duration: number) {
+      this.promise = new Promise<any>((resolve, reject) => {
+        this.resolve = resolve;
+        this.reject = reject;
+      });
     }
 
-    if (serial_write_islocked() === true) {
-      console.log("LOCK", get(_write_buffer).length);
-      return;
+    waitResponse(): Promise<any> {
+      this.timeoutId = setTimeout(() => {
+        this.reject();
+      }, this.duration);
+
+      return this.promise;
     }
 
-    write_buffer_busy = true;
-
-    //Is this possible?
-    active_elem = get(_write_buffer)[0];
-    if (active_elem === undefined) {
-      return;
+    provideResponse(response: any): void {
+      if (this.timeoutId !== null) {
+        clearTimeout(this.timeoutId);
+        this.resolve(response);
+      }
     }
 
-    const buffer: any = active_elem.data;
-    // create and send serial, save the ID for validation
-    active_elem.timestamp = Date.now();
-    sendDataToGrid(active_elem.data.descr)
-      .then((res: any) => {
-        const { id } = res;
+    destroy(): void {
+      if (this.timeoutId !== null) {
+        clearTimeout(this.timeoutId);
+        this.reject(); // Reject the promise to indicate destruction
+      }
+    }
+  }
+
+  async function waitResponseFromGrid(command: any, timeout: number) {
+    waiter = new ResponseWaiter(command, timeout);
+    try {
+      const response = await waiter.waitResponse();
+      waiter = undefined;
+      return response;
+    } catch (error) {
+      throw new Error(`Timeout on ${command.descr.class_name} (${timeout}ms)`);
+    }
+  }
+
+  let waiter: ResponseWaiter | undefined = undefined;
+  function process(incoming: any) {
+    return new Promise<any>(async (resolve, reject) => {
+      let processed = false;
+      while (!processed) {
         if (
-          buffer.responseRequired &&
-          buffer.filter !== undefined &&
-          buffer.filter.class_parameters !== undefined &&
-          buffer.filter.class_parameters["LASTHEADER"] !== undefined
+          serial_write_islocked() ||
+          busy ||
+          (get(writeBuffer).length > 0 && get(writeBuffer)[0] !== incoming)
         ) {
-          buffer.filter.class_parameters["LASTHEADER"] = id;
+          /*
+          console.log("pending", incoming.descr.class_name);
+          console.log(
+            "Reason:",
+            serial_write_islocked() ? "LOCKED" : "",
+            busy ? "BUSY" : "",
+            get(writeBuffer)[0] !== incoming
+            ? `WAITING for: ${get(writeBuffer)[0].descr.class_name}`
+            : ""
+          );*/
+          //WAIT
+          await new Promise((resolve) => setTimeout(resolve, 1));
+          continue;
+        } else {
+          busy = true;
         }
 
         _write_buffer.update((s) => {
@@ -125,25 +131,42 @@ function createWriteBuffer() {
           return s;
         });
 
-        if (buffer.responseRequired === true) {
-          const responseTimeout = buffer.responseTimeout ?? 1000;
-          startFetchTimeout(responseTimeout);
-        } else {
-          active_elem = undefined;
-          write_buffer_busy = false;
-        }
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+        const command: any = incoming;
+        sendDataToGrid(command.descr).then(async (res: any) => {
+          const { id } = res;
+          if (
+            command.responseRequired &&
+            command.filter !== undefined &&
+            command.filter.class_parameters !== undefined &&
+            command.filter.class_parameters["LASTHEADER"] !== undefined
+          ) {
+            command.filter.class_parameters["LASTHEADER"] = id;
+          }
+
+          if (command.responseRequired === true) {
+            const timeout = command.responseTimeout ?? 1000;
+            try {
+              //console.log("waiting for", command);
+              const result = await waitResponseFromGrid(command, timeout);
+              resolve(result);
+            } catch (e) {
+              //TIMEOUT
+              reject(e);
+            }
+          } else {
+            resolve(null);
+          }
+          processed = true;
+        });
+      }
+      busy = false;
+    });
   }
 
   function validate_incoming(descr: any) {
-    // check if there is an active_elem availabe
-    if (!active_elem) return;
+    if (typeof waiter === "undefined") return;
 
-    // check if active_elem has filter
-    if (!active_elem.data.hasOwnProperty("filter")) return;
+    if (!waiter.command.hasOwnProperty("filter")) return;
 
     if (descr.class_name === "HEARTBEAT") {
       return;
@@ -151,7 +174,7 @@ function createWriteBuffer() {
 
     let incomingValid = true;
 
-    const buffer = active_elem.data;
+    const buffer = waiter.command;
     // validate BRC, must start with this as every input contains BRC!
     for (const parameter in buffer.filter.brc_parameters) {
       if (
@@ -176,59 +199,26 @@ function createWriteBuffer() {
     }
 
     if (incomingValid) {
-      active_elem.promise.resolve(descr);
-      active_elem = undefined;
-      write_buffer_busy = false;
-      clearInterval(_fetch_timeout);
-      writeBufferTryNext();
-    } else {
-      // not matched, maybe later
+      console.log(descr);
+      waiter.provideResponse(descr);
     }
   }
 
-  let _fetch_timeout: any = undefined;
-  function startFetchTimeout(timeout: number) {
-    _fetch_timeout = setTimeout(fetchTimeoutCallback, timeout);
-  }
-
-  async function fetchTimeoutCallback() {
-    if (active_elem !== undefined) {
-      active_elem.promise.reject(
-        `Timeout elapsed on ${active_elem.data.descr.class_name}`
-      );
-
-      write_buffer_busy = false;
-      executeFirst(active_elem.data);
-    }
-  }
-
-  function executeFirst(obj: any) {
-    return new Promise((resolve, reject) => {
-      const resolvePromise = (res: any) => resolve(res);
-      const rejectPromise = (error: any) => reject(error);
-      _write_buffer.update((s) => [
-        new BufferElement({
-          promise: { resolve: resolvePromise, reject: rejectPromise },
-          data: obj,
-        }),
-        ...s,
-      ]);
-      writeBufferTryNext();
-    });
-  }
+  function executeFirst(obj: any) {}
 
   function executeLast(obj: any) {
     return new Promise((resolve, reject) => {
-      const resolvePromise = (res: any) => resolve(res);
-      const rejectPromise = (error: any) => reject(error);
-      _write_buffer.update((s) => [
-        ...s,
-        new BufferElement({
-          promise: { resolve: resolvePromise, reject: rejectPromise },
-          data: obj,
-        }),
-      ]);
-      writeBufferTryNext();
+      _write_buffer.update((s) => [...s, obj]);
+
+      process(obj)
+        .then((res) => {
+          console.log("YAY!!!", obj.descr.class_name);
+          resolve(res);
+        })
+        .catch((e) => {
+          console.error(e, obj.descr.class_name);
+          reject(e);
+        });
     });
   }
 
@@ -243,3 +233,14 @@ function createWriteBuffer() {
 }
 
 export const writeBuffer = createWriteBuffer();
+
+export function sendHeartbeat(type: number) {
+  // Only add heatbeat into the write buffer if it is not in it already
+  if (
+    get(writeBuffer).length > 0 &&
+    get(writeBuffer)[0].descr.class_name === "HEARTBEAT"
+  ) {
+    return;
+  }
+  instructions.sendEditorHeartbeat_immediate(type);
+}
