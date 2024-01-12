@@ -24,7 +24,7 @@ const instructions = {
       responseRequired: false,
     };
 
-    return writeBuffer.executeLast(buffer_element); //TODO: changed from first to last, think heartbeat
+    return writeBuffer.executeFirst(buffer_element);
   },
 
   fetchConfigFromGrid: (dx, dy, page, element, event) => {

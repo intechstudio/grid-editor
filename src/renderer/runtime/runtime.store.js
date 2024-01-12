@@ -381,7 +381,6 @@ function create_runtime() {
         instructions
           .fetchConfigFromGrid(dx, dy, page, element, event)
           .then((descr) => {
-            console.log(descr);
             const dx = descr.brc_parameters.SX;
             const dy = descr.brc_parameters.SY;
             const page = descr.class_parameters.PAGENUMBER;
@@ -973,19 +972,44 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    if (get(writeBuffer).length > 0) {
-      return;
-    }
+    return new Promise((resolve, reject) => {
+      if (get(writeBuffer).length > 0) {
+        reject("Wait before all operations are finished.");
+        return;
+      }
 
-    let ui = get(user_input);
+      if (unsavedChangesCount() != 0) {
+        reject("Store your changes before changin pages!");
+        return;
+      }
 
-    // only update pagenumber if it differs from the runtime pagenumber
-    if (ui.pagenumber !== new_page_number) {
+      let ui = get(user_input);
+
+      // only update pagenumber if it differs from the runtime pagenumber
+      if (ui.pagenumber === new_page_number) {
+        resolve();
+        return;
+      }
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
-      instructions.changeActivePage(new_page_number);
-    }
+      instructions
+        .changeActivePage(new_page_number)
+        .then(() => {
+          const ui = get(user_input);
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: new_page_number,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
+          });
+          resolve();
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
   }
 
   function unsavedChangesCount() {
