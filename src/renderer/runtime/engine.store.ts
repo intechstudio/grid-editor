@@ -195,10 +195,10 @@ function createWriteBuffer() {
   function executeFirst(obj: any) {
     return new Promise((resolve, reject) => {
       _write_buffer.update((s) => [obj, ...s]);
-      console.log("Execute command:", obj.descr.class_name);
+      //console.log("Execute command:", obj.descr.class_name);
       process(obj)
         .then((res) => {
-          console.log("Resolved:", obj.descr.class_name);
+          //console.log("Resolved:", obj.descr.class_name);
           resolve(res);
         })
         .catch((e) => {
@@ -212,10 +212,10 @@ function createWriteBuffer() {
   function executeLast(obj: any) {
     return new Promise((resolve, reject) => {
       _write_buffer.update((s) => [...s, obj]);
-      console.log("Execute command:", obj.descr.class_name);
+      //console.log("Execute command:", obj.descr.class_name);
       process(obj)
         .then((res) => {
-          console.log("Resolved:", obj.descr.class_name);
+          //console.log("Resolved:", obj.descr.class_name);
           resolve(res);
         })
         .catch((e) => {
