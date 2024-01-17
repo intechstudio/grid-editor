@@ -2,7 +2,9 @@ import { get, writable } from "svelte/store";
 import grid from "../protocol/grid-protocol";
 import { serial_write, serial_write_islocked } from "../serialport/serialport";
 
-import instructions from "../serialport/instructions";
+import { instructions } from "../serialport/instructions";
+import { simulateProcess } from "./virtual-engine";
+import { BufferElement } from "../serialport/instructions";
 
 enum ResponseStatus {
   OK = 0,
@@ -132,7 +134,7 @@ function createWriteBuffer() {
   }
 
   let waiter: ResponseWaiter | undefined = undefined;
-  function process(incoming: any) {
+  function process(incoming: BufferElement) {
     return new Promise<any>(async (resolve, reject) => {
       let processed = false;
       while (!processed) {
@@ -231,10 +233,15 @@ function createWriteBuffer() {
     }
   }
 
-  function executeFirst(obj: any) {
+  function executeFirst(obj: BufferElement) {
     return new Promise((resolve, reject) => {
       _write_buffer.update((s) => [obj, ...s]);
+<<<<<<< HEAD
       process(obj)
+=======
+      //console.log("Execute command:", obj.descr.class_name);
+      simulateProcess(obj)
+>>>>>>> 976e648f (Daily push)
         .then((res) => {
           resolve(res);
         })
@@ -246,10 +253,15 @@ function createWriteBuffer() {
     });
   }
 
-  function executeLast(obj: any) {
+  function executeLast(obj: BufferElement) {
     return new Promise((resolve, reject) => {
       _write_buffer.update((s) => [...s, obj]);
+<<<<<<< HEAD
       process(obj)
+=======
+      //console.log("Execute command:", obj.descr.class_name);
+      simulateProcess(obj)
+>>>>>>> 976e648f (Daily push)
         .then((res) => {
           resolve(res);
         })

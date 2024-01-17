@@ -1,7 +1,7 @@
 import { writable, get, derived } from "svelte/store";
 
 import grid from "../protocol/grid-protocol";
-import instructions from "../serialport/instructions";
+import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedConfigStore } from "./config-helper.store";
 
@@ -883,7 +883,7 @@ function create_runtime() {
     }
   }
 
-  function create_module(header_param, heartbeat_class_param) {
+  function create_module(header_param, heartbeat_class_param, virtual = false) {
     let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
 
     // generic check, code below if works only if all parameters are provided
@@ -932,6 +932,7 @@ function create_runtime() {
         this.create_page(moduleType, 2),
         this.create_page(moduleType, 3),
       ],
+      virtual: virtual,
     };
   }
 
@@ -1132,6 +1133,39 @@ function create_runtime() {
     });
   }
 
+  function addVirtualModule({ type }) {
+    const brc_parameters = {
+      DX: 0,
+      DY: 0,
+      ID: 14,
+      LEN: 50,
+      MSGAGE: 0,
+      PORTROT: 0,
+      ROT: 0,
+      SESSION: 164,
+      SX: 0,
+      SY: 0,
+    };
+    const class_parameters = {
+      HWCFG: 65,
+      PORTSTATE: 0,
+      TYPE: 1,
+      VMAJOR: 0,
+      VMINOR: 0,
+      VPATCH: 0,
+    };
+    const controller = this.create_module(
+      brc_parameters,
+      class_parameters,
+      true
+    );
+    console.log(controller);
+    _runtime.update((devices) => {
+      return [...devices, controller];
+    });
+    setDefaultSelectedElement(controller);
+  }
+
   return {
     subscribe: _runtime.subscribe,
 
@@ -1159,6 +1193,7 @@ function create_runtime() {
     storePage: storePage,
     discardPage: discardPage,
     clearPage: clearPage,
+    addVirtualModule: addVirtualModule,
   };
 }
 
@@ -1200,6 +1235,9 @@ const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
+    if (device.virtual === true) {
+      return;
+    }
     const alive = get(heartbeat).find((e) => e.id == device.id).alive;
 
     // Allow less strict elapsedTimeLimit while writeBuffer is busy!

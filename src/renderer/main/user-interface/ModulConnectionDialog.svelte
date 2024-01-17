@@ -1,6 +1,8 @@
 <script>
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
+  import PushButton from "./PushButton.svelte";
+  import { runtime } from "../../runtime/runtime.store.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -16,6 +18,10 @@
       },
       mandatory: false,
     });
+  }
+
+  function handleAddVirtualModuleClicked(e) {
+    runtime.addVirtualModule({ type: "PBF4" });
   }
 </script>
 
@@ -79,14 +85,21 @@
       feedback_context="Module not responding"
       class="self-start text-gray-500 text-sm"
     />
-    <button
-      on:click={handleTroubleshoot}
-      class="relative border block hover:bg-commit-saturate-20
+    <div class="flex flex-col gap-2">
+      <button
+        on:click={handleTroubleshoot}
+        class="relative border block hover:bg-commit-saturate-20
             text-white py-1 px-2 rounded border-commit-saturate-10
             hover:border-commit-desaturate-10 focus:outline-none mt-2"
-    >
-      <div>Troubleshooting</div>
-    </button>
+      >
+        <div>Troubleshooting</div>
+      </button>
+      <PushButton
+        text="Add Virtual Module"
+        style="accept"
+        on:click={handleAddVirtualModuleClicked}
+      />
+    </div>
   </div>
 </div>
 
