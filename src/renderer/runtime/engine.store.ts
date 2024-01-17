@@ -109,13 +109,14 @@ function createWriteBuffer() {
           busy ||
           get(writeBuffer)[0] !== incoming
         ) {
-          //WAIT
+          //WAIT: sleep(1ms)
           await new Promise((resolve) => setTimeout(resolve, 1));
-          continue;
+          continue; //Start the loop over again, jump to start of the loop
         } else {
           busy = true;
         }
 
+        //Serial port is available, we can process the current command
         _write_buffer.update((s) => {
           s.shift();
           return s;
@@ -135,7 +136,6 @@ function createWriteBuffer() {
           if (incoming.responseRequired === true) {
             const timeout = incoming.responseTimeout ?? 1000;
             try {
-              //console.log("waiting for", command);
               const result = await waitResponseFromGrid(incoming, timeout);
               resolve(result);
             } catch (e) {
