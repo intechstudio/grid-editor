@@ -1,7 +1,7 @@
 <script lang="ts">
   import { logger } from "./../../../runtime/runtime.store.js";
   import { writable, get } from "svelte/store";
-  import instructions from "../../../serialport/instructions";
+  import { instructions } from "../../../serialport/instructions";
   import { onMount, onDestroy } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";

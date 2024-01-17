@@ -6,7 +6,7 @@
     ConfigTarget,
     configManager,
   } from "./../panels/configuration/Configuration.store.js";
-  import { setTooltip } from "./tooltip/Tooltip.js";
+  import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
   import { writeBuffer } from "../../runtime/engine.store.ts";

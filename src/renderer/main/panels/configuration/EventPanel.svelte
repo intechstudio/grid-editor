@@ -7,7 +7,7 @@
   } from "../../../runtime/runtime.store.js";
 
   import BtnAndPopUp from "../../user-interface/BtnAndPopUp.svelte";
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip.js";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip.ts";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
