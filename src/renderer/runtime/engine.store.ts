@@ -5,28 +5,8 @@ import { serial_write, serial_write_islocked } from "../serialport/serialport";
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
 import { BufferElement } from "../serialport/instructions";
-
-enum ResponseStatus {
-  OK = 0,
-  TIMEOUT = 1,
-  ERROR = 2,
-}
-
-class GridResponse {
-  public status: ResponseStatus;
-  public data?: any | null;
-  public error?: string | null;
-
-  constructor(
-    status: ResponseStatus,
-    data: any = null,
-    error: string | null = null
-  ) {
-    this.status = status;
-    this.data = data;
-    this.error = error;
-  }
-}
+import { runtime } from "./runtime.store";
+import { virtual_modules } from "./virtual-engine";
 
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
@@ -134,7 +114,7 @@ function createWriteBuffer() {
   }
 
   let waiter: ResponseWaiter | undefined = undefined;
-  function process(incoming: BufferElement) {
+  function processElement(incoming: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
       let processed = false;
       while (!processed) {
@@ -229,39 +209,31 @@ function createWriteBuffer() {
     }
 
     if (incomingValid) {
+      console.log(descr);
       waiter.provideResponse(descr);
     }
   }
 
   function executeFirst(obj: BufferElement) {
-    return new Promise((resolve, reject) => {
-      _write_buffer.update((s) => [obj, ...s]);
-<<<<<<< HEAD
-      process(obj)
-=======
-      //console.log("Execute command:", obj.descr.class_name);
-      simulateProcess(obj)
->>>>>>> 976e648f (Daily push)
-        .then((res) => {
-          resolve(res);
-        })
-        .catch((e) => {
-          console.error("Rejected:", obj.descr.class_name);
-          console.error("Reason:", e);
-          reject(e);
-        });
-    });
+    _write_buffer.update((s) => [obj, ...s]);
+    return execute(obj);
   }
 
-  function executeLast(obj: BufferElement) {
+  async function executeLast(obj: BufferElement) {
+    _write_buffer.update((s) => [...s, obj]);
+    return execute(obj);
+  }
+
+  async function execute(obj: BufferElement) {
     return new Promise((resolve, reject) => {
-      _write_buffer.update((s) => [...s, obj]);
-<<<<<<< HEAD
+      let process: (obj: BufferElement) => Promise<any>;
+      if (get(virtual_modules).length > 0) {
+        process = simulateProcess;
+      } else {
+        process = processElement;
+      }
+
       process(obj)
-=======
-      //console.log("Execute command:", obj.descr.class_name);
-      simulateProcess(obj)
->>>>>>> 976e648f (Daily push)
         .then((res) => {
           resolve(res);
         })
