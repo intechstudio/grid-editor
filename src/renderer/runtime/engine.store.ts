@@ -5,6 +5,8 @@ import { serial_write, serial_write_islocked } from "../serialport/serialport";
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
 import { BufferElement } from "../serialport/instructions";
+import { runtime } from "./runtime.store";
+import { virtual_modules } from "./virtual-engine";
 
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
@@ -102,7 +104,7 @@ function createWriteBuffer() {
   }
 
   let waiter: ResponseWaiter | undefined = undefined;
-  function process(incoming: BufferElement) {
+  function processElement(incoming: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
       let processed = false;
       while (!processed) {
@@ -190,34 +192,32 @@ function createWriteBuffer() {
     }
 
     if (incomingValid) {
+      console.log(descr);
       waiter.provideResponse(descr);
     }
   }
 
   function executeFirst(obj: BufferElement) {
-    return new Promise((resolve, reject) => {
-      _write_buffer.update((s) => [obj, ...s]);
-      //console.log("Execute command:", obj.descr.class_name);
-      simulateProcess(obj)
-        .then((res) => {
-          //console.log("Resolved:", obj.descr.class_name);
-          resolve(res);
-        })
-        .catch((e) => {
-          console.error("Rejected:", obj.descr.class_name);
-          console.error("Reason:", e);
-          reject(e);
-        });
-    });
+    _write_buffer.update((s) => [obj, ...s]);
+    return execute(obj);
   }
 
-  function executeLast(obj: BufferElement) {
+  async function executeLast(obj: BufferElement) {
+    _write_buffer.update((s) => [...s, obj]);
+    return execute(obj);
+  }
+
+  async function execute(obj: BufferElement) {
     return new Promise((resolve, reject) => {
-      _write_buffer.update((s) => [...s, obj]);
-      //console.log("Execute command:", obj.descr.class_name);
-      simulateProcess(obj)
+      let process: (obj: BufferElement) => Promise<any>;
+      if (get(virtual_modules).length > 0) {
+        process = simulateProcess;
+      } else {
+        process = processElement;
+      }
+
+      process(obj)
         .then((res) => {
-          //console.log("Resolved:", obj.descr.class_name);
           resolve(res);
         })
         .catch((e) => {

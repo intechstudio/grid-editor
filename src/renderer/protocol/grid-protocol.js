@@ -550,6 +550,7 @@ const grid = {
 
   module_type_from_hwcfg: function (hwcfg) {
     var HWCFG = grid.properties.HWCFG;
+    console.log(HWCFG);
     let type = "";
     for (const key in HWCFG) {
       if (HWCFG[key] == hwcfg) {

@@ -4,6 +4,8 @@ import grid from "../protocol/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedConfigStore } from "./config-helper.store";
+import { createVirtualModule } from "./virtual-engine.ts";
+import { virtual_modules } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
@@ -1127,7 +1129,7 @@ function create_runtime() {
       SY: 0,
     };
     const class_parameters = {
-      HWCFG: 65,
+      HWCFG: 129,
       PORTSTATE: 0,
       TYPE: 1,
       VMAJOR: 0,
@@ -1139,7 +1141,9 @@ function create_runtime() {
       class_parameters,
       true
     );
-    console.log(controller);
+
+    createVirtualModule(0, 0, "BU16");
+
     _runtime.update((devices) => {
       return [...devices, controller];
     });
@@ -1215,9 +1219,10 @@ const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
-    if (device.virtual === true) {
+    if (device.virtual) {
       return;
     }
+
     const alive = get(heartbeat).find((e) => e.id == device.id).alive;
     if (Date.now() - alive > heartbeat_grid_ms * 3) {
       // TIMEOUT! let's remove the device
@@ -1238,7 +1243,7 @@ const editor_heartbeat_interval_handler = async function () {
     type = 254;
   }
 
-  if (get(runtime).length > 0) {
+  if (get(runtime).length > 0 && get(virtual_modules).length == 0) {
     sendHeartbeat(type);
   } else {
     writeBuffer.clear();
