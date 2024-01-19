@@ -6,7 +6,7 @@ import instructions from "../serialport/instructions";
 
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
-  let busy = false;
+  let waitingForResponse = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
@@ -31,7 +31,7 @@ function createWriteBuffer() {
     _write_buffer.set([]);
     waiter?.destroy();
     waiter = undefined;
-    busy = false;
+    waitingForResponse = false;
   }
 
   function sendDataToGrid(descr: any) {
@@ -59,6 +59,7 @@ function createWriteBuffer() {
     public promise: Promise<any>;
 
     constructor(public command: any, private duration: number) {
+      //command is bufferelement
       this.promise = new Promise<any>((resolve, reject) => {
         this.resolve = resolve;
         this.reject = reject;
@@ -88,14 +89,16 @@ function createWriteBuffer() {
     }
   }
 
-  async function waitResponseFromGrid(command: any, timeout: number) {
-    waiter = new ResponseWaiter(command, timeout);
+  async function waitResponseFromGrid(bufferElement: any, timeout: number) {
+    waiter = new ResponseWaiter(bufferElement, timeout);
     try {
       const response = await waiter.waitResponse();
       waiter = undefined;
       return response;
     } catch (error) {
-      throw new Error(`Timeout on ${command.descr.class_name} (${timeout}ms)`);
+      throw new Error(
+        `Timeout on ${bufferElement.descr.class_name} (${timeout}ms)`
+      );
     }
   }
 
@@ -106,16 +109,15 @@ function createWriteBuffer() {
       while (!processed) {
         if (
           serial_write_islocked() ||
-          busy ||
+          waitingForResponse ||
           get(writeBuffer)[0] !== incoming
         ) {
           //WAIT: sleep(1ms)
           await new Promise((resolve) => setTimeout(resolve, 1));
           continue; //Start the loop over again, jump to start of the loop
-        } else {
-          busy = true;
         }
 
+        waitingForResponse = true;
         //Serial port is available, we can process the current command
         _write_buffer.update((s) => {
           s.shift();
@@ -139,7 +141,7 @@ function createWriteBuffer() {
               const result = await waitResponseFromGrid(incoming, timeout);
               resolve(result);
             } catch (e) {
-              //TIMEOUT
+              //Exception from TIMEOUT
               reject(e);
             }
           } else {
@@ -148,7 +150,7 @@ function createWriteBuffer() {
           processed = true;
         });
       }
-      busy = false;
+      waitingForResponse = false;
     });
   }
 
@@ -221,7 +223,6 @@ function createWriteBuffer() {
         .catch((e) => {
           console.error("Rejected:", obj.descr.class_name);
           console.error("Reason:", e);
-          reject(e);
         });
     });
   }
