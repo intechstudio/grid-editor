@@ -256,6 +256,7 @@ function createWriteBuffer() {
         .catch((e) => {
           console.error("Rejected:", obj.descr.class_name);
           console.error("Reason:", e);
+          reject(e);
         });
     });
   }
