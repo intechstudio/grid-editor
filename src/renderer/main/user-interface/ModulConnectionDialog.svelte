@@ -1,7 +1,7 @@
 <script>
+  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
-  import PushButton from "./PushButton.svelte";
   import { appSettings } from "../../runtime/app-helper.store.js";
 
   const configuration = window.ctxProcess.configuration();
@@ -22,6 +22,13 @@
 
   function handleAddVirtualModuleClicked(e) {
     $appSettings.modal = "addVirtualModule";
+    Analytics.track({
+      event: "VirtualModule",
+      payload: {
+        message: "Virtual Module modal opened",
+      },
+      mandatory: true,
+    });
   }
 </script>
 
@@ -94,7 +101,7 @@
       >
         <div>Troubleshooting</div>
       </button>
-      <PushButton
+      <MoltenPushButton
         text="Try Virtual Mode!"
         style="accept"
         on:click={handleAddVirtualModuleClicked}

@@ -1,8 +1,9 @@
 <script>
+  import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
   import MeltSelect from "../panels/preferences/MeltSelect.svelte";
-  import PushButton from "../user-interface/PushButton.svelte";
-  import Modal from "./Modal.svelte";
+  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import MoltenModal from "./MoltenModal.svelte";
   import { VirtualModuleTypes } from "../../runtime/virtual-engine";
 
   let modal = undefined;
@@ -18,6 +19,13 @@
       type: moduleType,
     });
     modal.close();
+    Analytics.track({
+      event: "VirtualModule",
+      payload: {
+        message: `Add virtual module: ${moduleType}`,
+      },
+      mandatory: true,
+    });
   }
 
   function handleCancelClicked(e) {
@@ -25,7 +33,7 @@
   }
 </script>
 
-<Modal bind:this={modal}>
+<MoltenModal bind:this={modal}>
   <div slot="content">
     <div class="flex w-full text-4xl opacity-90 pb-2">
       Welcome to Virtual Mode!
@@ -42,14 +50,14 @@
         them to your virtual module!
       </p>
       <div class="flex flex-row w-full gap-2 pt-4">
-        <MeltSelect bind:target={selected} {options} class="" />
-        <PushButton
+        <MeltSelect bind:target={selected} {options} size="full" />
+        <MoltenPushButton
           text="Get Started!"
           on:click={handleAddClicked}
           style="accept"
         />
-        <PushButton text="Cancel" on:click={handleCancelClicked} />
+        <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
       </div>
     </div>
   </div>
-</Modal>
+</MoltenModal>
