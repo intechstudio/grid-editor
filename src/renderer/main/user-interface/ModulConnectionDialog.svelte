@@ -2,7 +2,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import PushButton from "./PushButton.svelte";
-  import { runtime } from "../../runtime/runtime.store.js";
+  import { appSettings } from "../../runtime/app-helper.store.js";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -21,7 +21,7 @@
   }
 
   function handleAddVirtualModuleClicked(e) {
-    runtime.addVirtualModule({ type: "PBF4" });
+    $appSettings.modal = "addVirtualModule";
   }
 </script>
 
@@ -95,7 +95,7 @@
         <div>Troubleshooting</div>
       </button>
       <PushButton
-        text="Add Virtual Module"
+        text="Try Virtual Mode!"
         style="accept"
         on:click={handleAddVirtualModuleClicked}
       />

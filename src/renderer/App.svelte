@@ -40,6 +40,7 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import AddVirtualModule from "./main/modals/AddVirtualModule.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -52,6 +53,7 @@
   modalComponents["feedback"] = Feedback;
   modalComponents["profileAttachment"] = ProfileAttachment;
   modalComponents["userLogin"] = UserLogin;
+  modalComponents["addVirtualModule"] = AddVirtualModule;
 
   let shapeSelected;
   let colorSelected;
