@@ -8,9 +8,31 @@ import { BufferElement } from "../serialport/instructions";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
 
+enum ResponseStatus {
+  OK = 0,
+  TIMEOUT = 1,
+  ERROR = 2,
+}
+
+class GridResponse {
+  public status: ResponseStatus;
+  public data?: any | null;
+  public error?: string | null;
+
+  constructor(
+    status: ResponseStatus,
+    data: any = null,
+    error: string | null = null
+  ) {
+    this.status = status;
+    this.data = data;
+    this.error = error;
+  }
+}
+
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
-  let busy = false;
+  let processingBufferElement = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
@@ -23,8 +45,8 @@ function createWriteBuffer() {
 
     // clear the active element if it matches the destroyed module's dx dy
     if (
-      waiter?.command.descr.brc_parameters.DX == dx &&
-      waiter?.command.descr.brc_parameters.DY == dy
+      waiter?.bufferelement.descr.brc_parameters.DX == dx &&
+      waiter?.bufferelement.descr.brc_parameters.DY == dy
     ) {
       waiter.destroy();
       waiter = undefined;
@@ -35,10 +57,10 @@ function createWriteBuffer() {
     _write_buffer.set([]);
     waiter?.destroy();
     waiter = undefined;
-    busy = false;
+    processingBufferElement = false;
   }
 
-  function sendDataToGrid(descr: any) {
+  function sendDataToGrid(descr: any): Promise<any> {
     return new Promise((resolve, reject) => {
       let retval: any = grid.encode_packet(descr);
 
@@ -58,28 +80,32 @@ function createWriteBuffer() {
 
   class ResponseWaiter {
     private timeoutId: NodeJS.Timeout | null = null;
-    private resolve!: (response: any) => void;
-    private reject!: () => void;
-    public promise: Promise<any>;
+    private resolve!: (response: GridResponse) => void;
+    public promise: Promise<GridResponse>;
 
-    constructor(public command: any, private duration: number) {
-      this.promise = new Promise<any>((resolve, reject) => {
+    constructor(public bufferelement: any, private duration: number) {
+      this.promise = new Promise<GridResponse>((resolve) => {
         this.resolve = resolve;
-        this.reject = reject;
       });
     }
 
-    waitResponse(): Promise<any> {
+    waitResponse(): Promise<GridResponse> {
       this.timeoutId = setTimeout(() => {
-        this.reject();
+        const response = new GridResponse(
+          ResponseStatus.TIMEOUT,
+          null,
+          `Timeout with ${this.duration}ms`
+        );
+        this.resolve(response);
       }, this.duration);
 
       return this.promise;
     }
 
-    provideResponse(response: any): void {
+    provideResponse(data: any): void {
       if (this.timeoutId !== null) {
         clearTimeout(this.timeoutId);
+        const response = new GridResponse(ResponseStatus.OK, data);
         this.resolve(response);
       }
     }
@@ -87,20 +113,26 @@ function createWriteBuffer() {
     destroy(): void {
       if (this.timeoutId !== null) {
         clearTimeout(this.timeoutId);
-        this.reject(); // Reject the promise to indicate destruction
+        const response = new GridResponse(
+          ResponseStatus.ERROR,
+          null,
+          "Waiting for response was interrupted"
+        );
+        this.resolve(response);
       }
     }
   }
 
-  async function waitResponseFromGrid(command: any, timeout: number) {
-    waiter = new ResponseWaiter(command, timeout);
-    try {
-      const response = await waiter.waitResponse();
-      waiter = undefined;
-      return response;
-    } catch (error) {
-      throw new Error(`Timeout on ${command.descr.class_name} (${timeout}ms)`);
-    }
+  async function waitResponseFromGrid(
+    bufferElement: any,
+    timeout: number
+  ): Promise<GridResponse> {
+    waiter = new ResponseWaiter(bufferElement, timeout);
+    return await waiter.waitResponse();
+  }
+
+  async function sleep(time: number) {
+    await new Promise((resolve) => setTimeout(resolve, time));
   }
 
   let waiter: ResponseWaiter | undefined = undefined;
@@ -110,23 +142,22 @@ function createWriteBuffer() {
       while (!processed) {
         if (
           serial_write_islocked() ||
-          busy ||
+          processingBufferElement ||
           get(writeBuffer)[0] !== incoming
         ) {
-          //WAIT
-          await new Promise((resolve) => setTimeout(resolve, 1));
+          await sleep(1);
           continue;
-        } else {
-          busy = true;
         }
 
+        //Serial port is available, we can process the current command
+        processingBufferElement = true;
         _write_buffer.update((s) => {
           s.shift();
           return s;
         });
 
-        sendDataToGrid(incoming.descr).then(async (res: any) => {
-          const { id } = res;
+        do {
+          const { id } = await sendDataToGrid(incoming.descr);
           if (
             incoming.responseRequired &&
             incoming.filter !== undefined &&
@@ -138,28 +169,36 @@ function createWriteBuffer() {
 
           if (incoming.responseRequired === true) {
             const timeout = incoming.responseTimeout ?? 1000;
-            try {
-              //console.log("waiting for", command);
-              const result = await waitResponseFromGrid(incoming, timeout);
-              resolve(result);
-            } catch (e) {
-              //TIMEOUT
-              reject(e);
+            const result = await waitResponseFromGrid(incoming, timeout);
+            switch (result.status) {
+              case ResponseStatus.OK: {
+                resolve(result.data);
+                processed = true;
+                break;
+              }
+              case ResponseStatus.ERROR: {
+                reject(result.error);
+                break;
+              }
+              case ResponseStatus.TIMEOUT: {
+                console.log(result.error);
+                break;
+              }
             }
           } else {
             resolve(null);
+            processed = true;
           }
-          processed = true;
-        });
+        } while (!processed);
       }
-      busy = false;
+      processingBufferElement = false;
     });
   }
 
   function validate_incoming(descr: any) {
     if (typeof waiter === "undefined") return;
 
-    if (!waiter.command.hasOwnProperty("filter")) return;
+    if (!waiter.bufferelement.hasOwnProperty("filter")) return;
 
     if (descr.class_name === "HEARTBEAT") {
       return;
@@ -167,7 +206,7 @@ function createWriteBuffer() {
 
     let incomingValid = true;
 
-    const buffer = waiter.command;
+    const buffer = waiter.bufferelement;
     // validate BRC, must start with this as every input contains BRC!
     for (const parameter in buffer.filter.brc_parameters) {
       if (

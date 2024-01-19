@@ -1063,7 +1063,6 @@ function create_runtime() {
         });
       })
       .catch((e) => {
-        console.log("yay", e);
         logger.set({
           type: "alert",
           mode: 0,
