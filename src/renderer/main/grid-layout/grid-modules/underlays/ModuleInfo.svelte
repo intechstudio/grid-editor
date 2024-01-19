@@ -9,7 +9,7 @@
     <div
       class="absolute text-center bottom-0 left-1/2 transform -translate-x-1/2 -translate-y-0.5 text-opacity-20 text-white font-bold text-xs"
     >
-      {#if device?.virtual}
+      {#if device?.architecture === "virtual"}
         <span class="text-white font-mono">VIRTUAL</span>
       {:else if device?.architecture === "esp32"}
         E-32<br />

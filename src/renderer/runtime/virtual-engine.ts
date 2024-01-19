@@ -63,7 +63,6 @@ function answerExecuteTypeRequest(obj: BufferElement) {
       obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
       obj.descr.class_parameters.EVENTTYPE ?? -1,
     ];
-    console.log("Executing", class_name);
     switch (class_name) {
       case InstructionClassName.CONFIG: {
         virtual_modules.update((s) => {
@@ -92,8 +91,32 @@ function answerExecuteTypeRequest(obj: BufferElement) {
         });
         break;
       }
-      case InstructionClassName.PAGECLEAR:
-      case InstructionClassName.PAGEDISCARD: {
+      case InstructionClassName.PAGESTORE: {
+        virtual_modules.update((s) => {
+          s.forEach((device) => {
+            device.storeChanges();
+          });
+          return s;
+        });
+        resolve({
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+            SX: dx,
+            SY: dy,
+          },
+          class_name: class_name,
+          class_instr: InstructionClass.ACKNOWLEDGE,
+          class_parameters: {
+            ELEMENTNUMBER: element,
+            EVENTTYPE: event,
+            LASTHEADER: 0,
+            PAGENUMBER: page,
+          },
+        });
+        break;
+      }
+      case InstructionClassName.PAGECLEAR: {
         virtual_modules.update((s) => {
           s.forEach((device) => {
             device.resetDefaultConfiguration();
@@ -116,6 +139,32 @@ function answerExecuteTypeRequest(obj: BufferElement) {
             PAGENUMBER: page,
           },
         });
+        break;
+      }
+      case InstructionClassName.PAGEDISCARD: {
+        virtual_modules.update((s) => {
+          s.forEach((device) => {
+            device.discardChanges();
+          });
+          return s;
+        });
+        resolve({
+          brc_parameters: {
+            DX: -127,
+            DY: -127,
+            SX: dx,
+            SY: dy,
+          },
+          class_name: class_name,
+          class_instr: InstructionClass.ACKNOWLEDGE,
+          class_parameters: {
+            ELEMENTNUMBER: element,
+            EVENTTYPE: event,
+            LASTHEADER: 0,
+            PAGENUMBER: page,
+          },
+        });
+        break;
       }
       default: {
         reject("This operation is not implemented ye in virtual mode!");
@@ -135,12 +184,10 @@ function answerFetchTypeRequests(obj: BufferElement) {
       obj.descr.class_parameters.EVENTTYPE ?? -1,
     ];
     const device = get(virtual_modules).find((e) => e.dx === dx && e.dy === dy);
-    console.log("answering", class_name);
     switch (class_name) {
       case InstructionClassName.CONFIG: {
         const events = device?.pages[page].elements[element].events;
         const config = events.find((e: any) => e.value == event).config;
-        console.log(events, config);
         resolve({
           brc_parameters: {
             DX: -127,
@@ -181,6 +228,7 @@ class VirtualModule {
         return {
           value: Number(e.value),
           config: this.getEventConfiguration(type, Number(e.value)),
+          stored: this.getEventConfiguration(type, Number(e.value)),
         };
       }),
     };
@@ -229,6 +277,22 @@ class VirtualModule {
 
   public resetDefaultConfiguration() {
     this.initConfiguration(this.type);
+  }
+
+  public discardChanges() {
+    this.pages.forEach((page: any) =>
+      page.elements.forEach((element: any) =>
+        element.events.forEach((event: any) => (event.config = event.stored))
+      )
+    );
+  }
+
+  public storeChanges() {
+    this.pages.forEach((page: any) =>
+      page.elements.forEach((element: any) =>
+        element.events.forEach((event: any) => (event.stored = event.config))
+      )
+    );
   }
 
   constructor(dx: number, dy: number, type: VirtualModuleTypes) {

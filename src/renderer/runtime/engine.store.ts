@@ -209,7 +209,6 @@ function createWriteBuffer() {
     }
 
     if (incomingValid) {
-      console.log(descr);
       waiter.provideResponse(descr);
     }
   }
@@ -227,7 +226,20 @@ function createWriteBuffer() {
   async function execute(obj: BufferElement) {
     return new Promise((resolve, reject) => {
       let process: (obj: BufferElement) => Promise<any>;
-      if (get(virtual_modules).length > 0) {
+      const [dx, dy]: number[] = [
+        obj.descr.brc_parameters.DX,
+        obj.descr.brc_parameters.DY,
+      ];
+      const sender: any = get(runtime).find(
+        (e: any) => e.dx === dx && e.dy === dy
+      )!;
+
+      //TODO: rework instructions into well defined ones,
+      //where the checking of virtual_modules is unnecessary
+      if (
+        sender?.architecture === "virtual" ||
+        get(virtual_modules).length > 0
+      ) {
         process = simulateProcess;
       } else {
         process = processElement;

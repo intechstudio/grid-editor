@@ -3,9 +3,8 @@ import { writable, get, derived } from "svelte/store";
 import grid from "../protocol/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { selectedConfigStore } from "./config-helper.store";
 import { createVirtualModule } from "./virtual-engine.ts";
-import { virtual_modules, VirtualModuleHWCFG } from "./virtual-engine.ts";
+import { VirtualModuleHWCFG } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
@@ -907,9 +906,9 @@ function create_runtime() {
 
     return {
       // implement the module id rep / req
-      architecture: grid.module_architecture_from_hwcfg(
-        heartbeat_class_param.HWCFG
-      ),
+      architecture: virtual
+        ? "virtual"
+        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
       portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
@@ -934,7 +933,6 @@ function create_runtime() {
         this.create_page(moduleType, 2),
         this.create_page(moduleType, 3),
       ],
-      virtual: virtual,
     };
   }
 
@@ -1227,7 +1225,7 @@ const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
-    if (device.virtual) {
+    if (device.architecture === "virtual") {
       return;
     }
 
@@ -1259,7 +1257,10 @@ const editor_heartbeat_interval_handler = async function () {
     type = 254;
   }
 
-  if (get(runtime).length > 0 && get(virtual_modules).length == 0) {
+  if (
+    get(runtime).length > 0 &&
+    get(runtime).filter((e) => e.architecture === "virtual").length === 0
+  ) {
     sendHeartbeat(type);
   } else {
     writeBuffer.clear();

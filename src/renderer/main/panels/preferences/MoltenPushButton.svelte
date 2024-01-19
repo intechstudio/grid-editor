@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setTooltip } from "./tooltip/Tooltip";
+  import { setTooltip } from "../../user-interface/tooltip/Tooltip";
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();

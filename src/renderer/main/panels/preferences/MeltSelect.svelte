@@ -2,6 +2,7 @@
   import { createSelect, melt } from "@melt-ui/svelte";
   export let options;
   export let target;
+  export let size: "auto" | "full" = "auto";
   let oldTarget;
 
   const {
@@ -63,7 +64,7 @@
   }
 </script>
 
-<div class="{$$props.class} flex flex-col gap-1">
+<div class="flex flex-col gap-1" class:flex-grow={size === "full"}>
   <button
     {...$trigger}
     use:trigger
