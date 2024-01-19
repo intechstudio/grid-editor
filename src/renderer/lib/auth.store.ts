@@ -10,9 +10,7 @@ import {
   signInWithCredential,
   signOut,
 } from "firebase/auth";
-import {
-  FirebaseError
-} from "firebase/app";
+import { FirebaseError } from "firebase/app";
 
 interface AuthStore {
   event: string;
@@ -26,16 +24,15 @@ interface AuthStore {
 export enum LoginErrorType {
   INVALID_CREDENTIALS = "InvalidCredentials",
   GENERAL_ERROR = "GeneralError",
-};
+}
 
 // Custom exception class with an enum field
 export default class LoginError extends Error {
   errorType: LoginErrorType;
-  
-  
+
   constructor(message, errorType) {
     super(message);
-    this.name = 'LoginError';
+    this.name = "LoginError";
     this.errorType = errorType;
   }
 }
@@ -43,7 +40,7 @@ export default class LoginError extends Error {
 const createAuth = () => {
   const { subscribe, set } = writable<AuthStore | null>(null);
 
-  async function login(email, password) : Promise<any> {
+  async function login(email, password): Promise<any> {
     // we don't need specific persistence options, as local is default
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     const credential = EmailAuthProvider.credential(email, password);
@@ -54,21 +51,21 @@ const createAuth = () => {
           const userIdToken = await centralAuth.currentUser!.getIdToken();
           set({ event: "login", providerId: "oidc", idToken: userIdToken });
         }
-      )
-    } catch(e) {
-      if (e instanceof FirebaseError){
-        switch(e.code){
+      );
+    } catch (e) {
+      if (e instanceof FirebaseError) {
+        switch (e.code) {
           case "auth/account-exists-with-different-credential":
           case "auth/invalid-credential":
           case "auth/user-not-found":
           case "auth/wrong-password":
           case "auth/invalid-email":
-            throw new LoginError(e.message, LoginErrorType.INVALID_CREDENTIALS)
+            throw new LoginError(e.message, LoginErrorType.INVALID_CREDENTIALS);
           default:
-            throw new LoginError(e.message, LoginErrorType.GENERAL_ERROR)
+            throw new LoginError(e.message, LoginErrorType.GENERAL_ERROR);
         }
       } else {
-        throw e
+        throw e;
       }
     }
   }

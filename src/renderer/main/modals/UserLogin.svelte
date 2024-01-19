@@ -17,8 +17,8 @@
     try {
       await authStore.login(email, password);
     } catch (e) {
-      if (e instanceof LoginError){
-        if (e.errorType === "InvalidCredentials"){
+      if (e instanceof LoginError) {
+        if (e.errorType === "InvalidCredentials") {
           loginError = "Invalid email or password";
         } else {
           loginError = "Unknown error occured, try again later or contact us!";
@@ -68,7 +68,7 @@
             placeholder="email@example.com"
             bind:value={email}
             id="email"
-            on:input={loginError = ""}
+            on:input={(loginError = "")}
             class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
           />
         </div>
@@ -80,15 +80,15 @@
             type="password"
             placeholder="********"
             bind:value={password}
-            on:input={loginError = ""}
+            on:input={(loginError = "")}
             class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
           />
         </div>
 
         {#if loginError != ""}
-        <div class="w-full grid text-error">
-          <p>{loginError}</p>
-        </div>
+          <div class="w-full grid text-error">
+            <p>{loginError}</p>
+          </div>
         {/if}
         <div class="pt-2 w-full flex flex-col justify-between">
           <button
