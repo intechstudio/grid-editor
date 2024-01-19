@@ -63,7 +63,7 @@
   }
 </script>
 
-<div class="flex flex-col gap-1">
+<div class="{$$props.class} flex flex-col gap-1">
   <button
     {...$trigger}
     use:trigger
@@ -76,7 +76,7 @@
     <div
       {...$menu}
       use:menu
-      class="bg-gray-900 text-white/80 border border-white/50 rounded z-10"
+      class="bg-gray-900 text-white/80 border border-white/50 rounded z-40"
     >
       {#each options as item}
         <div

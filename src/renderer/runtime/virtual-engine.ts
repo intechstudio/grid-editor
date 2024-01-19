@@ -23,6 +23,7 @@ export enum VirtualModuleTypes {
   EN16 = "EN16",
   PBF4 = "PBF4",
   PO16 = "PO16",
+  TEK2 = "TEK2",
 }
 
 export enum VirtualEventTypes {
@@ -42,6 +43,15 @@ export enum VirtualElementTypes {
   ENCODER = "encoder",
   FADER = "fader",
 }
+
+export const VirtualModuleHWCFG = {
+  BU16: { hwcfg: 129, type: VirtualModuleTypes.BU16 }, //RevD
+  EF44: { hwcfg: 33, type: VirtualModuleTypes.EF44 }, //RevD
+  EN16: { hwcfg: 193, type: VirtualModuleTypes.EN16 }, //RevD
+  PBF4: { hwcfg: 65, type: VirtualModuleTypes.PBF4 }, //RevD
+  PO16: { hwcfg: 1, type: VirtualModuleTypes.PO16 }, //RevD
+  TEK2: { hwcfg: 17, type: VirtualModuleTypes.TEK2 }, //RevA
+};
 
 function answerExecuteTypeRequest(obj: BufferElement) {
   return new Promise((resolve, reject) => {
@@ -179,6 +189,7 @@ class VirtualModule {
   private getEventConfiguration(type: VirtualElementTypes, event: number) {
     switch (event) {
       case 0: {
+        // INIT for all types of control elements
         if (type === VirtualElementTypes.BUTTON) {
           return GRID_ACTIONSTRING_INIT_BUT;
         } else if (type === VirtualElementTypes.ENCODER) {
@@ -192,39 +203,28 @@ class VirtualModule {
           return GRID_ACTIONSTRING_PAGE_INIT;
         } else throw "Unknown Virtual Element type";
       }
-      case 1:
+      case 1: //FADER and POTMETER
         return GRID_ACTIONSTRING_AC;
-      case 2:
+      case 2: //ENCODER
         return GRID_ACTIONSTRING_EC;
-      case 3:
+      case 3: //BUTTON
         return GRID_ACTIONSTRING_BC;
-      case 4:
+      case 4: //MAPMODE-UTILITY BUTTON
         return GRID_ACTIONSTRING_MAPMODE_CHANGE;
-      case 5:
+      case 5: //MIDI RX
         return GRID_ACTIONSTRING_MIDIRX;
-      case 6:
+      case 6: //TIMER
         return GRID_ACTIONSTRING_TIMER;
     }
   }
 
   private initConfiguration(type: VirtualModuleTypes) {
-    switch (type) {
-      case VirtualModuleTypes.BU16: {
-        const control_elements = grid.moduleElements[type].map((e: string) =>
-          this.createControlElement(e as VirtualElementTypes)
-        );
-        this.pages = Array(4).fill({
-          elements: control_elements,
-        });
-        break;
-      }
-      case VirtualModuleTypes.EF44:
-      case VirtualModuleTypes.EN16:
-      case VirtualModuleTypes.PBF4:
-      case VirtualModuleTypes.PO16: {
-        throw "Not Implemented yet!";
-      }
-    }
+    const control_elements = grid.moduleElements[type].map((e: string) =>
+      this.createControlElement(e as VirtualElementTypes)
+    );
+    this.pages = Array(4).fill({
+      elements: control_elements,
+    });
   }
 
   public resetDefaultConfiguration() {

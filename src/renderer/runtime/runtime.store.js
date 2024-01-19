@@ -5,7 +5,7 @@ import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { selectedConfigStore } from "./config-helper.store";
 import { createVirtualModule } from "./virtual-engine.ts";
-import { virtual_modules } from "./virtual-engine.ts";
+import { virtual_modules, VirtualModuleHWCFG } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
@@ -1136,33 +1136,21 @@ function create_runtime() {
   }
 
   function addVirtualModule({ type }) {
-    const brc_parameters = {
-      DX: 0,
-      DY: 0,
-      ID: 14,
-      LEN: 50,
-      MSGAGE: 0,
-      PORTROT: 0,
-      ROT: 0,
-      SESSION: 164,
-      SX: 0,
-      SY: 0,
-    };
-    const class_parameters = {
-      HWCFG: 129,
-      PORTSTATE: 0,
-      TYPE: 1,
-      VMAJOR: 0,
-      VMINOR: 0,
-      VPATCH: 0,
-    };
+    const module = VirtualModuleHWCFG[type];
     const controller = this.create_module(
-      brc_parameters,
-      class_parameters,
+      {
+        DX: 0,
+        DY: 0,
+        SX: 0,
+        SY: 0,
+      },
+      {
+        HWCFG: module.hwcfg,
+      },
       true
     );
 
-    createVirtualModule(0, 0, "BU16");
+    createVirtualModule(0, 0, module.type);
 
     _runtime.update((devices) => {
       return [...devices, controller];
