@@ -1,15 +1,14 @@
 import { writable, get, derived } from "svelte/store";
 
 import grid from "../protocol/grid-protocol";
-import instructions from "../serialport/instructions";
+import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { selectedConfigStore } from "./config-helper.store";
+import { createVirtualModule } from "./virtual-engine.ts";
+import { VirtualModuleHWCFG } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
 import { appSettings } from "./app-helper.store";
-
-let lastPageActivator = "";
 
 export const eventType = {
   0: "Init",
@@ -862,7 +861,7 @@ function create_runtime() {
     }
   }
 
-  function create_module(header_param, heartbeat_class_param) {
+  function create_module(header_param, heartbeat_class_param, virtual = false) {
     let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
 
     // generic check, code below if works only if all parameters are provided
@@ -884,9 +883,9 @@ function create_runtime() {
 
     return {
       // implement the module id rep / req
-      architecture: grid.module_architecture_from_hwcfg(
-        heartbeat_class_param.HWCFG
-      ),
+      architecture: virtual
+        ? "virtual"
+        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
       portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
@@ -1111,6 +1110,29 @@ function create_runtime() {
     });
   }
 
+  function addVirtualModule({ type }) {
+    const module = VirtualModuleHWCFG[type];
+    const controller = this.create_module(
+      {
+        DX: 0,
+        DY: 0,
+        SX: 0,
+        SY: 0,
+      },
+      {
+        HWCFG: module.hwcfg,
+      },
+      true
+    );
+
+    createVirtualModule(0, 0, module.type);
+
+    _runtime.update((devices) => {
+      return [...devices, controller];
+    });
+    setDefaultSelectedElement(controller);
+  }
+
   return {
     subscribe: _runtime.subscribe,
 
@@ -1138,6 +1160,7 @@ function create_runtime() {
     storePage: storePage,
     discardPage: discardPage,
     clearPage: clearPage,
+    addVirtualModule: addVirtualModule,
   };
 }
 
@@ -1179,6 +1202,10 @@ const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
+    if (device.architecture === "virtual") {
+      return;
+    }
+
     const alive = get(heartbeat).find((e) => e.id == device.id).alive;
     if (Date.now() - alive > heartbeat_grid_ms * 3) {
       // TIMEOUT! let's remove the device
@@ -1199,7 +1226,10 @@ const editor_heartbeat_interval_handler = async function () {
     type = 254;
   }
 
-  if (get(runtime).length > 0) {
+  if (
+    get(runtime).length > 0 &&
+    get(runtime).filter((e) => e.architecture === "virtual").length === 0
+  ) {
     sendHeartbeat(type);
   } else {
     writeBuffer.clear();
