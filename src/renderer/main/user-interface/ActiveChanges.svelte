@@ -79,8 +79,6 @@
         });
       });
 
-    selectedConfigStore.set({});
-
     Analytics.track({
       event: "Page Config",
       payload: {
@@ -131,13 +129,6 @@
             message: `Retry configuration discard...`,
           });
         });
-      if (
-        $appSettings.displayedOverlay === "profile-load-overlay" ||
-        $appSettings.displayedOverlay === "preset-load-overlay"
-      ) {
-        $appSettings.displayedOverlay = undefined;
-      }
-      selectedConfigStore.set({});
 
       Analytics.track({
         event: "Page Config",
