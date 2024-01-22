@@ -8,6 +8,28 @@ import { BufferElement } from "../serialport/instructions";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
 
+enum ResponseStatus {
+  OK = 0,
+  TIMEOUT = 1,
+  ERROR = 2,
+}
+
+class GridResponse {
+  public status: ResponseStatus;
+  public data?: any | null;
+  public error?: string | null;
+
+  constructor(
+    status: ResponseStatus,
+    data: any = null,
+    error: string | null = null
+  ) {
+    this.status = status;
+    this.data = data;
+    this.error = error;
+  }
+}
+
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
   let processingBufferElement = false;

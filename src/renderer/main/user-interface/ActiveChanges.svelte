@@ -48,6 +48,14 @@
     runtime
       .clearPage(ui.pagenumber)
       .then(() => {
+        //Clear overlays
+        if (
+          $appSettings.displayedOverlay === "profile-load-overlay" ||
+          $appSettings.displayedOverlay === "preset-load-overlay"
+        ) {
+          $appSettings.displayedOverlay = undefined;
+        }
+        selectedConfigStore.set({});
         //Update displayed config
         const current = ConfigTarget.getCurrent();
         ConfigList.createFromTarget(current).then((list) => {
@@ -93,6 +101,14 @@
       runtime
         .discardPage(ui.pagenumber)
         .then(() => {
+          //Clear overlays
+          if (
+            $appSettings.displayedOverlay === "profile-load-overlay" ||
+            $appSettings.displayedOverlay === "preset-load-overlay"
+          ) {
+            $appSettings.displayedOverlay = undefined;
+          }
+          selectedConfigStore.set({});
           //Update displayed config
           const current = ConfigTarget.getCurrent();
           ConfigList.createFromTarget(current)

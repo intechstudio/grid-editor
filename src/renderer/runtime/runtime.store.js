@@ -284,17 +284,6 @@ function create_user_input() {
         return;
       }
 
-      // //reset of config selecting
-      // if (get(appSettings).displayedOverlay==="profile-load-overlay" || get(appSettings).displayedOverlay==="preset-load-overlay"){
-      //   appSettings.update(s => {
-      //     s.displayedOverlay=undefined;
-      //     return s;
-      //   })
-      // }
-      // selectedConfigStore.set({});
-      //Reset of profile/preset load selection
-      selectedConfigStore.set({});
-
       let eventtype;
       switch (get(appSettings).persistent.changeOnEvent) {
         case "element": {
