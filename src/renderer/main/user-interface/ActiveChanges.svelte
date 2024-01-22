@@ -9,7 +9,6 @@
   import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
@@ -21,26 +20,56 @@
     isChanges = changes > 0;
   }
 
-  function handleStore() {
-    if (isChanges) {
-      Analytics.track({
-        event: "Page Config",
-        payload: {
-          click: "Store",
-        },
-        mandatory: false,
+  function clearOverlays() {
+    const overlay = get(appSettings).displayedOverlay;
+    if (
+      overlay === "profile-load-overlay" ||
+      overlay === "preset-load-overlay"
+    ) {
+      appSettings.update((s) => {
+        s.displayedOverlay = undefined;
+        return s;
       });
-
-      const index = $user_input.pagenumber;
-      runtime.storePage(index);
-      if (
-        $appSettings.displayedOverlay === "profile-load-overlay" ||
-        $appSettings.displayedOverlay === "preset-load-overlay"
-      ) {
-        $appSettings.displayedOverlay = undefined;
-      }
-      selectedConfigStore.set({});
     }
+    selectedConfigStore.set({});
+  }
+
+  function handleStore() {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagestore",
+      message: `Store configurations on page...`,
+    });
+    Analytics.track({
+      event: "Page Config",
+      payload: {
+        click: "Store",
+      },
+      mandatory: false,
+    });
+
+    const index = $user_input.pagenumber;
+    runtime
+      .storePage(index)
+      .then((res) => {
+        clearOverlays();
+        selectedConfigStore.set({});
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pagestore",
+          message: `Store complete!`,
+        });
+      })
+      .catch((e) => {
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pagestore",
+          message: `Retry page store...`,
+        });
+      });
   }
 
   function handleClear() {
@@ -48,26 +77,21 @@
     runtime
       .clearPage(ui.pagenumber)
       .then(() => {
-        //Clear overlays
-        if (
-          $appSettings.displayedOverlay === "profile-load-overlay" ||
-          $appSettings.displayedOverlay === "preset-load-overlay"
-        ) {
-          $appSettings.displayedOverlay = undefined;
-        }
-        selectedConfigStore.set({});
-        //Update displayed config
-        const current = ConfigTarget.getCurrent();
-        ConfigList.createFromTarget(current).then((list) => {
-          configManager.set(list);
-
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pageclear",
-            message: `Page clear complete!`,
+        clearOverlays();
+        configManager
+          .refresh()
+          .then(() => {
+            logger.set({
+              type: "success",
+              mode: 0,
+              classname: "pageclear",
+              message: `Page clear complete!`,
+            });
+          })
+          .catch((e) => {
+            console.error(e);
+            //TODO: make feedback for fail
           });
-        });
       })
       .catch((e) => {
         console.error(e);
@@ -94,20 +118,10 @@
       runtime
         .discardPage(ui.pagenumber)
         .then(() => {
-          //Clear overlays
-          if (
-            $appSettings.displayedOverlay === "profile-load-overlay" ||
-            $appSettings.displayedOverlay === "preset-load-overlay"
-          ) {
-            $appSettings.displayedOverlay = undefined;
-          }
-          selectedConfigStore.set({});
-          //Update displayed config
-          const current = ConfigTarget.getCurrent();
-          ConfigList.createFromTarget(current)
-            .then((list) => {
-              configManager.set(list);
-
+          clearOverlays();
+          configManager
+            .refresh()
+            .then(() => {
               logger.set({
                 type: "success",
                 mode: 0,

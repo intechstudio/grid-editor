@@ -518,6 +518,18 @@ function create_configuration_manager() {
     internal.set(obj);
   }
 
+  async function refresh() {
+    return new Promise((resolve, reject) => {
+      const current = ConfigTarget.getCurrent();
+      ConfigList.createFromTarget(current)
+        .then((list) => {
+          configManager.set(list);
+          resolve();
+        })
+        .catch((e) => reject(e));
+    });
+  }
+
   return {
     ...internal,
     update: updateOverride,
@@ -528,5 +540,6 @@ function create_configuration_manager() {
     },
     loadPreset: loadPreset,
     loadProfile: loadProfile,
+    refresh: refresh,
   };
 }

@@ -1040,45 +1040,31 @@ function create_runtime() {
     return count;
   }
 
-  function storePage(index) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pagestore",
-      message: `Store configurations on page...`,
-    });
-    instructions
-      .sendPageStoreToGrid()
-      .then((res) => {
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pagestore",
-          message: `Store complete!`,
-        });
-        _runtime.update((store) => {
-          store.forEach((device) => {
-            device.pages
-              .find((e) => e.pageNumber == index)
-              ?.control_elements.forEach((element) => {
-                element.events.forEach((event) => {
-                  if (event.stored !== event.config) {
-                    event.stored = event.config;
-                  }
+  async function storePage(index) {
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageStoreToGrid()
+        .then((res) => {
+          _runtime.update((store) => {
+            store.forEach((device) => {
+              device.pages
+                .find((e) => e.pageNumber == index)
+                ?.control_elements.forEach((element) => {
+                  element.events.forEach((event) => {
+                    if (event.stored !== event.config) {
+                      event.stored = event.config;
+                    }
+                  });
                 });
-              });
+            });
+            return store;
           });
-          return store;
+          resolve(res);
+        })
+        .catch((e) => {
+          reject(e);
         });
-      })
-      .catch((e) => {
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pagestore",
-          message: `Retry page store...`,
-        });
-      });
+    });
   }
 
   function clearPage(index) {
