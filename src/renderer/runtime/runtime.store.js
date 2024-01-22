@@ -364,24 +364,44 @@ function create_runtime() {
     return _event;
   };
 
-  function fetchOrLoadConfig(
-    { dx, dy, page, element, event },
-    callback = function () {}
-  ) {
-    const _device = get(runtime).find(
-      (device) => device.dx == dx && device.dy == dy
-    );
-    const _page = _device.pages.find((e) => e.pageNumber == page);
-    const _element = _page.control_elements.find(
-      (e) => e.controlElementNumber == element
-    );
-    const _event = _element.events.find((e) => e.type == event);
+  function fetchOrLoadConfig({ dx, dy, page, element, event }) {
+    return new Promise((resolve, reject) => {
+      const _device = get(runtime).find(
+        (device) => device.dx == dx && device.dy == dy
+      );
+      const _page = _device.pages.find((e) => e.pageNumber == page);
+      const _element = _page.control_elements.find(
+        (e) => e.controlElementNumber == element
+      );
+      const _event = _element.events.find((e) => e.type == event);
 
-    if (typeof _event.config !== "undefined") {
-      callback();
-    } else {
-      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
-    }
+      if (typeof _event.config !== "undefined") {
+        resolve();
+      } else {
+        instructions
+          .fetchConfigFromGrid(dx, dy, page, element, event)
+          .then((descr) => {
+            const dx = descr.brc_parameters.SX;
+            const dy = descr.brc_parameters.SY;
+            const page = descr.class_parameters.PAGENUMBER;
+            const element = descr.class_parameters.ELEMENTNUMBER;
+            const event = descr.class_parameters.EVENTTYPE;
+            const actionstring = descr.class_parameters.ACTIONSTRING;
+
+            update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionstring
+            );
+
+            resolve();
+          })
+          .catch((e) => reject(e));
+      }
+    });
   }
 
   function isFirmwareMismatch(currentFirmware, requiredFirmware) {
@@ -530,38 +550,40 @@ function create_runtime() {
     return new Promise((resolve, reject) => {
       const ui = get(user_input);
       let events = preset.configs.events;
-      const callback = function () {
-        resolve();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "elementoverwrite",
-          message: `Overwrite done!`,
-        });
-      };
-
-      events.forEach((ev, index) => {
+      const promises = [];
+      events.forEach((e) => {
         const page = ui.pagenumber;
-        const event = ev.event;
+        const event = e.event;
 
         _runtime.update((_runtime) => {
+          console.log(x, y, page, element, event);
           let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-          if (dest) {
-            dest.config = ev.config;
-
-            instructions.sendConfigToGrid(
-              x,
-              y,
-              page,
-              element,
-              event,
-              dest.config,
-              index === events.length - 1 ? callback : undefined
-            );
-          }
+          dest.config = e.config;
           return _runtime;
         });
+
+        const promise = instructions.sendConfigToGrid(
+          x,
+          y,
+          page,
+          element,
+          event,
+          e.config
+        );
+
+        promises.push(promise);
       });
+      Promise.all(promises)
+        .then(() => {
+          resolve();
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "elementoverwrite",
+            message: `Overwrite done!`,
+          });
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -587,8 +609,9 @@ function create_runtime() {
       }
 
       let ui = structuredClone(get(user_input));
-      array.forEach((elem, elementIndex) => {
-        elem.events.forEach((ev, eventIndex) => {
+      const promises = [];
+      array.forEach((elem) => {
+        elem.events.forEach((ev) => {
           ui.elementnumber = elem.controlElementNumber;
           ui.eventtype = ev.event;
 
@@ -611,35 +634,29 @@ function create_runtime() {
             return _runtime;
           });
 
-          let callback;
-
-          if (
-            elementIndex === array.length - 1 &&
-            eventIndex === elem.events.length - 1
-          ) {
-            // this is last element so we need to add the callback
-            callback = function () {
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "profileload",
-                message: `Profile load complete!`,
-              });
-              resolve();
-            };
-          }
-
-          instructions.sendConfigToGrid(
+          const promise = instructions.sendConfigToGrid(
             x,
             y,
             page,
             element,
             event,
-            ev.config,
-            callback
+            ev.config
           );
+
+          promises.push(promise);
         });
       });
+      Promise.all(promises)
+        .then((desc) => {
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "profileload",
+            message: `Profile load complete!`,
+          });
+          resolve();
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -664,30 +681,22 @@ function create_runtime() {
     });
   }
 
-  function send_event_configuration_to_grid(
-    dx,
-    dy,
-    page,
-    element,
-    event,
-    callback
-  ) {
-    let rt = get(_runtime);
+  function send_event_configuration_to_grid(dx, dy, page, element, event) {
+    return new Promise((resolve, reject) => {
+      let rt = get(_runtime);
 
-    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
-    if (dest) {
-      instructions.sendConfigToGrid(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        dest.config,
-        callback
-      );
-    } else {
-      console.error("DEST not found!");
-    }
+      let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
+      if (dest) {
+        instructions
+          .sendConfigToGrid(dx, dy, page, element, event, dest.config)
+          .then((desc) => {
+            resolve();
+          })
+          .catch((e) => reject(e));
+      } else {
+        reject("DEST not found!");
+      }
+    });
   }
 
   // whole element copy: fetches all event configs from a control element
@@ -695,8 +704,7 @@ function create_runtime() {
     dx,
     dy,
     pageNumber,
-    elementNumber,
-    callback
+    elementNumber
   ) {
     const rt = get(runtime);
     const device = rt.find((device) => device.dx == dx && device.dy == dy);
@@ -706,32 +714,23 @@ function create_runtime() {
     );
     const events = element.events;
 
-    events.forEach((e, i) => {
+    const promises = events.map((e) => {
       const eventType = e.type;
-      if (i == events.length - 1 && callback !== undefined) {
-        fetchOrLoadConfig(
-          {
-            dx: dx,
-            dy: dy,
-            page: pageNumber,
-            element: elementNumber,
-            event: eventType,
-          },
-          callback
-        );
-      } else {
-        fetchOrLoadConfig({
-          dx: dx,
-          dy: dy,
-          page: pageNumber,
-          element: elementNumber,
-          event: eventType,
-        });
-      }
+      const dest = {
+        dx: dx,
+        dy: dy,
+        page: pageNumber,
+        element: elementNumber,
+        event: eventType,
+      };
+      const promise = fetchOrLoadConfig(dest);
+      return promise;
     });
+
+    return Promise.all(promises);
   }
 
-  function fetch_page_configuration_from_grid(callback) {
+  function fetch_page_configuration_from_grid() {
     logger.set({
       type: "progress",
       mode: 0,
@@ -743,8 +742,8 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let ui = JSON.parse(JSON.stringify(get(user_input)));
-    let { dx, dy, page, element, event } = {
+    let ui = get(user_input);
+    const { dx, dy, page, element, event } = {
       dx: ui.dx,
       dy: ui.dy,
       page: ui.pagenumber,
@@ -762,7 +761,7 @@ function create_runtime() {
         message: `No module selected`,
       });
 
-      return;
+      return Promise.reject(`No module selected`);
     }
 
     const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
@@ -771,11 +770,11 @@ function create_runtime() {
     const fetchArray = [];
 
     controlElements.forEach((controlElement) => {
-      controlElement.events.forEach((elem) => {
-        if (typeof elem.config === "undefined") {
+      controlElement.events.forEach((e) => {
+        if (typeof e.config === "undefined") {
           // put it into the fetchArray
           fetchArray.push({
-            event: elem.type,
+            event: e.type,
             elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
@@ -788,30 +787,21 @@ function create_runtime() {
 
     if (fetchArray.length === 0) {
       //nothing to do, let's do calback
-      callback();
-    } else {
-      fetchArray.forEach((elem, ind) => {
-        event = elem.event;
-        element = elem.elementnumber;
-
-        if (ind === fetchArray.length - 1) {
-          // last element
-          fetchOrLoadConfig(
-            { dx: dx, dy: dy, page: page, element: element, event: event },
-            callback
-          );
-        } else {
-          fetchOrLoadConfig({
-            dx: dx,
-            dy: dy,
-            page: page,
-            element: element,
-            event: event,
-          });
-        }
-      });
+      return Promise.resolve();
     }
-    return;
+
+    const promises = fetchArray.map((e) => {
+      const promise = fetchOrLoadConfig({
+        dx: dx,
+        dy: dy,
+        page: page,
+        element: e.elementnumber,
+        event: e.event,
+      });
+      return promise;
+    });
+
+    return Promise.all(promises);
   }
 
   function clear_page_configuration(index) {
@@ -982,19 +972,44 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    if (get(writeBuffer).length > 0) {
-      return;
-    }
+    return new Promise((resolve, reject) => {
+      if (get(writeBuffer).length > 0) {
+        reject("Wait before all operations are finished.");
+        return;
+      }
 
-    let ui = get(user_input);
+      if (unsavedChangesCount() != 0) {
+        reject("Store your changes before changin pages!");
+        return;
+      }
 
-    // only update pagenumber if it differs from the runtime pagenumber
-    if (ui.pagenumber !== new_page_number) {
+      let ui = get(user_input);
+
+      // only update pagenumber if it differs from the runtime pagenumber
+      if (ui.pagenumber === new_page_number) {
+        resolve();
+        return;
+      }
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
-      instructions.changeActivePage(new_page_number);
-    }
+      instructions
+        .changeActivePage(new_page_number)
+        .then(() => {
+          const ui = get(user_input);
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: new_page_number,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
+          });
+          resolve();
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
   }
 
   function unsavedChangesCount() {
@@ -1014,24 +1029,53 @@ function create_runtime() {
   }
 
   function storePage(index) {
-    instructions.sendPageStoreToGrid();
-    _runtime.update((store) => {
-      store.forEach((device) => {
-        device.pages
-          .find((e) => e.pageNumber == index)
-          ?.control_elements.forEach((element) => {
-            element.events.forEach((event) => {
-              if (event.stored !== event.config) {
-                event.stored = event.config;
-              }
-            });
-          });
-      });
-      return store;
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagestore",
+      message: `Store configurations on page...`,
     });
+    instructions
+      .sendPageStoreToGrid()
+      .then((res) => {
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "pagestore",
+          message: `Store complete!`,
+        });
+        _runtime.update((store) => {
+          store.forEach((device) => {
+            device.pages
+              .find((e) => e.pageNumber == index)
+              ?.control_elements.forEach((element) => {
+                element.events.forEach((event) => {
+                  if (event.stored !== event.config) {
+                    event.stored = event.config;
+                  }
+                });
+              });
+          });
+          return store;
+        });
+      })
+      .catch((e) => {
+        logger.set({
+          type: "alert",
+          mode: 0,
+          classname: "pagestore",
+          message: `Retry page store...`,
+        });
+      });
   }
 
   function clearPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pageclear",
+      message: `Clearing configurations from page...`,
+    });
     return new Promise((resolve, reject) => {
       instructions
         .sendPageClearToGrid()
@@ -1047,6 +1091,12 @@ function create_runtime() {
   }
 
   function discardPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagediscard",
+      message: `Discarding configurations...`,
+    });
     return new Promise((resolve, reject) => {
       instructions
         .sendPageDiscardToGrid(index)

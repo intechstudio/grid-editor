@@ -3,7 +3,7 @@
   import SendFeedback from "./SendFeedback.svelte";
   import { fade, blur } from "svelte/transition";
   import { Analytics } from "../../runtime/analytics";
-  import { writeBuffer } from "../../runtime/engine.store.js";
+  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { logger } from "../../runtime/runtime.store";
 
   let moduleHanging1 = false;

@@ -19,7 +19,7 @@
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
 
-  import { writeBuffer } from "../../../runtime/engine.store.js";
+  import { writeBuffer } from "../../../runtime/engine.store.ts";
 
   import {
     ConfigList,
@@ -348,32 +348,6 @@
   function handleCopyAll() {
     //Callback function
     const ui = get(user_input);
-    let callback = async () => {
-      const current = ConfigTarget.createFrom({ userInput: ui });
-      const configsLists = [];
-      for (const e of current.events) {
-        const target = new ConfigTarget({
-          device: current.device,
-          element: current.element,
-          eventType: e.type,
-          page: current.page,
-        });
-        const list = await ConfigList.createFromTarget(target);
-        configsLists.push({ eventType: e.type, configs: list });
-      }
-
-      controlElementClipboard.set({
-        elementType: current.elementType,
-        data: configsLists,
-      });
-      logger.set({
-        type: "success",
-        mode: 0,
-        classname: "elementcopy",
-        message: `Events are copied!`,
-      });
-    };
-
     logger.set({
       type: "progress",
       mode: 0,
@@ -389,13 +363,38 @@
       element: ui.elementnumber,
     };
 
-    runtime.fetch_element_configuration_from_grid(
-      dx,
-      dy,
-      page,
-      element,
-      callback
-    );
+    runtime
+      .fetch_element_configuration_from_grid(dx, dy, page, element)
+      .then(async (desc) => {
+        const current = ConfigTarget.createFrom({ userInput: ui });
+
+        const data = [];
+        for (const event of current.events) {
+          const target = new ConfigTarget({
+            device: current.device,
+            element: current.element,
+            eventType: event.type,
+            page: current.page,
+          });
+          const list = await ConfigList.createFromTarget(target);
+          data.push({ eventType: target.eventType, configs: list });
+        }
+
+        controlElementClipboard.set({
+          elementType: current.elementType,
+          data: data,
+        });
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "elementcopy",
+          message: `Events are copied!`,
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+        //TODO: make feedback for fail
+      });
 
     Analytics.track({
       event: "Config Action",
@@ -405,28 +404,16 @@
   }
 
   function handleOverwriteAll() {
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
+
     let clipboard = get(controlElementClipboard);
     const current = ConfigTarget.createFrom({ userInput: $user_input });
 
-    if (current.elementType === clipboard.elementType) {
-      for (const e of current.events) {
-        const eventtype = e.type;
-        const target = new ConfigTarget({
-          device: current.device,
-          element: current.element,
-          eventType: eventtype,
-          page: current.page,
-        });
-        const list = clipboard.data.find(
-          (e) => e.eventType === eventtype
-        ).configs;
-        list.sendTo({ target: target }).catch((e) => handleError(e));
-      }
-
-      ConfigList.createFromTarget(current).then((list) => {
-        configManager.set(list);
-      });
-    } else {
+    if (current.elementType !== clipboard.elementType) {
       logger.set({
         type: "fail",
         mode: 0,
@@ -434,13 +421,30 @@
         message: `Overwrite element failed! Current ${current.elementType} control 
           element is not compatible with clipboards ${clipboard.elementType} type.`,
       });
+      return;
     }
 
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
+    const promises = [];
+    for (const e of current.events) {
+      const eventtype = e.type;
+      const target = new ConfigTarget({
+        device: current.device,
+        element: current.element,
+        eventType: eventtype,
+        page: current.page,
+      });
+      const list = clipboard.data.find(
+        (e) => e.eventType === eventtype
+      ).configs;
+      promises.push(list.sendTo({ target: target }));
+    }
+    Promise.all(promises)
+      .then(() => {
+        ConfigList.createFromTarget(current).then((list) => {
+          configManager.set(list);
+        });
+      })
+      .catch((e) => {});
   }
 
   function handleReplace(e) {

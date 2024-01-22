@@ -2,7 +2,7 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  import { writeBuffer } from "../../../../runtime/engine.store.js";
+  import { writeBuffer } from "../../../../runtime/engine.store.ts";
   import { fade } from "svelte/transition";
 
   import { configManager } from "../Configuration.store";
@@ -37,7 +37,7 @@
   on:new-config={handleNewConfig}
   on:paste={handlePaste}
 >
-  {#if $configManager.length === 0 && $runtime.length > 0 && $writeBuffer.length == 0}
+  {#if $configManager.length === 0 && $runtime.length > 0}
     <div class="text-white/50 my-5 bg-secondary flex" in:fade={{ delay: 200 }}>
       <div class="w-10 h-full bg-red-300/30 flex" />
       <div class="flex flex-col m-4">

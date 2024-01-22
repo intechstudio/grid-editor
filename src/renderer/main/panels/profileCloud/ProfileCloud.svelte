@@ -156,10 +156,10 @@
   }
 
   const handleGetCurrentConfigurationFromEditor = (event) =>
-    new Promise(async (resolve) => {
+    new Promise((resolve) => {
       const configType = event.data.configType;
 
-      let callback = await async function () {
+      runtime.fetch_page_configuration_from_grid().then((desc) => {
         logger.set({
           type: "progress",
           mode: 0,
@@ -227,9 +227,7 @@
         });
         config.name = `New ${config.type} config`;
         resolve(config);
-      };
-
-      runtime.fetch_page_configuration_from_grid(callback);
+      });
     });
 
   let profileCloudIsMounted = false;

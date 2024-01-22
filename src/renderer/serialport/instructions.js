@@ -3,8 +3,8 @@ import { appSettings } from "../runtime/app-helper.store";
 
 import grid from "../protocol/grid-protocol.js";
 
-import { writeBuffer } from "../runtime/engine.store.js";
-import { logger, runtime } from "../runtime/runtime.store.js";
+import { writeBuffer } from "../runtime/engine.store.ts";
+import { logger } from "../runtime/runtime.store.js";
 
 const instructions = {
   sendEditorHeartbeat_immediate: (type) => {
@@ -22,23 +22,13 @@ const instructions = {
         },
       },
       responseRequired: false,
-      failCb: function () {
-        //console.log('config execute - fail')
-      },
     };
 
-    // Only add heatbeat into the write buffer if it is not in it already
-    if (get(writeBuffer).length > 0) {
-      if (get(writeBuffer)[0].descr.class_name !== "HEARTBEAT") {
-        writeBuffer.add_first(buffer_element);
-      } else {
-      }
-    } else {
-      writeBuffer.add_first(buffer_element);
-    }
+    return writeBuffer.executeFirst(buffer_element);
   },
 
-  fetchConfigFromGrid: (dx, dy, page, element, event, callback) => {
+  fetchConfigFromGrid: (dx, dy, page, element, event) => {
+    //TODO: callback
     let buffer_element = {
       descr: {
         brc_parameters: {
@@ -71,40 +61,14 @@ const instructions = {
           EVENTTYPE: event,
         },
       },
-      failCb: function () {
-        //console.log('config fetch - fail')
-      },
-      successCb: function (descr) {
-        const dx = descr.brc_parameters.SX;
-        const dy = descr.brc_parameters.SY;
-        const page = descr.class_parameters.PAGENUMBER;
-        const element = descr.class_parameters.ELEMENTNUMBER;
-        const event = descr.class_parameters.EVENTTYPE;
-        const actionstring = descr.class_parameters.ACTIONSTRING;
-
-        runtime.update_event_configuration(
-          dx,
-          dy,
-          page,
-          element,
-          event,
-          actionstring
-        );
-
-        if (callback) {
-          callback(descr);
-        }
-      },
     };
 
-    // console.log("FETCH: ", buffer_element.descr.class_parameters.PAGENUMBER, buffer_element.descr.class_parameters.ELEMENTNUMBER, buffer_element.descr.class_parameters.EVENTTYPE );
-
-    writeBuffer.add_last(buffer_element);
-
-    return 1;
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
-  sendConfigToGrid: (dx, dy, page, element, event, actionstring, callback) => {
+  sendConfigToGrid: (dx, dy, page, element, event, actionstring) => {
+    //TODO: callback
     if (actionstring.length >= grid.properties.CONFIG_LENGTH) {
       logger.set({
         type: "alert",
@@ -112,7 +76,6 @@ const instructions = {
         classname: "configlength",
         message: `Config is too long! ${actionstring.length} characters`,
       });
-      return;
     }
 
     let buffer_element = {
@@ -143,15 +106,10 @@ const instructions = {
         class_name: "CONFIG",
         class_instr: "ACKNOWLEDGE",
       },
-      failCb: function () {
-        //console.log('config execute - fail')
-      },
-      successCb: callback,
     };
 
-    writeBuffer.add_last(buffer_element);
-
-    return 1;
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   changeActivePage: (pagenumber) => {
@@ -167,13 +125,9 @@ const instructions = {
           PAGENUMBER: pagenumber,
         },
       },
-
-      // no response required, so no fltr struct is defined
     };
-
-    writeBuffer.add_last(buffer_element);
-
-    return 1;
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   fetchPageCountFromGrid: ({ brc }) => {
@@ -193,27 +147,13 @@ const instructions = {
         class_name: "PAGECOUNT",
         class_instr: "REPORT",
       },
-      failCb: function () {
-        //console.log('fetch page count - fail')
-      },
-      successCb: function () {
-        //console.log('fetch page count - success')
-      },
     };
 
-    writeBuffer.add_first(buffer_element);
-
-    return 1;
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   sendPageStoreToGrid: () => {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "pagestore",
-      message: `Store configurations on page...`,
-    });
-
     let buffer_element = {
       descr: {
         brc_parameters: {
@@ -224,6 +164,7 @@ const instructions = {
         class_instr: "EXECUTE",
         class_parameters: {},
       },
+      //responseTimeout: 8000,
       responseRequired: true,
       filter: {
         class_name: "PAGESTORE",
@@ -232,46 +173,21 @@ const instructions = {
           LASTHEADER: null,
         },
       },
-      failCb: function () {
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "pagestore",
-          message: `Retry page store...`,
-        });
-        //console.log('page store execute - fail')
-      },
-      successCb: function () {
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "pagestore",
-          message: `Store complete!`,
-        });
-        //console.log('page store execute - success')
-      },
     };
 
-    writeBuffer.add_last(buffer_element);
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   sendNVMEraseToGrid: () => {
     if (get(writeBuffer) > 0) {
-      logger.set({
+      return Promise.reject({
         type: "fail",
         mode: 0,
         classname: "engine-disabled",
         message: `Engine is disabled, erasing NVM memory failed!`,
       });
-      return;
     }
-
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "nvmerase",
-      message: `Erasing all modules...`,
-    });
 
     let buffer_element = {
       responseTimeout: 8000,
@@ -292,40 +208,17 @@ const instructions = {
           LASTHEADER: null,
         },
       },
-      failCb: function () {
-        logger.set({
-          type: "alert",
-          mode: 0,
-          classname: "nvmerase",
-          message: `Retry erase all modules...`,
-        });
-        //console.log('NVM erase execute - fail')
-      },
-      successCb: function () {
-        runtime.erase();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "nvmerase",
-          message: `Erase complete!`,
-        });
-        //console.log('NVM erase execute - success')
-      },
     };
 
-    writeBuffer.add_last(buffer_element);
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   sendNVMDefragToGrid: () => {
     if (get(writeBuffer) > 0) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "engine-disabled",
-        message: `Engine is disabled, NVM Defragmentation failed!`,
-      });
-      return;
+      return Promise.reject("NVM defrag failed");
     }
+
     let buffer_element = {
       descr: {
         brc_parameters: {
@@ -344,91 +237,65 @@ const instructions = {
           LASTHEADER: null,
         },
       },
-      failCb: function () {
-        console.log("NVM defrag execute - fail");
-      },
-      successCb: function () {
-        console.log("NVM defrag execute - success");
-        //logger.set({type: 'success', mode: 0, classname: 'nvmdefrag', message: `NVM defrag complete!`});
-      },
     };
 
-    writeBuffer.add_last(buffer_element);
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   sendPageDiscardToGrid: () => {
-    return new Promise((resolve, reject) => {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "pagediscard",
-        message: `Discarding configurations...`,
-      });
-
-      let buffer_element = {
-        responseTimeout: 1000,
-        descr: {
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-          },
-          class_name: "PAGEDISCARD",
-          class_instr: "EXECUTE",
-          class_parameters: {},
+    let buffer_element = {
+      responseTimeout: 3000,
+      descr: {
+        brc_parameters: {
+          DX: -127,
+          DY: -127,
         },
-        responseRequired: true,
-        filter: {
-          PAGEDISCARD_ACKNOWLEDGE: {
-            LASTHEADER: null,
-          },
-          class_name: "PAGEDISCARD",
-          class_instr: "ACKNOWLEDGE",
-          class_parameters: {
-            LASTHEADER: null,
-          },
+        class_name: "PAGEDISCARD",
+        class_instr: "EXECUTE",
+        class_parameters: {},
+      },
+      responseRequired: true,
+      filter: {
+        PAGEDISCARD_ACKNOWLEDGE: {
+          LASTHEADER: null,
         },
-        failCb: reject,
-        successCb: resolve,
-      };
+        class_name: "PAGEDISCARD",
+        class_instr: "ACKNOWLEDGE",
+        class_parameters: {
+          LASTHEADER: null,
+        },
+      },
+    };
 
-      writeBuffer.add_last(buffer_element);
-    });
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 
   sendPageClearToGrid: () => {
-    return new Promise((resolve, reject) => {
-      logger.set({
-        type: "progress",
-        mode: 0,
-        classname: "pageclear",
-        message: `Clearing configurations from page...`,
-      });
-
-      let buffer_element = {
-        responseTimeout: 2000,
-        descr: {
-          brc_parameters: {
-            DX: -127,
-            DY: -127,
-          },
-          class_name: "PAGECLEAR",
-          class_instr: "EXECUTE",
-          class_parameters: {},
+    let buffer_element = {
+      responseTimeout: 3000,
+      descr: {
+        brc_parameters: {
+          DX: -127,
+          DY: -127,
         },
-        responseRequired: true,
-        filter: {
-          class_name: "PAGECLEAR",
-          class_instr: "ACKNOWLEDGE",
-          class_parameters: {
-            LASTHEADER: null,
-          },
+        class_name: "PAGECLEAR",
+        class_instr: "EXECUTE",
+        class_parameters: {},
+      },
+      responseRequired: true,
+      filter: {
+        class_name: "PAGECLEAR",
+        class_instr: "ACKNOWLEDGE",
+        class_parameters: {
+          LASTHEADER: null,
         },
-        failCb: reject,
-        successCb: resolve,
-      };
+      },
+    };
 
-      writeBuffer.add_first(buffer_element);
-    });
+    const promise = writeBuffer.executeLast(buffer_element);
+    return promise;
   },
 };
 

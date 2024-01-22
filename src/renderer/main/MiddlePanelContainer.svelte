@@ -1,11 +1,12 @@
 <script>
+  import { derived } from "svelte/store";
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
   import { fade, blur, fly } from "svelte/transition";
   import { runtime } from "../runtime/runtime.store";
-  import { writeBuffer } from "../runtime/engine.store.js";
+  import { writeBuffer } from "../runtime/engine.store.ts";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
@@ -46,8 +47,17 @@
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
+
+  const pendingActions = derived(writeBuffer, ($writeBuffer) => {
+    return $writeBuffer.filter((e) => e.descr.class_name !== "HEARTBEAT");
+  });
+
   $: {
-    if ($writeBuffer.length > 0 && $runtime.length > 0) {
+    if (
+      $pendingActions.length > 0 &&
+      $runtime.length > 0 &&
+      typeof moduleHangingTimeout === "undefined"
+    ) {
       moduleHangingTimeout = setTimeout(() => {
         showModuleHangingDialog = true;
       }, 1000);
