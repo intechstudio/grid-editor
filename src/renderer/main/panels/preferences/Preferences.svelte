@@ -310,6 +310,15 @@
     </Block>
 
     <Block>
+      <BlockTitle>Hearbeat debugging</BlockTitle>
+      <BlockBody>Enable/Disable heartbeat debug graphs</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.heartbeatDebugEnabled}
+        title={"Activate heartbeat debugging"}
+      />
+    </Block>
+
+    <Block>
       <BlockTitle>Show PCB</BlockTitle>
       <BlockBody>
         When selecting the system element of a module, it's underlaying PCB

@@ -10,6 +10,10 @@ import { Analytics } from "./analytics.js";
 
 import { appSettings } from "./app-helper.store";
 
+import { add_datapoint } from "../serialport/message-stream.store.js";
+
+let lastPageActivator = "";
+
 export const eventType = {
   0: "Init",
   1: "Potmeter",
@@ -465,8 +469,17 @@ function create_runtime() {
           });
         }
 
+        let lastDate = get(heartbeat).find(
+          (device) => device.id == controller.id
+        ).alive;
+        let newDate = Date.now();
         get(heartbeat).find((device) => device.id == controller.id).alive =
-          Date.now();
+          newDate;
+
+        //console.log(newDate - lastDate)
+        if (get(appSettings).persistent.heartbeatDebugEnabled) {
+          add_datapoint("Hearbeat", newDate - lastDate);
+        }
       }
       // device not found, add it to runtime and get page count from grid
       else {
@@ -1196,7 +1209,7 @@ export const engine = createEngine();
 export const heartbeat = writable([]);
 
 const heartbeat_editor_ms = 300;
-const heartbeat_grid_ms = 300;
+const heartbeat_grid_ms = 250;
 
 const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
@@ -1207,7 +1220,15 @@ const grid_heartbeat_interval_handler = async function () {
     }
 
     const alive = get(heartbeat).find((e) => e.id == device.id).alive;
-    if (Date.now() - alive > heartbeat_grid_ms * 3) {
+
+    // Allow less strict elapsedTimeLimit while writeBuffer is busy!
+    const elapsedTimeLimit =
+      get(writeBuffer).length > 0
+        ? heartbeat_grid_ms * 6
+        : heartbeat_grid_ms * 3;
+    const elapsedTime = Date.now() - alive;
+
+    if (elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {
