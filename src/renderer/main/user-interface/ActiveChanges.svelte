@@ -1,11 +1,7 @@
 <script>
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store.js";
-  import {
-    ConfigList,
-    ConfigTarget,
-    configManager,
-  } from "./../panels/configuration/Configuration.store.js";
+  import { configManager } from "./../panels/configuration/Configuration.store.js";
   import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
   import { appSettings } from "../../runtime/app-helper.store";
