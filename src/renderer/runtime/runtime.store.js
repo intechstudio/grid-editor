@@ -477,8 +477,9 @@ function create_runtime() {
           newDate;
 
         //console.log(newDate - lastDate)
-
-        add_datapoint("Delay", newDate - lastDate);
+        if (get(appSettings).persistent.hearheatDebugEnabled) {
+          add_datapoint("Hearbeat", newDate - lastDate);
+        }
       }
       // device not found, add it to runtime and get page count from grid
       else {
