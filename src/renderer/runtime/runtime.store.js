@@ -477,7 +477,7 @@ function create_runtime() {
           newDate;
 
         //console.log(newDate - lastDate)
-        if (get(appSettings).persistent.hearheatDebugEnabled) {
+        if (get(appSettings).persistent.heartbeatDebugEnabled) {
           add_datapoint("Hearbeat", newDate - lastDate);
         }
       }
