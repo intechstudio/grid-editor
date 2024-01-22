@@ -78,12 +78,7 @@
           message: `Retry clear page...`,
         });
       });
-    if (
-      $appSettings.displayedOverlay === "profile-load-overlay" ||
-      $appSettings.displayedOverlay === "preset-load-overlay"
-    ) {
-      $appSettings.displayedOverlay = undefined;
-    }
+
     selectedConfigStore.set({});
 
     Analytics.track({
