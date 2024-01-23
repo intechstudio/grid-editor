@@ -192,18 +192,18 @@ export function serial_write_islocked() {
 
 export function serial_write(param) {
   if (param === undefined) {
-    return Promise.reject();
+    return Promise.reject("Serial Write Error.");
   }
 
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
-    return Promise.reject();
+    return Promise.reject("Serial Write Error.");
   }
 
   if (
     navigator.intechPort.writable === undefined ||
     navigator.intechPort.writable === null
   ) {
-    return Promise.reject();
+    return Promise.reject("Serial Write Error.");
   }
 
   return new Promise((resolve, reject) => {

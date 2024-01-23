@@ -128,7 +128,9 @@ function createWriteBuffer() {
     timeout: number
   ): Promise<GridResponse> {
     waiter = new ResponseWaiter(bufferElement, timeout);
-    return await waiter.waitResponse();
+    const response = await waiter.waitResponse();
+    waiter = undefined;
+    return response;
   }
 
   async function sleep(time: number) {
@@ -157,17 +159,20 @@ function createWriteBuffer() {
         });
 
         do {
-          const { id } = await sendDataToGrid(incoming.descr);
-          if (
-            incoming.responseRequired &&
-            incoming.filter !== undefined &&
-            incoming.filter.class_parameters !== undefined &&
-            incoming.filter.class_parameters["LASTHEADER"] !== undefined
-          ) {
-            incoming.filter.class_parameters["LASTHEADER"] = id;
+          let id = undefined;
+          try {
+            const result = await sendDataToGrid(incoming.descr);
+            id = result.id;
+          } catch (e) {
+            reject(e);
+            return;
           }
 
           if (incoming.responseRequired === true) {
+            const { class_parameters } = incoming.filter || {};
+            if (class_parameters?.LASTHEADER !== undefined) {
+              class_parameters.LASTHEADER = id;
+            }
             const timeout = incoming.responseTimeout ?? 1000;
             const result = await waitResponseFromGrid(incoming, timeout);
             switch (result.status) {
@@ -178,6 +183,7 @@ function createWriteBuffer() {
               }
               case ResponseStatus.ERROR: {
                 reject(result.error);
+                processed = true;
                 break;
               }
               case ResponseStatus.TIMEOUT: {
