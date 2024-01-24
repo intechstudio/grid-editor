@@ -12,4 +12,11 @@ npm i
 npm run format
 ```
 
+## Run app in WEB development mode
+
+```
+npm i
+npm run web:dev
+```
+
 © Intech Studio Ltd.

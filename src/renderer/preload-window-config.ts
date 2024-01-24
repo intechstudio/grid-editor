@@ -5,6 +5,8 @@
  * I added vite to package.json and put a separate vite.config.mjs file in the root directory for web dev and build.
  * The vite config is the same in electron.vite.config.mjs and vite.config.mjs, the shared part is in renderer.vite.config.mjs
  * The mode is also passed to the CLI while starting the dev server or building the project.
+ *
+ * To run this app in browser dev mode, run: npm install && npm run web:dev
  */
 
 declare global {
