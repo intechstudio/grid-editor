@@ -93,7 +93,7 @@
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
     "electron-dev": "run-s gen:buildVars:dev electron:dev",
     "format": "prettier --write .",
-    "web:dev": "vite dev --mode web",
-    "web:build": "vite build --mode web"
+    "web-dev": "vite dev --mode web",
+    "web-build": "vite build --mode web"
   }
 }
