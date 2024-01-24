@@ -16,7 +16,7 @@ npm run format
 
 ```
 npm i
-npm run web:dev
+npm run web-dev
 ```
 
 © Intech Studio Ltd.

@@ -6,17 +6,27 @@
  * The vite config is the same in electron.vite.config.mjs and vite.config.mjs, the shared part is in renderer.vite.config.mjs
  * The mode is also passed to the CLI while starting the dev server or building the project.
  *
- * To run this app in browser dev mode, run: npm install && npm run web:dev
+ * To run this app in browser dev mode, run: npm install && npm run web-dev
  */
 
 declare global {
   interface Window {
     electron: any;
     ctxProcess: any;
+    chrome: any;
+  }
+  interface Navigator {
+    serial: any;
   }
 }
 
 if (import.meta.env.VITE_WEB_MODE == "true") {
+  // handle non-chromium based browsers
+  if (window.chrome == null) {
+    navigator.serial = {
+      addEventListener: () => {},
+    };
+  }
   window.ctxProcess = {
     configuration: () => {
       return {
