@@ -1,6 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-
 contextBridge.exposeInMainWorld("ctxProcess", {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
