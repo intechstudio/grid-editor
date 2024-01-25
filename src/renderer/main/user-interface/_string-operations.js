@@ -1,4 +1,4 @@
-import grid from "../../protocol/grid-protocol.js";
+import { grid } from "../../protocol/grid-protocol";
 
 const stringManipulation = {
   initialize: function (inputSet = []) {

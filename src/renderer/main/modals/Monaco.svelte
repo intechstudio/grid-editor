@@ -1,7 +1,7 @@
 <script>
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import grid from "../../protocol/grid-protocol.js";
+  import { grid } from "../../protocol/grid-protocol";
 
   import { clickOutside } from "../_actions/click-outside.action";
 

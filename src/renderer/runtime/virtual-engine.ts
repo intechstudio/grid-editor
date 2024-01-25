@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import grid from "../protocol/grid-protocol";
+import { grid } from "../protocol/grid-protocol";
 import {
   InstructionClass,
   InstructionClassName,

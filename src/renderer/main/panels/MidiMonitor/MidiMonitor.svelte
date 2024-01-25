@@ -9,7 +9,7 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import grid from "../../../protocol/grid-protocol";
+  import { grid } from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
 

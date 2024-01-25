@@ -38,7 +38,7 @@ export function lastOpenedActionblocksRemove(short) {
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
-import grid from "../../../protocol/grid-protocol.js";
+import { grid } from "../../../protocol/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {

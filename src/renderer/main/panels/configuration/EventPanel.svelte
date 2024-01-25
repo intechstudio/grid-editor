@@ -13,7 +13,7 @@
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store.js";
   import MeltRadio from "../preferences/MeltRadio.svelte";
-  import { CEEAT } from "../../../protocol/grid-protocol.js";
+  import { CEEAT } from "../../../protocol/grid-protocol";
 
   const dispatch = createEventDispatcher();
 
