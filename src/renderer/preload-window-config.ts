@@ -29,6 +29,7 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   }
   window.ctxProcess = {
     configuration: () => {
+      // TODO: return the full content of configuration.json unchanged 
       return {
         PROFILE_CLOUD_URL_PROD: "https://profiles.intech.studio",
         EDITOR_VERSION: "1.2.48",
@@ -42,12 +43,13 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       };
     },
     buildVariables: () => {
+      // TODO: return the full content of buildVariables.JSON but override build target to "web" 
       return {
         BUILD_ENV: "development",
       };
     },
     platform: () => {
-      return "darwin";
+      return "web";
     },
   };
   window.electron = {

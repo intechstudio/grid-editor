@@ -35,13 +35,6 @@ const persistentDefaultValues = {
   changeOnEvent: "event",
 };
 
-function checkOS() {
-  if (typeof window.ctxProcess === "object") {
-    return ctxProcess.platform;
-  }
-  return "browser";
-}
-
 function createSplitPanes() {
   const obj = {
     left: { size: 25 },
@@ -94,7 +87,6 @@ function createAppSettingsStore(persistent) {
     leftPanelVisible: true,
     modal: "",
     trayState: false,
-    os: checkOS(),
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
@@ -199,7 +191,7 @@ async function init_appsettings() {
         get(appSettings).persistent.welcomeOnStartup === true ||
         get(appSettings).persistent.lastVersion === undefined ||
         get(appSettings).persistent.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
