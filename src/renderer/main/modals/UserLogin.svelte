@@ -13,10 +13,8 @@
 
   const socialLoginUrl = buildVariables.PROFILE_CLOUD_URL;
 
-  async function submitLogin() {
-    try {
-      await authStore.login(email, password);
-    } catch (e) {
+  function submitLogin() {
+    authStore.login(email, password).catch((e) => {
       if (e instanceof LoginError) {
         if (e.errorType === "InvalidCredentials") {
           loginError = "Invalid email or password";
@@ -27,7 +25,7 @@
       } else {
         throw e;
       }
-    }
+    });
   }
 
   async function anonymousLogin() {

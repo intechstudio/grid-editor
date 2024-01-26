@@ -45,29 +45,30 @@ const createAuth = () => {
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     const credential = EmailAuthProvider.credential(email, password);
 
-    try {
-      await signInWithCredential(centralAuth, credential).then(
-        async (userCredential) => {
-          const userIdToken = await centralAuth.currentUser!.getIdToken();
-          set({ event: "login", providerId: "oidc", idToken: userIdToken });
+    return signInWithCredential(centralAuth, credential)
+      .then(async (userCredential) => {
+        const userIdToken = await centralAuth.currentUser!.getIdToken();
+        set({ event: "login", providerId: "oidc", idToken: userIdToken });
+      })
+      .catch((e) => {
+        if (e instanceof FirebaseError) {
+          switch (e.code) {
+            case "auth/account-exists-with-different-credential":
+            case "auth/invalid-credential":
+            case "auth/user-not-found":
+            case "auth/wrong-password":
+            case "auth/invalid-email":
+              throw new LoginError(
+                e.message,
+                LoginErrorType.INVALID_CREDENTIALS
+              );
+            default:
+              throw new LoginError(e.message, LoginErrorType.GENERAL_ERROR);
+          }
+        } else {
+          throw e;
         }
-      );
-    } catch (e) {
-      if (e instanceof FirebaseError) {
-        switch (e.code) {
-          case "auth/account-exists-with-different-credential":
-          case "auth/invalid-credential":
-          case "auth/user-not-found":
-          case "auth/wrong-password":
-          case "auth/invalid-email":
-            throw new LoginError(e.message, LoginErrorType.INVALID_CREDENTIALS);
-          default:
-            throw new LoginError(e.message, LoginErrorType.GENERAL_ERROR);
-        }
-      } else {
-        throw e;
-      }
-    }
+      });
   }
 
   async function anonymousLogin() {
