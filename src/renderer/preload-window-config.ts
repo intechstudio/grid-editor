@@ -9,6 +9,9 @@
  * To run this app in browser dev mode, run: npm install && npm run web-dev
  */
 
+import configuration from "../../configuration.json";
+import buildVariables from "../../buildVariables.json";
+
 declare global {
   interface Window {
     electron: any;
@@ -29,24 +32,14 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   }
   window.ctxProcess = {
     configuration: () => {
-      // TODO: return the full content of configuration.json unchanged
-      return {
-        PROFILE_CLOUD_URL_PROD: "https://profiles.intech.studio",
-        EDITOR_VERSION: "1.2.48",
-        FIRMWARE_GRID_D51_REQUIRED_MAJOR: 0,
-        FIRMWARE_GRID_D51_REQUIRED_MINOR: 0,
-        FIRMWARE_GRID_D51_REQUIRED_PATCH: 0,
-        FIRMWARE_GRID_ESP32_REQUIRED_MAJOR: 0,
-        FIRMWARE_GRID_ESP32_REQUIRED_MINOR: 0,
-        FIRMWARE_GRID_ESP32_REQUIRED_PATH: 0,
-        MIXPANEL_TOKEN: "d5072f1b11e0a753c9f655dc3ddf7b8d", // mixpanel should be refactored, so it can be disabled without errors.
-      };
+      return configuration;
     },
     buildVariables: () => {
-      // TODO: return the full content of buildVariables.JSON but override build target to "web"
-      return {
-        BUILD_ENV: "development",
-      };
+      // overwrite build target to web, used for mixpanel analytics primarily
+      // when deploying to web, consider overwriting the build target in buildVariables.json during a build step
+      const buildVars = buildVariables;
+      buildVars.BUILD_TARGET = "web";
+      return buildVars;
     },
     platform: () => {
       return "web";
