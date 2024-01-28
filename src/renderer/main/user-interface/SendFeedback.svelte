@@ -1,7 +1,9 @@
 <script>
+  import { modal } from "./../modals/modal.store.ts";
   import { createEventDispatcher } from "svelte";
 
   import { appSettings } from "../../runtime/app-helper.store";
+  import Feedback from "../modals/Feedback.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -10,7 +12,7 @@
   function openFeedbackFrom(arg) {
     console.log("feedback on " + feedback_context);
 
-    $appSettings.modal = "feedback";
+    modal.show(Feedback);
     $appSettings.feedback_context = feedback_context;
   }
 </script>

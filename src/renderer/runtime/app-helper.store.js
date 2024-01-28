@@ -1,4 +1,6 @@
 import { writable, get, readable } from "svelte/store";
+import { modal } from "../main/modals/modal.store";
+import Welcome from "../main/modals/Welcome.svelte";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -92,7 +94,6 @@ function createAppSettingsStore(persistent) {
     rightPanelVisible: true,
     leftPanel: "ProfileCloud",
     leftPanelVisible: true,
-    modal: "",
     trayState: false,
     os: checkOS(),
     intervalPause: false,
@@ -204,7 +205,7 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          s.modal = "welcome";
+          modal.show(Welcome);
           return s;
         });
       }

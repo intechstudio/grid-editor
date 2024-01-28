@@ -14,6 +14,8 @@
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
+  import { modal } from "../../modals/modal.store.js";
+  import UserLogin from "../../modals/UserLogin.svelte";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -118,7 +120,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    $appSettings.modal = "userLogin";
+    modal.show(UserLogin);
   }
 
   async function handleCreateCloudConfigLink(event) {

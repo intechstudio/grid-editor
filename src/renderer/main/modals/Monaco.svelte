@@ -1,6 +1,6 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { appSettings } from "../../runtime/app-helper.store";
+  import { modal } from "./modal.store.ts";
   import grid from "../../protocol/grid-protocol.js";
 
   import { clickOutside } from "../_actions/click-outside.action";
@@ -200,7 +200,7 @@
   });
 
   function handleClose(e) {
-    $appSettings.modal = "";
+    modal.close();
   }
 </script>
 

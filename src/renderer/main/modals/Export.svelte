@@ -1,6 +1,6 @@
 <script>
   import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
-  import { appSettings } from "../../runtime/app-helper.store";
+  import { modal } from "./modal.store.ts";
 
   import { clickOutside } from "../_actions/click-outside.action";
   import { configManager } from "../panels/configuration/Configuration.store";
@@ -26,7 +26,7 @@
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
-      $appSettings.modal = "";
+      modal.close();
     }}
     id="clickbox"
     class="text-white relative z-50 flex flex-col shadow p-4 border border-black bg-primary bg-opacity-100 rounded items-start w-1/2 h-1/2 opacity-100"
@@ -37,7 +37,7 @@
       <!-- svelte-ignore a11y-no-static-element-interactions -->
       <div
         on:click={() => {
-          $appSettings.modal = "";
+          modal.close();
         }}
         id="close-btn"
         class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary"

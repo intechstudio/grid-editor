@@ -1,8 +1,8 @@
 <script>
   import { clickOutside } from "../_actions/click-outside.action";
-  import { appSettings } from "../../runtime/app-helper.store";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
+  import { modal } from "./modal.store.ts";
 
   const buildVariables = window.ctxProcess.buildVariables();
 
@@ -24,7 +24,7 @@
   }
 
   function closeUserLoginModal() {
-    $appSettings.modal = "";
+    modal.close();
   }
 </script>
 
@@ -35,7 +35,7 @@
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
-      $appSettings.modal = "";
+      modal.close();
     }}
     id="clickbox"
     class="z-50 w-full p-2 border border-white border-opacity-10 rounded max-w-md text-white relative flex flex-col shadow bg-primary

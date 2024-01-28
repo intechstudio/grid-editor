@@ -1,6 +1,6 @@
 <script>
   import { clickOutside } from "/main/_actions/click-outside.action";
-  import { appSettings } from "/runtime/app-helper.store";
+  import { modal } from "./modal.store.ts";
 
   let editor;
   let modalWidth;
@@ -21,7 +21,7 @@
   <div
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
-      $appSettings.modal = "";
+      modal.close();
     }}
     class="z-50 w-2/5 h-fit max-h-[3/4] text-white relative flex flex-col shadow
     bg-primary bg-opacity-100 items-start opacity-100 p-6"
@@ -29,7 +29,7 @@
     <div>Profile Attachments</div>
     <button
       on:click={() => {
-        $appSettings.modal = "";
+        modal.close();
       }}
       id="close-btn"
       class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable

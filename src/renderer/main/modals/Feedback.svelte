@@ -1,6 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
+  import { modal } from "./modal.store.ts";
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
 
@@ -34,7 +35,7 @@
   }
 
   function handleClose(e) {
-    $appSettings.modal = "";
+    modal.close();
   }
 
   function handleClickOutside(e) {

@@ -1,10 +1,9 @@
 <script>
+  import { modal } from "./modal.store.ts";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
 
   import { clickOutside } from "../_actions/click-outside.action";
-
-  import { get } from "svelte/store";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -54,7 +53,7 @@
     bind:this={modalElement}
     use:clickOutside={{ useCapture: true }}
     on:click-outside={() => {
-      $appSettings.modal = "";
+      modal.close();
     }}
     id="clickbox"
     class="items-center z-50 w-3/5 text-white relative flex flex-col shadow
@@ -66,7 +65,7 @@
 
       <button
         on:click={() => {
-          $appSettings.modal = "";
+          modal.close();
         }}
         id="close-btn"
         class="p-1 absolute top-6 right-6 cursor-pointer rounded not-draggable
@@ -246,7 +245,7 @@
 
         <button
           on:click={() => {
-            $appSettings.modal = "";
+            modal.close();
           }}
           id="close-btn"
           class="px-3 py-1 cursor-pointer rounded not-draggable

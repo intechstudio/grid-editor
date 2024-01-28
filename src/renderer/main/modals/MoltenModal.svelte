@@ -1,9 +1,9 @@
 <script>
+  import { modal } from "./modal.store.ts";
   import { clickOutside } from "../_actions/click-outside.action";
-  import { appSettings } from "../../runtime/app-helper.store";
 
-  export function close() {
-    $appSettings.modal = "";
+  function close() {
+    modal.close();
   }
 </script>
 
