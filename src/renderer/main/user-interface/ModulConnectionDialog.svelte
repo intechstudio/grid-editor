@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./../modals/modal.store.ts";
+  import { modal } from "./../modals/modal.store";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";

@@ -2,7 +2,8 @@
   import { clickOutside } from "../_actions/click-outside.action";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
+  import MoltenModal from "./MoltenModal.svelte";
 
   const buildVariables = window.ctxProcess.buildVariables();
 

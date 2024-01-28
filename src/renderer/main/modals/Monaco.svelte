@@ -1,7 +1,8 @@
 <script>
   import { onDestroy, onMount } from "svelte";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import grid from "../../protocol/grid-protocol.js";
+  import MoltenModal from "./MoltenModal.svelte";
 
   import { clickOutside } from "../_actions/click-outside.action";
 

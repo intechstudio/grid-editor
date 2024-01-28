@@ -1,6 +1,7 @@
 <script>
   import { clickOutside } from "/main/_actions/click-outside.action";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
+  import MoltenModal from "./MoltenModal.svelte";
 
   let editor;
   let modalWidth;

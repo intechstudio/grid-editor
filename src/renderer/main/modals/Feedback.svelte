@@ -1,9 +1,10 @@
 <script>
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
+  import MoltenModal from "./MoltenModal.svelte";
 
   import { clickOutside } from "../_actions/click-outside.action";
   import { Analytics } from "../../runtime/analytics.js";
@@ -49,16 +50,8 @@
 
 <div id="modal-copy-placeholder" />
 
-<!-- transition:fade|global={{ duration: 150 }} -->
-<modal
-  class="z-40 flex absolute flex-col items-center justify-center w-full h-screen
-  bg-primary bg-opacity-50"
->
-  <!-- transition:slide|global={{ delay: 250, duration: 300, axis: "x" }} -->
-  <div
-    class="z-50 w-1/2 h-1/2 flex flex-col shadow-xl bg-primary
-bg-opacity-100 overflow-auto rounded-lg"
-  >
+<MoltenModal>
+  <div slot="content">
     <div
       use:clickOutside={{ useCapture: true }}
       on:click-outside={handleClickOutside}
@@ -148,5 +141,5 @@ bg-opacity-100 overflow-auto rounded-lg"
       <span class="text-gray-500">Developed by Intech Studio</span>
     </div>
     <div />
-  </div></modal
->
+  </div>
+</MoltenModal>
