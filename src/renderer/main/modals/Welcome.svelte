@@ -4,13 +4,9 @@
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
 
-  import { clickOutside } from "../_actions/click-outside.action";
-
   const configuration = window.ctxProcess.configuration();
 
   let video_link = "";
-
-  let modalElement;
 
   let video_id;
 
@@ -46,21 +42,9 @@
 
 <div id="modal-copy-placeholder" />
 
-<modal
-  class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-secondary bg-opacity-50"
->
-  <div
-    bind:this={modalElement}
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={() => {
-      modal.close();
-    }}
-    id="clickbox"
-    class="items-center z-50 w-3/5 text-white relative flex flex-col shadow
-    bg-primary bg-opacity-100 opacity-100 max-w-4xl"
-  >
-    <div class="p-6 flex-col w-full flex justify-between items-center">
+<MoltenModal>
+  <div slot="content">
+    <div class="flex-col w-full flex justify-between items-center mb-6">
       <div class="flex w-full text-4xl opacity-90">Grid Editor {version}</div>
       <div class="flex w-full text-2xl opacity-70">Intech Studio</div>
 
@@ -90,9 +74,9 @@
       </button>
     </div>
 
-    <div class="flex flex-row bg-primary w-full" style="">
-      <div class="px-2 flex flex-row w-full bg-black bg-opacity-20">
-        <div class="p-4 flex-col w-7/12 flex justify-between">
+    <div class="flex flex-row w-full">
+      <div class="flex flex-row gap-4 w-full">
+        <div class="flex-col w-7/12 flex justify-between">
           <div class="flex w-full text-xl opacity-70">Latest Release Video</div>
 
           <iframe
@@ -103,7 +87,9 @@
           />
         </div>
 
-        <div class="p-4 flex-col w-5/12 flex justify-between">
+        <div
+          class="p-4 flex-col w-5/12 flex justify-between bg-black bg-opacity-20"
+        >
           <div class="flex w-full text-xl opacity-70">Getting started</div>
           <button
             on:click={(e) => window.electron.openInBrowser(video_link)}
@@ -184,7 +170,7 @@
     </div>
 
     <div
-      class="flex flex-row w-full bottom-0 bg-black bg-opacity-10
+      class="flex flex-row w-full bottom-0
       justify-between items-center"
     >
       <div class="flex flex-col h-full p-6">
@@ -257,4 +243,4 @@
       </div>
     </div>
   </div>
-</modal>
+</MoltenModal>

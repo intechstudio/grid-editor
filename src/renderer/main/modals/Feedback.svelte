@@ -5,8 +5,6 @@
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
   import MoltenModal from "./MoltenModal.svelte";
-
-  import { clickOutside } from "../_actions/click-outside.action";
   import { Analytics } from "../../runtime/analytics.js";
 
   let textArea = undefined;
@@ -52,12 +50,7 @@
 
 <MoltenModal>
   <div slot="content">
-    <div
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
-      id="clickbox"
-      class="flex flex-col gap-4 px-8 pt-8 pb-4 flex-grow"
-    >
+    <div class="flex flex-col gap-4 flex-grow">
       <div class="flex-row w-full flex justify-between">
         <div class="flex flex-col">
           <span class="w-full text-4xl text-white">Send Feedback</span>
@@ -102,7 +95,7 @@
         <div class="flex flex-grow relative">
           <textarea
             bind:this={textArea}
-            class="bg-secondary p-2 w-full h-full text-white outline-none"
+            class="bg-secondary p-2 w-full h-32 text-white outline-none"
           />
           {#if feedbackSubmitted}
             <div
@@ -133,13 +126,7 @@
         <span class="text-white">Submit Feedback!</span>
       </button>
     </div>
-    <div
-      class="flex flex-col w-full h-content bg-black
-      bg-opacity-10 px-8 py-4"
-    >
-      <span class="text-gray-300"> Grid Editor is Open-Source Software </span>
-      <span class="text-gray-500">Developed by Intech Studio</span>
-    </div>
+
     <div />
   </div>
 </MoltenModal>

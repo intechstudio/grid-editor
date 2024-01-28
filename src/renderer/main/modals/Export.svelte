@@ -1,8 +1,5 @@
 <script>
-  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
   import { modal } from "./modal.store";
-
-  import { clickOutside } from "../_actions/click-outside.action";
   import { configManager } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
@@ -22,7 +19,7 @@
 <div id="modal-copy-placeholder" />
 
 <MoltenModal>
-  <div slot="content" class="w-[400px] flex flex-col gap-2 items-center">
+  <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 

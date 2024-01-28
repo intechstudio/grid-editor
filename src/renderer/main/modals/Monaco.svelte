@@ -1,10 +1,9 @@
 <script>
+  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
   import { modal } from "./modal.store";
   import grid from "../../protocol/grid-protocol.js";
   import MoltenModal from "./MoltenModal.svelte";
-
-  import { clickOutside } from "../_actions/click-outside.action";
 
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
 
@@ -16,12 +15,7 @@
 
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
-  import {
-    ConfigTarget,
-    ConfigList,
-    configManager,
-  } from "../panels/configuration/Configuration.store";
-  import CodeBlock from "../../config-blocks/CodeBlock.svelte";
+  import { configManager } from "../panels/configuration/Configuration.store";
 
   let monaco_block;
 
@@ -209,22 +203,13 @@
 
 <div id="modal-copy-placeholder" />
 
-<modal
-  class=" z-40 flex absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50"
->
+<MoltenModal>
   <div
-    bind:this={modalElement}
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={handleClickOutside}
-    id="clickbox"
-    class=" z-50 w-3/4 h-3/4 text-white relative flex flex-col shadow bg-primary bg-opacity-100 items-start opacity-100"
+    slot="content"
+    class=" h-[400px] text-white relative flex flex-col items-start"
   >
-    <div
-      class=" bg-black bg-opacity-10 flex-col w-full flex justify-between items-center"
-    >
-      <div
-        class="flex flex-row w-full bg-black bg-opacity-10 justify-between items-center p-6"
-      >
+    <div class="flex-col w-full flex justify-between items-center mb-2">
+      <div class="flex flex-row w-full justify-between items-center">
         <div class="flex flex-col h-full">
           <div class="flex w-full opacity-70">Edit Code</div>
           <div class="flex w-full opacity-40">
@@ -249,24 +234,25 @@
             </div>
           </div>
 
-          <button
+          <MoltenPushButton
             on:click={handleCommit}
             disabled={!commitEnabled}
-            class="w-24 p-2 bg-commit hover:bg-commit-saturate-20 text-white rounded focus:outline-none
-            {commitEnabled ? 'opacity-100' : 'opacity-50'}">Commit</button
-          >
+            text="Commit"
+            style="accept"
+          />
 
-          <button
+          <MoltenPushButton
             on:click={handleClose}
-            class="w-24 p-2 rounded text-white hover:bg-secondary bg-primary"
-          >
-            Close
-          </button>
+            text="Close"
+            style="normal"
+          />
         </div>
       </div>
     </div>
 
-    <div class="flex-col w-full h-full flex justify-between">
+    <div
+      class="flex-col w-full h-full flex justify-between bg-black bg-opacity-20 py-2"
+    >
       <div
         bind:this={monaco_block}
         class="flex-col w-full h-full flex justify-between"
@@ -282,7 +268,7 @@
       {/each}
     </div>
   </div>
-</modal>
+</MoltenModal>
 
 <style global>
   .debugtexty:nth-child(even) {
