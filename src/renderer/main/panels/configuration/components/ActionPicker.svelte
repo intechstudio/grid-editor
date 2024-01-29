@@ -1,4 +1,5 @@
 <script>
+  import { appSettings } from "/runtime/app-helper.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
@@ -285,75 +286,76 @@
   }
 </script>
 
-<Popover
-  isOpen={true}
-  id="tooltip"
-  {referenceElement}
-  placement={"left"}
-  spaceAlong={offset}
->
-  <pick-action
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={handleClickOutside}
-    class="flex w-96"
-    style={"max-height: calc(100vh - 27px)"}
+{#key $appSettings.workspaceHeight}
+  <Popover
+    isOpen={true}
+    id="tooltip"
+    {referenceElement}
+    placement={"left"}
+    spaceAlong={offset}
   >
-    <menu
-      id="action-menu"
-      class="shadow-md rounded-md bg-primary border border-gray-700 p-4"
+    <pick-action
+      use:clickOutside={{ useCapture: true }}
+      on:click-outside={handleClickOutside}
+      class="flex w-96"
+      style={`max-height: ${$appSettings.workspaceHeight}px`}
     >
-      <wrapper class="flex flex-col flex-grow h-full">
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div
-          on:click={handleClose}
-          id="close-btn"
-          style="top:8px; right:8px;"
-          class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary"
-        >
-          <svg
-            class="w-5 h-5 p-1 fill-current text-gray-500"
-            viewBox="0 0 29 29"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
+      <menu
+        id="action-menu"
+        class="shadow-md rounded-md bg-primary border border-gray-700 p-4"
+      >
+        <wrapper class="flex flex-col flex-grow h-full">
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
+          <div
+            on:click={handleClose}
+            id="close-btn"
+            style="top:8px; right:8px;"
+            class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary"
           >
-            <path
-              d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-            />
-            <path
-              d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-            />
-          </svg>
-        </div>
+            <svg
+              class="w-5 h-5 p-1 fill-current text-gray-500"
+              viewBox="0 0 29 29"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
+              />
+              <path
+                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
+              />
+            </svg>
+          </div>
 
-        <div class="flex flex-col w-full overflow-y-auto">
-          {#each options as option}
-            <div class="text-gray-500 text-sm">{option.category}</div>
+          <div class="flex flex-col w-full overflow-y-auto">
+            {#each options as option}
+              <div class="text-gray-500 text-sm">{option.category}</div>
 
-            <div class="w-full flex justify-start py-1 h-full flex-wrap">
-              {#each option.components as component}
-                <!-- svelte-ignore a11y-click-events-have-key-events -->
-                <!-- svelte-ignore a11y-no-static-element-interactions -->
-                <div
-                  style="--action-color: {component.information.color};"
-                  on:click={() => handleAddAction({ component })}
-                  class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
-                >
-                  <div class="w-6 h-6 p-0.5 m-0.5">
-                    {@html component.information.icon}
-                  </div>
+              <div class="w-full flex justify-start py-1 h-full flex-wrap">
+                {#each option.components as component}
+                  <!-- svelte-ignore a11y-click-events-have-key-events -->
+                  <!-- svelte-ignore a11y-no-static-element-interactions -->
                   <div
-                    class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
+                    style="--action-color: {component.information.color};"
+                    on:click={() => handleAddAction({ component })}
+                    class="action-card border-2 hover:border-pick border-primary cursor-pointer py-0.5 px-1 mx-1 flex items-center rounded-md text-white"
                   >
-                    {component.information.displayName}
+                    <div class="w-6 h-6 p-0.5 m-0.5">
+                      {@html component.information.icon}
+                    </div>
+                    <div
+                      class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
+                    >
+                      {component.information.displayName}
+                    </div>
                   </div>
-                </div>
-              {/each}
-            </div>
-          {/each}
-        </div>
+                {/each}
+              </div>
+            {/each}
+          </div>
 
-        <!-- <div class="w-full mt-2 flex items-end">
+          <!-- <div class="w-full mt-2 flex items-end">
           <button
             disabled={promptValue.length == 0}
             class:disabled={promptValue.length == 0}
@@ -371,20 +373,21 @@
             />
           </div>
         </div> -->
-        <button
-          on:click={handlePaste}
-          disabled={!pasteEnabled}
-          class="shadow-md bg-pick text-white flex w-full
+          <button
+            on:click={handlePaste}
+            disabled={!pasteEnabled}
+            class="shadow-md bg-pick text-white flex w-full
           mt-4 p-1 rounded focus:outline-none items-center justify-center"
-          class:hover:bg-pick-desaturate-10={pasteEnabled}
-          class:opacity-50={!pasteEnabled}
-        >
-          <span> Paste </span>
-        </button>
-      </wrapper>
-    </menu>
-  </pick-action>
-</Popover>
+            class:hover:bg-pick-desaturate-10={pasteEnabled}
+            class:opacity-50={!pasteEnabled}
+          >
+            <span> Paste </span>
+          </button>
+        </wrapper>
+      </menu>
+    </pick-action>
+  </Popover>
+{/key}
 
 <style>
   .action-card {

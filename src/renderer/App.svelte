@@ -223,6 +223,8 @@
   spellcheck="false"
   class="dark relative flex w-full h-full flex-row justify-between overflow-hidden"
   style="font-size:{$appSettings.persistent.fontSize}px;"
+  bind:clientHeight={$appSettings.workspaceHeight}
+  bind:clientWidth={$appSettings.workspaceWidth}
 >
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
