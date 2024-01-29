@@ -503,8 +503,7 @@ function create_configuration_manager() {
     });
   }
 
-  function handleDataChange() {
-    const list = get(internal);
+  function handleDataChange(list) {
     ConfigList.updateIndentation(list);
   }
 
