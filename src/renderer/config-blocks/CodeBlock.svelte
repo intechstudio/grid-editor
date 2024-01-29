@@ -152,7 +152,7 @@
   function open_monaco() {
     $monaco_store = { config: config.makeCopy(), index: index };
     $monaco_elementtype = access_tree.elementtype;
-    modal.show(Monaco);
+    modal.show(Monaco, { snap: "middle" });
   }
 </script>
 
