@@ -1,7 +1,7 @@
 <script>
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
-  import { modal } from "./modal.store";
+  import { modal } from "./modal.store.ts";
   import MoltenModal from "./MoltenModal.svelte";
 
   const buildVariables = window.ctxProcess.buildVariables();

@@ -14,7 +14,7 @@
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { modal } from "../../modals/modal.store";
+  import { modal } from "../../modals/modal.store.ts";
   import UserLogin from "../../modals/UserLogin.svelte";
 
   const configuration = window.ctxProcess.configuration();

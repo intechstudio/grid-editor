@@ -1,7 +1,7 @@
 <script>
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
-  import { modal } from "./modal.store";
+  import { modal } from "./modal.store.ts";
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
   import MoltenModal from "./MoltenModal.svelte";

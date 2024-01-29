@@ -49,7 +49,7 @@
 
   import { monaco_editor } from "$lib/CustomMonaco";
   import { committed_code_store } from "./Committed_Code.store";
-  import { modal } from "../main/modals/modal.store";
+  import { modal } from "../main/modals/modal.store.ts";
   import Monaco from "../main/modals/Monaco.svelte";
 
   const dispatch = createEventDispatcher();

@@ -1,5 +1,5 @@
 import { writable, get, readable } from "svelte/store";
-import { modal } from "../main/modals/modal.store";
+import { modal } from "../main/modals/modal.store.ts";
 import Welcome from "../main/modals/Welcome.svelte";
 
 const configuration = window.ctxProcess.configuration();
