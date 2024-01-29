@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./../../modals/modal.store";
+  import { modal } from "./../../modals/modal.store.ts";
   import Export from "./../../modals/Export.svelte";
   import {
     debug_monitor_store,

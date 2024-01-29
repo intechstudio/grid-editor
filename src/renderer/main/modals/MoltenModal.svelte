@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { modal } from "./modal.store";
+  import { modal } from "./modal.store.ts";
 
   export let width: number = 600;
 
