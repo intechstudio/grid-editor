@@ -174,8 +174,10 @@ export class ConfigList extends Array {
 
   static updateIndentation(list) {
     let indentation = 0;
+    console.log(list);
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
+      console.log(config);
       if (config.information.type === "composite_open") {
         config.indentation = indentation++;
       } else if (config.information.type === "composite_close") {
@@ -502,7 +504,8 @@ function create_configuration_manager() {
   }
 
   function handleDataChange() {
-    ConfigList.updateIndentation(internal);
+    const list = get(internal);
+    ConfigList.updateIndentation(list);
   }
 
   function updateOverride(func) {

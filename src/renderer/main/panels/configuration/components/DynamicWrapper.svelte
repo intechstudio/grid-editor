@@ -84,6 +84,8 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
+
+  $: console.log(config.indentation);
 </script>
 
 <wrapper
