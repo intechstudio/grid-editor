@@ -296,6 +296,7 @@
     use:clickOutside={{ useCapture: true }}
     on:click-outside={handleClickOutside}
     class="flex w-96"
+    style={"max-height: calc(100vh - 27px)"}
   >
     <menu
       id="action-menu"
