@@ -207,7 +207,7 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
-  <svelte:component this={$modal} />
+  <svelte:component this={$modal?.component} />
 
   <!-- Update notification -->
   <Updater />
