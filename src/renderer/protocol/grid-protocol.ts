@@ -2,6 +2,42 @@ import * as grid_protocol from "grid-protocol/grid_protocol_bot.json";
 
 import lodash from "lodash";
 
+export enum ModuleType {
+  BU16 = "BU16",
+  EF44 = "EF44",
+  EN16 = "EN16",
+  PBF4 = "PBF4",
+  PO16 = "PO16",
+  TEK2 = "TEK2",
+}
+
+export enum EventType {
+  INIT = "init",
+  POTMETER = "potmeter",
+  ENCODER = "encoder",
+  BUTTON = "button",
+  MAP = "map",
+  MIDIRX = "midirx",
+  TIMER = "timer",
+}
+
+export enum ElementType {
+  BLANK = "blank",
+  SYSTEM = "system",
+  BUTTON = "button",
+  POTENTIOMETER = "potentiometer",
+  ENCODER = "encoder",
+  FADER = "fader",
+}
+
+export enum Architecture {
+  ESP32 = "esp32",
+  D51 = "d51",
+  VIRTUAL = "virtual",
+}
+
+export type HWCFG = number;
+
 const editor_lua_properties = [
   {
     type: "arithmetic_operator",
@@ -389,43 +425,43 @@ export const CEEAT = {
     key: "UNDEFINED",
   },
 
-  init: {
+  [EventType.INIT]: {
     desc: "init",
     value: "0",
     key: "INIT",
   },
 
-  potmeter: {
+  [EventType.POTMETER]: {
     desc: "potmeter",
     value: "1",
     key: "AC",
   },
 
-  encoder: {
+  [EventType.ENCODER]: {
     desc: "encoder",
     value: "2",
     key: "EC",
   },
 
-  button: {
+  [EventType.BUTTON]: {
     desc: "button",
     value: "3",
     key: "BC",
   },
 
-  map: {
+  [EventType.MAP]: {
     desc: "utility",
     value: "4",
     key: "MAP",
   },
 
-  midirx: {
+  [EventType.MIDIRX]: {
     desc: "midi rx",
     value: "5",
     key: "MIDIRX",
   },
 
-  timer: {
+  [EventType.TIMER]: {
     desc: "timer",
     value: "6",
     key: "TIMER",
@@ -434,141 +470,155 @@ export const CEEAT = {
 
 // default module elements at specific positions
 let moduleElements = {
-  PO16: [
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
+  [ModuleType.PO16]: [
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
   ],
-  PBF4: [
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "potentiometer",
-    "fader",
-    "fader",
-    "fader",
-    "fader",
-    "button",
-    "button",
-    "button",
-    "button",
+  [ModuleType.PBF4]: [
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.POTENTIOMETER,
+    ElementType.FADER,
+    ElementType.FADER,
+    ElementType.FADER,
+    ElementType.FADER,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
   ],
-  BU16: [
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
+  [ModuleType.BU16]: [
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
   ],
-  EN16: [
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
+  [ModuleType.EN16]: [
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
   ],
-  EF44: [
-    "encoder",
-    "encoder",
-    "encoder",
-    "encoder",
-    "fader",
-    "fader",
-    "fader",
-    "fader",
+  [ModuleType.EF44]: [
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
+    ElementType.FADER,
+    ElementType.FADER,
+    ElementType.FADER,
+    ElementType.FADER,
   ],
-  TEK2: [
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "button",
-    "encoder",
-    "encoder",
+  [ModuleType.TEK2]: [
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.BUTTON,
+    ElementType.ENCODER,
+    ElementType.ENCODER,
   ],
 };
 
 // add utility (system events) control element or map mode at 255
-moduleElements["BU16"][255] = "system";
-moduleElements["EN16"][255] = "system";
-moduleElements["PBF4"][255] = "system";
-moduleElements["PO16"][255] = "system";
-moduleElements["EF44"][255] = "system";
-moduleElements["TEK2"][255] = "system";
+moduleElements[ModuleType.BU16][255] = ElementType.SYSTEM;
+moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
+moduleElements[ModuleType.PBF4][255] = ElementType.SYSTEM;
+moduleElements[ModuleType.PO16][255] = ElementType.SYSTEM;
+moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
+moduleElements[ModuleType.TEK2][255] = ElementType.SYSTEM;
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
-  button: [CEEAT.init, CEEAT.button, CEEAT.timer],
-  potentiometer: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  fader: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  blank: [CEEAT.undef],
-  encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer],
-  system: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer],
+  [ElementType.BUTTON]: [CEEAT.init, CEEAT.button, CEEAT.timer],
+  [ElementType.POTENTIOMETER]: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
+  [ElementType.FADER]: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
+  [ElementType.BLANK]: [CEEAT.undef],
+  [ElementType.ENCODER]: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer],
+  [ElementType.SYSTEM]: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer],
 };
+
+/*
+const filteredObject = Object.entries(grid_protocol)
+          .filter(
+            ([key, value]) =>
+              typeof value !== "object" && key.startsWith("GRID_MODULE_")
+          )
+          .map((e) => {
+            const [key, value]: [string, string] = e;
+            return 
+          });*/
 
 class GridProtocol {
   public moduleElements: any = moduleElements;
   public elementEvents: any = elementEvents;
   public properties: any = this.parse_properties();
 
-  public module_type_from_hwcfg(hwcfg) {
-    var HWCFG = grid.properties.HWCFG;
-    let type = "";
+  public module_type_from_hwcfg(hwcfg: HWCFG): ModuleType | undefined {
+    const HWCFG: HWCFG[] = grid.properties.HWCFG;
+    let type = undefined;
+
     for (const key in HWCFG) {
       if (HWCFG[key] == hwcfg) {
-        return (type = key);
+        type = ModuleType[key.substring(0, 4)];
       }
     }
+
+    return type;
   }
 
-  public module_architecture_from_hwcfg(hwcfg) {
+  public module_architecture_from_hwcfg(hwcfg: HWCFG) {
     if (hwcfg % 2 === 1) {
-      return "esp32";
+      return Architecture.ESP32;
     } else {
-      return "d51";
+      return Architecture.D51;
     }
   }
 
   parse_properties() {
-    let HWCFG: any = {};
+    let HWCFG: Map<string, number> = new Map();
     let CONST: any = {};
     let INSTR: any = {};
     let CLASSES: any = {};
@@ -577,15 +627,17 @@ class GridProtocol {
     let BRC: any = {};
     let VERSION: any = {};
     let PARAMETERS: any = {};
-    let HEARTBEAT_INTERVAL: any = 0;
-    let CONFIG_LENGTH: any = 0;
+    let HEARTBEAT_INTERVAL: number = 0;
+    let CONFIG_LENGTH: number = 0;
     let LUA_AUTOCOMPLETE: any = [];
+
+    Object.values;
 
     for (const key in grid_protocol) {
       if (typeof grid_protocol[key] !== "object") {
         // GRID MODULE HWCFGS
         if (key.startsWith("GRID_MODULE_")) {
-          let paramName = key.substr("GRID_MODULE_".length);
+          const paramName: string = key.substring("GRID_MODULE_".length);
           HWCFG[paramName] = +grid_protocol[key];
         }
 
