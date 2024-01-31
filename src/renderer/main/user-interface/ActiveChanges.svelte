@@ -63,7 +63,7 @@
           type: "alert",
           mode: 0,
           classname: "pagestore",
-          message: `Retry page store...`,
+          message: `Unsuccessful page store! Please retry!`,
         });
       });
   }
@@ -74,20 +74,14 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        configManager
-          .refresh()
-          .then(() => {
-            logger.set({
-              type: "success",
-              mode: 0,
-              classname: "pageclear",
-              message: `Page clear complete!`,
-            });
-          })
-          .catch((e) => {
-            console.error(e);
-            //TODO: make feedback for fail
+        configManager.refresh().then(() => {
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "pageclear",
+            message: `Page clear complete!`,
           });
+        });
       })
       .catch((e) => {
         console.error(e);
@@ -95,7 +89,7 @@
           type: "alert",
           mode: 0,
           classname: "pageclear",
-          message: `Retry clear page...`,
+          message: `Unsuccessful page clear! Please retry!`,
         });
       });
 
@@ -136,7 +130,7 @@
             type: "alert",
             mode: 0,
             classname: "pagediscard",
-            message: `Retry configuration discard...`,
+            message: `Unsuccessful page discard! Please retry!`,
           });
         });
 
