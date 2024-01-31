@@ -5,30 +5,38 @@ import {
   ModuleType,
   ElementType,
 } from "../protocol/grid-protocol";
+import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
 import {
   InstructionClass,
   InstructionClassName,
   BufferElement,
 } from "../serialport/instructions";
 
-const GRID_ACTIONSTRING_INIT_POT: string = `<?lua --[[@l]] local num,val,red,gre,blu=self:ind(),self:pva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu)--[[@glp]] glp(num,1,val) ?>`;
-const GRID_ACTIONSTRING_INIT_BUT: string = `<?lua --[[@l]] local num,val,red,gre,blu=self:ind(),self:bva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu)--[[@glp]] glp(num,1,val) ?>`;
-const GRID_ACTIONSTRING_MIDIRX: string = `<?lua --[[@l]] local ch,cmd,param1,param2=midi.ch,midi.cmd,midi.p1,midi.p2 ?>`;
-const GRID_ACTIONSTRING_TIMER: string = `<?lua --[[@cb]] print('tick') ?>`;
-const GRID_ACTIONSTRING_INIT_ENC: string = `<?lua --[[@l]] local num,bval,eval,red,gre,blu=self:ind(),self:bva(),self:eva(),glr(),glg(),glb()--[[@glc]] glc(num,1,red,gre,blu)--[[@glc]] glc(num,2,red,gre,blu)--[[@glp]] glp(num,1,bval)--[[@glp]] glp(num,2,eval) ?>`;
-const GRID_ACTIONSTRING_AC: string = `<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:pva(),(gmy()*4+gpc())%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,1,val) ?>`;
-const GRID_ACTIONSTRING_BC: string = `<?lua --[[@l]] local num,val,ch,note=self:ind(),self:bva(),(gmy()*4+gpc())%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,144,note,val)--[[@glp]] glp(num,1,val) ?>`;
-const GRID_ACTIONSTRING_EC: string = `<?lua --[[@l]] local num,val,ch,cc=self:ind(),self:eva(),(gmy()*4+gpc())%16,(32+gmx()*16+self:ind())%128--[[@gms]] gms(ch,176,cc,val)--[[@glp]] glp(num,2,val) ?>`;
-const GRID_ACTIONSTRING_PAGE_INIT: string = `<?lua --[[@cb]] --[[page init]] ?>`;
-const GRID_ACTIONSTRING_MAPMODE_CHANGE: string = `<?lua --[[@cb]] gpl(gpn()) ?>`;
-
 export const VirtualModuleHWCFG = {
-  BU16: { hwcfg: 129, type: ModuleType.BU16 }, //RevD
-  EF44: { hwcfg: 33, type: ModuleType.EF44 }, //RevD
-  EN16: { hwcfg: 193, type: ModuleType.EN16 }, //RevD
-  PBF4: { hwcfg: 65, type: ModuleType.PBF4 }, //RevD
-  PO16: { hwcfg: 1, type: ModuleType.PO16 }, //RevD
-  TEK2: { hwcfg: 17, type: ModuleType.TEK2 }, //RevA
+  BU16: {
+    hwcfg: grid_protocol.GRID_MODULE_BU16_RevD,
+    type: ModuleType.BU16,
+  },
+  EF44: {
+    hwcfg: grid_protocol.GRID_MODULE_EF44_RevD,
+    type: ModuleType.EF44,
+  },
+  EN16: {
+    hwcfg: grid_protocol.GRID_MODULE_EN16_RevD,
+    type: ModuleType.EN16,
+  },
+  PBF4: {
+    hwcfg: grid_protocol.GRID_MODULE_PBF4_RevD,
+    type: ModuleType.PBF4,
+  },
+  PO16: {
+    hwcfg: grid_protocol.GRID_MODULE_PO16_RevD,
+    type: ModuleType.PO16,
+  },
+  TEK2: {
+    hwcfg: grid_protocol.GRID_MODULE_TEK2_RevA,
+    type: ModuleType.TEK2,
+  },
 };
 
 function answerExecuteTypeRequest(obj: BufferElement) {
@@ -205,49 +213,17 @@ class VirtualModule {
       events: events.map((e) => {
         return {
           value: Number(e.value),
-          config: this.getEventConfiguration(type, Number(e.value)),
-          stored: this.getEventConfiguration(type, Number(e.value)),
+          config: e.defaultConfig,
+          stored: e.defaultConfig,
         };
       }),
     };
   }
 
-  private getEventConfiguration(type: ElementType, event: number) {
-    switch (event) {
-      case 0: {
-        // INIT for all types of control elements
-        if (type === ElementType.BUTTON) {
-          return GRID_ACTIONSTRING_INIT_BUT;
-        } else if (type === ElementType.ENCODER) {
-          return GRID_ACTIONSTRING_INIT_ENC;
-        } else if (
-          type === ElementType.FADER ||
-          type === ElementType.POTENTIOMETER
-        ) {
-          return GRID_ACTIONSTRING_INIT_POT;
-        } else if (type === ElementType.SYSTEM) {
-          return GRID_ACTIONSTRING_PAGE_INIT;
-        } else throw "Unknown Virtual Element type";
-      }
-      case 1: //FADER and POTMETER
-        return GRID_ACTIONSTRING_AC;
-      case 2: //ENCODER
-        return GRID_ACTIONSTRING_EC;
-      case 3: //BUTTON
-        return GRID_ACTIONSTRING_BC;
-      case 4: //MAPMODE-UTILITY BUTTON
-        return GRID_ACTIONSTRING_MAPMODE_CHANGE;
-      case 5: //MIDI RX
-        return GRID_ACTIONSTRING_MIDIRX;
-      case 6: //TIMER
-        return GRID_ACTIONSTRING_TIMER;
-    }
-  }
-
   private initConfiguration(type: ModuleType) {
-    const control_elements = grid
-      .get_module_element_list(type)
-      .map((e: string) => this.createControlElement(e as ElementType));
+    const control_elements = grid.moduleElements[type].map((e: string) =>
+      this.createControlElement(e as ElementType)
+    );
     this.pages = Array(4).fill({
       elements: control_elements,
     });

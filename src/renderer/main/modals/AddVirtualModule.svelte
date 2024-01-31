@@ -1,15 +1,15 @@
 <script>
+  import { ModuleType } from "./../../protocol/grid-protocol.ts";
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
   import MeltSelect from "../panels/preferences/MeltSelect.svelte";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
-  import { VirtualModuleTypes } from "../../runtime/virtual-engine";
 
   let modal = undefined;
 
   let selected = 0;
-  let options = Object.keys(VirtualModuleTypes).map((key, index) =>
+  let options = Object.keys(ModuleType).map((key, index) =>
     Object({ title: key, value: index })
   );
 

@@ -572,12 +572,55 @@ moduleElements[ModuleType.TEK2][255] = ElementType.SYSTEM;
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
-  [ElementType.BUTTON]: [CEEAT.init, CEEAT.button, CEEAT.timer],
-  [ElementType.POTENTIOMETER]: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  [ElementType.FADER]: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  [ElementType.BLANK]: [CEEAT.undef],
-  [ElementType.ENCODER]: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer],
-  [ElementType.SYSTEM]: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer],
+  [ElementType.BUTTON]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_BUT,
+    },
+    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  [ElementType.POTENTIOMETER]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+    },
+    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  [ElementType.FADER]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+    },
+    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  [ElementType.BLANK]: [{ ...CEEAT.undef, defaultConfig: "" }],
+  [ElementType.ENCODER]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_ENC,
+    },
+    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
+    { ...CEEAT.encoder, defaultConfig: grid_protocol.GRID_ACTIONSTRING_EC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  [ElementType.SYSTEM]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_PAGE_INIT,
+    },
+    {
+      ...CEEAT.map,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MAPMODE_CHANGE,
+    },
+    {
+      ...CEEAT.midirx,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MIDIRX,
+    },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
 };
 
 class GridProtocol {
@@ -598,11 +641,11 @@ class GridProtocol {
     return type;
   }
 
-  public get_module_element_list(type: ModuleType){
+  public get_module_element_list(type: ModuleType) {
     return moduleElements[type];
   }
 
-  public get_element_events(type: ElementType){
+  public get_element_events(type: ElementType) {
     return elementEvents[type];
   }
 

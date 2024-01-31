@@ -4,6 +4,7 @@ const path = require("path");
 
 let buildVariables = {
   BUILD_ENV: "nightly",
+  BUILD_TARGET: "electron",
   PROFILE_CLOUD_URL: "http://localhost:5200",
 };
 

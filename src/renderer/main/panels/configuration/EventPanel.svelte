@@ -57,10 +57,11 @@
 
     //Get events
     events = target.events.map((e) => {
+      const name = String(
+        Object.values(CEEAT).find((obj) => obj.value == e.type).desc
+      );
       return new Event({
-        name: String(
-          Object.keys(CEEAT).find((key) => CEEAT[key].value == e.type)
-        ),
+        name: name,
         type: Number(e.type),
         dx: target.device.dx,
         dy: target.device.dy,

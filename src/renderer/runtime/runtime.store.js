@@ -568,22 +568,22 @@ function create_runtime() {
         const event = e.event;
 
         _runtime.update((_runtime) => {
-          console.log(x, y, page, element, event);
           let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-          dest.config = e.config;
+          if (typeof dest !== "undefined") {
+            dest.config = e.config;
+            const promise = instructions.sendConfigToGrid(
+              x,
+              y,
+              page,
+              element,
+              event,
+              e.config
+            );
+
+            promises.push(promise);
+          }
           return _runtime;
         });
-
-        const promise = instructions.sendConfigToGrid(
-          x,
-          y,
-          page,
-          element,
-          event,
-          e.config
-        );
-
-        promises.push(promise);
       });
       Promise.all(promises)
         .then(() => {
@@ -841,6 +841,9 @@ function create_runtime() {
       const moduleElements = grid.get_module_element_list(moduleType);
 
       for (const [index, element] of moduleElements.entries()) {
+        if (!element) {
+          continue;
+        }
         let events = [];
         const elementEvents = grid.get_element_events(element);
         for (const event of elementEvents) {

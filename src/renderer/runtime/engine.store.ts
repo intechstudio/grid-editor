@@ -30,9 +30,64 @@ class GridResponse {
   }
 }
 
+class ResponseWaiter {
+  private timeoutId: NodeJS.Timeout | null = null;
+  private resolve!: (response: GridResponse) => void;
+  public promise: Promise<GridResponse>;
+  public startTimestamp: number | undefined = undefined;
+  public stopTimestamp: number | undefined = undefined;
+  public duration: number | undefined = undefined; //Time between start and stop
+
+  constructor(public bufferelement: any, private timeout: number) {
+    this.promise = new Promise<GridResponse>((resolve) => {
+      this.resolve = resolve;
+    });
+  }
+
+  public waitResponse(): Promise<GridResponse> {
+    this.startTimestamp = Date.now();
+    this.timeoutId = setTimeout(() => {
+      const response = new GridResponse(
+        ResponseStatus.TIMEOUT,
+        null,
+        `Timeout with ${this.timeout}ms`
+      );
+      this.resolve(response);
+    }, this.timeout);
+
+    return this.promise;
+  }
+
+  public provideResponse(data: any): void {
+    if (this.timeoutId !== null) {
+      this.stopTimestamp = Date.now();
+      this.duration = this.stopTimestamp! - this.startTimestamp!;
+      clearTimeout(this.timeoutId);
+      const response = new GridResponse(ResponseStatus.OK, data);
+      this.resolve(response);
+    }
+  }
+
+  public destroy(): void {
+    if (this.timeoutId !== null) {
+      this.stopTimestamp = Date.now();
+      this.duration = this.stopTimestamp! - this.startTimestamp!;
+      clearTimeout(this.timeoutId);
+      const response = new GridResponse(
+        ResponseStatus.ERROR,
+        null,
+        "Waiting for response was interrupted"
+      );
+      this.resolve(response);
+    }
+  }
+}
+
+let waiter: ResponseWaiter | undefined = undefined;
+
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
-  let processingBufferElement = false;
+  let processing = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
@@ -57,7 +112,7 @@ function createWriteBuffer() {
     _write_buffer.set([]);
     waiter?.destroy();
     waiter = undefined;
-    processingBufferElement = false;
+    processing = false;
   }
 
   function sendDataToGrid(descr: any): Promise<any> {
@@ -78,120 +133,83 @@ function createWriteBuffer() {
     });
   }
 
-  class ResponseWaiter {
-    private timeoutId: NodeJS.Timeout | null = null;
-    private resolve!: (response: GridResponse) => void;
-    public promise: Promise<GridResponse>;
-
-    constructor(public bufferelement: any, private duration: number) {
-      this.promise = new Promise<GridResponse>((resolve) => {
-        this.resolve = resolve;
-      });
-    }
-
-    waitResponse(): Promise<GridResponse> {
-      this.timeoutId = setTimeout(() => {
-        const response = new GridResponse(
-          ResponseStatus.TIMEOUT,
-          null,
-          `Timeout with ${this.duration}ms`
-        );
-        this.resolve(response);
-      }, this.duration);
-
-      return this.promise;
-    }
-
-    provideResponse(data: any): void {
-      if (this.timeoutId !== null) {
-        clearTimeout(this.timeoutId);
-        const response = new GridResponse(ResponseStatus.OK, data);
-        this.resolve(response);
-      }
-    }
-
-    destroy(): void {
-      if (this.timeoutId !== null) {
-        clearTimeout(this.timeoutId);
-        const response = new GridResponse(
-          ResponseStatus.ERROR,
-          null,
-          "Waiting for response was interrupted"
-        );
-        this.resolve(response);
-      }
-    }
-  }
-
   async function waitResponseFromGrid(
     bufferElement: any,
     timeout: number
   ): Promise<GridResponse> {
     waiter = new ResponseWaiter(bufferElement, timeout);
-    return await waiter.waitResponse();
+    const response = await waiter.waitResponse();
+    waiter = undefined;
+    return response;
   }
 
   async function sleep(time: number) {
     await new Promise((resolve) => setTimeout(resolve, time));
   }
 
-  let waiter: ResponseWaiter | undefined = undefined;
-  function processElement(incoming: BufferElement): Promise<any> {
-    return new Promise<any>(async (resolve, reject) => {
-      let processed = false;
-      while (!processed) {
-        if (
-          serial_write_islocked() ||
-          processingBufferElement ||
-          get(writeBuffer)[0] !== incoming
-        ) {
-          await sleep(1);
-          continue;
-        }
-
-        //Serial port is available, we can process the current command
-        processingBufferElement = true;
-        _write_buffer.update((s) => {
-          s.shift();
-          return s;
-        });
-
-        do {
-          const { id } = await sendDataToGrid(incoming.descr);
-          if (
-            incoming.responseRequired &&
-            incoming.filter !== undefined &&
-            incoming.filter.class_parameters !== undefined &&
-            incoming.filter.class_parameters["LASTHEADER"] !== undefined
-          ) {
-            incoming.filter.class_parameters["LASTHEADER"] = id;
-          }
-
-          if (incoming.responseRequired === true) {
-            const timeout = incoming.responseTimeout ?? 1000;
-            const result = await waitResponseFromGrid(incoming, timeout);
-            switch (result.status) {
+  async function sendToGrid(bufferElement: BufferElement) {
+    return new Promise((resolve, reject) => {
+      sendDataToGrid(bufferElement.descr)
+        .then(async (result) => {
+          const { id } = result;
+          if (bufferElement.responseRequired === true) {
+            const { class_parameters } = bufferElement.filter || {};
+            if (class_parameters?.LASTHEADER !== undefined) {
+              class_parameters.LASTHEADER = id;
+            }
+            const timeout = bufferElement.responseTimeout ?? 1000;
+            const response = await waitResponseFromGrid(bufferElement, timeout);
+            switch (response.status) {
               case ResponseStatus.OK: {
-                resolve(result.data);
-                processed = true;
+                resolve(response.data);
                 break;
               }
               case ResponseStatus.ERROR: {
-                reject(result.error);
+                reject(response.error);
                 break;
               }
               case ResponseStatus.TIMEOUT: {
-                console.log(result.error);
+                console.log(response.error);
+                resolve(sendToGrid(bufferElement)); // RETRY recursively until processed
                 break;
               }
             }
           } else {
             resolve(null);
-            processed = true;
           }
-        } while (!processed);
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
+  }
+
+  function processElement(current: BufferElement): Promise<any> {
+    return new Promise<any>(async (resolve, reject) => {
+      while (
+        serial_write_islocked() ||
+        processing ||
+        get(writeBuffer)[0] !== current
+      ) {
+        await sleep(1);
       }
-      processingBufferElement = false;
+
+      //Serial port is available, we can process the current command
+      processing = true;
+      _write_buffer.update((s) => {
+        s.shift();
+        return s;
+      });
+
+      sendToGrid(current)
+        .then((result) => {
+          resolve(result);
+          processing = false;
+        })
+        .catch((e) => {
+          reject(e);
+          processing = false;
+        });
     });
   }
 
