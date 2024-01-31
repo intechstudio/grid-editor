@@ -33,8 +33,6 @@
     handleTargetChange();
   }
 
-  $: console.log(target);
-
   function handleTargetChange() {
     if ($selected.value === target) {
       return;
