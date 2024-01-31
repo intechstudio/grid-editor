@@ -8,7 +8,7 @@
 
   function getDefaultSelected() {
     const obj = options.find((e: SelectOption) => e.value === target);
-    return { label: obj.title, value: obj.value };
+    return { label: obj?.title, value: obj?.value };
   }
 
   const {
@@ -25,13 +25,28 @@
     defaultSelected: getDefaultSelected(),
   });
 
-  $: handleSelectionChange($selected);
+  $: if ($selected) {
+    handleSelectionChange();
+  }
 
-  function handleSelectionChange(selected: { label: string; value: any }) {
-    if (selected === target) {
+  $: if (target) {
+    handleTargetChange();
+  }
+
+  function handleTargetChange() {
+    if ($selected.value === target) {
       return;
     }
-    target = selected.value;
+
+    const obj = options.find((e: SelectOption) => e.value === target);
+    selected.set({ label: obj?.title, value: obj?.value });
+  }
+
+  function handleSelectionChange() {
+    if ($selected.value === target) {
+      return;
+    }
+    target = $selected.value;
   }
 </script>
 
