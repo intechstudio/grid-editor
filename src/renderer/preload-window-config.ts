@@ -11,6 +11,9 @@
 
 import configuration from "../../configuration.json";
 import buildVariables from "../../buildVariables.json";
+import { version } from "../../package.json";
+
+configuration.EDITOR_VERSION = version;
 
 declare global {
   interface Window {
