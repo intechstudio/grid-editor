@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
 
   export let width: number = 600;
 
@@ -16,7 +16,7 @@
   on:click|self={close}
 >
   <div
-    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 text-white shadow-md py-6 px-12
+    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 text-white shadow-md p-6
       bg-primary rounded"
     style="width: {width}px; max-width: calc(100% - 80px)"
   >

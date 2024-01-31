@@ -1,6 +1,6 @@
 <script>
   import MoltenModal from "./MoltenModal.svelte";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
 

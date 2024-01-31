@@ -11,7 +11,7 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
-import { modal } from "../main/modals/modal.store.ts";
+import { modal } from "../main/modals/modal.store";
 
 let lastPageActivator = "";
 

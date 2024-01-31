@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./main/modals/modal.store.ts";
+  import { modal } from "./main/modals/modal.store";
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";

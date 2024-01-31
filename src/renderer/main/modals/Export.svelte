@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import { configManager } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
