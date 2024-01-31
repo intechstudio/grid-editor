@@ -580,17 +580,6 @@ const elementEvents = {
   [ElementType.SYSTEM]: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer],
 };
 
-/*
-const filteredObject = Object.entries(grid_protocol)
-          .filter(
-            ([key, value]) =>
-              typeof value !== "object" && key.startsWith("GRID_MODULE_")
-          )
-          .map((e) => {
-            const [key, value]: [string, string] = e;
-            return 
-          });*/
-
 class GridProtocol {
   public moduleElements: any = moduleElements;
   public elementEvents: any = elementEvents;
@@ -607,6 +596,14 @@ class GridProtocol {
     }
 
     return type;
+  }
+
+  public get_module_element_list(type: ModuleType){
+    return moduleElements[type];
+  }
+
+  public get_element_events(type: ElementType){
+    return elementEvents[type];
   }
 
   public module_architecture_from_hwcfg(hwcfg: HWCFG) {

@@ -1,5 +1,10 @@
 import { get, writable } from "svelte/store";
-import { grid } from "../protocol/grid-protocol";
+import {
+  grid,
+  EventType,
+  ModuleType,
+  ElementType,
+} from "../protocol/grid-protocol";
 import {
   InstructionClass,
   InstructionClassName,
@@ -17,40 +22,13 @@ const GRID_ACTIONSTRING_EC: string = `<?lua --[[@l]] local num,val,ch,cc=self:in
 const GRID_ACTIONSTRING_PAGE_INIT: string = `<?lua --[[@cb]] --[[page init]] ?>`;
 const GRID_ACTIONSTRING_MAPMODE_CHANGE: string = `<?lua --[[@cb]] gpl(gpn()) ?>`;
 
-export enum VirtualModuleTypes {
-  BU16 = "BU16",
-  EF44 = "EF44",
-  EN16 = "EN16",
-  PBF4 = "PBF4",
-  PO16 = "PO16",
-  TEK2 = "TEK2",
-}
-
-export enum VirtualEventTypes {
-  INIT = "init",
-  POTMETER = "potmeter",
-  ENCODER = "encoder",
-  BUTTON = "button",
-  MAP = "map",
-  MIDIRX = "midirx",
-  TIMER = "timer",
-}
-
-export enum VirtualElementTypes {
-  SYSTEM = "system",
-  BUTTON = "button",
-  POTENTIOMETER = "potentiometer",
-  ENCODER = "encoder",
-  FADER = "fader",
-}
-
 export const VirtualModuleHWCFG = {
-  BU16: { hwcfg: 129, type: VirtualModuleTypes.BU16 }, //RevD
-  EF44: { hwcfg: 33, type: VirtualModuleTypes.EF44 }, //RevD
-  EN16: { hwcfg: 193, type: VirtualModuleTypes.EN16 }, //RevD
-  PBF4: { hwcfg: 65, type: VirtualModuleTypes.PBF4 }, //RevD
-  PO16: { hwcfg: 1, type: VirtualModuleTypes.PO16 }, //RevD
-  TEK2: { hwcfg: 17, type: VirtualModuleTypes.TEK2 }, //RevA
+  BU16: { hwcfg: 129, type: ModuleType.BU16 }, //RevD
+  EF44: { hwcfg: 33, type: ModuleType.EF44 }, //RevD
+  EN16: { hwcfg: 193, type: ModuleType.EN16 }, //RevD
+  PBF4: { hwcfg: 65, type: ModuleType.PBF4 }, //RevD
+  PO16: { hwcfg: 1, type: ModuleType.PO16 }, //RevD
+  TEK2: { hwcfg: 17, type: ModuleType.TEK2 }, //RevA
 };
 
 function answerExecuteTypeRequest(obj: BufferElement) {
@@ -218,10 +196,10 @@ function answerFetchTypeRequests(obj: BufferElement) {
 class VirtualModule {
   public dx: number;
   public dy: number;
-  public type: VirtualModuleTypes;
+  public type: ModuleType;
   public pages: any;
 
-  private createControlElement(type: VirtualElementTypes) {
+  private createControlElement(type: ElementType) {
     const events = grid.elementEvents[type];
     return {
       events: events.map((e) => {
@@ -234,20 +212,20 @@ class VirtualModule {
     };
   }
 
-  private getEventConfiguration(type: VirtualElementTypes, event: number) {
+  private getEventConfiguration(type: ElementType, event: number) {
     switch (event) {
       case 0: {
         // INIT for all types of control elements
-        if (type === VirtualElementTypes.BUTTON) {
+        if (type === ElementType.BUTTON) {
           return GRID_ACTIONSTRING_INIT_BUT;
-        } else if (type === VirtualElementTypes.ENCODER) {
+        } else if (type === ElementType.ENCODER) {
           return GRID_ACTIONSTRING_INIT_ENC;
         } else if (
-          type === VirtualElementTypes.FADER ||
-          type === VirtualElementTypes.POTENTIOMETER
+          type === ElementType.FADER ||
+          type === ElementType.POTENTIOMETER
         ) {
           return GRID_ACTIONSTRING_INIT_POT;
-        } else if (type === VirtualElementTypes.SYSTEM) {
+        } else if (type === ElementType.SYSTEM) {
           return GRID_ACTIONSTRING_PAGE_INIT;
         } else throw "Unknown Virtual Element type";
       }
@@ -266,10 +244,10 @@ class VirtualModule {
     }
   }
 
-  private initConfiguration(type: VirtualModuleTypes) {
-    const control_elements = grid.moduleElements[type].map((e: string) =>
-      this.createControlElement(e as VirtualElementTypes)
-    );
+  private initConfiguration(type: ModuleType) {
+    const control_elements = grid
+      .get_module_element_list(type)
+      .map((e: string) => this.createControlElement(e as ElementType));
     this.pages = Array(4).fill({
       elements: control_elements,
     });
@@ -295,7 +273,7 @@ class VirtualModule {
     );
   }
 
-  constructor(dx: number, dy: number, type: VirtualModuleTypes) {
+  constructor(dx: number, dy: number, type: ModuleType) {
     this.dx = dx;
     this.dy = dy;
     this.type = type;
@@ -305,11 +283,7 @@ class VirtualModule {
 
 export const virtual_modules = writable([] as VirtualModule[]);
 
-export function createVirtualModule(
-  dx: number,
-  dy: number,
-  type: VirtualModuleTypes
-) {
+export function createVirtualModule(dx: number, dy: number, type: ModuleType) {
   const device = new VirtualModule(dx, dy, type);
   virtual_modules.update((s) => [...s, device]);
 }

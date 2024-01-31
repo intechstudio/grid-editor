@@ -838,32 +838,24 @@ function create_runtime() {
     let status = "INIT";
 
     try {
-      const elementsArrayLength = grid.moduleElements[moduleType].length;
+      const moduleElements = grid.get_module_element_list(moduleType);
 
-      // control elements
-      for (let i = 0; i < elementsArrayLength; i++) {
-        if (grid.moduleElements[moduleType][i]) {
-          let events = [];
-          for (
-            let j = 0;
-            j < grid.elementEvents[grid.moduleElements[moduleType][i]].length;
-            j++
-          ) {
-            events.push({
-              type: Number(
-                grid.elementEvents[grid.moduleElements[moduleType][i]][j].value
-              ),
-              config: undefined,
-              stored: undefined,
-            });
-          }
-          control_elements[i] = {
-            events: events,
-            controlElementNumber: i,
-            controlElementType: grid.moduleElements[moduleType][i],
-            controlElementName: "",
-          };
+      for (const [index, element] of moduleElements.entries()) {
+        let events = [];
+        const elementEvents = grid.get_element_events(element);
+        for (const event of elementEvents) {
+          events.push({
+            type: Number(event.value),
+            config: undefined,
+            stored: undefined,
+          });
         }
+        control_elements.push({
+          events: events,
+          controlElementNumber: index,
+          controlElementType: element,
+          controlElementName: "",
+        });
       }
 
       control_elements = control_elements.filter((x) => x); // filter null or invalid items!
