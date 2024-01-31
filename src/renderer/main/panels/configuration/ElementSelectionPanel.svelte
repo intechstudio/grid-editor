@@ -54,9 +54,14 @@
     });
   }
 
+  let [dx, dy] = [undefined, undefined];
   $: {
     if ($user_input || $elementNameStore) {
-      renderElementList();
+      if (dx !== $user_input.dx || dy !== $user_input.dy) {
+        dx = $user_input.dx;
+        dy = $user_input.dy;
+        renderElementList();
+      }
     }
   }
 
