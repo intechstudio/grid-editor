@@ -27,22 +27,22 @@
 
   let showFixedStickyContainer = false;
   let gridLayout;
+
+  function handleResize(e) {
+    const stickyContainer = document.getElementById("sticky-container");
+    const container = document.getElementById("container");
+    const contRect = container.getBoundingClientRect();
+    const stickyRect = stickyContainer.getBoundingClientRect();
+    const threshold = -15;
+
+    showFixedStickyContainer = !(
+      stickyRect.bottom <
+      contRect.bottom + threshold
+    );
+  }
+
   onMount(() => {
-    function callback() {
-      const stickyContainer = document.getElementById("sticky-container");
-      const container = document.getElementById("container");
-      const contRect = container.getBoundingClientRect();
-      const stickyRect = stickyContainer.getBoundingClientRect();
-      const threshold = -15;
-
-      showFixedStickyContainer = !(
-        stickyRect.bottom <
-        contRect.bottom + threshold
-      );
-    }
-
-    const observer = new ResizeObserver(callback).observe(gridLayout);
-    window.addEventListener("resize", callback, true);
+    window.addEventListener("resize", handleResize, true);
   });
 
   let showModuleHangingDialog = false;
@@ -90,6 +90,7 @@
 
   <GridLayout
     bind:component={gridLayout}
+    on:resize={handleResize}
     class="absolute z-[0] items-center flex flex-col self-center"
   >
     <div

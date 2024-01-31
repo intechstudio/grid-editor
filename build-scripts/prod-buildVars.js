@@ -5,6 +5,7 @@ const path = require("path");
 
 let buildVariables = {
   BUILD_ENV: "production",
+  BUILD_TARGET: "electron",
   PROFILE_CLOUD_URL: "https://profiles.intech.studio",
 };
 
