@@ -624,10 +624,6 @@ const elementEvents = {
 };
 
 class GridProtocol {
-  public moduleElements: any = moduleElements;
-  public elementEvents: any = elementEvents;
-  public properties: any = this.parse_properties();
-
   public module_type_from_hwcfg(hwcfg: HWCFG): ModuleType | undefined {
     const HWCFG: HWCFG[] = grid.properties.HWCFG;
     let type = undefined;
@@ -657,7 +653,7 @@ class GridProtocol {
     }
   }
 
-  parse_properties() {
+  parse_properties(): any {
     let HWCFG: Map<string, number> = new Map();
     let CONST: any = {};
     let INSTR: any = {};

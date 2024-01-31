@@ -208,7 +208,7 @@ class VirtualModule {
   public pages: any;
 
   private createControlElement(type: ElementType) {
-    const events = grid.elementEvents[type];
+    const events = grid.get_element_events(type);
     return {
       events: events.map((e) => {
         return {
@@ -221,9 +221,9 @@ class VirtualModule {
   }
 
   private initConfiguration(type: ModuleType) {
-    const control_elements = grid.moduleElements[type].map((e: string) =>
-      this.createControlElement(e as ElementType)
-    );
+    const control_elements = grid
+      .get_module_element_list(type)
+      .map((e: string) => this.createControlElement(e as ElementType));
     this.pages = Array(4).fill({
       elements: control_elements,
     });
