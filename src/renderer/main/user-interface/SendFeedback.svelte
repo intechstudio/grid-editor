@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./../modals/modal.store.ts";
+  import { modal } from "./../modals/modal.store";
   import { createEventDispatcher } from "svelte";
 
   import { appSettings } from "../../runtime/app-helper.store";

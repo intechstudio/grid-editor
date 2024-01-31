@@ -5,7 +5,7 @@
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
   import { VirtualModuleTypes } from "../../runtime/virtual-engine";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
 
   let selected = 0;
   let options = Object.keys(VirtualModuleTypes).map((key, index) =>

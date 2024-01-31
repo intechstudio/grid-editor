@@ -1,6 +1,6 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store";
-  import { modal } from "../../../modals/modal.store.ts";
+  import { modal } from "../../../modals/modal.store";
   import Export from "../../../modals/Export.svelte";
 </script>
 

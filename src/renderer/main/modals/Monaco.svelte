@@ -1,7 +1,7 @@
 <script>
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import grid from "../../protocol/grid-protocol.js";
   import MoltenModal from "./MoltenModal.svelte";
 

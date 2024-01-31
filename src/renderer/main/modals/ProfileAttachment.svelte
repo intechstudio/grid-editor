@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./modal.store.ts";
+  import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
 
   let editor;

@@ -1,5 +1,5 @@
 <script>
-  import { modal } from "./main/modals/modal.store.ts";
+  import { modal } from "./main/modals/modal.store";
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -207,7 +207,9 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
-  <svelte:component this={$modal?.component} />
+  {#if $modal?.options.snap === "full"}
+    <svelte:component this={$modal?.component} />
+  {/if}
 
   <!-- Update notification -->
   <Updater />
@@ -229,6 +231,9 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
+          {#if $modal?.options.snap === "middle"}
+            <svelte:component this={$modal?.component} reference={3} />
+          {/if}
           <MiddlePanelContainer />
         </Pane>
 
