@@ -5,12 +5,15 @@ import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
 import { VirtualModuleHWCFG } from "./virtual-engine.ts";
+import { virtual_modules } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
+import { configManager } from "../main/panels/configuration/Configuration.store.js";
+import { forEach } from "lodash";
 
 let lastPageActivator = "";
 
@@ -444,6 +447,11 @@ function create_runtime() {
 
   function incoming_heartbeat_handler(descr) {
     try {
+      for (const device of get(_runtime)) {
+        if (device.architecture === "virtual") {
+          destroy_module(device.dx, device.dy);
+        }
+      }
       const controller = this.create_module(
         descr.brc_parameters,
         descr.class_parameters,
@@ -938,7 +946,11 @@ function create_runtime() {
     });
 
     user_input.module_destroy_handler(dx, dy);
-    writeBuffer.module_destroy_handler(dx, dy);
+    if (removed.architecture === "virtual") {
+      virtual_modules.set([]);
+    } else {
+      writeBuffer.module_destroy_handler(dx, dy);
+    }
 
     // reset rendering helper stores
 
