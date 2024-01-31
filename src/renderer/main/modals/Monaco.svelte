@@ -1,4 +1,5 @@
 <script>
+  import { watchResize } from "svelte-watch-resize";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
   import { modal } from "./modal.store";
@@ -27,8 +28,7 @@
   let unsavedChanges = false;
   let errorMesssage = "";
 
-  let modalWidth;
-  let modalHeight;
+  let monaco_container;
 
   let scrollDown;
   let autoscroll;
@@ -63,6 +63,7 @@
 
       contextmenu: false,
       scrollBeyondLastLine: 0,
+      automaticLayout: true,
       wordWrap: "on",
       suggest: {
         showIcons: false,
@@ -113,18 +114,6 @@
       scrollDown.scrollTo(0, scrollDown.scrollHeight);
   });
 
-  $: if (modalWidth || modalHeight) {
-    if (editor !== undefined) {
-      editor.layout();
-    }
-  }
-
-  function handleClickOutside(e) {
-    if (!commitEnabled) {
-      handleClose(e);
-    }
-  }
-
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
@@ -142,8 +131,6 @@
       console.error(e);
     }
   }
-
-  let modalElement;
 
   function expandCode(code) {
     let human = stringManipulation.humanize(code);
@@ -197,71 +184,67 @@
   function handleClose(e) {
     modal.close();
   }
-</script>
 
-<svelte:window bind:innerWidth={modalWidth} bind:innerHeight={modalHeight} />
+  function handleResize(e) {
+    editor?.layout();
+  }
+</script>
 
 <div id="modal-copy-placeholder" />
 
 <MoltenModal>
   <div
     slot="content"
-    class=" h-[400px] text-white relative flex flex-col items-start"
+    class="h-full w-full text-white relative flex flex-col gap-2 items-start"
+    use:watchResize={handleResize}
   >
-    <div class="flex-col w-full flex justify-between items-center mb-2">
-      <div class="flex flex-row w-full justify-between items-center">
-        <div class="flex flex-col h-full">
-          <div class="flex w-full opacity-70">Edit Code</div>
-          <div class="flex w-full opacity-40">
-            <span class="mr-2">Character Count:</span>
-            {typeof scriptLength === "undefined" ? "?" : scriptLength}
-            <span>/</span>
-            <span>{grid.properties.CONFIG_LENGTH - 1}</span>
+    <div class="flex flex-row w-full justify-between items-center">
+      <div class="flex flex-col h-full text-white">
+        <div>Code Editor</div>
+        <div class="opacity-70">
+          <span
+            >{`Character Count: ${
+              typeof scriptLength === "undefined" ? "?" : scriptLength
+            }/${grid.properties.CONFIG_LENGTH - 1} (max)`}</span
+          >
+        </div>
+      </div>
+
+      <div class="flex flex-row items-center h-full gap-2">
+        <div class="flex flex-col">
+          <div
+            class="text-right text-sm {unsavedChanges
+              ? 'text-yellow-600'
+              : 'text-green-500'} "
+          >
+            {unsavedChanges ? "Unsaved changes!" : "Synced with Grid!"}
+          </div>
+          <div class="text-right text-sm text-error">
+            {errorMesssage}
           </div>
         </div>
 
-        <div class="flex flex-row items-center h-full gap-2">
-          <div class="flex flex-col">
-            <div
-              class="text-right text-sm {unsavedChanges
-                ? 'text-yellow-600'
-                : 'text-green-500'} "
-            >
-              {unsavedChanges ? "Unsaved changes!" : "Synced with Grid!"}
-            </div>
-            <div class="text-right text-sm text-error">
-              {errorMesssage}
-            </div>
-          </div>
+        <MoltenPushButton
+          on:click={handleCommit}
+          disabled={!commitEnabled}
+          text="Commit"
+          style="accept"
+        />
 
-          <MoltenPushButton
-            on:click={handleCommit}
-            disabled={!commitEnabled}
-            text="Commit"
-            style="accept"
-          />
-
-          <MoltenPushButton
-            on:click={handleClose}
-            text="Close"
-            style="normal"
-          />
-        </div>
+        <MoltenPushButton on:click={handleClose} text="Close" style="normal" />
       </div>
     </div>
 
     <div
-      class="flex-col w-full h-full flex justify-between bg-black bg-opacity-20 py-2"
+      class="justify-between grid grid-cols-1 w-full h-full bg-black bg-opacity-20 py-2 overflow-auto"
     >
-      <div
-        bind:this={monaco_block}
-        class="flex-col w-full h-full flex justify-between"
-      />
+      <div bind:this={monaco_block} />
     </div>
 
+    <span class="mt-2">Debug Text:</span>
     <div
       bind:this={scrollDown}
-      class="flex-col w-full h-1/3 flex overflow-y-scroll bg-secondary"
+      class="flex-col w-full h-80 flex overflow-y-scroll bg-black bg-opacity-20"
     >
       {#each $debug_monitor_store as debug, i}
         <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
@@ -272,7 +255,7 @@
 
 <style global>
   .debugtexty:nth-child(even) {
-    @apply bg-select;
+    @apply bg-primary;
   }
   .monaco-editor .suggest-widget {
     width: 250px !important;

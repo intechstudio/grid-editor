@@ -1,19 +1,25 @@
-import type { SvelteComponent } from "svelte";
 import { writable } from "svelte/store";
 
 export const modal = createModalStore();
 
-type ModalOptions = {
-  snap: "full" | "middle";
+export enum Snap {
+  FULL = "full",
+  MIDDLE = "middle",
+}
+
+export type ModalOptions = {
+  snap?: "full" | "middle";
+  disableClickOutside?: boolean;
 };
 
 type ModalStoreValue = {
   component: unknown;
-  options?: ModalOptions;
+  options: ModalOptions;
 };
 
 const defaultOptions: ModalOptions = {
   snap: "full",
+  disableClickOutside: false,
 };
 
 function createModalStore() {
