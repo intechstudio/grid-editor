@@ -295,4 +295,8 @@
     position: absolute !important;
     left: 0 !important;
   }
+
+  .monaco-editor {
+    position: absolute !important;
+  }
 </style>
