@@ -1,4 +1,5 @@
 <script>
+  import { appSettings } from "/runtime/app-helper.store";
   import { watchResize } from "svelte-watch-resize";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";

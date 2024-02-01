@@ -41,15 +41,11 @@
     use:trigger
     class="w-full flex flex-row border border-black p-2"
   >
-    <div class="flex flex-grow">{$selectedLabel || " "}</div>
+    <div class="flex flex-grow truncate">{$selectedLabel || " "}</div>
     <div class="flex">&#9660;</div>
   </button>
   {#if $open}
-    <div
-      {...$menu}
-      use:menu
-      class="bg-gray-900 text-white/80 border border-white/50 rounded z-40"
-    >
+    <div class="bg-gray-900 text-white/80 border border-white/50 rounded z-40">
       {#each options as item}
         <div
           {...$option({ value: item.value, label: item.title })}

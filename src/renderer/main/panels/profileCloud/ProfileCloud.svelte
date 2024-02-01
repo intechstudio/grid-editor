@@ -365,6 +365,24 @@
     title: "Sorry, can't load Profile Cloud",
     text: "You need internet access to load it. You can load the offline version as well.",
   };
+
+  function updateFontSize(fontSize) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "updateFontSize",
+        fontSize: `${fontSize}px`,
+      },
+      "*"
+    );
+  }
+
+  $: {
+    if (profileCloudIsMounted) {
+      updateFontSize($appSettings.persistent.fontSize);
+    }
+  }
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full relative">
@@ -393,5 +411,6 @@
     title="Test"
     allow="clipboard-read; clipboard-write;}"
     src={profileCloudUrl}
+    style=""
   />
 </div>

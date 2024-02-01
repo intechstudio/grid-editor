@@ -2,8 +2,6 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import MeltSelect from "../panels/preferences/MeltSelect.svelte";
-  import MeltSlider from "../panels/preferences/MeltSlider.svelte";
-  import MoltenButton from "../panels/preferences/MoltenButton.svelte";
 
   const options = [
     {
@@ -34,24 +32,4 @@
       />
     </div>
   </div>
-
-  <MeltSlider
-    bind:target={$appSettings.persistent.fontSize}
-    min={8}
-    max={30}
-    step={0.1}
-  />
-  <MoltenButton
-    title={"Reset"}
-    click={() => {
-      $appSettings.persistent.fontSize = 12;
-    }}
-  />
 </container>
-
-<style>
-  button.selected {
-    font-weight: bold;
-    box-shadow: inset 0 0 100px #ffffff60;
-  }
-</style>
