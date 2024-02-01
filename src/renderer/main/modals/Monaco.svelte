@@ -44,6 +44,12 @@
 
   class LengthError extends String {}
 
+  $: handleFontSizechange($appSettings.persistent.fontSize);
+
+  function handleFontSizechange(fontSize) {
+    editor?.updateOptions({ fontSize: fontSize });
+  }
+
   onMount(() => {
     //Make local copies
     editedList = $configManager.makeCopy();
@@ -60,7 +66,7 @@
       value: code_preview,
       language: "intech_lua",
       theme: "my-theme",
-      fontSize: 12,
+      fontSize: $appSettings.persistent.fontSize,
 
       folding: false,
 
@@ -294,9 +300,5 @@
   .line-editor .monaco-editor .suggest-widget {
     position: absolute !important;
     left: 0 !important;
-  }
-
-  .monaco-editor {
-    position: absolute !important;
   }
 </style>

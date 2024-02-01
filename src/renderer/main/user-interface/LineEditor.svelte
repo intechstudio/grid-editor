@@ -1,5 +1,11 @@
 <script>
-  import { createEventDispatcher, onDestroy, onMount } from "svelte";
+  import { appSettings } from "/runtime/app-helper.store";
+  import {
+    beforeUpdate,
+    createEventDispatcher,
+    onDestroy,
+    onMount,
+  } from "svelte";
 
   import { monaco_elementtype } from "../../lib/CustomMonaco";
 
@@ -9,7 +15,6 @@
 
   export let value;
   export let access_tree;
-  export let sidebarWidth;
   export let disabled = false;
 
   let monaco_block;
@@ -17,26 +22,6 @@
   let editor;
   let value_buffer = "";
   let newLinesRemoved = false;
-
-  $: {
-    if (sidebarWidth) {
-      update_codeblock_size();
-    }
-  }
-
-  function update_codeblock_size() {
-    if (typeof editor === "undefined") {
-      return;
-    }
-
-    //console.log(editor._getViewModel().getLineCount(), editor._modelData.viewModel)
-    //editor.viewModel.getViewLineCount()
-
-    const contentHeight = editor._getViewModel().getLineCount() * 16;
-
-    monaco_block.style.height = contentHeight + "px";
-    editor.layout();
-  }
 
   function handleDisabledChange(value) {
     editor.updateOptions({ readOnly: value });
@@ -52,6 +37,12 @@
     editor.dispose();
   });
 
+  $: handleFontSizechange($appSettings.persistent.fontSize);
+
+  function handleFontSizechange(fontSize) {
+    editor?.updateOptions({ fontSize: fontSize });
+  }
+
   onMount(() => {
     $monaco_elementtype = access_tree.elementtype;
     value_buffer = value;
@@ -64,7 +55,7 @@
         enabled: false,
       },
       readOnly: disabled,
-      fontSize: 12,
+      fontSize: $appSettings.persistent.fontSize,
       lineNumbers: "off",
       lineNumbersMinChars: 0,
       lineDecorationsWidth: 0,
@@ -88,8 +79,6 @@
       automaticLayout: true,
     });
 
-    update_codeblock_size();
-
     editor.getModel().onDidChangeContent((event) => {
       //Hackey solutin for filtering out new line characters
       //Currently there is no better solution for this
@@ -104,7 +93,6 @@
       }
       if (!newLinesRemoved) {
         dispatch("output", { script: value });
-        update_codeblock_size();
       }
       newLinesRemoved = false;
     });
@@ -118,16 +106,23 @@
       value_buffer = new_value;
     });
   });
+
+  beforeUpdate(() => {
+    editor?.layout();
+  });
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<div id="monaco_container" class="{$$props.class} grid grid-cols-1 w-full">
+<div
+  id="monaco_container"
+  class="{$$props.class} grid grid-cols-1 w-full h-full items-center"
+>
   <div
     on:click|preventDefault={() => {}}
     on:mousedown|preventDefault={() => {}}
     bind:this={monaco_block}
-    class="line-editor pointer-events-auto w-full"
+    class="line-editor pointer-events-auto flex w-full h-full"
   />
 </div>
 
