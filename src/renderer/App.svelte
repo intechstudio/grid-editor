@@ -1,10 +1,7 @@
 <script>
-<<<<<<< HEAD
   import { modal } from "./main/modals/modal.store";
-=======
   import "./preload-window-config";
 
->>>>>>> stable
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
