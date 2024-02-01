@@ -19,6 +19,7 @@ export enum EventType {
   MAP = "map",
   MIDIRX = "midirx",
   TIMER = "timer",
+  UNDEFINED = "undef",
 }
 
 export enum ElementType {
@@ -35,8 +36,6 @@ export enum Architecture {
   D51 = "d51",
   VIRTUAL = "virtual",
 }
-
-export type HWCFG = number;
 
 const editor_lua_properties = [
   {
@@ -139,7 +138,7 @@ const editor_lua_properties = [
   },
 ];
 
-function returnDeepestObjects(obj) {
+function returnDeepestObjects(obj: any) {
   var found = {};
   let parent = "";
 
@@ -164,7 +163,7 @@ function returnDeepestObjects(obj) {
   return found;
 }
 
-function mapObjectsToArray(array, object) {
+function mapObjectsToArray(array: any[], object: any) {
   function mapper(baseArray, type, allowed) {
     return (baseArray = baseArray.map((e, i) => {
       return { type: type, allowed: allowed, ...e };
@@ -196,7 +195,7 @@ function mapObjectsToArray(array, object) {
   return array;
 }
 
-function createNestedObject(base, names, value) {
+function createNestedObject(base: any, names: any, value: any) {
   // to avoid array property overwriting
   let _names = [...names];
 
@@ -217,7 +216,7 @@ function createNestedObject(base, names, value) {
 }
 
 // global id for serial message generation
-let global_id = 0;
+let global_id: number = 0;
 
 let [class_name_from_code, class_code_from_name] =
   class_code_decode_encode_init();
@@ -340,7 +339,11 @@ function parse_class_parameters_from_protocol() {
   return classparams;
 }
 
-function read_integer_from_asciicode_array(array, offset, length) {
+function read_integer_from_asciicode_array(
+  array: number[],
+  offset: number,
+  length: number
+): number | undefined {
   // check is parameters are valid, make sure we don't overrun the buffer
   if (array.length < offset + length) {
     //console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`);
@@ -362,7 +365,12 @@ function read_integer_from_asciicode_array(array, offset, length) {
   return ret_value;
 }
 
-function write_integer_to_asciicode_array(array, offset, length, value) {
+function write_integer_to_asciicode_array(
+  array: any[],
+  offset: number,
+  length: number,
+  value: any
+) {
   let hex_value_array = value.toString(16).padStart(length, "0").split("");
 
   for (let i = offset; i < offset + length; i++) {
@@ -372,7 +380,12 @@ function write_integer_to_asciicode_array(array, offset, length, value) {
   return array;
 }
 
-function write_string_to_asciicode_array(array, offset, length, value) {
+function write_string_to_asciicode_array(
+  array: any[],
+  offset: number,
+  length: number,
+  value: any
+) {
   let string_in_array = value.split("");
 
   for (let i = offset; i < offset + length; i++) {
@@ -382,7 +395,11 @@ function write_string_to_asciicode_array(array, offset, length, value) {
   return array;
 }
 
-function read_string_from_asciicode_array(array, offset, length) {
+function read_string_from_asciicode_array(
+  array: any[],
+  offset: number,
+  length: number
+) {
   // check is parameters are valid, make sure we don't overrun the buffer
   if (array.length > 0 && array.length < offset + length) {
     // console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`);
@@ -410,60 +427,66 @@ function read_string_from_asciicode_array(array, offset, length) {
 }
 
 // helper functions
-const utility_genId = () => {
+function utility_genId() {
   if (global_id / 255 == 1) {
     global_id = 0;
   }
   return (global_id += 1);
-};
+}
+
+interface CEEAT {
+  desc: string;
+  value: number;
+  key: string;
+}
 
 // control element event assignment table.
-export const CEEAT = {
-  undef: {
+export const CEEAT: Record<EventType, CEEAT> = {
+  [EventType.UNDEFINED]: {
     desc: "UNDEFINED",
-    value: "-1",
+    value: -1,
     key: "UNDEFINED",
   },
 
   [EventType.INIT]: {
     desc: "init",
-    value: "0",
+    value: 0,
     key: "INIT",
   },
 
   [EventType.POTMETER]: {
     desc: "potmeter",
-    value: "1",
+    value: 1,
     key: "AC",
   },
 
   [EventType.ENCODER]: {
     desc: "encoder",
-    value: "2",
+    value: 2,
     key: "EC",
   },
 
   [EventType.BUTTON]: {
     desc: "button",
-    value: "3",
+    value: 3,
     key: "BC",
   },
 
   [EventType.MAP]: {
     desc: "utility",
-    value: "4",
+    value: 4,
     key: "MAP",
   },
 
   [EventType.MIDIRX]: {
     desc: "midi rx",
-    value: "5",
+    value: 5,
     key: "MIDIRX",
   },
 
   [EventType.TIMER]: {
     desc: "timer",
-    value: "6",
+    value: 6,
     key: "TIMER",
   },
 };
@@ -623,13 +646,69 @@ const elementEvents = {
   ],
 };
 
+interface GridClass {
+  [key: string]: number;
+}
+
+interface GridLua {
+  [key: string]: number | string;
+}
+
+interface GridBRC {
+  [key: string]: number;
+}
+
+interface GridEvents {
+  [key: string]: number;
+}
+
+interface GridParameters {
+  [key: string]: number;
+}
+
+interface GridConst {
+  [key: string]: number;
+}
+
+interface GridInstr {
+  [key: string]: number;
+}
+
+interface HWCFG {
+  [key: string]: number;
+}
+
+interface LuaAutocompleteFunction {
+  label: string;
+  type: "function";
+  elementtype?: string;
+}
+
+interface GridProperties {
+  BRC: GridBRC;
+  LUA: GridLua[];
+  LUA_AUTOCOMPLETE: LuaAutocompleteFunction[];
+  CLASSES: GridClass;
+  HWCFG: HWCFG;
+  EVENTS: GridEvents;
+  CONST: GridConst;
+  INSTR: GridInstr;
+  VERSION: GridConst;
+  PARAMETERS: GridParameters;
+  HEARTBEAT_INTERVAL: number;
+  CONFIG_LENGTH: number;
+  SESSION: string;
+}
+
 class GridProtocol {
-  public module_type_from_hwcfg(hwcfg: HWCFG): ModuleType | undefined {
-    const HWCFG: HWCFG[] = grid.properties.HWCFG;
+  public properties = this.parse_properties();
+
+  public module_type_from_hwcfg(hwcfg: number): ModuleType | undefined {
+    const HWCFG = grid.properties.HWCFG;
     let type = undefined;
 
     for (const key in HWCFG) {
-      if (HWCFG[key] == hwcfg) {
+      if (HWCFG[key] === hwcfg) {
         type = ModuleType[key.substring(0, 4)];
       }
     }
@@ -645,7 +724,7 @@ class GridProtocol {
     return elementEvents[type];
   }
 
-  public module_architecture_from_hwcfg(hwcfg: HWCFG) {
+  public module_architecture_from_hwcfg(hwcfg: number) {
     if (hwcfg % 2 === 1) {
       return Architecture.ESP32;
     } else {
@@ -653,21 +732,27 @@ class GridProtocol {
     }
   }
 
-  parse_properties(): any {
-    let HWCFG: Map<string, number> = new Map();
-    let CONST: any = {};
-    let INSTR: any = {};
-    let CLASSES: any = {};
-    let EVENTS: any = {};
-    let LUA: any = {};
-    let BRC: any = {};
-    let VERSION: any = {};
-    let PARAMETERS: any = {};
+  private extendLua(propObject: GridLua): GridLua[] {
+    const deepObjects = returnDeepestObjects(propObject);
+    //console.log(deepObjects)
+    const array = mapObjectsToArray(editor_lua_properties, deepObjects);
+    //console.log(array)
+    return array;
+  }
+
+  parse_properties(): GridProperties {
+    let HWCFG: HWCFG = {};
+    let CONST: GridConst = {};
+    let INSTR: GridInstr = {};
+    let CLASSES: GridClass = {};
+    let EVENTS: GridEvents = {};
+    let LUA: GridLua = {};
+    let BRC: GridBRC = {};
+    let VERSION: GridConst = {};
+    let PARAMETERS: GridParameters = {};
     let HEARTBEAT_INTERVAL: number = 0;
     let CONFIG_LENGTH: number = 0;
-    let LUA_AUTOCOMPLETE: any = [];
-
-    Object.values;
+    let LUA_AUTOCOMPLETE: LuaAutocompleteFunction[] = [];
 
     for (const key in grid_protocol) {
       if (typeof grid_protocol[key] !== "object") {
@@ -809,7 +894,7 @@ class GridProtocol {
 
     return {
       BRC: BRC,
-      LUA: extendLua(LUA),
+      LUA: this.extendLua(LUA),
       LUA_AUTOCOMPLETE: LUA_AUTOCOMPLETE,
       CLASSES: CLASSES,
       HWCFG: HWCFG,
@@ -824,14 +909,6 @@ class GridProtocol {
         .toString(16)
         .padStart(2, "0"),
     };
-
-    function extendLua(propObject) {
-      const deepObjects = returnDeepestObjects(propObject);
-      //console.log(deepObjects)
-      const array = mapObjectsToArray(editor_lua_properties, deepObjects);
-      //console.log(array)
-      return array;
-    }
   }
 
   public encode_packet(descriptor: any) {
@@ -947,7 +1024,7 @@ class GridProtocol {
     return { serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID }; // return id for checking communication issues
   }
 
-  public decode_packet_frame(asciicode_array) {
+  public decode_packet_frame(asciicode_array: number[]) {
     // use the last two characters to determine the received checksum
     let received_checksum =
       parseInt(
@@ -1067,7 +1144,7 @@ class GridProtocol {
     return return_array;
   }
 
-  public decode_packet_classes(raw_class_array) {
+  public decode_packet_classes(raw_class_array: any[]) {
     if (raw_class_array === undefined) {
       return undefined;
     }
