@@ -28,8 +28,6 @@
   let unsavedChanges = false;
   let errorMesssage = "";
 
-  let monaco_container;
-
   let scrollDown;
   let autoscroll;
 
@@ -68,6 +66,9 @@
       suggest: {
         showIcons: false,
         showWords: true,
+      },
+      minimap: {
+        enabled: false,
       },
     });
 
@@ -195,11 +196,11 @@
 <MoltenModal>
   <div
     slot="content"
-    class="h-full w-full text-white relative flex flex-col gap-2 items-start"
+    class="h-full w-full text-white relative flex flex-col gap-2 items-start overflow-x-clip"
     use:watchResize={handleResize}
   >
-    <div class="flex flex-row w-full justify-between items-center">
-      <div class="flex flex-col h-full text-white">
+    <div class="flex flex-row w-full items-center">
+      <div class="flex flex-col text-white">
         <div>Code Editor</div>
         <div class="opacity-70">
           <span
@@ -210,7 +211,9 @@
         </div>
       </div>
 
-      <div class="flex flex-row items-center h-full gap-2">
+      <div
+        class="flex flex-row flex-grow flex-wrap justify-end items-center h-full gap-2"
+      >
         <div class="flex flex-col">
           <div
             class="text-right text-sm {unsavedChanges
@@ -224,27 +227,33 @@
           </div>
         </div>
 
-        <MoltenPushButton
-          on:click={handleCommit}
-          disabled={!commitEnabled}
-          text="Commit"
-          style="accept"
-        />
+        <div class="flex flex-row flex-wrap gap-2 justify-end">
+          <MoltenPushButton
+            on:click={handleCommit}
+            disabled={!commitEnabled}
+            text="Commit"
+            style="accept"
+          />
 
-        <MoltenPushButton on:click={handleClose} text="Close" style="normal" />
+          <MoltenPushButton
+            on:click={handleClose}
+            text="Close"
+            style="normal"
+          />
+        </div>
       </div>
     </div>
 
     <div
-      class="justify-between grid grid-cols-1 w-full h-full bg-black bg-opacity-20 py-2 overflow-auto"
+      class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
     >
-      <div bind:this={monaco_block} />
+      <div bind:this={monaco_block} class="flex w-full h-full" />
     </div>
 
     <span class="mt-2">Debug Text:</span>
     <div
       bind:this={scrollDown}
-      class="flex-col w-full h-80 flex overflow-y-scroll bg-black bg-opacity-20"
+      class="flex-col w-full h-80 flex overflow-y-auto bg-primary border border-black"
     >
       {#each $debug_monitor_store as debug, i}
         <span class="debugtexty px-1 py-1 font-mono text-white">{debug}</span>
@@ -255,7 +264,8 @@
 
 <style global>
   .debugtexty:nth-child(even) {
-    @apply bg-primary;
+    @apply bg-black;
+    @apply bg-opacity-20;
   }
   .monaco-editor .suggest-widget {
     width: 250px !important;
@@ -264,5 +274,9 @@
   .line-editor .monaco-editor .suggest-widget {
     position: absolute !important;
     left: 0 !important;
+  }
+
+  .monaco-editor {
+    position: absolute !important;
   }
 </style>

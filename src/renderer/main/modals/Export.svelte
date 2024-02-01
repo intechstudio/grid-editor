@@ -51,6 +51,11 @@
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
-    <MoltenPushButton on:click={handleCopy} text="Copy" style="accept" />
+    <MoltenPushButton
+      on:click={handleCopy}
+      text="Copy"
+      style="accept"
+      popup={{ text: "Copied to clipboard!" }}
+    />
   </div>
 </MoltenModal>
