@@ -1,11 +1,10 @@
 <script>
+  import { modal } from "./main/modals/modal.store";
   import "./preload-window-config";
 
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
-
-  import { onMount } from "svelte";
 
   import { appSettings, splitpanes } from "./runtime/app-helper.store";
 
@@ -16,12 +15,6 @@
 
   import RightPanelContainer from "./main/RightPanelContainer.svelte";
   import LeftPanelContainer from "./main/LeftPanelContainer.svelte";
-
-  import Export from "./main/modals/Export.svelte";
-  import Welcome from "./main/modals/Welcome.svelte";
-  import Monaco from "./main/modals/Monaco.svelte";
-  import Feedback from "./main/modals/Feedback.svelte";
-  import ProfileAttachment from "./main/modals/ProfileAttachment.svelte";
 
   import FirmwareCheck from "./main/FirmwareCheck.svelte";
 
@@ -36,28 +29,15 @@
 
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
-  import UserLogin from "./main/modals/UserLogin.svelte";
 
   import { runtime } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
-  import AddVirtualModule from "./main/modals/AddVirtualModule.svelte";
 
   console.log("Hello from Svelte main.js");
 
   const configuration = window.ctxProcess.configuration();
-
-  let modalComponents = {};
-
-  modalComponents[""] = undefined;
-  modalComponents["export"] = Export;
-  modalComponents["welcome"] = Welcome;
-  modalComponents["code"] = Monaco;
-  modalComponents["feedback"] = Feedback;
-  modalComponents["profileAttachment"] = ProfileAttachment;
-  modalComponents["userLogin"] = UserLogin;
-  modalComponents["addVirtualModule"] = AddVirtualModule;
 
   let shapeSelected;
   let colorSelected;
@@ -231,7 +211,9 @@
   <!-- Switch between tabs for different application features. -->
   <NavTabs />
 
-  <svelte:component this={modalComponents[$appSettings.modal]} />
+  {#if $modal?.options.snap === "full"}
+    <svelte:component this={$modal?.component} />
+  {/if}
 
   <!-- Update notification -->
   <Updater />
@@ -253,6 +235,9 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
+          {#if $modal?.options.snap === "middle"}
+            <svelte:component this={$modal?.component} reference={3} />
+          {/if}
           <MiddlePanelContainer />
         </Pane>
 

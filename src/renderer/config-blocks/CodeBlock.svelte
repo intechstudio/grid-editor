@@ -49,6 +49,8 @@
 
   import { monaco_editor } from "$lib/CustomMonaco";
   import { committed_code_store } from "./Committed_Code.store";
+  import { modal } from "../main/modals/modal.store";
+  import Monaco from "../main/modals/Monaco.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -150,7 +152,7 @@
   function open_monaco() {
     $monaco_store = { config: config.makeCopy(), index: index };
     $monaco_elementtype = access_tree.elementtype;
-    $appSettings.modal = "code";
+    modal.show(Monaco, { snap: "middle", disableClickOutside: true });
   }
 </script>
 
