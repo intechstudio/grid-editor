@@ -28,7 +28,7 @@
 <div
   class="z-40 absolute w-full h-full
     bg-secondary bg-opacity-50"
-  on:click|self={close}
+  on:mousedown|self={close}
 >
   <div
     class="z-50 text-white shadow-md p-6

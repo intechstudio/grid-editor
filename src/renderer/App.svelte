@@ -1,5 +1,10 @@
 <script>
+<<<<<<< HEAD
   import { modal } from "./main/modals/modal.store";
+=======
+  import "./preload-window-config";
+
+>>>>>>> stable
   import "./app.css";
 
   import { Pane, Splitpanes } from "svelte-splitpanes";
@@ -32,6 +37,8 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+
+  console.log("Hello from Svelte main.js");
 
   const configuration = window.ctxProcess.configuration();
 

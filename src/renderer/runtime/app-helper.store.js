@@ -37,13 +37,6 @@ const persistentDefaultValues = {
   changeOnEvent: "event",
 };
 
-function checkOS() {
-  if (typeof window.ctxProcess === "object") {
-    return ctxProcess.platform;
-  }
-  return "browser";
-}
-
 function createSplitPanes() {
   const obj = {
     left: { size: 25 },
@@ -95,7 +88,6 @@ function createAppSettingsStore(persistent) {
     leftPanel: "ProfileCloud",
     leftPanelVisible: true,
     trayState: false,
-    os: checkOS(),
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
