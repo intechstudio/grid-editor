@@ -100,10 +100,10 @@
   class:p-2={toggleValue}
   style="background-color:{config.information.color}"
 >
-  <div class="flex flex-row flex-grow items-center gap-2 text-white">
+  <div class="flex flex-row flex-grow items-center gap-2 text-white py-1">
     <span class="">Repeat for</span>
     <div
-      class="bg-secondary p-1 my-auto rounded flex items-center w-10"
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full w-10"
       on:click|stopPropagation
     >
       {#key displayValue}
