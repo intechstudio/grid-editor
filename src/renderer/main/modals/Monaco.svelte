@@ -252,6 +252,7 @@
     </div>
 
     <div
+      id="monaco-container"
       class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
     >
       <div bind:this={monaco_block} class="flex w-full h-full" />
@@ -283,7 +284,7 @@
     left: 0 !important;
   }
 
-  .monaco-editor {
+  #monaco-container .monaco-editor {
     position: absolute !important;
   }
 </style>
