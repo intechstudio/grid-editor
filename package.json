@@ -33,7 +33,7 @@
     "svelte-grid": "^1.11.2",
     "svelte-preprocess": "^5.0.3",
     "tailwindcss": "^3.1.8",
-    "vite": "^4.4.9",
+    "vite": "^4.5.2",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
@@ -92,6 +92,10 @@
     "test": "mocha",
     "electron:dev": "cross-env NODE_OPTIONS=--max_old_space_size=8198 electron-vite dev --watch",
     "electron-dev": "run-s gen:buildVars:dev electron:dev",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "web:dev": "vite dev --mode web",
+    "web:build": "vite build --mode web",
+    "web-dev": "run-s gen:buildVars:dev web:dev",
+    "web-build": "run-s gen:buildVars:prod web:build"
   }
 }

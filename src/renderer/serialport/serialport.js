@@ -98,7 +98,8 @@ let result = [];
 function fetchStream() {
   console.log("--------serial---------");
 
-  if (navigator.intechPort === undefined) {
+  if (!navigator.intechPort || !navigator.intechPort.readable) {
+    console.error("Invalid or missing navigator.intechPort");
     return;
   }
 
@@ -108,63 +109,63 @@ function fetchStream() {
 
   // read() returns a promise that resolves
   // when a value has been received
-  reader.read().then(function processText({ done, value }) {
-    // Result objects contain two properties:
-    // done  - true if the stream has already given you all its data.
-    // value - some data. Always undefined when done is true.
-    if (done) {
-      console.log("Stream complete");
-      para.textContent = value;
-      return;
-    }
+  reader
+    .read()
+    .then(function processText({ done, value }) {
+      // Result objects contain two properties:
+      // done  - true if the stream has already given you all its data.
+      // value - some data. Always undefined when done is true.
+      if (done) {
+        console.log("Stream complete");
+        para.textContent = value;
+        return;
+      }
 
-    // value for fetch streams is a Uint8Array
-    charsReceived += value.length;
-    const chunk = value;
+      // value for fetch streams is a Uint8Array
+      charsReceived += value.length;
+      const chunk = value;
 
-    let buffer = Array.from(chunk);
+      let buffer = Array.from(chunk);
 
-    for (let i = 0; i < buffer.length; i++) {
-      rxBuffer.push(buffer[i]);
-    }
+      for (let i = 0; i < buffer.length; i++) {
+        rxBuffer.push(buffer[i]);
+      }
 
-    let messageStartIndex = 0;
-    let messageStopIndex = 0;
+      let messageStartIndex = 0;
+      let messageStopIndex = 0;
 
-    for (let i = 0; i < rxBuffer.length; i++) {
-      if (rxBuffer[i] === 10) {
-        // newline character found
+      for (let i = 0; i < rxBuffer.length; i++) {
+        if (rxBuffer[i] === 10) {
+          // newline character found
 
-        messageStopIndex = i;
-        let currentMessage = rxBuffer.slice(
-          messageStartIndex,
-          messageStopIndex
-        );
-        messageStartIndex = i + 1;
+          messageStopIndex = i;
+          let currentMessage = rxBuffer.slice(
+            messageStartIndex,
+            messageStopIndex
+          );
+          messageStartIndex = i + 1;
 
-        //decode
+          //decode
 
-        debug_lowlevel_store.push_inbound(currentMessage);
+          debug_lowlevel_store.push_inbound(currentMessage);
 
-        let class_array = grid.decode_packet_frame(currentMessage);
-        grid.decode_packet_classes(class_array);
+          let class_array = grid.decode_packet_frame(currentMessage);
+          grid.decode_packet_classes(class_array);
 
-        if (class_array !== false) {
-          messageStream.deliver_inbound(class_array);
+          if (class_array !== false) {
+            messageStream.deliver_inbound(class_array);
+          }
         }
       }
-    }
 
-    rxBuffer = rxBuffer.slice(messageStartIndex);
+      rxBuffer = rxBuffer.slice(messageStartIndex);
 
-    // Read some more, and call this function again
-    return reader
-      .read()
-      .then(processText)
-      .catch((e) => {
-        console.log(e);
-      });
-  });
+      // Read some more, and call this function again
+      return reader.read().then(processText);
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
 
 navigator.intechFetch = fetchStream;

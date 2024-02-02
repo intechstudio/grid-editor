@@ -277,7 +277,8 @@ A -> B : AB-First step
   let blu = 0;
 
   function updatePicker(e) {
-    if (canvas === undefined) {
+    if (typeof canvas === "undefined" || canvas === null) {
+      console.log("CANVAS NOT AVAILABLE");
       return; // not initialized yet
     }
 
@@ -329,6 +330,11 @@ A -> B : AB-First step
   }
 
   function initColorPicker() {
+    if (typeof canvas === "undefined" || canvas === null) {
+      console.log("CANVAS NOT AVAILABLE");
+      return; // not initialized yet
+    }
+
     var ctx = canvas.getContext("2d");
     ctx.fillStyle = "#FF0000";
     ctx.fillRect(0, 0, 150, 75);
@@ -366,6 +372,11 @@ A -> B : AB-First step
   }
 
   function onMouseMove(e) {
+    if (typeof canvas === "undefined" || canvas === null) {
+      console.log("CANVAS NOT AVAILABLE");
+      return; // not initialized yet
+    }
+
     var offsets = canvas.getBoundingClientRect();
     var top = offsets.top;
     var left = offsets.left;
@@ -410,6 +421,11 @@ A -> B : AB-First step
   }
 
   function generateColor() {
+    if (typeof canvas === "undefined" || canvas === null) {
+      console.log("CANVAS NOT AVAILABLE");
+      return; // not initialized yet
+    }
+
     let hsv = { h: Math.random(), s: 1, v: 1 };
 
     var offsets = canvas.getBoundingClientRect();
