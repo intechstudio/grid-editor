@@ -1,25 +1,40 @@
-<script>
-  import { appSettings } from "../../runtime/app-helper.store";
+<script lang="ts">
+  import { get } from "svelte/store";
+  import { modal, Snap } from "./modal.store";
 
-  export function close() {
-    $appSettings.modal = "";
+  export let width: number = 600;
+
+  function close() {
+    if (get(modal)?.options.disableClickOutside) {
+      return;
+    }
+    modal.close();
   }
-</script>
 
-<div id="modal-copy-placeholder" />
+  const styleMap = {
+    [Snap.FULL]: {
+      class: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+      style: `width: ${width}px; max-width: calc(100% - 80px);`,
+    },
+    [Snap.MIDDLE]: {
+      class: "absolute left-0 top-0 w-full h-full",
+      style: "",
+    },
+  };
+</script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
-<modal
-  class="z-40 flex absolute items-center justify-center w-full h-screen
+<div
+  class="z-40 absolute w-full h-full
     bg-secondary bg-opacity-50"
-  on:click|self={close}
+  on:mousedown|self={close}
 >
   <div
-    id="clickbox"
-    class="z-50 w-fit h-fit text-white relative flex shadow py-6 px-12
-      bg-primary max-w-4xl"
+    class="z-50 text-white shadow-md p-6
+      bg-primary rounded {styleMap[$modal?.options.snap]?.class}"
+    style={styleMap[$modal?.options.snap]?.style}
   >
     <slot name="content" />
   </div>
-</modal>
+</div>

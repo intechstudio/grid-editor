@@ -16,7 +16,7 @@
   export let component = undefined;
 
   let showbuttons = false;
-  let isOpen;
+  let showTooltip;
 
   let closeTimeout;
   let openTimeout;
@@ -38,18 +38,18 @@
 
   function handleReferenceElementClick(e) {
     if (triggerEvents.includes("click")) {
-      isOpen = true;
+      showTooltip = true;
       showbuttons = true;
     }
     if (triggerEvents.includes("show-buttons")) {
       if (!showbuttons) {
         clearTimeout(openTimeout);
-        isOpen = true;
+        showTooltip = true;
         showbuttons = true;
       }
     }
     if (triggerEvents.includes("hover") && !showbuttons) {
-      isOpen = false;
+      showTooltip = false;
     }
     e.stopPropagation();
   }
@@ -58,10 +58,10 @@
     if (triggerEvents.includes("hover")) {
       clearTimeout(closeTimeout);
       if (instant) {
-        isOpen = true;
+        showTooltip = true;
       } else {
         openTimeout = setTimeout(() => {
-          isOpen = true;
+          showTooltip = true;
         }, delay);
       }
     }
@@ -73,7 +73,7 @@
       clearTimeout(openTimeout);
       closeTimeout = setTimeout(
         () => {
-          isOpen = false;
+          showTooltip = false;
         },
         instant ? 0 : 100
       );
@@ -146,13 +146,13 @@
   function close() {
     clearTimeout(openTimeout);
     clearTimeout(closeTimeout);
-    isOpen = false;
+    showTooltip = false;
     showbuttons = false;
   }
 </script>
 
 <Popover
-  bind:isOpen
+  bind:isOpen={showTooltip}
   id="tooltip"
   triggerEvents={["manual"]}
   {referenceElement}

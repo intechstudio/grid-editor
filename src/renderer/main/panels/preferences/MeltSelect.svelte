@@ -1,9 +1,15 @@
 <script lang="ts">
   import { createSelect, melt } from "@melt-ui/svelte";
-  export let options;
-  export let target;
+  export let options: SelectOption[];
+  export let target: any;
   export let size: "auto" | "full" = "auto";
-  let oldTarget;
+
+  type SelectOption = { title: string; value: any };
+
+  function getDefaultSelected() {
+    const obj = options.find((e: SelectOption) => e.value === target);
+    return { label: obj.title, value: obj.value };
+  }
 
   const {
     elements: { trigger, menu, option },
@@ -16,51 +22,16 @@
       fitViewport: true,
       sameWidth: true,
     },
-    defaultSelected: { value: target.value, label: target.title },
+    defaultSelected: getDefaultSelected(),
   });
 
-  $: {
-    if ($selected) {
-      handleSelectionChange();
-    }
-  }
+  $: handleSelectionChange($selected);
 
-  function handleSelectionChange() {
-    if (typeof $selected === "undefined") {
-      if (typeof target !== "undefined") {
-        selected.set(() => {
-          const s = { value: undefined, label: undefined };
-          const item = options.find((e) => {
-            return e.value === target;
-          });
-          if (typeof item !== "undefined") {
-            s.value = target;
-            s.label = item.title;
-            oldTarget = target;
-            console.log(s);
-            return s;
-          }
-        });
-      }
-    } else {
-      if (target !== oldTarget) {
-        selected.update((s) => {
-          const item = options.find((e) => {
-            return e.value === target;
-          });
-          if (typeof item !== "undefined") {
-            s.value = target;
-            s.label = item.title;
-            oldTarget = target;
-            return s;
-          }
-        });
-      }
-
-      if (target !== $selected.value) {
-        oldTarget = target = $selected.value;
-      }
+  function handleSelectionChange(selected: { label: string; value: any }) {
+    if (selected === target) {
+      return;
     }
+    target = selected.value;
   }
 </script>
 
