@@ -54,9 +54,15 @@
     });
   }
 
+  let [dx, dy] = [undefined, undefined];
   $: {
     if ($user_input || $elementNameStore) {
-      renderElementList();
+      const noDevice = $user_input.elementnumber === -1;
+      if (dx !== $user_input.dx || dy !== $user_input.dy || noDevice) {
+        dx = noDevice ? undefined : $user_input.dx;
+        dy = noDevice ? undefined : $user_input.dy;
+        renderElementList();
+      }
     }
   }
 
