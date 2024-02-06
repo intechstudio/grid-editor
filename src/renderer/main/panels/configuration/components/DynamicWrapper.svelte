@@ -84,8 +84,6 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
-
-  $: console.log(config.indentation);
 </script>
 
 <wrapper class="flex flex-grow border-none outline-none">

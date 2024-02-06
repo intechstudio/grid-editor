@@ -38,7 +38,7 @@ export function lastOpenedActionblocksRemove(short) {
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
-import grid from "../../../protocol/grid-protocol.js";
+import { grid } from "../../../protocol/grid-protocol";
 import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
@@ -174,10 +174,8 @@ export class ConfigList extends Array {
 
   static updateIndentation(list) {
     let indentation = 0;
-    console.log(list);
     for (let i = 0; i < list.length; i++) {
       let config = list[i];
-      console.log(config);
       if (config.information.type === "composite_open") {
         config.indentation = indentation++;
       } else if (config.information.type === "composite_close") {
@@ -307,7 +305,7 @@ export class ConfigList extends Array {
   //Throws error if limit is reached
   checkLength() {
     const length = this.toConfigScript().length;
-    if (length > grid.properties.CONFIG_LENGTH) {
+    if (length > grid.getProperty("CONFIG_LENGTH")) {
       const target = ConfigTarget.getCurrent();
       throw {
         type: "lengthError",
