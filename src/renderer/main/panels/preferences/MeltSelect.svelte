@@ -60,7 +60,11 @@
     <div class="flex">&#9660;</div>
   </button>
   {#if $open}
-    <div class="bg-gray-900 text-white/80 border border-white/50 rounded z-40">
+    <div
+      {...$menu}
+      use:menu
+      class="bg-gray-900 text-white/80 border border-white/50 rounded z-40"
+    >
       {#each options as item}
         <div
           {...$option({ value: item.value, label: item.title })}

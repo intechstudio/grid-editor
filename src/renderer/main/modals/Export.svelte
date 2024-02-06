@@ -3,6 +3,7 @@
   import { configManager } from "../panels/configuration/Configuration.store";
   import MoltenModal from "./MoltenModal.svelte";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
   function handleCopy() {
     const _tempSpan = document.createElement("input");
@@ -51,11 +52,10 @@
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
-    <MoltenPushButton
-      on:click={handleCopy}
-      text="Copy"
-      style="accept"
-      popup={{ text: "Copied to clipboard!" }}
-    />
+    <MoltenPushButton on:click={handleCopy} text="Copy" style="accept">
+      <div slot="popup">
+        <MoltenPopup text="Copied to clipboard!" />
+      </div>
+    </MoltenPushButton>
   </div>
 </MoltenModal>
