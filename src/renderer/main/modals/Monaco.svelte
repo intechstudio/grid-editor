@@ -2,8 +2,8 @@
   import { watchResize } from "svelte-watch-resize";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
+  import { grid } from "../../protocol/grid-protocol";
   import { modal } from "./modal.store";
-  import grid from "../../protocol/grid-protocol.js";
   import MoltenModal from "./MoltenModal.svelte";
 
   import { debug_monitor_store } from "../panels/DebugMonitor/DebugMonitor.store";
@@ -84,7 +84,7 @@
         scriptLength = editedList.toConfigScript().length;
 
         //Check the minified config length
-        if (scriptLength >= grid.properties.CONFIG_LENGTH) {
+        if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
           throw new LengthError("Config limit reached.");
         }
 
@@ -206,7 +206,7 @@
           <span
             >{`Character Count: ${
               typeof scriptLength === "undefined" ? "?" : scriptLength
-            }/${grid.properties.CONFIG_LENGTH - 1} (max)`}</span
+            }/${grid.getProperty("CONFIG_LENGTH") - 1} (max)`}</span
           >
         </div>
       </div>
