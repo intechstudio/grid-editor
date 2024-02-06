@@ -345,10 +345,11 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={$configScriptLength >= grid.properties.CONFIG_LENGTH
+                  class={$configScriptLength >=
+                  grid.getProperty("CONFIG_LENGTH")
                     ? "text-error"
                     : $configScriptLength >=
-                      (grid.properties.CONFIG_LENGTH / 3) * 2
+                      (grid.getProperty("CONFIG_LENGTH") / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >

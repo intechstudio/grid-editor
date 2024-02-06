@@ -87,7 +87,7 @@
         scriptLength = editedList.toConfigScript().length;
 
         //Check the minified config length
-        if (scriptLength >= grid.properties.CONFIG_LENGTH) {
+        if (scriptLength >= grid.getProperty("CONFIG_LENGTH")) {
           throw new LengthError("Config limit reached.");
         }
 
@@ -230,7 +230,7 @@
             <span class="mr-2">Character Count:</span>
             {typeof scriptLength === "undefined" ? "?" : scriptLength}
             <span>/</span>
-            <span>{grid.properties.CONFIG_LENGTH - 1}</span>
+            <span>{grid.getProperty("CONFIG_LENGTH") - 1}</span>
           </div>
         </div>
 

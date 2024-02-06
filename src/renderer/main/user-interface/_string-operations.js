@@ -426,4 +426,4 @@ export function debounce(callback, delay) {
   };
 }
 
-stringManipulation.initialize(grid.properties.LUA);
+stringManipulation.initialize(grid.getProperty("LUA"));

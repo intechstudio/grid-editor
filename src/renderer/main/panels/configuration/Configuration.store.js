@@ -307,7 +307,7 @@ export class ConfigList extends Array {
   //Throws error if limit is reached
   checkLength() {
     const length = this.toConfigScript().length;
-    if (length > grid.properties.CONFIG_LENGTH) {
+    if (length > grid.getProperty("CONFIG_LENGTH")) {
       const target = ConfigTarget.getCurrent();
       throw {
         type: "lengthError",

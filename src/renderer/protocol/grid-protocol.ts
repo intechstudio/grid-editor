@@ -684,7 +684,7 @@ interface LuaAutocompleteFunction {
   elementtype?: string;
 }
 
-interface GridProperties {
+interface PropertiesObject {
   BRC: GridBRC;
   LUA: GridLua[];
   LUA_AUTOCOMPLETE: LuaAutocompleteFunction[];
@@ -700,47 +700,24 @@ interface GridProperties {
   SESSION: string;
 }
 
-class GridProtocol {
-  public properties = this.parse_properties();
+class GridProperty {
+  private props: PropertiesObject;
+  constructor() {
+    this.props = this.parse_properties();
+  }
 
-  public module_type_from_hwcfg(hwcfg: number): ModuleType | undefined {
-    const HWCFG = grid.properties.HWCFG;
-    let type = undefined;
-
-    for (const key in HWCFG) {
-      if (HWCFG[key] === hwcfg) {
-        type = ModuleType[key.substring(0, 4)];
-      }
+  public getProperty(key: string) {
+    const obj = Object.entries(this.props).find(
+      ([objKey, objValue]) => key === objKey
+    );
+    if (typeof obj === "undefined") {
+      throw `GridProtocol: Unknown property of ${key}!`;
     }
 
-    return type;
+    return obj[1];
   }
 
-  public get_module_element_list(type: ModuleType) {
-    return moduleElements[type];
-  }
-
-  public get_element_events(type: ElementType) {
-    return elementEvents[type];
-  }
-
-  public module_architecture_from_hwcfg(hwcfg: number) {
-    if (hwcfg % 2 === 1) {
-      return Architecture.ESP32;
-    } else {
-      return Architecture.D51;
-    }
-  }
-
-  private extendLua(propObject: GridLua): GridLua[] {
-    const deepObjects = returnDeepestObjects(propObject);
-    //console.log(deepObjects)
-    const array = mapObjectsToArray(editor_lua_properties, deepObjects);
-    //console.log(array)
-    return array;
-  }
-
-  parse_properties(): GridProperties {
+  private parse_properties(): PropertiesObject {
     let HWCFG: HWCFG = {};
     let CONST: GridConst = {};
     let INSTR: GridInstr = {};
@@ -909,6 +886,51 @@ class GridProtocol {
         .toString(16)
         .padStart(2, "0"),
     };
+  }
+
+  private extendLua(propObject: GridLua): GridLua[] {
+    const deepObjects = returnDeepestObjects(propObject);
+    //console.log(deepObjects)
+    const array = mapObjectsToArray(editor_lua_properties, deepObjects);
+    //console.log(array)
+    return array;
+  }
+}
+
+class GridProtocol {
+  private properties = new GridProperty();
+
+  public getProperty(key: string): any {
+    return this.properties.getProperty(key);
+  }
+
+  public module_type_from_hwcfg(hwcfg: number): ModuleType | undefined {
+    const HWCFG = grid.getProperty("HWCFG");
+    let type = undefined;
+
+    for (const key in HWCFG) {
+      if (HWCFG[key] === hwcfg) {
+        type = ModuleType[key.substring(0, 4)];
+      }
+    }
+
+    return type;
+  }
+
+  public get_module_element_list(type: ModuleType) {
+    return moduleElements[type];
+  }
+
+  public get_element_events(type: ElementType) {
+    return elementEvents[type];
+  }
+
+  public module_architecture_from_hwcfg(hwcfg: number) {
+    if (hwcfg % 2 === 1) {
+      return Architecture.ESP32;
+    } else {
+      return Architecture.D51;
+    }
   }
 
   public encode_packet(descriptor: any) {

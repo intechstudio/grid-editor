@@ -156,9 +156,9 @@
         <div class="text-white">
           <span
             class:text-error={$configScriptLength >=
-              grid.properties.CONFIG_LENGTH}
+              grid.getProperty("CONFIG_LENGTH")}
             class:text-yellow-400={$configScriptLength >
-              (grid.properties.CONFIG_LENGTH / 3) * 2}
+              (grid.getProperty("CONFIG_LENGTH") / 3) * 2}
             >{$configScriptLength}
           </span>
         </div>
