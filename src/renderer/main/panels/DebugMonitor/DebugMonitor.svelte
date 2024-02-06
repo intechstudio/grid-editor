@@ -1,4 +1,6 @@
 <script>
+  import { modal } from "./../../modals/modal.store";
+  import Export from "./../../modals/Export.svelte";
   import {
     debug_monitor_store,
     debug_lowlevel_store,
@@ -135,7 +137,7 @@
   }
 
   function handleShowCode(e) {
-    $appSettings.modal = "export";
+    modal.show(Export);
   }
 </script>
 

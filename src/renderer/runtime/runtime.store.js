@@ -11,6 +11,7 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
+import { modal } from "../main/modals/modal.store";
 
 let lastPageActivator = "";
 
@@ -249,7 +250,7 @@ function create_user_input() {
     }
 
     // modal block track physical interaction setting
-    if (get(appSettings).modal !== "") {
+    if (typeof get(modal) !== "undefined") {
       return;
     }
 
@@ -1226,7 +1227,7 @@ setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
 
-  if (runtime.unsavedChangesCount() != 0 || get(appSettings).modal !== "") {
+  if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
     type = 254;
   }
 

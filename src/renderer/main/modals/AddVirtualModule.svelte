@@ -5,8 +5,7 @@
   import MeltSelect from "../panels/preferences/MeltSelect.svelte";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
-
-  let modal = undefined;
+  import { modal } from "./modal.store";
 
   let selected = 0;
   let options = Object.keys(ModuleType).map((key, index) =>
@@ -33,7 +32,7 @@
   }
 </script>
 
-<MoltenModal bind:this={modal}>
+<MoltenModal width={400}>
   <div slot="content">
     <div class="flex w-full text-4xl opacity-90 pb-2">
       Welcome to Virtual Mode!
