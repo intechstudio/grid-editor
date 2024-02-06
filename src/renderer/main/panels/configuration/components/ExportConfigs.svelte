@@ -1,12 +1,14 @@
 <script>
   import { appSettings } from "../../../../runtime/app-helper.store";
+  import { modal } from "../../../modals/modal.store";
+  import Export from "../../../modals/Export.svelte";
 </script>
 
 <div class="flex flex-col ml-2 justify-center items-center p-1">
   <button
     id="open-export-modal"
     on:click|preventDefault={() => {
-      $appSettings.modal = "export";
+      modal.show(Export);
     }}
     class="p-1 flex cursor-pointer focus:ring-1 focus:outline-none items-center hover:bg-select bg-secondary rounded"
   >

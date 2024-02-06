@@ -128,4 +128,6 @@
       on:content-change={handleContentChange}
     />
   </div>
+
+  <slot />
 </div>

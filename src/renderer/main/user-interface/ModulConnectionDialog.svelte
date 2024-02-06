@@ -1,8 +1,9 @@
 <script>
+  import { modal } from "./../modals/modal.store";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
-  import { appSettings } from "../../runtime/app-helper.store.js";
+  import AddVirtualModule from "../modals/AddVirtualModule.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -21,7 +22,7 @@
   }
 
   function handleAddVirtualModuleClicked(e) {
-    $appSettings.modal = "addVirtualModule";
+    modal.show(AddVirtualModule);
     Analytics.track({
       event: "VirtualModule",
       payload: {

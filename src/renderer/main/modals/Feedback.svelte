@@ -1,10 +1,10 @@
 <script>
   import { onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
+  import { modal } from "./modal.store";
   import { fade, scale } from "svelte/transition";
   import { backOut } from "svelte/easing";
-
-  import { clickOutside } from "../_actions/click-outside.action";
+  import MoltenModal from "./MoltenModal.svelte";
   import { Analytics } from "../../runtime/analytics.js";
 
   let textArea = undefined;
@@ -34,7 +34,7 @@
   }
 
   function handleClose(e) {
-    $appSettings.modal = "";
+    modal.close();
   }
 
   function handleClickOutside(e) {
@@ -48,22 +48,9 @@
 
 <div id="modal-copy-placeholder" />
 
-<!-- transition:fade|global={{ duration: 150 }} -->
-<modal
-  class="z-40 flex absolute flex-col items-center justify-center w-full h-screen
-  bg-primary bg-opacity-50"
->
-  <!-- transition:slide|global={{ delay: 250, duration: 300, axis: "x" }} -->
-  <div
-    class="z-50 w-1/2 h-1/2 flex flex-col shadow-xl bg-primary
-bg-opacity-100 overflow-auto rounded-lg"
-  >
-    <div
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
-      id="clickbox"
-      class="flex flex-col gap-4 px-8 pt-8 pb-4 flex-grow"
-    >
+<MoltenModal>
+  <div slot="content">
+    <div class="flex flex-col gap-4 flex-grow">
       <div class="flex-row w-full flex justify-between">
         <div class="flex flex-col">
           <span class="w-full text-4xl text-white">Send Feedback</span>
@@ -108,7 +95,7 @@ bg-opacity-100 overflow-auto rounded-lg"
         <div class="flex flex-grow relative">
           <textarea
             bind:this={textArea}
-            class="bg-secondary p-2 w-full h-full text-white outline-none"
+            class="bg-secondary p-2 w-full h-32 text-white outline-none"
           />
           {#if feedbackSubmitted}
             <div
@@ -139,13 +126,7 @@ bg-opacity-100 overflow-auto rounded-lg"
         <span class="text-white">Submit Feedback!</span>
       </button>
     </div>
-    <div
-      class="flex flex-col w-full h-content bg-black
-      bg-opacity-10 px-8 py-4"
-    >
-      <span class="text-gray-300"> Grid Editor is Open-Source Software </span>
-      <span class="text-gray-500">Developed by Intech Studio</span>
-    </div>
+
     <div />
-  </div></modal
->
+  </div>
+</MoltenModal>
