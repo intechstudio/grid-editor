@@ -1,41 +1,6 @@
-import * as grid_protocol from "grid-protocol/grid_protocol_bot.json";
+import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
 
 import lodash from "lodash";
-
-export enum ModuleType {
-  BU16 = "BU16",
-  EF44 = "EF44",
-  EN16 = "EN16",
-  PBF4 = "PBF4",
-  PO16 = "PO16",
-  TEK2 = "TEK2",
-}
-
-export enum EventType {
-  INIT = "init",
-  POTMETER = "potmeter",
-  ENCODER = "encoder",
-  BUTTON = "button",
-  MAP = "map",
-  MIDIRX = "midirx",
-  TIMER = "timer",
-  UNDEFINED = "undef",
-}
-
-export enum ElementType {
-  BLANK = "blank",
-  SYSTEM = "system",
-  BUTTON = "button",
-  POTENTIOMETER = "potentiometer",
-  ENCODER = "encoder",
-  FADER = "fader",
-}
-
-export enum Architecture {
-  ESP32 = "esp32",
-  D51 = "d51",
-  VIRTUAL = "virtual",
-}
 
 const editor_lua_properties = [
   {
@@ -138,7 +103,7 @@ const editor_lua_properties = [
   },
 ];
 
-function returnDeepestObjects(obj: any) {
+function returnDeepestObjects(obj) {
   var found = {};
   let parent = "";
 
@@ -163,7 +128,7 @@ function returnDeepestObjects(obj: any) {
   return found;
 }
 
-function mapObjectsToArray(array: any[], object: any) {
+function mapObjectsToArray(array, object) {
   function mapper(baseArray, type, allowed) {
     return (baseArray = baseArray.map((e, i) => {
       return { type: type, allowed: allowed, ...e };
@@ -195,7 +160,7 @@ function mapObjectsToArray(array: any[], object: any) {
   return array;
 }
 
-function createNestedObject(base: any, names: any, value: any) {
+function createNestedObject(base, names, value) {
   // to avoid array property overwriting
   let _names = [...names];
 
@@ -216,15 +181,15 @@ function createNestedObject(base: any, names: any, value: any) {
 }
 
 // global id for serial message generation
-let global_id: number = 0;
+let global_id = 0;
 
 let [class_name_from_code, class_code_from_name] =
   class_code_decode_encode_init();
 let [instr_name_from_code, instr_code_from_name] =
   instr_code_decode_encode_init();
 
-let class_parameters: any = parse_class_parameters_from_protocol();
-let brc_parameters: any = parse_brc_parameters_from_protocol();
+let class_parameters = parse_class_parameters_from_protocol();
+let brc_parameters = parse_brc_parameters_from_protocol();
 
 function parse_brc_parameters_from_protocol() {
   let brcparams = {};
@@ -339,18 +304,14 @@ function parse_class_parameters_from_protocol() {
   return classparams;
 }
 
-function read_integer_from_asciicode_array(
-  array: number[],
-  offset: number,
-  length: number
-): number | undefined {
+function read_integer_from_asciicode_array(array, offset, length) {
   // check is parameters are valid, make sure we don't overrun the buffer
   if (array.length < offset + length) {
     //console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`);
     return undefined;
   }
 
-  let ret_value: any = 0;
+  let ret_value = 0;
   for (let i = 0; i < length; i++) {
     ret_value +=
       parseInt("0x" + String.fromCharCode(array[offset + i])) *
@@ -358,19 +319,14 @@ function read_integer_from_asciicode_array(
   }
 
   // if elemnt in ascii array was not valid hex character (0...9 or a...f)
-  if (Number.isNaN(ret_value)) {
+  if (ret_value === NaN) {
     return undefined;
   }
 
   return ret_value;
 }
 
-function write_integer_to_asciicode_array(
-  array: any[],
-  offset: number,
-  length: number,
-  value: any
-) {
+function write_integer_to_asciicode_array(array, offset, length, value) {
   let hex_value_array = value.toString(16).padStart(length, "0").split("");
 
   for (let i = offset; i < offset + length; i++) {
@@ -380,12 +336,7 @@ function write_integer_to_asciicode_array(
   return array;
 }
 
-function write_string_to_asciicode_array(
-  array: any[],
-  offset: number,
-  length: number,
-  value: any
-) {
+function write_string_to_asciicode_array(array, offset, length, value) {
   let string_in_array = value.split("");
 
   for (let i = offset; i < offset + length; i++) {
@@ -395,18 +346,14 @@ function write_string_to_asciicode_array(
   return array;
 }
 
-function read_string_from_asciicode_array(
-  array: any[],
-  offset: number,
-  length: number
-) {
+function read_string_from_asciicode_array(array, offset, length) {
   // check is parameters are valid, make sure we don't overrun the buffer
   if (array.length > 0 && array.length < offset + length) {
     // console.log(`Array overrun error! array.length: ${array.length}, offset: ${offset}, length: ${length}`);
     return undefined;
   }
 
-  let ret_array: any = [];
+  let ret_array = [];
   let ret_value = "";
 
   if (length > 0) {
@@ -427,175 +374,169 @@ function read_string_from_asciicode_array(
 }
 
 // helper functions
-function utility_genId() {
+const utility_genId = () => {
   if (global_id / 255 == 1) {
     global_id = 0;
   }
   return (global_id += 1);
-}
-
-interface CEEAT {
-  desc: string;
-  value: number;
-  key: string;
-}
+};
 
 // control element event assignment table.
-export const CEEAT: Record<EventType, CEEAT> = {
-  [EventType.UNDEFINED]: {
+export const CEEAT = {
+  undef: {
     desc: "UNDEFINED",
-    value: -1,
+    value: "-1",
     key: "UNDEFINED",
   },
 
-  [EventType.INIT]: {
+  init: {
     desc: "init",
-    value: 0,
+    value: "0",
     key: "INIT",
   },
 
-  [EventType.POTMETER]: {
+  potmeter: {
     desc: "potmeter",
-    value: 1,
+    value: "1",
     key: "AC",
   },
 
-  [EventType.ENCODER]: {
+  encoder: {
     desc: "encoder",
-    value: 2,
+    value: "2",
     key: "EC",
   },
 
-  [EventType.BUTTON]: {
+  button: {
     desc: "button",
-    value: 3,
+    value: "3",
     key: "BC",
   },
 
-  [EventType.MAP]: {
+  map: {
     desc: "utility",
-    value: 4,
+    value: "4",
     key: "MAP",
   },
 
-  [EventType.MIDIRX]: {
+  midirx: {
     desc: "midi rx",
-    value: 5,
+    value: "5",
     key: "MIDIRX",
   },
 
-  [EventType.TIMER]: {
+  timer: {
     desc: "timer",
-    value: 6,
+    value: "6",
     key: "TIMER",
   },
 };
 
 // default module elements at specific positions
 let moduleElements = {
-  [ModuleType.PO16]: [
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
+  PO16: [
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
   ],
-  [ModuleType.PBF4]: [
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
+  PBF4: [
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "potentiometer",
+    "fader",
+    "fader",
+    "fader",
+    "fader",
+    "button",
+    "button",
+    "button",
+    "button",
   ],
-  [ModuleType.BU16]: [
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
+  BU16: [
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
   ],
-  [ModuleType.EN16]: [
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
+  EN16: [
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
   ],
-  [ModuleType.EF44]: [
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
+  EF44: [
+    "encoder",
+    "encoder",
+    "encoder",
+    "encoder",
+    "fader",
+    "fader",
+    "fader",
+    "fader",
   ],
-  [ModuleType.TEK2]: [
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
+  TEK2: [
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "button",
+    "encoder",
+    "encoder",
   ],
 };
 
 // add utility (system events) control element or map mode at 255
-moduleElements[ModuleType.BU16][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.PBF4][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.PO16][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.TEK2][255] = ElementType.SYSTEM;
+moduleElements["BU16"][255] = "system";
+moduleElements["EN16"][255] = "system";
+moduleElements["PBF4"][255] = "system";
+moduleElements["PO16"][255] = "system";
+moduleElements["EF44"][255] = "system";
+moduleElements["TEK2"][255] = "system";
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
-  [ElementType.BUTTON]: [
+  button: [
     {
       ...CEEAT.init,
       defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_BUT,
@@ -603,7 +544,7 @@ const elementEvents = {
     { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
     { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
   ],
-  [ElementType.POTENTIOMETER]: [
+  potentiometer: [
     {
       ...CEEAT.init,
       defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
@@ -611,7 +552,7 @@ const elementEvents = {
     { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
     { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
   ],
-  [ElementType.FADER]: [
+  fader: [
     {
       ...CEEAT.init,
       defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
@@ -619,8 +560,8 @@ const elementEvents = {
     { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
     { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
   ],
-  [ElementType.BLANK]: [{ ...CEEAT.undef, defaultConfig: "" }],
-  [ElementType.ENCODER]: [
+  blank: [{ ...CEEAT.undef, defaultConfig: "" }],
+  encoder: [
     {
       ...CEEAT.init,
       defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_ENC,
@@ -629,7 +570,7 @@ const elementEvents = {
     { ...CEEAT.encoder, defaultConfig: grid_protocol.GRID_ACTIONSTRING_EC },
     { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
   ],
-  [ElementType.SYSTEM]: [
+  system: [
     {
       ...CEEAT.init,
       defaultConfig: grid_protocol.GRID_ACTIONSTRING_PAGE_INIT,
@@ -646,96 +587,47 @@ const elementEvents = {
   ],
 };
 
-interface GridClass {
-  [key: string]: number;
-}
+const grid = {
+  moduleElements: moduleElements,
+  elementEvents: elementEvents,
 
-interface GridLua {
-  [key: string]: number | string;
-}
-
-interface GridBRC {
-  [key: string]: number;
-}
-
-interface GridEvents {
-  [key: string]: number;
-}
-
-interface GridParameters {
-  [key: string]: number;
-}
-
-interface GridConst {
-  [key: string]: number;
-}
-
-interface GridInstr {
-  [key: string]: number;
-}
-
-interface HWCFG {
-  [key: string]: number;
-}
-
-interface LuaAutocompleteFunction {
-  label: string;
-  type: "function";
-  elementtype?: string;
-}
-
-interface PropertiesObject {
-  BRC: GridBRC;
-  LUA: GridLua[];
-  LUA_AUTOCOMPLETE: LuaAutocompleteFunction[];
-  CLASSES: GridClass;
-  HWCFG: HWCFG;
-  EVENTS: GridEvents;
-  CONST: GridConst;
-  INSTR: GridInstr;
-  VERSION: GridConst;
-  PARAMETERS: GridParameters;
-  HEARTBEAT_INTERVAL: number;
-  CONFIG_LENGTH: number;
-  SESSION: string;
-}
-
-class GridProperty {
-  private props: PropertiesObject;
-  constructor() {
-    this.props = this.parse_properties();
-  }
-
-  public getProperty(key: string) {
-    const obj = Object.entries(this.props).find(
-      ([objKey, objValue]) => key === objKey
-    );
-    if (typeof obj === "undefined") {
-      throw `GridProtocol: Unknown property of ${key}!`;
+  module_type_from_hwcfg: function (hwcfg) {
+    var HWCFG = grid.properties.HWCFG;
+    let type = "";
+    for (const key in HWCFG) {
+      if (HWCFG[key] == hwcfg) {
+        return (type = key);
+      }
     }
+  },
 
-    return obj[1];
-  }
+  module_architecture_from_hwcfg: function (hwcfg) {
+    if (hwcfg % 2 === 1) {
+      return "esp32";
+    } else {
+      return "d51";
+    }
+  },
 
-  private parse_properties(): PropertiesObject {
-    let HWCFG: HWCFG = {};
-    let CONST: GridConst = {};
-    let INSTR: GridInstr = {};
-    let CLASSES: GridClass = {};
-    let EVENTS: GridEvents = {};
-    let LUA: GridLua = {};
-    let BRC: GridBRC = {};
-    let VERSION: GridConst = {};
-    let PARAMETERS: GridParameters = {};
-    let HEARTBEAT_INTERVAL: number = 0;
-    let CONFIG_LENGTH: number = 0;
-    let LUA_AUTOCOMPLETE: LuaAutocompleteFunction[] = [];
+  properties: (function () {
+    let HWCFG = {};
+    let CONST = {};
+    let INSTR = {};
+    let CLASSES = {};
+    let EVENTS = {};
+    let LUA = {};
+    let BRC = {};
+    let VERSION = {};
+    let PARAMETERS = {};
+    let HEARTBEAT_INTERVAL = 0;
+    let CONFIG_LENGTH = 0;
+    let LUA_AUTOCOMPLETE = [];
 
     for (const key in grid_protocol) {
       if (typeof grid_protocol[key] !== "object") {
         // GRID MODULE HWCFGS
         if (key.startsWith("GRID_MODULE_")) {
-          const paramName: string = key.substring("GRID_MODULE_".length);
+          let paramName = key.substr("GRID_MODULE_".length);
           HWCFG[paramName] = +grid_protocol[key];
         }
 
@@ -871,7 +763,7 @@ class GridProperty {
 
     return {
       BRC: BRC,
-      LUA: this.extendLua(LUA),
+      LUA: extendLua(LUA),
       LUA_AUTOCOMPLETE: LUA_AUTOCOMPLETE,
       CLASSES: CLASSES,
       HWCFG: HWCFG,
@@ -886,61 +778,24 @@ class GridProperty {
         .toString(16)
         .padStart(2, "0"),
     };
-  }
 
-  private extendLua(propObject: GridLua): GridLua[] {
-    const deepObjects = returnDeepestObjects(propObject);
-    //console.log(deepObjects)
-    const array = mapObjectsToArray(editor_lua_properties, deepObjects);
-    //console.log(array)
-    return array;
-  }
-}
-
-class GridProtocol {
-  private properties = new GridProperty();
-
-  public getProperty(key: string): any {
-    return this.properties.getProperty(key);
-  }
-
-  public module_type_from_hwcfg(hwcfg: number): ModuleType | undefined {
-    const HWCFG = grid.getProperty("HWCFG");
-    let type = undefined;
-
-    for (const key in HWCFG) {
-      if (HWCFG[key] === hwcfg) {
-        type = ModuleType[key.substring(0, 4)];
-      }
+    function extendLua(propObject) {
+      const deepObjects = returnDeepestObjects(propObject);
+      //console.log(deepObjects)
+      const array = mapObjectsToArray(editor_lua_properties, deepObjects);
+      //console.log(array)
+      return array;
     }
+  })(),
 
-    return type;
-  }
-
-  public get_module_element_list(type: ModuleType) {
-    return moduleElements[type];
-  }
-
-  public get_element_events(type: ElementType) {
-    return elementEvents[type];
-  }
-
-  public module_architecture_from_hwcfg(hwcfg: number) {
-    if (hwcfg % 2 === 1) {
-      return Architecture.ESP32;
-    } else {
-      return Architecture.D51;
-    }
-  }
-
-  public encode_packet(descriptor: any) {
+  encode_packet: function (descriptor) {
     if (descriptor === undefined) {
       return;
     }
 
-    let descr: any = lodash.cloneDeep(descriptor);
+    let descr = lodash.cloneDeep(descriptor);
 
-    const PROTOCOL: any = grid.properties; //old implementation
+    const PROTOCOL = grid.properties; //old implementation
 
     descr.brc_parameters.ID = utility_genId();
     descr.brc_parameters.SX = 0;
@@ -961,7 +816,7 @@ class GridProtocol {
     }
 
     // put brc parameters into hexarray
-    let BRC_ARRAY: any = [];
+    let BRC_ARRAY = [];
 
     BRC_ARRAY.push(PROTOCOL.CONST.SOH);
     BRC_ARRAY.push(PROTOCOL.CONST.BRC);
@@ -981,7 +836,7 @@ class GridProtocol {
     BRC_ARRAY.push(PROTOCOL.CONST.EOB);
 
     // put class parameters into hexarray
-    let CLASS_ARRAY: any = [];
+    let CLASS_ARRAY = [];
 
     CLASS_ARRAY.push(PROTOCOL.CONST.STX);
 
@@ -1025,7 +880,7 @@ class GridProtocol {
     CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
     CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
 
-    let MESSAGE_ARRAY: any = [...BRC_ARRAY, ...CLASS_ARRAY];
+    let MESSAGE_ARRAY = [...BRC_ARRAY, ...CLASS_ARRAY];
 
     var len = MESSAGE_ARRAY.length;
     write_integer_to_asciicode_array(
@@ -1044,9 +899,8 @@ class GridProtocol {
     MESSAGE_ARRAY.push(checksum.charCodeAt(1));
 
     return { serial: MESSAGE_ARRAY, id: descr.brc_parameters.ID }; // return id for checking communication issues
-  }
-
-  public decode_packet_frame(asciicode_array: number[]) {
+  },
+  decode_packet_frame: function (asciicode_array) {
     // use the last two characters to determine the received checksum
     let received_checksum =
       parseInt(
@@ -1099,7 +953,7 @@ class GridProtocol {
     }
 
     // decode all of the BRC parameters
-    let brc: any = {};
+    let brc = {};
 
     for (const key in brc_parameters) {
       brc[brc_parameters[key].name] = read_integer_from_asciicode_array(
@@ -1134,7 +988,7 @@ class GridProtocol {
 
     let class_asciicode_array = asciicode_array.slice(23, -3);
 
-    let class_blocks: any = [];
+    let class_blocks = [];
 
     for (let i = 0, start_index = 0; i < class_asciicode_array.length; i++) {
       if (class_asciicode_array[i] === parseInt(grid_protocol.GRID_CONST_ETX)) {
@@ -1143,7 +997,7 @@ class GridProtocol {
       }
     }
 
-    let return_array: any = [];
+    let return_array = [];
 
     for (let i = 0; i < class_blocks.length; i++) {
       // check first and last charaters, make sure they are STX and ETX
@@ -1152,7 +1006,7 @@ class GridProtocol {
         class_blocks[i][class_blocks[i].length - 1] ===
           parseInt(grid_protocol.GRID_CONST_ETX)
       ) {
-        let current: any = {};
+        let current = {};
         current.raw = class_blocks[i].slice(1, -1);
         current.brc_parameters = brc;
 
@@ -1164,9 +1018,8 @@ class GridProtocol {
     }
 
     return return_array;
-  }
-
-  public decode_packet_classes(raw_class_array: any[]) {
+  },
+  decode_packet_classes: function (raw_class_array) {
     if (raw_class_array === undefined) {
       return undefined;
     }
@@ -1219,7 +1072,7 @@ class GridProtocol {
         }
       }
     });
-  }
-}
+  },
+};
 
-export const grid = new GridProtocol();
+export default grid;

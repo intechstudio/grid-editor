@@ -11,7 +11,7 @@
   } from "./DebugMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { fade } from "svelte/transition";
-  import { grid } from "../../../protocol/grid-protocol";
+  import grid from "../../../protocol/grid-protocol";
   import { writable, readable } from "svelte/store";
   import PolyLineGraph from "../../user-interface/PolyLineGraph.svelte";
   import { incoming_messages } from "../../../serialport/message-stream.store";
@@ -158,9 +158,9 @@
         <div class="text-white">
           <span
             class:text-error={$configScriptLength >=
-              grid.getProperty("CONFIG_LENGTH")}
+              grid.properties.CONFIG_LENGTH}
             class:text-yellow-400={$configScriptLength >
-              (grid.getProperty("CONFIG_LENGTH") / 3) * 2}
+              (grid.properties.CONFIG_LENGTH / 3) * 2}
             >{$configScriptLength}
           </span>
         </div>

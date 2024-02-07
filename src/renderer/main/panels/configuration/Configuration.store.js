@@ -38,7 +38,7 @@ export function lastOpenedActionblocksRemove(short) {
 import stringManipulation from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
-import { grid } from "../../../protocol/grid-protocol";
+import grid from "../../../protocol/grid-protocol.js";
 import { v4 as uuidv4 } from "uuid";
 
 const luaminOptions = {
@@ -305,7 +305,7 @@ export class ConfigList extends Array {
   //Throws error if limit is reached
   checkLength() {
     const length = this.toConfigScript().length;
-    if (length > grid.getProperty("CONFIG_LENGTH")) {
+    if (length > grid.properties.CONFIG_LENGTH) {
       const target = ConfigTarget.getCurrent();
       throw {
         type: "lengthError",
