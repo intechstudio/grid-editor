@@ -23,6 +23,25 @@ import { logger } from "../runtime/runtime.store";
 import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 
 export const incoming_messages = writable([]);
+export function add_datapoint(key, value) {
+  incoming_messages.update((s) => {
+    s.forEach((e) => (e.value = undefined));
+
+    const message = new PolyLineGraphData({
+      type: key,
+      value: value,
+    });
+
+    const element = s.find((e) => e.type === message.type);
+    if (typeof element === "undefined") {
+      s.push(message);
+    } else {
+      element.value = message.value;
+    }
+
+    return s;
+  });
+}
 
 function createMessageStream() {
   const _deliver_inbound = function (class_array) {
@@ -33,7 +52,6 @@ function createMessageStream() {
     class_array.forEach((class_descr, i) => {
       if (class_descr.class_name === "HEARTBEAT") {
         // check if it is online and if not then create a new module
-
         runtime.incoming_heartbeat_handler(class_descr);
       }
 
@@ -54,26 +72,12 @@ function createMessageStream() {
 
         try {
           const jsonObject = JSON.parse(jsonString);
-          incoming_messages.update((s) => {
-            s.forEach((e) => (e.value = undefined));
-            for (const key in jsonObject) {
-              if (jsonObject.hasOwnProperty(key)) {
-                const value = jsonObject[key];
-                const message = new PolyLineGraphData({
-                  type: key,
-                  value: value,
-                });
-
-                const element = s.find((e) => e.type === message.type);
-                if (typeof element === "undefined") {
-                  s.push(message);
-                } else {
-                  element.value = message.value;
-                }
-              }
+          for (const key in jsonObject) {
+            if (jsonObject.hasOwnProperty(key)) {
+              const value = jsonObject[key];
+              add_datapoint(key, value);
             }
-            return s;
-          });
+          }
         } catch (e) {
           //Do nothing
         }

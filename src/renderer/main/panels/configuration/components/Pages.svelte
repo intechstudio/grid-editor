@@ -1,6 +1,4 @@
 <script>
-  import { get } from "svelte/store";
-
   import {
     logger,
     runtime,
@@ -9,17 +7,19 @@
 
   let selectedPage = undefined;
   function handleSelectPage(page) {
-    if (runtime.unsavedChangesCount() == 0) {
-      selectedPage = page;
-      runtime.change_page(selectedPage);
-    } else {
-      logger.set({
-        type: "alert",
-        classname: "pagechange",
-        mode: 0,
-        message: "Store your config before switching pages!",
+    runtime
+      .change_page(page)
+      .then(() => {
+        selectedPage = page;
+      })
+      .catch((e) => {
+        logger.set({
+          type: "alert",
+          classname: "pagechange",
+          mode: 0,
+          message: e,
+        });
       });
-    }
   }
 
   $: handleUserInputChange($user_input);

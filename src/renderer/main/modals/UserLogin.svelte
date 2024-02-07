@@ -1,18 +1,31 @@
 <script>
-  import { clickOutside } from "../_actions/click-outside.action";
-  import { appSettings } from "../../runtime/app-helper.store";
   import { userStore } from "$lib/user.store";
   import { authStore } from "$lib/auth.store";
+  import { modal } from "./modal.store";
+  import MoltenModal from "./MoltenModal.svelte";
+  import LoginError from "$lib/auth.store";
 
   const buildVariables = window.ctxProcess.buildVariables();
 
   let email = "";
   let password = "";
+  let loginError = "";
 
   const socialLoginUrl = buildVariables.PROFILE_CLOUD_URL;
 
-  async function submitLogin() {
-    authStore.login(email, password);
+  function submitLogin() {
+    authStore.login(email, password).catch((e) => {
+      if (e instanceof LoginError) {
+        if (e.errorType === "InvalidCredentials") {
+          loginError = "Invalid email or password";
+        } else {
+          loginError = "Unknown error occured, try again later or contact us!";
+          throw e;
+        }
+      } else {
+        throw e;
+      }
+    });
   }
 
   async function anonymousLogin() {
@@ -24,27 +37,16 @@
   }
 
   function closeUserLoginModal() {
-    $appSettings.modal = "";
+    modal.close();
   }
 </script>
 
-<modal
-  class=" z-40 flex absolute items-center justify-center w-full h-screen
-  bg-primary bg-opacity-50"
->
-  <div
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={() => {
-      $appSettings.modal = "";
-    }}
-    id="clickbox"
-    class="z-50 w-full p-2 border border-white border-opacity-10 rounded max-w-md text-white relative flex flex-col shadow bg-primary
-    bg-opacity-100 items-start opacity-100"
-  >
-    <div class="w-full p-4 bg-primary h-full flex flex-col gap-4 justify-start">
+<MoltenModal width={300}>
+  <div slot="content">
+    <div class="w-full bg-primary h-full flex flex-col gap-4 justify-start">
       {#if !$userStore}
         <div class="self-start flex flex-row justify-start items-center">
-          <div class="font-medium">login to profile cloud</div>
+          <div class="font-medium">Login to profile cloud</div>
         </div>
         <div class="w-full grid text-white">
           <label class="pb-1 block font-light" for="email">e-mail</label>
@@ -53,6 +55,7 @@
             placeholder="email@example.com"
             bind:value={email}
             id="email"
+            on:input={(loginError = "")}
             class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
           />
         </div>
@@ -64,10 +67,16 @@
             type="password"
             placeholder="********"
             bind:value={password}
+            on:input={(loginError = "")}
             class="w-full p-1 border rounded bg-white dark:bg-neutral-800 focus:border-gray-800 border-gray-500 focus:outline-none focus:ring-blue-300 focus:ring-2"
           />
         </div>
 
+        {#if loginError != ""}
+          <div class="w-full grid text-error">
+            <p>{loginError}</p>
+          </div>
+        {/if}
         <div class="pt-2 w-full flex flex-col justify-between">
           <button
             on:click|preventDefault={submitLogin}
@@ -158,4 +167,4 @@
       {/if}
     </div>
   </div>
-</modal>
+</MoltenModal>

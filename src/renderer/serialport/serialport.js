@@ -2,8 +2,6 @@ import grid from "../protocol/grid-protocol.js";
 
 import { messageStream } from "./message-stream.store.js";
 
-import { writeBuffer } from "../runtime/engine.store.js";
-
 import { debug_lowlevel_store } from "../main/panels/DebugMonitor/DebugMonitor.store.js";
 
 const configuration = window.ctxProcess.configuration();
@@ -100,7 +98,8 @@ let result = [];
 function fetchStream() {
   console.log("--------serial---------");
 
-  if (navigator.intechPort === undefined) {
+  if (!navigator.intechPort || !navigator.intechPort.readable) {
+    console.error("Invalid or missing navigator.intechPort");
     return;
   }
 
@@ -110,70 +109,70 @@ function fetchStream() {
 
   // read() returns a promise that resolves
   // when a value has been received
-  reader.read().then(function processText({ done, value }) {
-    // Result objects contain two properties:
-    // done  - true if the stream has already given you all its data.
-    // value - some data. Always undefined when done is true.
-    if (done) {
-      console.log("Stream complete");
-      para.textContent = value;
-      return;
-    }
+  reader
+    .read()
+    .then(function processText({ done, value }) {
+      // Result objects contain two properties:
+      // done  - true if the stream has already given you all its data.
+      // value - some data. Always undefined when done is true.
+      if (done) {
+        console.log("Stream complete");
+        para.textContent = value;
+        return;
+      }
 
-    // value for fetch streams is a Uint8Array
-    charsReceived += value.length;
-    const chunk = value;
+      // value for fetch streams is a Uint8Array
+      charsReceived += value.length;
+      const chunk = value;
 
-    let buffer = Array.from(chunk);
+      let buffer = Array.from(chunk);
 
-    for (let i = 0; i < buffer.length; i++) {
-      rxBuffer.push(buffer[i]);
-    }
+      for (let i = 0; i < buffer.length; i++) {
+        rxBuffer.push(buffer[i]);
+      }
 
-    let messageStartIndex = 0;
-    let messageStopIndex = 0;
+      let messageStartIndex = 0;
+      let messageStopIndex = 0;
 
-    for (let i = 0; i < rxBuffer.length; i++) {
-      if (rxBuffer[i] === 10) {
-        // newline character found
+      for (let i = 0; i < rxBuffer.length; i++) {
+        if (rxBuffer[i] === 10) {
+          // newline character found
 
-        messageStopIndex = i;
-        let currentMessage = rxBuffer.slice(
-          messageStartIndex,
-          messageStopIndex
-        );
-        messageStartIndex = i + 1;
+          messageStopIndex = i;
+          let currentMessage = rxBuffer.slice(
+            messageStartIndex,
+            messageStopIndex
+          );
+          messageStartIndex = i + 1;
 
-        //decode
+          //decode
 
-        debug_lowlevel_store.push_inbound(currentMessage);
+          debug_lowlevel_store.push_inbound(currentMessage);
 
-        let class_array = grid.decode_packet_frame(currentMessage);
-        grid.decode_packet_classes(class_array);
+          let class_array = grid.decode_packet_frame(currentMessage);
+          grid.decode_packet_classes(class_array);
 
-        if (class_array !== false) {
-          messageStream.deliver_inbound(class_array);
+          if (class_array !== false) {
+            messageStream.deliver_inbound(class_array);
+          }
         }
       }
-    }
 
-    rxBuffer = rxBuffer.slice(messageStartIndex);
+      rxBuffer = rxBuffer.slice(messageStartIndex);
 
-    // Read some more, and call this function again
-    return reader
-      .read()
-      .then(processText)
-      .catch((e) => {
-        console.log(e);
-      });
-  });
+      // Read some more, and call this function again
+      return reader.read().then(processText);
+    })
+    .catch((e) => {
+      console.log(e);
+    });
 }
 
 navigator.intechFetch = fetchStream;
 
 // Send Serial data to the webserial interface
 
-export async function serial_write_islocked() {
+export function serial_write_islocked() {
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
     return true;
   }
@@ -192,45 +191,49 @@ export async function serial_write_islocked() {
   }
 }
 
-export async function serial_write(param) {
+export function serial_write(param) {
   if (param === undefined) {
-    return false;
+    return Promise.reject("Serial Write Error.");
   }
 
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
-    return false;
+    return Promise.reject("Serial Write Error.");
   }
 
   if (
     navigator.intechPort.writable === undefined ||
     navigator.intechPort.writable === null
   ) {
-    return false;
+    return Promise.reject("Serial Write Error.");
   }
 
-  param.push(10);
+  return new Promise((resolve, reject) => {
+    param.push(10);
 
-  debug_lowlevel_store.push_outbound(param);
+    debug_lowlevel_store.push_outbound(param);
 
-  let port = navigator.intechPort;
+    let port = navigator.intechPort;
 
-  if (port.writable.locked === true) {
-    console.log("SORRY it's locked");
-    return false;
-  }
+    if (port.writable.locked === true) {
+      //console.log("SORRY it's locked");
+      reject("SORRY it's locked");
+      return;
+    }
 
-  const writer = port.writable.getWriter();
+    const writer = port.writable.getWriter();
 
-  const data = new Uint8Array(param);
+    const data = new Uint8Array(param);
 
-  writer
-    .write(data)
-    .then((e) => {
-      // Allow the serial port to be closed later.
-      writer.releaseLock();
-      writeBuffer.writeBufferTryNext();
-    })
-    .catch((e) => {
-      console.log(e);
-    });
+    writer
+      .write(data)
+      .then((e) => {
+        // Allow the serial port to be closed later.
+        writer.releaseLock();
+        resolve();
+      })
+      .catch((e) => {
+        console.log(e);
+        reject(e);
+      });
+  });
 }

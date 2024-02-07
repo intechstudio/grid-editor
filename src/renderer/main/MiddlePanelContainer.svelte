@@ -1,11 +1,12 @@
 <script>
+  import { derived } from "svelte/store";
   import CursorLog from "./user-interface/cursor-log/CursorLog.svelte";
   import Tracker from "./user-interface/Tracker.svelte";
   import ActiveChanges from "./user-interface/ActiveChanges.svelte";
   import ModulConnectionDialog from "./user-interface/ModulConnectionDialog.svelte";
   import { fade, blur, fly } from "svelte/transition";
   import { runtime } from "../runtime/runtime.store";
-  import { writeBuffer } from "../runtime/engine.store.js";
+  import { writeBuffer } from "../runtime/engine.store.ts";
   import { appSettings } from "../runtime/app-helper.store";
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
@@ -26,28 +27,37 @@
 
   let showFixedStickyContainer = false;
   let gridLayout;
+
+  function handleResize(e) {
+    const stickyContainer = document.getElementById("sticky-container");
+    const container = document.getElementById("container");
+    const contRect = container.getBoundingClientRect();
+    const stickyRect = stickyContainer.getBoundingClientRect();
+    const threshold = -15;
+
+    showFixedStickyContainer = !(
+      stickyRect.bottom <
+      contRect.bottom + threshold
+    );
+  }
+
   onMount(() => {
-    function callback() {
-      const stickyContainer = document.getElementById("sticky-container");
-      const container = document.getElementById("container");
-      const contRect = container.getBoundingClientRect();
-      const stickyRect = stickyContainer.getBoundingClientRect();
-      const threshold = -15;
-
-      showFixedStickyContainer = !(
-        stickyRect.bottom <
-        contRect.bottom + threshold
-      );
-    }
-
-    const observer = new ResizeObserver(callback).observe(gridLayout);
-    window.addEventListener("resize", callback, true);
+    window.addEventListener("resize", handleResize, true);
   });
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
+
+  const pendingActions = derived(writeBuffer, ($writeBuffer) => {
+    return $writeBuffer.filter((e) => e.descr.class_name !== "HEARTBEAT");
+  });
+
   $: {
-    if ($writeBuffer.length > 0 && $runtime.length > 0) {
+    if (
+      $pendingActions.length > 0 &&
+      $runtime.length > 0 &&
+      typeof moduleHangingTimeout === "undefined"
+    ) {
       moduleHangingTimeout = setTimeout(() => {
         showModuleHangingDialog = true;
       }, 1000);
@@ -80,6 +90,7 @@
 
   <GridLayout
     bind:component={gridLayout}
+    on:resize={handleResize}
     class="absolute z-[0] items-center flex flex-col self-center"
   >
     <div
@@ -117,4 +128,6 @@
       on:content-change={handleContentChange}
     />
   </div>
+
+  <slot />
 </div>

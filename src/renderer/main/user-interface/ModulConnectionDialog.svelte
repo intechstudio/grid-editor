@@ -1,6 +1,9 @@
 <script>
+  import { modal } from "./../modals/modal.store";
+  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
+  import AddVirtualModule from "../modals/AddVirtualModule.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -15,6 +18,17 @@
         click: "Troubleshooting",
       },
       mandatory: false,
+    });
+  }
+
+  function handleAddVirtualModuleClicked(e) {
+    modal.show(AddVirtualModule);
+    Analytics.track({
+      event: "VirtualModule",
+      payload: {
+        message: "Virtual Module modal opened",
+      },
+      mandatory: true,
     });
   }
 </script>
@@ -79,14 +93,21 @@
       feedback_context="Module not responding"
       class="self-start text-gray-500 text-sm"
     />
-    <button
-      on:click={handleTroubleshoot}
-      class="relative border block hover:bg-commit-saturate-20
+    <div class="flex flex-col gap-2">
+      <button
+        on:click={handleTroubleshoot}
+        class="relative border block hover:bg-commit-saturate-20
             text-white py-1 px-2 rounded border-commit-saturate-10
             hover:border-commit-desaturate-10 focus:outline-none mt-2"
-    >
-      <div>Troubleshooting</div>
-    </button>
+      >
+        <div>Troubleshooting</div>
+      </button>
+      <MoltenPushButton
+        text="Try Virtual Mode!"
+        style="accept"
+        on:click={handleAddVirtualModuleClicked}
+      />
+    </div>
   </div>
 </div>
 

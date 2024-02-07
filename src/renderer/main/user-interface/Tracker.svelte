@@ -33,10 +33,3 @@
     </div>
   </div>
 </container>
-
-<style>
-  button.selected {
-    font-weight: bold;
-    box-shadow: inset 0 0 100px #ffffff60;
-  }
-</style>

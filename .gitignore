@@ -4,9 +4,10 @@ package-lock.json
 public/build/*
 profile-cloud/
 dist-svelte
+dist-web
 dist
 build
-.env*
+.env
 /test-results/
 /playwright-report/
 /playwright/.cache/

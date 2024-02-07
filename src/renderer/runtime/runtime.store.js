@@ -1,13 +1,20 @@
 import { writable, get, derived } from "svelte/store";
 
 import grid from "../protocol/grid-protocol";
-import instructions from "../serialport/instructions";
+import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
-import { selectedConfigStore } from "./config-helper.store";
+import { createVirtualModule } from "./virtual-engine.ts";
+import { VirtualModuleHWCFG } from "./virtual-engine.ts";
+import { virtual_modules } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
 import { appSettings } from "./app-helper.store";
+
+import { add_datapoint } from "../serialport/message-stream.store.js";
+import { configManager } from "../main/panels/configuration/Configuration.store.js";
+import { forEach } from "lodash";
+import { modal } from "../main/modals/modal.store";
 
 let lastPageActivator = "";
 
@@ -246,7 +253,7 @@ function create_user_input() {
     }
 
     // modal block track physical interaction setting
-    if (get(appSettings).modal !== "") {
+    if (typeof get(modal) !== "undefined") {
       return;
     }
 
@@ -364,24 +371,44 @@ function create_runtime() {
     return _event;
   };
 
-  function fetchOrLoadConfig(
-    { dx, dy, page, element, event },
-    callback = function () {}
-  ) {
-    const _device = get(runtime).find(
-      (device) => device.dx == dx && device.dy == dy
-    );
-    const _page = _device.pages.find((e) => e.pageNumber == page);
-    const _element = _page.control_elements.find(
-      (e) => e.controlElementNumber == element
-    );
-    const _event = _element.events.find((e) => e.type == event);
+  function fetchOrLoadConfig({ dx, dy, page, element, event }) {
+    return new Promise((resolve, reject) => {
+      const _device = get(runtime).find(
+        (device) => device.dx == dx && device.dy == dy
+      );
+      const _page = _device.pages.find((e) => e.pageNumber == page);
+      const _element = _page.control_elements.find(
+        (e) => e.controlElementNumber == element
+      );
+      const _event = _element.events.find((e) => e.type == event);
 
-    if (typeof _event.config !== "undefined") {
-      callback();
-    } else {
-      instructions.fetchConfigFromGrid(dx, dy, page, element, event, callback);
-    }
+      if (typeof _event.config !== "undefined") {
+        resolve();
+      } else {
+        instructions
+          .fetchConfigFromGrid(dx, dy, page, element, event)
+          .then((descr) => {
+            const dx = descr.brc_parameters.SX;
+            const dy = descr.brc_parameters.SY;
+            const page = descr.class_parameters.PAGENUMBER;
+            const element = descr.class_parameters.ELEMENTNUMBER;
+            const event = descr.class_parameters.EVENTTYPE;
+            const actionstring = descr.class_parameters.ACTIONSTRING;
+
+            update_event_configuration(
+              dx,
+              dy,
+              page,
+              element,
+              event,
+              actionstring
+            );
+
+            resolve();
+          })
+          .catch((e) => reject(e));
+      }
+    });
   }
 
   function isFirmwareMismatch(currentFirmware, requiredFirmware) {
@@ -421,6 +448,11 @@ function create_runtime() {
 
   function incoming_heartbeat_handler(descr) {
     try {
+      for (const device of get(_runtime)) {
+        if (device.architecture === "virtual") {
+          destroy_module(device.dx, device.dy);
+        }
+      }
       const controller = this.create_module(
         descr.brc_parameters,
         descr.class_parameters,
@@ -446,8 +478,17 @@ function create_runtime() {
           });
         }
 
+        let lastDate = get(heartbeat).find(
+          (device) => device.id == controller.id
+        ).alive;
+        let newDate = Date.now();
         get(heartbeat).find((device) => device.id == controller.id).alive =
-          Date.now();
+          newDate;
+
+        //console.log(newDate - lastDate)
+        if (get(appSettings).persistent.heartbeatDebugEnabled) {
+          add_datapoint("Hearbeat", newDate - lastDate);
+        }
       }
       // device not found, add it to runtime and get page count from grid
       else {
@@ -530,38 +571,40 @@ function create_runtime() {
     return new Promise((resolve, reject) => {
       const ui = get(user_input);
       let events = preset.configs.events;
-      const callback = function () {
-        resolve();
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "elementoverwrite",
-          message: `Overwrite done!`,
-        });
-      };
-
-      events.forEach((ev, index) => {
+      const promises = [];
+      events.forEach((e) => {
         const page = ui.pagenumber;
-        const event = ev.event;
+        const event = e.event;
 
         _runtime.update((_runtime) => {
           let dest = findUpdateDestEvent(_runtime, x, y, page, element, event);
-          if (dest) {
-            dest.config = ev.config;
-
-            instructions.sendConfigToGrid(
+          if (typeof dest !== "undefined") {
+            dest.config = e.config;
+            const promise = instructions.sendConfigToGrid(
               x,
               y,
               page,
               element,
               event,
-              dest.config,
-              index === events.length - 1 ? callback : undefined
+              e.config
             );
+
+            promises.push(promise);
           }
           return _runtime;
         });
       });
+      Promise.all(promises)
+        .then(() => {
+          resolve();
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "elementoverwrite",
+            message: `Overwrite done!`,
+          });
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -587,8 +630,9 @@ function create_runtime() {
       }
 
       let ui = structuredClone(get(user_input));
-      array.forEach((elem, elementIndex) => {
-        elem.events.forEach((ev, eventIndex) => {
+      const promises = [];
+      array.forEach((elem) => {
+        elem.events.forEach((ev) => {
           ui.elementnumber = elem.controlElementNumber;
           ui.eventtype = ev.event;
 
@@ -611,35 +655,29 @@ function create_runtime() {
             return _runtime;
           });
 
-          let callback;
-
-          if (
-            elementIndex === array.length - 1 &&
-            eventIndex === elem.events.length - 1
-          ) {
-            // this is last element so we need to add the callback
-            callback = function () {
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "profileload",
-                message: `Profile load complete!`,
-              });
-              resolve();
-            };
-          }
-
-          instructions.sendConfigToGrid(
+          const promise = instructions.sendConfigToGrid(
             x,
             y,
             page,
             element,
             event,
-            ev.config,
-            callback
+            ev.config
           );
+
+          promises.push(promise);
         });
       });
+      Promise.all(promises)
+        .then((desc) => {
+          logger.set({
+            type: "success",
+            mode: 0,
+            classname: "profileload",
+            message: `Profile load complete!`,
+          });
+          resolve();
+        })
+        .catch((e) => reject(e));
     });
   }
 
@@ -664,30 +702,22 @@ function create_runtime() {
     });
   }
 
-  function send_event_configuration_to_grid(
-    dx,
-    dy,
-    page,
-    element,
-    event,
-    callback
-  ) {
-    let rt = get(_runtime);
+  function send_event_configuration_to_grid(dx, dy, page, element, event) {
+    return new Promise((resolve, reject) => {
+      let rt = get(_runtime);
 
-    let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
-    if (dest) {
-      instructions.sendConfigToGrid(
-        dx,
-        dy,
-        page,
-        element,
-        event,
-        dest.config,
-        callback
-      );
-    } else {
-      console.error("DEST not found!");
-    }
+      let dest = findUpdateDestEvent(rt, dx, dy, page, element, event);
+      if (dest) {
+        instructions
+          .sendConfigToGrid(dx, dy, page, element, event, dest.config)
+          .then((desc) => {
+            resolve();
+          })
+          .catch((e) => reject(e));
+      } else {
+        reject("DEST not found!");
+      }
+    });
   }
 
   // whole element copy: fetches all event configs from a control element
@@ -695,8 +725,7 @@ function create_runtime() {
     dx,
     dy,
     pageNumber,
-    elementNumber,
-    callback
+    elementNumber
   ) {
     const rt = get(runtime);
     const device = rt.find((device) => device.dx == dx && device.dy == dy);
@@ -706,32 +735,23 @@ function create_runtime() {
     );
     const events = element.events;
 
-    events.forEach((e, i) => {
+    const promises = events.map((e) => {
       const eventType = e.type;
-      if (i == events.length - 1 && callback !== undefined) {
-        fetchOrLoadConfig(
-          {
-            dx: dx,
-            dy: dy,
-            page: pageNumber,
-            element: elementNumber,
-            event: eventType,
-          },
-          callback
-        );
-      } else {
-        fetchOrLoadConfig({
-          dx: dx,
-          dy: dy,
-          page: pageNumber,
-          element: elementNumber,
-          event: eventType,
-        });
-      }
+      const dest = {
+        dx: dx,
+        dy: dy,
+        page: pageNumber,
+        element: elementNumber,
+        event: eventType,
+      };
+      const promise = fetchOrLoadConfig(dest);
+      return promise;
     });
+
+    return Promise.all(promises);
   }
 
-  function fetch_page_configuration_from_grid(callback) {
+  function fetch_page_configuration_from_grid() {
     logger.set({
       type: "progress",
       mode: 0,
@@ -743,8 +763,8 @@ function create_runtime() {
 
     const rt = get(runtime);
 
-    let ui = JSON.parse(JSON.stringify(get(user_input)));
-    let { dx, dy, page, element, event } = {
+    let ui = get(user_input);
+    const { dx, dy, page, element, event } = {
       dx: ui.dx,
       dy: ui.dy,
       page: ui.pagenumber,
@@ -762,7 +782,7 @@ function create_runtime() {
         message: `No module selected`,
       });
 
-      return;
+      return Promise.reject(`No module selected`);
     }
 
     const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
@@ -771,11 +791,11 @@ function create_runtime() {
     const fetchArray = [];
 
     controlElements.forEach((controlElement) => {
-      controlElement.events.forEach((elem) => {
-        if (typeof elem.config === "undefined") {
+      controlElement.events.forEach((e) => {
+        if (typeof e.config === "undefined") {
           // put it into the fetchArray
           fetchArray.push({
-            event: elem.type,
+            event: e.type,
             elementtype: controlElement.controlElementType,
             elementnumber: controlElement.controlElementNumber,
           });
@@ -788,30 +808,21 @@ function create_runtime() {
 
     if (fetchArray.length === 0) {
       //nothing to do, let's do calback
-      callback();
-    } else {
-      fetchArray.forEach((elem, ind) => {
-        event = elem.event;
-        element = elem.elementnumber;
-
-        if (ind === fetchArray.length - 1) {
-          // last element
-          fetchOrLoadConfig(
-            { dx: dx, dy: dy, page: page, element: element, event: event },
-            callback
-          );
-        } else {
-          fetchOrLoadConfig({
-            dx: dx,
-            dy: dy,
-            page: page,
-            element: element,
-            event: event,
-          });
-        }
-      });
+      return Promise.resolve();
     }
-    return;
+
+    const promises = fetchArray.map((e) => {
+      const promise = fetchOrLoadConfig({
+        dx: dx,
+        dy: dy,
+        page: page,
+        element: e.elementnumber,
+        event: e.event,
+      });
+      return promise;
+    });
+
+    return Promise.all(promises);
   }
 
   function clear_page_configuration(index) {
@@ -872,7 +883,7 @@ function create_runtime() {
     }
   }
 
-  function create_module(header_param, heartbeat_class_param) {
+  function create_module(header_param, heartbeat_class_param, virtual = false) {
     let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
 
     // generic check, code below if works only if all parameters are provided
@@ -894,9 +905,9 @@ function create_runtime() {
 
     return {
       // implement the module id rep / req
-      architecture: grid.module_architecture_from_hwcfg(
-        heartbeat_class_param.HWCFG
-      ),
+      architecture: virtual
+        ? "virtual"
+        : grid.module_architecture_from_hwcfg(heartbeat_class_param.HWCFG),
       portstate: heartbeat_class_param.PORTSTATE,
       id: moduleType + "_" + "dx:" + header_param.SX + ";dy:" + header_param.SY,
       dx: header_param.SX,
@@ -936,7 +947,11 @@ function create_runtime() {
     });
 
     user_input.module_destroy_handler(dx, dy);
-    writeBuffer.module_destroy_handler(dx, dy);
+    if (removed.architecture === "virtual") {
+      virtual_modules.set([]);
+    } else {
+      writeBuffer.module_destroy_handler(dx, dy);
+    }
 
     // reset rendering helper stores
 
@@ -982,19 +997,44 @@ function create_runtime() {
   }
 
   function change_page(new_page_number) {
-    if (get(writeBuffer).length > 0) {
-      return;
-    }
+    return new Promise((resolve, reject) => {
+      if (get(writeBuffer).length > 0) {
+        reject("Wait before all operations are finished.");
+        return;
+      }
 
-    let ui = get(user_input);
+      if (unsavedChangesCount() != 0) {
+        reject("Store your changes before changin pages!");
+        return;
+      }
 
-    // only update pagenumber if it differs from the runtime pagenumber
-    if (ui.pagenumber !== new_page_number) {
+      let ui = get(user_input);
+
+      // only update pagenumber if it differs from the runtime pagenumber
+      if (ui.pagenumber === new_page_number) {
+        resolve();
+        return;
+      }
       // clean up the writebuffer if pagenumber changes!
       writeBuffer.clear();
 
-      instructions.changeActivePage(new_page_number);
-    }
+      instructions
+        .changeActivePage(new_page_number)
+        .then(() => {
+          const ui = get(user_input);
+          user_input.set({
+            dx: ui.dx,
+            dy: ui.dy,
+            pagenumber: new_page_number,
+            elementnumber: ui.elementnumber,
+            eventtype: ui.eventtype,
+          });
+          resolve();
+        })
+        .catch((e) => {
+          reject(e);
+        });
+    });
   }
 
   function unsavedChangesCount() {
@@ -1013,25 +1053,40 @@ function create_runtime() {
     return count;
   }
 
-  function storePage(index) {
-    instructions.sendPageStoreToGrid();
-    _runtime.update((store) => {
-      store.forEach((device) => {
-        device.pages
-          .find((e) => e.pageNumber == index)
-          ?.control_elements.forEach((element) => {
-            element.events.forEach((event) => {
-              if (event.stored !== event.config) {
-                event.stored = event.config;
-              }
+  async function storePage(index) {
+    return new Promise((resolve, reject) => {
+      instructions
+        .sendPageStoreToGrid()
+        .then((res) => {
+          _runtime.update((store) => {
+            store.forEach((device) => {
+              device.pages
+                .find((e) => e.pageNumber == index)
+                ?.control_elements.forEach((element) => {
+                  element.events.forEach((event) => {
+                    if (event.stored !== event.config) {
+                      event.stored = event.config;
+                    }
+                  });
+                });
             });
+            return store;
           });
-      });
-      return store;
+          resolve(res);
+        })
+        .catch((e) => {
+          reject(e);
+        });
     });
   }
 
   function clearPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pageclear",
+      message: `Clearing configurations from page...`,
+    });
     return new Promise((resolve, reject) => {
       instructions
         .sendPageClearToGrid()
@@ -1047,6 +1102,12 @@ function create_runtime() {
   }
 
   function discardPage(index) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "pagediscard",
+      message: `Discarding configurations...`,
+    });
     return new Promise((resolve, reject) => {
       instructions
         .sendPageDiscardToGrid(index)
@@ -1059,6 +1120,29 @@ function create_runtime() {
           reject(e);
         });
     });
+  }
+
+  function addVirtualModule({ type }) {
+    const module = VirtualModuleHWCFG[type];
+    const controller = this.create_module(
+      {
+        DX: 0,
+        DY: 0,
+        SX: 0,
+        SY: 0,
+      },
+      {
+        HWCFG: module.hwcfg,
+      },
+      true
+    );
+
+    createVirtualModule(0, 0, module.type);
+
+    _runtime.update((devices) => {
+      return [...devices, controller];
+    });
+    setDefaultSelectedElement(controller);
   }
 
   return {
@@ -1088,6 +1172,7 @@ function create_runtime() {
     storePage: storePage,
     discardPage: discardPage,
     clearPage: clearPage,
+    addVirtualModule: addVirtualModule,
   };
 }
 
@@ -1123,14 +1208,26 @@ export const engine = createEngine();
 export const heartbeat = writable([]);
 
 const heartbeat_editor_ms = 300;
-const heartbeat_grid_ms = 300;
+const heartbeat_grid_ms = 250;
 
 const grid_heartbeat_interval_handler = async function () {
   let rt = get(runtime);
 
   rt.forEach((device, i) => {
+    if (device.architecture === "virtual") {
+      return;
+    }
+
     const alive = get(heartbeat).find((e) => e.id == device.id).alive;
-    if (Date.now() - alive > heartbeat_grid_ms * 3) {
+
+    // Allow less strict elapsedTimeLimit while writeBuffer is busy!
+    const elapsedTimeLimit =
+      get(writeBuffer).length > 0
+        ? heartbeat_grid_ms * 6
+        : heartbeat_grid_ms * 3;
+    const elapsedTime = Date.now() - alive;
+
+    if (elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {
@@ -1145,11 +1242,14 @@ setIntervalAsync(grid_heartbeat_interval_handler, heartbeat_grid_ms);
 const editor_heartbeat_interval_handler = async function () {
   let type = 255;
 
-  if (runtime.unsavedChangesCount() != 0 || get(appSettings).modal !== "") {
+  if (runtime.unsavedChangesCount() != 0 || typeof get(modal) !== "undefined") {
     type = 254;
   }
 
-  if (get(runtime).length > 0) {
+  if (
+    get(runtime).length > 0 &&
+    get(runtime).filter((e) => e.architecture === "virtual").length === 0
+  ) {
     sendHeartbeat(type);
   } else {
     writeBuffer.clear();

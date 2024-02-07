@@ -14,6 +14,8 @@
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
+  import { modal } from "../../modals/modal.store";
+  import UserLogin from "../../modals/UserLogin.svelte";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -118,7 +120,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    $appSettings.modal = "userLogin";
+    modal.show(UserLogin);
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -156,10 +158,10 @@
   }
 
   const handleGetCurrentConfigurationFromEditor = (event) =>
-    new Promise(async (resolve) => {
+    new Promise((resolve) => {
       const configType = event.data.configType;
 
-      let callback = await async function () {
+      runtime.fetch_page_configuration_from_grid().then((desc) => {
         logger.set({
           type: "progress",
           mode: 0,
@@ -227,9 +229,7 @@
         });
         config.name = `New ${config.type} config`;
         resolve(config);
-      };
-
-      runtime.fetch_page_configuration_from_grid(callback);
+      });
     });
 
   let profileCloudIsMounted = false;
@@ -365,6 +365,24 @@
     title: "Sorry, can't load Profile Cloud",
     text: "You need internet access to load it. You can load the offline version as well.",
   };
+
+  function updateFontSize(fontSize) {
+    if (iframe_element == undefined) return;
+
+    iframe_element.contentWindow.postMessage(
+      {
+        messageType: "updateFontSize",
+        fontSize: `${fontSize}px`,
+      },
+      "*"
+    );
+  }
+
+  $: {
+    if (profileCloudIsMounted) {
+      updateFontSize($appSettings.persistent.fontSize);
+    }
+  }
 </script>
 
 <div class="flex flex-col bg-primary w-full h-full relative">
@@ -393,5 +411,6 @@
     title="Test"
     allow="clipboard-read; clipboard-write;}"
     src={profileCloudUrl}
+    style=""
   />
 </div>

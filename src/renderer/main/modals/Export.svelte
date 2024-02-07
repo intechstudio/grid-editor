@@ -1,9 +1,9 @@
 <script>
-  import BtnAndPopUp from "../user-interface/BtnAndPopUp.svelte";
-  import { appSettings } from "../../runtime/app-helper.store";
-
-  import { clickOutside } from "../_actions/click-outside.action";
+  import { modal } from "./modal.store";
   import { configManager } from "../panels/configuration/Configuration.store";
+  import MoltenModal from "./MoltenModal.svelte";
+  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import MoltenPopup from "../panels/preferences/MoltenPopup.svelte";
 
   function handleCopy() {
     const _tempSpan = document.createElement("input");
@@ -19,25 +19,14 @@
 
 <div id="modal-copy-placeholder" />
 
-<modal
-  class="flex z-40 absolute items-center justify-center w-full h-screen bg-primary bg-opacity-50"
->
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
-  <div
-    use:clickOutside={{ useCapture: true }}
-    on:click-outside={() => {
-      $appSettings.modal = "";
-    }}
-    id="clickbox"
-    class="text-white relative z-50 flex flex-col shadow p-4 border border-black bg-primary bg-opacity-100 rounded items-start w-1/2 h-1/2 opacity-100"
-  >
+<MoltenModal>
+  <div slot="content" class="flex flex-col gap-2 items-center">
     <div class="w-full flex justify-between items-center">
       <div class="text-gray-500 text-sm pb-1">Export Configurations</div>
 
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div
+      <button
         on:click={() => {
-          $appSettings.modal = "";
+          modal.close();
         }}
         id="close-btn"
         class="p-1 cursor-pointer rounded not-draggable hover:bg-secondary"
@@ -55,7 +44,7 @@
             d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
           />
         </svg>
-      </div>
+      </button>
     </div>
 
     <textarea
@@ -63,13 +52,10 @@
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
-    <BtnAndPopUp
-      on:clicked={handleCopy}
-      btnStyle={"bg-commit mt-2 hover:bg-commit-saturate-10 rounded"}
-      popStyle={"bg-commit-saturate-10"}
-    >
-      <span slot="popup">Copied to clipboard!</span>
-      <span slot="button">Copy</span>
-    </BtnAndPopUp>
+    <MoltenPushButton on:click={handleCopy} text="Copy" style="accept">
+      <div slot="popup">
+        <MoltenPopup text="Copied to clipboard!" />
+      </div>
+    </MoltenPushButton>
   </div>
-</modal>
+</MoltenModal>

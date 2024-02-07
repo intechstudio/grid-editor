@@ -536,12 +536,55 @@ moduleElements["TEK2"][255] = "system";
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {
-  button: [CEEAT.init, CEEAT.button, CEEAT.timer],
-  potentiometer: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  fader: [CEEAT.init, CEEAT.potmeter, CEEAT.timer],
-  blank: [CEEAT.undef],
-  encoder: [CEEAT.init, CEEAT.button, CEEAT.encoder, CEEAT.timer],
-  system: [CEEAT.init, CEEAT.map, CEEAT.midirx, CEEAT.timer],
+  button: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_BUT,
+    },
+    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  potentiometer: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+    },
+    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  fader: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+    },
+    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  blank: [{ ...CEEAT.undef, defaultConfig: "" }],
+  encoder: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_ENC,
+    },
+    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
+    { ...CEEAT.encoder, defaultConfig: grid_protocol.GRID_ACTIONSTRING_EC },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
+  system: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_PAGE_INIT,
+    },
+    {
+      ...CEEAT.map,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MAPMODE_CHANGE,
+    },
+    {
+      ...CEEAT.midirx,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MIDIRX,
+    },
+    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+  ],
 };
 
 const grid = {

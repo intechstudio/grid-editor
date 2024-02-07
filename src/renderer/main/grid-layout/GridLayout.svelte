@@ -1,12 +1,16 @@
 <script>
+  import { watchResize } from "svelte-watch-resize";
   import { writable } from "svelte/store";
   import { runtime } from "../../runtime/runtime.store.js";
   import { appSettings } from "../../runtime/app-helper.store.js";
   import Device from "./grid-modules/Device.svelte";
   import { fade, fly } from "svelte/transition";
   import { derived } from "svelte/store";
+  import { createEventDispatcher } from "svelte";
 
   export let component;
+
+  const dispatch = createEventDispatcher();
 
   const devices = writable([]);
   let columns = 0;
@@ -35,6 +39,10 @@
   }
 
   $: handleScalingChange($scalingPercent);
+
+  function handleResize(e) {
+    dispatch("resize");
+  }
 
   function handleScalingChange(value) {
     calculateLayoutDimensions(rotation, columns, rows, value);
@@ -141,7 +149,11 @@
   }
 </script>
 
-<layout-container class="{$$props.class} " bind:this={component}>
+<layout-container
+  class="{$$props.class} "
+  bind:this={component}
+  use:watchResize={handleResize}
+>
   <div
     style="width: {layoutWidth}px;  height: {layoutHeight}px;"
     class="relative"

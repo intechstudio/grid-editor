@@ -1,7 +1,7 @@
 <script>
   import { appSettings, splitpanes } from "../runtime/app-helper.store";
 
-  import { setTooltip } from "./user-interface/tooltip/Tooltip.js";
+  import { setTooltip } from "./user-interface/tooltip/Tooltip.ts";
 
   let selectedRightTab = "Configuration";
   let selectedLeftTab = "ProfileCloud";

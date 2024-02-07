@@ -1,4 +1,6 @@
 import { writable, get, readable } from "svelte/store";
+import { modal } from "../main/modals/modal.store";
+import Welcome from "../main/modals/Welcome.svelte";
 
 const configuration = window.ctxProcess.configuration();
 
@@ -17,6 +19,7 @@ const persistentDefaultValues = {
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
+  heartbeatDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
@@ -33,13 +36,6 @@ const persistentDefaultValues = {
   showPCB: false,
   changeOnEvent: "event",
 };
-
-function checkOS() {
-  if (typeof window.ctxProcess === "object") {
-    return ctxProcess.platform;
-  }
-  return "browser";
-}
 
 function createSplitPanes() {
   const obj = {
@@ -91,9 +87,7 @@ function createAppSettingsStore(persistent) {
     rightPanelVisible: true,
     leftPanel: "ProfileCloud",
     leftPanelVisible: true,
-    modal: "",
     trayState: false,
-    os: checkOS(),
     intervalPause: false,
     firmwareNotificationState: 0,
     firmware_d51_required: {
@@ -203,7 +197,7 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          s.modal = "welcome";
+          modal.show(Welcome);
           return s;
         });
       }
