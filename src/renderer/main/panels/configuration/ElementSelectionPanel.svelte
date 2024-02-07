@@ -1,5 +1,5 @@
 <script>
-  import MeltSelect from "./../preferences/MeltSelect.svelte";
+  import { MeltSelect } from "@intechstudio/grid-uikit";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { appSettings } from "../../../runtime/app-helper.store.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";

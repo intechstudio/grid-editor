@@ -5,16 +5,18 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
 
-  import MeltCheckbox from "./MeltCheckbox.svelte";
-  import MeltRadio from "./MeltRadio.svelte";
-  import MeltSlider from "./MeltSlider.svelte";
-  import MeltSelect from "./MeltSelect.svelte";
-  import MoltenButton from "./MoltenButton.svelte";
-  import MoltenInput from "./MoltenInput.svelte";
-  import BlockRow from "./BlockRow.svelte";
-  import BlockTitle from "./BlockTitle.svelte";
-  import BlockBody from "./BlockBody.svelte";
-  import Block from "./Block.svelte";
+  import { 
+    BlockBody, 
+    BlockTitle, 
+    BlockRow, 
+    Block,
+    MeltCheckbox,
+    MeltRadio,
+    MeltSlider,
+    MeltSelect,
+    MoltenButton,
+    MoltenInput
+  } from "@intechstudio/grid-uikit";
 
   const configuration = window.ctxProcess.configuration();
 
