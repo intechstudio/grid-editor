@@ -34,7 +34,7 @@
     : ''}"
   on:click={handleClick}
 >
-  <div class="grid grid-cols-[auto_1fr] items-center h-full w-full">
+  <div class="grid grid-cols-[auto_1fr] items-center h-full w-full py-1">
     <span class="mr-2 w-fit whitespace-nowrap"
       >{config.information.displayName}</span
     >

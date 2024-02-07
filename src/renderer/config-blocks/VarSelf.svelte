@@ -255,7 +255,7 @@
           />
         </div>
         <div class="w-9/12 pl-1">
-          <div class="w-full p-1 bg-secondary">
+          <div class="w-full h-full p-1 bg-secondary">
             {#key rerenderList}
               <LineEditor
                 on:output={(e) => {

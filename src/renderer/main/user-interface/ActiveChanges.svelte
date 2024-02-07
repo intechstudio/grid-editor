@@ -8,6 +8,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
+  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
 
   let isChanges = false;
   let changes = 0;
@@ -154,38 +155,35 @@
     <div class="mx-4 text-white font-medium">
       {changes} active changes
     </div>
-    <button
+    <div
       use:setTooltip={{
         key: "configuration_header_clear",
         placement: "top",
         class: "w-60 p-4 z-10",
       }}
-      on:click={handleDiscard}
-      disabled={!isChanges}
-      class="relative items-center justify-center focus:outline-none bg-select
-      rounded text-white py-1 w-24 {isChanges
-        ? 'hover:bg-yellow-600'
-        : 'opacity-50'}"
     >
-      <div>Discard</div>
-    </button>
-    <button
+      <MoltenPushButton
+        on:click={handleDiscard}
+        disabled={!isChanges}
+        text="Discard"
+      />
+    </div>
+    <div
       use:setTooltip={{
         key: "configuration_header_store",
         placement: "top",
         class: "w-60 p-4",
       }}
-      on:click={handleStore}
-      disabled={!isChanges}
-      class="relative items-center justify-center rounded
-          focus:outline-none text-white py-1 w-24 bg-commit {isChanges
-        ? 'hover:bg-commit-saturate-20'
-        : 'opacity-50'}"
     >
-      <div>Store</div>
-    </button>
+      <MoltenPushButton
+        on:click={handleStore}
+        disabled={!isChanges}
+        text="Store"
+        style="accept"
+      />
+    </div>
 
-    <button
+    <div
       use:setTooltip={{
         key: "configuration_header_clear",
         placement: "top",
@@ -199,11 +197,8 @@
         ],
         triggerEvents: ["show-buttons", "hover"],
       }}
-      class="hover:bg-red-500
-      relative flex items-center focus:outline-none justify-center rounded
-        bg-select text-white py-1 w-24"
     >
-      <div>Clear</div>
-    </button>
+      <MoltenPushButton text="Clear" />
+    </div>
   </div>
 </container>

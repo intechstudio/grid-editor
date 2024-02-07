@@ -49,7 +49,7 @@
     <span class="text-white min-w-fit">Else if</span>
 
     <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
         on:change={(e) => {

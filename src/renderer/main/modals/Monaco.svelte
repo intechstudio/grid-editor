@@ -1,4 +1,5 @@
 <script>
+  import { appSettings } from "/runtime/app-helper.store";
   import { watchResize } from "svelte-watch-resize";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
@@ -37,6 +38,12 @@
 
   class LengthError extends String {}
 
+  $: handleFontSizechange($appSettings.persistent.fontSize);
+
+  function handleFontSizechange(fontSize) {
+    editor?.updateOptions({ fontSize: fontSize });
+  }
+
   onMount(() => {
     //Make local copies
     editedList = $configManager.makeCopy();
@@ -53,7 +60,7 @@
       value: code_preview,
       language: "intech_lua",
       theme: "my-theme",
-      fontSize: 12,
+      fontSize: $appSettings.persistent.fontSize,
 
       folding: false,
 
@@ -245,6 +252,7 @@
     </div>
 
     <div
+      id="monaco-container"
       class="{$$props.class} flex h-full w-full bg-black bg-opacity-20 border border-black"
     >
       <div bind:this={monaco_block} class="flex w-full h-full" />
@@ -276,7 +284,7 @@
     left: 0 !important;
   }
 
-  .monaco-editor {
+  #monaco-container .monaco-editor {
     position: absolute !important;
   }
 </style>

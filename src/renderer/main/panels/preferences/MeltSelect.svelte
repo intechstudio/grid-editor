@@ -56,7 +56,7 @@
     use:trigger
     class="w-full flex flex-row border border-black p-2"
   >
-    <div class="flex flex-grow">{$selectedLabel || " "}</div>
+    <div class="flex flex-grow truncate">{$selectedLabel || " "}</div>
     <div class="flex">&#9660;</div>
   </button>
   {#if $open}
