@@ -1,7 +1,7 @@
 <script>
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
-  import MeltSelect from "../panels/preferences/MeltSelect.svelte";
+  import { MeltSelect } from "@intechstudio/grid-uikit";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
   import { VirtualModuleTypes } from "../../runtime/virtual-engine";

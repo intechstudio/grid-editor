@@ -1,7 +1,7 @@
 <script>
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
-  import MeltSelect from "../panels/preferences/MeltSelect.svelte";
+  import { MeltSelect } from "@intechstudio/grid-uikit";
 
   const options = [
     {

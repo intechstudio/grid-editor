@@ -37,7 +37,7 @@
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
   import TooltipQuestion from "../../renderer/main/user-interface/tooltip/TooltipQuestion.svelte";
-  import MoltenButton from "../main/panels/preferences/MoltenButton.svelte";
+  import { MoltenButton } from "@intechstudio/grid-uikit";
   import { getComponentInformation } from "../../renderer/lib/_configs";
 
   const dispatch = createEventDispatcher();

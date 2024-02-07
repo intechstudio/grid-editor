@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import MeltSelect from "../../main/panels/preferences/MeltSelect.svelte";
+  import { MeltSelect } from "@intechstudio/grid-uikit";
 
   export let options = [];
 
