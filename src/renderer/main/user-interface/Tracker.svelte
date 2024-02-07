@@ -2,7 +2,7 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { MeltSelect } from "@intechstudio/grid-uikit";
-  
+
   const options = [
     {
       value: "none",

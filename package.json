@@ -14,7 +14,7 @@
     "@electron/notarize": "^2.1.0",
     "@playwright/test": "^1.36.1",
     "@sveltejs/vite-plugin-svelte": "^2.4.5",
-    "@intechstudio/grid-uikit": "^0.0.1",
+    "@intechstudio/grid-uikit": "^0.0.2",
     "autoprefixer": "^10.4.12",
     "chai": "^4.3.4",
     "cross-env": "^7.0.2",

@@ -7,17 +7,17 @@
   import { Analytics } from "../../../runtime/analytics.js";
   import { runtime } from "../../../runtime/runtime.store.js";
 
-  import { 
-    BlockBody, 
-    BlockTitle, 
-    BlockRow, 
+  import {
+    BlockBody,
+    BlockTitle,
+    BlockRow,
     Block,
     MeltCheckbox,
     MeltRadio,
     MeltSlider,
     MeltSelect,
     MoltenButton,
-    MoltenInput
+    MoltenInput,
   } from "@intechstudio/grid-uikit";
 
   const configuration = window.ctxProcess.configuration();
