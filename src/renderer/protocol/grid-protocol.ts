@@ -962,7 +962,7 @@ class GridProtocol {
 
     // put brc parameters into hexarray
     let BRC_ARRAY: any = [];
-
+    // problem here
     BRC_ARRAY.push(PROTOCOL.CONST.SOH);
     BRC_ARRAY.push(PROTOCOL.CONST.BRC);
 
