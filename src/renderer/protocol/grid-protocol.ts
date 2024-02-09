@@ -940,12 +940,10 @@ class GridProtocol {
 
     let descr: any = lodash.cloneDeep(descriptor);
 
-    const PROTOCOL: any = grid.properties; //old implementation
-
     descr.brc_parameters.ID = utility_genId();
     descr.brc_parameters.SX = 0;
     descr.brc_parameters.SY = 0;
-    descr.brc_parameters.SESSION = PROTOCOL.SESSION;
+    descr.brc_parameters.SESSION = this.properties.getProperty("SESSION");
     descr.brc_parameters.MSGAGE = 0;
 
     if (descr.brc_parameters.DX !== undefined) {
@@ -963,8 +961,8 @@ class GridProtocol {
     // put brc parameters into hexarray
     let BRC_ARRAY: any = [];
     // problem here
-    BRC_ARRAY.push(PROTOCOL.CONST.SOH);
-    BRC_ARRAY.push(PROTOCOL.CONST.BRC);
+    BRC_ARRAY.push(this.properties.getProperty("CONST").SOH);
+    BRC_ARRAY.push(this.properties.getProperty("CONST").BRC);
 
     for (const key in brc_parameters) {
       let offset = brc_parameters[key].offset;
@@ -978,12 +976,12 @@ class GridProtocol {
       }
     }
 
-    BRC_ARRAY.push(PROTOCOL.CONST.EOB);
+    BRC_ARRAY.push(this.properties.getProperty("CONST").EOB);
 
     // put class parameters into hexarray
     let CLASS_ARRAY: any = [];
 
-    CLASS_ARRAY.push(PROTOCOL.CONST.STX);
+    CLASS_ARRAY.push(this.properties.getProperty("CONST").STX);
 
     write_integer_to_asciicode_array(
       CLASS_ARRAY,
@@ -1022,8 +1020,8 @@ class GridProtocol {
       }
     }
 
-    CLASS_ARRAY.push(PROTOCOL.CONST.ETX);
-    CLASS_ARRAY.push(PROTOCOL.CONST.EOT);
+    CLASS_ARRAY.push(this.properties.getProperty("CONST").ETX);
+    CLASS_ARRAY.push(this.properties.getProperty("CONST").EOT);
 
     let MESSAGE_ARRAY: any = [...BRC_ARRAY, ...CLASS_ARRAY];
 
