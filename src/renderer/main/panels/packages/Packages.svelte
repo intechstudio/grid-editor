@@ -70,6 +70,12 @@
         id: pluginId,
       });
     }
+
+    Analytics.track({
+      event: "PluginStatusChange",
+      payload: { id: pluginId, status: enabled ? "enabled" : "disabled" },
+      mandatory: false,
+    });
   }
 
   function refreshPluginList() {
@@ -81,6 +87,14 @@
       type: "download-plugin",
       id: pluginId,
     });
+
+    console.log("asd");
+
+    Analytics.track({
+      event: "PluginDownloaded",
+      payload: { id: pluginId },
+      mandatory: false,
+    });
   }
 
   function uninstallPlugin(pluginId) {
@@ -91,6 +105,12 @@
     appSettings.update((s) => {
       delete s.persistent.pluginsDataStorage[pluginId];
       return s;
+    });
+
+    Analytics.track({
+      event: "PluginUninstalled",
+      payload: { id: pluginId },
+      mandatory: false,
     });
   }
 

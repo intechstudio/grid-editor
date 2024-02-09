@@ -197,7 +197,18 @@
       }
       return s;
     });
+
     sendCurrentConfigurationToGrid();
+
+    const target = ConfigTarget.getCurrent();
+    Analytics.track({
+      event: "ActionBlockUpdate",
+      payload: {
+        elementType: target.elementType, //String
+        eventType: target.eventType, //Number -> TODO: This should be also a string?
+        short: short,
+      },
+    });
   }
 
   function handleDragStart(e) {
