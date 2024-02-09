@@ -52,6 +52,7 @@ function createMessageStream() {
     class_array.forEach((class_descr, i) => {
       if (class_descr.class_name === "HEARTBEAT") {
         // check if it is online and if not then create a new module
+        console.log("incoming heartbeat");
         runtime.incoming_heartbeat_handler(class_descr);
       }
 

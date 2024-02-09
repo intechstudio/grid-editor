@@ -7,6 +7,7 @@ import { simulateProcess } from "./virtual-engine";
 import { BufferElement } from "../serialport/instructions";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
+import { InstructionClassName } from "../serialport/instructions";
 
 enum ResponseStatus {
   OK = 0,
@@ -186,30 +187,52 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      while (
-        serial_write_islocked() ||
-        processing ||
-        get(writeBuffer)[0] !== current
-      ) {
-        await sleep(1);
-      }
+      if (current.descr.class_name !== InstructionClassName.HEARTBEAT) {
+        while (
+          serial_write_islocked() ||
+          processing ||
+          get(writeBuffer)[0] !== current
+        ) {
+          await sleep(1);
+        }
 
-      //Serial port is available, we can process the current command
-      processing = true;
-      _write_buffer.update((s) => {
-        s.shift();
-        return s;
-      });
+        console.log(current.descr.class_name);
 
-      sendToGrid(current)
-        .then((result) => {
-          resolve(result);
-          processing = false;
-        })
-        .catch((e) => {
-          reject(e);
-          processing = false;
+        //Serial port is available, we can process the current command
+        processing = true;
+        _write_buffer.update((s) => {
+          s.shift();
+          return s;
         });
+
+        sendToGrid(current)
+          .then((result) => {
+            resolve(result);
+            processing = false;
+          })
+          .catch((e) => {
+            reject(e);
+            processing = false;
+          });
+      } else {
+        while (serial_write_islocked() || get(writeBuffer)[0] !== current) {
+          await sleep(1);
+        }
+        console.log(current.descr.class_name);
+
+        _write_buffer.update((s) => {
+          s.shift();
+          return s;
+        });
+
+        sendToGrid(current)
+          .then((result) => {
+            resolve(result);
+          })
+          .catch((e) => {
+            reject(e);
+          });
+      }
     });
   }
 
