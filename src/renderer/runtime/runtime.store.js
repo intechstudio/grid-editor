@@ -559,6 +559,7 @@ function create_runtime() {
           page.control_elements.forEach((events) => {
             events.events.forEach((event) => {
               event.config = undefined;
+              event.stored = undefined;
             });
           });
         });
