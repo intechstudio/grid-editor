@@ -143,11 +143,10 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    if ($selectedConfigStore.configType === "profile") {
-      $appSettings.displayedOverlay = "profile-load-overlay";
-    } else if ($selectedConfigStore.configType === "preset") {
-      $appSettings.displayedOverlay = "preset-load-overlay";
-    }
+    appSettings.update((s) => {
+      s.displayedOverlay = "configuration-load-overlay";
+      return s;
+    });
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -336,13 +335,10 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
-    if (
-      $appSettings.displayedOverlay === "profile-load-overlay" ||
-      $appSettings.displayedOverlay === "preset-load-overlay"
-    ) {
+    if ($appSettings.displayedOverlay === "configuration-load-overlay") {
       $appSettings.displayedOverlay = undefined;
     }
-    selectedConfigStore.set({});
+    selectedConfigStore.set(undefined);
     window.electron.configs.stopConfigsWatch();
   });
 

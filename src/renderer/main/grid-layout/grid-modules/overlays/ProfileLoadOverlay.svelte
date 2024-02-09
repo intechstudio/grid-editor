@@ -3,8 +3,6 @@
   import { appSettings } from "/runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
-  import { scale } from "svelte/transition";
-  import { elasticOut } from "svelte/easing";
 
   export let device = undefined;
   export let visible = false;
@@ -42,7 +40,7 @@
       style="transform: rotate({-$appSettings.persistent.moduleRotation +
         90 * device?.rot}deg); border-radius: var(--grid-rounding);"
     >
-      {#if device?.type === $selectedConfigStore.type}
+      {#if device?.type === $selectedConfigStore?.type}
         <div class="w-fit relative">
           {#key loaded || $selectedConfigStore}
             <button

@@ -182,16 +182,14 @@
           {isRightCut}
           {device}
           visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "profile-load-overlay" ||
-            $appSettings.displayedOverlay === "preset-load-overlay"}
+            $appSettings.displayedOverlay === "configuration-load-overlay"}
         />
         <ElementSelection
           {elementNumber}
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "profile-load-overlay"}
+          visible={typeof $appSettings.displayedOverlay === "undefined"}
           on:click={handleElementClicked}
         />
       </div>
@@ -216,7 +214,9 @@
           {elementNumber}
           {isLeftCut}
           {isRightCut}
-          visible={$selectedConfigStore?.configType === "preset"}
+          visible={$appSettings.displayedOverlay ===
+            "configuration-load-overlay" &&
+            $selectedConfigStore?.configType === "preset"}
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
           on:click={handlePresetLoad}
@@ -233,7 +233,9 @@
     <svelte:fragment slot="module-overlay">
       <ProfileLoadOverlay
         {device}
-        visible={$selectedConfigStore?.configType === "profile"}
+        visible={$appSettings.displayedOverlay ===
+          "configuration-load-overlay" &&
+          $selectedConfigStore?.configType === "profile"}
         on:click={handleProfileLoad}
       />
     </svelte:fragment>

@@ -18,17 +18,13 @@
   }
 
   function clearOverlays() {
-    const overlay = get(appSettings).displayedOverlay;
-    if (
-      overlay === "profile-load-overlay" ||
-      overlay === "preset-load-overlay"
-    ) {
+    if (get(appSettings).displayedOverlay === "configuration-load-overlay") {
       appSettings.update((s) => {
         s.displayedOverlay = undefined;
         return s;
       });
     }
-    selectedConfigStore.set({});
+    selectedConfigStore.set(undefined);
   }
 
   function handleStore() {
@@ -51,7 +47,7 @@
       .storePage(index)
       .then((res) => {
         clearOverlays();
-        selectedConfigStore.set({});
+        selectedConfigStore.set(undefined);
         logger.set({
           type: "success",
           mode: 0,

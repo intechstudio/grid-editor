@@ -83,7 +83,7 @@
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
   {#if visible}
-    {#if $selectedConfigStore.type === type}
+    {#if $selectedConfigStore?.type === type}
       <div
         class="w-full h-full"
         class:loaded-element={loaded && !isChanged}
