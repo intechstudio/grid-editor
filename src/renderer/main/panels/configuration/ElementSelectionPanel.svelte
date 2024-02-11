@@ -1,5 +1,5 @@
 <script>
-  import MeltSelect from "./../preferences/MeltSelect.svelte";
+  import { MeltSelect } from "@intechstudio/grid-uikit";
   import Toggle from "../../user-interface/Toggle.svelte";
   import { appSettings } from "../../../runtime/app-helper.store.js";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
@@ -54,9 +54,15 @@
     });
   }
 
+  let [dx, dy] = [undefined, undefined];
   $: {
     if ($user_input || $elementNameStore) {
-      renderElementList();
+      const noDevice = $user_input.elementnumber === -1;
+      if (dx !== $user_input.dx || dy !== $user_input.dy || noDevice) {
+        dx = noDevice ? undefined : $user_input.dx;
+        dy = noDevice ? undefined : $user_input.dy;
+        renderElementList();
+      }
     }
   }
 

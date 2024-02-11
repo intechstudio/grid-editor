@@ -1,5 +1,5 @@
 import { get, writable } from "svelte/store";
-import { grid } from "../protocol/grid-protocol";
+import grid from "../protocol/grid-protocol";
 import { serial_write, serial_write_islocked } from "../serialport/serialport";
 
 import { instructions } from "../serialport/instructions";

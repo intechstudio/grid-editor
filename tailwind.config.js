@@ -1,6 +1,9 @@
 const colors = require("tailwindcss/colors");
 const config = {
-  content: ["./src/**/*.{html,js,svelte,ts}"],
+  content: [
+    "./src/**/*.{html,js,svelte,ts}",
+    "./node_modules/@intechstudio/grid-uikit/**/*.{html,js,svelte,ts}",
+  ],
   darkMode: "class",
   theme: {
     fontFamily: {

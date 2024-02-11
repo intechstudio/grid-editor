@@ -1,8 +1,5 @@
 <script lang="ts">
-  import { fade } from "svelte/transition";
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip";
   import { createEventDispatcher } from "svelte";
-  import Popover from "svelte-easy-popover/dist/ts/Popover.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -31,22 +28,21 @@
     },
   };
 
-  export let tooltip: { [key: string]: any } | undefined;
   export let selected: boolean = false;
   export let text: string = "";
   export let style: ButtonStyle = ButtonStyle.NORMAL;
   export let disabled: boolean = false;
-  export let popup: { text: string; duration?: number } | undefined = undefined;
+  export let popup: { duration?: number } | undefined = undefined;
 
   let button: HTMLElement;
   let showPopup: boolean = false;
 
   function handleClick(e) {
-    if (typeof popup !== "undefined" && !showPopup) {
+    if (!showPopup) {
       showPopup = true;
       setTimeout(() => {
         showPopup = false;
-      }, popup.duration ?? 3000);
+      }, popup?.duration ?? 3000);
     }
     dispatch("click");
   }
@@ -54,27 +50,15 @@
 
 <button
   bind:this={button}
-  use:setTooltip={tooltip}
   class:selected
   on:click={handleClick}
   {disabled}
-  class="{$$props.class} {disabled
+  class="{disabled
     ? styleMap[style].disabled
     : styleMap[style].enabled} relative py-1 px-4 rounded focus:outline-none"
 >
   {#if showPopup}
-    <div out:fade={{ duration: 300 }}>
-      <Popover
-        isOpen={true}
-        placement={"top"}
-        spaceAway={5}
-        referenceElement={button}
-      >
-        <div class="bg-black bg-opacity-50 px-2 py-1 rounded whitespace-nowrap">
-          {popup?.text}
-        </div>
-      </Popover>
-    </div>
+    <slot name="popup" />
   {/if}
   <span>{text}</span>
 </button>

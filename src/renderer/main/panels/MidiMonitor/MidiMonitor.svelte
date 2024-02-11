@@ -9,7 +9,7 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import { grid } from "../../../protocol/grid-protocol";
+  import grid from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
 
@@ -157,12 +157,12 @@
   {#if !debug}
     <div class="py-8 px-6">
       <div class="border-gray-700 border rounded flex flex-col col-span-3 mb-2">
-        <span class="text-lg text-white bg-secondary px-2">Command</span>
+        <span class="text-white bg-secondary px-2 truncate">Command</span>
         <div
           class="flex flex-row w-full text-white justify-between align-center items-center"
         >
           <div class="flex items-center py-1 px-3">
-            <span class="flex text-xl text-white"
+            <span class="flex text-white truncate"
               >{last ? last.data.command.name : "Waiting for MIDI..."}</span
             >
           </div>
@@ -189,20 +189,20 @@
 
       <div class="grid grid-cols-3 gap-4 my-4 text-center">
         <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-lg text-white bg-secondary px-1">Channel</span>
-          <span class="px-2 text-xl text-white text-center"
+          <span class="text-white bg-secondary px-1 truncate">Channel</span>
+          <span class="px-2 text-white text-center truncate"
             >{last ? last.data.channel : "---"}</span
           >
         </div>
         <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-lg text-white bg-secondary px-1">Device</span>
-          <span class="px-2 text-xl text-white text-center"
+          <span class="text-white bg-secondary px-1 truncate">Device</span>
+          <span class="px-2 text-white text-center truncate"
             >{last ? last.device.name : "---"}</span
           >
         </div>
         <div class="border-gray-700 border rounded flex flex-col">
-          <span class="text-lg text-white bg-secondary px-1">Direction</span>
-          <span class="px-2 text-xl text-white text-center"
+          <span class="text-white bg-secondary px-1 truncate">Direction</span>
+          <span class="px-2 text-white text-center truncate"
             >{last
               ? last.data.direction == "REPORT"
                 ? "Receive"
@@ -215,12 +215,12 @@
       <div class="grid grid-cols-2 gap-4 place-items-center">
         <div class="border-gray-700 border rounded flex flex-col w-44">
           <div class="flex flex-row w-full text-white">
-            <span class="text-lg text-white text-center bg-secondary w-full"
+            <span class="text-white text-center bg-secondary w-full truncate"
               >{last ? last.data.params.p1.name : "Parameter 1"}</span
             >
           </div>
 
-          <span class="text-xl text-white text-center"
+          <span class="text-white text-center truncate"
             >{last
               ? last.data.params.p1.value_alias
                 ? last.data.params.p1.value_alias
@@ -230,12 +230,12 @@
         </div>
         <div class="border-gray-700 border rounded flex flex-col w-44">
           <div class="flex flex-row w-full text-white">
-            <span class="text-lg text-white text-center bg-secondary w-full"
+            <span class="text-white text-center bg-secondary w-full truncate"
               >{last ? last.data.params.p2.name : "Parameter 2"}</span
             >
           </div>
 
-          <span class="text-xl text-white text-center"
+          <span class="text-white text-center truncate"
             >{last ? last.data.params.p2.value : "---"}</span
           >
         </div>
@@ -305,6 +305,7 @@
             >
               {#each $midi_monitor_store as midi}
                 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
                 <div
                   class="grid grid-cols-7 text-green-400 hover:text-green-200
                   transition-transform origin-left hover:scale-105 duration-100 transform scale-100"
@@ -345,11 +346,10 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={$configScriptLength >=
-                  grid.getProperty("CONFIG_LENGTH")
+                  class={$configScriptLength >= grid.properties.CONFIG_LENGTH
                     ? "text-error"
                     : $configScriptLength >=
-                      (grid.getProperty("CONFIG_LENGTH") / 3) * 2
+                      (grid.properties.CONFIG_LENGTH / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >

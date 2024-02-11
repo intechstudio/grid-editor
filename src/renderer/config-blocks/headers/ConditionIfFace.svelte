@@ -10,14 +10,6 @@
 
   import LineEditor from "../../main/user-interface/LineEditor.svelte";
 
-  import { windowSize } from "../../runtime/window-size";
-
-  let sidebarWidth;
-
-  $: if (windowSize.rightSidebarWidth) {
-    sidebarWidth = windowSize.rightSidebarWidth;
-  }
-
   const dispatch = createEventDispatcher();
 
   let scriptSegment = ""; // local script part
@@ -53,14 +45,13 @@
     <span class="mr-4">If</span>
 
     <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow"
+      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
         on:change={(e) => {
           sendData(e.detail.script);
         }}
         {access_tree}
-        {sidebarWidth}
         value={scriptSegment}
       />
     </div>

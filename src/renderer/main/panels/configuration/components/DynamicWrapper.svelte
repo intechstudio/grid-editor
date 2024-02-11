@@ -84,13 +84,9 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
-
-  $: console.log(config.indentation);
 </script>
 
-<wrapper
-  class="flex flex-grow border-none outline-none transition-opacity duration-300"
->
+<wrapper class="flex flex-grow border-none outline-none">
   {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
@@ -109,7 +105,7 @@
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
-    <div class="w-full flex flex-row pointer-events-none duration-300">
+    <div class="w-full flex flex-row pointer-events-none">
       <!-- Icon -->
       {#if config.information.hideIcon !== true}
         <div
