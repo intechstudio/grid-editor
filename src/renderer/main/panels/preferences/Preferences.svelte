@@ -142,7 +142,7 @@
       <BlockTitle>Run application in background</BlockTitle>
       <BlockBody>
         Change what happens when you close the application window. Some
-        features, plugins might only work when the application always runs.
+        features, packages might only work when the application always runs.
       </BlockBody>
       <MeltRadio
         bind:target={$appSettings.persistent.alwaysRunInTheBackground}

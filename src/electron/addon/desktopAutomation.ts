@@ -18,7 +18,7 @@
 
 // let websocketInterval: NodeJS.Timeout | undefined = undefined;
 
-export async function desktopAutomationPluginStart() {
+export async function desktopAutomationPackageStart() {
   //   if(websocketInterval){
   //     clearInterval(websocketInterval);
   //   }
@@ -27,7 +27,7 @@ export async function desktopAutomationPluginStart() {
   //   }, connectionCheckInterval)
 }
 
-export async function desktopAutomationPluginStop() {
+export async function desktopAutomationPackageStop() {
   //   if(websocketInterval){
   //     clearInterval(websocketInterval);
   //   }
@@ -72,7 +72,7 @@ export async function desktopAutomationPluginStop() {
 //           EDITOR_PACKET.data = EDITOR_PACKET.data.replace(/\\/g, '\\\\');
 //           const decodedMessage = JSON.parse(EDITOR_PACKET.data);
 //           console.log('here it fails');
-//           if(decodedMessage.plugin == 'desktopAutomation'){
+//           if(decodedMessage.package == 'desktopAutomation'){
 //             dataHandler(decodedMessage.data);
 //           }
 //         }
@@ -109,8 +109,8 @@ export async function desktopAutomationPluginStop() {
 
 // }
 
-// // example: websocket_send('{"plugin": "desktopAutomation", "data": [{"url": "https://google.com"}] }')
-// // websocket_send('{"plugin": "desktopAutomation", "data": [{"path": "D:\\Content\\examples"}] }')
+// // example: websocket_send('{"package": "desktopAutomation", "data": [{"url": "https://google.com"}] }')
+// // websocket_send('{"package": "desktopAutomation", "data": [{"path": "D:\\Content\\examples"}] }')
 
 // async function typeKey(key: Key){
 //   await keyboard.type(Key[key]);

@@ -8,7 +8,7 @@ import fetch from "node-fetch";
 import semver from "semver";
 import chokidar from "chokidar";
 
-enum PluginStatus {
+enum PackageStatus {
   Uninstalled = "Uninstalled",
   Downloading = "Downloading",
   Downloaded = "Downloaded",
@@ -16,83 +16,83 @@ enum PluginStatus {
   MarkedForDeletion = "MarkedForDeletion",
 }
 
-let pluginFolder: string = "";
+let packageFolder: string = "";
 let editorVersion: string = "";
 
 process.parentPort.on("message", (e) => {
   switch (e.data.type) {
     case "init": {
-      console.log(`Initialize Plugin Manager...`);
+      console.log(`Initialize Package Manager...`);
       editorVersion = e.data.version;
 
-      pluginFolder = e.data.pluginFolder;
-      if (!fs.existsSync(pluginFolder)) {
-        fs.mkdirSync(pluginFolder, { recursive: true });
+      packageFolder = e.data.packageFolder;
+      if (!fs.existsSync(packageFolder)) {
+        fs.mkdirSync(packageFolder, { recursive: true });
       }
-      startPluginDirectoryWatcher(pluginFolder);
+      startPackageDirectoryWatcher(packageFolder);
 
       const port = e.ports[0];
-      setPluginManagerMessagePort(port);
+      setPackageManagerMessagePort(port);
       break;
     }
     case "set-new-message-port": {
       const port = e.ports[0];
-      setPluginManagerMessagePort(port);
+      setPackageManagerMessagePort(port);
       break;
     }
-    case "refresh-plugins": {
+    case "refresh-packages": {
       notifyListener();
       break;
     }
-    case "stop-plugin-manager": {
-      stopPluginManager();
+    case "stop-package-manager": {
+      stopPackageManager();
       break;
     }
     default: {
-      console.log(`Plugin Manager: Unknown message type of ${e.data.type}`);
+      console.log(`Package Manager: Unknown message type of ${e.data.type}`);
     }
   }
 });
 
-const availablePlugins = {
-  "plugin-active-win": {
+const availablePackages = {
+  "package-active-win": {
     name: "Active Window",
-    description: "Short description of Active Window plugin",
+    description: "Short description of Active Window package",
     gitHubRepositoryOwner: "intechstudio",
-    gitHubRepositoryName: "plugin-active-win",
+    gitHubRepositoryName: "package-active-win",
   },
 };
 
-const currentlyLoadedPlugins = {};
-const haveBeenLoadedPlugins = new Set<string>();
-const markedForDeletionPlugins = new Set<string>();
-const downloadingPlugins = new Set<string>();
+const currentlyLoadedPackages = {};
+const haveBeenLoadedPackages = new Set<string>();
+const markedForDeletionPackages = new Set<string>();
+const downloadingPackages = new Set<string>();
 
 let messagePort: MessagePortMain;
 
-function setPluginManagerMessagePort(port: MessagePortMain) {
+function setPackageManagerMessagePort(port: MessagePortMain) {
   messagePort = port;
   messagePort.on("message", async (event) => {
     try {
       const data = event.data;
       switch (data.type) {
-        case "load-plugin":
-          await loadPlugin(data.id, data.payload);
+        case "load-package":
+          await loadPackage(data.id, data.payload);
           break;
-        case "unload-plugin":
-          await unloadPlugin(data.id);
+        case "unload-package":
+          await unloadPackage(data.id);
           break;
-        case "download-plugin":
-          await downloadPlugin(data.id);
+        case "download-package":
+          await downloadPackage(data.id);
           break;
-        case "uninstall-plugin":
-          await uninstallPlugin(data.id);
+        case "uninstall-package":
+          await uninstallPackage(data.id);
           break;
-        case "refresh-plugin-list":
+        case "refresh-package-list":
           await notifyListener();
           break;
-        case "create-plugin-message-port":
-          await currentlyLoadedPlugins[data.id].addMessagePort(
+        case "create-package-message-port":
+          await currentlyLoadedPackages[data.id].addMessagePort(
             event.ports?.[0]
           );
           break;
@@ -105,10 +105,10 @@ function setPluginManagerMessagePort(port: MessagePortMain) {
   notifyListener();
 }
 
-async function stopPluginManager() {
-  for (let pluginName of Object.keys(currentlyLoadedPlugins)) {
-    await currentlyLoadedPlugins[pluginName].unloadPlugin();
-    delete currentlyLoadedPlugins[pluginName];
+async function stopPackageManager() {
+  for (let packageName of Object.keys(currentlyLoadedPackages)) {
+    await currentlyLoadedPackages[packageName].unloadPackage();
+    delete currentlyLoadedPackages[packageName];
   }
   if (messagePort) {
     messagePort.close();
@@ -116,63 +116,63 @@ async function stopPluginManager() {
   process.parentPort.postMessage({ type: "shutdown-complete" });
 }
 
-async function loadPlugin(pluginName: string, persistedData: any) {
+async function loadPackage(packageName: string, persistedData: any) {
   try {
-    if (currentlyLoadedPlugins[pluginName]) {
+    if (currentlyLoadedPackages[packageName]) {
       return;
     }
 
-    const pluginDirectory = path.join(pluginFolder, pluginName);
-    const plugin = require(pluginDirectory);
-    await plugin.loadPlugin(
+    const packageDirectory = path.join(packageFolder, packageName);
+    const _package = require(packageDirectory);
+    await _package.loadPackage(
       {
         sendMessageToRuntime: (payload) => {
           messagePort.postMessage({
-            type: "plugin-action",
-            pluginId: pluginName,
+            type: "package-action",
+            packageId: packageName,
             ...payload,
           });
         },
       },
       persistedData
     );
-    currentlyLoadedPlugins[pluginName] = plugin;
-    haveBeenLoadedPlugins.add(pluginName);
+    currentlyLoadedPackages[packageName] = _package;
+    haveBeenLoadedPackages.add(packageName);
     notifyListener();
   } catch (e) {
     messagePort.postMessage({
-      type: "plugin-error",
+      type: "package-error",
       error: e.message,
     });
   }
 }
 
-async function unloadPlugin(pluginName: string) {
-  if (currentlyLoadedPlugins[pluginName]) {
-    await currentlyLoadedPlugins[pluginName].unloadPlugin();
-    delete currentlyLoadedPlugins[pluginName];
+async function unloadPackage(packageName: string) {
+  if (currentlyLoadedPackages[packageName]) {
+    await currentlyLoadedPackages[packageName].unloadPackage();
+    delete currentlyLoadedPackages[packageName];
     notifyListener();
   }
 }
 
-async function downloadPlugin(pluginName: string) {
-  if (markedForDeletionPlugins.has(pluginName)) {
-    markedForDeletionPlugins.delete(pluginName);
+async function downloadPackage(packageName: string) {
+  if (markedForDeletionPackages.has(packageName)) {
+    markedForDeletionPackages.delete(packageName);
     notifyListener();
     return;
   }
 
-  if (downloadingPlugins.has(pluginName)) return;
-  downloadingPlugins.add(pluginName);
+  if (downloadingPackages.has(packageName)) return;
+  downloadingPackages.add(packageName);
   notifyListener();
 
   const gitHubRepositoryName =
-    availablePlugins[pluginName].gitHubRepositoryName;
+    availablePackages[packageName].gitHubRepositoryName;
   const gitHubRepositoryOwner =
-    availablePlugins[pluginName].gitHubRepositoryOwner;
+    availablePackages[packageName].gitHubRepositoryOwner;
 
   try {
-    const pluginReleasesResponse = await fetch(
+    const packageReleasesResponse = await fetch(
       `https://api.github.com/repos/${gitHubRepositoryOwner}/${gitHubRepositoryName}/releases`,
       {
         method: "GET",
@@ -181,8 +181,8 @@ async function downloadPlugin(pluginName: string) {
         },
       }
     );
-    const pluginReleases = await pluginReleasesResponse.json();
-    const compatibleRelease = pluginReleases.find((e) => {
+    const packageReleases = await packageReleasesResponse.json();
+    const compatibleRelease = packageReleases.find((e) => {
       const description = e.body;
       const lastLine = description.split("\n").pop() ?? "";
       if (semver.valid(lastLine)) {
@@ -212,7 +212,7 @@ async function downloadPlugin(pluginName: string) {
       e.name.includes(platform)
     ).browser_download_url;
     const response = await fetch(url);
-    const filePath = path.join(pluginFolder, `${pluginName}.zip`);
+    const filePath = path.join(packageFolder, `${packageName}.zip`);
     const fileStream = fs.createWriteStream(filePath);
     await new Promise((resolve, reject) => {
       try {
@@ -234,47 +234,47 @@ async function downloadPlugin(pluginName: string) {
     });
 
     const zip = new AdmZip(filePath);
-    zip.extractAllTo(path.join(pluginFolder, pluginName), true, true);
+    zip.extractAllTo(path.join(packageFolder, packageName), true, true);
     fs.unlinkSync(filePath);
   } catch (e) {
     messagePort.postMessage({ type: "debug-error", message: e.message });
   } finally {
-    downloadingPlugins.delete(pluginName);
+    downloadingPackages.delete(packageName);
     notifyListener();
   }
 }
 
-async function uninstallPlugin(pluginName: string) {
-  if (currentlyLoadedPlugins[pluginName]) {
-    currentlyLoadedPlugins[pluginName].unloadPlugin();
-    delete currentlyLoadedPlugins[pluginName];
+async function uninstallPackage(packageName: string) {
+  if (currentlyLoadedPackages[packageName]) {
+    currentlyLoadedPackages[packageName].unloadPackage();
+    delete currentlyLoadedPackages[packageName];
   }
-  if (haveBeenLoadedPlugins.has(pluginName)) {
-    markedForDeletionPlugins.add(pluginName);
+  if (haveBeenLoadedPackages.has(packageName)) {
+    markedForDeletionPackages.add(packageName);
     notifyListener();
   } else {
-    const pluginPath = path.join(pluginFolder, pluginName);
-    fs.rm(pluginPath, { recursive: true }, notifyListener);
+    const packagePath = path.join(packageFolder, packageName);
+    fs.rm(packagePath, { recursive: true }, notifyListener);
   }
 }
 
 async function notifyListener() {
-  const plugins = await getAvailablePlugins();
-  messagePort.postMessage({ type: "plugins", plugins });
+  const packages = await getAvailablePackages();
+  messagePort.postMessage({ type: "packages", packages: packages });
 }
 
-async function getInstalledPlugins(): Promise<
+async function getInstalledPackages(): Promise<
   {
-    pluginId: string;
-    pluginName: string;
-    pluginPreferenceHtml?: string;
+    packageId: string;
+    packageName: string;
+    packagePreferenceHtml?: string;
   }[]
 > {
-  if (!fs.existsSync(pluginFolder)) {
+  if (!fs.existsSync(packageFolder)) {
     return [];
   }
   const readdir = util.promisify(fs.readdir);
-  const folders = await readdir(pluginFolder, { withFileTypes: true });
+  const folders = await readdir(packageFolder, { withFileTypes: true });
   return Promise.all(
     folders
       .filter(
@@ -283,91 +283,92 @@ async function getInstalledPlugins(): Promise<
           !folder.name.toLowerCase().includes("ds_store")
       )
       .map(async (folder) => {
-        const pluginId = folder.name;
-        const pluginPath = path.join(pluginFolder, folder.name);
+        const packageId = folder.name;
+        const packagePath = path.join(packageFolder, folder.name);
 
-        let pluginName: string | undefined = undefined;
-        let pluginPreferenceHtml: string | undefined = undefined;
-        if (fs.statSync(pluginPath).isDirectory()) {
-          const packageJsonPath = path.join(pluginPath, "package.json");
+        let packageName: string | undefined = undefined;
+        let packagePreferenceHtml: string | undefined = undefined;
+        if (fs.statSync(packagePath).isDirectory()) {
+          const packageJsonPath = path.join(packagePath, "package.json");
           if (fs.existsSync(packageJsonPath)) {
             const packageJson = require(packageJsonPath);
-            pluginName = packageJson.description;
+            packageName = packageJson.description;
             const preferenceRelativePath = packageJson.grid_editor?.preference;
             if (preferenceRelativePath) {
               const preferencePath = path.join(
-                pluginPath,
+                packagePath,
                 preferenceRelativePath
               );
               const readFile = util.promisify(fs.readFile);
-              pluginPreferenceHtml = await readFile(preferencePath, "utf-8");
-              //pluginPreferenceHtml = result.js.code;
+              packagePreferenceHtml = await readFile(preferencePath, "utf-8");
+              //packagePreferenceHtml = result.js.code;
             }
           }
         }
-        pluginName = pluginName ?? pluginId;
+        packageName = packageName ?? packageId;
         return {
-          pluginId,
-          pluginName,
-          pluginPreferenceHtml,
+          packageId: packageId,
+          packageName: packageName,
+          packagePreferenceHtml: packagePreferenceHtml,
         };
       })
   );
 }
 
-function getPluginStatus(
-  pluginId: string,
-  installedPlugins: { pluginId: string }[]
-): PluginStatus {
-  if (Object.keys(currentlyLoadedPlugins).includes(pluginId)) {
-    return PluginStatus.Enabled;
-  } else if (markedForDeletionPlugins.has(pluginId)) {
-    return PluginStatus.MarkedForDeletion;
+function getPackageStatus(
+  packageId: string,
+  installedPackages: { packageId: string }[]
+): PackageStatus {
+  if (Object.keys(currentlyLoadedPackages).includes(packageId)) {
+    return PackageStatus.Enabled;
+  } else if (markedForDeletionPackages.has(packageId)) {
+    return PackageStatus.MarkedForDeletion;
   } else if (
-    installedPlugins.filter((e) => e.pluginId === pluginId).length > 0
+    installedPackages.filter((e) => e.packageId === packageId).length > 0
   ) {
-    return PluginStatus.Downloaded;
-  } else if (downloadingPlugins.has(pluginId)) {
-    return PluginStatus.Downloading;
+    return PackageStatus.Downloaded;
+  } else if (downloadingPackages.has(packageId)) {
+    return PackageStatus.Downloading;
   } else {
-    return PluginStatus.Uninstalled;
+    return PackageStatus.Uninstalled;
   }
 }
 
-async function getAvailablePlugins() {
-  let installedPlugins = await getInstalledPlugins();
+async function getAvailablePackages() {
+  let installedPackages = await getInstalledPackages();
 
-  const pluginList: {
+  const packageList: {
     id: string;
     name: string;
-    status: PluginStatus;
+    status: PackageStatus;
     preferenceHtml?: string;
   }[] = [];
-  for (const plugin of installedPlugins) {
-    if (pluginList.filter((e) => e.id === plugin.pluginId).length > 0) continue;
+  for (const _package of installedPackages) {
+    if (packageList.filter((e) => e.id === _package.packageId).length > 0)
+      continue;
 
-    pluginList.push({
-      id: plugin.pluginId,
-      name: plugin.pluginName,
-      status: getPluginStatus(plugin.pluginId, installedPlugins),
-      preferenceHtml: plugin.pluginPreferenceHtml,
+    packageList.push({
+      id: _package.packageId,
+      name: _package.packageName,
+      status: getPackageStatus(_package.packageId, installedPackages),
+      preferenceHtml: _package.packagePreferenceHtml,
     });
   }
-  Object.entries(availablePlugins).forEach(([key, entry]) => {
-    if (pluginList.filter((e) => e.id === key).length > 0) return;
+  Object.entries(availablePackages).forEach(([key, entry]) => {
+    if (packageList.filter((e) => e.id === key).length > 0) return;
 
-    pluginList.push({
+    packageList.push({
       id: key,
       name: entry.name,
-      status: getPluginStatus(key, installedPlugins),
+      status: getPackageStatus(key, installedPackages),
     });
   });
-  return pluginList;
+  return packageList;
 }
 
 let directoryWatcher: any = null;
 
-function startPluginDirectoryWatcher(path: string): void {
+function startPackageDirectoryWatcher(path: string): void {
   directoryWatcher = chokidar.watch(path, {
     ignored: /[\/\\]\./,
     persistent: true,

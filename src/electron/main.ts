@@ -52,8 +52,8 @@ import { sendToDiscord } from "./src/discord";
 import { fetchUrlJSON } from "./src/fetch";
 import { getLatestVideo } from "./src/youtube";
 import {
-  desktopAutomationPluginStart,
-  desktopAutomationPluginStop,
+  desktopAutomationPackageStart,
+  desktopAutomationPackageStop,
 } from "./addon/desktopAutomation";
 import polka from "polka";
 import sirv from "sirv";
@@ -70,7 +70,7 @@ let mainWindow;
 let tray = null;
 
 let offlineProfileCloudServer: any = undefined;
-let pluginManagerProcess: Electron.UtilityProcess | undefined = undefined;
+let packageManagerProcess: Electron.UtilityProcess | undefined = undefined;
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -324,40 +324,40 @@ function createWindow() {
     }
   });
 
-  // Handle plugin configuration, action
+  // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     restartPackageManagerProcess();
   });
 }
 
-function startPluginManager() {
+function startPackageManager() {
   const { port1, port2 } = new MessageChannelMain();
-  mainWindow.webContents.postMessage("plugin-manager-port", null, [port1]);
+  mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
 
-  const pluginFolder = path.resolve(
-    path.join(app.getPath("documents"), "grid-userdata", "plugins")
+  const packageFolder = path.resolve(
+    path.join(app.getPath("documents"), "grid-userdata", "packages")
   );
-  if (!pluginManagerProcess) {
-    pluginManagerProcess = utilityProcess.fork(
+  if (!packageManagerProcess) {
+    packageManagerProcess = utilityProcess.fork(
       path.resolve(path.join(__dirname, "./pluginManager.js"))
     );
-    pluginManagerProcess.postMessage(
+    packageManagerProcess.postMessage(
       {
         type: "init",
-        pluginFolder: pluginFolder,
+        packageFolder: packageFolder,
         version: configuration.EDITOR_VERSION,
       },
       [port2]
     );
-    pluginManagerProcess.on("message", (message) => {
+    packageManagerProcess.on("message", (message) => {
       if (message.type == "shutdown-complete") {
-        pluginManagerProcess?.kill();
-        pluginManagerProcess = undefined;
-        startPluginManager();
+        packageManagerProcess?.kill();
+        packageManagerProcess = undefined;
+        startPackageManager();
       }
     });
   } else {
-    pluginManagerProcess.postMessage(
+    packageManagerProcess.postMessage(
       {
         type: "set-new-message-port",
       },
@@ -367,10 +367,10 @@ function startPluginManager() {
 }
 
 async function restartPackageManagerProcess() {
-  if (pluginManagerProcess) {
-    pluginManagerProcess.postMessage({ type: "stop-plugin-manager" });
+  if (packageManagerProcess) {
+    packageManagerProcess.postMessage({ type: "stop-package-manager" });
   } else {
-    startPluginManager();
+    startPackageManager();
   }
 }
 
@@ -408,15 +408,15 @@ function startConfigWatcher(configPath, rootDirectory) {
   sendLocalConfigs();
 }
 
-ipcMain.handle("startPlugin", async (event, arg) => {
-  console.log("pluginstart!", arg.name);
+ipcMain.handle("startPackage", async (event, arg) => {
+  console.log("packagestart!", arg.name);
   switch (arg.name) {
     case "desktopAutomation": {
-      desktopAutomationPluginStart();
+      desktopAutomationPackageStart();
       break;
     }
     case "photoshop": {
-      // this plugin is hosted in photoshop itself
+      // this package is hosted in photoshop itself
       break;
     }
   }
@@ -424,15 +424,15 @@ ipcMain.handle("startPlugin", async (event, arg) => {
   return "ok";
 });
 
-ipcMain.handle("stopPlugin", async (event, arg) => {
-  console.log("stop plugin");
+ipcMain.handle("stopPackage", async (event, arg) => {
+  console.log("stop package");
   switch (arg.name) {
     case "desktopAutomation": {
-      desktopAutomationPluginStop();
+      desktopAutomationPackageStop();
       break;
     }
     case "photoshop": {
-      // this plugin is hosted in photoshop itself
+      // this package is hosted in photoshop itself
       break;
     }
   }
