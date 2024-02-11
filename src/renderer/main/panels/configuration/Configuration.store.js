@@ -321,35 +321,35 @@ export class ConfigList extends Array {
 }
 
 export class ConfigTarget {
-  constructor({ device: { dx: dx, dy: dy }, page, element, eventType }) {
+  static create({ device: { dx: dx, dy: dy }, page, element, eventType }) {
     const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
+
     if (typeof device === "undefined") {
-      throw "Unknown device!";
+      console.error("Unknown device!");
+      return undefined;
     }
 
-    this.device = { dx: dx, dy: dy };
-    this.page = page;
-    this.element = element;
-    this.eventType = eventType;
+    const target = new ConfigTarget();
+    target.device = { dx: dx, dy: dy };
+    target.page = page;
+    target.element = element;
+    target.eventType = eventType;
 
     const controlElement = device.pages
       .at(page)
       .control_elements.find((e) => e.controlElementNumber == element);
-    this.events = controlElement.events;
-    this.elementType = controlElement.controlElementType;
+    target.events = controlElement.events;
+    target.elementType = controlElement.controlElementType;
+    return target;
   }
 
   static createFrom({ userInput }) {
-    try {
-      return new ConfigTarget({
-        device: { dx: userInput.dx, dy: userInput.dy },
-        page: userInput.pagenumber,
-        element: userInput.elementnumber,
-        eventType: userInput.eventtype,
-      });
-    } catch (e) {
-      return undefined;
-    }
+    return ConfigTarget.create({
+      device: { dx: userInput.dx, dy: userInput.dy },
+      page: userInput.pagenumber,
+      element: userInput.elementnumber,
+      eventType: userInput.eventtype,
+    });
   }
 
   getEvent() {
@@ -404,19 +404,14 @@ export class ConfigTarget {
 
   static getCurrent() {
     const ui = get(user_input);
-    try {
-      const currentTarget = new ConfigTarget({
-        device: { dx: ui.dx, dy: ui.dy },
-        page: ui.pagenumber,
-        element: ui.elementnumber,
-        eventType: ui.eventtype,
-      });
+    const currentTarget = ConfigTarget.create({
+      device: { dx: ui.dx, dy: ui.dy },
+      page: ui.pagenumber,
+      element: ui.elementnumber,
+      eventType: ui.eventtype,
+    });
 
-      return currentTarget;
-    } catch (e) {
-      console.error("ConfigTarget:", e);
-      return undefined;
-    }
+    return currentTarget;
   }
 }
 

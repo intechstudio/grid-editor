@@ -1229,6 +1229,7 @@ const grid_heartbeat_interval_handler = async function () {
 
     if (elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
+      console.log("DESTROY", elapsedTime, `(${elapsedTimeLimit})`);
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {
         return heartbeat.filter((e) => e.id !== device.id);

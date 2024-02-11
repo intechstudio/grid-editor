@@ -60,7 +60,7 @@
     const { dx, dy } = obj;
     const ui = get(user_input);
 
-    const target = new ConfigTarget({
+    const target = ConfigTarget.create({
       device: { dx: dx, dy: dy },
       page: ui.pagenumber,
       element: elementNumber,
