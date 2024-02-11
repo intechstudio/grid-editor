@@ -9,7 +9,7 @@
     debug_stream,
     MusicalNotes,
   } from "./MidiMonitor.store";
-  import grid from "../../../protocol/grid-protocol";
+  import { grid } from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
 
@@ -346,10 +346,11 @@
               <div class="flex flex-row">
                 <div class="pr-2">Char Count:</div>
                 <div
-                  class={$configScriptLength >= grid.properties.CONFIG_LENGTH
+                  class={$configScriptLength >=
+                  grid.getProperty("CONFIG_LENGTH")
                     ? "text-error"
                     : $configScriptLength >=
-                      (grid.properties.CONFIG_LENGTH / 3) * 2
+                      (grid.getProperty("CONFIG_LENGTH") / 3) * 2
                     ? "text-yellow-400"
                     : "text-white"}
                 >
