@@ -72,7 +72,7 @@
     }
 
     Analytics.track({
-      event: "PluginStatusChange",
+      event: "PackageStatusChange",
       payload: { id: pluginId, status: enabled ? "enabled" : "disabled" },
       mandatory: false,
     });
@@ -91,7 +91,7 @@
     console.log("asd");
 
     Analytics.track({
-      event: "PluginDownloaded",
+      event: "PackageDownloaded",
       payload: { id: pluginId },
       mandatory: false,
     });
@@ -108,7 +108,7 @@
     });
 
     Analytics.track({
-      event: "PluginUninstalled",
+      event: "PackageUninstalled",
       payload: { id: pluginId },
       mandatory: false,
     });
