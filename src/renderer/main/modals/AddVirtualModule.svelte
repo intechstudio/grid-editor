@@ -1,14 +1,14 @@
 <script>
+  import { ModuleType } from "./../../protocol/grid-protocol.ts";
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
-  import { VirtualModuleTypes } from "../../runtime/virtual-engine";
   import { modal } from "./modal.store";
 
   let selected = 0;
-  let options = Object.keys(VirtualModuleTypes).map((key, index) =>
+  let options = Object.keys(ModuleType).map((key, index) =>
     Object({ title: key, value: index })
   );
 
@@ -32,7 +32,7 @@
   }
 </script>
 
-<MoltenModal>
+<MoltenModal width={400}>
   <div slot="content">
     <div class="flex w-full text-4xl opacity-90 pb-2">
       Welcome to Virtual Mode!
