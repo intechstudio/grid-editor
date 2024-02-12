@@ -187,18 +187,20 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const isHeartbeat =
+      const sendImmediate =
         current.descr.class_name !== InstructionClassName.HEARTBEAT;
       while (
-        serial_write_islocked() ||
-        (processing && !isHeartbeat) ||
-        get(writeBuffer)[0] !== current
+        serial_write_islocked() || //Serial is locked
+        (processing && !sendImmediate) || //Other element is processed, and there is no need to process this immediately
+        get(writeBuffer)[0] !== current //The current element is not the next in write buffer
       ) {
         await sleep(1);
       }
 
       //Serial port is available, we can process the current command
-      processing = isHeartbeat ? processing : true;
+      if (sendImmediate) {
+        processing = true;
+      }
 
       sendToGrid(current)
         .then(resolve)
@@ -208,7 +210,9 @@ function createWriteBuffer() {
             s.shift();
             return s;
           });
-          processing = isHeartbeat ? processing : false;
+          if (sendImmediate) {
+            processing = false;
+          }
         });
     });
   }
