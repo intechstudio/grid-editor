@@ -4,10 +4,75 @@ import { serial_write, serial_write_islocked } from "../serialport/serialport";
 
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
-import { BufferElement } from "../serialport/instructions";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
-import { InstructionClassName } from "../serialport/instructions";
+import { EnsureNonOptional } from "./smart-objects";
+
+export enum InstructionClassName {
+  HEARTBEAT = "HEARTBEAT",
+  CONFIG = "CONFIG",
+  PAGEACTIVE = "PAGEACTIVE",
+  PAGECOUNT = "PAGECOUNT",
+  PAGESTORE = "PAGESTORE",
+  NVMERASE = "NVMERASE",
+  NVMDEFRAG = "NVMDEFRAG",
+  PAGEDISCARD = "PAGEDISCARD",
+  PAGECLEAR = "PAGECLEAR",
+}
+
+export enum InstructionClass {
+  EXECUTE = "EXECUTE",
+  FETCH = "FETCH",
+  REPORT = "REPORT",
+  ACKNOWLEDGE = "ACKNOWLEDGE",
+}
+
+export type BufferElement = EnsureNonOptional<{
+  descr: {
+    brc_parameters: { DX: number; DY: number };
+    class_name: InstructionClassName;
+    class_instr: InstructionClass;
+    class_parameters: {
+      TYPE?: number;
+      HWCFG?: number;
+      VMAJOR?: number;
+      VMINOR?: number;
+      VPATCH?: number;
+      VERSIONMAJOR?: number;
+      VERSIONMINOR?: number;
+      VERSIONPATCH?: number;
+      PAGENUMBER?: number;
+      ELEMENTNUMBER?: number;
+      EVENTTYPE?: number;
+      ACTIONLENGTH?: number;
+      ACTIONSTRING?: string;
+    };
+  };
+  // If set to true, no other BufferElements are
+  // processed until response is received and processed.
+  // Default value is false if not set.
+  responseRequired?: boolean;
+  // After the timeout that is defined here, the BufferElement is re-sent to
+  // modules. After timeout, the BufferElement is not removed from queue.
+  // Default value is 1000ms if not set.
+  responseTimeout?: number;
+  // If set to true, the
+  sendImmediate?: boolean;
+  filter?: {
+    PAGEDISCARD_ACKNOWLEDGE?: {
+      LASTHEADER: unknown;
+    };
+    brc_parameters?: { SX: number; SY: number };
+    class_name: InstructionClassName;
+    class_instr: InstructionClass;
+    class_parameters?: {
+      PAGENUMBER?: number;
+      ELEMENTNUMBER?: number;
+      EVENTTYPE?: number;
+      LASTHEADER?: unknown;
+    };
+  };
+}>;
 
 enum ResponseStatus {
   OK = 0,
@@ -148,12 +213,15 @@ function createWriteBuffer() {
     await new Promise((resolve) => setTimeout(resolve, time));
   }
 
-  async function sendToGrid(bufferElement: BufferElement) {
+  async function sendToGrid(
+    bufferElement: BufferElement,
+    sendImmediate: boolean = false
+  ) {
     return new Promise((resolve, reject) => {
       sendDataToGrid(bufferElement.descr)
         .then(async (result) => {
           const { id } = result;
-          if (bufferElement.responseRequired === true) {
+          if (bufferElement.responseRequired === true && !sendImmediate) {
             const { class_parameters } = bufferElement.filter || {};
             if (class_parameters?.LASTHEADER !== undefined) {
               class_parameters.LASTHEADER = id;
@@ -187,22 +255,17 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const sendImmediate =
-        current.descr.class_name !== InstructionClassName.HEARTBEAT;
+      const sendImmediate = current.sendImmediate ?? false;
+      const waitingResponse = typeof waiter !== "undefined";
       while (
-        serial_write_islocked() || //Serial is locked
-        (processing && !sendImmediate) || //Other element is processed, and there is no need to process this immediately
-        get(writeBuffer)[0] !== current //The current element is not the next in write buffer
+        serial_write_islocked() ||
+        get(writeBuffer)[0] !== current ||
+        (waitingResponse && !sendImmediate)
       ) {
         await sleep(1);
       }
 
-      //Serial port is available, we can process the current command
-      if (sendImmediate) {
-        processing = true;
-      }
-
-      sendToGrid(current)
+      sendToGrid(current, sendImmediate)
         .then(resolve)
         .catch(reject)
         .finally(() => {
@@ -210,9 +273,6 @@ function createWriteBuffer() {
             s.shift();
             return s;
           });
-          if (sendImmediate) {
-            processing = false;
-          }
         });
     });
   }
@@ -257,12 +317,12 @@ function createWriteBuffer() {
     }
   }
 
-  function executeFirst(obj: BufferElement) {
+  function add_first(obj: BufferElement) {
     _write_buffer.update((s) => [obj, ...s]);
     return execute(obj);
   }
 
-  async function executeLast(obj: BufferElement) {
+  async function add_last(obj: BufferElement) {
     _write_buffer.update((s) => [...s, obj]);
     return execute(obj);
   }
@@ -303,8 +363,8 @@ function createWriteBuffer() {
 
   return {
     subscribe: _write_buffer.subscribe,
-    executeFirst: executeFirst,
-    executeLast: executeLast,
+    add_fist: add_first,
+    add_last: add_last,
     clear: clear,
     validate_incoming: validate_incoming,
     module_destroy_handler: module_destroy_handler,

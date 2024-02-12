@@ -3,7 +3,12 @@ import { appSettings } from "../runtime/app-helper.store.js";
 
 import grid from "../protocol/grid-protocol.js";
 
-import { writeBuffer } from "../runtime/engine.store.ts";
+import {
+  writeBuffer,
+  BufferElement,
+  InstructionClass,
+  InstructionClassName,
+} from "../runtime/engine.store.ts";
 import { logger } from "../runtime/runtime.store.js";
 
 export interface Instructions {
@@ -32,68 +37,6 @@ export interface Instructions {
   sendPageClearToGrid(): Promise<any>;
 }
 
-export enum InstructionClassName {
-  HEARTBEAT = "HEARTBEAT",
-  CONFIG = "CONFIG",
-  PAGEACTIVE = "PAGEACTIVE",
-  PAGECOUNT = "PAGECOUNT",
-  PAGESTORE = "PAGESTORE",
-  NVMERASE = "NVMERASE",
-  NVMDEFRAG = "NVMDEFRAG",
-  PAGEDISCARD = "PAGEDISCARD",
-  PAGECLEAR = "PAGECLEAR",
-}
-
-export enum InstructionClass {
-  EXECUTE = "EXECUTE",
-  FETCH = "FETCH",
-  REPORT = "REPORT",
-  ACKNOWLEDGE = "ACKNOWLEDGE",
-}
-
-export type EnsureNonOptional<T> = {
-  [K in keyof T]: T[K] extends infer U | undefined ? U : T[K];
-};
-
-export type BufferElement = EnsureNonOptional<{
-  descr: {
-    brc_parameters: { DX: number; DY: number };
-    class_name: InstructionClassName;
-    class_instr: InstructionClass;
-    class_parameters: {
-      TYPE?: number;
-      HWCFG?: number;
-      VMAJOR?: number;
-      VMINOR?: number;
-      VPATCH?: number;
-      VERSIONMAJOR?: number;
-      VERSIONMINOR?: number;
-      VERSIONPATCH?: number;
-      PAGENUMBER?: number;
-      ELEMENTNUMBER?: number;
-      EVENTTYPE?: number;
-      ACTIONLENGTH?: number;
-      ACTIONSTRING?: string;
-    };
-  };
-  responseRequired?: boolean;
-  responseTimeout?: number;
-  filter?: {
-    PAGEDISCARD_ACKNOWLEDGE?: {
-      LASTHEADER: unknown;
-    };
-    brc_parameters?: { SX: number; SY: number };
-    class_name: InstructionClassName;
-    class_instr: InstructionClass;
-    class_parameters?: {
-      PAGENUMBER?: number;
-      ELEMENTNUMBER?: number;
-      EVENTTYPE?: number;
-      LASTHEADER?: unknown;
-    };
-  };
-}>;
-
 export class GridInstructions implements Instructions {
   sendEditorHeartbeat_immediate(type: number): Promise<any> {
     let buffer_element: BufferElement = {
@@ -110,9 +53,10 @@ export class GridInstructions implements Instructions {
         },
       },
       responseRequired: false,
+      sendImmediate: true,
     };
 
-    return writeBuffer.executeFirst(buffer_element);
+    return writeBuffer.add_fist(buffer_element);
   }
 
   fetchConfigFromGrid(
@@ -157,7 +101,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -209,7 +153,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -227,7 +171,7 @@ export class GridInstructions implements Instructions {
         },
       },
     };
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -250,7 +194,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -276,7 +220,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -311,7 +255,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -340,7 +284,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -369,7 +313,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 
@@ -395,7 +339,7 @@ export class GridInstructions implements Instructions {
       },
     };
 
-    const promise = writeBuffer.executeLast(buffer_element);
+    const promise = writeBuffer.add_last(buffer_element);
     return promise;
   }
 }

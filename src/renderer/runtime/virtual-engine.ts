@@ -5,7 +5,7 @@ import {
   InstructionClass,
   InstructionClassName,
   BufferElement,
-} from "../serialport/instructions";
+} from "../runtime/engine.store";
 
 export enum VirtualModuleTypes {
   BU16 = "BU16",
