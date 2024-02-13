@@ -339,7 +339,7 @@ function startPackageManager() {
   );
   if (!packageManagerProcess) {
     packageManagerProcess = utilityProcess.fork(
-      path.resolve(path.join(__dirname, "./pluginManager.js"))
+      path.resolve(path.join(__dirname, "./packageManager.js"))
     );
     packageManagerProcess.postMessage(
       {
