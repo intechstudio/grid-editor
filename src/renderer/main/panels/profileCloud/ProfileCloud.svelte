@@ -273,6 +273,11 @@
       });
   }
 
+  async function handleSendLogMessage(event) {
+    const logData = event.data;
+    logger.set(logData);
+  }
+
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
       switch (event.data) {
@@ -302,6 +307,9 @@
           break;
         case "provideSelectedConfigForEditor":
           channelMessageWrapper(event, handleProvideSelectedConfigForEditor);
+          break;
+        case "sendLogMessage":
+          channelMessageWrapper(event, handleSendLogMessage);
           break;
       }
     }
