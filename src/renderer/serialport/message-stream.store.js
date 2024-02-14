@@ -112,7 +112,7 @@ function createMessageStream() {
       if (class_descr.class_name === "MIDI") {
         midi_monitor_store.update_midi(class_descr);
 
-        // websocket send data to plugin
+        // websocket send data to package
         // ipcRenderer.send('websocket_tx', class_descr);
       }
 

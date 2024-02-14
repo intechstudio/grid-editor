@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { configManager } from "./../configuration/Configuration.store.js";
   import { logger } from "./../../../runtime/runtime.store.js";
   import { writable, get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
@@ -142,7 +143,7 @@
       <BlockTitle>Run application in background</BlockTitle>
       <BlockBody>
         Change what happens when you close the application window. Some
-        features, plugins might only work when the application always runs.
+        features, packages might only work when the application always runs.
       </BlockBody>
       <MeltRadio
         bind:target={$appSettings.persistent.alwaysRunInTheBackground}
@@ -263,11 +264,13 @@
             .sendNVMEraseToGrid()
             .then((res) => {
               runtime.erase();
-              logger.set({
-                type: "success",
-                mode: 0,
-                classname: "nvmerase",
-                message: `Erase complete!`,
+              configManager.refresh().then(() => {
+                logger.set({
+                  type: "success",
+                  mode: 0,
+                  classname: "nvmerase",
+                  message: `Erase complete!`,
+                });
               });
             })
             .catch((e) => {

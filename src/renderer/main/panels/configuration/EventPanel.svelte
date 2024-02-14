@@ -46,6 +46,7 @@
 
   function handleUserInputChange(ui) {
     const target = ConfigTarget.createFrom({ userInput: ui });
+    console.log(target);
 
     if (typeof target === "undefined") {
       options = Array.from(Array(3).keys()).map((i) =>

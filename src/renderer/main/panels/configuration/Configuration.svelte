@@ -384,7 +384,7 @@
 
         const data = [];
         for (const event of current.events) {
-          const target = new ConfigTarget({
+          const target = ConfigTarget.create({
             device: current.device,
             element: current.element,
             eventType: event.type,
@@ -441,7 +441,7 @@
     const promises = [];
     for (const e of current.events) {
       const eventtype = e.type;
-      const target = new ConfigTarget({
+      const target = ConfigTarget.create({
         device: current.device,
         element: current.element,
         eventType: eventtype,
