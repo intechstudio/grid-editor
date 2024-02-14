@@ -350,21 +350,13 @@ function create_runtime() {
     if (element !== -1) {
       _runtime.forEach((device) => {
         if (device.dx == dx && device.dy == dy) {
-          try {
-            const pageIndex = device.pages.findIndex(
-              (x) => x.pageNumber == page
-            );
-            const elementIndex = device.pages[
-              pageIndex
-            ].control_elements.findIndex(
-              (x) => x.controlElementNumber == element
-            );
-            _event = device.pages[pageIndex].control_elements[
-              elementIndex
-            ].events.find((e) => e.type == event);
-          } catch (error) {
-            console.error("Couldn't update in destination: ", li);
-          }
+          const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
+          const elementIndex = device.pages[
+            pageIndex
+          ].control_elements.findIndex((x) => x.elementIndex == element);
+          _event = device.pages[pageIndex].control_elements[
+            elementIndex
+          ].events.find((e) => e.type == event);
         }
       });
     }
