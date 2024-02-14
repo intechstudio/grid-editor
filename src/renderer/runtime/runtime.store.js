@@ -841,7 +841,7 @@ function create_runtime() {
       const moduleElements = grid.get_module_element_list(moduleType);
 
       for (const [index, element] of moduleElements.entries()) {
-        if (!element) {
+        if (typeof element === "undefined") {
           continue;
         }
         let events = [];
