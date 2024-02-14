@@ -6,7 +6,6 @@ import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
-import { EnsureNonOptional } from "./smart-objects";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -27,7 +26,7 @@ export enum InstructionClass {
   ACKNOWLEDGE = "ACKNOWLEDGE",
 }
 
-export type BufferElement = EnsureNonOptional<{
+export type BufferElement = {
   descr: {
     brc_parameters: { DX: number; DY: number };
     class_name: InstructionClassName;
@@ -56,7 +55,7 @@ export type BufferElement = EnsureNonOptional<{
   // modules. After timeout, the BufferElement is not removed from queue.
   // Default value is 1000ms if not set.
   responseTimeout?: number;
-  // If set to true, the
+  // Response required and send immediate can not be used together
   sendImmediate?: boolean;
   filter?: {
     PAGEDISCARD_ACKNOWLEDGE?: {
@@ -72,7 +71,7 @@ export type BufferElement = EnsureNonOptional<{
       LASTHEADER?: unknown;
     };
   };
-}>;
+};
 
 enum ResponseStatus {
   OK = 0,
@@ -153,7 +152,6 @@ let waiter: ResponseWaiter | undefined = undefined;
 
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
-  let processing = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
@@ -178,7 +176,6 @@ function createWriteBuffer() {
     _write_buffer.set([]);
     waiter?.destroy();
     waiter = undefined;
-    processing = false;
   }
 
   function sendDataToGrid(descr: any): Promise<any> {
@@ -317,12 +314,20 @@ function createWriteBuffer() {
     }
   }
 
+  function validateBufferElement(obj: BufferElement) {
+    if (obj.responseRequired && obj.sendImmediate) {
+      throw "Response required and send immediate can not be used together!";
+    }
+  }
+
   function add_first(obj: BufferElement) {
+    validateBufferElement(obj);
     _write_buffer.update((s) => [obj, ...s]);
     return execute(obj);
   }
 
   async function add_last(obj: BufferElement) {
+    validateBufferElement(obj);
     _write_buffer.update((s) => [...s, obj]);
     return execute(obj);
   }
