@@ -59,13 +59,13 @@
 
   function changePackageStatus(packageId, enabled) {
     if (enabled) {
-      window.packageManagerPort.postMessage({
+      window.packageManagerPort?.postMessage({
         type: "load-package",
         id: packageId,
         payload: $appSettings.persistent.packagesDataStorage[packageId],
       });
     } else {
-      window.packageManagerPort.postMessage({
+      window.packageManagerPort?.postMessage({
         type: "unload-package",
         id: packageId,
       });
@@ -73,18 +73,18 @@
   }
 
   function refreshPackageList() {
-    window.packageManagerPort.postMessage({ type: "refresh-package-list" });
+    window.packageManagerPort?.postMessage({ type: "refresh-package-list" });
   }
 
   function downloadPackage(packageId) {
-    window.packageManagerPort.postMessage({
+    window.packageManagerPort?.postMessage({
       type: "download-package",
       id: packageId,
     });
   }
 
   function uninstallPackage(packageId) {
-    window.packageManagerPort.postMessage({
+    window.packageManagerPort?.postMessage({
       type: "uninstall-package",
       id: packageId,
     });

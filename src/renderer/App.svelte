@@ -136,7 +136,7 @@
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port ${port}`
+              `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
             );
           }
         }
