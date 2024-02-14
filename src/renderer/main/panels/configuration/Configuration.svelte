@@ -45,6 +45,7 @@
   } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
+  import { NumberToEventType } from "../../../protocol/grid-protocol";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -197,7 +198,20 @@
       }
       return s;
     });
+
     sendCurrentConfigurationToGrid();
+
+    const target = ConfigTarget.getCurrent();
+    Analytics.track({
+      event: "Config Action",
+      payload: {
+        click: "Update",
+        elementType: target.elementType,
+        eventType: NumberToEventType(target.eventType),
+        short: short,
+      },
+      mandatory: false,
+    });
   }
 
   function handleDragStart(e) {

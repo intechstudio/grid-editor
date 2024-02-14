@@ -18,6 +18,7 @@
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
+  import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
@@ -181,17 +182,15 @@
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "profile-load-overlay" ||
-            $appSettings.displayedOverlay === "preset-load-overlay"}
+          visible={typeof $moduleOverlay === "undefined" ||
+            $moduleOverlay === "configuration-load-overlay"}
         />
         <ElementSelection
           {elementNumber}
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "profile-load-overlay"}
+          visible={typeof $moduleOverlay === "undefined"}
           on:click={handleElementClicked}
         />
       </div>
@@ -216,7 +215,8 @@
           {elementNumber}
           {isLeftCut}
           {isRightCut}
-          visible={$selectedConfigStore?.configType === "preset"}
+          visible={$moduleOverlay === "configuration-load-overlay" &&
+            $selectedConfigStore?.configType === "preset"}
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
           on:click={handlePresetLoad}
@@ -225,7 +225,7 @@
       <ControlNameOverlay
         {device}
         {elementNumber}
-        visible={$appSettings.displayedOverlay === "control-name-overlay"}
+        visible={$moduleOverlay === "control-name-overlay"}
       />
     </svelte:fragment>
 
@@ -233,7 +233,8 @@
     <svelte:fragment slot="module-overlay">
       <ProfileLoadOverlay
         {device}
-        visible={$selectedConfigStore?.configType === "profile"}
+        visible={$moduleOverlay === "configuration-load-overlay" &&
+          $selectedConfigStore?.configType === "profile"}
         on:click={handleProfileLoad}
       />
     </svelte:fragment>

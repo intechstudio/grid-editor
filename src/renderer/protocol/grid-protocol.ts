@@ -22,6 +22,27 @@ export enum EventType {
   UNDEFINED = "undef",
 }
 
+export function NumberToEventType(value: Number) {
+  switch (value) {
+    case 0:
+      return EventType.INIT;
+    case 1:
+      return EventType.POTMETER;
+    case 2:
+      return EventType.ENCODER;
+    case 3:
+      return EventType.BUTTON;
+    case 4:
+      return EventType.MAP;
+    case 5:
+      return EventType.MIDIRX;
+    case 6:
+      return EventType.TIMER;
+    default:
+      return EventType.UNDEFINED;
+  }
+}
+
 export enum ElementType {
   BLANK = "blank",
   SYSTEM = "system",
@@ -491,107 +512,43 @@ export const CEEAT: Record<EventType, CEEAT> = {
   },
 };
 
-// default module elements at specific positions
-let moduleElements = {
+// Define the module types and their associated element types
+const moduleElements: { [key in ModuleType]: ElementType[] } = {
   [ModuleType.PO16]: [
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
+    ...Array(16).fill(ElementType.POTENTIOMETER),
+    ...Array(239), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.PBF4]: [
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.POTENTIOMETER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
+    ...Array(4).fill(ElementType.POTENTIOMETER),
+    ...Array(4).fill(ElementType.FADER),
+    ...Array(4).fill(ElementType.BUTTON),
+    ...Array(239), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.BU16]: [
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
+    ...Array(16).fill(ElementType.BUTTON),
+    ...Array(239), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.EN16]: [
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
+    ...Array(16).fill(ElementType.ENCODER),
+    ...Array(239), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.EF44]: [
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
-    ElementType.FADER,
+    ...Array(4).fill(ElementType.ENCODER),
+    ...Array(4).fill(ElementType.FADER),
+    ...Array(247), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.TEK2]: [
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.BUTTON,
-    ElementType.ENCODER,
-    ElementType.ENCODER,
+    ...Array(8).fill(ElementType.BUTTON),
+    ...Array(2).fill(ElementType.ENCODER),
+    ...Array(245), // Filling with undefined values until index 254
+    ElementType.SYSTEM, // Add system element at index 255
   ],
 };
-
-// add utility (system events) control element or map mode at 255
-moduleElements[ModuleType.BU16][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.PBF4][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.PO16][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.EF44][255] = ElementType.SYSTEM;
-moduleElements[ModuleType.TEK2][255] = ElementType.SYSTEM;
 
 // elementEvents based on control element type and the CEEA table
 const elementEvents = {

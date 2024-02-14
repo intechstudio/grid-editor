@@ -4,8 +4,8 @@ import {
   runtime,
   user_input,
   getDeviceName,
-  eventType,
 } from "../../../runtime/runtime.store";
+import { NumberToEventType } from "../../../protocol/grid-protocol";
 
 //import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
 
@@ -313,7 +313,10 @@ export class ConfigList extends Array {
         x: target.device.dx,
         y: target.device.dy,
         element: { no: target.element },
-        event: { no: target.eventType, type: eventType[target.eventType] },
+        event: {
+          no: target.eventType,
+          type: NumberToEventType(target.eventType),
+        },
         length: length,
       };
     }
@@ -337,9 +340,9 @@ export class ConfigTarget {
 
     const controlElement = device.pages
       .at(page)
-      .control_elements.find((e) => e.controlElementNumber == element);
+      .control_elements.find((e) => e.elementIndex == element);
     target.events = controlElement.events;
-    target.elementType = controlElement.controlElementType;
+    target.elementType = controlElement.type;
     return target;
   }
 
@@ -361,7 +364,7 @@ export class ConfigTarget {
   getElement() {
     const page = this.getPage();
     const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.element
+      (element) => element.elementIndex == this.element
     );
     return element;
   }

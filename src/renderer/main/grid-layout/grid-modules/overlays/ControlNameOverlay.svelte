@@ -20,7 +20,7 @@
       const obj = $elementNameStore[dx][dy];
 
       Object.keys(obj).forEach((key) => {
-        elementSettings[key].controlElementName = obj[key];
+        elementSettings[key].name = obj[key];
       });
     } catch (error) {}
   }
@@ -34,7 +34,7 @@
         style="transform: rotate({-$appSettings.persistent.moduleRotation +
           device?.rot * 90}deg);"
       >
-        {elementSettings[elementNumber]?.controlElementName}
+        {elementSettings[elementNumber]?.name}
       </p>
     </div>
   </container>

@@ -1,5 +1,4 @@
 <script>
-  import { appSettings } from "/runtime/app-helper.store";
   import Popover from "svelte-easy-popover";
   import { createEventDispatcher } from "svelte";
 
@@ -17,7 +16,7 @@
   } from "../Configuration.store";
 
   import { lastOpenedActionblocksInsert } from "../Configuration.store";
-  import { eventType } from "../../../../runtime/runtime.store";
+  import { NumberToEventType } from "../../../../protocol/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
 
@@ -153,7 +152,7 @@
     comp = comp.filter((e) => !filterOut.includes(e.information.short));
 
     //Filter out element type specific components
-    const eventString = eventType[target.eventType].toLowerCase(); //string;
+    const eventString = NumberToEventType(target.eventType);
 
     if (eventString !== "encoder") {
       comp = comp.filter(

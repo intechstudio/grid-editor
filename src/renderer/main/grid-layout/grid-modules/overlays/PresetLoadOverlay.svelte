@@ -27,10 +27,9 @@
       type =
         device?.pages[0].control_elements[
           device?.pages[0].control_elements.length - 1
-        ]?.controlElementType;
+        ]?.type;
     } else {
-      type =
-        device?.pages[0].control_elements[elementNumber]?.controlElementType;
+      type = device?.pages[0].control_elements[elementNumber]?.type;
     }
   }
 
@@ -83,7 +82,7 @@
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
   {#if visible}
-    {#if $selectedConfigStore.type === type}
+    {#if $selectedConfigStore?.type === type}
       <div
         class="w-full h-full"
         class:loaded-element={loaded && !isChanged}
