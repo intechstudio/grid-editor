@@ -18,16 +18,6 @@ import { modal } from "../main/modals/modal.store";
 
 let lastPageActivator = "";
 
-export const eventType = {
-  0: "Init",
-  1: "Potmeter",
-  2: "Encoder",
-  3: "Button",
-  4: "Utility",
-  5: "MIDI RX",
-  6: "Timer",
-};
-
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
     setTimeout(() => setIntervalAsync(fn, ms), ms);

@@ -45,6 +45,7 @@
   } from "../../_actions/move.action.js";
   import AddAction from "./components/AddAction.svelte";
   import AddActionButton from "./components/AddActionButton.svelte";
+  import { NumberToEventType } from "../../../protocol/grid-protocol";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -205,8 +206,8 @@
       event: "Config Action",
       payload: {
         click: "Update",
-        elementType: target.elementType, //String
-        eventType: target.eventType, //Number -> TODO: This should be also a string?
+        elementType: target.elementType,
+        eventType: NumberToEventType(target.eventType),
         short: short,
       },
       mandatory: false,

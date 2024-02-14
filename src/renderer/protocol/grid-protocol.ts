@@ -22,6 +22,27 @@ export enum EventType {
   UNDEFINED = "undef",
 }
 
+export function NumberToEventType(value: Number) {
+  switch (value) {
+    case 0:
+      return EventType.INIT;
+    case 1:
+      return EventType.POTMETER;
+    case 2:
+      return EventType.ENCODER;
+    case 3:
+      return EventType.BUTTON;
+    case 4:
+      return EventType.MAP;
+    case 5:
+      return EventType.MIDIRX;
+    case 6:
+      return EventType.TIMER;
+    default:
+      return EventType.UNDEFINED;
+  }
+}
+
 export enum ElementType {
   BLANK = "blank",
   SYSTEM = "system",

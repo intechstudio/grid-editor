@@ -1,5 +1,6 @@
 import { writable, get } from "svelte/store";
-import { getDeviceName, eventType } from "../../../runtime/runtime.store";
+import { getDeviceName } from "../../../runtime/runtime.store";
+import { NumberToEventType } from "../../../protocol/grid-protocol";}
 
 function createDebugMonitor() {
   const store = writable([]);
@@ -174,7 +175,7 @@ function createLuaError() {
                   x: sx,
                   y: sy,
                   element: { no: descr.element },
-                  event: { no: descr.event, type: eventType[descr.event] },
+                  event: { no: descr.event, type: NumberToEventType(descr.event) },
                 },
               ];
               break;

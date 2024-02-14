@@ -4,8 +4,8 @@ import {
   runtime,
   user_input,
   getDeviceName,
-  eventType,
 } from "../../../runtime/runtime.store";
+import { NumberToEventType } from "../../../protocol/grid-protocol";}
 
 //import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
 
@@ -313,7 +313,7 @@ export class ConfigList extends Array {
         x: target.device.dx,
         y: target.device.dy,
         element: { no: target.element },
-        event: { no: target.eventType, type: eventType[target.eventType] },
+        event: { no: target.eventType, type: NumberToEventType(target.eventType) },
         length: length,
       };
     }
