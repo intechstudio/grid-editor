@@ -1,6 +1,6 @@
 import { writable, get, derived } from "svelte/store";
 
-import grid from "../protocol/grid-protocol";
+import { grid } from "../protocol/grid-protocol";
 import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
@@ -838,32 +838,27 @@ function create_runtime() {
     let status = "INIT";
 
     try {
-      const elementsArrayLength = grid.moduleElements[moduleType].length;
+      const moduleElements = grid.get_module_element_list(moduleType);
 
-      // control elements
-      for (let i = 0; i < elementsArrayLength; i++) {
-        if (grid.moduleElements[moduleType][i]) {
-          let events = [];
-          for (
-            let j = 0;
-            j < grid.elementEvents[grid.moduleElements[moduleType][i]].length;
-            j++
-          ) {
-            events.push({
-              type: Number(
-                grid.elementEvents[grid.moduleElements[moduleType][i]][j].value
-              ),
-              config: undefined,
-              stored: undefined,
-            });
-          }
-          control_elements[i] = {
-            events: events,
-            elementIndex: i,
-            controlElementType: grid.moduleElements[moduleType][i],
-            controlElementName: "",
-          };
+      for (const [index, element] of moduleElements.entries()) {
+        if (!element) {
+          continue;
         }
+        let events = [];
+        const elementEvents = grid.get_element_events(element);
+        for (const event of elementEvents) {
+          events.push({
+            type: Number(event.value),
+            config: undefined,
+            stored: undefined,
+          });
+        }
+        control_elements.push({
+          events: events,
+          elementIndex: index,
+          controlElementType: element,
+          controlElementName: "",
+        });
       }
 
       control_elements = control_elements.filter((x) => x); // filter null or invalid items!
@@ -875,7 +870,9 @@ function create_runtime() {
   }
 
   function create_module(header_param, heartbeat_class_param, virtual = false) {
-    let moduleType = grid.module_type_from_hwcfg(heartbeat_class_param.HWCFG);
+    let moduleType = grid.module_type_from_hwcfg(
+      Number(heartbeat_class_param.HWCFG)
+    );
 
     // generic check, code below if works only if all parameters are provided
     if (

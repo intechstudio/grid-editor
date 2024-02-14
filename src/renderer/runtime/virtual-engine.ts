@@ -1,5 +1,10 @@
 import { get, writable } from "svelte/store";
-import grid from "../protocol/grid-protocol";
+import {
+  grid,
+  EventType,
+  ModuleType,
+  ElementType,
+} from "../protocol/grid-protocol";
 import * as grid_protocol from "../../../node_modules/grid-protocol/grid_protocol_bot.json";
 import {
   InstructionClass,
@@ -7,57 +12,30 @@ import {
   BufferElement,
 } from "../serialport/instructions";
 
-export enum VirtualModuleTypes {
-  BU16 = "BU16",
-  EF44 = "EF44",
-  EN16 = "EN16",
-  PBF4 = "PBF4",
-  PO16 = "PO16",
-  TEK2 = "TEK2",
-}
-
-export enum VirtualEventTypes {
-  INIT = "init",
-  POTMETER = "potmeter",
-  ENCODER = "encoder",
-  BUTTON = "button",
-  MAP = "map",
-  MIDIRX = "midirx",
-  TIMER = "timer",
-}
-
-export enum VirtualElementTypes {
-  SYSTEM = "system",
-  BUTTON = "button",
-  POTENTIOMETER = "potentiometer",
-  ENCODER = "encoder",
-  FADER = "fader",
-}
-
 export const VirtualModuleHWCFG = {
   BU16: {
     hwcfg: grid_protocol.GRID_MODULE_BU16_RevD,
-    type: VirtualModuleTypes.BU16,
+    type: ModuleType.BU16,
   },
   EF44: {
     hwcfg: grid_protocol.GRID_MODULE_EF44_RevD,
-    type: VirtualModuleTypes.EF44,
+    type: ModuleType.EF44,
   },
   EN16: {
     hwcfg: grid_protocol.GRID_MODULE_EN16_RevD,
-    type: VirtualModuleTypes.EN16,
+    type: ModuleType.EN16,
   },
   PBF4: {
     hwcfg: grid_protocol.GRID_MODULE_PBF4_RevD,
-    type: VirtualModuleTypes.PBF4,
+    type: ModuleType.PBF4,
   },
   PO16: {
     hwcfg: grid_protocol.GRID_MODULE_PO16_RevD,
-    type: VirtualModuleTypes.PO16,
+    type: ModuleType.PO16,
   },
   TEK2: {
     hwcfg: grid_protocol.GRID_MODULE_TEK2_RevA,
-    type: VirtualModuleTypes.TEK2,
+    type: ModuleType.TEK2,
   },
 };
 
@@ -226,11 +204,11 @@ function answerFetchTypeRequests(obj: BufferElement) {
 class VirtualModule {
   public dx: number;
   public dy: number;
-  public type: VirtualModuleTypes;
+  public type: ModuleType;
   public pages: any;
 
-  private createControlElement(type: VirtualElementTypes) {
-    const events = grid.elementEvents[type];
+  private createControlElement(type: ElementType) {
+    const events = grid.get_element_events(type);
     return {
       events: events.map((e) => {
         return {
@@ -242,10 +220,10 @@ class VirtualModule {
     };
   }
 
-  private initConfiguration(type: VirtualModuleTypes) {
-    const control_elements = grid.moduleElements[type].map((e: string) =>
-      this.createControlElement(e as VirtualElementTypes)
-    );
+  private initConfiguration(type: ModuleType) {
+    const control_elements = grid
+      .get_module_element_list(type)
+      .map((e: string) => this.createControlElement(e as ElementType));
     this.pages = Array(4).fill({
       elements: control_elements,
     });
@@ -271,7 +249,7 @@ class VirtualModule {
     );
   }
 
-  constructor(dx: number, dy: number, type: VirtualModuleTypes) {
+  constructor(dx: number, dy: number, type: ModuleType) {
     this.dx = dx;
     this.dy = dy;
     this.type = type;
@@ -281,11 +259,7 @@ class VirtualModule {
 
 export const virtual_modules = writable([] as VirtualModule[]);
 
-export function createVirtualModule(
-  dx: number,
-  dy: number,
-  type: VirtualModuleTypes
-) {
+export function createVirtualModule(dx: number, dy: number, type: ModuleType) {
   const device = new VirtualModule(dx, dy, type);
   virtual_modules.update((s) => [...s, device]);
 }

@@ -1,7 +1,7 @@
 import { get } from "svelte/store";
 import { appSettings } from "../runtime/app-helper.store.js";
 
-import grid from "../protocol/grid-protocol.js";
+import { grid } from "../protocol/grid-protocol";
 
 import { writeBuffer } from "../runtime/engine.store.ts";
 import { logger } from "../runtime/runtime.store.js";
@@ -132,9 +132,9 @@ export class GridInstructions implements Instructions {
         class_name: InstructionClassName.CONFIG,
         class_instr: InstructionClass.FETCH,
         class_parameters: {
-          VERSIONMAJOR: grid.properties.VERSION.MAJOR,
-          VERSIONMINOR: grid.properties.VERSION.MINOR,
-          VERSIONPATCH: grid.properties.VERSION.PATCH,
+          VERSIONMAJOR: grid.getProperty("VERSION").MAJOR,
+          VERSIONMINOR: grid.getProperty("VERSION").MINOR,
+          VERSIONPATCH: grid.getProperty("VERSION").PATCH,
           PAGENUMBER: page,
           ELEMENTNUMBER: element,
           EVENTTYPE: event,
@@ -170,7 +170,7 @@ export class GridInstructions implements Instructions {
     config: string
   ): Promise<any> {
     //TODO: Promise reject handling should do this
-    if (config.length >= grid.properties.CONFIG_LENGTH) {
+    if (config.length >= grid.getProperty("CONFIG_LENGTH")) {
       logger.set({
         type: "alert",
         mode: 0,
@@ -188,9 +188,9 @@ export class GridInstructions implements Instructions {
         class_name: InstructionClassName.CONFIG,
         class_instr: InstructionClass.EXECUTE,
         class_parameters: {
-          VERSIONMAJOR: grid.properties.VERSION.MAJOR,
-          VERSIONMINOR: grid.properties.VERSION.MINOR,
-          VERSIONPATCH: grid.properties.VERSION.PATCH,
+          VERSIONMAJOR: grid.getProperty("VERSION").MAJOR,
+          VERSIONMINOR: grid.getProperty("VERSION").MINOR,
+          VERSIONPATCH: grid.getProperty("VERSION").PATCH,
           PAGENUMBER: page,
           ELEMENTNUMBER: element,
           EVENTTYPE: event,

@@ -1,4 +1,4 @@
-import grid from "../../protocol/grid-protocol.js";
+import { grid } from "../../protocol/grid-protocol";
 
 const stringManipulation = {
   initialize: function (inputSet = []) {
@@ -426,4 +426,4 @@ export function debounce(callback, delay) {
   };
 }
 
-stringManipulation.initialize(grid.properties.LUA);
+stringManipulation.initialize(grid.getProperty("LUA"));
