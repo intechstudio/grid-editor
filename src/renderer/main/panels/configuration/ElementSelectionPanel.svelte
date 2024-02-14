@@ -89,8 +89,7 @@
               ? element.elementIndex
               : control_elements.length - 1
           } (${
-            element.controlElementType[0].toUpperCase() +
-            element.controlElementType.slice(1).toLowerCase()
+            element.type[0].toUpperCase() + element.type.slice(1).toLowerCase()
           })`,
           value: element.elementIndex,
         };

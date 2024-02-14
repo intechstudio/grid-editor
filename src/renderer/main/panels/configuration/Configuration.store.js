@@ -336,7 +336,7 @@ export class ConfigTarget {
       .at(page)
       .control_elements.find((e) => e.elementIndex == element);
     this.events = controlElement.events;
-    this.elementType = controlElement.controlElementType;
+    this.elementType = controlElement.type;
   }
 
   static createFrom({ userInput }) {

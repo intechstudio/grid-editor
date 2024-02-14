@@ -210,7 +210,7 @@
               );
 
               const current = ConfigTarget.createFrom({ userInput: ui });
-              const type = current.getElement().controlElementType;
+              const type = current.getElement().type;
 
               config.type = type;
               config.configs = {
