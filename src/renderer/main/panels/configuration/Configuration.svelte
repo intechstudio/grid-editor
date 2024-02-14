@@ -202,12 +202,14 @@
 
     const target = ConfigTarget.getCurrent();
     Analytics.track({
-      event: "ActionBlockUpdate",
+      event: "Config Action",
       payload: {
+        action: "Update",
         elementType: target.elementType, //String
         eventType: target.eventType, //Number -> TODO: This should be also a string?
         short: short,
       },
+      mandatory: false,
     });
   }
 

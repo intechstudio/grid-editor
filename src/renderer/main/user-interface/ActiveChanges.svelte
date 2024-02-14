@@ -4,7 +4,7 @@
   import { configManager } from "./../panels/configuration/Configuration.store.js";
   import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
-  import { appSettings } from "../../runtime/app-helper.store";
+  import { moduleOverlay } from "../../runtime/moduleOverlay";
   import { Analytics } from "../../runtime/analytics.js";
   import { fade, blur } from "svelte/transition";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
@@ -18,11 +18,8 @@
   }
 
   function clearOverlays() {
-    if (get(appSettings).displayedOverlay === "configuration-load-overlay") {
-      appSettings.update((s) => {
-        s.displayedOverlay = undefined;
-        return s;
-      });
+    if (get(moduleOverlay) === "configuration-load-overlay") {
+      moduleOverlay.close();
     }
     selectedConfigStore.set(undefined);
   }

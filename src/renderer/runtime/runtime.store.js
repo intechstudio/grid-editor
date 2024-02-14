@@ -378,7 +378,7 @@ function create_runtime() {
       );
       const _page = _device.pages.find((e) => e.pageNumber == page);
       const _element = _page.control_elements.find(
-        (e) => e.controlElementNumber == element
+        (e) => e.elementIndex == element
       );
       const _event = _element.events.find((e) => e.type == event);
 
@@ -618,7 +618,7 @@ function create_runtime() {
 
     return new Promise((resolve, reject) => {
       // Reorder array to send system element first
-      const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+      const index = array.findIndex((obj) => obj.elementIndex === 255);
 
       // Check if the object with id === 255 was found
       if (index !== -1) {
@@ -633,7 +633,7 @@ function create_runtime() {
       const promises = [];
       array.forEach((elem) => {
         elem.events.forEach((ev) => {
-          ui.elementnumber = elem.controlElementNumber;
+          ui.elementnumber = elem.elementIndex;
           ui.eventtype = ev.event;
 
           const page = ui.pagenumber;
@@ -731,7 +731,7 @@ function create_runtime() {
     const device = rt.find((device) => device.dx == dx && device.dy == dy);
     const page = device.pages.find((x) => x.pageNumber == pageNumber);
     const element = page.control_elements.find(
-      (x) => x.controlElementNumber == elementNumber
+      (x) => x.elementIndex == elementNumber
     );
     const events = element.events;
 
@@ -796,8 +796,7 @@ function create_runtime() {
           // put it into the fetchArray
           fetchArray.push({
             event: e.type,
-            elementtype: controlElement.controlElementType,
-            elementnumber: controlElement.controlElementNumber,
+            elementIndex: controlElement.elementIndex,
           });
         }
       });
@@ -816,7 +815,7 @@ function create_runtime() {
         dx: dx,
         dy: dy,
         page: page,
-        element: e.elementnumber,
+        element: e.elementIndex,
         event: e.event,
       });
       return promise;
@@ -868,7 +867,7 @@ function create_runtime() {
           }
           control_elements[i] = {
             events: events,
-            controlElementNumber: i,
+            elementIndex: i,
             controlElementType: grid.moduleElements[moduleType][i],
             controlElementName: "",
           };
@@ -1189,7 +1188,7 @@ export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
   const element = currentModule.pages[0].control_elements.find(
-    (e) => e.controlElementNumber == elementNumber
+    (e) => e.elementIndex == elementNumber
   );
 
   return element.events.map((e) => e.type);

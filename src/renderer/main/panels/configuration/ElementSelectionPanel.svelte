@@ -1,7 +1,8 @@
 <script>
+  import { get } from "svelte/store";
   import { MeltSelect } from "@intechstudio/grid-uikit";
   import Toggle from "../../user-interface/Toggle.svelte";
-  import { appSettings } from "../../../runtime/app-helper.store.js";
+  import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import {
     elementNameStore,
@@ -10,13 +11,11 @@
   } from "../../../runtime/runtime.store.js";
 
   function showControlElementNameOverlay() {
-    if ($appSettings.displayedOverlay === "control-name-overlay") {
-      $appSettings.displayedOverlay =
-        typeof $appSettings.displayedOverlay === "undefined"
-          ? "control-name-overlay"
-          : undefined;
+    const show = get(moduleOverlay) !== "control-name-overlay";
+    if (show) {
+      moduleOverlay.show("control-name-overlay");
     } else {
-      $appSettings.displayedOverlay = "control-name-overlay";
+      moduleOverlay.close();
     }
   }
 
@@ -79,21 +78,21 @@
     const control_elements = device.pages.find(
       (page) => page.pageNumber === ui.pagenumber
     )?.control_elements;
-    options = control_elements.map((e) => {
-      const stringName = getElementName(e.controlElementNumber);
+    options = control_elements.map((element) => {
+      const stringName = getElementName(element.elementIndex);
       if (typeof stringName !== "undefined") {
-        return { title: stringName, value: e.controlElementNumber };
+        return { title: stringName, value: element.elementIndex };
       } else {
         return {
           title: `Element ${
-            e.controlElementNumber < 255
-              ? e.controlElementNumber
+            element.elementIndex < 255
+              ? element.elementIndex
               : control_elements.length - 1
           } (${
-            e.controlElementType[0].toUpperCase() +
-            e.controlElementType.slice(1).toLowerCase()
+            element.controlElementType[0].toUpperCase() +
+            element.controlElementType.slice(1).toLowerCase()
           })`,
-          value: e.controlElementNumber,
+          value: element.elementIndex,
         };
       }
     });
@@ -114,7 +113,7 @@
       <span class="text-gray-500 text-sm">Element Name Overlay</span>
       <Toggle
         on:change={showControlElementNameOverlay}
-        toggleValue={$appSettings.displayedOverlay === "control-name-overlay"}
+        toggleValue={$moduleOverlay === "control-name-overlay"}
       />
     </div>
   </div>

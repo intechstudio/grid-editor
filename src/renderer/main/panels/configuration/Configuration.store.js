@@ -334,7 +334,7 @@ export class ConfigTarget {
 
     const controlElement = device.pages
       .at(page)
-      .control_elements.find((e) => e.controlElementNumber == element);
+      .control_elements.find((e) => e.elementIndex == element);
     this.events = controlElement.events;
     this.elementType = controlElement.controlElementType;
   }
@@ -361,7 +361,7 @@ export class ConfigTarget {
   getElement() {
     const page = this.getPage();
     const element = page.control_elements.find(
-      (e) => e.controlElementNumber == this.element
+      (element) => element.elementIndex == this.element
     );
     return element;
   }

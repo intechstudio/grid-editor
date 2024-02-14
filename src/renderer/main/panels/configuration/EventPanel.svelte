@@ -158,7 +158,7 @@
             {@const eventData = $runtime
               .find((e) => e.dx == event.dx && e.dy == event.dy)
               ?.pages[event.page].control_elements.find(
-                (e) => e.controlElementNumber == event.element
+                (element) => element.elementIndex == event.element
               )
               ?.events.find((e) => e.type == event.type)}
             {@const stored = eventData?.stored}

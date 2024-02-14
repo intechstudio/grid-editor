@@ -18,6 +18,7 @@
   import ElementSelection from "./underlays/ElementSelection.svelte";
 
   import { appSettings } from "../../../runtime/app-helper.store";
+  import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
@@ -181,15 +182,15 @@
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $appSettings.displayedOverlay === "undefined" ||
-            $appSettings.displayedOverlay === "configuration-load-overlay"}
+          visible={typeof $moduleOverlay === "undefined" ||
+            $moduleOverlay === "configuration-load-overlay"}
         />
         <ElementSelection
           {elementNumber}
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $appSettings.displayedOverlay === "undefined"}
+          visible={typeof $moduleOverlay === "undefined"}
           on:click={handleElementClicked}
         />
       </div>
@@ -214,8 +215,7 @@
           {elementNumber}
           {isLeftCut}
           {isRightCut}
-          visible={$appSettings.displayedOverlay ===
-            "configuration-load-overlay" &&
+          visible={$moduleOverlay === "configuration-load-overlay" &&
             $selectedConfigStore?.configType === "preset"}
           class="pointer-events-auto w-full h-full"
           style="border-radius: var(--grid-rounding);"
@@ -225,7 +225,7 @@
       <ControlNameOverlay
         {device}
         {elementNumber}
-        visible={$appSettings.displayedOverlay === "control-name-overlay"}
+        visible={$moduleOverlay === "control-name-overlay"}
       />
     </svelte:fragment>
 
@@ -233,8 +233,7 @@
     <svelte:fragment slot="module-overlay">
       <ProfileLoadOverlay
         {device}
-        visible={$appSettings.displayedOverlay ===
-          "configuration-load-overlay" &&
+        visible={$moduleOverlay === "configuration-load-overlay" &&
           $selectedConfigStore?.configType === "profile"}
         on:click={handleProfileLoad}
       />
