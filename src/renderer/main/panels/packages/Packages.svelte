@@ -72,8 +72,12 @@
     }
 
     Analytics.track({
-      event: "Package Status Change",
-      payload: { id: pluginId, status: enabled ? "enabled" : "disabled" },
+      event: "Package Manager",
+      payload: {
+        click: "Status Change",
+        id: pluginId,
+        status: enabled ? "enabled" : "disabled",
+      },
       mandatory: false,
     });
   }
@@ -88,11 +92,9 @@
       id: pluginId,
     });
 
-    console.log("asd");
-
     Analytics.track({
-      event: "Package Downloaded",
-      payload: { id: pluginId },
+      event: "Package Manager",
+      payload: { click: "Download", id: pluginId },
       mandatory: false,
     });
   }
@@ -108,8 +110,8 @@
     });
 
     Analytics.track({
-      event: "Package Uninstalled",
-      payload: { id: pluginId },
+      event: "Package Manager",
+      payload: { click: "Uninstall", id: pluginId },
       mandatory: false,
     });
   }

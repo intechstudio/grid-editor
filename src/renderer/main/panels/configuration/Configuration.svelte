@@ -204,7 +204,7 @@
     Analytics.track({
       event: "Config Action",
       payload: {
-        action: "Update",
+        click: "Update",
         elementType: target.elementType, //String
         eventType: target.eventType, //Number -> TODO: This should be also a string?
         short: short,
