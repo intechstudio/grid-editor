@@ -856,8 +856,8 @@ function create_runtime() {
         control_elements.push({
           events: events,
           elementIndex: index,
-          controlElementType: element,
-          controlElementName: "",
+          type: element,
+          name: "",
         });
       }
 
