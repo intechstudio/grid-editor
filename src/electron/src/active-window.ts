@@ -1,4 +1,4 @@
-// import activeWindow from 'active-win'; // package should be revisited and properly tested on windows 7 and older mac os versions, should do with new plugin architecture
+// import activeWindow from 'active-win'; // package should be revisited and properly tested on windows 7 and older mac os versions, should do with new package architecture
 
 export async function getActiveWindow() {
   return undefined;
