@@ -10,7 +10,7 @@ import {
   InstructionClass,
   InstructionClassName,
   BufferElement,
-} from "../serialport/instructions";
+} from "../runtime/engine.store";
 
 export const VirtualModuleHWCFG = {
   BU16: {
