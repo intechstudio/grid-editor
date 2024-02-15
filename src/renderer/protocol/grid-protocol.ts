@@ -523,7 +523,7 @@ const moduleElements: { [key in ModuleType]: ElementType[] } = {
     ...Array(4).fill(ElementType.POTENTIOMETER),
     ...Array(4).fill(ElementType.FADER),
     ...Array(4).fill(ElementType.BUTTON),
-    ...Array(239), // Filling with undefined values until index 254
+    ...Array(243), // Filling with undefined values until index 254
     ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.BU16]: [
