@@ -41,6 +41,9 @@
   export let access_tree;
 
   import LineEditor from "../main/user-interface/LineEditor.svelte";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../main/panels/preferences/MoltenPushButton.svelte";
 
   let sidebarWidth;
 
@@ -229,16 +232,12 @@
     {#if parenthesisError}
       <div class="text-sm text-red-500">Parenthesis must be closed!</div>
     {/if}
-    <button
-      on:click={() => {
-        sendData();
-      }}
-      disabled={!commitState && parenthesisError && variableNameError}
-      class="{commitState && !parenthesisError && !variableNameError
-        ? 'opacity-100'
-        : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none"
-      >Commit</button
-    >
+    <MoltenPushButton
+      on:click={sendData}
+      disabled={Boolean(!commitState && parenthesisError && variableNameError)}
+      text={"Commit"}
+      style={ButtonStyle.ACCEPT}
+    />
   </div>
 
   <div class="w-full flex flex-col p-2">

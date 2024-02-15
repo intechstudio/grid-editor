@@ -53,9 +53,7 @@
     />
 
     <MoltenPushButton on:click={handleCopy} text="Copy" style="accept">
-      <div slot="popup">
-        <MoltenPopup text="Copied to clipboard!" />
-      </div>
+      <MoltenPopup slot="popup" text="Copied to clipboard!" />
     </MoltenPushButton>
   </div>
 </MoltenModal>

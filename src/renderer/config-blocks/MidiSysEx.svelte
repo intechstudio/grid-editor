@@ -49,6 +49,9 @@
 
   import TabButton from "../main/user-interface/TabButton.svelte";
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../main/panels/preferences/MoltenPushButton.svelte";
 
   export let config;
   export let index;
@@ -80,7 +83,7 @@
     loaded = false;
   });
 
-  function sendData(e, index) {
+  function sendData(e) {
     commitState = 0;
 
     config.script = "gmss(" + textarea.innerText.toString() + ")";
@@ -142,14 +145,12 @@
         {commitState ? "Unsaved changes!" : "Synced with Grid!"}
       </div>
     {/key}
-    <button
+    <MoltenPushButton
       on:click={sendData}
       disabled={!commitState}
-      class="{commitState
-        ? 'opacity-100'
-        : 'opacity-50 pointer-events-none'} bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none"
-      >Commit</button
-    >
+      text={"Commit"}
+      style={ButtonStyle.ACCEPT}
+    />
   </div>
 
   <SendFeedback

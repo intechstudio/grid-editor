@@ -6,7 +6,6 @@
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
 
-  import BtnAndPopUp from "../../user-interface/BtnAndPopUp.svelte";
   import { setTooltip } from "../../user-interface/tooltip/Tooltip.ts";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
@@ -14,6 +13,10 @@
   import { ConfigTarget } from "./Configuration.store.js";
   import { MeltRadio } from "@intechstudio/grid-uikit";
   import { CEEAT } from "../../../protocol/grid-protocol";
+  import MoltenPushButton, {
+    ButtonRatio,
+  } from "../preferences/MoltenPushButton.svelte";
+  import MoltenPopup from "../preferences/MoltenPopup.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -104,43 +107,49 @@
     <div class="py-2 text-sm flex justify-between items-center">
       <div class="text-gray-500">Events</div>
 
-      <div class="flex text-gray-400">
-        <button
+      <div class="flex flex-row gap-1 text-gray-400">
+        <div
           use:setTooltip={{
             key: "configuration_copy_all",
             nowrap: true,
             instant: true,
             placement: "top",
-            class: "p-4",
+            class: "px-2 py-1",
           }}
-          class="relative px-2 py-1 mr-2 rounded-md group cursor-pointer bg-secondary border border-white border-opacity-5 hover:border-opacity-25"
-          on:click={handleCopyAll}
         >
-          <SvgIcon displayMode="button" iconPath={"copy_all"} />
-        </button>
-
-        <BtnAndPopUp
-          class="relative px-2 py-1 rounded-md group cursor-pointer bg-secondary border border-white border-opacity-5 hover:border-opacity-25"
-          enabled={typeof $controlElementClipboard !== "undefined"}
-          on:clicked={handleOverwriteAll}
-          tooltipKey={"configuration_overwrite"}
-          btnStyle={`relative bg-secondary group rounded-md ${
-            typeof $controlElementClipboard === "undefined"
-              ? "hover:border-opacity-5"
-              : "border-opacity-20"
-          }`}
-          popStyle={"bg-sencodary"}
-        >
-          <span slot="popup">Pasted!</span>
-          <span slot="button">
+          <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
             <SvgIcon
+              slot="content"
+              displayMode="button"
+              iconPath={"copy_all"}
+            />
+          </MoltenPushButton>
+        </div>
+
+        <div
+          use:setTooltip={{
+            key: "configuration_overwrite",
+            nowrap: true,
+            instant: true,
+            placement: "top",
+            class: "px-2 py-1",
+          }}
+        >
+          <MoltenPushButton
+            on:click={handleOverwriteAll}
+            ratio={ButtonRatio.BOX}
+            disabled={typeof $controlElementClipboard === "undefined"}
+          >
+            <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
+            <SvgIcon
+              slot="content"
               class={typeof $controlElementClipboard === "undefined"
                 ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
                 : ""}
               iconPath={"paste_all"}
             />
-          </span>
-        </BtnAndPopUp>
+          </MoltenPushButton>
+        </div>
       </div>
     </div>
 

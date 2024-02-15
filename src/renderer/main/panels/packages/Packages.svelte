@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
+  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
 
   onMount(async () => {
     refreshPackageList();
@@ -132,20 +133,10 @@
     <div class="flex py-2 text-white items-center">
       <div class="mx-2">Packages</div>
       <div class="mx-2">
-        <button
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={restartPackageManager}
-        >
-          Restart
-        </button>
+        <MoltenPushButton on:click={restartPackageManager} text="Restart" />
       </div>
       <div class="mx-2">
-        <button
-          class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={refreshPackageList}
-        >
-          Refresh
-        </button>
+        <MoltenPushButton on:click={refreshPackageList} text="Refresh" />
       </div>
     </div>
     {#each $appSettings.packageList as _package}
@@ -164,20 +155,16 @@
         <div class="mx-1">{_package.name}</div>
         <div class="mx-1">
           {#if _package.status == "Downloading" || _package.status == "Uninstalled" || _package.status == "MarkedForDeletion"}
-            <button
-              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+            <MoltenPushButton
               on:click={downloadPackage(_package.id)}
               disabled={_package.status == "Downloading"}
-            >
-              Download
-            </button>
+              text="Download"
+            />
           {:else}
-            <button
-              class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+            <MoltenPushButton
               on:click={uninstallPackage(_package.id)}
-            >
-              Uninstall
-            </button>
+              text="Uninstall"
+            />
           {/if}
         </div>
       </div>

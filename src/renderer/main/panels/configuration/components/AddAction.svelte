@@ -7,6 +7,9 @@
 
   import { configManager } from "../Configuration.store";
   import { runtime } from "../../../../runtime/runtime.store";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../../preferences/MoltenPushButton.svelte";
 
   export let index = undefined;
   let showActionPicker = false;
@@ -38,16 +41,16 @@
   on:paste={handlePaste}
 >
   {#if $configManager.length === 0 && $runtime.length > 0}
-    <div class="text-white/50 my-5 bg-secondary flex" in:fade={{ delay: 200 }}>
-      <div class="w-10 h-full bg-red-300/30 flex" />
-      <div class="flex flex-col m-4">
-        There are no actions configured on this event!
-        <button
-          class="mt-4 bg-black/20 hover:bg-black/30 mr-1 text-white/50 hover:text-white py-2 w-28 rounded focus:outline-none"
-          on:click={handleShowActionPicker}
-          >Add Action
-        </button>
-      </div>
+    <div
+      class="text-white/50 my-5 bg-secondary flex flex-col py-6 px-12 gap-4"
+      in:fade={{ delay: 200 }}
+    >
+      <span> There are no actions configured on this event! </span>
+      <MoltenPushButton
+        text="Add Action"
+        style={ButtonStyle.OUTLINED}
+        on:click={handleShowActionPicker}
+      />
     </div>
   {:else}
     <!-- svelte-ignore a11y-click-events-have-key-events -->
