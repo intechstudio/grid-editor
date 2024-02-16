@@ -159,13 +159,6 @@
       const configType = event.data.configType;
 
       runtime.fetch_page_configuration_from_grid().then((desc) => {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "configsave",
-          message: `Ready to save config!`,
-        });
-
         const ui = get(user_input);
 
         const configs = get(runtime);
@@ -252,22 +245,12 @@
     const config = event.data;
     const importName = config.name;
 
-    return await window.electron.configs
-      .saveConfig(path, "configs", config)
-      .then((res) => {
-        logger.set({
-          type: "success",
-          message: `Config ${importName} imported successfully`,
-        });
-        return;
-      })
-      .catch((err) => {
-        logger.set({
-          type: "fail",
-          message: `Config ${importName} import failed`,
-        });
-        throw err;
-      });
+    return window.electron.configs.saveConfig(path, "configs", config);
+  }
+
+  async function handleSendLogMessage(event) {
+    const logData = event.data;
+    logger.set(logData);
   }
 
   function initChannelCommunication(event) {
@@ -299,6 +282,9 @@
           break;
         case "provideSelectedConfigForEditor":
           channelMessageWrapper(event, handleProvideSelectedConfigForEditor);
+          break;
+        case "sendLogMessage":
+          channelMessageWrapper(event, handleSendLogMessage);
           break;
       }
     }
