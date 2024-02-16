@@ -75,7 +75,7 @@
       event: "Package Manager",
       payload: {
         click: "Status Change",
-        id: pluginId,
+        id: packageId,
         status: enabled ? "enabled" : "disabled",
       },
       mandatory: false,
@@ -94,7 +94,7 @@
 
     Analytics.track({
       event: "Package Manager",
-      payload: { click: "Download", id: pluginId },
+      payload: { click: "Download", id: packageId },
       mandatory: false,
     });
   }
@@ -111,7 +111,7 @@
 
     Analytics.track({
       event: "Package Manager",
-      payload: { click: "Uninstall", id: pluginId },
+      payload: { click: "Uninstall", id: packageId },
       mandatory: false,
     });
   }
