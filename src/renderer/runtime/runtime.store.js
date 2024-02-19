@@ -15,6 +15,7 @@ import { add_datapoint } from "../serialport/message-stream.store.js";
 import { configManager } from "../main/panels/configuration/Configuration.store.js";
 import { forEach } from "lodash";
 import { modal } from "../main/modals/modal.store";
+import { ProtectedStore } from "./smart-store.store.ts";
 
 let lastPageActivator = "";
 
@@ -189,13 +190,9 @@ function create_user_input() {
     eventtype: 2,
   };
 
-  const internal = writable({ ...defaultValues });
+  const store = new ProtectedStore(defaultValues);
 
-  const external = derived(internal, ($internal) => {
-    return Object.freeze(structuredClone($internal));
-  });
-
-  function set({ dx, dy, pagenumber, elementnumber, eventtype }) {
+  function setOverride({ dx, dy, pagenumber, elementnumber, eventtype }) {
     for (const [key, value] of Object.entries({
       dx,
       dy,
@@ -216,7 +213,7 @@ function create_user_input() {
     const events = getElementEventTypes(dx, dy, elementnumber);
     const closestEvent = get_closest_event(events, eventtype);
 
-    internal.set({
+    store.set({
       dx: Number(dx),
       dy: Number(dy),
       pagenumber: Number(pagenumber),
@@ -262,7 +259,7 @@ function create_user_input() {
       return;
     }
 
-    const ui = get(internal);
+    const ui = get(store);
 
     // filter same control element had multiple interactions
     let elementDifferent =
@@ -301,7 +298,7 @@ function create_user_input() {
           eventtype = descr.class_parameters.EVENTTYPE;
         }
       }
-      internal.set({
+      store.set({
         dx: descr.brc_parameters.SX,
         dy: descr.brc_parameters.SY,
         pagenumber: ui.pagenumber,
@@ -314,16 +311,16 @@ function create_user_input() {
 
   function module_destroy_handler(dx, dy) {
     // This is used to re-init local settings panel if a module is removed which values have been displayed
-    const ui = get(internal);
+    const ui = get(store);
 
     if (dx == ui.dx && dy == ui.dy) {
-      internal.set({ ...defaultValues });
+      store.set({ ...defaultValues });
     }
   }
 
   return {
-    ...external,
-    set: set,
+    ...store,
+    set: setOverride,
     process_incoming_event_from_grid: process_incoming_event_from_grid,
     module_destroy_handler: module_destroy_handler,
   };
@@ -332,7 +329,7 @@ function create_user_input() {
 export const user_input = create_user_input();
 
 function create_runtime() {
-  const _runtime = writable([]);
+  const _runtime = new ProtectedStore([]);
 
   const findUpdateDestEvent = (_runtime, dx, dy, page, element, event) => {
     let _event = undefined;
