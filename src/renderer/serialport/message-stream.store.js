@@ -115,6 +115,8 @@ function createMessageStream() {
 
         // TEST ONLY,  REMOVE THIS ON PRODUCTION
         packageComm.postMessage({ type: "request-echo", message: "Hello from renderer!" })
+        // we are gentlemans so we close it
+        packageComm.close()
 
       }
 
