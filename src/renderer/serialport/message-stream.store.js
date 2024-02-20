@@ -105,6 +105,13 @@ function createMessageStream() {
         wss_send_message(class_descr.class_parameters.TEXT);
       }
 
+      if (class_descr.class_name === "PACKAGE") {
+        window.packageManagerPort?.postMessage({
+          type: "send-to-package",
+          message: class_descr.class_parameters.TEXT,
+        });
+      }
+
       if (class_descr.class_name === "LEDPREVIEW") {
         update_ledColorStore(class_descr);
       }
