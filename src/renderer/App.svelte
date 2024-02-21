@@ -81,80 +81,81 @@
 
   window.onmessage = (event) => {
     // extract this part on refactor
-    if (event.source === window && event.data === "plugin-manager-port") {
+    if (event.source === window && event.data === "package-manager-port") {
       const [port] = event.ports;
-      window.pluginManagerPort = port;
+      window.packageManagerPort = port;
       // register message handler
       port.onmessage = (event) => {
         const data = event.data;
         // action towards runtime
         switch (data.type) {
-          case "plugin-action": {
+          case "package-action": {
             if (data.id == "change-page") {
               runtime.change_page(data.num);
             } else if (data.id == "persist-data") {
               appSettings.update((s) => {
                 const newStorage = structuredClone(
-                  s.persistent.pluginsDataStorage
+                  s.persistent.packagesDataStorage
                 );
-                newStorage[data.pluginId] = data.data;
-                s.persistent.pluginsDataStorage = newStorage;
+                newStorage[data.packageId] = data.data;
+                s.persistent.packagesDataStorage = newStorage;
                 return s;
               });
             }
             if (data.id == "add-action") {
               addPackageAction({
                 ...data.info,
-                packageId: data.pluginId,
+                packageId: data.packageId,
               });
             }
             if (data.id == "remove-action") {
-              removePackageAction(data.pluginId, data.actionId);
+              removePackageAction(data.packageId, data.actionId);
             }
             break;
           }
-          case "plugins": {
-            // refresh pluginlist
-            const markedForDeletionPlugins = data.plugins
+          case "packages": {
+            // refresh packagelist
+            const markedForDeletionPackages = data.packages
               .filter((e) => e.status == "MarkedForDeletion")
               .map((e) => e.id);
-            const enabledPlugins = data.plugins
+            const enabledPackages = data.packages
               .filter((e) => e.status == "Enabled")
               .map((e) => e.id);
             appSettings.update((s) => {
-              s.pluginList = data.plugins;
-              s.persistent.markedForDeletionPlugins = markedForDeletionPlugins;
-              s.persistent.enabledPlugins = enabledPlugins;
+              s.packageList = data.packages;
+              s.persistent.markedForDeletionPackages =
+                markedForDeletionPackages;
+              s.persistent.enabledPackages = enabledPackages;
               return s;
             });
             break;
           }
-          case "refresh-plugins": {
+          case "refresh-packages": {
             const env = process.env.NODE_ENV;
             break;
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port ${port}`
+              `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
             );
           }
         }
       };
-      for (const plugin of $appSettings.persistent.markedForDeletionPlugins ??
-        []) {
-        port.postMessage({ type: "uninstall-plugin", id: plugin });
+      for (const _package of $appSettings.persistent
+        .markedForDeletionPackages ?? []) {
+        port.postMessage({ type: "uninstall-package", id: _package });
       }
-      for (const plugin of $appSettings.persistent.enabledPlugins ?? []) {
+      for (const _package of $appSettings.persistent.enabledPackages ?? []) {
         port.postMessage({
-          type: "load-plugin",
-          id: plugin,
-          payload: $appSettings.persistent.pluginsDataStorage[plugin],
+          type: "load-package",
+          id: _package,
+          payload: $appSettings.persistent.packagesDataStorage[_package],
         });
       }
-      // register global createPluginMessagePort for direct plugin communication
-      window.createPluginMessagePort = (id) => {
+      // register global createPackageMessagePort for direct package communication
+      window.createPackageMessagePort = (id) => {
         const channel = new MessageChannel();
-        port.postMessage({ type: "create-plugin-message-port", id }, [
+        port.postMessage({ type: "create-package-message-port", id }, [
           channel.port1,
         ]);
         return channel.port2;

@@ -4,9 +4,74 @@ import { serial_write, serial_write_islocked } from "../serialport/serialport";
 
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
-import { BufferElement } from "../serialport/instructions";
 import { runtime } from "./runtime.store";
 import { virtual_modules } from "./virtual-engine";
+
+export enum InstructionClassName {
+  HEARTBEAT = "HEARTBEAT",
+  CONFIG = "CONFIG",
+  PAGEACTIVE = "PAGEACTIVE",
+  PAGECOUNT = "PAGECOUNT",
+  PAGESTORE = "PAGESTORE",
+  NVMERASE = "NVMERASE",
+  NVMDEFRAG = "NVMDEFRAG",
+  PAGEDISCARD = "PAGEDISCARD",
+  PAGECLEAR = "PAGECLEAR",
+}
+
+export enum InstructionClass {
+  EXECUTE = "EXECUTE",
+  FETCH = "FETCH",
+  REPORT = "REPORT",
+  ACKNOWLEDGE = "ACKNOWLEDGE",
+}
+
+export type BufferElement = {
+  descr: {
+    brc_parameters: { DX: number; DY: number };
+    class_name: InstructionClassName;
+    class_instr: InstructionClass;
+    class_parameters: {
+      TYPE?: number;
+      HWCFG?: number;
+      VMAJOR?: number;
+      VMINOR?: number;
+      VPATCH?: number;
+      VERSIONMAJOR?: number;
+      VERSIONMINOR?: number;
+      VERSIONPATCH?: number;
+      PAGENUMBER?: number;
+      ELEMENTNUMBER?: number;
+      EVENTTYPE?: number;
+      ACTIONLENGTH?: number;
+      ACTIONSTRING?: string;
+    };
+  };
+  // If set to true, no other BufferElements are
+  // processed until response is received and processed.
+  // Default value is false if not set.
+  responseRequired?: boolean;
+  // After the timeout that is defined here, the BufferElement is re-sent to
+  // modules. After timeout, the BufferElement is not removed from queue.
+  // Default value is 1000ms if not set.
+  responseTimeout?: number;
+  // Response required and send immediate can not be used together
+  sendImmediate?: boolean;
+  filter?: {
+    PAGEDISCARD_ACKNOWLEDGE?: {
+      LASTHEADER: unknown;
+    };
+    brc_parameters?: { SX: number; SY: number };
+    class_name: InstructionClassName;
+    class_instr: InstructionClass;
+    class_parameters?: {
+      PAGENUMBER?: number;
+      ELEMENTNUMBER?: number;
+      EVENTTYPE?: number;
+      LASTHEADER?: unknown;
+    };
+  };
+};
 
 enum ResponseStatus {
   OK = 0,
@@ -87,7 +152,6 @@ let waiter: ResponseWaiter | undefined = undefined;
 
 function createWriteBuffer() {
   let _write_buffer = writable([] as any[]);
-  let processing = false;
 
   function module_destroy_handler(dx: Number, dy: Number) {
     // remove all of the elements that match the destroyed module's dx dy
@@ -112,7 +176,6 @@ function createWriteBuffer() {
     _write_buffer.set([]);
     waiter?.destroy();
     waiter = undefined;
-    processing = false;
   }
 
   function sendDataToGrid(descr: any): Promise<any> {
@@ -147,12 +210,15 @@ function createWriteBuffer() {
     await new Promise((resolve) => setTimeout(resolve, time));
   }
 
-  async function sendToGrid(bufferElement: BufferElement) {
+  async function sendToGrid(
+    bufferElement: BufferElement,
+    sendImmediate: boolean = false
+  ) {
     return new Promise((resolve, reject) => {
       sendDataToGrid(bufferElement.descr)
         .then(async (result) => {
           const { id } = result;
-          if (bufferElement.responseRequired === true) {
+          if (bufferElement.responseRequired === true && !sendImmediate) {
             const { class_parameters } = bufferElement.filter || {};
             if (class_parameters?.LASTHEADER !== undefined) {
               class_parameters.LASTHEADER = id;
@@ -186,29 +252,24 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
+      const sendImmediate = current.sendImmediate ?? false;
+      const waitingResponse = typeof waiter !== "undefined";
       while (
         serial_write_islocked() ||
-        processing ||
-        get(writeBuffer)[0] !== current
+        get(writeBuffer)[0] !== current ||
+        (waitingResponse && !sendImmediate)
       ) {
         await sleep(1);
       }
 
-      //Serial port is available, we can process the current command
-      processing = true;
-      _write_buffer.update((s) => {
-        s.shift();
-        return s;
-      });
-
-      sendToGrid(current)
-        .then((result) => {
-          resolve(result);
-          processing = false;
-        })
-        .catch((e) => {
-          reject(e);
-          processing = false;
+      sendToGrid(current, sendImmediate)
+        .then(resolve)
+        .catch(reject)
+        .finally(() => {
+          _write_buffer.update((s) => {
+            s.shift();
+            return s;
+          });
         });
     });
   }
@@ -253,12 +314,20 @@ function createWriteBuffer() {
     }
   }
 
-  function executeFirst(obj: BufferElement) {
+  function validateBufferElement(obj: BufferElement) {
+    if (obj.responseRequired && obj.sendImmediate) {
+      throw "Response required and send immediate can not be used together!";
+    }
+  }
+
+  function add_first(obj: BufferElement) {
+    validateBufferElement(obj);
     _write_buffer.update((s) => [obj, ...s]);
     return execute(obj);
   }
 
-  async function executeLast(obj: BufferElement) {
+  async function add_last(obj: BufferElement) {
+    validateBufferElement(obj);
     _write_buffer.update((s) => [...s, obj]);
     return execute(obj);
   }
@@ -299,8 +368,8 @@ function createWriteBuffer() {
 
   return {
     subscribe: _write_buffer.subscribe,
-    executeFirst: executeFirst,
-    executeLast: executeLast,
+    add_fist: add_first,
+    add_last: add_last,
     clear: clear,
     validate_incoming: validate_incoming,
     module_destroy_handler: module_destroy_handler,

@@ -15,18 +15,9 @@ import { add_datapoint } from "../serialport/message-stream.store.js";
 import { configManager } from "../main/panels/configuration/Configuration.store.js";
 import { forEach } from "lodash";
 import { modal } from "../main/modals/modal.store";
+import { ProtectedStore } from "./smart-store.store.ts";
 
 let lastPageActivator = "";
-
-export const eventType = {
-  0: "Init",
-  1: "Potmeter",
-  2: "Encoder",
-  3: "Button",
-  4: "Utility",
-  5: "MIDI RX",
-  6: "Timer",
-};
 
 const setIntervalAsync = (fn, ms) => {
   fn().then(() => {
@@ -199,13 +190,9 @@ function create_user_input() {
     eventtype: 2,
   };
 
-  const internal = writable({ ...defaultValues });
+  const store = new ProtectedStore(defaultValues);
 
-  const external = derived(internal, ($internal) => {
-    return Object.freeze(structuredClone($internal));
-  });
-
-  function set({ dx, dy, pagenumber, elementnumber, eventtype }) {
+  function setOverride({ dx, dy, pagenumber, elementnumber, eventtype }) {
     for (const [key, value] of Object.entries({
       dx,
       dy,
@@ -226,7 +213,7 @@ function create_user_input() {
     const events = getElementEventTypes(dx, dy, elementnumber);
     const closestEvent = get_closest_event(events, eventtype);
 
-    internal.set({
+    store.set({
       dx: Number(dx),
       dy: Number(dy),
       pagenumber: Number(pagenumber),
@@ -272,7 +259,7 @@ function create_user_input() {
       return;
     }
 
-    const ui = get(internal);
+    const ui = get(store);
 
     // filter same control element had multiple interactions
     let elementDifferent =
@@ -311,7 +298,7 @@ function create_user_input() {
           eventtype = descr.class_parameters.EVENTTYPE;
         }
       }
-      internal.set({
+      store.set({
         dx: descr.brc_parameters.SX,
         dy: descr.brc_parameters.SY,
         pagenumber: ui.pagenumber,
@@ -324,16 +311,16 @@ function create_user_input() {
 
   function module_destroy_handler(dx, dy) {
     // This is used to re-init local settings panel if a module is removed which values have been displayed
-    const ui = get(internal);
+    const ui = get(store);
 
     if (dx == ui.dx && dy == ui.dy) {
-      internal.set({ ...defaultValues });
+      store.set({ ...defaultValues });
     }
   }
 
   return {
-    ...external,
-    set: set,
+    ...store,
+    set: setOverride,
     process_incoming_event_from_grid: process_incoming_event_from_grid,
     module_destroy_handler: module_destroy_handler,
   };
@@ -342,7 +329,7 @@ function create_user_input() {
 export const user_input = create_user_input();
 
 function create_runtime() {
-  const _runtime = writable([]);
+  const _runtime = new ProtectedStore([]);
 
   const findUpdateDestEvent = (_runtime, dx, dy, page, element, event) => {
     let _event = undefined;
@@ -350,21 +337,13 @@ function create_runtime() {
     if (element !== -1) {
       _runtime.forEach((device) => {
         if (device.dx == dx && device.dy == dy) {
-          try {
-            const pageIndex = device.pages.findIndex(
-              (x) => x.pageNumber == page
-            );
-            const elementIndex = device.pages[
-              pageIndex
-            ].control_elements.findIndex(
-              (x) => x.controlElementNumber == element
-            );
-            _event = device.pages[pageIndex].control_elements[
-              elementIndex
-            ].events.find((e) => e.type == event);
-          } catch (error) {
-            console.error("Couldn't update in destination: ", li);
-          }
+          const pageIndex = device.pages.findIndex((x) => x.pageNumber == page);
+          const elementIndex = device.pages[
+            pageIndex
+          ].control_elements.findIndex((x) => x.elementIndex == element);
+          _event = device.pages[pageIndex].control_elements[
+            elementIndex
+          ].events.find((e) => e.type == event);
         }
       });
     }
@@ -378,7 +357,7 @@ function create_runtime() {
       );
       const _page = _device.pages.find((e) => e.pageNumber == page);
       const _element = _page.control_elements.find(
-        (e) => e.controlElementNumber == element
+        (e) => e.elementIndex == element
       );
       const _event = _element.events.find((e) => e.type == event);
 
@@ -559,6 +538,7 @@ function create_runtime() {
           page.control_elements.forEach((events) => {
             events.events.forEach((event) => {
               event.config = undefined;
+              event.stored = undefined;
             });
           });
         });
@@ -618,7 +598,7 @@ function create_runtime() {
 
     return new Promise((resolve, reject) => {
       // Reorder array to send system element first
-      const index = array.findIndex((obj) => obj.controlElementNumber === 255);
+      const index = array.findIndex((obj) => obj.elementIndex === 255);
 
       // Check if the object with id === 255 was found
       if (index !== -1) {
@@ -633,7 +613,7 @@ function create_runtime() {
       const promises = [];
       array.forEach((elem) => {
         elem.events.forEach((ev) => {
-          ui.elementnumber = elem.controlElementNumber;
+          ui.elementnumber = elem.elementIndex;
           ui.eventtype = ev.event;
 
           const page = ui.pagenumber;
@@ -731,7 +711,7 @@ function create_runtime() {
     const device = rt.find((device) => device.dx == dx && device.dy == dy);
     const page = device.pages.find((x) => x.pageNumber == pageNumber);
     const element = page.control_elements.find(
-      (x) => x.controlElementNumber == elementNumber
+      (x) => x.elementIndex == elementNumber
     );
     const events = element.events;
 
@@ -796,8 +776,7 @@ function create_runtime() {
           // put it into the fetchArray
           fetchArray.push({
             event: e.type,
-            elementtype: controlElement.controlElementType,
-            elementnumber: controlElement.controlElementNumber,
+            elementIndex: controlElement.elementIndex,
           });
         }
       });
@@ -816,7 +795,7 @@ function create_runtime() {
         dx: dx,
         dy: dy,
         page: page,
-        element: e.elementnumber,
+        element: e.elementIndex,
         event: e.event,
       });
       return promise;
@@ -850,7 +829,7 @@ function create_runtime() {
       const moduleElements = grid.get_module_element_list(moduleType);
 
       for (const [index, element] of moduleElements.entries()) {
-        if (!element) {
+        if (typeof element === "undefined") {
           continue;
         }
         let events = [];
@@ -864,9 +843,9 @@ function create_runtime() {
         }
         control_elements.push({
           events: events,
-          controlElementNumber: index,
-          controlElementType: element,
-          controlElementName: "",
+          elementIndex: index,
+          type: element,
+          name: "",
         });
       }
 
@@ -1186,7 +1165,7 @@ export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
   const element = currentModule.pages[0].control_elements.find(
-    (e) => e.controlElementNumber == elementNumber
+    (e) => e.elementIndex == elementNumber
   );
 
   return element.events.map((e) => e.type);
@@ -1226,6 +1205,7 @@ const grid_heartbeat_interval_handler = async function () {
 
     if (elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
+      console.log("DESTROY", elapsedTime, `(${elapsedTimeLimit})`);
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {
         return heartbeat.filter((e) => e.id !== device.id);

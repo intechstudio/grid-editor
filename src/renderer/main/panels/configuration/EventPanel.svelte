@@ -12,7 +12,7 @@
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store.js";
-  import MeltRadio from "../preferences/MeltRadio.svelte";
+  import { MeltRadio } from "@intechstudio/grid-uikit";
   import { CEEAT } from "../../../protocol/grid-protocol";
 
   const dispatch = createEventDispatcher();
@@ -158,7 +158,7 @@
             {@const eventData = $runtime
               .find((e) => e.dx == event.dx && e.dy == event.dy)
               ?.pages[event.page].control_elements.find(
-                (e) => e.controlElementNumber == event.element
+                (element) => element.elementIndex == event.element
               )
               ?.events.find((e) => e.type == event.type)}
             {@const stored = eventData?.stored}

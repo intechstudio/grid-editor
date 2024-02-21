@@ -13,9 +13,9 @@ const persistentDefaultValues = {
   lastVersion: "",
   profileFolder: "",
   presetFolder: "",
-  pluginsDataStorage: {},
-  enabledPlugins: [],
-  markedForDeletionPlugins: [],
+  packagesDataStorage: {},
+  enabledPackages: [],
+  markedForDeletionPackages: [],
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
@@ -24,7 +24,7 @@ const persistentDefaultValues = {
   useProfileCloud: true,
   helperShape: 0,
   helperColor: 0,
-  desktopAutomationPlugin: false,
+  desktopAutomationPackage: false,
   authUser: {},
   authIdToken: "",
   authRefreshToken: "",
@@ -77,11 +77,9 @@ function createAppSettingsStore(persistent) {
       minor: configuration.EDITOR_VERSION.split(".")[1],
       patch: configuration.EDITOR_VERSION.split(".")[2],
     },
-    displayedOverlay: undefined,
     debugMode: false,
     selectedDisplay: "",
     layoutMode: false,
-    stringNameOverlay: false,
     preferences: false,
     rightPanel: "Configuration",
     rightPanelVisible: true,
@@ -105,7 +103,7 @@ function createAppSettingsStore(persistent) {
       title: undefined,
       owner: { neme: undefined },
     },
-    pluginList: [],
+    packageList: [],
     persistent: structuredClone(persistent),
   });
 
@@ -203,13 +201,13 @@ async function init_appsettings() {
       }
 
       //TODO
-      /*if (get(appSettings).persistent.desktopAutomationPlugin === true) {
-        console.log("start plugin");
+      /*if (get(appSettings).persistent.desktopAutomationPackage === true) {
+        console.log("start package");
 
-        window.electron.plugin.start("desktopAutomation");
+        window.electron.package.start("desktopAutomation");
       } else {
-        console.log("stop plugin");
-        window.electron.plugin.stop("desktopAutomation");
+        console.log("stop package");
+        window.electron.package.stop("desktopAutomation");
       }*/
     });
 }

@@ -5,11 +5,7 @@ export interface LuaScript {
   script: string;
 }
 
-type EnsureNonOptional<T> = {
-  [K in keyof T]: T[K] extends infer U | undefined ? U : T[K];
-};
-
-export type ActionBlockInformation = EnsureNonOptional<Information>;
+export type ActionBlockInformation = Information;
 
 interface Information {
   short: string;

@@ -27,10 +27,9 @@
       type =
         device?.pages[0].control_elements[
           device?.pages[0].control_elements.length - 1
-        ]?.controlElementType;
+        ]?.type;
     } else {
-      type =
-        device?.pages[0].control_elements[elementNumber]?.controlElementType;
+      type = device?.pages[0].control_elements[elementNumber]?.type;
     }
   }
 
@@ -60,7 +59,7 @@
     const { dx, dy } = obj;
     const ui = get(user_input);
 
-    const target = new ConfigTarget({
+    const target = ConfigTarget.create({
       device: { dx: dx, dy: dy },
       page: ui.pagenumber,
       element: elementNumber,
@@ -83,7 +82,7 @@
 
 <container bind:this={container} on:preset-load={handlePresetLoad}>
   {#if visible}
-    {#if $selectedConfigStore.type === type}
+    {#if $selectedConfigStore?.type === type}
       <div
         class="w-full h-full"
         class:loaded-element={loaded && !isChanged}

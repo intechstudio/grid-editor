@@ -111,7 +111,7 @@ const windowLoaded = new Promise((resolve) => {
   window.onload = resolve;
 });
 
-ipcRenderer.on("plugin-manager-port", async (event) => {
+ipcRenderer.on("package-manager-port", async (event) => {
   await windowLoaded;
-  window.postMessage("plugin-manager-port", "*", event.ports);
+  window.postMessage("package-manager-port", "*", event.ports);
 });

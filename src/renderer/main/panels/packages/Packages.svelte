@@ -4,25 +4,25 @@
   import { Analytics } from "../../../runtime/analytics.js";
 
   onMount(async () => {
-    refreshPluginList();
+    refreshPackageList();
   });
 
-  $: $appSettings.persistent.enabledPlugins, refreshPluginPreferences();
+  $: $appSettings.persistent.enabledPackages, refreshPackagePreferences();
 
-  let pluginListDiv;
-  let pluginPreferenceElements = {};
+  let packageListDiv;
+  let packagePreferenceElements = {};
 
-  function refreshPluginPreferences() {
-    const loadedPlugins = $appSettings.persistent.enabledPlugins;
-    if (!pluginListDiv) {
+  function refreshPackagePreferences() {
+    const loadedPackages = $appSettings.persistent.enabledPackages;
+    if (!packageListDiv) {
       return;
     }
     // Remove existing divs not found in the external set of IDs
-    const existingDivIds = Object.keys(pluginPreferenceElements);
+    const existingDivIds = Object.keys(packagePreferenceElements);
     existingDivIds.forEach((existingDivId) => {
-      if (!loadedPlugins.includes(existingDivId)) {
-        pluginPreferenceElements[existingDivId].remove();
-        delete pluginPreferenceElements[existingDivId];
+      if (!loadedPackages.includes(existingDivId)) {
+        packagePreferenceElements[existingDivId].remove();
+        delete packagePreferenceElements[existingDivId];
       }
     });
 
@@ -42,63 +42,85 @@
       });
     }
 
-    for (const pluginId of loadedPlugins) {
-      const plugin = $appSettings.pluginList.find((e) => e.id == pluginId);
-      if (!plugin.preferenceHtml) continue;
-      if (existingDivIds.includes(plugin.id)) continue;
+    for (const packageId of loadedPackages) {
+      const _package = $appSettings.packageList.find((e) => e.id == packageId);
+      if (!_package.preferenceHtml) continue;
+      if (existingDivIds.includes(_package.id)) continue;
 
       const tempContainer = document.createElement("div");
-      tempContainer.innerHTML = plugin.preferenceHtml;
-      pluginPreferenceElements[plugin.id] = tempContainer;
-      pluginListDiv.appendChild(tempContainer);
+      tempContainer.innerHTML = _package.preferenceHtml;
+      packagePreferenceElements[_package.id] = tempContainer;
+      packageListDiv.appendChild(tempContainer);
       executeScriptElements(tempContainer);
     }
-    pluginListDiv.style.display =
-      pluginListDiv.childElementCount == 0 ? "none" : "block";
+    packageListDiv.style.display =
+      packageListDiv.childElementCount == 0 ? "none" : "block";
   }
 
-  function changePluginStatus(pluginId, enabled) {
+  function changePackageStatus(packageId, enabled) {
     if (enabled) {
-      window.pluginManagerPort.postMessage({
-        type: "load-plugin",
-        id: pluginId,
-        payload: $appSettings.persistent.pluginsDataStorage[pluginId],
+      window.packageManagerPort?.postMessage({
+        type: "load-package",
+        id: packageId,
+        payload: $appSettings.persistent.packagesDataStorage[packageId],
       });
     } else {
-      window.pluginManagerPort.postMessage({
-        type: "unload-plugin",
-        id: pluginId,
+      window.packageManagerPort?.postMessage({
+        type: "unload-package",
+        id: packageId,
       });
     }
-  }
 
-  function refreshPluginList() {
-    window.pluginManagerPort.postMessage({ type: "refresh-plugin-list" });
-  }
-
-  function downloadPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "download-plugin",
-      id: pluginId,
+    Analytics.track({
+      event: "Package Manager",
+      payload: {
+        click: "Status Change",
+        id: packageId,
+        status: enabled ? "enabled" : "disabled",
+      },
+      mandatory: false,
     });
   }
 
-  function uninstallPlugin(pluginId) {
-    window.pluginManagerPort.postMessage({
-      type: "uninstall-plugin",
-      id: pluginId,
+  function refreshPackageList() {
+    window.packageManagerPort?.postMessage({ type: "refresh-package-list" });
+  }
+
+  function downloadPackage(packageId) {
+    window.packageManagerPort?.postMessage({
+      type: "download-package",
+      id: packageId,
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Download", id: packageId },
+      mandatory: false,
+    });
+  }
+
+  function uninstallPackage(packageId) {
+    window.packageManagerPort?.postMessage({
+      type: "uninstall-package",
+      id: packageId,
     });
     appSettings.update((s) => {
-      delete s.persistent.pluginsDataStorage[pluginId];
+      delete s.persistent.packagesDataStorage[packageId];
       return s;
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Uninstall", id: packageId },
+      mandatory: false,
     });
   }
 
   function restartPackageManager() {
-    if (pluginListDiv) {
-      pluginListDiv.innerHTML = "";
+    if (packageListDiv) {
+      packageListDiv.innerHTML = "";
     }
-    pluginPreferenceElements = {};
+    packagePreferenceElements = {};
     window.electron.restartPackageManager();
   }
 </script>
@@ -108,7 +130,7 @@
 >
   <div class="p-4 bg-secondary rounded-lg flex flex-col mb-4">
     <div class="flex py-2 text-white items-center">
-      <div class="mx-2">Plugins</div>
+      <div class="mx-2">Packages</div>
       <div class="mx-2">
         <button
           class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
@@ -120,39 +142,39 @@
       <div class="mx-2">
         <button
           class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-          on:click={refreshPluginList}
+          on:click={refreshPackageList}
         >
           Refresh
         </button>
       </div>
     </div>
-    {#each $appSettings.pluginList as plugin}
+    {#each $appSettings.packageList as _package}
       <div class="flex py-2 text-white items-center">
         <input
           class="bg-primary my-1"
           type="checkbox"
-          checked={plugin.status === "Enabled"}
-          style="visibility:{plugin.status === 'Downloaded' ||
-          plugin.status === 'Enabled'
+          checked={_package.status === "Enabled"}
+          style="visibility:{_package.status === 'Downloaded' ||
+          _package.status === 'Enabled'
             ? 'visible'
             : 'hidden'}"
           on:change={async (e) =>
-            changePluginStatus(plugin.id, e.target.checked)}
+            changePackageStatus(_package.id, e.target.checked)}
         />
-        <div class="mx-1">{plugin.name}</div>
+        <div class="mx-1">{_package.name}</div>
         <div class="mx-1">
-          {#if plugin.status == "Downloading" || plugin.status == "Uninstalled" || plugin.status == "MarkedForDeletion"}
+          {#if _package.status == "Downloading" || _package.status == "Uninstalled" || _package.status == "MarkedForDeletion"}
             <button
               class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-              on:click={downloadPlugin(plugin.id)}
-              disabled={plugin.status == "Downloading"}
+              on:click={downloadPackage(_package.id)}
+              disabled={_package.status == "Downloading"}
             >
               Download
             </button>
           {:else}
             <button
               class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-              on:click={uninstallPlugin(plugin.id)}
+              on:click={uninstallPackage(_package.id)}
             >
               Uninstall
             </button>
@@ -163,7 +185,7 @@
   </div>
 
   <div
-    bind:this={pluginListDiv}
+    bind:this={packageListDiv}
     class="bg-secondary rounded-lg flex flex-col mb-4"
   />
 </preferences>

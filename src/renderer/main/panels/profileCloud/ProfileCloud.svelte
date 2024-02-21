@@ -3,6 +3,7 @@
   import { onDestroy, onMount } from "svelte";
   import { v4 as uuidv4 } from "uuid";
   import { appSettings } from "../../../runtime/app-helper.store";
+  import { moduleOverlay } from "../../../runtime/moduleOverlay";
 
   import { Analytics } from "../../../runtime/analytics.js";
 
@@ -143,11 +144,7 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    if ($selectedConfigStore.configType === "profile") {
-      $appSettings.displayedOverlay = "profile-load-overlay";
-    } else if ($selectedConfigStore.configType === "preset") {
-      $appSettings.displayedOverlay = "preset-load-overlay";
-    }
+    moduleOverlay.show("configuration-load-overlay");
   }
 
   async function handleDeleteLocalConfig(event) {
@@ -162,13 +159,6 @@
       const configType = event.data.configType;
 
       runtime.fetch_page_configuration_from_grid().then((desc) => {
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "configsave",
-          message: `Ready to save config!`,
-        });
-
         const ui = get(user_input);
 
         const configs = get(runtime);
@@ -196,10 +186,10 @@
 
             if (configType === "profile") {
               config.type = selectedModule;
-              config.configs = page.control_elements.map((cfg) => {
+              config.configs = page.control_elements.map((element) => {
                 return {
-                  controlElementNumber: cfg.controlElementNumber,
-                  events: cfg.events.map((ev) => {
+                  value: element.elementIndex,
+                  events: element.events.map((ev) => {
                     return {
                       event: ev.type,
                       config: ev.config,
@@ -209,11 +199,11 @@
               });
             } else if (configType === "preset") {
               const element = page.control_elements.find(
-                (x) => x.controlElementNumber === ui.elementnumber
+                (elemet) => elemet.elementIndex === ui.elementnumber
               );
 
               const current = ConfigTarget.createFrom({ userInput: ui });
-              const type = current.getElement().controlElementType;
+              const type = current.getElement().type;
 
               config.type = type;
               config.configs = {
@@ -255,22 +245,12 @@
     const config = event.data;
     const importName = config.name;
 
-    return await window.electron.configs
-      .saveConfig(path, "configs", config)
-      .then((res) => {
-        logger.set({
-          type: "success",
-          message: `Config ${importName} imported successfully`,
-        });
-        return;
-      })
-      .catch((err) => {
-        logger.set({
-          type: "fail",
-          message: `Config ${importName} import failed`,
-        });
-        throw err;
-      });
+    return window.electron.configs.saveConfig(path, "configs", config);
+  }
+
+  async function handleSendLogMessage(event) {
+    const logData = event.data;
+    logger.set(logData);
   }
 
   function initChannelCommunication(event) {
@@ -302,6 +282,9 @@
           break;
         case "provideSelectedConfigForEditor":
           channelMessageWrapper(event, handleProvideSelectedConfigForEditor);
+          break;
+        case "sendLogMessage":
+          channelMessageWrapper(event, handleSendLogMessage);
           break;
       }
     }
@@ -336,13 +319,10 @@
     console.log("De-initialize Profile Cloud");
     window.removeEventListener("message", initChannelCommunication);
     window.electron.stopOfflineProfileCloud();
-    if (
-      $appSettings.displayedOverlay === "profile-load-overlay" ||
-      $appSettings.displayedOverlay === "preset-load-overlay"
-    ) {
-      $appSettings.displayedOverlay = undefined;
+    if (get(moduleOverlay) === "configuration-load-overlay") {
+      moduleOverlay.close();
     }
-    selectedConfigStore.set({});
+    selectedConfigStore.set(undefined);
     window.electron.configs.stopConfigsWatch();
   });
 
