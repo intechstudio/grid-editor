@@ -223,6 +223,7 @@ class VirtualModule {
   private initConfiguration(type: ModuleType) {
     const control_elements = grid
       .get_module_element_list(type)
+      .filter((e) => typeof e !== "undefined")
       .map((e: string) => this.createControlElement(e as ElementType));
     this.pages = Array(4).fill({
       elements: control_elements,
