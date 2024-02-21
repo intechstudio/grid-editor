@@ -328,22 +328,28 @@ export class ConfigTarget {
     const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
 
     if (typeof device === "undefined") {
-      console.error("Unknown device!");
+      //console.error(`Unknown device at (${dx},${dy})!`);
       return undefined;
     }
 
-    const target = new ConfigTarget();
-    target.device = { dx: dx, dy: dy };
-    target.page = page;
-    target.element = element;
-    target.eventType = eventType;
+    try {
+      const target = new ConfigTarget();
+      target.device = { dx: dx, dy: dy };
+      target.page = page;
+      target.element = element;
+      target.eventType = eventType;
 
-    const controlElement = device.pages
-      .at(page)
-      .control_elements.find((e) => e.elementIndex == element);
-    target.events = controlElement.events;
-    target.elementType = controlElement.type;
-    return target;
+      const controlElement = device.pages
+        .at(page)
+        .control_elements.find((e) => e.elementIndex == element);
+      //console.log(device.pages.at(page).control_elements, element);
+      target.events = controlElement.events;
+      target.elementType = controlElement.type;
+      return target;
+    } catch (e) {
+      console.error(`Device was destroyed at (${dx},${dy})!`);
+      return undefined;
+    }
   }
 
   static createFrom({ userInput }) {

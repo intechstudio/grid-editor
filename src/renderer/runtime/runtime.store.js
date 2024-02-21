@@ -913,11 +913,21 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
+    console.log(
+      "Destroy",
+      dx,
+      dy,
+      get(_runtime).map((e) => Object({ dx: e.dx, dy: e.dy }))
+    );
 
     const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
+    console.log("REMOVED", removed);
 
     _runtime.update((rt) => {
-      const index = rt.indexOf(removed);
+      const index = rt.findIndex(
+        (e) => e.dx === removed.dx && e.dy === removed.dy
+      );
+      console.log(index);
       rt.splice(index, 1);
       return rt;
     });
