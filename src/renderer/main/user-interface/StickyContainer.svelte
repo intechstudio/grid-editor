@@ -2,20 +2,18 @@
   import Pages from "../panels/configuration/components/Pages.svelte";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
+  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
 </script>
 
-<div class="{$$props.class} flex flex-col items-center">
+<div class="{$$props.class} flex flex-col items-center gap-2">
   <Pages />
   {#if typeof $selectedConfigStore?.configType !== "undefined"}
-    <button
-      class="self-center mt-4 z-10 relative items-center justify-center focus:outline-none bg-select
-                      rounded text-white py-1 w-32 hover:bg-select-desaturate-10"
+    <MoltenPushButton
+      text="Close overlay"
       on:click={() => {
         selectedConfigStore.set(undefined);
         moduleOverlay.close();
       }}
-    >
-      <div>Close overlay</div>
-    </button>
+    />
   {/if}
 </div>

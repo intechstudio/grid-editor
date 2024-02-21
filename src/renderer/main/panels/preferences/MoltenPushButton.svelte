@@ -1,20 +1,35 @@
+<script context="module" lang="ts">
+  // Define the ButtonStyle enum
+  export enum ButtonStyle {
+    NORMAL = "normal",
+    OUTLINED = "outlined",
+    ACCEPT = "accept",
+  }
+
+  export enum ButtonRatio {
+    NORMAL = "normal",
+    BOX = "box",
+  }
+
+  export enum ButtonSnap {
+    AUTO = "auto",
+    FULL = "full",
+  }
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
 
   const dispatch = createEventDispatcher();
 
-  enum ButtonStyle {
-    NORMAL = "normal",
-    OUTLINED = "light",
-    ACCEPT = "accept",
-  }
-
   const styleMap: {
     [key in ButtonStyle]: { enabled: string; disabled: string };
   } = {
     [ButtonStyle.NORMAL]: {
-      enabled: "hover:bg-secondary-brightness-10 text-gray-50 bg-secondary",
-      disabled: "text-gray-50 bg-secondary bg-opacity-50 text-opacity-50",
+      enabled:
+        "text-gray-50 bg-black bg-opacity-10 border border-black border-opacity-40 hover:bg-opacity-40",
+      disabled:
+        "text-gray-50/25 bg-black/25 bg-opacity-10 border border-black/25 border-opacity-40",
     },
     [ButtonStyle.OUTLINED]: {
       enabled:
@@ -33,6 +48,8 @@
   export let style: ButtonStyle = ButtonStyle.NORMAL;
   export let disabled: boolean = false;
   export let popup: { duration?: number } | undefined = undefined;
+  export let ratio: ButtonRatio = ButtonRatio.NORMAL;
+  export let snap: ButtonSnap = ButtonSnap.AUTO;
 
   let button: HTMLElement;
   let showPopup: boolean = false;
@@ -48,17 +65,25 @@
   }
 </script>
 
-<button
-  bind:this={button}
-  class:selected
-  on:click={handleClick}
-  {disabled}
-  class="{disabled
-    ? styleMap[style].disabled
-    : styleMap[style].enabled} relative py-1 px-4 rounded focus:outline-none"
->
+<container class="relative" class:w-full={snap === ButtonSnap.FULL}>
+  <button
+    bind:this={button}
+    class:selected
+    on:click={handleClick}
+    {disabled}
+    class="{disabled
+      ? styleMap[style].disabled
+      : styleMap[style].enabled} rounded focus:outline-none truncate py-1"
+    class:px-4={ratio === ButtonRatio.NORMAL}
+    class:px-2={ratio === ButtonRatio.BOX}
+    class:w-full={snap === ButtonSnap.FULL}
+    class:w-fit={snap === ButtonSnap.AUTO}
+  >
+    <span>{text}</span>
+    <slot name="content" />
+  </button>
+
   {#if showPopup}
     <slot name="popup" />
   {/if}
-  <span>{text}</span>
-</button>
+</container>

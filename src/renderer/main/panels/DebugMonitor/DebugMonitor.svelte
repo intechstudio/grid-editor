@@ -17,6 +17,7 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { configManager } from "../../panels/configuration/Configuration.store";
+  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);
@@ -167,54 +168,35 @@
       </div>
     </div>
     <div class="flex items-center justify-end">
-      <button
-        class="text-white bg-select hover:bg-select-saturate-10 rounded px-2 py-1"
-        on:click={handleShowCode}
-        >Show Code
-      </button>
+      <MoltenPushButton text="Show Code" on:click={handleShowCode} />
     </div>
   </div>
 
-  <div class="flex flex-wrap text-white items-center my-4">
-    <button
-      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded"
-      on:click={clearDebugtext}
-      >Clear
-    </button>
-    <button
-      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded"
+  <div class="flex felx-row gap-2 flex-wrap text-white items-center my-4">
+    <MoltenPushButton on:click={clearDebugtext} text="Clear" />
+    <MoltenPushButton
       on:click={() => {
         display = "DEC";
       }}
-      >DEC
-    </button>
-    <button
-      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded"
+      text="DEC"
+    />
+    <MoltenPushButton
       on:click={() => {
         display = "HEX";
       }}
-      >HEX
-    </button>
-    <button
-      class="px-3 py-1 mr-1 bg-select hover:bg-select-saturate-10 rounded"
+      text="HEX"
+    />
+    <MoltenPushButton
       on:click={() => {
         display = "CHAR";
       }}
-      >CHAR
-    </button>
+      text="CHAR"
+    />
 
     {#if frozen == false}
-      <button
-        class="px-3 py-1 bg-select hover:bg-select-saturate-10 rounded"
-        on:click={freezeDebugtext}
-        >Freeze
-      </button>
+      <MoltenPushButton text="Freeze" on:click={freezeDebugtext} />
     {:else}
-      <button
-        class="px-3 py-1 bg-select hover:bg-select-saturate-10 rounded"
-        on:click={unfreezeDebugtext}
-        >Unfreeze
-      </button>
+      <MoltenPushButton text="Unfreeze" on:click={unfreezeDebugtext} />
     {/if}
   </div>
   <Splitpanes
