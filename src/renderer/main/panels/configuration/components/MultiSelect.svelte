@@ -73,125 +73,85 @@
 <app-action-multi-select class=" flex items-center flex-row">
   <!-- When any of the array elements is true -->
   <div class="w-fit flex flex-wrap flex-row gap-1">
-    <div
-      use:setTooltip={{
-        key: "configuration_merge_as_code",
-        nowrap: true,
-        instant: true,
-        placement: "top",
-        class: "px-2 py-1",
-      }}
+    <MoltenPushButton
+      on:click={handleConvertToCodeBlockClicked}
+      disabled={!isSelection}
+      ratio={ButtonRatio.BOX}
     >
-      <MoltenPushButton
-        on:click={handleConvertToCodeBlockClicked}
-        disabled={!isSelection}
-        ratio={ButtonRatio.BOX}
-      >
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Merge as Code</span>
         <SvgIcon
-          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"merge_as_code"}
         />
-      </MoltenPushButton>
-    </div>
+      </div>
+    </MoltenPushButton>
 
-    <div
-      use:setTooltip={{
-        key: "configuration_cut_one",
-        nowrap: true,
-        instant: true,
-        placement: "top",
-        class: "px-2 py-1",
-      }}
+    <MoltenPushButton
+      on:click={handleCutClicked}
+      disabled={!isSelection}
+      ratio={ButtonRatio.BOX}
     >
-      <MoltenPushButton
-        on:click={handleCutClicked}
-        disabled={!isSelection}
-        ratio={ButtonRatio.BOX}
-      >
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Cut</span>
         <SvgIcon
-          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"cut"}
         />
-      </MoltenPushButton>
-    </div>
+      </div>
+    </MoltenPushButton>
 
-    <div
-      use:setTooltip={{
-        key: "configuration_copy_one",
-        nowrap: true,
-        instant: true,
-        placement: "top",
-        class: "px-2 py-1",
-      }}
+    <MoltenPushButton
+      on:click={handleCopyClicked}
+      disabled={!isSelection}
+      ratio={ButtonRatio.BOX}
     >
-      <MoltenPushButton
-        on:click={handleCopyClicked}
-        disabled={!isSelection}
-        ratio={ButtonRatio.BOX}
-      >
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Copy</span>
         <SvgIcon
-          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"copy"}
         />
-      </MoltenPushButton>
-    </div>
+      </div>
+    </MoltenPushButton>
 
-    <div
-      use:setTooltip={{
-        key: "configuration_paste_one",
-        nowrap: true,
-        instant: true,
-        placement: "top",
-        class: "px-2 py-1",
-      }}
+    <MoltenPushButton
+      on:click={handlePasteClicked}
+      disabled={clipboardEmpty}
+      ratio={ButtonRatio.BOX}
     >
-      <MoltenPushButton
-        on:click={handlePasteClicked}
-        disabled={clipboardEmpty}
-        ratio={ButtonRatio.BOX}
-      >
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Paste</span>
         <SvgIcon
-          slot="content"
           class={clipboardEmpty
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"paste"}
         />
-      </MoltenPushButton>
-    </div>
+      </div>
+    </MoltenPushButton>
 
-    <div
-      use:setTooltip={{
-        key: "configuration_remove_one",
-        nowrap: true,
-        instant: true,
-        placement: "top",
-        class: "px-2 py-1",
-      }}
+    <MoltenPushButton
+      on:click={handleRemoveClicked}
+      disabled={!isSelection}
+      ratio={ButtonRatio.BOX}
     >
-      <MoltenPushButton
-        on:click={handleRemoveClicked}
-        disabled={!isSelection}
-        ratio={ButtonRatio.BOX}
-      >
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Remove</span>
         <SvgIcon
-          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"remove"}
         />
-      </MoltenPushButton>
-    </div>
+      </div>
+    </MoltenPushButton>
 
     <Options
       bind:selected={selectAllChecked}

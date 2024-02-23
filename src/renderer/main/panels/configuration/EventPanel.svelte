@@ -108,39 +108,24 @@
       <div class="text-gray-500">Events</div>
 
       <div class="flex flex-row gap-1 text-gray-400">
-        <div
-          use:setTooltip={{
-            key: "configuration_copy_all",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "px-2 py-1",
-          }}
-        >
-          <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
-            <SvgIcon
-              slot="content"
-              displayMode="button"
-              iconPath={"copy_all"}
-            />
-          </MoltenPushButton>
-        </div>
+        <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
+          <div slot="content" class="flex flex-row gap-2 items-center">
+            <span class=" text-white text-opacity-75 text-sm">Copy Element</span
+            >
+            <SvgIcon displayMode="button" iconPath={"copy_all"} />
+          </div>
+        </MoltenPushButton>
 
-        <div
-          use:setTooltip={{
-            key: "configuration_overwrite",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "px-2 py-1",
-          }}
+        <MoltenPushButton
+          on:click={handleOverwriteAll}
+          ratio={ButtonRatio.BOX}
+          disabled={typeof $controlElementClipboard === "undefined"}
         >
-          <MoltenPushButton
-            on:click={handleOverwriteAll}
-            ratio={ButtonRatio.BOX}
-            disabled={typeof $controlElementClipboard === "undefined"}
-          >
-            <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
+          <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
+          <div slot="content" class="flex flex-row gap-2 items-center">
+            <span class=" text-white text-opacity-75 text-sm"
+              >Paste Element</span
+            >
             <SvgIcon
               slot="content"
               class={typeof $controlElementClipboard === "undefined"
@@ -148,8 +133,8 @@
                 : ""}
               iconPath={"paste_all"}
             />
-          </MoltenPushButton>
-        </div>
+          </div>
+        </MoltenPushButton>
       </div>
     </div>
 
