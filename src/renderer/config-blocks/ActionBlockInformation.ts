@@ -17,6 +17,7 @@ interface Information {
     | "midi"
     | "keyboard"
     | "mouse"
+    | "HID"
     | "element settings"
     | "condition"
     | "loop"
