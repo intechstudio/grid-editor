@@ -3,6 +3,9 @@
   import { modal } from "./modal.store";
   import { onDestroy, onMount } from "svelte";
   import { appSettings } from "../../runtime/app-helper.store";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../panels/preferences/MoltenPushButton.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -230,16 +233,14 @@
           </div>
         </div>
 
-        <button
+        <MoltenPushButton
           on:click={() => {
             modal.close();
           }}
           id="close-btn"
-          class="px-3 py-1 cursor-pointer rounded not-draggable
-          hover:bg-blue-700 bg-blue-500"
-        >
-          Close
-        </button>
+          text={"Close"}
+          style={ButtonStyle.NORMAL}
+        />
       </div>
     </div>
   </div>

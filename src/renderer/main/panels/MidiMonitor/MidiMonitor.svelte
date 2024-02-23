@@ -12,6 +12,9 @@
   import { grid } from "../../../protocol/grid-protocol";
   import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { configManager } from "../../panels/configuration/Configuration.store";
+  import MoltenPushButton, {
+    ButtonSnap,
+  } from "../preferences/MoltenPushButton.svelte";
 
   // ok but slow nice
 
@@ -404,11 +407,10 @@
     </Splitpanes>
   </div>
   <div class="flex pt-4 pb-12">
-    <button
-      class="bg-select hover:bg-select-saturate-10 rounded text-white w-full p-1"
+    <MoltenPushButton
+      text="Clear All"
+      snap={ButtonSnap.FULL}
       on:click={onClearClicked}
-    >
-      Clear All
-    </button>
+    />
   </div>
 </div>

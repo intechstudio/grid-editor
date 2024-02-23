@@ -17,6 +17,7 @@
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import { modal } from "../../modals/modal.store";
   import UserLogin from "../../modals/UserLogin.svelte";
+  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
 
   const configuration = window.ctxProcess.configuration();
   const buildVariables = window.ctxProcess.buildVariables();
@@ -370,16 +371,14 @@
     {#if !profileCloudIsMounted}
       <div class="p-4">
         <h1 class="text-white text-xl">{error.title}</h1>
-        <div class="text-white text-opacity-80">
+        <div class="text-white text-opacity-80 mb-2">
           {error.text}
         </div>
         {#if error.type === "default"}
-          <button
-            class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
+          <MoltenPushButton
             on:click={loadOfflineProfileCloud}
-          >
-            Load Offline
-          </button>
+            text="Load Offline"
+          />
         {/if}
       </div>
     {/if}

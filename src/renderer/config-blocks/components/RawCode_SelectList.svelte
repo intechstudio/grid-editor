@@ -1,6 +1,9 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { MeltSelect } from "@intechstudio/grid-uikit";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../../main/panels/preferences/MoltenPushButton.svelte";
 
   export let options = [];
 
@@ -23,13 +26,11 @@
     <MeltSelect bind:target={selection} {options} />
   {/if}
   <div class="flex flex-row gap-2">
-    <button
-      class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 flex flex-grow justify-center"
-      on:click={handleCancel}>Cancel</button
-    >
-    <button
-      class="px-2 py-1 rounded bg-commit text-white hover:bg-commit-saturate-20 flex flex-grow justify-center"
-      on:click={handleReplace}>Replace</button
-    >
+    <MoltenPushButton text={"Cancel"} on:click={handleCancel} />
+    <MoltenPushButton
+      text={"Replace"}
+      style={ButtonStyle.ACCEPT}
+      on:click={handleReplace}
+    />
   </div>
 </div>

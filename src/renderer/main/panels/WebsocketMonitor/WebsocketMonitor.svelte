@@ -9,6 +9,7 @@
   } from "./WebsocketMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { wss_send_message } from "../../../runtime/runtime.store";
+  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
 
   let frozen = false;
 
@@ -141,52 +142,33 @@
     class="w-full cursor-default min-h-36 h-36 bg-secondary rounded px-1 my-2 text-white font-mono"
   />
 
-  <button
-    class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
-    on:click={sendMessage}
-    >Send
-  </button>
+  <MoltenPushButton text="Send" on:click={sendMessage} />
 
   <div class="flex text-white items-center">
-    <button
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
-      on:click={clearDebugtext}
-      >Clear
-    </button>
-    <button
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
+    <MoltenPushButton on:click={clearDebugtext} text="Clear" />
+    <MoltenPushButton
       on:click={() => {
         display = "DEC";
       }}
-      >DEC
-    </button>
-    <button
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
+      text="DEC"
+    />
+    <MoltenPushButton
       on:click={() => {
         display = "HEX";
       }}
-      >HEX
-    </button>
-    <button
-      class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
+      text="HEX"
+    />
+    <MoltenPushButton
       on:click={() => {
         display = "CHAR";
       }}
-      >CHAR
-    </button>
+      text="CHAR"
+    />
 
     {#if frozen == false}
-      <button
-        class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
-        on:click={freezeDebugtext}
-        >Freeze
-      </button>
+      <MoltenPushButton on:click={freezeDebugtext} text="Freeze" />
     {:else}
-      <button
-        class="px-4 py-1 my-4 bg-select hover:bg-select-saturate-10 rounded"
-        on:click={unfreezeDebugtext}
-        >Unfreeze
-      </button>
+      <MoltenPushButton on:click={unfreezeDebugtext} text="Unfreeze" />
     {/if}
   </div>
 

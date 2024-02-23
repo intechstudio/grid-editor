@@ -5,6 +5,10 @@
   import { Analytics } from "../../runtime/analytics";
   import { writeBuffer } from "../../runtime/engine.store.ts";
   import { logger } from "../../runtime/runtime.store";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../panels/preferences/MoltenPushButton.svelte";
+  import MoltenModal from "../modals/MoltenModal.svelte";
 
   let moduleHanging1 = false;
   let moduleHanging2 = false;
@@ -88,19 +92,8 @@
           >One of your modules is not responding. Abort the active configuration
           process?
         </span>
-        <button
-          on:click={handleAbortclicked}
-          class="relative items-center justify-center focus:outline-none bg-error
-  rounded text-white py-1 w-24 hover:bg-error-desaturate-20"
-        >
-          <div>Abort</div>
-        </button>
-        <button
-          on:click={handleWaitClicked}
-          class="relative w-24 rounded bg-select text-white hover:bg-select-saturate-10 py-1"
-        >
-          <div>Wait</div>
-        </button>
+        <MoltenPushButton on:click={handleAbortclicked} text="Abort" />
+        <MoltenPushButton on:click={handleWaitClicked} text="Wait" />
       {/if}
       {#if moduleHanging2}
         <span class="text-white w-80"
@@ -112,19 +105,12 @@
           />
         </span>
 
-        <button
-          on:click={handleAbortclicked}
-          class="relative items-center justify-center focus:outline-none bg-error
-  rounded text-white py-1 w-24 hover:bg-error-desaturate-20"
-        >
-          <div>Abort</div>
-        </button>
-        <button
+        <MoltenPushButton on:click={handleAbortclicked} text="Abort" />
+        <MoltenPushButton
           on:click={handleTroubleshoot}
-          class="relative block bg-select text-white hover:bg-select-saturate-10 py-1 px-2 rounded focus:outline-none"
-        >
-          <div>Troubleshooting</div>
-        </button>
+          text="Troubleshooting"
+          style={ButtonStyle.OUTLINED}
+        />
       {/if}
     {:else}
       <span class="text-white w-56"
