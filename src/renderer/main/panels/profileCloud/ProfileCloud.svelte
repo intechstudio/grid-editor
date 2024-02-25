@@ -189,7 +189,7 @@
               config.type = selectedModule;
               config.configs = page.control_elements.map((element) => {
                 return {
-                  value: element.elementIndex,
+                  controlElementNumber: element.elementIndex,
                   events: element.events.map((ev) => {
                     return {
                       event: ev.type,

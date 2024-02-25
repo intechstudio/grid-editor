@@ -613,7 +613,7 @@ function create_runtime() {
       const promises = [];
       array.forEach((elem) => {
         elem.events.forEach((ev) => {
-          ui.elementnumber = elem.elementIndex;
+          ui.elementnumber = elem.controlElementNumber;
           ui.eventtype = ev.event;
 
           const page = ui.pagenumber;
