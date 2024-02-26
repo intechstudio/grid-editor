@@ -487,8 +487,13 @@ function create_configuration_manager() {
 
   function loadProfile({ x, y, profile }) {
     return new Promise((resolve, reject) => {
+      const ui = get(user_input);
       runtime
-        .fetch_page_configuration_from_grid()
+        .fetch_page_configuration_from_grid({
+          dx: x,
+          dy: y,
+          page: ui.pagenumber,
+        })
         .then((desc) => {
           runtime
             .whole_page_overwrite(x, y, profile)

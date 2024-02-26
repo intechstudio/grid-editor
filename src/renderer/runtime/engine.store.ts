@@ -259,7 +259,14 @@ function createWriteBuffer() {
         get(writeBuffer)[0] !== current ||
         (waitingResponse && !sendImmediate)
       ) {
-        await sleep(1);
+        if (get(writeBuffer).includes(current)) {
+          await sleep(1);
+        } else {
+          reject(
+            `Instruction ${current.descr.class_name} was removed from write buffer.`
+          );
+          return;
+        }
       }
 
       sendToGrid(current, sendImmediate)
@@ -359,8 +366,8 @@ function createWriteBuffer() {
           resolve(res);
         })
         .catch((e) => {
-          console.error("Rejected:", obj.descr.class_name);
-          console.error("Reason:", e);
+          console.log("Rejected:", obj.descr.class_name);
+          console.log("Reason:", e);
           reject(e);
         });
     });
@@ -386,5 +393,7 @@ export function sendHeartbeat(type: number) {
   ) {
     return;
   }
-  instructions.sendEditorHeartbeat_immediate(type);
+  instructions.sendEditorHeartbeat_immediate(type).catch((e) => {
+    console.log("EDITOR: Heartbeat skipped...");
+  });
 }

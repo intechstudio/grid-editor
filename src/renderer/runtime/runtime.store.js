@@ -731,7 +731,7 @@ function create_runtime() {
     return Promise.all(promises);
   }
 
-  function fetch_page_configuration_from_grid() {
+  function fetch_page_configuration_from_grid({ dx, dy, page }) {
     logger.set({
       type: "progress",
       mode: 0,
@@ -739,18 +739,7 @@ function create_runtime() {
       message: `Preparing configs...`,
     });
 
-    console.log("FETCH");
-
     const rt = get(runtime);
-
-    let ui = get(user_input);
-    const { dx, dy, page, element, event } = {
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-      event: ui.eventtype,
-    };
 
     let device = rt.find((device) => device.dx == dx && device.dy == dy);
 
