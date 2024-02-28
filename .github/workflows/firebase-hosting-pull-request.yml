@@ -11,7 +11,9 @@ jobs:
       - uses: actions/checkout@v3
       - run: npm run web:build
       - uses: FirebaseExtended/action-hosting-deploy@v0
+        id: "firebase_deploy"
         with:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT_GRID_EDITOR_WEB }}"
           projectId: grid-editor-web
+      - run: echo ${{steps.firebase_deploy.outputs.urls}}
