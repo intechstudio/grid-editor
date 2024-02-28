@@ -256,7 +256,7 @@ function createWriteBuffer() {
       const sendImmediate =
         (current.sendImmediate ?? false) &&
         get(appSettings).persistent.sendHeartbeatImmediate;
-      console.log(sendImmediate);
+
       const waitingResponse = typeof waiter !== "undefined";
       while (
         serial_write_islocked() ||
