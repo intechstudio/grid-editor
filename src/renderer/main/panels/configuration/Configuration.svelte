@@ -490,16 +490,13 @@
           on:copy-all={handleCopyAll}
           on:overwrite-all={handleOverwriteAll}
         />
-        <div class="flex w-full items-center justify-between">
-          <div class="text-gray-500 text-sm">Actions</div>
-          <MultiSelect
-            on:convert-to-code-block={handleConvertToCodeBlock}
-            on:copy={handleCopy}
-            on:cut={handleCut}
-            on:paste={handlePaste}
-            on:remove={handleRemove}
-          />
-        </div>
+        <MultiSelect
+          on:convert-to-code-block={handleConvertToCodeBlock}
+          on:copy={handleCopy}
+          on:cut={handleCut}
+          on:paste={handlePaste}
+          on:remove={handleRemove}
+        />
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div

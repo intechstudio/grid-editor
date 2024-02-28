@@ -124,7 +124,7 @@
           <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
           <div slot="content" class="flex flex-row gap-2 items-center">
             <span class=" text-white text-opacity-75 text-sm"
-              >Paste Element</span
+              >Overwrite Element</span
             >
             <SvgIcon
               slot="content"
