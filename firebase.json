@@ -1,0 +1,12 @@
+{
+  "hosting": {
+    "public": "dist-web",
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/src/renderer/index.html"
+      }
+    ],
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"]
+  }
+}

@@ -34,11 +34,11 @@
     "svelte-grid": "^1.11.2",
     "svelte-preprocess": "^5.0.3",
     "tailwindcss": "^3.1.8",
-    "vite": "^4.5.2",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
   "dependencies": {
+    "vite": "^4.5.2",
     "adm-zip": "^0.5.10",
     "chokidar": "^3.5.3",
     "discord.js": "^13.6.0",
@@ -79,7 +79,7 @@
     "export:nightly": "run-s gen:buildVars:nightly s:build e:builder:nightly",
     "export:alpha": "run-s gen:buildVars:alpha s:build e:builder",
     "export:local": "run-s clean-up gen:buildVars:local s:build e:builder:local",
-    "clean-up": "rm -rf dist && rm -rf build",
+    "clean-up": "rm -rf dist && rm -rf dist-web && rm -rf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "s:build": "electron-vite build",
     "gen:buildVars:dev": "node ./build-scripts/dev-buildVars.js",
@@ -95,7 +95,9 @@
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
     "web:build": "vite build --mode web",
+    "web:deploy": "firebase deploy --only hosting",
     "web-dev": "run-s gen:buildVars:dev web:dev",
-    "web-build": "run-s gen:buildVars:prod web:build"
+    "web-build": "run-s clean-up gen:buildVars:prod web:build",
+    "web-deploy": "run-s web-build web:deploy"
   }
 }

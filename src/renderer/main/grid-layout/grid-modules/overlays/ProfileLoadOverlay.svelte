@@ -1,8 +1,8 @@
 <script>
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
-  import { appSettings } from "/runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
+  import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let device = undefined;
   export let visible = false;

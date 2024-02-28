@@ -2,8 +2,9 @@ import { svelte } from "@sveltejs/vite-plugin-svelte";
 import preprocess from "svelte-preprocess";
 import path, { resolve } from "path";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
+import copy from "rollup-plugin-copy";
 
-export const rendererConfig = ({ outDir = "" }) => {
+export const rendererConfig = ({ outDir = "", additionalPlugins }) => {
   return {
     plugins: [
       svelte({
@@ -14,6 +15,7 @@ export const rendererConfig = ({ outDir = "" }) => {
         ],
       }),
       monacoEditorPlugin,
+      ...additionalPlugins,
     ],
     publicDir: "assets", // needed, to copy assets to dist during build
     build: {
