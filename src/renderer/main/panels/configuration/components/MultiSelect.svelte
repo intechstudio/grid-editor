@@ -79,7 +79,7 @@
       ratio={ButtonRatio.BOX}
     >
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Merge</span>
+        <span class=" text-white text-opacity-75 text-sm">Merge </span>
         <SvgIcon
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
@@ -153,7 +153,7 @@
       </div>
     </MoltenPushButton>
 
-    <div class="flex flex-row items-center justify-self-end">
+    <div class="flex flex-row items-center ml-auto">
       <span class="text-white text-opacity-75">Select All</span>
       <Options
         bind:selected={selectAllChecked}
