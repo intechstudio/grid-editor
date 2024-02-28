@@ -110,14 +110,16 @@ function createMessageStream() {
         // TEST ONLY,  REMOVE THIS ON PRODUCTION
         packageComm.onmessage = (e) => {
           const data = e.data;
-          console.log("YEEE", data)
-        }
+          console.log("YEEE", data);
+        };
 
         // TEST ONLY,  REMOVE THIS ON PRODUCTION
-        packageComm.postMessage({ type: "request-echo", message: "Hello from renderer!" })
+        packageComm.postMessage({
+          type: "request-echo",
+          message: "Hello from renderer!",
+        });
         // we are gentlemans so we close it
-        packageComm.close()
-
+        packageComm.close();
       }
 
       if (class_descr.class_name === "PACKAGE") {
