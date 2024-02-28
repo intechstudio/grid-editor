@@ -28,23 +28,22 @@
 
   $: sendConfigLinkToIframe($configLinkStore);
 
-  $: handleUserInputChange($user_input);
-
-  function handleUserInputChange(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    if (typeof target === "undefined") {
-      return;
-    }
-
-    selectedModule = get(runtime)
-      .find((device) => device.dx == ui.dx && device.dy == ui.dy)
-      .id.substr(0, 4);
-    selectedControlElementType = target.elementType;
-    sendSelectedComponentInfos(selectedModule, selectedControlElementType);
-  }
+  $: sendSelectedComponentInfos(selectedModule, selectedControlElementType);
 
   let selectedModule = undefined;
   let selectedControlElementType = undefined;
+
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
+      (device) => device.dx == ui.dx && device.dy == ui.dy
+    );
+
+    if (typeof device !== "undefined") {
+      selectedModule = device.id.substr(0, 4);
+    }
+    selectedControlElementType = ui.elementtype;
+  }
 
   function channelMessageWrapper(event, func) {
     const channel = event.ports[0];
