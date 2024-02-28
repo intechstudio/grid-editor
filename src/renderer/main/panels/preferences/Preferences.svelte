@@ -321,6 +321,10 @@
         bind:target={$appSettings.persistent.heartbeatDebugEnabled}
         title={"Activate heartbeat debugging"}
       />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.sendHeartbeatImmediate}
+        title={"Send heartbeat immediate"}
+      />
     </Block>
 
     <Block>

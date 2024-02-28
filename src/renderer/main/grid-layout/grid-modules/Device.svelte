@@ -131,8 +131,14 @@
         });
       })
       .catch((e) => {
+        sender.dispatchEvent(
+          new CustomEvent("profile-load", {
+            detail: {
+              success: false,
+            },
+          })
+        );
         console.error(e);
-        //TODO: make feedback for fail
       });
   }
 </script>
