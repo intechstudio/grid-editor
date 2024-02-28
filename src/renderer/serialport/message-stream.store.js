@@ -84,8 +84,8 @@ function createMessageStream() {
 
         //LUA not OK
         if (luaNotOKMatch) {
-          class_descr.element = luaNotOKMatch[1];
-          class_descr.event = luaNotOKMatch[2];
+          class_descr.element = Number(luaNotOKMatch[1]);
+          class_descr.event = Number(luaNotOKMatch[2]);
           lua_error_store.update_lua_error("luanotok", class_descr);
         }
         //KB IS DISABLED

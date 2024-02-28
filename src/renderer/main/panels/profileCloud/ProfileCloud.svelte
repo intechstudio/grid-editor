@@ -28,23 +28,22 @@
 
   $: sendConfigLinkToIframe($configLinkStore);
 
-  $: handleUserInputChange($user_input);
-
-  function handleUserInputChange(ui) {
-    const target = ConfigTarget.createFrom({ userInput: ui });
-    if (typeof target === "undefined") {
-      return;
-    }
-
-    selectedModule = get(runtime)
-      .find((device) => device.dx == ui.dx && device.dy == ui.dy)
-      .id.substr(0, 4);
-    selectedControlElementType = target.elementType;
-    sendSelectedComponentInfos(selectedModule, selectedControlElementType);
-  }
+  $: sendSelectedComponentInfos(selectedModule, selectedControlElementType);
 
   let selectedModule = undefined;
   let selectedControlElementType = undefined;
+
+  $: {
+    const ui = $user_input;
+    let device = get(runtime).find(
+      (device) => device.dx == ui.dx && device.dy == ui.dy
+    );
+
+    if (typeof device !== "undefined") {
+      selectedModule = device.id.substr(0, 4);
+    }
+    selectedControlElementType = ui.elementtype;
+  }
 
   function channelMessageWrapper(event, func) {
     const channel = event.ports[0];
@@ -160,37 +159,62 @@
     new Promise((resolve) => {
       const configType = event.data.configType;
 
-      runtime.fetch_page_configuration_from_grid().then((desc) => {
-        const ui = get(user_input);
+      const ui = get(user_input);
+      runtime
+        .fetch_page_configuration_from_grid({
+          dx: ui.dx,
+          dy: ui.dy,
+          page: ui.pagenumber,
+        })
+        .then((desc) => {
+          const ui = get(user_input);
 
-        const configs = get(runtime);
+          const configs = get(runtime);
 
-        let name = undefined;
-        let description = "Click here to add description";
-        let id = uuidv4();
+          let name = undefined;
+          let description = "Click here to add description";
+          let id = uuidv4();
 
-        let config = {
-          name: name,
-          id: id,
-          description: description,
-          configType: configType, // differentiator from different JSON files!
-          version: {
-            major: $appSettings.version.major,
-            minor: $appSettings.version.minor,
-            patch: $appSettings.version.patch,
-          },
-          localId: id,
-        };
+          let config = {
+            name: name,
+            id: id,
+            description: description,
+            configType: configType, // differentiator from different JSON files!
+            version: {
+              major: $appSettings.version.major,
+              minor: $appSettings.version.minor,
+              patch: $appSettings.version.patch,
+            },
+            localId: id,
+          };
 
-        configs.forEach((d) => {
-          if (d.dx == ui.dx && d.dy == ui.dy) {
-            const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
+          configs.forEach((d) => {
+            if (d.dx == ui.dx && d.dy == ui.dy) {
+              const page = d.pages.find((x) => x.pageNumber == ui.pagenumber);
 
-            if (configType === "profile") {
-              config.type = selectedModule;
-              config.configs = page.control_elements.map((element) => {
-                return {
-                  value: element.elementIndex,
+              if (configType === "profile") {
+                config.type = selectedModule;
+                config.configs = page.control_elements.map((element) => {
+                  return {
+                    controlElementNumber: element.elementIndex,
+                    events: element.events.map((ev) => {
+                      return {
+                        event: ev.type,
+                        config: ev.config,
+                      };
+                    }),
+                  };
+                });
+              } else if (configType === "preset") {
+                const element = page.control_elements.find(
+                  (elemet) => elemet.elementIndex === ui.elementnumber
+                );
+
+                const current = ConfigTarget.createFrom({ userInput: ui });
+                const type = current.getElement().type;
+
+                config.type = type;
+                config.configs = {
                   events: element.events.map((ev) => {
                     return {
                       event: ev.type,
@@ -198,30 +222,12 @@
                     };
                   }),
                 };
-              });
-            } else if (configType === "preset") {
-              const element = page.control_elements.find(
-                (elemet) => elemet.elementIndex === ui.elementnumber
-              );
-
-              const current = ConfigTarget.createFrom({ userInput: ui });
-              const type = current.getElement().type;
-
-              config.type = type;
-              config.configs = {
-                events: element.events.map((ev) => {
-                  return {
-                    event: ev.type,
-                    config: ev.config,
-                  };
-                }),
-              };
+              }
             }
-          }
+          });
+          config.name = `New ${config.type} config`;
+          resolve(config);
         });
-        config.name = `New ${config.type} config`;
-        resolve(config);
-      });
     });
 
   let profileCloudIsMounted = false;

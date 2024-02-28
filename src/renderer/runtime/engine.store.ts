@@ -1,6 +1,7 @@
 import { get, writable } from "svelte/store";
 import { grid } from "../protocol/grid-protocol";
 import { serial_write, serial_write_islocked } from "../serialport/serialport";
+import { appSettings } from "./app-helper.store";
 
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
@@ -252,14 +253,24 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const sendImmediate = current.sendImmediate ?? false;
+      const sendImmediate =
+        (current.sendImmediate ?? false) &&
+        get(appSettings).persistent.sendHeartbeatImmediate;
+
       const waitingResponse = typeof waiter !== "undefined";
       while (
         serial_write_islocked() ||
         get(writeBuffer)[0] !== current ||
         (waitingResponse && !sendImmediate)
       ) {
-        await sleep(1);
+        if (get(writeBuffer).includes(current)) {
+          await sleep(1);
+        } else {
+          reject(
+            `Instruction ${current.descr.class_name} was removed from write buffer.`
+          );
+          return;
+        }
       }
 
       sendToGrid(current, sendImmediate)
@@ -359,8 +370,8 @@ function createWriteBuffer() {
           resolve(res);
         })
         .catch((e) => {
-          console.error("Rejected:", obj.descr.class_name);
-          console.error("Reason:", e);
+          console.log("Rejected:", obj.descr.class_name);
+          console.log("Reason:", e);
           reject(e);
         });
     });
@@ -386,5 +397,7 @@ export function sendHeartbeat(type: number) {
   ) {
     return;
   }
-  instructions.sendEditorHeartbeat_immediate(type);
+  instructions.sendEditorHeartbeat_immediate(type).catch((e) => {
+    console.log("EDITOR: Heartbeat skipped...");
+  });
 }
