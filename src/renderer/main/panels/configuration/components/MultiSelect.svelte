@@ -72,14 +72,14 @@
 
 <app-action-multi-select class="w-full flex items-center flex-row">
   <!-- When any of the array elements is true -->
-  <div class="w-fit flex flex-row flex-wrap gap-2">
+  <div class="flex flex-row flex-wrap gap-2 w-full">
     <MoltenPushButton
       on:click={handleConvertToCodeBlockClicked}
       disabled={!isSelection}
       ratio={ButtonRatio.BOX}
     >
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Merge </span>
+        <span class=" text-white text-opacity-75 text-sm">Codify</span>
         <SvgIcon
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
@@ -153,10 +153,10 @@
       </div>
     </MoltenPushButton>
 
-    <div class="flex flex-row items-center ml-auto">
-      <span class="text-white text-opacity-75">Select All</span>
+    <div class="flex items-center ml-auto">
       <Options
         bind:selected={selectAllChecked}
+        halfSelected={isSelection}
         on:selection-change={handleSelectAllClicked}
       />
     </div>
