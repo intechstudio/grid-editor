@@ -163,40 +163,37 @@
     }
   };
 
-  let leftPaneSize;
-  function handlePaneResize(event) {
-    if (event.detail[0].size > leftPaneSize) {
-      // when left panel is resized to > 0, make leftpanel visible
-      appSettings.update((store) => {
-        store.leftPanelVisible = true;
-        return store;
-      });
+  $: {
+    if ($appSettings.persistent.disableAnimations) {
+      DisableAnimation();
+    } else {
+      EnableAnimation();
     }
-    $splitpanes.left = event.detail[0].size;
   }
 
-  function handlePaneResized(event) {
-    event.detail.forEach((pane, index) => {
-      // left pane
-      if (index == 0) {
-        if (pane.size == 0) {
-          // when left panel is resized to 0, make leftpanel invisible
-          appSettings.update((store) => {
-            store.leftPanelVisible = false;
-            return store;
-          });
+  function DisableAnimation() {
+    const css = `
+        * {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          animation-delay: 0.01ms !important;
         }
-        leftPaneSize = pane.size;
-      }
-      // middle pane
-      if (index == 1) {
-        $splitpanes.middle = pane.size;
-      }
-      // right pane
-      if (index == 2) {
-        $splitpanes.right = pane.size;
-      }
-    });
+      `;
+    const existingStyleElement = document.getElementById("custom-global-style");
+    if (!existingStyleElement) {
+      const styleElement = document.createElement("style");
+      styleElement.textContent = css;
+      styleElement.id = "custom-global-style";
+      document.head.appendChild(styleElement);
+    }
+  }
+
+  function EnableAnimation() {
+    const existingStyleElement = document.getElementById("custom-global-style");
+    if (existingStyleElement) {
+      existingStyleElement.remove();
+    }
   }
 </script>
 
@@ -256,6 +253,14 @@
 </main>
 
 <style global>
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      animation-delay: 0.01ms !important;
+    }
+  }
   .splitpanes.modern-theme .splitpanes__pane {
     /*  @apply bg-secondary; */
     position: relative;
