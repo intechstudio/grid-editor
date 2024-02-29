@@ -28,6 +28,7 @@ export enum InstructionClass {
 }
 
 export type BufferElement = {
+  id: number;
   descr: {
     brc_parameters: { DX: number; DY: number };
     class_name: InstructionClassName;
@@ -257,11 +258,10 @@ function createWriteBuffer() {
         (current.sendImmediate ?? false) &&
         get(appSettings).persistent.sendHeartbeatImmediate;
 
-      const waitingResponse = typeof waiter !== "undefined";
       while (
         serial_write_islocked() ||
         get(writeBuffer)[0] !== current ||
-        (waitingResponse && !sendImmediate)
+        (typeof waiter !== "undefined" && !sendImmediate)
       ) {
         if (get(writeBuffer).includes(current)) {
           await sleep(1);
