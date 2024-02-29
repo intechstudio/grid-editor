@@ -186,7 +186,7 @@ function create_user_input() {
     dx: 0,
     dy: 0,
     pagenumber: 0,
-    elementnumber: -1, // should be checked out if grid sends back array or not
+    elementnumber: 0,
     eventtype: 2,
   };
 
@@ -314,7 +314,13 @@ function create_user_input() {
     const ui = get(store);
 
     if (dx == ui.dx && dy == ui.dy) {
-      store.set({ ...defaultValues });
+      setOverride({
+        dx: defaultValues.dx,
+        dy: defaultValues.dy,
+        pagenumber: defaultValues.pagenumber,
+        elementnumber: defaultValues.elementnumber,
+        eventtype: defaultValues.eventtype,
+      });
     }
   }
 
@@ -902,26 +908,17 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
-    console.log(
-      "Destroy",
-      dx,
-      dy,
-      get(_runtime).map((e) => Object({ dx: e.dx, dy: e.dy }))
-    );
-
     const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
-    console.log("REMOVED", removed);
 
     _runtime.update((rt) => {
       const index = rt.findIndex(
         (e) => e.dx === removed.dx && e.dy === removed.dy
       );
-      console.log(index);
       rt.splice(index, 1);
       return rt;
     });
 
-    user_input.module_destroy_handler(dx, dy);
+    user_input.module_destroy_handler(removed.dx, removed.dy);
     if (removed.architecture === "virtual") {
       virtual_modules.set([]);
     } else {
@@ -945,20 +942,6 @@ function create_runtime() {
         lcs[dx][dy] = undefined;
         return lcs;
       });
-
-      const rt = get(_runtime);
-      if (rt.length > 0) {
-        const selectedElementsModule = {
-          dx: get(user_input).dx,
-          dy: get(user_input).dy,
-        };
-        if (
-          selectedElementsModule.dx == removed.dx &&
-          selectedElementsModule.dy == removed.dy
-        ) {
-          setDefaultSelectedElement(rt[0]);
-        }
-      }
     } catch (error) {}
 
     Analytics.track({
@@ -1204,7 +1187,6 @@ const grid_heartbeat_interval_handler = async function () {
 
     if (elapsedTime > elapsedTimeLimit) {
       // TIMEOUT! let's remove the device
-      console.log("DESTROY", elapsedTime, `(${elapsedTimeLimit})`);
       runtime.destroy_module(device.dx, device.dy);
       heartbeat.update((heartbeat) => {
         return heartbeat.filter((e) => e.id !== device.id);
