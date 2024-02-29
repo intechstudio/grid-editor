@@ -2,6 +2,9 @@
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { MeltSelect } from "@intechstudio/grid-uikit";
+  import MoltenPushButton, {
+    ButtonSnap,
+  } from "../panels/preferences/MoltenPushButton.svelte";
 
   const options = [
     {
@@ -20,16 +23,32 @@
       tooltip_key: "tracker_event",
     },
   ];
+
+  function handleGridLayoutResetClicked(e) {
+    appSettings.update((s) => {
+      s.gridLayoutShift = { x: 0, y: 0 };
+      return s;
+    });
+  }
 </script>
 
 <container class={$$props.class}>
-  <div class="flex items-center bg-primary py-2 px-3 rounded-lg">
-    <span class="text-white mr-4">Interaction Tracking:</span>
-    <div class="w-24 h-fit text-white">
-      <MeltSelect
-        bind:target={$appSettings.persistent.changeOnEvent}
-        {options}
-      />
+  <div class="flex flex-col items-center gap-2 bg-primary py-2 px-3 rounded-lg">
+    <div class="flex flex-row items-center">
+      <span class="text-white mr-4">Interaction Tracking:</span>
+      <div class="w-24 h-fit text-white">
+        <MeltSelect
+          bind:target={$appSettings.persistent.changeOnEvent}
+          {options}
+        />
+      </div>
     </div>
+    <MoltenPushButton
+      text={"Reset Grid Layout"}
+      on:click={handleGridLayoutResetClicked}
+      snap={ButtonSnap.FULL}
+      disabled={$appSettings.gridLayoutShift.x == 0 &&
+        $appSettings.gridLayoutShift.y == 0}
+    />
   </div>
 </container>

@@ -150,7 +150,8 @@
 </script>
 
 <layout-container
-  class="{$$props.class} "
+  class={$$props.class}
+  style={$$props.style}
   bind:this={component}
   use:watchResize={handleResize}
 >
