@@ -402,8 +402,7 @@ export class ConfigTarget {
             event: this.eventType,
           })
           .then(() => {
-            const event = this.getEvent();
-            resolve(event.config);
+            resolve(this.getEvent().config);
           })
           .catch((e) => reject(e));
       } else {

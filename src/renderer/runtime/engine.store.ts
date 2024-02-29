@@ -1,7 +1,6 @@
 import { get, writable } from "svelte/store";
 import { grid } from "../protocol/grid-protocol";
 import { serial_write, serial_write_islocked } from "../serialport/serialport";
-import { appSettings } from "./app-helper.store";
 
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
@@ -253,10 +252,7 @@ function createWriteBuffer() {
 
   function processElement(current: BufferElement): Promise<any> {
     return new Promise<any>(async (resolve, reject) => {
-      const sendImmediate =
-        (current.sendImmediate ?? false) &&
-        get(appSettings).persistent.sendHeartbeatImmediate;
-
+      const sendImmediate = current.sendImmediate ?? false;
       const waitingResponse = typeof waiter !== "undefined";
       while (
         serial_write_islocked() ||

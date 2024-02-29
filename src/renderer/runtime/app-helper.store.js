@@ -35,7 +35,6 @@ const persistentDefaultValues = {
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   changeOnEvent: "event",
-  sendHeartbeatImmediate: false,
 };
 
 function createSplitPanes() {
