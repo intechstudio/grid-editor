@@ -10,7 +10,7 @@
 
 <div class="{$$props.class} flex flex-col items-center gap-2">
   <Pages />
-  <div class="flex flex-row">
+  <div class="flex flex-row gap-2">
     {#if typeof $selectedConfigStore?.configType !== "undefined"}
       <MoltenPushButton
         text="Close Overlay"
