@@ -200,7 +200,9 @@
   }
 </script>
 
-<Titlebar />
+{#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+  <Titlebar />
+{/if}
 
 <main
   use:watchResize={resize}
