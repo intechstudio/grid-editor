@@ -56,11 +56,19 @@
 <MoltenModal width={500}>
   <div slot="content">
     <div class="flex flex-col">
-      <div class="flex w-full text-2xl opacity-90 pb-2">
+      <div class="flex w-full text-4xl opacity-90 pb-2">
         Welcome to Virtual Mode!
       </div>
+      <p>
+        In virtual mode you can check out the features of Grid Editor. Add your
+        chosen module as a preview, and get started!
+      </p>
+      <p>
+        Browse profiles and presets in the Profile Cloud, or download them to
+        your virtual module!
+      </p>
       <div
-        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full"
+        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4"
       >
         {#each devices as device, index}
           <div class="flex w-full h-full items-center justify-center">
