@@ -1,4 +1,5 @@
 <script>
+  import TooltipQuestion from "./tooltip/TooltipQuestion.svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
   import { MeltSelect } from "@intechstudio/grid-uikit";
@@ -43,12 +44,15 @@
         />
       </div>
     </div>
-    <MoltenPushButton
-      text={"Reset Grid Layout"}
-      on:click={handleGridLayoutResetClicked}
-      snap={ButtonSnap.FULL}
-      disabled={$appSettings.gridLayoutShift.x == 0 &&
-        $appSettings.gridLayoutShift.y == 0}
-    />
+    <div class="flex flex-row w-full items-center">
+      <TooltipQuestion key={"reset_grid_layout"} class="mr-2 text-white " />
+      <MoltenPushButton
+        text={"Reset Grid Layout"}
+        on:click={handleGridLayoutResetClicked}
+        snap={ButtonSnap.FULL}
+        disabled={$appSettings.gridLayoutShift.x == 0 &&
+          $appSettings.gridLayoutShift.y == 0}
+      />
+    </div>
   </div>
 </container>
