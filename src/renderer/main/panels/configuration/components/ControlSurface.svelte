@@ -26,14 +26,22 @@
 
     switch (e.type) {
       case "keydown": {
-        trackMouse = true;
+        handleKeyDown(e);
         break;
       }
       case "keyup": {
-        trackMouse = false;
+        handleKeyUp(e);
         break;
       }
     }
+  }
+
+  function handleKeyDown(e) {
+    trackMouse = true;
+  }
+
+  function handleKeyUp(e) {
+    trackMouse = false;
   }
 
   function handleMouseEvent(e) {
@@ -43,23 +51,31 @@
 
     switch (e.type) {
       case "mousedown": {
-        if (!trackMouse) {
-          return;
-        }
-        startPoint = { x: e.screenX, y: e.screenY };
-        dragMouse = true;
-        const current = get(appSettings).gridLayoutShift;
-        if (current.x === 0 && current.y === 0) {
-          previousVector = current;
-        }
+        handleMouseDown(e);
         break;
       }
       case "mouseup": {
-        dragMouse = false;
-        previousVector = get(appSettings).gridLayoutShift;
+        handleMouseUp(e);
         break;
       }
     }
+  }
+
+  function handleMouseDown(e) {
+    if (!trackMouse) {
+      return;
+    }
+    startPoint = { x: e.screenX, y: e.screenY };
+    dragMouse = true;
+    const current = get(appSettings).gridLayoutShift;
+    if (current.x === 0 && current.y === 0) {
+      previousVector = current;
+    }
+  }
+
+  function handleMouseUp(e) {
+    dragMouse = false;
+    previousVector = get(appSettings).gridLayoutShift;
   }
 
   function handleMouseMove(e) {
@@ -101,11 +117,17 @@
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseEvent);
   });
+
+  function handleMouseLeave(e) {
+    handleKeyUp(e);
+    handleMouseUp(e);
+  }
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
   class="absolute w-full h-full z-[1]"
+  on:mouseleave={handleMouseLeave}
   class:pointer-events-none={!trackMouse}
   class:cursor-grab={trackMouse}
 />

@@ -36,15 +36,26 @@
     const stickyRect = stickyContainer.getBoundingClientRect();
     const threshold = -15;
 
-    showFixedStickyContainer = !(
-      stickyRect.bottom <
-      contRect.bottom + threshold
-    );
+    showFixedStickyContainer =
+      stickyRect.bottom >= contRect.bottom + threshold ||
+      stickyRect.top <= contRect.top - threshold ||
+      stickyRect.left <= contRect.left - threshold ||
+      stickyRect.right >= contRect.right + threshold;
   }
 
   onMount(() => {
     window.addEventListener("resize", handleResize, true);
   });
+
+  function handleGridLayoutShift(vector) {
+    if (vector.x === 0 && vector.y === 0) {
+      return;
+    }
+
+    handleResize();
+  }
+
+  $: handleGridLayoutShift($appSettings.gridLayoutShift);
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
