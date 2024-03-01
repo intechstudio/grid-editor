@@ -186,7 +186,7 @@ function create_user_input() {
     dx: 0,
     dy: 0,
     pagenumber: 0,
-    elementnumber: 0,
+    elementnumber: -1,
     eventtype: 2,
   };
 
@@ -314,13 +314,17 @@ function create_user_input() {
     const ui = get(store);
 
     if (dx == ui.dx && dy == ui.dy) {
-      setOverride({
-        dx: defaultValues.dx,
-        dy: defaultValues.dy,
-        pagenumber: defaultValues.pagenumber,
-        elementnumber: defaultValues.elementnumber,
-        eventtype: defaultValues.eventtype,
-      });
+      if (get(runtime).length > 0) {
+        setOverride({
+          dx: defaultValues.dx,
+          dy: defaultValues.dy,
+          pagenumber: defaultValues.pagenumber,
+          elementnumber: defaultValues.elementnumber,
+          eventtype: defaultValues.eventtype,
+        });
+      } else {
+        store.set(defaultValues); //TODO: set to undefined
+      }
     }
   }
 
