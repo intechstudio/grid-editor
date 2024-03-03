@@ -128,6 +128,19 @@
         />
       </BlockRow>
     </Block>
+
+    <Block>
+      <BlockTitle>Display</BlockTitle>
+      <BlockBody
+        >Transition animations can be disabled to improve usability and
+        performance.</BlockBody
+      >
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.disableAnimations}
+        title={"Disable Animations"}
+      />
+    </Block>
+
     <Block>
       <BlockTitle>Welcome screen</BlockTitle>
       <BlockBody
