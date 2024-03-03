@@ -141,6 +141,8 @@
         console.error(e);
       });
   }
+
+  $: console.log($moduleOverlay);
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
