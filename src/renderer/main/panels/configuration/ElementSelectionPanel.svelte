@@ -57,7 +57,12 @@
   $: {
     if ($user_input || $elementNameStore) {
       const noDevice = $user_input.elementnumber === -1;
-      if (dx !== $user_input.dx || dy !== $user_input.dy || noDevice) {
+      if (
+        dx !== $user_input.dx ||
+        dy !== $user_input.dy ||
+        noDevice ||
+        $runtime
+      ) {
         dx = noDevice ? undefined : $user_input.dx;
         dy = noDevice ? undefined : $user_input.dy;
         renderElementList();

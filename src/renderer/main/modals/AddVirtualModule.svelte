@@ -1,27 +1,44 @@
-<script>
-  import { ModuleType } from "./../../protocol/grid-protocol.ts";
+<script lang="ts">
+  import BU16 from "./../grid-layout/grid-modules/devices/BU16.svelte";
+  import PO16 from "./../grid-layout/grid-modules/devices/PO16.svelte";
+  import PBF4 from "./../grid-layout/grid-modules/devices/PBF4.svelte";
+  import EN16 from "./../grid-layout/grid-modules/devices/EN16.svelte";
+  import EF44 from "./../grid-layout/grid-modules/devices/EF44.svelte";
+  import TEK2 from "./../grid-layout/grid-modules/devices/TEK2.svelte";
+
+  import { ModuleType } from "./../../protocol/grid-protocol";
   import { Analytics } from "./../../runtime/analytics.js";
   import { runtime } from "../../runtime/runtime.store";
-  import { MeltSelect } from "@intechstudio/grid-uikit";
-  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../panels/preferences/MoltenPushButton.svelte";
   import MoltenModal from "./MoltenModal.svelte";
   import { modal } from "./modal.store";
+  import { get } from "svelte/store";
 
-  let selected = 0;
-  let options = Object.keys(ModuleType).map((key, index) =>
-    Object({ title: key, value: index })
-  );
+  const devices = [
+    { id: ModuleType.BU16, component: BU16 },
+    { id: ModuleType.EF44, component: EF44 },
+    { id: ModuleType.EN16, component: EN16 },
+    { id: ModuleType.PBF4, component: PBF4 },
+    { id: ModuleType.PO16, component: PO16 },
+    { id: ModuleType.TEK2, component: TEK2 },
+  ];
+
+  let selectedModule: number = -1;
 
   function handleAddClicked(e) {
-    const moduleType = options.find((e) => e.value == selected).title;
+    if (get(runtime).length > 0) {
+      runtime.destroy_module(0, 0);
+    }
     runtime.addVirtualModule({
-      type: moduleType,
+      type: devices[selectedModule].id,
     });
     modal.close();
     Analytics.track({
       event: "VirtualModule",
       payload: {
-        message: `Add virtual module: ${moduleType}`,
+        message: `Add virtual module: ${devices[selectedModule]}`,
       },
       mandatory: true,
     });
@@ -30,30 +47,70 @@
   function handleCancelClicked(e) {
     modal.close();
   }
+
+  function handleModuleClicked(index: number) {
+    selectedModule = index;
+  }
 </script>
 
-<MoltenModal width={400}>
+<MoltenModal width={500}>
   <div slot="content">
-    <div class="flex w-full text-4xl opacity-90 pb-2">
-      Welcome to Virtual Mode!
-    </div>
-    <div class="flex flex-col gap-2">
+    <div class="flex flex-col">
+      <div class="flex w-full text-4xl opacity-90 pb-2">
+        Welcome to Virtual Mode!
+      </div>
       <p>
-        In virtual mode you can check out the features of Grid Editor.
-        <br />
-        Add your chosen module as a preview, and get started!
+        In virtual mode you can check out the features of Grid Editor. Add your
+        chosen module as a preview, and get started!
       </p>
       <p>
-        Browse profiles and presets in the Profile Cloud, or download
-        <br />
-        them to your virtual module!
+        Browse profiles and presets in the Profile Cloud, or download them to
+        your virtual module!
       </p>
-      <div class="flex flex-row w-full gap-2 pt-4">
-        <MeltSelect bind:target={selected} {options} size="full" />
+      <div
+        class="grid grid-cols-3 gap-5 px-10 py-5 bg-black bg-opacity-25 rounded w-full mt-4"
+      >
+        {#each devices as device, index}
+          <div class="flex w-full h-full items-center justify-center">
+            <div class="flex flex-col">
+              <span class="text-white text-opacity-75 font-mono"
+                >{device.id}</span
+              >
+              <button
+                class="border"
+                class:border-transparent={index !== selectedModule}
+                class:hover:border-emerald-600={index !== selectedModule}
+                class:border-emerald-300={index === selectedModule}
+                on:click={() => handleModuleClicked(index)}
+              >
+                <div
+                  style="
+                transform-origin: top left;
+                width: calc(113px);
+                height: calc(113px);
+                transform: scale(0.5); 
+              "
+                >
+                  <div
+                    class="bg-black bg-opacity-25 w-fit h-fit rounded shadow-lg"
+                  >
+                    <svelte:component
+                      this={device.component}
+                      moduleWidth={225}
+                    />
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        {/each}
+      </div>
+      <div class="flex flex-row gap-2 pt-4 ml-auto">
         <MoltenPushButton
           text="Get Started!"
           on:click={handleAddClicked}
-          style="accept"
+          style={ButtonStyle.ACCEPT}
+          disabled={selectedModule === -1}
         />
         <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
       </div>
