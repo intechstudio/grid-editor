@@ -372,8 +372,14 @@
       updateFontSize($appSettings.persistent.fontSize);
     }
   }
+
+  function handleMouseOut(e) {
+    window.focus();
+  }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div class="flex flex-col bg-primary w-full h-full relative">
   <div class="flex items-center justify-center h-full absolute">
     {#if !profileCloudIsMounted}
@@ -392,8 +398,10 @@
     {/if}
   </div>
 
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <iframe
     bind:this={iframe_element}
+    on:mouseout={handleMouseOut}
     class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
     title="Test"
     allow="clipboard-read; clipboard-write;}"

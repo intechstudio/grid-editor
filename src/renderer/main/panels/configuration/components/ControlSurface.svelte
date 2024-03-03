@@ -120,10 +120,7 @@
   }
 </script>
 
-<svelte:body
-  on:keydown|preventDefault={handleKeyEvent}
-  on:keyup|preventDefault={handleKeyEvent}
-/>
+<svelte:body on:keydown={handleKeyEvent} on:keyup={handleKeyEvent} />
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
