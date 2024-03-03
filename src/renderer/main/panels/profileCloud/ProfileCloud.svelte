@@ -146,9 +146,12 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    console.log(event);
     if (typeof get(selectedConfigStore) !== "undefined") {
       moduleOverlay.show("configuration-load-overlay");
+    } else {
+      if (get(moduleOverlay) === "configuration-load-overlay") {
+        moduleOverlay.close();
+      }
     }
   }
 
