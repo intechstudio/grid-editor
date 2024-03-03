@@ -103,16 +103,12 @@
   }
 
   onMount(() => {
-    document.addEventListener("keydown", handleKeyEvent);
-    document.addEventListener("keyup", handleKeyEvent);
     document.addEventListener("mousedown", handleMouseEvent);
     document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseEvent);
   });
 
   onDestroy(() => {
-    document.removeEventListener("keydown", handleKeyEvent);
-    document.removeEventListener("keyup", handleKeyEvent);
     document.removeEventListener("mousedown", handleMouseEvent);
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseEvent);
@@ -124,8 +120,14 @@
   }
 </script>
 
+<svelte:body
+  on:keydown|preventDefault={handleKeyEvent}
+  on:keyup|preventDefault={handleKeyEvent}
+/>
+
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
+  id="surface"
   class="absolute w-full h-full z-[1]"
   on:mouseleave={handleMouseLeave}
   class:pointer-events-none={!trackMouse}
