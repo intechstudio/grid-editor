@@ -17,7 +17,7 @@ module.exports = async function (params) {
   // package.json so you won't have to maintain two separate configurations.
   let appId = builder.appId;
   if (!appId) {
-    console.error("appId is missing from build configuration 'package.json'");
+    console.warn("appId is missing from build configuration 'package.json'");
   }
 
   let appPath = path.join(
@@ -40,7 +40,7 @@ module.exports = async function (params) {
       teamId: process.env.APPLE_TEAM_ID
     });
   } catch (error) {
-    console.error(error);
+    console.warn("NOTARY ERROR " + error);
   }
 
   console.log(`Done notarizing ${appId}`);

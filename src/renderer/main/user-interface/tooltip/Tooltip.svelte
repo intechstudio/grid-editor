@@ -156,7 +156,6 @@
 
 <Popover
   bind:isOpen={showTooltip}
-  id="tooltip"
   triggerEvents={["manual"]}
   {referenceElement}
   bind:placement
