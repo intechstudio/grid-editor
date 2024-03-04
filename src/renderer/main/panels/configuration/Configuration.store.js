@@ -328,7 +328,7 @@ export class ConfigTarget {
     const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
 
     if (typeof device === "undefined") {
-      //console.error(`Unknown device at (${dx},${dy})!`);
+      //console.warn(`Unknown device at (${dx},${dy})!`);
       return undefined;
     }
 
@@ -347,7 +347,7 @@ export class ConfigTarget {
       target.elementType = controlElement.type;
       return target;
     } catch (e) {
-      console.error(`Device was destroyed at (${dx},${dy})!`);
+      console.warn(`Device was destroyed at (${dx},${dy})!`);
       return undefined;
     }
   }
@@ -437,7 +437,7 @@ function create_configuration_manager() {
           setOverride(list);
         })
         .catch((e) => {
-          console.error(e);
+          console.warn(e);
           setOverride(new ConfigList());
         });
     });
