@@ -120,7 +120,7 @@
   }
 </script>
 
-<svelte:body on:keydown={handleKeyEvent} on:keyup={handleKeyEvent} />
+<svelte:window on:keydown={handleKeyEvent} on:keyup={handleKeyEvent} />
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
@@ -128,5 +128,6 @@
   class="absolute w-full h-full z-[1]"
   on:mouseleave={handleMouseLeave}
   class:pointer-events-none={!trackMouse}
+  class:cursor-grabbing={dragMouse}
   class:cursor-grab={trackMouse}
 />
