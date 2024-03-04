@@ -91,6 +91,23 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
         case "refresh-package-list":
           await notifyListener();
           break;
+        case "send-to-package":
+          //... send data.message through to each plugin for dedicated processing
+          // add teh following to a codeblock: package_send("package_name", 123.3, 22, "hello")
+          let args = JSON.parse(`[${data.message}]`);
+          let packageId = args.shift();
+          if (!currentlyLoadedPackages[packageId]) {
+            messagePort.postMessage({
+              type: "debug-error",
+              message:
+                "Package not loaded " +
+                packageId +
+                ` ${Object.keys(currentlyLoadedPackages)}`,
+            });
+            break;
+          }
+          await currentlyLoadedPackages[packageId].sendMessage(args);
+          break;
         case "create-package-message-port":
           await currentlyLoadedPackages[data.id].addMessagePort(
             event.ports?.[0]
