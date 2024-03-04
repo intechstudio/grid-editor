@@ -61,6 +61,7 @@ jobs:
           name: profile-cloud
           path: profile-cloud/
 
+      # WORKFLOW_NAME is used for productName extension in electron-builder.js
       - name: Set Env
         shell: bash
         run: |
