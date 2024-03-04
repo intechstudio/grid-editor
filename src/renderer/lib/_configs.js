@@ -15,7 +15,7 @@ export async function init_config_block_library() {
     packageComponent = await import("../config-blocks/package/Package.svelte");
     console.info("Config blocks imported!");
   } catch (err) {
-    console.error("Failed to import!", err);
+    console.warn("Failed to import!", err);
   }
 }
 

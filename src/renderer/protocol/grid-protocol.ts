@@ -697,8 +697,8 @@ class GridProperty {
         }
 
         // GRID HEARTBEAT INTERVAL
-        if (key == "GRID_PARAMETER_HEARTBEAT_interval") {
-          HEARTBEAT_INTERVAL = +grid_protocol[key];
+        if (key == "GRID_PARAMETER_HEARTBEATINTERVAL_us") {
+          HEARTBEAT_INTERVAL = +grid_protocol[key] / 1000;
         }
 
         if (key == "GRID_PARAMETER_ACTIONSTRING_maxlength") {
