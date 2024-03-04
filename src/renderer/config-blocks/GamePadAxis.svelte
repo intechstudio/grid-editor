@@ -9,7 +9,7 @@
     short: "ggms",
     name: "GamePadAxis",
     rendering: "standard",
-    category: "HID",
+    category: "hid",
     displayName: "GamePad Axis",
     defaultLua: "ggms(,)",
     color: "#9C92A4",

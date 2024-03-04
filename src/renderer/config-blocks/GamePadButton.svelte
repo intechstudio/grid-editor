@@ -9,7 +9,7 @@
     short: "ggbs",
     name: "GamePadButton",
     rendering: "standard",
-    category: "HID",
+    category: "hid",
     displayName: "GamePad Button",
     defaultLua: "ggbs(,)",
     color: "#9C92A4",
