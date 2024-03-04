@@ -17,6 +17,7 @@ const config = {
   generateUpdatesFilesForAllChannels: true,
   directories: {
     output: "build/",
+    buildResources: "build-assets"
   },
   protocols: [
     {
