@@ -1,13 +1,17 @@
 <script>
-  import { setTooltip } from "./../../../user-interface/tooltip/Tooltip.ts";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
   import { configManager } from "../Configuration.store";
-  import { appActionClipboard } from "../../../../runtime/runtime.store";
+  import {
+    appActionClipboard,
+    controlElementClipboard,
+  } from "../../../../runtime/runtime.store";
   import MoltenPushButton, {
     ButtonRatio,
   } from "../../preferences/MoltenPushButton.svelte";
+
+  import MoltenPopup from "../../preferences/MoltenPopup.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -68,9 +72,45 @@
       return s;
     });
   }
+
+  function handleCopyAll(e) {
+    dispatch("copy-all");
+  }
+
+  function handleOverwriteAll(e) {
+    dispatch("overwrite-all");
+  }
 </script>
 
-<app-action-multi-select class="w-full flex items-center flex-row">
+<app-action-multi-select class="w-full flex flex-col gap-2">
+  <div class="flex flex-row gap-1 text-gray-400">
+    <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Copy Element</span>
+        <SvgIcon displayMode="button" iconPath={"copy_all"} />
+      </div>
+    </MoltenPushButton>
+
+    <MoltenPushButton
+      on:click={handleOverwriteAll}
+      ratio={ButtonRatio.BOX}
+      disabled={typeof $controlElementClipboard === "undefined"}
+    >
+      <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm"
+          >Overwrite Element</span
+        >
+        <SvgIcon
+          slot="content"
+          class={typeof $controlElementClipboard === "undefined"
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"paste_all"}
+        />
+      </div>
+    </MoltenPushButton>
+  </div>
   <!-- When any of the array elements is true -->
   <div class="flex flex-row flex-wrap gap-2 w-full">
     <MoltenPushButton
