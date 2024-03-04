@@ -1,10 +1,24 @@
 import { defineConfig } from "vite";
-import { svelte } from "@sveltejs/vite-plugin-svelte";
-import preprocess from "svelte-preprocess";
-import path, { resolve } from "path";
-import monacoEditorPlugin from "vite-plugin-monaco-editor";
 import { rendererConfig } from "./renderer.vite.config.mjs";
+import copy from "rollup-plugin-copy";
+import { resolve } from "path";
 
 export default defineConfig({
-  ...rendererConfig({ outDir: "dist-web" }),
+  ...rendererConfig({
+    outDir: "dist-web",
+    additionalPlugins: [
+      copy({
+        targets: [
+          {
+            src: "configuration.json",
+            dest: resolve(__dirname, "dist-web"),
+          },
+          {
+            src: "buildVariables.json",
+            dest: resolve(__dirname, "dist-web"),
+          },
+        ],
+      }),
+    ],
+  }),
 });

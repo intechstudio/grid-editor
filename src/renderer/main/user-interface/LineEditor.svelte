@@ -1,5 +1,5 @@
 <script>
-  import { appSettings } from "/runtime/app-helper.store";
+  import { appSettings } from "../../runtime/app-helper.store";
   import {
     beforeUpdate,
     createEventDispatcher,
