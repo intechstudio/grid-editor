@@ -112,7 +112,9 @@
           style={ButtonStyle.ACCEPT}
           disabled={selectedModule === -1}
         />
-        <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
+        {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
+          <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
+        {/if}
       </div>
     </div>
   </div>
