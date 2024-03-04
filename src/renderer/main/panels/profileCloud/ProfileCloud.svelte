@@ -146,7 +146,13 @@
 
   async function handleProvideSelectedConfigForEditor(event) {
     selectedConfigStore.set(event.data.config);
-    moduleOverlay.show("configuration-load-overlay");
+    if (typeof get(selectedConfigStore) !== "undefined") {
+      moduleOverlay.show("configuration-load-overlay");
+    } else {
+      if (get(moduleOverlay) === "configuration-load-overlay") {
+        moduleOverlay.close();
+      }
+    }
   }
 
   async function handleDeleteLocalConfig(event) {

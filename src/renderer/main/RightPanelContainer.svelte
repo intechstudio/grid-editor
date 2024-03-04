@@ -10,8 +10,6 @@
   import { watchResize } from "svelte-watch-resize";
   import { onMount } from "svelte";
 
-  export let classes;
-
   function resize() {
     $windowSize.rightSidebarWidth = $windowSize.rightSidebarWidth + 1;
   }
@@ -19,7 +17,7 @@
   onMount(() => {});
 </script>
 
-<div class="{classes} w-full h-full" use:watchResize={resize}>
+<div class="w-full h-full" use:watchResize={resize}>
   <div class="h-full">
     {#if $appSettings.rightPanel == "Configuration"}
       <Configuration />
