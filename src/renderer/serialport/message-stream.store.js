@@ -103,23 +103,6 @@ function createMessageStream() {
 
       if (class_descr.class_name === "WEBSOCKET") {
         wss_send_message(class_descr.class_parameters.TEXT);
-
-        // TEST ONLY,  REMOVE THIS ON PRODUCTION
-        const packageComm = createPackageMessagePort("package-discord");
-
-        // TEST ONLY,  REMOVE THIS ON PRODUCTION
-        packageComm.onmessage = (e) => {
-          const data = e.data;
-          console.log("YEEE", data);
-        };
-
-        // TEST ONLY,  REMOVE THIS ON PRODUCTION
-        packageComm.postMessage({
-          type: "request-echo",
-          message: "Hello from renderer!",
-        });
-        // we are gentlemans so we close it
-        packageComm.close();
       }
 
       if (class_descr.class_name === "PACKAGE") {
