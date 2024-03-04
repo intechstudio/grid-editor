@@ -314,12 +314,16 @@ function create_user_input() {
   function module_destroy_handler(dx, dy) {
     // This is used to re-init local settings panel if a module is removed which values have been displayed
     const ui = get(store);
+    const rt = get(runtime);
 
     if (dx == ui.dx && dy == ui.dy) {
       if (get(runtime).length > 0) {
+        //Set user input to an EXISTING module
+        //(0,0) module is not guaranteed to exist when unplugging all modules once
+        //NOTE: Hardcoding (0,0) may break user_input
         setOverride({
-          dx: 0,
-          dy: 0,
+          dx: rt[0].dx,
+          dy: rt[0].dy,
           pagenumber: ui.pagenumber,
           elementnumber: 0,
           eventtype: ui.eventtype,
@@ -1153,10 +1157,23 @@ export function getDeviceName(x, y) {
 export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
-  const element = currentModule?.pages[0].control_elements.find(
+
+  if (typeof currentModule === "undefined") {
+    console.warn(`Module does not exist on (${x}, ${y})`);
+    return undefined;
+  }
+  const element = currentModule.pages[0].control_elements.find(
     (e) => e.elementIndex == elementNumber
   );
-  return element?.events.map((e) => e.type);
+
+  if (typeof element === "undefined") {
+    console.warn(
+      `Control element ${elementNumber} does not exist on (${x}, ${y})`
+    );
+    return undefined;
+  }
+
+  return element.events.map((e) => e.type);
 }
 
 function createEngine() {
