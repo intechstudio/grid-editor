@@ -1,6 +1,9 @@
 <script>
   import { modal } from "./../modals/modal.store";
-  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
+  import MoltenPushButton, {
+    ButtonSnap,
+    ButtonStyle,
+  } from "./../panels/preferences/MoltenPushButton.svelte";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
@@ -93,18 +96,17 @@
       feedback_context="Module not responding"
       class="self-start text-gray-500 text-sm"
     />
-    <div class="flex flex-col gap-2">
-      <button
+    <div class="flex flex-col gap-2 mt-4">
+      <MoltenPushButton
         on:click={handleTroubleshoot}
-        class="relative border block hover:bg-commit-saturate-20
-            text-white py-1 px-2 rounded border-commit-saturate-10
-            hover:border-commit-desaturate-10 focus:outline-none mt-2"
-      >
-        <div>Troubleshooting</div>
-      </button>
+        style={ButtonStyle.OUTLINED}
+        text="Troubleshooting"
+        snap={ButtonSnap.FULL}
+      />
       <MoltenPushButton
         text="Try Virtual Mode!"
         style="accept"
+        snap={ButtonSnap.FULL}
         on:click={handleAddVirtualModuleClicked}
       />
     </div>

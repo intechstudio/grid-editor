@@ -3,6 +3,9 @@
   import Popover from "svelte-easy-popover";
   import { Analytics } from "../../../runtime/analytics.js"; //TODO: Make tracking later
   import { onDestroy } from "svelte";
+  import MoltenPushButton, {
+    ButtonSnap,
+  } from "../../panels/preferences/MoltenPushButton.svelte";
 
   export let text = "";
   export let placement = "top";
@@ -153,13 +156,11 @@
 
 <Popover
   bind:isOpen={showTooltip}
-  id="tooltip"
   triggerEvents={["manual"]}
   {referenceElement}
   bind:placement
   spaceAway={10}
 >
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
   <button
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
@@ -192,15 +193,16 @@
           class="gap-2 flex flex-row w-full"
         >
           {#each buttons as button}
-            <button
-              class="px-2 py-1 rounded bg-select text-white hover:bg-select-saturate-20 flex flex-grow justify-center"
-              on:click|stopPropagation={() => {
+            <MoltenPushButton
+              text={button.label}
+              snap={ButtonSnap.FULL}
+              on:click={() => {
                 if (typeof button.handler !== "undefined") {
                   button.handler();
                 }
                 close();
-              }}>{button.label}</button
-            >
+              }}
+            />
           {/each}
         </div>
       {/if}

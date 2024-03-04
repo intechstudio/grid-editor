@@ -43,7 +43,9 @@
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  import { appSettings } from "../runtime/app-helper.store";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../main/panels/preferences/MoltenPushButton.svelte";
   import { monaco_store } from "../main/modals/Monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
@@ -171,11 +173,11 @@
       />
     </div>
 
-    <button
+    <MoltenPushButton
       on:click={open_monaco}
-      class="bg-commit hover:bg-commit-saturate-20 text-white rounded px-2 py-0.5 text-sm focus:outline-none"
-      >Edit Code</button
-    >
+      text={"Edit Code"}
+      style={ButtonStyle.ACCEPT}
+    />
   </div>
 
   <div class="flex flex-row mt-4">

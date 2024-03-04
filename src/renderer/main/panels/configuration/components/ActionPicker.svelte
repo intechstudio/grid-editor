@@ -19,6 +19,9 @@
   import { NumberToEventType } from "../../../../protocol/grid-protocol";
 
   import { onMount, onDestroy } from "svelte";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../../preferences/MoltenPushButton.svelte";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -327,7 +330,7 @@
             </svg>
           </div>
 
-          <div class="flex flex-col w-full overflow-y-auto">
+          <div class="flex flex-col w-full overflow-y-auto mb-2">
             {#each options as option}
               <div class="text-gray-500 text-sm">{option.category}</div>
 
@@ -354,34 +357,12 @@
             {/each}
           </div>
 
-          <!-- <div class="w-full mt-2 flex items-end">
-          <button
-            disabled={promptValue.length == 0}
-            class:disabled={promptValue.length == 0}
-            on:click={{}}
-            class="bg-commit hover:bg-commit-saturate-20 w-full mr-1 text-white py-2 px-2 rounded border-commit-saturate-10 hover:border-commit-desaturate-10 focus:outline-none"
-          >
-            Add Action
-          </button>
-
-          <div class="flex flex-col ml-1">
-            <input
-              placeholder="prompt"
-              class="px-1 py-2 w-16 rounded bg-secondary focus:ring-1 focus:outline-none text-white font-mono"
-              bind:value={promptValue}
-            />
-          </div>
-        </div> -->
-          <button
+          <MoltenPushButton
             on:click={handlePaste}
             disabled={!pasteEnabled}
-            class="shadow-md bg-pick text-white flex w-full
-          mt-4 p-1 rounded focus:outline-none items-center justify-center"
-            class:hover:bg-pick-desaturate-10={pasteEnabled}
-            class:opacity-50={!pasteEnabled}
-          >
-            <span> Paste </span>
-          </button>
+            style={ButtonStyle.ACCEPT}
+            text={"Paste"}
+          />
         </wrapper>
       </menu>
     </pick-action>

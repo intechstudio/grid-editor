@@ -60,6 +60,10 @@
   import * as keyMap_hu from "../../external/macro/map-hu.json";
   import * as keyMap_de from "../../external/macro/map-de.json";
 
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../main/panels/preferences/MoltenPushButton.svelte";
+
   const layouts = [
     { name: "En", lookup: keyMap_en.default },
     { name: "Hu", lookup: keyMap_hu.default },
@@ -542,11 +546,11 @@
       {/each}
     </select>
 
-    <button
+    <MoltenPushButton
       on:click={addKey}
-      class="text-center rounded bg-commit hover:bg-commit-saturate-20 text-white px-2 py-1 truncate"
-      >Add Key</button
-    >
+      text={"Add Key"}
+      style={ButtonStyle.ACCEPT}
+    />
 
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
@@ -598,12 +602,12 @@
         max="4000"
         class="bg-secondary flex flex-grow text-white focus:outline-none border-select px-2 py-1"
       />
-      <button
+
+      <MoltenPushButton
         on:click={addDelay}
-        class="text-center rounded bg-commit hover:bg-commit-saturate-20 text-white px-2 py-1 truncate"
-      >
-        Add Delay
-      </button>
+        text={"Add Delay"}
+        style={ButtonStyle.ACCEPT}
+      />
     </div>
   </div>
   <div class="flex flex-col">
@@ -621,12 +625,11 @@
     />
   </div>
 
-  <button
+  <MoltenPushButton
     on:click={clearMacro}
-    class="text-center rounded bg-select hover:bg-red-500 text-white px-2 py-1 my-2"
-  >
-    Clear All
-  </button>
+    text={"Clear All"}
+    style={ButtonStyle.ACCEPT}
+  />
 </div>
 
 <style>

@@ -53,7 +53,9 @@ function answerExecuteTypeRequest(obj: BufferElement) {
       case InstructionClassName.CONFIG: {
         virtual_modules.update((s) => {
           const device = s.find((e) => e.dx == dx && e.dy == dy);
-          const events = device?.pages[page].elements[element].events;
+          const events = device?.pages[page].elements.find(
+            (e) => e.elementIndex === element
+          ).events;
           events.find((e: any) => e.value == event).config =
             obj.descr.class_parameters.ACTIONSTRING;
           return s;
@@ -172,7 +174,9 @@ function answerFetchTypeRequests(obj: BufferElement) {
     const device = get(virtual_modules).find((e) => e.dx === dx && e.dy === dy);
     switch (class_name) {
       case InstructionClassName.CONFIG: {
-        const events = device?.pages[page].elements[element].events;
+        const events = device?.pages[page].elements.find(
+          (e) => e.elementIndex === element
+        ).events;
         const config = events.find((e: any) => e.value == event).config;
         resolve({
           brc_parameters: {
@@ -223,7 +227,14 @@ class VirtualModule {
   private initConfiguration(type: ModuleType) {
     const control_elements = grid
       .get_module_element_list(type)
-      .map((e: string) => this.createControlElement(e as ElementType));
+      .filter((e) => typeof e !== "undefined")
+      .map((element, index) => {
+        return {
+          elementIndex: element === ElementType.SYSTEM ? 255 : index,
+          ...this.createControlElement(element as ElementType),
+        };
+      });
+
     this.pages = Array(4).fill({
       elements: control_elements,
     });

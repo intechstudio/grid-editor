@@ -322,7 +322,7 @@ const stringManipulation = {
           string += element.value;
         }
       } catch (error) {
-        console.error(`Could not ${returnFormat}ize section!`, element);
+        console.warn(`Could not ${returnFormat}ize section!`, element);
 
         string += element.value;
       }

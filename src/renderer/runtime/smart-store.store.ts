@@ -1,4 +1,4 @@
-import { writable, derived, Readable, Writable } from "svelte/store";
+import { writable, derived, Readable, Writable, get } from "svelte/store";
 
 export class ProtectedStore<T> implements Readable<T> {
   public internal: Writable<T>;

@@ -1,10 +1,13 @@
 <script>
-  import BtnAndPopUp from "../../../user-interface/BtnAndPopUp.svelte";
+  import { setTooltip } from "./../../../user-interface/tooltip/Tooltip.ts";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
   import { configManager } from "../Configuration.store";
   import { appActionClipboard } from "../../../../runtime/runtime.store";
+  import MoltenPushButton, {
+    ButtonRatio,
+  } from "../../preferences/MoltenPushButton.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -69,105 +72,126 @@
 
 <app-action-multi-select class=" flex items-center flex-row">
   <!-- When any of the array elements is true -->
-  <div class="w-fit flex flex-wrap">
-    <BtnAndPopUp
-      on:clicked={handleConvertToCodeBlockClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        !isSelection ? "hover:border-opacity-5" : "border-opacity-20"
-      }`}
-      popStyle={"bg-gray-500 "}
-      enabled={isSelection}
-      tooltipKey={"configuration_merge_as_code"}
+  <div class="w-fit flex flex-wrap flex-row gap-1">
+    <div
+      use:setTooltip={{
+        key: "configuration_merge_as_code",
+        nowrap: true,
+        instant: true,
+        placement: "top",
+        class: "px-2 py-1",
+      }}
     >
-      <span slot="button">
+      <MoltenPushButton
+        on:click={handleConvertToCodeBlockClicked}
+        disabled={!isSelection}
+        ratio={ButtonRatio.BOX}
+      >
         <SvgIcon
+          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"merge_as_code"}
         />
-      </span>
-    </BtnAndPopUp>
+      </MoltenPushButton>
+    </div>
 
-    <BtnAndPopUp
-      on:clicked={handleCutClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        !isSelection ? "hover:border-opacity-5" : "border-opacity-20"
-      }`}
-      popStyle={"bg-secondary"}
-      enabled={isSelection}
-      tooltipKey={"configuration_cut_one"}
+    <div
+      use:setTooltip={{
+        key: "configuration_cut_one",
+        nowrap: true,
+        instant: true,
+        placement: "top",
+        class: "px-2 py-1",
+      }}
     >
-      <span slot="popup">Cutted!</span>
-      <span slot="button">
+      <MoltenPushButton
+        on:click={handleCutClicked}
+        disabled={!isSelection}
+        ratio={ButtonRatio.BOX}
+      >
         <SvgIcon
+          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"cut"}
         />
-      </span>
-    </BtnAndPopUp>
+      </MoltenPushButton>
+    </div>
 
-    <BtnAndPopUp
-      on:clicked={handleCopyClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        !isSelection ? "hover:border-opacity-5" : "border-opacity-20"
-      }`}
-      popStyle={"bg-sencodary"}
-      enabled={isSelection}
-      tooltipKey={"configuration_copy_one"}
+    <div
+      use:setTooltip={{
+        key: "configuration_copy_one",
+        nowrap: true,
+        instant: true,
+        placement: "top",
+        class: "px-2 py-1",
+      }}
     >
-      <span slot="popup">Copied!</span>
-      <span slot="button">
+      <MoltenPushButton
+        on:click={handleCopyClicked}
+        disabled={!isSelection}
+        ratio={ButtonRatio.BOX}
+      >
         <SvgIcon
+          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"copy"}
         />
-      </span>
-    </BtnAndPopUp>
+      </MoltenPushButton>
+    </div>
 
-    <BtnAndPopUp
-      on:clicked={handlePasteClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        clipboardEmpty ? "hover:border-opacity-5" : "border-opacity-20"
-      }`}
-      popStyle={"bg-sencodary"}
-      enabled={!clipboardEmpty}
-      tooltipKey={"configuration_paste_one"}
+    <div
+      use:setTooltip={{
+        key: "configuration_paste_one",
+        nowrap: true,
+        instant: true,
+        placement: "top",
+        class: "px-2 py-1",
+      }}
     >
-      <span slot="popup">Pasted!</span>
-      <span slot="button">
+      <MoltenPushButton
+        on:click={handlePasteClicked}
+        disabled={clipboardEmpty}
+        ratio={ButtonRatio.BOX}
+      >
         <SvgIcon
+          slot="content"
           class={clipboardEmpty
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"paste"}
         />
-      </span>
-    </BtnAndPopUp>
+      </MoltenPushButton>
+    </div>
 
-    <BtnAndPopUp
-      on:clicked={handleRemoveClicked}
-      btnStyle={`relative bg-secondary mr-2 group rounded-md ${
-        !isSelection ? "hover:border-opacity-5" : "border-opacity-20"
-      }`}
-      popStyle={"bg-sencodary"}
-      enabled={isSelection}
-      tooltipKey={"configuration_remove_one"}
+    <div
+      use:setTooltip={{
+        key: "configuration_remove_one",
+        nowrap: true,
+        instant: true,
+        placement: "top",
+        class: "px-2 py-1",
+      }}
     >
-      <span slot="popup">Removed!</span>
-      <span slot="button">
+      <MoltenPushButton
+        on:click={handleRemoveClicked}
+        disabled={!isSelection}
+        ratio={ButtonRatio.BOX}
+      >
         <SvgIcon
+          slot="content"
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
             : ""}
           iconPath={"remove"}
         />
-      </span>
-    </BtnAndPopUp>
+      </MoltenPushButton>
+    </div>
 
     <Options
       bind:selected={selectAllChecked}

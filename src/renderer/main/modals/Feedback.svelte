@@ -6,6 +6,9 @@
   import { backOut } from "svelte/easing";
   import MoltenModal from "./MoltenModal.svelte";
   import { Analytics } from "../../runtime/analytics.js";
+  import MoltenPushButton, {
+    ButtonStyle,
+  } from "../panels/preferences/MoltenPushButton.svelte";
 
   let textArea = undefined;
   let inputField = undefined;
@@ -114,17 +117,12 @@
           {/if}
         </div>
       </div>
-      <button
+      <MoltenPushButton
         on:click={sendFeedback}
         id="close-btn"
-        class="py-2 px-8 w-fit rounded not-draggable
-        bg-secondary transition-colors duration-75"
-        class:hover:bg-commit={!feedbackSubmitted}
-        class:opacity-50={feedbackSubmitted}
-        class:cursor-default={feedbackSubmitted}
-      >
-        <span class="text-white">Submit Feedback!</span>
-      </button>
+        text={"Submit Feedback!"}
+        style={ButtonStyle.ACCEPT}
+      />
     </div>
 
     <div />
