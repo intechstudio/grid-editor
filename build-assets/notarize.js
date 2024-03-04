@@ -2,7 +2,7 @@ require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
 const { notarize } = require("@electron/notarize");
-const builder = require("../electron-builder.json");
+const builder = require("../electron-builder");
 
 module.exports = async function (params) {
   // Only notarize the app if building for macOS and the NOTARIZE environment
