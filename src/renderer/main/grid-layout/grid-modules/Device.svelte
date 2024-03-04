@@ -95,7 +95,7 @@
         });
       })
       .catch((e) => {
-        console.error(e);
+        console.warn(e);
         //TODO: make feedback for fail
       });
   }
@@ -138,7 +138,7 @@
             },
           })
         );
-        console.error(e);
+        console.warn(e);
       });
   }
 </script>

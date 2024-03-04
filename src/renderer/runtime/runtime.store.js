@@ -183,11 +183,11 @@ export const logger = writable();
 
 function create_user_input() {
   const defaultValues = {
-    dx: 0,
-    dy: 0,
-    pagenumber: 0,
-    elementnumber: -1,
-    eventtype: 2,
+    dx: undefined,
+    dy: undefined,
+    pagenumber: undefined,
+    elementnumber: undefined,
+    eventtype: undefined,
   };
 
   const store = new ProtectedStore(defaultValues);
@@ -200,13 +200,14 @@ function create_user_input() {
       elementnumber,
       eventtype,
     })) {
-      if (typeof value !== "number" || isNaN(value)) {
-        console.error(
-          `Warning! ($user_input store): ${key} is not the type of Number. 
-           Value of ${value} will be converted to Number value of ${Number(
-            value
-          )}.`
-        );
+      if (typeof value === "undefined") {
+        store.set({
+          ...defaultValues,
+        });
+        return;
+      }
+      if (typeof value !== "number") {
+        throw `($user_input store): ${key} (${value}) is not the type of Number.`;
       }
     }
 
@@ -214,11 +215,11 @@ function create_user_input() {
     const closestEvent = get_closest_event(events, eventtype);
 
     store.set({
-      dx: Number(dx),
-      dy: Number(dy),
-      pagenumber: Number(pagenumber),
-      elementnumber: Number(elementnumber),
-      eventtype: Number(closestEvent),
+      dx: dx,
+      dy: dy,
+      pagenumber: pagenumber,
+      elementnumber: elementnumber,
+      eventtype: closestEvent,
     });
   }
 
@@ -226,6 +227,7 @@ function create_user_input() {
     if (events.map((e) => Number(e)).includes(Number(event))) {
       return event;
     }
+
     //Select closest event type if incoming device does not have the corrently selected event type
     const closestEvent = Math.min(
       ...events.map((e) => Number(e)).filter((e) => e > 0)
@@ -316,14 +318,16 @@ function create_user_input() {
     if (dx == ui.dx && dy == ui.dy) {
       if (get(runtime).length > 0) {
         setOverride({
-          dx: defaultValues.dx,
-          dy: defaultValues.dy,
-          pagenumber: defaultValues.pagenumber,
-          elementnumber: defaultValues.elementnumber,
-          eventtype: defaultValues.eventtype,
+          dx: 0,
+          dy: 0,
+          pagenumber: ui.pagenumber,
+          elementnumber: 0,
+          eventtype: ui.eventtype,
         });
       } else {
-        store.set(defaultValues); //TODO: set to undefined
+        setOverride({
+          ...defaultValues,
+        });
       }
     }
   }
@@ -523,21 +527,20 @@ function create_runtime() {
       }
 
       if (firstConnection) {
-        setDefaultSelectedElement(controller);
+        setDefaultSelectedElement();
       }
     } catch (error) {
-      console.error(error);
+      console.warn(error);
     }
   }
 
-  function setDefaultSelectedElement(controller) {
-    const ui = get(user_input);
+  function setDefaultSelectedElement() {
     user_input.set({
-      dx: controller.dx,
-      dy: controller.dy,
-      pagenumber: ui.pagenumber,
+      dx: 0,
+      dy: 0,
+      pagenumber: 0,
       elementnumber: 0,
-      eventtype: ui.eventtype,
+      eventtype: 2,
     });
   }
 
@@ -852,7 +855,7 @@ function create_runtime() {
 
       return { status, pageNumber: pageNumber, control_elements };
     } catch (error) {
-      console.error("Error while creating page for ", moduleType, error);
+      console.warn("Error while creating page for ", moduleType, error);
     }
   }
 
@@ -1057,7 +1060,7 @@ function create_runtime() {
           resolve();
         })
         .catch((e) => {
-          console.error(e);
+          console.warn(e);
           reject(e);
         });
     });
@@ -1078,7 +1081,7 @@ function create_runtime() {
           resolve();
         })
         .catch((e) => {
-          console.error(e);
+          console.warn(e);
           reject(e);
         });
     });
@@ -1104,7 +1107,7 @@ function create_runtime() {
     _runtime.update((devices) => {
       return [...devices, controller];
     });
-    setDefaultSelectedElement(controller);
+    setDefaultSelectedElement();
   }
 
   return {
@@ -1150,11 +1153,10 @@ export function getDeviceName(x, y) {
 export function getElementEventTypes(x, y, elementNumber) {
   const rt = get(runtime);
   const currentModule = rt.find((device) => device.dx == x && device.dy == y);
-  const element = currentModule.pages[0].control_elements.find(
+  const element = currentModule?.pages[0].control_elements.find(
     (e) => e.elementIndex == elementNumber
   );
-
-  return element.events.map((e) => e.type);
+  return element?.events.map((e) => e.type);
 }
 
 function createEngine() {
