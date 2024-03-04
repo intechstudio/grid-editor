@@ -328,22 +328,28 @@ export class ConfigTarget {
     const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
 
     if (typeof device === "undefined") {
-      console.error("Unknown device!");
+      //console.warn(`Unknown device at (${dx},${dy})!`);
       return undefined;
     }
 
-    const target = new ConfigTarget();
-    target.device = { dx: dx, dy: dy };
-    target.page = page;
-    target.element = element;
-    target.eventType = eventType;
+    try {
+      const target = new ConfigTarget();
+      target.device = { dx: dx, dy: dy };
+      target.page = page;
+      target.element = element;
+      target.eventType = eventType;
 
-    const controlElement = device.pages
-      .at(page)
-      .control_elements.find((e) => e.elementIndex == element);
-    target.events = controlElement.events;
-    target.elementType = controlElement.type;
-    return target;
+      const controlElement = device.pages
+        .at(page)
+        .control_elements.find((e) => e.elementIndex == element);
+      //console.log(device.pages.at(page).control_elements, element);
+      target.events = controlElement.events;
+      target.elementType = controlElement.type;
+      return target;
+    } catch (e) {
+      console.warn(`Device was destroyed at (${dx},${dy})!`);
+      return undefined;
+    }
   }
 
   static createFrom({ userInput }) {
@@ -431,7 +437,7 @@ function create_configuration_manager() {
           setOverride(list);
         })
         .catch((e) => {
-          console.error(e);
+          console.warn(e);
           setOverride(new ConfigList());
         });
     });
@@ -481,8 +487,13 @@ function create_configuration_manager() {
 
   function loadProfile({ x, y, profile }) {
     return new Promise((resolve, reject) => {
+      const ui = get(user_input);
       runtime
-        .fetch_page_configuration_from_grid()
+        .fetch_page_configuration_from_grid({
+          dx: x,
+          dy: y,
+          page: ui.pagenumber,
+        })
         .then((desc) => {
           runtime
             .whole_page_overwrite(x, y, profile)

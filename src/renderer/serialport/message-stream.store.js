@@ -84,8 +84,8 @@ function createMessageStream() {
 
         //LUA not OK
         if (luaNotOKMatch) {
-          class_descr.element = luaNotOKMatch[1];
-          class_descr.event = luaNotOKMatch[2];
+          class_descr.element = Number(luaNotOKMatch[1]);
+          class_descr.event = Number(luaNotOKMatch[2]);
           lua_error_store.update_lua_error("luanotok", class_descr);
         }
         //KB IS DISABLED
@@ -162,10 +162,8 @@ function createMessageStream() {
         class_descr.class_instr === "REPORT"
       ) {
         const ui = get(user_input);
-        //After page change set user_input so it does not get cleared from writebuffer
-        if (ui.event === undefined) return; //TODO: check
+        if (typeof ui === "undefined") return;
 
-        //return;
         if (ui.pagenumber !== class_descr.class_parameters.PAGENUMBER) {
           user_input.set({
             dx: ui.dx,

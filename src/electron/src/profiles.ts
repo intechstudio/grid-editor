@@ -207,7 +207,7 @@ async function getDateOfModify(filepath) {
       // print file last modified date
       return { modifiedAt: stats.mtime, createdAt: stats.ctime };
     })
-    .catch((err) => console.error("get date modify", err));
+    .catch((err) => console.warn("get date modify", err));
 
   return dateObject;
 }

@@ -10,6 +10,7 @@ import {
   InstructionClassName,
 } from "../runtime/engine.store.ts";
 import { logger } from "../runtime/runtime.store.js";
+import { v4 as uuidv4 } from "uuid";
 
 export interface Instructions {
   sendEditorHeartbeat_immediate(type: number): Promise<any>;
@@ -40,6 +41,7 @@ export interface Instructions {
 export class GridInstructions implements Instructions {
   sendEditorHeartbeat_immediate(type: number): Promise<any> {
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: { DX: -127, DY: -127 }, // GLOBAL
         class_name: InstructionClassName.HEARTBEAT,
@@ -56,7 +58,7 @@ export class GridInstructions implements Instructions {
       sendImmediate: true,
     };
 
-    return writeBuffer.add_fist(buffer_element);
+    return writeBuffer.add_last(buffer_element);
   }
 
   fetchConfigFromGrid(
@@ -68,6 +70,7 @@ export class GridInstructions implements Instructions {
   ): Promise<any> {
     //TODO: callback
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: dx,
@@ -124,6 +127,7 @@ export class GridInstructions implements Instructions {
     }
 
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: dx,
@@ -159,6 +163,7 @@ export class GridInstructions implements Instructions {
 
   changeActivePage(page: number): Promise<any> {
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: -127,
@@ -177,6 +182,7 @@ export class GridInstructions implements Instructions {
 
   fetchPageCountFromGrid({ brc }): Promise<any> {
     let buffer_element = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: brc.dx,
@@ -200,6 +206,7 @@ export class GridInstructions implements Instructions {
 
   sendPageStoreToGrid(): Promise<any> {
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: -127,
@@ -235,6 +242,7 @@ export class GridInstructions implements Instructions {
     }
 
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       responseTimeout: 8000,
       descr: {
         brc_parameters: {
@@ -265,6 +273,7 @@ export class GridInstructions implements Instructions {
     }
 
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       descr: {
         brc_parameters: {
           DX: -127,
@@ -290,6 +299,7 @@ export class GridInstructions implements Instructions {
 
   sendPageDiscardToGrid(): Promise<any> {
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       responseTimeout: 3000,
       descr: {
         brc_parameters: {
@@ -319,6 +329,7 @@ export class GridInstructions implements Instructions {
 
   sendPageClearToGrid(): Promise<any> {
     let buffer_element: BufferElement = {
+      id: uuidv4(),
       responseTimeout: 3000,
       descr: {
         brc_parameters: {

@@ -1,19 +1,19 @@
 <script>
   import { selectedConfigStore } from "../../../../runtime/config-helper.store";
+  import { appSettings } from "../../../../runtime/app-helper.store";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
-  import { appSettings } from "../../../../runtime/app-helper.store";
 
   export let device = undefined;
   export let visible = false;
 
-  let loaded = false;
+  let loadedState = 0;
   let container;
 
   const dispatch = createEventDispatcher();
 
   function handleLoadClicked(e) {
-    loaded = !loaded;
+    loadedState = 1;
     dispatch("click", {
       sender: container,
       device: { dx: device.dx, dy: device.dy },
@@ -22,13 +22,13 @@
 
   $: {
     if ($selectedConfigStore) {
-      loaded = false;
+      loadedState = 0;
     }
   }
 
   function handleProfileLoad(e) {
     const { success } = e.detail;
-    loaded = success;
+    loadedState = success ? 2 : 0;
   }
 </script>
 
@@ -42,21 +42,29 @@
     >
       {#if device?.type === $selectedConfigStore?.type}
         <div class="w-fit relative">
-          {#key loaded || $selectedConfigStore}
+          {#key loadedState || $selectedConfigStore}
             <button
               on:click={handleLoadClicked}
-              class="flex flex-row px-4 py-2 rounded {loaded
+              disabled={loadedState === 1}
+              class="flex flex-row px-4 py-2 rounded {loadedState == 2
                 ? 'loaded-element'
                 : 'element'}"
             >
-              {#if !loaded}
+              {#if loadedState === 0}
                 <span class="text-white mr-2">Load Profile</span>
                 <SvgIcon
                   class="text-white"
                   iconPath={"download"}
                   displayMode={"static"}
                 />
-              {:else}
+              {:else if loadedState === 1}
+                <span class="text-white mr-2">Loading...</span>
+                <SvgIcon
+                  class="text-white"
+                  iconPath={"download"}
+                  displayMode={"static"}
+                />
+              {:else if loadedState === 2}
                 <span class="text-white">Loaded!</span>
                 <SvgIcon
                   class="text-white"

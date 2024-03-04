@@ -99,7 +99,7 @@ function fetchStream() {
   console.log("--------serial---------");
 
   if (!navigator.intechPort || !navigator.intechPort.readable) {
-    console.error("Invalid or missing navigator.intechPort");
+    console.warn("Invalid or missing navigator.intechPort");
     return;
   }
 
@@ -193,18 +193,18 @@ export function serial_write_islocked() {
 
 export function serial_write(param) {
   if (param === undefined) {
-    return Promise.reject("Serial Write Error.");
+    return Promise.reject("Serial Write Error 1.");
   }
 
   if (navigator.intechPort === undefined || navigator.intechPort === null) {
-    return Promise.reject("Serial Write Error.");
+    return Promise.reject("Serial Write Error 2.");
   }
 
   if (
     navigator.intechPort.writable === undefined ||
     navigator.intechPort.writable === null
   ) {
-    return Promise.reject("Serial Write Error.");
+    return Promise.reject("Serial Write Error 3.");
   }
 
   return new Promise((resolve, reject) => {

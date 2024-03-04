@@ -50,7 +50,7 @@
     "firebase": "^9.18.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
-    "grid-protocol": "^1.2.30",
+    "grid-protocol": "^1.2.31",
     "is-online": "^10.0.0",
     "lua-format": "1.4.1",
     "luaparse": "^0.3.0",
