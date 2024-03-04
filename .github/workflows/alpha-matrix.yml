@@ -63,6 +63,8 @@ jobs:
         shell: bash
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "WORKFLOW_NAME=alpha" >> $GITHUB_ENV
 
       - name: Update package.json
         run: node ./build-scripts/alpha-packageModifier.js

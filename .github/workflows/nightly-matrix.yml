@@ -65,6 +65,7 @@ jobs:
         shell: bash
         run: |
           echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "WORKFLOW_NAME=nightly" >> $GITHUB_ENV
 
       - name: Update package.json
         run: node ./build-scripts/nightly-packageModifier.js

@@ -19,7 +19,7 @@ fs.writeFile(packageJsonPath, JSON.stringify(packageJson, null, 2), (err) => {
 
 let electronBuilderConfigJsonPath = path.join(
   __dirname,
-  "../electron-builder.json"
+  "../electron-builder.js"
 );
 let electronBuilderConfigJson = require(electronBuilderConfigJsonPath);
 
