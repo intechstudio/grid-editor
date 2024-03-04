@@ -66,11 +66,11 @@ jobs:
           echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
           echo "WORKFLOW_NAME=alpha" >> $GITHUB_ENV
 
-      - name: Update package.json
-        run: node ./build-scripts/alpha-packageModifier.js
-
       - name: Install dependencies
         run: npm i
+
+      - name: Update package.json
+        run: node ./build-scripts/alpha-packageModifier.js
 
       - name: Build
         run: npm run export:alpha
