@@ -4,7 +4,7 @@ import path, { resolve } from "path";
 import monacoEditorPlugin from "vite-plugin-monaco-editor";
 import copy from "rollup-plugin-copy";
 
-export const rendererConfig = ({ outDir = "", additionalPlugins }) => {
+export const rendererConfig = ({ outDir = "", additionalPlugins = [] }) => {
   return {
     plugins: [
       svelte({
