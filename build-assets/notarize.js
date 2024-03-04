@@ -40,7 +40,7 @@ module.exports = async function (params) {
       teamId: process.env.APPLE_TEAM_ID
     });
   } catch (error) {
-    console.error(error);
+    console.error("NOTARY ERROR " + error);
   }
 
   console.log(`Done notarizing ${appId}`);
