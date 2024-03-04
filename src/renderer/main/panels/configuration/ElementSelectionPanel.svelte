@@ -37,13 +37,12 @@
   let options = [{ title: "No Device", value: -1 }];
 
   $: handleSelectedChange(selectedElementNumber);
- 
+
   function handleSelectedChange(elementNumber) {
     if (elementNumber === -1 || typeof elementNumber === "undefined") {
       return;
     }
 
-   
     const ui = $user_input;
     user_input.set({
       dx: ui.dx,

@@ -539,9 +539,10 @@ function create_runtime() {
   }
 
   function setDefaultSelectedElement() {
+    const rt = get(runtime);
     user_input.set({
-      dx: 0,
-      dy: 0,
+      dx: rt[0].dx,
+      dy: rt[0].dy,
       pagenumber: 0,
       elementnumber: 0,
       eventtype: 2,
