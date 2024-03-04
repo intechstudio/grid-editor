@@ -99,7 +99,7 @@ function fetchStream() {
   console.log("--------serial---------");
 
   if (!navigator.intechPort || !navigator.intechPort.readable) {
-    console.error("Invalid or missing navigator.intechPort");
+    console.warn("Invalid or missing navigator.intechPort");
     return;
   }
 

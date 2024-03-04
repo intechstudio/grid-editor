@@ -136,7 +136,7 @@
       unsavedChanges = false;
       errorMesssage = "";
     } catch (e) {
-      console.error(e);
+      console.warn(e);
     }
   }
 
@@ -156,7 +156,7 @@
       if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
       return stringManipulation.noCommentToLineComment(beautified);
     } catch (e) {
-      console.error(e);
+      console.warn(e);
       return human;
     }
   }

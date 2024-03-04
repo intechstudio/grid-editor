@@ -30,6 +30,7 @@
   }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
   id="cursor-log"
   class={$$props.class}
@@ -44,7 +45,6 @@
         class="log-message"
       >
         <LogMessage
-          data-id={i}
           count={log.count}
           type={log.data.type}
           message={log.data.message}

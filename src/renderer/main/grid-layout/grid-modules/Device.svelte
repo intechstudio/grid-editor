@@ -95,7 +95,7 @@
         });
       })
       .catch((e) => {
-        console.error(e);
+        console.warn(e);
         //TODO: make feedback for fail
       });
   }
@@ -131,8 +131,14 @@
         });
       })
       .catch((e) => {
-        console.error(e);
-        //TODO: make feedback for fail
+        sender.dispatchEvent(
+          new CustomEvent("profile-load", {
+            detail: {
+              success: false,
+            },
+          })
+        );
+        console.warn(e);
       });
   }
 </script>
@@ -217,8 +223,6 @@
           {isRightCut}
           visible={$moduleOverlay === "configuration-load-overlay" &&
             $selectedConfigStore?.configType === "preset"}
-          class="pointer-events-auto w-full h-full"
-          style="border-radius: var(--grid-rounding);"
           on:click={handlePresetLoad}
         />
       </div>

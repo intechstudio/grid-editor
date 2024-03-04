@@ -32,7 +32,7 @@ export class Analytics {
         mixpanel.track(event, payload);
       }
     } catch (e) {
-      console.error(e);
+      console.warn(e);
     }
   }
 }

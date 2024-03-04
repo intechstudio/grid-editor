@@ -10,15 +10,13 @@
 
   import { watchResize } from "svelte-watch-resize";
 
-  export let classes;
-
   function resize() {
     $windowSize.leftSidebarWidth = $windowSize.leftSidebarWidth + 1;
   }
 </script>
 
 <!-- {#if $appSettings.leftPanelVisible == true} -->
-<div class="{classes} w-full h-full" use:watchResize={resize}>
+<div class="w-full h-full" use:watchResize={resize}>
   {#if $appSettings.leftPanel == "Debug"}
     <DebugMonitor />
   {/if}
