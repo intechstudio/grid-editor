@@ -148,7 +148,7 @@
       });
       sendCurrentConfigurationToGrid();
     } catch (e) {
-      console.error(e);
+      console.warn(e);
       handleError(e);
     }
   }
@@ -406,7 +406,7 @@
         });
       })
       .catch((e) => {
-        console.error(e);
+        console.warn(e);
         //TODO: make feedback for fail
       });
 
