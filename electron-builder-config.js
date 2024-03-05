@@ -47,9 +47,7 @@ const config = {
     icon: "build-assets/icon.png",
   },
   linux: {
-    linux: {
-      target: "AppImage"
-    },
+    target: "AppImage",
     artifactName: "${name}-setup-${version}.${ext}",
   },
   mac: {
