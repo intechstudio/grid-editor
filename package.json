@@ -74,7 +74,7 @@
     "ws": "^7.5.8"
   },
   "scripts": {
-    "e:builder": "cross-env NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft -c.snap.publish=github",
+    "e:builder": "cross-env NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft",
     "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder electron-builder --config electron-builder-config.js --publish never",
     "e:builder:local": "cross-env DEBUG=electron-builder electron-builder --config electron-builder-config.js --publish never",
     "export": "run-s gen:buildVars:prod s:build e:builder",
