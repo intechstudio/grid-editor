@@ -1,18 +1,20 @@
 const dotenv = require("dotenv");
 dotenv.config();
 
-function productNameExtension() {
+function productNameByWorkflow() {
   if (process.env.WORKFLOW_NAME == "nightly") {
-    return ` (Nightly) ${process.env.BRANCH_NAME}`;
+    return `Grid Editor (Nightly) ${process.env.BRANCH_NAME}`;
   } else if (process.env.WORKFLOW_NAME == "alpha") {
-    return ` (Alpha) ${process.env.RELEASE_VERSION}`;
+    return `Grid Editor (Alpha) ${process.env.RELEASE_VERSION}`;
+  } else {
+    return "Grid Editor";
   }
 }
 
 const config = {
   asar: true,
   appId: "intechstudio.grid-editor.app",
-  productName: "Grid Editor" + productNameExtension(),
+  productName: productNameByWorkflow(),
   copyright: "Copyright © Intech Studio Ltd.",
   generateUpdatesFilesForAllChannels: true,
   directories: {
