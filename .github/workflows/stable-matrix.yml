@@ -66,6 +66,10 @@ jobs:
           name: profile-cloud
           path: profile-cloud/
 
+      - name: Install snapcraft (Linux only)
+        if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-20.04' || matrix.os == 'ubuntu-18.04'
+        run: sudo snap install snapcraft --classic
+
       - name: Install dependencies
         run: npm i
 
