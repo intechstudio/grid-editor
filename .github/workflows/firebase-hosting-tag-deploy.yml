@@ -5,10 +5,9 @@ name: Deploy to Firebase Hosting on tag creation
 "on":
   push:
     tags:
-      - "**"
+      - "v*.*.*"
 jobs:
   build_and_deploy:
-    if: "${{ github.event.pull_request.head.repo.full_name == github.repository }}"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
