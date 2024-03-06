@@ -94,7 +94,7 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
         case "send-to-package":
           //... send data.message through to each plugin for dedicated processing
           // add teh following to a codeblock: package_send("package_name", 123.3, 22, "hello")
-          let args = JSON.parse(`[${data.message}]`);
+          let args = data.message;
           let packageId = args.shift();
           if (!currentlyLoadedPackages[packageId]) {
             messagePort.postMessage({

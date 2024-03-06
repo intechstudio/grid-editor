@@ -109,7 +109,7 @@ function createMessageStream() {
         // package_send("package-name", {"elem": 0, "xy": "0;0"}, 2.123, 2, "mic_volume")
         window.packageManagerPort?.postMessage({
           type: "send-to-package",
-          message: class_descr.class_parameters.TEXT,
+          message: JSON.parse(`[${class_descr.class_parameters.TEXT}]`),
         });
       }
 

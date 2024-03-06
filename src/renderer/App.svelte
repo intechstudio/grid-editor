@@ -136,7 +136,7 @@
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
+              `Unhandled message type of ${data.type} received on port ${port}: ${JSON.stringify(data)}`
             );
           }
         }
@@ -160,6 +160,9 @@
         ]);
         return channel.port2;
       };
+      window.sendMessageToPackage = (message) => {
+        port.postMessage({ type: "send-to-package", message });
+      }
     }
   };
 
