@@ -234,7 +234,7 @@
     {/if}
     <MoltenPushButton
       on:click={sendData}
-      disabled={Boolean(!commitState && parenthesisError && variableNameError)}
+      disabled={Boolean(!commitState || parenthesisError || variableNameError)}
       text={"Commit"}
       style={ButtonStyle.ACCEPT}
     />
