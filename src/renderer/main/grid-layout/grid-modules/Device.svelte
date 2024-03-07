@@ -1,4 +1,6 @@
 <script>
+  import { logger } from "./../../../runtime/runtime.store.js";
+  import { contextTarget } from "./../../panels/configuration/components/context-target.ts";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -20,14 +22,24 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import {
+    runtime,
+    user_input,
+    controlElementClipboard,
+  } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { Analytics } from "../../../runtime/analytics";
   import {
     configManager,
     ConfigTarget,
+    ConfigList,
   } from "../../panels/configuration/Configuration.store";
+  import {
+    EventType,
+    EventTypeToNumber,
+  } from "../../../protocol/grid-protocol.ts";
+  import { get } from "svelte/store";
 
   export let device = undefined;
   export let width = 225;
@@ -141,6 +153,126 @@
         console.warn(e);
       });
   }
+
+  function handleCopyAll({ dx, dy, page, element }) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementcopy",
+      message: `Copy events from element...`,
+    });
+
+    //Fetching all unloaded elements configuration
+    runtime
+      .fetch_element_configuration_from_grid(dx, dy, page, element)
+      .then(async (desc) => {
+        const current = ConfigTarget.create({
+          device: {
+            dx: dx,
+            dy: dy,
+          },
+          page: page,
+          element: element,
+          event: EventTypeToNumber(EventType.INIT),
+        });
+
+        const data = [];
+        for (const event of current.events) {
+          const target = ConfigTarget.create({
+            device: current.device,
+            element: current.element,
+            eventType: event.type,
+            page: current.page,
+          });
+          const list = await ConfigList.createFromTarget(target);
+          data.push({ eventType: target.eventType, configs: list });
+        }
+
+        controlElementClipboard.set({
+          elementType: current.elementType,
+          data: data,
+        });
+        logger.set({
+          type: "success",
+          mode: 0,
+          classname: "elementcopy",
+          message: `Events are copied!`,
+        });
+      })
+      .catch((e) => {
+        console.warn(e);
+        //TODO: make feedback for fail
+      });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
+  }
+
+  function handleOverwriteAll({ dx, dy, page, element }) {
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
+
+    let clipboard = get(controlElementClipboard);
+    const current = ConfigTarget.create({
+      device: {
+        dx: dx,
+        dy: dy,
+      },
+      page: page,
+      element: element,
+      event: EventTypeToNumber(EventType.INIT),
+    });
+
+    if (current.elementType !== clipboard.elementType) {
+      logger.set({
+        type: "fail",
+        mode: 0,
+        classname: "rejectoverwrite",
+        message: `Overwrite element failed! Current ${current.elementType} control 
+          element is not compatible with clipboards ${clipboard.elementType} type.`,
+      });
+      return;
+    }
+
+    const promises = [];
+    for (const e of current.events) {
+      const eventtype = e.type;
+      const target = ConfigTarget.create({
+        device: current.device,
+        element: current.element,
+        eventType: eventtype,
+        page: current.page,
+      });
+      const list = clipboard.data.find(
+        (e) => e.eventType === eventtype
+      ).configs;
+      promises.push(list.sendTo({ target: target }));
+    }
+    Promise.all(promises)
+      .then(() => {
+        const ui = get(user_input);
+        user_input.set({
+          dx: dx,
+          dy: dy,
+          pagenumber: page,
+          elementnumber: element,
+          eventtype: ui.eventtype,
+        });
+        const displayed = ConfigTarget.createFrom({
+          userInput: ui,
+        });
+        ConfigList.createFromTarget(displayed).then((list) => {
+          configManager.set(list);
+        });
+      })
+      .catch((e) => {});
+  }
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -178,6 +310,33 @@
       let:isRightCut
     >
       <div
+        use:contextTarget={{
+          items: [
+            {
+              text: "Copy Configuration",
+              handler: () =>
+                handleCopyAll({
+                  dx: device.dx,
+                  dy: device.dy,
+                  page: get(user_input).pagenumber,
+                  element: elementNumber,
+                }),
+            },
+            {
+              text: "Overwrite Configuration",
+              handler: () =>
+                handleOverwriteAll({
+                  dx: device.dx,
+                  dy: device.dy,
+                  page: get(user_input).pagenumber,
+                  element: elementNumber,
+                }),
+              isDisabled: () => {
+                return typeof $controlElementClipboard === "undefined";
+              },
+            },
+          ],
+        }}
         class="w-full h-full absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 

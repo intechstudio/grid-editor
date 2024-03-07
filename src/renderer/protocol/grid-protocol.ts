@@ -43,6 +43,27 @@ export function NumberToEventType(value: Number) {
   }
 }
 
+export function EventTypeToNumber(value: EventType) {
+  switch (value) {
+    case EventType.INIT:
+      return 0;
+    case EventType.POTMETER:
+      return 1;
+    case EventType.ENCODER:
+      return 2;
+    case EventType.BUTTON:
+      return 3;
+    case EventType.MAP:
+      return 4;
+    case EventType.MIDIRX:
+      return 5;
+    case EventType.TIMER:
+      return 6;
+    default:
+      throw "Unknown event type";
+  }
+}
+
 export enum ElementType {
   BLANK = "blank",
   SYSTEM = "system",

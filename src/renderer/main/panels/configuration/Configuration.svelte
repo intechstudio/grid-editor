@@ -359,108 +359,6 @@
     }
   }
 
-  function handleCopyAll() {
-    //Callback function
-    const ui = get(user_input);
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementcopy",
-      message: `Copy events from element...`,
-    });
-
-    //Fetching all unloaded elements configuration
-    const { dx, dy, page, element } = {
-      dx: ui.dx,
-      dy: ui.dy,
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-    };
-
-    runtime
-      .fetch_element_configuration_from_grid(dx, dy, page, element)
-      .then(async (desc) => {
-        const current = ConfigTarget.createFrom({ userInput: ui });
-
-        const data = [];
-        for (const event of current.events) {
-          const target = ConfigTarget.create({
-            device: current.device,
-            element: current.element,
-            eventType: event.type,
-            page: current.page,
-          });
-          const list = await ConfigList.createFromTarget(target);
-          data.push({ eventType: target.eventType, configs: list });
-        }
-
-        controlElementClipboard.set({
-          elementType: current.elementType,
-          data: data,
-        });
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "elementcopy",
-          message: `Events are copied!`,
-        });
-      })
-      .catch((e) => {
-        console.warn(e);
-        //TODO: make feedback for fail
-      });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
-  }
-
-  function handleOverwriteAll() {
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Overwrite" },
-      mandatory: false,
-    });
-
-    let clipboard = get(controlElementClipboard);
-    const current = ConfigTarget.createFrom({ userInput: $user_input });
-
-    if (current.elementType !== clipboard.elementType) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "rejectoverwrite",
-        message: `Overwrite element failed! Current ${current.elementType} control 
-          element is not compatible with clipboards ${clipboard.elementType} type.`,
-      });
-      return;
-    }
-
-    const promises = [];
-    for (const e of current.events) {
-      const eventtype = e.type;
-      const target = ConfigTarget.create({
-        device: current.device,
-        element: current.element,
-        eventType: eventtype,
-        page: current.page,
-      });
-      const list = clipboard.data.find(
-        (e) => e.eventType === eventtype
-      ).configs;
-      promises.push(list.sendTo({ target: target }));
-    }
-    Promise.all(promises)
-      .then(() => {
-        ConfigList.createFromTarget(current).then((list) => {
-          configManager.set(list);
-        });
-      })
-      .catch((e) => {});
-  }
-
   function handleReplace(e) {
     const { index, config } = e.detail;
     configManager.update((s) => {
@@ -485,11 +383,7 @@
     >
       <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
         <ElementSelectionPanel />
-        <EventPanel
-          class="flex flex-col w-full "
-          on:copy-all={handleCopyAll}
-          on:overwrite-all={handleOverwriteAll}
-        />
+        <EventPanel class="flex flex-col w-full" />
         <div class="flex w-full items-center justify-between">
           <div class="text-gray-500 text-sm">Actions</div>
           <MultiSelect
