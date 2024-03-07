@@ -140,7 +140,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   id="monaco_container"
-  class="{$$props.class} grid grid-cols-1 w-full h-full items-center"
+  class="{$$props.class} grid grid-cols-1 w-full h-full items-center p-1"
 >
   <div
     id="line-editor"
