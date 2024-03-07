@@ -45,7 +45,7 @@
     <span class="mr-4">If</span>
 
     <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full"
+      class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full"
     >
       <LineEditor
         on:change={(e) => {
