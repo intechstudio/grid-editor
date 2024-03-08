@@ -273,6 +273,75 @@
       })
       .catch((e) => {});
   }
+
+  async function handleDiscardElement({ dx, dy, page, element }) {
+    logger.set({
+      type: "progress",
+      mode: 0,
+      classname: "elementdiscard",
+      message: `Discarding element configuration...`,
+    });
+
+    const current = ConfigTarget.create({
+      device: {
+        dx: dx,
+        dy: dy,
+      },
+      page: page,
+      element: element,
+      event: EventTypeToNumber(EventType.INIT),
+    });
+
+    const promises = [];
+    for (const event of current.events) {
+      const stored = event.stored;
+      if (typeof stored !== "undefined") {
+        const eventtype = event.type;
+        const target = ConfigTarget.create({
+          device: current.device,
+          element: current.element,
+          eventType: eventtype,
+          page: current.page,
+        });
+        const list = ConfigList.createFromActionString(stored);
+        promises.push(list.sendTo({ target: target }));
+      }
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        const ui = get(user_input);
+        user_input.set({
+          dx: dx,
+          dy: dy,
+          pagenumber: page,
+          elementnumber: element,
+          eventtype: ui.eventtype,
+        });
+        const displayed = ConfigTarget.createFrom({
+          userInput: ui,
+        });
+        ConfigList.createFromTarget(displayed).then((list) => {
+          configManager.set(list);
+        });
+
+        logger.set({
+          type: "progress",
+          mode: 0,
+          classname: "elementdiscard",
+          message: `Configuration on Element ${element} is discarded!`,
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Discard" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -333,6 +402,33 @@
                 }),
               isDisabled: () => {
                 return typeof $controlElementClipboard === "undefined";
+              },
+            },
+            {
+              text: "Discard Changes",
+              handler: () =>
+                handleDiscardElement({
+                  dx: device.dx,
+                  dy: device.dy,
+                  page: get(user_input).pagenumber,
+                  element: elementNumber,
+                }),
+              isDisabled: () => {
+                const target = ConfigTarget.create({
+                  device: {
+                    dx: device.dx,
+                    dy: device.dy,
+                  },
+                  page: get(user_input).pagenumber,
+                  element: elementNumber,
+                  eventType: EventTypeToNumber(EventType.INIT),
+                });
+                for (const event of target.events) {
+                  if (event.config !== event.stored) {
+                    return false;
+                  }
+                }
+                return true;
               },
             },
           ],

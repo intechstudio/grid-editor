@@ -213,7 +213,7 @@ export class ConfigList extends Array {
   }
 
   sendTo({ target }) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.checkLength();
       const actionString = this.toConfigScript();
 
