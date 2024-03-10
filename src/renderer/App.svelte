@@ -34,6 +34,7 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import { onDestroy, onMount } from "svelte";
 
   console.log("Hello from Svelte main.js");
 
@@ -198,6 +199,19 @@
       }
     });
   }
+
+  //Disable Context Menu
+  onMount(() => {
+    document.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  });
+
+  onDestroy(() => {
+    document.removeEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  });
 </script>
 
 {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}

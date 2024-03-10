@@ -36,7 +36,6 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
       },
     });
   };
-
   node.addEventListener("mouseup", (event) => handleMouseUp(event));
 
   return {
