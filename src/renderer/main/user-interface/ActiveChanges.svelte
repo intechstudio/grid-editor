@@ -78,7 +78,7 @@
         });
       })
       .catch((e) => {
-        console.error(e);
+        console.warn(e);
         logger.set({
           type: "alert",
           mode: 0,
@@ -114,12 +114,12 @@
               });
             })
             .catch((e) => {
-              console.error(e);
+              console.warn(e);
               //TODO: make feedback for fail
             });
         })
         .catch((e) => {
-          console.error(e);
+          console.warn(e);
           logger.set({
             type: "alert",
             mode: 0,

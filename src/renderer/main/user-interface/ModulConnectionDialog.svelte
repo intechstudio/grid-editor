@@ -7,6 +7,7 @@
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
+  import { onMount } from "svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -23,6 +24,12 @@
       mandatory: false,
     });
   }
+
+  onMount(() => {
+    if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
+      modal.show(AddVirtualModule);
+    }
+  });
 
   function handleAddVirtualModuleClicked(e) {
     modal.show(AddVirtualModule);

@@ -326,6 +326,10 @@
         bind:target={$appSettings.persistent.messageIdDebugEnabled}
         title={"Activate message ID debugging"}
       />
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.sendHeartbeatImmediate}
+        title={"Send heartbeat immediate"}
+      />
     </Block>
 
     <Block>

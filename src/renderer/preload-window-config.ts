@@ -50,6 +50,10 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   };
   window.electron = {
     window: {
+      close: () => {},
+      maximize: () => {},
+      minimize: () => {},
+      restore: () => {},
       isMaximized: () => {},
     },
     persistentStorage: {
@@ -93,6 +97,9 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
         videoId: "",
       };
     },
+    restartPackageManager: () => {},
+    resetAppSettings: () => {},
+    openInBrowser: () => {},
   };
 }
 

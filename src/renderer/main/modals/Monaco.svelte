@@ -1,5 +1,4 @@
 <script>
-  import { appSettings } from "/runtime/app-helper.store";
   import { watchResize } from "svelte-watch-resize";
   import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
   import { onDestroy, onMount } from "svelte";
@@ -18,6 +17,7 @@
   import * as luamin from "lua-format";
   import stringManipulation from "../../main/user-interface/_string-operations";
   import { configManager } from "../panels/configuration/Configuration.store";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   let monaco_block;
 
@@ -136,7 +136,7 @@
       unsavedChanges = false;
       errorMesssage = "";
     } catch (e) {
-      console.error(e);
+      console.warn(e);
     }
   }
 
@@ -156,7 +156,7 @@
       if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
       return stringManipulation.noCommentToLineComment(beautified);
     } catch (e) {
-      console.error(e);
+      console.warn(e);
       return human;
     }
   }

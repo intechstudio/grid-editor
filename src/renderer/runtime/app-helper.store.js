@@ -36,6 +36,7 @@ const persistentDefaultValues = {
   profileCloudUrl: configuration.PROFILE_CLOUD_URL_PROD,
   showPCB: false,
   changeOnEvent: "event",
+  sendHeartbeatImmediate: false,
 };
 
 function createSplitPanes() {
@@ -196,7 +197,9 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          modal.show(Welcome);
+          if (window.ctxProcess.buildVariables().BUILD_TARGET !== "web") {
+            modal.show(Welcome);
+          }
           return s;
         });
       }

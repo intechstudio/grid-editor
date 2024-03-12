@@ -1,7 +1,8 @@
 {
   "name": "grid-editor",
   "productName": "Grid Editor",
-  "version": "1.2.49",
+  "description": "Powerful Editor software for Intech Studio products.",
+  "version": "1.2.50",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -12,9 +13,10 @@
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
-    "@playwright/test": "^1.36.1",
-    "@sveltejs/vite-plugin-svelte": "^2.4.5",
     "@intechstudio/grid-uikit": "^0.0.2",
+    "@playwright/test": "^1.42.0",
+    "@sveltejs/vite-plugin-svelte": "^2.4.5",
+    "@types/node": "^20.11.21",
     "autoprefixer": "^10.4.12",
     "chai": "^4.3.4",
     "cross-env": "^7.0.2",
@@ -34,7 +36,6 @@
     "svelte-grid": "^1.11.2",
     "svelte-preprocess": "^5.0.3",
     "tailwindcss": "^3.1.8",
-    "vite": "^4.5.2",
     "vite-plugin-commonjs": "^0.6.0",
     "vite-plugin-monaco-editor": "^1.1.0"
   },
@@ -50,7 +51,7 @@
     "firebase": "^9.18.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
-    "grid-protocol": "^1.2.30",
+    "grid-protocol": "^1.2.31",
     "is-online": "^10.0.0",
     "lua-format": "1.4.1",
     "luaparse": "^0.3.0",
@@ -69,17 +70,18 @@
     "svelte-watch-resize": "^1.0.3",
     "typescript": "^5.0.0",
     "uuid": "^9.0.0",
+    "vite": "^4.5.2",
     "ws": "^7.5.8"
   },
   "scripts": {
-    "e:builder": "cross-env NOTARIZE=true ELECTRON_BUILDER_CONFIG=electron-builder.json electron-builder --publish onTagOrDraft -c.snap.publish=github",
-    "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder ELECTRON_BUILDER_CONFIG=electron-builder.json electron-builder --publish never",
-    "e:builder:local": "cross-env DEBUG=electron-builder ELECTRON_BUILDER_CONFIG=electron-builder.json electron-builder --publish never",
+    "e:builder": "cross-env NOTARIZE=true electron-builder --config electron-builder-config.js --publish onTagOrDraft",
+    "e:builder:nightly": "cross-env NOTARIZE=true DEBUG=electron-builder electron-builder --config electron-builder-config.js --publish never",
+    "e:builder:local": "cross-env DEBUG=electron-builder electron-builder --config electron-builder-config.js --publish never",
     "export": "run-s gen:buildVars:prod s:build e:builder",
     "export:nightly": "run-s gen:buildVars:nightly s:build e:builder:nightly",
     "export:alpha": "run-s gen:buildVars:alpha s:build e:builder",
     "export:local": "run-s clean-up gen:buildVars:local s:build e:builder:local",
-    "clean-up": "rm -rf dist && rm -rf build",
+    "clean-up": "rm -rf dist && rm -rf dist-web && rm -rf build",
     "rebuild": "./node_modules/.bin/electron-rebuild.cmd",
     "s:build": "electron-vite build",
     "gen:buildVars:dev": "node ./build-scripts/dev-buildVars.js",
@@ -95,7 +97,9 @@
     "format": "prettier --write .",
     "web:dev": "vite dev --mode web",
     "web:build": "vite build --mode web",
+    "web:deploy": "firebase deploy --only hosting",
     "web-dev": "run-s gen:buildVars:dev web:dev",
-    "web-build": "run-s gen:buildVars:prod web:build"
+    "web-build": "run-s clean-up gen:buildVars:prod web:build",
+    "web-deploy": "run-s web-build web:deploy"
   }
 }
