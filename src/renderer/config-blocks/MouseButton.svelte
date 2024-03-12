@@ -9,8 +9,8 @@
     short: "gmbs",
     name: "MouseButton",
     rendering: "standard",
-    category: "mouse",
-    displayName: "Button",
+    category: "hid",
+    displayName: "Mouse Button",
     defaultLua: "gmbs(,)",
     color: "#9C92A4",
     icon: `
