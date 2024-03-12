@@ -13,4 +13,7 @@ build
 /playwright/.cache/
 buildVariables.json
 .vscode/launch.json
-
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
