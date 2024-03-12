@@ -162,8 +162,8 @@
     return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
-  const handleGetCurrentConfigurationFromEditor = (event) =>
-    new Promise((resolve) => {
+  async function handleGetCurrentConfigurationFromEditor(event) {
+    return new Promise((resolve) => {
       const configType = event.data.configType;
 
       const ui = get(user_input);
@@ -234,8 +234,17 @@
           });
           config.name = `New ${config.type} config`;
           resolve(config);
+        })
+        .catch((e) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profileclouderror",
+            message: e,
+          });
         });
     });
+  }
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {

@@ -108,7 +108,7 @@
   });
 
   beforeUpdate(() => {
-    editor?.layout();
+    //editor?.layout();
   });
 
   // Save a reference to the original ResizeObserver
@@ -117,9 +117,12 @@
   // Create a new ResizeObserver constructor
   window.ResizeObserver = function (callback) {
     const wrappedCallback = (entries, observer) => {
+      callback(entries, observer);
+      /*
       window.requestAnimationFrame(() => {
         callback(entries, observer);
       });
+      */
     };
 
     // Create an instance of the original ResizeObserver
