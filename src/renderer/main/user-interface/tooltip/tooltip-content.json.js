@@ -173,4 +173,6 @@ export const tooltip_content = {
     "New version of this block is available, click on Update to restore your configuration.",
   reset_grid_layout:
     "The displayed modules can be repositioned by click and dragging the mouse while holding the control key.",
+  tracker_tooltip:
+    "When changing a control element, the tracking option determines selection scope.",
 };

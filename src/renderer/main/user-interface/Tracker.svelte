@@ -1,4 +1,5 @@
 <script>
+  import { setTooltip } from "./tooltip/Tooltip.ts";
   import TooltipQuestion from "./tooltip/TooltipQuestion.svelte";
   import { appSettings } from "../../runtime/app-helper.store";
   import { Analytics } from "../../runtime/analytics.js";
@@ -34,20 +35,32 @@
 </script>
 
 <container class={$$props.class}>
-  <div class="flex flex-col items-center gap-2 bg-primary py-2 px-3 rounded-lg">
-    <div class="flex flex-row items-center">
-      <span class="text-white mr-4">Interaction Tracking:</span>
-      <div class="w-24 h-fit text-white">
+  <div class="flex flex-row items-center gap-2 bg-primary py-2 px-3 rounded-lg">
+    <div class="flex flex-row gap-2 items-center">
+      <span class="text-white">Track:</span>
+      <div
+        use:setTooltip={{
+          placement: "top",
+          class: "w-60 p-4 z-10",
+          key: "tracker_tooltip",
+        }}
+        class="w-24 h-fit text-white"
+      >
         <MeltSelect
           bind:target={$appSettings.persistent.changeOnEvent}
           {options}
         />
       </div>
     </div>
-    <div class="flex flex-row w-full items-center">
-      <TooltipQuestion key={"reset_grid_layout"} class="mr-2 text-white " />
+    <div
+      use:setTooltip={{
+        placement: "top",
+        class: "w-60 p-4 z-10",
+        key: "reset_grid_layout",
+      }}
+    >
       <MoltenPushButton
-        text={"Reset Grid Layout"}
+        text={"Reset View"}
         on:click={handleGridLayoutResetClicked}
         snap={ButtonSnap.FULL}
         disabled={$appSettings.gridLayoutShift.x == 0 &&
