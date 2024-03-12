@@ -20,6 +20,7 @@ const persistentDefaultValues = {
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   heartbeatDebugEnabled: false,
+  messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
