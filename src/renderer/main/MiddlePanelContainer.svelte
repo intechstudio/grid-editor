@@ -70,7 +70,7 @@
 
 <div
   id="container"
-  class="relative flex flex-col w-full h-full overflow-hidden justify-center"
+  class="relative flex flex-col w-full h-full overflow-visible justify-center"
 >
   {#if showFixedStickyContainer}
     <StickyContainer
