@@ -24,10 +24,16 @@ const prodCentralAuthConfig = {
   appId: "1:611038678816:web:5d8fab312b614702539145",
 };
 
-const centralAuthConfig =
+/*const centralAuthConfig =
   buildVariables.BUILD_ENV === "production"
     ? prodCentralAuthConfig
-    : devCentralAuthConfig;
+    : devCentralAuthConfig;*/
 
-export const centralApp = initializeApp(centralAuthConfig, "central");
-export const centralAuth = getAuth(centralApp);
+export const devCentralApp = initializeApp(devCentralAuthConfig, "dev-central");
+export const devCentralAuth = getAuth(devCentralApp);
+
+export const prodCentralApp = initializeApp(
+  prodCentralAuthConfig,
+  "prod-central"
+);
+export const prodCentralAuth = getAuth(prodCentralApp);

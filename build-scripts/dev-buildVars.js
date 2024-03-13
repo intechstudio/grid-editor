@@ -5,7 +5,6 @@ const path = require("path");
 let buildVariables = {
   BUILD_ENV: "development",
   BUILD_TARGET: "electron",
-  PROFILE_CLOUD_URL: "http://localhost:5200",
 };
 
 fs.writeFile(

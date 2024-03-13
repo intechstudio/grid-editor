@@ -1,17 +1,16 @@
 <script>
   import { userStore } from "$lib/user.store";
-  import { authStore } from "$lib/auth.store";
+  import { authStore, AuthEnvironment } from "$lib/auth.store";
   import { modal } from "./modal.store";
   import MoltenModal from "./MoltenModal.svelte";
   import LoginError from "$lib/auth.store";
+  import { appSettings } from "../../runtime/app-helper.store";
 
   const buildVariables = window.ctxProcess.buildVariables();
 
   let email = "";
   let password = "";
   let loginError = "";
-
-  const socialLoginUrl = buildVariables.PROFILE_CLOUD_URL;
 
   function submitLogin() {
     authStore.login(email, password).catch((e) => {
@@ -26,10 +25,6 @@
         throw e;
       }
     });
-  }
-
-  async function anonymousLogin() {
-    authStore.anonymousLogin();
   }
 
   async function logout() {
@@ -83,15 +78,20 @@
             class="min-w-[96px] px-4 w-full items-center inline-flex justify-center py-1 bg-blue-400 hover:bg-blue-500 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-medium border rounded active:border-neutral-800 border-neutral-500 dark:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
             >login</button
           >
-
-          <button
-            on:click|preventDefault={() =>
-              window.electron.openInBrowser(
-                "https://intech.studio/?loginModal=true"
-              )}
-            class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
-            >register on website</button
-          >
+          {#if authStore.getCurrentAuthEnvironment() === AuthEnvironment.PRODUCTION}
+            <button
+              on:click|preventDefault={() =>
+                window.electron.openInBrowser(
+                  buildVariables.PROFILE_CLOUD_EMAIL_REGISTRATION
+                )}
+              class="mt-4 min-w-[96px] w-full px-4 items-center inline-flex justify-center py-1 dark:hover:bg-emerald-700 text-white font-medium border rounded border-emerald-600 border-opacity-50 active:border-emerald-800 dark:hover:border-neutral-800 active:outline-none active:ring-blue-300 active:ring-2"
+              >register on website</button
+            >
+          {:else}
+            <div class="text-white border border-red-500 text-center">
+              <p>Can't register with email on development environment!</p>
+            </div>
+          {/if}
         </div>
 
         <div class="px-8 py-2 w-full">
@@ -101,7 +101,9 @@
         <button
           class="self-center rounded flex items-center justify-start font-medium bg-emerald-600 hover:bg-emerald-700"
           on:click={() =>
-            window.electron.openInBrowser(socialLoginUrl + "/authorize")}
+            window.electron.openInBrowser(
+              $appSettings.persistent.profileCloudUrl + "/authorize"
+            )}
         >
           <div class="w-14 h-14 p-1">
             <svg
