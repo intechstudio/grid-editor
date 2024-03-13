@@ -45,7 +45,7 @@ export default class LoginError extends Error {
 const createAuth = () => {
   const { subscribe, set } = writable<AuthStore | null>(null);
 
-  let currentAuthEnvironment: AuthEnvironment = AuthEnvironment.PRODUCTION;
+  let currentAuthEnvironment: AuthEnvironment | undefined = undefined;
 
   function getCurrentCentralAuth() {
     switch (currentAuthEnvironment) {
@@ -53,6 +53,8 @@ const createAuth = () => {
         return prodCentralAuth;
       case AuthEnvironment.DEVELOPMENT:
         return devCentralAuth;
+      default:
+        return prodCentralAuth;
     }
   }
 
@@ -118,10 +120,17 @@ const createAuth = () => {
     return currentAuthEnvironment;
   }
 
-  function setCurrentAuthEnvironment(environment: AuthEnvironment) {
+  async function setCurrentAuthEnvironment(environment: AuthEnvironment) {
     if (environment != currentAuthEnvironment) {
-      logout();
+      if (currentAuthEnvironment) {
+        await logout();
+      }
       currentAuthEnvironment = environment;
+      getCurrentCentralAuth()
+        .currentUser?.getIdToken()
+        .then((idToken) =>
+          set({ event: "login", providerId: "oidc", idToken: idToken })
+        );
     }
   }
 
