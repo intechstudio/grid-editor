@@ -9,7 +9,7 @@
     short: "gks",
     name: "Macro",
     rendering: "standard",
-    category: "keyboard",
+    category: "hid",
     color: "#9D95AD",
     displayName: "Keyboard",
     defaultLua: "gks()",

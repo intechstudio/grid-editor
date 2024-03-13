@@ -59,16 +59,19 @@ jobs:
           name: profile-cloud
           path: profile-cloud/
 
+      # WORKFLOW_NAME is used for productName extension in electron-builder.js
       - name: Set Env
         shell: bash
         run: |
           echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Update package.json
-        run: node ./build-scripts/alpha-packageModifier.js
+          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          echo "WORKFLOW_NAME=alpha" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: npm i
+
+      - name: Update package.json
+        run: node ./build-scripts/alpha-packageModifier.js
 
       - name: Build
         run: npm run export:alpha

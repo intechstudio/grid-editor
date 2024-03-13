@@ -20,6 +20,7 @@ const persistentDefaultValues = {
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   heartbeatDebugEnabled: false,
+  messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
@@ -106,6 +107,7 @@ function createAppSettingsStore(persistent) {
       owner: { neme: undefined },
     },
     packageList: [],
+    gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
 
@@ -197,7 +199,9 @@ async function init_appsettings() {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
-          modal.show(Welcome);
+          if (window.ctxProcess.buildVariables().BUILD_TARGET !== "web") {
+            modal.show(Welcome);
+          }
           return s;
         });
       }

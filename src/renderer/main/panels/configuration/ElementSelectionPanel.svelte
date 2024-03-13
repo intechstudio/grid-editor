@@ -6,8 +6,8 @@
   import TooltipQuestion from "../../user-interface/tooltip/TooltipQuestion.svelte";
   import {
     elementNameStore,
-    runtime,
     user_input,
+    runtime,
   } from "../../../runtime/runtime.store.js";
 
   function showControlElementNameOverlay() {
@@ -53,15 +53,9 @@
     });
   }
 
-  let [dx, dy] = [undefined, undefined];
   $: {
     if ($user_input || $elementNameStore) {
-      const noDevice = $user_input.elementnumber === -1;
-      if (dx !== $user_input.dx || dy !== $user_input.dy || noDevice) {
-        dx = noDevice ? undefined : $user_input.dx;
-        dy = noDevice ? undefined : $user_input.dy;
-        renderElementList();
-      }
+      renderElementList();
     }
   }
 
@@ -81,7 +75,15 @@
     options = control_elements.map((element) => {
       const stringName = getElementName(element.elementIndex);
       if (typeof stringName !== "undefined") {
-        return { title: stringName, value: element.elementIndex };
+        return {
+          title:
+            stringName +
+            ` (${
+              element.type[0].toUpperCase() +
+              element.type.slice(1).toLowerCase()
+            })`,
+          value: element.elementIndex,
+        };
       } else {
         return {
           title: `Element ${

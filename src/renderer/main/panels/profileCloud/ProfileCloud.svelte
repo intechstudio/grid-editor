@@ -162,8 +162,8 @@
     return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
-  const handleGetCurrentConfigurationFromEditor = (event) =>
-    new Promise((resolve) => {
+  async function handleGetCurrentConfigurationFromEditor(event) {
+    return new Promise((resolve) => {
       const configType = event.data.configType;
 
       const ui = get(user_input);
@@ -234,8 +234,17 @@
           });
           config.name = `New ${config.type} config`;
           resolve(config);
+        })
+        .catch((e) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profileclouderror",
+            message: e,
+          });
         });
     });
+  }
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
@@ -378,8 +387,14 @@
       updateFontSize($appSettings.persistent.fontSize);
     }
   }
+
+  function handleMouseOut(e) {
+    window.focus();
+  }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div class="flex flex-col bg-primary w-full h-full relative">
   <div class="flex items-center justify-center h-full absolute">
     {#if !profileCloudIsMounted}
@@ -398,8 +413,10 @@
     {/if}
   </div>
 
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <iframe
     bind:this={iframe_element}
+    on:mouseout={handleMouseOut}
     class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
     title="Test"
     allow="clipboard-read; clipboard-write;}"

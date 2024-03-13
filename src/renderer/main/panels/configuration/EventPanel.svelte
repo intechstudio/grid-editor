@@ -1,22 +1,11 @@
 <script>
-  import {
-    elementNameStore,
-    user_input,
-    runtime,
-    controlElementClipboard,
-  } from "../../../runtime/runtime.store.js";
+  import { user_input, runtime } from "../../../runtime/runtime.store.js";
 
-  import { setTooltip } from "../../user-interface/tooltip/Tooltip.ts";
-  import SvgIcon from "../../user-interface/SvgIcon.svelte";
   import { createEventDispatcher } from "svelte";
   import { get } from "svelte/store";
   import { ConfigTarget } from "./Configuration.store.js";
   import { MeltRadio } from "@intechstudio/grid-uikit";
   import { CEEAT } from "../../../protocol/grid-protocol";
-  import MoltenPushButton, {
-    ButtonRatio,
-  } from "../preferences/MoltenPushButton.svelte";
-  import MoltenPopup from "../preferences/MoltenPopup.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -92,67 +81,10 @@
       eventtype: event.type,
     });
   }
-
-  function handleCopyAll(e) {
-    dispatch("copy-all");
-  }
-
-  function handleOverwriteAll(e) {
-    dispatch("overwrite-all");
-  }
 </script>
 
 <div class={$$props.class}>
   <div class="pb-2 flex flex-col justify-center">
-    <div class="py-2 text-sm flex justify-between items-center">
-      <div class="text-gray-500">Events</div>
-
-      <div class="flex flex-row gap-1 text-gray-400">
-        <div
-          use:setTooltip={{
-            key: "configuration_copy_all",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "px-2 py-1",
-          }}
-        >
-          <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
-            <SvgIcon
-              slot="content"
-              displayMode="button"
-              iconPath={"copy_all"}
-            />
-          </MoltenPushButton>
-        </div>
-
-        <div
-          use:setTooltip={{
-            key: "configuration_overwrite",
-            nowrap: true,
-            instant: true,
-            placement: "top",
-            class: "px-2 py-1",
-          }}
-        >
-          <MoltenPushButton
-            on:click={handleOverwriteAll}
-            ratio={ButtonRatio.BOX}
-            disabled={typeof $controlElementClipboard === "undefined"}
-          >
-            <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
-            <SvgIcon
-              slot="content"
-              class={typeof $controlElementClipboard === "undefined"
-                ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
-                : ""}
-              iconPath={"paste_all"}
-            />
-          </MoltenPushButton>
-        </div>
-      </div>
-    </div>
-
     <div class="flex flex-col justify-center items-center">
       <MeltRadio
         bind:target={selected}

@@ -1,6 +1,7 @@
 // Top level imports
 import { writable, get } from "svelte/store";
 import { writeBuffer } from "../runtime/engine.store";
+import { appSettings } from "../runtime/app-helper.store.js";
 import {
   runtime,
   user_input,
@@ -25,7 +26,7 @@ import { PolyLineGraphData } from "../main/user-interface/PolyLineGraph.js";
 export const incoming_messages = writable([]);
 export function add_datapoint(key, value) {
   incoming_messages.update((s) => {
-    s.forEach((e) => (e.value = undefined));
+    s.forEach((e) => e.value == undefined);
 
     const message = new PolyLineGraphData({
       type: key,
@@ -43,6 +44,11 @@ export function add_datapoint(key, value) {
   });
 }
 
+export function get_datapoint_last(key) {
+  const store = get(incoming_messages).find((e, i) => e.type == key);
+  return store?.value;
+}
+
 function createMessageStream() {
   const _deliver_inbound = function (class_array) {
     if (class_array === undefined) {
@@ -50,6 +56,28 @@ function createMessageStream() {
     }
 
     class_array.forEach((class_descr, i) => {
+      if (i == 0 && get(appSettings).persistent.messageIdDebugEnabled) {
+        const brc_parameters = class_array[0].brc_parameters;
+
+        const key1 = `ID (${brc_parameters.SX}, ${brc_parameters.SY})`;
+        const key2 = key1 + " diff";
+
+        let last = get_datapoint_last(key1);
+        if (typeof last == "undefined") {
+          last = 0;
+        }
+
+        if (last > brc_parameters.ID) {
+          last -= 256;
+        }
+
+        get_datapoint_last(key1);
+
+        add_datapoint(key1, brc_parameters.ID);
+
+        add_datapoint(key2, brc_parameters.ID - last);
+      }
+
       if (class_descr.class_name === "HEARTBEAT") {
         // check if it is online and if not then create a new module
         runtime.incoming_heartbeat_handler(class_descr);
@@ -103,6 +131,14 @@ function createMessageStream() {
 
       if (class_descr.class_name === "WEBSOCKET") {
         wss_send_message(class_descr.class_parameters.TEXT);
+      }
+
+      if (class_descr.class_name === "PACKAGE") {
+        // package_send("package-name", {"elem": 0, "xy": "0;0"}, 2.123, 2, "mic_volume")
+        window.packageManagerPort?.postMessage({
+          type: "send-to-package",
+          message: class_descr.class_parameters.TEXT,
+        });
       }
 
       if (class_descr.class_name === "LEDPREVIEW") {

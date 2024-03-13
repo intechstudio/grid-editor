@@ -328,11 +328,16 @@
     </Block>
 
     <Block>
-      <BlockTitle>Hearbeat debugging</BlockTitle>
+      <BlockTitle>Graph based debugging</BlockTitle>
       <BlockBody>Enable/Disable heartbeat debug graphs</BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.heartbeatDebugEnabled}
         title={"Activate heartbeat debugging"}
+      />
+      <BlockBody>Enable/Disable message ID debug graphs</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.messageIdDebugEnabled}
+        title={"Activate message ID debugging"}
       />
       <MeltCheckbox
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}

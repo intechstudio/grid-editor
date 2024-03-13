@@ -490,16 +490,13 @@
           on:copy-all={handleCopyAll}
           on:overwrite-all={handleOverwriteAll}
         />
-        <div class="flex w-full items-center justify-between">
-          <div class="text-gray-500 text-sm">Actions</div>
-          <MultiSelect
-            on:convert-to-code-block={handleConvertToCodeBlock}
-            on:copy={handleCopy}
-            on:cut={handleCut}
-            on:paste={handlePaste}
-            on:remove={handleRemove}
-          />
-        </div>
+        <MultiSelect
+          on:convert-to-code-block={handleConvertToCodeBlock}
+          on:copy={handleCopy}
+          on:cut={handleCut}
+          on:paste={handlePaste}
+          on:remove={handleRemove}
+        />
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div
@@ -521,7 +518,7 @@
             on:mouseleave={() => {
               clearInterval(autoScroll);
             }}
-            class="flex flex-col w-full h-auto overflow-y-auto"
+            class="flex flex-col w-full h-auto overflow-y-none"
           >
             {#each $configManager as config, index (config.id)}
               <anim-block
@@ -546,7 +543,13 @@
                     />
                   {/if}
                 {/key}
-                <div class="flex flex-row justify-between">
+                <div class="flex flex-row justify-between relative">
+                  <div
+                    class="bg-white absolute h-full opacity-10 pointer-events-none z-10"
+                    class:hidden={!config.selected}
+                    style="width: calc(100% + 6px);"
+                  />
+
                   <DynamicWrapper
                     {index}
                     {config}
@@ -555,14 +558,16 @@
                     on:replace={handleReplace}
                   />
 
-                  <Options
-                    {index}
-                    bind:selected={config.selected}
-                    disabled={!config.information.selectable}
-                    on:selection-change={handleSelectionChange}
-                  />
-                </div>
-              </anim-block>
+                  <div class="z-20 flex items-center">
+                    <Options
+                      {index}
+                      bind:selected={config.selected}
+                      disabled={!config.information.selectable}
+                      on:selection-change={handleSelectionChange}
+                    />
+                  </div>
+                </div></anim-block
+              >
             {/each}
             {#key $configManager.length}
               {#if typeof $config_drag === "undefined"}

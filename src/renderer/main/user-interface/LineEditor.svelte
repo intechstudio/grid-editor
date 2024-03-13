@@ -1,5 +1,5 @@
 <script>
-  import { appSettings } from "/runtime/app-helper.store";
+  import { appSettings } from "../../runtime/app-helper.store";
   import {
     beforeUpdate,
     createEventDispatcher,
@@ -108,17 +108,45 @@
   });
 
   beforeUpdate(() => {
-    editor?.layout();
+    //editor?.layout();
   });
+
+  // Save a reference to the original ResizeObserver
+  const OriginalResizeObserver = window.ResizeObserver;
+
+  // Create a new ResizeObserver constructor
+  window.ResizeObserver = function (callback) {
+    const wrappedCallback = (entries, observer) => {
+      callback(entries, observer);
+      /*
+      window.requestAnimationFrame(() => {
+        callback(entries, observer);
+      });
+      */
+    };
+
+    // Create an instance of the original ResizeObserver
+    // with the wrapped callback
+    return new OriginalResizeObserver(wrappedCallback);
+  };
+
+  // Copy over static methods, if any
+  for (let staticMethod in OriginalResizeObserver) {
+    if (OriginalResizeObserver.hasOwnProperty(staticMethod)) {
+      window.ResizeObserver[staticMethod] =
+        OriginalResizeObserver[staticMethod];
+    }
+  }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   id="monaco_container"
-  class="{$$props.class} grid grid-cols-1 w-full h-full items-center"
+  class="{$$props.class} grid grid-cols-1 w-full h-full items-center p-1"
 >
   <div
+    id="line-editor"
     on:click|preventDefault={() => {}}
     on:mousedown|preventDefault={() => {}}
     bind:this={monaco_block}
