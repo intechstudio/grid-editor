@@ -20,10 +20,9 @@
     MoltenButton,
     MoltenInput,
   } from "@intechstudio/grid-uikit";
+  import { reduced_motion_store } from "../../../runtime/animations.js";
 
   const configuration = window.ctxProcess.configuration();
-
-  onMount(async () => {});
 
   async function selectDirectory() {
     appSettings.update((s) => {
@@ -130,14 +129,27 @@
     </Block>
 
     <Block>
-      <BlockTitle>Display</BlockTitle>
+      <BlockTitle>Animations</BlockTitle>
       <BlockBody
         >Transition animations can be disabled to improve usability and
         performance.</BlockBody
       >
-      <MeltCheckbox
+      <MeltRadio
         bind:target={$appSettings.persistent.disableAnimations}
-        title={"Disable Animations"}
+        options={[
+          {
+            title: `Auto (${$reduced_motion_store ? "Disabled" : "Enabled"})`,
+            value: "auto",
+          },
+          {
+            title: "Enabled",
+            value: "enabled",
+          },
+          {
+            title: "Disabled",
+            value: "disabled",
+          },
+        ]}
       />
     </Block>
 

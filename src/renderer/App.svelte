@@ -34,6 +34,11 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import {
+    setDocumentAnimationsEnabled,
+    reduced_motion_store,
+  } from "../renderer/runtime/animations";
+  import { get } from "svelte/store";
 
   console.log("Hello from Svelte main.js");
 
@@ -163,38 +168,27 @@
     }
   };
 
-  $: {
-    if ($appSettings.persistent.disableAnimations) {
-      DisableAnimation();
-    } else {
-      EnableAnimation();
+  function handleDisableAnimationsChange(settingValue, reducedValue) {
+    switch (settingValue) {
+      case "auto": {
+        setDocumentAnimationsEnabled(!reducedValue);
+        break;
+      }
+      case "enabled": {
+        setDocumentAnimationsEnabled(true);
+        break;
+      }
+      case "disabled": {
+        setDocumentAnimationsEnabled(false);
+        break;
+      }
     }
   }
 
-  function DisableAnimation() {
-    const css = `
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-          animation-delay: 0.01ms !important;
-        }
-      `;
-    const existingStyleElement = document.getElementById("custom-global-style");
-    if (!existingStyleElement) {
-      const styleElement = document.createElement("style");
-      styleElement.textContent = css;
-      styleElement.id = "custom-global-style";
-      document.head.appendChild(styleElement);
-    }
-  }
-
-  function EnableAnimation() {
-    const existingStyleElement = document.getElementById("custom-global-style");
-    if (existingStyleElement) {
-      existingStyleElement.remove();
-    }
-  }
+  $: handleDisableAnimationsChange(
+    $appSettings.persistent.disableAnimations,
+    $reduced_motion_store
+  );
 </script>
 
 {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
