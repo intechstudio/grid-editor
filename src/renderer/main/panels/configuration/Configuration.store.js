@@ -324,6 +324,13 @@ export class ConfigList extends Array {
 }
 
 export class ConfigTarget {
+  device = { dx: undefined, dy: undefined };
+  page = undefined;
+  element = undefined;
+  eventType = undefined;
+  events = undefined;
+  elementType = undefined;
+
   static create({ device: { dx: dx, dy: dy }, page, element, eventType }) {
     const device = get(runtime).find((e) => e.dx == dx && e.dy == dy);
 
@@ -359,6 +366,27 @@ export class ConfigTarget {
       element: userInput.elementnumber,
       eventType: userInput.eventtype,
     });
+  }
+
+  static getCurrent() {
+    const ui = get(user_input);
+    const currentTarget = ConfigTarget.create({
+      device: { dx: ui.dx, dy: ui.dy },
+      page: ui.pagenumber,
+      element: ui.elementnumber,
+      eventType: ui.eventtype,
+    });
+
+    return currentTarget;
+  }
+
+  hasChanges() {
+    for (const event of this.events) {
+      if (event.config !== event.stored) {
+        return true;
+      }
+    }
+    return false;
   }
 
   getEvent() {
@@ -410,20 +438,19 @@ export class ConfigTarget {
       }
     });
   }
-
-  static getCurrent() {
-    const ui = get(user_input);
-    const currentTarget = ConfigTarget.create({
-      device: { dx: ui.dx, dy: ui.dy },
-      page: ui.pagenumber,
-      element: ui.elementnumber,
-      eventType: ui.eventtype,
-    });
-
-    return currentTarget;
-  }
 }
 
+//TODO: Format this out when changing to TS
+/**
+ * @type {import("svelte/store").Writable<ConfigList> & {
+ *   update: (params: any) => void;
+ *   set: (value: any) => void;
+ *   unsubscribe: () => void;
+ *   loadPreset: (any) => Promise<void>;
+ *   loadProfile: (any) => Promise<void>;
+ *   refresh: () => void;
+ * }}
+ */
 export const configManager = create_configuration_manager();
 
 function create_configuration_manager() {

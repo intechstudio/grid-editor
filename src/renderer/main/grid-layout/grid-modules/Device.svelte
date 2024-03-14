@@ -1,5 +1,5 @@
 <script>
-  import { logger } from "./../../../runtime/runtime.store.js";
+  import { Analytics } from "./../../../runtime/analytics.js";
   import { contextTarget } from "./../../panels/configuration/components/context-target.ts";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
@@ -23,23 +23,24 @@
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
   import {
-    runtime,
     user_input,
     controlElementClipboard,
   } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
-  import { Analytics } from "../../../runtime/analytics";
-  import {
-    configManager,
-    ConfigTarget,
-    ConfigList,
-  } from "../../panels/configuration/Configuration.store";
+  import { ConfigTarget } from "../../panels/configuration/Configuration.store";
   import {
     EventType,
     EventTypeToNumber,
   } from "../../../protocol/grid-protocol.ts";
   import { get } from "svelte/store";
+  import {
+    loadPreset,
+    loadProfile,
+    overwriteElement,
+    copyElement,
+    discardElement,
+  } from "../../../main/panels/configuration/configuration-actions";
 
   export let device = undefined;
   export let width = 225;
@@ -65,33 +66,36 @@
     selectElement(elementNumber);
   }
 
-  function selectElement(controlNumber) {
+  function selectElement(element) {
     user_input.set({
       dx: device?.dx,
       dy: device?.dy,
       pagenumber: $user_input.pagenumber,
-      elementnumber: controlNumber,
+      elementnumber: element,
       eventtype: $user_input.eventtype,
     });
   }
 
-  function handlePresetLoad(e) {
-    const { sender, elementNumber } = e.detail;
-
+  function handlePresetLoad() {
     Analytics.track({
       event: "Preset Load Start",
       payload: {},
       mandatory: false,
     });
 
-    configManager
-      .loadPreset({
-        x: device.dx,
-        y: device.dy,
-        element: elementNumber,
-        preset: $selectedConfigStore,
-      })
+    const { sender, elementNumber } = e.detail;
+    loadPreset({
+      dx: device.dx,
+      dy: device.dy,
+      element: elementNumber,
+      preset: $selectedConfigStore,
+    })
       .then(() => {
+        Analytics.track({
+          event: "Preset Load Success",
+          payload: {},
+          mandatory: false,
+        });
         sender.dispatchEvent(
           new CustomEvent("preset-load", {
             detail: {
@@ -99,20 +103,19 @@
             },
           })
         );
-
-        Analytics.track({
-          event: "Preset Load Success",
-          payload: {},
-          mandatory: false,
-        });
       })
       .catch((e) => {
-        console.warn(e);
-        //TODO: make feedback for fail
+        sender.dispatchEvent(
+          new CustomEvent("preset-load", {
+            detail: {
+              success: false,
+            },
+          })
+        );
       });
   }
 
-  function handleProfileLoad(e) {
+  function handleProfileLoad() {
     const { sender, device } = e.detail;
 
     Analytics.track({
@@ -121,12 +124,12 @@
       mandatory: false,
     });
 
-    configManager
-      .loadProfile({
-        x: device.dx,
-        y: device.dy,
-        profile: $selectedConfigStore.configs,
-      })
+    loadProfile({
+      dx: device.dx,
+      dy: device.dy,
+      page: 0,
+      profile: $selectedConfigStore.configs,
+    })
       .then(() => {
         sender.dispatchEvent(
           new CustomEvent("profile-load", {
@@ -142,7 +145,7 @@
           mandatory: false,
         });
       })
-      .catch((e) => {
+      .catch((error) => {
         sender.dispatchEvent(
           new CustomEvent("profile-load", {
             detail: {
@@ -150,195 +153,50 @@
             },
           })
         );
-        console.warn(e);
       });
   }
 
-  function handleCopyAll({ dx, dy, page, element }) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementcopy",
-      message: `Copy events from element...`,
+  function handleOverwriteElement(elementNumber) {
+    overwriteElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
     });
 
-    //Fetching all unloaded elements configuration
-    runtime
-      .fetch_element_configuration_from_grid(dx, dy, page, element)
-      .then(async (desc) => {
-        const current = ConfigTarget.create({
-          device: {
-            dx: dx,
-            dy: dy,
-          },
-          page: page,
-          element: element,
-          event: EventTypeToNumber(EventType.INIT),
-        });
-
-        const data = [];
-        for (const event of current.events) {
-          const target = ConfigTarget.create({
-            device: current.device,
-            element: current.element,
-            eventType: event.type,
-            page: current.page,
-          });
-          const list = await ConfigList.createFromTarget(target);
-          data.push({ eventType: target.eventType, configs: list });
-        }
-
-        controlElementClipboard.set({
-          elementType: current.elementType,
-          data: data,
-        });
-        logger.set({
-          type: "success",
-          mode: 0,
-          classname: "elementcopy",
-          message: `Events are copied!`,
-        });
-      })
-      .catch((e) => {
-        console.warn(e);
-        //TODO: make feedback for fail
-      });
-
-    Analytics.track({
-      event: "Config Action",
-      payload: { click: "Whole Element Copy" },
-      mandatory: false,
-    });
-  }
-
-  function handleOverwriteAll({ dx, dy, page, element }) {
     Analytics.track({
       event: "Config Action",
       payload: { click: "Whole Element Overwrite" },
       mandatory: false,
     });
-
-    let clipboard = get(controlElementClipboard);
-    const current = ConfigTarget.create({
-      device: {
-        dx: dx,
-        dy: dy,
-      },
-      page: page,
-      element: element,
-      event: EventTypeToNumber(EventType.INIT),
-    });
-
-    if (current.elementType !== clipboard.elementType) {
-      logger.set({
-        type: "fail",
-        mode: 0,
-        classname: "rejectoverwrite",
-        message: `Overwrite element failed! Current ${current.elementType} control 
-          element is not compatible with clipboards ${clipboard.elementType} type.`,
-      });
-      return;
-    }
-
-    const promises = [];
-    for (const e of current.events) {
-      const eventtype = e.type;
-      const target = ConfigTarget.create({
-        device: current.device,
-        element: current.element,
-        eventType: eventtype,
-        page: current.page,
-      });
-      const list = clipboard.data.find(
-        (e) => e.eventType === eventtype
-      ).configs;
-      promises.push(list.sendTo({ target: target }));
-    }
-    Promise.all(promises)
-      .then(() => {
-        const ui = get(user_input);
-        user_input.set({
-          dx: dx,
-          dy: dy,
-          pagenumber: page,
-          elementnumber: element,
-          eventtype: ui.eventtype,
-        });
-        const displayed = ConfigTarget.createFrom({
-          userInput: ui,
-        });
-        ConfigList.createFromTarget(displayed).then((list) => {
-          configManager.set(list);
-        });
-      })
-      .catch((e) => {});
   }
 
-  async function handleDiscardElement({ dx, dy, page, element }) {
-    logger.set({
-      type: "progress",
-      mode: 0,
-      classname: "elementdiscard",
-      message: `Discarding element configuration...`,
+  function handleDiscardElement(elementNumber) {
+    discardElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
     });
-
-    const current = ConfigTarget.create({
-      device: {
-        dx: dx,
-        dy: dy,
-      },
-      page: page,
-      element: element,
-      event: EventTypeToNumber(EventType.INIT),
-    });
-
-    const promises = [];
-    for (const event of current.events) {
-      const stored = event.stored;
-      if (typeof stored !== "undefined") {
-        const eventtype = event.type;
-        const target = ConfigTarget.create({
-          device: current.device,
-          element: current.element,
-          eventType: eventtype,
-          page: current.page,
-        });
-        const list = ConfigList.createFromActionString(stored);
-        promises.push(list.sendTo({ target: target }));
-      }
-    }
-
-    Promise.all(promises)
-      .then(() => {
-        const ui = get(user_input);
-        user_input.set({
-          dx: dx,
-          dy: dy,
-          pagenumber: page,
-          elementnumber: element,
-          eventtype: ui.eventtype,
-        });
-        const displayed = ConfigTarget.createFrom({
-          userInput: ui,
-        });
-        ConfigList.createFromTarget(displayed).then((list) => {
-          configManager.set(list);
-        });
-
-        logger.set({
-          type: "progress",
-          mode: 0,
-          classname: "elementdiscard",
-          message: `Configuration on Element ${element} is discarded!`,
-        });
-      })
-      .catch((e) => {
-        console.error(e);
-      });
 
     Analytics.track({
       event: "Config Action",
       payload: { click: "Whole Element Discard" },
+      mandatory: false,
+    });
+  }
+
+  function handleCopyElement(elementNumber) {
+    copyElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
       mandatory: false,
     });
   }
@@ -383,36 +241,18 @@
           items: [
             {
               text: "Copy Configuration",
-              handler: () =>
-                handleCopyAll({
-                  dx: device.dx,
-                  dy: device.dy,
-                  page: get(user_input).pagenumber,
-                  element: elementNumber,
-                }),
+              handler: () => handleCopyElement(elementNumber),
             },
             {
               text: "Overwrite Configuration",
-              handler: () =>
-                handleOverwriteAll({
-                  dx: device.dx,
-                  dy: device.dy,
-                  page: get(user_input).pagenumber,
-                  element: elementNumber,
-                }),
+              handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
                 return typeof $controlElementClipboard === "undefined";
               },
             },
             {
               text: "Discard Changes",
-              handler: () =>
-                handleDiscardElement({
-                  dx: device.dx,
-                  dy: device.dy,
-                  page: get(user_input).pagenumber,
-                  element: elementNumber,
-                }),
+              handler: () => handleDiscardElement(elementNumber),
               isDisabled: () => {
                 const target = ConfigTarget.create({
                   device: {
@@ -423,12 +263,7 @@
                   element: elementNumber,
                   eventType: EventTypeToNumber(EventType.INIT),
                 });
-                for (const event of target.events) {
-                  if (event.config !== event.stored) {
-                    return false;
-                  }
-                }
-                return true;
+                return !target.hasChanges();
               },
             },
           ],

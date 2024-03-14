@@ -84,9 +84,7 @@
 </script>
 
 <div class={$$props.class}>
-  <div class="py-2 flex flex-col justify-center">
-    <div class="text-gray-500">Events</div>
-
+  <div class="pb-2 flex flex-col justify-center">
     <div class="flex flex-col justify-center items-center">
       <MeltRadio
         bind:target={selected}
