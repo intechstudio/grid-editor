@@ -80,13 +80,9 @@
   let loaded = false;
   let macroInputField;
 
-  let isStored = true;
-  let storedScript = undefined;
-
-  $: isStored = config.script === storedScript;
-
-  $: if ($runtime && runtime.unsavedChangesCount() === 0) {
-    storedScript = config.script;
+  let isChanges = false;
+  $: if ($runtime) {
+    isChanges = runtime.unsavedChangesCount() > 0;
   }
 
   onMount(() => {
@@ -172,7 +168,9 @@
   }
 
   function sendData(parameters) {
-    let script = "gks(" + defaultDelay + "," + parameters.join(",") + ")";
+    let script = `gks( ${defaultDelay}${
+      parameters.length > 0 ? "," + parameters.join(",") : ""
+    })`;
     dispatch("output", { short: "gks", script: script });
   }
 
@@ -503,9 +501,8 @@
     <div
       use:clickOutside={{ useCapture: true }}
       bind:this={macroInputField}
-      class="{!isStored
-        ? 'focus:border-warning-desaturate-20 border-warning'
-        : 'focus:border-select-desaturate-20 border-select'} editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
+      class="
+        focus:border-select-desaturate-20 border-select editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
       on:keydown|preventDefault={identifyKey}
       on:keyup|preventDefault={identifyKey}
       on:blur={onBlur}
@@ -528,69 +525,64 @@
       {/each}
     </div>
 
-    <div class="text-sm text-warning truncate" class:hidden={isStored}>
-      Macros will take effect after storing
+    <div class="text-sm text-warning truncate" class:hidden={!isChanges}>
+      Unstored macros will take effect after storing
     </div>
   </div>
 
-  <div class="grid grid-cols-4 grid-rows-[auto_auto_auto] gap-x-2 gap-y-1">
-    <span class="text-gray-500 text-sm col-span-4">Add Key</span>
-    <select
-      bind:value={selectedKey}
-      class="text-white focus:outline-none border-select bg-primary flex col-span-3"
-    >
-      {#each layout.lookup as key}
-        <option value={key} class="text-white bg-secondary py-1"
-          >{key.display}</option
-        >
-      {/each}
-    </select>
+  <span class="text-gray-500 text-sm col-span-4">Add Key</span>
 
+  <div class="grid grid-cols-[auto_1fr] w-full h-fit gap-x-2">
+    <div class="grid grid-cols-3 gap-y-1 gap-x-2">
+      <select
+        bind:value={selectedKey}
+        class="text-white focus:outline-none border-select bg-primary flex col-span-3"
+      >
+        {#each layout.lookup as key}
+          <option value={key} class="text-white bg-secondary py-1"
+            >{key.display}</option
+          >
+        {/each}
+      </select>
+      <button
+        on:click={() => {
+          addonKeyType = "keyup";
+        }}
+        class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keyup'
+          ? 'border-yellow-500 text-yellow-500'
+          : 'text-select-desaturate-20 border-select-desaturate-20'} "
+      >
+        keyup
+      </button>
+      <button
+        on:click={() => {
+          addonKeyType = "keydown";
+        }}
+        class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keydown'
+          ? 'border-red-500 text-red-500'
+          : 'text-select-desaturate-20 border-select-desaturate-20'}"
+      >
+        keydown
+      </button>
+      <button
+        on:click={() => {
+          addonKeyType = "keydownup";
+        }}
+        class="truncate text-sm text-center border rounded-md px-1
+          {addonKeyType == 'keydownup'
+          ? 'border-green-500 text-green-500'
+          : 'text-select-desaturate-20 border-select-desaturate-20'}"
+      >
+        keydownup
+      </button>
+    </div>
     <MoltenPushButton
       on:click={addKey}
       text={"Add Key"}
       style={ButtonStyle.ACCEPT}
     />
-
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      on:click={() => {
-        addonKeyType = "keyup";
-      }}
-      class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keyup'
-        ? 'border-yellow-500 text-yellow-500'
-        : 'text-select-desaturate-20 border-select-desaturate-20'} "
-    >
-      keyup
-    </div>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      on:click={() => {
-        addonKeyType = "keydown";
-      }}
-      class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keydown'
-        ? 'border-red-500 text-red-500'
-        : 'text-select-desaturate-20 border-select-desaturate-20'}"
-    >
-      keydown
-    </div>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div
-      on:click={() => {
-        addonKeyType = "keydownup";
-      }}
-      class="truncate text-sm text-center border rounded-md px-1
-          {addonKeyType == 'keydownup'
-        ? 'border-green-500 text-green-500'
-        : 'text-select-desaturate-20 border-select-desaturate-20'}"
-    >
-      keydownup
-    </div>
   </div>
   <div class="flex flex-col">
     <div class="text-gray-500 text-sm">Delay Key</div>
