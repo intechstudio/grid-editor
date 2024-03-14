@@ -20,6 +20,7 @@ const persistentDefaultValues = {
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   heartbeatDebugEnabled: false,
+  messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
@@ -105,6 +106,7 @@ function createAppSettingsStore(persistent) {
       owner: { neme: undefined },
     },
     packageList: [],
+    gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
 

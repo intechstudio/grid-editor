@@ -5,6 +5,7 @@
   const dispatch = createEventDispatcher();
 
   export let selected = false;
+  export let halfSelected = false;
   export let disabled = false;
   export let index = undefined;
 
@@ -45,6 +46,9 @@
         activeState={selected}
         iconPath={"tick"}
       />
+    {:else if halfSelected}
+      <!-- TODO: Make half selected with proper SVG icon -->
+      <div />
     {/if}
   </button>
 </select-box>

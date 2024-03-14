@@ -12,6 +12,7 @@
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
   import { onMount } from "svelte";
+  import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
 
   let logLength = 0;
   let trackerVisible = true;
@@ -35,15 +36,26 @@
     const stickyRect = stickyContainer.getBoundingClientRect();
     const threshold = -15;
 
-    showFixedStickyContainer = !(
-      stickyRect.bottom <
-      contRect.bottom + threshold
-    );
+    showFixedStickyContainer =
+      stickyRect.bottom >= contRect.bottom + threshold ||
+      stickyRect.top <= contRect.top - threshold ||
+      stickyRect.left <= contRect.left - threshold ||
+      stickyRect.right >= contRect.right + threshold;
   }
 
   onMount(() => {
     window.addEventListener("resize", handleResize, true);
   });
+
+  function handleGridLayoutShift(vector) {
+    if (vector.x === 0 && vector.y === 0) {
+      return;
+    }
+
+    handleResize();
+  }
+
+  $: handleGridLayoutShift($appSettings.gridLayoutShift);
 
   let showModuleHangingDialog = false;
   let moduleHangingTimeout = undefined;
@@ -72,14 +84,15 @@
   id="container"
   class="relative flex flex-col w-full h-full overflow-visible justify-center"
 >
+  <ControlSurface />
   {#if showFixedStickyContainer}
     <StickyContainer
-      class="absolute z-[1] bottom-0 left-1/2 -translate-x-1/2 mb-5"
+      class="absolute z-[2] bottom-0 left-1/2 -translate-x-1/2 mb-5"
     />
   {/if}
 
   <div
-    class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+    class="absolute top-0 w-fit self-center mt-10 z-[2] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
   >
     {#if showModuleHangingDialog}
       <ModuleHangingDialog />
@@ -91,7 +104,9 @@
   <GridLayout
     bind:component={gridLayout}
     on:resize={handleResize}
-    class="absolute z-[0] items-center flex flex-col self-center"
+    class="absolute z-[0] top-1/2 left-1/2 flex flex-col"
+    style="transform: translate(calc(-50% + {$appSettings.gridLayoutShift
+      .x}px), calc(-50% + {$appSettings.gridLayoutShift.y}px));"
   >
     <div
       id="sticky-container"
@@ -124,7 +139,7 @@
     {/if}
 
     <CursorLog
-      class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[1]"
+      class="absolute bottom-0 left-1/2 -translate-x-1/2 mb-4 z-[2]"
       on:content-change={handleContentChange}
     />
   </div>

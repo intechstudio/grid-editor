@@ -1,7 +1,16 @@
 diff --git a/node_modules/lua-format/src/luamin.js b/node_modules/lua-format/src/luamin.js
-index 3387f00..4f255a9 100644
+index 725cb34..f828d30 100644
 --- a/node_modules/lua-format/src/luamin.js
 +++ b/node_modules/lua-format/src/luamin.js
+@@ -268,7 +268,7 @@ function CreateLuaTokenStream(text) {
+         let q = 0
+         let line = 1
+         let char = 1
+-        while (q <= p) {
++        while (char <= p) {
+             if (text.substr(q,1) == '\n') {
+                 line++
+                 char = 1
 @@ -279,7 +279,7 @@ function CreateLuaTokenStream(text) {
          let i_;
          for (i_ = 0; i_ < tokenBuffer.length; i_++) {

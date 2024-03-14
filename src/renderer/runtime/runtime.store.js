@@ -930,6 +930,13 @@ function create_runtime() {
       return rt;
     });
 
+    if (get(_runtime).length === 0) {
+      appSettings.update((s) => {
+        s.gridLayoutShift = { x: 0, y: 0 };
+        return s;
+      });
+    }
+
     user_input.module_destroy_handler(removed.dx, removed.dy);
     if (removed.architecture === "virtual") {
       virtual_modules.set([]);
