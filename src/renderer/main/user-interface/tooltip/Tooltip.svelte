@@ -68,6 +68,9 @@
         }, delay);
       }
     }
+    if (triggerEvents.includes("click")) {
+      clearTimeout(closeTimeout);
+    }
     e.stopPropagation();
   }
 
@@ -82,12 +85,9 @@
       );
     }
     if (triggerEvents.includes("click")) {
-      closeTimeout = setTimeout(
-        () => {
-          showTooltip = false;
-        },
-        instant ? 0 : 100
-      );
+      closeTimeout = setTimeout(() => {
+        showTooltip = false;
+      }, 100);
     }
     e.stopPropagation();
   }
