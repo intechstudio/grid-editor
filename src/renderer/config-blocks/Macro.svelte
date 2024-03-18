@@ -526,7 +526,7 @@
     </div>
 
     <div class="text-sm text-warning truncate" class:hidden={!isChanges}>
-      Unstored macros will take effect after storing
+      Warning: Store your changes to enable Macros!
     </div>
   </div>
 
