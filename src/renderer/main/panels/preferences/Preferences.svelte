@@ -138,7 +138,9 @@
         bind:target={$appSettings.persistent.disableAnimations}
         options={[
           {
-            title: `Auto (${$reduced_motion_store ? "Disabled" : "Enabled"})`,
+            title: `Auto (${
+              $reduced_motion_store ? "Disabled" : "Enabled"
+            } by OS)`,
             value: "auto",
           },
           {
