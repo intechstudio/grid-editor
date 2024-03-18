@@ -68,6 +68,9 @@
         }, delay);
       }
     }
+    if (triggerEvents.includes("click")) {
+      clearTimeout(closeTimeout);
+    }
     e.stopPropagation();
   }
 
@@ -80,6 +83,11 @@
         },
         instant ? 0 : 100
       );
+    }
+    if (triggerEvents.includes("click")) {
+      closeTimeout = setTimeout(() => {
+        showTooltip = false;
+      }, 100);
     }
     e.stopPropagation();
   }
@@ -165,7 +173,7 @@
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
     on:click={handleClick}
-    class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md"
+    class="{$$props.class} tooltip-bg cursor-default flex flex-col relative rounded-md z-[99]"
     transition:fade|global={{
       duration: instant ? 0 : duration, //Make it instant when explicitly clicked
     }}

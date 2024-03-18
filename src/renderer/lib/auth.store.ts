@@ -1,6 +1,6 @@
 import { writable } from "svelte/store";
 
-import { centralAuth } from "./firebase";
+import { prodCentralAuth, devCentralAuth } from "./firebase";
 import {
   EmailAuthProvider,
   GoogleAuthProvider,
@@ -26,6 +26,11 @@ export enum LoginErrorType {
   GENERAL_ERROR = "GeneralError",
 }
 
+export enum AuthEnvironment {
+  PRODUCTION = "production",
+  DEVELOPMENT = "development",
+}
+
 // Custom exception class with an enum field
 export default class LoginError extends Error {
   errorType: LoginErrorType;
@@ -40,14 +45,28 @@ export default class LoginError extends Error {
 const createAuth = () => {
   const { subscribe, set } = writable<AuthStore | null>(null);
 
+  let currentAuthEnvironment: AuthEnvironment | undefined = undefined;
+
+  function getCurrentCentralAuth() {
+    switch (currentAuthEnvironment) {
+      case AuthEnvironment.PRODUCTION:
+        return prodCentralAuth;
+      case AuthEnvironment.DEVELOPMENT:
+        return devCentralAuth;
+      default:
+        return prodCentralAuth;
+    }
+  }
+
   async function login(email, password): Promise<any> {
     // we don't need specific persistence options, as local is default
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     const credential = EmailAuthProvider.credential(email, password);
 
-    return signInWithCredential(centralAuth, credential)
+    return signInWithCredential(getCurrentCentralAuth(), credential)
       .then(async (userCredential) => {
-        const userIdToken = await centralAuth.currentUser!.getIdToken();
+        const userIdToken =
+          await getCurrentCentralAuth().currentUser!.getIdToken();
         set({ event: "login", providerId: "oidc", idToken: userIdToken });
       })
       .catch((e) => {
@@ -71,19 +90,13 @@ const createAuth = () => {
       });
   }
 
-  async function anonymousLogin() {
-    await signInAnonymously(centralAuth).then(async () => {
-      const userIdToken = await centralAuth.currentUser!.getIdToken();
-      set({ event: "login", providerId: "oidc", idToken: userIdToken });
-    });
-  }
-
   async function socialLogin(provider, idToken) {
     if (provider == "google") {
       const credential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(centralAuth, credential)
+      await signInWithCredential(getCurrentCentralAuth(), credential)
         .then(async (userCredential) => {
-          const idToken = await centralAuth.currentUser?.getIdToken();
+          const idToken =
+            await getCurrentCentralAuth().currentUser?.getIdToken();
           set({ event: "login", providerId: "oidc", idToken: idToken });
         })
         .catch((error) => {
@@ -94,7 +107,7 @@ const createAuth = () => {
   }
 
   async function logout() {
-    await signOut(centralAuth)
+    await signOut(getCurrentCentralAuth())
       .then((res) => {
         set({ event: "logout" });
       })
@@ -103,12 +116,31 @@ const createAuth = () => {
       });
   }
 
+  function getCurrentAuthEnvironment() {
+    return currentAuthEnvironment;
+  }
+
+  async function setCurrentAuthEnvironment(environment: AuthEnvironment) {
+    if (environment != currentAuthEnvironment) {
+      if (currentAuthEnvironment) {
+        await logout();
+      }
+      currentAuthEnvironment = environment;
+      getCurrentCentralAuth()
+        .currentUser?.getIdToken()
+        .then((idToken) =>
+          set({ event: "login", providerId: "oidc", idToken: idToken })
+        );
+    }
+  }
+
   return {
     subscribe,
     login,
     socialLogin,
     logout,
-    anonymousLogin,
+    getCurrentAuthEnvironment,
+    setCurrentAuthEnvironment,
   };
 };
 

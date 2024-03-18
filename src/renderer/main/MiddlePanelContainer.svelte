@@ -82,7 +82,7 @@
 
 <div
   id="container"
-  class="relative flex flex-col w-full h-full overflow-clip justify-center"
+  class="relative flex flex-col w-full h-full overflow-visible justify-center"
 >
   <ControlSurface />
   {#if showFixedStickyContainer}
