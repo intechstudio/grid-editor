@@ -40,5 +40,6 @@
   "EDITOR_VERSION": "",
   "PROFILE_CLOUD_URL_LOCAL": "http://localhost:5200",
   "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
-  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app"
+  "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
+  "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth"
 }

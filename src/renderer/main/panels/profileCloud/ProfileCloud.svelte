@@ -11,7 +11,7 @@
 
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
-  import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
+  import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
@@ -24,7 +24,7 @@
 
   let iframe_element;
 
-  $: sendAuthEventToIframe($authStore);
+  $: profileCloudIsMounted && sendAuthEventToIframe($authStore);
 
   $: sendConfigLinkToIframe($configLinkStore);
 
@@ -94,7 +94,7 @@
   }
 
   function sendAuthEventToIframe(authEvent) {
-    if (iframe_element == undefined) return;
+    if (!iframe_element || !authEvent) return;
 
     // the authStore should contain an event!
     if (!authEvent.event) return;
@@ -250,6 +250,11 @@
   async function handleProfileCloudMounted(event) {
     console.log("profile cloud is mounted received");
     profileCloudIsMounted = true;
+    let authEnvironment = AuthEnvironment.PRODUCTION;
+    if (event.data.environment && event.data.environment !== "production") {
+      authEnvironment = AuthEnvironment.DEVELOPMENT;
+    }
+    authStore.setCurrentAuthEnvironment(authEnvironment);
     if (
       selectedModule !== undefined ||
       selectedControlElementType !== undefined
