@@ -90,15 +90,14 @@
 
   let discardElementEnabled = false;
 
-  function handleRuntimeChange(rt) {
-    const ui = get(user_input);
+  function handleCalculateDiscardEnabled(rt, ui) {
     const target = ConfigTarget.createFrom({
       userInput: ui,
     });
     discardElementEnabled = target?.hasChanges() ?? true;
   }
 
-  $: handleRuntimeChange($runtime);
+  $: handleCalculateDiscardEnabled($runtime, $user_input);
 </script>
 
 <app-action-multi-select class="w-full flex flex-col gap-2">
