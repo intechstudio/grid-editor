@@ -37,6 +37,7 @@ const persistentDefaultValues = {
   showPCB: false,
   changeOnEvent: "event",
   sendHeartbeatImmediate: false,
+  disableAnimations: false,
 };
 
 function createSplitPanes() {

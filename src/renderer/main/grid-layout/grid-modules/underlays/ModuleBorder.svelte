@@ -3,12 +3,15 @@
   import { createEventDispatcher } from "svelte";
   import { user_input } from "../../../../runtime/runtime.store.js";
   import { fade } from "svelte/transition";
+  import { reduced_motion_store } from "../../../../runtime/animations";
+  import { get } from "svelte/store";
 
   export let device = undefined;
   export let visible = false;
 
   let isSelected = false;
   let isSystemEventsSelected = false;
+  let animationDisabled = false;
 
   $: handleUserInputChange($user_input);
 
@@ -16,6 +19,28 @@
     isSelected = device?.dx == ui.dx && device?.dy == ui.dy;
     isSystemEventsSelected = isSelected && ui.elementnumber == 255;
   }
+
+  function handleAnimationChange(settingValue, reducedValue) {
+    switch (settingValue) {
+      case "auto": {
+        animationDisabled = reducedValue;
+        break;
+      }
+      case "enabled": {
+        animationDisabled = false;
+        break;
+      }
+      case "disabled": {
+        animationDisabled = true;
+        break;
+      }
+    }
+  }
+
+  $: handleAnimationChange(
+    $appSettings.persistent.disableAnimations,
+    $reduced_motion_store
+  );
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->
@@ -23,10 +48,12 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 {#if visible}
   <div
-    class="{$$props.class} border-2 border-transparent"
-    class:border-white={isSelected}
-    class:border-opacity-30={isSelected}
-    class:animate-border-error={device?.fwMismatch}
+    class="{$$props.class} border-2"
+    class:border-transparent={!isSelected && !device?.fwMismatch}
+    class:border-error={device?.fwMismatch && animationDisabled}
+    class:border-white={isSelected && !device?.fwMismatch}
+    class:border-opacity-30={isSelected && !device?.fwMismatch}
+    class:animate-border-error={device?.fwMismatch && !animationDisabled}
     style={$$props.style}
   >
     {#if isSelected && isSystemEventsSelected && $appSettings.persistent.showPCB}
@@ -1508,8 +1535,11 @@
   }
 
   @keyframes error-animation {
-    to {
+    from {
       border-color: #dc2626;
+    }
+    to {
+      border-color: transparent;
     }
   }
 
