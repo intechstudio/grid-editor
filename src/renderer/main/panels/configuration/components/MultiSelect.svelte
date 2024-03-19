@@ -1,4 +1,6 @@
 <script>
+  import { ConfigTarget } from "./../Configuration.store.js";
+  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
@@ -12,6 +14,7 @@
   } from "../../preferences/MoltenPushButton.svelte";
 
   import MoltenPopup from "../../preferences/MoltenPopup.svelte";
+  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -80,13 +83,29 @@
   function handleOverwriteAll(e) {
     dispatch("overwrite-all");
   }
+
+  function handleDiscard(e) {
+    dispatch("discard");
+  }
+
+  let discardElementEnabled = false;
+
+  function handleCalculateDiscardEnabled(rt, ui) {
+    const target = ConfigTarget.createFrom({
+      userInput: ui,
+    });
+    discardElementEnabled = target?.hasChanges() ?? true;
+  }
+
+  $: handleCalculateDiscardEnabled($runtime, $user_input);
 </script>
 
 <app-action-multi-select class="w-full flex flex-col gap-2">
-  <div class="flex flex-row gap-1 text-gray-400">
+  <div class="flex flex-row flex-wrap gap-2 text-gray-400 items-center">
+    <div class="text-gray-500 text-sm">Element:</div>
     <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Copy Element</span>
+        <span class=" text-white text-opacity-75 text-sm">Copy</span>
         <SvgIcon displayMode="button" iconPath={"copy_all"} />
       </div>
     </MoltenPushButton>
@@ -98,9 +117,7 @@
     >
       <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm"
-          >Overwrite Element</span
-        >
+        <span class=" text-white text-opacity-75 text-sm">Overwrite</span>
         <SvgIcon
           slot="content"
           class={typeof $controlElementClipboard === "undefined"
@@ -110,16 +127,35 @@
         />
       </div>
     </MoltenPushButton>
+
+    <MoltenPushButton
+      on:click={handleDiscard}
+      ratio={ButtonRatio.BOX}
+      disabled={!discardElementEnabled}
+    >
+      <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
+      <div slot="content" class="flex flex-row gap-2 items-center">
+        <span class=" text-white text-opacity-75 text-sm">Discard</span>
+        <SvgIcon
+          slot="content"
+          class={!discardElementEnabled
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"clear_from_device_01"}
+        />
+      </div>
+    </MoltenPushButton>
   </div>
   <!-- When any of the array elements is true -->
-  <div class="flex flex-row flex-wrap gap-2 w-full">
+  <div class="flex flex-row flex-wrap gap-2 w-full items-center">
+    <div class="text-gray-500 text-sm">Action:</div>
     <MoltenPushButton
       on:click={handleConvertToCodeBlockClicked}
       disabled={!isSelection}
       ratio={ButtonRatio.BOX}
     >
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Codify</span>
+        <span class=" text-white text-opacity-75 text-sm">To Code</span>
         <SvgIcon
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"

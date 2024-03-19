@@ -12,7 +12,10 @@ import { Analytics } from "./analytics.js";
 import { appSettings } from "./app-helper.store";
 
 import { add_datapoint } from "../serialport/message-stream.store.js";
-import { configManager } from "../main/panels/configuration/Configuration.store.js";
+import {
+  ConfigObject,
+  configManager,
+} from "../main/panels/configuration/Configuration.store.js";
 import { forEach } from "lodash";
 import { modal } from "../main/modals/modal.store";
 import { ProtectedStore } from "./smart-store.store.ts";
@@ -29,7 +32,9 @@ const setIntervalAsync = (fn, ms) => {
 
 let selection_changed_timestamp = 0;
 
+/** @type {import("svelte/store").Writable<any>} */
 export const controlElementClipboard = writable(undefined);
+/** @type {import("svelte/store").Writable<ConfigObject[]>} */
 export const appActionClipboard = writable([]);
 
 export const elementPositionStore = writable({});

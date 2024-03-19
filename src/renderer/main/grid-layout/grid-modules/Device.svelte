@@ -1,4 +1,6 @@
 <script>
+  import { Analytics } from "./../../../runtime/analytics.js";
+  import { contextTarget } from "./../../panels/configuration/components/context-target.ts";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -20,14 +22,25 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import { user_input } from "../../../runtime/runtime.store.js";
+  import {
+    user_input,
+    controlElementClipboard,
+  } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
-  import { Analytics } from "../../../runtime/analytics";
+  import { ConfigTarget } from "../../panels/configuration/Configuration.store";
   import {
-    configManager,
-    ConfigTarget,
-  } from "../../panels/configuration/Configuration.store";
+    EventType,
+    EventTypeToNumber,
+  } from "../../../protocol/grid-protocol.ts";
+  import { get } from "svelte/store";
+  import {
+    loadPreset,
+    loadProfile,
+    overwriteElement,
+    copyElement,
+    discardElement,
+  } from "../../../main/panels/configuration/configuration-actions";
 
   export let device = undefined;
   export let width = 225;
@@ -53,33 +66,36 @@
     selectElement(elementNumber);
   }
 
-  function selectElement(controlNumber) {
+  function selectElement(element) {
     user_input.set({
       dx: device?.dx,
       dy: device?.dy,
       pagenumber: $user_input.pagenumber,
-      elementnumber: controlNumber,
+      elementnumber: element,
       eventtype: $user_input.eventtype,
     });
   }
 
-  function handlePresetLoad(e) {
-    const { sender, elementNumber } = e.detail;
-
+  function handlePresetLoad() {
     Analytics.track({
       event: "Preset Load Start",
       payload: {},
       mandatory: false,
     });
 
-    configManager
-      .loadPreset({
-        x: device.dx,
-        y: device.dy,
-        element: elementNumber,
-        preset: $selectedConfigStore,
-      })
+    const { sender, elementNumber } = e.detail;
+    loadPreset({
+      dx: device.dx,
+      dy: device.dy,
+      element: elementNumber,
+      preset: $selectedConfigStore,
+    })
       .then(() => {
+        Analytics.track({
+          event: "Preset Load Success",
+          payload: {},
+          mandatory: false,
+        });
         sender.dispatchEvent(
           new CustomEvent("preset-load", {
             detail: {
@@ -87,20 +103,19 @@
             },
           })
         );
-
-        Analytics.track({
-          event: "Preset Load Success",
-          payload: {},
-          mandatory: false,
-        });
       })
       .catch((e) => {
-        console.warn(e);
-        //TODO: make feedback for fail
+        sender.dispatchEvent(
+          new CustomEvent("preset-load", {
+            detail: {
+              success: false,
+            },
+          })
+        );
       });
   }
 
-  function handleProfileLoad(e) {
+  function handleProfileLoad() {
     const { sender, device } = e.detail;
 
     Analytics.track({
@@ -109,12 +124,12 @@
       mandatory: false,
     });
 
-    configManager
-      .loadProfile({
-        x: device.dx,
-        y: device.dy,
-        profile: $selectedConfigStore.configs,
-      })
+    loadProfile({
+      dx: device.dx,
+      dy: device.dy,
+      page: 0,
+      profile: $selectedConfigStore.configs,
+    })
       .then(() => {
         sender.dispatchEvent(
           new CustomEvent("profile-load", {
@@ -130,7 +145,7 @@
           mandatory: false,
         });
       })
-      .catch((e) => {
+      .catch((error) => {
         sender.dispatchEvent(
           new CustomEvent("profile-load", {
             detail: {
@@ -138,8 +153,52 @@
             },
           })
         );
-        console.warn(e);
       });
+  }
+
+  function handleOverwriteElement(elementNumber) {
+    overwriteElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Overwrite" },
+      mandatory: false,
+    });
+  }
+
+  function handleDiscardElement(elementNumber) {
+    discardElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Discard" },
+      mandatory: false,
+    });
+  }
+
+  function handleCopyElement(elementNumber) {
+    copyElement({
+      dx: device.dx,
+      dy: device.dy,
+      page: get(user_input).pagenumber,
+      element: elementNumber,
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Whole Element Copy" },
+      mandatory: false,
+    });
   }
 </script>
 
@@ -178,6 +237,37 @@
       let:isRightCut
     >
       <div
+        use:contextTarget={{
+          items: [
+            {
+              text: "Copy Configuration",
+              handler: () => handleCopyElement(elementNumber),
+            },
+            {
+              text: "Overwrite Configuration",
+              handler: () => handleOverwriteElement(elementNumber),
+              isDisabled: () => {
+                return typeof $controlElementClipboard === "undefined";
+              },
+            },
+            {
+              text: "Discard Changes",
+              handler: () => handleDiscardElement(elementNumber),
+              isDisabled: () => {
+                const target = ConfigTarget.create({
+                  device: {
+                    dx: device.dx,
+                    dy: device.dy,
+                  },
+                  page: get(user_input).pagenumber,
+                  element: elementNumber,
+                  eventType: EventTypeToNumber(EventType.INIT),
+                });
+                return !target.hasChanges();
+              },
+            },
+          ],
+        }}
         class="w-full h-full absolute"
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 

@@ -34,11 +34,11 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import { onDestroy, onMount } from "svelte";
   import {
     setDocumentAnimationsEnabled,
     reduced_motion_store,
   } from "../renderer/runtime/animations";
-  import { get } from "svelte/store";
 
   console.log("Hello from Svelte main.js");
 
@@ -184,6 +184,19 @@
       }
     }
   }
+
+  //Disable Context Menu
+  onMount(() => {
+    document.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  });
+
+  onDestroy(() => {
+    document.removeEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  });
 
   $: handleDisableAnimationsChange(
     $appSettings.persistent.disableAnimations,
