@@ -518,7 +518,7 @@
             on:mouseleave={() => {
               clearInterval(autoScroll);
             }}
-            class="flex flex-col w-full h-auto overflow-y-none"
+            class="flex flex-col w-full h-auto overflow-y-auto"
           >
             {#each $configManager as config, index (config.id)}
               <anim-block

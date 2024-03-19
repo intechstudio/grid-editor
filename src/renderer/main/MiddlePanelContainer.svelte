@@ -82,7 +82,7 @@
 
 <div
   id="container"
-  class="relative flex flex-col w-full h-full overflow-visible justify-center"
+  class="relative flex flex-col w-full h-full overflow-hidden justify-center"
 >
   <ControlSurface />
   {#if showFixedStickyContainer}
@@ -92,7 +92,7 @@
   {/if}
 
   <div
-    class="absolute top-0 w-fit self-center mt-10 z-[2] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
+    class="absolute top-0 w-fit self-center mt-10 z-[1] bg-primary rounded-lg py-2 px-4 items-center flex-wrap justify-center"
   >
     {#if showModuleHangingDialog}
       <ModuleHangingDialog />

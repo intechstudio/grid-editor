@@ -32,11 +32,7 @@
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
 
-  $: {
-    if (typeof $runtime !== "undefined") {
-      calculateDevices($runtime);
-    }
-  }
+  $: calculateDevices($runtime);
 
   $: handleScalingChange($scalingPercent);
 
@@ -45,10 +41,13 @@
   }
 
   function handleScalingChange(value) {
-    calculateLayoutDimensions(rotation, columns, rows, value);
+    calculateLayoutDimensions(rotation, value);
   }
 
-  function calculateLayoutDimensions(rotation, columns, rows, scale) {
+  function calculateLayoutDimensions(rotation, scale) {
+    const dim = getGridDimensions();
+    rows = dim.rows;
+    columns = dim.columns;
     width = columns * deviceWidth * scale;
     height = rows * deviceWidth * scale;
     layoutWidth = rotation == 0 || rotation == 180 ? width : height;
@@ -69,7 +68,7 @@
       deltaRotation += 360;
     }
     trueRotation += deltaRotation;
-    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+    calculateLayoutDimensions(rotation, $scalingPercent);
   }
 
   function getGridDimensions() {
@@ -135,17 +134,11 @@
   );
 
   function handleOutroEnd() {
-    const dim = getGridDimensions();
-    rows = dim.rows;
-    columns = dim.columns;
-    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+    calculateLayoutDimensions(rotation, $scalingPercent);
   }
 
   function handleIntroStart() {
-    const dim = getGridDimensions();
-    rows = dim.rows;
-    columns = dim.columns;
-    calculateLayoutDimensions(rotation, columns, rows, $scalingPercent);
+    calculateLayoutDimensions(rotation, $scalingPercent);
   }
 </script>
 
