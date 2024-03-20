@@ -76,7 +76,7 @@
     });
   }
 
-  function handlePresetLoad() {
+  function handlePresetLoad(e) {
     Analytics.track({
       event: "Preset Load Start",
       payload: {},
@@ -115,7 +115,7 @@
       });
   }
 
-  function handleProfileLoad() {
+  function handleProfileLoad(e) {
     const { sender, device } = e.detail;
 
     Analytics.track({
