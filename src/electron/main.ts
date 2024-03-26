@@ -9,8 +9,7 @@ import {
   shell,
   MessageChannelMain,
   utilityProcess,
-  autoUpdater,
-  dialog,
+  screen
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -327,6 +326,7 @@ function createWindow() {
   // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     restartPackageManagerProcess();
+    createOverlay();
   });
 }
 
@@ -408,42 +408,52 @@ function startConfigWatcher(configPath, rootDirectory) {
   sendLocalConfigs();
 }
 
-ipcMain.handle("startPackage", async (event, arg) => {
-  console.log("packagestart!", arg.name);
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPackageStart();
-      break;
-    }
-    case "photoshop": {
-      // this package is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
-
-ipcMain.handle("stopPackage", async (event, arg) => {
-  console.log("stop package");
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPackageStop();
-      break;
-    }
-    case "photoshop": {
-      // this package is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
-
 ipcMain.handle("clipboardWriteText", async (event, arg) => {
   console.log(arg.text);
   clipboard.writeText(arg.text);
 });
+
+
+
+function createOverlay() {
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+
+  const overlay = new BrowserWindow({
+    width: 200,
+    height: 100,
+    frame: false,
+    resizable: true,
+    transparent: true,
+    alwaysOnTop: true,
+    x: width,
+    y: -height,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    },
+  });
+
+  const packageFolder = path.resolve(
+    path.join(app.getPath("documents"), "grid-userdata", "packages")
+  );
+
+  const overlayPackageDirectory = path.join(packageFolder, "package-overlay");
+
+  console.log("--------------------->", overlayPackageDirectory);
+
+  overlay.loadURL(
+    `file://${path.join(overlayPackageDirectory, "overlay.html")}`
+  );
+
+  ipcMain.handle("overlay", async (event, arg) => {
+    overlay.webContents.send('overlay', arg.payload)
+    log.info("overlaystuff", arg.payload);
+  })
+
+  overlay.show();
+}
+
+
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;
@@ -455,6 +465,7 @@ ipcMain.handle("download", async (event, arg) => {
   }
   return result;
 });
+
 ipcMain.handle("selectDirectory", async (event, arg) => {
   return await selectDirectory();
 });

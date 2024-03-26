@@ -30,7 +30,7 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   // handle non-chromium based browsers
   if (window.chrome == null) {
     navigator.serial = {
-      addEventListener: () => {},
+      addEventListener: () => { },
     };
   }
   window.ctxProcess = {
@@ -50,14 +50,14 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
   };
   window.electron = {
     window: {
-      close: () => {},
-      maximize: () => {},
-      minimize: () => {},
-      restore: () => {},
-      isMaximized: () => {},
+      close: () => { },
+      maximize: () => { },
+      minimize: () => { },
+      restore: () => { },
+      isMaximized: () => { },
     },
     persistentStorage: {
-      set: () => {},
+      set: () => { },
       get: async () => {
         return {
           key: "value",
@@ -70,37 +70,38 @@ if (import.meta.env.VITE_WEB_MODE == "true") {
       },
     },
     websocket: {
-      onReceive: async () => {},
-      onTransmit: async () => {},
+      onReceive: async () => { },
+      onTransmit: async () => { },
     },
     auth: {
-      onExternalResponse: async () => {},
+      onExternalResponse: async () => { },
     },
     configs: {
-      onExternalResponse: async () => {},
-      startConfigsWatch: async () => {},
-      stopConfigsWatch: async () => {},
-      onSendConfigsToRenderer: async () => {},
+      onExternalResponse: async () => { },
+      startConfigsWatch: async () => { },
+      stopConfigsWatch: async () => { },
+      onSendConfigsToRenderer: async () => { },
     },
     updater: {
-      onAppUpdate: async () => {},
+      onAppUpdate: async () => { },
     },
     firmware: {
-      onFirmwareUpdate: async () => {},
-      findBootloaderPath: async () => {},
+      onFirmwareUpdate: async () => { },
+      findBootloaderPath: async () => { },
     },
-    stopOfflineProfileCloud: async () => {},
-    fetchUrlJSON: async () => {},
+    stopOfflineProfileCloud: async () => { },
+    fetchUrlJSON: async () => { },
     getLatestVideo: async () => {
       return {
         videLink: "",
         videoId: "",
       };
     },
-    restartPackageManager: () => {},
-    resetAppSettings: () => {},
-    openInBrowser: () => {},
+    restartPackageManager: () => { },
+    resetAppSettings: () => { },
+    openInBrowser: () => { },
+    overlay: () => { }
   };
 }
 
-export {};
+export { };
