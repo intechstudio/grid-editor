@@ -88,11 +88,11 @@
   onMount(() => {
     selectedLayout = $appSettings.persistent.keyboardLayout;
     change_layout();
-    keys_buffer = keys;
+    lastKeyDivList = keyDivList;
   });
 
   $: if (config.script && !loaded) {
-    macrosToConfig({ script: config.script });
+    scriptToKeyList({ script: config.script });
   }
 
   function change_layout() {
@@ -110,14 +110,14 @@
       $appSettings.persistent.keyboardLayout = selectedLayout;
     }
 
-    macrosToConfig({ script: config.script });
+    scriptToKeyList({ script: config.script });
   }
 
   onDestroy(() => {
     loaded = false;
   });
 
-  function macrosToConfig({ script }) {
+  function scriptToKeyList({ script }) {
     let array = [];
     let _keys = [];
     try {
@@ -159,7 +159,8 @@
           }
         }
         keyBuffer = _keys;
-        keys = colorize(_keys);
+        caretPos = keyBuffer.length;
+        keyDivList = colorize(_keys);
         loaded = true;
       }
     } catch (error) {
@@ -168,23 +169,21 @@
   }
 
   function sendData(parameters) {
-    let script = `gks( ${defaultDelay}${
+    let script = `gks(${defaultDelay}${
       parameters.length > 0 ? "," + parameters.join(",") : ""
     })`;
+    console.log("Dispatch", script);
     dispatch("output", { short: "gks", script: script });
   }
 
-  let keys = "";
-  let keys_buffer = "";
-  let parameters = [];
+  let keyDivList = "";
+  let lastKeyDivList = "";
   let caretKeyBuffer = [];
   let keyBuffer = [];
-  let visibleCaretPos = -1;
-  let last_key = undefined;
 
   let caretFocus = false;
 
-  let caretPos = -1;
+  let caretPos = 0;
 
   let selectedKey;
   let selectedLayout;
@@ -192,126 +191,61 @@
   let delayKey = 100; // ms
   let defaultDelay = 25; // ms
 
-  function identifyKey(e) {
+  function handleKeyboardInput(e) {
     // delete on backspace
     if (e.keyCode == 8 && e.type == "keydown") {
-      let tempKeyBuffer = Array.from(keyBuffer);
-
-      if (caretPos !== -1) {
-        //console.log(tempKeyBuffer, caretPos, caretKeyBuffer.length)
-        if (last_key != 8) {
-          tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
-          caretPos = caretPos + caretKeyBuffer.length;
-          caretKeyBuffer = [];
-        }
-
-        if (caretPos !== 0) {
-          tempKeyBuffer.splice(caretPos - 1, 1);
-        }
-
-        if (caretPos != 0) {
-          caretPos -= 1;
-          visibleCaretPos = caretPos;
-        }
-      } else {
-        if (caretPos != 0) {
-          tempKeyBuffer.splice(tempKeyBuffer.length - 1, 1);
-          visibleCaretPos = tempKeyBuffer.length;
-        }
+      if (caretPos !== 0) {
+        keyBuffer.splice(caretPos - 1, 1);
+        caretPos -= 1;
       }
 
-      keyBuffer = tempKeyBuffer;
+      keyDivList = colorize(keyBuffer);
 
-      keys = colorize(tempKeyBuffer);
+      return;
     }
 
     // filter same keypress type
-    if (!e.repeat && e.keyCode != 8) {
-      if (caretPos !== -1) {
-        let key = keyMap.default.find((key) => key.info == e.code);
-        const f_key = [...caretKeyBuffer]
-          .reverse()
-          .find((key) => key.info == e.code);
-        if (!f_key) {
-          caretKeyBuffer.push({ ...key, type: e.type });
-        } else if (f_key.type !== e.type) {
-          caretKeyBuffer.push({ ...key, type: e.type });
-        }
-        caretKeyBuffer = cutQuickDownUp(caretKeyBuffer);
-      } else {
-        let key = keyMap.default.find((key) => key.info == e.code);
-        const f_key = [...keyBuffer]
-          .reverse()
-          .find((key) => key.info == e.code);
-        if (!f_key) {
-          keyBuffer.push({ ...key, type: e.type });
-        } else if (f_key.type !== e.type) {
-          keyBuffer.push({ ...key, type: e.type });
-        }
-        keyBuffer = cutQuickDownUp(keyBuffer);
-      }
-
-      // deep copy to create the needed keys from caret and standard array
-      let tempKeyBuffer = Array.from(keyBuffer);
-
-      if (caretKeyBuffer.length > 0) {
-        // merge caretbuffer with keybuffer
-        tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
-        // set visible caret when we write between keys
-        visibleCaretPos = caretPos + caretKeyBuffer.length;
-      } else {
-        // visible caret when we append to the end of keys
-        visibleCaretPos = tempKeyBuffer.length;
-      }
-
-      keys = colorize(tempKeyBuffer);
+    if (e.repeat || e.keyCode == 8) {
+      return;
     }
 
+    let key = keyMap.default.find((key) => key.info == e.code);
+    keyBuffer.splice(caretPos, 0, { ...key, type: e.type });
+
+    caretPos++;
+    caretKeyBuffer = [];
+
+    keyBuffer = cutQuickDownUp(keyBuffer);
+    keyDivList = colorize(keyBuffer);
+
     // update last key...
-    last_key = e.keyCode;
   }
 
-  function addKey() {
+  function addKeyManually() {
     let added_key = keyMap.default.find((e) => {
       return e.info === selectedKey.info;
     });
 
-    if (caretPos == -1) {
-      keyBuffer.splice(keyBuffer.length, 0, {
-        ...added_key,
-        type: addonKeyType,
-      });
-    } else {
-      keyBuffer.splice(caretPos, 0, { ...added_key, type: addonKeyType });
-    }
-    keys = colorize(keyBuffer);
-    visibleCaretPos += 1;
+    keyBuffer.splice(caretPos, 0, { ...added_key, type: addonKeyType });
     caretPos += 1;
-    manageMacro();
+
+    keyBuffer = cutQuickDownUp(keyBuffer);
+    keyDivList = colorize(keyBuffer);
+    keyListToScript();
   }
 
-  function addDelay() {
-    if (caretPos == -1) {
-      keyBuffer.splice(keyBuffer.length, 0, {
-        value: delayKey,
-        info: "delay",
-        js_value: -1,
-        is_modifier: 15,
-        type: "delay",
-      });
-    } else {
-      keyBuffer.splice(caretPos, 0, {
-        value: delayKey,
-        info: "delay",
-        js_value: -1,
-        is_modifier: 15,
-        type: "delay",
-      });
-    }
-    keys = colorize(keyBuffer);
-    visibleCaretPos += 1;
+  function addDelayManually() {
+    keyBuffer.splice(caretPos, 0, {
+      value: delayKey,
+      info: "delay",
+      js_value: -1,
+      is_modifier: 15,
+      type: "delay",
+    });
+
+    keyDivList = colorize(keyBuffer);
     caretPos += 1;
-    manageMacro();
+    keyListToScript();
   }
 
   function cutQuickDownUp(args) {
@@ -333,6 +267,7 @@
     // make the cuts, remove double elements from keydown-keyup pairs (remove the second, first contains 'keydownup' type for color)
     cuts.forEach((cut) => {
       args.splice(cut, 1);
+      caretPos--;
     });
 
     //console.log(cuts, args )
@@ -404,12 +339,10 @@
       // this is the caret pos used to add new keys in the array
       caretPos = +e.target.getAttribute("data-caret");
       // this caret for the blinking cursor
-      visibleCaretPos = caretPos;
     } else {
       if (caretKeyBuffer.length == 0 && caretFocus == false) {
-        keys = [`<div data-caret="0" class="px-1 h-6"></div>`];
-        visibleCaretPos = 0;
-        caretPos = -1;
+        keyDivList = [`<div data-caret="0" class="px-1 h-6"></div>`];
+        caretPos = 0;
       }
     }
   }
@@ -417,24 +350,28 @@
   function clearMacro() {
     keyBuffer = [];
     caretKeyBuffer = [];
-    caretPos = -1;
-    visibleCaretPos = 0;
-    keys = [`<div data-caret="0" class="px-1 h-6"></div>`];
-    manageMacro();
+    caretPos = 0;
+    keyDivList = [`<div data-caret="0" class="px-1 h-6"></div>`];
+    keyListToScript();
   }
 
-  function manageMacro() {
-    parameters = [];
+  function keyListToScript() {
+    let tempKeyBuff = Array.from(keyBuffer);
 
-    let tempKeyBuffer = Array.from(keyBuffer);
-
-    //console.log('manage...', keyBuffer, caretPos, caretKeyBuffer )
+    console.log(
+      "manage...",
+      JSON.stringify(keyBuffer),
+      caretPos,
+      JSON.stringify(caretKeyBuffer)
+    );
 
     if (caretPos != -1) {
-      tempKeyBuffer.splice(caretPos, 0, ...caretKeyBuffer);
+      tempKeyBuff.splice(caretPos, 0, ...caretKeyBuffer);
     }
 
-    tempKeyBuffer.forEach((key, i) => {
+    let parameters = [];
+
+    tempKeyBuff.forEach((key, i) => {
       let code = [];
 
       if (key.type !== "delay") {
@@ -460,20 +397,15 @@
   }
 
   function onBlur(e) {
-    if (keys_buffer !== keys) {
-      manageMacro();
+    if (lastKeyDivList !== keyDivList) {
+      console.log("blur");
+      keyListToScript();
     }
-    keys_buffer = keys;
+    lastKeyDivList = keyDivList;
   }
 </script>
 
 <div
-  use:clickOutside={{ useCapture: true }}
-  on:click-outside={(e) => {
-    caretFocus = false;
-    visibleCaretPos = -1;
-    caretPos = -1;
-  }}
   class="{$$props.class} flex w-full flex-col px-4 py-2 gap-2 pointer-events-auto"
 >
   <div class="flex flex-col">
@@ -500,11 +432,14 @@
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div
       use:clickOutside={{ useCapture: true }}
+      on:click-outside={(e) => {
+        caretFocus = false;
+      }}
       bind:this={macroInputField}
       class="
         focus:border-select-desaturate-20 border-select editableDiv rounded secondary border text-white p-2 flex flex-row flex-wrap focus:outline-none"
-      on:keydown|preventDefault={identifyKey}
-      on:keyup|preventDefault={identifyKey}
+      on:keydown|preventDefault={handleKeyboardInput}
+      on:keyup|preventDefault={handleKeyboardInput}
       on:blur={onBlur}
       contenteditable="true"
       on:click={(e) => {
@@ -512,10 +447,13 @@
         setCaret(e);
       }}
     >
-      {#each keys as key, i}
+      {#each keyDivList as key, i}
+        {@const isCarret = i % 2 == 0}
+        {@const isActiveCarret = caretPos * 2 === i}
         <div
           data-index={i}
-          class:blink={visibleCaretPos * 2 === i}
+          class:caret={isActiveCarret}
+          class:focus={caretFocus && isActiveCarret}
           class="{i + (i % 2) == i
             ? 'hover:bg-pick-complementer cursor-pointer'
             : 'cursor-default'} "
@@ -579,7 +517,7 @@
       </button>
     </div>
     <MoltenPushButton
-      on:click={addKey}
+      on:click={addKeyManually}
       text={"Add Key"}
       style={ButtonStyle.ACCEPT}
     />
@@ -596,7 +534,7 @@
       />
 
       <MoltenPushButton
-        on:click={addDelay}
+        on:click={addDelayManually}
         text={"Add Delay"}
         style={ButtonStyle.ACCEPT}
       />
@@ -608,7 +546,7 @@
     <input
       bind:value={defaultDelay}
       on:input={(e) => {
-        manageMacro();
+        keyListToScript();
       }}
       type="number"
       min="5"
@@ -638,19 +576,30 @@
   }
 
   @keyframes blink {
+    0% {
+      opacity: 1;
+    }
     50% {
       opacity: 0;
     }
   }
 
   @-webkit-keyframes blink {
+    0% {
+      opacity: 1;
+    }
     50% {
-      opacity: 0;
+      opacity: 0 !important;
     }
   }
 
-  .blink {
+  .caret {
+    opacity: 0.5;
     background-color: white;
+  }
+
+  .focus {
+    opacity: 1;
     animation: blink 1s step-start 0s infinite;
     -webkit-animation: blink 1s step-start 0s infinite;
   }
