@@ -34,6 +34,7 @@
 
   let syntaxError = false;
   let validationError = false;
+  let ctrlIsDown = false;
 
   const dispatch = createEventDispatcher();
 
@@ -84,9 +85,40 @@
       lastOpenedActionblocksRemove(config.short);
     }
   }
+
+  function handleCarouselClicked(e) {
+    if (e.ctrlKey) {
+      dispatch("action-block-click", {
+        index: index,
+        modifiers: { ctrlKey: e.ctrlKey },
+      });
+      return;
+    }
+
+    handleToggle(e);
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === "Control") {
+      ctrlIsDown = true;
+    }
+  }
+
+  function handleKeyUp(e) {
+    if (e.key === "Control") {
+      ctrlIsDown = false;
+    }
+  }
 </script>
 
-<wrapper class="flex flex-grow border-none outline-none">
+<svelte:window on:keydown={handleKeyDown} on:keyup={handleKeyUp} />
+
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<wrapper
+  class="flex flex-grow border-none outline-none"
+  class:cursor-pointer={ctrlIsDown}
+>
   {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
     <div style="width: 15px" class="flex items-center mx-1">
       <div class="w-3 h-3 rounded-full bg-secondary" />
@@ -101,7 +133,7 @@
     config-type={config.information.type}
     config-id={index}
     movable={config.information.movable}
-    on:click|self={handleToggle}
+    on:click|self={handleCarouselClicked}
   >
     <!-- Face of the config block, with disabled pointer events (Except for input fields) -->
     <!-- TODO: Make marking when the block has unsaved changes  -->
