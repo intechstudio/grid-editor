@@ -116,6 +116,10 @@
             if (data.id == "remove-action") {
               removePackageAction(data.packageId, data.actionId);
             }
+            if (data.id == "overlay-package") {
+              console.log(data.payload);
+              window.electron.overlay(data.payload);
+            }
             break;
           }
           case "packages": {
