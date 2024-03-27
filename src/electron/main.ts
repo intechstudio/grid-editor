@@ -9,7 +9,7 @@ import {
   shell,
   MessageChannelMain,
   utilityProcess,
-  screen
+  screen,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -413,8 +413,6 @@ ipcMain.handle("clipboardWriteText", async (event, arg) => {
   clipboard.writeText(arg.text);
 });
 
-
-
 function createOverlay() {
   const { width, height } = screen.getPrimaryDisplay().workAreaSize;
 
@@ -429,7 +427,7 @@ function createOverlay() {
     y: -height,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false
+      contextIsolation: false,
     },
   });
 
@@ -446,14 +444,12 @@ function createOverlay() {
   );
 
   ipcMain.handle("overlay", async (event, arg) => {
-    overlay.webContents.send('overlay', arg.payload)
+    overlay.webContents.send("overlay", arg.payload);
     log.info("overlaystuff", arg.payload);
-  })
+  });
 
   overlay.show();
 }
-
-
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;
