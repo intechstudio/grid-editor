@@ -11,7 +11,7 @@
 
   import { logger, runtime, user_input } from "../../../runtime/runtime.store";
 
-  import { authStore } from "$lib/auth.store"; // this only changes if login, logout happens
+  import { authStore, AuthEnvironment } from "$lib/auth.store"; // this only changes if login, logout happens
   import { userStore } from "$lib/user.store";
   import { configLinkStore } from "$lib/configlink.store";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
@@ -24,7 +24,7 @@
 
   let iframe_element;
 
-  $: sendAuthEventToIframe($authStore);
+  $: profileCloudIsMounted && sendAuthEventToIframe($authStore);
 
   $: sendConfigLinkToIframe($configLinkStore);
 
@@ -94,7 +94,7 @@
   }
 
   function sendAuthEventToIframe(authEvent) {
-    if (iframe_element == undefined) return;
+    if (!iframe_element || !authEvent) return;
 
     // the authStore should contain an event!
     if (!authEvent.event) return;
@@ -162,8 +162,8 @@
     return await window.electron.configs.deleteConfig(path, "configs", config);
   }
 
-  const handleGetCurrentConfigurationFromEditor = (event) =>
-    new Promise((resolve) => {
+  async function handleGetCurrentConfigurationFromEditor(event) {
+    return new Promise((resolve) => {
       const configType = event.data.configType;
 
       const ui = get(user_input);
@@ -234,13 +234,27 @@
           });
           config.name = `New ${config.type} config`;
           resolve(config);
+        })
+        .catch((e) => {
+          logger.set({
+            type: "fail",
+            mode: 0,
+            classname: "profileclouderror",
+            message: e,
+          });
         });
     });
+  }
 
   let profileCloudIsMounted = false;
   async function handleProfileCloudMounted(event) {
     console.log("profile cloud is mounted received");
     profileCloudIsMounted = true;
+    let authEnvironment = AuthEnvironment.PRODUCTION;
+    if (event.data.environment && event.data.environment !== "production") {
+      authEnvironment = AuthEnvironment.DEVELOPMENT;
+    }
+    authStore.setCurrentAuthEnvironment(authEnvironment);
     if (
       selectedModule !== undefined ||
       selectedControlElementType !== undefined
@@ -378,8 +392,14 @@
       updateFontSize($appSettings.persistent.fontSize);
     }
   }
+
+  function handleMouseOut(e) {
+    window.focus();
+  }
 </script>
 
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y-mouse-events-have-key-events -->
 <div class="flex flex-col bg-primary w-full h-full relative">
   <div class="flex items-center justify-center h-full absolute">
     {#if !profileCloudIsMounted}
@@ -398,8 +418,10 @@
     {/if}
   </div>
 
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
   <iframe
     bind:this={iframe_element}
+    on:mouseout={handleMouseOut}
     class="w-full h-full {profileCloudIsMounted ? '' : ' hidden'}"
     title="Test"
     allow="clipboard-read; clipboard-write;}"

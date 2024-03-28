@@ -20,6 +20,7 @@ const persistentDefaultValues = {
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
   heartbeatDebugEnabled: false,
+  messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
   useProfileCloud: true,
   helperShape: 0,
@@ -36,6 +37,7 @@ const persistentDefaultValues = {
   showPCB: false,
   changeOnEvent: "event",
   sendHeartbeatImmediate: false,
+  disableAnimations: false,
 };
 
 function createSplitPanes() {
@@ -105,6 +107,7 @@ function createAppSettingsStore(persistent) {
       owner: { neme: undefined },
     },
     packageList: [],
+    gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
 

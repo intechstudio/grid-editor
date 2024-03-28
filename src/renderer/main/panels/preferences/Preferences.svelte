@@ -20,10 +20,9 @@
     MoltenButton,
     MoltenInput,
   } from "@intechstudio/grid-uikit";
+  import { reduced_motion_store } from "../../../runtime/animations.js";
 
   const configuration = window.ctxProcess.configuration();
-
-  onMount(async () => {});
 
   async function selectDirectory() {
     appSettings.update((s) => {
@@ -128,6 +127,34 @@
         />
       </BlockRow>
     </Block>
+
+    <Block>
+      <BlockTitle>Animations</BlockTitle>
+      <BlockBody
+        >Transition animations can be disabled to improve usability and
+        performance.</BlockBody
+      >
+      <MeltRadio
+        bind:target={$appSettings.persistent.disableAnimations}
+        options={[
+          {
+            title: `Auto (${
+              $reduced_motion_store ? "Disabled" : "Enabled"
+            } by OS)`,
+            value: "auto",
+          },
+          {
+            title: "Enabled",
+            value: "enabled",
+          },
+          {
+            title: "Disabled",
+            value: "disabled",
+          },
+        ]}
+      />
+    </Block>
+
     <Block>
       <BlockTitle>Welcome screen</BlockTitle>
       <BlockBody
@@ -315,11 +342,16 @@
     </Block>
 
     <Block>
-      <BlockTitle>Hearbeat debugging</BlockTitle>
+      <BlockTitle>Graph based debugging</BlockTitle>
       <BlockBody>Enable/Disable heartbeat debug graphs</BlockBody>
       <MeltCheckbox
         bind:target={$appSettings.persistent.heartbeatDebugEnabled}
         title={"Activate heartbeat debugging"}
+      />
+      <BlockBody>Enable/Disable message ID debug graphs</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.messageIdDebugEnabled}
+        title={"Activate message ID debugging"}
       />
       <MeltCheckbox
         bind:target={$appSettings.persistent.sendHeartbeatImmediate}

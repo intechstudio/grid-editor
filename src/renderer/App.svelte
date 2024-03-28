@@ -34,6 +34,11 @@
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
+  import { onDestroy, onMount } from "svelte";
+  import {
+    setDocumentAnimationsEnabled,
+    reduced_motion_store,
+  } from "../renderer/runtime/animations";
 
   console.log("Hello from Svelte main.js");
 
@@ -179,41 +184,40 @@
     }
   };
 
-  let leftPaneSize;
-  function handlePaneResize(event) {
-    if (event.detail[0].size > leftPaneSize) {
-      // when left panel is resized to > 0, make leftpanel visible
-      appSettings.update((store) => {
-        store.leftPanelVisible = true;
-        return store;
-      });
+  function handleDisableAnimationsChange(settingValue, reducedValue) {
+    switch (settingValue) {
+      case "auto": {
+        setDocumentAnimationsEnabled(!reducedValue);
+        break;
+      }
+      case "enabled": {
+        setDocumentAnimationsEnabled(true);
+        break;
+      }
+      case "disabled": {
+        setDocumentAnimationsEnabled(false);
+        break;
+      }
     }
-    $splitpanes.left = event.detail[0].size;
   }
 
-  function handlePaneResized(event) {
-    event.detail.forEach((pane, index) => {
-      // left pane
-      if (index == 0) {
-        if (pane.size == 0) {
-          // when left panel is resized to 0, make leftpanel invisible
-          appSettings.update((store) => {
-            store.leftPanelVisible = false;
-            return store;
-          });
-        }
-        leftPaneSize = pane.size;
-      }
-      // middle pane
-      if (index == 1) {
-        $splitpanes.middle = pane.size;
-      }
-      // right pane
-      if (index == 2) {
-        $splitpanes.right = pane.size;
-      }
+  //Disable Context Menu
+  onMount(() => {
+    document.addEventListener("contextmenu", function (event) {
+      event.preventDefault();
     });
-  }
+  });
+
+  onDestroy(() => {
+    document.removeEventListener("contextmenu", function (event) {
+      event.preventDefault();
+    });
+  });
+
+  $: handleDisableAnimationsChange(
+    $appSettings.persistent.disableAnimations,
+    $reduced_motion_store
+  );
 </script>
 
 {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}

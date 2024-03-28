@@ -9,8 +9,8 @@
     short: "gmms",
     name: "MouseMove",
     rendering: "standard",
-    category: "mouse",
-    displayName: "Move",
+    category: "hid",
+    displayName: "Mouse Move",
     defaultLua: "gmms(,)",
     color: "#9C92A4",
     icon: `
