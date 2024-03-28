@@ -101,30 +101,46 @@
                 s.persistent.packagesDataStorage = newStorage;
                 return s;
               });
-            }
-            if (data.id == "add-action") {
+            } else if (data.id == "add-action") {
               addPackageAction({
                 ...data.info,
                 packageId: data.packageId,
               });
-            }
-            if (data.id == "remove-action") {
+            } else if (data.id == "remove-action") {
               removePackageAction(data.packageId, data.actionId);
             }
             break;
           }
+          case "persist-github-package": {
+            console.log(`PERSIST PACKAGE: ${data.id}`);
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              persistent.githubPackages[data.id] = {
+                name: data.packageName,
+                gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+                gitHubRepositoryName: data.gitHubRepositoryName,
+              };
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
+          case "remove-github-package": {
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              delete persistent.githubPackages[data.id];
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
           case "packages": {
             // refresh packagelist
-            const markedForDeletionPackages = data.packages
-              .filter((e) => e.status == "MarkedForDeletion")
-              .map((e) => e.id);
             const enabledPackages = data.packages
               .filter((e) => e.status == "Enabled")
               .map((e) => e.id);
             appSettings.update((s) => {
               s.packageList = data.packages;
-              s.persistent.markedForDeletionPackages =
-                markedForDeletionPackages;
               s.persistent.enabledPackages = enabledPackages;
               return s;
             });
@@ -141,10 +157,10 @@
           }
         }
       };
-      for (const _package of $appSettings.persistent
-        .markedForDeletionPackages ?? []) {
-        port.postMessage({ type: "uninstall-package", id: _package });
-      }
+      port.onclose = () => {
+        //Clear package list without deleting enabled packages
+        $appSettings.packageList = [];
+      };
       for (const _package of $appSettings.persistent.enabledPackages ?? []) {
         port.postMessage({
           type: "load-package",
