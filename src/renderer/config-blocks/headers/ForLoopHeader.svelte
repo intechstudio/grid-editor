@@ -84,6 +84,7 @@
   }
 
   function handleInputFieldChange(e, i) {
+    data[i].value = e.detail;
     const shortData = data.map((e) => stringManipulation.shortify(e.value));
     const segments = [shortData[0] + "=" + shortData[1], ...shortData.slice(2)];
     dispatch("output", {
@@ -103,7 +104,7 @@
   <div class="flex flex-row flex-grow items-center gap-2 text-white py-1">
     <span class="">Repeat for</span>
     <div
-      class="bg-secondary p-1 my-auto mr-1 rounded flex items-center flex-grow h-full w-10"
+      class="bg-secondary my-auto mr-1 rounded flex items-center flex-grow h-full w-10"
       on:click|stopPropagation
     >
       {#key displayValue}
@@ -134,7 +135,7 @@
               {#each data as obj, i}
                 <AtomicInput
                   class="flex h-7"
-                  bind:inputValue={obj.value}
+                  inputValue={obj.value}
                   suggestions={obj.suggestions}
                   validator={obj.validator}
                   on:validator={(e) => {
