@@ -15,7 +15,7 @@ const persistentDefaultValues = {
   presetFolder: "",
   packagesDataStorage: {},
   enabledPackages: [],
-  markedForDeletionPackages: [],
+  githubPackages: {},
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
