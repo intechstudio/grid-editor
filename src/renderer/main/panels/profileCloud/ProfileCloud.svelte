@@ -123,7 +123,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show(UserLogin);
+    modal.show({ component: UserLogin });
   }
 
   async function handleCreateCloudConfigLink(event) {

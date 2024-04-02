@@ -12,9 +12,12 @@ export type ModalOptions = {
   disableClickOutside?: boolean;
 };
 
+export type ModalArguments = any | undefined;
+
 type ModalStoreValue = {
   component: unknown;
   options: ModalOptions;
+  args: ModalArguments;
 };
 
 const defaultOptions: ModalOptions = {
@@ -25,13 +28,21 @@ const defaultOptions: ModalOptions = {
 function createModalStore() {
   const store = writable<ModalStoreValue | undefined>(undefined);
 
-  function show(
-    component: unknown,
-    options: ModalOptions = defaultOptions
-  ): void {
-    store.set({ component: component, options: options } as ModalStoreValue);
+  function show({
+    component,
+    options = defaultOptions,
+    args,
+  }: {
+    component: unknown;
+    options?: ModalOptions;
+    args?: ModalArguments;
+  }): void {
+    store.set({
+      component: component,
+      options: options,
+      args: args,
+    } as ModalStoreValue);
   }
-
   function close(): void {
     store.set(undefined);
   }
