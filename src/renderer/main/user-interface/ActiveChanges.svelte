@@ -68,14 +68,20 @@
       .clearPage(ui.pagenumber)
       .then(() => {
         clearOverlays();
-        configManager.refresh().then(() => {
-          logger.set({
-            type: "success",
-            mode: 0,
-            classname: "pageclear",
-            message: `Page clear complete!`,
+        configManager
+          .refresh()
+          .then(() => {
+            logger.set({
+              type: "success",
+              mode: 0,
+              classname: "pageclear",
+              message: `Page clear complete!`,
+            });
+          })
+          .catch((e) => {
+            console.warn(e);
+            //TODO: make feedback for fail
           });
-        });
       })
       .catch((e) => {
         console.warn(e);
