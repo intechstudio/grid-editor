@@ -282,6 +282,11 @@
     logger.set(logData);
   }
 
+  async function handleOpenExternalLink(event) {
+    const { link } = event.data;
+    window.electron.openInBrowser(link);
+  }
+
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
       switch (event.data) {
@@ -314,6 +319,9 @@
           break;
         case "sendLogMessage":
           channelMessageWrapper(event, handleSendLogMessage);
+          break;
+        case "openExternalLink":
+          channelMessageWrapper(event, handleOpenExternalLink);
           break;
       }
     }
