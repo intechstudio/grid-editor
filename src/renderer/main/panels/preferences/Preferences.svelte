@@ -21,6 +21,7 @@
     MeltSelect,
     MoltenButton,
     MoltenInput,
+    BlockColumn,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
   import MoltenPushButton, { ButtonSnap } from "./MoltenPushButton.svelte";
@@ -417,8 +418,7 @@
     <Block>
       <BlockTitle>Virtual Module Management</BlockTitle>
       <BlockBody
-        >Scales the font size and control elements dimensions by keeping their
-        ratio compared to each other.</BlockBody
+        >Additional modules can be added or removed on a given coordinate.</BlockBody
       >
       <BlockRow>
         <BlockBody>DX</BlockBody>
@@ -426,7 +426,7 @@
         <BlockBody>DY</BlockBody>
         <MoltenInput bind:target={virtualModuleDY} />
       </BlockRow>
-      <div class="flex flex-col gap-2">
+      <BlockColumn>
         <MoltenPushButton
           text={"Add"}
           snap={ButtonSnap.FULL}
@@ -437,7 +437,7 @@
           snap={ButtonSnap.FULL}
           on:click={handleRemoveVirtualModuleClicked}
         />
-      </div>
+      </BlockColumn>
     </Block>
 
     <Block>
