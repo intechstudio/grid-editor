@@ -279,13 +279,9 @@ function create_virtual_runtime() {
     }
 
     store.update((s) => {
-      console.log(s);
       s.splice(index, 1);
-      console.log(s);
       return s;
     });
-
-    console.log();
   }
 
   return {

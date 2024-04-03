@@ -29,7 +29,6 @@
 
   $: {
     const args = $modal.args;
-    console.log(args);
     dx = args?.dx ?? 0;
     dy = args?.dy ?? 0;
   }
