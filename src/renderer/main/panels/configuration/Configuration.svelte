@@ -322,14 +322,10 @@
     });
   }
 
-  function handleActionBlockClicked(e) {
-    // Check if the "Ctrl" key was held during the click event
-    const { index, modifiers } = e.detail;
-    if (modifiers.ctrlKey) {
-      const configs = get(configManager);
-      const config = configs[index];
-      selectAction(index, !config.selected);
-    }
+  function handleSelectActionBlock(index) {
+    const configs = get(configManager);
+    const config = configs[index];
+    selectAction(index, !config.selected);
   }
 </script>
 
@@ -416,8 +412,8 @@
                     {access_tree}
                     on:update={handleConfigUpdate}
                     on:replace={handleReplace}
-                    on:action-block-click={(e) => {
-                      handleActionBlockClicked(e, index);
+                    on:select={() => {
+                      handleSelectActionBlock(index);
                     }}
                   />
 

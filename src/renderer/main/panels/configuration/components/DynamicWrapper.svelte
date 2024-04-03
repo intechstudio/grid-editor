@@ -88,14 +88,10 @@
 
   function handleCarouselClicked(e) {
     if (e.ctrlKey) {
-      dispatch("action-block-click", {
-        index: index,
-        modifiers: { ctrlKey: e.ctrlKey },
-      });
-      return;
+      dispatch("select");
+    } else {
+      handleToggle(e);
     }
-
-    handleToggle(e);
   }
 
   function handleKeyDown(e) {
