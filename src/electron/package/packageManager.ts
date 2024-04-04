@@ -270,6 +270,10 @@ async function downloadPackage(packageName: string) {
     fs.unlinkSync(filePath);
   } catch (e) {
     customGithubPackageList.delete(packageName);
+    messagePort?.postMessage({
+      type: "remove-github-package",
+      id: packageName,
+    });
     messagePort?.postMessage({ type: "debug-error", message: e.message });
   } finally {
     downloadingPackages.delete(packageName);
