@@ -423,8 +423,8 @@ function createOverlay() {
     resizable: true,
     transparent: true,
     alwaysOnTop: true,
-    x: width,
-    y: -height,
+    x: 0,
+    y: 0,
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -442,6 +442,7 @@ function createOverlay() {
   overlay.loadURL(
     `file://${path.join(overlayPackageDirectory, "overlay.html")}`
   );
+  overlay.setIgnoreMouseEvents(true, {forward: true});
 
   ipcMain.handle("overlay", async (event, arg) => {
     overlay.webContents.send("overlay", arg.payload);
