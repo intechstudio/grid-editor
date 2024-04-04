@@ -104,13 +104,11 @@
 
   onMount(() => {
     document.addEventListener("mousedown", handleMouseEvent);
-    document.addEventListener("mousemove", handleMouseMove);
     document.addEventListener("mouseup", handleMouseEvent);
   });
 
   onDestroy(() => {
     document.removeEventListener("mousedown", handleMouseEvent);
-    document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseEvent);
   });
 
@@ -127,6 +125,7 @@
   id="surface"
   class="absolute w-full h-full z-[1]"
   on:mouseleave={handleMouseLeave}
+  on:mousemove={handleMouseMove}
   class:pointer-events-none={!trackMouse}
   class:cursor-grabbing={dragMouse}
   class:cursor-grab={trackMouse}
