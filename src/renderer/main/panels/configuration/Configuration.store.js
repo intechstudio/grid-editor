@@ -100,7 +100,7 @@ export class ConfigObject {
     //TODO: Rework composite blocks in a way, so this exception
     //does not occure.
     let code = this.script;
-    if (this.short !== "cb") {
+    if (this.short !== "cb" && !this.short.startsWith("x")) {
       if (code.startsWith("elseif")) {
         code = code.replace("elseif", "if");
       }
