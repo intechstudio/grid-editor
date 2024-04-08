@@ -5,7 +5,7 @@ import { instructions } from "../serialport/instructions";
 import { writeBuffer, sendHeartbeat } from "./engine.store";
 import { createVirtualModule } from "./virtual-engine.ts";
 import { VirtualModuleHWCFG } from "./virtual-engine.ts";
-import { virtual_modules } from "./virtual-engine.ts";
+import { virtual_runtime } from "./virtual-engine.ts";
 
 import { Analytics } from "./analytics.js";
 
@@ -925,12 +925,10 @@ function create_runtime() {
 
   function destroy_module(dx, dy) {
     // remove the destroyed device from runtime
-    const removed = get(_runtime).find((g) => g.dx == dx && g.dy == dy);
+    const removed = get(_runtime).find((e) => e.dx == dx && e.dy == dy);
 
     _runtime.update((rt) => {
-      const index = rt.findIndex(
-        (e) => e.dx === removed.dx && e.dy === removed.dy
-      );
+      const index = rt.findIndex((e) => e.dx === dx && e.dy === dy);
       rt.splice(index, 1);
       return rt;
     });
@@ -942,9 +940,9 @@ function create_runtime() {
       });
     }
 
-    user_input.module_destroy_handler(removed.dx, removed.dy);
+    user_input.module_destroy_handler(dx, dy);
     if (removed.architecture === "virtual") {
-      virtual_modules.set([]);
+      virtual_runtime.destroyModule(dx, dy);
     } else {
       writeBuffer.module_destroy_handler(dx, dy);
     }
@@ -1104,14 +1102,14 @@ function create_runtime() {
     });
   }
 
-  function addVirtualModule({ type }) {
+  function addVirtualModule({ dx, dy, type }) {
     const module = VirtualModuleHWCFG[type];
     const controller = this.create_module(
       {
-        DX: 0,
-        DY: 0,
-        SX: 0,
-        SY: 0,
+        DX: dx,
+        DY: dy,
+        SX: dx,
+        SY: dy,
       },
       {
         HWCFG: module.hwcfg,
@@ -1119,7 +1117,7 @@ function create_runtime() {
       true
     );
 
-    createVirtualModule(0, 0, module.type);
+    createVirtualModule(dx, dy, module.type);
 
     _runtime.update((devices) => {
       return [...devices, controller];
