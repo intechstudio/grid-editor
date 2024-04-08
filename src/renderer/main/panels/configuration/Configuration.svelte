@@ -321,6 +321,12 @@
       mandatory: false,
     });
   }
+
+  function handleSelectActionBlock(index) {
+    const configs = get(configManager);
+    const config = configs[index];
+    selectAction(index, !config.selected);
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col bg-primary">
@@ -395,9 +401,8 @@
                 {/key}
                 <div class="flex flex-row justify-between relative">
                   <div
-                    class="bg-white absolute h-full opacity-10 pointer-events-none z-10"
+                    class="w-full bg-white absolute h-full opacity-10 pointer-events-none z-10"
                     class:hidden={!config.selected}
-                    style="width: calc(100% + 6px);"
                   />
 
                   <DynamicWrapper
@@ -406,9 +411,12 @@
                     {access_tree}
                     on:update={handleConfigUpdate}
                     on:replace={handleReplace}
+                    on:select={() => {
+                      handleSelectActionBlock(index);
+                    }}
                   />
 
-                  <div class="z-20 flex items-center">
+                  <div class="z-20 flex items-center mr-2">
                     <Options
                       {index}
                       bind:selected={config.selected}
