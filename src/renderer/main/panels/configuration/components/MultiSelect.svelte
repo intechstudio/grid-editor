@@ -229,7 +229,7 @@
       </div>
     </MoltenPushButton>
 
-    <div class="flex items-center ml-auto">
+    <div class="flex items-center ml-auto mr-2">
       <Options
         bind:selected={selectAllChecked}
         halfSelected={isSelection}
