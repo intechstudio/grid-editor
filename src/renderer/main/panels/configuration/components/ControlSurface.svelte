@@ -102,16 +102,6 @@
     });
   }
 
-  onMount(() => {
-    document.addEventListener("mousedown", handleMouseEvent);
-    document.addEventListener("mouseup", handleMouseEvent);
-  });
-
-  onDestroy(() => {
-    document.removeEventListener("mousedown", handleMouseEvent);
-    document.removeEventListener("mouseup", handleMouseEvent);
-  });
-
   function handleMouseLeave(e) {
     handleKeyUp(e);
     handleMouseUp(e);
@@ -126,6 +116,8 @@
   class="absolute w-full h-full z-[1]"
   on:mouseleave={handleMouseLeave}
   on:mousemove={handleMouseMove}
+  on:mousedown={handleMouseEvent}
+  on:mouseup={handleMouseEvent}
   class:pointer-events-none={!trackMouse}
   class:cursor-grabbing={dragMouse}
   class:cursor-grab={trackMouse}
