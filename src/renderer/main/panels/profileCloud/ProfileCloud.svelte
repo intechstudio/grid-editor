@@ -284,7 +284,11 @@
 
   async function handleOpenExternalLink(event) {
     const { link } = event.data;
-    window.electron.openInBrowser(link);
+    if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
+      window.open(link);
+    } else {
+      window.electron.openInBrowser(link);
+    }
   }
 
   function initChannelCommunication(event) {
