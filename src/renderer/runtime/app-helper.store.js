@@ -19,6 +19,7 @@ const persistentDefaultValues = {
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
+  writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
@@ -194,7 +195,7 @@ async function init_appsettings() {
         get(appSettings).persistent.welcomeOnStartup === true ||
         get(appSettings).persistent.lastVersion === undefined ||
         get(appSettings).persistent.lastVersion !=
-          configuration["EDITOR_VERSION"]
+        configuration["EDITOR_VERSION"]
       ) {
         appSettings.update((s) => {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
