@@ -30,7 +30,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
-  import { runtime } from "./runtime/runtime.store";
+  import { runtime, logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
@@ -91,6 +91,7 @@
       window.packageManagerPort = port;
       // register message handler
       port.onmessage = (event) => {
+        $appSettings.packageManagerRunning = true;
         const data = event.data;
         // action towards runtime
         switch (data.type) {
@@ -117,7 +118,6 @@
             break;
           }
           case "persist-github-package": {
-            console.log(`PERSIST PACKAGE: ${data.id}`);
             appSettings.update((s) => {
               let persistent = structuredClone(s.persistent);
               persistent.githubPackages[data.id] = {
@@ -155,6 +155,12 @@
             const env = process.env.NODE_ENV;
             break;
           }
+          case "show-message": {
+            logger.set({
+              message: data.message,
+              type: data.messageType,
+            });
+          }
           default: {
             console.info(
               `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
@@ -165,6 +171,7 @@
       port.onclose = () => {
         //Clear package list without deleting enabled packages
         $appSettings.packageList = [];
+        $appSettings.packageManagerRunning = false;
       };
       for (const _package of $appSettings.persistent.enabledPackages ?? []) {
         port.postMessage({

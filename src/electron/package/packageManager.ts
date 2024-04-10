@@ -7,6 +7,7 @@ import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
 import chokidar from "chokidar";
+import configuration from "../../../configuration.json";
 
 interface GithubPackage {
   name: string;
@@ -25,25 +26,9 @@ enum PackageStatus {
 let packageFolder: string = "";
 let editorVersion: string = "";
 
-/*const recommendedPackages = {
-  "package-active-win": {
-    name: "Active Window",
-    description: "Short description of Active Window package",
-    gitHubRepositoryOwner: "intechstudio",
-    gitHubRepositoryName: "package-active-win",
-  },
-};*/
-
-const recommendedGithubPackageList: Map<string, GithubPackage> = new Map([
-  [
-    "package-active-win",
-    {
-      name: "Active Window",
-      gitHubRepositoryOwner: "intechstudio",
-      gitHubRepositoryName: "package-active-win",
-    },
-  ],
-]);
+const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
+  Object.entries(configuration.RECOMMENDED_PACKAGES)
+);
 
 let customGithubPackageList: Map<string, GithubPackage> = new Map();
 
@@ -269,7 +254,14 @@ async function downloadPackage(packageName: string) {
     zip.extractAllTo(path.join(packageFolder, packageName), true, true);
     fs.unlinkSync(filePath);
   } catch (e) {
-    customGithubPackageList.delete(packageName);
+    if (customGithubPackageList.has(packageName)) {
+      customGithubPackageList.delete(packageName);
+      messagePort?.postMessage({
+        type: "show-message",
+        message: "Couldn't find package archive, removed from list!",
+        messageType: "fail",
+      });
+    }
     messagePort?.postMessage({
       type: "remove-github-package",
       id: packageName,

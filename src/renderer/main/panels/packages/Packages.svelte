@@ -139,6 +139,12 @@
   }
 
   async function addPackageRepository() {
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Add repository", url: packageRepositoryUrlInput },
+      mandatory: false,
+    });
+
     const githubLink = packageRepositoryUrlInput;
 
     const regexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/?.*/;
@@ -251,7 +257,7 @@
     {/each}
   </div>
 
-  <div class="bg-secondary p-2 rounded-lg flex text-white items-center">
+  <div class="bg-secondary p-2 mb-4 rounded-lg flex text-white items-center">
     <input
       class="bg-primary mr-2 w-full"
       type="text"
@@ -260,8 +266,37 @@
     <MoltenPushButton on:click={addPackageRepository} text="Add repository" />
   </div>
 
+  {#if !$appSettings.packageManagerRunning}
+    <p class="loading">Restarting package manager</p>
+  {/if}
+
   <div
     bind:this={packageListDiv}
     class="bg-secondary rounded-lg flex flex-col mb-4"
   />
 </preferences>
+
+<style>
+  .loading:after {
+    content: " .";
+    animation: dots 1s steps(5, end) infinite;
+  }
+  @keyframes dots {
+    0%,
+    20% {
+      color: rgba(0, 0, 0, 0);
+      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    40% {
+      color: white;
+      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    60% {
+      text-shadow: 0.25em 0 0 white, 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    80%,
+    100% {
+      text-shadow: 0.25em 0 0 white, 0.5em 0 0 white;
+    }
+  }
+</style>

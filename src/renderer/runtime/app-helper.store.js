@@ -107,6 +107,7 @@ function createAppSettingsStore(persistent) {
       owner: { neme: undefined },
     },
     packageList: [],
+    packageManagerRunning: false,
     gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });
