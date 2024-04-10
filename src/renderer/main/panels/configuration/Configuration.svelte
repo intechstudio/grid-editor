@@ -340,19 +340,21 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
+      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2 gap-2">
         <ElementSelectionPanel />
         <EventPanel class="flex flex-col w-full " />
-        <MultiSelect
-          on:convert-to-code-block={handleConvertToCodeBlock}
-          on:copy={handleCopy}
-          on:cut={handleCut}
-          on:paste={handlePaste}
-          on:remove={handleRemove}
-          on:copy-all={handleCopyElement}
-          on:overwrite-all={handleOverwriteElement}
-          on:discard={handleDiscardElement}
-        />
+        <div class="-mb-2">
+          <MultiSelect
+            on:convert-to-code-block={handleConvertToCodeBlock}
+            on:copy={handleCopy}
+            on:cut={handleCut}
+            on:paste={handlePaste}
+            on:remove={handleRemove}
+            on:copy-all={handleCopyElement}
+            on:overwrite-all={handleOverwriteElement}
+            on:discard={handleDiscardElement}
+          />
+        </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div

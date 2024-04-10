@@ -57,7 +57,7 @@
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <action-placeholder
       on:click={handleShowActionPicker}
-      class="hover:opacity-100 opacity-0 transition-opacity delay-100 duration-300 cursor-pointer flex items-center"
+      class="hover:opacity-100 opacity-0 transition-opacity delay-100 duration-300 cursor-pointer flex items-center mr-2.5"
     >
       <div class="h-2 w-full rounded-full bg-pick -mr-1" />
 
