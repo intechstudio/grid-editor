@@ -203,7 +203,7 @@
 <MoltenModal>
   <div
     slot="content"
-    class="h-full w-full text-white relative flex flex-col gap-2 items-start overflow-x-clip"
+    class="h-full w-full text-white relative flex flex-col gap-2 items-start"
     use:watchResize={handleResize}
   >
     <div class="flex flex-row w-full items-center">
