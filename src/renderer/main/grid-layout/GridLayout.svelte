@@ -1,4 +1,5 @@
 <script>
+  import { Architecture } from "./../../protocol/grid-protocol.ts";
   import AddVirtualModule from "./../modals/AddVirtualModule.svelte";
   import { modal } from "./../modals/modal.store.ts";
   import { watchResize } from "svelte-watch-resize";
@@ -32,6 +33,8 @@
   let rotation = 0;
   let rotationBuffer = 0;
   let trueRotation = 0;
+
+  let layoutMargin = { left: 0, right: 0, top: 0, bottom: 0 };
 
   $: calculateRotation($appSettings.persistent.moduleRotation);
 
@@ -94,8 +97,8 @@
     devices.update((s) => {
       const dim = getGridDimensions();
       const { min_x, min_y, max_y, max_x } = dim;
-      s = [];
 
+      s = [];
       rt.forEach((device, i) => {
         let connection_top = 0;
         let connection_bottom = 0;
@@ -127,6 +130,26 @@
         obj.gridY = y + 1;
         s.push(obj);
       });
+
+      layoutMargin = {
+        left:
+          s.find((e) => e.dx == min_x)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        right:
+          s.find((e) => e.dx == max_x)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        top:
+          s.find((e) => e.dy == max_y)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+        bottom:
+          s.find((e) => e.dy == min_y)?.architecture == Architecture.VIRTUAL
+            ? 30
+            : 0,
+      };
+
       return s;
     });
   }
@@ -159,7 +182,11 @@
   use:watchResize={handleResize}
 >
   <div
-    style="width: {layoutWidth + 55}px;  height: {layoutHeight + 55}px;"
+    style="width: {layoutWidth +
+      layoutMargin.left +
+      layoutMargin.right}px;  height: {layoutHeight +
+      layoutMargin.top +
+      layoutMargin.bottom}px;"
     class="relative"
   >
     <div
