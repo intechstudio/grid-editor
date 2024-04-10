@@ -186,7 +186,7 @@
         on:mouseleave={handleToolbarButtonBlur}
         disabled={!isSelection}
         iconPath={"merge_as_code"}
-        color={"#6f007c"}
+        color={"#ffcc33"}
       />
 
       <MoltenToolbarButton

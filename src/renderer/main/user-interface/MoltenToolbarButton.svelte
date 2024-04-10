@@ -48,6 +48,8 @@
   }
 
   .toolbar-button-disabled {
+    border-color: transparent;
+    border-width: 1px;
     fill: #888888;
     opacity: 0.5;
   }
