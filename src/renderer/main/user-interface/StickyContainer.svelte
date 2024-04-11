@@ -4,7 +4,7 @@
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
-  import { virtual_modules } from "../../runtime/virtual-engine";
+  import { virtual_runtime } from "../../runtime/virtual-engine";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
 </script>
 
@@ -20,11 +20,11 @@
         }}
       />
     {/if}
-    {#if $virtual_modules.length > 0}
+    {#if $virtual_runtime.length > 0}
       <MoltenPushButton
         text="Change Module"
         on:click={() => {
-          modal.show(AddVirtualModule);
+          modal.show({ component: AddVirtualModule, args: { dx: 0, dy: 0 } });
         }}
       />
     {/if}

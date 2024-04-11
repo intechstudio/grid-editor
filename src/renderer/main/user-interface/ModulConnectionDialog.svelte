@@ -27,12 +27,12 @@
 
   onMount(() => {
     if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
-      modal.show(AddVirtualModule);
+      modal.show({ component: AddVirtualModule, args: { dx: 0, dy: 0 } });
     }
   });
 
   function handleAddVirtualModuleClicked(e) {
-    modal.show(AddVirtualModule);
+    modal.show({ component: AddVirtualModule, args: { dx: 0, dy: 0 } });
     Analytics.track({
       event: "VirtualModule",
       payload: {

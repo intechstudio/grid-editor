@@ -25,13 +25,24 @@
     { id: ModuleType.TEK2, component: TEK2 },
   ];
 
+  let [dx, dy]: number[] = [0, 0];
+
+  $: {
+    const args = $modal.args;
+    dx = args?.dx ?? 0;
+    dy = args?.dy ?? 0;
+  }
+
   let selectedModule: number = -1;
 
   function handleAddClicked(e) {
-    if (get(runtime).length > 0) {
-      runtime.destroy_module(0, 0);
+    const rt = get(runtime);
+    if (typeof rt.find((e) => e.dx === dx && e.dy === dy) !== "undefined") {
+      runtime.destroy_module(dx, dy);
     }
     runtime.addVirtualModule({
+      dx: dx,
+      dy: dy,
       type: devices[selectedModule].id,
     });
     modal.close();

@@ -51,7 +51,7 @@ function answerExecuteTypeRequest(obj: BufferElement) {
     ];
     switch (class_name) {
       case InstructionClassName.CONFIG: {
-        virtual_modules.update((s) => {
+        virtual_runtime.update((s) => {
           const device = s.find((e) => e.dx == dx && e.dy == dy);
           const events = device?.pages[page].elements.find(
             (e) => e.elementIndex === element
@@ -80,7 +80,7 @@ function answerExecuteTypeRequest(obj: BufferElement) {
         break;
       }
       case InstructionClassName.PAGESTORE: {
-        virtual_modules.update((s) => {
+        virtual_runtime.update((s) => {
           s.forEach((device) => {
             device.storeChanges();
           });
@@ -105,7 +105,7 @@ function answerExecuteTypeRequest(obj: BufferElement) {
         break;
       }
       case InstructionClassName.PAGECLEAR: {
-        virtual_modules.update((s) => {
+        virtual_runtime.update((s) => {
           s.forEach((device) => {
             device.resetDefaultConfiguration();
           });
@@ -130,7 +130,7 @@ function answerExecuteTypeRequest(obj: BufferElement) {
         break;
       }
       case InstructionClassName.PAGEDISCARD: {
-        virtual_modules.update((s) => {
+        virtual_runtime.update((s) => {
           s.forEach((device) => {
             device.discardChanges();
           });
@@ -171,7 +171,7 @@ function answerFetchTypeRequests(obj: BufferElement) {
       obj.descr.class_parameters.ELEMENTNUMBER ?? -1,
       obj.descr.class_parameters.EVENTTYPE ?? -1,
     ];
-    const device = get(virtual_modules).find((e) => e.dx === dx && e.dy === dy);
+    const device = get(virtual_runtime).find((e) => e.dx === dx && e.dy === dy);
     switch (class_name) {
       case InstructionClassName.CONFIG: {
         const events = device?.pages[page].elements.find(
@@ -268,11 +268,33 @@ class VirtualModule {
   }
 }
 
-export const virtual_modules = writable([] as VirtualModule[]);
+function create_virtual_runtime() {
+  const store = writable([] as VirtualModule[]);
+
+  function destroyModule(dx: number, dy: number) {
+    const vrt = get(store);
+    const index = vrt.findIndex((e) => e.dx === dx && e.dy === dy);
+    if (index === -1) {
+      return;
+    }
+
+    store.update((s) => {
+      s.splice(index, 1);
+      return s;
+    });
+  }
+
+  return {
+    ...store,
+    destroyModule: destroyModule,
+  };
+}
+
+export const virtual_runtime = create_virtual_runtime();
 
 export function createVirtualModule(dx: number, dy: number, type: ModuleType) {
   const device = new VirtualModule(dx, dy, type);
-  virtual_modules.update((s) => [...s, device]);
+  virtual_runtime.update((s) => [...s, device]);
 }
 
 export function simulateProcess(obj: BufferElement): Promise<any> {

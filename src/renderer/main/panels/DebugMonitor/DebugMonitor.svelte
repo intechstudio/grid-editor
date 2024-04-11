@@ -138,7 +138,7 @@
   }
 
   function handleShowCode(e) {
-    modal.show(Export);
+    modal.show({ component: Export });
   }
 </script>
 

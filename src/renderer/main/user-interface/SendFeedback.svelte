@@ -12,7 +12,7 @@
   function openFeedbackFrom(arg) {
     console.log("feedback on " + feedback_context);
 
-    modal.show(Feedback);
+    modal.show({ component: Feedback });
     $appSettings.feedback_context = feedback_context;
   }
 </script>

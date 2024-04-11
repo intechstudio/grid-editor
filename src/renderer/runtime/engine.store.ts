@@ -6,7 +6,7 @@ import { appSettings } from "./app-helper.store";
 import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
 import { runtime } from "./runtime.store";
-import { virtual_modules } from "./virtual-engine";
+import { virtual_runtime } from "./virtual-engine";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -355,10 +355,10 @@ function createWriteBuffer() {
       )!;
 
       //TODO: rework instructions into well defined ones,
-      //where the checking of virtual_modules is unnecessary
+      //where the checking of virtual_runtime is unnecessary
       if (
         sender?.architecture === "virtual" ||
-        get(virtual_modules).length > 0
+        get(virtual_runtime).length > 0
       ) {
         process = simulateProcess;
       } else {
