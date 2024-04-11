@@ -8,7 +8,7 @@
   <button
     id="open-export-modal"
     on:click|preventDefault={() => {
-      modal.show(Export);
+      modal.show({ component: Export });
     }}
     class="p-1 flex cursor-pointer focus:ring-1 focus:outline-none items-center hover:bg-select bg-secondary rounded"
   >

@@ -123,7 +123,7 @@
   }
 
   async function handleLoginToProfileCloud(event) {
-    modal.show(UserLogin);
+    modal.show({ component: UserLogin });
   }
 
   async function handleCreateCloudConfigLink(event) {
@@ -282,6 +282,15 @@
     logger.set(logData);
   }
 
+  async function handleOpenExternalLink(event) {
+    const { link } = event.data;
+    if (window.ctxProcess.buildVariables().BUILD_TARGET === "web") {
+      window.open(link);
+    } else {
+      window.electron.openInBrowser(link);
+    }
+  }
+
   function initChannelCommunication(event) {
     if (event.ports && event.ports.length) {
       switch (event.data) {
@@ -314,6 +323,9 @@
           break;
         case "sendLogMessage":
           channelMessageWrapper(event, handleSendLogMessage);
+          break;
+        case "openExternalLink":
+          channelMessageWrapper(event, handleOpenExternalLink);
           break;
       }
     }

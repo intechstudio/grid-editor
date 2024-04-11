@@ -201,7 +201,7 @@ async function init_appsettings() {
           s.persistent.lastVersion = configuration["EDITOR_VERSION"];
           s.persistent.welcomeOnStartup = true;
           if (window.ctxProcess.buildVariables().BUILD_TARGET !== "web") {
-            modal.show(Welcome);
+            modal.show({ component: Welcome });
           }
           return s;
         });
