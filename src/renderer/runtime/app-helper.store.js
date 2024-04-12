@@ -19,6 +19,7 @@ const persistentDefaultValues = {
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
+  writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
