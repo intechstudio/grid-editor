@@ -238,7 +238,7 @@
       let:isLeftCut
       let:isRightCut
     >
-      <div
+      <button
         use:contextTarget={{
           items: [
             {
@@ -274,6 +274,9 @@
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 
           margin: var(--element-margin); "
+        on:mouseup={() => {
+          handleElementClicked({ detail: { elementNumber: elementNumber } });
+        }}
       >
         <ActiveChanges
           {elementNumber}
@@ -291,7 +294,7 @@
           visible={typeof $moduleOverlay === "undefined"}
           on:click={handleElementClicked}
         />
-      </div>
+      </button>
       <ModuleInfo {device} visible={true} {elementNumber} />
     </svelte:fragment>
 

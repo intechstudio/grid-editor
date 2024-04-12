@@ -16,10 +16,9 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
       contextMenu!.parentNode?.removeChild(contextMenu);
       contextMenu = undefined;
     }
-    if (e.button !== 2) {
-      return;
+    if (e.button === 2) {
+      createContextMenu(e.offsetX, e.offsetY);
     }
-    createContextMenu(e.offsetX, e.offsetY);
   };
 
   const createContextMenu = async (x: number, y: number) => {
