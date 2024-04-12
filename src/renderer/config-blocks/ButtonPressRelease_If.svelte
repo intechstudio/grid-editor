@@ -8,6 +8,7 @@
   export const information: ActionBlockInformation = {
     short: "bpr",
     name: "ButtonPressRelease_If",
+    menuName: "Press/Release",
     rendering: "modifier",
     rounding: "top",
     category: "special",
@@ -143,12 +144,7 @@
 <svelte:window bind:innerWidth={sidebarWidth} />
 
 <if-block
-  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
-  'top'
-    ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom'
-    ? 'rounded-br-xl '
-    : ''} pointer-events-auto"
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
   style="min-height: 2.5rem; background: {information.color};"
 >
   <div class="bg-secondary p-1 my-auto mr-1 rounded hidden">

@@ -100,33 +100,30 @@
   function displayConfigScript(script) {
     if (typeof codePreview === "undefined") return;
 
-    let code = "";
-
+    let code = script;
     try {
       //Step 1
-      let human = stringManipulation.humanize(String(script));
-      if (human.trim() !== "") {
-        code = human;
-      }
-
-      //Step2
-      let beautified = luamin.Beautify(human, {
+      code = luamin.Beautify(code, {
         RenameVariables: false,
         RenameGlobals: false,
         SolveMath: false,
       });
 
-      if (beautified.charAt(0) === "\n") {
-        beautified = beautified.slice(1);
+      if (code.charAt(0) === "\n") {
+        code = code.slice(1);
       }
-      if (beautified.trim() !== "") {
-        code = beautified;
-      }
+
+      //Step 2
+      code = stringManipulation.noCommentToLineComment(code);
+
+      //Step 3
+      code = stringManipulation.humanize(String(code));
     } catch (e) {
       //Fallback
       code = script;
     }
-    codePreview.innerHTML = stringManipulation.noCommentToLineComment(code);
+
+    codePreview.innerHTML = code;
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
       tabSize: 2,

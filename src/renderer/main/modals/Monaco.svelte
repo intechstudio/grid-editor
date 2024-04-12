@@ -141,24 +141,27 @@
   }
 
   function expandCode(code) {
-    let human = stringManipulation.humanize(code);
     try {
-      let beautified = luamin.Beautify(human, {
+      //Step 1
+      code = luamin.Beautify(code, {
         RenameVariables: false,
         RenameGlobals: false,
         SolveMath: false,
       });
 
-      if (beautified.trim() === "") {
-        return code;
+      if (code.charAt(0) === "\n") {
+        code = code.slice(1);
       }
 
-      if (beautified.charAt(0) === "\n") beautified = beautified.slice(1);
-      return stringManipulation.noCommentToLineComment(beautified);
+      //Step 2
+      code = stringManipulation.noCommentToLineComment(code);
+
+      //Step 3
+      code = stringManipulation.humanize(String(code));
     } catch (e) {
       console.warn(e);
-      return human;
     }
+    return code;
   }
 
   function minifyCode(code) {

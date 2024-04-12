@@ -38,7 +38,7 @@
 </script>
 
 <if-block
-  class="{$$props.class} h-fit flex text-white py-1 pointer-events-none rounded-tr-xl"
+  class="{$$props.class} h-fit flex text-white py-1 pointer-events-none"
   style="background-color:{config.information.color}"
 >
   <div class="flex flex-row items-center w-full">

@@ -53,7 +53,7 @@
         Object.values(CEEAT).find((obj) => obj.value == e.type).desc
       );
       return new Event({
-        name: name,
+        name: name[0].toUpperCase() + name.slice(1).toLowerCase(),
         type: Number(e.type),
         dx: target.device.dx,
         dy: target.device.dy,

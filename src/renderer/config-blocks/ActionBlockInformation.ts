@@ -10,6 +10,7 @@ export type ActionBlockInformation = Information;
 interface Information {
   short: string;
   name: string;
+  menuName?: string;
   rendering: "modifier" | "standard";
   category:
     | "variables"

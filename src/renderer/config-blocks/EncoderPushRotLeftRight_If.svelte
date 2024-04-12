@@ -12,6 +12,7 @@
     rounding: "top",
     category: "special",
     displayName: "Push & Rotate Left",
+    menuName: "Push & Rotate L R",
     defaultLua: "if (self:bst()>0 and self:est()<64) then",
     compositeLua: [
       {
