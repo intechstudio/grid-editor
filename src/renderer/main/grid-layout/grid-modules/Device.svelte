@@ -162,6 +162,8 @@
       dy: device.dy,
       page: get(user_input).pagenumber,
       element: elementNumber,
+    }).catch((e) => {
+      console.warn(e);
     });
 
     Analytics.track({

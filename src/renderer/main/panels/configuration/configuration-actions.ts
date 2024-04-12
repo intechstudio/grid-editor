@@ -173,27 +173,22 @@ export async function overwriteElement({ dx, dy, page, element }) {
     ).configs;
     promises.push(list.sendTo({ target: target }));
   }
-  return Promise.all(promises)
-    .then(() => {
-      const ui = get(user_input);
-      user_input.set({
-        dx: dx,
-        dy: dy,
-        pagenumber: page,
-        elementnumber: element,
-        eventtype: ui.eventtype,
-      });
-      const displayed = ConfigTarget.createFrom({
-        userInput: ui,
-      });
-      ConfigList.createFromTarget(displayed).then((list) => {
-        configManager.set(list);
-      });
-    })
-    .catch((error) => {
-      console.warn(error);
-      return Promise.reject(error);
+  return Promise.all(promises).then(() => {
+    const ui = get(user_input);
+    user_input.set({
+      dx: dx,
+      dy: dy,
+      pagenumber: page,
+      elementnumber: element,
+      eventtype: ui.eventtype,
     });
+    const displayed = ConfigTarget.createFrom({
+      userInput: ui,
+    });
+    ConfigList.createFromTarget(displayed).then((list) => {
+      configManager.set(list);
+    });
+  });
 }
 
 export async function discardElement({ dx, dy, page, element }) {

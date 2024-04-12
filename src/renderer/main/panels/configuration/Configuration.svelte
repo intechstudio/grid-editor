@@ -281,6 +281,8 @@
       dy: ui.dy,
       page: ui.pagenumber,
       element: ui.elementnumber,
+    }).catch((e) => {
+      console.warn(e);
     });
 
     Analytics.track({
