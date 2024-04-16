@@ -289,13 +289,7 @@
 </script>
 
 <container style="z-index: 666;">
-  <Popover
-    isOpen={true}
-    id="tooltip"
-    {referenceElement}
-    placement={"left"}
-    spaceAlong={offset}
-  >
+  <Popover isOpen={true} id="tooltip" {referenceElement} placement={"left"}>
     <pick-action
       use:clickOutside={{ useCapture: true }}
       on:click-outside={handleClickOutside}

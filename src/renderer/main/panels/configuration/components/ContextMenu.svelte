@@ -8,7 +8,6 @@
 
 <script lang="ts">
   import Popover from "svelte-easy-popover/dist/ts/Popover.svelte";
-  import { clickOutside } from "../../../_actions/click-outside.action";
   export let target: HTMLElement;
   export let items: ContextMenuItem[];
   export let offset: { x: number; y: number };
@@ -17,10 +16,6 @@
 
   function handleItemClicked(item: ContextMenuItem) {
     item.handler();
-    render = false;
-  }
-
-  function handleClickOutside() {
     render = false;
   }
 </script>
@@ -34,8 +29,6 @@
     spaceAlong={-target.offsetHeight + offset.y}
   >
     <div
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
       class="flex flex-col items-start bg-black bg-opacity-75 border-white rounded p-2 absolute"
     >
       {#each items as item}

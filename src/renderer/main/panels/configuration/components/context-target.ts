@@ -12,12 +12,15 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   options: ContextMenuOptions
 ): any => {
   const handleMouseUp = (e: MouseEvent) => {
+    if (e.button === 2) {
+      createContextMenu(e.offsetX, e.offsetY);
+    }
+  };
+
+  const handleBlur = (e: any) => {
     if (typeof contextMenu !== "undefined") {
       contextMenu!.parentNode?.removeChild(contextMenu);
       contextMenu = undefined;
-    }
-    if (e.button === 2) {
-      createContextMenu(e.offsetX, e.offsetY);
     }
   };
 
@@ -34,6 +37,9 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
         offset: { x: x, y: y },
       },
     });
+
+    node.addEventListener("blur", handleBlur);
+    node.focus();
   };
   node.addEventListener("mouseup", (event) => handleMouseUp(event));
 
