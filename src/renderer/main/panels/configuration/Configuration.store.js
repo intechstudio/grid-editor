@@ -48,9 +48,10 @@ const luaminOptions = {
 };
 
 export class ConfigObject {
-  constructor({ short, script }) {
+  constructor({ short, script, scriptForSyntaxCheck }) {
     this.short = short;
     this.script = script;
+    this.scriptForSyntaxCheck = scriptForSyntaxCheck ?? script;
     this.id = uuidv4();
 
     let res = getComponentInformation({ short: short });
@@ -100,6 +101,7 @@ export class ConfigObject {
     //TODO: Rework composite blocks in a way, so this exception
     //does not occure.
     let code = this.script;
+    /*
     if (this.short !== "cb" && !this.short.startsWith("x")) {
       if (code.startsWith("elseif")) {
         code = code.replace("elseif", "if");
@@ -117,7 +119,7 @@ export class ConfigObject {
       if (this.short === "raw") {
         return true;
       }
-    }
+    }*/
 
     try {
       //Is this necessary?

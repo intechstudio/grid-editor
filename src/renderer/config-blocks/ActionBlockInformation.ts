@@ -35,4 +35,5 @@ interface Information {
   hideIcon: boolean;
   rounding?: "top" | "bottom";
   compositeLua?: LuaScript[];
+  syntaxPreprocessor?: string;
 }

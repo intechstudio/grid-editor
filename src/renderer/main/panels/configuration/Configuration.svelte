@@ -198,8 +198,8 @@
   }
 
   function handleConfigUpdate(e) {
-    const { index, short, script } = e.detail;
-    updateAction(index, short, script);
+    const { index, config } = e.detail;
+    updateAction(index, config);
     sendCurrentConfigurationToGrid();
 
     const target = ConfigTarget.getCurrent();
