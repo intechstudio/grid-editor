@@ -98,6 +98,19 @@
   }
 
   $: handleCalculateDiscardEnabled($runtime, $user_input);
+
+  let overwriteElementEnabled = false;
+
+  $: {
+    if ($user_input) {
+      const clipboard = $controlElementClipboard;
+      const current = ConfigTarget.getCurrent();
+      overwriteElementEnabled = false;
+      if (typeof clipboard !== "undefined" && typeof current !== "undefined") {
+        overwriteElementEnabled = current.elementType === clipboard.elementType;
+      }
+    }
+  }
 </script>
 
 <app-action-multi-select class="w-full flex flex-col gap-2">
@@ -113,7 +126,7 @@
     <MoltenPushButton
       on:click={handleOverwriteAll}
       ratio={ButtonRatio.BOX}
-      disabled={typeof $controlElementClipboard === "undefined"}
+      disabled={!overwriteElementEnabled}
     >
       <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
       <div slot="content" class="flex flex-row gap-2 items-center">
