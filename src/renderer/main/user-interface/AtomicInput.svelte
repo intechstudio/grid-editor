@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import stringManipulation from "../../main/user-interface/_string-operations.js";
+  import { stringManipulation } from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
 

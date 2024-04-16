@@ -37,7 +37,7 @@
 
 <script>
   import * as luamin from "lua-format";
-  import stringManipulation from "../main/user-interface/_string-operations";
+  import { stringManipulation } from "../main/user-interface/_string-operations";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
@@ -98,32 +98,7 @@
   });
 
   function displayConfigScript(script) {
-    if (typeof codePreview === "undefined") return;
-
-    let code = script;
-    try {
-      //Step 1
-      code = luamin.Beautify(code, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
-
-      if (code.charAt(0) === "\n") {
-        code = code.slice(1);
-      }
-
-      //Step 2
-      code = stringManipulation.noCommentToLineComment(code);
-
-      //Step 3
-      code = stringManipulation.humanize(String(code));
-    } catch (e) {
-      //Fallback
-      code = script;
-    }
-
-    codePreview.innerHTML = code;
+    codePreview.innerHTML = stringManipulation.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
       tabSize: 2,

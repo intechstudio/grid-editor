@@ -15,7 +15,7 @@
   import { beforeUpdate, afterUpdate } from "svelte";
 
   import * as luamin from "lua-format";
-  import stringManipulation from "../../main/user-interface/_string-operations";
+  import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
 
@@ -50,7 +50,7 @@
     editedConfig = editedList[$monaco_store.index];
 
     //To be displayed in Editor
-    const code_preview = expandCode(editedConfig.script);
+    const code_preview = stringManipulation.expandScript(editedConfig.script);
 
     //Set initial code length
     scriptLength = editedList.toConfigScript().length;
@@ -85,7 +85,7 @@
 
       try {
         //Throws error on syntax error
-        editedConfig.script = minifyCode(editor_code);
+        editedConfig.script = stringManipulation.compressScript(editor_code);
 
         //Calculate length (this already includes the new value of referenceConfig)
         scriptLength = editedList.toConfigScript().length;
@@ -125,7 +125,7 @@
   function handleCommit() {
     try {
       const editor_code = editor.getValue();
-      const minifiedCode = minifyCode(editor_code);
+      const minifiedCode = stringManipulation.compressScript(editor_code);
 
       $committed_code_store = {
         script: minifiedCode,
@@ -137,52 +137,6 @@
       errorMesssage = "";
     } catch (e) {
       console.warn(e);
-    }
-  }
-
-  function expandCode(code) {
-    try {
-      //Step 1
-      code = luamin.Beautify(code, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
-
-      if (code.charAt(0) === "\n") {
-        code = code.slice(1);
-      }
-
-      //Step 2
-      code = stringManipulation.noCommentToLineComment(code);
-
-      //Step 3
-      code = stringManipulation.humanize(String(code));
-    } catch (e) {
-      console.warn(e);
-    }
-    return code;
-  }
-
-  function minifyCode(code) {
-    const short_code = stringManipulation.shortify(code);
-    const line_commented_code =
-      stringManipulation.blockCommentToLineComment(short_code);
-
-    var safe_code = String(
-      stringManipulation.lineCommentToNoComment(line_commented_code)
-    );
-    const luaminOptions = {
-      RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-      RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-      SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-    };
-
-    try {
-      const result = luamin.Minify(safe_code, luaminOptions);
-      return result;
-    } catch (e) {
-      throw `Syntax Error: ${e}`;
     }
   }
 

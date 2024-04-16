@@ -35,7 +35,7 @@ export function lastOpenedActionblocksRemove(short) {
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
 
-import stringManipulation from "../../user-interface/_string-operations";
+import { stringManipulation } from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import { grid } from "../../../protocol/grid-protocol";
@@ -120,16 +120,7 @@ export class ConfigObject {
     }
 
     try {
-      //Is this necessary?
-      //checkForbiddenIdentifiers(code);
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      luamin.Minify(safe_code, luaminOptions);
+      luamin.Minify(code, luaminOptions);
       return true;
     } catch (e) {
       return false;
@@ -138,16 +129,7 @@ export class ConfigObject {
 
   getSyntaxError() {
     try {
-      //Is this necessary?
-      //checkForbiddenIdentifiers(code);
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      luamin.Minify(safe_code, luaminOptions);
+      luamin.Minify(code, luaminOptions);
       return "OK";
     } catch (e) {
       return e;

@@ -103,7 +103,7 @@
 
 <script>
   import { createEventDispatcher, onDestroy } from "svelte";
-  import stringManipulation from "../main/user-interface/_string-operations";
+  import { stringManipulation } from "../main/user-interface/_string-operations";
   import { parenthesis } from "./_validators";
 
   export let config;
