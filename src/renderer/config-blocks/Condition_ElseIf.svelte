@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import ConditionElseIfFace from "./headers/ConditionElseIfFace.svelte";
   export const header = ConditionElseIfFace;
@@ -24,5 +27,6 @@
     hideIcon: true,
     type: "composite_part",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor("<script> end"),
   };
 </script>

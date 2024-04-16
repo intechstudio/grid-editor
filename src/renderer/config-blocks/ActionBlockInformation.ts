@@ -7,6 +7,14 @@ export interface LuaScript {
 
 export type ActionBlockInformation = Information;
 
+export class SyntaxPreprocessor {
+  constructor(public generatorString: string) {}
+  public generate(script: string, generatorString: string) {
+    // Replace the placeholder "<script>" with the provided script content.
+    return this.generatorString.replace("<script>", script);
+  }
+}
+
 interface Information {
   short: string;
   name: string;
@@ -35,5 +43,5 @@ interface Information {
   hideIcon: boolean;
   rounding?: "top" | "bottom";
   compositeLua?: LuaScript[];
-  syntaxPreprocessor?: string;
+  syntaxPreprocessor?: SyntaxPreprocessor;
 }

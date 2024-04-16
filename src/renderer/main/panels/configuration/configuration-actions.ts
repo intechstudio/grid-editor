@@ -297,13 +297,12 @@ export function insertAction(
 }
 
 export function updateAction(index: number, newConfig: ConfigObject) {
-  const { short, script, scriptForSyntaxCheck } = newConfig;
+  const { short, script } = newConfig;
   configManager.update((s: ConfigList) => {
     const config = s[index];
     if (typeof config !== "undefined") {
       config.short = short;
       config.script = script;
-      config.scriptForSyntaxCheck = scriptForSyntaxCheck;
     }
     return s;
   });

@@ -213,7 +213,7 @@
         click: "Update",
         elementType: target.elementType,
         eventType: NumberToEventType(target.eventType),
-        short: short,
+        short: config.short,
       },
       mandatory: false,
     });

@@ -60,13 +60,12 @@
   }
 
   function handleOutput(e) {
-    const { short, script, scriptForSyntaxCheck } = e.detail;
+    const { short, script } = e.detail;
     dispatch("update", {
       index: index,
       config: new ConfigObject({
         short: short,
         script: script,
-        scriptForSyntaxCheck: scriptForSyntaxCheck,
       }),
     });
   }
