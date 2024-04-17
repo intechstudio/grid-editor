@@ -115,10 +115,9 @@
 
 <app-action-multi-select class="w-full flex flex-col gap-2">
   <div class="flex flex-row flex-wrap gap-2 text-gray-400 items-center">
-    <div class="text-gray-500 text-sm">Element:</div>
     <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Copy</span>
+        <span class=" text-white text-opacity-75 text-sm">Copy Element</span>
         <SvgIcon displayMode="button" iconPath={"copy_all"} />
       </div>
     </MoltenPushButton>
@@ -130,7 +129,9 @@
     >
       <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Overwrite</span>
+        <span class=" text-white text-opacity-75 text-sm"
+          >Overwrite Element</span
+        >
         <SvgIcon
           slot="content"
           class={typeof $controlElementClipboard === "undefined"
@@ -148,7 +149,9 @@
     >
       <MoltenPopup slot="popup" text="Pasted!" spaceAway={15} />
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">Discard</span>
+        <span class=" text-white text-opacity-75 text-sm"
+          >Discard Element Changes</span
+        >
         <SvgIcon
           slot="content"
           class={!discardElementEnabled
@@ -161,14 +164,13 @@
   </div>
   <!-- When any of the array elements is true -->
   <div class="flex flex-row flex-wrap gap-2 w-full items-center">
-    <div class="text-gray-500 text-sm">Action:</div>
     <MoltenPushButton
       on:click={handleConvertToCodeBlockClicked}
       disabled={!isSelection}
       ratio={ButtonRatio.BOX}
     >
       <div slot="content" class="flex flex-row gap-2 items-center">
-        <span class=" text-white text-opacity-75 text-sm">To Code</span>
+        <span class=" text-white text-opacity-75 text-sm">Merge To Code</span>
         <SvgIcon
           class={!isSelection
             ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
