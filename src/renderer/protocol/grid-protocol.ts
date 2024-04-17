@@ -16,10 +16,10 @@ export enum EventType {
   POTMETER = "potmeter",
   ENCODER = "encoder",
   BUTTON = "button",
-  MAP = "map",
+  MAPMODE = "mapmode",
   MIDIRX = "midirx",
   TIMER = "timer",
-  UNDEFINED = "undef",
+  ENDLESS = "endless",
 }
 
 export function NumberToEventType(value: Number) {
@@ -33,13 +33,15 @@ export function NumberToEventType(value: Number) {
     case 3:
       return EventType.BUTTON;
     case 4:
-      return EventType.MAP;
+      return EventType.MAPMODE;
     case 5:
       return EventType.MIDIRX;
     case 6:
       return EventType.TIMER;
+    case 7:
+      return EventType.ENDLESS;
     default:
-      return EventType.UNDEFINED;
+      throw "Unknown event type";
   }
 }
 
@@ -53,24 +55,26 @@ export function EventTypeToNumber(value: EventType) {
       return 2;
     case EventType.BUTTON:
       return 3;
-    case EventType.MAP:
+    case EventType.MAPMODE:
       return 4;
     case EventType.MIDIRX:
       return 5;
     case EventType.TIMER:
       return 6;
+    case EventType.ENDLESS:
+      return 7;
     default:
       throw "Unknown event type";
   }
 }
 
 export enum ElementType {
-  BLANK = "blank",
   SYSTEM = "system",
   BUTTON = "button",
-  POTENTIOMETER = "potentiometer",
+  POTMETER = "potmeter",
   ENCODER = "encoder",
   FADER = "fader",
+  ENDLESS = "endless",
 }
 
 export enum Architecture {
@@ -217,6 +221,10 @@ function mapObjectsToArray(array: any[], object: any) {
       array = [...array, ...mapper(object[key], "button", ["3"])];
     }
 
+    if (key == "EP") {
+      array = [...array, ...mapper(object[key], "endless", ["2"])];
+    }
+
     if (key == "E") {
       array = [...array, ...mapper(object[key], "encoder", ["2"])];
     }
@@ -239,6 +247,11 @@ function mapObjectsToArray(array: any[], object: any) {
 
 function createNestedObject(base: any, names: any, value: any) {
   // to avoid array property overwriting
+
+  if (value == "epva") {
+    console.log(base, names, value);
+  }
+
   let _names = [...names];
 
   // If a value is given, remove the last name and keep it for later:
@@ -484,12 +497,6 @@ interface CEEAT {
 
 // control element event assignment table.
 export const CEEAT: Record<EventType, CEEAT> = {
-  [EventType.UNDEFINED]: {
-    desc: "UNDEFINED",
-    value: -1,
-    key: "UNDEFINED",
-  },
-
   [EventType.INIT]: {
     desc: "init",
     value: 0,
@@ -514,7 +521,7 @@ export const CEEAT: Record<EventType, CEEAT> = {
     key: "BC",
   },
 
-  [EventType.MAP]: {
+  [EventType.MAPMODE]: {
     desc: "utility",
     value: 4,
     key: "MAP",
@@ -531,17 +538,23 @@ export const CEEAT: Record<EventType, CEEAT> = {
     value: 6,
     key: "TIMER",
   },
+
+  [EventType.ENDLESS]: {
+    desc: "endless",
+    value: 7,
+    key: "ENDLESS",
+  },
 };
 
 // Define the module types and their associated element types
 const moduleElements: { [key in ModuleType]: ElementType[] } = {
   [ModuleType.PO16]: [
-    ...Array(16).fill(ElementType.POTENTIOMETER),
+    ...Array(16).fill(ElementType.POTMETER),
     ...Array(239), // Filling with undefined values until index 254
     ElementType.SYSTEM, // Add system element at index 255
   ],
   [ModuleType.PBF4]: [
-    ...Array(4).fill(ElementType.POTENTIOMETER),
+    ...Array(4).fill(ElementType.POTMETER),
     ...Array(4).fill(ElementType.FADER),
     ...Array(4).fill(ElementType.BUTTON),
     ...Array(243), // Filling with undefined values until index 254
@@ -565,7 +578,7 @@ const moduleElements: { [key in ModuleType]: ElementType[] } = {
   ],
   [ModuleType.TEK2]: [
     ...Array(8).fill(ElementType.BUTTON),
-    ...Array(2).fill(ElementType.ENCODER),
+    ...Array(2).fill(ElementType.ENDLESS),
     ...Array(245), // Filling with undefined values until index 254
     ElementType.SYSTEM, // Add system element at index 255
   ],
@@ -576,51 +589,98 @@ const elementEvents = {
   [ElementType.BUTTON]: [
     {
       ...CEEAT.init,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_BUT,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_BUTTON_INIT,
     },
-    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
-    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+    {
+      ...CEEAT.button,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_BUTTON_BUTTON,
+    },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
   ],
-  [ElementType.POTENTIOMETER]: [
+  [ElementType.POTMETER]: [
     {
       ...CEEAT.init,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_POTMETER_INIT,
     },
-    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
-    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+    {
+      ...CEEAT.potmeter,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_POTMETER_POTMETER,
+    },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
   ],
   [ElementType.FADER]: [
     {
       ...CEEAT.init,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_POT,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_POTMETER_INIT,
     },
-    { ...CEEAT.potmeter, defaultConfig: grid_protocol.GRID_ACTIONSTRING_AC },
-    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+    {
+      ...CEEAT.potmeter,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_POTMETER_POTMETER,
+    },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
   ],
-  [ElementType.BLANK]: [{ ...CEEAT.undef, defaultConfig: "" }],
   [ElementType.ENCODER]: [
     {
       ...CEEAT.init,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_INIT_ENC,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_ENCODER_INIT,
     },
-    { ...CEEAT.button, defaultConfig: grid_protocol.GRID_ACTIONSTRING_BC },
-    { ...CEEAT.encoder, defaultConfig: grid_protocol.GRID_ACTIONSTRING_EC },
-    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+    {
+      ...CEEAT.button,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_BUTTON_BUTTON,
+    },
+    {
+      ...CEEAT.encoder,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_ENCODER_ENCODER,
+    },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
+  ],
+  [ElementType.ENDLESS]: [
+    {
+      ...CEEAT.init,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_ENDLESS_INIT,
+    },
+    {
+      ...CEEAT.button,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_ENDLESS_BUTTON,
+    },
+    {
+      ...CEEAT.endless,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_ENDLESS_ENDLESS,
+    },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
   ],
   [ElementType.SYSTEM]: [
     {
       ...CEEAT.init,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_PAGE_INIT,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_INIT,
     },
     {
-      ...CEEAT.map,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MAPMODE_CHANGE,
+      ...CEEAT.mapmode,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_MAPMODE,
     },
     {
       ...CEEAT.midirx,
-      defaultConfig: grid_protocol.GRID_ACTIONSTRING_MIDIRX,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_MIDIRX,
     },
-    { ...CEEAT.timer, defaultConfig: grid_protocol.GRID_ACTIONSTRING_TIMER },
+    {
+      ...CEEAT.timer,
+      defaultConfig: grid_protocol.GRID_ACTIONSTRING_SYSTEM_TIMER,
+    },
   ],
 };
 
@@ -720,6 +780,11 @@ class GridProperty {
         // GRID HEARTBEAT INTERVAL
         if (key == "GRID_PARAMETER_HEARTBEATINTERVAL_us") {
           HEARTBEAT_INTERVAL = +grid_protocol[key] / 1000;
+          console.log(
+            "HEARTBEAT_INTERVAL",
+            grid_protocol[key],
+            HEARTBEAT_INTERVAL
+          );
         }
 
         if (key == "GRID_PARAMETER_ACTIONSTRING_maxlength") {
@@ -786,17 +851,29 @@ class GridProperty {
           LUA_AUTOCOMPLETE.push({ label: value, type: "function" });
         }
 
-        if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+        if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
           let value = grid_protocol[key];
           LUA_AUTOCOMPLETE.push({
             label: "self:" + value,
             type: "function",
-            elementtype: "encoder",
+            elementtype: ElementType.ENDLESS,
           });
           LUA_AUTOCOMPLETE.push({
             label: "element[0]:" + value,
             type: "function",
-            elementtype: "system",
+            elementtype: ElementType.SYSTEM,
+          });
+        } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+          let value = grid_protocol[key];
+          LUA_AUTOCOMPLETE.push({
+            label: "self:" + value,
+            type: "function",
+            elementtype: ElementType.ENCODER,
+          });
+          LUA_AUTOCOMPLETE.push({
+            label: "element[0]:" + value,
+            type: "function",
+            elementtype: ElementType.SYSTEM,
           });
         }
 
@@ -805,12 +882,12 @@ class GridProperty {
           LUA_AUTOCOMPLETE.push({
             label: "self:" + value,
             type: "function",
-            elementtype: "button",
+            elementtype: ElementType.BUTTON,
           });
           LUA_AUTOCOMPLETE.push({
             label: "element[0]:" + value,
             type: "function",
-            elementtype: "system",
+            elementtype: ElementType.SYSTEM,
           });
         }
 
@@ -819,12 +896,12 @@ class GridProperty {
           LUA_AUTOCOMPLETE.push({
             label: "self:" + value,
             type: "function",
-            elementtype: "potentiometer",
+            elementtype: ElementType.POTMETER,
           });
           LUA_AUTOCOMPLETE.push({
             label: "element[0]:" + value,
             type: "function",
-            elementtype: "system",
+            elementtype: ElementType.SYSTEM,
           });
         }
 
@@ -870,7 +947,6 @@ class GridProperty {
     const deepObjects = returnDeepestObjects(propObject);
     //console.log(deepObjects)
     const array = mapObjectsToArray(editor_lua_properties, deepObjects);
-    //console.log(array)
     return array;
   }
 }

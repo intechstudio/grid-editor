@@ -318,7 +318,19 @@ function initialize_autocomplete() {
             range: range,
           };
 
-          if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+          if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
+            if (elementtype === "endless" || elementtype === undefined) {
+              proposalItem.label = "self:" + grid_protocol[key];
+              proposalItem.insertText = "self:" + grid_protocol[key] + "()";
+            } else if (elementtype === "system") {
+              proposalItem.label = "element[0]:" + grid_protocol[key];
+              proposalItem.insertText =
+                "element[0]:" + grid_protocol[key] + "()";
+            }
+          } else if (
+            key.startsWith("GRID_LUA_FNC_E") &&
+            key.endsWith("_human")
+          ) {
             if (elementtype === "encoder" || elementtype === undefined) {
               proposalItem.label = "self:" + grid_protocol[key];
               proposalItem.insertText = "self:" + grid_protocol[key] + "()";
@@ -337,7 +349,7 @@ function initialize_autocomplete() {
           }
 
           if (key.startsWith("GRID_LUA_FNC_P") && key.endsWith("_human")) {
-            if (elementtype === "potentiometer" || elementtype === undefined) {
+            if (elementtype === "potmeter" || elementtype === undefined) {
               proposalItem.label = "self:" + grid_protocol[key];
               proposalItem.insertText = "self:" + grid_protocol[key] + "()";
             } else if (elementtype === "system") {
@@ -396,7 +408,11 @@ function initialize_highlight() {
           "Global function named " + grid_protocol[key];
       }
 
-      if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
+      if (key.startsWith("GRID_LUA_FNC_EP") && key.endsWith("_human")) {
+        language.functions.push(grid_protocol[key]);
+        hoverTips[grid_protocol[key]] =
+          "Endless function named " + grid_protocol[key];
+      } else if (key.startsWith("GRID_LUA_FNC_E") && key.endsWith("_human")) {
         language.functions.push(grid_protocol[key]);
         hoverTips[grid_protocol[key]] =
           "Encoder function named " + grid_protocol[key];

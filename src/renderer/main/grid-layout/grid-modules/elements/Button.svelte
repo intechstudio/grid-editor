@@ -9,7 +9,6 @@
 <svg
   data-control-number={elementNumber}
   data-module-id={id}
-  data-control-element-type="button"
   width={size * buttonSize + "px"}
   height={size * buttonSize + "px"}
   viewBox="0 0 30 30 "

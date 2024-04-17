@@ -90,7 +90,6 @@
     on:grabmove={handleGrabMove}
     on:grabend={handleGrabEnd}
     data-control-number={elementNumber}
-    data-control-element-type="fader"
     data-module-id={id}
     id="fader-cap"
     width={size * faderWidth + "px"}
