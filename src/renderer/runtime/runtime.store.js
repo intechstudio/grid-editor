@@ -68,7 +68,7 @@ export function update_elementPositionStore(descr) {
 
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
-  ] = descr.class_parameters.EVENTPARAM;
+  ] = [descr.class_parameters.EVENTPARAM1, descr.class_parameters.EVENTPARAM2];
 
   //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
