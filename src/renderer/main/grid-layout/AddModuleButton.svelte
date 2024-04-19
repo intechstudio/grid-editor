@@ -9,7 +9,7 @@
 </script>
 
 <button
-  class="hover:bg-primary-600 bg-primary hover:fill-white/75 rounded-full fill-secondary-brightness-30 h-10 w-10 p-3"
+  class=" rounded-full fill-transparent bg-transparent h-10 w-10 p-3 hover:bg-white/15 hover:fill-secondary"
   on:click={handleClick}
 >
   <svg
