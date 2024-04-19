@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   export const header = undefined;
 
@@ -28,6 +31,7 @@
     hideIcon: true,
     type: "single",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>
 
