@@ -1,6 +1,8 @@
 <script>
   import { get } from "svelte/store";
   import { logger } from "./../../runtime/runtime.store.js";
+  import { appSettings } from "../../runtime/app-helper.store";
+  import { writeBuffer } from "../../runtime/engine.store.ts";
   import { configManager } from "./../panels/configuration/Configuration.store.js";
   import { setTooltip } from "./tooltip/Tooltip.ts";
   import { runtime, user_input } from "../../runtime/runtime.store";
@@ -151,9 +153,17 @@
   class={$$props.class}
 >
   <div class="flex flex-row justify-center items-center gap-2">
-    <div class="mx-4 text-white font-medium">
-      {changes} active changes
+    <div class="flex flex-col">
+      <div class="mx-4 text-white font-medium">
+        {changes} active changes
+      </div>
+      {#if $appSettings.persistent.writeBufferDebugEnabled}
+        <div class="mx-4 text-white font-medium">
+          writeBuffer: {$writeBuffer.length}
+        </div>
+      {/if}
     </div>
+
     <div
       use:setTooltip={{
         key: "configuration_header_clear",

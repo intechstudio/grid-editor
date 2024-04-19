@@ -337,6 +337,15 @@
         bind:target={$appSettings.persistent.portstateOverlayEnabled}
         title={"Activate port sate overlay"}
       />
+      <BlockTitle>writeBuffer state indicator</BlockTitle>
+      <BlockBody>
+        Enable/Disable the writeBuffer state indicator. This will show the
+        buffer length in the middle panel.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.writeBufferDebugEnabled}
+        title={"writeBuffer debug state"}
+      />
     </Block>
 
     <Block>

@@ -198,8 +198,8 @@
   }
 
   function handleConfigUpdate(e) {
-    const { index, short, script } = e.detail;
-    updateAction(index, short, script);
+    const { index, config } = e.detail;
+    updateAction(index, config);
     sendCurrentConfigurationToGrid();
 
     const target = ConfigTarget.getCurrent();
@@ -213,7 +213,7 @@
         click: "Update",
         elementType: target.elementType,
         eventType: NumberToEventType(target.eventType),
-        short: short,
+        short: config.short,
       },
       mandatory: false,
     });

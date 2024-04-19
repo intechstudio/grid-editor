@@ -5,6 +5,8 @@ import {
   EmailAuthProvider,
   GoogleAuthProvider,
   OAuthProvider,
+  Unsubscribe,
+  User,
   getAuth,
   signInAnonymously,
   signInWithCredential,
@@ -46,6 +48,7 @@ const createAuth = () => {
   const { subscribe, set } = writable<AuthStore | null>(null);
 
   let currentAuthEnvironment: AuthEnvironment | undefined = undefined;
+  let authUnsubscribe: Unsubscribe | undefined = undefined;
 
   function getCurrentCentralAuth() {
     switch (currentAuthEnvironment) {
@@ -63,13 +66,8 @@ const createAuth = () => {
     // https://firebase.google.com/docs/auth/web/auth-state-persistence#supported_types_of_auth_state_persistence
     const credential = EmailAuthProvider.credential(email, password);
 
-    return signInWithCredential(getCurrentCentralAuth(), credential)
-      .then(async (userCredential) => {
-        const userIdToken =
-          await getCurrentCentralAuth().currentUser!.getIdToken();
-        set({ event: "login", providerId: "oidc", idToken: userIdToken });
-      })
-      .catch((e) => {
+    return signInWithCredential(getCurrentCentralAuth(), credential).catch(
+      (e) => {
         if (e instanceof FirebaseError) {
           switch (e.code) {
             case "auth/account-exists-with-different-credential":
@@ -87,33 +85,26 @@ const createAuth = () => {
         } else {
           throw e;
         }
-      });
+      }
+    );
   }
 
   async function socialLogin(provider, idToken) {
     if (provider == "google") {
       const credential = GoogleAuthProvider.credential(idToken);
-      await signInWithCredential(getCurrentCentralAuth(), credential)
-        .then(async (userCredential) => {
-          const idToken =
-            await getCurrentCentralAuth().currentUser?.getIdToken();
-          set({ event: "login", providerId: "oidc", idToken: idToken });
-        })
-        .catch((error) => {
+      await signInWithCredential(getCurrentCentralAuth(), credential).catch(
+        (error) => {
           console.log(error);
           // ...
-        });
+        }
+      );
     }
   }
 
   async function logout() {
-    await signOut(getCurrentCentralAuth())
-      .then((res) => {
-        set({ event: "logout" });
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await signOut(getCurrentCentralAuth()).catch((error) => {
+      console.log(error);
+    });
   }
 
   function getCurrentAuthEnvironment() {
@@ -126,11 +117,27 @@ const createAuth = () => {
         await logout();
       }
       currentAuthEnvironment = environment;
-      getCurrentCentralAuth()
-        .currentUser?.getIdToken()
-        .then((idToken) =>
-          set({ event: "login", providerId: "oidc", idToken: idToken })
-        );
+      let currentUser = getCurrentCentralAuth().currentUser;
+      if (authUnsubscribe) {
+        authUnsubscribe();
+      }
+      authUnsubscribe = getCurrentCentralAuth().onAuthStateChanged(
+        handleAuthStateChanged
+      );
+      handleAuthStateChanged(getCurrentCentralAuth().currentUser);
+      console.log(`Current user: ${JSON.stringify(currentUser?.uid)}`);
+    }
+  }
+
+  async function handleAuthStateChanged(user: User | null) {
+    if (user) {
+      console.log(`Logging in user: ${user.uid}`);
+      user.getIdToken().then((idToken) => {
+        set({ event: "login", providerId: "oidc", idToken: idToken });
+      });
+    } else {
+      console.log(`Null user, logout`);
+      set({ event: "logout" });
     }
   }
 

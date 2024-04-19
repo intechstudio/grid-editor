@@ -15,7 +15,7 @@
   "FIRMWARE_GRID_D51_REQUIRED_PATCH": 31,
   "FIRMWARE_GRID_ESP32_REQUIRED_MAJOR": 1,
   "FIRMWARE_GRID_ESP32_REQUIRED_MINOR": 2,
-  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 31,
+  "FIRMWARE_GRID_ESP32_REQUIRED_PATCH": 32,
   "FIRMWARE_GRID_URL_BEGINING": "https://github.com/intechstudio/grid-fw/releases/latest/download/",
   "FIRMWARE_GRID_URL_END": "/grid_release.zip",
   "FIRMWARE_KNOT_URL_BEGINING": "https://github.com/intechstudio/knot/releases/latest/download/",
@@ -41,5 +41,12 @@
   "PROFILE_CLOUD_URL_LOCAL": "http://localhost:5200",
   "PROFILE_CLOUD_URL_DEV": "https://profile-cloud-dev.web.app",
   "PROFILE_CLOUD_URL_PROD": "https://profile-cloud.web.app",
-  "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth"
+  "PROFILE_CLOUD_EMAIL_REGISTRATION": "https://intech.studio/auth",
+  "RECOMMENDED_PACKAGES": {
+    "package-active-win": {
+      "name": "Active Window",
+      "gitHubRepositoryOwner": "intechstudio",
+      "gitHubRepositoryName": "package-active-win"
+    }
+  }
 }
