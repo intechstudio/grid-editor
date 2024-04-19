@@ -58,10 +58,13 @@
   }
 
   function handleOutput(e) {
+    const { short, script } = e.detail;
     dispatch("update", {
       index: index,
-      short: e.detail.short,
-      script: e.detail.script,
+      config: new ConfigObject({
+        short: short,
+        script: script,
+      }),
     });
   }
 

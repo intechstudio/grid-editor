@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { config_drag } from "../../main/_actions/move.action";
   const dispatch = createEventDispatcher();
 
   export let access_tree;

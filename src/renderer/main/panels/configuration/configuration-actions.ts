@@ -267,7 +267,8 @@ export function insertAction(
   }
 }
 
-export function updateAction(index: number, short: string, script: string) {
+export function updateAction(index: number, newConfig: ConfigObject) {
+  const { short, script } = newConfig;
   configManager.update((s: ConfigList) => {
     const config = s[index];
     if (typeof config !== "undefined") {
