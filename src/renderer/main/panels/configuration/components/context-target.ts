@@ -1,11 +1,15 @@
 import type { Action } from "svelte/action";
 import ContextMenu, { ContextMenuItem } from "./ContextMenu.svelte";
+import { Writable, writable, get } from "svelte/store";
 
 interface ContextMenuOptions {
   items: ContextMenuItem[];
+  data: any;
 }
 
-let contextMenu: HTMLElement | undefined = undefined;
+export let contextMenu: Writable<
+  { component: HTMLElement; data?: any } | undefined
+> = writable();
 
 export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   node: HTMLElement,
@@ -18,19 +22,21 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   };
 
   const handleBlur = (e: any) => {
-    if (typeof contextMenu !== "undefined") {
-      contextMenu!.parentNode?.removeChild(contextMenu);
-      contextMenu = undefined;
+    const data = get(contextMenu);
+    if (typeof data === "undefined") {
+      return;
     }
+    data!.component.parentNode?.removeChild(data!.component);
+    contextMenu.set(undefined);
   };
 
   const createContextMenu = async (x: number, y: number) => {
-    contextMenu = document.createElement("div");
-    contextMenu.style.zIndex = "9999"; // Set the desired z-index here
-    document.body.appendChild(contextMenu);
+    const menu = document.createElement("div");
+    document.body.appendChild(menu);
+    contextMenu.set({ component: menu, data: options.data });
 
     new ContextMenu({
-      target: contextMenu,
+      target: menu,
       props: {
         target: node,
         items: options.items,

@@ -1,6 +1,9 @@
 <script>
   import { Analytics } from "./../../../runtime/analytics.js";
-  import { contextTarget } from "./../../panels/configuration/components/context-target.ts";
+  import {
+    contextMenu,
+    contextTarget,
+  } from "./../../panels/configuration/components/context-target.ts";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -291,7 +294,11 @@
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $moduleOverlay === "undefined"}
+          visible={typeof $moduleOverlay === "undefined" &&
+            (typeof $contextMenu === "undefined" ||
+              ($user_input.dx === device.dx &&
+                $user_input.dy === device.dy &&
+                $user_input.elementnumber === elementNumber))}
           on:click={handleElementClicked}
         />
       </button>
