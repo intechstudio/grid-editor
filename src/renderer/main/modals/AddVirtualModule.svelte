@@ -122,7 +122,7 @@
       </div>
       <div class="flex flex-row gap-2 pt-4 ml-auto">
         <MoltenPushButton
-          text="Get Started!"
+          text="Add Module"
           on:click={handleAddClicked}
           style={ButtonStyle.ACCEPT}
           disabled={selectedModule === -1}
