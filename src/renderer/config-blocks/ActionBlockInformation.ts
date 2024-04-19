@@ -9,9 +9,10 @@ export type ActionBlockInformation = Information;
 
 export class SyntaxPreprocessor {
   constructor(public generatorString: string) {}
-  public generate(script: string, generatorString: string) {
-    // Replace the placeholder "<script>" with the provided script content.
-    return this.generatorString.replace("<script>", script);
+
+  public generate(script: string) {
+    // Replace the placeholder "$SCRIPT$" with the provided script content.
+    return this.generatorString.replace("$SCRIPT$", script);
   }
 }
 

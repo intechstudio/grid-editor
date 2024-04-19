@@ -29,6 +29,6 @@
     hideIcon: true,
     type: "composite_open",
     toggleable: false,
-    syntaxPreprocessor: new SyntaxPreprocessor("<script> end"),
+    syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
   };
 </script>
