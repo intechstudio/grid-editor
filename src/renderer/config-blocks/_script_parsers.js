@@ -1,3 +1,38 @@
+function splitExpression(expression) {
+  var parts = [];
+  var currentPart = "";
+  var parenthesisCount = 0;
+  var bracketCount = 0;
+
+  for (var i = 0; i < expression.length; i++) {
+    var char = expression.charAt(i);
+
+    if (
+      (char === "," && parenthesisCount === 0 && bracketCount === 0) ||
+      i === expression.length - 1
+    ) {
+      if (i === expression.length - 1 && char !== ",") {
+        currentPart += char;
+      }
+      parts.push(currentPart.trim());
+      currentPart = "";
+    } else {
+      currentPart += char;
+      if (char === "(") {
+        parenthesisCount++;
+      } else if (char === ")") {
+        parenthesisCount--;
+      } else if (char === "[") {
+        bracketCount++;
+      } else if (char === "]") {
+        bracketCount--;
+      }
+    }
+  }
+
+  return parts;
+}
+
 export class Script {
   static toSegments({ script, short }) {
     const expressions = [
@@ -28,7 +63,10 @@ export class Script {
         // remove parenthesis
         config = config.replace(/^\((.*)\)$/, "$1");
         // split by comma to make array
-        config = config.split(",");
+
+        // old implementation: config = config.split(",");
+        config = splitExpression(config);
+
         break;
       }
       case "for loop": {

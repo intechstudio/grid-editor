@@ -11,7 +11,6 @@
   style="filter:url(#dropshadow)"
   data-control-number={elementNumber}
   data-module-id={id}
-  data-control-element-type="encoder"
   width={size * encoderSize + "px"}
   height={size * encoderSize + "px"}
   viewBox="0 0 30 30"
