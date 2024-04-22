@@ -7,9 +7,24 @@ interface ContextMenuOptions {
   data: any;
 }
 
-export let contextMenu: Writable<
-  { component: HTMLElement; data?: any } | undefined
-> = writable();
+export let contextMenu = create_context_menu();
+function create_context_menu() {
+  const store: Writable<{ component: HTMLElement; data?: any } | undefined> =
+    writable();
+
+  const close = () => {
+    const data = get(store);
+    if (typeof data === "undefined") {
+      return;
+    }
+    data!.component.parentNode?.removeChild(data!.component);
+    contextMenu.set(undefined);
+  };
+  return {
+    ...store,
+    close: close,
+  };
+}
 
 export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   node: HTMLElement,
@@ -19,15 +34,7 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
     if (e.button === 2) {
       createContextMenu(e.offsetX, e.offsetY);
     }
-  };
-
-  const handleBlur = (e: any) => {
-    const data = get(contextMenu);
-    if (typeof data === "undefined") {
-      return;
-    }
-    data!.component.parentNode?.removeChild(data!.component);
-    contextMenu.set(undefined);
+    e.stopPropagation();
   };
 
   const createContextMenu = async (x: number, y: number) => {
@@ -43,10 +50,8 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
         offset: { x: x, y: y },
       },
     });
-
-    node.addEventListener("blur", handleBlur);
-    node.focus();
   };
+
   node.addEventListener("mouseup", (event) => handleMouseUp(event));
 
   return {

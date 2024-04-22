@@ -114,8 +114,13 @@
       //evt.preventDefault();
       //codePreview.scrollLeft += evt.deltaY;
     });
-    displayConfigScript(config.script);
   });
+
+  $: {
+    if (codePreview) {
+      displayConfigScript(config.script);
+    }
+  }
 
   $: if (typeof $committed_code_store !== "undefined") {
     if ($committed_code_store.index == index) {
@@ -123,7 +128,6 @@
         short: "cb",
         script: $committed_code_store.script,
       });
-      displayConfigScript($committed_code_store.script);
     }
   }
 
