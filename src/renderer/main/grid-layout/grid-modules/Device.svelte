@@ -1,4 +1,5 @@
 <script>
+  import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
     contextMenu,
@@ -252,7 +253,17 @@
               text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
-                return typeof $controlElementClipboard === "undefined";
+                const clipboard = $controlElementClipboard;
+                const current = ConfigTarget.getCurrent();
+                let overwriteElementEnabled = false;
+                if (
+                  typeof clipboard !== "undefined" &&
+                  typeof current !== "undefined"
+                ) {
+                  overwriteElementEnabled =
+                    current.elementType === clipboard.elementType;
+                }
+                return overwriteElementEnabled;
               },
             },
             {
