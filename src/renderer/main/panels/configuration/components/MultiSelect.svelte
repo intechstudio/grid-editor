@@ -94,7 +94,7 @@
     const target = ConfigTarget.createFrom({
       userInput: ui,
     });
-    discardElementEnabled = target?.hasChanges() ?? true;
+    discardElementEnabled = target?.hasChanges() ?? false;
   }
 
   $: handleCalculateDiscardEnabled($runtime, $user_input);
@@ -111,14 +111,31 @@
       }
     }
   }
+
+  let copyElementEnabled = false;
+
+  $: {
+    copyElementEnabled =
+      typeof $user_input !== "undefined" && $runtime.length > 0;
+  }
 </script>
 
 <app-action-multi-select class="w-full flex flex-col gap-2">
   <div class="flex flex-row flex-wrap gap-2 text-gray-400 items-center">
-    <MoltenPushButton on:click={handleCopyAll} ratio={ButtonRatio.BOX}>
+    <MoltenPushButton
+      on:click={handleCopyAll}
+      ratio={ButtonRatio.BOX}
+      disabled={!copyElementEnabled}
+    >
       <div slot="content" class="flex flex-row gap-2 items-center">
         <span class=" text-white text-opacity-75 text-sm">Copy Element</span>
-        <SvgIcon displayMode="button" iconPath={"copy_all"} />
+        <SvgIcon
+          displayMode="button"
+          class={copyElementEnabled
+            ? "pointer-events-none opacity-60 group-hover:text-opacity-60 hover:text-opacity-60 text-opacity-60 text-white"
+            : ""}
+          iconPath={"copy_all"}
+        />
       </div>
     </MoltenPushButton>
 

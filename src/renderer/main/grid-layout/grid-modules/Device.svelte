@@ -263,7 +263,7 @@
                   overwriteElementEnabled =
                     current.elementType === clipboard.elementType;
                 }
-                return overwriteElementEnabled;
+                return !overwriteElementEnabled;
               },
             },
             {
