@@ -21,18 +21,14 @@
   }
 </script>
 
-<select-box
-  class="flex pl-2 justify-center items-center bg-transparent pointer-events-auto"
->
+<select-box class="flex pl-2 bg-transparent pointer-events-auto">
   <button
     on:click={handleClick}
     class="{disabled
       ? 'border-error'
-      : 'border-white'} justify-center border transition-opacity rounded-md"
+      : 'border-white'}  flex w-6 h-6 items-center justify-center border transition-opacity rounded-md fill-white"
     class:border-opacity-80={selected}
     class:bg-secondary={selected}
-    class:h-18px={!selected}
-    class:w-18px={!selected}
     class:border-opacity-30={!selected}
     class:hover:border-opacity-100={!selected && !disabled}
     class:cursor-default={disabled}
@@ -40,12 +36,7 @@
     class:bg-opacity-10={disabled}
   >
     {#if selected}
-      <SvgIcon
-        displayMode="button"
-        class="h-16px w-16px"
-        activeState={selected}
-        iconPath={"tick"}
-      />
+      <SvgIcon iconPath={"tick"} />
     {:else if halfSelected}
       <!-- TODO: Make half selected with proper SVG icon -->
       <div />

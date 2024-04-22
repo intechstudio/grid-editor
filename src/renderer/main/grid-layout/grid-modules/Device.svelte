@@ -240,11 +240,11 @@
         use:contextTarget={{
           items: [
             {
-              text: "Copy Configuration",
+              text: "Copy Element",
               handler: () => handleCopyElement(elementNumber),
             },
             {
-              text: "Overwrite Configuration",
+              text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
                 return typeof $controlElementClipboard === "undefined";
