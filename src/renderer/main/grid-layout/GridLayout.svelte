@@ -222,9 +222,10 @@
               class="relative"
             >
               {#if device.architecture === "virtual"}
+                <!-- LEFT -->
                 {#if typeof $devices.find((e) => e.dx === device.dx - 1 && e.dy === device.dy) === "undefined"}
                   <div
-                    class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2"
+                    class="absolute left-0 top-1/2 -translate-x-full -translate-y-1/2 -ml-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
@@ -233,9 +234,10 @@
                   </div>
                 {/if}
 
+                <!-- RIGHT -->
                 {#if typeof $devices.find((e) => e.dx === device.dx + 1 && e.dy === device.dy) === "undefined"}
                   <div
-                    class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2"
+                    class="absolute right-0 top-1/2 translate-x-full -translate-y-1/2 -mr-2 h-full"
                   >
                     <AddModuleButton
                       on:click={() =>
@@ -244,9 +246,10 @@
                   </div>
                 {/if}
 
+                <!-- BOTTOM -->
                 {#if typeof $devices.find((e) => e.dy === device.dy - 1 && e.dx === device.dx) === "undefined"}
                   <div
-                    class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2"
+                    class="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-full -mb-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
@@ -255,9 +258,10 @@
                   </div>
                 {/if}
 
+                <!-- TOP -->
                 {#if typeof $devices.find((e) => e.dy === device.dy + 1 && e.dx === device.dx) === "undefined"}
                   <div
-                    class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2"
+                    class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full -mt-2 w-full"
                   >
                     <AddModuleButton
                       on:click={() =>
