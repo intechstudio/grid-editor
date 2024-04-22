@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { appSettings } from "./../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "./SvgIcon.svelte";
 
@@ -29,9 +30,13 @@
     on:mouseenter={handleMouseEnter}
     on:mouseleave={handleMouseLeave}
     {disabled}
-    class="{disabled
-      ? 'toolbar-button-disabled'
+    class="{$appSettings.persistent.colorfulToolbar
+      ? 'colorful-toolbar-button'
       : 'toolbar-button'} focus:outline-none p-1"
+    class:toolbar-button-disabled={disabled &&
+      !$appSettings.persistent.colorfulToolbar}
+    class:colorful-toolbar-button-disabled={disabled &&
+      $appSettings.persistent.colorfulToolbar}
     style="--color: {color};"
   >
     <SvgIcon width={14} height={14} {iconPath} />
@@ -44,19 +49,33 @@
     border-color: transparent;
     border-width: 1px;
     fill: #fff;
-    opacity: 0.75;
   }
 
   .toolbar-button-disabled {
-    border-color: transparent;
-    border-width: 1px;
-    fill: #888888;
-    opacity: 0.5;
+    filter: brightness(33%);
+    pointer-events: none;
   }
 
   .toolbar-button:hover {
     border-color: var(--color);
     fill: var(--color);
-    opacity: 1;
+  }
+
+  .colorful-toolbar-button {
+    border-radius: 0.25rem;
+    border-color: transparent;
+    border-width: 1px;
+    fill: var(--color);
+  }
+
+  .colorful-toolbar-button-disabled {
+    fill: #fff;
+    filter: brightness(33%);
+    pointer-events: none;
+  }
+
+  .colorful-toolbar-button:hover {
+    border-color: var(--color);
+    filter: brightness(166%);
   }
 </style>

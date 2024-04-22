@@ -21,7 +21,7 @@
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
-  import MultiSelect from "./components/MultiSelect.svelte";
+  import Toolbar from "./components/Toolbar.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import Options from "./components/Options.svelte";
@@ -344,7 +344,7 @@
         <ElementSelectionPanel />
         <EventPanel class="flex flex-col w-full " />
         <div class="-mb-2">
-          <MultiSelect
+          <Toolbar
             on:convert-to-code-block={handleConvertToCodeBlock}
             on:copy={handleCopy}
             on:cut={handleCut}
