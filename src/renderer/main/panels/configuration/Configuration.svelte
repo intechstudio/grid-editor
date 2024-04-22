@@ -21,7 +21,7 @@
 
   import { configListScrollSize } from "../../_actions/boundaries.action";
 
-  import MultiSelect from "./components/MultiSelect.svelte";
+  import Toolbar from "./components/Toolbar.svelte";
   import DropZone from "./components/DropZone.svelte";
   import DynamicWrapper from "./components/DynamicWrapper.svelte";
   import Options from "./components/Options.svelte";
@@ -342,19 +342,21 @@
         delay: 0,
       }}
     >
-      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2">
+      <configs class="w-full h-full flex flex-col px-8 pt-4 pb-2 gap-2">
         <ElementSelectionPanel />
         <EventPanel class="flex flex-col w-full " />
-        <MultiSelect
-          on:convert-to-code-block={handleConvertToCodeBlock}
-          on:copy={handleCopy}
-          on:cut={handleCut}
-          on:paste={handlePaste}
-          on:remove={handleRemove}
-          on:copy-all={handleCopyElement}
-          on:overwrite-all={handleOverwriteElement}
-          on:discard={handleDiscardElement}
-        />
+        <div class="-mb-2">
+          <Toolbar
+            on:convert-to-code-block={handleConvertToCodeBlock}
+            on:copy={handleCopy}
+            on:cut={handleCut}
+            on:paste={handlePaste}
+            on:remove={handleRemove}
+            on:copy-all={handleCopyElement}
+            on:overwrite-all={handleOverwriteElement}
+            on:discard={handleDiscardElement}
+          />
+        </div>
 
         <!-- svelte-ignore a11y-no-static-element-interactions -->
         <div

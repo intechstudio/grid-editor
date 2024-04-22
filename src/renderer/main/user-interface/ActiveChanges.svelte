@@ -174,7 +174,7 @@
       <MoltenPushButton
         on:click={handleDiscard}
         disabled={!isChanges}
-        text="Discard"
+        text="Discard All"
       />
     </div>
     <div

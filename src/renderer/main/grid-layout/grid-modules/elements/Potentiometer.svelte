@@ -42,7 +42,6 @@
     on:grabend={handleGrabEnd}
     data-control-number={elementNumber}
     data-module-id={id}
-    data-control-element-type="potentiometer"
     width={size * knobSize + "px"}
     height={size * knobSize + "px"}
     viewBox="0 0 30 30"
