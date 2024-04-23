@@ -1,6 +1,10 @@
 <script>
+  import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
-  import { contextTarget } from "./../../panels/configuration/components/context-target.ts";
+  import {
+    contextMenu,
+    contextTarget,
+  } from "./../../panels/configuration/components/context-target.ts";
   import BU16 from "./devices/BU16.svelte";
   import PO16 from "./devices/PO16.svelte";
   import PBF4 from "./devices/PBF4.svelte";
@@ -162,6 +166,8 @@
       dy: device.dy,
       page: get(user_input).pagenumber,
       element: elementNumber,
+    }).catch((e) => {
+      console.warn(e);
     });
 
     Analytics.track({
@@ -236,7 +242,7 @@
       let:isLeftCut
       let:isRightCut
     >
-      <div
+      <button
         use:contextTarget={{
           items: [
             {
@@ -247,11 +253,21 @@
               text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
-                return typeof $controlElementClipboard === "undefined";
+                const clipboard = $controlElementClipboard;
+                const current = ConfigTarget.getCurrent();
+                let overwriteElementEnabled = false;
+                if (
+                  typeof clipboard !== "undefined" &&
+                  typeof current !== "undefined"
+                ) {
+                  overwriteElementEnabled =
+                    current.elementType === clipboard.elementType;
+                }
+                return !overwriteElementEnabled;
               },
             },
             {
-              text: "Discard Changes",
+              text: "Discard Element Changes",
               handler: () => handleDiscardElement(elementNumber),
               isDisabled: () => {
                 const target = ConfigTarget.create({
@@ -272,6 +288,9 @@
         style="width: calc(100% - var(--element-margin) * 2); 
           height: calc(100% - var(--element-margin) * 2); 
           margin: var(--element-margin); "
+        on:mouseup={() => {
+          handleElementClicked({ detail: { elementNumber: elementNumber } });
+        }}
       >
         <ActiveChanges
           {elementNumber}
@@ -286,10 +305,14 @@
           {isLeftCut}
           {isRightCut}
           {device}
-          visible={typeof $moduleOverlay === "undefined"}
+          visible={typeof $moduleOverlay === "undefined" &&
+            (typeof $contextMenu === "undefined" ||
+              ($user_input.dx === device.dx &&
+                $user_input.dy === device.dy &&
+                $user_input.elementnumber === elementNumber))}
           on:click={handleElementClicked}
         />
-      </div>
+      </button>
       <ModuleInfo {device} visible={true} {elementNumber} />
     </svelte:fragment>
 

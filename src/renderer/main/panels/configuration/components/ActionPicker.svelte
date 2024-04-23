@@ -20,6 +20,7 @@
 
   import { onMount, onDestroy } from "svelte";
   import MoltenPushButton, {
+    ButtonSnap,
     ButtonStyle,
   } from "../../preferences/MoltenPushButton.svelte";
 
@@ -288,13 +289,7 @@
 </script>
 
 <container style="z-index: 666;">
-  <Popover
-    isOpen={true}
-    id="tooltip"
-    {referenceElement}
-    placement={"left"}
-    spaceAlong={offset}
-  >
+  <Popover isOpen={true} id="tooltip" {referenceElement} placement={"left"}>
     <pick-action
       use:clickOutside={{ useCapture: true }}
       on:click-outside={handleClickOutside}
@@ -304,6 +299,7 @@
       <menu
         id="action-menu"
         class="shadow-md rounded-md bg-primary border border-gray-700 p-4"
+        style="max-height: 35rem;"
       >
         <wrapper class="flex flex-col flex-grow h-full">
           <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -331,7 +327,9 @@
 
           <div class="flex flex-col w-full overflow-y-auto mb-2">
             {#each options as option}
-              <div class="text-gray-500 text-sm">{option.category}</div>
+              <div class="text-gray-500 text-sm">
+                {option.category[0].toUpperCase() + option.category.slice(1)}
+              </div>
 
               <div class="w-full flex justify-start py-1 h-full flex-wrap">
                 {#each option.components as component}
@@ -348,7 +346,11 @@
                     <div
                       class="py-0.5 ml-1 px-1 bg-secondary rounded bg-opacity-25"
                     >
-                      {component.information.displayName}
+                      {#if typeof component.information.menuName === "undefined"}
+                        {component.information.displayName}
+                      {:else}
+                        {component.information.menuName}
+                      {/if}
                     </div>
                   </div>
                 {/each}
@@ -361,6 +363,7 @@
             disabled={!pasteEnabled}
             style={ButtonStyle.ACCEPT}
             text={"Paste"}
+            snap={ButtonSnap.FULL}
           />
         </wrapper>
       </menu>

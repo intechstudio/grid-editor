@@ -33,8 +33,8 @@
   <div
     class="pointer-events-auto {isSelected
       ? 'selected-element'
-      : ''} {$$props.class} 
-      selectable-element
+      : 'selectable-element'} {$$props.class} 
+      element
       {isRightCut ? 'corner-cut-r' : ''}
       {isLeftCut ? 'corner-cut-l' : ''}
       "
@@ -50,7 +50,7 @@
 {/if}
 
 <style>
-  div.selectable-element {
+  div.element {
     position: relative;
     width: 100%;
     height: 100%;
@@ -58,12 +58,11 @@
   }
   div.selected-element::before {
     content: "";
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.1);
+    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.2);
   }
   div.selectable-element:hover:before {
     content: "";
-    position: absolute;
-    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.2);
+    box-shadow: 0px 300px 0px 1000px rgba(255, 255, 255, 0.1);
   }
 
   div.corner-cut-l:before {

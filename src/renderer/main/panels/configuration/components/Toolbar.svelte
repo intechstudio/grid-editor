@@ -1,8 +1,7 @@
 <script>
+  import { ConfigTarget } from "./../Configuration.store.js";
+  import { runtime, user_input } from "./../../../../runtime/runtime.store.js";
   import MoltenToolbarButton from "../../../user-interface/MoltenToolbarButton.svelte";
-  import { ConfigTarget } from "../Configuration.store.js";
-  import { runtime, user_input } from "../../../../runtime/runtime.store.js";
-  import SvgIcon from "../../../user-interface/SvgIcon.svelte";
   import Options from "./Options.svelte";
   import { createEventDispatcher } from "svelte";
   import { configManager } from "../Configuration.store";
@@ -10,13 +9,6 @@
     appActionClipboard,
     controlElementClipboard,
   } from "../../../../runtime/runtime.store";
-  import MoltenPushButton, {
-    ButtonRatio,
-    ButtonStyle,
-  } from "../../preferences/MoltenPushButton.svelte";
-
-  import MoltenPopup from "../../preferences/MoltenPopup.svelte";
-  import { get } from "svelte/store";
 
   const dispatch = createEventDispatcher();
 
@@ -100,6 +92,26 @@
   }
 
   $: handleCalculateDiscardEnabled($runtime, $user_input);
+
+  let overwriteElementEnabled = false;
+
+  $: {
+    if ($user_input) {
+      const clipboard = $controlElementClipboard;
+      const current = ConfigTarget.getCurrent();
+      overwriteElementEnabled = false;
+      if (typeof clipboard !== "undefined" && typeof current !== "undefined") {
+        overwriteElementEnabled = current.elementType === clipboard.elementType;
+      }
+    }
+  }
+
+  let copyElementEnabled = false;
+
+  $: {
+    copyElementEnabled =
+      typeof $user_input !== "undefined" && $runtime.length > 0;
+  }
 
   let selectedAction = undefined;
 

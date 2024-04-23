@@ -2,15 +2,13 @@
   import { getAllComponents } from "../../../../lib/_configs";
 
   import { createEventDispatcher, onMount } from "svelte";
-  import { ConfigList, ConfigObject } from "../Configuration.store";
+  import { ConfigObject } from "../Configuration.store";
 
   import {
     lastOpenedActionblocks,
     lastOpenedActionblocksInsert,
     lastOpenedActionblocksRemove,
   } from "../Configuration.store";
-  import { config_drag, DragEvent } from "../../../_actions/move.action";
-  import DropZone from "./DropZone.svelte";
 
   let toggled = false;
 
@@ -115,7 +113,11 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <wrapper
-  class="flex flex-grow border-none outline-none"
+  class="flex flex-grow outline-none border {syntaxError
+    ? 'border-error'
+    : 'border-transparent'}"
+  class:rounded-tr-xl={config.information.rounding === "top"}
+  class:rounded-br-xl={config.information.rounding === "bottom"}
   class:cursor-pointer={ctrlIsDown}
 >
   {#each Array(config.indentation >= 0 ? config.indentation : 0) as n}
@@ -141,9 +143,7 @@
       {#if config.information.hideIcon !== true}
         <div
           style="background-color:{config.information.color}"
-          class="flex items-center p-2 w-min text-center border-y border-l {syntaxError
-            ? 'border-error'
-            : 'border-transparent'}"
+          class="flex items-center p-2 w-min text-center"
         >
           <div class="w-6 h-6 whitespace-nowrap">
             {@html config.information.blockIcon}
@@ -163,11 +163,7 @@
           <div class="bg-secondary bg-opacity-30 h-full w-full">
             <svelte:component
               this={config.component}
-              class="h-full w-full px-2 -my-[1px] border-y border-r {syntaxError
-                ? 'border-error'
-                : 'border-transparent'} {config.information.hideIcon
-                ? 'border-l'
-                : ''}"
+              class="h-full w-full px-2"
               {index}
               {config}
               {access_tree}
@@ -185,10 +181,11 @@
             this={config.header}
             {config}
             {access_tree}
-            class="bg-secondary px-2 w-full h-full -mt-[1px] border-y border-r {syntaxError
-              ? 'border-error'
-              : 'border-transparent'} {config.information.hideIcon
-              ? 'border-l'
+            class="bg-secondary px-2 w-full h-full {config.information
+              .rounding === 'top'
+              ? 'rounded-tr-xl'
+              : ''} {config.information.rounding === 'bottom'
+              ? 'rounded-br-xl'
               : ''}"
             on:toggle={handleToggle}
             on:output={handleOutput}

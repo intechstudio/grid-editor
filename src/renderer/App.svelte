@@ -265,11 +265,11 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          <MiddlePanelContainer>
-            {#if $modal?.options.snap === "middle"}
-              <svelte:component this={$modal?.component} reference={3} />
-            {/if}
-          </MiddlePanelContainer>
+          {#if $modal?.options.snap === "middle"}
+            <svelte:component this={$modal?.component} reference={3} />
+          {:else}
+            <MiddlePanelContainer />
+          {/if}
         </Pane>
 
         <Pane

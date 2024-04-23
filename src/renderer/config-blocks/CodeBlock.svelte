@@ -41,7 +41,7 @@
 
 <script>
   import * as luamin from "lua-format";
-  import stringManipulation from "../main/user-interface/_string-operations";
+  import { stringManipulation } from "../main/user-interface/_string-operations";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
@@ -102,35 +102,7 @@
   });
 
   function displayConfigScript(script) {
-    if (typeof codePreview === "undefined") return;
-
-    let code = "";
-
-    try {
-      //Step 1
-      let human = stringManipulation.humanize(String(script));
-      if (human.trim() !== "") {
-        code = human;
-      }
-
-      //Step2
-      let beautified = luamin.Beautify(human, {
-        RenameVariables: false,
-        RenameGlobals: false,
-        SolveMath: false,
-      });
-
-      if (beautified.charAt(0) === "\n") {
-        beautified = beautified.slice(1);
-      }
-      if (beautified.trim() !== "") {
-        code = beautified;
-      }
-    } catch (e) {
-      //Fallback
-      code = script;
-    }
-    codePreview.innerHTML = stringManipulation.noCommentToLineComment(code);
+    codePreview.innerHTML = stringManipulation.expandScript(script);
     monaco_editor.colorizeElement(codePreview, {
       theme: "my-theme",
       tabSize: 2,
@@ -142,8 +114,13 @@
       //evt.preventDefault();
       //codePreview.scrollLeft += evt.deltaY;
     });
-    displayConfigScript(config.script);
   });
+
+  $: {
+    if (codePreview) {
+      displayConfigScript(config.script);
+    }
+  }
 
   $: if (typeof $committed_code_store !== "undefined") {
     if ($committed_code_store.index == index) {
@@ -151,7 +128,6 @@
         short: "cb",
         script: $committed_code_store.script,
       });
-      displayConfigScript($committed_code_store.script);
     }
   }
 

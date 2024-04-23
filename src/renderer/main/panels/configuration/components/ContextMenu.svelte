@@ -8,34 +8,36 @@
 
 <script lang="ts">
   import Popover from "svelte-easy-popover/dist/ts/Popover.svelte";
-  import { clickOutside } from "../../../_actions/click-outside.action";
+  import { contextMenu } from "./context-target";
   export let target: HTMLElement;
   export let items: ContextMenuItem[];
   export let offset: { x: number; y: number };
 
-  let render = true;
-
   function handleItemClicked(item: ContextMenuItem) {
     item.handler();
-    render = false;
+    contextMenu.close();
+  }
+
+  function handleBlur() {
+    contextMenu.close();
   }
 
   function handleClickOutside() {
-    render = false;
+    contextMenu.close();
   }
 </script>
 
+<svelte:window on:blur={handleBlur} on:click={handleClickOutside} />
+
 <container>
   <Popover
-    isOpen={render}
+    isOpen={true}
     referenceElement={target}
     placement={"right-end"}
     spaceAway={-target.offsetWidth + offset.x}
     spaceAlong={-target.offsetHeight + offset.y}
   >
     <div
-      use:clickOutside={{ useCapture: true }}
-      on:click-outside={handleClickOutside}
       class="flex flex-col items-start bg-black bg-opacity-75 border-white rounded p-2 absolute"
     >
       {#each items as item}
