@@ -8,7 +8,7 @@
     "message": "Editor is now available with apple silicon builds. Auto updates may not work without downloading manually first!"
   },
   {
-    "type": "notification",
+    "type": "notificationBAK",
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
