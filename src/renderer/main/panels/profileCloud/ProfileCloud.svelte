@@ -333,14 +333,17 @@
 
   let listenerRegistered = false;
   let profileCloudUrl = "";
+  let offlineProfileCloudUrl = undefined;
 
   $: if (
     listenerRegistered === true &&
-    profileCloudUrl !== $appSettings.persistent.profileCloudUrl
+    profileCloudUrl !==
+      (offlineProfileCloudUrl ?? $appSettings.persistent.profileCloudUrl)
   ) {
     // listenerRegistered variable makes sure that the iframe loading is after registering the listener.
     // otherwise handleProfileCloudMounted is missed and offline fallback is displayed
-    profileCloudUrl = $appSettings.persistent.profileCloudUrl;
+    profileCloudUrl =
+      offlineProfileCloudUrl ?? $appSettings.persistent.profileCloudUrl;
 
     console.log("Profile Cloud url", profileCloudUrl);
     profileCloudIsMounted = false;
@@ -370,7 +373,9 @@
   async function loadOfflineProfileCloud() {
     try {
       const serverAddress = await window.electron.startOfflineProfileCloud();
+      console.log(JSON.stringify(serverAddress));
       const url = `http://${serverAddress.address}:${serverAddress.port}`;
+      offlineProfileCloudUrl = url;
       profileCloudUrl = url;
     } catch (e) {
       error = {
