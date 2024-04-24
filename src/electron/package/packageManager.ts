@@ -19,7 +19,7 @@ enum PackageStatus {
 let packageFolder: string = "";
 let editorVersion: string = "";
 
-process.parentPort.on("message", (e) => {
+process.parentPort.on("message", async (e) => {
   switch (e.data.type) {
     case "init": {
       console.log(`Initialize Package Manager...`);
@@ -46,6 +46,23 @@ process.parentPort.on("message", (e) => {
     }
     case "stop-package-manager": {
       stopPackageManager();
+      break;
+    }
+    case "create-package-message-port": {
+      if (!currentlyLoadedPackages[e.data.id]) {
+        messagePort.postMessage({
+          type: "debug-error",
+          message:
+            "Package not loaded " +
+            e.data.id +
+            ` ${Object.keys(currentlyLoadedPackages)}`,
+        });
+        break;
+      }
+      await currentlyLoadedPackages[e.data.id].addMessagePort(
+        e.ports?.[0],
+        e.data.senderId,
+      );
       break;
     }
     default: {
@@ -109,8 +126,19 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
           await currentlyLoadedPackages[packageId].sendMessage(args);
           break;
         case "create-package-message-port":
+          if (!currentlyLoadedPackages[data.id]) {
+            messagePort.postMessage({
+              type: "debug-error",
+              message:
+                "Package not loaded " +
+                data.id +
+                ` ${Object.keys(currentlyLoadedPackages)}`,
+            });
+            break;
+          }
           await currentlyLoadedPackages[data.id].addMessagePort(
-            event.ports?.[0]
+            event.ports?.[0],
+            data.senderId,
           );
           break;
       }
@@ -144,12 +172,22 @@ async function loadPackage(packageName: string, persistedData: any) {
     await _package.loadPackage(
       {
         sendMessageToRuntime: (payload) => {
-          messagePort.postMessage({
-            type: "package-action",
-            packageId: packageName,
-            ...payload,
-          });
+          messagePort.postMessage(
+            {
+              type: "package-action",
+              packageId: packageName,
+              ...payload,
+            },
+          );
         },
+        sendMessageToProcess: (payload) => {
+          process.parentPort.postMessage(
+            {
+              packageId: packageName,
+              ...payload,
+            }
+          )
+        }
       },
       persistedData
     );

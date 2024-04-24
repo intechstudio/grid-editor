@@ -322,11 +322,9 @@ function createWindow() {
       return true;
     }
   });
-
   // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     restartPackageManagerProcess();
-    createOverlay();
   });
 }
 
@@ -350,7 +348,11 @@ function startPackageManager() {
       [port2]
     );
     packageManagerProcess.on("message", (message) => {
-      if (message.type == "shutdown-complete") {
+      if (message.type == "create-window"){
+        createPackageWindow(message);
+      } else if (message.type == "close-window"){
+        closePackageWindow(message.windowId);
+      } else if (message.type == "shutdown-complete") {
         packageManagerProcess?.kill();
         packageManagerProcess = undefined;
         startPackageManager();
@@ -365,6 +367,68 @@ function startPackageManager() {
     );
   }
 }
+
+let openWindows : Map<String, BrowserWindow> = new Map();
+function createPackageWindow(args){
+  const windowId = args.windowId;
+  if (openWindows.has(windowId) && args.recreateIfExists){
+    if (args.recreateIfExists){
+      closePackageWindow(windowId);
+    } else {
+      console.log(`Window with id: ${windowId} already exists!`);
+      return;
+    }
+  } 
+
+  let { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  if (!args.fullscreen){
+    width = args.width;
+    height = args.height;
+  }
+
+  const window = new BrowserWindow({
+    width: width,
+    height: height,
+    frame: false,
+    resizable: args.resizable,
+    transparent: args.transparent,
+    alwaysOnTop: args.alwaysOnTop,
+    x: args.x ?? 0,
+    y: args.y ?? 0,
+    webPreferences: {
+      backgroundThrottling: false,
+      preload: path.join(__dirname, "../preload/package.js"),
+    },
+  });
+
+  window.loadURL(
+    args.windowFile
+  );
+  if (args.ignoreMouse){
+    window.setIgnoreMouseEvents(true, {forward: false});
+  }
+
+  openWindows.set(windowId, window);
+  
+  let messageChannel = new MessageChannelMain();
+  window.webContents.postMessage("package-port", {windowId}, [messageChannel.port1]);
+  packageManagerProcess?.postMessage(
+    {
+      id: args.packageId,
+      type: "create-package-message-port",
+      senderId: windowId,
+    },
+    [messageChannel.port2],
+  )
+  window.show();
+}
+function closePackageWindow(windowId){
+  let window = openWindows.get(windowId)
+  if (window){
+    window.close();
+    openWindows.delete(windowId);
+  }
+};
 
 async function restartPackageManagerProcess() {
   if (packageManagerProcess) {
@@ -412,45 +476,6 @@ ipcMain.handle("clipboardWriteText", async (event, arg) => {
   console.log(arg.text);
   clipboard.writeText(arg.text);
 });
-
-function createOverlay() {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-
-  const overlay = new BrowserWindow({
-    width: 200,
-    height: 100,
-    frame: false,
-    resizable: true,
-    transparent: true,
-    alwaysOnTop: true,
-    x: 0,
-    y: 0,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-  });
-
-  const packageFolder = path.resolve(
-    path.join(app.getPath("documents"), "grid-userdata", "packages")
-  );
-
-  const overlayPackageDirectory = path.join(packageFolder, "package-overlay");
-
-  console.log("--------------------->", overlayPackageDirectory);
-
-  overlay.loadURL(
-    `file://${path.join(overlayPackageDirectory, "overlay.html")}`
-  );
-  overlay.setIgnoreMouseEvents(true, {forward: true});
-
-  ipcMain.handle("overlay", async (event, arg) => {
-    overlay.webContents.send("overlay", arg.payload);
-    log.info("overlaystuff", arg.payload);
-  });
-
-  overlay.show();
-}
 
 ipcMain.handle("download", async (event, arg) => {
   let result: any = undefined;

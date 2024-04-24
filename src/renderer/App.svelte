@@ -83,7 +83,7 @@
     // listening to this store on ProfileCloud.svelte
     configLinkStore.set({ id: value });
   });
-
+  
   window.onmessage = (event) => {
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
@@ -116,10 +116,6 @@
             if (data.id == "remove-action") {
               removePackageAction(data.packageId, data.actionId);
             }
-            if (data.id == "overlay-package") {
-              console.log(data.payload);
-              window.electron.overlay(data.payload);
-            }
             break;
           }
           case "packages": {
@@ -145,7 +141,7 @@
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
+              `Unhandled message type of ${data.type} received on port, data: ${JSON.stringify(data)}`
             );
           }
         }
@@ -162,9 +158,9 @@
         });
       }
       // register global createPackageMessagePort for direct package communication
-      window.createPackageMessagePort = (id) => {
+      window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
-        port.postMessage({ type: "create-package-message-port", id }, [
+        port.postMessage({ type: "create-package-message-port", id, senderId }, [
           channel.port1,
         ]);
         return channel.port2;
