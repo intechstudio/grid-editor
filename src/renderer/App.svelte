@@ -83,7 +83,7 @@
     // listening to this store on ProfileCloud.svelte
     configLinkStore.set({ id: value });
   });
-  
+
   window.onmessage = (event) => {
     // extract this part on refactor
     if (event.source === window && event.data === "package-manager-port") {
@@ -163,7 +163,9 @@
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port, data: ${JSON.stringify(data)}`
+              `Unhandled message type of ${
+                data.type
+              } received on port, data: ${JSON.stringify(data)}`
             );
           }
         }
@@ -183,9 +185,10 @@
       // register global createPackageMessagePort for direct package communication
       window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
-        port.postMessage({ type: "create-package-message-port", id, senderId }, [
-          channel.port1,
-        ]);
+        port.postMessage(
+          { type: "create-package-message-port", id, senderId },
+          [channel.port1]
+        );
         return channel.port2;
       };
     }

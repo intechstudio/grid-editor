@@ -81,7 +81,7 @@ process.parentPort.on("message", async (e) => {
       }
       await currentlyLoadedPackages[e.data.id].addMessagePort(
         e.ports?.[0],
-        e.data.senderId,
+        e.data.senderId
       );
       break;
     }
@@ -168,7 +168,7 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
           }
           await currentlyLoadedPackages[data.id].addMessagePort(
             event.ports?.[0],
-            data.senderId,
+            data.senderId
           );
           break;
       }
@@ -201,22 +201,18 @@ async function loadPackage(packageName: string, persistedData: any) {
     await _package.loadPackage(
       {
         sendMessageToRuntime: (payload) => {
-          messagePort?.postMessage(
-            {
-              type: "package-action",
-              packageId: packageName,
-              ...payload,
-            },
-          );
+          messagePort?.postMessage({
+            type: "package-action",
+            packageId: packageName,
+            ...payload,
+          });
         },
         sendMessageToProcess: (payload) => {
-          process.parentPort.postMessage(
-            {
-              packageId: packageName,
-              ...payload,
-            }
-          )
-        }
+          process.parentPort.postMessage({
+            packageId: packageName,
+            ...payload,
+          });
+        },
       },
       persistedData
     );
