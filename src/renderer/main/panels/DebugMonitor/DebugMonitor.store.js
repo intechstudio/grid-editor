@@ -153,17 +153,6 @@ function createLuaError() {
 
           switch (type) {
             case "luanotok":
-              /*
-              "GRID_EVENT_INIT": "00",
-              "GRID_EVENT_AC": "01",
-              "GRID_EVENT_EC": "02",
-              "GRID_EVENT_BC": "03",
-              "GRID_EVENT_MAP": "04",
-              "GRID_EVENT_MIDIRX": "05",
-              "GRID_EVENT_TIMER": "06",
-              
-              */
-
               if (d.length >= 15) {
                 d.shift();
               }

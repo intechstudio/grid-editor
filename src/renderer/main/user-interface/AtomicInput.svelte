@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import stringManipulation from "../../main/user-interface/_string-operations.js";
+  import { stringManipulation } from "../../main/user-interface/_string-operations.js";
 
   const dispatch = createEventDispatcher();
 
@@ -17,12 +17,10 @@
   let disabled = false;
   let infoValue = "";
   let displayText;
-  let valueChanged = false;
 
   let focus;
 
   function handleValueChange(value) {
-    handleValidation(value);
     const newValue = stringManipulation.humanize(String(value));
     if (newValue !== displayText) {
       displayText = newValue;
@@ -34,23 +32,22 @@
     if (typeof infoValue !== "undefined") {
       infoValue = infoValue.info;
     }
-  }
 
-  $: handleValueChange(inputValue);
-
-  function handleValidation() {
     isError = !validator(displayText);
     dispatch("validator", { isError: isError });
   }
 
+  $: {
+    handleValueChange(inputValue);
+  }
+
   function handleBlur(e) {
-    if (valueChanged) {
+    if (inputValue !== displayText) {
       sendData(displayText);
     }
   }
 
   function sendData(value) {
-    valueChanged = false;
     dispatch("change", stringManipulation.shortify(value));
   }
 
@@ -72,11 +69,6 @@
     }
   }
 
-  function handleInput(e) {
-    valueChanged = true;
-    handleValidation(displayText);
-  }
-
   function handleSuggestionSelected(e) {
     const { value } = e.detail;
     displayText = value;
@@ -93,7 +85,6 @@
     bind:value={displayText}
     on:focus={handleFocus}
     on:blur={handleBlur}
-    on:input={handleInput}
     on:suggestion-select={handleSuggestionSelected}
     type="text"
     {placeholder}

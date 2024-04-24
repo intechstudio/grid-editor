@@ -1,34 +1,49 @@
 import type { Action } from "svelte/action";
 import ContextMenu, { ContextMenuItem } from "./ContextMenu.svelte";
+import { Writable, writable, get } from "svelte/store";
 
 interface ContextMenuOptions {
   items: ContextMenuItem[];
+  data: any;
 }
 
-let contextMenu: HTMLElement | undefined = undefined;
+export let contextMenu = create_context_menu();
+function create_context_menu() {
+  const store: Writable<{ component: HTMLElement; data?: any } | undefined> =
+    writable();
+
+  const close = () => {
+    const data = get(store);
+    if (typeof data === "undefined") {
+      return;
+    }
+    data!.component.parentNode?.removeChild(data!.component);
+    contextMenu.set(undefined);
+  };
+  return {
+    ...store,
+    close: close,
+  };
+}
 
 export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
   node: HTMLElement,
   options: ContextMenuOptions
 ): any => {
   const handleMouseUp = (e: MouseEvent) => {
-    if (typeof contextMenu !== "undefined") {
-      contextMenu!.parentNode?.removeChild(contextMenu);
-      contextMenu = undefined;
+    if (e.button === 2) {
+      createContextMenu(e.offsetX, e.offsetY);
     }
-    if (e.button !== 2) {
-      return;
-    }
-    createContextMenu(e.offsetX, e.offsetY);
+    e.stopPropagation();
   };
 
   const createContextMenu = async (x: number, y: number) => {
-    contextMenu = document.createElement("div");
-    contextMenu.style.zIndex = "9999"; // Set the desired z-index here
-    document.body.appendChild(contextMenu);
+    const menu = document.createElement("div");
+    document.body.appendChild(menu);
+    contextMenu.set({ component: menu, data: options.data });
 
     new ContextMenu({
-      target: contextMenu,
+      target: menu,
       props: {
         target: node,
         items: options.items,
@@ -36,6 +51,7 @@ export const contextTarget: Action<HTMLElement, ContextMenuOptions> = (
       },
     });
   };
+
   node.addEventListener("mouseup", (event) => handleMouseUp(event));
 
   return {

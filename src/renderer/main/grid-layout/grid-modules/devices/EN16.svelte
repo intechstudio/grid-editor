@@ -14,7 +14,24 @@
 
   let [dx, dy] = [device?.dx, device?.dy];
 
-  let elementposition_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  let elementposition_array = [
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [0, 0],
+  ];
   let ledcolor_array = [
     [0, 0, 0],
     [0, 0, 0],
@@ -95,7 +112,7 @@
             <Encoder
               {elementNumber}
               {id}
-              position={elementposition_array[elementNumber]}
+              position={elementposition_array[elementNumber][0]}
               size={2.1}
             />
           </div>

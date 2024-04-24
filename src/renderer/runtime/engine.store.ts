@@ -7,6 +7,7 @@ import { instructions } from "../serialport/instructions";
 import { simulateProcess } from "./virtual-engine";
 import { runtime } from "./runtime.store";
 import { virtual_runtime } from "./virtual-engine";
+import { buffer } from "stream/consumers";
 
 export enum InstructionClassName {
   HEARTBEAT = "HEARTBEAT",
@@ -273,6 +274,7 @@ function createWriteBuffer() {
         }
       }
 
+      await sleep(10);
       sendToGrid(current, sendImmediate)
         .then(resolve)
         .catch(reject)
@@ -391,10 +393,12 @@ export const writeBuffer = createWriteBuffer();
 
 export function sendHeartbeat(type: number) {
   // Only add heatbeat into the write buffer if it is not in it already
-  if (
-    get(writeBuffer).length > 0 &&
-    get(writeBuffer)[0].descr.class_name === "HEARTBEAT"
-  ) {
+  const buffer = get(writeBuffer);
+  const isHeartbeatPresent = buffer.some(
+    (e: any) => e.descr.class_name === "HEARTBEAT"
+  );
+
+  if (isHeartbeatPresent) {
     return;
   }
   instructions.sendEditorHeartbeat_immediate(type).catch((e) => {

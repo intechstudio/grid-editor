@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import ForLoopHeader from "./headers/ForLoopHeader.svelte";
   export const header = ForLoopHeader;
@@ -22,5 +25,6 @@
     hideIcon: true,
     type: "composite_open",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor("$SCRIPT$ end"),
   };
 </script>

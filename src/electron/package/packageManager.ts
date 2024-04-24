@@ -1,5 +1,5 @@
 import path from "path";
-import fs from "fs";
+import fs, { readFile } from "fs";
 import { MessagePortMain } from "electron/main";
 import AdmZip from "adm-zip";
 import os from "os";
@@ -7,17 +7,30 @@ import util from "util";
 import fetch from "node-fetch";
 import semver from "semver";
 import chokidar from "chokidar";
+import configuration from "../../../configuration.json";
+
+interface GithubPackage {
+  name: string;
+  gitHubRepositoryOwner: string;
+  gitHubRepositoryName: string;
+  version?: string;
+}
 
 enum PackageStatus {
   Uninstalled = "Uninstalled",
   Downloading = "Downloading",
   Downloaded = "Downloaded",
   Enabled = "Enabled",
-  MarkedForDeletion = "MarkedForDeletion",
 }
 
 let packageFolder: string = "";
 let editorVersion: string = "";
+
+const recommendedGithubPackageList: Map<string, GithubPackage> = new Map(
+  Object.entries(configuration.RECOMMENDED_PACKAGES)
+);
+
+let customGithubPackageList: Map<string, GithubPackage> = new Map();
 
 process.parentPort.on("message", async (e) => {
   switch (e.data.type) {
@@ -29,8 +42,14 @@ process.parentPort.on("message", async (e) => {
       if (!fs.existsSync(packageFolder)) {
         fs.mkdirSync(packageFolder, { recursive: true });
       }
-      startPackageDirectoryWatcher(packageFolder);
 
+      customGithubPackageList = new Map(Object.entries(e.data.githubPackages));
+
+      startPackageDirectoryWatcher(packageFolder);
+      updateGithubPackages();
+      if (e.data.updatePackageOnStartName) {
+        await downloadPackage(e.data.updatePackageOnStartName);
+      }
       const port = e.ports[0];
       setPackageManagerMessagePort(port);
       break;
@@ -41,16 +60,17 @@ process.parentPort.on("message", async (e) => {
       break;
     }
     case "refresh-packages": {
-      notifyListener();
+      updateGithubPackages();
       break;
     }
     case "stop-package-manager": {
-      stopPackageManager();
+      await stopPackageManager();
+      process.parentPort.postMessage({ type: "shutdown-complete" });
       break;
     }
     case "create-package-message-port": {
       if (!currentlyLoadedPackages[e.data.id]) {
-        messagePort.postMessage({
+        messagePort?.postMessage({
           type: "debug-error",
           message:
             "Package not loaded " +
@@ -71,21 +91,11 @@ process.parentPort.on("message", async (e) => {
   }
 });
 
-const availablePackages = {
-  "package-active-win": {
-    name: "Active Window",
-    description: "Short description of Active Window package",
-    gitHubRepositoryOwner: "intechstudio",
-    gitHubRepositoryName: "package-active-win",
-  },
-};
-
 const currentlyLoadedPackages = {};
 const haveBeenLoadedPackages = new Set<string>();
-const markedForDeletionPackages = new Set<string>();
 const downloadingPackages = new Set<string>();
 
-let messagePort: MessagePortMain;
+let messagePort: MessagePortMain | undefined = undefined;
 
 function setPackageManagerMessagePort(port: MessagePortMain) {
   messagePort = port;
@@ -102,19 +112,39 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
         case "download-package":
           await downloadPackage(data.id);
           break;
+        case "update-package":
+          await updatePackage(data.id);
+          break;
         case "uninstall-package":
           await uninstallPackage(data.id);
           break;
         case "refresh-package-list":
           await notifyListener();
           break;
+        case "add-github-repository":
+          customGithubPackageList.set(data.id, {
+            name: data.packageName,
+            gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+            gitHubRepositoryName: data.gitHubRepositoryName,
+          });
+          await updateGithubPackages();
+          if (customGithubPackageList.has(data.id)) {
+            messagePort?.postMessage({
+              type: "persist-github-package",
+              id: data.id,
+              packageName: data.packageName,
+              gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+              gitHubRepositoryName: data.gitHubRepositoryName,
+            });
+          }
+          break;
         case "send-to-package":
           //... send data.message through to each plugin for dedicated processing
-          // add teh following to a codeblock: package_send("package_name", 123.3, 22, "hello")
+          // add the following to a codeblock: package_send("package_name", 123.3, 22, "hello")
           let args = JSON.parse(`[${data.message}]`);
           let packageId = args.shift();
           if (!currentlyLoadedPackages[packageId]) {
-            messagePort.postMessage({
+            messagePort?.postMessage({
               type: "debug-error",
               message:
                 "Package not loaded " +
@@ -127,7 +157,7 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
           break;
         case "create-package-message-port":
           if (!currentlyLoadedPackages[data.id]) {
-            messagePort.postMessage({
+            messagePort?.postMessage({
               type: "debug-error",
               message:
                 "Package not loaded " +
@@ -143,7 +173,7 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
           break;
       }
     } catch (e) {
-      messagePort.postMessage({ type: "debug-error", message: e.message });
+      messagePort?.postMessage({ type: "debug-error", message: e.message });
     }
   });
   port.start();
@@ -158,7 +188,6 @@ async function stopPackageManager() {
   if (messagePort) {
     messagePort.close();
   }
-  process.parentPort.postMessage({ type: "shutdown-complete" });
 }
 
 async function loadPackage(packageName: string, persistedData: any) {
@@ -172,7 +201,7 @@ async function loadPackage(packageName: string, persistedData: any) {
     await _package.loadPackage(
       {
         sendMessageToRuntime: (payload) => {
-          messagePort.postMessage(
+          messagePort?.postMessage(
             {
               type: "package-action",
               packageId: packageName,
@@ -195,7 +224,7 @@ async function loadPackage(packageName: string, persistedData: any) {
     haveBeenLoadedPackages.add(packageName);
     notifyListener();
   } catch (e) {
-    messagePort.postMessage({
+    messagePort?.postMessage({
       type: "package-error",
       error: e.message,
     });
@@ -211,41 +240,12 @@ async function unloadPackage(packageName: string) {
 }
 
 async function downloadPackage(packageName: string) {
-  if (markedForDeletionPackages.has(packageName)) {
-    markedForDeletionPackages.delete(packageName);
-    notifyListener();
-    return;
-  }
-
   if (downloadingPackages.has(packageName)) return;
   downloadingPackages.add(packageName);
   notifyListener();
 
-  const gitHubRepositoryName =
-    availablePackages[packageName].gitHubRepositoryName;
-  const gitHubRepositoryOwner =
-    availablePackages[packageName].gitHubRepositoryOwner;
-
   try {
-    const packageReleasesResponse = await fetch(
-      `https://api.github.com/repos/${gitHubRepositoryOwner}/${gitHubRepositoryName}/releases`,
-      {
-        method: "GET",
-        headers: {
-          "User-Agent": "Grid Editor",
-        },
-      }
-    );
-    const packageReleases = await packageReleasesResponse.json();
-    const compatibleRelease = packageReleases.find((e) => {
-      const description = e.body;
-      const lastLine = description.split("\n").pop() ?? "";
-      if (semver.valid(lastLine)) {
-        return !semver.gt(lastLine, editorVersion);
-      } else {
-        return true;
-      }
-    });
+    const compatibleRelease = await getCompatibleGithubRelease(packageName);
     if (!compatibleRelease) return;
 
     const assets = compatibleRelease.assets;
@@ -292,10 +292,42 @@ async function downloadPackage(packageName: string) {
     zip.extractAllTo(path.join(packageFolder, packageName), true, true);
     fs.unlinkSync(filePath);
   } catch (e) {
-    messagePort.postMessage({ type: "debug-error", message: e.message });
+    if (customGithubPackageList.has(packageName)) {
+      customGithubPackageList.delete(packageName);
+      messagePort?.postMessage({
+        type: "show-message",
+        message: "Couldn't find package archive, removed from list!",
+        messageType: "fail",
+      });
+    }
+    messagePort?.postMessage({
+      type: "remove-github-package",
+      id: packageName,
+    });
+    messagePort?.postMessage({ type: "debug-error", message: e.message });
   } finally {
     downloadingPackages.delete(packageName);
     notifyListener();
+  }
+}
+
+async function updatePackage(packageName: string) {
+  if (currentlyLoadedPackages[packageName]) {
+    currentlyLoadedPackages[packageName].unloadPackage();
+    delete currentlyLoadedPackages[packageName];
+  }
+  const packagePath = path.join(packageFolder, packageName);
+  if (haveBeenLoadedPackages.has(packageName)) {
+    await stopPackageManager();
+    process.parentPort.postMessage({
+      type: "update-package-folder",
+      path: packagePath,
+      packageName: packageName,
+    });
+  } else {
+    fs.rm(packagePath, { recursive: true }, () => {
+      downloadPackage(packageName);
+    });
   }
 }
 
@@ -304,18 +336,28 @@ async function uninstallPackage(packageName: string) {
     currentlyLoadedPackages[packageName].unloadPackage();
     delete currentlyLoadedPackages[packageName];
   }
+  if (customGithubPackageList.has(packageName)) {
+    customGithubPackageList.delete(packageName);
+    messagePort?.postMessage({
+      type: "remove-github-package",
+      id: packageName,
+    });
+  }
+  const packagePath = path.join(packageFolder, packageName);
   if (haveBeenLoadedPackages.has(packageName)) {
-    markedForDeletionPackages.add(packageName);
-    notifyListener();
+    await stopPackageManager();
+    process.parentPort.postMessage({
+      type: "delete-package-folder",
+      path: packagePath,
+    });
   } else {
-    const packagePath = path.join(packageFolder, packageName);
     fs.rm(packagePath, { recursive: true }, notifyListener);
   }
 }
 
 async function notifyListener() {
   const packages = await getAvailablePackages();
-  messagePort.postMessage({ type: "packages", packages: packages });
+  messagePort?.postMessage({ type: "packages", packages: packages });
 }
 
 async function getInstalledPackages(): Promise<
@@ -323,12 +365,14 @@ async function getInstalledPackages(): Promise<
     packageId: string;
     packageName: string;
     packagePreferenceHtml?: string;
+    packageVersion?: string;
   }[]
 > {
   if (!fs.existsSync(packageFolder)) {
     return [];
   }
   const readdir = util.promisify(fs.readdir);
+  const readfile = util.promisify(fs.readFile);
   const folders = await readdir(packageFolder, { withFileTypes: true });
   return Promise.all(
     folders
@@ -343,11 +387,14 @@ async function getInstalledPackages(): Promise<
 
         let packageName: string | undefined = undefined;
         let packagePreferenceHtml: string | undefined = undefined;
+        let packageVersion: string | undefined = undefined;
         if (fs.statSync(packagePath).isDirectory()) {
           const packageJsonPath = path.join(packagePath, "package.json");
           if (fs.existsSync(packageJsonPath)) {
-            const packageJson = require(packageJsonPath);
+            const packageFile = await readfile(packageJsonPath);
+            const packageJson = JSON.parse(packageFile.toString());
             packageName = packageJson.description;
+            packageVersion = packageJson.version;
             const preferenceRelativePath = packageJson.grid_editor?.preference;
             if (preferenceRelativePath) {
               const preferencePath = path.join(
@@ -356,7 +403,6 @@ async function getInstalledPackages(): Promise<
               );
               const readFile = util.promisify(fs.readFile);
               packagePreferenceHtml = await readFile(preferencePath, "utf-8");
-              //packagePreferenceHtml = result.js.code;
             }
           }
         }
@@ -365,6 +411,7 @@ async function getInstalledPackages(): Promise<
           packageId: packageId,
           packageName: packageName,
           packagePreferenceHtml: packagePreferenceHtml,
+          packageVersion: packageVersion,
         };
       })
   );
@@ -376,8 +423,6 @@ function getPackageStatus(
 ): PackageStatus {
   if (Object.keys(currentlyLoadedPackages).includes(packageId)) {
     return PackageStatus.Enabled;
-  } else if (markedForDeletionPackages.has(packageId)) {
-    return PackageStatus.MarkedForDeletion;
   } else if (
     installedPackages.filter((e) => e.packageId === packageId).length > 0
   ) {
@@ -397,7 +442,13 @@ async function getAvailablePackages() {
     name: string;
     status: PackageStatus;
     preferenceHtml?: string;
+    packageVersion?: string;
+    canUpdate: boolean;
   }[] = [];
+  let githubPackageList = new Map([
+    ...recommendedGithubPackageList.entries(),
+    ...customGithubPackageList.entries(),
+  ]);
   for (const _package of installedPackages) {
     if (packageList.filter((e) => e.id === _package.packageId).length > 0)
       continue;
@@ -407,18 +458,77 @@ async function getAvailablePackages() {
       name: _package.packageName,
       status: getPackageStatus(_package.packageId, installedPackages),
       preferenceHtml: _package.packagePreferenceHtml,
+      packageVersion: _package.packageVersion,
+      canUpdate:
+        _package.packageVersion != undefined &&
+        githubPackageList.get(_package.packageId)?.version != undefined &&
+        semver.gt(
+          githubPackageList.get(_package.packageId)!.version!,
+          _package.packageVersion
+        ),
     });
   }
-  Object.entries(availablePackages).forEach(([key, entry]) => {
+  githubPackageList.forEach((entry, key) => {
     if (packageList.filter((e) => e.id === key).length > 0) return;
 
     packageList.push({
       id: key,
       name: entry.name,
       status: getPackageStatus(key, installedPackages),
+      canUpdate: false,
     });
   });
   return packageList;
+}
+
+async function updateGithubPackages(forceRefreshVersion: boolean = false) {
+  let githubPackageList = new Map([
+    ...recommendedGithubPackageList.entries(),
+    ...customGithubPackageList.entries(),
+  ]);
+  for (const [packageId, githubPackage] of githubPackageList) {
+    if (!forceRefreshVersion && githubPackage.version != undefined) continue;
+
+    const compatiblePackage = await getCompatibleGithubRelease(packageId);
+    if (!compatiblePackage) {
+      customGithubPackageList.delete(packageId);
+      continue;
+    }
+
+    let version =
+      semver.coerce(compatiblePackage.tag_name) ??
+      semver.coerce(compatiblePackage.name);
+    githubPackage.version = version?.version;
+  }
+  notifyListener();
+}
+
+async function getCompatibleGithubRelease(githubPackageName: string) {
+  let githubPackageList = new Map([
+    ...recommendedGithubPackageList.entries(),
+    ...customGithubPackageList.entries(),
+  ]);
+  let githubPackage = githubPackageList.get(githubPackageName);
+  if (!githubPackage) return;
+  const packageReleasesResponse = await fetch(
+    `https://api.github.com/repos/${githubPackage.gitHubRepositoryOwner}/${githubPackage.gitHubRepositoryName}/releases`,
+    {
+      method: "GET",
+      headers: {
+        "User-Agent": "Grid Editor",
+      },
+    }
+  );
+  const packageReleases = await packageReleasesResponse.json();
+  return packageReleases.find((e) => {
+    const description = e.body;
+    const lastLine = description.split("\n").pop() ?? "";
+    if (semver.coerce(lastLine)) {
+      return !semver.gt(semver.coerce(lastLine)!, editorVersion);
+    } else {
+      return true;
+    }
+  });
 }
 
 let directoryWatcher: any = null;

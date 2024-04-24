@@ -30,7 +30,7 @@
   import { watchResize } from "svelte-watch-resize";
   import { debug_lowlevel_store } from "./main/panels/WebsocketMonitor/WebsocketMonitor.store";
 
-  import { runtime } from "./runtime/runtime.store";
+  import { runtime, logger } from "./runtime/runtime.store";
 
   import MiddlePanelContainer from "./main/MiddlePanelContainer.svelte";
   import { addPackageAction, removePackageAction } from "./lib/_configs";
@@ -91,6 +91,7 @@
       window.packageManagerPort = port;
       // register message handler
       port.onmessage = (event) => {
+        $appSettings.packageManagerRunning = true;
         const data = event.data;
         // action towards runtime
         switch (data.type) {
@@ -106,30 +107,45 @@
                 s.persistent.packagesDataStorage = newStorage;
                 return s;
               });
-            }
-            if (data.id == "add-action") {
+            } else if (data.id == "add-action") {
               addPackageAction({
                 ...data.info,
                 packageId: data.packageId,
               });
-            }
-            if (data.id == "remove-action") {
+            } else if (data.id == "remove-action") {
               removePackageAction(data.packageId, data.actionId);
             }
             break;
           }
+          case "persist-github-package": {
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              persistent.githubPackages[data.id] = {
+                name: data.packageName,
+                gitHubRepositoryOwner: data.gitHubRepositoryOwner,
+                gitHubRepositoryName: data.gitHubRepositoryName,
+              };
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
+          case "remove-github-package": {
+            appSettings.update((s) => {
+              let persistent = structuredClone(s.persistent);
+              delete persistent.githubPackages[data.id];
+              s.persistent = persistent;
+              return s;
+            });
+            break;
+          }
           case "packages": {
             // refresh packagelist
-            const markedForDeletionPackages = data.packages
-              .filter((e) => e.status == "MarkedForDeletion")
-              .map((e) => e.id);
             const enabledPackages = data.packages
               .filter((e) => e.status == "Enabled")
               .map((e) => e.id);
             appSettings.update((s) => {
               s.packageList = data.packages;
-              s.persistent.markedForDeletionPackages =
-                markedForDeletionPackages;
               s.persistent.enabledPackages = enabledPackages;
               return s;
             });
@@ -139,6 +155,12 @@
             const env = process.env.NODE_ENV;
             break;
           }
+          case "show-message": {
+            logger.set({
+              message: data.message,
+              type: data.messageType,
+            });
+          }
           default: {
             console.info(
               `Unhandled message type of ${data.type} received on port, data: ${JSON.stringify(data)}`
@@ -146,10 +168,11 @@
           }
         }
       };
-      for (const _package of $appSettings.persistent
-        .markedForDeletionPackages ?? []) {
-        port.postMessage({ type: "uninstall-package", id: _package });
-      }
+      port.onclose = () => {
+        //Clear package list without deleting enabled packages
+        $appSettings.packageList = [];
+        $appSettings.packageManagerRunning = false;
+      };
       for (const _package of $appSettings.persistent.enabledPackages ?? []) {
         port.postMessage({
           type: "load-package",
@@ -242,11 +265,11 @@
         </Pane>
 
         <Pane class="overflow-clip w-full h-full">
-          <MiddlePanelContainer>
-            {#if $modal?.options.snap === "middle"}
-              <svelte:component this={$modal?.component} reference={3} />
-            {/if}
-          </MiddlePanelContainer>
+          {#if $modal?.options.snap === "middle"}
+            <svelte:component this={$modal?.component} reference={3} />
+          {:else}
+            <MiddlePanelContainer />
+          {/if}
         </Pane>
 
         <Pane

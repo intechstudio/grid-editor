@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
@@ -29,6 +32,7 @@
     hideIcon: true,
     type: "composite_close",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>
 
@@ -46,11 +50,6 @@
 </script>
 
 <else-block
-  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 {information.rounding ==
-  'top'
-    ? 'rounded-tr-xl '
-    : ''} {information.rounding == 'bottom'
-    ? 'rounded-br-xl '
-    : ''} pointer-events-auto"
+  class="{$$props.class} w-full h-fit flex flex-col text-white py-1 pointer-events-auto"
   style="min-height: 2.5rem; background: {information.color};"
 />

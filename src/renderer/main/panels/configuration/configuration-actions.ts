@@ -125,10 +125,6 @@ export async function copyElement({ dx, dy, page, element }) {
 
 export async function overwriteElement({ dx, dy, page, element }) {
   let clipboard: any = get(controlElementClipboard);
-  if (typeof clipboard === "undefined") {
-    return Promise.reject("Clipboard is empty");
-  }
-
   const current = ConfigTarget.create({
     device: {
       dx: dx,
@@ -138,26 +134,6 @@ export async function overwriteElement({ dx, dy, page, element }) {
     element: element,
     eventType: EventTypeToNumber(EventType.INIT),
   });
-
-  if (typeof current === "undefined") {
-    return Promise.reject("Target is undefined");
-  }
-
-  if (current!.elementType !== clipboard!.elementType) {
-    const message = `Overwrite element failed! Current ${
-      current!.elementType
-    } control 
-          element is not compatible with clipboards ${
-            clipboard.elementType
-          } type.`;
-    logger.set({
-      type: "fail",
-      mode: 0,
-      classname: "rejectoverwrite",
-      message: message,
-    });
-    return Promise.reject(message);
-  }
 
   const promises: Promise<void>[] = [];
   for (const e of current!.events ?? ([] as any[])) {
@@ -173,27 +149,22 @@ export async function overwriteElement({ dx, dy, page, element }) {
     ).configs;
     promises.push(list.sendTo({ target: target }));
   }
-  return Promise.all(promises)
-    .then(() => {
-      const ui = get(user_input);
-      user_input.set({
-        dx: dx,
-        dy: dy,
-        pagenumber: page,
-        elementnumber: element,
-        eventtype: ui.eventtype,
-      });
-      const displayed = ConfigTarget.createFrom({
-        userInput: ui,
-      });
-      ConfigList.createFromTarget(displayed).then((list) => {
-        configManager.set(list);
-      });
-    })
-    .catch((error) => {
-      console.warn(error);
-      return Promise.reject(error);
+  return Promise.all(promises).then(() => {
+    const ui = get(user_input);
+    user_input.set({
+      dx: dx,
+      dy: dy,
+      pagenumber: page,
+      elementnumber: element,
+      eventtype: ui.eventtype,
     });
+    const displayed = ConfigTarget.createFrom({
+      userInput: ui,
+    });
+    ConfigList.createFromTarget(displayed).then((list) => {
+      configManager.set(list);
+    });
+  });
 }
 
 export async function discardElement({ dx, dy, page, element }) {
@@ -296,7 +267,8 @@ export function insertAction(
   }
 }
 
-export function updateAction(index: number, short: string, script: string) {
+export function updateAction(index: number, newConfig: ConfigObject) {
+  const { short, script } = newConfig;
   configManager.update((s: ConfigList) => {
     const config = s[index];
     if (typeof config !== "undefined") {

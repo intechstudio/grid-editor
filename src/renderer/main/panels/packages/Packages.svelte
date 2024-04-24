@@ -3,25 +3,33 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { Analytics } from "../../../runtime/analytics.js";
   import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
+  import { logger } from "../../../runtime/runtime.store.js";
 
   onMount(async () => {
     refreshPackageList();
   });
 
-  $: $appSettings.persistent.enabledPackages, refreshPackagePreferences();
+  $: $appSettings.persistent.enabledPackages,
+    $appSettings.packageList,
+    refreshPackagePreferences();
 
   let packageListDiv;
   let packagePreferenceElements = {};
+  let packageRepositoryUrlInput = "";
 
   function refreshPackagePreferences() {
     const loadedPackages = $appSettings.persistent.enabledPackages;
+    const packageList = $appSettings.packageList;
     if (!packageListDiv) {
       return;
     }
     // Remove existing divs not found in the external set of IDs
     const existingDivIds = Object.keys(packagePreferenceElements);
     existingDivIds.forEach((existingDivId) => {
-      if (!loadedPackages.includes(existingDivId)) {
+      if (
+        !loadedPackages.includes(existingDivId) ||
+        !packageList.find((e) => e.id !== existingDivId)
+      ) {
         packagePreferenceElements[existingDivId].remove();
         delete packagePreferenceElements[existingDivId];
       }
@@ -44,8 +52,8 @@
     }
 
     for (const packageId of loadedPackages) {
-      const _package = $appSettings.packageList.find((e) => e.id == packageId);
-      if (!_package.preferenceHtml) continue;
+      const _package = packageList.find((e) => e.id == packageId);
+      if (!_package || !_package.preferenceHtml) continue;
       if (existingDivIds.includes(_package.id)) continue;
 
       const tempContainer = document.createElement("div");
@@ -117,11 +125,81 @@
     });
   }
 
-  function restartPackageManager() {
-    if (packageListDiv) {
-      packageListDiv.innerHTML = "";
+  function updatePackage(packageId) {
+    window.packageManagerPort?.postMessage({
+      type: "update-package",
+      id: packageId,
+    });
+
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Update", id: packageId },
+      mandatory: false,
+    });
+  }
+
+  async function addPackageRepository() {
+    Analytics.track({
+      event: "Package Manager",
+      payload: { click: "Add repository", url: packageRepositoryUrlInput },
+      mandatory: false,
+    });
+
+    const githubLink = packageRepositoryUrlInput;
+
+    const regexPattern = /https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/?.*/;
+    const matches = githubLink.match(regexPattern);
+
+    if (matches) {
+      const owner = matches[1];
+      const repositoryName = matches[2];
+
+      try {
+        const response = await fetch(
+          `https://api.github.com/repos/${owner}/${repositoryName}/contents/package.json`,
+          {
+            method: "GET",
+            headers: {
+              Accept: "application/vnd.github.v3.raw",
+              "User-Agent": "Grid Editor",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const packageJsonText = await response.text();
+          const packageInfo = JSON.parse(packageJsonText);
+          const packageName = packageInfo.description;
+          const packageId = packageInfo.name;
+          window.packageManagerPort?.postMessage({
+            type: "add-github-repository",
+            id: packageId,
+            packageName,
+            gitHubRepositoryOwner: owner,
+            gitHubRepositoryName: repositoryName,
+          });
+        } else {
+          logger.set({
+            type: "fail",
+            message: `Failed to fetch package.json!`,
+          });
+        }
+      } catch (error) {
+        logger.set({
+          type: "fail",
+          message: `Failed to fetch package.json: ${error.message}`,
+        });
+      }
+      //packageRepositoryUrlInput = "";
+    } else {
+      logger.set({
+        type: "fail",
+        message: "Couldn't detect valid Github repository!",
+      });
     }
-    packagePreferenceElements = {};
+  }
+
+  function restartPackageManager() {
     window.electron.restartPackageManager();
   }
 </script>
@@ -153,12 +231,20 @@
             changePackageStatus(_package.id, e.target.checked)}
         />
         <div class="mx-1">{_package.name}</div>
+        {#if _package.packageVersion}
+          <div class="mx-1">{_package.packageVersion}</div>
+        {/if}
         <div class="mx-1">
-          {#if _package.status == "Downloading" || _package.status == "Uninstalled" || _package.status == "MarkedForDeletion"}
+          {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
             <MoltenPushButton
               on:click={downloadPackage(_package.id)}
               disabled={_package.status == "Downloading"}
               text="Download"
+            />
+          {:else if _package.canUpdate}
+            <MoltenPushButton
+              on:click={updatePackage(_package.id)}
+              text="Update"
             />
           {:else}
             <MoltenPushButton
@@ -171,8 +257,46 @@
     {/each}
   </div>
 
+  <div class="bg-secondary p-2 mb-4 rounded-lg flex text-white items-center">
+    <input
+      class="bg-primary mr-2 w-full"
+      type="text"
+      bind:value={packageRepositoryUrlInput}
+    />
+    <MoltenPushButton on:click={addPackageRepository} text="Add repository" />
+  </div>
+
+  {#if !$appSettings.packageManagerRunning}
+    <p class="loading">Restarting package manager</p>
+  {/if}
+
   <div
     bind:this={packageListDiv}
     class="bg-secondary rounded-lg flex flex-col mb-4"
   />
 </preferences>
+
+<style>
+  .loading:after {
+    content: " .";
+    animation: dots 1s steps(5, end) infinite;
+  }
+  @keyframes dots {
+    0%,
+    20% {
+      color: rgba(0, 0, 0, 0);
+      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    40% {
+      color: white;
+      text-shadow: 0.25em 0 0 rgba(0, 0, 0, 0), 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    60% {
+      text-shadow: 0.25em 0 0 white, 0.5em 0 0 rgba(0, 0, 0, 0);
+    }
+    80%,
+    100% {
+      text-shadow: 0.25em 0 0 white, 0.5em 0 0 white;
+    }
+  }
+</style>

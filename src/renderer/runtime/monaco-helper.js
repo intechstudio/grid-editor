@@ -1,5 +1,5 @@
 import { language } from "$lib/CustomMonaco";
-import stringManipulation from "../main/user-interface/_string-operations";
+import { stringManipulation } from "../main/user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 export function find_forbidden_identifiers(str) {

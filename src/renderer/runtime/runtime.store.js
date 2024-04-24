@@ -68,7 +68,7 @@ export function update_elementPositionStore(descr) {
 
   eps[descr.brc_parameters.SX][descr.brc_parameters.SY][
     descr.class_parameters.ELEMENTNUMBER
-  ] = descr.class_parameters.EVENTPARAM;
+  ] = [descr.class_parameters.EVENTPARAM1, descr.class_parameters.EVENTPARAM2];
 
   //console.log("Pos", descr.class_parameters.EVENTPARAM)
 
@@ -489,7 +489,9 @@ function create_runtime() {
 
         //console.log(newDate - lastDate)
         if (get(appSettings).persistent.heartbeatDebugEnabled) {
-          add_datapoint("Hearbeat", newDate - lastDate);
+          const key1 = `Hearbeat (${controller.dx}, ${controller.dy})`;
+
+          add_datapoint(key1, newDate - lastDate);
         }
       }
       // device not found, add it to runtime and get page count from grid
@@ -795,7 +797,7 @@ function create_runtime() {
     });
 
     // clear the writeBuffer to make sure that there are no fetch operations that may interfere with the callback
-    writeBuffer.clear();
+    // writeBuffer.clear();
 
     if (fetchArray.length === 0) {
       //nothing to do, let's do calback
@@ -996,7 +998,7 @@ function create_runtime() {
         return;
       }
       // clean up the writebuffer if pagenumber changes!
-      writeBuffer.clear();
+      // writeBuffer.clear();
 
       instructions
         .changeActivePage(new_page_number)
@@ -1244,7 +1246,7 @@ const editor_heartbeat_interval_handler = async function () {
   ) {
     sendHeartbeat(type);
   } else {
-    writeBuffer.clear();
+    //writeBuffer.clear();
   }
 };
 

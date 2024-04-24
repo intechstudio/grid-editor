@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
@@ -24,6 +27,7 @@
     hideIcon: true,
     type: "composite_part",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>
 

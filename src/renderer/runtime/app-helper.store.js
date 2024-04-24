@@ -15,10 +15,11 @@ const persistentDefaultValues = {
   presetFolder: "",
   packagesDataStorage: {},
   enabledPackages: [],
-  markedForDeletionPackages: [],
+  githubPackages: {},
   keyboardLayout: "",
   websocketMonitorEnabled: false,
   portstateOverlayEnabled: false,
+  writeBufferDebugEnabled: false,
   heartbeatDebugEnabled: false,
   messageIdDebugEnabled: false,
   profileCloudDevFeaturesEnabled: false,
@@ -38,6 +39,7 @@ const persistentDefaultValues = {
   changeOnEvent: "event",
   sendHeartbeatImmediate: false,
   disableAnimations: false,
+  colorfulToolbar: false,
 };
 
 function createSplitPanes() {
@@ -107,6 +109,7 @@ function createAppSettingsStore(persistent) {
       owner: { neme: undefined },
     },
     packageList: [],
+    packageManagerRunning: false,
     gridLayoutShift: { x: 0, y: 0 },
     persistent: structuredClone(persistent),
   });

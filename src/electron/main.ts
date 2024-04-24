@@ -328,7 +328,9 @@ function createWindow() {
   });
 }
 
-function startPackageManager() {
+function startPackageManager(
+  updatePackageOnStartName: string | undefined = undefined
+) {
   const { port1, port2 } = new MessageChannelMain();
   mainWindow.webContents.postMessage("package-manager-port", null, [port1]);
 
@@ -344,9 +346,12 @@ function startPackageManager() {
         type: "init",
         packageFolder: packageFolder,
         version: configuration.EDITOR_VERSION,
+        githubPackages: store.get("githubPackages"),
+        updatePackageOnStartName,
       },
       [port2]
     );
+
     packageManagerProcess.on("message", (message) => {
       if (message.type == "create-window"){
         createPackageWindow(message);
@@ -356,6 +361,18 @@ function startPackageManager() {
         packageManagerProcess?.kill();
         packageManagerProcess = undefined;
         startPackageManager();
+      }
+      if (
+        message.type === "delete-package-folder" ||
+        message.type === "update-package-folder"
+      ) {
+        packageManagerProcess?.once("exit", () => {
+          fs.rm(message.path, { recursive: true }, () =>
+            startPackageManager(message.packageName)
+          );
+        });
+        packageManagerProcess!.kill();
+        packageManagerProcess = undefined;
       }
     });
   } else {

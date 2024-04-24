@@ -1,5 +1,8 @@
 <script lang="ts" context="module">
-  import type { ActionBlockInformation } from "./ActionBlockInformation.ts";
+  import {
+    type ActionBlockInformation,
+    SyntaxPreprocessor,
+  } from "./ActionBlockInformation";
   // Component for the untoggled "header" of the component
   import CompositeFace from "./headers/CompositeFace.svelte";
   export const header = CompositeFace;
@@ -12,6 +15,7 @@
     rounding: "top",
     category: "special",
     displayName: "Push & Rotate Left",
+    menuName: "Push & Rotate L R",
     defaultLua: "if (self:bst()>0 and self:est()<64) then",
     compositeLua: [
       {
@@ -43,5 +47,6 @@
     hideIcon: false,
     type: "composite_open",
     toggleable: false,
+    syntaxPreprocessor: new SyntaxPreprocessor(""),
   };
 </script>

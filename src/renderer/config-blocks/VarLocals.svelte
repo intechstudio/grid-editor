@@ -25,7 +25,7 @@
 <script>
   import { createEventDispatcher, onDestroy, onMount } from "svelte";
   import { fly } from "svelte/transition";
-  import stringManipulation from "../main/user-interface/_string-operations";
+  import { stringManipulation } from "../main/user-interface/_string-operations";
 
   import { parenthesis } from "./_validators.js";
 

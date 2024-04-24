@@ -3,7 +3,7 @@
   import { createEventDispatcher } from "svelte";
   import { Script } from "../_script_parsers.js";
   import Toggle from "../../main/user-interface/Toggle.svelte";
-  import stringManipulation from "../../main/user-interface/_string-operations";
+  import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { Validator } from "../_validators";
   import AtomicInput from "../../main/user-interface/AtomicInput.svelte";
   import SendFeedback from "../../main/user-interface/SendFeedback.svelte";
@@ -97,7 +97,7 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <container
-  class="{$$props.class} h-full justify-center flex flex-col rounded-tr-xl"
+  class="{$$props.class} h-full justify-center flex flex-col"
   class:p-2={toggleValue}
   style="background-color:{config.information.color}"
 >

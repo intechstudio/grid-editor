@@ -1,6 +1,7 @@
 import { grid } from "../../protocol/grid-protocol";
+import * as luamin from "lua-format";
 
-const stringManipulation = {
+export const stringManipulation = {
   initialize: function (inputSet = []) {
     let regex_short = {};
     let regex_human = {};
@@ -67,31 +68,6 @@ const stringManipulation = {
     };
 
     //console.log(this.VALIDATOR);
-  },
-
-  checkFn: function (text) {
-    const pattern = `${"(" + this.VALIDATOR.functions.pattern + ")"}`;
-    const regex = new RegExp(pattern, "g");
-    return regex.test(text);
-  },
-
-  arithmetics: function (text) {
-    // OPERATOR IS NO MORE A CORRECT NAME
-    const pattern = `${
-      "(" +
-      this.VALIDATOR.regex.operator +
-      ")(?:\\s*\\1){1,}|(?:(" +
-      this.VALIDATOR.regex.operator +
-      ")(?:\\s*))+(?:(" +
-      this.VALIDATOR.regex.operator +
-      ")(?:\\s*)|$)|([0-9](\\s)(?:d))"
-    }`;
-    const regex = new RegExp(pattern, "gm");
-    return !regex.test(text);
-  },
-
-  removeWhiteSpaces: function (string) {
-    return string.replace(/\s/g, "");
   },
 
   splitShortScript: function (script, mode) {
@@ -166,41 +142,24 @@ const stringManipulation = {
   },
 
   blockCommentToLineComment: function (script) {
-    const short_lines = script.split("\n");
-    let short_code_comment_fixed = "";
+    // Regular expression to match Lua block comments
+    var blockCommentRegex = /--\[\[\s*([\s\S]*?)\s*--\]\]/g;
 
-    let inBlockComment = false;
+    // Replace each block comment with equivalent line comments
+    var convertedCode = script.replace(blockCommentRegex, function (match, p1) {
+      // Split the block comment into lines and add '-- ' to each line
+      var lines = p1.split("\n");
+      var commentedLines = lines.map(function (line) {
+        return "-- " + line.trim();
+      });
 
-    // Convert Block comments to line comments
-    short_lines.forEach((element, index) => {
-      let result = element;
-
-      //console.log("LINE: ", result + "\n", inBlockComment);
-
-      if (inBlockComment === true) {
-        result = "--" + result;
-      } else if (element.indexOf("--[[") !== -1) {
-        if (element.indexOf("--]]") === -1) {
-          inBlockComment = true;
-          result = element.replace("--[[", "--");
-        } else if (element.indexOf("--[[") < element.indexOf("--]]")) {
-          result = element.replace("--[[", "--").replace("--]]", "\r\n");
-        }
-      }
-      if (element.indexOf("--]]") !== -1) {
-        result = "--" + element.replace("--]]", "\r\n");
-        inBlockComment = false;
-      }
-
-      //console.log("RESULT: ", "$" + result.trim() + "$", inBlockComment);
-
-      if (result.trim() !== "--") {
-        short_code_comment_fixed += result + "\n";
-      }
+      // Join the lines back together with newline characters
+      return commentedLines.join("\n");
     });
 
-    return short_code_comment_fixed;
+    return convertedCode;
   },
+
   lineCommentToNoComment: function (script) {
     const short_lines2 = script.split("\n");
 
@@ -331,99 +290,42 @@ const stringManipulation = {
     return string;
   },
 
-  splitExprToArray: function (splitExpr) {
-    let altered = "";
-    let depth = 0;
-    //console.log(splitExpr)
-    splitExpr.forEach((element, i) => {
-      if (element.type == "grid_function" || element.type == "grid_variable") {
-        // do nothing
-      } else if (element.value == "(") {
-        if (depth >= 1) {
-          if (depth == 1) {
-            altered += '"';
-          }
-          altered += "(";
-        } else {
-          altered += "[";
-        }
-        depth += 1;
-      } else if (element.value == ")") {
-        depth -= 1;
-        if (depth >= 1) {
-          altered += ")";
-          if (depth == 1) {
-            altered += '"';
-          }
-        } else {
-          altered += "]";
-        }
-      } else if (element.value == "," && depth <= 1) {
-        altered += ",";
-      } else if (element.type == "arithmetic_operator" && depth <= 1) {
-        altered += ',"' + element.value + '",';
-      } else {
-        if (depth <= 1 || element.value == undefined) {
-          altered += '"' + element.value + '"';
-        } else {
-          altered += element.value;
-        }
-      }
-    });
-    return altered;
-  },
+  compressScript: function (script) {
+    let code = script;
+    //Step 1
+    code = stringManipulation.shortify(code);
 
-  fnSplit: function (text) {
-    const pattern = `().*`;
+    //Step 2
+    code = stringManipulation.blockCommentToLineComment(code);
+    code = stringManipulation.lineCommentToNoComment(code);
 
-    const regex = new RegExp(pattern, "gs");
-
-    let m;
-    while ((m = regex.exec(text)) !== null) {
-      // This is necessary to avoid infinite loops with zero-width matches
-      if (m.index === regex.lastIndex) {
-        regex.lastIndex++;
-      }
-      return { start: m.index, end: regex.lastIndex };
-    }
-    return { start: null, end: null };
-  },
-
-  fnCommas: function (arr = []) {
-    // original comma detection regex
-    // ([a-zA-Z0-9\s)(]*[,]){${numOfComma}}
-    const pattern = this.VALIDATOR.functions.pattern;
-    let validity = [];
-    let _fn;
-    arr.forEach((str, i) => {
-      const fn = new RegExp(pattern, "g").exec(str);
-      if (fn) {
-        _fn = fn[0].toUpperCase();
-        let indices = [];
-        for (let i = 0; i < str.length; i++) {
-          if (str[i] === ",") indices.push(i);
-        }
-        validity.push(
-          indices.length ===
-            this.VALIDATOR.functions.values[fn[0]].parameters.length - 1
-        );
-      } else {
-        validity.push(false);
-      }
+    //Step 3
+    const result = luamin.Minify(code, {
+      RenameVariables: false,
+      RenameGlobals: false,
+      SolveMath: false,
     });
 
-    return validity;
+    return result.trim();
+  },
+
+  expandScript: function (script) {
+    let code = script;
+    //Step 1
+    code = luamin.Beautify(code, {
+      RenameVariables: false,
+      RenameGlobals: false,
+      SolveMath: false,
+    });
+
+    //Step 2
+    code = stringManipulation.noCommentToLineComment(code);
+
+    //Step 3
+    const result = stringManipulation.humanize(String(code));
+
+    return result.trim();
   },
 };
-
-export default stringManipulation;
-
-export function debounce(callback, delay) {
-  let timeout;
-  return function () {
-    clearTimeout(timeout);
-    timeout = setTimeout(callback, delay);
-  };
-}
 
 stringManipulation.initialize(grid.getProperty("LUA"));

@@ -48,6 +48,24 @@
       });
     }
 
+    logtext = [
+      ...logtext,
+      {
+        reason: generateErrorDisplayText(errorMessage, url, line),
+        solution: solution,
+      },
+    ];
+
+    Analytics.track({
+      event: "ErrorConsole",
+      payload: {
+        message: generateErrorDisplayText(errorMessage, url, line),
+      },
+      mandatory: true,
+    });
+  }
+
+  function generateErrorDisplayText(errorMessage, url, line) {
     let displaytext = "";
 
     if (url !== undefined && line !== undefined) {
@@ -62,27 +80,37 @@
       displaytext = errorMessage + " ";
     }
 
-    logtext = [...logtext, { reason: displaytext, solution: solution }];
-
-    Analytics.track({
-      event: "ErrorConsole",
-      payload: {
-        message: displaytext,
-      },
-      mandatory: true,
-    });
+    return displaytext;
   }
 
   onMount(async () => {
     // check for errors
 
     window.onerror = function myErrorHandler(errorMsg, url, lineNumber) {
+      // Supress unhandled but not harmful errors
+      if (errorMsg.startsWith("ResizeObserver loop completed")) {
+        console.warn("Supressed notification: ", errorMsg);
+        Analytics.track({
+          event: "ErrorConsole",
+          payload: {
+            message: generateErrorDisplayText(
+              "Supressed: " + errorMsg,
+              url,
+              lineNumber
+            ),
+          },
+          mandatory: true,
+        });
+        return;
+      }
+
       displayError(errorMsg, url, lineNumber);
       return false;
     };
 
     window.onunhandledrejection = (e) => {
       console.log("we got exception, but the app has crashed 2", e);
+
       displayError(e.reason);
     };
 

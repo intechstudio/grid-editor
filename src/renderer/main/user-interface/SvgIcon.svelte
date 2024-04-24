@@ -1,8 +1,9 @@
-<script>
-  export let iconPath = "";
-  export let activeState = false;
-  export let displayMode = "button";
-  let rawSvg;
+<script lang="ts">
+  export let iconPath: string = "";
+  export let width: number = 15;
+  export let height: number = 15;
+
+  let rawSvg: string;
 
   importAsComponent(iconPath).then((res) => {
     rawSvg = res.default;
@@ -13,23 +14,8 @@
   }
 </script>
 
-<svg
-  class:text-opacity-100={activeState}
-  class="{$$props.class} {displayMode} {displayMode == 'button'
-    ? 'group-hover:text-opacity-100 hover:text-opacity-100'
-    : ''} h-6 max-w-[1.5rem] p-0.5 fill-current"
->
+<svg style="width: {width}px; height: {height}px;">
   <g>
     {@html rawSvg}
   </g>
 </svg>
-
-<!-- Values for displayMode -->
-<style lang="postcss">
-  .static {
-  }
-
-  .button {
-    @apply text-white text-opacity-60;
-  }
-</style>

@@ -361,6 +361,15 @@
         bind:target={$appSettings.persistent.portstateOverlayEnabled}
         title={"Activate port sate overlay"}
       />
+      <BlockTitle>writeBuffer state indicator</BlockTitle>
+      <BlockBody>
+        Enable/Disable the writeBuffer state indicator. This will show the
+        buffer length in the middle panel.
+      </BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.writeBufferDebugEnabled}
+        title={"writeBuffer debug state"}
+      />
     </Block>
 
     <Block>
@@ -390,6 +399,15 @@
       <MeltCheckbox
         bind:target={$appSettings.persistent.showPCB}
         title={"Show PCB"}
+      />
+    </Block>
+
+    <Block>
+      <BlockTitle>Colorful Toolbar</BlockTitle>
+      <BlockBody>Display the colors of the toolbar button by default</BlockBody>
+      <MeltCheckbox
+        bind:target={$appSettings.persistent.colorfulToolbar}
+        title={"Enabled"}
       />
     </Block>
 

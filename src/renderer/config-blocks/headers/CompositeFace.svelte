@@ -1,6 +1,5 @@
 <script>
   import { createEventDispatcher } from "svelte";
-  import { config_drag } from "../../main/_actions/move.action";
   const dispatch = createEventDispatcher();
 
   export let access_tree;
@@ -16,8 +15,6 @@
 <div
   class="{$$props.class} text-white flex items-center"
   style="background-color:{config.information.color}"
-  class:rounded-tr-xl={config.information.rounding == "top"}
-  class:rounded-br-xl={config.information.rounding == "bottom"}
   on:click={handleClick}
 >
   <span>{config.information.displayName}</span>

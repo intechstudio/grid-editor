@@ -2,7 +2,7 @@
   "name": "grid-editor",
   "productName": "Grid Editor",
   "description": "Powerful Editor software for Intech Studio products.",
-  "version": "1.2.51",
+  "version": "1.2.53",
   "engines": {
     "node": ">=18.16.1"
   },
@@ -51,7 +51,7 @@
     "firebase": "^9.18.0",
     "fs-extra": "^10.0.0",
     "googleapis": "^100.0.0",
-    "grid-protocol": "^1.2.31",
+    "grid-protocol": "^1.2.36",
     "is-online": "^10.0.0",
     "lua-format": "1.4.1",
     "luaparse": "^0.3.0",

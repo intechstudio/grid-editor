@@ -12,6 +12,14 @@
     "delay": 5000,
     "class": "bg-blue-500 text-white",
     "dismissable": true,
+    "link": "https://docs.intech.studio/guides/troubleshooting/firmware#%EF%B8%8F-updating-the-firmware-manually",
+    "message": "If you experience black LEDs on a Grid purchased before May of 2023 after a firmware update, please downgarde your firmware version to 1.2.29 manually. Apologies for the inconvenience. Guide for manual firmware updates here:"
+  },
+  {
+    "type": "notificationBAK",
+    "delay": 5000,
+    "class": "bg-blue-500 text-white",
+    "dismissable": true,
     "link": "https://intech.studio/shop/modules/ef44",
     "message": "Couple EF44 version 1.0 units are still on stock, can be grabbed with 50% discount! Use discount code on /cart page: EF44-50-OUT"
   },

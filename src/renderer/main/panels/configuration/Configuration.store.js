@@ -35,7 +35,7 @@ export function lastOpenedActionblocksRemove(short) {
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
 
-import stringManipulation from "../../user-interface/_string-operations";
+import { stringManipulation } from "../../user-interface/_string-operations";
 import * as luamin from "lua-format";
 
 import { grid } from "../../../protocol/grid-protocol";
@@ -60,7 +60,7 @@ export class ConfigObject {
       res = getComponentInformation({ short: "raw" });
     }
 
-    this.information = structuredClone(res.information);
+    this.information = res.information;
     this.indentation = 0;
     this.header = res.header;
     this.component = res.component;
@@ -95,41 +95,11 @@ export class ConfigObject {
 
   //Returns true if syntax is OK
   checkSyntax() {
-    //If not a CodeBlock, and script contains if, add end to if.
-    //If not done, it will always fail.
-    //TODO: Rework composite blocks in a way, so this exception
-    //does not occure.
-    let code = this.script;
-    if (this.short !== "cb") {
-      if (code.startsWith("elseif")) {
-        code = code.replace("elseif", "if");
-      }
-      if (code.startsWith("if") || code.startsWith("for")) {
-        code += " end";
-      }
-      if (
-        code.startsWith("else") ||
-        code.startsWith("elseif") ||
-        code.startsWith("end")
-      ) {
-        return true;
-      }
-      if (this.short === "raw") {
-        return true;
-      }
-    }
+    const code =
+      this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
 
     try {
-      //Is this necessary?
-      //checkForbiddenIdentifiers(code);
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      luamin.Minify(safe_code, luaminOptions);
+      luamin.Minify(code, luaminOptions);
       return true;
     } catch (e) {
       return false;
@@ -138,16 +108,7 @@ export class ConfigObject {
 
   getSyntaxError() {
     try {
-      //Is this necessary?
-      //checkForbiddenIdentifiers(code);
-      const short_code = stringManipulation.shortify(code);
-      const line_commented_code =
-        stringManipulation.blockCommentToLineComment(short_code);
-
-      var safe_code = String(
-        stringManipulation.lineCommentToNoComment(line_commented_code)
-      );
-      luamin.Minify(safe_code, luaminOptions);
+      luamin.Minify(code, luaminOptions);
       return "OK";
     } catch (e) {
       return e;
