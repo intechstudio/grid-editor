@@ -1,4 +1,9 @@
 <script lang="ts">
+  import { scale } from "svelte/transition";
+  import {
+    shortcut as shortcutAction,
+    ShortcutParameter,
+  } from "./../_actions/shortcut.action";
   import { appSettings } from "./../../runtime/app-helper.store.js";
   import { createEventDispatcher } from "svelte";
   import SvgIcon from "./SvgIcon.svelte";
@@ -9,8 +14,12 @@
   export let iconPath: string = "";
   export let disabled: boolean = false;
   export let color: string = "#FFF";
+  export let shortcut: ShortcutParameter | undefined = undefined;
+
+  let buttonElement: HTMLElement;
 
   function handleClick(e) {
+    animate();
     dispatch("click");
   }
 
@@ -21,10 +30,20 @@
   function handleMouseLeave(e) {
     dispatch("mouseleave");
   }
+
+  function animate() {
+    buttonElement.animate([{ opacity: 0.5, scale: 0.8 }], {
+      duration: 50,
+      direction: "alternate",
+      iterations: 2,
+    });
+  }
 </script>
 
 <container class="relative">
   <button
+    bind:this={buttonElement}
+    use:shortcutAction={shortcut}
     class:selected
     on:click={handleClick}
     on:mouseenter={handleMouseEnter}

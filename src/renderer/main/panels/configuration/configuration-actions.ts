@@ -1,12 +1,5 @@
-import {
-  appActionClipboard,
-  logger,
-} from "./../../../runtime/runtime.store.js";
-import {
-  runtime,
-  user_input,
-  controlElementClipboard,
-} from "../../../runtime/runtime.store.js";
+import { logger } from "./../../../runtime/runtime.store.js";
+import { runtime, user_input } from "../../../runtime/runtime.store.js";
 import {
   configManager,
   ConfigTarget,
@@ -18,6 +11,10 @@ import {
   EventTypeToNumber,
 } from "../../../protocol/grid-protocol.ts";
 import { get } from "svelte/store";
+import {
+  ClipboardKey,
+  appClipboard,
+} from "../../../runtime/clipboard.store.ts";
 
 function handleError(e: any) {
   switch (e.type) {
@@ -106,9 +103,12 @@ export async function copyElement({ dx, dy, page, element }) {
         data.push({ eventType: target!.eventType, configs: list });
       }
 
-      controlElementClipboard.set({
-        elementType: current.elementType,
-        data: data,
+      appClipboard.set({
+        key: ClipboardKey.ELEMENT,
+        payload: {
+          elementType: current.elementType,
+          data: data,
+        },
       });
       logger.set({
         type: "success",
@@ -124,7 +124,11 @@ export async function copyElement({ dx, dy, page, element }) {
 }
 
 export async function overwriteElement({ dx, dy, page, element }) {
-  let clipboard: any = get(controlElementClipboard);
+  const clipboard = get(appClipboard);
+  if (clipboard?.key !== ClipboardKey.ELEMENT) {
+    throw `Overwrite Element: Invalid clipboard type ${clipboard?.key}`;
+  }
+
   const current = ConfigTarget.create({
     device: {
       dx: dx,
@@ -144,7 +148,7 @@ export async function overwriteElement({ dx, dy, page, element }) {
       eventType: eventtype,
       page: current!.page,
     });
-    const list = clipboard.data.find(
+    const list = clipboard!.payload.data.find(
       (e: any) => e.eventType === eventtype
     ).configs;
     promises.push(list.sendTo({ target: target }));
@@ -310,7 +314,10 @@ export function copyActions() {
   const clipboard: ConfigObject[] = get(configManager)
     .makeCopy()
     .filter((e) => e.selected);
-  appActionClipboard.set(clipboard);
+  appClipboard.set({
+    key: ClipboardKey.ACTION_BLOCKS,
+    payload: clipboard,
+  });
 }
 
 export function pasteActions(index: number | undefined) {
@@ -318,10 +325,15 @@ export function pasteActions(index: number | undefined) {
     index = get(configManager).length;
   }
 
+  const clipboard = get(appClipboard);
+
+  if (clipboard?.key !== ClipboardKey.ACTION_BLOCKS) {
+    throw `Paste: Invalid clipboard type ${clipboard?.key}`;
+  }
+
   configManager.update((s) => {
     s.forEach((e) => (e.selected = false));
-    s.insert(index, ...get(appActionClipboard).map((e) => e.makeCopy()));
-
+    s.insert(index, ...get(appClipboard)!.payload.map((e) => e.makeCopy()));
     return s;
   });
 }

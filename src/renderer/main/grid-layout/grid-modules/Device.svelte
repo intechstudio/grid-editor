@@ -1,4 +1,5 @@
 <script>
+  import { ClipboardKey } from "./../../../runtime/clipboard.store.ts";
   import { runtime } from "./../../../runtime/runtime.store.js";
   import { Analytics } from "./../../../runtime/analytics.js";
   import {
@@ -26,10 +27,7 @@
   import { appSettings } from "../../../runtime/app-helper.store";
   import { moduleOverlay } from "../../../runtime/moduleOverlay";
   import { selectedConfigStore } from "../../../runtime/config-helper.store";
-  import {
-    user_input,
-    controlElementClipboard,
-  } from "../../../runtime/runtime.store.js";
+  import { user_input } from "../../../runtime/runtime.store.js";
   import { onMount } from "svelte";
   import ModuleSelection from "./underlays/ModuleBorder.svelte";
   import { ConfigTarget } from "../../panels/configuration/Configuration.store";
@@ -45,6 +43,7 @@
     copyElement,
     discardElement,
   } from "../../../main/panels/configuration/configuration-actions";
+  import { appClipboard } from "../../../runtime/clipboard.store";
 
   export let device = undefined;
   export let width = 225;
@@ -253,17 +252,14 @@
               text: "Overwrite Element",
               handler: () => handleOverwriteElement(elementNumber),
               isDisabled: () => {
-                const clipboard = $controlElementClipboard;
+                const clipboard = get(appClipboard);
                 const current = ConfigTarget.getCurrent();
-                let overwriteElementEnabled = false;
-                if (
-                  typeof clipboard !== "undefined" &&
-                  typeof current !== "undefined"
-                ) {
-                  overwriteElementEnabled =
-                    current.elementType === clipboard.elementType;
+
+                if (clipboard?.key !== ClipboardKey.ELEMENT) {
+                  return true;
                 }
-                return !overwriteElementEnabled;
+
+                return current.elementType !== clipboard.elementType;
               },
             },
             {

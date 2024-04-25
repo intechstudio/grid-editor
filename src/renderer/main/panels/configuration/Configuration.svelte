@@ -257,6 +257,7 @@
 
   function handleCut(e) {
     cutActions();
+    sendCurrentConfigurationToGrid();
     Analytics.track({
       event: "Config Action",
       payload: { click: "Cut" },
