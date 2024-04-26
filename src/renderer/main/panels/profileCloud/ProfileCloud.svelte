@@ -373,7 +373,6 @@
   async function loadOfflineProfileCloud() {
     try {
       const serverAddress = await window.electron.startOfflineProfileCloud();
-      console.log(JSON.stringify(serverAddress));
       const url = `http://${serverAddress.address}:${serverAddress.port}`;
       offlineProfileCloudUrl = url;
       profileCloudUrl = url;
