@@ -163,7 +163,9 @@
           }
           default: {
             console.info(
-              `Unhandled message type of ${data.type} received on port ${port}: ${data.message}`
+              `Unhandled message type of ${
+                data.type
+              } received on port, data: ${JSON.stringify(data)}`
             );
           }
         }
@@ -181,11 +183,12 @@
         });
       }
       // register global createPackageMessagePort for direct package communication
-      window.createPackageMessagePort = (id) => {
+      window.createPackageMessagePort = (id, senderId) => {
         const channel = new MessageChannel();
-        port.postMessage({ type: "create-package-message-port", id }, [
-          channel.port1,
-        ]);
+        port.postMessage(
+          { type: "create-package-message-port", id, senderId },
+          [channel.port1]
+        );
         return channel.port2;
       };
     }

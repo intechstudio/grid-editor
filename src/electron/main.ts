@@ -9,8 +9,7 @@ import {
   shell,
   MessageChannelMain,
   utilityProcess,
-  autoUpdater,
-  dialog,
+  screen,
 } from "electron";
 import path from "path";
 import log from "electron-log";
@@ -323,7 +322,6 @@ function createWindow() {
       return true;
     }
   });
-
   // Handle package configuration, action
   mainWindow.webContents.on("did-finish-load", () => {
     restartPackageManagerProcess();
@@ -355,7 +353,11 @@ function startPackageManager(
     );
 
     packageManagerProcess.on("message", (message) => {
-      if (message.type === "shutdown-complete") {
+      if (message.type == "create-window") {
+        createPackageWindow(message);
+      } else if (message.type == "close-window") {
+        closePackageWindow(message.windowId);
+      } else if (message.type == "shutdown-complete") {
         packageManagerProcess?.kill();
         packageManagerProcess = undefined;
         startPackageManager();
@@ -380,6 +382,68 @@ function startPackageManager(
       },
       [port2]
     );
+  }
+}
+
+let openWindows: Map<String, BrowserWindow> = new Map();
+function createPackageWindow(args) {
+  const windowId = args.windowId;
+  if (openWindows.has(windowId) && args.recreateIfExists) {
+    if (args.recreateIfExists) {
+      closePackageWindow(windowId);
+    } else {
+      console.log(`Window with id: ${windowId} already exists!`);
+      return;
+    }
+  }
+
+  let { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  if (!args.fullscreen) {
+    width = args.width;
+    height = args.height;
+  }
+
+  const window = new BrowserWindow({
+    width: width,
+    height: height,
+    frame: false,
+    resizable: args.resizable,
+    transparent: args.transparent,
+    alwaysOnTop: args.alwaysOnTop,
+    x: args.x ?? 0,
+    y: args.y ?? 0,
+    webPreferences: {
+      backgroundThrottling: false,
+      preload: path.join(__dirname, "../preload/package.js"),
+    },
+  });
+
+  window.loadURL(args.windowFile);
+  if (args.ignoreMouse) {
+    window.setIgnoreMouseEvents(true, { forward: false });
+  }
+
+  openWindows.set(windowId, window);
+
+  let messageChannel = new MessageChannelMain();
+  window.webContents.postMessage("package-port", { windowId }, [
+    messageChannel.port1,
+  ]);
+  packageManagerProcess?.postMessage(
+    {
+      id: args.packageId,
+      type: "create-package-message-port",
+      senderId: windowId,
+    },
+    [messageChannel.port2]
+  );
+  window.show();
+}
+function closePackageWindow(windowId) {
+  let window = openWindows.get(windowId);
+  if (window) {
+    window.close();
+    openWindows.delete(windowId);
   }
 }
 
@@ -425,38 +489,6 @@ function startConfigWatcher(configPath, rootDirectory) {
   sendLocalConfigs();
 }
 
-ipcMain.handle("startPackage", async (event, arg) => {
-  console.log("packagestart!", arg.name);
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPackageStart();
-      break;
-    }
-    case "photoshop": {
-      // this package is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
-
-ipcMain.handle("stopPackage", async (event, arg) => {
-  console.log("stop package");
-  switch (arg.name) {
-    case "desktopAutomation": {
-      desktopAutomationPackageStop();
-      break;
-    }
-    case "photoshop": {
-      // this package is hosted in photoshop itself
-      break;
-    }
-  }
-
-  return "ok";
-});
-
 ipcMain.handle("clipboardWriteText", async (event, arg) => {
   console.log(arg.text);
   clipboard.writeText(arg.text);
@@ -472,6 +504,7 @@ ipcMain.handle("download", async (event, arg) => {
   }
   return result;
 });
+
 ipcMain.handle("selectDirectory", async (event, arg) => {
   return await selectDirectory();
 });

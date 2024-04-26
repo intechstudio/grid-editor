@@ -68,6 +68,23 @@ process.parentPort.on("message", async (e) => {
       process.parentPort.postMessage({ type: "shutdown-complete" });
       break;
     }
+    case "create-package-message-port": {
+      if (!currentlyLoadedPackages[e.data.id]) {
+        messagePort?.postMessage({
+          type: "debug-error",
+          message:
+            "Package not loaded " +
+            e.data.id +
+            ` ${Object.keys(currentlyLoadedPackages)}`,
+        });
+        break;
+      }
+      await currentlyLoadedPackages[e.data.id].addMessagePort(
+        e.ports?.[0],
+        e.data.senderId
+      );
+      break;
+    }
     default: {
       console.log(`Package Manager: Unknown message type of ${e.data.type}`);
     }
@@ -139,8 +156,19 @@ function setPackageManagerMessagePort(port: MessagePortMain) {
           await currentlyLoadedPackages[packageId].sendMessage(args);
           break;
         case "create-package-message-port":
+          if (!currentlyLoadedPackages[data.id]) {
+            messagePort?.postMessage({
+              type: "debug-error",
+              message:
+                "Package not loaded " +
+                data.id +
+                ` ${Object.keys(currentlyLoadedPackages)}`,
+            });
+            break;
+          }
           await currentlyLoadedPackages[data.id].addMessagePort(
-            event.ports?.[0]
+            event.ports?.[0],
+            data.senderId
           );
           break;
       }
@@ -175,6 +203,12 @@ async function loadPackage(packageName: string, persistedData: any) {
         sendMessageToRuntime: (payload) => {
           messagePort?.postMessage({
             type: "package-action",
+            packageId: packageName,
+            ...payload,
+          });
+        },
+        sendMessageToProcess: (payload) => {
+          process.parentPort.postMessage({
             packageId: packageName,
             ...payload,
           });
