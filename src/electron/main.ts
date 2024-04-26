@@ -560,7 +560,7 @@ ipcMain.handle("startOfflineProfileCloud", async (event, arg) => {
   return await new Promise((resolve, reject) => {
     const assets = sirv(path.join(__dirname, "../../profile-cloud"));
     const app = polka().use(assets);
-    app.listen(0, "localhost", (err) => {
+    app.listen(0, "127.0.0.1", (err) => {
       if (err) return reject(err);
       offlineProfileCloudServer = app;
       return resolve(app.server.address());
