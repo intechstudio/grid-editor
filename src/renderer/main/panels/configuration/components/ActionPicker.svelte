@@ -23,6 +23,7 @@
     ButtonSnap,
     ButtonStyle,
   } from "../../preferences/MoltenPushButton.svelte";
+  import { MoltenInput } from "@intechstudio/grid-uikit";
 
   //////////////////////////////////////////////////////////////////////////////
   /////     VARIABLES, LIFECYCLE FUNCTIONS AND TYPE DEFINITIONS       //////////
@@ -302,27 +303,29 @@
         style="max-height: 35rem;"
       >
         <wrapper class="flex flex-col flex-grow h-full">
-          <!-- svelte-ignore a11y-click-events-have-key-events -->
-          <!-- svelte-ignore a11y-no-static-element-interactions -->
-          <div
-            on:click={handleClose}
-            id="close-btn"
-            style="top:8px; right:8px;"
-            class="absolute right-0 p-1 cursor-pointer not-draggable hover:bg-secondary"
-          >
-            <svg
-              class="w-5 h-5 p-1 fill-current text-gray-500"
-              viewBox="0 0 29 29"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+          <div class="flex flex-row w-full">
+            <div class="flex flex-grow">
+              <MoltenInput />
+            </div>
+            <button
+              on:click={handleClose}
+              id="close-btn"
+              class="cursor-pointer not-draggable hover:bg-secondary"
             >
-              <path
-                d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
-              />
-              <path
-                d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
-              />
-            </svg>
+              <svg
+                class="w-3 h-3 fill-current text-gray-500"
+                viewBox="0 0 29 29"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.37506 0.142151L28.4264 26.1935L26.1934 28.4264L0.142091 2.37512L2.37506 0.142151Z"
+                />
+                <path
+                  d="M28.4264 2.37512L2.37506 28.4264L0.14209 26.1935L26.1934 0.142151L28.4264 2.37512Z"
+                />
+              </svg>
+            </button>
           </div>
 
           <div class="flex flex-col w-full overflow-y-auto mb-2">
