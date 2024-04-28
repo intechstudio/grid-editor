@@ -29,9 +29,13 @@
     <WebsocketMonitor />
   {/if}
 
-  {#if $appSettings.leftPanel == "ProfileCloud"}
+  <div
+    class="w-full h-full {$appSettings.leftPanel == 'ProfileCloud'
+      ? 'visible'
+      : 'hidden'}"
+  >
     <ProfileCloud />
-  {/if}
+  </div>
 
   {#if $appSettings.leftPanel == "Packages"}
     <Packages />
