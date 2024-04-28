@@ -9,7 +9,7 @@
   } from "./WebsocketMonitor.store";
   import { appSettings } from "../../../runtime/app-helper.store";
   import { wss_send_message } from "../../../runtime/runtime.store";
-  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   let frozen = false;
 

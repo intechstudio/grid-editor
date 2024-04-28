@@ -2,14 +2,11 @@
   import ActionPicker from "./ActionPicker.svelte";
   import { createEventDispatcher } from "svelte";
 
-  import { writeBuffer } from "../../../../runtime/engine.store.ts";
   import { fade } from "svelte/transition";
 
   import { configManager } from "../Configuration.store";
   import { runtime } from "../../../../runtime/runtime.store";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   export let index = undefined;
   let showActionPicker = false;
@@ -48,7 +45,7 @@
       <span> There are no actions configured on this event! </span>
       <MoltenPushButton
         text="Add Action"
-        style={ButtonStyle.OUTLINED}
+        style={"outlined"}
         on:click={handleShowActionPicker}
       />
     </div>

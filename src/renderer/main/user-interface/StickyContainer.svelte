@@ -3,7 +3,7 @@
   import Pages from "../panels/configuration/components/Pages.svelte";
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import { moduleOverlay } from "../../runtime/moduleOverlay";
-  import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { virtual_runtime } from "../../runtime/virtual-engine";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
 </script>

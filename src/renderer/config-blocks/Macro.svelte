@@ -60,9 +60,7 @@
   import * as keyMap_hu from "../../external/macro/map-hu.json";
   import * as keyMap_de from "../../external/macro/map-de.json";
 
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../main/panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const layouts = [
     { name: "En", lookup: keyMap_en.default },
@@ -519,7 +517,7 @@
     <MoltenPushButton
       on:click={addKeyManually}
       text={"Add Key"}
-      style={ButtonStyle.ACCEPT}
+      style={"accept"}
     />
   </div>
   <div class="flex flex-col">
@@ -536,7 +534,7 @@
       <MoltenPushButton
         on:click={addDelayManually}
         text={"Add Delay"}
-        style={ButtonStyle.ACCEPT}
+        style={"accept"}
       />
     </div>
   </div>
@@ -555,11 +553,7 @@
     />
   </div>
 
-  <MoltenPushButton
-    on:click={clearMacro}
-    text={"Clear All"}
-    style={ButtonStyle.ACCEPT}
-  />
+  <MoltenPushButton on:click={clearMacro} text={"Clear All"} style={"accept"} />
 </div>
 
 <style>

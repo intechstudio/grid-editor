@@ -1,9 +1,6 @@
 <script>
   import { modal } from "./../modals/modal.store";
-  import MoltenPushButton, {
-    ButtonSnap,
-    ButtonStyle,
-  } from "./../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { Analytics } from "../../runtime/analytics.js";
   import SendFeedback from "./SendFeedback.svelte";
   import AddVirtualModule from "../modals/AddVirtualModule.svelte";
@@ -106,14 +103,14 @@
     <div class="flex flex-col gap-2 mt-4">
       <MoltenPushButton
         on:click={handleTroubleshoot}
-        style={ButtonStyle.OUTLINED}
+        style={"outlined"}
         text="Troubleshooting"
-        snap={ButtonSnap.FULL}
+        snap={"full"}
       />
       <MoltenPushButton
         text="Try Virtual Mode!"
         style="accept"
-        snap={ButtonSnap.FULL}
+        snap={"full"}
         on:click={handleAddVirtualModuleClicked}
       />
     </div>

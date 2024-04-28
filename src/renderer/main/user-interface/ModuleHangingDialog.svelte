@@ -5,9 +5,7 @@
   import { Analytics } from "../../runtime/analytics";
   import { writeBuffer } from "../../runtime/engine.store.ts";
   import { logger } from "../../runtime/runtime.store";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import MoltenModal from "../modals/MoltenModal.svelte";
 
   let moduleHanging1 = false;
@@ -109,7 +107,7 @@
         <MoltenPushButton
           on:click={handleTroubleshoot}
           text="Troubleshooting"
-          style={ButtonStyle.OUTLINED}
+          style={"outlined"}
         />
       {/if}
     {:else}

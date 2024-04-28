@@ -3,11 +3,9 @@
   import AddVirtualModule from "./../../modals/AddVirtualModule.svelte";
   import { configManager } from "./../configuration/Configuration.store.js";
   import { logger } from "./../../../runtime/runtime.store.js";
-  import { writable, get } from "svelte/store";
+  import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
-  import { onMount, onDestroy } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { Analytics } from "../../../runtime/analytics.js";
   import { runtime } from "../../../runtime/runtime.store.js";
 
   import {
@@ -22,10 +20,9 @@
     MoltenButton,
     MoltenInput,
     BlockColumn,
+    MoltenPushButton,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
-  import MoltenPushButton, { ButtonSnap } from "./MoltenPushButton.svelte";
-
   const configuration = window.ctxProcess.configuration();
 
   async function selectDirectory() {
@@ -447,12 +444,12 @@
       <BlockColumn>
         <MoltenPushButton
           text={"Add"}
-          snap={ButtonSnap.FULL}
+          snap={"full"}
           on:click={handleAddVirtualModuleClicked}
         />
         <MoltenPushButton
           text={"Remove"}
-          snap={ButtonSnap.FULL}
+          snap={"full"}
           on:click={handleRemoveVirtualModuleClicked}
         />
       </BlockColumn>

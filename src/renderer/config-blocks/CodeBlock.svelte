@@ -40,16 +40,14 @@
 </script>
 
 <script>
-  import * as luamin from "lua-format";
   import { stringManipulation } from "../main/user-interface/_string-operations";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
 
   import SendFeedback from "../main/user-interface/SendFeedback.svelte";
 
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../main/panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
+
   import { monaco_store } from "../main/modals/Monaco.store";
   import { monaco_elementtype } from "../lib/CustomMonaco";
 
@@ -159,7 +157,7 @@
     <MoltenPushButton
       on:click={open_monaco}
       text={"Edit Code"}
-      style={ButtonStyle.ACCEPT}
+      style={"accept"}
     />
   </div>
 

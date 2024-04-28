@@ -17,7 +17,7 @@
   import { incoming_messages } from "../../../serialport/message-stream.store";
   import { Pane, Splitpanes } from "svelte-splitpanes";
   import { configManager } from "../../panels/configuration/Configuration.store";
-  import MoltenPushButton from "../preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
 
   const configScriptLength = writable(0);
   const syntaxError = writable(false);

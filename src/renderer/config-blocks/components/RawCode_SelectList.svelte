@@ -1,9 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
-  import { MeltSelect } from "@intechstudio/grid-uikit";
-  import MoltenPushButton, {
-    ButtonStyle,
-  } from "../../main/panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton, MeltSelect } from "@intechstudio/grid-uikit";
 
   export let options = [];
 
@@ -29,7 +26,7 @@
     <MoltenPushButton text={"Cancel"} on:click={handleCancel} />
     <MoltenPushButton
       text={"Replace"}
-      style={ButtonStyle.ACCEPT}
+      style={"accept"}
       on:click={handleReplace}
     />
   </div>

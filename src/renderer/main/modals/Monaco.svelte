@@ -1,6 +1,6 @@
 <script>
   import { watchResize } from "svelte-watch-resize";
-  import MoltenPushButton from "./../panels/preferences/MoltenPushButton.svelte";
+  import { MoltenPushButton } from "@intechstudio/grid-uikit";
   import { onDestroy, onMount } from "svelte";
   import { grid } from "../../protocol/grid-protocol";
   import { modal } from "./modal.store";
@@ -14,7 +14,6 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import * as luamin from "lua-format";
   import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";
