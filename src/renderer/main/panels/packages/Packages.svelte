@@ -211,10 +211,10 @@
     <div class="flex py-2 text-white items-center">
       <div class="mx-2">Packages</div>
       <div class="mx-2">
-        <MoltenPushButton on:click={restartPackageManager} text="Restart" />
+        <MoltenPushButton click={restartPackageManager} text="Restart" />
       </div>
       <div class="mx-2">
-        <MoltenPushButton on:click={refreshPackageList} text="Refresh" />
+        <MoltenPushButton click={refreshPackageList} text="Refresh" />
       </div>
     </div>
     {#each $appSettings.packageList as _package}
@@ -237,18 +237,18 @@
         <div class="mx-1">
           {#if _package.status == "Downloading" || _package.status == "Uninstalled"}
             <MoltenPushButton
-              on:click={downloadPackage(_package.id)}
+              click={downloadPackage(_package.id)}
               disabled={_package.status == "Downloading"}
               text="Download"
             />
           {:else if _package.canUpdate}
             <MoltenPushButton
-              on:click={updatePackage(_package.id)}
+              click={updatePackage(_package.id)}
               text="Update"
             />
           {:else}
             <MoltenPushButton
-              on:click={uninstallPackage(_package.id)}
+              click={uninstallPackage(_package.id)}
               text="Uninstall"
             />
           {/if}
@@ -263,7 +263,7 @@
       type="text"
       bind:value={packageRepositoryUrlInput}
     />
-    <MoltenPushButton on:click={addPackageRepository} text="Add repository" />
+    <MoltenPushButton click={addPackageRepository} text="Add repository" />
   </div>
 
   {#if !$appSettings.packageManagerRunning}

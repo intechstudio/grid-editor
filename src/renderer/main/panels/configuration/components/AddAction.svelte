@@ -46,7 +46,7 @@
       <MoltenPushButton
         text="Add Action"
         style={"outlined"}
-        on:click={handleShowActionPicker}
+        click={handleShowActionPicker}
       />
     </div>
   {:else}

@@ -23,11 +23,7 @@
     <MeltSelect bind:target={selection} {options} />
   {/if}
   <div class="flex flex-row gap-2">
-    <MoltenPushButton text={"Cancel"} on:click={handleCancel} />
-    <MoltenPushButton
-      text={"Replace"}
-      style={"accept"}
-      on:click={handleReplace}
-    />
+    <MoltenPushButton text={"Cancel"} click={handleCancel} />
+    <MoltenPushButton text={"Replace"} style={"accept"} click={handleReplace} />
   </div>
 </div>

@@ -116,7 +116,7 @@
         </div>
       </div>
       <MoltenPushButton
-        on:click={sendFeedback}
+        click={sendFeedback}
         id="close-btn"
         text={"Submit Feedback!"}
         style={"accept"}

@@ -445,12 +445,12 @@
         <MoltenPushButton
           text={"Add"}
           snap={"full"}
-          on:click={handleAddVirtualModuleClicked}
+          click={handleAddVirtualModuleClicked}
         />
         <MoltenPushButton
           text={"Remove"}
           snap={"full"}
-          on:click={handleRemoveVirtualModuleClicked}
+          click={handleRemoveVirtualModuleClicked}
         />
       </BlockColumn>
     </Block>

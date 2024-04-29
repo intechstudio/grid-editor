@@ -102,7 +102,7 @@
     />
     <div class="flex flex-col gap-2 mt-4">
       <MoltenPushButton
-        on:click={handleTroubleshoot}
+        click={handleTroubleshoot}
         style={"outlined"}
         text="Troubleshooting"
         snap={"full"}
@@ -111,7 +111,7 @@
         text="Try Virtual Mode!"
         style="accept"
         snap={"full"}
-        on:click={handleAddVirtualModuleClicked}
+        click={handleAddVirtualModuleClicked}
       />
     </div>
   </div>

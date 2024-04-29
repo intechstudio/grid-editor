@@ -231,7 +231,7 @@
       <div class="text-sm text-red-500">Parenthesis must be closed!</div>
     {/if}
     <MoltenPushButton
-      on:click={sendData}
+      click={sendData}
       disabled={Boolean(!commitState || parenthesisError || variableNameError)}
       text={"Commit"}
       style={"accept"}

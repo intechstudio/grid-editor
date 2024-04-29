@@ -232,7 +232,7 @@
         </div>
 
         <MoltenPushButton
-          on:click={() => {
+          click={() => {
             modal.close();
           }}
           id="close-btn"

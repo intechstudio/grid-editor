@@ -56,7 +56,7 @@
     >
       <MoltenPushButton
         text={"Reset View"}
-        on:click={handleGridLayoutResetClicked}
+        click={handleGridLayoutResetClicked}
         snap={"full"}
         disabled={$appSettings.gridLayoutShift.x == 0 &&
           $appSettings.gridLayoutShift.y == 0}

@@ -515,7 +515,7 @@
       </button>
     </div>
     <MoltenPushButton
-      on:click={addKeyManually}
+      click={addKeyManually}
       text={"Add Key"}
       style={"accept"}
     />
@@ -532,7 +532,7 @@
       />
 
       <MoltenPushButton
-        on:click={addDelayManually}
+        click={addDelayManually}
         text={"Add Delay"}
         style={"accept"}
       />
@@ -553,7 +553,7 @@
     />
   </div>
 
-  <MoltenPushButton on:click={clearMacro} text={"Clear All"} style={"accept"} />
+  <MoltenPushButton click={clearMacro} text={"Clear All"} style={"accept"} />
 </div>
 
 <style>

@@ -154,11 +154,7 @@
       />
     </div>
 
-    <MoltenPushButton
-      on:click={open_monaco}
-      text={"Edit Code"}
-      style={"accept"}
-    />
+    <MoltenPushButton click={open_monaco} text={"Edit Code"} style={"accept"} />
   </div>
 
   <div class="flex flex-row mt-4">

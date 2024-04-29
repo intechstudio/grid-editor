@@ -14,7 +14,7 @@
     {#if typeof $selectedConfigStore?.configType !== "undefined"}
       <MoltenPushButton
         text="Close Overlay"
-        on:click={() => {
+        click={() => {
           selectedConfigStore.set(undefined);
           moduleOverlay.close();
         }}
@@ -23,7 +23,7 @@
     {#if $virtual_runtime.length > 0}
       <MoltenPushButton
         text="Change Module"
-        on:click={() => {
+        click={() => {
           modal.show({ component: AddVirtualModule, args: { dx: 0, dy: 0 } });
         }}
       />

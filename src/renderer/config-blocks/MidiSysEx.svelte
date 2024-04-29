@@ -144,7 +144,7 @@
       </div>
     {/key}
     <MoltenPushButton
-      on:click={sendData}
+      click={sendData}
       disabled={!commitState}
       text={"Commit"}
       style={"accept"}

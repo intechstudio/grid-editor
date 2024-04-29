@@ -117,12 +117,12 @@
       <div class="flex flex-row gap-2 pt-4 ml-auto">
         <MoltenPushButton
           text="Get Started!"
-          on:click={handleAddClicked}
+          click={handleAddClicked}
           style={"accept"}
           disabled={selectedModule === -1}
         />
         {#if window.ctxProcess.buildVariables().BUILD_TARGET !== "web"}
-          <MoltenPushButton text="Cancel" on:click={handleCancelClicked} />
+          <MoltenPushButton text="Cancel" click={handleCancelClicked} />
         {/if}
       </div>
     </div>

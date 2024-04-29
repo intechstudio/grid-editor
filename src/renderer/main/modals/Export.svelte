@@ -52,7 +52,7 @@
       class="bg-secondary min-h-200 font-mono w-full p-1 my-1 rounded"
     />
 
-    <MoltenPushButton on:click={handleCopy} text="Copy" style="accept">
+    <MoltenPushButton click={handleCopy} text="Copy" style="accept">
       <MoltenPopup slot="popup" text="Copied to clipboard!" />
     </MoltenPushButton>
   </div>

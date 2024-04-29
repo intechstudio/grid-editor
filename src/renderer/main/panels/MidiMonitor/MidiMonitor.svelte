@@ -405,10 +405,6 @@
     </Splitpanes>
   </div>
   <div class="flex pt-4 pb-12">
-    <MoltenPushButton
-      text="Clear All"
-      snap={"full"}
-      on:click={onClearClicked}
-    />
+    <MoltenPushButton text="Clear All" snap={"full"} click={onClearClicked} />
   </div>
 </div>

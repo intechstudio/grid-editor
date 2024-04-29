@@ -145,30 +145,30 @@
   <MoltenPushButton text="Send" on:click={sendMessage} />
 
   <div class="flex text-white items-center">
-    <MoltenPushButton on:click={clearDebugtext} text="Clear" />
+    <MoltenPushButton click={clearDebugtext} text="Clear" />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "DEC";
       }}
       text="DEC"
     />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "HEX";
       }}
       text="HEX"
     />
     <MoltenPushButton
-      on:click={() => {
+      click={() => {
         display = "CHAR";
       }}
       text="CHAR"
     />
 
     {#if frozen == false}
-      <MoltenPushButton on:click={freezeDebugtext} text="Freeze" />
+      <MoltenPushButton click={freezeDebugtext} text="Freeze" />
     {:else}
-      <MoltenPushButton on:click={unfreezeDebugtext} text="Unfreeze" />
+      <MoltenPushButton click={unfreezeDebugtext} text="Unfreeze" />
     {/if}
   </div>
 

@@ -172,7 +172,7 @@
       }}
     >
       <MoltenPushButton
-        on:click={handleDiscard}
+        click={handleDiscard}
         disabled={!isChanges}
         text="Discard All"
       />
@@ -185,7 +185,7 @@
       }}
     >
       <MoltenPushButton
-        on:click={handleStore}
+        click={handleStore}
         disabled={!isChanges}
         text="Store"
         style="accept"

@@ -192,17 +192,13 @@
 
         <div class="flex flex-row flex-wrap gap-2 justify-end">
           <MoltenPushButton
-            on:click={handleCommit}
+            click={handleCommit}
             disabled={!commitEnabled}
             text="Commit"
             style="accept"
           />
 
-          <MoltenPushButton
-            on:click={handleClose}
-            text="Close"
-            style="normal"
-          />
+          <MoltenPushButton click={handleClose} text="Close" style="normal" />
         </div>
       </div>
     </div>

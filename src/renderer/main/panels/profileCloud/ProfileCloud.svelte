@@ -426,7 +426,7 @@
         </div>
         {#if error.type === "default"}
           <MoltenPushButton
-            on:click={loadOfflineProfileCloud}
+            click={loadOfflineProfileCloud}
             text="Load Offline"
           />
         {/if}

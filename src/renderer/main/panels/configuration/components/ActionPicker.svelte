@@ -356,7 +356,7 @@
           </div>
 
           <MoltenPushButton
-            on:click={handlePaste}
+            click={handlePaste}
             disabled={!pasteEnabled}
             style={"accept"}
             text={"Paste"}
