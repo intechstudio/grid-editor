@@ -12,6 +12,8 @@
   import { selectedConfigStore } from "../../runtime/config-helper.store";
   import MoltenPushButton from "../panels/preferences/MoltenPushButton.svelte";
 
+  import { instructions } from "./../../serialport/instructions";
+
   let isChanges = false;
   let changes = 0;
   $: if ($runtime) {
@@ -175,6 +177,13 @@
         on:click={handleDiscard}
         disabled={!isChanges}
         text="Discard All"
+      />
+
+      <MoltenPushButton
+        on:click={() => {
+          instructions.sendImmediateToGrid(0, 0, "<?lua print(0,1,2,3) ?>");
+        }}
+        text="Immediate"
       />
     </div>
     <div
