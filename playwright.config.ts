@@ -38,10 +38,13 @@ export default defineConfig({
     },
   ],
 
+  timeout: 5 * 60 * 1000,
+
   /* Run your local dev server before starting the tests */
-  // webServer: {
-  //   command: 'npm run web:dev',
-  //   url: 'http://127.0.0.1:5173',
-  //   reuseExistingServer: false,
-  // },
+  webServer: {
+    command: "npm run web:dev",
+    url: "http://localhost:5173",
+    reuseExistingServer: !process.env.CI,
+    stdout: "pipe",
+  },
 });

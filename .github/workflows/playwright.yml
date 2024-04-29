@@ -18,12 +18,11 @@ jobs:
         with:
           node-version: "18.16.1"
       - run: npm i && npm run web-build
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
+      - name: Install Playwright Chromium Browser
+        run: npx playwright install --with-deps chromium
       - name: Run Playwright tests
         env:
           CI: true
-          WHATEVER: "test"
         run: npx playwright test
       - uses: actions/upload-artifact@v3
         if: always()
@@ -31,10 +30,3 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 30
-
-      # WORKFLOW_NAME is used for productName extension in electron-builder.js
-      - name: Set Env
-        shell: bash
-        run: |
-          echo "BRANCH_NAME=${GITHUB_REF##*/}" >> $GITHUB_ENV
-          echo "WORKFLOW_NAME=nightly" >> $GITHUB_ENV
