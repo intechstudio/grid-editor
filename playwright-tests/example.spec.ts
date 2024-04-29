@@ -1,13 +1,21 @@
 import { test, expect } from "@playwright/test";
-import { dirname } from "path";
 import dotenv from "dotenv";
 dotenv.config();
 
-test("has title", async ({ page }) => {
-  console.log(process.env.CI, "whatever: ", process.env.WHATEVER);
+const pagePath =
+  process.env.CI == "true"
+    ? `file://${process.cwd()}/dist-web/index.html`
+    : `http://localhost:5173`;
 
-  await page.goto(`file://${process.cwd()}/dist-web/index.html`);
+test("has title", async ({ page }) => {
+  console.log("Current working directory: ", process.cwd());
+
+  console.log("CI: ", pagePath);
+
+  await page.goto(pagePath);
 
   // Expect a title "to contain" a substring.
-  await expect(page).toHaveTitle(/Editor/);
+  await expect(page).toHaveTitle("Editor");
+  // should fail
+  await expect(page).toHaveTitle("Editorrrrr");
 });
