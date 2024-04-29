@@ -42,6 +42,7 @@
     overwriteElement,
     copyElement,
     discardElement,
+    clearElement,
   } from "../../../main/panels/configuration/configuration-actions";
   import { appClipboard } from "../../../runtime/clipboard.store";
 
@@ -205,6 +206,19 @@
       mandatory: false,
     });
   }
+
+  function handleClearElement() {
+    const ui = get(user_input);
+    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
+      console.warn(e);
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Clear Element" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <div class="pointer-events-none {$$props.classs}" style={$$props.style}>
@@ -277,6 +291,10 @@
                 });
                 return !target.hasChanges();
               },
+            },
+            {
+              text: "Clear Element",
+              handler: handleClearElement,
             },
           ],
         }}

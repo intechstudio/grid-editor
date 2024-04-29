@@ -48,6 +48,7 @@
     discardElement,
     overwriteElement,
     copyElement,
+    clearElement,
   } from "./configuration-actions";
 
   //////////////////////////////////////////////////////////////////////////////
@@ -330,6 +331,19 @@
     const config = configs[index];
     selectAction(index, !config.selected);
   }
+
+  function handleClearElement() {
+    const ui = get(user_input);
+    clearElement(ui.dx, ui.dy, ui.pagenumber, ui.elementnumber).catch((e) => {
+      console.warn(e);
+    });
+
+    Analytics.track({
+      event: "Config Action",
+      payload: { click: "Clear Element" },
+      mandatory: false,
+    });
+  }
 </script>
 
 <configuration class="w-full h-full flex flex-col bg-primary">
@@ -356,6 +370,7 @@
             on:copy-all={handleCopyElement}
             on:overwrite-all={handleOverwriteElement}
             on:discard={handleDiscardElement}
+            on:clear-element={handleClearElement}
           />
         </div>
 

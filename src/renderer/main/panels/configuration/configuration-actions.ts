@@ -9,6 +9,7 @@ import {
 import {
   EventType,
   EventTypeToNumber,
+  grid,
 } from "../../../protocol/grid-protocol.ts";
 import { get } from "svelte/store";
 import {
@@ -347,4 +348,55 @@ export function removeActions() {
 export function cutActions() {
   copyActions();
   removeActions();
+}
+
+export function clearElement(
+  dx: number,
+  dy: number,
+  pageNumber: number,
+  elementNumber: number
+) {
+  const rt = get(runtime);
+  const device: any = rt.find((e: any) => e.dx === dx && e.dy === dy);
+  const page: any = device?.pages.find((e: any) => e.pageNumber === pageNumber);
+  const type = page.control_elements.find(
+    (e: any) => e.elementIndex === elementNumber
+  ).type;
+  const events = grid.get_element_events(type).map((e) => {
+    return {
+      value: Number(e.value),
+      config: e.defaultConfig,
+      stored: e.defaultConfig,
+    };
+  });
+
+  const current = ConfigTarget.create({
+    device: {
+      dx: dx,
+      dy: dy,
+    },
+    page: pageNumber,
+    element: elementNumber,
+    eventType: EventTypeToNumber(EventType.INIT),
+  });
+
+  const promises: Promise<void>[] = [];
+  for (const e of current!.events ?? ([] as any[])) {
+    const eventtype = e.type;
+    const target = ConfigTarget.create({
+      device: current!.device,
+      element: current!.element,
+      eventType: eventtype,
+      page: current!.page,
+    });
+    const defaultConfig = events.find(
+      (e: any) => e.value === eventtype
+    )?.config;
+    const list = ConfigList.createFromActionString(defaultConfig);
+    promises.push(list.sendTo({ target: target }));
+  }
+
+  return Promise.all(promises).then(() => {
+    configManager.refresh();
+  });
 }

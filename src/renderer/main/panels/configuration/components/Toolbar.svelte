@@ -1,4 +1,6 @@
 <script>
+  import { grid } from "./../../../../protocol/grid-protocol.ts";
+  import { get } from "svelte/store";
   import {
     appClipboard,
     ClipboardKey,
@@ -100,13 +102,6 @@
 
   $: handleCalculateDiscardEnabled($runtime, $user_input);
 
-  let copyElementEnabled = false;
-
-  $: {
-    copyElementEnabled =
-      typeof $user_input !== "undefined" && $runtime.length > 0;
-  }
-
   let selectedAction = undefined;
 
   function handleToolbarButtonHover(buttonText) {
@@ -119,6 +114,10 @@
 
   const modifier =
     ctxProcess.platform() == "darwin" ? ["Cmd ⌘", "Alt ⌥"] : ["Ctrl", "Alt"];
+
+  function handleClearElement() {
+    dispatch("clear-element");
+  }
 </script>
 
 <app-action-multi-select class="w-full flex flex-row justify-between -mb-2">
@@ -172,6 +171,15 @@
         iconPath={"clear_from_device_01"}
         disabled={!discardElementEnabled}
         color={"#ff2323"}
+      />
+
+      <MoltenToolbarButton
+        on:click={handleClearElement}
+        on:mouseenter={() => handleToolbarButtonHover("Clear Element")}
+        on:mouseleave={handleToolbarButtonBlur}
+        iconPath={"clear_element"}
+        disabled={$runtime.length === 0}
+        color={"#A020F0"}
       />
     </div>
     <div class="flex flex-row">
