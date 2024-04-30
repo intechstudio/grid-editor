@@ -175,8 +175,13 @@
 
       <MoltenToolbarButton
         on:click={handleClearElement}
-        on:mouseenter={() => handleToolbarButtonHover("Clear Element")}
+        on:mouseenter={() =>
+          handleToolbarButtonHover("Clear Element (Shift + Delete)")}
         on:mouseleave={handleToolbarButtonBlur}
+        shortcut={{
+          shift: true,
+          code: "Delete",
+        }}
         iconPath={"clear_element"}
         disabled={$runtime.length === 0}
         color={"#A020F0"}
@@ -236,10 +241,9 @@
       <MoltenToolbarButton
         on:click={handleRemoveClicked}
         on:mouseenter={() =>
-          handleToolbarButtonHover(`Remove Action(s) (Shift + Delete)`)}
+          handleToolbarButtonHover(`Remove Action(s) (Delete)`)}
         on:mouseleave={handleToolbarButtonBlur}
         shortcut={{
-          shift: true,
           code: "Delete",
         }}
         disabled={!isSelection}
@@ -253,6 +257,7 @@
     use:shortcut={{
       control: true,
       code: "KeyA",
+      callback: handleSelectAllClicked,
     }}
     on:mouseenter={() =>
       handleToolbarButtonHover(`Select All (${modifier[0]} + A)`)}
