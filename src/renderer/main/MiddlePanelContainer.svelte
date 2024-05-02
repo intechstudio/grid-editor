@@ -11,7 +11,7 @@
   import GridLayout from "./grid-layout/GridLayout.svelte";
   import ModuleHangingDialog from "./user-interface/ModuleHangingDialog.svelte";
   import StickyContainer from "./user-interface/StickyContainer.svelte";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import ControlSurface from "./panels/configuration/components/ControlSurface.svelte";
 
   let logLength = 0;
@@ -44,7 +44,11 @@
   }
 
   onMount(() => {
-    window.addEventListener("resize", handleResize, true);
+    window.addEventListener("resize", handleResize);
+  });
+
+  onDestroy(() => {
+    window.removeEventListener("resize", handleResize);
   });
 
   function handleGridLayoutShift(vector) {
