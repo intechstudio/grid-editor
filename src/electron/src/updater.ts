@@ -84,12 +84,11 @@ function init() {
   if (
     temporaryVersionCheck ||
     buildVariables.BUILD_ENV === "alpha" ||
-    buildVariables.BUILD_ENV === "production" ||
-    true
+    buildVariables.BUILD_ENV === "production"
   ) {
     updateTimeout = setInterval(checkForUpdates, 10000);
   } else {
-    console.log("Checking for updates is disabled");
+    console.log("Checking for updates is disabled...");
   }
 }
 
