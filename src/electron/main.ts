@@ -231,6 +231,7 @@ function createWindow() {
   websocket.mainWindow = mainWindow;
   firmware.mainWindow = mainWindow;
   updater.mainWindow = mainWindow;
+  updater.init();
 
   ipcMain.on("restartAfterUpdate", () => {
     log.info('Calling "restartAfterUpdate" from main.ts');
@@ -239,6 +240,14 @@ function createWindow() {
 
   ipcMain.on("restartPackageManager", (event) => {
     restartPackageManagerProcess();
+  });
+
+  ipcMain.on("installUpdate", (event) => {
+    updater.installUpdate();
+  });
+
+  ipcMain.on("disableUpdating", (event) => {
+    updater.disableUpdating();
   });
 
   console.log("here what is buildVariables.BUILD_ENV");
