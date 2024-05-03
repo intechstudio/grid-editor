@@ -14,7 +14,6 @@
 
   import { beforeUpdate, afterUpdate } from "svelte";
 
-  import * as luamin from "lua-format";
   import { stringManipulation } from "../../main/user-interface/_string-operations";
   import { configManager } from "../panels/configuration/Configuration.store";
   import { appSettings } from "../../runtime/app-helper.store";

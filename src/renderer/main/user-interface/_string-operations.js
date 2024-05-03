@@ -1,5 +1,5 @@
 import { grid } from "../../protocol/grid-protocol";
-import * as luamin from "lua-format";
+import { formatText } from "lua-fmt";
 
 export const stringManipulation = {
   initialize: function (inputSet = []) {
@@ -292,38 +292,14 @@ export const stringManipulation = {
 
   compressScript: function (script) {
     let code = script;
-    //Step 1
     code = stringManipulation.shortify(code);
-
-    //Step 2
-    code = stringManipulation.blockCommentToLineComment(code);
-    code = stringManipulation.lineCommentToNoComment(code);
-
-    //Step 3
-    const result = luamin.Minify(code, {
-      RenameVariables: false,
-      RenameGlobals: false,
-      SolveMath: false,
-    });
-
+    const result = formatText(code);
     return result.trim();
   },
 
   expandScript: function (script) {
     let code = script;
-    //Step 1
-    code = luamin.Beautify(code, {
-      RenameVariables: false,
-      RenameGlobals: false,
-      SolveMath: false,
-    });
-
-    //Step 2
-    code = stringManipulation.noCommentToLineComment(code);
-
-    //Step 3
     const result = stringManipulation.humanize(String(code));
-
     return result.trim();
   },
 };

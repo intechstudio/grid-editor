@@ -1,4 +1,4 @@
-import { get, writable, derived } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 import {
   runtime,
@@ -7,12 +7,14 @@ import {
 } from "../../../runtime/runtime.store";
 import { NumberToEventType } from "../../../protocol/grid-protocol";
 
-//import { checkForbiddenIdentifiers } from "../../../runtime/monaco-helper";
-
 import {
   getComponentInformation,
   init_config_block_library,
 } from "../../../lib/_configs";
+
+import { grid } from "../../../protocol/grid-protocol";
+import { v4 as uuidv4 } from "uuid";
+import { formatText } from "lua-fmt";
 
 export let lastOpenedActionblocks = writable([]);
 
@@ -34,18 +36,6 @@ export function lastOpenedActionblocksRemove(short) {
   // Update the store with the new value
   lastOpenedActionblocks.set(currentList.filter((e) => e !== short));
 }
-
-import { stringManipulation } from "../../user-interface/_string-operations";
-import * as luamin from "lua-format";
-
-import { grid } from "../../../protocol/grid-protocol";
-import { v4 as uuidv4 } from "uuid";
-
-const luaminOptions = {
-  RenameVariables: false, // Should it change the variable names? (L_1_, L_2_, ...)
-  RenameGlobals: false, // Not safe, rename global variables? (G_1_, G_2_, ...) (only works if RenameVariables is set to true)
-  SolveMath: false, // Solve math? (local a = 1 + 1 => local a = 2, etc.)
-};
 
 export class ConfigObject {
   constructor({ short, script }) {
@@ -99,7 +89,7 @@ export class ConfigObject {
       this.information.syntaxPreprocessor?.generate(this.script) ?? this.script;
 
     try {
-      luamin.Minify(code, luaminOptions);
+      formatText(code);
       return true;
     } catch (e) {
       return false;
@@ -108,7 +98,7 @@ export class ConfigObject {
 
   getSyntaxError() {
     try {
-      luamin.Minify(code, luaminOptions);
+      formatText(code);
       return "OK";
     } catch (e) {
       return e;

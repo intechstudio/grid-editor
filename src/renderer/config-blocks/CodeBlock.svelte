@@ -40,7 +40,6 @@
 </script>
 
 <script>
-  import * as luamin from "lua-format";
   import { stringManipulation } from "../main/user-interface/_string-operations";
 
   import { createEventDispatcher, onMount, onDestroy } from "svelte";
