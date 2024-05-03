@@ -196,26 +196,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
     });
   }
 
-  async function firmwareNightlyDownload() {
-    const folder = $appSettings.persistent.profileFolder;
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Nightly Firmware Download Start",
-      },
-      mandatory: false,
-    });
-
-    await window.electron.firmware.firmwareNightlyDownload(folder);
-    Analytics.track({
-      event: "FirmwareCheck",
-      payload: {
-        message: "Nightly Firmware Download Finished",
-      },
-      mandatory: false,
-    });
-  }
-
   async function firmwareTroubleshooting() {
     Analytics.track({
       event: "FirmwareCheck",
@@ -284,13 +264,6 @@ STATE 6 | Error               | Button  -> STATE 0 (Close notification)
       class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
     >
       Update Firmware
-    </button>
-
-    <button
-      on:click={firmwareNightlyDownload}
-      class="flex items-center justify-center rounded my-2 focus:outline-none border-2 border-select bg-select hover:bg-select-saturate-10 hover:border-select-saturate-10 text-white px-2 py-0.5 mr-2"
-    >
-      Update (Nightly)
     </button>
   </div>
 {/if}

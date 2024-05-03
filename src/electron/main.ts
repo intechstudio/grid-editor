@@ -34,12 +34,7 @@ import { serial, restartSerialCheckInterval } from "./ipcmain_serialport";
 import { websocket } from "./ipcmain_websocket";
 import { store } from "./main-store";
 import { iconBuffer, iconSize } from "./icon";
-import {
-  firmware,
-  firmwareDownload,
-  firmwareNightlyDownload,
-  findBootloaderPath,
-} from "./src/firmware";
+import { firmware, firmwareDownload, findBootloaderPath } from "./src/firmware";
 import { updater, restartAfterUpdate } from "./src/updater";
 import {
   libraryDownload,
@@ -567,11 +562,6 @@ ipcMain.handle("deleteConfig", async (event, arg) => {
 ipcMain.handle("firmwareDownload", async (event, arg) => {
   return await firmwareDownload(arg.targetFolder);
 });
-
-ipcMain.handle("firmwareNightlyDownload", async (event, arg) => {
-  return await firmwareNightlyDownload(arg.targetFolder);
-});
-
 ipcMain.handle("findBootloaderPath", async (event, arg) => {
   return await findBootloaderPath();
 });
