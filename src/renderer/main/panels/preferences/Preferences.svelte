@@ -1,13 +1,9 @@
 <script lang="ts">
-  import { modal } from "./../../modals/modal.store.ts";
-  import AddVirtualModule from "./../../modals/AddVirtualModule.svelte";
   import { configManager } from "./../configuration/Configuration.store.js";
   import { logger } from "./../../../runtime/runtime.store.js";
-  import { writable, get } from "svelte/store";
+  import { get } from "svelte/store";
   import { instructions } from "../../../serialport/instructions";
-  import { onMount, onDestroy } from "svelte";
   import { appSettings } from "../../../runtime/app-helper.store";
-  import { Analytics } from "../../../runtime/analytics.js";
   import { runtime } from "../../../runtime/runtime.store.js";
 
   import {
@@ -21,10 +17,8 @@
     MeltSelect,
     MoltenButton,
     MoltenInput,
-    BlockColumn,
   } from "@intechstudio/grid-uikit";
   import { reduced_motion_store } from "../../../runtime/animations.js";
-  import MoltenPushButton, { ButtonSnap } from "./MoltenPushButton.svelte";
 
   const configuration = window.ctxProcess.configuration();
 
@@ -87,24 +81,6 @@
   ];
 
   let activePreferenceMenu = PreferenceMenu.GENERAL;
-
-  let virtualModuleDX: string = "0";
-  let virtualModuleDY: string = "0";
-
-  function handleAddVirtualModuleClicked() {
-    modal.show({
-      component: AddVirtualModule,
-      args: { dx: Number(virtualModuleDX), dy: Number(virtualModuleDY) },
-    });
-  }
-
-  function handleRemoveVirtualModuleClicked() {
-    const rt = get(runtime);
-    const [dx, dy] = [Number(virtualModuleDX), Number(virtualModuleDY)];
-    if (typeof rt.find((e) => e.dx === dx && e.dy === dy) !== "undefined") {
-      runtime.destroy_module(dx, dy);
-    }
-  }
 </script>
 
 <div
@@ -431,31 +407,6 @@
           }}
         />
       </BlockRow>
-    </Block>
-
-    <Block>
-      <BlockTitle>Virtual Module Management</BlockTitle>
-      <BlockBody
-        >Additional modules can be added or removed on a given coordinate.</BlockBody
-      >
-      <BlockRow>
-        <BlockBody>DX</BlockBody>
-        <MoltenInput bind:target={virtualModuleDX} />
-        <BlockBody>DY</BlockBody>
-        <MoltenInput bind:target={virtualModuleDY} />
-      </BlockRow>
-      <BlockColumn>
-        <MoltenPushButton
-          text={"Add"}
-          snap={ButtonSnap.FULL}
-          on:click={handleAddVirtualModuleClicked}
-        />
-        <MoltenPushButton
-          text={"Remove"}
-          snap={ButtonSnap.FULL}
-          on:click={handleRemoveVirtualModuleClicked}
-        />
-      </BlockColumn>
     </Block>
 
     <Block>
