@@ -23,9 +23,10 @@ jobs:
       - name: Create public env file
         run: |
           touch .env
-          echo PUBLIC_APP_ENV=development >> .env
+          echo PUBLIC_COMMIT_HASH=$(git log --format="%h" -n 1) >> .env
+          echo PUBLIC_APP_ENV=production >> .env
           echo PUBLIC_GOOGLE_CLIENT_ID=${{ secrets.PUBLIC_GOOGLE_CLIENT_ID_PROD }} >> .env
-          echo PUBLIC_VERSION_STRING=$(git log --format="%h %cd" --date=short --abbrev-commit -1) >> .env
+          echo PUBLIC_CREATION_DATE=$(git log --format="%cd" --date=format:'%Y-%m-%d' -1) >> .env
 
       - name: Build profile cloud project
         run: npm ci && npm run build

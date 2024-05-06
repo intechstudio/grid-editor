@@ -36,6 +36,7 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve(__dirname, "src/electron/preload.ts"),
+          package: resolve(__dirname, "src/electron/preload_package.ts"),
         },
       },
       outDir: "dist/preload",
